@@ -57,7 +57,8 @@ public interface Constants extends VM_SizeConstants {
    *
    * This value is required to be a power of 2.
    */
-  static final int BYTES_IN_PARTICLE = BYTES_IN_INT;
+  static final int LOG_BYTES_IN_PARTICLE = LOG_BYTES_IN_INT;
+  static final int BYTES_IN_PARTICLE = 1<<LOG_BYTES_IN_PARTICLE;
 
   /**
    * The maximum alignment request the vm will make. This must be a 

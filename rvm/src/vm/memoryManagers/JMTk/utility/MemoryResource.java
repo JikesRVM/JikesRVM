@@ -121,7 +121,7 @@ public final class MemoryResource implements Constants, VM_Uninterruptible {
    * @param pages The number of pages requested
    * @return success Whether the acquire succeeded.
    */
-  public boolean acquire (int pages) {
+  public boolean acquire(int pages) {
     lock();
     reserved = committed + pages;
     if (reserved > pageBudget) {
@@ -136,6 +136,20 @@ public final class MemoryResource implements Constants, VM_Uninterruptible {
       addToCommitted(pages);   // only count mutator pages
     unlock();
     return true;
+  }
+
+  /**
+   * Consume a number of pages from the memory resource. 
+   *
+   * @param pages The number of pages requested
+   */
+  void consume(int pages) {
+    lock();
+    reserved += pages;
+    committed += pages;
+    if (!Plan.gcInProgress())
+      addToCommitted(pages);   // only count mutator pages
+    unlock();
   }
 
   /**

@@ -58,4 +58,9 @@ public interface VM_SizeConstants {
   static final int BYTES_IN_ADDRESS = 1<<LOG_BYTES_IN_ADDRESS;
   static final int LOG_BITS_IN_ADDRESS = LOG_BITS_IN_BYTE + LOG_BYTES_IN_ADDRESS;
   static final int BITS_IN_ADDRESS = 1<<LOG_BITS_IN_ADDRESS;
+
+  static final int LOG_BYTES_IN_WORD = VM.BuildFor64Addr ? 3 : 2;
+  static final int BYTES_IN_WORD = 1<<LOG_BYTES_IN_WORD;
+  static final int LOG_BITS_IN_WORD = LOG_BITS_IN_BYTE + LOG_BYTES_IN_WORD;
+  static final int BITS_IN_WORD = 1<<LOG_BITS_IN_WORD;
 }

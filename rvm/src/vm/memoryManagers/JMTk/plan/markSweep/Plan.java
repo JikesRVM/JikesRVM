@@ -11,9 +11,9 @@ import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.TreadmillSpace;
 import org.mmtk.policy.TreadmillLocal;
-import org.mmtk.utility.AllocAdvice;
-import org.mmtk.utility.Allocator;
-import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.alloc.AllocAdvice;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.FreeListVMResource;
@@ -95,8 +95,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
-  private static final VM_Extent         MS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
+  private static final VM_Extent        LOS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
+  private static final VM_Extent         MS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
   public  static final VM_Extent        MAX_SIZE = MS_SIZE;
 
   private static final VM_Address      LOS_START = PLAN_START;
@@ -128,7 +128,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   static {
     msMR = new MemoryResource("ms", POLL_FREQUENCY);
     losMR = new MemoryResource("los", POLL_FREQUENCY);
-    msVM = new FreeListVMResource(MS_SPACE, "MS",       MS_START,   MS_SIZE, VMResource.IN_VM);
+    msVM = new FreeListVMResource(MS_SPACE, "MS",       MS_START,   MS_SIZE, VMResource.IN_VM, MarkSweepSpace.META_DATA_PAGES_PER_REGION);
     losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
     msSpace = new MarkSweepSpace(msVM, msMR);
     losSpace = new TreadmillSpace(losVM, losMR);
@@ -416,7 +416,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-    case MS_SPACE:        return msSpace.traceObject(obj, VMResource.getTag(addr));
+    case MS_SPACE:        return msSpace.traceObject(obj);
     case LOS_SPACE:       return losSpace.traceObject(obj);
     case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
     case BOOT_SPACE:      return ImmortalSpace.traceObject(obj);

@@ -10,9 +10,9 @@ import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
 import org.mmtk.policy.RefCountLOSLocal;
 import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AllocAdvice;
-import org.mmtk.utility.Allocator;
-import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.alloc.AllocAdvice;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.FreeListVMResource;
@@ -107,8 +107,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent         RC_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
-  private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
+  private static final VM_Extent         RC_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
+  private static final VM_Extent        LOS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
   public  static final VM_Extent        MAX_SIZE = RC_SIZE;
 
   public  static final VM_Address       RC_START = PLAN_START;
@@ -156,7 +156,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     rcMR = new MemoryResource("rc", POLL_FREQUENCY);
 
     // virtual memory resources
-    rcVM = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM);
+    rcVM = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM, RefCountSpace.META_DATA_PAGES_PER_REGION);
     losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
 
     // collectors
@@ -241,11 +241,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                               int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
-    case RC_SPACE: 
+    case RC_SPACE:
+      RefCountLocal.liveObject(ref);
     case LOS_SPACE: 
-      if (WITH_COALESCING_RC)
-	modBuffer.pushOOL(ref);
-      decBuffer.pushOOL(VM_Magic.objectAsAddress(ref));
+      if (WITH_COALESCING_RC) modBuffer.pushOOL(ref);
+      decBuffer.pushOOL(ref);
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(ref); 
       Header.initializeHeader(ref, tib, bytes);
       return;

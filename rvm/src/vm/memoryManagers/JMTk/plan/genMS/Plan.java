@@ -7,7 +7,7 @@ package org.mmtk.plan;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.MarkSweepSpace;
-import org.mmtk.utility.Allocator;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.FreeListVMResource;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
@@ -93,7 +93,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    matureVM = new FreeListVMResource(MATURE_SPACE, "Mature", MATURE_START, MATURE_SIZE, VMResource.IN_VM);
+    matureVM = new FreeListVMResource(MATURE_SPACE, "Mature", MATURE_START, MATURE_SIZE, VMResource.IN_VM, MarkSweepSpace.META_DATA_PAGES_PER_REGION);
     matureSpace = new MarkSweepSpace(matureVM, matureMR);
   }
 
@@ -226,7 +226,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
                                                       VM_Address addr) {
     if (VM_Interface.VerifyAssertions && space != MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
-    return matureSpace.traceObject(obj, VMResource.getTag(addr));
+    return matureSpace.traceObject(obj);
   }
 
   /**  
@@ -240,6 +240,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
   public final void postCopy(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaInline {
     HybridHeader.writeMarkBit(ref, matureSpace.getInitialHeaderValue());
+    MarkSweepLocal.liveObject(ref);
   }
 
   /**

@@ -8,11 +8,11 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.RCBaseHeader;
 import org.mmtk.utility.AddressDeque;
 import org.mmtk.utility.AddressPairDeque;
-import org.mmtk.utility.BlockAllocator;
+import org.mmtk.utility.alloc.BlockAllocator;
+import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.Scan;
-import org.mmtk.utility.SegregatedFreeList;
 import org.mmtk.utility.SharedDeque;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.RCSanityEnumerator;
@@ -24,6 +24,7 @@ import org.mmtk.vm.Lock;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -60,8 +61,6 @@ public final class RefCountLocal extends SegregatedFreeList
   public static int rcLiveObjects = 0;
   public static int sanityLiveObjects = 0;
 
-  private static final int RCL_TAG_OFFSET = FREE_LIST_HEADER_BYTES;
-  private static final int RC_BLOCK_HEADER = BYTES_IN_ADDRESS; 
   private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
   private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
 
@@ -79,14 +78,10 @@ public final class RefCountLocal extends SegregatedFreeList
   private RefCountLOSLocal los;
   private Plan plan;
 
-  private Lock deferredFreeLock;
-
   private AddressDeque incBuffer;
   private AddressDeque decBuffer;
   private AddressDeque newRootSet;
   private AddressDeque oldRootSet;
-  private SharedDeque deferredFreePool;
-  private AddressPairDeque deferredFreeBuffer;
 
   private boolean decrementPhase = false;
 
@@ -149,15 +144,15 @@ public final class RefCountLocal extends SegregatedFreeList
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
       cellSize[sc] = getBaseCellSize(sc);
       for (byte blk = 0; blk < BlockAllocator.BLOCK_SIZE_CLASSES; blk++) {
-        int avail = BlockAllocator.blockSize(blk) - FREE_LIST_HEADER_BYTES - RC_BLOCK_HEADER;
-        int cells = avail/cellSize[sc];
+        int usableBytes = BlockAllocator.blockSize(blk);
+        int cells = usableBytes/cellSize[sc];
         blockSizeClass[sc] = blk;
         cellsInBlock[sc] = cells;
         /*cells must start at multiple of BYTES_IN_PARTICLE
            because cellSize is also supposed to be multiple, this should do the trick: */
         blockHeaderSize[sc] = BlockAllocator.blockSize(blk) - cells * cellSize[sc];
-        if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
-            ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
+        if (((usableBytes < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
+            ((usableBytes > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
           break;
       }
     }
@@ -175,19 +170,14 @@ public final class RefCountLocal extends SegregatedFreeList
    */
   public RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
                        AddressDeque dec, AddressDeque root) {
-    super(space.getVMResource(), space.getMemoryResource(), plan_);
+    super(space.getVMResource(), space.getMemoryResource());
     rcSpace = space;
     plan = plan_;
     los = los_;
 
-    deferredFreeLock = new Lock("RefCountLocal.deferredFreeLock");
-
     decBuffer = dec;
     newRootSet = root;
     oldRootSet = new AddressDeque("old root set", oldRootPool);
-    deferredFreePool = new SharedDeque(Plan.getMetaDataRPA(), 2);
-    deferredFreePool.newClient();
-    deferredFreeBuffer = new AddressPairDeque(deferredFreePool);
     if (RefCountSpace.RC_SANITY_CHECK) {
       incSanityRoots = new AddressDeque("sanity increment root set", incSanityRootsPool);
       sanityWorkQueue = new AddressPairDeque(sanityWorkQueuePool);
@@ -204,13 +194,21 @@ public final class RefCountLocal extends SegregatedFreeList
    *
    * Allocation
    */
-  public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-                              int bytes, boolean inGC) throws VM_PragmaInline{}
-  public final void postExpandSizeClass(VM_Address block, int sizeClass) {
-    VM_Magic.setMemoryAddress(block.add(RCL_TAG_OFFSET), VM_Magic.objectAsAddress(this));
-  }
-  protected final VM_Address advanceToBlock(VM_Address block, int sizeClass){
-    return getFreeList(block);
+
+  /**
+   * Prepare the next block in the free block list for use by the free
+   * list allocator.  In the case of lazy sweeping this involves
+   * sweeping the available cells.  <b>The sweeping operation must
+   * ensure that cells are pre-zeroed</b>, as this method must return
+   * pre-zeroed cells.
+   *
+   * @param block The block to be prepared for use
+   * @param sizeClass The size class of the block
+   * @return The address of the first pre-zeroed cell in the free list
+   * for this block, or zero if there are no available cells.
+   */
+  protected final VM_Address advanceToBlock(VM_Address block, int sizeClass) {
+    return makeFreeListFromLiveBits(block, sizeClass);
   }
 
   /****************************************************************************
@@ -247,14 +245,14 @@ public final class RefCountLocal extends SegregatedFreeList
     if (RefCountSpace.RC_SANITY_CHECK) incSanityTrace();
     processDecBufs();
     if (timekeeper) decTime.stop();
+    VM_Interface.rendezvous(4410);
+    sweepBlocks();
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
       if (timekeeper) cdTime.start();
       if (cycleDetector.collectCycles(count, timekeeper)) 
         processDecBufs();
       if (timekeeper) cdTime.stop();
     }
-    VM_Interface.rendezvous(4410);
-    processDeferredFreeBufs();
     VM_Interface.rendezvous(4420);
     if (RefCountSpace.RC_SANITY_CHECK) checkSanityTrace();
     if (!RefCountSpace.INC_DEC_ROOT) {
@@ -264,6 +262,24 @@ public final class RefCountLocal extends SegregatedFreeList
         processRootBufs();
     }
     restoreFreeLists();
+  }
+
+  /**
+   * Sweep all blocks for free objects. 
+   */
+  private final void sweepBlocks() {
+    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
+      VM_Address block = firstBlock.get(sizeClass);
+      VM_Extent blockSize = VM_Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      while (!block.isZero()) {
+        /* check to see if block is completely free and if possible
+         * free the entire block */
+        VM_Address next = BlockAllocator.getNextBlock(block);
+        if (isEmpty(block, blockSize))
+          freeBlock(block, sizeClass);
+        block = next;
+      }
+    }
   }
 
   /**
@@ -332,21 +348,6 @@ public final class RefCountLocal extends SegregatedFreeList
     }
   }
 
-  /**
-   * Process the deferred free buffers
-   */
-  private final void processDeferredFreeBufs() {
-    VM_Address cell;
-    while (!(cell = deferredFreeBuffer.pop1()).isZero()) {
-      VM_Address block = deferredFreeBuffer.pop2();
-      int sizeClass = getBlockSizeClass(block);
-      if (VM_Interface.VerifyAssertions) {
-        VM_Interface._assert(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET))));
-      }
-      free(cell, block, sizeClass);
-    }
-  }
-
   /****************************************************************************
    *
    * Object processing and tracing
@@ -403,28 +404,10 @@ public final class RefCountLocal extends SegregatedFreeList
     throws VM_PragmaInline {
     VM_Address ref = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(ref);
-    if (space == Plan.LOS_SPACE) {
+    if (space == Plan.LOS_SPACE)
       los.free(ref);
-    } else {
-      byte tag = VMResource.getTag(ref);
-      
-      VM_Address block = BlockAllocator.getBlockStart(ref, tag);
-      int sizeClass = getBlockSizeClass(block);
-      int index = (ref.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
-      VM_Address cell = block.add(blockHeaderSize[sizeClass]).add(index*cellSize[sizeClass]);
-      VM_Address owner = VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET));
-      if (owner.EQ(VM_Magic.objectAsAddress(this)))
-        free(cell, block, sizeClass);
-      else {
-        ((RefCountLocal) VM_Magic.addressAsObject(owner)).deferredFree(cell, block);
-      }
-    }
-  }
-
-  private final void deferredFree(VM_Address cell, VM_Address block) {
-    deferredFreeLock.acquire();
-    deferredFreeBuffer.push(cell, block);
-    deferredFreeLock.release();
+    else
+      deadObject(object);
   }
 
   /****************************************************************************

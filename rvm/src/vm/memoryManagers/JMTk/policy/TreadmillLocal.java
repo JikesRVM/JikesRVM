@@ -4,7 +4,7 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.utility.LargeObjectAllocator;
+import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;

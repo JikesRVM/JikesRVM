@@ -20,9 +20,25 @@ import com.ibm.JikesRVM.VM_Extent;
 import org.mmtk.vm.VM_Interface;
 public class Conversions implements Constants, VM_Uninterruptible {
 
-  public static VM_Extent roundDownMB (VM_Extent bytes) {
-    VM_Word mask = VM_Word.one().lsh(LOG_BYTES_IN_MBYTE).sub(VM_Word.one()).not();
-    return bytes.toWord().and(mask).toExtent();
+  public static VM_Address roundDownVM(VM_Address addr) {
+    return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
+  }
+
+  public static VM_Extent roundDownVM(VM_Extent bytes) {
+    return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
+  }
+
+  public static VM_Address roundDownMB(VM_Address addr) {
+    return roundDown(addr.toWord(), LOG_BYTES_IN_MBYTE).toAddress();
+  }
+
+  public static VM_Extent roundDownMB(VM_Extent bytes) {
+    return roundDown(bytes.toWord(), LOG_BYTES_IN_MBYTE).toExtent();
+  }
+
+  private static VM_Word roundDown(VM_Word value, int logBase) {
+    VM_Word mask = VM_Word.one().lsh(logBase).sub(VM_Word.one()).not();
+    return value.and(mask);
   }
 
   // Round up (if necessary)
@@ -99,6 +115,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
     return VM_Word.fromIntZeroExtend(chunk).lsh(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toAddress();
   }
 
-
-
+  public static VM_Address pageAlign(VM_Address address) {
+    return address.toWord().rshl(LOG_BYTES_IN_PAGE).lsh(LOG_BYTES_IN_PAGE).toAddress();
+  }
 }

@@ -3,7 +3,7 @@
  */
 //$Id$
 
-package org.mmtk.utility;
+package org.mmtk.utility.alloc;
 
 import org.mmtk.vm.VM_Interface;
 

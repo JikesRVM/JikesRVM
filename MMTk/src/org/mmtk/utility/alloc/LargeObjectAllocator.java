@@ -3,8 +3,9 @@
  * Australian National University. 2002
  */
 
-package org.mmtk.utility;
+package org.mmtk.utility.alloc;
 
+import org.mmtk.utility.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 

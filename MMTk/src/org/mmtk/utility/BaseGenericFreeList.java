@@ -113,18 +113,44 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
     // Note: -1 is both the default return value *and* the start sentinel index
     int rtn = HEAD; // HEAD = -1
     int s = 0;
-
     while (((rtn = getNext(rtn)) != HEAD) && ((s = getSize(rtn)) < size));
+    
+    return alloc(size, rtn, s); 
+  }
 
-    if (s >= size) {
-      if (s > size)
-        split(rtn, size);
-      removeFromFree(rtn);
-      setFree(rtn, false);
+  /**
+   * Allocate <code>size</code> units.  Return the unit ID
+   *
+   * @param size  The number of units to be allocated
+   * @return The index of the first of the <code>size</code>
+   * contigious units, or -1 if the request can't be satisfied
+   */
+  public final int alloc(int size, int unit) {
+    int s = 0;
+
+    if (getFree(unit) && (s = getSize(unit)) >= size)
+      return alloc(size, unit, s);
+    else 
+      return HEAD;
+  }
+
+  /**
+   * Allocate <code>size</code> units.  Return the unit ID
+   *
+   * @param size  The number of units to be allocated
+   * @return The index of the first of the <code>size</code>
+   * contigious units, or -1 if the request can't be satisfied
+   */
+  private final int alloc(int size, int unit, int unitSize) {
+    if (unitSize >= size) {
+      if (unitSize > size)
+        split(unit, size);
+      removeFromFree(unit);
+      setFree(unit, false);
     }
 
-    dbgPrintFree();
-    return rtn;
+    if (DEBUG) dbgPrintFree();
+    return unit;
   }
 
   /**
@@ -140,7 +166,7 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
     if (start != end)
       coalesce(start, end);
     addToFree(start);
-    dbgPrintFree();
+    if (DEBUG) dbgPrintFree();
 
     return freed;
   }
@@ -167,14 +193,34 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    * @param units The number of units in the heap
    */
   protected final void initializeHeap(int units) {
+    initializeHeap(units, units);
+  }
+  
+  /**
+   * Initialize a new heap.  Fabricate a free list entry containing
+   * everything
+   *
+   * @param units The number of units in the heap
+   */
+  protected final void initializeHeap(int units, int grain) {
     // Initialize the sentiels
     setSentinel(-1);
     setSentinel(units);
 
     // create the free list item
-    setSize(0, units);
-    setFree(0, true);
-    addToFree(0);
+    int offset = units % grain;
+    int cursor = units - offset;
+    if (offset > 0) { 
+      setSize(cursor, offset); 
+      addToFree(cursor);
+    }
+    cursor -= grain;
+    while (cursor >= 0) {
+      setSize(cursor, grain);
+      addToFree(cursor);
+      cursor -= grain;
+    }
+    if (DEBUG) dbgPrintFree();
   }
 
   /**
@@ -247,7 +293,7 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
   /**
    * Print the free list (for debugging purposes)
    */
-  private void dbgPrintFree() {
+  void dbgPrintFree() {
     if (DEBUG) {
       Log.write("FL[");
       int i = HEAD;
@@ -263,8 +309,9 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
         Log.write(s);
         Log.write("]");
         Log.write(" ");
+	Log.flush();
       }
-      Log.write("]FL\n");
+      Log.writeln("]FL");
     }
   }
 

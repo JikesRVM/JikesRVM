@@ -5,9 +5,9 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.utility.AllocAdvice;
-import org.mmtk.utility.Allocator;
-import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.alloc.AllocAdvice;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.MemoryResource;
 import org.mmtk.utility.MonotoneVMResource;

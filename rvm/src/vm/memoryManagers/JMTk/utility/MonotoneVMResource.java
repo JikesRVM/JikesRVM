@@ -142,7 +142,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
    * @param event The GCSpy event
    * @param driver the GCSpy driver for this space
    */
-  void gcspyGatherData(int event, AbstractDriver driver) {
+  public void gcspyGatherData(int event, AbstractDriver driver) {
     driver.setRange(event, getStart(), getCursor());
   }
 

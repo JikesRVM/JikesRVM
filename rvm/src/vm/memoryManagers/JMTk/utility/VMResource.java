@@ -8,6 +8,7 @@ package org.mmtk.utility;
 
 import org.mmtk.plan.BasePlan;
 import org.mmtk.plan.Plan;
+import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
@@ -47,6 +48,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   public static final byte MOVABLE   = 4;   // 00000100
   public static final byte META_DATA = -128; // 10000000
 
+  public static final int LOG_BYTES_IN_VM_REGION = EmbeddedMetaData.LOG_BYTES_IN_REGION;
 
   public static void showAll () {
     for (int vmr = 0; vmr < count; vmr++) {
@@ -89,7 +91,6 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
    */
   private static VMResource resourceTable[]; // Points to corresponding VM resource.  null if no corresponding VM resource.
   private static byte spaceTable[];          // Status of each page
-  private static byte tagTable[];            // Space-specific information of each page
   private static int count;                  // How many VMResources exist now?
   private static VMResource resources[];     // List of all VMResources.
   final private static int MAX_VMRESOURCE = 20;
@@ -103,7 +104,6 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   static {
     resources = new VMResource[MAX_VMRESOURCE];
     spaceTable = new byte[NUM_PAGES];
-    tagTable = new byte[NUM_PAGES];
     for (int blk = 0; blk < NUM_PAGES; blk++) 
       spaceTable[blk] = Plan.UNUSED_SPACE;
   }
@@ -157,25 +157,6 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 				    Conversions.addressToPagesDown(addr));
   }
 
-  public static byte getTag (VM_Address addr) {
-    return tagTable[Conversions.addressToPagesDown(addr)];
-  }
-
-  public static void setTag (VM_Address addr, int pages, byte v) {
-    int start =  Conversions.addressToPagesDown(addr);
-    for (int i=0; i<pages; i++)
-        tagTable[start+i] = v;
-  }
-
-  public static void clearTag (VM_Address addr, int pages, byte v) {
-    int start =  Conversions.addressToPagesDown(addr);
-    for (int i=0; i<pages; i++) {
-        if (tagTable[start+i] != v)
-            VM_Interface.sysFail("VMResource.clearTag: current tag does not match expected value");
-        tagTable[start+i] = (byte) 0;
-    }
-  }
-
   /****************************************************************************
    *
    * Public instance methods
@@ -184,6 +165,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
    * Constructor
    */
   VMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status_) {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(vmStart.EQ(Conversions.roundDownVM(vmStart)));
     space = space_;
     start = vmStart;
     pages = Conversions.bytesToPages(bytes);

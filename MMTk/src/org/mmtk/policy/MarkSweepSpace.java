@@ -6,7 +6,10 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.MarkSweepHeader;
 import org.mmtk.plan.Plan;
+import org.mmtk.utility.alloc.BlockAllocator;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.Memory;
 import org.mmtk.utility.MemoryResource;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
@@ -14,6 +17,8 @@ import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
+import com.ibm.JikesRVM.VM_Offset;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -40,7 +45,9 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    *
    * Class variables
    */
-  
+
+  public static final int META_DATA_PAGES_PER_REGION = MarkSweepLocal.META_DATA_PAGES_PER_REGION;
+
   /****************************************************************************
    *
    * Instance variables
@@ -95,8 +102,9 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param vm (unused)
    * @param mr (unused)
    */
-  public void prepare(VMResource vm, MemoryResource mr) { 
+  public void prepare(FreeListVMResource vm, MemoryResource mr) { 
     markState = MarkSweepHeader.MARK_BIT_MASK.sub(markState);
+    MarkSweepLocal.zeroLiveBits(vm);
     inMSCollection = true;
   }
 
@@ -135,17 +143,16 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * marked.
    *
    * @param object The object to be traced.
-   * XXX No param Javadoc for tag.
    * @return The object (there is no object forwarding in this
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final VM_Address traceObject(VM_Address object, byte tag)
+  public final VM_Address traceObject(VM_Address object)
     throws VM_PragmaInline {
     if (MarkSweepHeader.testAndMark(object, markState)) {
       if (Plan.GATHER_MARK_CONS_STATS)
 	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
-      MarkSweepLocal.internalMarkObject(object, tag);
+      MarkSweepLocal.liveObject(object);
       VM_Interface.getPlan().enqueue(object);
     }
     return object;

@@ -7,7 +7,8 @@
 package org.mmtk.utility;
 
 import org.mmtk.plan.Plan;
-
+import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
@@ -40,13 +41,42 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   /**
    * Constructor
    */
-  public FreeListVMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
-    super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
-    freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
-    gcLock = new Lock("NewFreeListVMResrouce.gcLock");
-    mutatorLock = new Lock("NewFreeListVMResrouce.gcLock");
+  public FreeListVMResource(byte space, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
+    this(space, vmName, vmStart, bytes, status, 0);
+  }
+  public FreeListVMResource(byte space, String vmName, VM_Address vmStart, VM_Extent bytes, byte status, int metaDataPagesPerRegion) {
+    super(space, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
+    if (metaDataPagesPerRegion > 0) 
+      freeList = new GenericFreeList(Conversions.bytesToPages(bytes), EmbeddedMetaData.PAGES_IN_REGION);
+    else
+      freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
+    reserveMetaData(metaDataPagesPerRegion);
+    gcLock = new Lock("FreeListVMResrouce.gcLock");
+    mutatorLock = new Lock("FreeListVMResrouce.mutatorLock");
   }
 
+  /**
+   * Reserve virtual address space for meta-data.
+   *
+   * @param metaDataPagesPerRegion The number of pages of meta data
+   * required to be reserved for each region of allocated data.
+   */
+  private final void reserveMetaData(int metaDataPagesPerRegion) {
+    highWaterMark = 0;
+    if (metaDataPagesPerRegion > 0) {
+      if (VM_Interface.VerifyAssertions) 
+        VM_Interface._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
+      VM_Extent size = end.diff(start).toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toExtent();
+      VM_Address cursor = start.add(size);
+      while (cursor.GT(start)) {
+        cursor = cursor.sub(EmbeddedMetaData.BYTES_IN_REGION);
+        int unit = cursor.diff(start).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+        int tmp = freeList.alloc(metaDataPagesPerRegion, unit);
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface._assert(tmp == unit);
+      }
+    }
+  }
 
  /**
    * Acquire a number of contigious pages from the virtual memory resource.
@@ -58,15 +88,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   public final VM_Address acquire(int pages, MemoryResource mr) {
     return acquire(pages, mr, true);
   }
-  public final VM_Address acquire(int pages, MemoryResource mr, byte tag) {
-    return acquire(pages, mr, tag, true);
-  }
-  public final VM_Address acquire(int pages, MemoryResource mr, byte tag,
-                                  boolean chargeMR) {
-    VM_Address rtn = acquire(pages, mr, chargeMR);
-    setTag(rtn, pages, tag);
-    return rtn;
-  }
+  static int totalmeta = 0;
   public final VM_Address acquire(int pages, MemoryResource mr,
                                   boolean chargeMR) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(mr != null);
@@ -74,6 +96,15 @@ public final class FreeListVMResource extends VMResource implements Constants, V
       return VM_Address.zero();
     lock();
     int startPage = freeList.alloc(pages);
+    if (startPage > highWaterMark) {
+      if ((startPage ^ highWaterMark) > EmbeddedMetaData.PAGES_IN_REGION) {
+        int regions = 1 + ((startPage - highWaterMark)>>EmbeddedMetaData.LOG_PAGES_IN_REGION);
+        int metapages = regions * metaDataPagesPerRegion;
+	totalmeta += metapages;
+	mr.consume(metapages);
+	highWaterMark = startPage;
+      }
+    }
     if (startPage == -1) {
       unlock();
       if (chargeMR)
@@ -82,16 +113,20 @@ public final class FreeListVMResource extends VMResource implements Constants, V
       return VM_Address.zero();
     }
     pagetotal += pages;
-    unlock();
     VM_Address rtn = start.add(Conversions.pagesToBytes(startPage));
+    unlock();
     LazyMmapper.ensureMapped(rtn, pages);
     acquireHelp(rtn, pages);
     return rtn;
-  }
+    }
 
   public VM_Address acquire(int request) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     return VM_Address.zero();
+  }
+
+  public VM_Address getHighWater() {
+    return start.add(VM_Extent.fromInt(highWaterMark<<LOG_BYTES_IN_PAGE));
   }
 
   public final void release(VM_Address addr, MemoryResource mr) {
@@ -102,7 +137,6 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
   public final void release(VM_Address addr, MemoryResource mr, byte tag,
                             boolean chargeMR) {
-    clearTag(addr, getSize(addr), tag);
     release(addr, mr, chargeMR);
   }
   public final void release(VM_Address addr, MemoryResource mr, 
@@ -152,6 +186,8 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
 
   private int pagetotal;
+  private int metaDataPagesPerRegion;
+  private int highWaterMark;
   private GenericFreeList freeList;
   private VM_Address cursor;
   private Lock gcLock;       // used during GC

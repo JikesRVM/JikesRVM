@@ -2,9 +2,10 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package org.mmtk.utility;
+package org.mmtk.utility.alloc;
 
 import org.mmtk.plan.Plan;
+import org.mmtk.utility.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
@@ -56,16 +57,29 @@ public abstract class SegregatedFreeList extends Allocator
   protected static final int SIZE_CLASSES = (COMPACT_SIZE_CLASSES) ? 28 : 40;
   protected static final int FREE_LIST_HEADER_BYTES = BYTES_IN_ADDRESS;
   private static final int FREE_LIST_OFFSET = 0;
-  private static final int FREE_LIST_BITS = BlockAllocator.MAX_BLOCK_LOG;
+  private static final int FREE_LIST_BITS = BlockAllocator.LOG_MAX_BLOCK;
   private static final int SIZE_CLASS_BITS = 6;
   private static final int INUSE_BITS = 10;
   private static final int SIZE_CLASS_SHIFT = FREE_LIST_BITS;
   private static final int INUSE_SHIFT = FREE_LIST_BITS + SIZE_CLASS_BITS;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; //(1<<(INUSE_BITS-1))-1;
-  private static final VM_Word FREE_LIST_MASK = VM_Word.one().lsh(FREE_LIST_BITS).sub(VM_Word.one());
-  private static final VM_Word SIZE_CLASS_MASK = VM_Word.one().lsh(SIZE_CLASS_BITS).sub(VM_Word.one()).lsh(SIZE_CLASS_SHIFT);
-  private static final VM_Word INUSE_MASK = VM_Word.one().lsh(INUSE_BITS).sub(VM_Word.one()).lsh(INUSE_SHIFT);
+
+  // live bits etc
+  private static final int OBJECT_LIVE_SHIFT = LOG_BYTES_IN_PARTICLE; // 4 byte resolution
+  private static final int LOG_BIT_COVERAGE = OBJECT_LIVE_SHIFT;
+  protected static final int BYTES_PER_LIVE_BIT = 1<<LOG_BIT_COVERAGE;
+  private static final int BYTES_PER_LIVE_WORD = 1<<(LOG_BIT_COVERAGE+LOG_BITS_IN_WORD);
+  private static final int LOG_LIVE_COVERAGE = LOG_BIT_COVERAGE + LOG_BITS_IN_BYTE;
+  private static final int LIVE_BYTES_PER_REGION = 1<<(EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_LIVE_COVERAGE);
+  private static final VM_Word WORD_SHIFT_MASK = VM_Word.one().lsh(LOG_BITS_IN_WORD).sub(VM_Extent.one());
+  private static final int LOG_LIVE_WORD_STRIDE = LOG_LIVE_COVERAGE + LOG_BYTES_IN_WORD;
+  private static final VM_Extent LIVE_WORD_STRIDE = VM_Extent.fromInt(1<<LOG_LIVE_WORD_STRIDE);
+  private static final VM_Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.sub(1).toWord().not();
+  private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
+  public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(NET_META_DATA_BYTES_PER_REGION);
+  
+  private static final VM_Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;
 
   protected static int[] cellSize;
   protected static byte[] blockSizeClass;
@@ -103,14 +117,12 @@ public abstract class SegregatedFreeList extends Allocator
    * for this free list allocator will be accounted.
    * @param plan The plan with which this instance is associated.
    */
-  public SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, 
-			    Plan plan) {
-    blockAllocator = new BlockAllocator(vmr, mr, plan);
+  public SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr) {
+    blockAllocator = new BlockAllocator(vmr, mr);
     freeList = VM_AddressArray.create(SIZE_CLASSES);
     firstBlock = VM_AddressArray.create(SIZE_CLASSES);
     lastBlock = VM_AddressArray.create(SIZE_CLASSES);
     currentBlock = VM_AddressArray.create(SIZE_CLASSES);
-    if (maintainInUse()) cellsInUse = new int[SIZE_CLASSES];
   }
 
   /****************************************************************************
@@ -167,11 +179,8 @@ public abstract class SegregatedFreeList extends Allocator
     int sizeClass = getSizeClass(alignedBytes);
     VM_Address cell = freeList.get(sizeClass);
     if (!cell.isZero()) {
-      if (maintainInUse()) cellsInUse[sizeClass]++;
       freeList.set(sizeClass, getNextCell(cell));
       setNextCell(cell, VM_Address.zero()); // clear out the free list link
-      postAlloc(cell, currentBlock.get(sizeClass), sizeClass, alignedBytes, inGC);
-
       if (alignedBytes != bytes) {
         // Ensure aligned as requested.
         return alignAllocation(cell, align, offset);
@@ -181,9 +190,6 @@ public abstract class SegregatedFreeList extends Allocator
     // Alignment request guaranteed or cell.isZero().
     return cell;
   }
-
-  abstract public void postAlloc(VM_Address cell, VM_Address block, 
-				 int sizeClass, int bytes, boolean inGC);
 
   /**
    * Allocate <code>bytes</code> contigious bytes of non-zeroed
@@ -219,7 +225,7 @@ public abstract class SegregatedFreeList extends Allocator
     VM_Address cell = allocFast(bytes, align, offset, inGC);
     if (!cell.isZero()) 
       return cell;
-    
+
     // Bytes within which we can guarantee an aligned allocation.
     bytes = getMaximumAlignedSize(bytes, align); 
     int sizeClass = getSizeClass(bytes);
@@ -227,7 +233,7 @@ public abstract class SegregatedFreeList extends Allocator
     if (!current.isZero()) {
       // zero the current (empty) free list if necessary
       if (preserveFreeList())
-        flushFreeList(current, sizeClass, VM_Address.zero());
+        setFreeList(current, VM_Address.zero());
 
       // find a free list which is not empty
       current = BlockAllocator.getNextBlock(current);
@@ -236,10 +242,8 @@ public abstract class SegregatedFreeList extends Allocator
         if (!cell.isZero()) {
           // this block has at least one free cell, so use it
           currentBlock.set(sizeClass, current);
-          if (maintainInUse()) cellsInUse[sizeClass] = getInUse(current) + 1;
           freeList.set(sizeClass, getNextCell(cell));
           setNextCell(cell, VM_Address.zero()); // clear out the free list link
-          postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
           return alignAllocation(cell, align, offset);
         }
         current = BlockAllocator.getNextBlock(current);
@@ -250,17 +254,10 @@ public abstract class SegregatedFreeList extends Allocator
     if (cell.isZero())
       return VM_Address.zero();
 
-    if (maintainInUse()) cellsInUse[sizeClass]++;
     freeList.set(sizeClass, getNextCell(cell));
-    postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
     Memory.zeroSmall(cell, VM_Extent.fromIntZeroExtend(bytes));
     return alignAllocation(cell, align, offset);
   }
-
-  abstract protected boolean preserveFreeList();
-  abstract protected boolean maintainInUse();
-  abstract protected VM_Address advanceToBlock(VM_Address block, 
-                                               int sizeClass);
 
   /**
    * Expand a particular size class, allocating a new block, breaking
@@ -301,16 +298,11 @@ public abstract class SegregatedFreeList extends Allocator
       cursor = cursor.add(cellExtent);
       cellCount++;
     }
-    if (maintainInUse()) cellsInUse[sizeClass] = 0;
-    setBlockSizeClass(block, sizeClass);
-    postExpandSizeClass(block, sizeClass);
-    
+
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!lastCell.isZero());
     return lastCell;
   }
-
-  abstract public void postExpandSizeClass(VM_Address block, int sizeClass);
 
   /**
    * Return the next cell in a free list chain.
@@ -348,26 +340,13 @@ public abstract class SegregatedFreeList extends Allocator
    * @param cell The cell to be freed
    * @param block The block on which the cell resides
    * @param sizeClass The size class of the cell and block
+   * @param nextFree The next cell in the free list
    */
-  protected final void free(VM_Address cell, VM_Address block, int sizeClass)
+  public final void free(VM_Address cell, VM_Address block, 
+			 int sizeClass, VM_Address nextFree)
     throws VM_PragmaInline {
     Memory.zeroSmall(cell, VM_Extent.fromIntZeroExtend(cellSize[sizeClass]));
-    addToFreeList(cell, block);
-    if (maintainInUse() && (decInUse(block) == 0))
-      freeBlock(block, sizeClass);
-  }
-
-  /**
-   * Add a cell to its block's free list.
-   * 
-   * @param cell The cell to be added to the free list
-   * @param block The block on which the cell resides
-   */
-  private final void addToFreeList(VM_Address cell, VM_Address block)
-    throws VM_PragmaInline {
-    VM_Address next = getFreeList(block);
-    setNextCell(cell, next);
-    setFreeList(block, cell);
+    setNextCell(cell, nextFree);
   }
 
   /****************************************************************************
@@ -409,9 +388,8 @@ public abstract class SegregatedFreeList extends Allocator
       currentBlock.set(sizeClass, next);
     if (lastBlock.get(sizeClass).EQ(block))
       lastBlock.set(sizeClass, prev);
-    blockAllocator.free(block, blockSizeClass[sizeClass]);
+    blockAllocator.free(block);
   }
-
 
   /****************************************************************************
    *
@@ -532,135 +510,307 @@ public abstract class SegregatedFreeList extends Allocator
 
   /****************************************************************************
    *
-   * Misc
+   * Preserving (saving & restoring) free lists
+   *
    */
 
+  abstract protected boolean preserveFreeList();
+  abstract protected VM_Address advanceToBlock(VM_Address block, 
+                                               int sizeClass);
+
+  /**
+   * Zero all of the current free list pointers, and refresh the
+   * <code>currentBlock</code> values, so instead of the free list
+   * pointing to free cells, it points to the block containing the
+   * free cells.  Then the free lists for each cell can be
+   * reestablished during GC.  If the free lists are being preserved
+   * on a per-block basis (eager mark-sweep and reference counting),
+   * then free lists are remembered for each block.
+   */
   public final void flushFreeLists() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
       if (!currentBlock.get(sizeClass).isZero()) {
         VM_Address block = currentBlock.get(sizeClass);
         VM_Address cell = freeList.get(sizeClass);
-        if (preserveFreeList()) flushFreeList(block, sizeClass, cell);
+        if (preserveFreeList()) setFreeList(block, cell);
         currentBlock.set(sizeClass, VM_Address.zero());
         freeList.set(sizeClass, VM_Address.zero());
       }
   }
 
+  /**
+   * Retrieve free list pointers from the first blocks in the free
+   * list. 
+   */
   public final void restoreFreeLists() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
       VM_Address block = firstBlock.get(sizeClass);
       currentBlock.set(sizeClass, block);
       if (block.isZero()) {
         freeList.set(sizeClass, VM_Address.zero());
-        if (maintainInUse()) cellsInUse[sizeClass] = 0;
       } else if (preserveFreeList()) {
         freeList.set(sizeClass, getFreeList(block));
-        if (maintainInUse()) cellsInUse[sizeClass] = getInUse(block);
       } else
         freeList.set(sizeClass, advanceToBlock(block, sizeClass));
     }
   }
 
-  private final void flushFreeList(VM_Address block, int sizeClass, 
-                                   VM_Address cell) 
+  /****************************************************************************
+   *
+   * Metadata manipulation
+   */
+
+  /**
+   * In the case where free lists associated with each block are
+   * preserved, get the free list for a given block.
+   *
+   * @param block The block whose free list is to be found
+   * @return The free list for this block
+   */
+  protected final VM_Address getFreeList(VM_Address block) 
     throws VM_PragmaInline {
-    if (maintainInUse()) 
-      setFreeListSizeClassAndInUse(block, cell, sizeClass, cellsInUse[sizeClass]);
-    else
-      setFreeListAndSizeClass(block, cell, sizeClass);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(preserveFreeList());
+    return BlockAllocator.getFreeListMeta(block);
   }
 
-  private final void refreshFreeLists() {
-    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
-      currentBlock.set(sizeClass, firstBlock.get(sizeClass));
+  /**
+   * In the case where free lists associated with each block are
+   * preserved, set the free list for a given block.
+   *
+   * @param block The block whose free list is to be found
+   * @param cell The head of the free list (i.e. the first cell in the
+   * free list).
+   */
+  protected final void setFreeList(VM_Address block, VM_Address cell)
+    throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(preserveFreeList());
+    BlockAllocator.setFreeListMeta(block, cell);
   }
 
-  private final void setFreeListSizeClassAndInUse(VM_Address block,
-                                                  VM_Address cell,
-                                                  int sizeClass, int inuse) 
-    throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(preserveFreeList() && maintainInUse());
+  /****************************************************************************
+   *
+   * Live bit manipulation
+   */
 
-    VM_Word value = cell.toWord().and(FREE_LIST_MASK).or(VM_Word.fromIntZeroExtend(sizeClass).lsh(SIZE_CLASS_SHIFT)).or(VM_Word.fromIntZeroExtend(inuse).lsh(INUSE_SHIFT));
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
-    
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(inuse == getInUse(block));
-      VM_Interface._assert(cell == getFreeList(block));
-      VM_Interface._assert(sizeClass == getBlockSizeClass(block));
+  /**
+   * Set the live bit for a given object
+   *
+   * @param object The object whose live bit is to be set.
+   */
+  public static final void liveObject(VM_Address object)
+    throws VM_PragmaInline {
+    liveAddress(VM_Interface.refToAddress(object), true);
+  }
+
+  /**
+   * Set the live bit for a given object, without using
+   * synchronization primitives---must only be used when contention
+   * for live bit is strictly not possible
+   *
+   * @param object The object whose live bit is to be set.
+   */
+  protected static final void unsyncLiveObject(VM_Address object)
+    throws VM_PragmaInline {
+    liveAddress(VM_Interface.refToAddress(object), false);
+  }
+
+  /**
+   * Set the live bit for a given address
+   *
+   * @param address The address whose live bit is to be set.
+   * @param atomic True if we want to perform this operation atomically
+   */
+  protected static final void liveAddress(VM_Address address, boolean atomic)
+    throws VM_PragmaInline {
+    VM_Word oldValue, newValue;
+    VM_Address liveWord = getLiveWordAddress(address);
+    VM_Word mask = getMask(address, true);
+    if (atomic) {
+      do {
+	oldValue = VM_Magic.prepareWord(liveWord, 0);
+	newValue = oldValue.or(mask);
+      } while(!VM_Magic.attemptWord(liveWord, 0, oldValue, newValue));
+    } else 
+      VM_Magic.setMemoryWord(liveWord, VM_Magic.getMemoryWord(liveWord).or(mask));
+  }
+
+  /**
+   * Clear the live bit for a given object
+   *
+   * @param object The object whose live bit is to be cleared.
+   */
+  protected static final void deadObject(VM_Address object)
+    throws VM_PragmaInline {
+    deadAddress(VM_Interface.refToAddress(object));
+  }
+
+  /**
+   * Clear the live bit for a given address
+   *
+   * @param address The address whose live bit is to be cleared.
+   */
+  protected static final void deadAddress(VM_Address address)
+    throws VM_PragmaInline {
+    VM_Word oldValue, newValue;
+    VM_Address liveWord = getLiveWordAddress(address);
+    VM_Word mask = getMask(address, false);
+    VM_Magic.setMemoryWord(liveWord, VM_Magic.getMemoryWord(liveWord).and(mask));
+  }
+
+  /**
+   * Clear all live bits
+   */
+  public static final void zeroLiveBits(FreeListVMResource vm) {
+    VM_Address start = vm.getStart();
+    VM_Address end = vm.getHighWater();
+    VM_Extent bytes = VM_Extent.fromInt(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
+    while (start.LT(end)) {
+      VM_Address metadata = EmbeddedMetaData.getMetaDataBase(start).add(SegregatedFreeList.META_DATA_OFFSET);
+      Memory.zero(metadata, bytes);
+      start = start.add(EmbeddedMetaData.BYTES_IN_REGION);
     }
   }
 
-  private final void setFreeListAndSizeClass(VM_Address block, VM_Address cell,
-					     int sizeClass) 
-    throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(preserveFreeList() && !maintainInUse());
+  /**
+   * Align an address so that it corresponds to a live word boundary.
+   * In other words, if the live bit for the given address is not the
+   * zeroth bit of a live word, round the address down such that it
+   * does.
+   *
+   * @param address The address to be aligned to a live word
+   * @return The given address, aligned down so that it corresponds to
+   * an address on a live word boundary.
+   */
+  protected static final VM_Address alignToLiveStride(VM_Address address) {
+    return address.toWord().and(LIVE_WORD_STRIDE_MASK).toAddress();
+  }
 
-    VM_Word value = cell.toWord().and(FREE_LIST_MASK).or(VM_Word.fromIntZeroExtend(sizeClass).lsh(SIZE_CLASS_SHIFT));
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
-    
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(cell == getFreeList(block));
-      VM_Interface._assert(sizeClass == getBlockSizeClass(block));
+  /**
+   * Walk through a set of live bitmaps for a block, and if all cells
+   * are unused, return true.
+   *
+   * @param block The block
+   * @param blockSize The size of the block
+   * @return True if all cells for this block are not live and
+   * therfore should be freed enmasse.
+   */
+  protected final boolean isEmpty(VM_Address block,  VM_Extent blockSize)
+    throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(alignToLiveStride(block).EQ(block));
+    return isNonLive(block, block.add(blockSize));
+  }
+
+  /**
+   * Return true if the specified region contains no set live bits
+   *
+   * @param start The start of the region whose live bits are to be checked
+   * @param end The end of the region whose live bits are to be checked
+   * @return True if no live bits are set for the specified region
+   */
+  protected static final boolean isNonLive(VM_Address start, VM_Address end) {
+    VM_Address cursor = getLiveWordAddress(start);
+    VM_Address sentinel = getLiveWordAddress(end);
+    while (cursor.LT(sentinel)) {
+      VM_Word live = VM_Magic.getMemoryWord(cursor);
+      if (!live.isZero())
+        return false;
+      cursor = cursor.add(BYTES_IN_WORD);
     }
+    return true;
   }
 
-  protected static final VM_Address getFreeList(VM_Address block) 
+  /**
+   * Use the live bits for a block to infer free cells and thus
+   * construct a free list for the block.
+   *
+   * @param block The block to be processed
+   * @param sizeClass The size class for the block
+   * @return The head of the new free list
+   */
+  protected final VM_Address makeFreeListFromLiveBits(VM_Address block, 
+						      int sizeClass)
     throws VM_PragmaInline {
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET)).and(FREE_LIST_MASK);
-    if (value.isZero())
-      return VM_Address.zero();
-    else
-      return value.or(block.toWord().and(FREE_LIST_MASK.not())).toAddress();
-  }
-
-  protected static final void setFreeList(VM_Address block, VM_Address cell)
-    throws VM_PragmaInline {
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET)).and(FREE_LIST_MASK.not());
-    value = value.or(cell.toWord().and(FREE_LIST_MASK));
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
-  }
-
-  protected static final int getBlockSizeClass(VM_Address block) 
-    throws VM_PragmaInline {
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
-    value = value.and(SIZE_CLASS_MASK).rshl(SIZE_CLASS_SHIFT);
-    return value.toInt();
-  }
-
-  private static final void setBlockSizeClass(VM_Address block, int sizeClass)
-    throws VM_PragmaInline {
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
-    value = value.and(SIZE_CLASS_MASK.not()).or(VM_Word.fromIntZeroExtend(sizeClass).lsh(SIZE_CLASS_SHIFT));
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
-  }
-
-  protected static final int getInUse(VM_Address block) 
-    throws VM_PragmaInline {
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET)).rshl(INUSE_SHIFT);
-    return value.toInt();
-  }
-
-  private static final void setInUse(VM_Address block, int inuse) 
-    throws VM_PragmaInline {
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
-    value = value.and(INUSE_MASK.not()).or(VM_Word.fromIntZeroExtend(inuse).lsh(INUSE_SHIFT));
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
-  }
-
-  private static final int decInUse(VM_Address block) 
-    throws VM_PragmaInline {
-    
-    VM_Word value = VM_Magic.getMemoryWord(block.add(FREE_LIST_OFFSET));
-    value = value.sub(VM_Word.one().lsh(INUSE_SHIFT));
-    VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
-    int count = value.rshl(INUSE_SHIFT).toInt();
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(count >= 0 && count < (1<<INUSE_BITS));
+    VM_Extent cellBytes = VM_Extent.fromInt(cellSize[sizeClass]);
+    VM_Address cellCursor = block.add(blockHeaderSize[sizeClass]);
+    VM_Extent blockSize = VM_Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    VM_Address end = block.add(blockSize);
+    VM_Address nextFree = VM_Address.zero();
+    VM_Address nextCellCursor = cellCursor.add(cellBytes);
+    VM_Address liveCursor = alignToLiveStride(cellCursor);
+    VM_Address liveWordCursor = getLiveWordAddress(liveCursor);
+    boolean isLive = false;
+    while (liveCursor.LT(end)) {
+      VM_Word live = VM_Magic.getMemoryWord(liveWordCursor);
+      if (!live.isZero()) {
+	for (int i=0; i < BITS_IN_WORD; i++) {
+	  if (!(live.and(VM_Word.one().lsh(i)).isZero()))
+	    isLive = true;
+	  liveCursor = liveCursor.add(BYTES_PER_LIVE_BIT);
+	  if (liveCursor.GE(nextCellCursor)) {
+	    if (!isLive) {
+	      free(cellCursor, block, sizeClass, nextFree);
+	      nextFree = cellCursor;
+	    }
+	    cellCursor = nextCellCursor;
+	    nextCellCursor = nextCellCursor.add(cellBytes);
+	    isLive = false;
+	  }
+	}
+      } else {
+	liveCursor = liveCursor.add(BYTES_PER_LIVE_WORD);
+	while (liveCursor.GE(nextCellCursor)) {
+	  //	  while (nextCellCursor.LT(liveCursor)) {
+	  if (!isLive) {
+	    free(cellCursor, block, sizeClass, nextFree);
+	    nextFree = cellCursor;
+	  }
+	  cellCursor = nextCellCursor;
+	  nextCellCursor = nextCellCursor.add(cellBytes);
+	  isLive = false;
+	}
+      }
+      liveWordCursor = liveWordCursor.add(BYTES_IN_WORD);
     }
-    return count;
+    return nextFree;
+  }
+
+
+  /**
+   * Return the live word for a region including a given address
+   *
+   * @param addr The address for which the live word is required
+   * @return A word containing live bits for the given address.
+   */
+  protected static final VM_Word getLiveBits(VM_Address address) {
+    return VM_Magic.getMemoryWord(getLiveWordAddress(address));
+  }
+
+  /**
+   * Given an address, produce a bit mask for the live table
+   *
+   * @param address The address whose live bit mask is to be established
+   * @param set True if we want the mask for <i>setting</i> the bit,
+   * false if we want the mask for <i>clearing</i> the bit.
+   * @return The appropriate bit mask for object for the live table for.
+   */
+  protected static final VM_Word getMask(VM_Address address, boolean set) 
+    throws VM_PragmaInline {
+    int shift = address.toWord().rshl(OBJECT_LIVE_SHIFT).and(WORD_SHIFT_MASK).toInt();
+    VM_Word rtn = VM_Word.one().lsh(shift);
+    return (set) ? rtn : rtn.not();
+  }
+
+  /**
+   * Given an address, return the address of the live word for
+   * that address.
+   *
+   * @param address The address whose live word address is to be returned
+   * @return The address of the live word for this object
+   */
+  protected static final VM_Address getLiveWordAddress(VM_Address address)
+    throws VM_PragmaInline {
+    VM_Address rtn = EmbeddedMetaData.getMetaDataBase(address);
+    return rtn.add(META_DATA_OFFSET).add(EmbeddedMetaData.getMetaDataOffset(address, LOG_LIVE_COVERAGE, LOG_BYTES_IN_WORD));
   }
 
   /****************************************************************************
@@ -668,5 +818,20 @@ public abstract class SegregatedFreeList extends Allocator
    * Miscellaneous
    */
   public void show() {
+  }
+  private void freeListSanity() {
+    for (int i = 0; i < freeList.length(); i++)
+      freeListSanity(i);
+  }
+  private void freeListSanity(int sizeClass) {
+    freeListSanity(freeList.get(sizeClass));
+  }
+  private void freeListSanity(VM_Address cell) {
+    while (!cell.isZero()) {
+      VM_Address next = getNextCell(cell);
+      Log.write("("); Log.write(cell); Log.write("->"); Log.write(next); Log.write(")"); Log.flush();
+      cell = next;
+    }
+    Log.writeln();
   }
 }

@@ -11,9 +11,9 @@ import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
 import org.mmtk.policy.RefCountLOSLocal;
 import org.mmtk.utility.AddressDeque;
-import org.mmtk.utility.AllocAdvice;
-import org.mmtk.utility.Allocator;
-import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.alloc.AllocAdvice;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.FreeListVMResource;
@@ -101,10 +101,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Memory layout constants
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  protected static final VM_Extent    MATURE_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.66)));
-  protected static final VM_Extent   NURSERY_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.33)));
-  private static final VM_Extent          RC_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(MATURE_SIZE.toLong() * 0.7)));
-  private static final VM_Extent         LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(MATURE_SIZE.toLong() * 0.3)));
+  protected static final VM_Extent    MATURE_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.66)));
+  protected static final VM_Extent   NURSERY_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.33)));
+  private static final VM_Extent          RC_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(MATURE_SIZE.toLong() * 0.7)));
+  private static final VM_Extent         LOS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(MATURE_SIZE.toLong() * 0.3)));
   public    static final VM_Extent       MAX_SIZE = MATURE_SIZE;
   protected static final VM_Address      RC_START = PLAN_START;
   protected static final VM_Address        RC_END = RC_START.add(RC_SIZE);
@@ -159,7 +159,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
     // virtual memory resources
     nurseryVM  = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR, NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
-    rcVM       = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM);
+    rcVM       = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM, RefCountSpace.META_DATA_PAGES_PER_REGION);
     losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
 
     // collectors
@@ -256,13 +256,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     switch (allocator) {
     case NURSERY_SPACE: return;
     case RC_SPACE:
+      RefCountLocal.liveObject(ref);
     case LOS_SPACE:
       modBuffer.push(ref);
       Header.initializeRCHeader(ref, tib, bytes, true);
       decBuffer.push(ref);
-      if (RefCountSpace.RC_SANITY_CHECK) {
-        RefCountLocal.sanityAllocCount(ref); 
-      }
+      if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(ref); 
       return;
     case IMMORTAL_SPACE: 
       if (RefCountSpace.RC_SANITY_CHECK) rc.addImmortalObject(ref);
@@ -302,6 +301,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     CopyingHeader.clearGCBits(ref);
     Header.initializeRCHeader(ref, tib, bytes, false);
     Header.makeUnlogged(ref);
+    RefCountLocal.liveObject(ref);
     if (RefCountSpace.RC_SANITY_CHECK) {
       RefCountLocal.sanityAllocCount(ref); 
     }

@@ -6,8 +6,8 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.utility.Allocator;
-import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.MMType;
 import org.mmtk.utility.MonotoneVMResource;

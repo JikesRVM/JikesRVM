@@ -5,13 +5,18 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.RCBaseHeader;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.alloc.BlockAllocator;
+import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.MemoryResource;
 import org.mmtk.utility.FreeListVMResource;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Word;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -44,6 +49,21 @@ public final class RefCountSpace implements Constants, VM_Uninterruptible {
   public static final boolean INC_DEC_ROOT = false;
   public static final boolean RC_SANITY_CHECK = false;
   
+
+  private static final int LOG_RC_BYTES_PER_BLOCK = BYTES_IN_ADDRESS + 1;
+  private static final int LOG_RC_BYTES_PER_REGION = LOG_RC_BYTES_PER_BLOCK+BlockAllocator.LOG_BLOCKS_IN_REGION;
+  private static final int LOG_RC_META_COVERAGE = EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_RC_BYTES_PER_REGION;
+  private static final int RC_BYTES_PER_BLOCK = 1<<LOG_RC_BYTES_PER_BLOCK;
+  private static final int RC_BYTES_PER_REGION = 1<<LOG_RC_BYTES_PER_REGION;
+  private static final VM_Extent BLOCK_SC_OFFSET = VM_Extent.zero();
+  private static final VM_Extent BLOCK_OWNER_OFFSET = VM_Extent.fromInt(BYTES_IN_ADDRESS);
+  private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + RC_BYTES_PER_REGION;
+  public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(NET_META_DATA_BYTES_PER_REGION);
+
+  private static final VM_Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;
+  private static final VM_Word RC_BLOCK_MASK = VM_Word.fromInt((1<<BlockAllocator.LOG_MIN_BLOCK)-1).not();
+  private static final VM_Word SIZE_CLASS_MASK = RC_BLOCK_MASK.not();
+
   /****************************************************************************
    *
    * Instance variables

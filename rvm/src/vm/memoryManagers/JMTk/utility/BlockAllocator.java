@@ -2,15 +2,16 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package org.mmtk.utility;
+package org.mmtk.utility.alloc;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.utility.*;
+
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -23,7 +24,8 @@ import com.ibm.JikesRVM.VM_WordArray;
  * This class implements "block" data structures of various sizes.<p>
  * 
  * Blocks are a non-shared (thread-local) coarse-grained unit of
- * storage. Blocks are available in approximately power-of-two sizes.
+ * storage. Blocks are available in power-of-two sizes.
+ *
  * Virtual memory space is taken from a VM resource, and pages
  * consumed by blocks are accounted for by a memory resource.
  * 
@@ -39,35 +41,33 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    *
    * Class variables
    */
+  private static final boolean PARANOID = false;
 
   // block freelist
-  private static final byte MIN_BLOCK_LOG = 9;  // 512 bytes
-  public static final byte MAX_BLOCK_LOG = 15; // 32K bytes
-  public static final int MAX_BLOCK_SIZE = 1<<MAX_BLOCK_LOG;
-  private static final byte MAX_BLOCK_PAGES = 1<<(MAX_BLOCK_LOG - LOG_BYTES_IN_PAGE);
-  private static final byte MAX_BLOCK_SIZE_CLASS = MAX_BLOCK_LOG - MIN_BLOCK_LOG;
-  private static final byte PAGE_BLOCK_SIZE_CLASS = LOG_BYTES_IN_PAGE - MIN_BLOCK_LOG;
+  public static final int LOG_MIN_BLOCK = 12;  // 4K bytes
+  public static final int LOG_BLOCKS_IN_REGION = EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_MIN_BLOCK;
+  private static final int SUB_PAGE_SIZE_CLASS = LOG_BYTES_IN_PAGE - LOG_MIN_BLOCK - 1;
+  public static final int LOG_MAX_BLOCK = 15; // 32K bytes
+  public static final int MAX_BLOCK_SIZE = 1<<LOG_MAX_BLOCK;
+  private static final int MAX_BLOCK_PAGES = 1<<(LOG_MAX_BLOCK - LOG_BYTES_IN_PAGE);
+  private static final byte MAX_BLOCK_SIZE_CLASS = LOG_MAX_BLOCK - LOG_MIN_BLOCK;
+  private static final byte PAGE_BLOCK_SIZE_CLASS = LOG_BYTES_IN_PAGE - LOG_MIN_BLOCK;
   public static final int BLOCK_SIZE_CLASSES = MAX_BLOCK_SIZE_CLASS + 1;
   private static final int FREE_LIST_BITS = 4;
   private static final int FREE_LIST_ENTRIES = 1<<(FREE_LIST_BITS*2);
 
-  // Block header and field offsets
-  public static final int BLOCK_HEADER_SIZE = 2 * BYTES_IN_ADDRESS;
-  private static final int NEXT_FIELD_OFFSET = -(BYTES_IN_ADDRESS);
-  private static final int PREV_FIELD_OFFSET = -(2 * BYTES_IN_ADDRESS);
-  private static final int FL_MARKER_OFFSET = -(2 * BYTES_IN_ADDRESS);
-  private static final int FL_NEXT_FIELD_OFFSET = -(BYTES_IN_ADDRESS);
-  private static final int FL_PREV_FIELD_OFFSET = 0;
-  private static final VM_Address BASE_FL_MARKER = VM_Address.max(); // -1
-  private static final VM_Address MIN_FL_MARKER = BASE_FL_MARKER.sub(FREE_LIST_ENTRIES);
-  private static final VM_Address USED_MARKER = VM_Address.zero();
-  private static VM_WordArray blockMask;
-  private static VM_WordArray buddyMask;
-  
-  // granularity of memory resource requests
-  private static final int MR_POLL_PAGES = 1<<4; // 16 pages
+  // metadata
+  private static final VM_Extent PREV_OFFSET = VM_Extent.zero();
+  private static final VM_Extent NEXT_OFFSET = PREV_OFFSET.add(BYTES_IN_ADDRESS);
+  private static final VM_Extent SC_OFFSET = NEXT_OFFSET.add(BYTES_IN_ADDRESS);
+  private static final VM_Extent IU_OFFSET = SC_OFFSET.add(BYTES_IN_SHORT);
+  private static final VM_Extent FL_META_OFFSET = IU_OFFSET.add(BYTES_IN_SHORT);
+  private static final int LOG_BYTES_IN_BLOCK_META = LOG_BYTES_IN_ADDRESS + 2;
+  private static final int BLOCK_META_SIZE = 1<<LOG_BYTES_IN_BLOCK_META;
+  private static final int LOG_BYTE_COVERAGE = LOG_MIN_BLOCK - LOG_BYTES_IN_BLOCK_META;
+  public static final int META_DATA_BYTES_PER_REGION = 1<<(EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_BYTE_COVERAGE);
 
-  private static final boolean PARANOID = false;
+  public static final VM_Extent META_DATA_EXTENT = VM_Extent.fromInt(META_DATA_BYTES_PER_REGION);
 
   /****************************************************************************
    *
@@ -76,381 +76,514 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private VM_AddressArray freeList;
-  private Plan plan;
-  private int pagesInUse;
+  private int[] freeBlocks;
+  private int[] usedBlocks;
 
   /****************************************************************************
    *
    * Initialization
    */
-  BlockAllocator(FreeListVMResource vmr, MemoryResource mr, Plan thePlan) {
+  BlockAllocator(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
-    plan = thePlan;
     freeList = VM_AddressArray.create(FREE_LIST_ENTRIES);
-  }
-
-  static {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(BLOCK_SIZE_CLASSES <= (1<<FREE_LIST_BITS));
-    blockMask = VM_WordArray.create(BLOCK_SIZE_CLASSES);
-    buddyMask = VM_WordArray.create(BLOCK_SIZE_CLASSES);
-    for (byte sc = 0; sc <= MAX_BLOCK_SIZE_CLASS; sc++) {
-      blockMask.set(sc, VM_Word.one().lsh(MIN_BLOCK_LOG + sc).sub(VM_Word.one()).not());
-      buddyMask.set(sc, VM_Word.one().lsh(MIN_BLOCK_LOG + sc));
-    }
+    freeBlocks = new int[FREE_LIST_ENTRIES];
+    usedBlocks = new int[FREE_LIST_ENTRIES];
   }
 
   /****************************************************************************
    *
    * Allocation & freeing
    */
-  public final VM_Address alloc(byte blockSizeClass) {
+
+  /**
+   * Allocate a block, returning the address of the first usable byte
+   * in the block.
+   *
+   * @param blockSizeClass The size class for the block to be allocated.
+   * @return The address of the first usable byte in the block, or
+   * zero on failure.
+   */
+  final VM_Address alloc(int blockSizeClass) {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
-    VM_Address rtn = VM_Address.zero();
-    if (PARANOID)
-      sanity();
-
-    // increment page charges
-    if (blockSizeClass >= PAGE_BLOCK_SIZE_CLASS) {
-      if (!incPageCharge(1<<(blockSizeClass-PAGE_BLOCK_SIZE_CLASS)))
-        return VM_Address.zero();  // need to GC & retry...
-    }
-
-    // try to use satisfy from free list
-    byte freeListID = getFreeListID(blockSizeClass);
-    if (!freeList.get(freeListID).isZero()) {
-      rtn = freeList.get(freeListID);
-      freeList.set(freeListID, getNextFLBlock(rtn));
-      if (!getNextFLBlock(rtn).isZero())
-        setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
-    } else {
-      rtn = slowAlloc(blockSizeClass);
-      if (rtn.isZero())
-        return VM_Address.zero(); // need to GC & retry...
-    }
-    
-    if (VM_Interface.VerifyAssertions) {
-      VM_Word mask = blockMask.get(blockSizeClass);
-      VM_Interface._assert(rtn.EQ(rtn.toWord().and(mask).add(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress()));
-    }
-
-    if (PARANOID)
-      sanity();
-    return rtn;
-  }
-
-  private final VM_Address slowAlloc(byte originalSC) {
-    return slowAlloc(originalSC, originalSC);
-  }
-  private final VM_Address slowAlloc(byte requestedSC, byte originalSC) {
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert((originalSC >= 0) && (originalSC <= MAX_BLOCK_SIZE_CLASS));
-      VM_Interface._assert((requestedSC >= 0) && (requestedSC <= MAX_BLOCK_SIZE_CLASS));
-    }
-    VM_Address rtn = VM_Address.zero();
-
-    if (requestedSC == MAX_BLOCK_SIZE_CLASS) {
-      // coarsest grain request satisfied by VM resource request
-      rtn = vmResource.acquire(1<<(MAX_BLOCK_LOG-LOG_BYTES_IN_PAGE), 
-                               memoryResource, originalSC, false);
-      if (rtn.isZero())
-        return VM_Address.zero(); // need to GC & retry...
-      rtn = rtn.add(BLOCK_HEADER_SIZE);
-    } else {
-      byte srcSC = getFreeListID(requestedSC, originalSC);
-      if (!freeList.get(srcSC).isZero()) {  // available through free list
-        rtn = freeList.get(srcSC);
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
-        freeList.set(srcSC, getNextFLBlock(rtn));
-        if (!getNextFLBlock(rtn).isZero())
-          setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
-      } else {                     // must split larger sizes
-        rtn = slowAlloc((byte) (requestedSC + 1), originalSC);
-        if (rtn.isZero())
-          return VM_Address.zero(); // need to GC & retry...
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
-        rtn = split(rtn, (byte) (requestedSC + 1), originalSC, srcSC);
-        if (rtn.isZero())
-          return VM_Address.zero(); // need to GC & retry...
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
+      VM_Interface._assert((blockSizeClass >= 0) && 
+			   (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
+    VM_Address rtn;
+    if (PARANOID) sanity(false);
+    if (blockSizeClass > SUB_PAGE_SIZE_CLASS ||
+	(rtn = allocFast(blockSizeClass)).isZero())
+      rtn = allocSlow(blockSizeClass);
+    if (PARANOID) { 
+      if (!rtn.isZero()) {
+        usedBlocks[blockSizeClass]++;
+        freeBlocks[blockSizeClass]--;
       }
-    }
-    if (!rtn.isZero())
-      markAsUsed(rtn);
+      sanity(false);
+    }      
     return rtn;
-  }
-  
-  private final VM_Address split(VM_Address parent, byte parentSC,
-                                 byte originalSC, byte targetFL) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(VMResource.getTag(parent) == originalSC);
-    if (parentSC == PAGE_BLOCK_SIZE_CLASS) {
-      if (!incPageCharge(1))
-        return VM_Address.zero();
-    }
-    VM_Address next = parent.add(rawBlockSize(parentSC - 1));
-    
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(VMResource.getTag(next) == getOriginalSC(targetFL));
-    addToFreeList(next, targetFL);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(VMResource.getTag(parent) == originalSC);
-    return parent;
-  }
-  
-  public final void free(VM_Address block, byte blockSizeClass) {
-    if (PARANOID)
-      sanity();
-    //    Log.write("f["); Log.write(block); Log.write(" "); Log.write(blockSizeClass);     Log.writeln("]");
-    if (blockSizeClass >= PAGE_BLOCK_SIZE_CLASS) {
-      decPageCharge(1<<(blockSizeClass-PAGE_BLOCK_SIZE_CLASS));
-    }
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(blockSizeClass == VMResource.getTag(block));
-    merge(block, blockSizeClass, blockSizeClass);
-    if (PARANOID)
-      sanity();
-  }
-
-  private final void markAsUsed(VM_Address block) {
-    VM_Magic.setMemoryAddress(block.add(FL_MARKER_OFFSET), USED_MARKER);
-  }
-
-  private final boolean isFree(VM_Address block) {
-    return VM_Magic.getMemoryAddress(block.add(FL_MARKER_OFFSET)).GE(MIN_FL_MARKER);
-  }
-
-  private final byte getFreeListID(VM_Address block) {
-    return (byte) BASE_FL_MARKER.diff(VM_Magic.getMemoryAddress(block.add(FL_MARKER_OFFSET))).toInt();
-  }
-  private final byte getFreeListID(byte sizeClass) {
-    return (byte) (sizeClass<<FREE_LIST_BITS);
-  }
-
-  private final byte getFreeListID(byte sizeClass, byte originalSizeClass) {
-    return (byte) (sizeClass | (originalSizeClass<<FREE_LIST_BITS));
-  }
-  private final byte getOriginalSC(byte freeListId) {
-    return (byte) (freeListId >> FREE_LIST_BITS);
-  }
-
-  private final void release(VM_Address block, byte blockSizeClass) {
-    block = block.sub(BLOCK_HEADER_SIZE);
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(block.toWord().and(VM_Word.one().lsh(MAX_BLOCK_LOG).sub(VM_Word.one())).isZero());
-    vmResource.release(block, memoryResource, blockSizeClass, false);
-  }
-
-  private final void sanity() {
-    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
-       VM_Address block = freeList.get(fl);
-       VM_Address prev = VM_Address.zero();
-       while (!block.isZero()) {
-         if (VM_Interface.VerifyAssertions) {
-           VM_Interface._assert(isFree(block));
-           VM_Interface._assert(fl == getFreeListID(block));
-           VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
-           VM_Interface._assert(freeListEntries(block) == 1);
-         }
-         prev = block;
-         block = getNextFLBlock(block);
-       }
-     }
-  }
-
-  private final int freeListEntries(VM_Address block) {
-    int entries = 0;
-    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
-      VM_Address blk = freeList.get(fl);
-      while (!blk.isZero()) {
-        if (blk.EQ(block))
-          entries++;
-        blk = getNextFLBlock(blk);
-      }
-    }
-    return entries;
   }
 
   /**
-   * Return the number of bytes consumed by unused blocks.
+   * Free a block.  If the block is a sub-page block and the page is
+   * not completely free, then the block is added to the free list.
+   * Otherwise the block is returned to the virtual memory resource.
    *
-   * @return The number of bytes consumed by unused blocks.
+   * @param block The address of the block to be freed
    */
-  public final int unusedBytes() {
-    int minipgs = 0;
-    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
-      VM_Address block = freeList.get(fl);
-      while (!block.isZero()) {
-        int sc;
-        if ((fl & ((1<<FREE_LIST_BITS)-1)) != 0)
-          sc = fl & ((1<<FREE_LIST_BITS)-1);
-        else 
-          sc = fl>>>FREE_LIST_BITS;
-        minipgs += 1<<sc;
-        block = getNextFLBlock(block);
+  final void free(VM_Address block) {
+    if (PARANOID) sanity(false);
+    int blockSizeClass = getBlkSizeClass(block);
+    if (PARANOID) usedBlocks[blockSizeClass]--;
+    if (blockSizeClass <= SUB_PAGE_SIZE_CLASS) {
+      if (PARANOID) freeBlocks[blockSizeClass]++;
+      /* sub-page block */
+      if (decInUseCount(block) == 0) {
+        /* now completely free, so take blocks off free list and free page */
+	block = unlinkSubPageBlocks(block, blockSizeClass);
+        vmResource.release(block, memoryResource);
+        if (PARANOID)
+          freeBlocks[blockSizeClass] -= BYTES_IN_PAGE/blockSize(blockSizeClass);
+        if (PARANOID) sanity(false);
+      } else {
+        /* add it to the appropriate free list */
+        VM_Address next = freeList.get(blockSizeClass);
+        setNext(block, next);
+        if (!next.isZero())
+          setPrev(next, block);
+        freeList.set(blockSizeClass, block);
       }
-    }
-    return (minipgs<<MIN_BLOCK_LOG);
+    } else // whole page or pages, so simply return it to the resource
+      vmResource.release(block, memoryResource);
+    if (PARANOID) sanity(false);
   }
 
-  private final void merge(VM_Address child, byte childSC, byte originalSC) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(originalSC == VMResource.getTag(child));
-    if (childSC == MAX_BLOCK_SIZE_CLASS)
-      release(child, originalSC);
-    else {
-      VM_Address buddy = child.toWord().xor(buddyMask.get(childSC)).toAddress();
-      byte flid = getFreeListID(childSC, originalSC);
-      if (isFree(buddy) && (getFreeListID(buddy) == flid)) {
-        removeFromFreeList(buddy, flid);
-        if (child.GT(buddy))
-          child = buddy;
-        childSC++;
-        if (childSC == PAGE_BLOCK_SIZE_CLASS)
-          decPageCharge(1);
-        merge(child, childSC, originalSC);
-      } else
-        addToFreeList(child, flid);
-    }
-  }
-
-
-  private final void addToFreeList(VM_Address block, byte freeListID) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(VMResource.getTag(block) == getOriginalSC(freeListID));
-    VM_Address next = freeList.get(freeListID);
-    VM_Magic.setMemoryAddress(block.add(FL_MARKER_OFFSET), BASE_FL_MARKER.sub(freeListID));
-    VM_Magic.setMemoryAddress(block.add(FL_NEXT_FIELD_OFFSET), next);
-    VM_Magic.setMemoryAddress(block.add(FL_PREV_FIELD_OFFSET), VM_Address.zero());
-    if (!next.isZero())
-      VM_Magic.setMemoryAddress(next.add(FL_PREV_FIELD_OFFSET), block);
-    freeList.set(freeListID, block);
-    //    Log.write("a["); Log.write(block); Log.write(" "); Log.write(freeListID); Log.write(" "); Log.write(getNextFLBlock(block)); Log.write(" "); Log.write(getPrevFLBlock(block)); Log.writeln("]");
-  }
-
-  private final void removeFromFreeList(VM_Address block, byte freeListID) {
-    //    Log.write("r["); Log.write(block); Log.write(" "); Log.write(freeListID); Log.write(" "); Log.write(getNextFLBlock(block)); Log.write(" "); Log.write(getPrevFLBlock(block)); Log.write(" "); Log.write(freeList.get(freeListID));
-    if (freeList.get(freeListID).EQ(block)) {
-      freeList.set(freeListID, getNextFLBlock(block));
-      if (!getNextFLBlock(block).isZero())
-        setPrevFLBlock(getNextFLBlock(block), VM_Address.zero());
-    }
-    else {
-      VM_Address prev = getPrevFLBlock(block);
-      VM_Address next = getNextFLBlock(block);
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(!prev.isZero());
-      setNextFLBlock(prev, next);
+  /**
+   * Take a block off the free list (if available), updating the free
+   * list and inuse counters as necessary.  Return the first usable
+   * byte of the block, or zero on failure.
+   *
+   * @param blockSizeClass The size class for the block to be allocated.
+   * @return The address of the first usable byte in the block, or
+   * zero on failure.
+   */
+  private final VM_Address allocFast(int blockSizeClass)
+    throws VM_PragmaInline {
+    VM_Address rtn;
+    if (!(rtn = freeList.get(blockSizeClass)).isZero()) {
+      // successfully got a block off the free list
+      VM_Address next = getNextBlock(rtn);
+      incInUseCount(rtn);
+      freeList.set(blockSizeClass, next);
       if (!next.isZero())
-        setPrevFLBlock(next, prev);
+	setPrev(next, VM_Address.zero());
     }
-    //    Log.writeln("]");
+    return rtn;
   }
 
-  
+  /**
+   * Acquire new pages (if possible), and carve them up for use as
+   * blocks.  Return the address of the first usable byte of the first
+   * block on success, or zero on failure.  If successful, any
+   * subblocks will be added to the free list.
+   *
+   * @param blockSizeClass The size class for the block to be allocated.
+   * @return The address of the first usable byte in the block, or
+   * zero on failure.
+   */
+  private final VM_Address allocSlow(int blockSizeClass) {
+    VM_Address rtn;
+    int pages = pagesForSizeClass(blockSizeClass);
+    if (!(rtn = vmResource.acquire(pages, memoryResource)).isZero()) {
+      setBlkSizeClass(rtn, (short) blockSizeClass);
+      if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
+	populatePage(rtn, blockSizeClass);
+      if (PARANOID) { 
+        if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
+          freeBlocks[blockSizeClass] += BYTES_IN_PAGE/blockSize(blockSizeClass);
+        else
+          freeBlocks[blockSizeClass]++;
+      }
+
+    }
+    return rtn;
+  }
+
+  /**
+   * Given a page of sub-page blocks, initialize
+   * <code>inUseCount</code> and <code>blockSizeClass</code> for that page
+   * and put all blocks except the first on the free list (the first
+   * will implicitly be used immediately).
+   *
+   * @param start The start of the page
+   * @param blockSizeClass The sizeClass of the blocks to go in this page.
+   */
+  private final void populatePage(VM_Address start, int blockSizeClass) {
+    resetInUseCount(start);
+    int blockSize = blockSize(blockSizeClass);
+    VM_Address end = start.add(BYTES_IN_PAGE);
+    VM_Address block = start.add(blockSize);
+    VM_Address next = freeList.get(blockSizeClass);
+    while (block.LT(end)) {
+      setNext(block, next);
+      if (!next.isZero())
+	setPrev(next, block);
+      next = block;
+      block = block.add(blockSize);
+    }
+    freeList.set(blockSizeClass, next);
+    setPrev(next, VM_Address.zero());
+  }
+
+  /**
+   * Return the size in bytes of a block of a given size class
+   *
+   * @param blockSizeClass The size class in question
+   * @return The size in bytes of a block of this size class
+   */
+  public final static int blockSize(int blockSizeClass) throws VM_PragmaInline {
+    return 1<<(LOG_MIN_BLOCK + blockSizeClass);
+  }
+
+  /**
+   * Return the number of pages required when allocating space for
+   * this size class.
+   *
+   * @param blockSizeClass The size class in question
+   * @return The number of pages required when allocating a block (or
+   * blocks) of this size class.
+   */
+  private final static int pagesForSizeClass(int blockSizeClass) 
+    throws VM_PragmaInline {
+    if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
+      return 1;
+    else
+      return 1<<(LOG_MIN_BLOCK + blockSizeClass - LOG_BYTES_IN_PAGE);
+  }
+
   /****************************************************************************
    *
-   * Linked list operations
+   * Block meta-data manipulation
    */
 
-
-  public static final VM_Address getNextBlock(VM_Address block) {
-    return VM_Magic.getMemoryAddress(block.add(NEXT_FIELD_OFFSET));
+  /**
+   * Reset the inuse count for a set of blocks to 1.
+   *
+   * @param block One of the one or more blocks in the set whose count
+   * is to be reset to 1.
+   */
+  private static void resetInUseCount(VM_Address block) 
+    throws VM_PragmaInline {
+    setInUseCount(block, (short) 1);
   }
 
-  private static final VM_Address getNextFLBlock(VM_Address block) {
-    return VM_Magic.getMemoryAddress(block.add(FL_NEXT_FIELD_OFFSET));
+  /**
+   * Increment the inuse count for a set of blocks
+   * 
+   * @param block One of the blocks in the set whose count is being
+   * incremented.
+   */
+  private static void incInUseCount(VM_Address block) throws VM_PragmaInline {
+    setInUseCount(block, (short) (getInUseCount(block) + 1));
+  }
+  
+  /**
+   * Decrement the inuse count for a set of blocks and return the
+   * post-decrement value. This says how many blocks are in use on a
+   * given page.
+   * 
+   * @param block One of one or more blocks in the set whose count is being
+   * decremented.
+   * @return The post-decrement count for this set of blocks
+   */
+  private static int decInUseCount(VM_Address block) throws VM_PragmaInline {
+    short value = (short) (getInUseCount(block) - 1);
+    setInUseCount(block, value);
+    return value;
   }
 
-  private static final void setNextFLBlock(VM_Address block, VM_Address next) {
-    VM_Magic.setMemoryAddress(block.add(FL_NEXT_FIELD_OFFSET), next);
+  /**
+   * Set the <i>in use</i> meta data field for a given page.  This
+   * says how many blocks are in use on a given page.
+   *
+   * @param address The address of interest
+   * @param iu The value to which this field is to be set
+   */
+  private static final void setInUseCount(VM_Address address, short iu) 
+    throws VM_PragmaInline {
+    address = Conversions.pageAlign(address);
+    VM_Magic.setCharAtOffset(getMetaAddress(address), IU_OFFSET.toInt(), (char) iu);
   }
-
-  private static final VM_Address getPrevFLBlock(VM_Address block) {
-    return VM_Magic.getMemoryAddress(block.add(FL_PREV_FIELD_OFFSET));
+  
+  /**
+   * Get the block's <i>in use</i> meta data field for a given page.
+   * This says how many blocks are in use on a given page.
+   *
+   * @param address The address of interest
+   * @return The inuse field for the block containing the given address
+   */
+  private static final short getInUseCount(VM_Address address) 
+    throws VM_PragmaInline {
+    address = Conversions.pageAlign(address);
+    return (short) VM_Magic.getCharAtOffset(getMetaAddress(address), IU_OFFSET.toInt());
   }
-
-  private static final void setPrevFLBlock(VM_Address block, VM_Address prev) {
-    VM_Magic.setMemoryAddress(block.add(FL_PREV_FIELD_OFFSET), prev);
+  
+  /**
+   * Set the <i>block size class</i> meta data field for a given
+   * address (all blocks on a given page are homogeneous with respect
+   * to block size class).
+   *
+   * @param address The address of interest
+   * @param sc The value to which this field is to be set
+   */
+  private static final void setBlkSizeClass(VM_Address address, short sc) 
+    throws VM_PragmaInline {
+    address = Conversions.pageAlign(address);
+    VM_Magic.setCharAtOffset(getMetaAddress(address), SC_OFFSET.toInt(), (char) sc);
   }
-
-  public static final VM_Address getPrevBlock(VM_Address block) {
-    return VM_Magic.getMemoryAddress(block.add(PREV_FIELD_OFFSET));
+  
+  /**
+   * Get the <i>block size class</i> meta data field for a given page
+   * (all blocks on a given page are homogeneous with respect to block
+   * size class).
+   *
+   * @param address The address of interest
+   * @return The size class field for the block containing the given address
+   */
+  private static final short getBlkSizeClass(VM_Address address) 
+    throws VM_PragmaInline {
+    address = Conversions.pageAlign(address);
+    short rtn = (short) VM_Magic.getCharAtOffset(getMetaAddress(address), SC_OFFSET.toInt());
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(rtn >= 0 && rtn <= (short) MAX_BLOCK_SIZE_CLASS);
+    return rtn;
   }
-
-  public static final void linkedListInsert(VM_Address block, VM_Address prev) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!block.isZero());
-    VM_Address next;
-    if (!prev.isZero()) {
-      next = VM_Magic.getMemoryAddress(prev.add(NEXT_FIELD_OFFSET));
-      VM_Magic.setMemoryAddress(prev.add(NEXT_FIELD_OFFSET), block);
-    } else
-      next = VM_Address.zero();
-    VM_Magic.setMemoryAddress(block.add(PREV_FIELD_OFFSET), prev);
-    VM_Magic.setMemoryAddress(block.add(NEXT_FIELD_OFFSET), next);
-    if (!next.isZero())
-      VM_Magic.setMemoryAddress(next.add(PREV_FIELD_OFFSET), block);
+  
+  /**
+   * Set the free list meta data field for a given address (this is
+   * per-block meta data that is stored along with the block metadata
+   * but not used by the block allocator).
+   *
+   * @param address The address of interest
+   * @param value The value to which this field is to be set
+   */
+  public static final void setFreeListMeta(VM_Address address, 
+					    VM_Address value) 
+    throws VM_PragmaInline {
+    VM_Magic.setMemoryAddress(getMetaAddress(address).add(FL_META_OFFSET), value);
   }
-
-  public static final void unlinkBlock(VM_Address block) {
+  
+  /**
+   * Get the free list meta data field for a given address (this is
+   * per-block meta data that is stored along with the block metadata
+   * but not used by the block allocator).
+   *
+   * @param address The address of interest
+   * @return The free list meta data field for the block containing
+   * the given address
+   */
+  public static final VM_Address getFreeListMeta(VM_Address address) 
+    throws VM_PragmaInline {
+    return VM_Magic.getMemoryAddress(getMetaAddress(address).add(FL_META_OFFSET));  }
+  
+  /**
+   * Remove a block from the doubly linked list of blocks
+   *
+   * @param block The block to be removed from the doubly linked list
+   */
+  static final void unlinkBlock(VM_Address block) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!block.isZero());
     VM_Address next = getNextBlock(block);
     VM_Address prev = getPrevBlock(block);
-    VM_Magic.setMemoryAddress(block.add(PREV_FIELD_OFFSET), VM_Address.zero());
-    VM_Magic.setMemoryAddress(block.add(NEXT_FIELD_OFFSET), VM_Address.zero());
-    if (!prev.isZero())
-      VM_Magic.setMemoryAddress(prev.add(NEXT_FIELD_OFFSET), next);
-    if (!next.isZero())
-      VM_Magic.setMemoryAddress(next.add(PREV_FIELD_OFFSET), prev);
-  }
-
-
-  /****************************************************************************
-   *
-   * Misc
-   */
-
-  private final boolean incPageCharge(int pages) {
-    boolean rtn = true;
-    // consuming whole pages, so must inc page count
-    int newPagesInUse = pagesInUse + pages;
-    if ((pagesInUse == 0) || ((newPagesInUse ^ pagesInUse) > MR_POLL_PAGES))
-      rtn = memoryResource.acquire(MR_POLL_PAGES);
-    if (rtn)
-      pagesInUse = newPagesInUse;
-    return rtn;
-  }
-  
-  private final void decPageCharge(int pages) {
-    // releasing whole pages, so must dec page count
-    int newPagesInUse = pagesInUse - pages;
-    if ((newPagesInUse == 0) || ((newPagesInUse ^ pagesInUse) > MR_POLL_PAGES))
-      memoryResource.release(MR_POLL_PAGES);
-    pagesInUse = newPagesInUse;
+    //    if (VM_Interface.VerifyAssertions) {
+      setNext(block, VM_Address.zero());
+      setPrev(block, VM_Address.zero());
+      //    }
+    if (!prev.isZero()) setNext(prev, next);
+    if (!next.isZero()) setPrev(next, prev);
   }
 
   /**
-   * Return the block for a given cell address.
+   * Add a block to the doubly linked list of blocks
+   *
+   * @param block The block to be added
+   * @param prev The block that is to preceed the new block
    */
-  public static final VM_Address getBlockStart(VM_Address cell,
-                                               byte blockSizeClass) {
-    VM_Word mask = blockMask.get(blockSizeClass);
-    return cell.toWord().and(mask).add(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress();
+  static final void linkedListInsert(VM_Address block, VM_Address prev) 
+    throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!block.isZero());
+    VM_Address next;
+    if (!prev.isZero()) {
+      next = getNextBlock(prev);
+      setNext(prev, block);
+    } else
+      next = VM_Address.zero();
+    setPrev(block, prev);
+    setNext(block, next);
+    if (!next.isZero()) setPrev(next, block);
+  }
+  
+  /**
+   * Set the <i>prev</i> meta data field for a given address
+   *
+   * @param address The address of interest
+   * @param prev The value to which this field is to be set
+   */
+  private static final void setPrev(VM_Address address, VM_Address prev) 
+    throws VM_PragmaInline {
+    VM_Magic.setMemoryAddress(getMetaAddress(address, PREV_OFFSET), prev);
+  }
+  
+  /**
+   * Get the <i>prev</i> meta data field for a given address
+   *
+   * @param address The address of interest
+   * @return The prev field for the block containing the given address
+   */
+  static final VM_Address getPrevBlock(VM_Address address) 
+    throws VM_PragmaInline {
+    return VM_Magic.getMemoryAddress(getMetaAddress(address, PREV_OFFSET));
+  }
+  
+  /**
+   * Set the <i>next</i> meta data field for a given address
+   *
+   * @param address The address of interest
+   * @param next The value to which this field is to be set
+   */
+  private static final void setNext(VM_Address address, VM_Address next) 
+    throws VM_PragmaInline {
+    VM_Magic.setMemoryAddress(getMetaAddress(address, NEXT_OFFSET), next);
+  }
+  
+  /**
+   * Get the <i>next</i> meta data field for a given address
+   *
+   * @param address The address of interest
+   * @return The next field for the block containing the given address
+   */
+  public static final VM_Address getNextBlock(VM_Address address) 
+    throws VM_PragmaInline {
+    return VM_Magic.getMemoryAddress(getMetaAddress(address, NEXT_OFFSET));
+  }
+  
+  /**
+   * Get the address of some metadata given the address for which the
+   * metadata is required and the offset into the metadata that is of
+   * interest.
+   *
+   * @param address The address for which the metadata is required
+   * @return The address of the specified meta data
+   */
+  private static final VM_Address getMetaAddress(VM_Address address) 
+    throws VM_PragmaInline {
+    return getMetaAddress(address, VM_Extent.zero());
   }
 
-  public static final int blockSize(int blockSizeClass) {
-    return rawBlockSize(blockSizeClass) - BLOCK_HEADER_SIZE;
+  /**
+   * Get the address of some metadata given the address for which the
+   * metadata is required and the offset into the metadata that is of
+   * interest.
+   *
+   * @param address The address for which the metadata is required
+   * @param offset The offset (in bytes) into the metadata block (eg
+   * for the prev pointer, or next pointer)
+   * @return The address of the specified meta data
+   */
+  private static final VM_Address getMetaAddress(VM_Address address,
+						 VM_Extent offset) 
+    throws VM_PragmaInline {
+    return EmbeddedMetaData.getMetaDataBase(address).add(EmbeddedMetaData.getMetaDataOffset(address, LOG_BYTE_COVERAGE, LOG_BYTES_IN_BLOCK_META)).add(offset);
   }
 
-  private static final int rawBlockSize(int blockSizeClass) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
-    return 1<<(MIN_BLOCK_LOG + blockSizeClass);
+  /****************************************************************************
+   *
+   * Free list manipulation
+   */
+
+  /**
+   * Given some block, unlink all blocks on the page in which that
+   * block resides and return the address of the containing page.
+   *
+   * @param block The block whose page is to be unlinked
+   * @param blockSizeClass The size class of the page
+   * @return The address of the page containing <code>block</code>
+   */
+  private VM_Address unlinkSubPageBlocks(VM_Address block, int blockSizeClass) {
+    VM_Address start = Conversions.pageAlign(block); 
+    VM_Address end = start.add(BYTES_IN_PAGE);
+    int blockSize = blockSize(blockSizeClass);
+    VM_Address head = freeList.get(blockSizeClass);
+    block = start;
+    while (block.LT(end)) {
+      if (block.EQ(head)) {
+        VM_Address next = BlockAllocator.getNextBlock(block);
+	freeList.set(blockSizeClass, next);
+        head = next;
+      }
+      unlinkBlock(block);
+      block = block.add(blockSize);
+    }
+    return start;
   }
 
-  private void setPageTags(VM_Address block, byte sizeClass) {
-    int pages = (sizeClass <= PAGE_BLOCK_SIZE_CLASS) ? 1 : 1<<(sizeClass-PAGE_BLOCK_SIZE_CLASS);
-    vmResource.setTag(block.sub(BLOCK_HEADER_SIZE), pages, sizeClass);
-  }
+  /****************************************************************************
+   *
+   * Sanity checks
+   */
 
+  
+  /**
+   * Perform a basic sanity test, checking the contents of each of the
+   * block free lists.
+   *
+   * @param verbose If true then produce large amounts of debugging
+   * output detailing the composition of the free lists.
+   */
+  private final void sanity(boolean verbose) {
+    for (int sc = 0; sc < BLOCK_SIZE_CLASSES; sc++) {
+      int blocks = sanityTraverse(freeList.get(sc), VM_Address.zero(), verbose);
+      if (blocks != freeBlocks[sc]) {
+        Log.write("------>"); Log.writeln(sc); Log.write(" "); Log.write(blocks); Log.write(" != "); Log.writeln(freeBlocks[sc]);
+        sanityTraverse(freeList.get(sc), VM_Address.zero(), true);
+        Log.writeln();
+        if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+      }
+    }
+    if (verbose) Log.writeln();
+  }
+  
+  /**
+   * Perform a sanity traversal of a linked list of blocks, checking
+   * that the double links are sane, and returning the length of the
+   * list.
+   *
+   * @param block The first block in the list to be checked
+   * @param prev The previous block in the list (possibly null)
+   * @param verbose If true then produce large amounts of debugging
+   * output detailing the composition of the list.
+   * @return The length of the list
+   */
+  final static int sanityTraverse(VM_Address block, VM_Address prev, 
+				   boolean verbose) {
+    if (verbose) Log.write("[");
+    boolean first = true;
+    int blocks = 0;
+    while (!block.isZero()) {
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(getPrevBlock(block).EQ(prev));
+      blocks++;
+      if (verbose) {
+	if (!first)
+	  Log.write(" ");
+	else
+	  first = false;
+	Log.write(block);
+      }
+      prev = block;
+      block = getNextBlock(block);
+      Log.flush();
+    }
+    if (verbose) Log.write("]");
+    return blocks;
+  }
 }

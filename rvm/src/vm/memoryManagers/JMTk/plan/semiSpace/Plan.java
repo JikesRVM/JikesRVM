@@ -8,9 +8,9 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.TreadmillSpace;
 import org.mmtk.policy.TreadmillLocal;
-import org.mmtk.utility.AllocAdvice;
-import org.mmtk.utility.Allocator;
-import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.alloc.AllocAdvice;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.FreeListVMResource;
@@ -101,8 +101,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent         SS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3)));
-  private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3 * 0.3)));
+  private static final VM_Extent         SS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3)));
+  private static final VM_Extent        LOS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3 * 0.3)));
   public  static final VM_Extent        MAX_SIZE = SS_SIZE.add(SS_SIZE);
 
   private static final VM_Address      LOS_START = PLAN_START;

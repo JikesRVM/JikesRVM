@@ -11,8 +11,8 @@ import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.AllocAdvice;
-import org.mmtk.utility.Allocator;
+import org.mmtk.utility.alloc.AllocAdvice;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.HeapGrowthManager;
