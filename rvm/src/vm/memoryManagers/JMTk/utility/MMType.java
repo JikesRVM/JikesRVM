@@ -2,6 +2,7 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2003
  */
+//$Id$
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
