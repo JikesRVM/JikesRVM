@@ -368,22 +368,22 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
   public static int regGetNum(String regString) throws Exception {
     int reg, i;
   
-    // if (regString.equalsIgnoreCase("jt")) {
-    // 	    return registerConstants.EDI;
+    if (regString.equalsIgnoreCase("jt")) {
+    	    return registerConstants.EDI;
     // } else if (regString.equalsIgnoreCase("ip")) {
     // 	    return IAR;
-    // } else if (regString.equalsIgnoreCase("pr")) {
-    // 	    return PR;
+    } else if (regString.equalsIgnoreCase("pr")) {
+    	    return PR;
     // } else if (regString.equalsIgnoreCase("fp")) {
     // 	    return FP;
-    // } else if (regString.equalsIgnoreCase("sp")) {
-    // 	    return SP;
-    // } else if (regString.equalsIgnoreCase("jtoc") ||
-    // 		     regString.equalsIgnoreCase("toc")) {
-    // 	    return JTOC;
+    } else if (regString.equalsIgnoreCase("sp")) {
+    	    return SP;
+    } else if (regString.equalsIgnoreCase("jtoc") ||
+    		     regString.equalsIgnoreCase("toc")) {
+    	    return JTOC;
     // }  else if (regString.equalsIgnoreCase("")) {
     // 	    return 0;
-    // }
+    }
 
     /* first try the special purpose names */
     for (i = 0; i<RVM_GPR_NAMES.length; i++) {
