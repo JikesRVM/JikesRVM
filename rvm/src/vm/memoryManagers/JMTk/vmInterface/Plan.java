@@ -16,7 +16,6 @@ import org.vmmagic.pragma.*;
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author Perry Cheng
- * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  *
  * @version $Revision$
  * @date $Date$

@@ -13,8 +13,13 @@ import com.ibm.JikesRVM.VM_CommandLineArgs;
 /**
  * Class to handle command-line arguments and options for GC.
  *
+ * $Id$ 
+ *
  * @author Daniel Frampton 
- **/
+ *
+ * @version $Revision$
+ * @date $Date$
+ */
 public final class Options {
 
   /**
