@@ -106,7 +106,8 @@ function help_message () {
 
     # If PAGER is not set, set it to "more".
     ${PAGER=more} <<- EOF
-	Usage: ${ME} [-quiet] [-D <variable>=<value>]... <configuration-name>
+	Usage: ${ME} [-nocleanse | -cleanse ] [-quiet]
+		[-D <variable>=<value>]... <configuration-name>
 	Usage: ${ME} -help
 
 	This script generates control files necessary to build a particular
@@ -407,7 +408,7 @@ function croak_usage () {
     exit 33
 }
 
-quiet=0
+declare -i quiet=0 cleanse=1
 while :
 do
     case "$1" in 
@@ -422,17 +423,28 @@ do
 	-quiet|--quiet ) 
 	    quiet=1;;
 
+	-cleanse|--cleanse ) 
+	    cleanse=1;;
+
+	-nocleanse|--nocleanse ) 
+	    cleanse=0;;
+
 	-*)  croak_usage "I don't understand the flag \"$1\""
 	    ;;
 
-	"" ) break;;
-
-
-	* ) CONFIGURATION_NAME="$1"; ;;
+	--) shift;
+	    break;
+	    ;;
+	* ) break;;
     esac
 
     shift
 done
+
+CONFIGURATION_NAME="$1"
+shift
+
+(( $# == 0 )) || croak_usage "Too many arguments; specify only one <configuration-name>."
 
 
 [[ "${CONFIGURATION_NAME}" ]] || croak_usage "Please specify <configuration-name>"
@@ -2512,15 +2524,16 @@ function emitPluginBuilder () {
 
 
 	usage () {
-	    echo "Usage: \$ME [ --help ] [ -trace ] [ -v ] [ -x ] [ -- ] [ <eclipse-install-dir> ]"
+	    echo "Usage: \$ME [ --help ] [ -trace ] [ -v ] [ -x ]"
+	    echo "      [ -- ] [ <eclipse-install-dir> ]"
 	}
 
 	help() {
 	    usage;
-	    echo "\$ME: To specify Eclipse's installation directory, do one of the following"
-	    echo "\$ME: (in order of decreasing precedence):" 
+	    echo "\$ME: To specify Eclipse's installation directory, do one"
+	    echo "\$ME:  of the following (in order of decreasing precedence):" 
 	    echo "  1: invoke this program as \$ME [<flags>] <eclipse-install-dir>"
-	    echo "  2: set ECLIPSE_INSTALL_DIR in \${RVM_TARGET_CONFIG}, or
+	    echo "  2: set ECLIPSE_INSTALL_DIR in \${RVM_TARGET_CONFIG}, or"
 	    echo "  3: set the environment variable ECLIPSE_INSTALL_DIR"
 	}
 
@@ -2545,6 +2558,7 @@ function emitPluginBuilder () {
 	    elif [[ \$arg = -help ]] || [[ \$arg = --help ]]; then
 	        shift
 		help
+		exit 0
 	    elif [[ \$arg == -* ]]; then
 		echo >&2 "\$ME: Unknown flag: \$1"
 		usage >&2
@@ -2602,7 +2616,7 @@ checkConfigurationOptions
 
 # Make a fresh start.
 #
-if [[ -e ${BUILD_DIRECTORY} ]] # old directory exists; 
+if (( cleanse )) && [[ -e ${BUILD_DIRECTORY} ]] # old directory exists; 
 then 
     if [ -t 0 ]    # keyboard is live (ie. this is not an automated build)
     then
@@ -2629,6 +2643,9 @@ then
     fi
     ( cd ${BUILD_DIRECTORY} && rm -rf * )
 fi
+if ! (( cleanse )) && ! (( quiet )); then
+    echo " (writing new files, but not deleting old stuff)"
+fi
 
 # Create output directory structure.
 #
@@ -2649,7 +2666,7 @@ echo "preprocessor definitions:"                          >>${CONFIGURATION_SUMM
 for p in ${PREPROCESSOR_DEFINITIONS}; do echo -E ${p}; done   >>${CONFIGURATION_SUMMARY}
 chmod ${PERM}                                                  ${CONFIGURATION_SUMMARY}
 
-touch                          ${CLEANSE_STATUS}
+(( cleanse )) && touch                          ${CLEANSE_STATUS}
 
 emitSourceList                >${SOURCE_LIST}
 chmod ${PERM}                    ${SOURCE_LIST}
