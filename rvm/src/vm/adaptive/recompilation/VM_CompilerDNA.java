@@ -30,14 +30,13 @@ public class VM_CompilerDNA implements VM_Constants {
 
   /**
    * Average bytecodes compiled per millisec
-   * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
-   * and turangalila (Linux/IA32) using unweighted compilation rate,
-   * which is different than previous collections
+   * These numbers were from a shadow on July 22, 2004 on munchkin (AIX/PPC)
+   * and turangalila (Linux/IA32) using unweighted compilation rate.
    */
   //-#if RVM_FOR_POWERPC
-  private static final double[] compilationRates = {377.76, 9.29, 5.69, 1.81};
+  private static final double[] compilationRates = {359.17, 10.44, 4.69, 1.56};
   //-#elif RVM_FOR_IA32
-  private static final double[] compilationRates = {351.50, 10.51, 5.21, 1.89};
+  private static final double[] compilationRates = {332.79, 9.58, 4.11, 1.66};
   //-#endif
 
   /**
@@ -47,9 +46,9 @@ public class VM_CompilerDNA implements VM_Constants {
    * which is different than previous collections
    */
   //-#if RVM_FOR_POWERPC
-  private static final double[] speedupRates = {1.00, 4.26, 6.07, 6.61};
+  private static final double[] speedupRates = {1.00, 4.73, 6.65, 7.39};
   //-#elif RVM_FOR_IA32
-  private static final double[] speedupRates = {1.00, 4.03, 5.55, 5.34};
+  private static final double[] speedupRates = {1.00, 4.66, 6.82, 7.04};
   //-#endif
 
   /**
