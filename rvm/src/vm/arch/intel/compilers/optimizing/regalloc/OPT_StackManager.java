@@ -29,17 +29,6 @@ implements OPT_Operators {
   private static boolean verboseDebug = false;
 
   /**
-   * Use stack overflow checks?  It is UNSAFE to turn this off.
-   */
-  private static boolean STACK_OVERFLOW = true;
-
-  /**
-   * Allow the stack pointer to move around, in order to avoid scratch
-   * register usage?
-   */
-  private static boolean FLOATING_ESP = true;
-
-  /**
    * Size of a word, in bytes
    */
   private static final int WORDSIZE = 4;
@@ -157,21 +146,9 @@ implements OPT_Operators {
       case DOUBLE_VALUE: rOp = D(r); break;
       default: rOp = R(r); break;
     }
-    if (s.isCall()) {
-      // if s is a call instruction, then we've already changed the SP as
-      // part of the calling sequence, and have restored the frame pointer
-      // from memory.  So, instead of using the usual spill sequence with
-      // an offset from the stack pointer, use the memory location as an
-      // offset from the frame pointer.
-      OPT_Register FP = phys.getFP();
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),-location,
-                                                 size,null,null);
-      s.insertBefore(nonPEIGC(MIR_Move.create(move, M, rOp)));
-    } else {
-      OPT_StackLocationOperand spill = new OPT_StackLocationOperand(-location,
-                                                                    size);
-      s.insertBefore(nonPEIGC(MIR_Move.create(move, spill, rOp)));
-    }
+    OPT_StackLocationOperand spill = 
+      new OPT_StackLocationOperand(true, -location, size);
+    s.insertBefore(MIR_Move.create(move, spill, rOp));
   }
 
   /**
@@ -195,21 +172,9 @@ implements OPT_Operators {
       case DOUBLE_VALUE: rOp = D(r); break;
       default: rOp = R(r); break;
     }
-    if (s.isCall()) {
-      // if s is a call instruction, then we've already changed the SP as
-      // part of the calling sequence, and have restored the frame pointer
-      // from memory.  So, instead of using the usual spill sequence with
-      // an offset from the stack pointer, use the memory location as an
-      // offset from the frame pointer.
-      OPT_Register FP = phys.getFP();
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),-location,
-                                                 size,null,null);
-      s.insertBefore(nonPEIGC(MIR_Move.create(move, rOp, M)));
-    } else {
-      OPT_StackLocationOperand spill = new OPT_StackLocationOperand(-location,
-                                                                    size);
-      s.insertBefore(nonPEIGC(MIR_Move.create(move, rOp, spill )));
-    }
+    OPT_StackLocationOperand spill = 
+      new OPT_StackLocationOperand(true, -location, size);
+    s.insertBefore(MIR_Move.create(move, rOp, spill ));
   }
 
 
@@ -385,38 +350,6 @@ implements OPT_Operators {
             inst = inst.remove();
           }
           break;
-        case LOAD_SPILLED_GPR_PARAM_opcode:
-          OPT_Operand dest = MIR_Unary.getResult(inst);
-          int param = MIR_Unary.getVal(inst).asIntConstant().value;
-          int offset = getOffsetForSpilledParameter(param);
-          OPT_StackLocationOperand location = new
-            OPT_StackLocationOperand(offset, (byte)WORDSIZE);
-          inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, dest,
-                                                     location)));
-          inst = inst.remove();
-          break; 
-        case LOAD_SPILLED_FLOAT_PARAM_opcode:
-          dest = MIR_Unary.getResult(inst);
-          param = MIR_Unary.getVal(inst).asIntConstant().value;
-          offset = getOffsetForSpilledParameter(param);
-          location = new OPT_StackLocationOperand(offset, (byte)(WORDSIZE));
-          inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_FMOV, dest,
-                                                     location)));
-          inst = inst.remove();
-          break; 
-        case LOAD_SPILLED_DOUBLE_PARAM_opcode:
-          dest = MIR_Unary.getResult(inst);
-          param = MIR_Unary.getVal(inst).asIntConstant().value;
-          offset = getOffsetForSpilledParameter(param);
-          // For a double, we actually want to load 2 words
-          // So: load from the word <em>below</em> the reported offset
-          offset -= WORDSIZE;
-
-          location = new OPT_StackLocationOperand(offset, (byte)(2*WORDSIZE));
-          inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_FMOV, dest,
-                                                     location)));
-          inst = inst.remove();
-          break; 
         case IA32_RET_opcode:
           if (frameIsRequired()) {
             insertEpilogue(inst);
@@ -430,23 +363,6 @@ implements OPT_Operators {
   }
 
   /**
-   * Given an integer n, which corresponds to the nth word of parameter
-   * data, return the offset from the frame pointer corresponding to 
-   * the location of this parameter in the caller's stack frame.
-   *
-   * Assumption: FP points two words past the last parameter.
-   */
-  private int getOffsetForSpilledParameter(int n) {
-    int nWords= ir.method.getParameterWords();
-    if (!ir.method.isStatic()) {
-      // add an extra word for the 'this' parameter
-      nWords++;
-    }
-    int offset = (nWords-n+1)*WORDSIZE;
-    return offset;
-  }
-
-  /**
    * Insert an explicit stack overflow check in the prologue <em>after</em>
    * buying the stack frame.
    * SIDE EFFECT: mutates the plg into a trap instruction.  We need to
@@ -455,12 +371,6 @@ implements OPT_Operators {
    * @param plg the prologue instruction
    */
   private void insertNormalStackOverflowCheck(OPT_Instruction plg) {
-
-    if (!STACK_OVERFLOW) {
-      plg.remove();
-      return;
-    }
-
     if (!ir.method.getDeclaringClass().isInterruptible()) {
       plg.remove();
       return;
@@ -494,12 +404,6 @@ implements OPT_Operators {
    * @param plg the prologue instruction
    */
   private void insertBigFrameStackOverflowCheck(OPT_Instruction plg) {
-
-    if (!STACK_OVERFLOW) {
-      plg.remove();
-      return;
-    }
-
     if (!ir.method.getDeclaringClass().isInterruptible()) {
       plg.remove();
       return;
@@ -520,12 +424,11 @@ implements OPT_Operators {
     OPT_MemoryOperand M = 
       OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitOffset, 
 			   (byte)WORDSIZE, null, null);
-    plg.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(ECX), M)));
+    plg.insertBefore(MIR_Move.create(IA32_MOV, R(ECX), M));
 
     //    ECX += frame Size
     int frameSize = getFrameFixedSize();
-    plg.insertBefore(nonPEIGC(MIR_BinaryAcc.create(IA32_ADD, R(ECX),
-                                                   I(frameSize))));
+    plg.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ECX), I(frameSize)));
     //    Trap if ESP <= ECX
     MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,R(ESP),R(ECX),
                       OPT_IA32ConditionOperand.LE(),
@@ -573,10 +476,6 @@ implements OPT_Operators {
       // 4. Store my compiled method id
       int cmid = ir.compiledMethodId;
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, I(cmid)));
-
-      // 5. Mark in the IR that ESP is as positioned by the prologue.
-      inst.insertBefore(MIR_Empty.create(MIR_ESP_PROLOGUE));
-
     } else {
       // 1. Save caller's frame pointer
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, R(FP)));
@@ -590,9 +489,6 @@ implements OPT_Operators {
 
       // 4. Insert Stack overflow check.  
       insertNormalStackOverflowCheck(plg);
-
-      // 5. Mark in the IR that ESP is as positioned by the prologue.
-      inst.insertBefore(MIR_Empty.create(MIR_ESP_PROLOGUE));
     }
 
     // II. Save any used volatile and non-volatile registers
@@ -600,15 +496,13 @@ implements OPT_Operators {
       saveVolatiles(inst);
       saveFloatingPointState(inst);
     }
-
     saveNonVolatiles(inst);
 
     // III. Store the frame pointer in the processor object.
     int fpOffset = VM_Entrypoints.framePointerOffset;
     OPT_MemoryOperand fpHome = OPT_MemoryOperand.BD(R(PR),
                                                     fpOffset, (byte)WORDSIZE, null, null);
-    inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, fpHome, R(FP))));
-
+    inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome, R(FP)));
   }
 
   /**
@@ -629,10 +523,30 @@ implements OPT_Operators {
          e.hasMoreElements() && n >= 0 ; n--) {
       OPT_Register nv = (OPT_Register)e.nextElement();
       int offset = getNonvolatileGPROffset(n);
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                                 -offset, (byte)WORDSIZE, 
-                                                 null, null);
-      inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, M, R(nv))));
+      OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
+      inst.insertBefore(MIR_Move.create(IA32_MOV, M, R(nv)));
+    }
+  }
+
+  /**
+   * Insert code before a return instruction to restore the nonvolatile 
+   * registers.
+   *
+   * @param inst the return instruction
+   */
+  private void restoreNonVolatiles(OPT_Instruction inst) {
+    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    VM_OptCompilerInfo info = ir.MIRInfo.info;
+    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+    OPT_Register FP = phys.getFP();
+
+    int n = nNonvolatileGPRS - 1;
+    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
+         e.hasMoreElements() && n >= 0 ; n--) {
+      OPT_Register nv = (OPT_Register)e.nextElement();
+      int offset = getNonvolatileGPROffset(n);
+      OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
+      inst.insertBefore(MIR_Move.create(IA32_MOV, R(nv), M));
     }
   }
 
@@ -644,11 +558,8 @@ implements OPT_Operators {
   private void saveFloatingPointState(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
-    OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                               -fsaveLocation, 
-                                               (byte)WORDSIZE,
-                                               null, null);
-    inst.insertBefore(nonPEIGC(MIR_FSave.create(IA32_FNSAVE, M)));
+    OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
+    inst.insertBefore(MIR_FSave.create(IA32_FNSAVE, M));
   }
 
   /**
@@ -659,11 +570,8 @@ implements OPT_Operators {
   private void restoreFloatingPointState(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
-    OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                               -fsaveLocation, 
-                                               (byte)WORDSIZE,
-                                               null, null);
-    inst.insertBefore(nonPEIGC(MIR_FSave.create(IA32_FRSTOR, M)));
+    OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
+    inst.insertBefore(MIR_FSave.create(IA32_FRSTOR, M));
   }
 
   /**
@@ -683,10 +591,8 @@ implements OPT_Operators {
          e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileLocation[i];
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                                 -location, (byte)WORDSIZE, 
-                                                 null, null);
-      inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, M, R(r))));
+      OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
+      inst.insertBefore(MIR_Move.create(IA32_MOV, M, R(r)));
     }
   }
   /**
@@ -705,33 +611,8 @@ implements OPT_Operators {
          e.hasMoreElements(); i++){
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileLocation[i];
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                                 -location, (byte)WORDSIZE, 
-                                                 null, null);
-      inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(r), M)));
-    }
-  }
-  /**
-   * Insert code before a return instruction to restore the nonvolatile 
-   * registers.
-   *
-   * @param inst the return instruction
-   */
-  private void restoreNonVolatiles(OPT_Instruction inst) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
-    OPT_Register FP = phys.getFP();
-
-    int n = nNonvolatileGPRS - 1;
-    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
-         e.hasMoreElements() && n >= 0 ; n--) {
-      OPT_Register nv = (OPT_Register)e.nextElement();
-      int offset = getNonvolatileGPROffset(n);
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                                 -offset, (byte)WORDSIZE, 
-                                                 null, null);
-      inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(nv), M)));
+      OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
+      inst.insertBefore(MIR_Move.create(IA32_MOV, R(r), M));
     }
   }
 
@@ -754,28 +635,23 @@ implements OPT_Operators {
     OPT_Register ESP = phys.getESP(); 
     OPT_Register PR = phys.getPR();
 
-    // 1. Restore the frame pointer before ripping off the stack frame
-    int fpOffset = VM_Entrypoints.framePointerOffset;
-    OPT_MemoryOperand fpHome = OPT_MemoryOperand.BD(R(PR),
-                                                    fpOffset, (byte)WORDSIZE, null, null);
-    ret.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(FP), fpHome)));
-
-    // 2. Restore any saved registers
-    //    TODO: We wouldn't care about restoring our FP
-    //          if this code only used ESP to 
-    //          restore the nonVolatile registers. --dave
+    // 1. Restore any saved registers
     if (ir.MIRInfo.info.isSaveVolatile())  {
       restoreVolatileRegisters(ret);
       restoreFloatingPointState(ret);
     }
     restoreNonVolatiles(ret);
 
-    // 3. Restore caller's stackpointer and framepointer
-    ret.insertBefore(MIR_Move.create(IA32_MOV, R(ESP), R(FP)));
+    // 2. Restore caller's stackpointer and framepointer
+    int frameSize = getFrameFixedSize();
+    ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(frameSize)));
     ret.insertBefore(MIR_Nullary.create(IA32_POP, R(FP)));
 
-    // 4. Store the caller's frame pointer in the processor object.
-    ret.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, fpHome, R(FP))));
+    // 3. Store the caller's frame pointer in the processor object.
+    int fpOffset = VM_Entrypoints.framePointerOffset;
+    OPT_MemoryOperand fpHome = 
+      OPT_MemoryOperand.BD(R(PR), fpOffset, (byte)WORDSIZE, null, null);
+    ret.insertBefore(MIR_Move.create(IA32_MOV, fpHome, R(FP)));
   }
 
   /**
@@ -799,21 +675,10 @@ implements OPT_Operators {
     int type = phys.getPhysicalRegisterType(symb.register);
     int size = phys.getSpillSize(type);
 
-    if (s.isCall()) {
-      // if s is a call instruction, then we've already changed the SP as
-      // part of the calling sequence, and have restored the frame pointer
-      // from memory.  So, instead of using the usual spill sequence with
-      // an offset from the stack pointer, use the memory location as an
-      // offset from the frame pointer.
-      OPT_Register FP = phys.getFP();
-      M = OPT_MemoryOperand.BD(R(FP),-location, (byte)size, null,null);
-    } else {
-      M = new OPT_StackLocationOperand(-location, (byte)size);
-    }
+    M = new OPT_StackLocationOperand(true, -location, (byte)size);
 
     // replace the register operand with the memory operand
     s.replaceOperand(symb,M);
-
   }
 
   /**
@@ -850,10 +715,6 @@ implements OPT_Operators {
   private boolean isScratchFreeMove(OPT_Instruction s) {
     if (s.operator() != IA32_MOV) return false;
 
-    // If we return false, then we ensure that all relevant moves use a
-    // scratch register.  This results in ESP never being adjusted.
-    if (!FLOATING_ESP) return false;
-
     OPT_Operand result = MIR_Move.getResult(s);
     OPT_Operand value = MIR_Move.getValue(s);
 
@@ -879,19 +740,6 @@ implements OPT_Operators {
       // disable these too.  What's left?  32-bit only.
       if (M.size != 4) return false;
     }
-
-    // We may need to introduce scratch registers for PEIs, since at a
-    // PEI, we may need to force ESP to its home location for use in a
-    // catch block.  
-    if (isPEIWithCatch(s)) {
-      int nMemory = 0;
-      if (result.isMemory() || result.isStackLocation()) nMemory++;
-      if (value.isMemory() || value.isStackLocation()) nMemory++;
-      if (nMemory == 2) {
-        return false;
-      }
-    }
-
     // If we get here, all is kosher.
     return true;
   }
@@ -1043,15 +891,25 @@ implements OPT_Operators {
     OPT_Register ESP = phys.getESP(); 
     int delta = desiredOffset - ESPOffset;
     if (delta != 0) {
-      // Note that IA32_ADD sets the condition codes, and so is dangerous
-      // to use in this context.  Instead, use the LEA instruction, which
-      // does not set the condition codes.
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(ESP),delta, (byte)4, 
-                                                 null, null); 
-      s.insertBefore(nonPEIGC(MIR_Lea.create(IA32_LEA, R(ESP), M)));
+      if (canModifyEFLAGS(s)) {
+	s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), I(delta)));
+      } else {
+	OPT_MemoryOperand M = 
+	  OPT_MemoryOperand.BD(R(ESP),delta, (byte)4, null, null); 
+	s.insertBefore(MIR_Lea.create(IA32_LEA, R(ESP), M));
+      }
       ESPOffset = desiredOffset;
     }
   }
+  private boolean canModifyEFLAGS(OPT_Instruction s) {
+    if (OPT_PhysicalDefUse.usesEFLAGS(s.operator()))
+      return false;
+    if (OPT_PhysicalDefUse.definesEFLAGS(s.operator()))
+      return true;
+    if (s.operator == BBEND) return true;
+    return canModifyEFLAGS(s.nextInstructionInCodeOrder());
+  }
+
   /**
    * Attempt to rewrite a move instruction to a NOP.
    *
@@ -1114,13 +972,12 @@ implements OPT_Operators {
           offset = FPOffset2SPOffset(offset);
           moveESPBefore(s,offset);
           MIR_Nullary.mutate(s,IA32_POP,result);
-          ESPOffset += 4;
-        }
+	}
         // if result uses ESP, fix it up. Note that POP computes the
         // effective address AFTER incrementing ESP.
         OPT_RegisterOperand base = result.asMemory().base;
         if (base != null && base.register == ESP) {
-          result.asMemory().disp -= ESPOffset;
+          result.asMemory().disp -= (ESPOffset + 4);
         }
       }
     }
@@ -1128,80 +985,80 @@ implements OPT_Operators {
   }
 
   /**
-   * Update the current offset of ESP to account for a particular PUSH
-   * instruction.
-   */
-  private void updateESPOffset(OPT_Instruction s) {
-    if (VM.VerifyAssertions) VM.assert (s.operator() == IA32_PUSH);
-    ESPOffset -= 4;
-  }
-
-  /**
-   * For each OPT_StackLocationOperand in a basic block, replace the
-   * operand with the appropriate OPT_MemoryOperand.
-   */
-  private void rewriteStackLocations(OPT_BasicBlock bb) {
-    OPT_Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
-
-    for (Enumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
-
-      // After the prologue, ESP is set to the top of the frame.
-      if (s.operator() == MIR_ESP_PROLOGUE) {
-        ESPOffset = getFrameFixedSize() - WORDSIZE;
-        continue;
-      }
-
-      // with a PUSH instruction, the effective address for other operands
-      // is computed BEFORE the adjustment to ESP.  So, delay updating the
-      // ESP offset for a PUSH instruction until all operands are
-      // processed.
-      boolean delayPushESP = false;
-      if (s.operator() == IA32_MOV && !isPEIWithCatch(s)) {
-        delayPushESP = rewriteMoveInstruction(s);
-      } else if (s.operator() == IA32_FMOV) {
-        // don't do anything, just rewrite the stack location operand as a
-        // memory location operand.
-      } else if (appearsIn(ESP,s) || isPEIWithCatch(s) || s.isCall()) {
-        // The instruction uses the fixed value of ESP.  Reset ESP before
-        // s.
-        moveESPBefore(s,0);
-      }
-
-      for (Enumeration ops = s.getOperands(); ops.hasMoreElements(); ) {
-        OPT_Operand op = (OPT_Operand)ops.nextElement();
-
-        if (op instanceof OPT_StackLocationOperand) {
-          int offset = ((OPT_StackLocationOperand)op).getOffset();
-          byte size = ((OPT_StackLocationOperand)op).getSize();
-          offset = FPOffset2SPOffset(offset);
-          offset -= ESPOffset;
-          OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(ESP),offset,
-                                                     size, null, null); 
-          s.replaceOperand(op,M);
-        }
-      }
-      if (delayPushESP) {
-        updateESPOffset(s);
-      }
-    }
-    // reset the SP to its home location at the end of the basic block.
-    if (ESPOffset != 0) {
-      OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(ESP),-ESPOffset, (byte)4, 
-                                                 null, null); 
-      OPT_Instruction s = nonPEIGC(MIR_Lea.create(IA32_LEA, R(ESP), M));
-      bb.appendInstructionRespectingTerminalBranch(s);
-      ESPOffset = 0;
-    }
-  }
-  /**
    * Walk through the IR.  For each OPT_StackLocationOperand, replace the
    * operand with the appropriate OPT_MemoryOperand.
    */
   private void rewriteStackLocations() {
-    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
-      OPT_BasicBlock b = (OPT_BasicBlock)e.nextElement();
-      rewriteStackLocations(b);
+    // ESP is initially 4 bytes above where the framepointer is going to be.
+    ESPOffset = getFrameFixedSize() + 4;
+    OPT_Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
+
+    boolean seenReturn = false;
+    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
+	 e.hasMoreElements();) {
+      OPT_Instruction s = e.next();
+      
+      if (s.isReturn()) {
+	seenReturn = true;
+	continue;
+      }
+
+      if (s.isBranch()) {
+	// restore ESP to home location at end of basic block.
+	moveESPBefore(s, 0);
+	continue;
+      }
+	
+      if (s.operator() == BBEND) {
+	if (seenReturn) {
+	  // at a return ESP will be at FrameFixedSize, 
+	  seenReturn = false;
+	  ESPOffset = 0;
+	} else {
+	  moveESPBefore(s, 0);
+	}
+	continue;
+      }
+
+      if (s.operator() == ADVISE_ESP) {
+        ESPOffset = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
+	continue;
+      }
+
+      if (s.operator() == REQUIRE_ESP) {
+	// ESP is required to be at the given offset from the bottom of the frame
+	moveESPBefore(s, MIR_UnaryNoRes.getVal(s).asIntConstant().value);
+	continue;
+      }
+      
+      if (s.operator() == IA32_MOV) {
+        rewriteMoveInstruction(s);
+      }
+
+      for (OPT_OperandEnumeration ops = s.getOperands(); ops.hasMoreElements(); ) {
+        OPT_Operand op = ops.next();
+        if (op instanceof OPT_StackLocationOperand) {
+	  OPT_StackLocationOperand sop = (OPT_StackLocationOperand)op;
+          int offset = sop.getOffset();
+	  if (sop.isFromTop()) {
+	    offset = FPOffset2SPOffset(offset);
+	  }
+	  offset -= ESPOffset;
+          byte size = sop.getSize();
+          OPT_MemoryOperand M = 
+	    OPT_MemoryOperand.BD(R(ESP),offset,
+				 size, null, null); 
+          s.replaceOperand(op,M);
+        }
+      }
+
+      // push/pop update ESP after they compute the effective address of their operand
+      // so update ESPOffset after rewriting stackLocationOperands!
+      if (s.operator() == IA32_PUSH) {
+	ESPOffset -= 4;
+      } else if (s.operator() == IA32_POP) {
+	ESPOffset  += 4; 
+      }
     }
   }
 

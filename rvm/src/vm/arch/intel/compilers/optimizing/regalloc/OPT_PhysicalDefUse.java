@@ -48,6 +48,21 @@ class OPT_PhysicalDefUse {
 
 
   /**
+   * @return whether or not an OPT_Operator uses the EFLAGS
+   */
+  static boolean usesEFLAGS(OPT_Operator op) {
+    return (op.implicitUses & maskAF_CF_OF_PF_SF_ZF) != 0;
+  }
+			      
+  /**
+   * @return whether or not an OPT_Operator uses the EFLAGS
+   */
+  static boolean definesEFLAGS(OPT_Operator op) {
+    return (op.implicitDefs & maskAF_CF_OF_PF_SF_ZF) != 0;
+  }
+			      
+
+  /**
    * @return a string representation of the physical registers encoded by
    * an integer
    */

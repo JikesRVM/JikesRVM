@@ -411,7 +411,18 @@ final class OPT_IR implements OPT_Operators {
     }
     return false;
   }
+
   
+  /**
+   * How many bytes of parameters does this method take?
+   */
+  public int incomingParameterBytes() {
+    int nWords = method.getParameterWords();
+    // getParameterWords() does not include the implicit 'this' parameter.
+    if (!method.isStatic()) nWords++;
+    return nWords << 2;
+  }
+
 
   /** 
    * Recompute the basic block map, so can use getBasicBlock(int)

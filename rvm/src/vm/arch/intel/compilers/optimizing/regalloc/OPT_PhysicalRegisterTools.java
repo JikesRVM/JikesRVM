@@ -41,30 +41,4 @@ OPT_GenericPhysicalRegisterTools{
       return null;
     }
   }
-  
-  /**
-   * Create an instruction to load the nth word of parameter data into a
-   * GPR register
-   */
-  static OPT_Instruction makeLoadSpilledGPRParam(OPT_RegisterOperand lhs, 
-                                                 int n) {
-    return MIR_Unary.create(LOAD_SPILLED_GPR_PARAM, lhs, I(n));
-  }
-
-  /**
-   * Create an instruction to load the nth word of parameter data into a
-   * FPR register as a Float
-   */
-  static OPT_Instruction makeLoadSpilledFloatParam(OPT_RegisterOperand lhs, 
-                                                   int n) {
-    return MIR_Unary.create(LOAD_SPILLED_FLOAT_PARAM, lhs, I(n));
-  }
-  /**
-   * Create an instruction to load the n and n+1st word of parameter data into a
-   * FPR register as a Dboule
-   */
-  static OPT_Instruction makeLoadSpilledDoubleParam(OPT_RegisterOperand lhs, 
-                                                    int n) {
-    return MIR_Unary.create(LOAD_SPILLED_DOUBLE_PARAM, lhs, I(n));
-  }
 }

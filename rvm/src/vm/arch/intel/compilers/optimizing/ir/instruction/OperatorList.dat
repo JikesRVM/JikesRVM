@@ -329,6 +329,7 @@ compare
 # (the callee will save/restore them).	
 # Used for expansion of yield points and resolve.
 # TODO: consider NOT marking this as a PEI, since it better not throw one?
+# NOTE: incorrect; it can throw an exception for resolve: (class loading exception)
 CALL_SAVE_VOLATILE
 MIR_Call
 call | immedPEI
@@ -346,10 +347,19 @@ none
 
 
 ########################################
-# A special marker that signifies the position of ESP in a prologue.
+# A special marker that signifies that ESP is required to be at a particular offset.
 ########################################
-MIR_ESP_PROLOGUE
-MIR_Empty
+REQUIRE_ESP
+MIR_UnaryNoRes
+none
+
+
+
+########################################
+# A special marker that signifies that ESP is now located at a particular offset.
+########################################
+ADVISE_ESP
+MIR_UnaryNoRes
 none
 
 
@@ -427,29 +437,6 @@ IA32_LOCK_CMPXCHG
 MIR_CompareExchange
 compare
 AF_CF_OF_PF_SF_ZF
-
-
-# ##############################################
-# Load a spilled GPR parameter into a register.
-# ###########################################
-LOAD_SPILLED_GPR_PARAM
-MIR_Unary
-none
-
-
-
-# Load a spilled FPR parameter into a register.
-LOAD_SPILLED_FLOAT_PARAM
-MIR_Unary
-none
-
-
-
-# Load a spilled FPR parameter into a register.
-LOAD_SPILLED_DOUBLE_PARAM
-MIR_Unary
-none
-
 
 
 ########################################

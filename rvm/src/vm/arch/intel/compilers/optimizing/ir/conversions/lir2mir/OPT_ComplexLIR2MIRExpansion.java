@@ -718,6 +718,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
    *  basic block
    */
   private static OPT_Instruction yield_point(OPT_Instruction s, OPT_IR ir) {
+    s.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(0)));
+    
     OPT_Instruction nextInstr = s.nextInstructionInCodeOrder();
     // get the correct method to be called for a thread switch
     VM_Method meth = null;

@@ -465,7 +465,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
   final OPT_Operand MO_CONV(OPT_BURS burs, byte size) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    return new OPT_StackLocationOperand(offset, size);
+    return new OPT_StackLocationOperand(true, offset, size);
   }
 
 
@@ -501,7 +501,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   void GET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForCaughtException();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
     burs.append(MIR_Move.mutate(s, IA32_MOV, Nullary.getResult(s), sl));
   }
 
@@ -515,7 +515,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   void SET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager. allocateSpaceForCaughtException();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
     OPT_RegisterOperand obj = (OPT_RegisterOperand)CacheOp.getRef(s);
     burs.append(MIR_Move.mutate(s, IA32_MOV, sl, obj));
   }
@@ -734,9 +734,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   final void FPR2GPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, QW);
-    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(offset+4, DW);
-    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
+    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset+4, DW);
+    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(true, offset, DW);
     burs.append(MIR_Move.create(IA32_FMOV, sl, Unary.getVal(s)));
     OPT_RegisterOperand i1 = Unary.getResult(s);
     OPT_RegisterOperand i2 = R(burs.ir.regpool.getSecondReg(i1.register));
@@ -750,9 +750,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   final void GPR2FPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, QW);
-    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(offset+4, DW);
-    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
+    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset+4, DW);
+    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(true, offset, DW);
     OPT_Operand i1, i2;
     OPT_Operand val = Unary.getVal(s);
     if (val instanceof OPT_RegisterOperand) {

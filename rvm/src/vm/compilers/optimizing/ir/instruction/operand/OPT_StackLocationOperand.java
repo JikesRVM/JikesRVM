@@ -6,63 +6,104 @@
 /**
  * Represents a symbolic name for a stack location.
  * 
- * For now, this implementation names a stack location by its offset from
- * the frame pointer (ie., top of the stack).  TODO: consider reworking the 
- * code to use abstract names for stack locations.
+ * The stack location is defined by an offset from either the framepointer
+ * (top of stack frame) or stackpointer-home-location (bottom of frame).
  * 
  * @author Stephen Fink
+ * @author Dave Grove
  */
 public final class OPT_StackLocationOperand extends OPT_Operand  {
   /**
-   * The offset from the frame pointer (top of stack frame) corresponding
+   * Is the offset from the top or bottom of stack frame?
+   */
+  private boolean fromTop;
+  
+  /**
+   * The offset (top/bottom of stack frame) corresponding
    * to this stack location.
    */
-  private int fpOffset;
+  private int offset;
 
   /**
    * Size (in bytes) reserved for the value of this operand.
    */
   private byte size;
 
+
   /**
-   * @param fpOffset the offset from the frame pointer (top of stack frame) 
-   * corresponding to this stack location.
-   * @param size Size (in bytes) reserved for the value of this operand.
+   * @param fromTop is the offset from the top of bottom of the frame?
+   * @param offset  the offset of the stack location from the top/bottom 
+   *                of the frame
+   * @param size    Size (in bytes) of the stack location.
    */
-  OPT_StackLocationOperand(int fpOffset, byte size) {
-    this.fpOffset = fpOffset;
+  OPT_StackLocationOperand(boolean fromTop, int offset, byte size) {
+    this.fromTop = fromTop;
+    this.offset = offset;
     this.size = size;
   }
 
   /**
+   * @param fromTop is the offset from the top of bottom of the frame?
+   * @param offset  the offset of the stack location from the top/bottom 
+   *                of the frame
+   * @param size    Size (in bytes) of the stack location.
+   */
+  OPT_StackLocationOperand(boolean fromTop, int offset, int size) {
+    this.fromTop = fromTop;
+    this.offset = offset;
+    this.size = (byte)size;
+  }
+
+  /**
+   * @return <code>true</code> if the stack location uses the top of the
+   *         frame as its base, <code>false</code> if it uses the bottom
+   *         of the frame as its base.
+   */
+  boolean isFromTop() {
+    return fromTop;
+  }
+
+  /**
    * @return the offset from the frame pointer (top of stack frame) 
-   * corresponding to this stack location.
+   *         corresponding to this stack location.
    */
   int getOffset() {
-    return fpOffset;
+    return offset;
   }
 
   /** 
-   * @return Size (in bytes) reserved for the value of this operand.
+   * @return Size (in bytes) of this stack location.
    */
   byte getSize() {
     return size;
   }
 
   public String toString() {
-    return "<Frame offset " + getOffset() + "," + getSize() + ">";
+    String s = "";
+    switch (size) {
+    case 1: s = ">B"; break;
+    case 2: s = ">W"; break;
+    case 4: s = ">DW"; break;
+    case 8: s = ">QW"; break;
+    default:
+      OPT_OptimizingCompilerException.UNREACHABLE();
+    }
+    return "<"+(isFromTop()?"FrameTop":"FrameBottom")+
+      (getOffset()<0?"":"+") + getOffset()+ s;
   }
 
   boolean similar(OPT_Operand op) {
     if (op instanceof OPT_StackLocationOperand) {
       OPT_StackLocationOperand o2 = (OPT_StackLocationOperand)op;
-      return ((o2.getOffset() == getOffset()) && (o2.getSize() == getSize()));
+      return ((o2.isFromTop() == isFromTop()) &&
+	      (o2.getOffset() == getOffset()) && 
+	      (o2.getSize() == getSize()));
     } else {
       return false;
     }
   }
 
   OPT_Operand copy() {
-    return new OPT_StackLocationOperand(getOffset(),getSize());
+    return new OPT_StackLocationOperand(isFromTop(), getOffset(), getSize());
   }
 }

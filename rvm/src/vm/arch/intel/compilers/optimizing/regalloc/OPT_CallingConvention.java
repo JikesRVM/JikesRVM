@@ -22,10 +22,9 @@ import java.util.Enumeration;
  * @author Dave Grove
  * @author Stephen Fink
  */
-final class OPT_CallingConvention 
-    extends OPT_RVMIRTools
-    implements OPT_Operators,
-    OPT_PhysicalRegisterConstants {
+final class OPT_CallingConvention extends OPT_RVMIRTools
+  implements OPT_Operators,
+	     OPT_PhysicalRegisterConstants {
 
   /**
    * Size of a word, in bytes
@@ -90,35 +89,11 @@ final class OPT_CallingConvention
     // 3. Move the return value into a register
     expandResultOfCall(call,ir);
     
-    // 4. Adjust ESP immediately before/after the call to account for
-    //    the parameters we are passing to the callee.
-    //    We do this as the last step in call expansion to ensure 
-    //    that the stackpointer adjustment is right next to the call.
-    //    Spill code insertion depends on this.
-    //    TODO: We should think about using push instructions to pass
-    //          parameters on the stack.  This would require some additional
-    //          logic in spill code insertion, but would probably result in
-    //          reduced code size and maybe marginally better performance.
-    if (parameterBytes != 0) {
-      // set the stack pointer as if we had pushed each parameter on the
-      // stack.
-      call.insertBefore(MIR_BinaryAcc.create(IA32_ADD,R(phys.getESP()), 
-					     I(parameterBytes)));
-      
-      if (isSysCall) {
-	// set the stack pointer as if we had popped each parameter off 
-	// the stack. This is only required for sysCalls; a normal RVM
-	// callee will do this subtraction as part of its epilogue.
-	call.insertAfter(MIR_BinaryAcc.create(IA32_ADD,R(phys.getESP()),
-					      I(-parameterBytes)));
-      }
-    }
-    // 5. If this is an interface invocation, set up the hidden parameter
-    //    in the processor object to hold the interface signature method
-    //    id.
+    // 4. If this is an interface invocation, set up the hidden parameter
+    //    in the processor object to hold the interface signature id.
     if (VM.BuildForIMTInterfaceInvocation) {
       if (MIR_Call.hasMethod(call)) {
-        OPT_MethodOperand mo = MIR_Call.getMethod(call);
+	OPT_MethodOperand mo = MIR_Call.getMethod(call);
         if (mo.isInterface()) {
           int signatureId = VM_ClassLoader.
             findOrCreateInterfaceMethodSignatureId(mo.method.getName(), 
@@ -130,6 +105,11 @@ final class OPT_CallingConvention
         }
       }
     }
+
+    // 5. ESP must be parameterBytes before call, will be at either parameterBytes
+    //    or 0 afterwards depending on whether or it is an RVM method or a sysCall.
+    call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(parameterBytes)));
+    call.insertAfter(MIR_UnaryNoRes.create(ADVISE_ESP, I(isSysCall?parameterBytes:0)));
   }
 
   /**
@@ -189,11 +169,8 @@ final class OPT_CallingConvention
 
     // Set the first 'Val' in the return instruction to hold an integer
     // constant which is the number of words to pop from the stack while 
-    // returning from this method.  The assembler obeys this parameter.
-    int nWords = ir.method.getParameterWords();
-    // getParameterWords() does not include the implicit 'this' parameter.
-    if (!ir.method.isStatic()) nWords++;
-    MIR_Return.setPopBytes(ret, I(nWords << 2)); 
+    // returning from this method.
+    MIR_Return.setPopBytes(ret, I(ir.incomingParameterBytes()));
   }
 
   /**
@@ -240,6 +217,7 @@ final class OPT_CallingConvention
     }
   }
 
+
   /**
    * Explicitly copy parameters to a call into the appropriate physical
    * registers as defined by the calling convention.
@@ -262,8 +240,11 @@ final class OPT_CallingConvention
     int parameterBytes = 0;
     OPT_Register ESP = phys.getESP();
 
+    // Require ESP to be at bottom of frame before a call,
+    call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(0)));
+
     // walk over each parameter
-    // must save before we start nulling them out!
+    // must count then before we start nulling them out!
     int numParams = MIR_Call.getNumberOfParams(call); 
     int nParamsInRegisters = 0;
     for (int i = 0; i < numParams;  i++) {
@@ -276,8 +257,8 @@ final class OPT_CallingConvention
 	parameterBytes -= size;
 	if (nFPRParams > phys.getNumberOfFPRParams()) {
 	  // pass the FP parameter on the stack
-	  OPT_MemoryOperand M = OPT_MemoryOperand.
-	    BD(R(ESP), parameterBytes, (byte)size, null,null);
+	  OPT_Operand M =
+	    new OPT_StackLocationOperand(false, parameterBytes, size);
 	  call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
 	} else {
 	  // Pass the parameter in a register.
@@ -297,11 +278,8 @@ final class OPT_CallingConvention
 	if (nGPRParams > phys.getNumberOfGPRParams()) {
 	  // Too many parameters to pass in registers.  Write the
 	  // parameter into the appropriate stack frame location.
-	  OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(ESP),
-							     parameterBytes,
-							     (byte)WORDSIZE,
-							     null,null);
-	  call.insertBefore(MIR_Move.create(IA32_MOV, M, param));
+	  call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(parameterBytes + 4)));
+	  call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
 	} else {
 	  // Pass the parameter in a register.
 	  OPT_Register phy = phys.getGPRParam(nGPRParams-1);
@@ -362,17 +340,17 @@ final class OPT_CallingConvention
     for (Enumeration e = phys.enumerateNonvolatileGPRs();
          e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
-      OPT_MemoryOperand rHome = OPT_MemoryOperand.BD(R(FP),
-                                    -location, (byte)WORDSIZE, null, null);
-      call.insertBefore(MIR_Move.create(IA32_MOV, rHome, R(r)));
+      OPT_Operand M = 
+	new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
+      call.insertBefore(MIR_Move.create(IA32_MOV, M, R(r)));
       location += WORDSIZE;
     }
     
     // save the processor register
     OPT_Register PR = phys.getPR();
-    OPT_MemoryOperand rHome = OPT_MemoryOperand.BD(R(FP),
-                                    -location, (byte)WORDSIZE, null, null);
-    call.insertBefore(MIR_Move.create(IA32_MOV, rHome, R(PR)));
+    OPT_Operand M = 
+      new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
+    call.insertBefore(MIR_Move.create(IA32_MOV, M, R(PR)));
   }
   /**
    * Restore all nonvolatile registers after a syscall.  
@@ -402,17 +380,17 @@ final class OPT_CallingConvention
     for (Enumeration e = phys.enumerateNonvolatileGPRs();
          e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
-      OPT_MemoryOperand rHome = OPT_MemoryOperand.BD(R(FP),
-                                    -location, (byte)WORDSIZE, null, null);
-      call.insertAfter(MIR_Move.create(IA32_MOV, R(r), rHome));
+      OPT_Operand M = 
+	new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
+      call.insertAfter(MIR_Move.create(IA32_MOV, R(r), M));
       location += WORDSIZE;
     }
     
     // restore the processor register
     OPT_Register PR = phys.getPR();
-    OPT_MemoryOperand rHome = OPT_MemoryOperand.BD(R(FP),
-                                    -location, (byte)WORDSIZE, null, null);
-    call.insertAfter(MIR_Move.create(IA32_MOV, R(PR), rHome));
+    OPT_Operand M = 
+      new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
+    call.insertAfter(MIR_Move.create(IA32_MOV, R(PR), M));
   }
 
   /**
@@ -436,8 +414,7 @@ final class OPT_CallingConvention
     OPT_Register ESP = phys.getESP();
     // count the number FPR parameters in a pre-pass
     int FPRRegisterParams= countFPRParams(call);
-    FPRRegisterParams = Math.min(FPRRegisterParams, 
-                                 phys.getNumberOfFPRParams());
+    FPRRegisterParams = Math.min(FPRRegisterParams, phys.getNumberOfFPRParams());
     
     // walk over the parameters in reverse order
     // NOTE: All params to syscall are passed on the stack!
@@ -450,15 +427,14 @@ final class OPT_CallingConvention
 	nFPRParams++;
 	int size = paramType.isFloatType() ? 4 : 8;
 	parameterBytes -= size;
-	OPT_MemoryOperand M = OPT_MemoryOperand.
-	  BD(R(ESP), parameterBytes, (byte)size, null,null);
+	OPT_Operand M = 
+	  new OPT_StackLocationOperand(false, parameterBytes, size);
 	call.insertBefore(MIR_Move.create(IA32_FMOV, M, param));
       } else {
 	nGPRParams++;
 	parameterBytes -= 4;
-	OPT_MemoryOperand M = OPT_MemoryOperand.
-	  BD(R(ESP), parameterBytes, (byte)WORDSIZE, null,null);
-	call.insertBefore(MIR_Move.create(IA32_MOV, M, param));
+	call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(parameterBytes + 4)));
+	call.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, param));
       }
     }
     return parameterBytes;
@@ -492,10 +468,10 @@ final class OPT_CallingConvention
     // Determine the address of the method to call.
     OPT_RegisterOperand ip = null;
     if (CallSpecial.getMethod(s) != null) {
-      OPT_SysMethodOperand sysM = (OPT_SysMethodOperand)CallSpecial.
-                                                        getClearMethod(s);
-      OPT_RegisterOperand t1 = OPT_ConvertToLowLevelIR.getStatic(s, ir,
-                                                                 sysM.record);
+      OPT_SysMethodOperand sysM = 
+	(OPT_SysMethodOperand)CallSpecial.getClearMethod(s);
+      OPT_RegisterOperand t1 = 
+	OPT_ConvertToLowLevelIR.getStatic(s, ir, sysM.record);
       ip = OPT_ConvertToLowLevelIR.getField(s, ir, t1, sysM.ip);
     } else {
       ip = (OPT_RegisterOperand)CallSpecial.getClearAddress(s);
@@ -531,9 +507,7 @@ final class OPT_CallingConvention
    * Count the number of FPR parameters in a call instruction.
    */
   private static int countFPRParams(OPT_Instruction call) {
-
     int result = 0;
-
     // walk over the parameters 
     int numParams = MIR_Call.getNumberOfParams(call); 
     for (int i = 0; i <numParams;  i++) {
@@ -551,9 +525,7 @@ final class OPT_CallingConvention
    * Count the number of FPR parameters in a prologue instruction.
    */
   private static int countFPRParamsInPrologue(OPT_Instruction p) {
-
     int result = 0;
-
     // walk over the parameters 
     for (OPT_OperandEnumeration e = p.getDefs(); e.hasMoreElements(); ) {
       OPT_Operand param = (OPT_Operand)e.nextElement();
@@ -566,6 +538,7 @@ final class OPT_CallingConvention
     }
     return result;
   }
+
   /**
    * Expand the prologue instruction.
    */
@@ -583,19 +556,19 @@ final class OPT_CallingConvention
 
     int gprIndex = 0; 
     int fprIndex = 0; 
-    int parameterWord = 0;
-    
+    int paramByteOffset = ir.incomingParameterBytes() + 8;
+
     // count the number of FPR params in a pre-pass
     int FPRRegisterParams= countFPRParamsInPrologue(p);
-    FPRRegisterParams = Math.min(FPRRegisterParams, 
-                                 phys.getNumberOfFPRParams());
-
+    FPRRegisterParams = Math.min(FPRRegisterParams, phys.getNumberOfFPRParams());
 
     // deal with each parameter
     for (OPT_OperandEnumeration e = p.getDefs(); e.hasMoreElements(); ) {
       OPT_RegisterOperand symbOp = (OPT_RegisterOperand)e.nextElement();
       VM_Type rType = symbOp.type;
       if (rType.isFloatType() || rType.isDoubleType()) {
+	int size = rType.isFloatType() ? 4 : 8;
+	paramByteOffset -= size;
         // if optimizing, only define the register if it has uses
         if (!ir.options.SIMPLE_OPT || symbOp.register.useList != null) {
           if (fprIndex < phys.getNumberOfFPRParams()) {
@@ -608,25 +581,15 @@ final class OPT_CallingConvention
             start.insertBefore(MIR_Move.create(IA32_FMOV,symbOp.copyRO(),
 					       D(param)));
           } else {
-            // spilled parameter: We can't insert the load instruction
-            // directly, since we don't know the stackframe size yet.
-            // Insert a placeholder instruction for clarity, and expand it
-            // later
-            if (rType.isFloatType()) {
-              start.insertBefore(OPT_PhysicalRegisterTools.
-                                 makeLoadSpilledFloatParam(symbOp.copyRO(),
-                                                           parameterWord));
-            } else {
-              start.insertBefore(OPT_PhysicalRegisterTools.
-                                 makeLoadSpilledDoubleParam(symbOp.copyRO(),
-                                                            parameterWord));
-            }
+	    OPT_Operand M = 
+	      new OPT_StackLocationOperand(true, paramByteOffset, size);
+	    start.insertBefore(MIR_Move.create(IA32_FMOV, symbOp.copyRO(), M));
           }
         }
         fprIndex++;
-        parameterWord += (rType.isFloatType()) ? 1 : 2;
       } else {
         // if optimizing, only define the register if it has uses
+	paramByteOffset -= 4;
         if (!ir.options.SIMPLE_OPT || symbOp.register.useList != null) {
           // t is object, 1/2 of a long, int, short, char, byte, or boolean
           if (gprIndex < phys.getNumberOfGPRParams()) {
@@ -643,18 +606,16 @@ final class OPT_CallingConvention
 	    start.insertBefore(m2);
 	    start = m2;
           } else {
-            // spilled parameter: We can't insert the load instruction
-            // directly, since we don't know the stackframe size yet.
-            // Insert a placeholder instruction for clarity, and expand it
-            // later
-            start.insertBefore(OPT_PhysicalRegisterTools.makeLoadSpilledGPRParam
-                               (symbOp.copyRO(),parameterWord));
+	    OPT_Operand M = 
+	      new OPT_StackLocationOperand(true, paramByteOffset, 4);
+	    start.insertBefore(MIR_Move.create(IA32_MOV, symbOp.copyRO(), M));
           }
         }
         gprIndex++;
-        parameterWord++;
       }
     }
+
+    if (VM.VerifyAssertions) VM.assert(paramByteOffset == 8, "pb = "+paramByteOffset);
     
     // Now that we've made the calling convention explicit in the prologue,
     // set IR_PROLOGUE to have no defs.
