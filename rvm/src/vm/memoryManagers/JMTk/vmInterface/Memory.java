@@ -37,7 +37,8 @@ public class Memory
   private static ImmortalSpace bootSpace;
   
   /* FIXME the following was established via trial and error :-( */
-  private static int BOOT_SEGMENT_MB = 4+(BOOT_IMAGE_SIZE.toInt()>>LOG_BYTES_IN_MBYTE);
+  //  private static int BOOT_SEGMENT_MB = 4+(BOOT_IMAGE_SIZE.toInt()>>LOG_BYTES_IN_MBYTE);
+  private static int BOOT_SEGMENT_MB = (0x10000000>>LOG_BYTES_IN_MBYTE);
 
   /**
    * Return the space associated with/reserved for the VM.  In the
