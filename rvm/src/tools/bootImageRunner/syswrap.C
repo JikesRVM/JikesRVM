@@ -301,6 +301,12 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 // that exceptfds in select is really used for out-of-band data and not
 // for exceptions.  See select_tut(2) for details.
 //
+// Addendum: Yes, this is correct.  Strictly, exceptfds is used for
+// "High-Priority data", which is defined by each type of descriptor
+// independently.  (For example, certain devices have a notion of exceptional
+// or high-priority data, and their Linux drivers  behave appropriately).
+// --Steve Augart
+//
 extern "C" int
 poll(struct pollfd *ufds, long unsigned int nfds, int timeout) 
 {
