@@ -24,7 +24,12 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
     if (!VM.BuildForInterpreter) {
       VM_Compiler     compiler     = new VM_Compiler();
-      VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
+      boolean         shouldPrint  = ((options.PRINT_MACHINECODE) &&
+				     (!options.hasMETHOD_TO_PRINT() ||
+				     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
+      if (shouldPrint) printStartHeader(method);
+      VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method, shouldPrint);
+      if (shouldPrint) printEndHeader(method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
       VM_CompilerInfo info;
@@ -69,11 +74,39 @@ public class VM_Compiler implements VM_BaselineConstants {
      return exceptionDeliverer;
   }
 
+  static VM_BASEOptions options;                   //  Options used during base compiler execution
+  static VM_BASEOptions setUpOptions;              //  Holds the options as the command line is being
+                                                   //  processed. 
+
+  static void bootOptions() {
+    options = new VM_BASEOptions();
+    setUpOptions = new VM_BASEOptions();
+  }
+
+  static void postBootOptions() {
+    // If the user has requested machine code dump, then they must restrict the printing to one
+    // or more methods. 
+    //    if (setUpOptions.PRINT_MACHINECODE && ! setUpOptions
+
+    // If the user has requested machine code dumps, then force a test of method to print option so
+    // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
+    // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
+    // for the check.
+    if (setUpOptions.PRINT_MACHINECODE) {
+      if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
+	VM.sysWrite("??? is not a sensible string to specify for method name");
+      }
+    }
+    options = setUpOptions;   // Switch to the version with the user command line processed
+  }
+
+
   //----------------//
   // implementation //
   //----------------//
   
-  private final VM_MachineCode genCode (int compiledMethodId, VM_Method method) {
+  private final VM_MachineCode genCode (int compiledMethodId, VM_Method method, boolean shouldPrint) {
+    if (options.PRINT_METHOD) printMethodMessage(method);
     /* initialization */ {
       // TODO!! check register ranges TODO!!
       this.method          = method;
@@ -83,9 +116,9 @@ public class VM_Compiler implements VM_BaselineConstants {
       bytecodeMap          = new int [bytecodeLength];
       if (klass.isBridgeFromNative())
 	// JNIFunctions need space for bigger prolog & epilog
-	asm                  = new VM_Assembler(bytecodeLength+10);
+	asm                  = new VM_Assembler(bytecodeLength+10,shouldPrint);
       else
-	asm                  = new VM_Assembler(bytecodeLength);
+	asm                  = new VM_Assembler(bytecodeLength,shouldPrint);
       profilerClass        = null; // TODO!! set this correctly
       parameterWords       = method.getParameterWords();
       parameterWords      += (method.isStatic() ? 0 : 1); // add 1 for this pointer
@@ -3665,9 +3698,55 @@ public class VM_Compiler implements VM_BaselineConstants {
     i |= (bytecodes[bi++] & 0xFF);
     return i;
   }
+
+  /**
+   * Print a message of a method name
+   * @param method
+   */
+  private static void printMethodMessage (VM_Method method) {
+      VM.sysWrite("baseline compiling -method ");
+      VM.sysWrite(method.getDeclaringClass().toString());
+      VM.sysWrite(" "); 
+      VM.sysWrite(method.getName());
+      VM.sysWrite(" ");
+      VM.sysWrite(method.getDescriptor());
+      VM.sysWrite(" \\\n");
+  }
+
+  /**
+   * Print a message to mark the start of machine code printing for a method
+   * @param method
+   */
+  private static void printStartHeader (VM_Method method) {
+    VM.sysWrite("baseline Start: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+  }
+
+  /**
+   * Print a message to mark the end of machine code printing for a method
+   * @param method
+   */
+  private static void printEndHeader (VM_Method method) {
+    VM.sysWrite("baseline End: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+  }
+
   
   static void init() {
     exceptionDeliverer = new VM_BaselineExceptionDeliverer();
+
+    // initialize the options very early for bootimage writing
+    options = new VM_BASEOptions();
   }
 
   static void boot() {

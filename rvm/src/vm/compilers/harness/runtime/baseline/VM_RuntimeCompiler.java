@@ -20,8 +20,15 @@ class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   }
 
   static void processCommandLineArg(String arg) {
-    // quietly ignore command line argument, for compatibility with opt compiler
-    VM.sysWrite("VM_RuntimeCompiler (baseline): ignoring command line argument: \"" + arg + "\"\n");
+    if (VM_Compiler.setUpOptions != null) {
+      if (VM_Compiler.setUpOptions.processAsOption("-X:irc", arg)) {
+	return;
+      } else {
+	VM.sysWrite("VM_RuntimeCompiler(baseline): Ignoring unrecognized argument \""+ arg + "\"\n");
+      }
+    } else {
+	VM.sysWrite("VM_RuntimeCompiler(baseline): Compiler setUpOptions not enabled; Ignoring argument \""+ arg + "\"\n");
+    }
   }
 
   static VM_CompiledMethod compile(VM_Method method) {

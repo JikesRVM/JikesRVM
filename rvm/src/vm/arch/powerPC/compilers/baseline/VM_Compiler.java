@@ -37,6 +37,12 @@ public class VM_Compiler implements VM_BaselineConstants {
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
       VM_CompilerInfo info;
+      if ((options.PRINT_MACHINECODE) &&
+          (!options.hasMETHOD_TO_PRINT() ||
+	   options.fuzzyMatchMETHOD_TO_PRINT(method.toString()))) {
+	printMethodCode(method, instructions);
+      }
+      
       if (method.isSynchronized()) {
 	info = new VM_BaselineCompilerInfo(method, bytecodeMap, 
                                            instructions.length, 
@@ -115,6 +121,33 @@ public class VM_Compiler implements VM_BaselineConstants {
   static VM_ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
+
+  static VM_BASEOptions options;                   //  Options used during base compiler execution
+  static VM_BASEOptions setUpOptions;              //  Holds the options as the command line is being
+                                                   //  processed. 
+
+  static void bootOptions() {
+    options = new VM_BASEOptions();
+    setUpOptions = new VM_BASEOptions();
+  }
+
+  static void postBootOptions() {
+    // If the user has requested machine code dump, then they must restrict the printing to one
+    // or more methods. 
+    //    if (setUpOptions.PRINT_MACHINECODE && ! setUpOptions
+
+    // If the user has requested machine code dumps, then force a test of method to print option so
+    // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
+    // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
+    // for the check.
+    if (setUpOptions.PRINT_MACHINECODE) {
+      if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
+	VM.sysWrite("??? is not a sensible string to specify for method name");
+      }
+    }
+    options = setUpOptions;   // Switch to the version with the user command line processed
+  }
+
   
   //----------------//
   // implementation //
@@ -158,6 +191,7 @@ public class VM_Compiler implements VM_BaselineConstants {
   }
 
   private VM_MachineCode genCode (int compiledMethodId, VM_Method meth) {
+    if (options.PRINT_METHOD) printMethodMessage(meth);
     if (VM.TraceCompilation) VM.sysWrite("VM_Compiler: begin compiling " + meth + "\n");
     /* initialization */ { 
       if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
@@ -3321,6 +3355,54 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
      asm.emitSTFD(0, localOffset(localIndex) - 4, FP);
      spillOffset += 8;
   }
+
+  /**
+   * Print a message of a method name
+   * @param method
+   */
+  private static void printMethodMessage (VM_Method method) {
+      VM.sysWrite("base compiling -method ");
+      VM.sysWrite(method.getDeclaringClass().toString());
+      VM.sysWrite(" "); 
+      VM.sysWrite(method.getName());
+      VM.sysWrite(" ");
+      VM.sysWrite(method.getDescriptor());
+      VM.sysWrite(" \\\n");
+  }
+
+  /**
+   * Print a message of a method name
+   * @param method
+   * @param instructions
+   */
+  private static void printMethodCode (VM_Method method, INSTRUCTION[] instructions) {
+    // While doing this step more classes may need to be loaded and compiled
+    // Temporarily disable print request to avoid those compilations to complete 
+    options.PRINT_MACHINECODE=false;
+    VM.sysWrite("baseline Start: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+    for (int i = 0; i < instructions.length; i++) {
+      VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
+      VM.sysWrite(" : ");
+      VM.sysWrite(VM_Services.getHexString(instructions[i], false));
+      VM.sysWrite("  ");
+      VM.sysWrite(PPC_Disassembler.disasm(instructions[i], i << LG_INSTRUCTION_WIDTH));
+      VM.sysWrite("\n");
+    }
+    VM.sysWrite("baseline End: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+    options.PRINT_MACHINECODE=true;
+  }
    
   private VM_Method    method;
   /*private*/ VM_Class     klass;       //!!TODO: make private once VM_MagicCompiler is merged in
@@ -3367,6 +3449,9 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 
     // initialize the JNI environment
     VM_JNIEnvironment.init();
+
+    // initialize the options very early for bootimage writing
+    options = new VM_BASEOptions();
   }
 
 }

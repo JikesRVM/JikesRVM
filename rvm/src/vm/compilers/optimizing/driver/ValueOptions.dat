@@ -65,10 +65,6 @@ S EXCLUDE String
 Exclude methods from being opt compiled
 
 
-S METHOD_TO_PRINT String
-Only print IR from methods whose name contains this string
-
-
 V UNROLL_LOG int 2
 Unroll loops. Duplicates the loop body n times.
 

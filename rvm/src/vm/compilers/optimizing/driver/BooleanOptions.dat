@@ -166,9 +166,6 @@ Act on annotations in class files
 PRINT_PHASES -1 false phases
 Print short message for each compilation phase
 
-PRINT_METHOD -1 false verbose
-Print method name at start of compilation
-
 PRINT_INLINE_REPORT -1 false
 Print detailed report of compile-time inlining decisions
 
@@ -214,9 +211,6 @@ Print IR after conversion to MIR
 
 PRINT_FINAL_MIR -1 false final_mir
 Print IR just before conversion to machine code
-
-PRINT_MACHINECODE -1 false mc
-Print final machine code
 
 PRINT_CFG -1 false cfg
 Print control flow graph too when IR is printed

@@ -19,6 +19,14 @@ class VM_BootImageCompiler {
    */
   static void init(String[] args) { 
     VM_Compiler.init(); 
+
+    // Process arguments specified by the user.
+    for (int i = 0, n = args.length; i < n; i++) {
+      String arg = args[i];
+      if (!VM_Compiler.options.processAsOption("-X:bc:", arg)) {
+	VM.sysWrite("VM_BootImageCompiler(baseline): Unrecognized argument "+arg+"; ignoring\n");
+      }
+    }
   }
 
   /** 

@@ -24,6 +24,9 @@ BEGIN {
 /^VM_RuntimeCompiler: boot.*$/ { next }
 /NativeDaemonProcessor not created/ { next }
 /VM_RuntimeCompiler \([a-zA-Z ]*\): ignoring command line argument/ { next }
+/VM_RuntimeCompiler\(baseline\): Ignoring unrecognized argument/ { next }
+/.*Illegal option specification/ { next }
+/.*must be specified as a name-value pair in the form of option=value/ { next }
 /IA32 linux build/ { next }
 
 

@@ -596,6 +596,10 @@ function emitSourceList
      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler # architecture dependent
    fi
 
+   # other components
+   #
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/disassembler
+
    # Optimizing compiler components.
    #
    if (( RVM_WITH_OPT_COMPILER )); then
@@ -659,10 +663,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/conversions/mir2mc
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/regalloc
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/services
-
-      # other components
-      #
-      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/disassembler
    fi
 
    # Adaptive compiler components.
@@ -1038,9 +1038,8 @@ function emitExpander
    print 'fi'
 
    # Make the tools that we need to do template expansion
-   if (( RVM_WITH_ADAPTIVE_SYSTEM || RVM_WITH_OPT_COMPILER  || RVM_WITH_GCTk )); then
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-   fi
+
    if (( RVM_WITH_OPT_COMPILER )); then
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/jburg && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
@@ -1055,6 +1054,8 @@ function emitExpander
 
    # Do the expansion
    print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/classLoader && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
+
+   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/baseline && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
 
    if (( RVM_WITH_OPT_COMPILER )); then
       print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_SYSTEM)"
