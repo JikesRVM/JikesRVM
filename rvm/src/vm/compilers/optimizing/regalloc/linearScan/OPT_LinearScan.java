@@ -156,7 +156,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * sorted by increasing start point
      * Used by ClassWriter so needs to be public
      */
-    public IntervalSet intervals;
+    public ArrayList intervals;
 
     /**
      * Was any register spilled?
@@ -251,7 +251,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         ir.MIRInfo.linearScanState.active = active;
 
         // Intervals sorted by increasing start point
-        IntervalSet intervals = ir.MIRInfo.linearScanState.intervals;
+        ArrayList intervals = ir.MIRInfo.linearScanState.intervals;
         for (Iterator e = intervals.iterator(); e.hasNext(); ) {
 
           MappedBasicInterval bi = (MappedBasicInterval)e.next();
@@ -287,11 +287,11 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * DFN of the beginning instruction of this interval
      */
-    private final int begin;                    
+    private int begin;                    
     /**
      * DFN of the last instruction of this interval
      */
-    private final int end;                      
+    private int end;                      
 
     /**
      * Default constructor.
@@ -318,8 +318,8 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     /**
      * Extend a live interval to a new endpoint
      */
-    final BasicInterval extendEnd(int newEnd) {
-      return new BasicInterval(begin,Math.max(end,newEnd));
+    final void setEnd(int newEnd) {
+      end = newEnd;
     }
 
     /**
@@ -425,6 +425,11 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       this.container = c;
     }
 
+    MappedBasicInterval(int begin, int end, CompoundInterval c) {
+      super(begin,end);
+      this.container = c;
+    }
+
     /**
      * Redefine equals
      */
@@ -471,7 +476,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Create a new compound interval of a single Basic interval
      */
     CompoundInterval(int dfnBegin, int dfnEnd, OPT_Register register) {
-      BasicInterval newInterval = new BasicInterval(dfnBegin,dfnEnd);
+      BasicInterval newInterval = new MappedBasicInterval(dfnBegin,dfnEnd,this);
       add(newInterval);
       reg = register;
     }
@@ -480,7 +485,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * Create a new compound interval of a single Basic interval
      */
     CompoundInterval(BasicInterval i, OPT_Register register) {
-      BasicInterval newInterval = new BasicInterval(i.getBegin(),i.getEnd());
+      BasicInterval newInterval = new MappedBasicInterval(i.getBegin(),i.getEnd(),this);
       add(newInterval);
       reg = register;
     }
@@ -525,22 +530,19 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      *
      * @param live the new live range
      * @param bb the basic block for live
-     * @return a pair <old,new> if an old interval was extended,
-     * the new basic interval otherwise
+     * @return the new basic interval if one was created; null otherwise
      */
-    Object addRange(OPT_LiveIntervalElement live, OPT_BasicBlock bb) {
+    BasicInterval addRange(OPT_LiveIntervalElement live, OPT_BasicBlock bb) {
 
       if (shouldConcatenate(live,bb)) {
         // concatenate with the last basic interval
         BasicInterval last = (BasicInterval)last();
-        remove(last);
-        BasicInterval newI = last.extendEnd(getDfnEnd(live,bb)); 
-        add(newI);
-        return new OPT_Pair(last,newI);
+        last.setEnd(getDfnEnd(live,bb)); 
+        return null;
       } else {
         // create a new basic interval and append it to the list.
-        BasicInterval newInterval = new BasicInterval(getDfnBegin(live,bb),
-                                                      getDfnEnd(live,bb));
+        BasicInterval newInterval = new MappedBasicInterval(getDfnBegin(live,bb),
+                                                      getDfnEnd(live,bb),this);
         add(newInterval);
         return newInterval;
       }
@@ -1481,6 +1483,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     private OPT_BasicBlock reverseTopFirst;
 
+
     /**
      * should we perform this phase? yes.
      */
@@ -1515,7 +1518,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       LinearScanState state = new LinearScanState();
       ir.MIRInfo.linearScanState = state;
-      state.intervals = new IncreasingStartMappedIntervalSet();
+      state.intervals = new ArrayList();
 
       // create topological list and a reverse topological list
       // the results are on listOfBlocks and reverseTopFirst lists
@@ -1527,6 +1530,8 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // initialize registers 
       initializeRegisters();
 
+      int lastBeginSeen = -1;
+      
       // visit each basic block in the listOfBlocks list
       for (OPT_BasicBlock bb = listOfBlocks; bb !=null; 
            bb=(OPT_BasicBlock)bb.nextSorted) {
@@ -1536,6 +1541,14 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
              live != null; 
              live = live.getNext()) {
 
+          // check that we process live intervals in order of increasing
+          // begin.
+          if (VM.VerifyAssertions) {
+            int begin = getDfnBegin(live,bb);
+            VM.assert(begin >= lastBeginSeen);
+            lastBeginSeen = begin;
+          }
+          
           // skip registers which are not allocated.
           if (live.getRegister().isPhysical() &&
               !phys.isAllocatable(live.getRegister())) continue;
@@ -1689,26 +1702,16 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
         // add the new interval to the sorted set of intervals.  
         BasicInterval b = (BasicInterval)newInterval.first();
-        ir.MIRInfo.linearScanState.intervals.add(new MappedBasicInterval(b,newInterval));
+        ir.MIRInfo.linearScanState.intervals.add(b);
 
         return newInterval;
 
       } else {
         // add the new live range to the existing interval
-        IntervalSet intervals = ir.MIRInfo.linearScanState.intervals;
-        Object result = existingInterval.addRange(live,bb);
-        if (result instanceof BasicInterval) {
-           BasicInterval newBasic = (BasicInterval)result;
-           intervals.add(new MappedBasicInterval(newBasic,existingInterval));
-        } else {
-          OPT_Pair pair = (OPT_Pair)result;
-          BasicInterval oldI = (BasicInterval)pair.first;
-          BasicInterval newI = (BasicInterval)pair.second;
-          // the following allocation seems bogus, but is needed to make
-          // the remove operation succeed, according to the definition of
-          // "equals"
-          intervals.remove(new MappedBasicInterval(oldI,existingInterval));
-          intervals.add(new MappedBasicInterval(newI,existingInterval));
+        ArrayList intervals = ir.MIRInfo.linearScanState.intervals;
+        BasicInterval added = existingInterval.addRange(live,bb);
+        if (added != null) {
+           intervals.add(added);
         }
         if (verboseDebug) System.out.println("Extended old interval " + reg); 
         if (verboseDebug) System.out.println(existingInterval);
