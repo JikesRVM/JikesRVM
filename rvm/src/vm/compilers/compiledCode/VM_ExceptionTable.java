@@ -13,9 +13,8 @@
 abstract class VM_ExceptionTable {
 
   /**
-   * The eTable array encodes the exception tables using 4 ints for each
+   * An eTable array encodes the exception tables using 4 ints for each
    */
-  protected int[] eTable;
   protected static final int TRY_START = 0;
   protected static final int TRY_END = 1;
   protected static final int CATCH_START = 2;
@@ -24,13 +23,15 @@ abstract class VM_ExceptionTable {
   /**
    * Return the machine code offset for the catch block that will handle
    * the argument exceptionType,or -1 if no such catch block exists.
-   * 
+   *
+   * @param eTable the encoded exception table to search
    * @param instructionOffset the offset of the instruction after the PEI.
    * @param exceptionType the type of exception that was raised
    * @return the machine code offset of the catch block.
    */
-  public final int findCatchBlockForInstruction(int instructionOffset, 
-						VM_Type exceptionType) {
+  public static final int findCatchBlockForInstruction(int[] eTable,
+						       int instructionOffset, 
+						       VM_Type exceptionType) {
     for (int i = 0, n = eTable.length; i < n; i += 4) {
       // note that instructionOffset points to the instruction after the PEI
       // so the range check here must be "offset >  beg && offset <= end"
@@ -65,9 +66,10 @@ abstract class VM_ExceptionTable {
   }
 
   /**
-   * Print the exception table.
+   * Print an encoded exception table.
+   * @param eTable the encoded exception table to print.
    */
-  public final void printExceptionTable () {
+  public static final void printExceptionTable (int[] eTable) {
     int length = eTable.length;
     System.out.println("Exception Table:");
     System.out.println("    trystart   tryend    catch    type");
@@ -75,15 +77,10 @@ abstract class VM_ExceptionTable {
       System.out.print("    " + 
 		       VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
 		       VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
-		       VM_Services.getHexString(eTable[i + CATCH_START], true) + " " +
+		       VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
 		       VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
       System.out.println();
     }
-  }
-
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-  public final int size() {
-    return TYPE.getInstanceSize() + VM_Array.arrayOfIntType.getInstanceSize(eTable.length);
   }
 }
 

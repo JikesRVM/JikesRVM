@@ -14,14 +14,15 @@
 final class VM_OptExceptionTable extends VM_ExceptionTable {
 
   /**
-   * Construct the exception table for an IR.
+   * Encode an exception table
+   * @param ir the OPT_IR to encode the exception table for
+   * @return the encoded exception table
    */
-  VM_OptExceptionTable(OPT_IR ir) {
-    super();
+  static int[] encode(OPT_IR ir) {
     int index = 0;
     int currStartOff, currEndOff;
     int tableSize = countExceptionTableSize(ir);
-    eTable = new int[tableSize*4];
+    int[] eTable = new int[tableSize*4];
 
     // For each basic block
     //   See if it has code associated with it and if it has
@@ -119,6 +120,7 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
         newETable[i] = eTable[i];
       eTable = newETable;
     }
+    return eTable;
   }
 
   /**

@@ -31,7 +31,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   /**
    * Exception table, null if not present.
    */
-  private VM_BaselineExceptionTable eTable;
+  private int[] eTable;
 
   /**
    * Line tables for use by "findLineNumberForInstruction()".
@@ -64,7 +64,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     if (eTable == null) {
       return -1;
     } else {
-      return eTable.findCatchBlockForInstruction(instructionOffset, exceptionType);
+      return VM_ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
     }
   }
 
@@ -253,9 +253,12 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     }
   }
 
-  //----------------//
-  // implementation //
-  //----------------//
+  /**
+   * Print the eTable
+   */
+  public final void printExceptionTable() {
+    if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
+  }
 
   // We use the available bits in bitField1 to encode the lock acquistion offset
   // for synchronized methods
@@ -290,7 +293,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     //
     VM_ExceptionHandlerMap emap = method.getExceptionHandlerMap();
     if (emap != null) {
-      eTable = new VM_BaselineExceptionTable(emap, bytecodeMap);
+      eTable = VM_BaselineExceptionTable.encode(emap, bytecodeMap);
     }
 
     // create line tables
@@ -326,7 +329,7 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
     VM_Array intArray = VM_Array.arrayOfIntType;
     int size = TYPE.getInstanceSize();
     if (_bytecodeMap != null) size += intArray.getInstanceSize(_bytecodeMap.length);
-    if (eTable != null) size += eTable.size();
+    if (eTable != null) size += intArray.getInstanceSize(eTable.length);
     if (lineInstructionOffsets != null) size += intArray.getInstanceSize(lineInstructionOffsets.length);
     if (referenceMaps != null) size += referenceMaps.size();
     if (localStartInstructionOffsets != null) size += intArray.getInstanceSize(localStartInstructionOffsets.length);

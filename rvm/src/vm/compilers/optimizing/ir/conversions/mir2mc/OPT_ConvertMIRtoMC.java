@@ -110,9 +110,7 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
 
       if (shouldPrint) {
         // print exception tables (if any)
-        VM_OptExceptionTable etable = ir.compiledMethod.getExceptionTable();
-        if (etable != null)
-  	etable.printExceptionTable();
+	ir.compiledMethod.printExceptionTable();
         OPT_Compiler.bottom("Final machine code", method);
       }
   

@@ -43,11 +43,10 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    */ 
   final int findCatchBlockForInstruction(int instructionOffset, 
 					 VM_Type exceptionType) throws VM_PragmaInterruptible {
-    if (_eMap == null) {
+    if (eTable == null) {
       return -1;
     } else {
-      return _eMap.findCatchBlockForInstruction(instructionOffset, 
-						exceptionType);
+      return VM_ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
     }
   }
 
@@ -226,7 +225,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   final int size() throws VM_PragmaInterruptible {
     int size = TYPE.getInstanceSize();
     size += _mcMap.size();
-    if (_eMap != null) size += _eMap.size();
+    if (eTable != null) size += VM_Array.arrayOfIntType.getInstanceSize(eTable.length);
     //-#if RVM_FOR_IA32
     if (patchMap != null) size += VM_Array.arrayOfIntType.getInstanceSize(patchMap.length);
     //-#endif
@@ -261,7 +260,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   /** The primary machine code maps */
   private VM_OptMachineCodeMap _mcMap;
   /** The encoded exception tables (null if there are none) */
-  private VM_OptExceptionTable _eMap;
+  private int[] eTable;
   //-#if RVM_FOR_IA32
   private int[] patchMap;
   //-#endif
@@ -410,19 +409,18 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     //-#endif
   }
 
+  /**
+   * Print the eTable
+   */
+  public final void printExceptionTable() {
+    if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
+  }
 
   /**
    * @return the machine code map for the compiled method.
    */
   public final VM_OptMachineCodeMap getMCMap () {
     return _mcMap;
-  }
-
-  /**
-   * @return the encoded exeption table for the compiled method.
-   */
-  public VM_OptExceptionTable getExceptionTable () {
-    return _eMap;
   }
 
   /**
@@ -442,7 +440,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    */
   public final void createFinalExceptionTable (OPT_IR ir) throws VM_PragmaInterruptible {
     if (ir.hasReachableExceptionHandlers()) {
-      _eMap = new VM_OptExceptionTable(ir);
+      eTable = VM_OptExceptionTable.encode(ir);
     }
   }
 
