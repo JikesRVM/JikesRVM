@@ -1030,7 +1030,7 @@ function emitController () {
     $(emit_enable_exit_on_error)
 	    echo "\$SECONDS s"
 	    if [ \$status != 0 ]; then
-		echo >&2 "\$ME: Trouble while running \"\$*\" (exit status \$status); aborting execution"
+		echo >&2 "\$ME: Trouble while running \"\$cmd \$*\" (exit status \$status); aborting execution"
 		trap '' EXIT
 		exit \$status;
 	    fi
