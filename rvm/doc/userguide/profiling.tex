@@ -83,6 +83,11 @@ The AppStart, AppComplete, AppRunStart, and AppRunComplete monitors
 are supported for application use.  
 Support for other callbacks can be easily added following the current design.
 
+A trace file reader is available in the \$RVM\_ROOT/rvm/src/tools/HPM\_traceFileReader
+subdirectory.  Type {\tt make} on the command line to generate the class files and then 
+type {\tt java TraceFileReader} to determine what command line options are available.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Profiling An Application}
 One component of the adaptive optimization system is a low-overhead
