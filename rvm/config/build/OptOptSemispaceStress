@@ -1,0 +1,2 @@
+   . $1/OptOptSemispace
+   export RVM_FOR_STRESSGC=1
