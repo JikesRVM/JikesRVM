@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose 

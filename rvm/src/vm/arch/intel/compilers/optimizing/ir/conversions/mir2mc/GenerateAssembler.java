@@ -1129,7 +1129,7 @@ public class GenerateAssembler {
 	}
 
 	emit("package com.ibm.JikesRVM;\n\n");
-	emit("import instructionFormats.*;\n\n");
+	emit("import com.ibm.JikesRVM.opt.ir.instructionFormats.*;\n\n");
 	emit("\n\n");
 
 	emit("/**\n");

@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * A class that encapsulates mapping information about generated machine code.

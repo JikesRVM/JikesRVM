@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import  java.io.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * A few common utilites used for invoking BURS tree-pattern matching

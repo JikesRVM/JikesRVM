@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * Transform tail recursive calls into loops.

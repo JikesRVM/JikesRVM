@@ -7,7 +7,7 @@ package com.ibm.JikesRVM;
 
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * This class translates from bytecode to HIR.

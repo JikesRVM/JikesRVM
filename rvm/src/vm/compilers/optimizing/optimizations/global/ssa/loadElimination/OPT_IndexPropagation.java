@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * OPT_IndexPropagation.java

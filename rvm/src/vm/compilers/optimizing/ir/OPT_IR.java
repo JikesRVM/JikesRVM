@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * An <code>OPT_IR</code> object (IR is short for Intermediate Representation)

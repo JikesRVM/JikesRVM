@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * An instance of this class provides a mapping from symbolic register to

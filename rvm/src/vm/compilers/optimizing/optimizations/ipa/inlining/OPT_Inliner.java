@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * This class contains the high level logic for executing an inlining decision.

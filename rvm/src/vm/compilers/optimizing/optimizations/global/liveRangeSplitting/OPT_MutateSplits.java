@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * Change SPLIT operations inserting for live range splitting into Moves.

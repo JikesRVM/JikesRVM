@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
 import java.util.Iterator;
-import instructionFormats.Unary;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.Unary;
 
 /**
  * Perform live-range splitting.

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * A basic block in the 
@@ -1003,7 +1003,6 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   public final OPT_BasicBlock prevBasicBlockInCodeOrder() {
     return (OPT_BasicBlock)getPrev();
   }
-
 
   /**
    * Returns true if the block contains no real instructions

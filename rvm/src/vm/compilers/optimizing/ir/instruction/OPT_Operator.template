@@ -12,7 +12,7 @@
  */
 
 package com.ibm.JikesRVM;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * An OPT_Operator represents the operator of an {@link OPT_Instruction}.

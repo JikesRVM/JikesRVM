@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * This module holds utility functions for SSA form.

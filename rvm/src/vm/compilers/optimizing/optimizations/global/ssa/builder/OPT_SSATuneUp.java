@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * This phase puts the IR in SSA form and performs a set of simple

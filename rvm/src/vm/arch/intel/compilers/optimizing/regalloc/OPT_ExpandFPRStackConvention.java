@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.util.Enumeration;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * At the beginning of each basic block, the register allocator expects

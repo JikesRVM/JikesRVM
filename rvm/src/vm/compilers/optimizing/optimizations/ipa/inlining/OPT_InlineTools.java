@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import  java.util.Stack;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * This class provides some utilities that are useful for inlining.

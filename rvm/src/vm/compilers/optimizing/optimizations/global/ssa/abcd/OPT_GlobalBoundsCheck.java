@@ -6,7 +6,7 @@ package com.ibm.JikesRVM;
 
 import  java.util.*;
 import  java.math.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * ABCD: Array Bound Check elimination on Demand

@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * This pass adjusts branch probabilities derived from static estimates

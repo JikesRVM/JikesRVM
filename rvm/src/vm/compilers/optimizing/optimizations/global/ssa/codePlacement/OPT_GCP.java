@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import  java.util.*;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * Global code placement comes in two flavours. The first is loop

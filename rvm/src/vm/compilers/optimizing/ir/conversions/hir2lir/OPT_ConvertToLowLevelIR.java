@@ -5,7 +5,7 @@
 
 package com.ibm.JikesRVM;
 
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * Converts all remaining instructions with HIR-only operators into 

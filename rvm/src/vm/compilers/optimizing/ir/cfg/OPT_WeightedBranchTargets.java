@@ -3,7 +3,7 @@
  */
 // $Id$
 package com.ibm.JikesRVM;
-import instructionFormats.*;
+import com.ibm.JikesRVM.opt.ir.instructionFormats.*;
 
 /**
  * Used to iterate over the branch targets (including the fall through edge) 
@@ -78,7 +78,7 @@ final class OPT_WeightedBranchTargets {
 	OPT_BranchProfileOperand prof = TableSwitch.getDefaultBranchProfile(s);
 	float taken = prob * prof.takenProbability;
 	total += prof.takenProbability;
-	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total);
+	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total + ": "+s);
 	addEdge(target, taken);
       } else if (LowTableSwitch.conforms(s)) {
 	int number = LowTableSwitch.getNumberOfTargets(s);
@@ -90,7 +90,7 @@ final class OPT_WeightedBranchTargets {
 	  total += prof.takenProbability;
 	  addEdge(target, taken);
 	}
-	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total);
+	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total + ": "+s);
       } else if (LookupSwitch.conforms(s)) {
 	int number = LookupSwitch.getNumberOfTargets(s);
 	float total = 0f;
@@ -105,7 +105,7 @@ final class OPT_WeightedBranchTargets {
 	OPT_BranchProfileOperand prof = LookupSwitch.getDefaultBranchProfile(s);
 	float taken = prob * prof.takenProbability;
 	total += prof.takenProbability;
-	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total);
+	if (VM.VerifyAssertions) VM._assert(epsilon(total, 1f), "total = "+total + ": "+s);
 	addEdge(target, taken);
       } else {
 	throw new OPT_OptimizingCompilerException("TODO "+s+"\n");
