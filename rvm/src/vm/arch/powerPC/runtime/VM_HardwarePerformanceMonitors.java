@@ -59,7 +59,6 @@ public class VM_HardwarePerformanceMonitors
   //BEGIN HRM
   static private int       METHOD_RECORD = 4;
   //END HRM
-  static private int       TRACE_FILE_RECORD = 5;
 
   // Set true in VM_HPMs.setUpHPMinfo() to tell VM_Processor when it is safe to collect hpm data!  
   static public  boolean safe = false;
@@ -72,7 +71,7 @@ public class VM_HardwarePerformanceMonitors
   static public  int     SIZE_OF_LONG       = 8;
   //BEGIN HRM
   // (tid(16) & buffer_code(1) & thread_switch(1) & vpid(10 & trace_format(4)) (int), global_tid(int), startOfWallTime(long), endOfWallTime(long), mid1(int), mid2(int), counters(long)*
-  static public  int     SIZE_OF_HEADER     = 40; 
+  static public  int     SIZE_OF_HEADER     = 32; 
   //END HRM
 
   static private int     record_size        = 0;     // in bytes, record size
@@ -843,7 +842,9 @@ public class VM_HardwarePerformanceMonitors
 	    }
 	  }
 	  //BEGIN HRM
-	  dumpMethods();
+	  if (verbose>=6) {
+	    dumpMethods();
+	  }
 	  //END HRM
 	  if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyExit(",value,") finished");
         }
