@@ -10,20 +10,20 @@
 # @author Anthony Cocchi
 # @author Derek Lieber
 
-if [ $# != 7 ]; then
+if (( $# != 7 )); then
    echo "usage: $0 packageName dictionaryClassName keyTypeName valueTypeName hasherClassName templateFileName outputFileName"
    exit 1
 fi
 
-PNAME=$1
-CNAME=$2
-KNAME=$3
-VNAME=$4
-DNAME=$5
-IFILE=$6
-OFILE=$7
+PNAME="$1"
+CNAME="$2"
+KNAME="$3"
+VNAME="$4"
+DNAME="$5"
+IFILE="$6"
+OFILE="$7"
 
 exec > "${OFILE}"
-'/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'
+echo '/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'
 echo ""
 sed -e "s/PPP/$PNAME/g" -e "s/CCC/$CNAME/g" -e "s/KKK/$KNAME/g" -e "s/VVV/$VNAME/g" -e "s/DDD/$DNAME/g" $IFILE
