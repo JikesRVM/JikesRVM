@@ -223,11 +223,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     if (isInstantiated()) return;
     
     if (VM.VerifyAssertions) VM._assert(state == CLASS_RESOLVED);
-    if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Array: instantiate " + this + "\n");
+    if (VM.TraceClassLoading && VM.runningVM) 
+      VM.sysWrite("VM_Array: instantiate " + this + "\n");
     
     // Initialize TIB slots for virtual methods (copy from superclass == Object)
-    Object[] javaLangObjectTIB = VM_Type.JavaLangObjectType.getTypeInformationBlock();
-    for (int i = TIB_FIRST_VIRTUAL_METHOD_INDEX, n = javaLangObjectTIB.length; i < n; ++i) {
+    Object[] javaLangObjectTIB 
+      = VM_Type.JavaLangObjectType.getTypeInformationBlock();
+    for (int i = TIB_FIRST_VIRTUAL_METHOD_INDEX, n = javaLangObjectTIB.length; 
+	 i < n; ++i) 
+    {
       typeInformationBlock[i] = javaLangObjectTIB[i];
     }
     state = CLASS_INITIALIZED; // arrays have no "initialize" phase

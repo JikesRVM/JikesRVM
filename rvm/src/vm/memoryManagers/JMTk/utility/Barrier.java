@@ -67,7 +67,8 @@ public final class Barrier implements VM_Uninterruptible {
     int myValue = c.increment();
     // Do NOT use the currentCounter variables unless designated thread
     if (verbose >= 1) VM.sysWriteln("", where, ": myValue = ", myValue);
-    if (VM.VerifyAssertions) VM._assert(myValue >= 0 && (target == -1 || myValue <= target));
+    if (VM.VerifyAssertions) 
+      VM._assert(myValue >= 0 && (target == -1 || myValue <= target));
     if (myValue + 2 == target) { 
       // last one to show up
       int nextCounter = (currentCounter + 1) % NUM_COUNTERS;

@@ -2797,7 +2797,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_aload(int index) {
     OPT_Operand r = getLocal(index);
-    if (VM.VerifyAssertions && !(r.isRef() || r.isAddress())) VM._assert(false, r + " not ref, but a " + r.getType());
+    if (VM.VerifyAssertions && !(r.isRef() || r.isAddress())) 
+      VM._assert(false, r + " not ref, but a " + r.getType());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -3211,7 +3212,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       } else {
         VM_TypeReference type1 = op.getType();
 	if (OPT_ClassLoaderProxy.includesType(type, type1) == NO)
-	    VM._assert(false, op + ": " + type + " is not assignable with " + type1);
+	    VM._assert(false, op + ": " + type + " is not assignable with " 
+		       + type1);
       }
     }
   }
