@@ -122,9 +122,7 @@ class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.getTime) {
       OPT_RegisterOperand val = gc.temps.makeTempDouble();
       OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
-					   "getTimeInstructions", 
-					   "[I"), 
+	new OPT_MethodOperand(VM_Entrypoints.getTimeInstructionsField,
 			      OPT_MethodOperand.STATIC, 
 			      VM_Entrypoints.getTimeInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create1(CALL, val, null, mo, bc2ir.popRef()));

@@ -159,7 +159,7 @@ abstract class OPT_InlineTools implements OPT_Constants {
     // then we always want to inline java.lang.System.arraycopy.
     // TODO: Would be nice to discover this automatically!!!
     //       There have to be other methods with similar properties.
-    if (callee == sysArrayCopy) {
+    if (callee == VM_Entrypoints.sysArrayCopy) {
       OPT_Operand src = Call.getParam(state.getCallInstruction(), 0);
       return src.getType() != VM_Type.JavaLangObjectType;
     }
@@ -174,10 +174,6 @@ abstract class OPT_InlineTools implements OPT_Constants {
     }
     return false;
   }
-  private static VM_Method sysArrayCopy = 
-    (VM_Method)VM.getMember("Ljava/lang/System;", 
-			    "arraycopy", 
-			    "(Ljava/lang/Object;ILjava/lang/Object;II)V");
   private static VM_Atom arraycopyName = 
     VM_Atom.findOrCreateAsciiAtom("arraycopy");
   private static VM_Atom objectArrayCopyDescriptor = 

@@ -244,19 +244,19 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      int allocNum = aadvice.getAllocator();
 	      // change to alloc advice call
 	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_OptLinker.allocAdviceNewArrayArrayMethod), 
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.optAllocAdviceNewArrayArrayMethod), 
 			   NewArray.getClearSize(inst), 
 			   new OPT_IntConstantOperand(typeRefId), 
 			   new OPT_IntConstantOperand(allocNum));
 	    } else
 	      Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_OptLinker.newArrayArrayMethod),
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod),
 			   NewArray.getClearSize(inst), 
 			   new OPT_IntConstantOperand(typeRefId));
 	  } else {
 	  //-#endif
 	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
-		       OPT_MethodOperand.STATIC(VM_OptLinker.newArrayArrayMethod), 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod), 
 		       NewArray.getClearSize(inst),
 		       new OPT_IntConstantOperand(typeRefId));
 	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
@@ -284,7 +284,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  VM_Type refType = ref.getType();
 	  if (refType.thinLockOffset != -1) {
 	    Call.mutate2(inst, CALL, null, null, 
-			 OPT_MethodOperand.STATIC(OPT_Entrypoints.optLockMethod), 
+			 OPT_MethodOperand.STATIC(VM_Entrypoints.inlineLockMethod), 
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
 			 new OPT_IntConstantOperand(refType.thinLockOffset));
@@ -306,7 +306,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    VM_Type refType = ref.getType();
 	    if (refType.thinLockOffset != -1) {
 		Call.mutate2(inst, CALL, null, null, 
-			     OPT_MethodOperand.STATIC(OPT_Entrypoints.optUnlockMethod), 
+			     OPT_MethodOperand.STATIC(VM_Entrypoints.inlineUnlockMethod), 
 			     MonitorOp.getClearGuard(inst), 
 			     ref,
 			     new OPT_IntConstantOperand(refType.thinLockOffset));
@@ -399,7 +399,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  //-#if RVM_WITH_CONCURRENT_GC
 	  if (opcode == REF_ASTORE_opcode) {
 	      Call.mutate3(inst, CALL, null, null, 
-			   OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_aastoreMethod), 
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_aastoreMethod), 
 			   AStore.getClearArray(inst), 
 			   AStore.getClearIndex(inst), 
 			   AStore.getClearValue(inst));
@@ -480,8 +480,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		boolean isResolved = (opcode == GETFIELD_opcode);
 		OPT_Instruction rb = Call.create2(CALL, null, null,
 						  OPT_MethodOperand.STATIC(isResolved ? 
-							  OPT_Entrypoints.resolvedGetfieldReadBarrierMethod :
-							  OPT_Entrypoints.unresolvedGetfieldReadBarrierMethod),
+									   VM_Entrypoints.resolvedGetfieldReadBarrierMethod :
+									   VM_Entrypoints.unresolvedGetfieldReadBarrierMethod),
 						  GetField.getRef(inst).copy(),
 						  new OPT_IntConstantOperand(isResolved ? 
 									     field.getOffset() : 
@@ -534,13 +534,13 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		    } else {
 			if (opcode == PUTFIELD_opcode)
 			    Call.mutate3(inst, CALL, null, null, 
-				     OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_resolvedPutfieldMethod), 
+				     OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_resolvedPutfieldMethod), 
 				     PutField.getClearRef(inst), 
 				     new OPT_IntConstantOperand(field.getOffset()), 
 				     PutField.getClearValue(inst));
 			else // opcode == PUTFIELD_UNRESOLVED_opcode
 			    Call.mutate3(inst, CALL, null, null, 
-					 OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_unresolvedPutfieldMethod), 
+					 OPT_MethodOperand.STATIC(VM_Entrypoints.RCGC_unresolvedPutfieldMethod), 
 					 PutField.getClearRef(inst), 
 					 new OPT_IntConstantOperand(field.getDictionaryId()), 
 					 PutField.getClearValue(inst));
@@ -598,8 +598,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      boolean isResolved = (opcode == PUTSTATIC_opcode);
 	      Call.mutate2(inst, CALL, null, null, 
 			   OPT_MethodOperand.STATIC(isResolved ?
-						    OPT_Entrypoints.RCGC_resolvedPutstaticMethod :
-						    OPT_Entrypoints.RCGC_unresolvedPutstaticMethod),
+						    VM_Entrypoints.RCGC_resolvedPutstaticMethod :
+						    VM_Entrypoints.RCGC_unresolvedPutstaticMethod),
 			   new OPT_IntConstantOperand(isResolved ? field.getOffset() : field.getDictionaryId()),
 			   PutStatic.getClearValue(inst));
 	      inline(inst, ir);

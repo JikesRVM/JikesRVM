@@ -729,11 +729,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     // get the correct method to be called for a thread switch
     VM_Method meth = null;
     if (s.getOpcode() == YIELDPOINT_PROLOGUE_opcode) {
-      meth = VM_OptLinker.optThreadSwitchFromPrologueMethod;
+      meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
     } else if (s.getOpcode() == YIELDPOINT_EPILOGUE_opcode) {
-      meth = VM_OptLinker.optThreadSwitchFromEpilogueMethod;
+      meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
     } else { 
-      meth = VM_OptLinker.optThreadSwitchFromBackedgeMethod;
+      meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
     }
 
     // split the basic block after the yieldpoint

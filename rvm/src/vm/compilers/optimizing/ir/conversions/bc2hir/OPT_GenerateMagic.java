@@ -305,9 +305,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
         bc2ir.push(res.copyD2U());
       }
       OPT_MethodOperand met = 
-	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
-					   "reflectiveMethodInvokerInstructions",
-					   INSTRUCTION_ARRAY_SIGNATURE), 
+	new OPT_MethodOperand(VM_Entrypoints.reflectiveMethodInvokerInstructionsField,
 			      OPT_MethodOperand.STATIC, 
 			      VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
       OPT_Instruction s = Call.create4(CALL, res, null, met, Code, gprs, 
@@ -316,9 +314,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
     } else if (methodName == VM_MagicNames.saveThreadState) {
       OPT_Operand p1 = bc2ir.popRef();
       OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
-					   "saveThreadStateInstructions", 
-					   INSTRUCTION_ARRAY_SIGNATURE), 
+	new OPT_MethodOperand(VM_Entrypoints.saveThreadStateInstructionsField,
 			      OPT_MethodOperand.STATIC, 
 			      VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create1(CALL, null, null, mo, p1));
@@ -326,17 +322,13 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Operand p2 = bc2ir.popRef();
       OPT_Operand p1 = bc2ir.popRef();
       OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
-					   "threadSwitchInstructions",
-					   INSTRUCTION_ARRAY_SIGNATURE), 
+	new OPT_MethodOperand(VM_Entrypoints.threadSwitchInstructionsField,
 			      OPT_MethodOperand.STATIC, 
 			      VM_Entrypoints.threadSwitchInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create2(CALL, null, null, mo, p1, p2));
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
       OPT_MethodOperand mo = 
-	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
-					   "restoreHardwareExceptionStateInstructions", 
-					   INSTRUCTION_ARRAY_SIGNATURE), 
+	new OPT_MethodOperand(VM_Entrypoints.restoreHardwareExceptionStateInstructionsField,
 			      OPT_MethodOperand.STATIC, 
 			      VM_Entrypoints.restoreHardwareExceptionStateInstructionsField.getOffset());
       bc2ir.appendInstruction(Call.create1

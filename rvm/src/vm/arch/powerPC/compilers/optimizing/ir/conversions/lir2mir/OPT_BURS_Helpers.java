@@ -1581,28 +1581,19 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     switch(tc.getTrapCode()) {
     case VM_Runtime.TRAP_NULL_POINTER:
       {
-	VM_Method target = 
-	  (VM_Method)VM.getMember("LVM_Runtime;",
-				  "raiseNullPointerException",
-				  "()V");
+	VM_Method target = VM_Entrypoints.raiseNullPointerException;
 	mutateTrapToCall(burs, s, target);
       }
       break;
     case VM_Runtime.TRAP_ARRAY_BOUNDS:
       {
-	VM_Method target = 
-	  (VM_Method)VM.getMember("LVM_Runtime;",
-				  "raiseArrayIndexOutOfBoundsException",
-				  "()V");
+	VM_Method target = VM_Entrypoints.raiseArrayBoundsException;
 	mutateTrapToCall(burs, s, target);
       }
       break;
     case VM_Runtime.TRAP_DIVIDE_BY_ZERO:
       {
-	VM_Method target = 
-	  (VM_Method)VM.getMember("LVM_Runtime;",
-				  "raiseArithmeticException",
-				  "()V");
+	VM_Method target = VM_Entrypoints.raiseArithmeticException;
 	mutateTrapToCall(burs, s, target);
       }
       break;

@@ -1098,7 +1098,7 @@ immedPEI
 # ArrayStoreException if the validity check fails.
 OBJARRAY_STORE_CHECK
 StoreCheck
-immedPEI | dynLink
+immedPEI
 
 
 

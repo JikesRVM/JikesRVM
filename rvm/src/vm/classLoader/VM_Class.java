@@ -1051,6 +1051,10 @@ public class VM_Class extends VM_Type
     } else {
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
     }
+    for (int i=0; i<declaredInterfaces.length; i++) {
+      declaredInterfaces[i].load();
+      declaredInterfaces[i].resolve();
+    }
 
     if (isSynchronizedObject() || this == VM_Type.JavaLangClassType)
       VM_ObjectModel.allocateThinLock(this);
@@ -1327,6 +1331,16 @@ public class VM_Class extends VM_Type
     //
     if (superClass != null)
       superClass.instantiate();
+    if (VM.runningVM) {
+      // can't instantiate if building bootimage, since this can cause
+      // class initializer to be lost (when interface is not included in bootimage).
+      // since we don't need to instantiate/initialize for the purposes of 
+      // dynamic type checking and interface invocation, defer it until runtime
+      // and the class actually refers to a static field of the interface.
+      for (int i=0; i<declaredInterfaces.length; i++) {
+	declaredInterfaces[i].instantiate();
+      }
+    }
 
     // Initialize slots in the TIB for virtual methods
     for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
@@ -1434,6 +1448,11 @@ public class VM_Class extends VM_Type
     //
     if (superClass != null)
       superClass.initialize();
+    if (VM.runningVM) {
+      for (int i=0; i<declaredInterfaces.length; i++) {
+	declaredInterfaces[i].initialize();
+      }
+    }
 
     // run <clinit>
     //

@@ -175,9 +175,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateSaveThreadStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
-    int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
     asm.emitLIL(T1, -1);           // T1 = -1
     asm.emitST (T1, ipOffset, T0); // registers.ip = -1
@@ -226,10 +226,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateThreadSwitchInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
-    int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    int regsOffset = VM.getMember("LVM_Thread;", "contextRegisters", "LVM_Registers;").getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
 
     // (1) Save nonvolatile hardware state of current thread.
     asm.emitMFLR (T3);                         // T3 gets return address
@@ -294,10 +294,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    int lrOffset   = VM.getMember("LVM_Registers;", "lr",   "I" ).getOffset();
-    int ipOffset   = VM.getMember("LVM_Registers;", "ip",   "I" ).getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    int lrOffset   = VM_Entrypoints.registersLRField.getOffset();
 
     // restore LR
     //

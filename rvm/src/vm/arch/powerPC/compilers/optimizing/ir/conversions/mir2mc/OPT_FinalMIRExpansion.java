@@ -145,7 +145,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
 	  OPT_Register CTR = phys.getCTR();
 	  if (VM.VerifyAssertions) 
 	    VM.assert(p.bcIndex >= 0 && p.position != null);
-	  int offset = VM_OptLinker.optResolveMethod.getOffset();
+	  int offset = VM_Entrypoints.optResolveMethod.getOffset();
 	  if (OPT_Bits.fits(offset, 16)) {
 	    p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
 						    R(JTOC), I(offset))));
@@ -280,17 +280,17 @@ abstract class OPT_FinalMIRExpansion extends OPT_RVMIRTools
       if (ir.MIRInfo.prologueYieldpointBlock != null) 
         return ir.MIRInfo.prologueYieldpointBlock;
       else 
-        meth = VM_OptLinker.optThreadSwitchFromPrologueMethod;
+        meth = VM_Entrypoints.optThreadSwitchFromPrologueMethod;
     } else if (whereFrom == VM_Thread.BACKEDGE) {
       if (ir.MIRInfo.backedgeYieldpointBlock != null) 
         return ir.MIRInfo.backedgeYieldpointBlock;
       else 
-        meth = VM_OptLinker.optThreadSwitchFromBackedgeMethod;
+        meth = VM_Entrypoints.optThreadSwitchFromBackedgeMethod;
     } else if (whereFrom == VM_Thread.EPILOGUE) {
       if (ir.MIRInfo.epilogueYieldpointBlock != null) 
         return ir.MIRInfo.epilogueYieldpointBlock;
       else 
-        meth = VM_OptLinker.optThreadSwitchFromEpilogueMethod;
+        meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
     }
 
     // Not found.  create new basic block holding the requested yieldpoint

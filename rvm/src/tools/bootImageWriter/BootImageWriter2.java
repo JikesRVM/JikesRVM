@@ -498,8 +498,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     int initProc = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID;
     VM_Thread startupThread = VM_Scheduler.processors[initProc].activeThread;
     int[] startupStack = startupThread.stack;
-    VM_Method VMboot = (VM_Method) VM.getMember("LVM;", "boot", "()V");
-    INSTRUCTION[] startupCode  = VMboot.getMostRecentlyGeneratedInstructions();
+    INSTRUCTION[] startupCode  = VM_Entrypoints.bootMethod.getMostRecentlyGeneratedInstructions();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
     bootRecord.spRegister  = bootImageAddress +
@@ -508,12 +507,8 @@ public class BootImageWriter2 extends BootImageWriterMessages
     bootRecord.ipRegister  = bootImageAddress +
                              BootImageMap.getImageOffset(startupCode);
 
-    VM_Member VMS_processors = VM.getMember("LVM_Scheduler;", "processors",
-                                            "[LVM_Processor;");
-    bootRecord.processorsOffset = VMS_processors.getOffset();
-    VM_Member VMS_threads = VM.getMember("LVM_Scheduler;", "threads",
-                                         "[LVM_Thread;");
-    bootRecord.threadsOffset = VMS_threads.getOffset();
+    bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
+    bootRecord.threadsOffset = VM_Entrypoints.threadsField.getOffset();
 
     bootRecord.startAddress = bootImageAddress;
     bootRecord.endAddress   = bootImageAddress + bootImage.getSize();
@@ -522,29 +517,28 @@ public class BootImageWriter2 extends BootImageWriterMessages
     // Copy updated boot record fields into image, overlaying uninitialized
     // values written earlier.
     //
-    VM_Member VMBR_ti = VM.getMember("LVM_BootRecord;", "tiRegister", "I");
+    VM_Member VMBR_ti = VM_Entrypoints.tiRegisterField;
     bootImage.setFullWord(bootRecordImageOffset + VMBR_ti.getOffset(),
                           bootRecord.tiRegister);
-    VM_Member VMBR_sp = VM.getMember("LVM_BootRecord;", "spRegister", "I");
+    VM_Member VMBR_sp = VM_Entrypoints.spRegisterField;
     bootImage.setAddressWord(bootRecordImageOffset + VMBR_sp.getOffset(),
                              bootRecord.spRegister);
-    VM_Member VMBR_ip = VM.getMember("LVM_BootRecord;", "ipRegister", "I");
+    VM_Member VMBR_ip = VM_Entrypoints.ipRegisterField;
     bootImage.setAddressWord(bootRecordImageOffset + VMBR_ip.getOffset(),
                              bootRecord.ipRegister);
-    VM_Member VMBR_toc = VM.getMember("LVM_BootRecord;", "tocRegister", "I");
+    VM_Member VMBR_toc = VM_Entrypoints.tocRegisterField;
     bootImage.setAddressWord(bootRecordImageOffset + VMBR_toc.getOffset(),
                              bootRecord.tocRegister);
-    VM_Member VMBR_proc = VM.getMember("LVM_BootRecord;",
-                                       "processorsOffset", "I");
+    VM_Member VMBR_proc = VM_Entrypoints.processorsOffsetField;
     bootImage.setFullWord(bootRecordImageOffset + VMBR_proc.getOffset(),
                           bootRecord.processorsOffset);
-    VM_Member VMBR_thd = VM.getMember("LVM_BootRecord;", "threadsOffset", "I");
+    VM_Member VMBR_thd = VM_Entrypoints.threadsOffsetField;
     bootImage.setFullWord(bootRecordImageOffset + VMBR_thd.getOffset(),
                           bootRecord.threadsOffset);
-    VM_Member VMBR_sa = VM.getMember("LVM_BootRecord;", "startAddress", "I");
+    VM_Member VMBR_sa = VM_Entrypoints.startAddressField;
     bootImage.setAddressWord(bootRecordImageOffset + VMBR_sa.getOffset(),
                              bootRecord.startAddress);
-    VM_Member VMBR_ea = VM.getMember("LVM_BootRecord;", "endAddress", "I");
+    VM_Member VMBR_ea = VM_Entrypoints.endAddressField;
     bootImage.setAddressWord(bootRecordImageOffset + VMBR_ea.getOffset(),
                              bootRecord.endAddress);
 
@@ -1454,8 +1448,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     // don't want to see warning messages about it when the bootimage is
     // written.
 
-    VM_Member remapper = VM.getMember("LVM_Magic;", "objectAddressRemapper",
-                                      "LVM_ObjectAddressRemapper;");
+    VM_Member remapper = VM_Entrypoints.magicObjectRemapperField;
     int remapperIndex = remapper.getOffset() >>> 2;
     VM_Statics.setSlotContents(remapperIndex, 0);
   }

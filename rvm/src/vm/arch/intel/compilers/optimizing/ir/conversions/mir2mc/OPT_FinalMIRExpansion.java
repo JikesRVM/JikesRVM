@@ -221,15 +221,15 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 	break;
 
       case YIELDPOINT_PROLOGUE_opcode:
-	expandYieldpoint(p, ir, VM_OptLinker.optThreadSwitchFromPrologueMethod);
+	expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromPrologueMethod);
 	break;
 
       case YIELDPOINT_EPILOGUE_opcode:
-	expandYieldpoint(p, ir, VM_OptLinker.optThreadSwitchFromEpilogueMethod);
+	expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromEpilogueMethod);
 	break;
 
       case YIELDPOINT_BACKEDGE_opcode:
-	expandYieldpoint(p, ir, VM_OptLinker.optThreadSwitchFromBackedgeMethod);
+	expandYieldpoint(p, ir, VM_Entrypoints.optThreadSwitchFromBackedgeMethod);
 	break;
 
       case IR_ENDPROLOGUE_opcode:

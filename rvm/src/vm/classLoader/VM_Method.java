@@ -527,13 +527,10 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   //----------------//
 
   // machine instructions for methods that have no bodies
-  private static INSTRUCTION[] interfaceMethodInvokerInstructions;
   private static INSTRUCTION[] lazyMethodInvokerInstructions;
-  private static INSTRUCTION[] unexpectedInterfaceMethodInstructions;
   private static INSTRUCTION[] unexpectedAbstractMethodInstructions;
   private static INSTRUCTION[] unexpectedNativeMethodInstructions;
   private static INSTRUCTION[] nativeMethodInvokerInstructions;
-  private static INSTRUCTION[] interfaceConflictResolutionBridgeInstructions;
 
   //
   // The following are set during "creation".
@@ -765,36 +762,22 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
   static INSTRUCTION[] getLazyMethodInvokerInstructions() {
     if (lazyMethodInvokerInstructions == null) {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", 
-                                      "lazyMethodInvoker", "()V");
-      lazyMethodInvokerInstructions = ((VM_Method)member).compile();
+      lazyMethodInvokerInstructions = VM_Entrypoints.lazyMethodInvokerMethod.compile();
     }
     return VM_LazyCompilationTrampolineGenerator.getTrampoline();
   }
 
-  static INSTRUCTION[] getUnexpectedInterfaceMethodInstructions() {
-    if (unexpectedInterfaceMethodInstructions == null) {
-      VM_Member member = VM.getMember("LVM_Runtime;", 
-                                      "unexpectedInterfaceMethodCall", "()V");
-      unexpectedInterfaceMethodInstructions = ((VM_Method)member).compile();
-    }
-    return unexpectedInterfaceMethodInstructions;
-  }
-
   private static INSTRUCTION[] getUnexpectedAbstractMethodInstructions() {
     if (unexpectedAbstractMethodInstructions == null) {
-      VM_Member member = VM.getMember("LVM_Runtime;", 
-                                      "unexpectedAbstractMethodCall", "()V");
-      unexpectedAbstractMethodInstructions = ((VM_Method)member).compile();
+      unexpectedAbstractMethodInstructions = 
+	VM_Entrypoints.unexpectedAbstractMethodCallMethod.compile();
     }
     return unexpectedAbstractMethodInstructions;
   }
 
   static INSTRUCTION[] getNativeMethodInvokerInstructions() {
     if (nativeMethodInvokerInstructions == null) {
-      VM_Member member;
-      member = VM.getMember("LVM_DynamicLinker;", "lazyMethodInvoker", "()V");
-      nativeMethodInvokerInstructions = ((VM_Method)member).compile();
+      nativeMethodInvokerInstructions = VM_Entrypoints.lazyMethodInvokerMethod.compile();
     }
     return nativeMethodInvokerInstructions;
   }
@@ -915,12 +898,9 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   }
 
   private static INSTRUCTION[] getUnexpectedNativeMethodInstructions() {
-    if (unexpectedNativeMethodInstructions == null)
-    {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", "unimplementedNativeMethod", "()V");
-      unexpectedNativeMethodInstructions = ((VM_Method)member).compile();
+    if (unexpectedNativeMethodInstructions == null) {
+      unexpectedNativeMethodInstructions = VM_Entrypoints.unimplementedNativeMethodMethod.compile();
     }
     return unexpectedNativeMethodInstructions;
   }
-
 }

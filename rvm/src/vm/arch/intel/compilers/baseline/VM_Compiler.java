@@ -3315,9 +3315,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
      * This to be invoked from baseline code only.
      */
     if (methodName == VM_MagicNames.sysCallSigWait) {
-      int ipOffset   = VM.getMember("LVM_Registers;", "ip", "I").getOffset();
-      int fpOffset   = VM.getMember("LVM_Registers;", "fp",  "I").getOffset();
-      int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+      int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
+      int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+      int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
       asm.emitMOV_Reg_RegInd(T0, SP);	                // T0 <- context register obj @
       asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));  // compute FP

@@ -144,8 +144,8 @@ class VM_MagicCompiler implements VM_BaselineConstants {
          
       if (methodName == VM_MagicNames.sysCallSigWait)
          {
-         int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
-         int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+         int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+	 int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
  
          asm.emitL   (T0, 0, SP);	// t0 := address of VM_Registers object
          asm.emitCAL (SP, 4, SP);	// pop address of VM_Registers object

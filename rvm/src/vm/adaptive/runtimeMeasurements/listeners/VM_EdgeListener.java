@@ -45,12 +45,6 @@ class VM_EdgeListener extends VM_ContextListener
    */
   private int nextIndex;
 
-  /*
-   * Offset of nextIndex field, needed for fetchAndAdd synchronization
-   */
-  static final int nextIndexOffset = 
-    VM.getMember("LVM_EdgeListener;", "nextIndex", "I").getOffset();
-  
   /**
    * Number of samples to be taken before issuing callback to controller 
    */
@@ -61,12 +55,6 @@ class VM_EdgeListener extends VM_ContextListener
    */
   protected int samplesTaken = 0;
 
-  /*
-   * Offset of numSamples field, needed for fetchAndAdd synchronization
-   */
-  static final int samplesTakenOffset = 
-    VM.getMember("LVM_EdgeListener;", "samplesTaken", "I").getOffset();
-  
   /**
    * Number of times update is called
    */
@@ -257,7 +245,9 @@ class VM_EdgeListener extends VM_ContextListener
      VM.enableGC();
 
      // Try to get 3 buffer slots and update nextIndex appropriately
-     int idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 3);
+     int idx = VM_Synchronization.fetchAndAdd(this, 
+					      VM_Entrypoints.edgeListenerNextIndexField.getOffset(),
+					      3);
 
      // Ensure that we got slots for our sample, if we don't (because another
      // thread is racing with us) we'll just ignore this sample
@@ -270,7 +260,9 @@ class VM_EdgeListener extends VM_ContextListener
        // fetchAndAdd returns the value before the increment, add one to
        // determine which sample we were
        int sampleNumber = 
-	 VM_Synchronization.fetchAndAdd(this, samplesTakenOffset, 1) + 1;
+	 VM_Synchronization.fetchAndAdd(this, 
+					VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
+					1) + 1;
 
        // If we are the last sample, we need to take action
        if (sampleNumber == desiredSamples) {

@@ -120,38 +120,6 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
 						 0, VM_TypeDictionary.getValue(dictionaryId).asArray(), generation);
   }
   //-#endif
-
-  // These are cached references to VM_Methods and VM_Fields for
-  // "machine code helper" methods that provide services for java 
-  // bytecodes that cannot be mapped directly into native machine 
-  // code.
-  //
-  static final VM_Method optThreadSwitchFromPrologueMethod = 
-      (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
-			      "OPT_threadSwitchFromPrologue", "()V");
-  static final VM_Method optThreadSwitchFromBackedgeMethod = 
-      (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
-			      "OPT_threadSwitchFromBackedge", "()V");
-  static final VM_Method optThreadSwitchFromEpilogueMethod = 
-      (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
-      "OPT_threadSwitchFromEpilogue", "()V");
-  static final VM_Method optResolveMethod = 
-    (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
-			    "OPT_resolve", "()V");
-  static final VM_Method invokeinterfaceMethod = 
-    (VM_Method)VM.getMember("LVM_Runtime;", 
-			    "invokeInterface", 
-			    "(Ljava/lang/Object;I)"+VM.INSTRUCTION_ARRAY_SIGNATURE);
-  static final VM_Method newArrayArrayMethod = 
-    (VM_Method)VM.getMember("LVM_OptLinker;", 
-			    "newArrayArray", 
-			    "([II)Ljava/lang/Object;");
-  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  static final VM_Method allocAdviceNewArrayArrayMethod = 
-    (VM_Method)VM.getMember("LVM_OptLinker;",
-			    "allocAdviceNewArrayArray",
-			    "([III)Ljava/lang/Object;");
-  //-#endif
 }
 
 

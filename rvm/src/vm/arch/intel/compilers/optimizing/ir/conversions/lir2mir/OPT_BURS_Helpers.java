@@ -1620,10 +1620,10 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   final void RESOLVE(OPT_BURS burs, 
 		     OPT_Instruction s) {
-    OPT_Operand target = loadFromJTOC(burs, VM_OptLinker.optResolveMethod.getOffset());
+    OPT_Operand target = loadFromJTOC(burs, VM_Entrypoints.optResolveMethod.getOffset());
     burs.append(CPOS(s, MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, 
 					 null, null,  target, 
-					 OPT_MethodOperand.STATIC(VM_OptLinker.optResolveMethod))));
+					 OPT_MethodOperand.STATIC(VM_Entrypoints.optResolveMethod))));
   }
   /**
    * Expansion of TRAP_IF, with an int constant as the second value.

@@ -31,18 +31,6 @@ public final class OPT_Debug {
     messages.addElement(s);
     return  messages.size() - 1;
   }
-  static VM_Method debugSayMethod;
-  static int debugSayOffset;
-
-  /**
-   * Initialize the static members of this class.
-   */
-  static public void init () {
-    VM_Member m;
-    m = debugSayMethod = (VM_Method)VM.getMember("LOPT_Debug;", "say", 
-        "(I)V");
-    debugSayOffset = m.getOffset();
-  }
 }
 
 

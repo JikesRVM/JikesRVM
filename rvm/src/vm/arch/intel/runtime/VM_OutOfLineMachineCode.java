@@ -219,8 +219,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
-    int   fpOffset = VM.getMember("LVM_Registers;",   "fp",  "I").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
     asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerField.getOffset()); 
     asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);        // registers.fp := pr.framePointer
     asm.emitPOP_Reg        (T1);                      // T1 := return address 
@@ -254,10 +254,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static INSTRUCTION[] generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
-    int   fpOffset = VM.getMember("LVM_Registers;",   "fp",  "I").getOffset();
-    int   ipOffset = VM.getMember("LVM_Registers;",   "ip",  "I").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    int regsOffset = VM.getMember("LVM_Thread;", "contextRegisters", "LVM_Registers;").getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
 
     // (1) Save hardware state of thread we are switching off of.
     asm.emitMOV_Reg_RegDisp  (S0, T0, regsOffset);      // S0 = T0.contextRegisters
@@ -302,9 +302,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    */
   private static INSTRUCTION[] generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
-    int ipOffset   = VM.getMember("LVM_Registers;", "ip", "I").getOffset();
-    int fpOffset   = VM.getMember("LVM_Registers;", "fp",  "I").getOffset();
-    int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
+    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
     // Set PR.framePointer to be registers.fp
     asm.emitMOV_Reg_RegDisp(S0, T0, fpOffset); 

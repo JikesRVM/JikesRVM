@@ -651,7 +651,7 @@ final class OPT_GenerationContext implements OPT_Constants,
       OPT_Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, ceo);
       appendInstruction(rethrow, s, SYNTH_CATCH_BCI);
       OPT_Operand lockObject = getLockObject(SYNTH_CATCH_BCI, rethrow);
-      OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(OPT_Entrypoints.unlockAndThrow);
+      OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(VM_Entrypoints.unlockAndThrowMethod);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
       s = Call.create2(CALL, null, null, methodOp, lockObject, ceo);
       appendInstruction(rethrow, s, RUNTIME_SERVICES_BCI);

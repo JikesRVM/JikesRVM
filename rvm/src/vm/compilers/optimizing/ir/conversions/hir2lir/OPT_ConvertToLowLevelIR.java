@@ -871,7 +871,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
             OPT_Instruction vp = 
               Call.create2(CALL, realAddrReg, null, 
                            OPT_MethodOperand.STATIC
-                           (VM_OptLinker.invokeinterfaceMethod), 
+                           (VM_Entrypoints.invokeInterfaceMethod), 
                            Call.getParam(v, 0).asRegister().copyU2U(), 
                            I(methOp.method.getDictionaryId()));
             vp.position = v.position;
@@ -1293,7 +1293,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     OPT_RegisterOperand reg = 
       InsertLoadOffsetJTOC(s, ir, REF_LOAD, 
 			   OPT_ClassLoaderProxy.JavaLangObjectArrayType, 
-			   OPT_Entrypoints.specializedMethodsOffset);
+			   VM_Entrypoints.specializedMethodsField.getOffset());
     OPT_RegisterOperand instr = 
       InsertLoadOffset(s, ir, REF_LOAD, 
 		       OPT_ClassLoaderProxy.InstructionArrayType, 

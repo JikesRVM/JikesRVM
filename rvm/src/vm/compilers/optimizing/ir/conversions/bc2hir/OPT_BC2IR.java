@@ -1637,7 +1637,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 		getTib.bcIndex = RUNTIME_SERVICES_BCI;
 
 		OPT_MethodOperand dtcRoutine = 
-		    OPT_MethodOperand.STATIC(OPT_DynamicTypeCheckExpansion.unresolvedInterfaceMethod);
+		  OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedInterfaceMethodMethod);
 		OPT_Instruction callCheck =
 		    Call.create2(CALL, null, null, dtcRoutine, 
 		      new OPT_IntConstantOperand(meth.getDictionaryId()),

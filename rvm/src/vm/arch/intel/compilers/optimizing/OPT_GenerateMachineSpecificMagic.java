@@ -48,7 +48,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     }else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTempInt();
-      VM_Field f = (VM_Field)VM.getMember("LVM_Processor;", "framePointer", "I");
+      VM_Field f = VM_Entrypoints.processorFPField;
       OPT_RegisterOperand pr = null;
       if (VM.dedicatedESI) {
         pr = OPT_IRTools.R(phys.getESI());

@@ -15,54 +15,6 @@ import instructionFormats.*;
  * @author Martin Trapp
  */
 abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
-  ////////////////
-  // Dynamic type checking: service routines and fields invoked/accessed 
-  // from compiled code
-  ////////////////
-  static VM_Method initialInstanceOfInterfaceMethod = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "initialInstanceOfInterface", 
-			    "(LVM_Class;[Ljava/lang/Object;)Z");
-  static VM_Method instanceOfUnresolvedMethod = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "instanceOfUnresolved", 
-			    "(LVM_Class;[Ljava/lang/Object;)Z");
-  static VM_Method instanceOfArray = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "instanceOfArray", 
-			    "(LVM_Class;ILVM_Type;)Z");
-  static VM_Method instanceOf = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "instanceOf", 
-			    "(LVM_Type;LVM_Type;)Z");
-  static VM_Method instanceOfUnresolvedArray = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "instanceOfUnresolvedArray", 
-			    "(LVM_Class;ILVM_Type;)Z");
-  static VM_Method checkstoreNotArrayOfPrimitive = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "checkstoreNotArrayOfPrimitive", 
-			    "(LVM_Type;LVM_Type;)V");
-  static VM_Method checkstorePossibleArrayOfPrimitive = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "checkstorePossibleArrayOfPrimitive", 
-			    "(LVM_Type;LVM_Type;)V");
-  static VM_Method mandatoryInstanceOfInterface = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "mandatoryInstanceOfInterface", 
-			    "(LVM_Class;[Ljava/lang/Object;)V");
-  static VM_Method unresolvedInterfaceMethod = 
-    (VM_Method)VM.getMember("LVM_DynamicTypeCheck;", 
-			    "unresolvedInterfaceMethod", 
-			    "(I[Ljava/lang/Object;)V");
-  static VM_Field depthField = 
-    (VM_Field)VM.getMember("LVM_Type;", "depth", "I");
-  static VM_Field idField = 
-    (VM_Field)VM.getMember("LVM_Type;", "dictionaryId", "I");
-  static VM_Field dimensionField = 
-    (VM_Field)VM.getMember("LVM_Type;", "dimension", "I");
-  static VM_Field innermostElementTypeField = 
-    (VM_Field)VM.getMember("LVM_Array;", "innermostElementType", "LVM_Type;");
 
   //////////////////
   // Entrypoints for expanding each kind of DTC instruction into 
@@ -342,7 +294,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     OPT_RegisterOperand LHSRuntimeClass = getVMType(ptr, ir, LHStype);
     OPT_Instruction tcCall = 
       Call.create2(CALL, null, null, 
-		   OPT_MethodOperand.STATIC(OPT_DynamicTypeCheckExpansion.mandatoryInstanceOfInterface),
+		   OPT_MethodOperand.STATIC(VM_Entrypoints.mandatoryInstanceOfInterfaceMethod),
 		   LHSRuntimeClass, RHStib.copyD2U());
     tcCall.copyPosition(s);
     ptr.insertBefore(tcCall);
@@ -465,7 +417,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	    InsertUnary(continueAt, ir, GET_SUPERCLASS_IDS_FROM_TIB, 
 			OPT_ClassLoaderProxy.ShortArrayType, rhsTIB.copyD2U());
           OPT_RegisterOperand lhsElemDepth = 
-	    getField(continueAt, ir, lhsElemType, depthField, TG());
+	    getField(continueAt, ir, lhsElemType, VM_Entrypoints.depthField, TG());
           OPT_RegisterOperand rhsSuperclassIdsLength = 
 	    InsertGuardedUnary(continueAt, ir, ARRAYLENGTH, VM_Type.IntType,
 			       rhsSuperclassIds.copyD2U(), TG());
@@ -479,7 +431,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
 	  continueAt = shortCircuitBlock4.lastInstruction();
           OPT_RegisterOperand lhsElemId = 
-	    getField(continueAt, ir, lhsElemType.copyD2U(), idField, TG());
+	    getField(continueAt, ir, lhsElemType.copyD2U(), VM_Entrypoints.idField, TG());
           OPT_RegisterOperand refCandidate = 
 	    ir.regpool.makeTemp(VM_Type.ShortType);
           OPT_LocationOperand loc = new OPT_LocationOperand(VM_Type.ShortType);
@@ -514,9 +466,9 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 		    OPT_ClassLoaderProxy.VM_Type_type, lhsElemTIB.copyU2U());
       VM_Method target;
       if (compType.asArray().getInnermostElementType() == VM_Type.JavaLangObjectType)
-        target = checkstorePossibleArrayOfPrimitive; 
+        target = VM_Entrypoints.checkstorePossibleArrayOfPrimitiveMethod; 
       else 
-        target = checkstoreNotArrayOfPrimitive;
+        target = VM_Entrypoints.checkstoreNotArrayOfPrimitiveMethod;
       OPT_Instruction call = Call.create2(CALL, null, null,
 					  OPT_MethodOperand.STATIC(target), 
 					  lhsElemTYPE, rhsTYPE);
@@ -616,7 +568,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	      getVMType(maybeBlock.lastInstruction(), ir, LHSclass);
 	    OPT_Instruction maybeCall = 
 	      Call.create2(CALL, result.copyD2D(), null, 
-			   OPT_MethodOperand.STATIC(initialInstanceOfInterfaceMethod), 
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.initialInstanceOfInterfaceMethod), 
 			   LHSRuntimeClass, RHStib.copyD2U());
 	    maybeCall.copyPosition(s);
 	    maybeBlock.appendInstruction(maybeCall);
@@ -673,7 +625,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	  // Mutate s into a call to VM_DynamicTypeCheck.instanceOfUnresolved
 	  OPT_RegisterOperand LHSRuntimeClass = getVMType(s, ir, LHSclass);
 	  Call.mutate2(s, CALL, result, null, 
-		       OPT_MethodOperand.STATIC(instanceOfUnresolvedMethod), 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.instanceOfUnresolvedMethod), 
 		       LHSRuntimeClass, RHStib);
 	  s = _callHelper(s, ir);
 	  return s;
@@ -828,7 +780,7 @@ oldGuard) {
 	      getVMType(maybeBlock.lastInstruction(), ir, LHSclass);
 	    OPT_Instruction maybeCall = 
 	      Call.create2(CALL, trit.copyD2D(), null, 
-			   OPT_MethodOperand.STATIC(initialInstanceOfInterfaceMethod), 
+			   OPT_MethodOperand.STATIC(VM_Entrypoints.initialInstanceOfInterfaceMethod), 
 			   LHSRuntimeClass, RHStib.copyD2U());
 	    maybeCall.copyPosition(s);
 	    maybeBlock.appendInstruction(maybeCall);
@@ -895,7 +847,7 @@ oldGuard) {
 	    getVMType(continueAt, ir, LHSclass);
 	  OPT_RegisterOperand result = ir.regpool.makeTempInt();
 	  OPT_Instruction call = Call.create2(CALL, result, null, 
-					      OPT_MethodOperand.STATIC(instanceOfUnresolvedMethod), 
+					      OPT_MethodOperand.STATIC(VM_Entrypoints.instanceOfUnresolvedMethod), 
 					      LHSRuntimeClass, RHStib);
 	  call.copyPosition(continueAt);
 	  continueAt.insertBefore(call);
@@ -943,7 +895,7 @@ oldGuard) {
 	if (innermostElementType == VM_Type.JavaLangObjectType) {
 	  OPT_IntConstantOperand lhsDimension = I(LHSArray.getDimensionality());
 	  OPT_RegisterOperand rhsDimension = 
-	    getField(continueAt, ir, rhsType, dimensionField);
+	    getField(continueAt, ir, rhsType, VM_Entrypoints.dimensionField);
 	  OPT_Instruction dimTest = 
 	    IfCmp2.create(INT_IFCMP2, oldGuard, rhsDimension, lhsDimension,
 			  OPT_ConditionOperand.GREATER(), 
@@ -958,9 +910,9 @@ oldGuard) {
 	  mainBlock.insertOut(trueBlock);
 	  mainBlock.insertOut(falseBlock);
 	  OPT_RegisterOperand rhsInnermostElementType = 
-	    getField(continueAt,ir,rhsType.copyU2U(),innermostElementTypeField);
+	    getField(continueAt,ir,rhsType.copyU2U(),VM_Entrypoints.innermostElementTypeField);
 	  OPT_RegisterOperand rhsInnermostElementTypeDimension = 
-	    getField(continueAt, ir, rhsInnermostElementType, dimensionField);
+	    getField(continueAt, ir, rhsInnermostElementType, VM_Entrypoints.dimensionField);
 	  continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
 					       rhsInnermostElementTypeDimension,
 					       I(0),
@@ -972,8 +924,8 @@ oldGuard) {
 	  OPT_RegisterOperand lhsInnermostElementType = 
 	    getVMType(continueAt, ir, innermostElementType);
 	  VM_Method target = 
-	    innermostElementType.isResolved() ? instanceOfArray : 
-	    instanceOfUnresolvedArray;
+	    innermostElementType.isResolved() ? VM_Entrypoints.instanceOfArrayMethod : 
+	    VM_Entrypoints.instanceOfUnresolvedArrayMethod;
 	  call = Call.create3(CALL, callResult, null, 
 			      OPT_MethodOperand.STATIC(target), 
 			      lhsInnermostElementType, 

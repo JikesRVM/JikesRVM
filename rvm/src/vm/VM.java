@@ -740,46 +740,6 @@ public class VM extends VM_Properties implements VM_Constants,
     }
   }
    
-  /**
-   * Get description of virtual machine component (field or method).
-   * Note: This is method is intended for use only by VM classes that need 
-   * to address their own fields and methods in the runtime virtual machine 
-   * image.  It should not be used for general purpose class loading.
-   * @param classDescriptor  class  descriptor - something like "LVM_Runtime;"
-   * @param memberName       member name       - something like "invokestatic"
-   * @param memberDescriptor member descriptor - something like "()V"
-   * @return description
-   */
-  static VM_Member getMember(String classDescriptor, String memberName, 
-			     String memberDescriptor) {
-    VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
-    VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
-    VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
-    try {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor).asClass();
-      cls.load();
-      cls.resolve();
-         
-      VM_Member member;
-      if ((member = cls.findDeclaredField(memName, memDescriptor)) != null)
-        return member;
-      if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null)
-        return member;
-
-      // The usual causes for VM.getMember() to fail are:
-      //  1. you mispelled the class name, member name, or member signature
-      //  2. the class containing the specified member didn't get compiled
-      //
-      VM.sysWrite("VM.getMember: can't find class="+classDescriptor+" member="+memberName+" desc="+memberDescriptor+"\n");
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    } catch (VM_ResolutionException e) {
-      VM.sysWrite("VM.getMember: can't resolve class=" + classDescriptor+
-		  " member=" + memberName + " desc=" + memberDescriptor + "\n");
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    }
-    return null;
-  }
-
    //----------------//
    // implementation //
    //----------------//

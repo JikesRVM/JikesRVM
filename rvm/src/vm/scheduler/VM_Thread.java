@@ -1089,9 +1089,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // get instructions for method to be executed as thread startoff
     //
-    VM_Method method = (VM_Method)VM.getMember("LVM_Thread;", 
-                                               "startoff", "()V");
-    INSTRUCTION[] instructions = method.getMostRecentlyGeneratedInstructions();
+    INSTRUCTION[] instructions = VM_Entrypoints.threadStartoffMethod.getMostRecentlyGeneratedInstructions();
 
     VM.disableGC();
 

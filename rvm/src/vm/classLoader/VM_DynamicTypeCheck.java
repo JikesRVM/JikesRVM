@@ -3,7 +3,6 @@
  */
 //$Id$
 
-
 /**
  * Data structures and code for fast dynamic type checking.
  * <p>
@@ -761,4 +760,3 @@ class VM_DynamicTypeCheck implements VM_Constants {
     return false;
   }
 }
-

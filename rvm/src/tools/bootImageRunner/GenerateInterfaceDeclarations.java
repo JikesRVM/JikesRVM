@@ -347,94 +347,81 @@ class GenerateInterfaceDeclarations {
     // fields in VM_Processor
     //
     int offset;
-    offset = VM.getMember("LVM_Processor;", "threadSwitchRequested", "I").getOffset();
+    offset = VM_Entrypoints.threadSwitchRequestedField.getOffset();
     System.out.print("static const int VM_Processor_threadSwitchRequested_offset = "
-        + offset + ";\n");
-    offset = VM.getMember("LVM_Processor;", "activeThreadStackLimit", "I").getOffset();
+		     + offset + ";\n");
+    offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
     System.out.print("static const int VM_Processor_activeThreadStackLimit_offset = "
-        + offset + ";\n");
-    offset = VM.getMember("LVM_Processor;", "pthread_id", "I").getOffset();
+		     + offset + ";\n");
+    offset = VM_Entrypoints.pthreadIDField.getOffset();
     System.out.print("static const int VM_Processor_pthread_id_offset = "
-        + offset + ";\n");
-    offset = VM.getMember("LVM_Processor;", "epoch", "I").getOffset();
+		     + offset + ";\n");
+    offset = VM_Entrypoints.epochField.getOffset();
     System.out.print("static const int VM_Processor_epoch_offset = "
-        + offset + ";\n");
+		     + offset + ";\n");
     //-#if RVM_FOR_IA32
-    if (VM.BuildForIA32) {
-      offset = VM.getMember("LVM_Processor;", "threadId", "I").getOffset();
-      System.out.print("static const int VM_Processor_threadId_offset = "
-        + offset + ";\n");
-      offset = VM.getMember("LVM_Processor;", "framePointer", "I").getOffset();
-      System.out.print("static const int VM_Processor_framePointer_offset = "
-        + offset + ";\n");
-      offset = VM.getMember("LVM_Processor;", "jtoc", "Ljava/lang/Object;").getOffset();
-      System.out.print("static const int VM_Processor_jtoc_offset = "
-        + offset + ";\n");
-      offset = VM.getMember("LVM_Processor;", "arrayIndexTrapParam", "I").getOffset();
-      System.out.print("static const int VM_Processor_arrayIndexTrapParam_offset = "
-        + offset + ";\n");
-    }
+    offset = VM_Entrypoints.processorThreadIdField.getOffset();
+    System.out.print("static const int VM_Processor_threadId_offset = "
+		     + offset + ";\n");
+    offset = VM_Entrypoints.processorFPField.getOffset();
+    System.out.print("static const int VM_Processor_framePointer_offset = "
+		     + offset + ";\n");
+    offset = VM_Entrypoints.processorJTOCField.getOffset();
+    System.out.print("static const int VM_Processor_jtoc_offset = "
+		     + offset + ";\n");
+    offset = VM_Entrypoints.processorTrapParamField.getOffset();
+    System.out.print("static const int VM_Processor_arrayIndexTrapParam_offset = "
+		     + offset + ";\n");
     //-#endif
 
     // fields in VM_Thread
     //
-    offset = VM.getMember("LVM_Thread;", "stack", "[I").getOffset();
-    System.out.print("static const int VM_Thread_stack_offset = " + offset
-        + ";\n");
-    offset = VM.getMember("LVM_Thread;", "stackLimit", "I").getOffset();
-    System.out.print("static const int VM_Thread_stackLimit_offset = "
-        + offset + ";\n");
-    offset = VM.getMember("LVM_Thread;", "hardwareExceptionRegisters", 
-        "LVM_Registers;").getOffset();
+    offset = VM_Entrypoints.threadStackField.getOffset();
+    System.out.print("static const int VM_Thread_stack_offset = " + offset + ";\n");
+    offset = VM_Entrypoints.stackLimitField.getOffset();
+    System.out.print("static const int VM_Thread_stackLimit_offset = " + offset + ";\n");
+    offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
     System.out.print("static const int VM_Thread_hardwareExceptionRegisters_offset = "
-        + offset + ";\n");
+		     + offset + ";\n");
 
     // fields in VM_Registers
     //
-    offset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
-    System.out.print("static const int VM_Registers_gprs_offset = " + 
-        offset + ";\n");
-    offset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset();
-    System.out.print("static const int VM_Registers_fprs_offset = " + 
-        offset + ";\n");
-    offset = VM.getMember("LVM_Registers;", "ip", "I").getOffset();
-    System.out.print("static const int VM_Registers_ip_offset = " + offset
-        + ";\n");
+    offset = VM_Entrypoints.registersGPRsField.getOffset();
+    System.out.print("static const int VM_Registers_gprs_offset = " + offset + ";\n");
+    offset = VM_Entrypoints.registersFPRsField.getOffset();
+    System.out.print("static const int VM_Registers_fprs_offset = " + offset + ";\n");
+    offset = VM_Entrypoints.registersIPField.getOffset();
+    System.out.print("static const int VM_Registers_ip_offset = " + offset + ";\n");
     //-#if RVM_FOR_IA32
-    if (VM.BuildForIA32) {
-      offset = VM.getMember("LVM_Registers;", "fp", "I").getOffset();
-      System.out.print("static const int VM_Registers_fp_offset = " + offset
-		       + ";\n");
-    }
+    offset = VM_Entrypoints.registersFPField.getOffset();
+    System.out.print("static const int VM_Registers_fp_offset = " + offset + ";\n");
+    //-#endif
+    //-#if RVM_FOR_POWERPC
+    offset = VM_Entrypoints.registersLRField.getOffset();
+    System.out.print("static const int VM_Registers_lr_offset = " + offset + ";\n");
     //-#endif
 
-    if (VM.BuildForPowerPC) {
-      offset = VM.getMember("LVM_Registers;", "lr", "I").getOffset();
-      System.out.print("static const int VM_Registers_lr_offset = " + 
-          offset + ";\n");
-    }
-
-    offset = VM.getMember("LVM_Registers;", "inuse", "Z").getOffset();
+    offset = VM_Entrypoints.registersInUseField.getOffset();
     System.out.print("static const int VM_Registers_inuse_offset = " + 
-        offset + ";\n");
+		     offset + ";\n");
 
     // fields in java.net.InetAddress
     //
-    offset = VM.getMember("Ljava/net/InetAddress;", "address", "I").getOffset();
+    offset = VM_Entrypoints.inetAddressAddressField.getOffset();
     System.out.print("static const int java_net_InetAddress_address_offset = "
-        + offset + ";\n");
-    offset = VM.getMember("Ljava/net/InetAddress;", "family", "I").getOffset();
+		     + offset + ";\n");
+    offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
     System.out.print("static const int java_net_InetAddress_family_offset = "
-        + offset + ";\n");
+		     + offset + ";\n");
 
     // fields in java.net.SocketImpl
     //
-    offset = VM.getMember("Ljava/net/SocketImpl;", "address", "Ljava/net/InetAddress;").getOffset();
+    offset = VM_Entrypoints.socketImplAddressField.getOffset();
     System.out.print("static const int java_net_SocketImpl_address_offset = "
-        + offset + ";\n");
-    offset = VM.getMember("Ljava/net/SocketImpl;", "port", "I").getOffset();
+		     + offset + ";\n");
+    offset = VM_Entrypoints.socketImplPortField.getOffset();
     System.out.print("static const int java_net_SocketImpl_port_offset = "
-        + offset + ";\n");
+		     + offset + ";\n");
   }
 
 

@@ -751,19 +751,17 @@ public class VM_Runtime implements VM_Constants {
     VM_BootRecord.the_boot_record.hardwareTrapMethodId = 
       VM_ClassLoader.createHardwareTrapCompiledMethodId();
     VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset = 
-      VM.getMember("LVM_Runtime;", 
-                   "deliverHardwareException", 
-                   "(II)V").getOffset();
+      VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
     // tell "RunBootImage.C" to set "VM_Scheduler.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     VM_BootRecord.the_boot_record.debugRequestedOffset = 
-      VM.getMember("LVM_Scheduler;", "debugRequested", "Z").getOffset();
+      VM_Entrypoints.debugRequestedField.getOffset();
 
     // for "libjni.C" to make AttachCurrentThread request
     VM_BootRecord.the_boot_record.attachThreadRequestedOffset = 
-      VM.getMember("LVM_Scheduler;", "attachThreadRequested", "I").getOffset();
+      VM_Entrypoints.attachThreadRequestedField.getOffset();
   }
 
   /**

@@ -184,11 +184,8 @@ public class OPT_Compiler {
   private static void initializeStatics () {
     OPT_ClassLoaderProxy.proxy = new OPT_RVMClassLoaderProxy();
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
-    OPT_Entrypoints.init();
-    OPT_Debug.init();
     OPT_InvokeeThreadLocalContext.init();
     VM_Class.OptCLDepManager = new OPT_ClassLoadingDependencyManager();
-    OPT_InliningUtilities.init();
     VM_OptStaticProgramStats.reset();
   }
 

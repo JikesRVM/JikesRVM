@@ -5,7 +5,7 @@
 
 /**
  * Fields and methods of the virtual machine that are needed by 
- * compiler-generated machine code.
+ * compiler-generated machine code or C runtime code.
  *
  * @author Bowen Alpern
  * @author Dave Grove
@@ -13,6 +13,9 @@
  */
 class VM_Entrypoints implements VM_Constants {
   static final VM_Method debugBreakpointMethod = getMethod("LVM;", "debugBreakpoint", "()V");
+  static final VM_Method bootMethod            = getMethod("LVM;", "boot", "()V");
+
+  static final VM_Field magicObjectRemapperField = getField("LVM_Magic;", "objectAddressRemapper","LVM_ObjectAddressRemapper;");
  
   static final VM_Method instanceOfMethod         = getMethod("LVM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
   static final VM_Method instanceOfFinalMethod    = getMethod("LVM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;I)Z");
@@ -23,9 +26,15 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method quickNewArrayMethod      = getMethod("LVM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;)Ljava/lang/Object;");
   static final VM_Method quickNewScalarMethod     = getMethod("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");
   static final VM_Method unimplementedBytecodeMethod = getMethod("LVM_Runtime;", "unimplementedBytecode", "(I)V");
+  static final VM_Method unexpectedAbstractMethodCallMethod = getMethod("LVM_Runtime;", "unexpectedAbstractMethodCall", "()V");
   static final VM_Method invokeInterfaceMethod    = getMethod("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
   static final VM_Method findItableMethod         = getMethod("LVM_Runtime;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
-  static final VM_Method raiseArrayBoundsError    = getMethod("LVM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
+  static final VM_Method raiseNullPointerException= getMethod("LVM_Runtime;", "raiseNullPointerException", "()V");
+  static final VM_Method raiseArrayBoundsException= getMethod("LVM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
+  static final VM_Method raiseArithmeticException = getMethod("LVM_Runtime;", "raiseArithmeticException", "()V");
+  static final VM_Method deliverHardwareExceptionMethod = getMethod("LVM_Runtime;", "deliverHardwareException", "(II)V");
+  static final VM_Method unlockAndThrowMethod      = getMethod("LVM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE
   static final VM_Method allocAdviceNewScalarMethod = getMethod("LVM_Runtime;", "newScalar", "(II)Ljava/lang/Object;");
   static final VM_Method allocAdviceQuickNewArrayMethod = getMethod("LVM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;I)Ljava/lang/Object;");
@@ -35,11 +44,22 @@ class VM_Entrypoints implements VM_Constants {
 
   static final VM_Method mandatoryInstanceOfInterfaceMethod = getMethod("LVM_DynamicTypeCheck;", "mandatoryInstanceOfInterface", "(LVM_Class;[Ljava/lang/Object;)V");
   static final VM_Method unresolvedInterfaceMethodMethod    = getMethod("LVM_DynamicTypeCheck;", "unresolvedInterfaceMethod", "(I[Ljava/lang/Object;)V");
+  static final VM_Method initialInstanceOfInterfaceMethod   = getMethod("LVM_DynamicTypeCheck;", "initialInstanceOfInterface", "(LVM_Class;[Ljava/lang/Object;)Z");
+  static final VM_Method instanceOfUnresolvedMethod         = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolved", "(LVM_Class;[Ljava/lang/Object;)Z");
+  static final VM_Method instanceOfArrayMethod              = getMethod("LVM_DynamicTypeCheck;", "instanceOfArray", "(LVM_Class;ILVM_Type;)Z");
+  static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(LVM_Class;ILVM_Type;)Z");
+  static final VM_Method checkstoreNotArrayOfPrimitiveMethod= getMethod("LVM_DynamicTypeCheck;", "checkstoreNotArrayOfPrimitive", "(LVM_Type;LVM_Type;)V");
+  static final VM_Method checkstorePossibleArrayOfPrimitiveMethod = getMethod("LVM_DynamicTypeCheck;", "checkstorePossibleArrayOfPrimitive", "(LVM_Type;LVM_Type;)V");
 
-  static final VM_Method lockMethod = getMethod("LVM_Lock;", "lock", "(Ljava/lang/Object;)V");
-  static final VM_Method unlockMethod = getMethod("LVM_Lock;", "unlock", "(Ljava/lang/Object;)V");
+  static final VM_Method lockMethod          = getMethod("LVM_Lock;", "lock", "(Ljava/lang/Object;)V");
+  static final VM_Method unlockMethod        = getMethod("LVM_Lock;", "unlock", "(Ljava/lang/Object;)V");
+  static final VM_Method inlineLockMethod    = getMethod("LVM_ThinLock;", "inlineLock", "(Ljava/lang/Object;I)V");
+  static final VM_Method inlineUnlockMethod  = getMethod("LVM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;I)V");
 
   static final VM_Method newArrayArrayMethod   = getMethod("LVM_MultianewarrayHelper;", "newArrayArray", "(III)Ljava/lang/Object;");
+
+  static final VM_Method lazyMethodInvokerMethod         = getMethod("LVM_DynamicLinker;", "lazyMethodInvoker", "()V");
+  static final VM_Method unimplementedNativeMethodMethod = getMethod("LVM_DynamicLinker;", "unimplementedNativeMethod", "()V");
 
   static final VM_Method resolveMethodMethod     = getMethod("LVM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
   static final VM_Field  methodOffsetsField      = getField("LVM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
@@ -74,13 +94,6 @@ class VM_Entrypoints implements VM_Constants {
   //-#endif
   static final VM_Field invokeNativeFunctionInstructionsField          = getField("LVM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", INSTRUCTION_ARRAY_SIGNATURE);
 
-  static final VM_Field outputLockField  = getField("LVM_Scheduler;", "outputLock", "I");
-  //-#if RVM_WITH_STRONG_VOLATILE_SEMANTICS
-  static final VM_Field doublewordVolatileMutexField = getField("LVM_Scheduler;", "doublewordVolatileMutex", "LVM_ProcessorLock;");
-  //-#else
-  static final VM_Field doublewordVolatileMutexField = null; // GACK!
-  //-#endif
-   
   static final VM_Field deterministicThreadSwitchCountField = getField("LVM_Processor;", "deterministicThreadSwitchCount", "I");
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   static final VM_Field modifiedOldObjectsTopField = getField("LVM_Processor;", "modifiedOldObjectsTop", "I");
@@ -93,6 +106,17 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field threadSwitchRequestedField = getField("LVM_Processor;", "threadSwitchRequested", "I");
   static final VM_Field activeThreadField          = getField("LVM_Processor;", "activeThread", "LVM_Thread;");
   static final VM_Field activeThreadStackLimitField= getField("LVM_Processor;", "activeThreadStackLimit", "I");
+  static final VM_Field pthreadIDField             = getField("LVM_Processor;", "pthread_id", "I");
+  static final VM_Field epochField                 = getField("LVM_Processor;", "epoch", "I");
+  //-#if RVM_FOR_IA32
+  static final VM_Field processorThreadIdField     = getField("LVM_Processor;", "threadId", "I");
+  static final VM_Field processorFPField           = getField("LVM_Processor;", "framePointer", "I");
+  static final VM_Field processorJTOCField         = getField("LVM_Processor;", "jtoc", "Ljava/lang/Object;");
+  static final VM_Field processorTrapParamField    = getField("LVM_Processor;", "arrayIndexTrapParam", "I");
+  //-#endif
+
+
+
   //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
   static final VM_Field vpStateField               = getField("LVM_Processor;", "vpState", "I");
   //-#else
@@ -114,12 +138,16 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method threadYieldMethod              = getMethod("LVM_Thread;", "yield", "()V");
   static final VM_Method becomeNativeThreadMethod       = getMethod("LVM_Thread;", "becomeNativeThread", "()V");
   static final VM_Method becomeRVMThreadMethod          = getMethod("LVM_Thread;", "becomeRVMThread", "()V");
+  static final VM_Method threadStartoffMethod           = getMethod("LVM_Thread;", "startoff", "()V");
+  static final VM_Field threadStackField                = getField("LVM_Thread;", "stack", "[I");
   static final VM_Field stackLimitField                 = getField("LVM_Thread;", "stackLimit", "I");
   static final VM_Field beingDispatchedField            = getField("LVM_Thread;", "beingDispatched", "Z");
   static final VM_Field threadSlotField                 = getField("LVM_Thread;", "threadSlot", "I");
   static final VM_Field jniEnvField                     = getField("LVM_Thread;", "jniEnv", "LVM_JNIEnvironment;");
   static final VM_Field processorAffinityField          = getField("LVM_Thread;", "processorAffinity", "LVM_Processor;");
   static final VM_Field nativeAffinityField             = getField("LVM_Thread;", "nativeAffinity", "LVM_Processor;");
+  static final VM_Field threadContextRegistersField     = getField("LVM_Thread;", "contextRegisters", "LVM_Registers;");
+  static final VM_Field threadHardwareExceptionRegistersField = getField("LVM_Thread;", "hardwareExceptionRegisters", "LVM_Registers;");
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   static final VM_Field areaCurrentAddressField        = getField("LVM_Allocator;", "areaCurrentAddress", "I");
@@ -135,18 +163,48 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field allocCountField                = getField("LVM_BlockControl;", "allocCount", "I");
   //-#endif
 
-  //-#if RVM_WITH_CONCURRENT_GC
-  static final VM_Method processIncDecBufferMethod      = getMethod("LVM_RCBuffers;", "processIncDecBuffer", "()V");
+  static final VM_Field registersIPField   = getField("LVM_Registers;",   "ip",  "I");
+  static final VM_Field registersFPRsField = getField("LVM_Registers;", "fprs", "[D");
+  static final VM_Field registersGPRsField = getField("LVM_Registers;", "gprs", "[I");
+  static final VM_Field registersInUseField= getField("LVM_Registers;", "inuse", "Z");
+  //-#if RVM_FOR_POWERPC
+  static final VM_Field registersLRField   = getField("LVM_Registers;", "lr", "I");
+  //-#endif
+  //-#if RVM_FOR_IA32
+  static final VM_Field registersFPField   = getField("LVM_Registers;",   "fp",  "I");
   //-#endif
 
+  //-#if RVM_WITH_CONCURRENT_GC
+  static final VM_Method processIncDecBufferMethod      = getMethod("LVM_RCBuffers;", "processIncDecBuffer", "()V");
+  static final VM_Method RCGC_aastoreMethod             = getMethod("LVM_OptRCWriteBarrier;", "aastore", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method RCGC_resolvedPutfieldMethod    = getMethod("LVM_OptRCWriteBarrier;", "resolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method RCGC_unresolvedPutfieldMethod  = getMethod("LVM_OptRCWriteBarrier;", "unresolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method RCGC_resolvedPutstaticMethod   = getMethod("LVM_OptRCWriteBarrier;", "resolvedPutstatic", "(ILjava/lang/Object;)V");
+  static final VM_Method RCGC_unresolvedPutstaticMethod = getMethod("LVM_OptRCWriteBarrier;", "unresolvedPutstatic", "(ILjava/lang/Object;)V");
+  //-#endif
+
+  static final VM_Field outputLockField                = getField("LVM_Scheduler;", "outputLock", "I");
+  //-#if RVM_WITH_STRONG_VOLATILE_SEMANTICS
+  static final VM_Field doublewordVolatileMutexField   = getField("LVM_Scheduler;", "doublewordVolatileMutex", "LVM_ProcessorLock;");
+  //-#else
+  static final VM_Field doublewordVolatileMutexField   = null; // GACK!
+  //-#endif
   static final VM_Field processorsField                = getField("LVM_Scheduler;", "processors", "[LVM_Processor;");
   static final VM_Field threadsField                   = getField("LVM_Scheduler;", "threads", "[LVM_Thread;");
+  static final VM_Field debugRequestedField            = getField("LVM_Scheduler;", "debugRequested", "Z");
+  static final VM_Field attachThreadRequestedField     = getField("LVM_Scheduler;", "attachThreadRequested", "I");
+  static final VM_Method dumpStackAndDieMethod         = getMethod("LVM_Scheduler;", "dumpStackAndDie", "(I)V");
 
   static final VM_Field latestContenderField            = getField("LVM_ProcessorLock;", "latestContender", "LVM_Processor;");
   static final VM_Method processorLockMethod            = getMethod("LVM_ProcessorLock;", "lock", "()V");
   static final VM_Method processorUnlockMethod          = getMethod("LVM_ProcessorLock;", "unlock", "()V");
 
   static final VM_Field classForTypeField              = getField("LVM_Type;", "classForType", "Ljava/lang/Class;");
+  static final VM_Field depthField                     = getField("LVM_Type;", "depth", "I");
+  static final VM_Field idField                        = getField("LVM_Type;", "dictionaryId", "I");
+  static final VM_Field dimensionField                 = getField("LVM_Type;", "dimension", "I");
+
+  static final VM_Field innermostElementTypeField      = getField("LVM_Array;", "innermostElementType", "LVM_Type;");
 
   //-#if RVM_WITH_PREMATURE_CLASS_RESOLUTION
   static final VM_Method initializeClassIfNecessaryMethod = getMethod("LVM_Class;", "initializeClassIfNecessary", "(I)V");
@@ -165,7 +223,15 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field JNIPendingExceptionField   = getField("LVM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
   static final VM_Field JNIFunctionPointersField   = getField("LVM_JNIEnvironment;", "JNIFunctionPointers", "[I");
 
-  static final VM_Field the_boot_recordField = getField("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;");
+  static final VM_Field the_boot_recordField            = getField("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;");
+  static final VM_Field tiRegisterField                 = getField("LVM_BootRecord;", "tiRegister", "I");
+  static final VM_Field spRegisterField                 = getField("LVM_BootRecord;", "spRegister", "I");
+  static final VM_Field ipRegisterField                 = getField("LVM_BootRecord;", "ipRegister", "I");
+  static final VM_Field tocRegisterField                = getField("LVM_BootRecord;", "tocRegister", "I");
+  static final VM_Field processorsOffsetField           = getField("LVM_BootRecord;", "processorsOffset", "I");
+  static final VM_Field threadsOffsetField              = getField("LVM_BootRecord;", "threadsOffset", "I");
+  static final VM_Field startAddressField               = getField("LVM_BootRecord;", "startAddress", "I");
+  static final VM_Field endAddressField                 = getField("LVM_BootRecord;", "endAddress", "I");
   static final VM_Field globalGCInProgressFlagField     = getField("LVM_BootRecord;", "globalGCInProgressFlag", "I");
   static final VM_Field lockoutProcessorField           = getField("LVM_BootRecord;", "lockoutProcessor", "I");
   static final VM_Field sysVirtualProcessorYieldIPField = getField("LVM_BootRecord;", "sysVirtualProcessorYieldIP", "I");
@@ -188,11 +254,18 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method resolvedPutStaticWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "resolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
   static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
 
+
+  static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");
+  static final VM_Field inetAddressFamilyField  = getField("Ljava/net/InetAddress;", "family", "I");
+  
+  static final VM_Field socketImplAddressField  = getField("Ljava/net/SocketImpl;", "address", "Ljava/net/InetAddress;");
+  static final VM_Field socketImplPortField     = getField("Ljava/net/SocketImpl;", "port", "I");
+
   //-#if RVM_WITH_READ_BARRIER2
   static final VM_Method arrayLoadReadBarrierMethod = getMethod("LVM_ReadBarrier;", "arrayLoadReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   static final VM_Method resolvedGetfieldReadBarrierMethod = getMethod("LVM_ReadBarrier;", "resolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   static final VM_Method unresolvedGetfieldReadBarrierMethod = getMethod("LVM_ReadBarrier;", "unresolvedGetfieldReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method resolvedGetStaticReadBarrierMethod = getMethodVM.getMember("LVM_ReadBarrier;", "resolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
+  static final VM_Method resolvedGetStaticReadBarrierMethod = getMethod("LVM_ReadBarrier;", "resolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
   static final VM_Method unresolvedGetStaticReadBarrierMethod = getMethod("LVM_ReadBarrier;", "unresolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
   //-#endif RVM_WITH_READ_BARRIER2
 
@@ -204,18 +277,45 @@ class VM_Entrypoints implements VM_Constants {
   static ADDRESS GCTk_TraceBufferBase;
   //-#endif
 
-  private static VM_Method getMethod(String klass, String member, String descriptor) {
-    return (VM_Method)VM.getMember(klass, member, descriptor);
-  }
 
-  private static VM_Field getField(String klass, String member, String descriptor) {
-    return (VM_Field)VM.getMember(klass, member, descriptor);
-  }
+  //-#if RVM_WITH_OPT_COMPILER
+  ////////////////// 
+  // Entrypoints that are valid only when the opt compiler is included in the build
+  //////////////////
+  static final VM_Field specializedMethodsField = getField("LOPT_SpecializedMethodPool;", "specializedMethods", "["+INSTRUCTION_ARRAY_SIGNATURE);
+
+  static final VM_Method optThreadSwitchFromPrologueMethod = getMethod("LVM_OptSaveVolatile;", "OPT_threadSwitchFromPrologue", "()V");
+  static final VM_Method optThreadSwitchFromBackedgeMethod = getMethod("LVM_OptSaveVolatile;", "OPT_threadSwitchFromBackedge", "()V");
+  static final VM_Method optThreadSwitchFromEpilogueMethod = getMethod("LVM_OptSaveVolatile;", "OPT_threadSwitchFromEpilogue", "()V");
+  static final VM_Method optResolveMethod                  = getMethod("LVM_OptSaveVolatile;", "OPT_resolve", "()V");
+
+  static final VM_Method optNewArrayArrayMethod            = getMethod("LVM_OptLinker;", "newArrayArray", "([II)Ljava/lang/Object;");
+  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
+  static final VM_Method optAllocAdviceNewArrayArrayMethod = getMethod("LVM_OptLinker;", "allocAdviceNewArrayArray", "([III)Ljava/lang/Object;");
+  //-#endif
+
+  static final VM_Method sysArrayCopy = getMethod("Ljava/lang/System;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+  //-#endif
+
+
+
+  //-#if RVM_WITH_ADAPTIVE_SYSTEM
+  ////////////////// 
+  // Entrypoints that are valid only when the opt compiler is included in the build
+  //////////////////
+  static final VM_Field methodListenerNextIndexField      = getField("LVM_MethodListener;", "nextIndex", "I");
+  static final VM_Field methodListenerNumSamplesField     = getField("LVM_MethodListener;", "numSamples", "I");
+
+  static final VM_Field edgeListenerNextIndexField        = getField("LVM_EdgeListener;", "nextIndex", "I");
+  static final VM_Field edgeListenerSamplesTakenField     = getField("LVM_EdgeListener;", "samplesTaken", "I");
+  static final VM_Field counterArrayManagerCounterArraysField = getField("LVM_CounterArrayManager;","counterArrays","[[D");
+  //-#endif
+
 
   static void init() {
     //-#if RVM_WITH_GCTk
-    ADDRESS top = VM.getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
-    ADDRESS bot = VM.getMember("LVM_Processor;", "writeBuffer1", "I").getOffset();
+    ADDRESS top = getMember("LVM_Processor;", "writeBuffer0", "I").getOffset();
+    ADDRESS bot = getMember("LVM_Processor;", "writeBuffer1", "I").getOffset();
     GCTk_WriteBufferBase = (top > bot) ? bot : top;
     if (VM.VerifyAssertions) {
       boolean discontigious = (((top > bot) && ((top - bot) != 4))
@@ -224,10 +324,10 @@ class VM_Entrypoints implements VM_Constants {
 	VM.sysWrite("\n---->"+top+","+bot+"->"+GCTk_WriteBufferBase+"<----\n");
       VM.assert(!discontigious);
     }
-    GCTk_TraceBufferBase        = VM.getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
+    GCTk_TraceBufferBase        = getMember("LGCTk_TraceBuffer;", "bumpPtr_", "I").getOffset();
 
-    top = VM.getMember("LVM_Processor;", "allocBump0", "I").getOffset();
-    bot = VM.getMember("LVM_Processor;", "allocBump7", "I").getOffset();
+    top = getMember("LVM_Processor;", "allocBump0", "I").getOffset();
+    bot = getMember("LVM_Processor;", "allocBump7", "I").getOffset();
     GCTk_BumpPointerBase = (top > bot) ? bot : top;
     if (VM.VerifyAssertions) {
       boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
@@ -237,8 +337,8 @@ class VM_Entrypoints implements VM_Constants {
       VM.assert(!unaligned);
     }
   
-    top = VM.getMember("LVM_Processor;", "allocSync0", "I").getOffset();
-    bot = VM.getMember("LVM_Processor;", "allocSync7", "I").getOffset();
+    top = getMember("LVM_Processor;", "allocSync0", "I").getOffset();
+    bot = getMember("LVM_Processor;", "allocSync7", "I").getOffset();
     GCTk_SyncPointerBase = (top > bot) ? bot : top;
     if (VM.VerifyAssertions) {
       boolean unaligned = (((top > bot) && ((top - bot) != 28)) 
@@ -248,8 +348,8 @@ class VM_Entrypoints implements VM_Constants {
       VM.assert(!unaligned);
     }
 	  
-    top = VM.getMember("LGCTk_ChunkAllocator;", "allocChunkStart0", "I").getOffset();
-    bot = VM.getMember("LGCTk_ChunkAllocator;", "allocChunkEnd7", "I").getOffset();
+    top = getMember("LGCTk_ChunkAllocator;", "allocChunkStart0", "I").getOffset();
+    bot = getMember("LGCTk_ChunkAllocator;", "allocChunkEnd7", "I").getOffset();
     GCTk_ChunkAllocatorBase = (top > bot) ? bot : top;
     if (VM.VerifyAssertions) {
       boolean unaligned = (((top > bot) && ((top - bot) != 60)) 
@@ -259,5 +359,54 @@ class VM_Entrypoints implements VM_Constants {
       VM.assert(!unaligned);
     }
     //-#endif
+  }
+
+
+  /**
+   * Get description of virtual machine component (field or method).
+   * Note: This is method is intended for use only by VM classes that need 
+   * to address their own fields and methods in the runtime virtual machine 
+   * image.  It should not be used for general purpose class loading.
+   * @param classDescriptor  class  descriptor - something like "LVM_Runtime;"
+   * @param memberName       member name       - something like "invokestatic"
+   * @param memberDescriptor member descriptor - something like "()V"
+   * @return corresponding VM_Member object
+   */
+  private static VM_Member getMember(String classDescriptor, String memberName, 
+				     String memberDescriptor) {
+    VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
+    VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
+    VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
+    try {
+      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor).asClass();
+      cls.load();
+      cls.resolve();
+         
+      VM_Member member;
+      if ((member = cls.findDeclaredField(memName, memDescriptor)) != null)
+        return member;
+      if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null)
+        return member;
+
+      // The usual causes for getMember() to fail are:
+      //  1. you mispelled the class name, member name, or member signature
+      //  2. the class containing the specified member didn't get compiled
+      //
+      VM.sysWrite("VM_Entrypoints.getMember: can't find class="+classDescriptor+" member="+memberName+" desc="+memberDescriptor+"\n");
+      VM.assert(NOT_REACHED);
+    } catch (VM_ResolutionException e) {
+      VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" + classDescriptor+
+		  " member=" + memberName + " desc=" + memberDescriptor + "\n");
+      VM.assert(NOT_REACHED);
+    }
+    return null; // placate jikes
+  }
+
+  private static VM_Method getMethod(String klass, String member, String descriptor) {
+    return (VM_Method)getMember(klass, member, descriptor);
+  }
+
+  private static VM_Field getField(String klass, String member, String descriptor) {
+    return (VM_Field)getMember(klass, member, descriptor);
   }
 }
