@@ -167,7 +167,7 @@ public final class HPM_info
    *
    * @param value value to have bytes swapped
    */
-  static public  int swapByteOrder(int value)
+  static public  int swapByteOrder(int value) throws VM_PragmaUninterruptible
   {  
     if(VM_HardwarePerformanceMonitors.verbose>=3){VM.sysWrite("VM_HPMs.swapByteOrder(");VM.sysWriteHex(value);}
     byte b1 = (byte)((value & 0xFF000000) >> 24);
