@@ -867,7 +867,6 @@ public class VM extends VM_Properties
       // method calls are compiled.
       //
       VM_Statics.init();
-      VM_MagicNames.init();
       VM_ClassLoader.init(vmClassPath);
       VM_Class object       = VM_Type.JavaLangObjectType.asClass();
       VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
