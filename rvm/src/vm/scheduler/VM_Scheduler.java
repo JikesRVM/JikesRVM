@@ -353,7 +353,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       } else if (VM.BuildForIA32) {
         VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
                                      VM_Magic.objectAsAddress(processors[nativeDPndx]),
-                                     0,
+                                     target.contextRegisters.ip,
                                      target.contextRegisters.getInnermostFramePointer());
       }
       if (VM.TraceThreads)

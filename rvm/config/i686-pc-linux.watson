@@ -88,7 +88,7 @@ export WGET="/usr/bin/wget"
 export XARGS="/usr/bin/xargs"
 
 # The following is optional; only needed for fancy CVS scripts
-export CVS="/homes/fury5/jalapeno/bin/cvs"
+export CVS="/usr/bin/cvs"
 
 # where to find Jazzlib
 export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02

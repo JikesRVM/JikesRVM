@@ -379,8 +379,8 @@ final class OPT_GenerationContext implements OPT_Constants,
       } else {
 	formal = child.makeLocal(localNum++, argType);
       }
-      OPT_Instruction s = Move.create(OPT_IRTools.getMoveOp(argType, false), 
-				      formal, actual);
+      OPT_Instruction s = 
+	Move.create(OPT_IRTools.getMoveOp(argType), formal, actual);
       s.bcIndex = PROLOGUE_BCI;
       s.position = callSite.position;
       child.prologue.appendInstruction(s);
@@ -501,7 +501,7 @@ final class OPT_GenerationContext implements OPT_Constants,
   public OPT_Register localReg(int i, VM_Type type) {
     OPT_Register[] pool = getPool(type);
     if (pool[i] == null) {
-      pool[i] = temps.getReg(type, true);
+      pool[i] = temps.getReg(type);
       pool[i].setLocal();
     }
     return pool[i];

@@ -67,18 +67,18 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
       maps      = ((VM_BaselineCompilerInfo)compiledMethod.getCompilerInfo()).referenceMaps;
       mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
       mapOffset = 0;
-      if (mapId < 0)
-         {
+      if (mapId < 0) {
          // lock the jsr lock to serialize jsr processing
          VM_ReferenceMaps.jsrLock.lock();
          maps.setupJSRSubroutineMap( framePtr, mapId, compiledMethod);
-         }
-      if (VM.TraceStkMaps)
-         {
+      }
+      if (VM.TraceStkMaps) {
          VM.sysWrite("VM_BaselineGCMapIterator setupIterator mapId = ");
          VM.sysWrite(mapId);
-         VM.sysWrite(".\n");
-         }
+         VM.sysWrite(" for ");
+	 VM.sysWrite(currentMethod);
+	 VM.sysWrite(".\n");
+      }
       
       // setup dynamic bridge mapping
       //
@@ -140,22 +140,22 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
          mapOffset = maps.getNextJSRRef(mapOffset);
       else
          mapOffset = maps.getNextRef(mapOffset, mapId);
-      if (VM.TraceStkMaps)
-         {
+      if (VM.TraceStkMaps) {
          VM.sysWrite("VM_BaselineGCMapIterator getNextReferenceOffset = ");
          VM.sysWrite(mapOffset);
          VM.sysWrite(".\n");
          if (mapId < 0) 
-            VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
-         }
+	     VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
+      }
 
       if (mapOffset != 0)
         return (framePtr + mapOffset);
 
-      else if (bridgeParameterMappingRequired)
-         {
-      // VM.sysWrite("getNextReferenceAddress: bridgeTarget="); VM.sysWrite(bridgeTarget); VM.sysWrite("\n");
-         
+      else if (bridgeParameterMappingRequired) {
+
+	 if (VM.TraceStkMaps) {
+	     VM.sysWrite("getNextReferenceAddress: bridgeTarget="); VM.sysWrite(bridgeTarget); VM.sysWrite("\n");
+	 }
 	 if (!bridgeRegistersLocationUpdated)
             {
             // point registerLocations[] to our callers stackframe
@@ -247,23 +247,18 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
    //    early ... they may be in temporary storage ie storage only used
    //    during garbage collection
    //
-   void
-   cleanupPointers()
-      {
-   // VM.sysWrite("cleanupPointers\n");
+   void cleanupPointers() {
       maps.cleanupPointers();
       maps = null;
-      if (mapId < 0)   
+      if (mapId < 0) 
          VM_ReferenceMaps.jsrLock.unlock();
       bridgeTarget         = null;
       bridgeParameterTypes = null;
-      }
-
-   int
-   getType() 
-      {
-      return VM_GCMapIterator.BASELINE;
-      }
+   }
+       
+   int getType() {
+       return VM_GCMapIterator.BASELINE;
+   }
 
    // For debugging (used with checkRefMap)
    //

@@ -29,13 +29,6 @@ class VM_Assembler implements VM_BaselineConstants {
      bit set (say xx.) will be end in a lower-case r (XXr and emitXXr).
 
      mIP will be incremented to point to the next machine instruction.
-
-     Note: since most of the calls on these methods will have the same
-     constant arguments (e.g. SP, the stack pointer), a method call overhead
-     per instruction could be avoided by generating the machine code
-     explicitly inline.  Alternately, a Java-to-Java preprocessor might
-     achieve the same affect by aggressive constant propagation.
-
   */
 
   VM_Assembler (int length) {
@@ -60,7 +53,7 @@ class VM_Assembler implements VM_BaselineConstants {
 
   */
 
-  private final static boolean fits (int val, int bits) {
+  final static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }
@@ -204,6 +197,16 @@ class VM_Assembler implements VM_BaselineConstants {
   /* call before emiting code for the branch */
   final void reserveForwardConditionalBranch (int where) {
     emitNOP();
+    VM_ForwardReference fr = new VM_ConditionalBranch(mIP, where);
+    if (forwardReferenceQ == null) {
+      forwardReferenceQ = fr;
+    } else {
+      forwardReferenceQ = forwardReferenceQ.add(fr);
+    }
+  }
+
+  /* call before emiting code for the branch */
+  final void reserveShortForwardConditionalBranch (int where) {
     VM_ForwardReference fr = new VM_ConditionalBranch(mIP, where);
     if (forwardReferenceQ == null) {
       forwardReferenceQ = fr;
@@ -1765,7 +1768,7 @@ class VM_Assembler implements VM_BaselineConstants {
     mc.addInstruction(mi);
   }
 
-  static final int TWItemplate = 3<<26 | 0x3FF<<16;
+  static final int TWItemplate = 3<<26 | 0x3EC<<16;	// RA == 12
 
   final void emitTWI (int imm) {
     INSTRUCTION mi = TWItemplate | imm;

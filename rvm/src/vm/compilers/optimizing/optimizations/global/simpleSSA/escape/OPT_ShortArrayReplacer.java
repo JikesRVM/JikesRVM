@@ -60,8 +60,7 @@ public class OPT_ShortArrayReplacer
     OPT_Instruction defI = def.instruction;
     OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(elementType);
     for (int i = 0; i < size; i++) {
-      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue, 
-          false);
+      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
     }
     // now remove the def
     if (DEBUG)
@@ -115,7 +114,7 @@ public class OPT_ShortArrayReplacer
       OPT_RegisterOperand[] scalars) {
     OPT_Instruction inst = use.instruction;
     VM_Type type = vmArray.getElementType();
-    OPT_Operator moveOp = OPT_IRTools.getMoveOp(type, false);
+    OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
     switch (inst.getOpcode()) {
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
@@ -176,6 +175,7 @@ public class OPT_ShortArrayReplacer
           // In the following case, we could instead unconditionally throw
           // an array index out-of-bounds exception.
           if (index >= size) return true;
+          if (index < 0) return true;
           break;
           }
         case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
@@ -189,6 +189,7 @@ public class OPT_ShortArrayReplacer
           // In the following case, we could instead unconditionally throw
           // an array index out-of-bounds exception.
           if (index >= size) return true;
+          if (index < 0) return true;
           break;
           }
       }

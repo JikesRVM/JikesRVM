@@ -288,18 +288,18 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       if (v2.isIntConstant()) {
         return evaluate(v1.asIntConstant().value, 
 			v2.asIntConstant().value);
-      } else if (v1.asIntConstant().value == 0) {
-	return evaluate(new OPT_NullConstantOperand(), v2);
+      } else if (v2.isNullConstant()) {
+	return evaluate(v1.asIntConstant().value, 0); 
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
         return evaluate(v1.asLongConstant().value, 
-			 v2.asLongConstant().value);
+			v2.asLongConstant().value);
       } 
     } else if (v1.isFloatConstant()) {
       if (v2.isFloatConstant()) {
         return evaluate(v1.asFloatConstant().value, 
-			 v2.asFloatConstant().value);
+			v2.asFloatConstant().value);
       } 
     } else if (v1.isDoubleConstant()) {
       if (v2.isDoubleConstant()) {
@@ -322,13 +322,10 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 	}
       }
     } else if (v1.isNullConstant()) {
-      if (v2.isNullConstant() || 
-	  (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
-	if (isEQUAL()) {
-	  return true;
-	} else if (isNOT_EQUAL()) {
-	  return false;
-	}
+      if (v2.isNullConstant()) {
+	return evaluate(0, 0);
+      } else if (v2.isIntConstant()) {
+	return evaluate(0, v2.asIntConstant().value);
       } else if (v2.isStringConstant()) {
 	if (isEQUAL()) {
 	  return false;

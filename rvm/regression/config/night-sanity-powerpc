@@ -1,6 +1,9 @@
 BaseBaseSemispace -test-list nightly-tests
 BaseBaseMarkSweep -test-list nightly-tests
+BaseBaseHybrid -test-list nightly-tests
 BaseBaseCopyGenFixed -test-list nightly-tests 
+BaseBaseCopyGenVariable -test-list nightly-tests 
+BaseBaseConcurrent -test-list nightly-tests-short
 BaseAdaptiveSemispace -test-list nightly-tests-short
 FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
 FullOptCopyGenVariable -test-list nightly-tests

@@ -992,7 +992,7 @@ abstract class BootMap implements jdpConstants  {
     VM_LocalVariable locals[] = mth.getMostRecentlyGeneratedCompilerInfo().findLocalVariablesForInstruction(ipOffset);
     if (locals==null)
       return "Locals in frame " + frameNumber + ", " + 
-      mth.getName().toString() + ":\n (no local variable)";
+      mth.getName().toString() + ":\n (no local variable information available)";
 
     // walk through the list
     // -print the name

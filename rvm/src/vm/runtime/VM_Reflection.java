@@ -47,7 +47,6 @@ public class VM_Reflection implements VM_Constants {
 	targetMethod.compile();
       }
     }
-    INSTRUCTION[] code = targetMethod.getMostRecentlyGeneratedInstructions();
         
     // remember return type
     // Determine primitive type-ness early to avoid call (possible yield) 
@@ -88,6 +87,11 @@ public class VM_Reflection implements VM_Constants {
     VM.disableGC();
     VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, 
                                            FPRs, Spills);
+
+    // We want to make sure that GC does not happen between getting code and
+    // invoking it. If it's not on a stack during GC, it can be marked
+    // obsolete and reclaimed.
+    INSTRUCTION[] code = targetMethod.getMostRecentlyGeneratedInstructions();
     VM.enableGC();
      
     if (!returnIsPrimitive) {

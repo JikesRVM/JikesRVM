@@ -10,8 +10,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_Entrypoints implements VM_Constants
-   {
+class VM_Entrypoints implements VM_Constants {
    // Methods of VM (method description + offset of code pointer within jtoc).
    //
    static VM_Method debugBreakpointMethod;  
@@ -52,18 +51,6 @@ class VM_Entrypoints implements VM_Constants
    
    static int       unimplementedBytecodeOffset;
    
-
-//-#if RVM_FOR_POWERPC // baseline compiler entrypoints
-   // Method offsets of VM_Linker (offset of code pointer within jtoc).
-   //
-   static int getstaticOffset;
-   static int putstaticOffset;
-   static int getfieldOffset;
-   static int putfieldOffset;
-   static int invokestaticOffset;
-   static int invokevirtualOffset;
-   static int invokespecialOffset;
-//-#endif // baseline compiler entrypoints
    static int mandatoryInstanceOfInterfaceOffset;
    static int unresolvedInterfaceMethodOffset;
    static int invokeInterfaceOffset;
@@ -74,11 +61,11 @@ class VM_Entrypoints implements VM_Constants
 
    static VM_Method findItableMethod;           
    static int       findItableOffset;
+   static VM_Method resolveMethodMethod;
+   static VM_Field  methodOffsetsField;    
+   static VM_Method resolveFieldMethod;
+   static VM_Field  fieldOffsetsField;     
    //-#if RVM_FOR_IA32  
-   static int fieldOffsetsOffset;     
-   static int methodOffsetsOffset;    
-   static int resolveFieldOffset;
-   static int resolveMethodOffset;
    static int jtocOffset;              
    static int threadIdOffset;
    static int framePointerOffset;      
@@ -88,7 +75,6 @@ class VM_Entrypoints implements VM_Constants
    
    //-#if RVM_FOR_IA32  
    static int FPUControlWordOffset;
- 
    //-#endif
 
 //-#if RVM_WITH_GCTk_ALLOC_ADVICE
@@ -390,27 +376,20 @@ class VM_Entrypoints implements VM_Constants
       m = unlockMethod = (VM_Method)VM.getMember("LVM_Lock;", "unlock", "(Ljava/lang/Object;)V");
       unlockOffset = m.getOffset();
    
-      newArrayArrayOffset   = VM.getMember("LVM_Linker;", "newArrayArray", "(III)Ljava/lang/Object;").getOffset();
+      newArrayArrayOffset   = VM.getMember("LVM_MultianewarrayHelper;", "newArrayArray", "(III)Ljava/lang/Object;").getOffset();
       
       unimplementedBytecodeOffset = VM.getMember("LVM_Runtime;", "unimplementedBytecode", "(I)V").getOffset();
 
+      resolveMethodMethod     = (VM_Method)VM.getMember("LVM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
+      methodOffsetsField      = (VM_Field)VM.getMember("LVM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
+      resolveFieldMethod      = (VM_Method)VM.getMember("LVM_TableBasedDynamicLinker;", "resolveField", "(I)V");
+      fieldOffsetsField       = (VM_Field)VM.getMember("LVM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
 //-#if RVM_FOR_POWERPC // baseline compiler entrypoints
       invokeInterfaceOffset   = VM.getMember("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)[I").getOffset();
-      getstaticOffset         = VM.getMember("LVM_Linker;", "getstatic",     "()V").getOffset();
-      putstaticOffset         = VM.getMember("LVM_Linker;", "putstatic",     "()V").getOffset();
-      getfieldOffset          = VM.getMember("LVM_Linker;", "getfield",      "()V").getOffset();
-      putfieldOffset          = VM.getMember("LVM_Linker;", "putfield",      "()V").getOffset();
-      invokestaticOffset      = VM.getMember("LVM_Linker;", "invokestatic",  "()V").getOffset();
-      invokevirtualOffset     = VM.getMember("LVM_Linker;", "invokevirtual", "()V").getOffset();
-      invokespecialOffset     = VM.getMember("LVM_Linker;", "invokespecial", "()V").getOffset();
       findItableMethod        = (VM_Method)VM.getMember("LVM_Runtime;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
       findItableOffset        = findItableMethod.getOffset();
 //-#elif RVM_FOR_IA32
       invokeInterfaceOffset   = VM.getMember("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)[B").getOffset();
-      resolveFieldOffset      = VM.getMember("LVM_Linker;", "resolveField", "(I)V").getOffset();
-      resolveMethodOffset     = VM.getMember("LVM_Linker;", "resolveMethod", "(I)V").getOffset();
-      fieldOffsetsOffset      = VM.getMember("LVM_ClassLoader;", "fieldOffsets", "[I").getOffset();    
-      methodOffsetsOffset     = VM.getMember("LVM_ClassLoader;", "methodOffsets", "[I").getOffset();   
       jtocOffset              = VM.getMember("LVM_Processor;", "jtoc", "Ljava/lang/Object;").getOffset(); 
       threadIdOffset          = VM.getMember("LVM_Processor;", "threadId", "I").getOffset();        
       framePointerOffset      = VM.getMember("LVM_Processor;", "framePointer", "I").getOffset();      

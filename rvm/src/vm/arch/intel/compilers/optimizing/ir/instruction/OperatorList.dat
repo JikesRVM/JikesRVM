@@ -251,6 +251,13 @@ none
 ########################################
 # Next comes the machine specific HIR/LIR instructions.
 ########################################
+####################
+MATERIALIZE_FP_CONSTANT
+Binary
+none
+
+
+
 # Acquire the JTOC from the processor object.  
 # Make unary operator to simplify CSE.
 GET_JTOC

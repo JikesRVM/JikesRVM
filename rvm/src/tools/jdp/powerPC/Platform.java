@@ -177,7 +177,42 @@ public class Platform implements jdpConstants {
     return new Integer(data).shortValue();
   }
 
+  /**
+   * Read a long (two words) from memory
+   * @param address a random address 
+   * @return
+   * @exception
+   * @see
+   */
+  public static long readLong(int address) {
+    int mappedFieldValue = readmem(address);
+    int mappedFieldValue1 = readmem(address+4);
+    long newlong;
+    newlong = mappedFieldValue;
+    newlong = (newlong << 32);
+    newlong |= ((long)mappedFieldValue1) & 0xFFFFFFFFL;
+    return newlong;
+  }
 
+  /**
+   * Read a double (two words) from memory
+   * @param address a random address 
+   * @return
+   * @exception
+   * @see
+   */
+  public static double readDouble(int address) {
+    int mappedFieldValue = readmem(address);
+    int mappedFieldValue1 = readmem(address+4);
+    double newdouble;
+    long templong;
+    
+    templong = mappedFieldValue;
+    templong = (templong << 32);
+    templong |= ((long)mappedFieldValue1) & 0xFFFFFFFFL;;
+    newdouble = Double.longBitsToDouble(templong);
+    return newdouble;
+  }
 
   /********************************************************************
    * for registerExternal.java 
@@ -217,6 +252,20 @@ public class Platform implements jdpConstants {
   public static native int []    getSystemThreadSPR1(int pid, int VMThreadID, int systemThreadId[]);
   public static        int []    getSystemThreadSPR(int VMThreadID, int systemThreadId[]){
     return getSystemThreadSPR1(pid, VMThreadID, systemThreadId);
+  }
+
+  /********************************************************************
+   * for Debugger.java
+   **/
+  public static final int initialbp_offset = 16;
+  public static final int stepbrImplemented = 1; // Yes - implemented
+  public static final int cthreadImplemented = 1; // Yes - implemented
+  public static final int listtRunImplemented = 1; // Yes - implemented
+  public static final int listtSystemImplemented = 1; // Yes - implemented
+  public static final String extraRegNames = "IP LR CR\n";
+
+  public static void printbp() {
+    // No significance on PowerPC - do nothing
   }
 
 }

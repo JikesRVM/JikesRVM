@@ -162,9 +162,10 @@ class Debugger implements jdpConstants {
 
     // save the initial breakpoint
     // a hack:  we need to stop where the registers have been initialized
-    // For Intel, this is 9 bytes further from the start of .bootThread 
+    // currently, this is some platform specific number of instructions
+    // further from the .bootThread routine
     // normally used as the initial breakpoint
-    initial_bp = bp + 9;   
+    initial_bp = bp + Platform.initialbp_offset;
     if (init_macro!=null)
       initial_macro = init_macro+".jdp";
     else 
@@ -228,7 +229,7 @@ class Debugger implements jdpConstants {
     // 	 jdp_console.writeOutput("boot image arg " + k + " = " + bi_args[k]);
     // }
 
-    // Create the Lintel process, wait for it to start up and return
+    // Create the OS (AIX/Lintel) process, wait for it to start up and return
     user = new OsProcessExternal(bi_runner, bi_args, saved_progname, 
 				 classesNeededFilename, classpath);
 
@@ -285,7 +286,6 @@ class Debugger implements jdpConstants {
       user.reg.cacheJTOC();
       
       // cache the dictionary pointers if running under the interpreter
-      // INTEL_TEMP
       if (interpretMode) {
       	mapVM.cachePointers();
       }
@@ -510,6 +510,8 @@ class Debugger implements jdpConstants {
     // from this point, the debuggee is running
 
     if (command.equals("step") || command.equals("s")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("Sorry, step does not take any arguments at this time. Ignoring arguments.");
       boolean skip_prolog = false;
       printMode = PRINTASSEMBLY;
       runstat = user.pstep(0, printMode, skip_prolog);
@@ -518,15 +520,22 @@ class Debugger implements jdpConstants {
     } 
 
     else if (command.equals("stepbr") || command.equals("sbr")) {
-      jdp_console.writeOutput("step instruction over call: not supported yet on Lintel");
-      // 	 printMode = PRINTASSEMBLY;
-      // 	 runstat = user.pstepOverBranch(0);
-      // 	 if (runstat==true)
-      // 	   refreshEnvironment();
+      if (Platform.stepbrImplemented == 1) {
+	if (args.length != 0) 
+	  jdp_console.writeOutput("Sorry, stepbr does not take any arguments at this time. Ignoring arguments.");
+	printMode = PRINTASSEMBLY;
+	runstat = user.pstepOverBranch(0);
+	if (runstat==true)
+	  refreshEnvironment();
+      } else {
+	jdp_console.writeOutput("Sorry, step instruction over call is not supported yet on this platform");
+      }
     } 
 
     else if (command.equals("stepline") || command.equals("sl")) {
       // printMode = PRINTSOURCE;  too slow for now
+      if (args.length != 0) 
+	jdp_console.writeOutput("Sorry, stepline does not take any arguments at this time. Ignoring arguments.");
       printMode = PRINTASSEMBLY;
       runstat = user.pstepLine(0, printMode);
       if (runstat==true)
@@ -534,6 +543,8 @@ class Debugger implements jdpConstants {
     } 
 
     else if (command.equals("steplineover") || command.equals("slo")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("Sorry, steplineover does not take any arguments at this time. Ignoring arguments.");
       printMode = PRINTSOURCE;
       runstat = user.pstepLineOverMethod(0);
       if (runstat==true)
@@ -564,6 +575,8 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput("no breakpoint currently set, detaching process");
 	return true;
       } else {
+	if (args.length != 0) 
+	  jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
 	runstat = user.pcontinue(0, printMode, true);
 	if (runstat==true)
 	  refreshEnvironment();
@@ -571,14 +584,20 @@ class Debugger implements jdpConstants {
     }
 
     else if (command.equals("cthread") || command.equals("ct")) {
-      jdp_console.writeOutput("Continue thread not supported yet on Lintel");
-      // Intel TEMP:
-      // 	 runstat = user.pcontinue(0, printMode, false);
-      // 	 if (runstat==true)
-      // 	   refreshEnvironment();
+      if (Platform.cthreadImplemented == 1) {
+	if (args.length != 0) 
+	  jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
+	runstat = user.pcontinue(0, printMode, false);
+	if (runstat==true)
+	  refreshEnvironment();
+      } else {
+	jdp_console.writeOutput("Sorry, continue thread is not supported yet on this platform");
+      } 
     }
 
     else if (command.equals("creturn") || command.equals("cr")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
       runstat = user.pcontinueToReturn(0, printMode);
       if (runstat==true)
 	refreshEnvironment();
@@ -714,6 +733,8 @@ class Debugger implements jdpConstants {
     }   
 
     else if (command.equals("verbose") || command.equals("v")) {
+      if (args.length != 0) 
+	jdp_console.writeOutput("This command does not take any arguments. Ignoring arguments.");
       if (user.verbose) {
         jdp_console.writeOutput("Verbose now OFF");
         user.verbose = false;
@@ -735,7 +756,7 @@ class Debugger implements jdpConstants {
     }
 
     else {
-      jdp_console.writeOutput("Command not implemented");
+      jdp_console.writeOutput("Sorry, you've specified an unknown command. Please use help to see the list of known commands");
     }
     return false;
 
@@ -763,8 +784,9 @@ class Debugger implements jdpConstants {
    */
   private void refreshEnvironment() {
     // get the context of the thread we stop in
-    // Intel TEMP: no thread support yet on Intel, to add later
-    // user.reg.setContextThreadIDFromRun();
+    // !!!! this may not work yet for intel ... trying it since the code
+    // is there
+    user.reg.setContextThreadIDFromRun();
 
     // cache the JTOC value if we stop in a Java stack frame
     user.reg.cacheJTOC();
@@ -772,7 +794,6 @@ class Debugger implements jdpConstants {
     // cache the dictionary pointers if running under the interpreter
     if (interpretMode)
       mapVM.cachePointers();
-
   }
 
 
@@ -837,14 +858,13 @@ class Debugger implements jdpConstants {
         status = user.mwait();
       }
       // System.out.println("Reach initial breakpoint, clearing it");
-      
+
       user.bpset.clearBreakpoint(bp);    
 
       // cache the JTOC value before referring to other JVM structures
       user.reg.cacheJTOC();
 
       // cache the dictionary pointers if running under the interpreter
-      // INTEL_TEMP
       if (interpretMode) {
 	mapVM.cachePointers();
       }
@@ -887,13 +907,14 @@ class Debugger implements jdpConstants {
     }
     user.bpset.setBreakpoint(bp);
 
-    // continue
-    // We may get spurrious Seg fault as the system 
+    // Continue
+    // We may get spurrious Trace/BPT trap or Seg fault as the system 
     // is inialized (stack resize, etc). Tell the debugger
     // to ignore these during initialization
     user.enableIgnoreOtherBreakpointTrap();  
 
-    user.pcontinue(0, PRINTNONE, true);
+    // !!!! Intel version had PRINTNONE for this call ... don't know why
+    user.pcontinue(0, PRINTASSEMBLY, true);
 
     refreshEnvironment();
     if (dejavu)
@@ -902,11 +923,11 @@ class Debugger implements jdpConstants {
       user.pcontinue(0, PRINTASSEMBLY, true);
       refreshEnvironment();
     }
-    // user.pcontinueToReturn(0, PRINTNONE);
-
+    // user.pcontinueToReturn(0, PRINTASSEMBLY);    // up one frame to return to MainThread
+    
     refreshEnvironment();
-
-
+    
+    
     // set breakpoint in main() method of user program
     breakpoint main_bp;
     if (dejavu) {
@@ -916,13 +937,13 @@ class Debugger implements jdpConstants {
     }
     // remove original breakpoint
     user.bpset.clearBreakpoint(bp);
-
+    
     // begin catching other trap instructions
     user.disableIgnoreOtherBreakpointTrap();  
-
+    
     // continue to beginning of user's main()
     user.pcontinue(0, PRINTASSEMBLY, true);
-
+    
     refreshEnvironment();
     // remove the breakpoint at the beginning of the main method
     user.bpset.clearBreakpoint(main_bp);
@@ -1171,7 +1192,8 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput(user.mem.printJVMstackTraceFull(0, 20));   // default, print first 20 frames
 	break;
       case 1: 
-	if (args[0].length()==8) {                // treat number as address for FP
+	if (args[0].startsWith("0x") || args[0].startsWith("0X") ||
+	    args[0].length()==8) {                // treat number as address for FP
 	  int fp = parseHex32(args[0]);
 	  jdp_console.writeOutput(user.mem.printJVMstackTraceFull(fp));    
 	} else {
@@ -1208,7 +1230,8 @@ class Debugger implements jdpConstants {
         jdp_console.writeOutput(user.mem.printJVMstackTrace(0, 20));       // default, print first 20 frames
         break;
       case 1:
-	if (args[0].length()==8) {                // treat number as address for FP
+	if (args[0].startsWith("0x") || args[0].startsWith("0X") ||
+	     args[0].length()==8) {                // treat number as address for FP
 	  int fp = parseHex32(args[0]);
 	  jdp_console.writeOutput(user.mem.printJVMstackTrace(fp));
 	} else {
@@ -1245,7 +1268,8 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput(user.mem.printJVMstack(0, 4));
 	break;
       case 1:
-	if (args[0].length()==8) {                // treat number as address for FP
+	if (args[0].startsWith("0x") || args[0].startsWith("0X") ||
+	     args[0].length()==8) {                // treat number as address for FP
 	  fp = parseHex32(args[0]); 
 	  jdp_console.writeOutput(user.mem.printJVMstack(fp, 4));
 	} else {
@@ -1348,6 +1372,7 @@ class Debugger implements jdpConstants {
     } else {
       // just print the list
       jdp_console.writeOutput(user.bpset.list());
+      // Only the Intel version prints anything with this call
       Platform.printbp();
     }
   }
@@ -1747,6 +1772,7 @@ class Debugger implements jdpConstants {
     // 	 return;
     // } 
     
+    String arg1;
     // want to cast a class on an address
     if (args[0].startsWith("(")) {
       int rparen = args[0].indexOf(')');
@@ -1754,8 +1780,19 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput("missing parenthesis for class name: " + args[0]);
         return;
       }
+      if (args.length == 1) {
+	if (rparen != (args[0].length()-1)) {
+	  // User must have not put a blank
+	  arg1 = args[0].substring(rparen+1);
+	} else {
+	  jdp_console.writeOutput("Please specify an address to be cast e.g. print (VM_Thread) 0x4169536c");
+	  return;
+	}
+      } else
+	arg1 = args[1];
+	
       try {
-	addr = parseHex32(args[1]);
+	addr = parseHex32(arg1);
 	String classname = args[0].substring(1,rparen);
 	try {
 	  // flag set to false to get only nonstatic fields
@@ -1811,7 +1848,7 @@ class Debugger implements jdpConstants {
       switch (args.length) {
       case 0:
 	// return to the thread context in the hardware (R15)
-	threadID = user.reg.threadPointerToIndex(user.reg.hardwareTP());
+	threadID = user.reg.registerToTPIndex(user.reg.hardwareTP());
 	jdp_console.writeOutput("context of executing thread: " + threadID);
 	user.reg.setContextThreadID(threadID);
 	break;
@@ -1864,15 +1901,19 @@ class Debugger implements jdpConstants {
 	jdp_console.writeOutput(user.listWakeupThreads());
 
       } else if (args[0].equals("run")) {
-	// threads loaded in the system pthreads
-	jdp_console.writeOutput("This command not implemented yet.");
-	// jdp_console.writeOutput(user.listRunThreads());
-
+	// threads loaded in the system threads
+	if (Platform.listtRunImplemented == 1) {
+	  jdp_console.writeOutput(user.listRunThreads());
+	} else {
+	  jdp_console.writeOutput("Sorry, listt run is not implemented yet on this platform");
+	}
       } else if (args[0].equals("system")) {
 	// dump the system threads
-	jdp_console.writeOutput("This command not implemented yet.");
-	// jdp_console.writeOutput(user.listSystemThreads());
-
+	if (Platform.listtSystemImplemented == 1) {
+	  jdp_console.writeOutput(user.listSystemThreads());
+	} else {
+	  jdp_console.writeOutput("Sorry, listt system is not implemented yet on this platform");
+	}
       } else if (args[0].equals("gc")) {
 	// GC thread
 	jdp_console.writeOutput(user.listGCThreads());
@@ -1954,7 +1995,6 @@ class Debugger implements jdpConstants {
       } else {
         System.out.println("Convert number to hex, usage:  d2x decimalnumber");
       }
-
   }
 
 
@@ -1966,6 +2006,15 @@ class Debugger implements jdpConstants {
    * @return the integer value
    */
   private int parseHex32(String hexString) throws NumberFormatException {
+    if (hexString.startsWith("0x") || hexString.startsWith("0X")) 
+      hexString = hexString.substring(2);
+    else {
+      int tempint = Integer.parseInt(hexString, 16);
+      // that will throw an exception if it is a non-hexnum like string
+      jdp_console.writeOutput("Sorry, hex numbers must now be preceeded by 0X or 0x. In the future, numbers without this prefix will be interpreted as decimal.");
+      throw new NumberFormatException();
+    }
+    
     int firstInt = Integer.parseInt(hexString.substring(0,1), 16);
     if (hexString.length() < 8  || firstInt <= 7)
       return Integer.parseInt(hexString,16);
@@ -2047,7 +2096,9 @@ class Debugger implements jdpConstants {
       ret.append("Format 1:  < r | reg > <num|name> <count>\n");
       ret.append("Format 2:  < wr | wreg > <num|name> <hexval>\n");
       ret.append("Display/update hardware registers (not thread context registers)\n");
-      ret.append("Specify Intel register by names: \n");
+      ret.append("For AIX: you can specify number or name, where number is:  0-31, 128-136, 138, 148, 256-287\n");
+      ret.append("For Lintel: you can only specify name.\n");
+      ret.append("On this plaform the register names are: \n");
       String regname="";
       for (int i=0; i<VM_BaselineConstants.GPR_NAMES.length; i++)
 	regname += VM_BaselineConstants.GPR_NAMES[i] + " ";
@@ -2056,9 +2107,7 @@ class Debugger implements jdpConstants {
       for (int i=0; i<VM_BaselineConstants.FPR_NAMES.length; i++)
 	regname += VM_BaselineConstants.FPR_NAMES[i] + " ";
       ret.append(regname);
-      for (int i=0; i<VM_BaselineConstants.RVM_GPR_NAMES.length; i++)
-	regname += VM_BaselineConstants.RVM_GPR_NAMES[i] + " ";
-      ret.append(regname);
+      ret.append(Platform.extraRegNames);
 
     } else if (command.equals("mem") || command.equals("m") || 
 	       command.equals("wmem") || command.equals("wm") ||
@@ -2114,14 +2163,14 @@ class Debugger implements jdpConstants {
       ret.append("Default count is 10\n");
  
     } else if (command.equals("listt") || command.equals("lt")) {
-      ret.append("Format:  < lt | listt > <all|byname|ready|wakeup|gc>\n");
+      ret.append("Format:  < lt | listt > <all|byname|run|ready|wakeup|system|gc>\n");
       ret.append("List the threads, select the type of thread by:\n");
       ret.append("  all      all threads listed by top stack frame\n");
       ret.append("  byname   all threads listed by thread class name\n");
-      //      ret.append("  run      threads currently loaded in the system threads\n");
+      ret.append("  run      threads currently loaded in the system threads\n");
       ret.append("  ready    threads in the VM_Scheduler ready queue\n");
       ret.append("  wakeup   threads in the VM_Scheduler wakeup queue\n");
-      //      ret.append("  system   dump the state of the system threads\n");
+      ret.append("  system   dump the state of the system threads\n");
       ret.append("  gc       garbage collector threads\n");
       ret.append("Annotation: \n");
       ret.append("  threads loaded in system thread are indicated by >\n");
@@ -2233,9 +2282,8 @@ class Debugger implements jdpConstants {
       ret.append("(macro name)  load and execute this macro (a text file with suffix .jdp)\n");
       ret.append("x2d, d2x      convert number between hex and decimal\n");
       ret.append("(enter)       repeat last command\n\n");
-
       
-      ret.append("To get more information on a specific command, type: \n \thelp thiscommand\n");
+      ret.append("To get more information on a specific command including what arguments it can process, type: \n \thelp thiscommand\n");
 
     }
     jdp_console.writeOutput(ret.toString());

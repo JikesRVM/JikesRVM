@@ -83,32 +83,39 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
   private static void internalWriteBarrier(Object ref) {
     // force internal method to be inlined when compiled by Opt
     VM_Magic.pragmaInline();
-
     int statusWord = VM_Magic.getIntAtOffset(ref, OBJECT_STATUS_OFFSET);
-
-    // Check to see if we need to put this reference in the write buffer
     if ((statusWord & OBJECT_BARRIER_MASK) != 0) {
-      // We do.
-
-      // (1) mark reference as being in the write buffer 
-      statusWord = statusWord ^ OBJECT_BARRIER_MASK;
-      VM_Magic.setByteAtOffset(ref, OBJECT_STATUS_OFFSET+BarrierBitByteOffset,
-			       (byte)statusWord);
-      
-      // (2) add reference to write buffer
-      VM_Processor p = VM_Processor.getCurrentProcessor();
-      int wbTop = p.modifiedOldObjectsTop;
-      int wbMax = p.modifiedOldObjectsMax;
-      wbTop += 4;
-      VM_Magic.setMemoryWord(wbTop, VM_Magic.objectAsAddress(ref));
-      p.modifiedOldObjectsTop = wbTop;
-
-      // (3) grow write buffer (if necessary)
-      if (wbMax == wbTop) {
-	VM_WriteBuffer.growWriteBuffer();
-      }
+      doWriteBarrierInsertion(ref, statusWord);
     }
   }
+
+  /**
+   * Actually do the insertion into the write barrier.
+   * Put out of line due to Steve Blackburn et al experience that
+   * outlining the uncommon case yields the best performance.
+   */
+  private static void doWriteBarrierInsertion(Object ref, 
+					      int statusWord) {
+    VM_Magic.pragmaNoInline();
+
+    // (1) mark reference as being in the write buffer 
+    statusWord = statusWord ^ OBJECT_BARRIER_MASK;
+    VM_Magic.setByteAtOffset(ref, OBJECT_STATUS_OFFSET+BarrierBitByteOffset,(byte)statusWord);
+    
+    // (2) add reference to write buffer
+    VM_Processor p = VM_Processor.getCurrentProcessor();
+    int wbTop = p.modifiedOldObjectsTop;
+    int wbMax = p.modifiedOldObjectsMax;
+    wbTop += 4;
+    VM_Magic.setMemoryWord(wbTop, VM_Magic.objectAsAddress(ref));
+    p.modifiedOldObjectsTop = wbTop;
+
+    // (3) grow write buffer (if necessary)
+    if (wbMax == wbTop) {
+      VM_WriteBuffer.growWriteBuffer();
+    }
+  }
+
 
   /**
    * This method generates write barrier entries needed as a consequence of

@@ -43,7 +43,7 @@ public class VM_CompiledMethods
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
-      VM.assert(0 <= compiledMethodId);
+      VM.assert(0 < compiledMethodId);
       VM.assert(compiledMethodId <= currentCompiledMethodId);
     }
 
@@ -200,7 +200,7 @@ public class VM_CompiledMethods
   //
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
 					       int newLength) {
-    VM_CompiledMethod[] newarray = new VM_CompiledMethod[newLength];
+    VM_CompiledMethod[] newarray = VM_RuntimeStructures.newContiguousCompiledMethodArray(newLength);
     for (int i = 0, n = array.length; i < n; ++i)
       newarray[i] = array[i];
 

@@ -286,21 +286,29 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
     //    b) No instruction may rise above an UNINT_BEGIN (conservative), 
     //       a yieldpoint (we placed the yieldpoints where we wanted them),
     //       or an IR_PROLOGUE.
-    OPT_DepGraphNode lastDivider = null;
+    //    c) No GC point may rise above an UNINT_END
+    OPT_DepGraphNode lastTotalBarrier = null;
+    OPT_DepGraphNode lastGCBarrier = null;
     OPT_DepGraphNode lastAcquire = null;
     for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) firstNode();
          pnode != null; 
          pnode = (OPT_DepGraphNode) pnode.getNext())  {
       OPT_Instruction p = pnode.instruction();
-      if (lastDivider != null) {
-	lastDivider.insertOutEdge(pnode, CONTROL);
+      if (lastTotalBarrier != null) {
+	lastTotalBarrier.insertOutEdge(pnode, CONTROL);
       } 
+      if (lastGCBarrier != null) {
+	lastGCBarrier.insertOutEdge(pnode, CONTROL);
+      }
       if (lastAcquire != null && p.isLoad()) {
 	lastAcquire.insertOutEdge(pnode, CONTROL);
       }
       OPT_Operator pop = p.operator();
       if (p.isYieldPoint() || pop == IR_PROLOGUE || pop == UNINT_BEGIN) {
-	lastDivider = pnode;
+	lastTotalBarrier = pnode;
+      }
+      if (pop == UNINT_END) {
+	lastGCBarrier = pnode;
       }
       if (p.isAcquire() || p.isDynamicLinkingPoint()) {
 	lastAcquire = pnode;
@@ -311,21 +319,29 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
     //    a) No store instruction may sink below a release.
     //    b) No instruction may sink below an UNINT_END (conservative),
     //       a branch/return, or a yieldpoint (again want to pin yieldpoints).
-    lastDivider = null;
+    //    c) No GC point may sink below an UNINT_BEGIN
+    lastTotalBarrier = null;
+    lastGCBarrier = null;
     OPT_DepGraphNode lastRelease = null;
     for (OPT_DepGraphNode pnode = (OPT_DepGraphNode) lastNode();
          pnode != null; 
 	 pnode = (OPT_DepGraphNode) pnode.getPrev())   {
       OPT_Instruction p = pnode.instruction();
-      if (lastDivider != null) {
-	pnode.insertOutEdge(lastDivider, CONTROL);
+      if (lastTotalBarrier != null) {
+	pnode.insertOutEdge(lastTotalBarrier, CONTROL);
+      }
+      if (lastGCBarrier != null) {
+	pnode.insertOutEdge(lastGCBarrier, CONTROL);
       }
       if (lastRelease != null  && p.isStore()) {
 	pnode.insertOutEdge(lastRelease, CONTROL);
       }
       OPT_Operator pop = p.operator();
       if (p.isBranch() || p.isReturn() || p.isYieldPoint() || pop == UNINT_END){
-	lastDivider = pnode;
+	lastTotalBarrier = pnode;
+      }
+      if (pop == UNINT_BEGIN) {
+	lastGCBarrier = pnode;
       }
       if (p.isRelease() || p.isDynamicLinkingPoint()) {
 	lastRelease = pnode;

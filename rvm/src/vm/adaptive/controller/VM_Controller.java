@@ -234,4 +234,24 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     if (VM.LogAOSEvents) VM_AOSLogging.systemExiting();
   }
+
+
+  /**
+   * Stop all AOS threads and exit the adaptive system.
+   * Can be used to assess code quality in a steady state by
+   * allowing the adaptive system to run "for a while" and then
+   * stoppping it
+   */
+  public static void stop() {
+    if (!booted) return;
+    VM.sysWrite("\nAOS: Killing all adaptive system threads\n");
+    for (Enumeration e = organizers.elements(); e.hasMoreElements(); ) {
+      VM_Organizer organizer = (VM_Organizer)e.nextElement();
+      organizer.kill(new ThreadDeath());
+    }
+    compilationThread.kill(new ThreadDeath());
+    controllerThread.kill(new ThreadDeath());
+    VM_RuntimeMeasurements.stop();
+    report();
+  }
 }

@@ -95,7 +95,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
       double ns = VM_Controller.methodSamples.getData(cmid);
       if (ns >= VM_Controller.options.MIN_SAMPLES) {
 	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	if ( cm != null ) {		// not already recompiled
+	if (cm != null) {		// not already obsoleted
 	  VM_CompilerInfo info = cm.getCompilerInfo();
 	  int compilerType = info.getCompilerType();
 
@@ -105,7 +105,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
 	        (compilerType == VM_CompilerInfo.OPT && 
 	         (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
 	    VM_HotMethodRecompilationEvent event = 
-	      new VM_HotMethodRecompilationEvent(cmid, ns);
+	      new VM_HotMethodRecompilationEvent(cm, ns);
 	    if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
 	      if (VM.LogAOSEvents) {
 	        VM_AOSLogging.controllerNotifiedForHotness(cm, ns);

@@ -81,6 +81,13 @@ implements OPT_Operators {
   private static boolean USE_LINEAR_SCAN = true;
 
   /**
+   * Should we allow the stack pointer to float in order to avoid scratch
+   * registers in move instructions.  Note: as of Feb. 02, we think this
+   * is a bad idea.
+   */
+  private static boolean FLOAT_ESP = true;
+
+  /**
    * We may rely on information from linear scan to choose scratch registers.
    * If so, the following holds a pointer to some information from linear
    * scan analysis.
@@ -690,6 +697,10 @@ implements OPT_Operators {
   private boolean isScratchFreeMove(OPT_Instruction s) {
     if (s.operator() != IA32_MOV) return false;
 
+    // if we don't allow ESP to float, we will always use scratch
+    // registers in these move instructions.
+    if (!FLOAT_ESP) return false;
+
     OPT_Operand result = MIR_Move.getResult(s);
     OPT_Operand value = MIR_Move.getValue(s);
 
@@ -778,6 +789,14 @@ implements OPT_Operators {
       if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || 
           s.isReturn()) {
         restoreAllScratchRegistersBefore(s);
+      }
+
+      // If s is a GC point, and scratch register r currently caches the
+      // value of symbolic symb, and r is dirty: Then update the GC map to 
+      // account for the fact that symb's spill location does not
+      // currently hold a valid reference.
+      if (s.isGCPoint()) {
+        markDirtyScratchRegisters(s);
       }
 
       // Walk over each operand and insert the appropriate spill code.
@@ -1641,6 +1660,21 @@ implements OPT_Operators {
   }
 
   /**
+   * Walk over the currently available scratch registers. 
+   *
+   * For any register which is dirty, note this in the scratch map for
+   * instruction s.
+   */
+  private void markDirtyScratchRegisters(OPT_Instruction s) {
+    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
+      ScratchRegister scratch = (ScratchRegister)i.next();
+      if (scratch.isDirty()) {
+        scratchMap.markDirty(s,scratch.currentContents);
+      }
+    }
+  }
+
+  /**
    * Walk over the currently available scratch registers, and spill their 
    * contents to memory before instruction s.  Also restore the correct live
    * value for each scratch register. Normally, s should end a 
@@ -1927,6 +1961,5 @@ implements OPT_Operators {
       return "SCRATCH<" + scratch + "," + currentContents + "," +
         dirtyString + ">";
     }
-
   }
 } 

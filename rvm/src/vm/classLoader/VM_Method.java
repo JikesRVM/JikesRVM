@@ -506,22 +506,20 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
     VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
 
-    // old version is now obsolete
-    VM_CompiledMethods.setCompiledMethodObsolete( this.mostRecentlyGeneratedCompiledMethod );
+    // Grab ahold of version that is being replaced
+    VM_CompiledMethod	previouslyGeneratedCompiledMethod =
+				this.mostRecentlyGeneratedCompiledMethod;
     this.mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
     this.mostRecentlyGeneratedCompiledMethod = compiledMethod;
 
-    VM_Method     updatedMethod       = this;
-    int           updatedIndex        = this.getOffset() >>> 2;
-    INSTRUCTION[] updatedInstructions = this.mostRecentlyGeneratedInstructions;
 
     // Install the new method in jtoc/tib. If virtual, will also replace in
     // all subclasses that inherited the method.
-    this.getDeclaringClass().resetMethod(this, updatedInstructions, true);
+    this.getDeclaringClass().resetMethod(this, true);
 
-    // !!TODO: reclaim entries in VM_CompiledMethods.compiledMethods[] corresponding to
-    // code that is no longer in use (ie. return address does not appear on
-    // any stack and entrypoint does not appear in jtoc or in any method dispatch table)
+    // Now that we've updated the jtoc/tib, old version is now obsolete
+    VM_CompiledMethods.setCompiledMethodObsolete( previouslyGeneratedCompiledMethod );
+
   }
 
   //----------------//
@@ -765,15 +763,6 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     }
   }
 
-  static INSTRUCTION[] getInterfaceMethodInvokerInstructions() {
-    if (interfaceMethodInvokerInstructions == null) {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", 
-                                      "interfaceMethodInvoker", "()V");
-      interfaceMethodInvokerInstructions = ((VM_Method)member).compile();
-    }
-    return interfaceMethodInvokerInstructions;
-  }
-
   static INSTRUCTION[] getLazyMethodInvokerInstructions() {
     if (lazyMethodInvokerInstructions == null) {
       VM_Member member = VM.getMember("LVM_DynamicLinker;", 
@@ -928,18 +917,10 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   private static INSTRUCTION[] getUnexpectedNativeMethodInstructions() {
     if (unexpectedNativeMethodInstructions == null)
     {
-      VM_Member member = VM.getMember("LVM_Runtime;", "unexpectedNativeMethodCall", "()V");
+      VM_Member member = VM.getMember("LVM_DynamicLinker;", "unimplementedNativeMethod", "()V");
       unexpectedNativeMethodInstructions = ((VM_Method)member).compile();
     }
     return unexpectedNativeMethodInstructions;
   }
 
-  static INSTRUCTION[] getInterfaceConflictResolutionBridgeInstructions() {
-    if (interfaceMethodInvokerInstructions == null)
-    {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", "interfaceConflictResolutionBridge", "()V");
-      interfaceMethodInvokerInstructions = ((VM_Method)member).compile();
-    }
-    return interfaceMethodInvokerInstructions;
-  }
 }

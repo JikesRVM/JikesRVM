@@ -280,6 +280,14 @@ class VM_NativeDaemonThread extends VM_Thread {
     //
     VM_Thread stuckThread = stuck_vp.activeThread;
     VM_JNIEnvironment stuckEnv = stuckThread.getJNIEnv();
+if (stuckEnv == null) {
+      VM_Scheduler.trace("NDT","Entering switchPThread");
+      VM_Scheduler.trace("NDT","switchPThread - stuck_vp =",stuck_vp.id);
+      stuck_vp.dumpProcessorState();
+      VM_Scheduler.trace("NDT","switchPThread - native_vp =",native_vp.id);
+      native_vp.dumpProcessorState();
+			VM.sysFail("quitting in switchpthread");
+}
     stuckEnv.savedPRreg = native_vp;
     int topJavaFP = stuckEnv.JNITopJavaFP;
 //-#if RVM_FOR_IA32

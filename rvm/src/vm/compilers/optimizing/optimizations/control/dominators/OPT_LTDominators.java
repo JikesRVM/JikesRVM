@@ -64,6 +64,19 @@ class OPT_LTDominators extends OPT_Stack {
   }
 
   /**
+   * Compute approximate dominator/post dominator without unfactoring 
+   * exception handlers.  Can only be used if what the client wants is
+   * approximate domination (ie, if it doesn't actually have to be correct...)
+   * @param ir the IR
+   * @param forward Should we compute regular dominators, or post-dominators?
+   */
+  public static void approximate(OPT_IR ir, boolean forward) {
+    OPT_LTDominators dom = new OPT_LTDominators(ir, forward);
+    dom.analyze(ir);
+  }
+  
+
+  /**
    * The constructor, called by the perform method
    * @param   OPT_IR ir
    * @param forward Should we compute regular dominators, or post-dominators?

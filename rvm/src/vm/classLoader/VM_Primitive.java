@@ -50,33 +50,32 @@ public class VM_Primitive extends VM_Type
       
   /**
    * Primitives are not first class objects - 
-   * the following methods never get called.
+   * but the implementation of reflection is cleaner if
+   * we pretend that they are and provide dummy implementations of 
+   * the following methods 
    */ 
+  public final VM_Field[] getStaticFields() { 
+    return new VM_Field[0];
+  }
+      
+  public final VM_Field[] getInstanceFields() { 
+    return new VM_Field[0];
+  }
+   
+  public final VM_Method[] getStaticMethods() { 
+    return new VM_Method[0];
+  }
+   
+  public final VM_Method[] getVirtualMethods() { 
+    return new VM_Method[0];
+  }
+
+  // these should never be called.
   public final boolean hasFinalizer() {
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     return false;
   }
       
-  public final VM_Field[] getStaticFields() { 
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    return null; 
-  }
-      
-  public final VM_Field[] getInstanceFields() { 
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    return null; 
-  }
-   
-  public final VM_Method[] getStaticMethods() { 
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    return null; 
-  }
-   
-  public final VM_Method[] getVirtualMethods() { 
-    if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    return null; 
-  }
-
   public final Object[] getTypeInformationBlock() {
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     return null;

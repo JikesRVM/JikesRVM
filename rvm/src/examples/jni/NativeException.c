@@ -68,16 +68,7 @@ JNIEXPORT jboolean JNICALL Java_NativeException_testExceptionOccured
   (*env) -> SetIntArrayRegion(env, intArray, 5, 10, buf);
 
   e = (*env) -> ExceptionOccurred(env);
-
-  if (e==NULL) {
-    printf("FAIL: ExceptionOccurred\n");
-  } else {
-    printf("PASS: ExceptionOccurred\n");
-  }
-
-
   return JNI_FALSE;    /* exception should occur in caller */
-
 }
 
 

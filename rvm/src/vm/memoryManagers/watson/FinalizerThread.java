@@ -29,13 +29,6 @@ public class FinalizerThread extends VM_Thread
    public void
    run() //- overrides Thread
       {
-
-	//-#if RVM_FOR_IA32
-	// temp kludge: avoid compiling this method for now.
-	// allows us to rule it out as source of bizarre crashes.
-	VM_Magic.pragmaNoOptCompile();
-	//-#endif
-
       if (TRACE) {
 	VM_Scheduler.trace("FinalizerThread ", "run routine entered");
       }

@@ -17,7 +17,7 @@ class VM_RCCollectorThread extends VM_CollectorThread
   private final static boolean trace = false; // emit trace messages?
 
   final static boolean GC_ALL_TOGETHER = true;    // For RefcountGC, do all processing on last thread?
-  final static boolean TIME_PAUSES  = true;       // For RefcountGC, collect data on pause times
+  final static boolean TIME_PAUSES  = false;       // For RefcountGC, collect data on pause times
   final static boolean PRINT_PAUSES = false;      // For RefcountGC, print as we go?
   
   static double pauseTimeTotal;
@@ -131,8 +131,8 @@ class VM_RCCollectorThread extends VM_CollectorThread
     VM.sysWrite("\nAvg Pause Time:        ");       printUsecs(pauseTimeTotal/pauseCount);
     VM.sysWrite("\n");
     
-    if (VM.VerifyAssertions) 
-      VM.sysWrite("VerifyAssertions ON!  Timings will be affected\n"); 
+    // if (VM.VerifyAssertions) 
+    // VM.sysWrite("VerifyAssertions ON!  Timings will be affected\n"); 
   }
 
   private static void printUsecs(double t) {

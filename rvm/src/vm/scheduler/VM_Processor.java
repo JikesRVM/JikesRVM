@@ -151,10 +151,13 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     threadId       = newThread.getLockingId();
     //-#endif
 
-    if (idleProcessor != null && !readyQueue.isEmpty() 
+    if (!previousThread.isDaemon && 
+	idleProcessor != null && !readyQueue.isEmpty() 
         && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
       // if we've got too much work, transfer some of it to another 
       // processor that has nothing to do
+      // don't schedule when switching away from a daemon thread...
+      // kludge to avoid thrashing when VM is underloaded with real threads.
       VM_Thread t = readyQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "dispatch: offload ", t.getIndex());
       scheduleThread(t);
@@ -182,6 +185,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   private VM_Thread getRunnableThread() {
     VM_Magic.pragmaInline();
 
+int loopcheck = 0;
     for (int i=transferQueue.length(); 0<i; i--) {
       transferMutex.lock();
       VM_Thread t = transferQueue.dequeue();
@@ -194,9 +198,34 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 	transferMutex.lock();
 	transferQueue.enqueue(t);
 	transferMutex.unlock();
+	if (processorMode == NATIVE) {
+		// increase loop counter so this thread will be looked at 
+		// again - isbeingdispatched goes off when dispatcher stops
+		// running on the RVM processor, using this thread's stack.
+		// RARE CASE: the stuck thread has returned from this native
+		// processor, but being dispatched in the nativeidlethread has not
+		// yet gone off because its stack is still being used by dispatcher
+		// on the RVM	
+		i++;
+if (loopcheck++ >= 1000000) break;
+		if (VM.VerifyAssertions) VM.assert (t.isNativeIdleThread);
+	}
       } else {
 	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
 	readyQueue.enqueue(t);
+      }
+    }
+
+    if ((epoch % VM_Scheduler.numProcessors) + 1 == id) {
+      // it's my turn to check the io queue early to avoid starvation
+      // of threads in io wait.
+      // We round robin this among the virtual processors to avoid serializing
+      // thread switching in the call to select.
+      if (ioQueue.isReady()) {
+	VM_Thread t = ioQueue.dequeue();
+	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
+	if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+	return t;
       }
     }
 
@@ -920,6 +949,9 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
   static int    lastVPStatusIndex = 0;
   static int[]  vpStatus = new int[VP_STATUS_SIZE];  // must be in pinned memory !!                 
+
+  // count timer interrupts to round robin early checks to ioWait queue.
+  static int epoch = 0;
 
   /**
    * index of this processor's status word in vpStatus array

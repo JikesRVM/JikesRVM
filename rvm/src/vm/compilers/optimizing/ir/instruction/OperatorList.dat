@@ -451,6 +451,20 @@ none
 
 
 
+# Memory barrier.  No load instructions may rise above this instruction.
+READ_CEILING
+Empty
+memAsLoad | memAsStore | acquire 
+
+
+
+# Memory barrier. No store instruction may sink below this instruction.
+WRITE_FLOOR
+Empty
+memAsLoad | memAsStore | release
+
+
+
 # PHI node for SSA form.
 PHI
 Phi
@@ -577,15 +591,6 @@ compare
 
 # Combine two guard values into a third guard.
 GUARD_COMBINE
-Binary
-none
-
-
-
-# Get a "large" constant into a register.
-# This instruction is only valid in the LIR
-# first operand is JTOC, second is the constant.
-MATERIALIZE_CONSTANT
 Binary
 none
 

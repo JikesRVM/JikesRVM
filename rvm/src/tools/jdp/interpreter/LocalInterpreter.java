@@ -206,6 +206,10 @@ class LocalInterpreter extends InterpreterBase
 	 stack.push(the_type);
 	 if (traceInterpreter) System.out.println(the_type);
 	 }
+      else if (methodName == isync) 
+	{ // nothing to do
+	  // System.out.println("isync is being skipped");
+	}
       else
 	 {
 	 System.out.println(called_method+" not implemented");

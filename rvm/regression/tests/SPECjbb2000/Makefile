@@ -34,11 +34,19 @@ sanity: 	$(WORKING)/SPECjbb.sanity.props $(WORKING)/SPECjbb_config.props $(WORKI
 	$(MAKE) START_ARGS="-propfile SPECjbb.sanity.props" sanity-check-rule
 endif
 
+
+ifeq ($(MODE),PERFORMANCE)
 check:
 	@$(FGREP) -q "JVM Check OK" < $(OUT)
 	@$(FGREP) -q "Run will be COMPLIANT" < $(OUT)
 	@$(FGREP) -q "No errors.  Valid run." < $(OUT)
 	@$(FGREP) -q "Valid run, Score is" < $(OUT)
+else
+check:
+	@$(FGREP) -q "JVM Check OK" < $(OUT)
+	@$(FGREP) -q "No errors.  Valid run." < $(OUT)
+	@$(FGREP) -q "Valid run, Score is" < $(OUT)
+endif
 
 #
 # performance runs

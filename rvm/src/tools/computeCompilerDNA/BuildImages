@@ -1,0 +1,29 @@
+#!/bin/ksh
+
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+#
+# This script will be the images needed by the Run-gather-dna script
+#   Arguments:  directory to hold image directories
+#                  ex BuildImages /u/hind/RVMSanityTests
+#
+# @author Michael Hind, Dec 1, 2001
+#
+
+# parent of build directories is command line argument to the script
+BUILDDIR=$1
+ 
+IMAGES='FastAdaptiveSemispace FastBaseBaseSemispace FastOpt0Semispace FastOpt1Semispace FastSemispace'
+
+for image in $IMAGES
+do
+   rm -rf $BUILDDIR/$image
+   export RVM_BUILD=$BUILDDIR/$image
+   echo "Configuring $image"
+   jconfigure $image
+   cd $BUILDDIR/$image
+   echo "Building $image"
+   jbuild
+done

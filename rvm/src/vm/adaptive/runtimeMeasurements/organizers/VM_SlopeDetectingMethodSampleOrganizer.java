@@ -191,72 +191,73 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
 	//     before we report it to the controller to avoid reporting truly
 	//     cold but randomly sampled once or twice methods.
 	if (totalSamples > 3.0) {
-	  VM_CompilerInfo info = 
-	    VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
-	  int compilerType = info.getCompilerType();
-	  if (!(compilerType == VM_CompilerInfo.TRAP ||
-		(compilerType == VM_CompilerInfo.OPT && 
-		 (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+	  if (cm != null) {
+	    VM_CompilerInfo info = cm.getCompilerInfo();
+	    int compilerType = info.getCompilerType();
+	    if (!(compilerType == VM_CompilerInfo.TRAP ||
+		  (compilerType == VM_CompilerInfo.OPT && 
+		   (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
 
-	    // (2a) compute prediction
-	    int histSamples = -samplesThisTime;
-	    for (int j=0; j<numEpochs; j++) {
-	      histSamples += entry[ENTRY_IDX+j];
-	    }
-	    double prediction = 
-	      ((double)histSamples) / ((double)(numEpochs-1));
-	    double adjFactor;
-	    if (prediction > 0.00001) {
-	      double slope = samplesThisTimeDouble/prediction;
-	      if (DEBUG) {
-		VM_Method meth = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
-		VM.sysWrite("For method "+meth+"("+cmid+") with thisTime="+samplesThisTime+
-			    " and total="+totalSamples+ " and prediction ="+prediction+
-			    " and history ");
-		for (int k=0; k<numEpochs; k++) {
-		  VM.sysWrite(entry[ENTRY_IDX+k],false);
-		  VM.sysWrite(" ");
-		}
-		VM.sysWrite("\n\tWe compute a slope of "+slope);
+	      // (2a) compute prediction
+	      int histSamples = -samplesThisTime;
+	      for (int j=0; j<numEpochs; j++) {
+		histSamples += entry[ENTRY_IDX+j];
 	      }
+	      double prediction = 
+		((double)histSamples) / ((double)(numEpochs-1));
+	      double adjFactor;
+	      if (prediction > 0.00001) {
+		double slope = samplesThisTimeDouble/prediction;
+		if (DEBUG) {
+		  VM_Method meth = cm.getMethod();
+		  VM.sysWrite("For method "+meth+"("+cmid+") with thisTime="+samplesThisTime+
+			      " and total="+totalSamples+ " and prediction ="+prediction+
+			      " and history ");
+		  for (int k=0; k<numEpochs; k++) {
+		    VM.sysWrite(entry[ENTRY_IDX+k],false);
+		    VM.sysWrite(" ");
+		  }
+		  VM.sysWrite("\n\tWe compute a slope of "+slope);
+		}
 
-	      // Bound adjustment factor as previously instructed by controller
-	      adjFactor = slope;
-	      if (adjFactor < 1.0) {
-		adjFactor = 1.0 - (0.5 * (1.0 - slope)); // dampen adjustment
-		if (adjFactor < adjustmentBounds) {
-		  adjFactor = adjustmentBounds;
-		} 
+		// Bound adjustment factor as previously instructed by controller
+		adjFactor = slope;
+		if (adjFactor < 1.0) {
+		  adjFactor = 1.0 - (0.5 * (1.0 - slope)); // dampen adjustment
+		  if (adjFactor < adjustmentBounds) {
+		    adjFactor = adjustmentBounds;
+		  } 
+		} else {
+		  adjFactor = 1.0 + (0.5 * (slope - 1.0 )); // dampen adjustment
+		  if (adjFactor > adjustmentBounds + 1.0) {
+		    adjFactor = 1.0 + adjustmentBounds;
+		  }
+		}
 	      } else {
-		adjFactor = 1.0 + (0.5 * (slope - 1.0 )); // dampen adjustment
-		if (adjFactor > adjustmentBounds + 1.0) {
-		  adjFactor = 1.0 + adjustmentBounds;
+		adjFactor = 1.0 + (adjustmentBounds / 2.0);
+		if (DEBUG) {
+		  VM_Method meth = cm.getMethod();
+		  VM.sysWrite("No sample history for method "+meth+"("+cmid+")");
 		}
 	      }
-	    } else {
-	      adjFactor = 1.0 + (adjustmentBounds / 2.0);
-	      if (DEBUG) {
-		VM_Method meth = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
-		VM.sysWrite("No sample history for method "+meth+"("+cmid+")");
-	      }
-	    }
 
-	    // (2b) adjust totalSamples based on how different it is from the prediction
-	    totalSamples = adjFactor * totalSamples;
-	    if (DEBUG) VM.sysWrite(" leading to an adjustment factor of "+adjFactor+
-				   " and adjusted totalSamples="+
-				   totalSamples+"\n");
+	      // (2b) adjust totalSamples based on how different it is from the prediction
+	      totalSamples = adjFactor * totalSamples;
+	      if (DEBUG) VM.sysWrite(" leading to an adjustment factor of "+adjFactor+
+				     " and adjusted totalSamples="+
+				     totalSamples+"\n");
 
-	    // (2c) tell the controller about this method
-	    VM_HotMethodRecompilationEvent event = 
-	      new VM_HotMethodRecompilationEvent(cmid, totalSamples);
-	    if (VM_Controller.controllerInputQueue.prioritizedInsert(totalSamples, event)){
-	      if (VM.LogAOSEvents) {
-		VM_CompiledMethod m = VM_CompiledMethods.getCompiledMethod(cmid);
-		VM_AOSLogging.controllerNotifiedForHotness(m, totalSamples);
+	      // (2c) tell the controller about this method
+	      VM_HotMethodRecompilationEvent event = 
+		new VM_HotMethodRecompilationEvent(cm, totalSamples);
+	      if (VM_Controller.controllerInputQueue.prioritizedInsert(totalSamples, event)){
+		if (VM.LogAOSEvents) {
+		  VM_AOSLogging.controllerNotifiedForHotness(cm, totalSamples);
+		}
+	      } else {
+		if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	      }
-	    } else {
-	      if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	    }
 	  }
 	}

@@ -229,6 +229,9 @@ void cSignalHandler(int signum, int zero, sigcontext *context)
          unsigned *processors = *(unsigned **)((char *)VmToc + ProcessorsOffset);
          unsigned  cnt        =  processors[-1];
          int	   i;
+	 int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
+	 *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+
 #ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
 // line added here - ndp is now the last processor = and cnt includes it
 				 cnt = cnt - 1;

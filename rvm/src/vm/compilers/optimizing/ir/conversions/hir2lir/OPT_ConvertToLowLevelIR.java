@@ -20,18 +20,11 @@ import instructionFormats.*;
 abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   implements OPT_Operators, VM_Constants, OPT_Constants {
   // We have slightly different ideas of what the LIR should look like
-  // for IA32 and PowerPC.  The biggest difference is that for IA32 
+  // for IA32 and PowerPC.  The main difference is that for IA32 
   // instead of bending over backwards in BURS to rediscover array loads, 
   // (where we can use base + index*scale addressing modes), we'll leave
-  // as array loads. We also allow long constants anywhere.
-  // NOTE: allowing long constants anywhere might also be a good idea 
-  ///      for PPC.  When upper/lower 32 bits are 0/-1 then we can
-  //       do some peephole optimizations during instruction selection.
-  //       Fixing the PPC BURS rules to handle this is a TODO item. --dave
-  //
+  // array loads in the LIR.
   static final boolean LOWER_ARRAY_ACCESS = VM.BuildForPowerPC;
-  static final boolean MATERIALIZE_LONG_CONSTANTS = VM.BuildForPowerPC;
-
 
   /**
    * Converts the given HIR to LIR.
@@ -43,53 +36,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	 s != null; 
 	 s = s.nextInstructionInCodeOrder()) {
 
-      // STEP ONE: LIR restricts the use of many of the OPT_ConstantOperands.
-      //  The rules are:
-      //    (1) All "large" constants can only appear as the RHS of a
-      //        MATERIALIZE_CONSTANT instruction.  
-      //        The following are considered to
-      //        be "large" constants: OPT_StringConstantOperand, 
-      //        OPT_DoubleConstantOperand, OPT_FloatConstantOperand,
-      //        OPT_LongConstantOperand (if MATERIALIZE_LONG_CONSTANTS).
-      //    (2) OPT_NullConstantOperand is replaced by OPT_IntConstantOperand(0)
-      //        TODO: In the long run, maybe we don't want to do #2.
-      // 
-      // Constants can't appear as defs, so only scan the uses.
-      //
-      int numUses = s.getNumberOfUses();
-      if (numUses > 0) {
-        int numDefs = s.getNumberOfDefs();
-        for (int idx = numDefs; idx < numUses + numDefs; idx++) {
-          OPT_Operand use = s.getOperand(idx);
-          if (use != null) {
-            if (use instanceof OPT_StringConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.JavaLangStringType);
-	      use.clear();
-              s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
-              s.putOperand(idx, rop.copyD2U());
-            } else if (MATERIALIZE_LONG_CONSTANTS && 
-		       (use instanceof OPT_LongConstantOperand)) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.LongType);
-	      use.clear();
-              s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
-              s.putOperand(idx, rop.copyD2U());
-            } else if (use instanceof OPT_DoubleConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.DoubleType);
-	      use.clear();
-              s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
-              s.putOperand(idx, rop.copyD2U());
-            } else if (use instanceof OPT_FloatConstantOperand) {
-              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.FloatType);
-	      use.clear();
-              s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
-              s.putOperand(idx, rop.copyD2U());
-            } else if (use instanceof OPT_NullConstantOperand) {
-              s.putOperand(idx, I(0));
-            }
-          }
-        }
-      }
-      // STEP TWO: Expand HIR operators into LIR operators
       switch (s.getOpcode()) {
       case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
 	{
@@ -103,7 +49,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  } else {
 	    offset = I(field.getOffset());
 	  }
-	  Load.mutate(s, OPT_IRTools.getLoadOp(field, true), result, 
+	  Load.mutate(s, OPT_IRTools.getLoadOp(field), result, 
 		      address, offset, loc);
 	}
       break;
@@ -120,7 +66,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  } else {
 	    offset = I(field.getOffset());
 	  }
-	  Store.mutate(s, OPT_IRTools.getStoreOp(field, true), value, 
+	  Store.mutate(s, OPT_IRTools.getStoreOp(field), value, 
 		       address, offset, loc);
 	}
       break;
@@ -143,7 +89,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  } else {
 	    offset = I(field.getOffset());
 	  }
-	  Store.mutate(s, OPT_IRTools.getStoreOp(field, true), value, 
+	  Store.mutate(s, OPT_IRTools.getStoreOp(field), value, 
 		       address, offset, loc, PutField.getClearGuard(s));
 	}
       break;
@@ -166,7 +112,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  } else {
 	    offset = I(field.getOffset());
 	  }
-	  Load.mutate(s, OPT_IRTools.getLoadOp(field, true), result, 
+	  Load.mutate(s, OPT_IRTools.getLoadOp(field), result, 
 		      address, offset, loc, GetField.getClearGuard(s));
 	}
       break;
@@ -188,7 +134,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	break;
 
       case REF_ALOAD_opcode:
-	doArrayLoad(s, ir, INT_LOAD, 2);
+	doArrayLoad(s, ir, REF_LOAD, 2);
 	break;
 
       case BYTE_ALOAD_opcode:
@@ -224,7 +170,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	break;
 
       case REF_ASTORE_opcode:
-	doArrayStore(s, ir, INT_STORE, 2);
+	doArrayStore(s, ir, REF_STORE, 2);
 	break;
 
       case BYTE_ASTORE_opcode:
@@ -233,10 +179,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 
       case SHORT_ASTORE_opcode:
 	doArrayStore(s, ir, SHORT_STORE, 1);
-	break;
-
-      case REF_IFCMP_opcode:
-	s.operator = INT_IFCMP;
 	break;
 
 	// Calls
@@ -276,7 +218,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	{
 	  IfCmp.mutate(s, INT_IFCMP, null, 
 		       getTIB(s, ir, 
-			      (OPT_RegisterOperand)InlineGuard.getClearValue(s), 
+			      InlineGuard.getClearValue(s), 
 			      InlineGuard.getClearGuard(s)), 
 		       getTIB(s, ir, InlineGuard.getGoal(s).asType()), 
 		       OPT_ConditionOperand.NOT_EQUAL(), 
@@ -290,7 +232,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  OPT_MethodOperand methOp = InlineGuard.getClearGoal(s).asMethod();
 	  OPT_RegisterOperand t1 = 
 	    getTIB(s, ir, 
-		   (OPT_RegisterOperand)InlineGuard.getClearValue(s), 
+		   InlineGuard.getClearValue(s), 
 		   InlineGuard.getClearGuard(s));
 	  OPT_RegisterOperand t2 = 
 	    getTIB(s, ir, methOp.method.getDeclaringClass());
@@ -309,20 +251,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 
       case INSTANCEOF_NOTNULL_opcode:
 	s = OPT_DynamicTypeCheckExpansion.instanceOfNotNull(s, ir);
-	break;
-
-      case REF_MOVE_opcode:
-	Move.mutate(s, INT_MOVE, Move.getClearResult(s), 
-		    Move.getClearVal(s));
-	break;
-
-      case REF_COND_MOVE_opcode:
-	CondMove.mutate(s, INT_COND_MOVE, CondMove.getClearResult(s),
-			CondMove.getClearVal1(s), 
-			CondMove.getClearVal2(s),
-			CondMove.getClearCond(s),
-			CondMove.getClearTrueValue(s),
-			CondMove.getClearFalseValue(s));
 	break;
 
       case INT_ZERO_CHECK_opcode:
@@ -373,7 +301,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  s.insertBefore(Unary.create(GET_TYPE_FROM_TIB, type, TIB));
 	  // Get the java.lang.Class object from the VM_Type object
 	  // TODO: Valid location operand?
-	  Load.mutate(s, INT_LOAD, Unary.getClearResult(s), type.copyD2U(), 
+	  Load.mutate(s, REF_LOAD, Unary.getClearResult(s), type.copyD2U(), 
 		      I(VM_Entrypoints.classForTypeOffset), null);
 	}
 	break;
@@ -684,11 +612,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 				I(logwidth));
       }
       Load.mutate(s, op, result, array, offset, loc, ALoad.getClearGuard(s));
-    } else {
-      // leave it as an array access, but convert ref to int.
-      if (s.operator == REF_ALOAD) {
-        s.operator = INT_ALOAD;
-      }
     }
   }
 
@@ -715,11 +638,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 				I(logwidth));
       }
       Store.mutate(s, op, value, array, offset, loc, AStore.getClearGuard(s));
-    } else {
-      // leave it as an array access, but convert ref to int.
-      if (s.operator == REF_ASTORE) {
-        s.operator = INT_ASTORE;
-      }
     }
   }
 
@@ -745,13 +663,13 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       OPT_LocationOperand loc = new OPT_LocationOperand(methOp);
       switch (methOp.type) {
       case OPT_MethodOperand.SPECIAL:
-	// See the comments in VM_OptLinker.java and VM_Linker.java.
+	// See the comments in VM_OptLinker.java.
 	// Only a subset of the functionality is actually required.
 	{
 	  // the <init> methods can't possibly be a dummy ref, so 
 	  // it should be safe to use the unguarded references.
 	  offset = resolve(methOp, s, ir, true);
-	  OPT_Instruction ia_load = Load.create(INT_LOAD, instrAddr, 
+	  OPT_Instruction ia_load = Load.create(REF_LOAD, instrAddr, 
 						ir.regpool.makeJTOCOp(ir,s), 
 						offset, loc);
 	  s.insertBefore(ia_load);
@@ -760,7 +678,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       case OPT_MethodOperand.STATIC:
 	{
 	  offset = resolve(methOp, s, ir, false);
-	  OPT_Instruction ia_load = Load.create(INT_LOAD, instrAddr, 
+	  OPT_Instruction ia_load = Load.create(REF_LOAD, instrAddr, 
 						ir.regpool.makeJTOCOp(ir,s), 
 						offset, loc);
 	  s.insertBefore(ia_load);
@@ -785,11 +703,11 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  //       be invalid to give us an easy hook to resolve the 
 	  //       reference and find the real field declaration.
 	  offset = resolve(methOp, s, ir, false);
-	  OPT_RegisterOperand obj = 
-	    ((OPT_RegisterOperand)Call.getParam(s, 0)).copyU2U();
 	  OPT_Instruction ia_load = 
-	    Load.create(INT_LOAD, instrAddr, 
-			getTIB(s, ir, obj, Call.getGuard(s).copy()), 
+	    Load.create(REF_LOAD, instrAddr, 
+			getTIB(s, ir, 
+			       Call.getParam(s, 0).copy(),
+			       Call.getGuard(s).copy()), 
 			offset, loc);
 	  s.insertBefore(ia_load);
 	}
@@ -842,7 +760,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  Call.setAddress(v, getStaticMethod(v, ir, methOp));
 	} else {                // this is used by some synthetic Java methods
 	  Call.setAddress(v, 
-			  InsertLoadOffsetJTOC(v, ir, INT_LOAD, 
+			  InsertLoadOffsetJTOC(v, ir, REF_LOAD, 
 					       OPT_ClassLoaderProxy.InstructionArrayType, 
 					       methOp.offset));
 	}
@@ -873,15 +791,13 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       {
 	OPT_RegisterOperand tib;
 	if (!methOp.isSingleTarget()) {
-	  tib = getTIB(v, ir, Call.getParam(v, 0).asRegister().copyU2U(), 
-		       Call.getGuard(v).copy());
+	  tib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
 	} else {
 	  if (method == ir.method) {          // RECURSION
 	    Call.setAddress(v, new OPT_BranchOperand(ir.firstInstructionInCodeOrder()));
 	    break;
 	  } else 
-	    tib = getTIB(v, ir, Call.getParam(v, 0).asRegister().copyU2U(), 
-			 Call.getGuard(v).copy());
+	    tib = getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
 	}
 	Call.setAddress(v, getInstanceMethod(v, ir, tib, methOp));
       }
@@ -890,28 +806,26 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       {
 	if (VM.BuildForIMTInterfaceInvocation) {
 	  // SEE ALSO: OPT_FinalMIRExpansion (for hidden parameter)
-	  OPT_RegisterOperand RHStib = getTIB(v, ir, 
-                                              Call.getParam(v, 0).
-                                              asRegister().copyU2U(), 
-                                              Call.getGuard(v).copy());
+	  OPT_RegisterOperand RHStib = 
+	    getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
 	  int signatureId = VM_ClassLoader.
             findOrCreateInterfaceMethodSignatureId(methOp.method.getName(),
                                                    methOp.method.
                                                    getDescriptor());
 	  OPT_RegisterOperand address = null;
           if (VM.BuildForEmbeddedIMT) {
-	    address = InsertLoadOffset(v, ir, INT_LOAD, 
+	    address = InsertLoadOffset(v, ir, REF_LOAD, 
                                        OPT_ClassLoaderProxy.
                                        InstructionArrayType, 
                                        RHStib.copyD2U(), 
                                        VM_InterfaceMethodSignature.getOffset
                                        (signatureId)); 
           } else {
-	    OPT_RegisterOperand IMT = InsertLoadOffset(v, ir, INT_LOAD,
+	    OPT_RegisterOperand IMT = InsertLoadOffset(v, ir, REF_LOAD,
 			     OPT_ClassLoaderProxy.JavaLangObjectArrayType,
 			     RHStib.copyD2U(),
 			     TIB_IMT_TIB_INDEX << 2);
-	    address = InsertLoadOffset(v, ir, INT_LOAD,
+	    address = InsertLoadOffset(v, ir, REF_LOAD,
 			     OPT_ClassLoaderProxy.InstructionArrayType,
 			     IMT.copyD2U(),
                              VM_InterfaceMethodSignature.getOffset(signatureId)); 
@@ -922,21 +836,20 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 		   VM.DirectlyIndexedITables && 
 		   methOp.method.getDeclaringClass().isResolved()) {
 	  OPT_RegisterOperand RHStib = 
-	    getTIB(v, ir, Call.getParam(v, 0).asRegister().copyU2U(), 
-		   Call.getGuard(v).copy());
+	    getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
 	  OPT_RegisterOperand iTables = 
-	    InsertLoadOffset(v, ir, INT_LOAD,
+	    InsertLoadOffset(v, ir, REF_LOAD,
 			     OPT_ClassLoaderProxy.JavaLangObjectArrayType,
 			     RHStib.copyD2U(),
 			     TIB_ITABLES_TIB_INDEX << 2);
 	  OPT_RegisterOperand iTable = 
-	    InsertLoadOffset(v, ir, INT_LOAD,
+	    InsertLoadOffset(v, ir, REF_LOAD,
 			     OPT_ClassLoaderProxy.JavaLangObjectArrayType,
 			     iTables.copyD2U(),
 			     methOp.method.getDeclaringClass().
                              getInterfaceId()<<2);
 	  OPT_RegisterOperand address = 
-	    InsertLoadOffset(v, ir, INT_LOAD,
+	    InsertLoadOffset(v, ir, REF_LOAD,
 			     OPT_ClassLoaderProxy.InstructionArrayType,
 			     iTable.copyD2U(),
 			     methOp.method.getDeclaringClass().
@@ -976,8 +889,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
             OPT_RegisterOperand iTable = 
               ir.regpool.makeTemp(OPT_ClassLoaderProxy.JavaLangObjectArrayType);
 	    OPT_RegisterOperand RHStib = 
-	      getTIB(v, ir, Call.getParam(v, 0).asRegister().copyU2U(), 
-		   Call.getGuard(v).copy());
+	      getTIB(v, ir, Call.getParam(v, 0).copy(), Call.getGuard(v).copy());
             OPT_Instruction fi = 
               Call.create2(CALL, iTable, null, 
                            OPT_MethodOperand.STATIC
@@ -988,7 +900,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
             v.insertBack(fi);
             call(fi, ir);
             OPT_RegisterOperand address = 
-              InsertLoadOffset(v, ir, INT_LOAD,
+              InsertLoadOffset(v, ir, REF_LOAD,
                                OPT_ClassLoaderProxy.InstructionArrayType,
                                iTable.copyD2U(), itableIndex<<2);
             Call.setAddress(v, address);
@@ -1015,7 +927,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 						    OPT_Instruction s, 
 						    OPT_IR ir, 
 						    boolean mustBeValid) {
-    VM_Field offsetTableField = VM_OptLinker.fieldOffsetsField;
+    VM_Field offsetTableField = VM_Entrypoints.fieldOffsetsField;
     return  resolve(offsetTableField, loc.copy(), s, ir, mustBeValid, true);
   }
 
@@ -1034,7 +946,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 						    OPT_Instruction s, 
 						    OPT_IR ir, 
 						    boolean mustBeValid) {
-    VM_Field offsetTableField = VM_OptLinker.methodOffsetsField;
+    VM_Field offsetTableField = VM_Entrypoints.methodOffsetsField;
     return  resolve(offsetTableField, methOp.copy(), s, ir, mustBeValid, false);
   }
 
@@ -1264,7 +1176,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 
   // get the tib from the object pointer to by obj
   static OPT_RegisterOperand getTIB (OPT_Instruction s, OPT_IR ir, 
-				     OPT_RegisterOperand obj, 
+				     OPT_Operand obj, 
 				     OPT_Operand guard) {
     OPT_RegisterOperand res = 
       ir.regpool.makeTemp(OPT_ClassLoaderProxy.JavaLangObjectArrayType);
@@ -1307,7 +1219,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   static OPT_RegisterOperand getInstanceMethod (OPT_Instruction s, OPT_IR ir, 
 						OPT_RegisterOperand tib, 
 						OPT_MethodOperand methOp) {
-    return InsertLoadOffset(s, ir, INT_LOAD, 
+    return InsertLoadOffset(s, ir, REF_LOAD, 
 			    OPT_ClassLoaderProxy.InstructionArrayType, 
 			    tib, methOp.method.getOffset()); 
   }
@@ -1338,7 +1250,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   static OPT_RegisterOperand getField (OPT_Instruction s, OPT_IR ir, 
 				       OPT_RegisterOperand obj, 
 				       VM_Field field, OPT_Operand guard) {
-    return InsertLoadOffset(s, ir, OPT_IRTools.getLoadOp(field, true), 
+    return InsertLoadOffset(s, ir, OPT_IRTools.getLoadOp(field), 
 			    field.getType(), obj, field.getOffset(), 
 			    new OPT_LocationOperand(field), guard);
   }
@@ -1352,7 +1264,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    */
   static OPT_RegisterOperand getStaticMethod (OPT_Instruction s, OPT_IR ir, 
 					      VM_Method method) {
-    return InsertLoadOffsetJTOC(s, ir, INT_LOAD, 
+    return InsertLoadOffsetJTOC(s, ir, REF_LOAD, 
 				OPT_ClassLoaderProxy.InstructionArrayType, 
 				method.getOffset());
   }
@@ -1367,7 +1279,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   static OPT_RegisterOperand getStaticMethod (OPT_Instruction s, OPT_IR ir, 
 					      OPT_MethodOperand methOp) {
     VM_Method method = methOp.method;
-    return InsertLoadOffsetJTOC(s, ir, INT_LOAD, 
+    return InsertLoadOffsetJTOC(s, ir, REF_LOAD, 
 				OPT_ClassLoaderProxy.InstructionArrayType, 
 				method.getOffset());
   }
@@ -1381,11 +1293,11 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     //  First, get the pointer to the JTOC offset pointing to the 
     //  specialized Method table
     OPT_RegisterOperand reg = 
-      InsertLoadOffsetJTOC(s, ir, INT_LOAD, 
+      InsertLoadOffsetJTOC(s, ir, REF_LOAD, 
 			   OPT_ClassLoaderProxy.JavaLangObjectArrayType, 
 			   OPT_Entrypoints.specializedMethodsOffset);
     OPT_RegisterOperand instr = 
-      InsertLoadOffset(s, ir, INT_LOAD, 
+      InsertLoadOffset(s, ir, REF_LOAD, 
 		       OPT_ClassLoaderProxy.InstructionArrayType, 
 		       reg, smid << 2);
     return  instr;
@@ -1401,7 +1313,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
   static OPT_RegisterOperand getStatic (OPT_Instruction s, OPT_IR ir, 
 					VM_Field field) {
     return InsertLoadOffsetJTOC(s, ir, 
-				OPT_IRTools.getLoadOp(field, true), 
+				OPT_IRTools.getLoadOp(field), 
 				field.getType(), field.getOffset());
   }
 }

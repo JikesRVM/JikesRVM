@@ -101,6 +101,14 @@ public abstract class VM_Configuration {
           false;
 	//-#endif
 
+  // Is this an adaptive build?
+  public static final boolean BuildForAdaptiveSystem =
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
+        true;
+      //-#else
+        false;
+      //-#endif
+
   // Dynamic type checking implementations.
   // We have two:
   //  (1) FastDynamicTypeCheck as described in Alpern, Cocchi, & Grove JVM'01
@@ -258,14 +266,14 @@ public abstract class VM_Configuration {
   // in Native.  Create a new (Native) virtual processor for them.  And create (or revive)
   // new pThreads to run the old virtual processors.
   //
-  public static final boolean BuildWithNativeDaemonProcessor =
+  public static final boolean BuildWithNativeDaemonProcessor = 
 	//-#if RVM_WITHOUT_NATIVE_DAEMON_PROCESSOR
 	  false;
 	//-#else
 	  !BuildForSingleVirtualProcessor
 	    && !BuildForDedicatedNativeProcessors 
 	    && !BuildForConcurrentGC
-	    && !BuildForLinux // TEMP (SMP Linux builds die an immediate horrible death otherwise, probably due to a bug in the Linux 2.4 pThread implementation.)
+//   && !BuildForLinux // TEMP (SMP Linux builds die an immediate horrible death otherwise, probably due to a bug in the Linux 2.4 pThread implementation.)
 	    ;
 	//-#endif
 

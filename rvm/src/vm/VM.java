@@ -235,6 +235,11 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Atom  classDescriptor = 
        VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
+    // SJF: The following line ensures that the java.lang.Class object for
+    // this type is created.  As a result, we can call static synchronized
+    // methods on this type.  TODO: implement a more robust scheme for
+    // putting static synchronized methods in the boot image.
+    cls.getClassForType();
     if (cls.isInBootImage()) {
       VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getMostRecentlyGeneratedInstructions());
       cls.setAllFinalStaticJTOCEntries();

@@ -289,8 +289,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     
     if (cond.isEQUAL() || cond.isNOT_EQUAL()) {
       // tricky... ((xh^yh)|(xl^yl) == 0) <==> (lhll == rhrl)!!
-      OPT_Register th = ir.regpool.getInteger(false);
-      OPT_Register tl = ir.regpool.getInteger(false);
+      OPT_Register th = ir.regpool.getInteger();
+      OPT_Register tl = ir.regpool.getInteger();
       if (high == 0) {
 	if (low == 0) { // 0,0
 	  s.insertBefore(MIR_Move.create(IA32_MOV, R(th), R(xh)));

@@ -233,7 +233,7 @@ public final class VM_MethodCountData
    * @param threshold hotness value above which the method is considered to
    *                  be hot. (0.0 to 1.0)
    * @return a VM_MethodCountSet containing an
-   * 		array of methods (cmids) and an array of their counts.
+   * 		array of compiled methods and an array of their counts.
    * 
    */
   public final synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
@@ -245,10 +245,10 @@ public final class VM_MethodCountData
     // now package the data into the form the caller expects.
     int numHotMethods = collect.size();
     double[] numCounts = new double[numHotMethods];
-    int   [] hotMethods = new int[numHotMethods];
+    VM_CompiledMethod[] hotMethods = new VM_CompiledMethod[numHotMethods];
     for (int i=0; i<numHotMethods; i++) {
       VM_HotMethodEvent event = (VM_HotMethodEvent)collect.elementAt(i);
-      hotMethods[i] = event.getCMID();
+      hotMethods[i] = event.getCompiledMethod();
       numCounts[i] = event.getNumSamples();
     }
     return new VM_MethodCountSet(hotMethods, numCounts);
@@ -304,32 +304,35 @@ public final class VM_MethodCountData
     if (index < nextIndex) {
       if (counts[index] > threshold) {
 	int cmid = cmids[index];
-	VM_CompilerInfo info = 
-	  VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
-	int compilerType = info.getCompilerType();
-
-	// Enqueue it unless it's either a trap method or already opt compiled
-	// at filterOptLevel or higher.
-	if (!(compilerType == VM_CompilerInfo.TRAP ||
-	      (compilerType == VM_CompilerInfo.OPT && 
-	       (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
-
-	  double ns = numCountsForModel(counts[index]);
-	  VM_HotMethodRecompilationEvent event = 
-	    new VM_HotMethodRecompilationEvent(cmid, ns);
-	  if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
-	    if (VM.LogAOSEvents) {
-	      VM_CompiledMethod m = VM_CompiledMethods.getCompiledMethod(cmid);
-	      VM_AOSLogging.controllerNotifiedForHotness(m, ns);
+	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+	if (cm == null) {			// obsolete and deleted
+	  reset(cmid);				// free up this slot
+	  // Visit new one in the slot
+	  insertHotMethodsInternal(index, filterOptLevel, threshold);
+	} else {
+	  VM_CompilerInfo info = cm.getCompilerInfo();
+	  int compilerType = info.getCompilerType();
+	  // Enqueue it unless it's either a trap method or already 
+	  // opt compiled at filterOptLevel or higher.
+	  if (!(compilerType == VM_CompilerInfo.TRAP ||
+		(compilerType == VM_CompilerInfo.OPT && 
+		 (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
+	    double ns = numCountsForModel(counts[index]);
+	    VM_HotMethodRecompilationEvent event = 
+	      new VM_HotMethodRecompilationEvent(cm, ns);
+	    if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
+	      if (VM.LogAOSEvents) {
+		VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
+	      }
+	    } else {
+	      if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	    }
-	  } else {
-	    if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	  }
+	
+	  // Since I was hot enough, also consider my children.
+	  insertHotMethodsInternal(index * 2, filterOptLevel, threshold);
+	  insertHotMethodsInternal(index * 2 + 1, filterOptLevel, threshold);
 	}
-
-	// Since I was hot enough, also consider my children.
-	insertHotMethodsInternal(index * 2, filterOptLevel, threshold);
-	insertHotMethodsInternal(index * 2 + 1, filterOptLevel, threshold);
       }
     }
   }
@@ -353,24 +356,23 @@ public final class VM_MethodCountData
       if (counts[index] > threshold) {
 	int cmid = cmids[index];
 	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	if ( cm == null ) {			// obsolete and deleted
+	if (cm == null) {			// obsolete and deleted
 	  reset(cmid);				// free up this slot
 	  // Visit new one in the slot
 	  collectHotOptMethodsInternal(index, collect, threshold, optLevel);
-	  return;
 	} else {
 	  VM_CompilerInfo info = cm.getCompilerInfo();
 	  int compilerType = info.getCompilerType();
 	  if (compilerType == VM_CompilerInfo.OPT && 
 	      ((VM_OptCompilerInfo)info).getOptLevel() == optLevel) {
 	    double ns = numCountsForModel(counts[index]);
-	    collect.add(new VM_HotMethodRecompilationEvent(cmid, ns));
+	    collect.add(new VM_HotMethodRecompilationEvent(cm, ns));
 	  }
-	}
 	
-	// Since I was hot enough, also consider my children.
-	collectHotOptMethodsInternal(index * 2, collect, threshold, optLevel);
-	collectHotOptMethodsInternal(index * 2 + 1, collect, threshold, optLevel);
+	  // Since I was hot enough, also consider my children.
+	  collectHotOptMethodsInternal(index * 2, collect, threshold, optLevel);
+	  collectHotOptMethodsInternal(index * 2 + 1, collect, threshold, optLevel);
+	}
       }
     }
   }

@@ -3,7 +3,7 @@
  */
 //$Id$
 
-import  java.util.*;
+import java.util.*;
 import instructionFormats.*;
 
 /**
@@ -13,8 +13,7 @@ import instructionFormats.*;
  *
  * @author Stephen Fink
  */
-class OPT_ValueGraph
-    implements OPT_Operators {
+class OPT_ValueGraph implements OPT_Operators {
 
   /** 
    *  Construct a value graph from an IR. 
@@ -22,7 +21,7 @@ class OPT_ValueGraph
    * <p> <b> PRECONDITION:</b> The IR <em> must </em> be in SSA form.
    * @param ir the IR
    */
-  OPT_ValueGraph (OPT_IR ir) {
+  OPT_ValueGraph(OPT_IR ir) {
     // TODO!!: compute register lists incrementally
     // we need register lists in order to call OPT_Register.getFirstDef()
     OPT_DefUse.computeDU(ir);
@@ -35,6 +34,34 @@ class OPT_ValueGraph
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       processInstruction(s);
     }
+
+    computeClosure();
+  }
+
+  /**
+   * Due to PI nodes and Moves, the initial label for a register may be
+   * another register.  Fix up the value graph for cases where the initial
+   * register label was not removed.
+   */
+  void computeClosure() {
+    for (Enumeration e = enumerateVertices(); e.hasMoreElements(); ) {
+      OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
+      if (v.name instanceof OPT_Register){
+        if (v.label instanceof OPT_Register) {
+          if (v.name != v.label) {
+            OPT_ValueGraphVertex v2 = getVertex(v.label);
+            if (VM.VerifyAssertions) {
+              if (v2.name instanceof OPT_Register && 
+                  v2.label instanceof OPT_Register &&
+                  v2.label != v2.name) {
+                VM.assert(false);
+              }
+            } 
+            v.copyVertex(v2);
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -42,8 +69,8 @@ class OPT_ValueGraph
    *
    * @return an enumeration of the vertices in the value graph
    */
-  public Enumeration enumerateVertices () {
-    return  graph.enumerateNodes();
+  public Enumeration enumerateVertices() {
+    return graph.enumerateNodes();
   }
 
   /**
@@ -52,7 +79,7 @@ class OPT_ValueGraph
    * @param name the name of the vertex
    * @return the vertex with the name.  null if none found.
    */
-  public OPT_ValueGraphVertex getVertex (Object name) {
+  public OPT_ValueGraphVertex getVertex(Object name) {
     if (name instanceof OPT_RegisterOperand) {
       name = ((OPT_RegisterOperand)name).asRegister().register;
     } else if (name instanceof OPT_IntConstantOperand) {
@@ -74,7 +101,7 @@ class OPT_ValueGraph
    *
    * @return a String representation of the value graph.
    */
-  public String toString () {
+  public String toString() {
     // print the nodes
     StringBuffer s = new StringBuffer("VALUE GRAPH: \n");
     for (Enumeration n = graph.enumerateNodes(); n.hasMoreElements();) {
@@ -91,7 +118,7 @@ class OPT_ValueGraph
   /**
    * A mapping from name to value graph vertex.
    */
-  private java.util.HashMap nameMap = new java.util.HashMap(); 
+  private HashMap nameMap = new HashMap(); 
 
   /** 
    * Add a node to the value graph for every symbolic register.
@@ -100,7 +127,7 @@ class OPT_ValueGraph
    *
    * @param ir the governing IR
    */
-  private void addRegisterNodes (OPT_IR ir) {
+  private void addRegisterNodes(OPT_IR ir) {
     for (OPT_Register reg = ir.regpool.getFirstRegister(); 
         reg != null; reg = reg.getNext())
       findOrCreateVertex(reg);
@@ -111,7 +138,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processInstruction (OPT_Instruction s) {
+  private void processInstruction(OPT_Instruction s) {
     // TODO: support all necessary types of instructions
     if (s.isDynamicLinkingPoint())
       processCall(s); 
@@ -164,7 +191,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processMove (OPT_Instruction s) {
+  private void processMove(OPT_Instruction s) {
     OPT_Register result = Move.getResult(s).register;
     OPT_ValueGraphVertex v = findOrCreateVertex(result);
     OPT_Operand val = Move.getVal(s);
@@ -180,7 +207,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processPi (OPT_Instruction s) {
+  private void processPi(OPT_Instruction s) {
     OPT_Register result = GuardedUnary.getResult(s).register;
     OPT_ValueGraphVertex v = findOrCreateVertex(result);
     OPT_Operand val = GuardedUnary.getVal(s);
@@ -198,7 +225,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processNew (OPT_Instruction s) {
+  private void processNew(OPT_Instruction s) {
     OPT_RegisterOperand result = New.getResult(s);
     OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
     // set the label for a NEW instruction to be the instruction itself
@@ -215,7 +242,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processNewArray (OPT_Instruction s) {
+  private void processNewArray(OPT_Instruction s) {
     OPT_RegisterOperand result = NewArray.getResult(s);
     OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
     // set the label for a NEW instruction to be the instruction itself
@@ -232,7 +259,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processPutField (OPT_Instruction s) {
+  private void processPutField(OPT_Instruction s) {
     OPT_Operand value = PutField.getValue(s);
     if (value.isConstant()) {
       findOrCreateVertex((OPT_ConstantOperand)value);
@@ -248,7 +275,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processPutStatic (OPT_Instruction s) {
+  private void processPutStatic(OPT_Instruction s) {
     OPT_Operand value = PutStatic.getValue(s);
     if (value.isConstant()) {
       findOrCreateVertex((OPT_ConstantOperand)value);
@@ -264,7 +291,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processAStore (OPT_Instruction s) {
+  private void processAStore(OPT_Instruction s) {
     OPT_Operand value = AStore.getValue(s);
     if (value.isConstant()) {
       findOrCreateVertex((OPT_ConstantOperand)value);
@@ -284,7 +311,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processALoad (OPT_Instruction s) {
+  private void processALoad(OPT_Instruction s) {
     OPT_Operand index = ALoad.getIndex(s);
     if (index.isConstant()) {
       findOrCreateVertex((OPT_ConstantOperand)index);
@@ -298,7 +325,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processUnary (OPT_Instruction s) {
+  private void processUnary(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = Unary.getResult(s);
     OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
@@ -317,7 +344,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processBinary (OPT_Instruction s) {
+  private void processBinary(OPT_Instruction s) {
     // label the vertex corresponding to the result with the operator
     OPT_RegisterOperand result = Binary.getResult(s);
     OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
@@ -380,7 +407,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processPhi (OPT_Instruction s) {
+  private void processPhi(OPT_Instruction s) {
     // the label for a PHI instruction is the basic block
     // in which it appears
     OPT_Register result = Phi.getResult(s).asRegister().register;
@@ -403,9 +430,10 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processPrologue (OPT_Instruction s) {
+  private void processPrologue(OPT_Instruction s) {
     int numArgs=0;
-    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements(); numArgs++) {
+    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements(); 
+         numArgs++) {
       OPT_Register formal = ((OPT_RegisterOperand)e.next()).register;
       OPT_ValueGraphVertex v = findOrCreateVertex(formal);
       v.setLabel(new OPT_ValueGraphParamLabel(numArgs), 0);
@@ -420,7 +448,7 @@ class OPT_ValueGraph
    *
    * @param s the instruction in question
    */
-  private void processCall (OPT_Instruction s) {
+  private void processCall(OPT_Instruction s) {
   // do nothing.
   // TODO: someday, maybe exploit interprocedural information
   }
@@ -432,7 +460,7 @@ class OPT_ValueGraph
    * @param op the variable
    * @return a value graph vertex corresponding to this variable
    */
-  private OPT_ValueGraphVertex findOrCreateVertex (Object var) {
+  private OPT_ValueGraphVertex findOrCreateVertex(Object var) {
     if (var instanceof OPT_Register)
       return  findOrCreateVertex((OPT_Register)var); 
     else if (var instanceof OPT_RegisterOperand)
@@ -458,7 +486,7 @@ class OPT_ValueGraph
    * @param r the register
    * @return a value graph vertex corresponding to this variable
    */
-  private OPT_ValueGraphVertex findOrCreateVertex (OPT_Register r) {
+  private OPT_ValueGraphVertex findOrCreateVertex(OPT_Register r) {
     OPT_ValueGraphVertex v = getVertex(r);
     if (v == null) {
       v = new OPT_ValueGraphVertex(r);
@@ -476,7 +504,7 @@ class OPT_ValueGraph
    * @param op the constant operand
    * @return a value graph vertex corresponding to this variable
    */
-  private OPT_ValueGraphVertex findOrCreateVertex (OPT_ConstantOperand op) {
+  private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConstantOperand op) {
     Object name;
     if (op.isIntConstant()) {
       name = new Integer(op.asIntConstant().value);
@@ -513,7 +541,7 @@ class OPT_ValueGraph
    * @param op the operand in question
    * @return a value graph vertex corresponding to this type
    */
-  private OPT_ValueGraphVertex findOrCreateVertex (OPT_TypeOperand op) {
+  private OPT_ValueGraphVertex findOrCreateVertex(OPT_TypeOperand op) {
     Object name = op.type;
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
@@ -532,7 +560,7 @@ class OPT_ValueGraph
    * @param op the operand in question
    * @return a value graph vertex corresponding to this type
    */
-  private OPT_ValueGraphVertex findOrCreateVertex (OPT_MethodOperand op) {
+  private OPT_ValueGraphVertex findOrCreateVertex(OPT_MethodOperand op) {
     Object name = op.method;
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
@@ -551,7 +579,7 @@ class OPT_ValueGraph
    * @param op the operand in question
    * @return a value graph vertex corresponding to this type
    */
-  private OPT_ValueGraphVertex findOrCreateVertex (OPT_ConditionOperand op) {
+  private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConditionOperand op) {
     Object name = new Integer(op.value); // kludge.
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
@@ -560,7 +588,7 @@ class OPT_ValueGraph
       graph.addGraphNode(v);
       nameMap.put(name, v);
     }
-    return  v;
+    return v;
   }
 
   /**
@@ -570,8 +598,8 @@ class OPT_ValueGraph
    * @param target the use
    * @param pos the position of target in the set of uses
    */
-  private void link (OPT_ValueGraphVertex src, OPT_ValueGraphVertex target, 
-      int pos) {
+  private void link(OPT_ValueGraphVertex src, OPT_ValueGraphVertex target, 
+                    int pos) {
     OPT_ValueGraphEdge e = new OPT_ValueGraphEdge(src, target);
     src.addTarget(target, pos);
     graph.addGraphEdge(e);
@@ -585,9 +613,8 @@ class OPT_ValueGraph
    *
    * @param op the OPT_RegisterOperand
    */
-  private OPT_Operand bypassMoves (OPT_Operand op) {
-    if (!op.isRegister())
-      return  op;
+  private OPT_Operand bypassMoves(OPT_Operand op) {
+    if (!op.isRegister()) return  op;
     OPT_Register r = op.asRegister().register;
     OPT_Instruction def = r.getFirstDef();
     if (def == null)
@@ -606,6 +633,3 @@ class OPT_ValueGraph
       return  op;
   }
 }
-
-
-

@@ -2427,7 +2427,7 @@ implements VM_Constants
 		  {
 		    mapVM.dumpCache();
 		  }
-		else if (token.equals("q"))
+		else if (token.equals("q") || token.equals("quit"))
 		  {
 		    VM.sysExit(-1);
 		  }
@@ -2452,7 +2452,7 @@ implements VM_Constants
 		  }
 		else
 		  {
-		  System.out.println(token+"...not implemented");	
+		  System.out.println(token+"...not implemented (use ? for help and q for quit)");	
 		  }
 	      }	 
 	  }
@@ -2466,6 +2466,7 @@ implements VM_Constants
   void debug_usage()
   {
     System.out.println("? - print this message");
+    System.out.println("    You are in the special debug-the-debugger mode");
     System.out.println("f - print current stack frame");
     System.out.println("w - print call stack ");
     System.out.println("s - single step");

@@ -12,9 +12,9 @@
  */
 public final class VM_MethodCountSet {
   /**
-   * array of compiled method id's
+   * array of compiled methods
    */
-  int[] cmids;
+  VM_CompiledMethod[] cms;
   /**
    * array of counts
    */
@@ -23,12 +23,12 @@ public final class VM_MethodCountSet {
   /**
    * Constructor
    *
-   * @param _cmids array of compiled method ids
+   * @param _cms array of compiled method ids
    * @param _counters array of counters
    */
-  VM_MethodCountSet(int[] _cmids, double[] _counters) {
-    if (VM.VerifyAssertions) VM.assert(_cmids.length == _counters.length);
-    cmids = _cmids;
+  VM_MethodCountSet(VM_CompiledMethod[] _cms, double[] _counters) {
+    if (VM.VerifyAssertions) VM.assert(_cms.length == _counters.length);
+    cms = _cms;
     counters= _counters;
   }
 
@@ -39,9 +39,8 @@ public final class VM_MethodCountSet {
    */
   public String toString() {
     String ans = "";
-    for (int i=0; i< cmids.length; i++) {
-      ans += VM_CompiledMethods.getCompiledMethod(cmids[i]).getMethod() + 
-	" = " + counters[i] + "\n";
+    for (int i=0; i<cms.length; i++) {
+      ans += cms[i] + " = " + counters[i] + "\n";
     }
     return ans;
   }

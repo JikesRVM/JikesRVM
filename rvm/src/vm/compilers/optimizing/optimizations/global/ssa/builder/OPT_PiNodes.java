@@ -37,14 +37,14 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   final boolean typeChecks;      
 
   /**
-   * Should this phase be performed?  This is a member of a composite
-   * phase, so always return true.  The parent composite phase will
-   * dictate.
+   * Should this phase be performed? 
+   * Only perform this when we are doing an SSA-based optimization
+   * that can benefit from PI nodes.
    * @param options controlling compiler options
    * @return 
    */
   final boolean shouldPerform (OPT_Options options) {
-    return true;
+    return options.GLOBAL_BOUNDS_CHECK;
   };
 
   /**
@@ -92,14 +92,14 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
    */
   public void perform (OPT_IR ir) {
     if (insertion) {
-      if (OPT_SSA.containsUnsupportedOpcode(ir))
-        return;
       if (!typeChecks) {
 	  insertPiIfNodes(ir);
 	  insertPiBcNodes(ir);
 	  insertPiNullCheckNodes(ir);
       } else
 	  insertPiCheckCastNodes(ir);
+      // invalidate SSA state
+      ir.actualSSAOptions = null;
     } 
     else {
       cleanUp(ir);
@@ -333,7 +333,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
       OPT_Instruction s = e.next();
       if (s.operator == PI) {
         OPT_RegisterOperand result = GuardedUnary.getResult(s);
-        OPT_Operator mv = OPT_IRTools.getMoveOp(result.type, false);
+        OPT_Operator mv = OPT_IRTools.getMoveOp(result.type);
         OPT_Operand val = GuardedUnary.getVal(s);
         Move.mutate(s, mv, result, val);
       }

@@ -609,16 +609,6 @@ public class VM_Runtime implements VM_Constants {
   }
    
   /**
-   * Report unexpected method call: native method 
-   * (unimplemented virtual machine functionality).
-   */
-  static void unexpectedNativeMethodCall() {
-    VM.sysWrite("VM_Runtime.unexpectedNativeMethodCall\n"); 
-    VM_StackTrace.print(VM_StackTrace.create(), System.err);
-    throw new UnsatisfiedLinkError();
-  }
-
-  /**
    * Report unimplemented bytecode.
    */ 
   static void unimplementedBytecode(int bytecode) { 

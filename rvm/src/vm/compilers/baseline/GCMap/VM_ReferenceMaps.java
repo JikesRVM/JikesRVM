@@ -5,7 +5,10 @@
 
 /**
  * @author Anthony Cocchi
+ *
+ * @modified Perry Cheng
  */
+
 class VM_ReferenceMaps  implements VM_BaselineConstants {
   // class that provides stack (and local var) map for a baseline compiled method
   // GC uses the methods provided here
@@ -93,30 +96,28 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   public static final byte JSR_MASK = -128;     // byte = x'80'
   public static final byte JSR_INDEX_MASK = 0x7F;
 
-  public int
-  locateGCPoint(int machCodeOffset, VM_Method method) {
+  public int locateGCPoint(int machCodeOffset, VM_Method method) {
 
    machCodeOffset = machCodeOffset - (1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
                                         // to "next" instruction eg bal type instruction
 
-    if (VM.TraceStkMaps)
-      {
+   if (VM.TraceStkMaps) {
       VM.sysWrite("VM_ReferenceMaps-locateGCPoint for machine code offset = ");
       VM.sysWrite(machCodeOffset);
       VM.sysWrite("  --- in  method = ");
       VM.sysWrite(method.getName());
       VM.sysWrite("\n");
-      }
+   }
 
     // test if maps are to be build dynamically
-    if(VM.DynamicReferenceMaps) {
-      if (VM.TraceStkMaps) {
-	VM.sysWrite("VM_ReferenceMaps-locateGCPoint.  doing dynamic reference maps\n");
-	VM.sysWrite("   bytesPerMap = ");
-	VM.sysWrite( bytesPerMap);
-	VM.sysWrite("   bitsPerMap = ");
-	VM.sysWrite( bitsPerMap);
-      }
+   if (VM.DynamicReferenceMaps) {
+       if (VM.TraceStkMaps) {
+	   VM.sysWrite("VM_ReferenceMaps-locateGCPoint.  doing dynamic reference maps\n");
+	   VM.sysWrite("   bytesPerMap = ");
+	   VM.sysWrite( bytesPerMap);
+	   VM.sysWrite("   bitsPerMap = ");
+	   VM.sysWrite( bitsPerMap);
+       }
 
       // test if they have been built previously and we have cached this site
       if (cacheMCSite != machCodeOffset) {
@@ -162,36 +163,38 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
      }
     }
     // scan to find any better location ie closer to the site
-    for( int i = index+1; i < mapCount; i++)
-    {
+    for( int i = index+1; i < mapCount; i++) {
        dist =  machCodeOffset- MCSites[i];
        if ( dist < 0 ) continue;
-       if ( dist <= distance)
-       {
+       if ( dist <= distance) {
          index = i;
          distance = dist;
        }
     }
 
-    //      if (VM.TraceStkMaps)
-       if (debug)
-        {
-         showInfo();
-         VM.sysWrite(" VM_ReferenceMaps-locateGCPoint located index  = ");
-         VM.sysWrite(index);
-         VM.sysWrite("  byte  = ");
-         VM.sysWrite(referenceMaps[index]);
-         VM.sysWrite( "\n");
+    if (VM.TraceStkMaps) {
+	showInfo();
+	VM.sysWrite(" VM_ReferenceMaps-locateGCPoint located index  = ");
+	VM.sysWrite(index);
+	VM.sysWrite("  byte  = ");
+	VM.sysWrite(referenceMaps[index]);
+	VM.sysWrite( "\n");
+	if (index - 1 >= 0) {
+	    VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset - MCSites[index-1]); VM.sysWrite("\n");
+	}
+	 VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset - MCSites[index  ]); VM.sysWrite("\n");
+	 if (index + 1 < MCSites.length) {
+	     VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset - MCSites[index+1]); VM.sysWrite("\n");
+	 }
 	}
 
 
     // test for a site within a jsr subroutine
-     if ((0x000000FF & (referenceMaps[index*bytesPerMap] &  JSR_MASK)) == (0x000000FF & JSR_MASK))  // test for jsr map
-       {
+     if ((0x000000FF & (referenceMaps[index*bytesPerMap] &  JSR_MASK)) == (0x000000FF & JSR_MASK))  { // test for jsr map
+
        index = -index;                       // indicate site within a jsr to caller
 
-       if (VM.TraceStkMaps)
-        {
+       if (VM.TraceStkMaps) {
          VM.sysWrite(" VM_ReferenceMaps-locateGCPoint jsr mapid = ");
          VM.sysWrite( -index);
          VM.sysWrite( "\n");
@@ -199,10 +202,8 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
        }
 
 
-     if (VM.TraceStkMaps)
-       {
+     if (VM.TraceStkMaps) {
          VM.sysWrite(" VM_ReferenceMaps-locateGCPoint  machine offset = ");
-
          VM.sysWrite(  machCodeOffset);
          VM.sysWrite("  - return map index = ");
          VM.sysWrite( index);
@@ -210,15 +211,15 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
        }
 
 
-     if(VM.DynamicReferenceMaps){
+     if (VM.DynamicReferenceMaps) {
 
        // This code caches the last site for potential future use.. Note that
        // JSR sites are not cached because that requires special locateGCPoint support
        //  and the JSR path must somhow be saved.. Since JSRs are a low frequency instruction
        //  we are not supporting the caching of JSR sites.
 
-       if ( index >= 0)
-       {
+       if ( index >= 0) {
+
 	 // cache this site for future use
 	 cacheMCSite = machCodeOffset;        // location
 
@@ -246,55 +247,51 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   private static final byte COPY = 3;
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
-  public int
-  getNextRef(int offset, int siteindex) {
+  public int getNextRef(int offset, int siteindex) {
 
     int mapByteNum, startbitnumb, bitnum;
 
-    if (VM.TraceStkMaps)
-    {
-         VM.sysWrite("VM_ReferenceMaps-getNextRef-inputs offset = ");
-         VM.sysWrite( offset);
-         VM.sysWrite( " -siteindex = ");
-         VM.sysWrite( siteindex);
-         VM.sysWrite( "\n");
-     }
+    if (VM.TraceStkMaps) {
+	VM.sysWrite("VM_ReferenceMaps-getNextRef-inputs offset = ");
+	VM.sysWrite( offset);
+	VM.sysWrite( " -siteindex = ");
+	VM.sysWrite( siteindex);
+	VM.sysWrite( "\n");
+    }
     // use index to locate the gc point of interest
     int mapindex  = siteindex * bytesPerMap;
     if (bytesPerMap == 0) return 0;           // no map ie no refs
 
     // is this the initial scan for the map
-    if ( offset == STARTOFFSET)
-    {
+    if ( offset == STARTOFFSET) {
+
        mapByteNum = mapindex;
        startbitnumb = 1;      // start search from beginning
        bitnum = scanForNextRef(startbitnumb, mapByteNum, bitsPerMap, referenceMaps);
 
-         if (debug)
-	 {
+      if (VM.TraceStkMaps) {
          VM.sysWrite("VM_ReferenceMaps-getNextRef-initial call bitnum = ");
          VM.sysWrite( bitnum);
          VM.sysWrite( "\n");
 	 }
-       if ( bitnum == NOMORE)
-	 {
+      if ( bitnum == NOMORE) {
+	  if (VM.TraceStkMaps) 
+	      VM.sysWrite("  NOMORE \n");
           return NOMORE;
 	 }
 
-       if (debug)
-	 {
-         VM.sysWrite("VM_ReferenceMaps-getNextRef-initial offset return = " );
-         VM.sysWrite( convertBitNumToOffset(bitnum));
-         VM.sysWrite( "\n");
-	 }
+      if (VM.TraceStkMaps) {
+	  VM.sysWrite("  result = " );
+	  VM.sysWrite( convertBitNumToOffset(bitnum));
+	  VM.sysWrite( "\n");
+      }
        return (convertBitNumToOffset(bitnum));
      } // end offset = STARTOFFSET
 
       // get bitnum and determine mapword to restart scan
       bitnum = convertOffsetToBitNum(offset);  // get the bit number
 
-     if (VM.TraceStkMaps)
-       {
+      if (VM.TraceStkMaps) {
        VM.sysWrite("VM_ReferenceMaps-getnextref- not initial- entry offset,bitnum  = ");
        VM.sysWrite( offset);
        VM.sysWrite(" ");
@@ -305,28 +302,26 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       // scan forward from current position to next ref
       bitnum = scanForNextRef(bitnum+1, mapindex,(bitsPerMap - (bitnum - 1)),referenceMaps);
 
-      if (debug)
-	{
+      if (VM.TraceStkMaps) {
          VM.sysWrite("VM_ReferenceMaps-getnextref- not initial- scan returned bitnum = ");
          VM.sysWrite(  bitnum );
-         VM.sysWrite( "\n");
 	}
 
      // test for end of map
-     if (bitnum == NOMORE)
-       {
+      if (bitnum == NOMORE) {
+	  if (VM.TraceStkMaps) 
+	      VM.sysWrite("  NOMORE \n");
          return NOMORE;
        }
 
-     if (debug)
-       {
-        VM.sysWrite("VM_ReferenceMaps-getnextref- not initial- offset return offset = ");
-        VM.sysWrite( convertBitNumToOffset(bitnum));
-         VM.sysWrite( "\n");
-        }
+      if (VM.TraceStkMaps) {
+	  VM.sysWrite("   result = ");
+	  VM.sysWrite( convertBitNumToOffset(bitnum));
+	  VM.sysWrite( "\n");
+      }
 
      // else convert bitnum to stack offset and return
-     return (convertBitNumToOffset(bitnum));
+     return convertBitNumToOffset(bitnum);
   }
 
 
@@ -355,73 +350,68 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     if ( bytesPerMap == 0) return 0;           // no map ie no refs
 
     // is this the initial scan for the map
-    if ( offset == STARTOFFSET)
-    {
+    if ( offset == STARTOFFSET) {
        startbitnumb = 1;      // start search from beginning
        bitnum = scanForNextRef(startbitnumb, mapword,  bitsPerMap, unusualReferenceMaps);
-       if (VM.TraceStkMaps)
-	   {
+       if (true || VM.TraceStkMaps) {
 	       VM.sysWrite("VM_ReferenceMaps-getJSRNextRef-initial call - startbitnum =");
 	       VM.sysWrite(startbitnumb );
-	       VM.sysWrite("  -mapword = ");
+	       VM.sysWrite("  mapword = ");
 	       VM.sysWrite(mapword );
-	       VM.sysWrite(" -bitspermap = ");
+	       VM.sysWrite(" bitspermap = ");
 	       VM.sysWrite(bitsPerMap);
-	       VM.sysWrite(" \n ");
-	       VM.sysWrite("                    -initial call return bitnum = ");
-	       VM.sysWrite( bitnum);
-	       VM.sysWrite( "\n");
+	       VM.sysWrite("      bitnum = ");
+	       VM.sysWrite(bitnum);
 	   }
-       if ( bitnum == NOMORE)
-       {
-            return NOMORE;
+       if ( bitnum == NOMORE) {
+	   if (VM.TraceStkMaps) 
+	       VM.sysWrite("  NOMORE\n");
+	   return NOMORE;
        }
 
        int initOffset =  convertJsrBitNumToOffset(bitnum);
 
-       if (VM.TraceStkMaps)
-	   {
-	       VM.sysWrite("                      -initial jsr offset returned = " );
-	       VM.sysWrite( initOffset);
-	       VM.sysWrite( "\n");
-	   }
-       return (initOffset);
+       if (true || VM.TraceStkMaps) {
+	   VM.sysWrite("result = " );
+	   VM.sysWrite( initOffset);
+	   VM.sysWrite( "\n");
+       }
+       return initOffset;
     }
 
     // get bitnum and determine mapword to restart scan
-    bitnum = convertJsrOffsetToBitNum(offset);  // get the bit number
+    bitnum = convertJsrOffsetToBitNum(offset);  // get the bit number from last time 
 
    // scan forward from current position to next ref
-   if (VM.TraceStkMaps)
-       {
-       VM.sysWrite("VM_ReferenceMaps-getJSRnextref- not initial- starting offset = ");
-       VM.sysWrite( offset);
-       VM.sysWrite(" -starting bitnum  = ");
-       VM.sysWrite( bitnum);
-       VM.sysWrite( "\n");
-       }
-   bitnum = scanForNextRef(bitnum+1,mapword,( bitsPerMap - (bitnum -1)), unusualReferenceMaps);
+    if (true || VM.TraceStkMaps) {
+	VM.sysWrite("VM_ReferenceMaps.getJSRnextref - not initial- starting (offset,bitnum) = ");
+	VM.sysWrite(offset);
+	VM.sysWrite(", ");
+	VM.sysWrite(bitnum);
+    }
 
-   int nextOffset =  convertJsrBitNumToOffset(bitnum);  
+    bitnum = scanForNextRef(bitnum+1,mapword, (bitsPerMap - (bitnum -1)), unusualReferenceMaps);
+    int nextOffset =  convertJsrBitNumToOffset(bitnum);  
 
-   if (VM.TraceStkMaps)
-	{
-         VM.sysWrite("VM_ReferenceMaps-getJSRnextref- not initial- scan returned bitnum = ");
-         VM.sysWrite(  bitnum );
-         VM.sysWrite( "\n");
-         VM.sysWrite("             - not initial-  next return offset = ");
-         VM.sysWrite( nextOffset);
-         VM.sysWrite( "\n");
-	}
+    if (true || VM.TraceStkMaps) {
+	VM.sysWrite("    bitnum = ");
+	VM.sysWrite(bitnum );
+    }
 
      // test for end of map
-     if (bitnum == NOMORE)
-       {
-         return NOMORE;
-       }
+   if (bitnum == NOMORE) {
+       if (true || VM.TraceStkMaps) 
+	   VM.sysWrite("  NOMORE\n");
+       return NOMORE;
+   }
 
    // else convert bitnum to stack offset and return
-   return (nextOffset);
+   if (true || VM.TraceStkMaps) {
+       VM.sysWrite("   nextoffset = ");
+       VM.sysWrite(nextOffset);
+       VM.sysWrite( "\n");
+   }
+   return nextOffset;
   }
 
 
@@ -450,22 +440,17 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
     // use the preallocated map to locate the current point of interest
     mapword   = mergedReturnAddressMap;
-    if ( bytesPerMap == 0)
-      {
+    if ( bytesPerMap == 0) {
       if (VM.TraceStkMaps)
-	 {
           VM.sysWrite("VM_ReferenceMaps-getJSRNextReturnAddr-initial call no returnaddresses \n ");
-         }
          return 0;  // no map ie no refs
       }
 
     // is this the initial scan for the map
-    if ( offset == STARTOFFSET)
-    {
+    if ( offset == STARTOFFSET) {
        startbitnumb = 1;      // start search from beginning
        bitnum = scanForNextRef(startbitnumb, mapword,  bitsPerMap,  unusualReferenceMaps);
-       if (VM.TraceStkMaps)
-	 {
+       if (VM.TraceStkMaps) {
          VM.sysWrite("VM_ReferenceMaps-getJSRNextReturnAddr-initial call startbitnum, mapword, bitspermap = ");
          VM.sysWrite(startbitnumb );
          VM.sysWrite(" , ");
@@ -478,68 +463,58 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
          VM.sysWrite( "\n");
 	 }
        if ( bitnum == NOMORE)
-	 {
             return NOMORE;
-	 }
 
       int initOffset =  convertJsrBitNumToOffset(bitnum);
 
 
-       if (VM.TraceStkMaps)
-	 {
+      if (VM.TraceStkMaps) {
          VM.sysWrite("VM_ReferenceMaps-getJSRNextReturnAddr-initial offset return = " );
          VM.sysWrite( initOffset);
          VM.sysWrite( "\n");
-	 }
-       return (initOffset);
+      }
+       return initOffset;
     }
 
     // get bitnum and determine mapword to restart scan
     bitnum = convertJsrOffsetToBitNum(offset);  // get the bit number
 
    // scan forward from current position to next ref
-   if (VM.TraceStkMaps)
-       {
+    if (VM.TraceStkMaps) {
        VM.sysWrite("VM_ReferenceMaps-getJSRnextReturnAddr- not initial- starting offset, starting bitnum  = ");
        VM.sysWrite( offset);
        VM.sysWrite(" ");
        VM.sysWrite( bitnum);
        VM.sysWrite( "\n");
-       }
+    }
    bitnum = scanForNextRef(bitnum+1,mapword,( bitsPerMap - (bitnum -1)), unusualReferenceMaps);
 
-   if (VM.TraceStkMaps)
-	{
-         VM.sysWrite("VM_ReferenceMaps-getJSRnextref- not initial- scan returned bitnum = ");
-         VM.sysWrite(  bitnum );
-         VM.sysWrite( "\n");
-	}
+   if (VM.TraceStkMaps) {
+       VM.sysWrite("VM_ReferenceMaps-getJSRnextref- not initial- scan returned bitnum = ");
+       VM.sysWrite(  bitnum );
+       VM.sysWrite( "\n");
+   }
    // test for end of map
    if (bitnum == NOMORE)
-     {
         return NOMORE;
-     }
 
      int nextOffset =  convertJsrBitNumToOffset(bitnum);
 
 
    // else convert bitnum to stack offset and return
-   if (VM.TraceStkMaps)
-       {
-        VM.sysWrite("VM_ReferenceMaps-getJSRnextReturnAddrref- not initial- next return offset = ");
-        VM.sysWrite( nextOffset);
-        VM.sysWrite( "\n");
-        }
-   return (nextOffset);
+   if (VM.TraceStkMaps) {
+       VM.sysWrite("VM_ReferenceMaps-getJSRnextReturnAddrref- not initial- next return offset = ");
+       VM.sysWrite( nextOffset);
+       VM.sysWrite( "\n");
+   }
+   return nextOffset;
   }
 
 
   // For debugging (used with CheckRefMaps)
   //  Note: all maps are the same size
   //
-  int
-  getStackDepth(int mapid) 
-  {
+  int getStackDepth(int mapid) {
     return bytesPerMap;
   }
 
@@ -601,17 +576,16 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     mergedReferenceMap = 0;
     mergedReturnAddressMap = 0;
 
-   if (VM.TraceStkMaps)
-       {
+    if (VM.TraceStkMaps) {
         VM.sysWrite("VM_ReferenceMaps-startNewMaps-  gcPointCount =  ");
         VM.sysWrite( gcPointCount);
         VM.sysWrite(" -jsrCount = ");
         VM.sysWrite( jsrCount);
         VM.sysWrite( "\n");
-        }
+    }
 
-    if (jsrCount > 0)
-    {
+    if (jsrCount > 0) {
+
        // generate jsr processing objects
        unusualMaps = new VM_UnusualMaps[jsrCount*2];
        extraUnusualMap = new VM_UnusualMaps();
@@ -893,7 +867,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
     // setup Reference Map
      int refindex = scanByteArray(currReferenceMap, BBLastPtr, VM_BuildReferenceMaps.SET_TO_REFERENCE,
-                                                             jsrSiteMap.getReferenceMapIndex());
+				  jsrSiteMap.getReferenceMapIndex(), true);
      jsrSiteMap.setReferenceMapIndex( refindex);
 
          if (VM.TraceStkMaps)
@@ -908,7 +882,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
      // setup NONReference Map
      int nonrefindex = scanByteArray(currReferenceMap, BBLastPtr, VM_BuildReferenceMaps.SET_TO_NONREFERENCE,
-                                                                      jsrSiteMap.getNonReferenceMapIndex());
+				     jsrSiteMap.getNonReferenceMapIndex(), true);
      jsrSiteMap.setNonReferenceMapIndex( nonrefindex);
 
          if (VM.TraceStkMaps)
@@ -923,7 +897,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
   // setup returnAddress Map
    int addrindex = scanByteArray(currReferenceMap, BBLastPtr, VM_BuildReferenceMaps.RETURN_ADDRESS,
-                                                               jsrSiteMap.getReturnAddressMapIndex());
+				 jsrSiteMap.getReturnAddressMapIndex(), false);
    jsrSiteMap.setReturnAddressMapIndex( addrindex);
 
          if (VM.TraceStkMaps)
@@ -1034,36 +1008,33 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   setupJSRSubroutineMap(int frameAddress, int mapid, VM_CompiledMethod compiledMethod)
   {
 
-
     // first clear the  maps in the extraUnusualMap
     //
     int j = extraUnusualMap.getReferenceMapIndex();
     int k = extraUnusualMap.getNonReferenceMapIndex();
     int l = extraUnusualMap.getReturnAddressMapIndex();
-    for ( int i = 0; i <  bytesPerMap; i++,k++,l++)
-    {
-         unusualReferenceMaps[j + i] = 0;
-         unusualReferenceMaps[k + i] = 0;
-         unusualReferenceMaps[l + i] = 0;
+    for ( int i = 0; i <  bytesPerMap; i++) {
+	unusualReferenceMaps[j + i] = 0;
+	unusualReferenceMaps[k + i] = 0;
+	unusualReferenceMaps[l + i] = 0;
     }
 
     // use the mapid to get index of the Unusual Map
     //
 
-       if (VM.TraceStkMaps)
-	 {
-         VM.sysWrite("VM_ReferenceMaps-setupJSRSubroutineMap- mapid = " );
-         VM.sysWrite( mapid);
-         VM.sysWrite("   - mapid = " );
-         VM.sysWrite(- mapid);
-         VM.sysWrite( "\n");
-         VM.sysWrite("  -referenceMaps[(- mapid) * bytesPerMap] = " );
-         VM.sysWrite(referenceMaps[(- mapid) * bytesPerMap]);
-         VM.sysWrite( "\n");
-         VM.sysWrite("        unusual mapid index = " );
-         VM.sysWrite(referenceMaps[(- mapid) * bytesPerMap]&JSR_INDEX_MASK);
-          VM.sysWrite( "\n");
-	 }
+    if (VM.TraceStkMaps) {
+	VM.sysWrite("VM_ReferenceMaps-setupJSRSubroutineMap- mapid = " );
+	VM.sysWrite( mapid);
+	VM.sysWrite("   - mapid = " );
+	VM.sysWrite(- mapid);
+	VM.sysWrite( "\n");
+	VM.sysWrite("  -referenceMaps[(- mapid) * bytesPerMap] = " );
+	VM.sysWrite(referenceMaps[(- mapid) * bytesPerMap]);
+	VM.sysWrite( "\n");
+	VM.sysWrite("        unusual mapid index = " );
+	VM.sysWrite(referenceMaps[(- mapid) * bytesPerMap]&JSR_INDEX_MASK);
+	VM.sysWrite( "\n");
+    }
 
     int unusualMapid = (referenceMaps[(-mapid) * bytesPerMap] & JSR_INDEX_MASK);
 
@@ -1086,7 +1057,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     //
     int machineCodeOffset = callerAddress - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
 
-    if (VM.TraceStkMaps)
+    if (true || VM.TraceStkMaps)
        {
         VM.sysWrite("VM_ReferenceMaps-setupJSRMap- inputMapid = ");
         VM.sysWrite( mapid);
@@ -1107,7 +1078,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     // from the machine code offset locate the map for the jsr instruction
     //
     int jsrMapid = locateGCPoint(machineCodeOffset, compiledMethod.getMethod());
-    if (VM.TraceStkMaps)
+    if (true || VM.TraceStkMaps)
        {
         VM.sysWrite("VM_ReferenceMaps-setupJSRMap- locateGCpoint returns mapid = ");
         VM.sysWrite( jsrMapid);
@@ -1121,7 +1092,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     {
       jsrMapid = -jsrMapid;
 
-      if (VM.TraceStkMaps)
+      if (true || VM.TraceStkMaps)
        {
         VM.sysWrite("VM_ReferenceMaps-setupJSRsubroutineMap- outer MapIndex = ");
         VM.sysWrite( jsrMapid);
@@ -1149,24 +1120,23 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       int nextMachineCodeOffset = nextCallerAddress - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
-      if (VM.TraceStkMaps)
-         {
-           VM.sysWrite("VM_ReferenceMaps-setupJSRsubroutineMap- nested jsrs extraUnusualMap = \n");
-           extraUnusualMap.showInfo();
-           VM.sysWrite( "\n");
-           VM.sysWrite("VM_ReferenceMaps-setupJSRsubroutineMap- nested jsrs thisMap =\n ");
-           thisMap.showInfo();
-           VM.sysWrite( "\n");
-           VM.sysWrite("     setupJSRsubroutineMap- nested jsrs end of loop- = \n");
-           VM.sysWrite("      next jsraddress offset = ");
-           VM.sysWrite(thisJsrAddressOffset);
-           VM.sysWrite("\n      next callers address = ");
-           VM.sysWrite(nextCallerAddress);
-           VM.sysWrite("\n      next machinecodeoffset = ");
-           VM.sysWrite(nextMachineCodeOffset);
-           VM.sysWrite( "\n");
-
+      if (VM.TraceStkMaps) {
+	  VM.sysWrite("VM_ReferenceMaps-setupJSRsubroutineMap- nested jsrs extraUnusualMap = \n");
+	  extraUnusualMap.showInfo();
+	  VM.sysWrite( "\n");
+	  VM.sysWrite("VM_ReferenceMaps-setupJSRsubroutineMap- nested jsrs thisMap =\n ");
+	  thisMap.showInfo();
+	  VM.sysWrite( "\n");
+	  VM.sysWrite("     setupJSRsubroutineMap- nested jsrs end of loop- = \n");
+	  VM.sysWrite("      next jsraddress offset = ");
+	  VM.sysWrite(thisJsrAddressOffset);
+	  VM.sysWrite("\n      next callers address = ");
+	  VM.sysWrite(nextCallerAddress);
+	  VM.sysWrite("\n      next machinecodeoffset = ");
+	  VM.sysWrite(nextMachineCodeOffset);
+	  VM.sysWrite( "\n");
 	 }
+
     }  // end while
 
     // merge the jsr (unusual )map  with the base level (ie jsr instruction) map(s)
@@ -1175,26 +1145,27 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     //
     finalMergeMaps((jsrMapid * bytesPerMap), extraUnusualMap);
 
-    if (VM.TraceStkMaps)
-         {
-           VM.sysWrite("VM_ReferenceMaps-setupJSRsubroutineMap- afterfinalMerge extraUnusualMap =\n ");
-           extraUnusualMap.showInfo();
-           VM.sysWrite( "\n");
-           VM.sysWrite("     mergedReferenceMap Index = ");
-           VM.sysWrite( mergedReferenceMap);
-           VM.sysWrite( "\n");
-           VM.sysWrite("     mergedReferenceMap  = ");
-           showAnUnusualMap(mergedReferenceMap);
-           VM.sysWrite( unusualReferenceMaps[mergedReferenceMap]);
-           VM.sysWrite( "\n");
-           VM.sysWrite("     mergedReturnAddressMap Index = ");
-           VM.sysWrite( mergedReturnAddressMap);
-           VM.sysWrite( "\n");
-           VM.sysWrite("    mergedReturnAddressMap  = ");
-           VM.sysWrite( unusualReferenceMaps[mergedReturnAddressMap]);
-           VM.sysWrite( "\n");
-           showUnusualMapInfo();
-         }
+    if (VM.TraceStkMaps) {
+	VM.sysWrite("VM_ReferenceMaps-setupJSRsubroutineMap- afterfinalMerge extraUnusualMap =\n ");
+	extraUnusualMap.showInfo();
+	VM.sysWrite( "\n");
+	VM.sysWrite("     mergedReferenceMap Index = ");
+	VM.sysWrite( mergedReferenceMap);
+	VM.sysWrite( "\n");
+	VM.sysWrite("     mergedReferenceMap  = ");
+	showAnUnusualMap(mergedReferenceMap);
+	VM.sysWrite( unusualReferenceMaps[mergedReferenceMap]);
+	VM.sysWrite( "\n");
+	VM.sysWrite("     mergedReturnAddressMap Index = ");
+	VM.sysWrite( mergedReturnAddressMap);
+	VM.sysWrite( "\n");
+	VM.sysWrite("    mergedReturnAddressMap  = ");
+	VM.sysWrite( unusualReferenceMaps[mergedReturnAddressMap]);
+	VM.sysWrite( "\n");
+	showInfo();
+	showUnusualMapInfo();
+    }
+
   }
 
 
@@ -1356,40 +1327,6 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     }
 
 
-    // given the offset of a word in the stack,
-    //  this routine calculates the bitnumber in a jsr that represents
-    //    the given offset
-    //
-    private int convertJsrOffsetToBitNum(int offset)
-    {
-       int bitnum, diff;
-
-
-      if ( offset ==0) return 1; // initial call return first map bit
-
-      // determine offset in bit area
-
-      offset = offset + 4; // compensate for different mapping of jsr and ref maps ie no jsr bit in jsr maps
-
-      diff = local0Offset - offset;
-      // convert from offset to bitnumber
-      bitnum = (diff >>>2) + 1 +1; // 1 for being 1 based +1 for jsr bit
-
-      if (VM.TraceStkMaps)
-      {
-            VM.sysWrite("convertJsrOffsetToBitnum- Input offset = ");
-            VM.sysWrite(  offset );
-            VM.sysWrite(  " jsr  bitnum = " );
-            VM.sysWrite(  bitnum);
-            VM.sysWrite( "\n");
-      }
-
-      return bitnum;
-
-    }
-
-
-
     //
     // given a bit number in a jsr map
     //   this routine determines the correspondig offset in the stack
@@ -1399,24 +1336,52 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
           int jsroffset;
 
 
-	  // now use the normal reference map routine
-	  jsroffset = convertBitNumToOffset(bitnum);
+	  // convert from top of local words
+          jsroffset = local0Offset - ((bitnum -1) <<2); // minus 1 for being 1 based, no jsrbit here
 
-	  // compensate for slightly different map formats ie no jsr bit in jsr maps
-	  jsroffset = jsroffset - 4;
-
-          if (VM.TraceStkMaps)
-            {
+          if (VM.TraceStkMaps) {
             VM.sysWrite("convertJsrBitnumToOffset- input bitnum = ");
             VM.sysWrite(  bitnum );
             VM.sysWrite(  "  offset = " );
             VM.sysWrite(  jsroffset);
             VM.sysWrite( "\n");
-	    }
-
+	  }
+	  
           return jsroffset;
 
     }
+
+
+    // given the offset of a word in the stack,
+    //  this routine calculates the bitnumber in a jsr that represents
+    //    the given offset
+    //
+    private int convertJsrOffsetToBitNum(int offset)
+    {
+       int bitnum, diff;
+
+
+      if (offset==0) return 1; // initial call return first map bit
+
+      diff = local0Offset - offset;
+      // convert from offset to bitnumber
+      bitnum = (diff >>>2) + 1; // 1 for being 1 based; no jsr bit
+
+      if (true || VM.TraceStkMaps) {
+	  VM.sysWrite("convertJsrOffsetToBitnum- local0Offset = ");
+	  VM.sysWrite(local0Offset);
+	  VM.sysWrite("    Input offset = ");
+	  VM.sysWrite(  offset );
+	  VM.sysWrite(  " jsr  bitnum = " );
+	  VM.sysWrite(  bitnum);
+	  VM.sysWrite( "\n");
+      }
+
+      return bitnum;
+
+    }
+
+
 
 
 
@@ -1528,38 +1493,45 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   //  and the type of information that is desired to be scanned
   // this subroutine scans the byte array looking for the type of information requested
   // and builds a bit array in the stack maps with the information
-  //
+  // Skip one bits in the bitarray if skipOnBit is true - we need to skip one bit
+  //   for setRef and setNonRef maps so they are properly merged with jsr base maps.
+  //   However, we leave the retAddrMap alone.
   // it returns the index of the map in the reference map
   //
-  int scanByteArray( byte[] byteMap, int BBLastPtr, byte refType, int mapslot)
+  int scanByteArray( byte[] byteMap, int BBLastPtr, byte refType, int mapslot, boolean skipOneBit)
   {
+      skipOneBit = false;
 
     if (BBLastPtr == -1) return -1;     // no map for this jsr
 
     // get a place to hold the map if necessary
-    if (mapslot ==0)
-      {
+    if (mapslot == 0) 
        mapslot  = getNextMapElement();     // get first word of map
-      }
+
 
    // initialize search variables
     int len    = (BBLastPtr + 1);      // get length of map
     int offset = 0;                    // offset from origin
     int word = mapslot;                // first word of map
 
-    while ( len > BITS_PER_MAP_ELEMENT )
-    {
-      // map may take multiple words -convert 1 at a time
-       unusualReferenceMaps[word] = convertMapElement(byteMap, offset, BITS_PER_MAP_ELEMENT, refType);
-       len    -= BITS_PER_MAP_ELEMENT;                // update remaining words
-       offset += BITS_PER_MAP_ELEMENT;                // and offset
-       word++;                                        // get next word
+    // map may take multiple words -convert 1 at a time
+    while (len > 0) {
+	boolean doSkip = (offset == 0 && skipOneBit);  // skip a bit if first word and skipOneBit is set
+	int bitsToDo = doSkip ? BITS_PER_MAP_ELEMENT - 1 : BITS_PER_MAP_ELEMENT;
+	if (len < bitsToDo)                        
+	    bitsToDo = len;
+
+        byte result = convertMapElement(byteMap, offset, bitsToDo, refType);
+	if (doSkip)
+	    result = (byte)((0x000000ff & result) >>> 1);   // shift right to skip high bit for jsr to be consistent with normal maps
+        unusualReferenceMaps[word] = result;
+
+	len    -= bitsToDo;                // update remaining words
+	offset += bitsToDo;                // and offset
+	word++;                            // get next word
     }
 
-    // convert last word
-    unusualReferenceMaps[word] = convertMapElement(byteMap,offset, len, refType);
-
-     return mapslot;
+    return mapslot;
 
   }
 
@@ -1584,38 +1556,27 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   //   mapid is used to get the length of the map
   // output is in the extraunusual map
   //
-  private void copyBitMap ( int extramapindex, int index)
-    {
+  private void copyBitMap ( int extramapindex, int index) {
 
-      if (VM.TraceStkMaps)
-      {
-              VM.sysWrite(" copyBitMap from map index = ");
-              VM.sysWrite( index);
-              //VM.sysWrite("\n");
-              VM.sysWrite(" copyBitMap from value = ");
-              VM.sysWrite( unusualReferenceMaps[index]);
-              VM.sysWrite("\n");
+      if (VM.TraceStkMaps) {
+	  VM.sysWrite(" copyBitMap from map index = ");
+	  VM.sysWrite( index);
+	  VM.sysWrite(" copyBitMap from value = ");
+	  VM.sysWrite( unusualReferenceMaps[index]);
+	  VM.sysWrite("\n");
       }
 
       // copy the map over to the extra map
       for ( int i = 0; i < bytesPerMap; i++)
-	{
-          unusualReferenceMaps[extramapindex + i] = unusualReferenceMaps[index + i];
-	  //         index ++;
-	  //         extramapindex++;
-        }
+	  unusualReferenceMaps[extramapindex + i] = unusualReferenceMaps[index + i];
 
-     if (VM.TraceStkMaps)
-      {
-              VM.sysWrite(" extraUnusualBitMap index = ");
-              VM.sysWrite( extramapindex);
-              //VM.sysWrite("\n");
-              VM.sysWrite(" extraunusualBitMap value = ");
-              VM.sysWrite( unusualReferenceMaps[extramapindex]);
-              VM.sysWrite("\n");
+      if (VM.TraceStkMaps) {
+	  VM.sysWrite(" extraUnusualBitMap index = ");
+	  VM.sysWrite( extramapindex);
+	  VM.sysWrite(" extraunusualBitMap value = ");
+	  VM.sysWrite( unusualReferenceMaps[extramapindex]);
+	  VM.sysWrite("\n");
       }
-
-      return;
     }
 
 
@@ -1808,15 +1769,28 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       // merge the delta map into the jsr map
       for ( i = 0; i < bytesPerMap ; i++)
 	{
-          unusualReferenceMaps[mergedReferenceMap+i] =(byte)( unusualReferenceMaps[refMapIndex+i] |
-                                                          referenceMaps[jsrBaseMapIndex+i]);
-          byte temp = (byte)(~unusualReferenceMaps[nonRefMapIndex + i]);
-          unusualReferenceMaps[mergedReferenceMap+i] = (byte) (unusualReferenceMaps[mergedReferenceMap+i] & temp);
-	  unusualReferenceMaps[mergedReturnAddressMap+i] = (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] |
-                                                    unusualReferenceMaps[returnAddressMapIndex + i]);
+	    // jsrBaseMap use high bit of first byte for jsr bit; shift to compensate
+	    byte base = referenceMaps[jsrBaseMapIndex+i];
+	    byte nextBase = (i + 1 < bytesPerMap) ? referenceMaps[jsrBaseMapIndex+i+1] : 0;
+	    byte finalBase = (byte) ((base << 1) | ((0xff & nextBase) >>> 7));
+	    byte newRef = unusualReferenceMaps[refMapIndex+i];
+	    byte newNonRef = unusualReferenceMaps[nonRefMapIndex + i];
+	    byte res = (byte)((finalBase | newRef) & (~newNonRef));
+	    unusualReferenceMaps[mergedReferenceMap+i] = res;
+	    unusualReferenceMaps[mergedReturnAddressMap+i] = (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] |
+								    unusualReferenceMaps[returnAddressMapIndex + i]);
+	  /*
+	  VM.sysWrite("   **** base = "); VM.sysWrite(base);
+	  VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
+	  VM.sysWrite("     newRef = "); VM.sysWrite(newRef);
+	  VM.sysWrite("     newNonRef = "); VM.sysWrite(newNonRef);
+	  VM.sysWrite("     finalBase = "); VM.sysWrite(finalBase);
+	  VM.sysWrite("     res = "); VM.sysWrite(res);
+	  VM.sysWrite("\n");
+	  */
 	}
 
-     if ( VM.TraceStkMaps) {
+     if ( true || VM.TraceStkMaps) {
 	 //note this displays each byte as a word ... only look at low order byte
 	 VM.sysWrite("finalmergemaps-jsr total set2ref delta map  = " );
 	 for ( i = 0; i < bytesPerMap ; i++)
@@ -1830,7 +1804,8 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
 	 VM.sysWrite("              -jsr base map  = " );
 	 for ( i = 0; i < bytesPerMap ; i++)
-	     VM.sysWrite( unusualReferenceMaps[jsrBaseMapIndex + i]);
+	     // ORIGINAL VM.sysWrite( unusualReferenceMaps[jsrBaseMapIndex + i]);
+	     VM.sysWrite( referenceMaps[jsrBaseMapIndex + i]);
          VM.sysWrite( "\n");
 
          VM.sysWrite("              -combined merged ref map  = " );
@@ -1857,10 +1832,9 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
      if ( VM.TraceStkMaps)
          VM.sysWrite("VM_ReferenceMaps- cleanupPointers\n" );
      // clean out pointers ( they may point to temporary storage)
-     if (VM.DynamicReferenceMaps )
-     {
-        if ( VM.TraceStkMaps)
-                    showInfo();
+     if (VM.DynamicReferenceMaps) {
+	 if ( VM.TraceStkMaps)
+	     showInfo();
          unusualMaps      = null;
          extraUnusualMap  = null;
          MCSites          = null;
@@ -1868,7 +1842,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
          unusualReferenceMaps = null;
          return ;
      }
- }
+  }
 
 
   // This routine is used to find an Unusual map with an index 
@@ -1876,22 +1850,18 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   // it returns the index by doing a sequential scan and looking for the mapid 
   //  in the normal map directory
   //
-   int findUnusualMap(int mapid)
-  {
+  int findUnusualMap(int mapid) {
     int i;
       // greater than 127 map sites- can't use direct index.. 
       // do sequestial scan for rest of maps ..it's slow but should almost never happen
 
-      for ( i = JSR_INDEX_MASK; i < numberUnusualMaps; i++)
-	{
+    for ( i = JSR_INDEX_MASK; i < numberUnusualMaps; i++) {
         if ( unusualMaps[i].getNormalMapIndex() == mapid)
-          {
             break;
-	  }
-	} 
-        if ( i >= numberUnusualMaps)
-           VM.sysFail(" can't find jsr map - PANIC !!!!"); 
-      return i;
+    } 
+    if (i >= numberUnusualMaps)
+	VM.sysFail(" can't find jsr map - PANIC !!!!"); 
+    return i;
   }
 
 
@@ -1903,15 +1873,14 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   //
   public void showInfo()
   {
-     VM.sysWrite("showInfo- reference maps  \n");
+    VM.sysWrite("showInfo- reference maps  \n");
     int i,j;
 
-    if (MCSites == null) 
-       {
-         VM.sysWrite(" no MCSites array - assume using cached data - can't do showInfo()");
-         return;
-       }
- 
+    if (MCSites == null) {
+	VM.sysWrite(" no MCSites array - assume using cached data - can't do showInfo()");
+	return;
+    }
+    
     VM.sysWrite(" MCSites.length = ");
     VM.sysWrite( MCSites.length );
     VM.sysWrite(" mapCount = ");
@@ -1920,8 +1889,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     VM.sysWrite( local0Offset);
     VM.sysWrite("\n ");
 
-    for (i=0; i<mapCount; i++)
-    {
+    for (i=0; i<mapCount; i++) {
       VM.sysWrite("mapid = ");
       VM.sysWrite(i);
       VM.sysWrite(" - machine  code offset ");
@@ -1966,32 +1934,33 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     VM.sysWrite("-------------------------------------------------\n");
      VM.sysWrite("showUnusualMapInfo- map count = ");
      VM.sysWrite(mapCount);
+     VM.sysWrite("     numberUnusualMaps = ");
+     VM.sysWrite(numberUnusualMaps);
      VM.sysWrite("\n");
      int i,j;
 
-    for (i=0; i<numberUnusualMaps; i++)
-    {
-      VM.sysWrite("        ---------------------------------\n");
-      VM.sysWrite("info for Unusual map: ");
-      VM.sysWrite(i);
-      VM.sysWrite("\n");
+    for (i=0; i<numberUnusualMaps; i++) {
+      VM.sysWrite("-----------------\n");
+      VM.sysWrite("Unusual map #");
+      VM.sysWrite(i,false);
+      VM.sysWrite(":\n");
       unusualMaps[i].showInfo();
-      VM.sysWrite("------ reference Map:   ");
+      VM.sysWrite("    -- reference Map:   ");
       showAnUnusualMap(unusualMaps[i].getReferenceMapIndex());
       VM.sysWrite("\n");
-      VM.sysWrite("------ non-reference Map:   ");
+      VM.sysWrite("    -- non-reference Map:   ");
       showAnUnusualMap(unusualMaps[i].getNonReferenceMapIndex());
       VM.sysWrite("\n");
-      VM.sysWrite("------ returnAddress Map:   ");
+      VM.sysWrite("    -- returnAddress Map:   ");
       showAnUnusualMap(unusualMaps[i].getReturnAddressMapIndex());
       VM.sysWrite("\n");
     }
-      VM.sysWrite("------ extraUnusualMap:   ");
-      extraUnusualMap.showInfo();
-      showAnUnusualMap(extraUnusualMap.getReferenceMapIndex());
-      showAnUnusualMap(extraUnusualMap.getNonReferenceMapIndex());
-      showAnUnusualMap(extraUnusualMap.getReturnAddressMapIndex());
-      VM.sysWrite("\n");
+    VM.sysWrite("------ extraUnusualMap:   ");
+    extraUnusualMap.showInfo();
+    showAnUnusualMap(extraUnusualMap.getReferenceMapIndex());
+    showAnUnusualMap(extraUnusualMap.getNonReferenceMapIndex());
+    showAnUnusualMap(extraUnusualMap.getReturnAddressMapIndex());
+    VM.sysWrite("\n");
   }
 
   
@@ -1999,19 +1968,19 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
 
 
- //
+  //
   // show the basic information for a single unusualmap
   //    this is for testing use
   //
-  public void showAnUnusualMap(int mapIndex)
-  {
-    VM.sysWrite("show the unusualMap for index = ");
-    VM.sysWrite(mapIndex);
+  public void showAnUnusualMap(int mapIndex) {
+    VM.sysWrite("unusualMap with index = ");
+    VM.sysWrite(mapIndex, false);
     VM.sysWrite("   Map bytes =  ");
-    for (int i = 0; i < bytesPerMap; i++) 
+    for (int i = 0; i < bytesPerMap; i++) {
         VM.sysWrite(unusualReferenceMaps[mapIndex + i]);
-    VM.sysWrite("\n");
-
+	VM.sysWrite("   ");
+    }
+    VM.sysWrite("   ");
   }
 
   //
@@ -2108,16 +2077,14 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
          count++;
 
            offset = getNextRef(offset, i);
-	 /*******
             // display number of refs at each site - very noisy
-            if (offset ==0)
-            {
+	   if (offset ==0) {
 	      VM.sysWrite("  -----map machine code offset = ");
 	      VM.sysWrite(MCSites[i]);
 	      VM.sysWrite("    number of refs in this map = ");
               VM.sysWrite(count);
               VM.sysWrite("\n");
-	    } *********/
+	    }
 
       }
     }

@@ -125,3 +125,7 @@ V COMPILATION_QUEUE_SIZE int 20
 The size of the compilation queue
 
 
+V EARLY_EXIT_TIME int 1000
+Value of controller clock at which AOS should exit if EARLY_EXIT is true
+
+

@@ -256,7 +256,7 @@ export GENERATE_MAP=1
 BOOTIMAGE_LOAD_ADDRESS="0x30000000"
 
 # Current version of RVM
-JIKESRVM_VERSION="Jikes Research VM for Java 2.0.2"
+JIKESRVM_VERSION="Jikes Research VM for Java 2.0.3"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -511,7 +511,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction/operand
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/ir/util
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/codeReorder
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
@@ -1522,6 +1521,7 @@ function emitImageLinker
    print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
@@ -1565,7 +1565,7 @@ function emitImageLinker
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
-   if (( RVM_FOR_LINUX )); then
+   if (( RVM_FOR_IA32 )); then
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
@@ -1615,6 +1615,7 @@ function emitImageLinker
       if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
           print "   print '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[LVM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
           print "   print 'LOPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"

@@ -2,6 +2,8 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
 # Generate control files necessary to build a particular "configuration"
 # of the Research Virtual Machine and invoke the builder.
 #

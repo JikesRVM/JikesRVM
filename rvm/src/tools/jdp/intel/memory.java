@@ -657,8 +657,7 @@ abstract class memory implements jdpConstants, VM_Constants
    * Java stack frame is labeled as followed:
    *  high addr   FP this frame        
    *              method ID
-   *              (temp entry, no content)
-   *              saved JTOC
+   *              saved EDI
    *              ...
    *              local and spill 
    *              return Address
@@ -749,9 +748,7 @@ abstract class memory implements jdpConstants, VM_Constants
 	       " : " + dataAtEntry(fpTop-4)  + "   method ID " + 
 	       read(fpTop-4) + "\n");
     ret.append("   " + Integer.toHexString(fpTop-8) + 
-	       " : " + dataAtEntry(fpTop-8)  + "   (temp entry)\n");
-    ret.append("   " + Integer.toHexString(fpTop-12) + 
-	       " : " + dataAtEntry(fpTop-12) + "   saved JTOC \n");
+	       " : " + dataAtEntry(fpTop-8)  + "   (saved EDI)\n");
     
     if (fpBottom==0) {
       ret.append("   ...frame bottom unknown... \n");

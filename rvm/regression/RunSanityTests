@@ -361,12 +361,16 @@ function doRun
      # gather performance data, if appropriate
      if [ x$PERFORMANCE != x ]; then
 	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
-	LIMIT=`expr 2700 '*' $NUM_PROCS`
+	LIMIT_RAW=`cat TimeLimit.performance`
 	echo "Performance mode: results to $PERFORMANCE"
      else
-	LIMIT=`expr 1800 '*' $NUM_PROCS`
+	LIMIT_RAW=`cat TimeLimit.sanity`
 	PERFORMANCE_STR=
-    fi
+     fi
+     # the following was necessary for cpu time limits
+     # we now use wall clock time
+     # LIMIT=`expr $LIMIT_RAW '*' $NUM_PROCS`
+     LIMIT=$LIMIT_RAW
 
     # pass on opt. level information, if given
     if [ x$OPT_LEVEL != x ]; then
@@ -397,15 +401,15 @@ function doRun
     fi
 
     . $RVM_BUILD/environment
-    $RVM_ROOT/rvm/regression/limited.ksh $LIMIT $GNU_MAKE $FLAGS \
+    $RVM_ROOT/rvm/regression/limited.sh $LIMIT "$GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
-           JBOOT=$RVM_ROOT/rvm/bin/rvm\
+           JBOOT=$RVM_ROOT/rvm/bin/rvm \
 	   SUFFIX=$SUFFIX \
-           PROCESSORS="$NUM_PROCS"\
-           RC_ARGS="$RC_ARGS $EXTRA_RC_ARGS"\
-           JAVA_PACKAGES=$RVM_BUILD/RVM.classes\
+           PROCESSORS=\"$NUM_PROCS\" \
+           RC_ARGS=\"$RC_ARGS $EXTRA_RC_ARGS\" \
+           JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
-           clean sanity 
+           clean sanity"
 
     # record status
     test_status=$?

@@ -16,6 +16,8 @@ jdp commands 	- commands, macro (text from typing "help" in jdp)
 
 Debugging tips 	- useful debugging tricks
 
+You may find the information on jdp presented in the userguide is more
+update and easier to work with.
 
 @author: Ton Ngo
 
@@ -205,7 +207,8 @@ verbose       toggle verbose mode
 (macro name)  load and execute this macro (a text file with suffix .jdp)
 (enter)       repeat last command
 
-To get more information on a specific command, type: 
+To get more information on a specific command (including what arguments it
+processes), type: 
         help thiscommand
 
 
@@ -236,11 +239,14 @@ Debugging tips
 
 o Compiling with local variables:
   The default boot image is built without the local variable tables; 
-  therefore the "p" command would always display no variable in scope.  
+  therefore the "p" command would always display no variable in scope.
+  The local variable tables are only supported with the baseline compiler.
   To get local variables:
 	jmake bootImageWithLocal
   or set this flag to true in your local shadow:
-	VM_Control.LoadLocalVariableTables
+	VM_Properties.LoadLocalVariableTables
+  prior to building with jbuild. Be sure to run jbuild -clean if you have
+  a previous build.
 
 
 o Setting breakpoint:

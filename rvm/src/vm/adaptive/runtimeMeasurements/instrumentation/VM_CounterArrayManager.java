@@ -190,27 +190,11 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
 
     
     OPT_Operand incOperand = InstrumentedCounter.getIncrement(counterInst);
-    OPT_RegisterOperand incValReg = null;
-    if (incOperand instanceof OPT_RegisterOperand) {
-      // Get the increment value.  If the counters were inserted in HIR,
-      // the double will have been lowered and thus will be an
-      // OPT_RegisterOperand.
-      incValReg = (OPT_RegisterOperand) InstrumentedCounter.
-	getIncrement(counterInst);
-    } else {
-      // If the counter was inserted in LIR, it needs to be
-      // materialized manually.
-      incValReg = ir.regpool.makeTemp(VM_Type.DoubleType);
-      counterInst.insertBefore(Binary.create(MATERIALIZE_CONSTANT, incValReg,
-					     ir.regpool.makeJTOCOp(ir,counterInst),
-					     incOperand));
-    }
-
     // Insert increment instruction
     OPT_RegisterOperand newValue =
       OPT_ConvertToLowLevelIR.InsertBinary(counterInst, ir, DOUBLE_ADD,
                                            VM_Type.DoubleType, origVal,
-                                           incValReg.copyD2U());
+                                           incOperand.copy());
 
     // Store it
     OPT_Instruction store = AStore.mutate(counterInst,DOUBLE_ASTORE,

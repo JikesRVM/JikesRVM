@@ -110,18 +110,17 @@ class VM_UnusualMaps {
 
   public void showInfo()
   {
-     VM.sysWrite("UnusualMap showInfo- ");
+      VM.sysWrite("  UnusualMap showInfo- ");
 
-
-      VM.sysWrite(" return address offsetbyte = ");
+      VM.sysWrite("    return address offsetbyte = ");
       VM.sysWrite(returnAddressOffset);
-      VM.sysWrite("\n referenceMapIndex = ");
+      VM.sysWrite("\n    referenceMapIndex = ");
       VM.sysWrite(referenceMapIndex);
-      VM.sysWrite("\n nonReferenceMapIndex = ");
+      VM.sysWrite("\n    nonReferenceMapIndex = ");
       VM.sysWrite(nonReferenceMapIndex);
-      VM.sysWrite("\n returnAddressMapIndex = ");
+      VM.sysWrite("\n    returnAddressMapIndex = ");
       VM.sysWrite(returnAddressMapIndex);
-      VM.sysWrite("\n ");
+      VM.sysWrite("\n");
 
 
 

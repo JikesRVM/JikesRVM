@@ -194,7 +194,44 @@ public class Platform implements jdpConstants {
     return new Integer(data).shortValue();
   }
 
+  /**
+   * Read a long (two words) from memory
+   * @param address a random address 
+   * @return
+   * @exception
+   * @see
+   */
+  public static long readLong(int address) {
+    int mappedFieldValue = readmem(address);
+    int mappedFieldValue1 = readmem(address+4);
+    long newlong;
+    newlong = mappedFieldValue1;
+    newlong = (newlong << 32);
+    newlong |= ((long)mappedFieldValue) & 0xFFFFFFFFL;;
+    return newlong;
+  }
 
+  /**
+   * Read a double (two words) from memory
+   * @param address a random address 
+   * @return
+   * @exception
+   * @see
+   */
+  public static double readDouble(int address) {
+    int mappedFieldValue = readmem(address);
+    int mappedFieldValue1 = readmem(address+4);
+    double newdouble;
+    long templong;
+    
+    templong = mappedFieldValue1;
+    templong = (templong << 32);
+    templong |= ((long)mappedFieldValue) & 0xFFFFFFFFL;;
+    newdouble = Double.longBitsToDouble(templong);
+    return newdouble;
+  }
+
+  
 
   /********************************************************************
    * for registerExternal.java 
@@ -311,5 +348,13 @@ public class Platform implements jdpConstants {
     return (address + instrLength[0]); 
   }
 
-
+  /********************************************************************
+   * for Debugger.java
+   **/
+  public static final int initialbp_offset = 9;
+  public static final int stepbrImplemented = 0; // not implemented yet
+  public static final int cthreadImplemented = 0; // not implemented yet
+  public static final int listtRunImplemented = 0; // not implemented yet
+  public static final int listtSystemImplemented = 0; // not implemented yet
+  public static final String extraRegNames = "IP PR (same as esi) JT (same as edi) \n";
 }

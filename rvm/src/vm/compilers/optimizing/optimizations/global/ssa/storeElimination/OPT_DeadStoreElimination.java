@@ -361,12 +361,10 @@ class OPT_DeadStoreSystem extends OPT_DF_System
           processExit(s); 
         else if (s.isPEI())
           processExit(s);
-        //-#if RVM_FOR_POWERPC
-        else if (s.operator() == ISYNC)
+        else if (s.operator() == READ_CEILING)
           processCall(s); 
-        else if (s.operator() == SYNC)
+        else if (s.operator() == WRITE_FLOOR)
           processCall(s);
-        //-#endif
         else 
           throw  new OPT_OptimizingCompilerException(
               "DeadStoreElimination: unexpected operator "

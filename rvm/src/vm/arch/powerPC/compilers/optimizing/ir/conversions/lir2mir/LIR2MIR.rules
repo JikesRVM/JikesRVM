@@ -1521,12 +1521,12 @@ EMIT_INSTRUCTION
 CMP(burs, P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)), false);
 
 #
-r:	SYNC
+r:	WRITE_FLOOR
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Empty.mutate(P(p), PPC_SYNC));
 
-r:	ISYNC
+r:	READ_CEILING
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Empty.mutate(P(p), PPC_ISYNC));
