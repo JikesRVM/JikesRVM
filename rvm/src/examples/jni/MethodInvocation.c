@@ -10,6 +10,8 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>             /* malloc() */
+#include <math.h>               /* fabs() */
 
 #include "MethodInvocation.h"
 #include <jni.h>
@@ -261,7 +263,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethodA
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallStaticObjectMethodA: return %d\n", returnObjectValue);
+        printf("> FAIL CallStaticObjectMethodA: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -544,7 +546,7 @@ int invokeStaticMethodV_part2(JNIEnv *env, jclass cls, jobject objArg, ...) {
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallStaticObjectMethodV: return %d\n", returnObjectValue);
+        printf("> FAIL CallStaticObjectMethodV: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -837,7 +839,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeStaticMethod
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallStaticObjectMethod: return %d\n", returnObjectValue);
+        printf("> FAIL CallStaticObjectMethod: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -1103,7 +1105,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethodA
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallObjectMethodA: return %d\n", returnObjectValue);
+        printf("> FAIL CallObjectMethodA: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -1384,7 +1386,7 @@ int invokeVirtualMethodV_part2(JNIEnv *env, jclass cls, jobject objTarget, jobje
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallObjectMethodV: return %d\n", returnObjectValue);
+        printf("> FAIL CallObjectMethodV: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -1676,7 +1678,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeVirtualMethod
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallObjectMethod: return %d\n", returnObjectValue);
+        printf("> FAIL CallObjectMethod: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -1952,7 +1954,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethodA
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallNonvirtualObjectMethodA: return %d\n", returnObjectValue);
+        printf("> FAIL CallNonvirtualObjectMethodA: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -2241,7 +2243,7 @@ int invokeNonVirtualMethodV_part2(JNIEnv *env, jclass cls, jobject objTarget, jo
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallNonvirtualObjectMethodV: return %d\n", returnObjectValue);
+        printf("> FAIL CallNonvirtualObjectMethodV: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }
@@ -2541,7 +2543,7 @@ JNIEXPORT jint JNICALL Java_MethodInvocation_invokeNonVirtualMethod
     matched = (*env) -> IsInstanceOf(env, returnObjectValue, checkClass);
     if (!matched) {
       if (verbose) 
-        printf("> FAIL CallNonvirtualObjectMethod: return %d\n", returnObjectValue);
+        printf("> FAIL CallNonvirtualObjectMethod: return %p\n", returnObjectValue);
       summary = 1;         
     }
   }

@@ -51,7 +51,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticIntField
 
   si = (*env) -> GetStaticIntField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticIntField: field ID = %d \n", fid);
+    printf("> accessStaticIntField: field ID = %p \n", fid);
     printf(">           read field staticInt = %d \n", si);
   }
 
@@ -81,7 +81,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticBooleanField
 
   val = (*env) -> GetStaticBooleanField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticBooleanField: field ID = %d \n", fid);
+    printf("> accessStaticBooleanField: field ID = %p \n", fid);
     printf(">           read field staticBoolean = %d \n", val);
   }
 
@@ -112,7 +112,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticByteField
 
   val = (*env) -> GetStaticByteField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticByteField: field ID = %d \n", fid);
+    printf("> accessStaticByteField: field ID = %p \n", fid);
     printf(">           read field staticByte = %d \n", val);
   }
 
@@ -142,7 +142,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticCharField
 
   val = (*env) -> GetStaticCharField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticCharField: field ID = %d \n", fid);
+    printf("> accessStaticCharField: field ID = %p \n", fid);
     printf(">           read field staticChar = %c \n", val);
   }
 
@@ -172,7 +172,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticShortField
 
   val = (*env) -> GetStaticShortField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticShortField: field ID = %d \n", fid);
+    printf("> accessStaticShortField: field ID = %p \n", fid);
     printf(">           read field staticShort = %d \n", val);
   }
 
@@ -202,7 +202,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticLongField
 
   val = (*env) -> GetStaticLongField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticLongField: field ID = %d \n", fid);
+    printf("> accessStaticLongField: field ID = %p \n", fid);
     printf(">           read field staticLong = 0x%X \n", (int) val);
   }
 
@@ -232,7 +232,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticFloatField
 
   val = (*env) -> GetStaticFloatField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticFloatField: field ID = %d \n", fid);
+    printf("> accessStaticFloatField: field ID = %p \n", fid);
     printf(">           read field staticFloat = %2.3f \n", val);
   }
 
@@ -263,7 +263,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticDoubleField
 
   val = (*env) -> GetStaticDoubleField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticDoubleField: field ID = %d \n", fid);
+    printf("> accessStaticDoubleField: field ID = %p \n", fid);
     printf(">           read field staticDouble = %3.3f \n", val);
   }
 
@@ -295,15 +295,15 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessStaticObjectField
 
   obj = (*env) -> GetStaticObjectField(env, cls, fid);
   if (verbose) {
-    printf("> accessStaticObjectField: field ID = %d \n", fid);
-    printf(">           read field staticObject = %d \n", obj);
+    printf("> accessStaticObjectField: field ID = %p \n", fid);
+    printf(">           read field staticObject = %p \n", obj);
   }
 
   /* For object, check if it's an instance of the class FieldAccess */
   objClass = (*env) -> FindClass(env, "FieldAccess");
   if (verbose) {
-    printf("> accessStaticObjectField: jnienv = %d, jclass = %d \n", env, cls);
-    printf("> accessStaticObjectField: class ref = %d \n", objClass);  
+    printf("> accessStaticObjectField: jnienv = %p, jclass = %p \n", env, cls);
+    printf("> accessStaticObjectField: class ref = %p \n", objClass);  
   }
   matchClass = (*env) -> IsInstanceOf(env, obj, objClass);
   if (matchClass)
@@ -338,7 +338,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessIntField
 
   fval = (*env) -> GetIntField(env, obj, fid);
   if (verbose) {
-    printf("> accessIntField: field ID = %d \n", fid);
+    printf("> accessIntField: field ID = %p \n", fid);
     printf(">   read field instanceInt = %d \n", fval);
   }
 
@@ -367,7 +367,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessBooleanField
 
   fval = (*env) -> GetBooleanField(env, obj, fid);
   if (verbose) {
-    printf("> accessBooleanField: field ID = %d \n", fid);
+    printf("> accessBooleanField: field ID = %p \n", fid);
     printf(">   read field instanceBoolean = %d \n", fval);
   }
 
@@ -397,7 +397,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessByteField
 
   fval = (*env) -> GetByteField(env, obj, fid);
   if (verbose) {
-    printf("> accessByteField: field ID = %d \n", fid);
+    printf("> accessByteField: field ID = %p \n", fid);
     printf(">   read field instanceByte = %d \n", fval);
   }
 
@@ -428,7 +428,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessCharField
 
   fval = (*env) -> GetCharField(env, obj, fid);
   if (verbose) {
-    printf("> accessCharField: field ID = %d \n", fid);
+    printf("> accessCharField: field ID = %p \n", fid);
     printf(">   read field instanceChar = %c \n", fval);
   }
 
@@ -459,7 +459,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessShortField
 
   fval = (*env) -> GetShortField(env, obj, fid);
   if (verbose) {
-    printf("> accessShortField: field ID = %d \n", fid);
+    printf("> accessShortField: field ID = %p \n", fid);
     printf(">   read field instanceShort = %d \n", fval);
   }
 
@@ -490,8 +490,8 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessLongField
 
   fval = (*env) -> GetLongField(env, obj, fid);
   if (verbose) {
-    printf("> accessLongField: field ID = %d \n", fid);
-    printf(">   read field instanceLong = 0x%X \n", (int) fval);
+    printf("> accessLongField: field ID = %p \n", fid);
+    printf(">   read field instanceLong = 0x%lld \n", (long long) fval);
   }
 
   if (fval==135l)
@@ -521,7 +521,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessFloatField
 
   fval = (*env) -> GetFloatField(env, obj, fid);
   if (verbose) {
-    printf("> accessFloatField: field ID = %d \n", fid);
+    printf("> accessFloatField: field ID = %p \n", fid);
     printf(">   read field instanceFloat = %2.3f \n", fval);
   }
 
@@ -552,7 +552,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessDoubleField
 
   fval = (*env) -> GetDoubleField(env, obj, fid);
   if (verbose) {
-    printf("> accessDoubleField: field ID = %d \n", fid);
+    printf("> accessDoubleField: field ID = %p \n", fid);
     printf(">   read field instanceDouble = %4.3f \n", fval);
   }
 
@@ -586,15 +586,15 @@ JNIEXPORT jint JNICALL Java_FieldAccess_accessObjectField
 
   fieldObj = (*env) -> GetObjectField(env, obj, fid);
   if (verbose) {
-    printf("> accessObjectField: field ID = %d \n", fid);
-    printf(">           read field instanceObject = %d \n", fieldObj);
+    printf("> accessObjectField: field ID = %p \n", fid);
+    printf(">           read field instanceObject = %p \n", fieldObj);
   }
 
   /* For object, check if it's an instance of the class FieldAccess */
   objClass = (*env) -> FindClass(env, "FieldAccess");
   /*  printf("> accessObjectField: jnienv = %d, jclass = %d \n", env, cls); */
   if (verbose) {
-    printf("> accessObjectField: class ref = %d \n", objClass);  
+    printf("> accessObjectField: class ref = %p \n", objClass);  
   }
   matchClass = (*env) -> IsInstanceOf(env, fieldObj, objClass);
   if (matchClass)
@@ -624,7 +624,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticIntField
 
   (*env) -> SetStaticIntField(env, cls, fid, 456);
   if (verbose) {
-    printf("> setStaticIntField: field ID = %d \n", fid);
+    printf("> setStaticIntField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -650,7 +650,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticBooleanField
 
   (*env) -> SetStaticBooleanField(env, cls, fid, JNI_FALSE);
   if (verbose) {
-    printf("> setStaticBooleanField: field ID = %d \n", fid);
+    printf("> setStaticBooleanField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -677,7 +677,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticByteField
 
   (*env) -> SetStaticByteField(env, cls, fid, 24);
   if (verbose) {
-    printf("> setStaticByteField: field ID = %d \n", fid);
+    printf("> setStaticByteField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -704,7 +704,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticCharField
 
   (*env) -> SetStaticCharField(env, cls, fid, 'b');
   if (verbose) {
-    printf("> setStaticCharField: field ID = %d \n", fid);
+    printf("> setStaticCharField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -731,7 +731,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticShortField
 
   (*env) -> SetStaticShortField(env, cls, fid, 76);
   if (verbose) {
-    printf("> setStaticShortField: field ID = %d \n", fid);
+    printf("> setStaticShortField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -758,7 +758,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticLongField
 
   (*env) -> SetStaticLongField(env, cls, fid, 357l);
   if (verbose) {
-    printf("> setStaticLongField: field ID = %d \n", fid);
+    printf("> setStaticLongField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -786,7 +786,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticFloatField
   /* Need to convert to float because C constants are double by default */
   (*env) -> SetStaticFloatField(env, cls, fid, (float).234);
   if (verbose) {
-    printf("> setStaticFloatField: field ID = %d \n", fid);
+    printf("> setStaticFloatField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -813,7 +813,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticDoubleField
 
   (*env) -> SetStaticDoubleField(env, cls, fid, 123.456);
   if (verbose) {
-    printf("> setStaticDoubleField: field ID = %d \n", fid);
+    printf("> setStaticDoubleField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -840,7 +840,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setStaticObjectField
 
   (*env) -> SetStaticObjectField(env, cls, fid, extraObj);
   if (verbose) {
-    printf("> setStaticObjectField: field ID = %d \n", fid);
+    printf("> setStaticObjectField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -868,7 +868,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setIntField
 
   (*env) -> SetIntField(env, obj, fid, 789);
   if (verbose) {
-    printf("> setIntField: field ID = %d \n", fid);
+    printf("> setIntField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -895,7 +895,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setBooleanField
 
   (*env) -> SetBooleanField(env, obj, fid, JNI_TRUE);
   if (verbose) {
-    printf("> setBooleanField: field ID = %d \n", fid);
+    printf("> setBooleanField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -922,7 +922,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setByteField
 
   (*env) -> SetByteField(env, obj, fid, 77);
   if (verbose) {
-    printf("> setByteField: field ID = %d \n", fid);
+    printf("> setByteField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -949,7 +949,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setCharField
 
   (*env) -> SetCharField(env, obj, fid, 'q');
   if (verbose) {
-    printf("> setCharField: field ID = %d \n", fid);
+    printf("> setCharField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -976,7 +976,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setShortField
 
   (*env) -> SetShortField(env, obj, fid, 25);
   if (verbose) {
-    printf("> setShortField: field ID = %d \n", fid);
+    printf("> setShortField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -1003,7 +1003,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setLongField
 
   (*env) -> SetLongField(env, obj, fid, 345l);
   if (verbose) {
-    printf("> setLongField: field ID = %d \n", fid);
+    printf("> setLongField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -1030,7 +1030,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setFloatField
 
   (*env) -> SetFloatField(env, obj, fid, (float).789);
   if (verbose) {
-    printf("> setFloatField: field ID = %d \n", fid);
+    printf("> setFloatField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -1057,7 +1057,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setDoubleField
 
   (*env) -> SetDoubleField(env, obj, fid, 234.456);
   if (verbose) {
-    printf("> setDoubleField: field ID = %d \n", fid);
+    printf("> setDoubleField: field ID = %p \n", fid);
   }
 
   return 0;
@@ -1084,7 +1084,7 @@ JNIEXPORT jint JNICALL Java_FieldAccess_setObjectField
 
   (*env) -> SetObjectField(env, targetObj, fid, extraObject);
   if (verbose) {
-    printf("> setObjectField: field ID = %d \n", fid);
+    printf("> setObjectField: field ID = %p \n", fid);
   }
 
   return 0;

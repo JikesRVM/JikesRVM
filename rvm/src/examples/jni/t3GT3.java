@@ -28,7 +28,7 @@ class t3GT3 {
     static Object syncher2 = new Object();
     static boolean sanity = false;
     
-    public static native int nativeBlocking(int time);
+  public static native void nativeBlocking(int time);
     
     public static void main(String args[]) {
 

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include "ArrayFunctions.h"
 #include <jni.h>
+#include <stdlib.h>             /* malloc() prototype */
 
 int verbose=1;
 char *savedArrayPointer;
@@ -846,13 +847,13 @@ JNIEXPORT jfloatArray JNICALL Java_ArrayFunctions_testFloatArrayElements
  */
 JNIEXPORT jobject JNICALL Java_ArrayFunctions_testObjectArrayElement
   (JNIEnv *env, jclass cls, jobjectArray sourceArray, jobject toAssign, 
-   jint index) {
+   jint index_) {
 
   /* get the current element */
-  jobject previous = (*env) -> GetObjectArrayElement(env, sourceArray, index);
+  jobject previous = (*env) -> GetObjectArrayElement(env, sourceArray, index_);
 
   /* change the element at this index */
-  (*env) -> SetObjectArrayElement(env, sourceArray, index, toAssign);
+  (*env) -> SetObjectArrayElement(env, sourceArray, index_, toAssign);
   
   return previous;
 
