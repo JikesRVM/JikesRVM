@@ -11,7 +11,7 @@ JCOMPILE=$(JCOMPILE_RVM)
 # all compiled codes go here
 TOOLS_DIR:=$(RVM_BUILD)/Jalapeno.tools
 
-CLASSPATH:=$(RVM_BUILD)/Jalapeno.scratch:$(RVM_BUILD)/Jalapeno.classes:$(RVM_BUILD)/Jalapeno.classes/classes.zip
+CLASSPATH:=$(RVM_BUILD)/Jalapeno.scratch:$(RVM_BUILD)/Jalapeno.classes:$(RVM_BUILD)/Jalapeno.classes/rvmrt.jar
 
 .SUFFIXES:	.java .class
 

@@ -54,7 +54,7 @@ fi
 
 if [[ $* = "" ]]
 then
-  $HOST_JAVA_RT -classpath $RVM_ROOT/src/tools/jdp jdp -help
+  $HOST_JAVA_RT -classpath $RVM_ROOT/rvm/src/tools/jdp jdp -help
    exit 1
 fi
 
@@ -64,7 +64,7 @@ if [[ $RVM_BUILD = "" ]]; then
 fi
 
 if [[ ! -a $RVM_BUILD/Jalapeno.map ]]; then
-   print "$ME: Jalapeno.map does not exist, make sure GENERATE_MAP=1 for your configuration in $RVM_ROOT/bin/jconfigure"
+   print "$ME: Jalapeno.map does not exist, make sure GENERATE_MAP=1 for your configuration in $RVM_ROOT/rvm/bin/jconfigure"
    exit 1
 fi
 
@@ -83,7 +83,7 @@ if [[ ! -a $RVM_BUILD/Jalapeno.tools/jdp.class ]];
     mkdir Jalapeno.tools
   fi
 
-  cd $RVM_ROOT/src/tools/jdp
+  cd $RVM_ROOT/rvm/src/tools/jdp
   $GNU_MAKE copy_$ARCH
   if [[ $? != 0 ]]
     then
@@ -107,7 +107,7 @@ fi
 export LIBPATH=$RVM_BUILD/Jalapeno.tools:.
 export LD_LIBRARY_PATH=$RVM_BUILD/Jalapeno.tools:.
 
-JDP_CLASSPATH=$RVM_BUILD/Jalapeno.tools:$RVM_BUILD/Jalapeno.scratch:$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/classes.zip:.
+JDP_CLASSPATH=$RVM_BUILD/Jalapeno.tools:$RVM_BUILD/Jalapeno.scratch:$RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/rvmrt.jar:.
 
 
 #****************************************************************************
@@ -135,7 +135,7 @@ BOOTER_ARGS=""
 
 OTHER_ARGS="-X:vmClasses=$RVM_BUILD/Jalapeno.classes -classpath ."
 
-JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $JALAPENO_IMAGE  -classpath $RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/classes.zip:. "
+JDP_ARGS="-jdpbreakpoint $BOOTER_BREAKPOINT -jdpbootrunner $BOOTER -n $CLASSESNEEDED -i $JALAPENO_IMAGE  -classpath $RVM_BUILD/Jalapeno.classes:$RVM_BUILD/Jalapeno.classes/rvmrt.jar:. "
 
 
 START_OF_APPLICATION_ARGS_SEEN=0
