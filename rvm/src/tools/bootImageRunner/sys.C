@@ -2532,6 +2532,7 @@ int selectInterrupts = 0;
 int acceptInterrupts = 0;
 int connectInterrupts = 0;
 
+#if RVM_WITH_UNUSED_SYSCALLS
 // Get network name of machine we're running on.
 // Taken:    buffer in which to place results
 //           buffer size
@@ -2681,6 +2682,7 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
     return i;
 }
 #endif
+#endif // RVM_WITH_UNUSED_SYSCALLS
 
 // Create a socket, unassociated with any particular address + port.
 // Taken:    kind of socket to create (0: datagram, 1: stream)

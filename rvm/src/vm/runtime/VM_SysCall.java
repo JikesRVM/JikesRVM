@@ -201,6 +201,7 @@ public class VM_SysCall implements Uninterruptible {
   public static Address sysDlsym(Address libHandler, byte[] symbolName) { return null; }
   public static void sysSlibclean() {}
 
+  //-#if RVM_WITH_UNUSED_SYSCALLS
   // network
   public static int sysNetLocalHostName(Address buf, int limit) {
     return 0;
@@ -214,6 +215,8 @@ public class VM_SysCall implements Uninterruptible {
                                         int limit) {
     return 0;
   }
+  //-#endif
+
   public static int sysNetSocketCreate(int isStream) { return 0; }
   public static int sysNetSocketPort(int fd) { return 0; }
   public static int sysNetSocketSndBuf(int fd) { return 0; }

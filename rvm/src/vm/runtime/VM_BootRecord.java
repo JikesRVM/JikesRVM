@@ -297,9 +297,11 @@ public class VM_BootRecord {
   Address sysSlibcleanIP;
 
   // network
+  //-#if RVM_WITH_UNUSED_SYSCALLS
   public Address sysNetLocalHostNameIP;
   public Address sysNetRemoteHostNameIP;
   public Address sysNetHostAddressesIP;
+  //-#endif
   public Address sysNetSocketSndBufIP;
   public Address sysNetSocketCreateIP;
   public Address sysNetSocketPortIP;
