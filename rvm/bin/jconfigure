@@ -1457,9 +1457,18 @@ EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    cd $CLASSES_DIRECTORY_STR
 	    rm -f $TOP_LEVEL_CLASSES
-	    $HOST_JIKES_STR -nowarn -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES
-	    echo -n '(classes compiled) '
-
+	    jikes_invocation="$HOST_JIKES_STR -nowarn -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
+	    $(emit_disable_exit_on_error)
+	    if $HOST_JIKES_STR -nowarn -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES; then
+		echo -n '(classes compiled) '
+	    else
+		status=\$?
+		echo >&2 "\$ME: The Jikes compiler exited with status \${status} while we were building the source file(s): $TOP_LEVEL_SOURCES"
+		echo >&2 "\$ME: We invoked the Jikes compiler in the directory $CLASSES_DIRECTORY_STR"
+		echo >&2 "\$ME: With the command-line: \$jikes_invocation"
+		exit \$status
+	    fi
+	    $(emit_enable_exit_on_error)
 	    rm -f jksvm.jar
 	    ## The Sun JAR manual page claims that '-O' is the flag for
 	    ## no-compression.  It's actually '0' (zero), not the letter 'O'.
