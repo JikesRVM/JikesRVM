@@ -16,9 +16,13 @@ class FixedLive {
   static Node2I2A junk;
 
   public static void main(String args[])  throws Throwable {
-    if (args.length != 1)
-      System.out.println("Usage: Node2I2A <live data in megabytes>");
-    liveSize = Integer.parseInt(args[0]);
+    boolean base = true;
+    if (args.length == 0)
+      System.out.println("No argument.  Assuming base");
+    if (args[0].compareTo("opt") == 0 ||
+	args[0].compareTo("perf") == 0)
+      base = true;
+    liveSize = base ? 30 : 100;
     if (liveSize < 0)
       System.out.println("Amount of live data must be positive");
     runTest();
@@ -81,8 +85,8 @@ class FixedLive {
     avgAllocRate = chop(avgAllocRate);
     rmsTraceRate = chop(rmsTraceRate);
     rmsAllocRate = chop(rmsAllocRate);
-    zTraceRate = chop(rmsTraceRate);
-    zAllocRate = chop(rmsAllocRate);
+    zTraceRate = chop(zTraceRate);
+    zAllocRate = chop(zAllocRate);
   }
 
   public static void showResults() {
