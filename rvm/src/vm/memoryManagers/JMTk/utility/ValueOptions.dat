@@ -65,7 +65,7 @@ if (val <= 0) VM_Interface.sysFail("Unreasonable time cap " + val);
 
 
 V stressPages int MAX_INT stressFactor
-Log 2 of the frequency with which to force stress test collections
+Log 2 of the frequency (in bytes) with which to force stress test collections
 int val2 = Conversions.bytesToPagesUp(1<<val); \
 if (val2 <= Plan.DEFAULT_POLL_FREQUENCY) VM_Interface.sysFail("Unreasonable stress factor, must be at least equal to the log of the plan's poll frequency"); \
 val = val2;
