@@ -4,13 +4,33 @@ coding style guidelines that we recommend for all Java code added to
 the Jikes\trademark RVM system.
 
 Regrettably, much code in the current system does not follow any
-consistent coding style.  This is an unfortunate residue of the
+consistent coding style.  This is an unfortunate residuum of the
 system's evolution.  It makes editing sometimes unpleasant, and
 prevents Javadoc from formatting comments in many files.  To alleviate
 this problem, we present this style guide for new Java code; it's just
 a small tweak of Sun's style guide.
 
 %   
+Every file needs to have a header with a copyright notice, a Javadoc
+{\tt @author} tag, and an RCS/CVS {\tt \$Id\$} entry. There may be
+multiple Javadoc {\tt @author} tags, and there may
+additionally be a {\tt @modified} tag for someone who modified code but
+doesn't want to claim co-authorship.  ({\tt @modified} is our own
+extended tag.)  There is usually also a Javadoc {\tt @date} field for
+the date of authorship.  An example of the notices follow.  You can
+just cut-and-paste one from an existing source file.
+
+We add the Javadoc authorship tags even to non-Java source files, such
+as shell scripts and C programs.
+\begin{example}
+\tt{}/*
+ * (C) Copyright IBM Corp 2003
+ * \${}Id{}: SourceFile.java,v 1.105 2003/07/14 22:41:44 augart-oss Exp \$
+ * @author Steven Augart
+ * @date 10 July 2003
+ */
+\end{example}
+
 
 \index{Coding Style}
 \index{Java source code style}
