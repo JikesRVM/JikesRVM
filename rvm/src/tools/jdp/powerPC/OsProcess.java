@@ -519,7 +519,11 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       else {
 	System.out.println("Unexpected signal: " + statusMessage(e.status) + ", " + (e.status));
 	System.out.println("...type cont/step to continue with this signal");
-	printCurrentStatus(printMode);	
+	if (printMode != PRINTNONE) {
+	  printCurrentStatus(PRINTASSEMBLY);  // don't use PRINTSOURCE as
+                                              // it may be too hard to find
+                                              // source location
+	}
       }
     }
 
