@@ -19,12 +19,18 @@ LINKEDLIST_KLUDGE_CLASSES = java/util/LinkedList* java/util/List*
 BUNDLE_KLUDGE_CLASSES = java/util/ResourceBundle* java/util/Locale*
 UTIL_KLUDGE_CLASSES = $(ZIP_KLUDGE_CLASSES) $(MAP_KLUDGE_CLASSES) $(TREEMAP_KLUDGE_CLASSES) $(LINKEDLIST_KLUDGE_CLASSES) $(BUNDLE_KLUDGE_CLASSES)
 UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
-UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
+UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/utility_kludge.jar
 
 $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
-	cd $(SCRATCH_DIR); $(UNZIP_CMD) -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
-	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
-	@echo -n "(built workaround zip) "
+#	cd $(SCRATCH_DIR); $(UNZIP_CMD) -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
+# -U: Maintain uppercase MS-DOS file names if we need to.
+# -o: Overwrite if we need to.  (I think -f might be better)
+# 
+#  > /dev/null 2> /dev/null
+#  > /dev/null 2> /dev/null
+	cd $(SCRATCH_DIR); $(UNZIP_CMD) -foqq $< $(UTIL_KLUDGE_EXTRACT)
+	cd $(SCRATCH_DIR); $(HOST_JAR) -cf $@ $(UTIL_KLUDGE_CLASSES)
+	@echo -n "(built $$(basename ${UTIL_KLUDGE_JAR}) "
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force
