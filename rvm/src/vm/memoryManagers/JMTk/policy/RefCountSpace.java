@@ -32,6 +32,7 @@ import org.vmmagic.pragma.*;
  * $Id$
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Ian Warrington
  * @version $Revision$
  * @date $Date$
  */
