@@ -68,7 +68,7 @@ if [[ $RVM_ROOT = "" ]]; then
 fi
 if [[ $RVM_SPECJVM98 = "" ]]; then
    echo "$0: RVM_SPECJVM98 environment variable  is not set.  Setting to /homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98."
-   RVM_SPECJVM98="/homes/meriadoc/jalalpeno/contrib/benchmarks/SPECjvm98"
+   RVM_SPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
 fi
 
 rvm="$RVM_ROOT/rvm/bin/rvm"
