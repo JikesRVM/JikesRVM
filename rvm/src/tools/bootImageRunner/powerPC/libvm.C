@@ -616,9 +616,8 @@ void *bootThreadCaller(void *);
 
 // startup configuration option with default values
 char *bootFilename     = 0;
-int verboseGC = 0;
-unsigned initialHeapSize = 20 * 1024 * 1024; // megs
-unsigned maximumHeapSize = 0;                // megs
+extern unsigned initialHeapSize;
+extern unsigned maximumHeapSize;
 
 unsigned traceClassLoading = 0;
  
@@ -757,7 +756,6 @@ int createJVM(int vmInSeparateThread) {
 
    // set freespace information into boot record
    //
-   bootRecord.verboseGC        = verboseGC;
    bootRecord.initialHeapSize  = initialHeapSize;
    bootRecord.maximumHeapSize  = maximumHeapSize;
    bootRecord.bootImageStart   = (int) bootRegion;

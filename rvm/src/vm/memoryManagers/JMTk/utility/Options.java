@@ -52,11 +52,10 @@ public class Options implements VM_Uninterruptible, Constants {
   
   public static void setDefaultHeapSizes(int initial, int max) {
     initialHeapSize = initial;
-    max = maxHeapSize;
+    maxHeapSize = max;
     if (initialHeapSize > maxHeapSize) 
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
-    // VM.sysWriteln("The boot record's heap sizes are inconsistent due to a faulty configuration file.");
   }
 
   public static boolean updateCurrentHeapSize(int usedHeapSize) {
@@ -98,18 +97,6 @@ public class Options implements VM_Uninterruptible, Constants {
     }
     else if (arg.equals("verboseTiming")) {
       verboseTiming = true;
-    }
-    else if (arg.startsWith("initial=")) {
-      String tmp = arg.substring(8);
-      int size = Integer.parseInt(tmp);
-      if (size <= 0) VM_Interface.sysFail("Unreasonable heap size " + tmp);
-      initialHeapSize = size * (1 << 20);
-    }
-    else if (arg.startsWith("max=")) {
-      String tmp = arg.substring(4);
-      int size = Integer.parseInt(tmp);
-      if (size <= 0) VM_Interface.sysFail("Unreasonable heap size " + tmp);
-      maxHeapSize = size * (1 << 20);
     }
     else if (arg.startsWith("growThreshold=")) {
       String tmp = arg.substring(14);
@@ -167,17 +154,14 @@ public class Options implements VM_Uninterruptible, Constants {
     else if (arg.startsWith("stress=")) {
       String tmp = arg.substring(7);
       stressTest = 1<<Integer.parseInt(tmp);
-    }
-    else 
+    } else 
       VM_Interface.sysWriteln("Ignoring unknown GC option: ",arg);
 
-    if (maxHeapSize < initialHeapSize) maxHeapSize = initialHeapSize;
     if (VM_Extent.fromInt(maxHeapSize).GT(Plan.MAX_SIZE)) {
 	VM_Interface.sysWriteln("Specified heap size ",maxHeapSize >>> 20);
 	VM_Interface.sysWriteln(" MB is greater than maximum supported heap size for this collector which is ",(int) (Plan.MAX_SIZE.toInt() >>> 20)," Mb");
 	VM_Interface.sysFail("Max heap too large");
     }
-    currentHeapSize = initialHeapSize;
   }
 
 }

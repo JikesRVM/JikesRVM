@@ -79,12 +79,10 @@ extern int lib_verbose;
 extern char *bootFilename;
 extern char *me;
 
-extern unsigned initialHeapSize;
-extern unsigned maximumHeapSize;
+unsigned initialHeapSize;
+unsigned maximumHeapSize;
 
 extern unsigned traceClassLoading;
-
-extern int verboseGC;
 
 extern "C" int createJVM(int);
 extern "C" void findMappable();
@@ -287,10 +285,12 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
     if (!strcmp(token, "-fullversion")) {
       fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
-      fprintf(SysTraceFile, "configurations: host %s\n\t target %s\n",
+      fprintf(SysTraceFile, "configuration info:\n\thost %s\n\ttarget %s\n",
 	      rvm_host_configuration, rvm_target_configuration);
-      fprintf(SysTraceFile, "heap default size: %d MBytes\n",
-	      heap_default_size);
+      fprintf(SysTraceFile, "\theap default initial size: %d MBytes\n",
+	      heap_default_initial_size/(1024*1024));
+      fprintf(SysTraceFile, "\theap default maximum size: %d MBytes\n",
+	      heap_default_maximum_size/(1024*1024));
       *fastExit = 1; break;
     }
     if (!strcmp(token, "-showversion")) {
@@ -312,7 +312,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	  *fastExit = 1; break;
 	}
       }
-      verboseGC = level; // only for watson
       {
 	char *buf = (char *) malloc(20);
 	sprintf(buf, "-X:gc:verbose=%d", level);
@@ -321,13 +320,13 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       continue;
     }
     if (!strncmp(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
+      fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated, please use -Xms and/or -Xmx\n", me);
       subtoken = token + 5;
       initialHeapSize = atoi(subtoken) * 1024 * 1024;
       if (initialHeapSize <= 0) {
 	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-X:h=<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      JCLAs[n_JCLAs++]=token;
       continue;
     }
     if (!strncmp(token, nonStandardArgs[MS_INDEX], 4)) {
@@ -337,7 +336,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-Xms<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      JCLAs[n_JCLAs++]=token;
       continue;
     }
     if (!strncmp(token, nonStandardArgs[MX_INDEX], 4)) {
@@ -347,7 +345,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify maximum heap size (in megabytes) using \"-Xmx<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      JCLAs[n_JCLAs++]=token;
       continue;
     }
 
@@ -460,7 +457,8 @@ main(int argc, char **argv)
   SysTraceFd   = 2;
   
   me            = basename(*argv++);
-  initialHeapSize = heap_default_size*1024*1024; // megs
+  initialHeapSize = heap_default_initial_size;
+  maximumHeapSize = heap_default_maximum_size;
   
   /*
    * Debugging: print out command line arguments.
@@ -479,13 +477,21 @@ main(int argc, char **argv)
     return 1;
   }
 
-  if (maximumHeapSize == 0) {
+  if (initialHeapSize == heap_default_initial_size &&
+      maximumHeapSize != heap_default_maximum_size &&
+      initialHeapSize > maximumHeapSize) {
+    initialHeapSize = maximumHeapSize;
+  }
+
+  if (maximumHeapSize == heap_default_maximum_size &&
+      initialHeapSize != heap_default_initial_size &&
+      initialHeapSize > maximumHeapSize) {
     maximumHeapSize = initialHeapSize;
   }
 
   if (maximumHeapSize < initialHeapSize) {
     fprintf(SysTraceFile, "%s: maximum heap size %d is less than initial heap size %d\n", 
-	    me, initialHeapSize/(1024*1024), maximumHeapSize/(1024*1024));
+	    me, maximumHeapSize/(1024*1024), initialHeapSize/(1024*1024));
     return 1;
   }
 

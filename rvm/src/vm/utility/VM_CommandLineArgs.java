@@ -54,7 +54,6 @@ public class VM_CommandLineArgs {
   // -----------------------------------------------//
   public static final int CLASSPATH_ARG	       =  2;
   public static final int ENVIRONMENT_ARG      =  3;
-  public static final int VERBOSE_GC_ARG       =  4;
   public static final int VERBOSE_JNI_ARG      =  5;
   public static final int VERBOSE_CLS_ARG      =  6;
 
@@ -85,8 +84,6 @@ public class VM_CommandLineArgs {
   public static final int SCHEDULER_ARG        = 30;
   public static final int GC_HELP_ARG          = 31;
   public static final int GC_ARG               = 32;
-  public static final int INITIAL_HEAP_ARG     = 33;
-  public static final int MAX_HEAP_ARG         = 34;
   public static final int VERBOSE_STACK_ARG    = 36;
   public static final int HPM_ARG              = 37;
   public static final int HPM_HELP_ARG         = 38;
@@ -116,7 +113,6 @@ public class VM_CommandLineArgs {
     new Prefix("-classpath ",           CLASSPATH_ARG), // Note: space is significant
     new Prefix("-cp ",                  CLASSPATH_ARG),        // Note: space is significant
     new Prefix("-D",                    ENVIRONMENT_ARG),
-    new Prefix("-verbose:gc$",          VERBOSE_GC_ARG),
     new Prefix("-verbose:class$",       VERBOSE_CLS_ARG),
     new Prefix("-verbose:jni$",         VERBOSE_JNI_ARG),
     new Prefix("-verbose$",             VERBOSE_CLS_ARG),
@@ -142,9 +138,6 @@ public class VM_CommandLineArgs {
     new Prefix("-X:gc:help$",           GC_HELP_ARG),
     new Prefix("-X:gc$",                GC_HELP_ARG),
     new Prefix("-X:gc:",                GC_ARG),
-    new Prefix("-X:h=",                 INITIAL_HEAP_ARG),
-    new Prefix("-Xms",                  INITIAL_HEAP_ARG), // JDK compatibility
-    new Prefix("-Xmx",                  MAX_HEAP_ARG),     // JDK compatability
     new Prefix("-X:measureCompilation=",MEASURE_COMP_ARG),
     new Prefix("-X:base:help$",         BASE_HELP_ARG),
     new Prefix("-X:base$",              BASE_HELP_ARG),
@@ -349,11 +342,6 @@ public class VM_CommandLineArgs {
 	VM_ClassLoader.setApplicationRepositories(arg);
 	break;
 
-      case VERBOSE_GC_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	VM_BootRecord.the_boot_record.verboseGC = 1;
-	break;
-
       case VERBOSE_CLS_ARG:
 	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM.verboseClassLoading = true;
@@ -416,12 +404,6 @@ public class VM_CommandLineArgs {
 	break;
       case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
 	MM_Interface.processCommandLineArg(arg);
-	break;
-      case INITIAL_HEAP_ARG: 
-	MM_Interface.processCommandLineArg("initial=" + arg);
-	break;
-      case MAX_HEAP_ARG: 
-	MM_Interface.processCommandLineArg("max=" + arg);
 	break;
 	
 	// -------------------------------------------------------------------

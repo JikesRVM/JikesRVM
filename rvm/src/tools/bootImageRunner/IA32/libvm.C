@@ -630,9 +630,9 @@ void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
 
 /* startup configuration option with default values */
 char *bootFilename = 0;
-int verboseGC = 0;
-unsigned initialHeapSize = 20*1024*1024; // megs
-unsigned maximumHeapSize = 0;
+
+extern unsigned initialHeapSize;
+extern unsigned maximumHeapSize;
 
 /* timer tick interval, in milliseconds     (10 <= delay <= 999) */
 static int TimerDelay = 10;
@@ -746,7 +746,6 @@ createJVM (int vmInSeparateThread)
   DebugRequestedOffset = bootRecord->debugRequestedOffset;
 
   /* write freespace information into boot record */
-   bootRecord->verboseGC        = verboseGC;
    bootRecord->initialHeapSize  = initialHeapSize;
    bootRecord->maximumHeapSize  = maximumHeapSize;
    bootRecord->bootImageStart   = (int) bootRegion;

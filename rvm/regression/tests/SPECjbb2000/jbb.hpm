@@ -457,8 +457,8 @@ echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event
 smallHeap=1024
 verbose=1
 
-echo "./run.test -jvmopts "-X:h=$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:filename=$out_dir/HPM.$config.$machine_type.$setting.$execution" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config"
-      ./run.test -jvmopts "-X:h=$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:filename=$out_dir/HPM.$config.$machine_type.$setting.$execution -X:hpm:trace=true" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config > data/HPM.$config.$machine_type.$setting.$execution.output
+echo "./run.test -jvmopts "-X:mx$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:filename=$out_dir/HPM.$config.$machine_type.$setting.$execution" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config"
+      ./run.test -jvmopts "-X:mx$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:filename=$out_dir/HPM.$config.$machine_type.$setting.$execution -X:hpm:trace=true" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config > data/HPM.$config.$machine_type.$setting.$execution.output
 
 # 
 

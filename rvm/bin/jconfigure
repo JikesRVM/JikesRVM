@@ -310,7 +310,8 @@ JIKESRVM_VERSION="Jikes Research VM for Java post 2.2.2 (CVS head)"
 # To change the defaults for a paricular configuration, 
 # redefine appropriate environment variables in the configuration's stanza.
 #
-DEFAULT_HEAP_SIZE=20	# in megabytes
+DEFAULT_INITIAL_HEAP_SIZE=20   # in megabytes
+DEFAULT_MAXIMUM_HEAP_SIZE=100  # in megabytes
 
 # Here are the choices for target architecture.
 #
@@ -1830,7 +1831,6 @@ java/lang/ref/Reference
 java/lang/ref/ReferenceQueue
 gnu/java/security/provider/DefaultPolicy
 gnu/java/locale/Calendar_en
-EOF_PRIMORDIAL_CLASSES_STR_1
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	# data structures that need to carry over from boot image writing
@@ -1873,6 +1873,7 @@ Lcom/ibm/JikesRVM/Java2HPM;
 EOF
     fi
     cat <<- EOF
+EOF_PRIMORDIAL_CLASSES_STR_1
 	#
 	# (3) Now that we have a big file of root classes to include, 
 	#     process the exclusions,
@@ -2211,7 +2212,8 @@ function emitBooterLinker () {
 
     # Create RunBootImage.h file.
     echo "echo \"// RunBootImage.C boot-time constants\" >> RunBootImage.h"
-    echo "echo \"int heap_default_size = $DEFAULT_HEAP_SIZE;\" >> RunBootImage.h"
+    echo "echo \"int heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
+    echo "echo \"int heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
     echo "echo \"char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> RunBootImage.h"
     echo "echo \"char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> RunBootImage.h"
     echo "echo \"char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> RunBootImage.h"

@@ -53,13 +53,12 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:verify="
 };
 
-// we currently add seven five lines due to multi-line messages below
-static const int EXTRA_USAGE_LINES = 5;
+// we add some lines due to multi-line messages below
+static const int EXTRA_USAGE_LINES = 4;
 static const int numNonStandardUsageLines= numNonstandardArgs + EXTRA_USAGE_LINES;
 static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "    -X                       print usage on nonstandard options", 
    "    -X:verbose               print out additional information for GC",
-   "    -X:h=<number>            initial size of heap in megabytes",
    "    -Xms<number>             initial size of heap in megabytes",
    "    -Xmx<number>             maximum size of heap in megabytes",
    "    -X:sysLogfile=<filename> write standard error message to <filename>",

@@ -137,8 +137,6 @@ public class VM_BootRecord {
   public int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
                                     // C-style termination with sentinel values
 
-  public int verboseGC;             // GC verbosity level 
-
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register

@@ -287,10 +287,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
 
-  public static int verbose() throws VM_PragmaUninterruptible {
-    return VM_BootRecord.the_boot_record.verboseGC;
-  }
-
   //
   // Only used within the vmInterface package
   static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
