@@ -6,7 +6,7 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
 

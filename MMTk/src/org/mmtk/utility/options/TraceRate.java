@@ -13,7 +13,7 @@ import org.vmmagic.pragma.UninterruptiblePragma;
  * @version $Revision$
  * @date $Date$
  */
-public class TraceRate extends IntOption implements org.mmtk.vm.Constants {
+public class TraceRate extends IntOption implements org.mmtk.utility.Constants {
   /**
    * Create the option.
    */

@@ -8,7 +8,7 @@ import org.mmtk.utility.Log;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.pragma.*;

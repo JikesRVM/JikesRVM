@@ -4,7 +4,7 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;

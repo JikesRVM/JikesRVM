@@ -14,6 +14,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
+import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
@@ -22,7 +23,6 @@ import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.Options;
@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_HeapLayoutConstants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
@@ -65,7 +65,7 @@ import org.mmtk.utility.gcspy.GCspy;
  * @version $Revision$
  * @date $Date$
  */  
-public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
+public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterruptible {
 
   /***********************************************************************
    *

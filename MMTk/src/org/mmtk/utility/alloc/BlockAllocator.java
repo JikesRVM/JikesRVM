@@ -8,7 +8,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -44,7 +44,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   public static final int MAX_BLOCK_SIZE = 1<<LOG_MAX_BLOCK;
   private static final int MAX_BLOCK_PAGES = 1<<(LOG_MAX_BLOCK - LOG_BYTES_IN_PAGE);
   private static final byte MAX_BLOCK_SIZE_CLASS = LOG_MAX_BLOCK - LOG_MIN_BLOCK;
-  private static final byte PAGE_BLOCK_SIZE_CLASS = LOG_BYTES_IN_PAGE - LOG_MIN_BLOCK;
+  private static final byte PAGE_BLOCK_SIZE_CLASS = (byte) (LOG_BYTES_IN_PAGE - LOG_MIN_BLOCK);
   public static final int BLOCK_SIZE_CLASSES = MAX_BLOCK_SIZE_CLASS + 1;
   private static final int FREE_LIST_BITS = 4;
   private static final int FREE_LIST_ENTRIES = 1<<(FREE_LIST_BITS*2);

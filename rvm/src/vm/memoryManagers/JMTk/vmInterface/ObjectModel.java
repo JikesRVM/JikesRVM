@@ -7,6 +7,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.utility.scan.MMType;
+import org.mmtk.utility.Constants;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;

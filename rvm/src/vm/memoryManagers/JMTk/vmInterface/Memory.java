@@ -7,6 +7,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.utility.Constants;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_BootRecord;

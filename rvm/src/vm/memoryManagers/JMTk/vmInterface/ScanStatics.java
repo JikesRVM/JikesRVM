@@ -6,29 +6,30 @@
 package org.mmtk.vm;
 
 import org.mmtk.utility.deque.AddressDeque;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
-
+import org.mmtk.utility.Constants;
 import com.ibm.JikesRVM.VM_Statics;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Class that determines all JTOC slots (statics) that hold references
  *
  * @author Perry Cheng
  */  
-public class ScanStatics
-  implements Constants, VM_Constants {
+public class ScanStatics implements Constants {
 
   /**
    * Scan static variables (JTOC) for object references.
    * Executed by all GC threads in parallel, with each doing a portion of the JTOC.
    */
-  public static void scanStatics (AddressDeque rootLocations) throws UninterruptiblePragma {
+  public static void scanStatics (AddressDeque rootLocations) 
+    throws UninterruptiblePragma {
 
     int numSlots = VM_Statics.getNumberOfSlots();
     Address slots = VM_Statics.getSlots();
@@ -52,7 +53,7 @@ public class ScanStatics
         // slot contains a ref of some kind.  call collector specific
         // processPointerField, passing address of reference
         //
-        rootLocations.push(slots.add(slot << LOG_BYTES_IN_INT));
+        rootLocations.push(slots.add(slot << LOG_BYTES_IN_ADDRESS));
 
       }  // end of for loop
 

@@ -579,7 +579,7 @@ class GenerateInterfaceDeclarations {
 
     // Value in org.mmtk.vm.Constants:
     p("static const int MMTk_Constants_BYTES_IN_PAGE            = "
-        + org.mmtk.vm.Constants.BYTES_IN_PAGE + ";\n");
+        + org.mmtk.utility.Constants.BYTES_IN_PAGE + ";\n");
 
 
     // fields in VM_Processor

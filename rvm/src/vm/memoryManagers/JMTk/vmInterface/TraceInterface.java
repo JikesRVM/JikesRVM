@@ -4,6 +4,7 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.utility.Constants;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_MemberReference;
 import com.ibm.JikesRVM.classloader.VM_Type;

@@ -16,7 +16,7 @@ import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Scanning;
 import org.mmtk.vm.Statistics;

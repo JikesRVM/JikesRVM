@@ -8,7 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.LazyMmapper;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Memory;
 

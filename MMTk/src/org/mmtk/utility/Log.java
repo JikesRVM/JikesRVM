@@ -8,7 +8,7 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Strings;
 import org.mmtk.vm.Barriers;

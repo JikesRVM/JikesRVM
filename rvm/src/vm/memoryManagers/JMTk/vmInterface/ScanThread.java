@@ -6,6 +6,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.Constants;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.DebugUtil;
@@ -24,7 +25,6 @@ import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Runtime;
-
 import com.ibm.JikesRVM.VM_Thread;
 
 import org.vmmagic.unboxed.*;

@@ -6,6 +6,7 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.utility.Constants;
 import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 

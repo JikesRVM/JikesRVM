@@ -6,7 +6,7 @@ package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.utility.Memory;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

@@ -6,6 +6,7 @@
  */
 package org.mmtk.vm;
 
+import com.ibm.JikesRVM.VM_SizeConstants;
 import com.ibm.JikesRVM.VM_Magic;
 
 import org.vmmagic.unboxed.*;
@@ -20,7 +21,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Barriers implements Constants, Uninterruptible {
+public class Barriers implements VM_SizeConstants, Uninterruptible {
   /**
    * Sets an element of a char array without invoking any write
    * barrier.  This method is called by the Log method, as it will be

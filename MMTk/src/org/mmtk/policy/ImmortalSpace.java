@@ -7,7 +7,7 @@ package org.mmtk.policy;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.ObjectModel;
 

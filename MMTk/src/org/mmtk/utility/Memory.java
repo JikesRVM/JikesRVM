@@ -6,7 +6,7 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -21,10 +21,11 @@ public class Memory implements Uninterruptible, Constants {
    GCP into moving a get_obj_tib into the interruptible region where the tib
    is being installed via an int_store 
   */
-  private static boolean isSetHelper(Address start, int size, boolean verbose, int v) throws NoInlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((size & (BYTES_IN_INT-1)) == 0);
-    for (int i=0; i < size; i += BYTES_IN_INT) 
-      if (start.loadInt(Offset.fromInt(i)) != v) {
+  private static boolean isSetHelper(Address start, int size, boolean verbose, 
+				     Word v) throws NoInlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert((size & (BYTES_IN_WORD-1)) == 0);
+    for (int i=0; i < size; i += BYTES_IN_WORD) 
+      if (start.loadWord(Offset.fromInt(i)).NE(v)) {
         if (verbose) {
           Log.prependThreadId();
           Log.write("Memory range does not contain only value ");
@@ -40,42 +41,42 @@ public class Memory implements Uninterruptible, Constants {
   }
 
   public static boolean IsZeroed(Address start, int size) throws InlinePragma {
-    return isSetHelper(start, size, false, 0);
+    return isSetHelper(start, size, false, Word.zero());
   }
 
   // this is in the inline allocation sequence when VM_Interface.VerifyAssertions
   // therefore it is very carefully written to reduce the impact on code space.
   public static void assertIsZeroed(Address start, int size) throws NoInlinePragma {
-    Assert._assert(isSetHelper(start, size, true, 0));
+    Assert._assert(isSetHelper(start, size, true, Word.zero()));
   }
 
   public static boolean assertIsSet(Address start, int size, int v) throws InlinePragma {
-    return isSetHelper(start, size, true, v);
+    return isSetHelper(start, size, true, Word.fromInt(v));
   }
 
   public static void zeroSmall(Address start, Extent len) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert((len.toInt() & (BYTES_IN_INT-1)) == 0
-                     && (start.toInt() & (BYTES_IN_INT-1)) == 0);
+      Assert._assert((len.toInt() & (BYTES_IN_WORD-1)) == 0
+                     && (start.toInt() & (BYTES_IN_WORD-1)) == 0);
     Address end = start.add(len);
-    for (Address i = start; i.LT(end); i = i.add(BYTES_IN_INT)) 
-      i.store(0);
+    for (Address i = start; i.LT(end); i = i.add(BYTES_IN_WORD)) 
+      i.store(Word.zero());
   }
 
   public static void set (Address start, int len, int v) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert((len & (BYTES_IN_INT-1)) == 0
-                     && (start.toInt() & (BYTES_IN_INT-1)) == 0);
-    for (int i=0; i < len; i += BYTES_IN_INT) 
-      start.store(v, Offset.fromInt(i));
+      Assert._assert((len & (BYTES_IN_WORD-1)) == 0
+                     && (start.toInt() & (BYTES_IN_WORD-1)) == 0);
+    for (int i=0; i < len; i += BYTES_IN_WORD) 
+      start.store(Word.fromInt(v), Offset.fromInt(i));
   }
 
   // start and len must both be 4-byte aligned
   //
   public static void zero(Address start, Extent len) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert((len.toInt() & (BYTES_IN_INT-1)) == 0
-                     && (start.toInt() & (BYTES_IN_INT-1)) == 0);
+      Assert._assert((len.toInt() & (BYTES_IN_WORD-1)) == 0
+                     && (start.toInt() & (BYTES_IN_WORD-1)) == 0);
     if (len.GT(Extent.fromIntZeroExtend(256))) 
       org.mmtk.vm.Memory.zero(start, len);
     else

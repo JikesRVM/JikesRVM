@@ -6,7 +6,7 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Lock;
 
 import org.vmmagic.unboxed.*;

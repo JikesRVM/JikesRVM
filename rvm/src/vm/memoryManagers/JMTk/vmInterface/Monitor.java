@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 
 import com.ibm.JikesRVM.VM_Callbacks;

@@ -5,7 +5,7 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Plan;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;

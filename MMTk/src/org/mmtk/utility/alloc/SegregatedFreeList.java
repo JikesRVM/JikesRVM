@@ -8,7 +8,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.utility.options.*;
 import org.vmmagic.pragma.*;
@@ -429,7 +429,7 @@ public abstract class SegregatedFreeList extends Allocator
 
     int sz1 = bytes - 1;
 
-    if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
+    if (BYTES_IN_ADDRESS == 32) { //32-bit
       if (COMPACT_SIZE_CLASSES) 
         return ((sz1 <= 31) ?      (sz1 >>  2): //    4 bytes apart
               (sz1 <=   63) ?  4 + (sz1 >>  3): //    8 bytes apart
@@ -475,7 +475,7 @@ public abstract class SegregatedFreeList extends Allocator
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
-    if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
+    if (BYTES_IN_ADDRESS == 32) { //32-bit
       if (COMPACT_SIZE_CLASSES)
         return ((sc <  8) ? (sc +  1) <<  2:
                 (sc < 12) ? (sc -  3) <<  3:

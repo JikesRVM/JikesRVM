@@ -20,7 +20,7 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;

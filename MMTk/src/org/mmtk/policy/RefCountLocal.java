@@ -13,7 +13,7 @@ import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TrialDeletion;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;

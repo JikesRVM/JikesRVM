@@ -7,7 +7,7 @@ package org.mmtk.utility.deque;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.TracingConstants;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

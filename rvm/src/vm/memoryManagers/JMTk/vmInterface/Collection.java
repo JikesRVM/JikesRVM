@@ -6,6 +6,7 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.ReferenceProcessor;

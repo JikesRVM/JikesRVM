@@ -9,7 +9,7 @@ import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.TraceInterface;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Collection;
 import org.mmtk.utility.options.TraceRate;
