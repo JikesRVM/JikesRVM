@@ -169,4 +169,8 @@ public interface OSR_Constants {
 
   /* indicate local initialization ends, for baselike compiler */
   public static final int PSEUDO_ParamInitEnd = 14;
+
+  /* special method id for PSEUDO_InvokeStatic, target must be listed here */
+  public static final int GETREFAT   = 0;  // OSR_ObjectHolder.getRefAt
+  public static final int CLEANREFS  = 1;  // OSR_ObjectHolder.cleanRefAt
 }
