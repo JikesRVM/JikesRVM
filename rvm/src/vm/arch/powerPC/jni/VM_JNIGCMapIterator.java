@@ -80,8 +80,8 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   }
 
   public void setupIterator(VM_CompiledMethod compiledMethod, 
-		     int instructionOffset, 
-		     VM_Address framePtr) { 
+			    int instructionOffset, 
+			    VM_Address framePtr) { 
     this.framePtr = framePtr;
     // processore reg (R16) was saved in reg save area at offset -72 
     // from callers frameptr, and after GC will be used to set 
