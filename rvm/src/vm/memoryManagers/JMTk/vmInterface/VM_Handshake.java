@@ -169,7 +169,7 @@ public class VM_Handshake {
 	VM._assert(VM_Processor.nativeProcessors[i] != null);
       VM_Processor.nativeProcessors[i].lockInCIfInC();
       if (verbose >= 1) {
-        int newStatus =  VM_Processor.vpStatus[VM_Processor.nativeProcessors[i].vpStatusIndex];
+        int newStatus =  VM_Processor.nativeProcessors[i].vpStatus;
         VM.sysWriteln("GC Message: VM_Handshake.initiateCollection:  Native Processor ", i, " newStatus = ", newStatus);
       }
     }

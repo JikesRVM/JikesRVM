@@ -216,7 +216,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	  //-#if RVM_FOR_IA32
 	  p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
 	  //-#endif
-	  p.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(p.vpStatusIndex<<LOG_BYTES_IN_INT);
+	  p.vpStatusAddress = VM_Magic.objectAsAddress(p).add(VM_Entrypoints.vpStatusField.getOffset());
 	}
       //-#if RVM_WITH_HPM
       // boot virtual processor's HPM producer

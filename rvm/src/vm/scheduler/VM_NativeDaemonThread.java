@@ -78,11 +78,6 @@ class VM_NativeDaemonThread extends VM_Thread {
     //
     VM_Thread.getCurrentThread().jniEnv.setTopJavaFP(VM_Magic.getFramePointer());
 
-    // remember status word index for executing processor. It will remain valid
-    // even if GC moves the processor object
-    //
-    int processorStatusIndex = VM_Processor.getCurrentProcessor().vpStatusIndex;
-
     while (true) {
       if (trace) VM_Scheduler.trace("NDT:","calling SigWait - transferred",transferCount);
 
@@ -105,7 +100,7 @@ class VM_NativeDaemonThread extends VM_Thread {
 			      VM_Thread.getCurrentThread().contextRegisters);
 
       inSysWait = false;
-      VM_Processor.vpStatus[processorStatusIndex] = VM_Processor.IN_JAVA;
+      myProcessor.vpStatus = VM_Processor.IN_JAVA;
 
       // GC might have happened and my processor object moved
       //
@@ -131,7 +126,7 @@ class VM_NativeDaemonThread extends VM_Thread {
 	VM_Processor vp = VM_Scheduler.processors[i];
 	// WARNING: -2 in next instruction must match MISSES in libvm.C
 	if (vp.threadSwitchRequested < -2) {
-	  if (VM_Processor.vpStatus[vp.vpStatusIndex] == VM_Processor.IN_NATIVE) {
+	  if (vp.vpStatus == VM_Processor.IN_NATIVE) {
 	    stuckCount++;
 	    if (trace || (DEBUG && (vp.threadSwitchRequested*-1)%100 == 0)) {
 	      VM_Scheduler.trace("\n  NDT:","threadSwitchRequested =",
@@ -212,8 +207,8 @@ class VM_NativeDaemonThread extends VM_Thread {
      // active java thread of stuck Processor should now be the native processors
      // NativeIdleThread, IN_SIGWAIT, waiting for a signal.
      if (VM.VerifyAssertions) {
-       VM._assert(VM_Processor.vpStatus[stuckProcessor.vpStatusIndex] == VM_Processor.IN_SIGWAIT);
-       VM._assert(VM_Processor.vpStatus[nativeProcessor.vpStatusIndex] == VM_Processor.BLOCKED_IN_NATIVE);
+       VM._assert(stuckProcessor.vpStatus == VM_Processor.IN_SIGWAIT);
+       VM._assert(nativeProcessor.vpStatus == VM_Processor.BLOCKED_IN_NATIVE);
      }
 
      // now the native idle thread is "active" on the blue/stuck vp, and
@@ -232,8 +227,7 @@ class VM_NativeDaemonThread extends VM_Thread {
      // the native processor in an unexpected BLOCKED_IN_NATIVE state
      //
      int loopCount = 1;
-     while (VM_Processor.vpStatus[nativeProcessor.vpStatusIndex] ==
-	    VM_Processor.BLOCKED_IN_NATIVE) {
+     while (nativeProcessor.vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
        // just spin - we are running on a separate pthread
        if (VM.VerifyAssertions && (loopCount++ % 100000 == 0))
 	 if (trace) VM_Scheduler.trace("NDT","waiting for native VP to unblock, count =",loopCount);
@@ -262,9 +256,7 @@ class VM_NativeDaemonThread extends VM_Thread {
     // the stuck thread is switched to the new processor.
     //
     VM_Address tempStatusAddress = native_vp.vpStatusAddress;
-    int tempStatusIndex   = native_vp.vpStatusIndex;
     native_vp.vpStatusAddress = stuck_vp.vpStatusAddress;
-    native_vp.vpStatusIndex   = stuck_vp.vpStatusIndex;
 
     // sync these changes - before changing processor of stuck thread
     // to ensure stuck thread continues to see BLOCKED_IN_NATIVE
@@ -327,7 +319,6 @@ if (stuckEnv == null) {
 
     // now complete the swap of status words
     stuck_vp.vpStatusAddress = tempStatusAddress;
-    stuck_vp.vpStatusIndex   = tempStatusIndex;
 
     if (trace) {
       VM_Scheduler.trace("NDT","Leaving switchPThread");

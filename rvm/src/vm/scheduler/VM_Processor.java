@@ -92,11 +92,8 @@ implements VM_Uninterruptible, VM_Constants {
     this.isInSelect        = false;
     this.processorMode     = processorType;
 
-    lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
-    this.vpStatusIndex = lastVPStatusIndex;
-    this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << LOG_BYTES_IN_INT);
-    if (VM.VerifyAssertions) VM._assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
-    vpStatus[this.vpStatusIndex] = IN_JAVA;
+    this.vpStatusAddress = VM_Magic.objectAsAddress(this).add(VM_Entrypoints.vpStatusField.getOffset());
+    this.vpStatus = IN_JAVA;
 
     if (VM.BuildForDeterministicThreadSwitching) { // where we yield every N yieldpoints executed
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
@@ -367,7 +364,6 @@ implements VM_Uninterruptible, VM_Constants {
 
 
   // definitions for VP status for implementation of jni
-  public static final int UNASSIGNED_VP_STATUS    = 0;  
   public static final int IN_JAVA                 = 1;
   public static final int IN_NATIVE               = 2;
   public static final int BLOCKED_IN_NATIVE       = 3;
@@ -791,13 +787,6 @@ implements VM_Uninterruptible, VM_Constants {
   //
   int    processorMode;
 
-  // processor status fields are in a (large & unmoving!) array of status words
-  public static final int VP_STATUS_SIZE = 8000;
-  public static final int VP_STATUS_STRIDE = 101;
-
-  public static int    lastVPStatusIndex = 0;
-  public static int[]  vpStatus = new int[VP_STATUS_SIZE];  // must be in pinned memory !!                 
-
   // count timer interrupts to round robin early checks to ioWait queue.
   // This is also used to activate checking of the processWaitQueue.
   static int epoch = 0;
@@ -813,12 +802,16 @@ implements VM_Uninterruptible, VM_Constants {
   public static final int NUM_TICKS_BETWEEN_WAIT_POLL = 50;
 
   /**
-   * index of this processor's status word in vpStatus array
+   * Status of the processor.
+   * Always one of IN_JAVA, IN_NATIVE, BLOCKED_IN_NATIVE,
+   * IN_SIGWAIT or BLOCKED_IN_SIGWAIT.
    */
-  public int   vpStatusIndex;            
+  public int vpStatus;
 
   /**
-   * address of this processors status word in vpStatus array
+   * address of this.vpStatus
+   * @deprecated  Working on getting rid of this, but it is going to take 
+   *              several stages. --dave
    */
   public VM_Address vpStatusAddress;          
 
@@ -873,7 +866,7 @@ implements VM_Uninterruptible, VM_Constants {
     else if ( processorMode == NATIVE) VM.sysWrite(" mode: NATIVE\n");
     else if ( processorMode == NATIVEDAEMON) VM.sysWrite(" mode: NATIVEDAEMON\n");
     VM.sysWrite(" status: "); 
-    int status = vpStatus[vpStatusIndex];
+    int status = vpStatus;
     if (status ==  IN_NATIVE) VM.sysWrite("IN_NATIVE\n");
     if (status ==  IN_JAVA) VM.sysWrite("IN_JAVA\n");
     if (status ==  BLOCKED_IN_NATIVE) VM.sysWrite("BLOCKED_IN_NATIVE\n");

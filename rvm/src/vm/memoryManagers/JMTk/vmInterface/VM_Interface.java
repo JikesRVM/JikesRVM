@@ -549,7 +549,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static boolean isNonParticipating(Plan plan) {
     VM_Processor vp = (VM_Processor) plan;
-    int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
+    int vpStatus = vp.vpStatus;
     return  ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) 
 	     || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
   }
@@ -565,7 +565,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
      * off in JNI-land cannot run.
      */
     VM_Processor vp = (VM_Processor) p;
-    int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
+    int vpStatus = vp.vpStatus;
     if (VM.VerifyAssertions)
       VM._assert((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT));
     if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) { 

@@ -161,7 +161,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
       // change the status of the processor this thread is now running
       // on to IN_JAVA (from IN_SIGWAIT)
       //
-      VM_Processor.vpStatus[blockedProcessor.vpStatusIndex] = VM_Processor.IN_JAVA;
+      blockedProcessor.vpStatus = VM_Processor.IN_JAVA;
 
       // Now executing as the active thread of that processor, yield back to my
       // associated NativeProcessor. This Idle Thread will go there to be reused later.
@@ -230,7 +230,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
       VM_ProcessorLocalState.setCurrentProcessor(myNativeProcessor);
 
       // Change the status of this native processor back to Java now that the thread is woken up
-      VM_Processor.vpStatus[myNativeProcessor.vpStatusIndex] = VM_Processor.IN_JAVA;
+      myNativeProcessor.vpStatus = VM_Processor.IN_JAVA;
 
       // There should be work in the transfer queue:  the Java thread returning to its C caller
       if (myNativeProcessor.transferQueue.atomicIsEmpty(myNativeProcessor.transferMutex)) {

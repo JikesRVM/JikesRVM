@@ -40,6 +40,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public final static int PROLOGUE = 0;
   public final static int BACKEDGE = 1;
   public final static int EPILOGUE = 2;
+  public final static int NATIVE_PROLOGUE = 3;
+  public final static int NATIVE_EPILOGUE = 4;
+
   //-#if RVM_WITH_OSR
   public final static int OSRBASE = 98;
   public final static int OSROPT  = 99;
@@ -739,13 +742,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     if (VM.VerifyAssertions) {
       VM._assert(p.processorMode==VM_Processor.NATIVE);
-      VM._assert(VM_Processor.vpStatus[p.vpStatusIndex]==VM_Processor.BLOCKED_IN_NATIVE);
+      VM._assert(p.vpStatus == VM_Processor.BLOCKED_IN_NATIVE);
       VM._assert(myThread.isNativeIdleThread==true);
     }
     myThread.beingDispatched = true;
     p.transferMutex.lock();
     p.transferQueue.enqueue(myThread);
-    VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.IN_NATIVE;
+    p.vpStatus = VM_Processor.IN_NATIVE;
     p.transferMutex.unlock();
     morph(false);
   }
