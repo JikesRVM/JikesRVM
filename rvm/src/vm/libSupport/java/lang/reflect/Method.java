@@ -130,9 +130,12 @@ public final class Method extends AccessibleObject implements Member {
     // Invoke method
     try {
       return VM_Reflection.invoke(method, receiver, args);
-    } catch (Throwable e) {
-      throw new InvocationTargetException(e);
-    }
+    } catch (Throwable t) {
+      throw new InvocationTargetException(t,
+		"While invoking the method:\n\t\"" + method + "\"\n"
+		+ " on the object:\n\t\"" + receiver + "\"\n"
+		+ " it threw the exception:\n\t\"" + t + "\"");
+     }
   }
 
   public String toString() {
