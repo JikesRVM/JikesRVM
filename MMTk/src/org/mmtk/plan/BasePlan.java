@@ -55,6 +55,7 @@ public abstract class BasePlan
   public static final boolean REF_COUNT_SANITY_TRACING = false;
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
+  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
 
   public  static int verbose = 0;
   private static final int MAX_PLANS = 100;

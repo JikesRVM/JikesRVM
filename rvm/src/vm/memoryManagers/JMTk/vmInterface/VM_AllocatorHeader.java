@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Header;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -19,6 +20,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @author Perry Cheng
  */
 public final class VM_AllocatorHeader extends Header {
+  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = Plan.STEAL_NURSERY_SCALAR_GC_HEADER;
 
   /**
    * Override the boot-time initialization method here, so that

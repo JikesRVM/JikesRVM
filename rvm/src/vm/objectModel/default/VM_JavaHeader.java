@@ -202,7 +202,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       objectEndOffset = -numBytes + HASHCODE_BYTES;
     }
     VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).add(objectEndOffset);
-    VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
+    int copyBytes = numBytes;
+    if (VM_AllocatorHeader.STEAL_NURSERY_SCALAR_GC_HEADER)
+      numBytes -= GC_HEADER_BYTES;
+    VM_Memory.aligned32Copy(toAddress, fromAddress, copyBytes); 
     Object toObj = VM_Magic.addressAsObject(toAddress.sub(objectEndOffset));
     if (hashState == HASH_STATE_HASHED) {
       int hashCode = VM_Magic.objectAsAddress(fromObj).toInt() >>> LOG_BYTES_IN_ADDRESS;  
