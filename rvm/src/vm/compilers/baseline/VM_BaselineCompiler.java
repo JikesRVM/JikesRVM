@@ -34,10 +34,9 @@ class VM_BaselineCompiler {
     // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
     // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
     // for the check.
-    if (setUpOptions.PRINT_MACHINECODE) {
-      if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
+    if ((setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) || 
+	(setUpOptions.hasMETHOD_TO_BREAK() && setUpOptions.fuzzyMatchMETHOD_TO_BREAK("???"))) {
 	VM.sysWrite("??? is not a sensible string to specify for method name");
-      }
     }
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     //-#else

@@ -32,4 +32,7 @@ class VM_Services {
     return buf.toString();
   }
   
+  public static void breakStub() {
+    VM_Magic.pragmaNoInline();
+  }
 }

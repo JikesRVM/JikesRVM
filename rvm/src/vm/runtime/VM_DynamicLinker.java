@@ -122,7 +122,13 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	recvClass.resetTIBEntry(targetMethod, instructions);
       }
 
+      if (VM_BaselineCompiler.options.hasMETHOD_TO_BREAK() &&
+	  VM_BaselineCompiler.options.fuzzyMatchMETHOD_TO_BREAK(targetMethod.toString())) {
+	VM_Services.breakStub();  // invoke stub used for breaking in jdp
+      }
+     
       return instructions;
     }
   }
+
 }
