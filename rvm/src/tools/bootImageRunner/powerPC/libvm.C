@@ -73,7 +73,8 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #define NGPRS 32
 // Linux on PPC does not save FPRs - is this true still?
 #define NFPRS  0
-#define GETCONTEXT_IMPLEMENTED 0
+// Third argument to signal handler is of type ucontext_t
+#define SIGNAL_ARG3_IS_UCONTEXT
 
 #endif
 
@@ -384,13 +385,17 @@ static int isVmSignal(VM_Address iar, VM_Address jtoc)
 /* The following code is factored out while getcontext() remains
    unimplemented for PPC Linux. 
 */
+
+
 sigcontext* 
 getLinuxSavedContext(int signum, void* arg3) 
 {
-#if GETCONTEXT_IMPLEMENTED
+#if defined(GETCONTEXT_IMPLEMENTED)
    ucontext_t uc;
    getcontext(&uc);
    return &(uc.uc_mcontext);
+#elif defined(SIGNAL_ARG3_IS_UCONTEXT)
+   return &((ucontext_t*)arg3)->uc_mcontext;
 #else
    /* Unfortunately, getcontext() (/usr/include/ucontext.h) is not implemented
       in Linux at the time of this writing (Linux/PPC Kernel <= 2.4.3), but
