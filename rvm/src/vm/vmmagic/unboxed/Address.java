@@ -88,9 +88,11 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return <code>true</code> if this instance is zero.
-   * 
-   * @return <code>true</code> if this instance is zero. 
+   * Return an <code>Address</code> instance that reflects the maximum
+   * allowable <code>Address</code> value.
+   *
+   * @return An <code>Address</code> instance that reflects the
+   * maximum allowable <code>Address</code> value.
    */
   public static Address max() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -98,11 +100,11 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * Return an <code>Address</code> instance that reflects the maximum
-   * allowable <code>Address</code> value.
-   *
-   * @return An <code>Address</code> instance that reflects the
-   * maximum allowable <code>Address</code> value.
+   * Return <code>true</code> if this instance is the maximum allowable
+   * <code>Address</code> value.
+   * 
+   * @return <code>true</code> if this instance is the maximum allowable
+   * <code>Address</code> value.
    */
   public boolean isMax() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
