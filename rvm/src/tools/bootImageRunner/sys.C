@@ -15,6 +15,8 @@
 
 // Aix and Linux version.  PowerPC and IA32.
 
+extern "C" void sysExit(int);
+
 // AIX needs this to get errno right. JTD
 #define _THREAD_SAFE_ERRNO
 
@@ -70,6 +72,9 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include "InterfaceDeclarations.h"
 
+#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#include <pthread.h>
+#endif
 
 /*#define DEBUG_SYS*/
 /*#define VERBOSE_PTHREAD*/
@@ -105,7 +110,7 @@ extern "C" void
 sys()
    {
    fprintf(SysErrorFile, "vm: unexpected call to \"sys\"\n");
-   exit(1);
+   sysExit(1);
    }
 
 // Console write (java character).
@@ -147,9 +152,12 @@ sysWriteLong(int value1, unsigned int value2, int hexToo)
 
 // Exit with a return code.
 //
+pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
+
 extern "C" void
 sysExit(int value)
    {
+
 // fprintf(SysTraceFile, "sys: exit %d\n", value);
    if (value != 0)
       fprintf(SysErrorFile, "vm: exit %d\n", value);
@@ -158,7 +166,9 @@ sysExit(int value)
    fflush(SysTraceFile);
    fflush(stdout);
 
+   pthread_mutex_lock( &DeathLock );
    exit(value);
+   pthread_mutex_unlock( &DeathLock );  // :)
    }
 
 // Access host o/s command line arguments.
@@ -339,7 +349,7 @@ sysBytesAvailable(int fd)
    {
 #if __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else
    int count = 0;
@@ -539,7 +549,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer))
        {
        fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
-       exit(1);
+       sysExit(1);
        }
  #elif __CYGWIN__
     fprintf(SysErrorFile, "vm: skipping call to incinterval\n");
@@ -550,7 +560,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     if (timerId == -1)
        {
        fprintf(SysErrorFile, "vm: gettimerid failed (errno=%d)\n", errno);
-       exit(1);
+       sysExit(1);
        }
 
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
@@ -563,7 +573,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     if (incinterval(timerId, &timerInfo, &oldtimer))
        {
        fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
-       exit(1);
+       sysExit(1);
        }
  #endif
  // fprintf(SysTraceFile, "sys: timeslice is %dms\n", timerDelay);
@@ -659,9 +669,6 @@ sysWriteBytes(int fd, char *buf, int cnt)
     return numpc;
     }
 
- #if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
- #include <pthread.h>
- #endif
  static void *sysVirtualProcessorStartup(void *arg);
  #ifdef RVM_FOR_IA32
  extern "C" void bootThread(int ip, int jtoc, int pr, int sp); // assembler routine
@@ -678,7 +685,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     {
  #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n");
-    exit (-1);
+    syssysExit(-1);
     return (0);
  #else
     int           *sysVirtualProcessorArguments;
@@ -699,7 +706,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes)))
        {
        fprintf(SysErrorFile, "vm: pthread_attr_init failed (rc=%d)\n", rc);
-       exit(1);
+       sysExit(1);
        }
 
     // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
@@ -714,7 +721,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
 			     sysVirtualProcessorArguments)))
        {
        fprintf(SysErrorFile, "vm: pthread_create failed (rc=%d)\n", rc);
-       exit(1);
+       sysExit(1);
        }
 
  #ifdef VERBOSE_PTHREAD
@@ -764,7 +771,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
  #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     int rc = 0;
     fprintf(stderr, "sysVirtualProcessorBind: Unsupported operation with single virtual processor with single virtual processor\n");
-    exit (-1);
+    sysExit(-1);
  #else
     int numCpus;
     numCpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -777,7 +784,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     if (numCpus == -1)
        {
        fprintf(SysErrorFile, "vm: sysconf failed (errno=%d)\n", errno);
-       exit(1);
+       sysExit(1);
        }
 
     cpuId = cpuId % numCpus;
@@ -788,15 +795,15 @@ sysWriteBytes(int fd, char *buf, int cnt)
     if (rc)
        {
        fprintf(SysErrorFile, "vm: bindprocessor failed (errno=%d)\n", errno);
-       exit(1);
+       sysExit(1);
        }
  #endif
  #endif
     }
 
- #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
- pthread_cond_t VirtualProcessorStartup = PTHREAD_COND_INITIALIZER;
- pthread_cond_t MultithreadingStartup = PTHREAD_COND_INITIALIZER;
+#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+pthread_cond_t VirtualProcessorStartup = PTHREAD_COND_INITIALIZER;
+pthread_cond_t MultithreadingStartup = PTHREAD_COND_INITIALIZER;
 
 pthread_mutex_t VirtualProcessorStartupLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t MultithreadingStartupLock = PTHREAD_MUTEX_INITIALIZER;
@@ -837,7 +844,7 @@ sysPthreadSelf()
    {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSelf: WARNING Unsupported operation with single virtual processor\n");
-   exit(-1);
+   sysExit(-1);
 #else
    int thread;
    sigset_t input_set, output_set;
@@ -891,7 +898,7 @@ sysPthreadSignal(int pthread)
    {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSignal: Unsupported operation with single virtual processor\n");
-   exit(-1);
+   sysExit(-1);
 #else
    pthread_t thread;
    thread = (pthread_t)pthread;
@@ -907,7 +914,7 @@ sysPthreadJoin(int pthread)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadJoin: Unsupported operation with single virtual processor\n");
-   exit(-1);
+   sysExit(-1);
 #else
    pthread_t thread;
    thread = (pthread_t)pthread;
@@ -923,7 +930,7 @@ sysPthreadExit()
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadExit: Unsupported operation with single virtual processor\n");
-   exit(-1);
+   sysExit(-1);
 #else
   // fprintf(SysTraceFile, "sys: pthread %d exits\n", pthread_self());
    pthread_exit(NULL);
@@ -942,7 +949,7 @@ sysVirtualProcessorYield()
    sched_yield();
 #else
    fprintf(stderr, "sysVirtualProcessorYield: Unsupported operation with single virtual processor\n");
-   exit(-1);
+   sysExit(-1);
 #endif
    }
 
@@ -956,7 +963,7 @@ sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
    {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSigWait: Unsupported operation with single virtual processor\n");
-   exit(-1);
+   sysExit(-1);
 #else 
    sigset_t input_set, output_set;
    int      sig;
@@ -1086,14 +1093,14 @@ sysZeroPages(void *dst, int cnt)
    if (rc != 0)
       {
       fprintf(SysErrorFile, "vm: munmap failed (errno=%d)\n", errno);
-      exit(1);
+      sysExit(1);
       }
 
    void *addr = mmap(dst, cnt, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
    if (addr == (void *)-1)
       {
       fprintf(SysErrorFile, "vm: mmap failed (errno=%d)\n", errno);
-      exit(1);
+      sysExit(1);
       }
    #endif
 
@@ -1109,7 +1116,7 @@ sysZeroPages(void *dst, int cnt)
    if (rc != 0)
       {
       fprintf(SysErrorFile, "vm: disclaim failed (errno=%d)\n", errno);
-      exit(1);
+      sysExit(1);
       }
    #endif
 
@@ -1139,7 +1146,7 @@ sysSyncCache(int address, int size)
      {
        if (size < 0) {
 	 fprintf(SysErrorFile, "vm: tried to sync a region of negative size!\n");
-	 exit(1);
+	 sysExit(1);
        }
 
      /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
@@ -1189,7 +1196,8 @@ extern "C" void *
 sysMMap(char *start, char *length, int protection, int flags, int fd, long long offset)
    {
    fprintf(SysErrorFile, "vm: sysMMap called, but it's unimplemented\n");
-   exit(1);
+   sysExit(1);
+   exit(1); // shut warnings up
    // return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
    }
 
@@ -1479,7 +1487,7 @@ sysNetRemoteHostName(int internetAddress, char *buf, int limit)
    return -1;
 #elif __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else
    hostent      results; memset(&results, 0, sizeof(results));
@@ -1518,7 +1526,7 @@ extern "C" int
 sysNetHostAddresses(char *hostname, char **buf, int limit) 
   {
      fprintf(SysTraceFile, "\nunimplemented system call: sysNetHostAddresses\n");
-     exit(1);                  
+     sysExit(1);                  
   }
 #endif
 
@@ -1610,7 +1618,7 @@ sysNetSocketPort(int fd)
    {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else   
    sockaddr_in info;
@@ -1641,7 +1649,7 @@ sysNetSocketLocalAddress(int fd)
    {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else   
    sockaddr_in info;
@@ -1672,7 +1680,7 @@ sysNetSocketFamily(int fd)
    {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else   
    sockaddr_in info;
@@ -1724,7 +1732,7 @@ sysNetSocketBind(int fd, int family, unsigned int localAddress, unsigned int loc
    {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else
    sockaddr_in address;
@@ -1761,7 +1769,7 @@ extern "C" int
 sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else
    int interruptsThisTime = 0;
@@ -1833,7 +1841,7 @@ extern "C" int
 sysNetSocketAccept(int fd, void *connectionObject) {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
    return 0;
 #else
    int interruptsThisTime = 0;
@@ -1938,7 +1946,7 @@ sysNetSocketNoDelay(int fd, int enable)
    {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
 #else
    int value = enable;
 
@@ -1963,7 +1971,7 @@ sysNetSocketNoBlock(int fd, int enable)
    {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
 #else
    int value = enable;
 
@@ -1989,7 +1997,7 @@ sysNetSocketClose(int fd)
    {
 #ifdef __CYGWIN__
    fprintf(stderr, "vm: Unsupported operation (cygwin networking)\n");
-   exit(-1);
+   sysExit(-1);
 #else
 // fprintf(SysTraceFile, "sys: close socket=%d\n", fd);
 
