@@ -194,7 +194,7 @@ public class VM_Entrypoints implements VM_Constants {
   //-#if RVM_FOR_POWERPC
   public static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedTIreg", "Lcom/ibm/JikesRVM/VM_Word;");
   //-#if RVM_FOR_LINUX || RVM_FOR_OSX
-  public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedJTOCreg", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedJTOC", "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif
   //-#endif
 
