@@ -201,9 +201,7 @@ public abstract class BasePlan
    */
   public static void postBoot() {
     if (Options.verbose > 2) VMResource.showAll();
-    if (Options.verbose > 0) {
-      Stats.startAll();
-    }
+    if (Options.verbose > 0) Stats.startAll();
   }
 
   public static void fullyBooted() {
