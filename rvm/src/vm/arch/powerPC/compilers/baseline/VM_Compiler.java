@@ -2174,7 +2174,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
-    int whichAllocator = VM_Interface.pickAllocator(typeRef);
+    int whichAllocator = VM_Interface.pickAllocator(typeRef, method);
     asm.emitLtoc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, instanceSize);
@@ -2205,7 +2205,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
-    int whichAllocator = VM_Interface.pickAllocator(array);
+    int whichAllocator = VM_Interface.pickAllocator(array, method);
     asm.emitLtoc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitL    (T0,  0, SP);                // T0 := number of elements
