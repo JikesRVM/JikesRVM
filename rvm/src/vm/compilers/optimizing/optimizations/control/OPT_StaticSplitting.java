@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -49,7 +49,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
    * with that do not have incoming edges from 
    * blocks that are statically predicted to be cold.
    * 
-   * @param OPT_IR the IR on which to apply the phase
+   * @param ir   The IR on which to apply the phase
    */
   public void perform (OPT_IR ir) {
     // (1) Find candidates to split

@@ -832,7 +832,7 @@ public final class CNAMECarrier extends OPT_InstructionFormat {
   /**
    * Does the operator belong to an instruction format that
    * has an operand called CNAME?
-   * @param op the operator to test
+   * @param o the operator to test
    * @return <code>true</code> if the instruction's instruction
    *         format has an operand called CNAME and 
    *         <code>false</code> if it does not.

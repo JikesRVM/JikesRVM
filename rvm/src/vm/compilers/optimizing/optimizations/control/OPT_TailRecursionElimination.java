@@ -130,10 +130,10 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
   /**
    * Transform the tail recursive call into a loop.
    *
-   * @param instr the recursive call
-   * @param prologue the IR_Prologue instruction
-   * @param target the loop head
-   * @param ir the containing IR
+   * @param call     The recursive call
+   * @param prologue The IR_Prologue instruction
+   * @param target   The loop head
+   * @param ir       the containing IR
    */
   final OPT_Instruction transform(OPT_Instruction call,
                                   OPT_Instruction prologue,

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -134,7 +134,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
 
   /**
    * Remove a node from the graph.
-   * @param inode node to remove
+   * @param node node to remove
    */
   public final void removeGraphNode(OPT_SpaceEffGraphNode node) {
     if (node == _firstNode) {

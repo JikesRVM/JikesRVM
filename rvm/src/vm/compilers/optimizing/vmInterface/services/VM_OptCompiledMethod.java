@@ -149,8 +149,9 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
   /**
    * Print this compiled method's portion of a stack trace.
-   * @param offset the offset of machine instruction from start of method
-   * @param out    the PrintStream to print the stack trace to.
+   * @param instructionOffset   The offset of machine instruction from
+   *                            start of method
+   * @param out    The PrintStream to print the stack trace to.
    */
   public final void printStackTrace(int instructionOffset, PrintLN out) 
     throws InterruptiblePragma {
