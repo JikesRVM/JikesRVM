@@ -21,6 +21,9 @@ export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
 # the JDK javac executable
 export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
 
+# the JDK jar executable
+export HOST_JAR="/opt/IBMJava2-13/bin/jar"
+
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
 
@@ -69,6 +72,7 @@ export BASH="/bin/bash"
 export SED="/bin/sed"
 export WGET="/usr/bin/wget"
 export DIFF="/usr/bin/diff"
+export XARGS="/usr/bin/xargs"
 
 # where to find Jazzlib
 export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02

@@ -21,20 +21,14 @@ export HOST_JAVAC="/share/power/Java/aix/J1.3.0/java130/bin/javac"
 # the JDK1.3.0 javadoc executable
 export HOST_JAVADOC="/share/power/Java/aix/J1.3.0/java130/bin/javadoc"
 
+# the JDK1.3.0 jar executable
+export HOST_JAR="/share/power/Java/aix/J1.3.0/java130/bin/jar"
+
 # the JDK1.3.0 standard library jar files
 export HOST_REPOSITORIES="/share/power/Java/aix/J1.3.0/java130/jre/lib/rt.jar"
 
 # the JDK1.3.0 standard library jar files
 export HOST_TOOLS="/share/power/Java/aix/J1.3.0/java130/lib/tools.jar"
-
-# the JDK1.1.8 java executable
-export HOST_1_1_8_JAVA="/share/power/Java/aix/J1.1.8/bin/java"
-
-# the JDK1.1.8 javac executable
-export HOST_1_1_8_JAVAC="/share/power/Java/aix/J1.1.8/bin/javac"
-
-# the JDK1.1.8 standard library zip file
-export HOST_1_1_8_REPOSITORIES="/share/power/Java/aix/J1.1.8/lib/classes.zip"
 
 # path for GNU make
 export GNU_MAKE="/homes/fury5/jalapeno/bin/jmake"
@@ -66,6 +60,7 @@ export BASH="/usr/gnu/bin/bash"
 export SED="/usr/gnu/bin/sed"
 export WGET="/homes/fury5/jalapeno/bin/wget-aix"
 export DIFF="/usr/gnu/bin/diff"
+export XARGS="/usr/gnu/bin/xargs"
 
 # where to find Jazzlib
 export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02
