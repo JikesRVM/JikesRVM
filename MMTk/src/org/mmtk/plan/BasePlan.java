@@ -20,6 +20,7 @@ import org.mmtk.vm.Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Extent;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -270,7 +271,36 @@ public abstract class BasePlan
     return plan.getAllocatorFromSpace(space);
   }
 
-  /****************************************************************************
+  /**
+   * Return true if the object is either forwarded or being forwarded
+   *
+   * @param object
+   * @return True if the object is either forwarded or being forwarded
+   */
+  public static boolean isForwardedOrBeingForwarded(VM_Address object) 
+    throws VM_PragmaInline {
+    return false;
+  }
+
+  /**
+   * Perform any required initialization of the GC portion of the header.
+   * Called for objects created at boot time.
+   * 
+   * @param ref the object ref to the storage to be initialized
+   * @param tib the TIB of the instance being created
+   * @param size the number of bytes allocated by the GC system for
+   * this object.
+   * @param status the initial value of the status word
+   * @return The new value of the status word
+   */
+  public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
+                                                 int size,
+                                                 VM_Word status)
+    throws VM_PragmaInline {
+    return status; // nothing to do (no bytes of GC header)
+  }
+
+ /****************************************************************************
    *
    * Object processing and tracing
    */

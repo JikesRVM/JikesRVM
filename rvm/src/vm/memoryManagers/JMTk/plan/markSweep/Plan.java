@@ -61,6 +61,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Class variables
    */
   public static final boolean MOVES_OBJECTS = false;
+  public static final int GC_HEADER_BITS_REQUIRED = MarkSweepSpace.LOCAL_GC_BITS_REQUIRED;
+  public static final int GC_HEADER_BYTES_REQUIRED = MarkSweepSpace.GC_HEADER_BYTES_REQUIRED;
 
   // virtual memory resources
   private static FreeListVMResource msVM;
@@ -191,8 +193,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                               int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
-    case  MS_SPACE: Header.initializeHeader(ref, tib, bytes); return;
-    case LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes); return;
+    case  MS_SPACE: msSpace.initializeHeader(ref, tib); return;
+    case LOS_SPACE: losSpace.initializeHeader(ref, tib); return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
     default:
       if (VM_Interface.VerifyAssertions)
@@ -243,20 +245,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                           CallSite callsite,
                                           AllocAdvice hint) { 
     return null;
-  }
-
-  /**
-   * Return the initial header value for a newly allocated instance.
-   *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
-   */
-  public static final VM_Word getInitialHeaderValue(int size) 
-    throws VM_PragmaInline {
-    if (size > LOS_SIZE_THRESHOLD)
-      return losSpace.getInitialHeaderValue(size);
-    else
-      return msSpace.getInitialHeaderValue();  // NEW MS
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {

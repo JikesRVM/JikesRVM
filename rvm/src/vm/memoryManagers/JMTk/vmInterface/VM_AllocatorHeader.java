@@ -5,9 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.plan.Header;
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.scan.MMType;
 
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.BootImageInterface;
@@ -24,10 +22,13 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * 
  * @author Perry Cheng
  */
-public final class VM_AllocatorHeader extends Header {
+public final class VM_AllocatorHeader {
   public static final boolean STEAL_NURSERY_GC_HEADER = Plan.STEAL_NURSERY_GC_HEADER;
   // not supported during expected transition to new object model.
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+
+  public static final int REQUESTED_BITS = Plan.GC_HEADER_BITS_REQUIRED;
+  public static final int NUM_BYTES_HEADER = Plan.GC_HEADER_BYTES_REQUIRED;
 
   /**
    * Override the boot-time initialization method here, so that
@@ -38,12 +39,13 @@ public final class VM_AllocatorHeader extends Header {
                                       Object[] tib, int size, boolean isScalar)
     throws VM_PragmaInterruptible {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    VM_Word status = getBootTimeAvailableBits(ref, tib, size, VM_Word.zero());
+    VM_Word status = Plan.getBootTimeAvailableBits(ref, tib, size, VM_Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 
   public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
-    Header.dumpHeader(VM_Magic.objectAsAddress(ref));
+    // currently unimplemented
+    //    Header.dumpHeader(VM_Magic.objectAsAddress(ref));
   }
 
 }

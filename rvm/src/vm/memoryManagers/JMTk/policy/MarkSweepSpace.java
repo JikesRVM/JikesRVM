@@ -4,7 +4,6 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.MarkSweepHeader;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.Conversions;
@@ -43,6 +42,10 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    *
    * Class variables
    */
+  public static final int LOCAL_GC_BITS_REQUIRED = 1;
+  public static final int GLOBAL_GC_BITS_REQUIRED = 0;
+  public static final int GC_HEADER_BYTES_REQUIRED = 0;
+  public static final VM_Word MARK_BIT_MASK = VM_Word.one();  // ...01
 
   /****************************************************************************
    *
@@ -76,15 +79,6 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * Allocation
    */
 
-  /**
-   * Return the initial value for the header of a new object instance.
-   * The header for this collector includes a mark bit.
-   */
-  public final VM_Word getInitialHeaderValue() 
-    throws VM_PragmaInline {
-    return markState;
-  }
-
   /****************************************************************************
    *
    * Collection
@@ -99,7 +93,7 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param mr (unused)
    */
   public void prepare(FreeListVMResource vm, MemoryResource mr) { 
-    markState = MarkSweepHeader.MARK_BIT_MASK.sub(markState);
+    markState = MARK_BIT_MASK.sub(markState);
     MarkSweepLocal.zeroLiveBits(vm);
     inMSCollection = true;
   }
@@ -145,7 +139,7 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object)
     throws VM_PragmaInline {
-    if (MarkSweepHeader.testAndMark(object, markState)) {
+    if (testAndMark(object, markState)) {
       if (Plan.GATHER_MARK_CONS_STATS)
 	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
       MarkSweepLocal.liveObject(object);
@@ -161,7 +155,67 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    */
   public boolean isLive(VM_Address obj)
     throws VM_PragmaInline {
-    return MarkSweepHeader.testMarkBit(obj, markState);
+    return testMarkBit(obj, markState);
+  }
+
+  /****************************************************************************
+   *
+   * Header manipulation
+   */
+
+   /**
+   * Perform any required initialization of the GC portion of the header.
+   * 
+   * @param object the object ref to the storage to be initialized
+   * @param tib the TIB of the instance being created
+   */
+  public final void initializeHeader(VM_Address object, Object[] tib) 
+    throws VM_PragmaInline {
+    VM_Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    VM_Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+    VM_Interface.writeAvailableBitsWord(object, newValue);
+  }
+
+  /**
+   * Atomically attempt to set the mark bit of an object.  Return true
+   * if successful, false if the mark bit was already set.
+   *
+   * @param object The object whose mark bit is to be written
+   * @param value The value to which the mark bit will be set
+   */
+  private static boolean testAndMark(VM_Address object, VM_Word value)
+    throws VM_PragmaInline {
+    VM_Word oldValue, markBit;
+    do {
+      oldValue = VM_Interface.prepareAvailableBits(object);
+      markBit = oldValue.and(MARK_BIT_MASK);
+      if (markBit.EQ(value)) return false;
+    } while (!VM_Interface.attemptAvailableBits(object, oldValue,
+                                                oldValue.xor(MARK_BIT_MASK)));
+    return true;
+  }
+
+  /**
+   * Return true if the mark bit for an object has the given value.
+   *
+   * @param object The object whose mark bit is to be tested
+   * @param value The value against which the mark bit will be tested
+   * @return True if the mark bit for the object has the given value.
+   */
+  private static boolean testMarkBit(VM_Address object, VM_Word value)
+    throws VM_PragmaInline {
+    return VM_Interface.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+  }
+
+  /**
+   * Write a given value in the mark bit of an object non-atomically
+   *
+   * @param object The object whose mark bit is to be written
+   */
+  public void writeMarkBit(VM_Address object) throws VM_PragmaInline {
+    VM_Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    VM_Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+    VM_Interface.writeAvailableBitsWord(object, newValue);
   }
 
   /****************************************************************************

@@ -103,6 +103,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Class variables
    */
   public static final boolean MOVES_OBJECTS = true;
+  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
+  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean GENERATE_GC_TRACE = true;
 
@@ -275,7 +277,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     switch (allocator) {
     case  DEFAULT_SPACE: break;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); break;
-    case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes); break;
+    case      LOS_SPACE: losSpace.initializeHeader(ref, tib); break;
     default:
       if (VM_Interface.VerifyAssertions) 
         VM_Interface.sysFail("No such allocator");
@@ -314,7 +316,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes) 
     throws VM_PragmaInline {
-    CopyingHeader.clearGCBits(ref);
+    CopySpace.clearGCBits(ref);
   } // do nothing
 
   protected final byte getSpaceFromAllocator (Allocator a) {
@@ -346,18 +348,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 					  CallSite callsite,
 					  AllocAdvice hint) {
     return null;
-  }
-
-  /**
-   * Return the initial header value for a newly allocated LOS
-   * instance.
-   *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
-   */
-  public static final VM_Word getInitialHeaderValue(int bytes)
-    throws VM_PragmaInline {
-    return losSpace.getInitialHeaderValue(bytes);
   }
 
   /**
@@ -614,8 +604,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       byte space = VMResource.getSpace(addr);
       if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE)) {
         if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(CopyingHeader.isForwarded(object));
-        return CopyingHeader.getForwardingPointer(object);
+          VM_Interface._assert(CopySpace.isForwarded(object));
+        return CopySpace.getForwardingPointer(object);
       }
     }
     return object;

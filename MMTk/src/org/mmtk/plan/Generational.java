@@ -71,6 +71,8 @@ public abstract class Generational extends StopTheWorldGC
    */
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = true;
+  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
+  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
   public static final boolean IGNORE_REMSET = false;    // always do full trace
 
   // Global pool for shared remset queue
@@ -203,6 +205,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   abstract VM_Address matureAlloc(int bytes, int align, int offset);
   abstract VM_Address matureCopy(int bytes, int align, int offset);
+  abstract void maturePostAlloc(VM_Address ref, Object[] tib);
 
   /**
    * Allocate space (for an object)
@@ -242,9 +245,9 @@ public abstract class Generational extends StopTheWorldGC
     throws VM_PragmaInline {
     switch (allocator) {
     case  NURSERY_SPACE: return;
-    case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes); return;
+    case   MATURE_SPACE: maturePostAlloc(ref, tib); return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-    case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes); return;
+    case      LOS_SPACE: losSpace.initializeHeader(ref, tib); return;
     default:
       if (VM_Interface.VerifyAssertions)
 	VM_Interface.sysFail("No such allocator");
@@ -588,8 +591,8 @@ public abstract class Generational extends StopTheWorldGC
       byte space = VMResource.getSpace(addr);
       if (space == NURSERY_SPACE) {
         if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(CopyingHeader.isForwarded(object));
-        return CopyingHeader.getForwardingPointer(object);
+          VM_Interface._assert(CopySpace.isForwarded(object));
+        return CopySpace.getForwardingPointer(object);
       } else if (fullHeapGC)
         return Plan.getForwardedMatureReference(object, space);
     }

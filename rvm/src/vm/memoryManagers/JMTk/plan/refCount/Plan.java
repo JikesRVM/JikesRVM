@@ -50,6 +50,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = false;
+  public static final int GC_HEADER_BITS_REQUIRED = RefCountSpace.LOCAL_GC_BITS_REQUIRED;
+  public static final int GC_HEADER_BYTES_REQUIRED = RefCountSpace.GC_HEADER_BYTES_REQUIRED;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean SUPPORTS_PARALLEL_GC = false;
 
@@ -239,7 +241,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if (WITH_COALESCING_RC) modBuffer.pushOOL(ref);
       decBuffer.pushOOL(ref);
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(ref); 
-      Header.initializeHeader(ref, tib, bytes);
+      RefCountSpace.initializeHeader(ref, tib, true);
       return;
     case IMMORTAL_SPACE: 
       if (WITH_COALESCING_RC)
@@ -309,17 +311,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                           CallSite callsite,
                                           AllocAdvice hint) {
     return null;
-  }
-
-  /**
-   * Return the initial header value for a newly allocated instance.
-   *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
-   */
-  public static final VM_Word getInitialHeaderValue(int bytes) 
-    throws VM_PragmaInline {
-    return rcSpace.getInitialHeaderValue(bytes);
   }
 
   /**
@@ -436,6 +427,24 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     lastRCPages = rcMR.committedPages();
   }
 
+  /**
+   * Perform any required initialization of the GC portion of the header.
+   * Called for objects created at boot time.
+   * 
+   * @param ref the object ref to the storage to be initialized
+   * @param tib the TIB of the instance being created
+   * @param size the number of bytes allocated by the GC system for
+   * this object.
+   */
+  public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
+						 int size, 
+						 VM_Word status)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);
+    return status;
+  }
+ 
+
   /****************************************************************************
    *
    * Object processing and tracing
@@ -512,9 +521,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     byte space = VMResource.getSpace(addr);
     
     if (space == RC_SPACE || space == LOS_SPACE) {
-      if (RCBaseHeader.incSanityRC(object, root))
+      if (RefCountSpace.incSanityRC(object, root))
         Scan.enumeratePointers(object, sanityEnum);
-    } else if (RCBaseHeader.markSanityRC(object))
+    } else if (RefCountSpace.markSanityRC(object))
       Scan.enumeratePointers(object, sanityEnum);
   }
   
@@ -536,9 +545,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     byte space = VMResource.getSpace(addr);
     
     if (space == RC_SPACE || space == LOS_SPACE) {
-      if (RCBaseHeader.checkAndClearSanityRC(object))
+      if (RefCountSpace.checkAndClearSanityRC(object))
         Scan.enumeratePointers(object, sanityEnum);
-    } else if (RCBaseHeader.unmarkSanityRC(object))
+    } else if (RefCountSpace.unmarkSanityRC(object))
       Scan.enumeratePointers(object, sanityEnum);
   }
   
@@ -552,7 +561,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
-      return RCBaseHeader.isLiveRC(object);
+      return RefCountSpace.isLiveRC(object);
     else if (space == BOOT_SPACE || space == IMMORTAL_SPACE)
       return true;
     else
@@ -571,7 +580,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
-      return RCBaseHeader.isFinalizable(object);
+      return RefCountSpace.isFinalizable(object);
     else if (space == BOOT_SPACE || space == IMMORTAL_SPACE)
       return false;
     else
@@ -592,7 +601,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
-      RCBaseHeader.clearFinalizer(object);
+      RefCountSpace.clearFinalizer(object);
     return object;
   }
 
@@ -655,7 +664,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
-      if (Header.logRequired(src)) {
+      if (RefCountSpace.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
       VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -664,7 +673,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if (old.GE(RC_START))
         decBuffer.pushOOL(old);
       if (tgt.GE(RC_START))
-        RCBaseHeader.incRCOOL(tgt);
+        RefCountSpace.incRCOOL(tgt);
     }
   }
 
@@ -686,7 +695,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaNoInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
-      if (Header.logRequired(src)) {
+      if (RefCountSpace.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
       VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -695,7 +704,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if (old.GE(RC_START))
         decBuffer.push(old);
       if (tgt.GE(RC_START))
-        RCBaseHeader.incRC(tgt);
+        RefCountSpace.incRC(tgt);
     }
   }
 
@@ -727,7 +736,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 			      int bytes) {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
-      if (Header.logRequired(dst))
+      if (RefCountSpace.logRequired(dst))
 	coalescingWriteBarrierSlow(dst);
       return false;
     } else {
@@ -740,7 +749,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	if (old.GE(RC_START))
 	  decBuffer.push(old);
 	if (tgt.GE(RC_START))
-	  RCBaseHeader.incRC(tgt);
+	  RefCountSpace.incRC(tgt);
 	src = src.add(BYTES_IN_ADDRESS);
 	dst = dst.add(BYTES_IN_ADDRESS);
 	bytes -= BYTES_IN_ADDRESS;
@@ -765,10 +774,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(WITH_COALESCING_RC);
     if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
-    if (Header.attemptToLog(srcObj)) {
+    if (RefCountSpace.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
       Scan.enumeratePointers(srcObj, decEnum);
-      Header.makeLogged(srcObj);
+      RefCountSpace.makeLogged(srcObj);
     }
   }
 
@@ -810,7 +819,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (!object.isZero()) {
       VM_Address addr = VM_Interface.refToAddress(object);
       if (addr.GE(RC_START))
-        RCBaseHeader.incRC(object);
+        RefCountSpace.incRC(object);
     }
   }
 
@@ -900,7 +909,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     modBuffer.flushLocal();
     VM_Address obj = VM_Address.zero();
     while (!(obj = modBuffer.pop()).isZero()) {
-      Header.makeUnlogged(obj);
+      RefCountSpace.makeUnlogged(obj);
       Scan.enumeratePointers(obj, modEnum);
     }
   }

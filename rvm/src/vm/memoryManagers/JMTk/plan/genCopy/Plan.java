@@ -146,15 +146,14 @@ public class Plan extends Generational implements VM_Uninterruptible {
   }
 
   /**
-   * Return the initial header value for a newly allocated LOS
-   * instance.
+   * Perform post-allocation initialization of an object
    *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
    */
-  public static final VM_Word getInitialHeaderValue(int bytes)
+  protected final void maturePostAlloc(VM_Address ref, Object[] tib) 
     throws VM_PragmaInline {
-    return losSpace.getInitialHeaderValue(bytes);
+    // nothing to be done
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
@@ -255,8 +254,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE)) {
       if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(CopyingHeader.isForwarded(object));
-      return CopyingHeader.getForwardingPointer(object);
+        VM_Interface._assert(CopySpace.isForwarded(object));
+      return CopySpace.getForwardingPointer(object);
     } else {
       return object;
     }
@@ -295,7 +294,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public final void postCopy(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaInline {
-    CopyingHeader.clearGCBits(ref);
+    CopySpace.clearGCBits(ref);
     if (IGNORE_REMSET)
       ImmortalSpace.postAlloc(ref);
   }

@@ -40,6 +40,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Class variables
    */
   public static final boolean MOVES_OBJECTS = false;
+  public static final int GC_HEADER_BITS_REQUIRED = 0;
+  public static final int GC_HEADER_BYTES_REQUIRED = 0;
 
   // virtual memory resources
   private static MonotoneVMResource defaultVM;
@@ -147,8 +149,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaInline {
     switch (allocator) {
     case      LOS_SPACE: // no los, so use default allocator
-    case  DEFAULT_SPACE: Header.initializeHeader(ref, tib, bytes); return;
-    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+    case  DEFAULT_SPACE: return;
+    case IMMORTAL_SPACE: return;
     default:
       if (VM_Interface.VerifyAssertions)
 	VM_Interface.sysFail("No such allocator");

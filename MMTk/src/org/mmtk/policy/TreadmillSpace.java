@@ -4,7 +4,6 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.MarkSweepHeader;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.vm.VM_Interface;
@@ -40,6 +39,9 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    *
    * Class variables
    */
+  public static final int LOCAL_GC_BITS_REQUIRED = 1;
+  public static final int GLOBAL_GC_BITS_REQUIRED = 0;
+  public static final VM_Word MARK_BIT_MASK = VM_Word.one();  // ...01
 
   /****************************************************************************
    *
@@ -88,19 +90,6 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
     thread.treadmill.addToFromSpace(Treadmill.payloadToNode(cell));
   }
 
-  /**
-   * Return the initial value for the header of a new object instance.
-   * The header for this collector includes a mark bit and a small
-   * object flag.
-   *
-   * @param size The size of the newly allocated object
-   */
-  public final VM_Word getInitialHeaderValue(int size) 
-    throws VM_PragmaInline {
-      return markState;
-  }
-
-
   /****************************************************************************
    *
    * Collection
@@ -115,7 +104,7 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param mr (unused)
    */
   public void prepare(VMResource vm, MemoryResource mr) { 
-    markState = MarkSweepHeader.MARK_BIT_MASK.sub(markState);
+    markState = MARK_BIT_MASK.sub(markState);
     inTreadmillCollection = true;
   }
 
@@ -161,7 +150,7 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object)
     throws VM_PragmaInline {
-    if (MarkSweepHeader.testAndMark(object, markState)) {
+    if (testAndMark(object, markState)) {
       internalMarkObject(object);
       VM_Interface.getPlan().enqueue(object);
     }
@@ -177,7 +166,7 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    */
    public boolean isLive(VM_Address obj)
     throws VM_PragmaInline {
-     return MarkSweepHeader.testMarkBit(obj, markState);
+     return testMarkBit(obj, markState);
    }
 
   /**
@@ -189,10 +178,6 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    */
   private final void internalMarkObject(VM_Address object) 
     throws VM_PragmaInline {
-
-    // VM_Address ref = VM_Interface.refToAddress(object);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!MarkSweepHeader.isSmallObject(object));
-        
     VM_Address cell = VM_Interface.objectStartRef(object);
     VM_Address node = Treadmill.midPayloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
@@ -200,6 +185,55 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
   }
 
   /****************************************************************************
+   *
+   * Header manipulation
+   */
+
+   /**
+   * Perform any required initialization of the GC portion of the header.
+   * 
+   * @param object the object ref to the storage to be initialized
+   * @param tib the TIB of the instance being created
+   */
+  public final void initializeHeader(VM_Address object, Object[] tib) 
+    throws VM_PragmaInline {
+    VM_Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    VM_Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+    VM_Interface.writeAvailableBitsWord(object, newValue);
+  }
+
+  /**
+   * Atomically attempt to set the mark bit of an object.  Return true
+   * if successful, false if the mark bit was already set.
+   *
+   * @param object The object whose mark bit is to be written
+   * @param value The value to which the mark bit will be set
+   */
+  public static boolean testAndMark(VM_Address object, VM_Word value)
+    throws VM_PragmaInline {
+    VM_Word oldValue, markBit;
+    do {
+      oldValue = VM_Interface.prepareAvailableBits(object);
+      markBit = oldValue.and(MARK_BIT_MASK);
+      if (markBit.EQ(value)) return false;
+    } while (!VM_Interface.attemptAvailableBits(object, oldValue,
+                                                oldValue.xor(MARK_BIT_MASK)));
+    return true;
+  }
+
+  /**
+   * Return true if the mark bit for an object has the given value.
+   *
+   * @param object The object whose mark bit is to be tested
+   * @param value The value against which the mark bit will be tested
+   * @return True if the mark bit for the object has the given value.
+   */
+  static public boolean testMarkBit(VM_Address object, VM_Word value)
+    throws VM_PragmaInline {
+    return VM_Interface.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+  }
+
+ /****************************************************************************
    *
    * Miscellaneous
    */

@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.VM_Address;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Options;
-import org.mmtk.utility.VMResource;
+import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.gcspy.Util;
 

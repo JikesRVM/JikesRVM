@@ -5,7 +5,6 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.RCBaseHeader;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.deque.*;
@@ -307,7 +306,7 @@ public final class RefCountLocal extends SegregatedFreeList
   private final void processOldRootBufs() {
     VM_Address object;
     while (!(object = oldRootSet.pop()).isZero()) {
-      if (!RCBaseHeader.isLiveRC(object))
+      if (!RefCountSpace.isLiveRC(object))
         release(object);
     }
   }
@@ -322,7 +321,7 @@ public final class RefCountLocal extends SegregatedFreeList
       if (RefCountSpace.INC_DEC_ROOT)
         decBuffer.push(object);
       else {
-        RCBaseHeader.unsetRoot(object);
+        RefCountSpace.unsetRoot(object);
         oldRootSet.push(object);
       }
     }
@@ -338,7 +337,7 @@ public final class RefCountLocal extends SegregatedFreeList
       if (RefCountSpace.INC_DEC_ROOT)
         decBuffer.push(object);
       else {
-        RCBaseHeader.unsetRoot(object);
+        RefCountSpace.unsetRoot(object);
         oldRootSet.push(object);
       }
       rootCounter++;
@@ -362,10 +361,10 @@ public final class RefCountLocal extends SegregatedFreeList
    */
   public final void decrement(VM_Address object) 
     throws VM_PragmaInline {
-    int state = RCBaseHeader.decRC(object);
-    if (state == RCBaseHeader.DEC_KILL)
+    int state = RefCountSpace.decRC(object);
+    if (state == RefCountSpace.DEC_KILL)
       release(object);
-    else if (Plan.REF_COUNT_CYCLE_DETECTION && state ==RCBaseHeader.DEC_BUFFER)
+    else if (Plan.REF_COUNT_CYCLE_DETECTION && state ==RefCountSpace.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
 
@@ -385,7 +384,7 @@ public final class RefCountLocal extends SegregatedFreeList
     // this object is now dead, scan it for recursive decrement
     if (RefCountSpace.RC_SANITY_CHECK) rcLiveObjects--;
     Scan.enumeratePointers(object, plan.decEnum);
-    if (!Plan.REF_COUNT_CYCLE_DETECTION || !RCBaseHeader.isBuffered(object)) 
+    if (!Plan.REF_COUNT_CYCLE_DETECTION || !RefCountSpace.isBuffered(object)) 
       free(object);
   }
 
@@ -484,7 +483,7 @@ public final class RefCountLocal extends SegregatedFreeList
   final void checkSanityTrace() {
     VM_Address object;
     while (!(object = sanityLastGCSet.pop()).isZero()) {
-      RCBaseHeader.checkOldObject(object);
+      RefCountSpace.checkOldObject(object);
     }
     while (!(object = sanityImmortalSetB.pop()).isZero()) {
       plan.checkSanityTrace(object, VM_Address.zero());

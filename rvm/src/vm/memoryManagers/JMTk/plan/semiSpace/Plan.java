@@ -70,6 +70,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Class variables
    */
   public static final boolean MOVES_OBJECTS = true;
+  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
+  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
 
   // virtual memory resources
   private static FreeListVMResource losVM;
@@ -454,7 +456,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	  objectMap.alloc(VM_Magic.objectAsAddress(ref));
       return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-    case LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes); return;
+    case LOS_SPACE: losSpace.initializeHeader(ref, tib); return;
     default:
       if (VM_Interface.VerifyAssertions) 
 	VM_Interface.sysFail("No such allocator");
@@ -495,7 +497,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes)
   throws VM_PragmaInline {
-    CopyingHeader.clearGCBits(ref);
+    CopySpace.clearGCBits(ref);
 
     if (VM_Interface.GCSPY) 
       if (GCSpy.getGCSpyPort() != 0)
@@ -532,18 +534,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                           CallSite callsite,
                                           AllocAdvice hint) {
     return null;
-  }
-
-  /**
-   * Return the initial header value for a newly allocated LOS
-   * instance.
-   *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
-   */
-  public static final VM_Word getInitialHeaderValue(int bytes)
-    throws VM_PragmaInline {
-    return losSpace.getInitialHeaderValue(bytes);
   }
 
   /**
@@ -754,8 +744,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       byte space = VMResource.getSpace(addr);
       if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE)) {
         if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(CopyingHeader.isForwarded(object));
-        return CopyingHeader.getForwardingPointer(object);
+          VM_Interface._assert(CopySpace.isForwarded(object));
+        return CopySpace.getForwardingPointer(object);
       }
     }
     return object;
@@ -796,6 +786,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
         spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
+  }
+
+  /**
+   * Return true if the object is either forwarded or being forwarded
+   *
+   * @param object
+   * @return True if the object is either forwarded or being forwarded
+   */
+  public static boolean isForwardedOrBeingForwarded(VM_Address object) 
+    throws VM_PragmaInline {
+    if (isSemiSpaceObject(object))
+      return CopySpace.isForwardedOrBeingForwarded(object);
+    else
+      return false;
   }
 
   // XXX Missing Javadoc comment.

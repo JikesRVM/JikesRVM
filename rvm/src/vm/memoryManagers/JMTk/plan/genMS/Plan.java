@@ -123,6 +123,17 @@ public class Plan extends Generational implements VM_Uninterruptible {
   }
 
   /**
+   * Perform post-allocation initialization of an object
+   *
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
+   */
+  protected final void maturePostAlloc(VM_Address ref, Object[] tib) 
+    throws VM_PragmaInline {
+    matureSpace.initializeHeader(ref, tib);
+  }
+
+  /**
    * Allocate space for copying an object in the mature space (this
    * method <i>does not</i> copy the object, it only allocates space)
    *
@@ -134,21 +145,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
   protected final VM_Address matureCopy(int bytes, int align, int offset) 
     throws VM_PragmaInline {
     return mature.alloc(bytes, align, offset, matureSpace.inMSCollection());
-  }
-
-  /**
-   * Return the initial header value for a newly allocated mature
-   * instance (either large object or surviving nursery object).
-   *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
-   */
-  public final static VM_Word getInitialHeaderValue(int bytes)
-    throws VM_PragmaInline {
-    if (bytes > LOS_SIZE_THRESHOLD)
-      return losSpace.getInitialHeaderValue(bytes);
-    else
-      return matureSpace.getInitialHeaderValue();
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
@@ -238,7 +234,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public final void postCopy(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaInline {
-    HybridHeader.writeMarkBit(ref, matureSpace.getInitialHeaderValue());
+    matureSpace.writeMarkBit(ref);
     MarkSweepLocal.liveObject(ref);
   }
 

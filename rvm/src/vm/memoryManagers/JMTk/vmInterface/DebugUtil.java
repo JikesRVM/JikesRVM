@@ -6,6 +6,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.utility.heap.LazyMmapper;
 import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
@@ -106,8 +107,7 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
       return false;
     }
     if (MM_Interface.MOVES_OBJECTS) {
-      if (VM_AllocatorHeader.isForwarded(ref) ||
-          VM_AllocatorHeader.isBeingForwarded(ref)) {
+      if (Plan.isForwardedOrBeingForwarded(ref)) {
         /*
          * TODO: actually follow forwarding pointer
          * (need to bound recursion when things are broken!!)

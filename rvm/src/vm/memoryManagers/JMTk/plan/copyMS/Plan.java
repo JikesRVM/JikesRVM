@@ -66,6 +66,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Class variables
    */
   public static final boolean MOVES_OBJECTS = true;
+  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
+  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
 
   // virtual memory resources
   private static MonotoneVMResource nurseryVM;
@@ -201,8 +203,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaInline {
     switch (allocator) {
     case  NURSERY_SPACE: return;
-    case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes); return;
-    case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes); return;
+    case      LOS_SPACE: losSpace.initializeHeader(ref, tib); return;
+    case       MS_SPACE: msSpace.initializeHeader(ref, tib); return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
     default:
       if (VM_Interface.VerifyAssertions) 
@@ -237,7 +239,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes)
     throws VM_PragmaInline {
-    HybridHeader.writeMarkBit(ref, msSpace.getInitialHeaderValue());
+    msSpace.writeMarkBit(ref);
     MarkSweepLocal.liveObject(ref);
   }
 
@@ -258,21 +260,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                           CallSite callsite,
                                           AllocAdvice hint) { 
     return null;
-  }
-
-  /**
-   * Return the initial header value for a newly allocated LOS
-   * instance.
-   *
-   * @param bytes The size of the newly created instance in bytes.
-   * @return The inital header value for the new instance.
-   */
-  public static final VM_Word getInitialHeaderValue(int bytes)
-    throws VM_PragmaInline {
-    if (bytes > LOS_SIZE_THRESHOLD)
-      return losSpace.getInitialHeaderValue(bytes);
-    else
-      return msSpace.getInitialHeaderValue();
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
@@ -497,8 +484,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       VM_Address addr = VM_Interface.refToAddress(object);
       if (VMResource.getSpace(addr) == NURSERY_SPACE) {
         if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(CopyingHeader.isForwarded(object));
-        return CopyingHeader.getForwardingPointer(object);
+          VM_Interface._assert(CopySpace.isForwarded(object));
+        return CopySpace.getForwardingPointer(object);
       }
     }
     return object;
