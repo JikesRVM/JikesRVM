@@ -58,9 +58,13 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   }
 
   public int hashCode() {
-    return VM_Magic.objectAsAddress(value).toInt() >>> VM_SizeConstants.LOG_BYTES_IN_ADDRESS;  
+    //-#if RVM_FOR_64_ADDR
+    return (int)(value.toLong() >>> VM_SizeConstants.LOG_BYTES_IN_ADDRESS);
+    //-#elif RVM_FOR_32_ADDR
+    return value.toInt() >>> VM_SizeConstants.LOG_BYTES_IN_ADDRESS;  
+    //-#endif
   }
-
+  
   /**
    * Returns the string representation of this operand.
    *
@@ -69,7 +73,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   public String toString() {
     //-#if RVM_FOR_64_ADDR
     return "Addr " + value.toLong();
-    //-#else
+    //-#elif RVM_FOR_32_ADDR
     return "Addr " + value.toInt();
     //-#endif
   }

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
+import com.ibm.JikesRVM.VM_Address;
 
 /**
  * Encodes the condition codes for branches.
@@ -293,10 +294,10 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   public int evaluate(OPT_Operand v1, OPT_Operand v2) {
     if (v1.isAddressConstant()) {
       if (v2.isAddressConstant()) {
-        return evaluate(v1.asAddressConstant().value.toInt(), 
-			v2.asAddressConstant().value.toInt());
+        return evaluate(v1.asAddressConstant().value, 
+			v2.asAddressConstant().value);
       } else if (v2.isNullConstant()) {
-	return evaluate(v1.asAddressConstant().value.toInt(), 0); 
+	return evaluate(v1.asAddressConstant().value, VM_Address.zero()); 
       } else if (v2.isIntConstant()) {
 	return evaluate(v1.asAddressConstant().value.toInt(), 
 			v2.asIntConstant().value); 
@@ -346,7 +347,7 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       } else if (v2.isIntConstant()) {
 	return evaluate(0, v2.asIntConstant().value);
       } else if (v2.isAddressConstant()) {
-	return evaluate(0, v2.asAddressConstant().value.toInt());
+	return evaluate(VM_Address.zero(), v2.asAddressConstant().value);
       } else if (v2.isStringConstant()) {
 	if (isEQUAL()) {
 	  return FALSE;
@@ -458,6 +459,27 @@ public final class OPT_ConditionOperand extends OPT_Operand {
     case LESS_EQUAL:      return (v1 <= v2) ? TRUE : FALSE;
     }
     throw  new OPT_OptimizingCompilerException("invalid condition" + this);
+  }
+
+  /**
+   * Given two VM_Addresses, evaluate the condition on them.
+   * 
+   * @param v1 first operand to condition
+   * @param v2 second operand to condition
+   * @return <code>TRUE</code> if (v1 cond v2) or 
+   *         <code>FALSE</code> if !(v1 cond v2) or 
+   *         <code>UNKNOWN</code>
+   */
+  public int evaluate(VM_Address v1, VM_Address v2) {
+    switch (value) {
+    case EQUAL: return (v1.EQ(v2)) ? TRUE : FALSE;
+    case NOT_EQUAL: return (v1.NE(v2)) ? TRUE : FALSE;
+    case LOWER: return (v1.LT(v2)) ? TRUE : FALSE;
+    case LOWER_EQUAL: return (v1.LE(v2)) ? TRUE : FALSE;
+    case HIGHER: return (v1.GT(v2)) ? TRUE : FALSE;
+    case HIGHER_EQUAL: return (v1.GE(v2)) ? TRUE : FALSE;
+    }
+    throw new OPT_OptimizingCompilerException("invalid condition" + this);
   }
 
   /**

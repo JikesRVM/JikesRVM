@@ -795,7 +795,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
     // from the invoker address and the code base address - get the machine
     // code offset 
-    int machineCodeOffset = callerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
+    int machineCodeOffset = compiledMethod.getInstructionOffset(callerAddress);
 
     if (VM.TraceStkMaps) {
       VM.sysWriteln("VM_ReferenceMaps-setupJSRMap- inputMapid = ", mapid);
@@ -838,7 +838,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       VM_UnusualMaps thisMap = unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
       VM_Address nextCallerAddress = VM_Magic.getMemoryAddress(frameAddress.add(thisJsrAddressOffset));
-      int nextMachineCodeOffset = nextCallerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
+      int nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
       if (VM.TraceStkMaps) {
