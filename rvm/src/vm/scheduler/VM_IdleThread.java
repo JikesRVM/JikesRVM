@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -8,6 +8,8 @@ package com.ibm.JikesRVM;
  * Low priority thread to run when there's nothing else to do.
  * This thread also handles initializing the virtual processor
  * for execution.
+ *
+ * This follows the Singleton pattern.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -29,11 +31,14 @@ class VM_IdleThread extends VM_Thread {
    * primordial processor.
    */
   private boolean runInitProc;
+
+  final private static String myName = "VM_IdleThread";
   
   /**
    * A thread to run if there is no other work for a virtual processor.
    */
   VM_IdleThread(VM_Processor processorAffinity, boolean runInitProcessor) {
+    super(null, myName);
     makeDaemon(true);
     super.isIdleThread = true;
     super.processorAffinity = processorAffinity;
@@ -41,7 +46,7 @@ class VM_IdleThread extends VM_Thread {
   }
 
   public String toString() { // overrides VM_Thread
-    return "VM_IdleThread";
+    return myName;
   }
 
   public void run() { // overrides VM_Thread
