@@ -546,9 +546,9 @@ getFaultingAddress(mstsave *save)
 #endif
 {
     if (lib_verbose) {
-#ifdef RVM_FOR_32_ADDR
+#if (_AIX43)
         fprintf(SysTraceFile, "save->o_vaddr=" FMTrvmPTR "\n", rvmPTR_ARG(save->o_vaddr));
-#elif defined RVM_FOR_64_ADDR
+#else
         fprintf(SysTraceFile, "save->except[0]=" FMTrvmPTR "\n", 
                 rvmPTR_ARG(save->except[0]));
 #endif
