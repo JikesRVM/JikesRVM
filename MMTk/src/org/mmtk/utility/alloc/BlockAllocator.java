@@ -354,7 +354,6 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   public static final void linkedListInsert(VM_Address block, VM_Address prev) {
-    if (!VM.VerifyAssertions) VM._assert(false); // must be fixed
     if (VM.VerifyAssertions) VM._assert(!block.isZero());
     VM_Address next;
     if (!prev.isZero()) {
