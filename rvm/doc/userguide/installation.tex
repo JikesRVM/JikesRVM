@@ -47,6 +47,15 @@ run RVM on a Linux Intel environment, you will need
 \end{itemize}
 
 \subsubsection{Win32 and Cygwin/IA32}
+Currently this option for running RVM is barely if at all functional.
+It is not currently being maintained or tested. You are encouraged to 
+skip this section and don't even think about running RVM on Win32 with 
+cygwin.
+
+If you're still reading, you are probably an enterprising hacker that is
+interested in getting this configuration up an running.  More power to
+you! We'd like to hear your progress.
+
 In addition to the software mentioned above, to install, build, and
 run RVM on a Win32/Cygwin Intel environment, you will need 
 \begin{itemize}
@@ -66,9 +75,9 @@ installed.
 \xlink{{\tt http://www.cs.mun.ca/\~{}michael/pdksh}}
        {http://www.cs.mun.ca/\~{}michael/pdksh}.
 \end{itemize}
-Currently this option for running RVM is even less functional than
-the Linux/IA32 configuration. It is not currently being maintained or
-tested.  Some problems include:
+
+Some issues with this platform include:
+
 \begin{itemize}
 \item We haven't managed to successfully install a handler for hardware traps,
 so the first hardware exception (eg a {\tt NullPointerException}) will cause
