@@ -76,6 +76,11 @@ JGF_HOME=/u/sfink/tmp/jgf_v2.0
 Xerces_HOME=/homes/fury5/jalapeno/contrib/benchmarks/xerces-2_0_2
 
 #
+# Xalan 2.4.D1
+#
+Xalan_HOME=/homes/fury5/jalapeno/contrib/benchmarks/xalan-j_2_4_D1
+
+#
 # Shakespeare in XML obtained from
 # http://www.ibiblio.org/pub/sun-info/standards/xml/eg/shakespeare.1.10.xml.zip
 #
