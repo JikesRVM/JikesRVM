@@ -1,36 +1,43 @@
-This section describes a set of coding style guidelines that we
-recommend for all code added to the Jikes\trademark RVM  system.  
+The vast majority of Jikes RVM's source code is in Java ( \$~1045\$
+source files as of this writing.)  This section describes a set of
+coding style guidelines that we recommend for all Java code added to
+the Jikes\trademark RVM system.
 
-Regrettably, much code in the current system does not follow any consistent
-coding style.  This is an unfortunate residue of the system's evolution 
-make editing sometimes unpleasant, and prevents javadoc from
-formatting comments in
-many files.  To alleviate this problem, we present this style guide 
-(which consists of a small tweak of the style guide advanced by Sun) 
-for new code. 
+Regrettably, much code in the current system does not follow any
+consistent coding style.  This is an unfortunate residue of the
+system's evolution.  It makes editing sometimes unpleasant, and
+prevents javadoc from formatting comments in many files.  To alleviate
+this problem, we present this style guide for new Java code; it's just
+a small tweak of Sun's style guide.
+
+%   
 
 \index{javadoc}
-
+\index{Coding Style}
+\index{Java source code style}
 \subsection {Coding style description}
 
-The Jikes\trademark RVM coding style guidelines are defined as a
-reference to an Sun 
+The Jikes\trademark RVM coding style guidelines are defined with
+reference to the Sun 
 Microsystems ``Code Conventions for the Java\trademark Programming Language'',
 with a few exceptions listed below.  The Sun coding
 conventions can be found at 
 \xlink{{\tt \SunCodeConventionURL}} {\SunCodeConventionURL} in HTML,
 postscript, and PDF.  Most of the style guide is intuitive; 
-however, please read through the document or look at its sample code.
+however, please read through the document (or at least look at its sample code).
 
-We have adopted one revision to the Sun code conventions:
+We have adopted two modifications to the Sun code conventions:
 \begin{enumerate}
 \index{indenting}
-\item {\bf Two space indenting} The Sun coding convention suggests 4
-space indenting; however with 80 column lines and 4 space indenting,
+\item {\bf Two-space indenting} The Sun coding convention suggests 4
+space indenting; however with 80-column lines and four-space indenting,
 there is very little room left for code.  Thus, we recommend using 2
-space indenting and 80 column lines.   However,
-132 column lines are allowed for exceptional cases, such as to avoid
-bad line breaks.
+space indenting.
+
+\item {\bf 132 column lines in exceptional cases} The Sun coding convention is
+that lines be no longer than 80 columns.  Several Jikes RVM
+contributors have found this constraining.  Therefore, we allow 132
+column lines for exceptional cases, such as to avoid bad line breaks.
 
 \end{enumerate}
 

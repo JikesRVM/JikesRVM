@@ -47,6 +47,7 @@ INPUT_FILES = 	userguide.tex \
 		basedetails.tex \
 		cmdline.tex \
 		codingstyle.tex \
+		codingstyle-nonjava.tex \
 		componentOverview.tex \
 		debugging.tex \
 		eclipse.tex \
@@ -58,6 +59,7 @@ INPUT_FILES = 	userguide.tex \
 		libraries.tex \
 		optdetails.tex \
 		performance.tex \
+		preprocessor.tex \
 		profiling.tex \
 		regression.tex \
 		running.tex \
