@@ -34,8 +34,8 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/usr/java130"
-#export HOST_JAVA_HOME="/usr/java14"
+#export HOST_JAVA_HOME="/usr/java130"
+export HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
 export HOST_JAVA="${HOST_JAVA_HOME}/jre/bin/java"
@@ -50,8 +50,8 @@ export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
 export HOST_JAR="${HOST_JAVA_HOME}/bin/jar"
 
 # the JDK standard library jar files
-export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/rt.jar"
-#export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar"
+#export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/rt.jar"
+export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/jre/lib/graphics.jar:${HOST_JAVA_HOME}/jre/lib/security.jar:${HOST_JAVA_HOME}/jre/lib/charsets.jar"
 
 # the JDK standard library jar files
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
