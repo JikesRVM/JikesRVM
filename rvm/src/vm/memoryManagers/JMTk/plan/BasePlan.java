@@ -57,7 +57,6 @@ public abstract class BasePlan
   public static final boolean MOVES_TIBS = false;
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
 
-  public  static int verbose = 0;
   private static final int MAX_PLANS = 100;
   protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
@@ -172,7 +171,7 @@ public abstract class BasePlan
    * boot is called.
    */
   public static void postBoot() {
-    if (verbose > 2) VMResource.showAll();
+    if (Options.verbose > 2) VMResource.showAll();
   }
 
   public static void fullyBooted() {
@@ -513,10 +512,10 @@ public abstract class BasePlan
    * @param value The exit value
    */
   public void notifyExit(int value) {
-    if (verbose == 1) {
+    if (Options.verbose == 1) {
       VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime));
       VM_Interface.sysWrite(" s]\n");
-    } else if (verbose == 2) {
+    } else if (Options.verbose == 2) {
       VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime)*1000);
       VM_Interface.sysWrite(" ms]\n");
     }

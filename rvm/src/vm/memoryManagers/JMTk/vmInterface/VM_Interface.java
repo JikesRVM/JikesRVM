@@ -221,25 +221,25 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final void triggerCollection(int why)
     throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
-    if (Plan.verbose >= 4) {
+    if (Options.verbose >= 4) {
       VM.sysWriteln("Entered VM_Interface.triggerCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
-    if ((Plan.verbose == 1 || Plan.verbose == 2) 
+    if ((Options.verbose == 1 || Options.verbose == 2) 
 	&& (why == EXTERNALLY_TRIGGERED_GC)) {
       VM.sysWrite("[Forced GC]");
     }
-    if (Plan.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
+    if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     long start = System.currentTimeMillis();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
-    if (Plan.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
+    if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
 					(int) (System.currentTimeMillis() - start));
 
     if (Plan.isLastGCFull()) {
       int before = Options.getCurrentHeapSize(); 
       boolean heapGrew = Options.updateCurrentHeapSize((int) Plan.reservedMemory()); 
       if (heapGrew) { 
-	if (Plan.verbose >= 2) { 
+	if (Options.verbose >= 2) { 
 	  VM.sysWrite("Heap grew from ", (int) (before / 1024)); 
 	  VM.sysWrite("KB to ", (int) (Options.getCurrentHeapSize() / 1024)); 
 	  VM.sysWriteln("KB"); 
@@ -249,15 +249,15 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
         double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
 	if (usage > OUT_OF_MEMORY_THRESHOLD) {
 	if (why == INTERNALLY_TRIGGERED) {
-	  if (Plan.verbose >= 2) {
+	  if (Options.verbose >= 2) {
 	    VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
 	    VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
 	    VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
 	  }
-	  if (VM.debugOOM || Plan.verbose >= 5)
+	  if (VM.debugOOM || Options.verbose >= 5)
 	    VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
 	  OutOfMemoryError oome = new OutOfMemoryError();
-	  if (VM.debugOOM || Plan.verbose >= 5)
+	  if (VM.debugOOM || Options.verbose >= 5)
 	    VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
 	  throw oome;
 	}
@@ -270,7 +270,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
-    if (Plan.verbose >= 1) {
+    if (Options.verbose >= 1) {
       VM.sysWrite("[Async GC]");
     }
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);

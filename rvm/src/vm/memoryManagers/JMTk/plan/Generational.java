@@ -370,7 +370,7 @@ public abstract class Generational extends StopTheWorldGC
    * Perform a collection.
    */
   public final void collect () {
-    if ((verbose >= 1) && (fullHeapGC)) VM_Interface.sysWrite("[Full heap]");
+    if ((Options.verbose >= 1) && (fullHeapGC)) VM_Interface.sysWrite("[Full heap]");
     super.collect();
   }
 

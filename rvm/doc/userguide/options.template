@@ -7,6 +7,9 @@ $$$$ END IF
 $$$$ IF OPTION_TYPE == "BASELINE"
 % From VM_BASEOptions.template
 $$$$ END IF
+$$$$ IF OPTION_TYPE == "JMTK"
+% From Options.template
+$$$$ END IF
 \begin{verbatim}
 $$$$ IF OPTION_TYPE == "OPTIMIZE"
 OPTPREFIX[:help]		Print brief description of opt compiler's command-line arguments
@@ -32,15 +35,33 @@ $$$$ IF OPTION_TYPE == "BASELINE"
 -X:base:printOptions		Print the current values of the active baseline compiler options
 $$$$ END IF
 
-
-Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
-$$$$ IF USE_OPT_LEVELS == "YES"
-Option                      OptLevel   Description
-$$$$ ELSE
-Option                                 Description
+$$$$ IF OPTION_TYPE == "JMTK"
+-X:gc[:help]			Print brief description of JMTk's command-line arguments
+-X:gc:printOptions		Print the current values of JTMk's options
 $$$$ END IF
-$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
-$$$$ FOREACH OPTION BDATFILE
+
+
+$$$$ IF OPTION_TYPE == "JMTK"
+  Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
+Option                                 Description
+  $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+  $$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+CMD_NAME OPTION.DESCRIP
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ ELSE
+Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
+  $$$$ IF USE_OPT_LEVELS == "YES"
+Option                      OptLevel   Description
+  $$$$ ELSE
+Option                                 Description
+  $$$$ END IF
+  $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+  $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
      $$$$ LET PRETTY_LEVEL @IF(OPT_LEVEL == -1, "       ", @PAD(OPT_LEVEL,7," "))
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
@@ -48,8 +69,9 @@ CMD_NAME PRETTY_LEVEL OPTION.DESCRIP
      $$$$ END LET CMD_NAME
      $$$$ END LET PRETTY_LEVEL
      $$$$ END SPLIT
-$$$$ END FOREACH
-$$$$ END LOOP
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ END IF
 
 Value Options (OPTPREFIX<option>=<value>)
 Option                         Type    Description
@@ -98,6 +120,7 @@ I_ENUMS_NUM
 $$$$ END FOREACH
 $$$$ END LOOP
 
+$$$$ IF OPTION_TYPE != "JMTK"
 Set Options (option is a set of values)
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
@@ -110,4 +133,5 @@ CMD_NAME OPTION.DESCRIP
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
+$$$$ END IF
 \end{verbatim}

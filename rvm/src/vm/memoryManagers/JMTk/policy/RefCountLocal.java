@@ -154,7 +154,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void prepare(boolean time) { 
     flushFreeLists();
-    if (Plan.verbose > 2) processRootBufsAndCount(); else processRootBufs();
+    if (Options.verbose > 2) processRootBufsAndCount(); else processRootBufs();
   }
 
   /**
@@ -163,7 +163,7 @@ final class RefCountLocal extends SegregatedFreeList
   public final void release(boolean time) {
     flushFreeLists();
     if (time) Statistics.rcIncTime.start();
-    if (Plan.verbose > 2) processIncBufsAndCount(); else processIncBufs();
+    if (Options.verbose > 2) processIncBufsAndCount(); else processIncBufs();
     if (time) Statistics.rcIncTime.stop();
     VM_CollectorThread.gcBarrier.rendezvous();
     if (time) Statistics.rcDecTime.start();

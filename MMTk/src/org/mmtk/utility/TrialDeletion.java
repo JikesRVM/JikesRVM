@@ -158,7 +158,7 @@ final class TrialDeletion extends CycleDetector
 	collectedCycles = true;
 	double remaining = Plan.getTimeCap() - cycleStart;
 	double start = 0;
-	if (Plan.verbose > 0) { 
+	if (Options.verbose > 0) { 
 	  start = cycleStart; VM_Interface.sysWrite("(CD "); 
 	}
 	if (time) Statistics.cdGreyTime.start();
@@ -177,7 +177,7 @@ final class TrialDeletion extends CycleDetector
 	if (time) Statistics.cdFreeTime.start();
 	processFreeBufs();
 	if (time) Statistics.cdFreeTime.stop();
-	if (Plan.verbose > 0) {
+	if (Options.verbose > 0) {
 	  VM_Interface.sysWrite((VM_Interface.now() - cycleStart)*1000);
 	  VM_Interface.sysWrite(" ms)");
 	}

@@ -472,7 +472,7 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private final void shortFragmentationStatistics(boolean prepare) {
-    if (Plan.verbose > 2) VM_Interface.sysWrite("\n");
+    if (Options.verbose > 2) VM_Interface.sysWrite("\n");
     if (Options.verboseFragmentationStats)
       VM_Interface.sysWrite((prepare) ? "> " : "< "); 
     VM_Interface.sysWrite("(Waste ");
@@ -482,7 +482,7 @@ final class MarkSweepLocal extends SegregatedFreeList
     VM_Interface.sysWrite("F ");
     waste = unusedBytes(prepare);
     VM_Interface.sysWrite(waste/(float)(1<<20)); VM_Interface.sysWrite(" MB)");
-    if (Plan.verbose > 2 || Options.verboseFragmentationStats)
+    if (Options.verbose > 2 || Options.verboseFragmentationStats)
       VM_Interface.sysWrite("\n");
   }
 

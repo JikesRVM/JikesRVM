@@ -24,6 +24,36 @@ if (val < 1.0) VM_Interface.sysFail("Unreasonable growRatio " + val);
 V metaDataPages int 128 metadata_limit
 ????????
 int val2 = Conversions.bytesToPagesUp(val<<10); \
-if (val2 <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + val);
+if (val2 <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + val); \
+val = val2;
+
+
+V verbose int 0 
+GC verbosity level
+if (val < 0) VM_Interface.sysFail("Unreasonable verbosity level " + val);
+
+
+V cycleMetaDataPages int MAX_INT cycle_metadate_limit
+????????
+int val2 = Conversions.bytesToPagesUp(val<<10); \
+if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + val); \
+val = val2;
+
+
+V cycleDetectionPages int 256 cycle_detection_limit
+????????
+int val2 = Conversions.bytesToPagesUp(val<<10); \
+if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + val); \
+val = val2;
+
+
+V gcTimeCap int MAX_INT time_cap
+????????
+if (val <= 0) VM_Interface.sysFail("Unreasonable time cap " + val);
+
+
+V stressTest int MAX_INT stress
+????????
+val = 1<<val;
 
 

@@ -33,6 +33,11 @@ OPT_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) \
                          ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
 OPT_DAT_FILES         := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
+JMTK_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/memoryManagers/JMTk/utility
+JMTK_BOOLEAN_DAT_FILES := $(JMTK_OPTION_DIR)/BooleanOptions.dat
+JMTK_VALUE_DAT_FILES   := $(JMTK_OPTION_DIR)/ValueOptions.dat
+JMTK_DAT_FILES         := $(JMTK_BOOLEAN_DAT_FILES) $(JMTK_VALUE_DAT_FILES)
+
 include $(config_file)
 LATEX  ?= latex
 DVIPS ?= dvips
@@ -66,14 +71,14 @@ INPUT_FILES = 	userguide.tex \
 		remark.tex \
 		vmdetails.tex
 
-GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex
+GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex jmtk_options.tex
 
 GENERATOR_FILES = ${GENERATOR}.class QuotedStringTokenizer.class \
 		  UnterminatedStringException.class
 
 TEX_FILES = $(INPUT_FILES) $(GEN_INPUTS) 
 
-TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux base_options.aux
+TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux base_options.aux jmtk_options.tex
 
 HTML_GRAPHICS = jtoc.gif stack.gif arch-AOSOverview.gif
 
@@ -163,5 +168,14 @@ base_options.tex:	${GENERATOR_FILES} options.template $(BASE_DAT_FILES)
 			  OPTPREFIX="-X:base" \
 			  USE_OPT_LEVELS="NO" \
 			  OPTION_TYPE="BASELINE"
+
+jmtk_options.tex:	${GENERATOR_FILES} options.template $(JMTK_DAT_FILES)
+			$(HOST_JAVA) ${GENERATOR} options.template \
+			  jmtk_options.tex \
+			  BOOLEAN_DAT_FILES="$(JMTK_BOOLEAN_DAT_FILES)" \
+			  VALUE_DAT_FILES="$(JMTK_VALUE_DAT_FILES)" \
+			  OPTPREFIX="-X:gc" \
+			  USE_OPT_LEVELS="NO" \
+			  OPTION_TYPE="JMTK"
 
 

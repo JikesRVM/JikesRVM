@@ -416,7 +416,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // release each of the collected regions
     rcSpace.release();
     ImmortalSpace.release(immortalVM, null);
-    if (verbose > 2) rc.printStats();
+    if (Options.verbose > 2) rc.printStats();
     lastRCPages = rcMR.committedPages();
     if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress)

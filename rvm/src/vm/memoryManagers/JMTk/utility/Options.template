@@ -24,18 +24,12 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Dave Grove
  **/
 public final class Options implements VM_Uninterruptible, Constants {
-
   private static int initialHeapSize; 
   private static int maxHeapSize;     
   private static int currentHeapSize; 
 
   static int minNurseryPages  = Plan.DEFAULT_MIN_NURSERY;
   static int maxNurseryPages  = Plan.DEFAULT_MAX_NURSERY;
-  static int cycleMetaDataPages = MAX_INT;  // default to no cycle m/data limit
-  static int cycleDetectionPages = 256;   // do c/d if < 1MB remaining
-  static int gcTimeCap        = MAX_INT;  // default to no time cap
-  static int stressTest       = MAX_INT;  // default to never
-
 
   public static int getCurrentHeapSize() {
     return currentHeapSize;
@@ -158,6 +152,23 @@ $$$$ END LOOP
       return true;
     }
 
+    // BEGIN LEGACY CODE: TODO REMOVE ME
+    if(arg.startsWith("fixedNursery=") ||
+	    arg.startsWith("nursery_size=")) {
+      String tmp = arg.substring(13);
+      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
+      minNurseryPages = maxNurseryPages;
+      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
+      return true;
+    }
+    if (arg.startsWith("boundedNursery=")) {
+      String tmp = arg.substring(15);
+      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
+      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
+      return true;
+    }
+    // END LEGACY CODE: TODO REMOVE ABOVE
+
     // Required format of arg is 'name=value'
     // Split into 'name' and 'value' strings
     int split = arg.indexOf('=');
@@ -239,51 +250,6 @@ $$$$ END FOREACH
 $$$$ END LOOP
        //End generated command-line processing
 
-    if (arg.startsWith("verbose=")) {
-      String tmp = arg.substring(8);
-      int level = Integer.parseInt(tmp);
-      if (level < 0) VM_Interface.sysFail("Unreasonable verbosity level " + tmp);
-      Plan.verbose = level;
-      return true;
-    }
-    if(arg.startsWith("fixedNursery=") ||
-	    arg.startsWith("nursery_size=")) {
-      String tmp = arg.substring(13);
-      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
-      minNurseryPages = maxNurseryPages;
-      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
-      return true;
-    }
-    if (arg.startsWith("boundedNursery=")) {
-      String tmp = arg.substring(15);
-      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
-      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
-      return true;
-    }
-    if (arg.startsWith("cycle_metadata_limit=")) {
-      String tmp = arg.substring(21);
-      cycleMetaDataPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
-      if (cycleMetaDataPages <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + tmp);
-      return true;
-    }
-    if (arg.startsWith("cycle_detection_limit=")) {
-      String tmp = arg.substring(22);
-      cycleDetectionPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
-      if (cycleDetectionPages <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + tmp);
-      return true;
-    }
-    if (arg.startsWith("time_cap=")) {
-      String tmp = arg.substring(9);
-      gcTimeCap = Integer.parseInt(tmp);
-      if (gcTimeCap <= 0) VM_Interface.sysFail("Unreasonable time cap " + tmp);
-      return true;
-    }
-    if (arg.startsWith("stress=")) {
-      String tmp = arg.substring(7);
-      stressTest = 1<<Integer.parseInt(tmp);
-      return true;
-    }
-
     // None of the above tests matched, so this wasn't an option
     return false;
   }
@@ -349,7 +315,7 @@ $$$$ END LOOP
   }    
 
   // print the options values
-  public static void printOptions() {
+  public static void printOptions() throws VM_PragmaInterruptible {
     VM.sysWrite(asString());
   }
 
