@@ -80,28 +80,13 @@
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */
 
-public class VM_Allocator
-
- implements VM_Constants, VM_GCConstants, VM_Uninterruptible,
-	    VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
-
-  private static final boolean debugNative = false;   // temporary flag for debugging new threads pkg
+public class VM_Allocator implements VM_Constants, 
+				     VM_GCConstants, 
+				     VM_Uninterruptible,
+				     VM_Callbacks.ExitMonitor, 
+				     VM_Callbacks.AppRunStartMonitor {
 
   static int verbose = 0; // control chattering during progress of GC
-
-  /**
-   * When true (the default), VM_Processors acquire chunks of space from
-   * the shared Small Object Heap, and then allocate from within their
-   * local chunks.
-   */
-  static final boolean PROCESSOR_LOCAL_ALLOCATE = true;
-
-  /**
-   * When true (the default), Collector Threads acquire chunks of space
-   * from FromSpace during collection, and allocate space for copying
-   * live objects from their local chunks.
-   */
-  static final boolean PROCESSOR_LOCAL_MATURE_ALLOCATE = true;
 
   /**
    * When true (the default), touch heap pages during startup to 
@@ -109,22 +94,6 @@ public class VM_Allocator
    */
   static final boolean COMPILE_FOR_TIMING_RUN = true;     
   
-  // set at most one of the following 2 zeroing options on, if neither is
-  // on then one processor zeros at end of GC (a bad idea, keep for comparison)
-
-  /**
-   * When true, all collector threads zero the space for new allocations
-   * in parallel, at the end of a collection, before mutators execute.
-   */
-  static final boolean ZERO_NURSERY_IN_PARALLEL = false;
-
-  /**
-   * When true (the default), no zeroing is done at the end of a collection.
-   * Instead, each VM_Processor zeros the chunks of heap it acquires in order
-   * to satisfy allocation requests.
-   */
-  static final boolean ZERO_BLOCKS_ON_ALLOCATION = true;
-
   /**
    * When true, causes time spent in each phase of collection to be measured.
    * Forces summary statistics to be generated. See VM_CollectorThread.TIME_GC_PHASES.
@@ -155,11 +124,9 @@ public class VM_Allocator
    * Initialize for boot image.
    */
   static void init () {
-
-    VM_GCLocks.init();    // to alloc lock fields used during GC (in bootImage)
+    VM_GCLocks.init();           // to alloc lock fields used during GC (in bootImage)
     VM_GCWorkQueue.init();       // to alloc shared work queue
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
-    
   }
 
   /**
@@ -184,22 +151,14 @@ public class VM_Allocator
     immortalHeap.attach(immortalSize);
     largeHeap.attach(largeSize);
 
-    // Allocation of small objects are from from-space
-    areaCurrentAddress = fromHeap.start;
-    areaEndAddress     = fromHeap.end;
-
-    // Initialize these fields use for FAAs
-    if (verbose >= 2) VM.sysWriteln("Setting up addresses used for FAA");
-    addrAreaCurrentAddress = VM_Magic.getTocPointer().add(VM_Entrypoints.areaCurrentAddressField.getOffset());
-    addrMatureCurrentAddress = VM_Magic.getTocPointer().add(VM_Entrypoints.matureCurrentAddressField.getOffset());
-    
-
     if (COMPILE_FOR_TIMING_RUN) {
       if (verbose >= 2) VM.sysWriteln("Touching toHeap, largeSpace, and fromHeap");
       toHeap.touchPages();
       // largeHeap.touchPages();
       fromHeap.touchPages();
     }
+
+    fromHeap.reset();
 
     VM_GCUtil.boot();
     VM_Finalizer.setup();
@@ -218,7 +177,7 @@ public class VM_Allocator
       fromHeap.show();
       toHeap.show();
       if (ZERO_NURSERY_IN_PARALLEL)  VM.sysWrite("  Compiled with ZERO_NURSERY_IN_PARALLEL\n");
-      if (ZERO_BLOCKS_ON_ALLOCATION) VM.sysWrite("  Compiled with ZERO_BLOCKS_ON_ALLOCATION\n");
+      if (ZERO_CHUNKS_ON_ALLOCATION) VM.sysWrite("  Compiled with ZERO_CHUNKS_ON_ALLOCATION\n");
       if (PROCESSOR_LOCAL_ALLOCATE)  VM.sysWrite("  Compiled with PROCESSOR_LOCAL_ALLOCATE\n");
       if (PROCESSOR_LOCAL_MATURE_ALLOCATE) VM.sysWrite("  Compiled with PROCESSOR_LOCAL_MATURE_ALLOCATE\n");
       if (writeBarrier) VM.sysWrite("WARNING - semi-space collector compiled with write barriers\n");
@@ -255,7 +214,6 @@ public class VM_Allocator
    * VM internal method to initiate a collection
    */
   private static void gc1 (String why, int size) {
-
     if (verbose >= 2) VM.sysWriteln("\n", why, size);
 
     // if here and in a GC thread doing GC then it is a system error,
@@ -288,129 +246,15 @@ public class VM_Allocator
    * @return number of bytes available
    */
   public static long freeMemory () {
-    return areaEndAddress.diff(areaCurrentAddress);
+    return fromHeap.freeMemory();
   }
 
   /*
    *  Includes freeMemory and per-processor local storage
    */
   public static long allSmallFreeMemory () {
-      int sum = areaEndAddress.diff(areaCurrentAddress);
-      for (int i=0; i<VM_Scheduler.numProcessors; i++) {
-	  VM_Processor st = VM_Scheduler.processors[i+1];
-	  sum += st.localEndAddress.diff(st.localCurrentAddress);
-      }
-      return sum;
+    return freeMemory() + VM_Chunk.freeMemoryChunk1();
   }
-  
-  /**
-   * Get space for a new object or array. 
-   *
-   * Fast: If compiled to allocate from processor-local chunks, then it will attempt
-   * to request from the current chunk if the requested space is small (< SMALL_SPACE_MAX).
-   * Otherwise, the "slow" version is called.  The "fast" version is basically the slow
-   * version assuming path 2 using the local chunk is successful.
-   * 
-   * Slow: Self-contained.  Will work even if not called from "Fast" version.
-   * (1) If the size is greater than SMALL_SPACE_MAX, then space is allocated from 
-   *     from the shared large object heap.
-   * (2) If processor-local allocation is used, then we check if there is enough
-   *     the current chunk for space.  If not enough remains, then get a new chunk
-   *     from the shared heap with an FAA and allocate from the new chunk.
-   * (3) IF no processor-local allocation, directly allocate from shared heap.
-   * (4) A collection is initiated if space is still not acquired.
-   *     After the collection, it will retry acquiring the space, and if it fails
-   *     again, the system will exit with an "OUT OF MEMORY" error message.
-   *     (A TODO is to throw a proper java Exception)
-   * 
-   * @param size number of bytes to allocate
-   * @return the address of the first byte of the allocated zero-filled region
-   */
-  static VM_Address getHeapSpaceFast ( int size ) {
-    VM_Magic.pragmaInline();
-
-    if (PROCESSOR_LOCAL_ALLOCATE) { 
-      if (size < SMALL_SPACE_MAX) {
-	// NOTE: This code sequence is carefully written to generate
-	//       optimal code when inlined by the optimzing compiler.  
-	//       If you change it you must verify that the efficient 
-	//       inlined allocation sequence isn't hurt! --dave
-	VM_Address oldCurrent = VM_Processor.getCurrentProcessor().localCurrentAddress;
-	VM_Address newCurrent = oldCurrent.add(size);
-	if (newCurrent.LE(VM_Processor.getCurrentProcessor().localEndAddress)) {
-	  VM_Processor.getCurrentProcessor().localCurrentAddress = newCurrent;
-	  // if we didn't zero the block when we gave it to the processor,
-	  // then we must zero it now.
-	  if (!ZERO_BLOCKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
-	  return oldCurrent;
-	}
-      }
-    } 
-    return getHeapSpaceSlow(size);
-  }  // getHeapSpaceFast
-
-
-  static VM_Address getHeapSpaceSlow ( int size ) {
-    VM_Magic.pragmaNoInline();	     
-
-    // Sanity check
-    if (VM.VerifyAssertions) {
-      VM_Thread t = VM_Thread.getCurrentThread();
-      VM.assert( gcInProgress == false );
-      VM.assert( (t.disallowAllocationsByThisThread == false) && ((size & 3) == 0) );
-    }
-
-    VM_Address addr = getHeapSpaceSlowOnce(size);
-    if (!addr.isZero())
-	return addr;
-    // GC and try again
-    gc1("GC triggered by object request of ", size);
-    addr = getHeapSpaceSlowOnce(size);
-    if (addr.isZero())
-	outOfMemory(size);
-    return addr;
-  }
-
-
-  static VM_Address getHeapSpaceSlowOnce ( int size ) {
-
-    VM_Magic.pragmaNoInline();	     
-    
-    // if large object, allocate from large object space
-    if (size > SMALL_SPACE_MAX) 
-	return largeHeap.allocate(size);
-    
-    // otherwise, handle normal allocation of small objects in heap using chunks
-    if (PROCESSOR_LOCAL_ALLOCATE) {
-	VM_Processor st = VM_Processor.getCurrentProcessor();
-      if (st.localCurrentAddress.add(size).LE(st.localEndAddress)) {
-	  VM_Address addr = st.localCurrentAddress;
-	  st.localCurrentAddress = st.localCurrentAddress.add(size);
-	  return addr;
-      }
-      else { // not enough space in local chunk, get the next chunk for allocation
-	 VM_Address addr = VM_Synchronization.fetchAndAddAddressWithBound(addrAreaCurrentAddress,
-							       CHUNK_SIZE, areaEndAddress);
-  	 if (addr.isMax()) 
-	     return VM_Address.zero();
-	 st.localEndAddress = addr.add(CHUNK_SIZE);
-	 st.localCurrentAddress = addr.add(size);
-	 if (ZERO_BLOCKS_ON_ALLOCATION)
-	     VM_Memory.zeroPages(addr, CHUNK_SIZE);
-	 return addr;
-      }
-    }
-
-    // if no chunk allocation, use fetchAndAdd directly
-    VM_Address addr =  VM_Synchronization.fetchAndAddAddressWithBound(addrAreaCurrentAddress,
-								      size, areaEndAddress);
-    if (addr.isMax())
-	return VM_Address.zero();
-    VM_Memory.zeroTemp(addr, size);
-    return addr;
-    
-  }  // getHeapSpaceSlowOnce
-
   
   /**
    * Allocate a scalar object. Fills in the header for the object,
@@ -427,7 +271,7 @@ public class VM_Allocator
     
     debugAlloc(size, tib); // debug; usually inlined away to nothing
 
-    VM_Address region = getHeapSpaceFast(size);
+    VM_Address region = allocateRawMemory(size);
     return VM_ObjectModel.initializeScalar(region, tib, size);
   }   // end of allocateScalar() 
   
@@ -453,15 +297,114 @@ public class VM_Allocator
     //       must preserve alignment of future allocations
     size = VM_Memory.align(size, WORDSIZE);
 
-    VM_Address region = getHeapSpaceFast(size);  
+    VM_Address region = allocateRawMemory(size);  
     return VM_ObjectModel.initializeArray(region, tib, numElements, size);
   }  // allocateArray
 
 
+  /**
+   * Get space for a new object or array. 
+   *
+   * This code simply dispatches to one of three routines that actually
+   * does the allocation.
+   * (1) If the object is large, then the large heap
+   * (2) Otherwise, either call VM_Chunk to do processor local
+   *     allocation or
+   * (3) call the allocation routine on fromHeap.
+   * 
+   * @param size number of bytes to allocate
+   * @return the address of the first byte of the allocated zero-filled region
+   */
+  static VM_Address allocateRawMemory(int size) throws OutOfMemoryError {
+    VM_Magic.pragmaInline();
+    if (size >= SMALL_SPACE_MAX) {
+      return allocateLargeObject(size);
+    } else if (PROCESSOR_LOCAL_ALLOCATE) {
+      return VM_Chunk.allocateChunk1(size);
+    } else {
+      VM_Address addr = allocateSmallObject(size);
+      if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
+      return addr;
+    }
+  }
+
+
+  /**
+   * Logic to handle allocations from the large heap,
+   * triggering GC's as necessary and calling out of memory
+   * when forced to.
+   * 
+   * @param size the number of bytes to allocate
+   */
+  private static VM_Address allocateLargeObject(int size) throws OutOfMemoryError {
+    VM_Magic.pragmaNoInline();
+    VM_Address addr = largeHeap.allocate(size);
+    if (addr.isZero()) {
+      for (int i=0; i<3; i++) {
+	// There's a possible race condition where other Java threads
+	// chew up all the large heap (and some of it becomes garbage)
+	// before this thread gets to run again. 
+	// So, we try a couple times before giving up.
+	// This isn't a 100% solution, but it may handle it in practice.
+	gc1("GC triggered by large object request of ", size);
+	addr = largeHeap.allocate(size);
+	if (!addr.isZero()) return addr;
+      }
+      largeHeap.outOfMemory(size);
+    }
+    return addr;
+  }
+  
+  /**
+   * Handle small space allocations when !PROCESSOR_LOCAL_ALLOCATE
+   * @param size the number of bytes to allocate
+   */
+  private static VM_Address allocateSmallObject(int size) throws OutOfMemoryError {
+    VM_Address addr = fromHeap.allocate(size);
+    if (addr.isZero()) {
+      for (int i=0; i<3; i++) {
+	// There's a possible race condition where other Java threads
+	// chew up all the small heap (and some of it becomes garbage)
+	// before this thread gets to run again. 
+	// So, we try a couple times before giving up.
+	// This isn't a 100% solution, but it may handle it in practice.
+	VM_Allocator.gc1("GC triggered by large object request of ", size);
+	addr = fromHeap.allocate(size);
+	if (!addr.isZero()) return addr;
+      }
+      outOfMemory(size);
+    }
+    return addr;
+  }
+
+  /**
+   * Handle chunk1 backing heap (aka fromSpace) exhaustion by triggering a GC.
+   * 
+   * @param size number of bytes requested in the failing allocation
+   */
+  static void chunk1BackingHeapExhausted(int size) {
+    gc1("GC triggered by object request of ", size);
+  }
+
+  /**
+   * Handle chunk2 backing heap exhaustion by
+   * exiting with an out of memory error.
+   * In this collector this indicates that
+   * we didn't have enough space in toSpace to copy
+   * all the objects from fromSpace during a GC.
+   * Can happen due to chunking or object inflation
+   * due to hash codes.  Should be very rare and
+   * indicates that the heap is close to full anyways.
+   * 
+   * @param size number of bytes requested in the failing allocation
+   */
+  static void chunk2BackingHeapExhausted(int size) {
+    outOfMemory(-1);
+  }
+
   // *************************************
   // implementation
   // *************************************
-
   static final int      TYPE = 7;
 
   /** May this collector move objects during collction? */
@@ -471,22 +414,13 @@ public class VM_Allocator
   static final boolean writeBarrier = false;
 
   /**
-   * Size of a processor local region of the heap used for local allocation without
-   * synchronization, also the size of the processor local chunks of ToSpace
-   * acquired during GC for copying live objects
-   */
-  final static int     CHUNK_SIZE = 64 * 1024;
-
-  /**
    * The boundary between "small" objects and "large" objects. For the copying
    * allocators/collectors like this one, this boundary is somewhat arbitrary,
    * as long as it is less than 4K, the unit of allocation in the large object heap.
    */
-  static final int     SMALL_SPACE_MAX = 2048 + 1024 + 12;
+  private static final int     SMALL_SPACE_MAX = 2048 + 1024 + 12;
 
-  // size of buffer acquired to allow allocations while the system is crashing
-  private final static int     CRASH_BUFFER_SIZE = 1024 * 1024;
-  
+  private static VM_ProcessorLock lock = new VM_ProcessorLock(); // for reporting out of memory
   private static boolean outOfMemoryReported = false;
   private static volatile boolean initGCDone = false;
   private static volatile boolean gcDone = false;
@@ -495,22 +429,16 @@ public class VM_Allocator
   
   private static int smallHeapSize;  // total size of small object heaps = 2 * fromHeap.size
   private static VM_Heap bootHeap             = new VM_Heap("Boot Image Heap");   
-  private static VM_Heap fromHeap             = new VM_Heap("Small Object Heap 1");
-  private static VM_Heap toHeap               = new VM_Heap("Small Object Heap 2");
+  private static VM_ContiguousHeap fromHeap   = new VM_ContiguousHeap("Small Object Heap 1");
+  private static VM_ContiguousHeap toHeap     = new VM_ContiguousHeap("Small Object Heap 2");
   private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap       = new VM_LargeHeap(immortalHeap);
-  private static VM_ProcessorLock lock        = new VM_ProcessorLock();      // for signalling out of memory
 
-  // use matureCurrentAddress variables for synchronized allocations in ToSpace
-  // by GC threads during collection
-  static VM_Address matureCurrentAddress;         // current end of "ToSpace"
-  static VM_Address addrMatureCurrentAddress;     // address of above (in the JTOC)
-  
-  // Area small objects are allocated from 
+  // TODO: these are no longer used; delete as soon as all allocators
+  //       have been switched to the new VM_Chunk code.
   static VM_Address areaCurrentAddress;
-  static VM_Address areaEndAddress;
-  static VM_Address addrAreaCurrentAddress;
-  
+  static VM_Address matureCurrentAddress;  
+
   static boolean gcInProgress;      // true if collection in progress, initially false
   static int gcExternalCount = 0;   // number of calls from System.gc
   static int gcCount = 0;           // number of minor collections
@@ -558,7 +486,7 @@ public class VM_Allocator
    * TODO: make it possible to throw an exception, but this will have
    * to be done without doing further allocations (or by using temp space)
    */
-  private static void outOfMemory (int size) {
+  public static void outOfMemory (int size) {
 
     // First thread to be out of memory will write out the message,
     // and issue the shutdown. Others just spinwait until the end.
@@ -599,13 +527,12 @@ public class VM_Allocator
 	  // into the threads saved context regs, which is where the stack scan starts.
 	  //
 	  VM_Thread t = vp.activeThread;
-	  //        t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.JNITopJavaFP;
 	  t.contextRegisters.setInnermost( VM_Address.zero(), t.jniEnv.JNITopJavaFP);
 	}
 
 	if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
-	  vp.localMatureCurrentAddress = VM_Address.zero();
-	  vp.localMatureEndAddress = VM_Address.zero();
+	  // force exception if it comes back and tries to participate
+	  VM_Chunk.resetChunk2(vp, null, false);
 	}
 	// If writebarrier is being generated, presumably for measurement purposes, since
 	// it is not used in this non-generational collector, then reset the write buffers
@@ -626,10 +553,12 @@ public class VM_Allocator
 
       int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
       if ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT)) {
-        // Did not participate in GC. Reset VPs allocation pointers so subsequent
-        // allocations will acquire a new local block from the new nursery
-        vp.localCurrentAddress = VM_Address.zero();
-        vp.localEndAddress     = VM_Address.zero();
+        // Did not participate in GC. 
+	// Reset chunk space to the new fromSpace, but don't acquire a chunk
+	// since we might never use it.
+	if (PROCESSOR_LOCAL_ALLOCATE) {
+	  VM_Chunk.resetChunk1(vp, fromHeap, false);
+	}
       }
     }
   }
@@ -688,10 +617,9 @@ public class VM_Allocator
 
       gcInProgress = true;
       gcDone = false;
-      
-      // note: the variable named "matureCurrentAddress" is used to track
-      // the current end of ToSpace
-      matureCurrentAddress =  toHeap.start;
+
+      // All space in toHeap is now available for allocation
+      toHeap.reset();
  
       // invert the mark_flag value, used for marking BootImage objects
       BOOT_MARK_VALUE = BOOT_MARK_VALUE ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
@@ -705,7 +633,7 @@ public class VM_Allocator
       // local allocation pointers (before copying first object to ToSpace)
       gc_initProcessor();
  
-      // with the default jni implementation some RVM VM_Processors may
+      // Some RVM VM_Processors may
       // be blocked in native C and not participating in a collection.
       prepareNonParticipatingVPsForGC();
 
@@ -856,14 +784,13 @@ public class VM_Allocator
 	  toHeap.paranoidScan(fromHeap, false);
       }
 
-      // Reset all address cursors
-      VM_Heap temp = fromHeap;  // swap spaces
+      // Swap sense of toHeap and fromHeap
+      VM_ContiguousHeap temp = fromHeap;
       fromHeap = toHeap;
       toHeap = temp;
-      // allocate in new from-space; round up start address to page to allow using efficient zeroPages()
-      areaCurrentAddress = VM_Memory.roundUpPage(matureCurrentAddress); 
-      areaEndAddress = fromHeap.end;  
-      matureCurrentAddress = VM_Address.zero();   // not used during normal execution
+
+      // round up current address in fromHeap to allow using efficient zeroPages()
+      fromHeap.roundUpPage();
 
       // notify large space that all live objects marked at this point
       largeHeap.endCollect();
@@ -877,18 +804,9 @@ public class VM_Allocator
       //     - Zeroing is deferred until processors allocate processor
       //       local chunks, while mutators are running (BEST ??)
       //
-      if (ZERO_NURSERY_IN_PARALLEL) 
-	  ;   //  zero in parallel in later 
-      else if ( !ZERO_BLOCKS_ON_ALLOCATION ) {
+      if (!ZERO_NURSERY_IN_PARALLEL && !ZERO_CHUNKS_ON_ALLOCATION) {
 	// have one processor (the executing one) do all the zeroing
-	VM_Memory.zeroPages(areaCurrentAddress, areaEndAddress.diff(areaCurrentAddress));
-      }
-      else {
-	// if ZERO_BLOCKS_ON_ALLOCATION is on (others OFF!) then processors
-	// zero there own processor local chunks when allocated, this 
-	// requires that the allocator/collector be compiled with
-	// PROCESSOR_LOCAL_ALLOCATE == true
-	if (VM.VerifyAssertions) VM.assert(PROCESSOR_LOCAL_ALLOCATE == true);
+	fromHeap.zeroFreeSpace();
       }
 
       selectedGCThread = true;  // have this thread generate verbose output below,
@@ -928,21 +846,16 @@ public class VM_Allocator
     // Note. it must be zero'ed
     //
     if (PROCESSOR_LOCAL_ALLOCATE) {
-      VM_Processor vp = VM_Processor.getCurrentProcessor();
-      vp.localCurrentAddress = vp.localMatureCurrentAddress;
-      vp.localEndAddress = vp.localMatureEndAddress;
-      VM_Memory.zero(vp.localCurrentAddress,vp.localEndAddress);
+      if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
+	VM_Chunk.swapChunks(VM_Processor.getCurrentProcessor());
+      } else {
+	VM_Chunk.resetChunk1(VM_Processor.getCurrentProcessor(), fromHeap, false);
+      }
     }
-    
-    // This non-generational collector, but can be compiled with generational
-    // write barrier enabled (possibly to measure the cost of the barrier), 
-    // causing entries to accumulate in the processor write buffers.  While these
-    // are not used in the collection process, the entries must be discarded
-    // and excess buffers freed, to avoid running out of memory.  This is done
-    // by invokinge resetWriteBuffer.
-    //
-    if (ZERO_NURSERY_IN_PARALLEL) 
-	fromHeap.zeroParallel(areaCurrentAddress,areaEndAddress);
+
+    if (ZERO_NURSERY_IN_PARALLEL) {
+      fromHeap.zeroFreeSpaceParallel();
+    }
 
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output
@@ -951,7 +864,7 @@ public class VM_Allocator
       mylocal.incrementWaitTimeTotals();
 
     // generate -verbosegc output, done here after zeroing nursery. 
-    // only approx. since other gc threads are zeroing in parallel
+    // only approx. since other gc threads may be zeroing in parallel
     // this is done by the 1 gc thread that finished the preceeding GC
     //
     if ( selectedGCThread ) {
@@ -960,7 +873,7 @@ public class VM_Allocator
 	double GCTime = gcEndTime - gcStartTime;
 	if ( GCTime > maxGCTime ) maxGCTime = GCTime;
 	totalGCTime += GCTime;
-	curBytesCopied = areaCurrentAddress.diff(fromHeap.start);
+	curBytesCopied = fromHeap.getSize() - allSmallFreeMemory();
 	totalBytesCopied += curBytesCopied;
 	if (curBytesCopied > maxBytesCopied) maxBytesCopied = curBytesCopied;
 
@@ -1010,58 +923,15 @@ public class VM_Allocator
    * otherwise space is obtained directly from ToSpace using 
    * atomic compare and swap instructions.
    */
-  static VM_Address gc_getMatureSpace ( int size ) {
-
-    VM_Address startAddress, newCurrentAddress;  
-
-    // note: uses "matureCurrentAddress for allocations in toHeap
-
-    // get space for object in ToSpace.  used by gc routines during collection
-    // if compiled for processor local chunking of "mature space" attempt to allocate
-    // in currently assigned region of mature space (other semi-space in simple semi-space scheme).
-    // if not enough room, get another mature chunk.
-    //
-    if (PROCESSOR_LOCAL_MATURE_ALLOCATE == true) {
-      VM_Processor st = VM_Processor.getCurrentProcessor();
-      
-      if (VM_GCWorkQueue.COUNT_GETS_AND_PUTS)
-	VM_Magic.threadAsCollectorThread(st.activeThread).copyCount++;
-      
-      startAddress = st.localMatureCurrentAddress;
-      newCurrentAddress = startAddress.add(size);
-      if ( newCurrentAddress.LE(st.localMatureEndAddress) ) {
-	st.localMatureCurrentAddress = newCurrentAddress;    // increment processor local pointer
-	return startAddress;
-      }
-      else {
-	startAddress = VM_Synchronization.fetchAndAddAddressWithBound(addrMatureCurrentAddress, 
-								      CHUNK_SIZE, toHeap.end);
-	if (!startAddress.isMax()) {
-	  st.localMatureEndAddress = startAddress.add(CHUNK_SIZE);
-	  st.localMatureCurrentAddress = startAddress.add(size);
-	  return startAddress;
-	}
-	else { 
-	  // the executing collector thread could not get another CHUNK from
-	  // the next semi-space (ToSpace). This should not normally happen,
-	  // and the other threads should have space in their CHUNKS. This could
-	  // be fixed by making the callers of getMatureSpace handle NULL returns,
-	  // but the heap is basically full anyway, so just give up now.
-	  // Call outOfMemory to print message and exit
-	  //
-	  outOfMemory(-1);
-	  return VM_Address.max();
-	}
-      }
+  private static VM_Address gc_getToSpace(int size) {
+    if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
+      return VM_Chunk.allocateChunk2(size);
+    } else {
+      VM_Address addr = toHeap.allocate(size);
+      if (addr.isZero()) outOfMemory(-1);
+      return addr;
     }
-    else {
-      // all gc threads compete for mature space using synchronized ops
-      startAddress = VM_Synchronization.fetchAndAddAddress(addrMatureCurrentAddress, size);
-      // assume successful, there should always be space
-      return startAddress;
-    }
-  }  // getMatureSpace
-     
+  }
 
   /**
    * Processes live objects in FromSpace that need to be marked, copied and
@@ -1107,14 +977,14 @@ public class VM_Allocator
     if (type.isClassType()) {
       VM_Class classType = type.asClass();
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
-      VM_Address region = gc_getMatureSpace(numBytes);
+      VM_Address region = gc_getToSpace(numBytes);
       toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
     } else {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
-      VM_Address region = gc_getMatureSpace(numBytes);
+      VM_Address region = gc_getToSpace(numBytes);
       toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
       if (arrayType == VM_Type.CodeType) {  // conservatively includes all int/byte arrays
@@ -1203,11 +1073,6 @@ public class VM_Allocator
 	continue;
       }
 
-      if ( debugNative && t.isGCThread ) {
-	VM_Scheduler.trace("scanThreads:","at GC thread for processor id =", t.processorAffinity.id);
-	VM_Scheduler.trace("scanThreads:","                    gcOrdinal =", VM_Magic.threadAsCollectorThread(t).gcOrdinal);
-      }
-
       // skip other collector threads participating (have ordinal number) in this GC
       if ( t.isGCThread && (VM_Magic.threadAsCollectorThread(t).gcOrdinal > 0) )
 	continue;
@@ -1281,8 +1146,7 @@ public class VM_Allocator
     // for minor collection, continue filling last/current mature buffer
     //
     if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
-      st.localMatureCurrentAddress = VM_Address.zero();
-      st.localMatureEndAddress = VM_Address.zero();
+      VM_Chunk.resetChunk2(st, toHeap, true);
     }
   
     // if Processor is in fromHeap, copy and update array entry
@@ -1297,14 +1161,10 @@ public class VM_Allocator
     // each gc thread updates its PROCESSOR_REGISTER after copying its 
     // VM_Processor object
     VM_ProcessorLocalState.setCurrentProcessor(st);
-    // VM_Magic.setProcessorRegister(st);
 
     if (PROCESSOR_LOCAL_ALLOCATE) {
-      // reset local heap pointers - to force exception upon attempt to allocate
-      // during GC.  Will be set at end of collection.
-      //
-      st.localCurrentAddress = VM_Address.zero();
-      st.localEndAddress     = VM_Address.zero();
+      // force exception upon attempt to allocate during GC.
+      VM_Chunk.resetChunk1(st, null, false);
     }
   
     // if Processors activethread (should be current, gc, thread) field -> in FromSpace,
@@ -1431,14 +1291,13 @@ public class VM_Allocator
     // subtrace from the average, half of space in a set of chunks
     //
     int np = VM_Scheduler.numProcessors;
-    int avgBytesFreeInChunks = (VM_Scheduler.numProcessors * CHUNK_SIZE) >> 1;
     
     // showParameter();
     
     VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
     if (gcCount != 0) {
 	int avgTime = (int)( ((totalGCTime/(double)gcCount)*1000.0) );
-	int avgBytes = ((int)(totalBytesCopied/gcCount)) - avgBytesFreeInChunks;
+	int avgBytes = ((int)(totalBytesCopied/gcCount));
 	VM.sysWrite("GC Summary:  Times   ");
 	VM.sysWrite("total "); VM.sysWrite(totalGCTime); VM.sysWrite(" (s)    ");
 	VM.sysWrite("avg ", avgTime, " (ms)    ");
@@ -1519,27 +1378,13 @@ public class VM_Allocator
     VM.assert(false);
   }
 
-  // allocate buffer for allocates during traceback & call sysFail (gets stacktrace)
-  // or sysWrite the message and sysExit (no traceback possible)
-  // ...may not be needed if sysFail now does NOT do allocations
-  //
-  private static void crash (String err_msg) {
-
-    VM.sysWriteln("VM_Allocator.crash:");
-    if (PROCESSOR_LOCAL_ALLOCATE) {
-      VM_Address tempbuffer = immortalHeap.allocateRawMemory(VM_Allocator.CRASH_BUFFER_SIZE);
-      VM_Processor p = VM_Processor.getCurrentProcessor();
-      p.localCurrentAddress = tempbuffer;
-      p.localEndAddress = tempbuffer.add(VM_Allocator.CRASH_BUFFER_SIZE);
-      VM_Memory.zeroTemp(tempbuffer, VM_Allocator.CRASH_BUFFER_SIZE);
-    }
-    VM.sysFail(err_msg);   // this is now supposed to complete without allocations
-  }
-
   /*
    * Initialize a VM_Processor for allocation and collection.
    */
   static void setupProcessor (VM_Processor p) {
+    if (PROCESSOR_LOCAL_ALLOCATE) {
+      VM_Chunk.resetChunk1(p, fromHeap, false);
+    }
     if (writeBarrier)
       VM_WriteBuffer.setupProcessor(p);
   }

@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
 /**
  * Multiplex execution of large number of VM_Threads on small 
  * number of o/s kernel threads.
@@ -581,12 +582,19 @@ if (loopcheck++ >= 1000000) break;
   VM_Address activeThreadStackLimit;
 
 //-#if RVM_FOR_IA32
-  // to free up (nonvolatile or) scratch registers
+  // On powerpc, these values are in dedicated registers,
+  // we don't have registers to burn on IA32, so we indirect
+  // through the PR register to get them instead.
+  /**
+   * Base pointer of JTOC (VM_Statics.slots)
+   */
   Object jtoc;
+  /**
+   * Thread id of VM_Thread currently executing on the processor
+   */
   int    threadId;
   /**
-   * FP for current frame (opt compiler wants FP register) 
-   * TODO warn GC about this guy
+   * FP for current frame
    */
   VM_Address  framePointer;        
   /**
@@ -600,10 +608,30 @@ if (loopcheck++ >= 1000000) break;
 //-#endif
 
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  // An array of VM_SizeControl: used by noncopying memory managers;
-  // by making one such array per processor, allocations can be performed
-  // in parallel without locking, except when a new block is needed.
-  // 
+  // Chunk 1 -- see VM_Chunk.java
+  // By convention, chunk1 is used for 'normal' allocation 
+  VM_Address startChunk1;
+  VM_Address currentChunk1;
+  VM_Address endChunk1;
+  VM_ContiguousHeap backingHeapChunk1;
+
+  // Chunk 2 -- see VM_Chunk.java
+  // By convention, chunk2 is used for copying objects during collection.
+  VM_Address startChunk2;
+  VM_Address currentChunk2;
+  VM_Address endChunk2;
+  VM_ContiguousHeap backingHeapChunk2;
+
+  // Old version of chunking; soon to be eliminated! TODO -- dave
+  // No longer used by Semispace allocator; still need to fix copyGen & hybrid
+  VM_Address localCurrentAddress;  
+  VM_Address localEndAddress;      
+  VM_Address localMatureCurrentAddress;   
+  VM_Address localMatureEndAddress;       
+
+  // For fast path of segmented list allocation -- see VM_SegmentedListFastPath.java
+  // Can either be used for 'normal' allocation in markSeep collector or
+  // copring objects during collection in the hybrid collector.
   VM_SizeControl[] sizes;
   VM_SizeControl[] GC_INDEX_ARRAY;
 
@@ -614,32 +642,10 @@ if (loopcheck++ >= 1000000) break;
   //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
   //            ^top            ^max                                ^top    ^max
   //
-  int[]  modifiedOldObjects;          // the buffer
-  VM_Address    modifiedOldObjectsTop;       // address of most recently filled slot
-  VM_Address    modifiedOldObjectsMax;       // address of last available slot in buffer
-
-  // pointers for allocation from Processor local memory "chunks"
-  //
-  /**
-   * current position within current allocation buffer
-   */
-  VM_Address    localCurrentAddress;  
-  /**
-   * end (1 byte beyond) of current allocation buffer
-   */
-  VM_Address    localEndAddress;      
-
-  // pointers for allocation from processor local "chunks" or "ToSpace" memory,
-  // for copying live objects during GC.
-  //
-  /**
-   * current position within current "chunk"
-   */
-  VM_Address  localMatureCurrentAddress;   
-  /**
-   * end (1 byte beyond) of current "chunk"
-   */
-  VM_Address  localMatureEndAddress;       
+  // See also VM_WriteBuffer.java and VM_WriteBarrier.java
+  int[]       modifiedOldObjects;          // the buffer
+  VM_Address  modifiedOldObjectsTop;       // address of most recently filled slot
+  VM_Address  modifiedOldObjectsMax;       // address of last available slot in buffer
 //-#endif
 
   /*
@@ -728,11 +734,12 @@ if (loopcheck++ >= 1000000) break;
   //--------------------//
 
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  // Reference Counting Collector additions 
+  //-#if RVM_WITH_CONCURRENT_GC
   VM_Address incDecBuffer;        // the buffer
   VM_Address incDecBufferTop;     // address of most recently filled slot in buffer
   VM_Address incDecBufferMax;     // address of last available slot in buffer
   int    localEpoch;
+  //-#endif
 
   // misc. fields - probably should verify if still in use
   //
@@ -744,7 +751,6 @@ if (loopcheck++ >= 1000000) break;
 //-#endif
 
 //-#if RVM_WITH_GCTk
-  // steve - add your stuff here - such as...
   GCTk_Collector collector;
   ADDRESS writeBuffer0;
   ADDRESS writeBuffer1;

@@ -51,5 +51,33 @@ interface VM_GCConstants {
 
   static final int		GC_INITIAL_LARGE_SPACE_PAGES = 100;
   static final int		GC_LARGE_SIZES = 20;
+
+  /**
+   * When true (the default), 
+   * mutator allocations are done via VM_Chunk.allocateChunk1
+   */
+  static final boolean PROCESSOR_LOCAL_ALLOCATE = true;
+
+  /**
+   * When true (the default), Collector Threads 
+   * acquire space to copy objects via VM_Chunk.allocateChunk2
+   */
+  static final boolean PROCESSOR_LOCAL_MATURE_ALLOCATE = true;
+
+  // set at most one of the following 2 zeroing options on, if neither is
+  // on then one processor zeros at end of GC (a bad idea, keep for comparison)
+
+  /**
+   * When true, all collector threads zero the space for new allocations
+   * in parallel, at the end of a collection, before mutators execute.
+   */
+  static final boolean ZERO_NURSERY_IN_PARALLEL = false;
+
+  /**
+   * When true (the default), no zeroing is done at the end of a collection.
+   * Instead, each VM_Processor zeros the chunks of heap it acquires in order
+   * to satisfy allocation requests.
+   */
+  static final boolean ZERO_CHUNKS_ON_ALLOCATION = true;
 }				
 

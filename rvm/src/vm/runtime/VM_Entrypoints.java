@@ -99,8 +99,6 @@ class VM_Entrypoints implements VM_Constants {
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   static final VM_Field modifiedOldObjectsTopField = getField("LVM_Processor;", "modifiedOldObjectsTop", "LVM_Address;");
   static final VM_Field modifiedOldObjectsMaxField = getField("LVM_Processor;", "modifiedOldObjectsMax", "LVM_Address;");
-  static final VM_Field incDecBufferTopField       = getField("LVM_Processor;", "incDecBufferTop", "LVM_Address;");
-  static final VM_Field incDecBufferMaxField       = getField("LVM_Processor;", "incDecBufferMax", "LVM_Address;");
   //-#endif
   static final VM_Field scratchSecondsField        = getField("LVM_Processor;", "scratchSeconds", "D");
   static final VM_Field scratchNanosecondsField    = getField("LVM_Processor;", "scratchNanoseconds", "D");
@@ -143,6 +141,8 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field threadHardwareExceptionRegistersField = getField("LVM_Thread;", "hardwareExceptionRegisters", "LVM_Registers;");
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+  static final VM_Field contiguousHeapCurrentField      = getField("LVM_ContiguousHeap;", "current", "LVM_Address;");
+  // TODO: the next two fields are about to be eliminated
   static final VM_Field areaCurrentAddressField        = getField("LVM_Allocator;", "areaCurrentAddress", "LVM_Address;");
   static final VM_Field matureCurrentAddressField      = getField("LVM_Allocator;", "matureCurrentAddress", "LVM_Address;");
   //-#endif
@@ -168,6 +168,8 @@ class VM_Entrypoints implements VM_Constants {
   //-#endif
 
   //-#if RVM_WITH_CONCURRENT_GC
+  static final VM_Field incDecBufferTopField            = getField("LVM_Processor;", "incDecBufferTop", "LVM_Address;");
+  static final VM_Field incDecBufferMaxField            = getField("LVM_Processor;", "incDecBufferMax", "LVM_Address;");
   static final VM_Method processIncDecBufferMethod      = getMethod("LVM_RCBuffers;", "processIncDecBuffer", "()V");
   static final VM_Method RCGC_aastoreMethod             = getMethod("LVM_OptRCWriteBarrier;", "aastore", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   static final VM_Method RCGC_resolvedPutfieldMethod    = getMethod("LVM_OptRCWriteBarrier;", "resolvedPutfield", "(Ljava/lang/Object;ILjava/lang/Object;)V");

@@ -1,7 +1,11 @@
 /*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+/**
  * @author Perry Cheng
  */
-
 class VM_Heap 
   implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
 
@@ -21,6 +25,7 @@ class VM_Heap
     protected int size;                 // end - start
     protected VM_Address minRef;        // INCLUSIVE range for legal object reference values
     protected VM_Address maxRef;
+
 
     // For initial creation when no information is known at boot-image build time 
     //
@@ -258,5 +263,6 @@ class VM_Heap
 	VM.sysWriteln();
 	return count;
     }
+
 
 }
