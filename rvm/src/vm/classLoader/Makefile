@@ -8,11 +8,16 @@
 # @modified Steven Augart
 
 include $(RVM_BUILD)/Make.rules.host
+SHELL=${BASH}			# Set shell to bash because we use 'echo -n' 
+			        # below, and /bin/sh on AIX does not support
+                                # 'echo -n'.
+
 
 MakeTemplates: $(GEN_FILES_DIR)/VM_TypeReferenceVector.java \
 	       $(GEN_FILES_DIR)/VM_FieldVector.java \
 	       $(GEN_FILES_DIR)/VM_MethodVector.java
 	@echo -n "(classloader templates expanded) "
+.PHONY: MakeTemplates
 
 $(GEN_FILES_DIR)/VM_TypeReferenceVector.java:	VM_Vector.template
 	./InstantiateVectorTemplate com.ibm.JikesRVM.classloader VM_TypeReferenceVector VM_TypeReference VM_Vector.template $(GEN_FILES_DIR)/VM_TypeReferenceVector.java
