@@ -707,39 +707,38 @@ public final class VM_RootBuffer
 	}
     }
 
+  private static VM_Type[] _tmp;
 
     public static void boot () {
-
         if (TRACE_ROOTBUFFER) printInfo();
+	for (int i=0; i<_tmp.length; i++) {
+	  _tmp[i].acyclic = true;
+	}
+	_tmp = null;
+    }
 
+    public static void init () {
 	// Mark certain VM classes acyclic so that the cycle collector doesn't search the whole VM each time
+      _tmp = new VM_Type[11];
 
-	if (TRACE_ROOTBUFFER) println("|||| Marking selected VM classes acyclic.");
+      _tmp[0] = findOrCreateType("LVM_Class;");
+      _tmp[1] = findOrCreateType("LVM_Array;");
+      _tmp[2] = findOrCreateType("LVM_Primitive;");
+      _tmp[3] = findOrCreateType("LVM_Method;");
+      _tmp[4] = findOrCreateType("LVM_Field;");
+      _tmp[5] = findOrCreateType("LVM_Triplet;");
+      _tmp[6] = findOrCreateType("LVM_CompiledMethod;");
 
-	markAcyclic("LVM_Class;");
-	markAcyclic("LVM_Array;");
-	markAcyclic("LVM_Primitive;");
-	markAcyclic("LVM_Method;");
-	markAcyclic("LVM_Field;");
-	markAcyclic("LVM_Triplet;");
-	markAcyclic("LVM_CompiledMethod;");
-
-	markAcyclic("LVM_Processor;");
-	markAcyclic("LVM_Thread;");
-	markAcyclic("LVM_IdleThread;");
-	markAcyclic("LVM_RCCollectorThread;");
+      _tmp[7] = findOrCreateType("LVM_Processor;");
+      _tmp[8] = findOrCreateType("LVM_Thread;");
+      _tmp[9] = findOrCreateType("LVM_IdleThread;");
+      _tmp[10] = findOrCreateType("LVM_RCCollectorThread;");
     }
 
     // Abstraction of classloader
     private static VM_Type findOrCreateType (String str) {
 	return VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(str), VM_SystemClassLoader.getVMClassLoader());
     }
-
-    // Set acyclic bit in class object
-    private static void markAcyclic(String str) {
-	findOrCreateType(str).acyclic = true;
-    }
-
 
     public static void printStatistics (int alloc, int allocBytes, int nzdecs) {
 	if (CC_COUNT_EVENTS) {

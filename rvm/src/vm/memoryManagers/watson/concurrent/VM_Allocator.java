@@ -260,6 +260,9 @@ public class VM_Allocator
         large_last_allocated = 0;
         largeSpacePages = GC_INITIAL_LARGE_SPACE_PAGES;
 	
+	if (VM_RCGC.acyclicVmClasses)
+	  VM_RootBuffer.init();
+
     }			// all this done in bootimagebuilder context
 
 
@@ -325,7 +328,7 @@ public class VM_Allocator
 	byteArrayTIB = byteArrayType.getTypeInformationBlock();
 
 	if (VM_RCGC.acyclicVmClasses)
-	    VM_RootBuffer.boot();	// mark certain special classes acyclic to reduce cycle collection costs
+	  VM_RootBuffer.boot();	
 
 	// Now allocate the blocks array - which will be used to allocate blocks to sizes
 
