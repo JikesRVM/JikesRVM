@@ -227,19 +227,19 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   }
 
   /**
-   * @param offset offset in the jsr reference map,
-   * @return the offset where the next reference can be found.
-   *
-   * NOTE: there is only one jsr map for the entire method because it has to be
-   *       be constructed a GC time and would normally require additional storage.
+   * @param offset offset in the JSR reference map,
+   * @return The offset where the next reference can be found.
+   * @return <code>NOMORE</code> when no more pointers can be found
+   * <p>
+   * NOTE: There is only one JSR map for the entire method because it has to
+   *       be constructed at GC time and would normally require additional
+   *       storage.
+   * <p>
    *       To avoid this, the space for one map is pre-allocated and the map
-   *       is built in that space. When multiple threads exist and if GC runs
+   *       is built in that space.  When multiple threads exist and if GC runs
    *       in multiple threads concurrently, then the MethodMap must be locked
-   *       when a jsr map is being scanned.
-   *       This should be a low probability event.
-   *
-   * Return NOMORE when no
-   * more pointers can be found
+   *       when a JSR map is being scanned.  This should be a low probability
+   *       event.
    */
   public int getNextJSRRef(int offset)  {
     // user index to locate the gc point of interest
@@ -251,7 +251,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       // this is the initial scan for the map
       int startbitnumb = 1;      // start search from beginning
       bitnum = scanForNextRef(startbitnumb, mapword,  bitsPerMap, unusualReferenceMaps);
-      if (true || VM.TraceStkMaps) {
+      if (VM.TraceStkMaps) {
         VM.sysWrite("VM_ReferenceMaps-getJSRNextRef-initial call - startbitnum =", startbitnumb);
         VM.sysWrite("  mapword = ", mapword);
         VM.sysWrite(" bitspermap = ", bitsPerMap);
@@ -262,7 +262,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       bitnum = convertJsrOffsetToBitNum(offset);  // get the bit number from last time 
 
       // scan forward from current position to next ref
-      if (true || VM.TraceStkMaps) {
+      if (VM.TraceStkMaps) {
 	VM.sysWrite("VM_ReferenceMaps.getJSRnextref - not initial- starting (offset,bitnum) = ");
 	VM.sysWrite(offset);
 	VM.sysWrite(", ");
@@ -277,7 +277,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       return NOMORE;
     } else {
       int ans =  convertJsrBitNumToOffset(bitnum);
-      if (true || VM.TraceStkMaps) VM.sysWriteln("  result = ", ans);
+      if (VM.TraceStkMaps) VM.sysWriteln("  result = ", ans);
       return ans;
     }
   }
@@ -807,7 +807,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     // from the machine code offset locate the map for the jsr instruction
     //
     int jsrMapid = locateGCPoint(machineCodeOffset, compiledMethod.getMethod());
-    if (true || VM.TraceStkMaps) {
+    if (VM.TraceStkMaps) {
       VM.sysWriteln("VM_ReferenceMaps-setupJSRMap- locateGCpoint returns mapid = ", jsrMapid);
     }
 
@@ -817,7 +817,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     while ( jsrMapid < 0) {
       jsrMapid = -jsrMapid;
 
-      if (true || VM.TraceStkMaps) {
+      if (VM.TraceStkMaps) {
         VM.sysWriteln("VM_ReferenceMaps-setupJSRsubroutineMap- outer MapIndex = ", jsrMapid, "  unusualMapIndex = ", referenceMaps[jsrMapid]);
       }
 
@@ -998,7 +998,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
     int bitnum = ((local0Offset - offset) >>>LOG_BYTES_IN_ADDRESS) + 1; // 1 for being 1 based; no jsr bit
 
-    if (true || VM.TraceStkMaps) {
+    if (VM.TraceStkMaps) {
       VM.sysWrite("convertJsrOffsetToBitnum- local0Offset = ", local0Offset);
       VM.sysWrite("    Input offset = ", offset );
       VM.sysWriteln(  " jsr  bitnum = ", bitnum);
@@ -1351,7 +1351,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
        */
     }
 
-    if ( true || VM.TraceStkMaps) {
+    if ( VM.TraceStkMaps) {
       //note this displays each byte as a word ... only look at low order byte
       VM.sysWrite("finalmergemaps-jsr total set2ref delta map  = " );
       for ( i = 0; i < bytesPerMap ; i++)
