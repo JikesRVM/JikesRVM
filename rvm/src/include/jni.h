@@ -324,7 +324,7 @@ struct JNINativeInterface_ {
     void (PJNICALL ReleaseStringChars)(JNIEnv *env, jstring str, const jchar *chars);
     jstring (PJNICALL NewStringUTF)(JNIEnv *env, const char *utf);
     jsize (PJNICALL GetStringUTFLength)(JNIEnv *env, jstring str);
-    const jbyte* (PJNICALL GetStringUTFChars)(JNIEnv *env, jstring str, jboolean *isCopy);
+    const char* (PJNICALL GetStringUTFChars)(JNIEnv *env, jstring str, jboolean *isCopy);
     void (PJNICALL ReleaseStringUTFChars)(JNIEnv *env, jstring str, const char* chars);
     jsize (PJNICALL GetArrayLength)(JNIEnv *env, jarray array);
     jobjectArray (PJNICALL NewObjectArray)(JNIEnv *env, jsize len, jclass clazz, jobject init);
@@ -559,7 +559,7 @@ struct JNIEnv_ {
     void ReleaseStringChars(jstring str, const jchar *chars) { functions->ReleaseStringChars(this, str, chars); }
     jstring NewStringUTF(const char *utf) { return functions->NewStringUTF(this, utf); }
     jsize GetStringUTFLength(jstring str) { return functions->GetStringUTFLength(this, str); }
-    const jbyte* GetStringUTFChars(jstring str, jboolean *isCopy) { return functions->GetStringUTFChars(this, str, isCopy); }
+    const char* GetStringUTFChars(jstring str, jboolean *isCopy) { return functions->GetStringUTFChars(this, str, isCopy); }
     void ReleaseStringUTFChars(jstring str, const char* chars) { functions->ReleaseStringUTFChars(this, str, chars); }
     jsize GetArrayLength(jarray array) { return functions->GetArrayLength(this, array); }
     jobjectArray NewObjectArray(jsize len, jclass clazz, jobject init) { return functions->NewObjectArray(this, len, clazz, init); }
