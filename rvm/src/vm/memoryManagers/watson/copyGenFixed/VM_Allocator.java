@@ -904,7 +904,7 @@ public class VM_Allocator
       else {
 	// if after a minor collection, the end of mature objects is too close to end of
 	// current mature space, must do a major collection
-	if ( fromHeap.freeMemory() < MAJOR_GC_DELTA )
+	if ( fromHeap.usedMemory() + MAJOR_GC_DELTA > appelHeap.size / 2)
 	    majorCollection = true;
       }
 
@@ -938,6 +938,7 @@ public class VM_Allocator
 	    toHeap.unprotect();
 
 	if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "major collection - workQueue resetting", gcMajorCount);
+	if (verbose >= 2 && variableNursery) appelHeap.show();
 
 	VM_GCWorkQueue.workQueue.reset();  // setup shared common work queue -shared data
 	
@@ -1046,6 +1047,7 @@ public class VM_Allocator
     if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "scanning statics", gcMajorCount);
     VM_ScanStatics.scanStatics();     // GC threads scan JTOC in parallel
     
+    if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "scanning threads", gcMajorCount);
     gc_scanThreads();    // ALL GC threads process thread objects & scan their stacks
     
     // This synchronization is necessary to ensure all stacks have been scanned
@@ -1060,6 +1062,7 @@ public class VM_Allocator
     // have processor 1 record timestame for end of scanning stacks & statics
     if (mylocal.gcOrdinal == 1) scanTime.start(rootTime);
     
+    if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "emptying work queue", gcMajorCount);
     gc_emptyWorkQueue();  // each GC thread processes its own work queue buffers
     
     // have processor 1 record timestame for end of scan/mark/copy phase
@@ -1127,12 +1130,19 @@ public class VM_Allocator
       // set ending times for preceeding finalization phase
       // do here where a sync (below) will push value to memory
       
-      if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "(major collection) doing gc_finish");
-      
       gc_finish();  // reset heap allocation area, reset GC locks, maybe zero nursery, etc
+
+      if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "finished major collection");
+      if (verbose >= 2 && variableNursery) appelHeap.show();
       
+      bytes = fromHeap.current().diff(fromHeap.start);
+      updateGCStats(MAJOR, bytes);
+
       selectedGCThread = true;  // have this thread generate verbose output below,
       // after nursery has been zeroed
+
+      finishTime.stop();
+      majorGCTime.stop();
       
       VM_Magic.sync();
       
@@ -1153,15 +1163,8 @@ public class VM_Allocator
     // generate -verbosegc output, done here after (possibly) zeroing nursery. 
     // this is done by the 1 gc thread that finished the preceeding GC
     //
-    if ( selectedGCThread ) {
-
-      finishTime.stop();
-      majorGCTime.stop();
-      bytes = fromHeap.current().diff(fromHeap.start);
-      updateGCStats(MAJOR, bytes);
+    if ( selectedGCThread ) 
       printGCStats(MAJOR);
-
-    }  // end selectedThread
     
     // following checkwritebuffer call is necessary to remove inadvertent entries
     // that are recorded during major GC, and which would crash the next minor GC
