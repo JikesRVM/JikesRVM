@@ -95,3 +95,5 @@ export XARGS="/usr/gnu/bin/xargs"
 
 export ZIP_CMD="/usr/bin/zip"
 export UNZIP_CMD="/usr/bin/unzip"
+
+export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks

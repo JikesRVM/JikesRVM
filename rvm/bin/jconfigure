@@ -1182,8 +1182,9 @@ function emitMakefile () {
 	WGET = $WGET
 	XARGS = $XARGS
 	UNZIP_CMD = $UNZIP_CMD
-	
-	
+
+	BENCHMARK_ROOT = $BENCHMARK_ROOT
+
 	CLASSPATH_LIBRARIES = YES
 	EOF
     [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  

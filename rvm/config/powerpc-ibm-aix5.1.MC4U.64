@@ -96,3 +96,5 @@ export UNZIP_CMD="/usr/bin/unzip"
 
 # Horrible kludge to convince nm, ar, etc to all play together nicely in 64 bit mode.
 export OBJECT_MODE=32_64
+
+export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
