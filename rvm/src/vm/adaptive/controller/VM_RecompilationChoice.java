@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 
 /**
  * A recompilation choice represents an action (or a set of actions)
@@ -12,7 +13,6 @@ import com.ibm.JikesRVM.VM_CompiledMethod;
  *
  * @author Matthew Arnold
  */
-
 abstract class VM_RecompilationChoice {
 
   //--- Interface ---
@@ -20,12 +20,10 @@ abstract class VM_RecompilationChoice {
   /**
    * What is the cost of selecting this recompilation choice
    *
-   * @param prevCompiler The previous compiler 
-   * @param prevCompileTime The compile time when compiled with the
-   *        previous compiler
+   * @param meth The method being considered for recompilation.
    * @return The expected cost of exeuting this recompilation choice
    */
-  abstract double getCost(int prevCompiler, double prevCompileTime);
+  abstract double getCost(VM_NormalMethod meth);
 
   /**
    * What is the benefit of executing this recompilation choice, given

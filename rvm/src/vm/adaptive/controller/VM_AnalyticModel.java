@@ -105,16 +105,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
     if (!considerForRecompilation(hme, plan)) return null;
 
-    double prevCompileTime = 0.0;
-    if (VM_Controller.options.ESTIMATE_COMPILATION_TIME) {
-      prevCompileTime = estimatePrevCompileTime(hme);
-    } else {
-      prevCompileTime = hme.getCompiledMethod().getCompilationTime();
-    }
-    
-    // Now we know the compiler that generated the method (prevCompiler).
-    // the compile time it took to generate it (prevCompileTime), and that 
-    // the method is a potential candidate for additional recompilation. 
+    // Now we know the compiler that generated the method (prevCompiler) and
+    // that the method is a potential candidate for additional recompilation. 
     // So, next decide what, if anything, should be done now.  
     // We consider doing nothing (ie leaving the method at the current 
     // opt level, which incurs no  compilation cost), and recompiling the 
@@ -139,11 +131,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       getViableRecompilationChoices(prevCompiler,cmpMethod);
     
     // Consider all choices in the vector of possibilities
-    for (int i=0; i< recompilationChoices.length; i++) {
+    VM_NormalMethod meth = (VM_NormalMethod)hme.getMethod();
+    for (int i=0; i<recompilationChoices.length; i++) {
       VM_RecompilationChoice choice = recompilationChoices[i];
 
       // Get the cost and benefit of this choice
-      double cost = choice.getCost(prevCompiler, prevCompileTime);
+      double cost = choice.getCost(meth);
       double futureExecutionTime = 
 	choice.getFutureExecutionTime(prevCompiler,futureTimeForMethod);
       
@@ -175,29 +168,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     }
     return plan;
   }
-
-  /**
-   * Estimate what the previous compile-time for a method
-   *
-   * @param hme the HotMethodEvent referencing the previously compiled
-   * code
-   */
-  private double estimatePrevCompileTime(VM_HotMethodEvent hme) {
-    double baselineRate = VM_RuntimeCompiler.getBaselineRate();
-    VM_NormalMethod m = (VM_NormalMethod)hme.getMethod();
-    double bytes = (double)m.getBytecodeLength();
-    double baselineSecs = bytes / baselineRate;
-    if (!hme.isOptCompiled()) {
-      return baselineSecs; // NOTE: do not add brake time here!  It mill be multiplied by the compile time ratio and we don't want that!
-    } else {
-      // SJF: have to add one to opt-compiled level to get constant that
-      // VM_CompilerDNA wants.  TODO: this sucks; clean it all up.
-      double multiplier = VM_CompilerDNA.getCompileTimeRatio(VM_CompilerDNA.BASELINE,
-							     hme.getOptCompiledLevel()+1);
-      return baselineSecs * multiplier;
-    }
-  }
-
 
   //-#if RVM_WITH_OSR
   /* check if a compiled method is outdated, then decide if it needs OSR from BASE to OPT
@@ -338,7 +308,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       plan.execute();
     }
   }
-
 
   /**
    * How much time do we expect to spend in the method in the future if

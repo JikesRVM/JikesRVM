@@ -492,7 +492,7 @@ public class VM_AOSLogging {
    * @param expectedCompilationTime the model-derived expected compilation time
    */
   public static void recordCompileTime(VM_CompiledMethod cm, double expectedCompilationTime) {
-    if (log != null && VM_Controller.options.LOGGING_LEVEL >= 3) {
+    if (log != null && VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
 	double compTime = cm.getCompilationTime();
 	log.println(VM_Controller.controllerClock 
@@ -668,38 +668,6 @@ public class VM_AOSLogging {
 		    method + " at " + choiceDesc +
 		    " is "+ compilationTime +
 		    ", total future time is "+ futureTime);
-      }
-    }
-  }
-
-  /**
-   * This method logs details recording the model's compilation cost
-   * @param prevCompiler the previous compiler that compiled this method
-   * @param currentCompiler the compiler being considered for recompilation
-   * @param compileTimeFactor the compilation rate of improvement between
-   *        the 2 compilers
-   * @param prevCompilerTime how long it took to compile the method with prevCompiler
-   * @param estCompileTime the estimated compilation time with currentCompiler
-   * @param fixedOverhead the estimated fixed overhead for a compilation
-   */
-  public static void recordCompileTimeDetails(int prevCompiler,
-					      int currentCompiler,
-					      double compileTimeFactor,
-					      double prevCompileTime,
-					      double estCompileTime,
-					      double fixedOverhead) {
-    if (VM_Controller.options.LOGGING_LEVEL >= 3) {
-      synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +"  Estimated recompilation details ");
-	log.println("\tprevious compiler: "+ VM_CompilerDNA.getCompilerString(prevCompiler));
-	log.println("\tcurrent compiler: "+ VM_CompilerDNA.getCompilerString(currentCompiler));
-	log.println("\tcompile Time Factor: "+ compileTimeFactor);
-	log.println("\tprev Compile time: "+ prevCompileTime);
-	log.println("\tEstimated Compile time: "+ estCompileTime);
-	log.println("\tFixed overhead: "+ fixedOverhead);
-	log.println("\tTotal cost: "+ (prevCompileTime * compileTimeFactor +
-				       fixedOverhead));
       }
     }
   }

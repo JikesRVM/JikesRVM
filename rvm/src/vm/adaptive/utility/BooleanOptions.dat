@@ -43,7 +43,3 @@ Insert counters on all instructions in opt recompiled code?
 
 INSERT_DEBUGGING_COUNTERS -1 false
 Enable easy insertion of (debugging) counters in opt recompiled code.
-
-ESTIMATE_COMPILATION_TIME -1 true
-Use an aggregate estimate of previous compilation time rather than the actual time
-

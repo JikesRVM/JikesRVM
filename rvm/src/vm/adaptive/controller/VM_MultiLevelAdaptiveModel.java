@@ -15,6 +15,20 @@ import com.ibm.JikesRVM.VM_CompiledMethod;
  * @author Matthew Arnold 
  */
 class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
+  
+  /** 
+   * List of all opt-level choices that can be considered by the
+   * cost-benefit model 
+   */
+  protected  VM_RecompileOptChoice[] allOptLevelChoices;
+
+  /**
+   * Keep a map from previous compiler to a set of recompilation
+   * choices.  After initialization, viableChoices[x][y] means that if
+   * x is the previous compiler, y makes sense as a possible
+   * recompilation choice.
+   */
+  protected  VM_RecompilationChoice[][] viableChoices;
 
 
   /**
@@ -24,10 +38,8 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    * This method is conceptually simply, but becomes more complex
    * because sets of choices are precomputed and stored in a table so
    * they do not need to be recomputed to answer queries.
-   * */
-
+   */
   void populateRecompilationChoices() {
-
     int maxOptLevel =  VM_Controller.options.MAX_OPT_LEVEL;
     int maxCompiler =  VM_CompilerDNA.getCompilerConstant(maxOptLevel);
     allOptLevelChoices = new VM_RecompileOptChoice[maxOptLevel+1];
@@ -45,7 +57,6 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
     // getViableRecompilationChoices(prevCompiler) are answered as
     // efficiently as possible.
     createViableOptionLookupTable(maxCompiler);
-
   }
 
 
@@ -58,23 +69,18 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    * @param cmpMethod The compiled method being considered
    */
   VM_RecompilationChoice[] getViableRecompilationChoices(int prevCompiler,
-							  VM_CompiledMethod cmpMethod) {
-
-     // Return the precomputed set of choices given the previous compiler
-     return viableChoices[prevCompiler];
+							 VM_CompiledMethod cmpMethod) {
+    // Return the precomputed set of choices given the previous compiler
+    return viableChoices[prevCompiler];
   }
 
 
-  //----- Implementaiton ------
-
-  
   /**
    * Setup a lookup table that maps a "previous compiler" to a set
    * of viable recompilation choices.  In this case, a viable choice
    * is any compiler > prevCompiler. 
    */
   protected void createViableOptionLookupTable(int maxCompiler) {
-    
     viableChoices = new VM_RecompilationChoice[maxCompiler][];
 
     // A temp place to store the list of viable choices
@@ -105,22 +111,4 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
       }
     }
   }
-
-
-  /** 
-   * List of all opt-level choices that can be considered by the
-   * cost-benefit model 
-   */
-  protected  VM_RecompileOptChoice[] allOptLevelChoices;
-
-  /**
-   * Keep a map from previous compiler to a set of recompilation
-   * choices.  After initialization, viableChoices[x][y] means that if
-   * x is the previous compiler, y makes sense as a possible
-   * recompilation choice.
-   */
-  protected  VM_RecompilationChoice[][] viableChoices;
-
-
-
 }

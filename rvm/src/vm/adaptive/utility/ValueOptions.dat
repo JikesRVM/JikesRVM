@@ -23,6 +23,11 @@ Selection of mechanism for identifying methods for optimizing recompilation
 "RS_SAMPLING sampling sampling" \
 "RS_COUNTERS counters counters"
 
+E COMPILE_TIME_ESTIMATE byte CTE_RATE
+How should we estimate the time it will take to compile a method?
+"CTE_RATE rate rate" \
+"CTE_LINEAR linear linear"
+
 V LOGFILE_NAME String \"AOSLog.txt\" lf
 Name of log file
 
@@ -45,10 +50,6 @@ After how many clock ticks should we decay
 
 V DECAY_RATE double 1.1
 What factor should we decay AI hotness by
-
-
-V FIXED_RECOMPILATION_OVERHEAD double 1.0
-Fixed cost of recompiling and installing a method
 
 
 V AI_SAMPLE_SIZE int 200
