@@ -58,6 +58,7 @@ public class VM_MallocHeap extends VM_Heap
 	  VM.sysWriteln("VM_MallocHeap failed to malloc ", size, " bytes");
 	  VM.assert(false);
       }
+      VM_Memory.zero(region, regionEnd);
 
       if (start.isZero() || region.LT(start)) start = region;
       if (regionEnd.GT(end)) end = regionEnd;
