@@ -183,7 +183,6 @@ public class VM_Allocator
     
     VM_GCUtil.boot();
     VM_Finalizer.setup();
-    VM_Callbacks.addExitMonitor(new VM_Allocator());
 
     if (verbose >= 1) showParameter();
   }   // boot()
@@ -690,6 +689,8 @@ public class VM_Allocator
       largeHeap.startCollect();
       if (variableNursery) appelHeap.minorStart();
 
+      if (verbose >= 2 && variableNursery) appelHeap.show();
+
       // this gc thread copies own VM_Processor, resets processor register & processor
       // local allocation pointers (before copying first object to ToSpace)
       gc_initProcessor();
@@ -947,6 +948,8 @@ public class VM_Allocator
 	// Major GC not needed, GC DONE, reset allocation pointers etc 
 	gc_finish();
 	
+	if (verbose >= 2 && variableNursery) appelHeap.show();
+
 	selectedGCThread = true;  // have this thread generate verbose output below,
 	// after nursery has been zeroed
       }
