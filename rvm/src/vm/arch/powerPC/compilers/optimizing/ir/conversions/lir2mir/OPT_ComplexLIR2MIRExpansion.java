@@ -331,7 +331,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 
   private static void get_time_base (OPT_Instruction s, OPT_IR ir) {
     OPT_BasicBlock BB1 = s.getBasicBlock();
-    OPT_BasicBlock BB2 = BB1.splitNodeAt(s, ir);
+    BB1 = BB1.segregateInstruction(s,ir);
+    OPT_BasicBlock BB2 = BB1.getFallThroughBlock();
     OPT_Register defHigh = Nullary.getResult(s).register;
     OPT_Register defLow = ir.regpool.getSecondReg(defHigh);
     OPT_Register t0 = ir.regpool.getInteger();
@@ -351,9 +352,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 			  BB1.makeJumpTarget(),
 			  new OPT_BranchProfileOperand());
     // fix up CFG
-    BB1.insertOut(BB2);
     BB1.insertOut(BB1);
-    ir.cfg.linkInCodeOrder(BB1, BB2);
   }
 
   private static void attempt(OPT_Instruction s, OPT_IR ir) {
