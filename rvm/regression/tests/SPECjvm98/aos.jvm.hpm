@@ -1,0 +1,157 @@
+#!/bin/ksh
+#
+# (C) copyright IBM Corp. 2001
+#
+# $Id$
+#
+# This shell script executes the AOS configuration of an adaptive JikesRVM 
+# image with HPM and without adaptive inlining for a particular SPECjvm98 benchmark.
+#
+# Parameters:
+#   benchmark name    
+#   input size      as either 1, 10, or 100    
+#   runs	    number of times benchmark is run in the same RVM
+#   output          where to put output files
+#
+# CONSTRAINT:
+# Expect RVM_BUILD to be set to an adaptive configuration.
+#
+# author: Peter F. Sweeney
+# date: 10/5/2001
+
+if [[ $# = 0 || $1 = -help || $# < 1 ]] then
+  more <<EOF
+   
+  This shell script executes the AOS configuration of an adaptive JikesRVM 
+  image without adaptive inlining for a particular SPECjvm98 benchmark.
+
+  Normally it is invoked as:
+    $0 benchmark inputSize|+ runs|+ outDir
+
+  Where 
+    benchmark     SPECjvm98 benchmark name (e.g. _201_compress).
+    inputSize     specifies how long to run the benchmark.  
+                  inputSize can be either 1 (short), 10 (medium), or 100 (long).
+                  The default is 1.
+    runs          number of times benchmark is run in the same RVM
+                  The default is 1.		 
+    outDir        where to put output files.
+                  The default is the current directory.
+    
+EOF
+exit 1
+fi
+
+# JikesRVM root directory
+#
+if [[ $RVM_ROOT = "" ]]; then
+   print "$0: please set your RVM_ROOT environment variable (eg. $HOME/jvmShadow)"
+   exit 1
+fi
+
+# Place where Jikes RVM bootimage, booter, and runtime support files reside.
+#
+if [[ $RVM_BUILD = "" ]]; then
+   print "$0: please set your RVM_BUILD environment variable (eg. $HOME/jvmBuild)"
+   exit 1
+fi
+
+case $RVM_BUILD in
+  *Adaptive* ) ;;
+  * ) print "Expecting an adaptive configuration"; exit 1;;
+esac
+
+if [[ $RVM_SPECJVM98 = "" ]]; then
+   print "$0: please set your RVM_SPECJVM98 environment variable (e.g. /homes/fury5/jalapeno/contrib/benchmarks/SPECjvm98)"
+    exit 1
+fi
+
+echo "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
+
+# If hpm events not set, then count nothing!    
+if [[ $HPM_EVENT_1 = "" ]]; then
+  HPM_EVENT_1=0
+fi
+if [[ $HPM_EVENT_2 = "" ]]; then
+  HPM_EVENT_2=0
+fi
+if [[ $HPM_EVENT_3 = "" ]]; then
+  HPM_EVENT_3=0
+fi
+if [[ $HPM_EVENT_4 = "" ]]; then
+  HPM_EVENT_4=0
+fi
+if [[ $HPM_EVENT_5 = "" ]]; then
+  HPM_EVENT_5=0
+fi
+if [[ $HPM_EVENT_6 = "" ]]; then
+  HPM_EVENT_6=0
+fi
+if [[ $HPM_EVENT_7 = "" ]]; then
+  HPM_EVENT_7=0
+fi
+if [[ $HPM_EVENT_8 = "" ]]; then
+  HPM_EVENT_8=0
+fi
+
+
+##################
+# which benchmark?
+benchmark=$1
+
+####################################################
+# Determine how long the benchmark should be run for
+inputSize=1
+if [[ $# = 2 || $# > 2 ]]; then
+  if [[ $2 != '+' ]]; then
+    inputSize=$2
+  fi
+fi
+# Make sure input size is valid
+if [[ $inputSize != 1 && $inputSize != 10 && $inputSize != 100 ]]; then
+  echo "\n"$0": third argument must be 1, 10, or 100!  "$inputSize" is not valid!\n"
+  exit -1
+fi
+
+###########################
+# Determine sequence number
+runs=1
+if [[ $# = 3 || $# > 3 ]]; then
+  if [[ $3 != '+' ]]; then
+    runs=$3
+  fi
+fi
+
+#####################################
+# Determine where to put output files
+outputDir="."
+if [[ $# = 4 || $# > 4 ]]; then
+  if [[ $4 != '+' ]]; then
+    outputDir=$4
+  fi
+fi
+
+numProcessors=1
+
+   aos_log="$outputDir/aos.$benchmark.$inputSize.$numProcessors.$runs.log"
+output_log="$outputDir/aos.$benchmark.$inputSize.$numProcessors.$runs.output"
+
+echo ""
+echo "inputSize: $inputSize, numProcessors: $numProcessors, runs: $runs"
+echo "   aos_log: $aos_log"
+echo "output_log: $output_log"
+echo ""
+
+logging_level=1
+###############################
+# set up command line arguments
+# notify_vm_complete and measureCompilation results in compilation statistics
+jvm_options="-X:lh=50 -X:h=250 -verbose:gc -X:processors=$numProcessors -X:aos:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -X:aos:hardware_performance_monitors=true -X:aos:hpm_event1=$HPM_EVENT_1 -X:aos:hpm_event2=$HPM_EVENT_2 -X:aos:hpm_event3=$HPM_EVENT_3 -X:aos:hpm_event4=$HPM_EVENT_4  -X:aos:hpm_event5=$HPM_EVENT_5 -X:aos:hpm_event6=$HPM_EVENT_6 -X:aos:hpm_event7=$HPM_EVENT_7  -X:aos:hpm_event8=$HPM_EVENT_8"
+
+# don't append ":." because it doesn't work, and don't need ./cp
+cp="-classpath $RVM_SPECJVM98"
+spec_options="-d3000 -g -m$runs -M$runs -s$inputSize"
+
+echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication  $spec_options -a $benchmark # > $output_log"
+$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
+

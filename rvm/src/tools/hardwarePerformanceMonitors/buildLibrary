@@ -1,0 +1,36 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+#
+#
+# Build the library for the implementations of JNI2HPM's native methods.
+#
+# @author Peter F. Sweeney
+# @date 6/29/2001
+
+BOOTER_CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -DIBM_AIX"
+LDSHARED="/usr/gnu/bin/g++ -shared"
+
+# compile libsimpleJNI.c
+$BOOTER_CC -c -O  -o     hpm.o     hpm.c
+if [[ $JDK_JNI_INCLUDE_DIR = "" ]]; then
+  echo
+  echo "***Environment variable JDK_JNI_INCLUDE_DIR must be set!"
+  jdklib=/share/power/Java/aix/J1.3.0/java130
+  echo "  Trying \"$jdklib/include\"."
+  JDK_JNI_INCLUDE_DIR=$jdklib/include
+fi
+$BOOTER_CC -c -I$JDK_JNI_INCLUDE_DIR -o jni2hpm.o jni2hpm.c
+
+if [[ $RVM_HPM_DIR = "" ]]; then
+  echo
+  echo "***Environment variable RVM_HPM_DIR must be set with RVM_WITH_HPM option"
+  echo "  Trying \"/usr/lpp/pmtoolkit/lib\"."
+  RVM_HPM_DIR=/usr/lpp/pmtoolkit/lib
+fi
+
+# build shared library
+$LDSHARED -o libjni2hpm.a -D\\\"$RVM_HPM_DIR\\\" jni2hpm.o hpm.o -L\\\"$RVM_HPM_DIR\\\" -lpmapi
+
