@@ -164,7 +164,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * @return The address of the first byte of the allocated cell  Will not return zero.
    */
   private final VM_Address alloc(boolean isScalar, EXTENT bytes, boolean copy) 
-    throws VM_PragmaInline {
+    throws VM_PragmaNoInline {
     int sizeClass = getSizeClass(isScalar, bytes);
     boolean large = isLarge(sizeClass);
     boolean small = isSmall(sizeClass);
