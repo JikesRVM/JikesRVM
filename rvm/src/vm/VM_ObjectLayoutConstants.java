@@ -46,25 +46,41 @@ interface VM_ObjectLayoutConstants {
    // Header for all objects
    //
    // offset from object ref to header, in bytes
-   static final int OBJECT_HEADER_OFFSET  = (VM.BuildForConcurrentGC ? -16 : -12);
+   static final int OBJECT_HEADER_OFFSET  = (VM.BuildForConcurrentGC ? -16 :
+			(VM.CompileForGCTracing ? -24 : -12));
    // offset from object ref to .tib field, in bytes
-   static final int OBJECT_TIB_OFFSET     = (VM.BuildForConcurrentGC ? -16 : -12);
+   static final int OBJECT_TIB_OFFSET     = (VM.BuildForConcurrentGC ? -16 :
+			(VM.CompileForGCTracing ? -24 : -12));
    // offset from object ref to .status field, in bytes
-   static final int OBJECT_STATUS_OFFSET  = (VM.BuildForConcurrentGC ? -12 : -8);
+   static final int OBJECT_STATUS_OFFSET  = (VM.BuildForConcurrentGC ? -12 :
+			(VM.CompileForGCTracing ? -20 : -8));
    // offset from object ref to .refcount field, in bytes
    static final int OBJECT_REFCOUNT_OFFSET  = (VM.BuildForConcurrentGC ? -8 : 0);
    // offset from object ref to  GC byte of the status field, in bytes
-   static final int OBJECT_GC_BYTE_OFFSET = (VM.BuildForConcurrentGC ? -9 : -5);
+   static final int OBJECT_GC_BYTE_OFFSET = (VM.BuildForConcurrentGC ? -9 :
+			(VM.CompileForGCTracing ? -17 : -5));
    
+   // offset from object ref to .oid field, in bytes
+   static final int OBJECT_OID_OFFSET	= (VM.CompileForGCTracing ? -12 : 0);
+   // offset from object ref to .link field, in bytes
+   static final int OBJECT_LINK_OFFSET	= (VM.CompileForGCTracing ? -16 : 0);
+   // offset from object ref to OBJECT_DEATH field, in bytes
+   static final int OBJECT_DEATH_OFFSET	= (VM.CompileForGCTracing ? -8 : 0);
+   // amount by which tracing causes headers to grow
+   static final int TRACE_HEADER_EXTRA	= (VM.CompileForGCTracing ? 12 : 0);
+                                                                                  
+
    // Header for scalar objects, only
    //
    // size of header (.tib + .status), in bytes
-   static final int SCALAR_HEADER_SIZE    =   (VM.BuildForConcurrentGC ? 12 : 8);
+   static final int SCALAR_HEADER_SIZE    =   (VM.BuildForConcurrentGC ? 12 :
+			(VM.CompileForGCTracing ? 20 : 8));
 
    // Header for array objects, only
    //
    // size of header (.tib + .status + .length), in bytes
-   static final int ARRAY_HEADER_SIZE     =  (VM.BuildForConcurrentGC ? 16 : 12);
+   static final int ARRAY_HEADER_SIZE     =  (VM.BuildForConcurrentGC ? 16 :
+			(VM.CompileForGCTracing ? 24 : 12));
    static final int ARRAY_LENGTH_OFFSET   =  -4; // offset from object ref to .length field, in bytes
    static final int ARRAY_ELEMENT_OFFSET  =   0; // offset from object ref to element 0, in bytes
 
