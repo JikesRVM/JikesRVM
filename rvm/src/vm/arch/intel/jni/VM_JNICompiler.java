@@ -341,8 +341,10 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.jniEnvOffset);        // S0 <- jniEnv
 
     // save PR in the jniEnv for JNI call from native
-    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
-                                              VM_Entrypoints.JNIEnvSavedPROffset);
+    //    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+    //                                              VM_Entrypoints.JNIEnvSavedPROffset);
+    VM_ProcessorLocalState.emitMoveRegToField(asm,
+                                              VM_Entrypoints.JNIEnvSavedPROffset,S0);
 
     // save FP for glue frame in JNI env - used by GC when in C
     asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNITopJavaFPOffset, FP);  // jniEnv.JNITopJavaFP <- FP
