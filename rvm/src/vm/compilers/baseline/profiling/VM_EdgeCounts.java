@@ -73,7 +73,8 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       if (mid == -1) continue; // only should happen when we've read in a file of offline data.
       VM_Method m = VM_MethodDictionary.getValue(mid);
       if (!m.isLoaded()) continue; // ditto -- came from offline data
-      new VM_BranchProfiles(m, i, VM_EdgeCounterDictionary.getValue(i)).print(f);
+      int[] counters = VM_EdgeCounterDictionary.getValue(i);
+      if (counters != null) new VM_BranchProfiles(m, i, counters).print(f);
     }
   }
 
