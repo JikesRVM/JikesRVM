@@ -106,8 +106,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     computeBlockFrequencies();
 
     // Set infrequent bits on basic blocks
-    // TODO!! SJF: Enabling this currently breaks an OptOptSemispace build
-    // computeInfrequentBlocks(ir);
+    computeInfrequentBlocks(ir);
   }
 
   /**
@@ -191,7 +190,15 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     int idx = 0;
     while (topOrder[idx] != n.header) idx++;
     for (int numNodes = n.loop.populationCount(); numNodes > 0;) {
+      if (idx >= topOrder.length) {
+        numNodes--;
+        continue;
+      }
       OPT_BasicBlock cur = topOrder[idx++];
+      if (cur == null) {
+        numNodes--;
+        continue;
+      }
       if (!n.loop.get(cur.getNumber())) continue; // node was not in the loop nest being processed.
       OPT_LSTNode other = lst.getLoop(cur);
       if (other != n) {
