@@ -8,7 +8,7 @@
  * @author Bowen Alpern 
  * @author Derek Lieber
  */
-final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_BaselineConstants, VM_GCConstants {
+final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCConstants {
 
   // Processor modes
   //

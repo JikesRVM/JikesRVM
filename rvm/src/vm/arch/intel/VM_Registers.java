@@ -6,10 +6,10 @@
 /**
  * The machine state comprising a thread's execution context.
  *
- * @author Stephen Fink
+ * @author Bowen Alpern
  * @author David Grove
  */
-class VM_Registers implements VM_Constants {
+class VM_Registers implements VM_Constants, VM_Uninterruptible {
 
   // The following are used both for thread context switching
   // and for software/hardware exception reporting/delivery.
@@ -32,14 +32,14 @@ class VM_Registers implements VM_Constants {
   /**
    * Return framepointer for the deepest stackframe
    */
-  final int getInnermostFramePointer () {
+  final int getInnermostFramePointer() {
     return fp;
   }
   
   /**
    * Return next instruction address for the deepest stackframe
    */
-  final int getInnermostInstructionAddress () {
+  final int getInnermostInstructionAddress() {
     return ip;
   }
 
@@ -49,7 +49,7 @@ class VM_Registers implements VM_Constants {
   final void unwindStackFrame() {
     ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
-    gprs[FRAME_POINTER] = fp;
+    gprs[VM_BaselineConstants.FP] = fp;
   }
 
   /**
@@ -57,10 +57,11 @@ class VM_Registers implements VM_Constants {
    * the stack during GC will start, for ex., the top java frame for
    * a thread that is blocked in native code during GC.
    */
-  final void setInnermost( int newip, int newfp ) {
+  final void setInnermost(int newip, int newfp) {
     ip = newip;
     fp = newfp;
-    gprs[FRAME_POINTER] = newfp;
+    // fix VM_Thread.adjustRegisters when line below is deleted!
+    gprs[VM_BaselineConstants.FP] = newfp;
   }
 
   /**
@@ -72,7 +73,7 @@ class VM_Registers implements VM_Constants {
     int current_fp = VM_Magic.getFramePointer();
     ip = VM_Magic.getReturnAddress(current_fp);
     fp = VM_Magic.getCallerFramePointer(current_fp);
-    gprs[FRAME_POINTER] = fp;
+    gprs[VM_BaselineConstants.FP] = fp;
   }
 
 }

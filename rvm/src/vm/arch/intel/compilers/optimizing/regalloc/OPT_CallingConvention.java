@@ -24,7 +24,7 @@ import java.util.Enumeration;
  */
 final class OPT_CallingConvention 
     extends OPT_RVMIRTools
-    implements OPT_Operators, VM_BaselineConstants,
+    implements OPT_Operators,
     OPT_PhysicalRegisterConstants {
 
   /**
@@ -202,7 +202,7 @@ final class OPT_CallingConvention
     int nWords = ir.method.getParameterWords();
     // getParameterWords() does not include the implicit 'this' parameter.
     if (!ir.method.isStatic()) nWords++;
-    MIR_Return.setPopBytes(ret, I(nWords << LG_WORDSIZE)); 
+    MIR_Return.setPopBytes(ret, I(nWords << 2)); 
   }
 
   /**

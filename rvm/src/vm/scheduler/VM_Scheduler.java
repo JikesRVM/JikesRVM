@@ -328,7 +328,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				   VM_Magic.objectAsAddress(processors[i]),
 				   target.contextRegisters.ip,
-				   target.contextRegisters.gprs[FRAME_POINTER]);
+				   target.contextRegisters.fp);
       //-#endif
       int loop_count = 1;
       if (VM.TraceThreads)
@@ -364,7 +364,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				     VM_Magic.objectAsAddress(processors[nativeDPndx]),
 				     0,
-				     target.contextRegisters.gprs[FRAME_POINTER]);
+				     target.contextRegisters.fp);
       //-#endif
       while (!processors[nativeDPndx].isInitialized)
 	VM.sysVirtualProcessorYield();

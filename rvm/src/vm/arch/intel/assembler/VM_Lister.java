@@ -5,7 +5,7 @@
 /** 
  * @author Julian Dolby
  */
-class VM_Lister implements VM_Constants, VM_BaselineConstants {
+class VM_Lister implements VM_Constants {
 
   private static final int PREFIX_AREA_SIZE = 4;
   private static final int OP_AREA_SIZE     = 9;

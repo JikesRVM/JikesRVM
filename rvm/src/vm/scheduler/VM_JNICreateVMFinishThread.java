@@ -17,7 +17,7 @@
  * @author Ton Ngo 
  * @date 10/13/00
  */
-class VM_JNICreateVMFinishThread extends VM_Thread implements VM_BaselineConstants {
+class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
   static boolean trace = false;
 
   int externalEnvAddress;

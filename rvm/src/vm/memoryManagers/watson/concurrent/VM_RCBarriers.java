@@ -6,7 +6,7 @@
 /**
  * @author David Bacon
  */
-class VM_RCBarriers implements VM_BaselineConstants {
+class VM_RCBarriers implements VM_Constants {
 
     static final boolean DONT_BARRIER_BLOCK_CONTROLS = true;
 

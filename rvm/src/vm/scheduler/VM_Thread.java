@@ -8,8 +8,7 @@
  *  
  * @author Derek Lieber
  */
-public class VM_Thread implements VM_Constants, VM_BaselineConstants, 
-VM_Uninterruptible {
+public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
    * constant for RCGC reference counting per thread stack increment/decrement 
@@ -823,13 +822,16 @@ VM_Uninterruptible {
   final void fixupMovedStack(int delta) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: fixupMovedStack\n");
 
-    if (contextRegisters.gprs[FP] != VM_NULL)
+    if (contextRegisters.getInnermostFramePointer() != VM_NULL) {
       adjustRegisters(contextRegisters, delta);
-    if ( (hardwareExceptionRegisters.inuse) &&
-         (hardwareExceptionRegisters.gprs[FP] != VM_NULL) )
+    }
+    if ((hardwareExceptionRegisters.inuse) &&
+	(hardwareExceptionRegisters.getInnermostFramePointer() != VM_NULL)) {
       adjustRegisters(hardwareExceptionRegisters, delta);
-    if (contextRegisters.gprs[FRAME_POINTER] != VM_NULL)
-      adjustStack(stack, contextRegisters.gprs[FRAME_POINTER], delta);
+    }
+    if (contextRegisters.getInnermostFramePointer() != VM_NULL) {
+      adjustStack(stack, contextRegisters.getInnermostFramePointer(), delta);
+    }
     stackLimit += delta;
   }
 
@@ -845,27 +847,49 @@ VM_Uninterruptible {
 
     // adjust FP
     //
-    registers.gprs[FP] += delta;
-//-#if RVM_FOR_IA32
-    registers.fp += delta;     // separate fp field only exists for IA32
-//-#endif
+    int newFP = registers.getInnermostFramePointer() + delta;
+    int ip = registers.getInnermostInstructionAddress();
+    registers.setInnermost(ip, newFP);
     if (traceAdjustments) {
       VM.sysWrite(" fp=");
-      VM.sysWrite(registers.gprs[FP]);
+      VM.sysWrite(registers.getInnermostFramePointer());
     }
 
-    // adjust SP (baseline frames only on PPC)
-    //
-    int compiledMethodId = VM_Magic.getCompiledMethodID(registers.gprs[FP]);
+    // additional architecture specific adjustments
+    //  (1) on PPC baseline frame keeps a pointer to the 
+    //      expression stack in SP.
+    //  (2) on IA32 baseline frame shadows VM_Processor.framePointer
+    //      (ie registers.getInnermostFramePointer()) in EBP
+    //  (3) frames from all compilers on IA32 need to update ESP
+    int compiledMethodId = VM_Magic.getCompiledMethodID(registers.getInnermostFramePointer());
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
-      VM_CompiledMethod compiledMethod = VM_ClassLoader.getCompiledMethod(compiledMethodId);
-      if (VM.BuildForIA32 || (VM.BuildForPowerPC && compiledMethod.getCompilerInfo().getCompilerType() == VM_CompilerInfo.BASELINE)) {
-	registers.gprs[SP] += delta;
+      VM_CompiledMethod compiledMethod = 
+        VM_ClassLoader.getCompiledMethod(compiledMethodId);
+      if (compiledMethod.getCompilerInfo().getCompilerType() == VM_CompilerInfo.BASELINE) {
+        //-#if RVM_FOR_POWERPC
+	registers.gprs[VM_BaselineConstants.SP] += delta;
 	if (traceAdjustments) {
 	  VM.sysWrite(" sp=");
-	  VM.sysWrite(registers.gprs[SP]);
+	  VM.sysWrite(registers.gprs[VM_BaselineConstants.SP]);
 	}
+	//-#endif
+	//-#if RVM_FOR_IA32
+	/* TODO: put this in when VM_Regsters.setInnermost no longer does it!
+	registers.gprs[VM_BaselineConstants.FP] += delta;
+	if (traceAdjustments) {
+	  VM.sysWrite(" fp (ebp) =");
+	  VM.sysWrite(registers.gprs[VM_BaselineConstants.FP]);
+	}
+	*/
+	//-#endif
       }
+      //-#if RVM_FOR_IA32
+      registers.gprs[ESP] += delta;
+      if (traceAdjustments) {
+	VM.sysWrite(" esp =");
+	VM.sysWrite(registers.gprs[ESP]);
+      }
+      //-#endif
       if (traceAdjustments) {
 	VM.sysWrite(" method=");
 	VM.sysWrite(compiledMethod.getMethod());
@@ -1101,17 +1125,17 @@ VM_Uninterruptible {
 //-#if RVM_FOR_IA32 // TEMP!!
 
     // initialize thread stack as if "startoff" method had been called
-    // by an empty "sentinal" frame with one local variable
+    // by an empty baseline-compiled "sentinal" frame with one local variable
     //
     sp -= STACKFRAME_HEADER_SIZE;                   // last word of header
-    fp  = sp - WORDSIZE - STACKFRAME_BODY_OFFSET;   // 
+    fp  = sp - VM_BaselineConstants.WORDSIZE - STACKFRAME_BODY_OFFSET;   // 
     VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINAL_FP);
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
-    sp -= WORDSIZE;                                 // allow for one local
-    contextRegisters.gprs[FRAME_POINTER] = fp;
-    contextRegisters.gprs[STACK_POINTER] = sp;
-    contextRegisters.gprs[JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+    sp -= VM_BaselineConstants.WORDSIZE;                                 // allow for one local
+    contextRegisters.gprs[VM_BaselineConstants.FP] = fp;
+    contextRegisters.gprs[ESP] = sp;
+    contextRegisters.gprs[VM_BaselineConstants.JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
     contextRegisters.fp  = fp;
     contextRegisters.ip  = ip;
 

@@ -134,7 +134,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
     reg[C2].setSpansBasicBlock();
     reg[C3].setSpansBasicBlock();
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
-    reg[FRAME_POINTER].setSpansBasicBlock();
+    reg[VM_BaselineConstants.FP].setSpansBasicBlock();
 
     // 7. set up the volatile FPRs
     for (Enumeration e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
@@ -182,7 +182,7 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
    * @return the frame pointer register
    */
   OPT_Register getFP() {
-      return getGPR(FRAME_POINTER);
+    return getGPR(VM_BaselineConstants.FP);
   }
 
   /**
@@ -402,7 +402,6 @@ class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSet
       regName[i + FIRST_INT] = GPR_NAMES[i];
     for (int i = 0; i < NUM_FPRS; i++)
       regName[i + FIRST_DOUBLE] = FPR_NAMES[i];
-//    regName[FRAME_POINTER] = "FP";
     regName[PROCESSOR_REGISTER] = "PR";
     regName[AF] = "AF";
     regName[CF] = "CF";

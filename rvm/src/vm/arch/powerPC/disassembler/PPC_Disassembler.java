@@ -99,7 +99,7 @@
  *  mtibatl		
  *  mtibatu		
  */
-class PPC_Disassembler implements VM_BaselineConstants {
+class PPC_Disassembler implements VM_Constants {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;
   static final int MSR = 129;
