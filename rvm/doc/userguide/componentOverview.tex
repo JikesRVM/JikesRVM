@@ -71,10 +71,9 @@ directory.  The scripts that perform this copy create the directory
 structure required by Java semantics and place classes in appropriate
 directories.
 
-This approach precludes the need to change the directory structure
-if more of the existing classes are placed into packages.
-
-
-
-
-
+This approach avoids the need to change the directory structure as the
+package structure evolves to become more fine-grained. If we
+eventually arrive at a more fine-grained package structure (so that
+each package contains a reasonably small number of classes) we may
+convert the source tree to a package-oriented structure to facilitate
+using standard Java IDE's to edit Jikes RVM source code.
