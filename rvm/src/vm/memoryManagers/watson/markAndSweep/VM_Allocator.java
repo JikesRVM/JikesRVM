@@ -3445,6 +3445,10 @@ tib));
 			VM.sysWrite("\n");
 		}
 
+    VM.sysWrite(" Number of threads found stuck in native code = ");
+    VM.sysWrite(VM_NativeDaemonThread.switch_count);
+    VM.sysWrite("\n");
+
   }
 
 	// This routine scans all blocks for all sizes for all processors,
