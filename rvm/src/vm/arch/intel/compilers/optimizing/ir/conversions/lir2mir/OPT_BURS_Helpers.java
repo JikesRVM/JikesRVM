@@ -204,20 +204,22 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 			 int disp) {
     AddrStack = new AddrStackElement(base, index, scale, disp, AddrStack);
   }
-  final void augmentAddress(OPT_RegisterOperand op) {
+  final void augmentAddress(OPT_Operand op) {
     if (VM.VerifyAssertions) VM.assert(AddrStack != null, "No address to augment");
-    if (AddrStack.base == null) {
-      AddrStack.base = op;
-    } else if (AddrStack.index == null) {
-      if (VM.VerifyAssertions) VM.assert(AddrStack.scale == (byte)0);
-      AddrStack.index = op;
+    if (op.isRegister()) {
+      OPT_RegisterOperand rop = op.asRegister();
+      if (AddrStack.base == null) {
+	AddrStack.base = rop;
+      } else if (AddrStack.index == null) {
+	if (VM.VerifyAssertions) VM.assert(AddrStack.scale == (byte)0);
+	AddrStack.index = rop;
+      } else {
+	throw new OPT_OptimizingCompilerException("three base registers in address");
+      }
     } else {
-      throw new OPT_OptimizingCompilerException("three base registers in address");
+      int disp = ((OPT_IntConstantOperand)op).value;
+      AddrStack.displacement += disp;
     }
-  }
-  final void augmentAddress(int disp) {
-    if (VM.VerifyAssertions) VM.assert(AddrStack != null, "No address to augment");
-    AddrStack.displacement += disp;
   }
   final void combineAddresses() {
     if (VM.VerifyAssertions) VM.assert(AddrStack != null, "No address to combine");
@@ -332,10 +334,18 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   final OPT_MemoryOperand MO(OPT_Operand base, OPT_Operand offset, 
 			     byte size, OPT_LocationOperand loc,
 			     OPT_Operand guard) {
-    if (offset instanceof OPT_IntConstantOperand) {
-      return MO_BD(base, IV(offset), size, loc, guard);
+    if (base instanceof OPT_IntConstantOperand) {
+      if (offset instanceof OPT_IntConstantOperand) {
+	return MO_D(IV(base)+IV(offset), size, loc, guard);
+      } else {
+	return MO_BD(offset, IV(base), size, loc, guard);
+      }
     } else {
-      return MO_BI(base, offset, size, loc, guard);
+      if (offset instanceof OPT_IntConstantOperand) {
+	return MO_BD(base, IV(offset), size, loc, guard);
+      } else {
+	return MO_BI(base, offset, size, loc, guard);
+      }
     }
   }
 
@@ -356,10 +366,18 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 			     byte size, int disp,
 			     OPT_LocationOperand loc,
 			     OPT_Operand guard) {
-    if (offset instanceof OPT_IntConstantOperand) {
-      return MO_BD(base, IV(offset)+disp, size, loc, guard);
+    if (base instanceof OPT_IntConstantOperand) {
+      if (offset instanceof OPT_IntConstantOperand) {
+	return MO_D(IV(base)+IV(offset)+disp, size, loc, guard);
+      } else {
+	return MO_BD(offset, IV(base)+disp, size, loc, guard);
+      }
     } else {
-      return MO_BID(base, offset, disp, size, loc, guard);
+      if (offset instanceof OPT_IntConstantOperand) {
+	return MO_BD(base, IV(offset)+disp, size, loc, guard);
+      } else {
+	return MO_BID(base, offset, disp, size, loc, guard);
+      }
     }
   }
 
@@ -413,18 +431,35 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     return OPT_MemoryOperand.BIS(R(base), R(index), scale, size, loc, guard);
   }
 
+  final OPT_MemoryOperand MO_D(int disp, 
+			       byte size, OPT_LocationOperand loc,
+			       OPT_Operand guard) {
+    return OPT_MemoryOperand.D(disp, size, loc, guard);
+  }
+
+
+
   final OPT_MemoryOperand MO_MC(OPT_Instruction s) {
+    OPT_Operand base = Binary.getVal1(s);
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
       int offset = fc.offset;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-      return MO_BD(Binary.getVal1(s), offset, DW, loc, TG());
+      if (base instanceof OPT_IntConstantOperand) {
+	return MO_D(IV(base)+offset, DW, loc, TG());
+      } else {
+	return MO_BD(Binary.getVal1(s), offset, DW, loc, TG());
+      }
     } else {
       OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
       int offset = dc.offset;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-      return MO_BD(Binary.getVal1(s), offset, QW, loc, TG());
+      if (base instanceof OPT_IntConstantOperand) {
+	return MO_D(IV(base)+offset, QW, loc, TG());
+      } else {
+	return MO_BD(Binary.getVal1(s), offset, QW, loc, TG());
+      }
     }
   }
 

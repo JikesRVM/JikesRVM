@@ -132,7 +132,7 @@ NOFLAGS
 ##################################
 # Allow Load/Store instructions to be recognized as potential memory operands 
 ##################################
-sload8:	BYTE_LOAD(r, riv)
+sload8:	BYTE_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), B));
@@ -142,7 +142,7 @@ sload8:	BYTE_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), B_S, B));
 
-uload8:	UBYTE_LOAD(r, riv)
+uload8:	UBYTE_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), B));
@@ -162,7 +162,7 @@ load8:	uload8
 NOFLAGS
 // no code emitted
 
-sload16: SHORT_LOAD(r, riv)
+sload16: SHORT_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), W));
@@ -172,7 +172,7 @@ sload16: SHORT_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), W_S, W));
 
-uload16: USHORT_LOAD(r, riv)
+uload16: USHORT_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), W));
@@ -192,7 +192,7 @@ load16:	uload16
 NOFLAGS
 // no code emitted
 
-load32:	INT_LOAD(r, riv)
+load32:	INT_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), DW));
@@ -202,7 +202,7 @@ load32:	INT_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), DW_S, DW));
 
-fpload:	FLOAT_LOAD(r, riv)
+fpload:	FLOAT_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), DW));
@@ -212,7 +212,7 @@ fpload:	FLOAT_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), DW_S, DW));
 
-fpload:	DOUBLE_LOAD(r, riv)
+fpload:	DOUBLE_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_L(P(p), QW));
@@ -253,7 +253,7 @@ pushAddress(BinaryAcc.getResult(P(p)), R(BinaryAcc.getValue(P(p))), B_S, 0);
 address1reg:	INT_ADD_ACC(address1reg, iv)
 0
 EMIT_INSTRUCTION
-augmentAddress(IV(BinaryAcc.getValue(P(p))));
+augmentAddress(BinaryAcc.getValue(P(p)));
 
 # TODO: we can enable these as soon as Julian fixes the assembler
 # to handle scaled index + displacement without a base register
@@ -270,7 +270,7 @@ augmentAddress(IV(BinaryAcc.getValue(P(p))));
 address1scaledreg:	INT_ADD_ACC(address1scaledreg, iv)
 0
 EMIT_INSTRUCTION
-augmentAddress(IV(BinaryAcc.getValue(P(p))));
+augmentAddress(BinaryAcc.getValue(P(p)));
 
 address:	INT_ADD_ACC(r, address1scaledreg)
 0
@@ -280,12 +280,12 @@ augmentAddress(BinaryAcc.getResult(P(p)));
 address:	INT_ADD_ACC(address1scaledreg, r)
 0
 EMIT_INSTRUCTION
-augmentAddress(R(BinaryAcc.getValue(P(p))));
+augmentAddress(BinaryAcc.getValue(P(p)));
 
 address:	INT_ADD_ACC(address1scaledreg, iv)
 0
 EMIT_INSTRUCTION
-augmentAddress(IV(BinaryAcc.getValue(P(p))));
+augmentAddress(BinaryAcc.getValue(P(p)));
 
 address:	INT_ADD_ACC(address1scaledreg, address1reg)
 0
@@ -303,13 +303,13 @@ combineAddresses();
 r:	INT_ADD_ACC(address1scaledreg, r)
 20
 EMIT_INSTRUCTION
-augmentAddress(R(BinaryAcc.getValue(P(p)))); \
+augmentAddress(BinaryAcc.getValue(P(p))); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, BinaryAcc.getResult(P(p)), consumeAddress(DW, null, null)));
 
 r:	INT_ADD_ACC(r, address1scaledreg)
 20
 EMIT_INSTRUCTION
-augmentAddress(R(BinaryAcc.getResult(P(p)))); \
+augmentAddress(BinaryAcc.getResult(P(p))); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, BinaryAcc.getResult(P(p)), consumeAddress(DW, null, null)));
 
 r:	INT_ADD_ACC(address1scaledreg, address1reg)
@@ -327,7 +327,7 @@ EMIT(MIR_Lea.mutate(P(p), IA32_LEA, BinaryAcc.getResult(P(p)), consumeAddress(DW
 r:	INT_ADD_ACC(address, iv)
 20
 EMIT_INSTRUCTION
-augmentAddress(IV(BinaryAcc.getValue(P(p)))); \
+augmentAddress(BinaryAcc.getValue(P(p))); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, BinaryAcc.getResult(P(p)), consumeAddress(DW, null, null)));
 
 ##################################
@@ -555,7 +555,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, UnaryAcc.getResult(P(p)), I(1)));
 
 ### Memory operands ###
-stm:	BYTE_STORE(BOOLEAN_NOT_ACC(UBYTE_LOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	BYTE_STORE(BOOLEAN_NOT_ACC(UBYTE_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, MO_S(P(p), B), I(1)));
@@ -600,21 +600,21 @@ BOOLEAN_CMP(burs, PR(p), BooleanCmp.getResult(P(p)), \
             BooleanCmp.getVal1(P(p)), consumeMO(), \
 	    BooleanCmp.getCond(P(p)));
 
-stm:	BYTE_STORE(BOOLEAN_CMP(r,riv), OTHER_OPERAND(r,riv))
+stm:	BYTE_STORE(BOOLEAN_CMP(r,riv), OTHER_OPERAND(riv,riv))
 28
 EMIT_INSTRUCTION
 BOOLEAN_CMP(burs, P(p), MO_S(P(p),B), \
             BooleanCmp.getVal1(PL(p)), BooleanCmp.getVal2(PL(p)), \
 	    BooleanCmp.getCond(PL(p)));
 
-stm:	BYTE_STORE(BOOLEAN_CMP(load32,riv), OTHER_OPERAND(r,riv))
+stm:	BYTE_STORE(BOOLEAN_CMP(load32,riv), OTHER_OPERAND(riv,riv))
 30
 EMIT_INSTRUCTION
 BOOLEAN_CMP(burs, P(p), MO_S(P(p),B), \
 	    consumeMO(), BooleanCmp.getVal2(PL(p)), \
 	    BooleanCmp.getCond(PL(p)));
 
-stm:	BYTE_STORE(BOOLEAN_CMP(r,load32), OTHER_OPERAND(r,riv))
+stm:	BYTE_STORE(BOOLEAN_CMP(r,load32), OTHER_OPERAND(riv,riv))
 30
 EMIT_INSTRUCTION
 BOOLEAN_CMP(burs, P(p), MO_S(P(p),B), \
@@ -642,12 +642,12 @@ BOOLEAN_CMP(burs, P(p), MO_AS(P(p),B_S,B), \
 	    BooleanCmp.getVal1(PL(p)), consumeMO(), \
 	    BooleanCmp.getCond(PL(p)));
 
-stm:	BYTE_STORE(BOOLEAN_CMP(crz, ZERO), OTHER_OPERAND(r,riv))
+stm:	BYTE_STORE(BOOLEAN_CMP(crz, ZERO), OTHER_OPERAND(riv,riv))
 15
 EMIT_INSTRUCTION
 BOOLEAN_CMP(burs, PL(p), MO_S(P(p), B), BooleanCmp.getCond(PL(p)));
 
-stm:	BYTE_STORE(BOOLEAN_CMP(szpr, ZERO), OTHER_OPERAND(r, riv))
+stm:	BYTE_STORE(BOOLEAN_CMP(szpr, ZERO), OTHER_OPERAND(riv, riv))
 (BooleanCmp.getCond(PL(p)).isEQUAL() || BooleanCmp.getCond(PL(p)).isNOT_EQUAL())?15:INFINITE
 EMIT_INSTRUCTION
 BOOLEAN_CMP(burs, P(p), MO_S(P(p), B), BooleanCmp.getCond(PL(p)));
@@ -897,17 +897,17 @@ czr:	INT_ADD_ACC(r, load32)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, BinaryAcc.getResult(P(p)), consumeMO()));
 
-stm:	INT_STORE(INT_ADD_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_ADD_ACC(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
 
-stm:	INT_STORE(INT_ADD_ACC(INT_LOAD(r,riv),ONE),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_ADD_ACC(INT_LOAD(riv,riv),ONE),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 15)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_INC, MO_S(P(p), DW)));
 
-stm:	INT_STORE(INT_ADD_ACC(INT_LOAD(r,riv),MINUS_ONE),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_ADD_ACC(INT_LOAD(riv,riv),MINUS_ONE),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 15)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_DEC, MO_S(P(p), DW)));
@@ -952,17 +952,17 @@ czr:	INT_SUB_ACC(r, load32)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SUB, BinaryAcc.getResult(P(p)), consumeMO()));
 
-stm:	INT_STORE(INT_SUB_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_SUB_ACC(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SUB, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
 
-stm:	INT_STORE(INT_SUB_ACC(INT_LOAD(r,riv),ONE),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_SUB_ACC(INT_LOAD(riv,riv),ONE),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 15)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_DEC, MO_S(P(p), DW)));
 
-stm:	INT_STORE(INT_SUB_ACC(INT_LOAD(r,riv),MINUS_ONE),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_SUB_ACC(INT_LOAD(riv,riv),MINUS_ONE),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 15)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_INC, MO_S(P(p), DW)));
@@ -1024,7 +1024,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NEG, UnaryAcc.getResult(P(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_NEG_ACC(INT_LOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_NEG_ACC(INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NEG, MO_S(P(p), DW)));
@@ -1049,13 +1049,13 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(r,riv),r),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), R(getECX())));
 
-stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(r,riv),iv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv),iv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
@@ -1086,13 +1086,13 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(r,riv),r),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), R(getECX())));
 
-stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(r,riv),iv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv),iv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
@@ -1123,13 +1123,13 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(r,riv),r),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), R(getECX())));
 
-stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(r,riv),iv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv),iv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
@@ -1160,7 +1160,7 @@ szpr:	INT_AND_ACC(r, load32)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)), consumeMO()));
 
-stm:	INT_STORE(INT_AND_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_AND_ACC(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
@@ -1185,7 +1185,7 @@ szpr:	INT_OR_ACC(r, load32)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_OR, BinaryAcc.getResult(P(p)), consumeMO()));
 
-stm:	INT_STORE(INT_OR_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_OR_ACC(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_OR, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
@@ -1210,7 +1210,7 @@ szpr:	INT_XOR_ACC(r, load32)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, BinaryAcc.getResult(P(p)), consumeMO()));
 
-stm:	INT_STORE(INT_XOR_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_XOR_ACC(INT_LOAD(riv,riv),riv),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
@@ -1229,7 +1229,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NOT, UnaryAcc.getResult(P(p))));
 
 ### Memory operands ### 
-stm:	INT_STORE(INT_NOT_ACC(INT_LOAD(r,riv)),OTHER_OPERAND(r, riv))
+stm:	INT_STORE(INT_NOT_ACC(INT_LOAD(riv,riv)),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
 EMIT_INSTRUCTION
 EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NOT, MO_S(P(p), DW)));
@@ -1977,7 +1977,7 @@ r:	INT_2BYTE(load32)
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$B, Unary.getResult(P(p)), consumeMO()));
 
-stm:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(r, riv))
+stm:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), Unary.getVal(PL(p))));
@@ -2002,7 +2002,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), consumeMO())); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), I(0xFFFF)));
 
-stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(r,riv))
+stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(riv,riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Unary.getVal(PL(p))));
@@ -2026,7 +2026,7 @@ r:	INT_2SHORT(load32)
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$W, Unary.getResult(P(p)), consumeMO()));
 
-stm:	SHORT_STORE(INT_2SHORT(r), OTHER_OPERAND(r,riv))
+stm:	SHORT_STORE(INT_2SHORT(r), OTHER_OPERAND(riv,riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Unary.getVal(PL(p))));
@@ -2132,7 +2132,7 @@ EMIT_INSTRUCTION
 OPT_Register lh = burs.ir.regpool.getSecondReg(R(Unary.getVal(P(p))).register); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), R(lh)));
 
-stm:	INT_STORE(LONG_2INT(r), OTHER_OPERAND(r,riv))
+stm:	INT_STORE(LONG_2INT(r), OTHER_OPERAND(riv,riv))
 15
 EMIT_INSTRUCTION
 OPT_Register lh = burs.ir.regpool.getSecondReg(R(Unary.getVal(PL(p))).register); \
@@ -2144,7 +2144,7 @@ EMIT_INSTRUCTION
 OPT_Register lh = burs.ir.regpool.getSecondReg(R(Unary.getVal(PL(p))).register); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), R(lh)));
 
-r:	LONG_2INT(LONG_LOAD(r,riv))
+r:	LONG_2INT(LONG_LOAD(riv,riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_L(PL(p), DW)));
@@ -2290,7 +2290,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_FSTP, MO_CONV(burs,DW), myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_CONV(burs,DW)));
 
-stm:	FLOAT_STORE(DOUBLE_2FLOAT(r), OTHER_OPERAND(r, riv))
+stm:	FLOAT_STORE(DOUBLE_2FLOAT(r), OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), Unary.getVal(PL(p))));
@@ -2300,7 +2300,7 @@ stm:	FLOAT_ASTORE(DOUBLE_2FLOAT(r), OTHER_OPERAND(r, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), Unary.getVal(PL(p))));
 
-stm:	FLOAT_STORE(DOUBLE_2FLOAT(fp0), OTHER_OPERAND(r, riv))
+stm:	FLOAT_STORE(DOUBLE_2FLOAT(fp0), OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), D(getFPR(0))));
@@ -2310,7 +2310,7 @@ stm:	FLOAT_ASTORE(DOUBLE_2FLOAT(fp0), OTHER_OPERAND(r, riv))
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), D(getFPR(0))));
 
-stm:	FLOAT_STORE(DOUBLE_2FLOAT(pfp0), OTHER_OPERAND(r, riv))
+stm:	FLOAT_STORE(DOUBLE_2FLOAT(pfp0), OTHER_OPERAND(riv, riv))
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), DW), myFP0()));
@@ -2591,7 +2591,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), \
 #####
 # BYTE_LOAD
 #####
-r:	BYTE_LOAD(r, riv)
+r:	BYTE_LOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$B, Load.getResult(P(p)), MO_L(P(p), B)));
@@ -2607,7 +2607,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$B, ALoad.getResult(P(p)), MO_AL(P(p), B_S
 #####
 # UBYTE_LOAD
 #####
-r:	UBYTE_LOAD(r, riv)
+r:	UBYTE_LOAD(riv, riv)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX$B, Load.getResult(P(p)), MO_L(P(p), B)));
@@ -2659,7 +2659,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$B, Unary.getResult(P(p)), consumeMO()));
 #####
 # SHORT_LOAD
 #####
-r:	SHORT_LOAD(r, riv)
+r:	SHORT_LOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$W, Load.getResult(P(p)), MO_L(P(p), W)));
@@ -2675,7 +2675,7 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$W, ALoad.getResult(P(p)), MO_AL(P(p), W_S
 #####
 # USHORT_LOAD
 #####
-r:	USHORT_LOAD(r, riv)
+r:	USHORT_LOAD(riv, riv)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Unary.mutate(P(p), IA32_MOVZX$W, Load.getResult(P(p)), MO_L(P(p), W)));
@@ -2734,22 +2734,22 @@ EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$W, Unary.getResult(P(p)), consumeMO()));
 # INT_LOAD
 # A few more cases than for other load operators to handle pointer arithmetic introduced by use of magic
 #####
-r:	INT_LOAD(r, riv)
+r:	INT_LOAD(riv, riv)
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), MO_L(P(p), DW)));
 
-r:	INT_LOAD(r, address1scaledreg)
+r:	INT_LOAD(riv, address1scaledreg)
 15
 EMIT_INSTRUCTION
-augmentAddress(R(Load.getAddress(P(p)))); \
+augmentAddress(Load.getAddress(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \
 		     consumeAddress(DW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
-r:	INT_LOAD(address1scaledreg, r)
+r:	INT_LOAD(address1scaledreg, riv)
 15
 EMIT_INSTRUCTION
-augmentAddress(R(Load.getOffset(P(p)))); \
+augmentAddress(Load.getOffset(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \
 	             consumeAddress(DW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -2770,7 +2770,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \
 r:	INT_LOAD(address, iv)
 15
 EMIT_INSTRUCTION
-augmentAddress(IV(Load.getOffset(P(p)))); \
+augmentAddress(Load.getOffset(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Load.getResult(P(p)), \
 	             consumeAddress(DW, Load.getLocation(P(p)), Load.getGuard(P(p)))));
 
@@ -2785,17 +2785,17 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, ALoad.getResult(P(p)), MO_AL(P(p), DW_S, DW
 #####
 # FLOAT_LOAD
 #####
-r:	FLOAT_LOAD(r, riv)
+r:	FLOAT_LOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Load.getResult(P(p)), MO_L(P(p), DW)));
 
-fp0:	FLOAT_LOAD(r, riv)
+fp0:	FLOAT_LOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_L(P(p), DW)));
 
-pfp0:	FLOAT_LOAD(r, riv)
+pfp0:	FLOAT_LOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_L(P(p), DW)));
@@ -2821,7 +2821,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_AL(P(p), DW_S, DW)));
 #####
 # LONG_LOAD
 #####
-r:	LONG_LOAD(r, riv)
+r:	LONG_LOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hres = Load.getResult(P(p)); \
@@ -2843,17 +2843,17 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_AL(P(p), QW_S, DW)));
 #####
 # DOUBLE_LOAD
 #####
-r:	DOUBLE_LOAD(r, riv)
+r:	DOUBLE_LOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Load.getResult(P(p)), MO_L(P(p), QW)));
 
-fp0:	DOUBLE_LOAD(r, riv)
+fp0:	DOUBLE_LOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, D(getFPR(0)), MO_L(P(p), QW)));
 
-pfp0:	DOUBLE_LOAD(r, riv)
+pfp0:	DOUBLE_LOAD(riv, riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_L(P(p), QW)));
@@ -2896,14 +2896,14 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Prepare.getResult(P(p)), \
 r:	PREPARE(r, address1scaledreg)
 15
 EMIT_INSTRUCTION
-augmentAddress(R(Prepare.getAddress(P(p)))); \
+augmentAddress(Prepare.getAddress(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Prepare.getResult(P(p)), \
 		     consumeAddress(DW, Prepare.getLocation(P(p)), Prepare.getGuard(P(p)))));
 
 r:	PREPARE(address1scaledreg, r)
 15
 EMIT_INSTRUCTION
-augmentAddress(R(Prepare.getOffset(P(p)))); \
+augmentAddress(Prepare.getOffset(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Prepare.getResult(P(p)), \
 	             consumeAddress(DW, Prepare.getLocation(P(p)), Prepare.getGuard(P(p)))));
 
@@ -2924,7 +2924,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Prepare.getResult(P(p)), \
 r:	PREPARE(address, iv)
 15
 EMIT_INSTRUCTION
-augmentAddress(IV(Prepare.getOffset(P(p)))); \
+augmentAddress(Prepare.getOffset(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, Prepare.getResult(P(p)), \
 	             consumeAddress(DW, Prepare.getLocation(P(p)), Prepare.getGuard(P(p)))));
 
@@ -2951,7 +2951,7 @@ ATTEMPT(burs, Attempt.getResult(P(p)), \
 r:	ATTEMPT(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(riv, riv)))
 67
 EMIT_INSTRUCTION
-augmentAddress(R(Attempt.getAddress(P(p)))); \
+augmentAddress(Attempt.getAddress(P(p))); \
 ATTEMPT(burs, Attempt.getResult(P(p)), \
               consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \
               Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
@@ -2959,7 +2959,7 @@ ATTEMPT(burs, Attempt.getResult(P(p)), \
 r:	ATTEMPT(address1scaledreg, OTHER_OPERAND(r, OTHER_OPERAND(riv, riv)))
 67
 EMIT_INSTRUCTION
-augmentAddress(R(Attempt.getOffset(P(p)))); \
+augmentAddress(Attempt.getOffset(P(p))); \
 ATTEMPT(burs, Attempt.getResult(P(p)), \
               consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \
               Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
@@ -2983,7 +2983,7 @@ ATTEMPT(burs, Attempt.getResult(P(p)), \
 r:	ATTEMPT(address, OTHER_OPERAND(iv, OTHER_OPERAND(riv, riv)))
 67
 EMIT_INSTRUCTION
-augmentAddress(IV(Attempt.getOffset(P(p)))); \
+augmentAddress(Attempt.getOffset(P(p))); \
 ATTEMPT(burs, Attempt.getResult(P(p)), \
               consumeAddress(DW, Attempt.getLocation(P(p)), Attempt.getGuard(P(p))), \
               Attempt.getOldValue(P(p)), Attempt.getNewValue(P(p)));
@@ -3005,7 +3005,7 @@ ATTEMPT_IFCMP(burs, MO_BD(Attempt.getAddress(PL(p)), IV(Attempt.getOffset(PL(p))
 stm:	INT_IFCMP(ATTEMPT(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(riv,riv))),ZERO)
 54
 EMIT_INSTRUCTION
-augmentAddress(R(Attempt.getAddress(PL(p)))); \
+augmentAddress(Attempt.getAddress(PL(p))); \
 ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \
 	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \
 		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
@@ -3013,7 +3013,7 @@ ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGu
 stm:	INT_IFCMP(ATTEMPT(address1scaledreg, OTHER_OPERAND(r, OTHER_OPERAND(riv,riv))),ZERO)
 54
 EMIT_INSTRUCTION
-augmentAddress(R(Attempt.getOffset(PL(p)))); \
+augmentAddress(Attempt.getOffset(PL(p))); \
 ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \
 	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \
 		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
@@ -3037,7 +3037,7 @@ ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGu
 stm:	INT_IFCMP(ATTEMPT(address, OTHER_OPERAND(iv, OTHER_OPERAND(riv,riv))),ZERO)
 54
 EMIT_INSTRUCTION
-augmentAddress(IV(Attempt.getOffset(PL(p)))); \
+augmentAddress(Attempt.getOffset(PL(p))); \
 ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \
 	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \
 		    IfCmp.getCond(P(p)).flipCode(), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
@@ -3059,7 +3059,7 @@ ATTEMPT_IFCMP(burs, MO_BD(Attempt.getAddress(PL(p)), IV(Attempt.getOffset(PL(p))
 stm:	INT_IFCMP(ATTEMPT(r, OTHER_OPERAND(address1scaledreg, OTHER_OPERAND(riv,riv))),ONE)
 54
 EMIT_INSTRUCTION
-augmentAddress(R(Attempt.getAddress(PL(p)))); \
+augmentAddress(Attempt.getAddress(PL(p))); \
 ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \
 	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \
 		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
@@ -3067,7 +3067,7 @@ ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGu
 stm:	INT_IFCMP(ATTEMPT(address1scaledreg, OTHER_OPERAND(r, OTHER_OPERAND(riv,riv))),ONE)
 54
 EMIT_INSTRUCTION
-augmentAddress(R(Attempt.getOffset(PL(p)))); \
+augmentAddress(Attempt.getOffset(PL(p))); \
 ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \
 	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \
 		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
@@ -3091,7 +3091,7 @@ ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGu
 stm:	INT_IFCMP(ATTEMPT(address, OTHER_OPERAND(iv, OTHER_OPERAND(riv,riv))),ONE)
 54
 EMIT_INSTRUCTION
-augmentAddress(IV(Attempt.getOffset(PL(p)))); \
+augmentAddress(Attempt.getOffset(PL(p))); \
 ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGuard(PL(p))), \
 	            Attempt.getOldValue(PL(p)), Attempt.getNewValue(PL(p)), \
 		    IfCmp.getCond(P(p)), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
@@ -3099,14 +3099,14 @@ ATTEMPT_IFCMP(burs, consumeAddress(DW, Attempt.getLocation(PL(p)), Attempt.getGu
 #####
 # BYTE_STORE
 #####
-stm:	BYTE_STORE(riv, OTHER_OPERAND(r, riv))
+stm:	BYTE_STORE(riv, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), Store.getValue(P(p))));
 
 # Can avoid sign/zero extension when we are just doing a transfer of bits 
 # from one memory location to another.
-stm:	BYTE_STORE(load8, OTHER_OPERAND(r, riv))
+stm:	BYTE_STORE(load8, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = burs.ir.regpool.getInteger(false); \
@@ -3133,14 +3133,14 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), R(tmp)));
 #####
 # SHORT_STORE
 #####
-stm:	SHORT_STORE(riv, OTHER_OPERAND(r, riv))
+stm:	SHORT_STORE(riv, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), Store.getValue(P(p))));
 
 # Can avoid sign/zero extension when we are just doing a transfer of bits 
 # from one memory location to another.
-stm:	SHORT_STORE(load16, OTHER_OPERAND(r, riv))
+stm:	SHORT_STORE(load16, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = burs.ir.regpool.getInteger(false); \
@@ -3168,23 +3168,23 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), R(tmp)));
 # INT_STORE
 # A few more cases than for other store operators to handle pointer arithmetic introduced by use of magic
 #####
-stm:	INT_STORE(riv, OTHER_OPERAND(r, riv))
+stm:	INT_STORE(riv, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), Store.getValue(P(p))));
 
-stm:	INT_STORE(riv, OTHER_OPERAND(r, address1scaledreg))
+stm:	INT_STORE(riv, OTHER_OPERAND(riv, address1scaledreg))
 15
 EMIT_INSTRUCTION
-augmentAddress(R(Store.getAddress(P(p)))); \
+augmentAddress(Store.getAddress(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, \
                      consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \
 		     Store.getValue(P(p))));
 
-stm:	INT_STORE(riv, OTHER_OPERAND(address1scaledreg, r))
+stm:	INT_STORE(riv, OTHER_OPERAND(address1scaledreg, riv))
 15
 EMIT_INSTRUCTION
-augmentAddress(R(Store.getOffset(P(p)))); \
+augmentAddress(Store.getOffset(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, \
                      consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \
 		     Store.getValue(P(p))));
@@ -3208,7 +3208,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV,  \
 stm:	INT_STORE(riv, OTHER_OPERAND(address, iv))
 15
 EMIT_INSTRUCTION
-augmentAddress(IV(Store.getOffset(P(p)))); \
+augmentAddress(Store.getOffset(P(p))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV,  \
 	             consumeAddress(DW, Store.getLocation(P(p)), Store.getGuard(P(p))), \
 		     Store.getValue(P(p))));
@@ -3224,17 +3224,17 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p)
 #####
 # FLOAT_STORE
 #####
-stm:	FLOAT_STORE(r, OTHER_OPERAND(r, riv))
+stm:	FLOAT_STORE(r, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), Store.getValue(P(p))));
 
-stm:	FLOAT_STORE(fp0, OTHER_OPERAND(r, riv))
+stm:	FLOAT_STORE(fp0, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 EMIT(MIR_Move.mutate(P(p), IA32_FST, MO_S(P(p), DW), F(getFPR(0))));
 
-stm:	FLOAT_STORE(pfp0, OTHER_OPERAND(r, riv))
+stm:	FLOAT_STORE(pfp0, OTHER_OPERAND(riv, riv))
 20
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), DW), myFP0()));
@@ -3260,7 +3260,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_AS(P(p), DW_S, DW), myFP0()));
 #####
 # LONG_STORE
 #####
-stm:	LONG_STORE(r, OTHER_OPERAND(r, riv))
+stm:	LONG_STORE(r, OTHER_OPERAND(riv, riv))
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hval = R(Store.getValue(P(p))); \
@@ -3268,7 +3268,7 @@ OPT_RegisterOperand lval = R(burs.ir.regpool.getSecondReg(hval.register)); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), hval))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), lval));
 
-stm:	LONG_STORE(lv, OTHER_OPERAND(r, riv))
+stm:	LONG_STORE(lv, OTHER_OPERAND(riv, riv))
 26
 EMIT_INSTRUCTION
 OPT_LongConstantOperand val = L(Store.getValue(P(p))); \
@@ -3296,17 +3296,17 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), I(val.lower32())));
 #####
 # DOUBLE_STORE
 #####
-stm:	DOUBLE_STORE(r, OTHER_OPERAND(r, riv))
+stm:	DOUBLE_STORE(r, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), QW), Store.getValue(P(p))));
 
-stm:	DOUBLE_STORE(fp0, OTHER_OPERAND(r, riv))
+stm:	DOUBLE_STORE(fp0, OTHER_OPERAND(riv, riv))
 15
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 EMIT(MIR_Move.mutate(P(p), IA32_FST, MO_S(P(p), QW), D(getFPR(0))));
 
-stm:	DOUBLE_STORE(pfp0, OTHER_OPERAND(r, riv))
+stm:	DOUBLE_STORE(pfp0, OTHER_OPERAND(riv, riv))
 20
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), QW), myFP0()));
@@ -3819,7 +3819,7 @@ r:	CALL(BRANCH_TARGET, arg)
 EMIT_INSTRUCTION
 CALL(burs, P(p), Call.getAddress(P(p)));
 
-r:	CALL(INT_LOAD(r, riv), arg)
+r:	CALL(INT_LOAD(riv, riv), arg)
 11
 EMIT_INSTRUCTION
 CALL(burs, P(p), MO_L(PL(p), DW));
@@ -3829,7 +3829,7 @@ r:	SYSCALL(r, arg)
 EMIT_INSTRUCTION
 SYSCALL(burs, P(p), CallSpecial.getAddress(P(p)));
 
-r:	SYSCALL(INT_LOAD(r, riv), arg)
+r:	SYSCALL(INT_LOAD(riv, riv), arg)
 11
 EMIT_INSTRUCTION
 SYSCALL(burs, P(p), MO_L(PL(p), DW));

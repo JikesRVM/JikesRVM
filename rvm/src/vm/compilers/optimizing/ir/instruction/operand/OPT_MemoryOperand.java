@@ -111,6 +111,12 @@ public final class OPT_MemoryOperand extends OPT_Operand {
 				      OPT_Operand guard) {
     return new OPT_MemoryOperand(base, index, scale, 0, size, loc, guard);
   }
+  public static OPT_MemoryOperand D(int disp, 
+				    byte size,
+				    OPT_LocationOperand loc,
+				    OPT_Operand guard) {
+    return new OPT_MemoryOperand(null, null, (byte)0, disp, size, loc, guard);
+  }
   public static OPT_MemoryOperand I(OPT_RegisterOperand base,
 				    byte size,
 				    OPT_LocationOperand loc,
