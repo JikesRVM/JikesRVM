@@ -12,14 +12,7 @@
 ;;; This style is designed to work nicely with the functions
 ;;; `c-toggle-auto-state' and `c-toggle-hungry-state'.
 
-;; Things I recommend running in your c-mode-common-hook, because they'll make
-;; your life easier (this is not mandatory):
-
-;; (turn-on-font-lock)
-;; (which-function-mode 1)
-;; (c-toggle-auto-hungry-state 1)
-;; (if (fboundp 'c-context-line-break)	;In Emacs 21.2.50, not in Emacs 20.7
-;;    (define-key c-mode-base-map "\r" 'c-context-line-break))
+;; To use this file, see the file "dot-emacs.el" in this directory.
 
 
 (add-hook 'java-mode-hook #'jikes-rvm-java-buffer-setup)
@@ -54,6 +47,8 @@ JikesRVM Java style guidelines on your own"))
   ;; c-cleanup-list should already be buffer-local.  But in case
   ;; it is not, make it local for this buffer.
   (make-local-variable 'c-cleanup-list)
+  (unless (boundp 'c-cleanup-list)
+    (setq c-cleanup-list nil))
   ;; Now reset c-cleanup-list
   ;; remove a couple of items from c-cleanup-list
   (setq c-cleanup-list
@@ -62,7 +57,7 @@ JikesRVM Java style guidelines on your own"))
 	(delq 'space-before-funcall
 	      (delq 'scope-operator c-cleanup-list)))
   (mapc #'(lambda (new-elem)
-	    (add-to-list c-cleanup-list new-elem))
+	    (add-to-list 'c-cleanup-list new-elem))
 	'(
 	  ;; stock items; provided in default CC mode
 	  ;; anyway. 
@@ -83,24 +78,23 @@ JikesRVM Java style guidelines on your own"))
 	  'compact-every-funcall))
 	
   (make-local-variable 'c-hanging-braces-alist)
-  (add-to-alist 'c-hanging-braces-alist
+  (add-to-list 'c-hanging-braces-alist
 					; '(brace-entry-open . (after))
 					; '(brace-entry-close . (before))
 					; '(brace-list-open . (after))
 					; '(brace-list-close . (before))
-		'(extern-lang-open . (after))
-		'(extern-lang-close . (before))
-		'(defun-open . (after))
-		'(defun-close . (before))
-		'(class-open . (after))
-		'(class-close . (before))
-		'(inline-open . (after))
-		'(inline-close . (before))
-		'(block-open . (after))
-		'(block-close . (before))
-		'(substatement-open . (after))
-		;; no substatement-close?
-		'()))
+		'((extern-lang-open . (after))
+		  (extern-lang-close . (before))
+		  (defun-open . (after))
+		  (defun-close . (before))
+		  (class-open . (after))
+		  (class-close . (before))
+		  (inline-open . (after))
+		  (inline-close . (before))
+		  (block-open . (after))
+		  (block-close . (before))
+		  ;; no substatement-close?
+		  (substatement-open . (after)))))
 
 (defun add-jikes-rvm-cc-styles ()
   (interactive)
