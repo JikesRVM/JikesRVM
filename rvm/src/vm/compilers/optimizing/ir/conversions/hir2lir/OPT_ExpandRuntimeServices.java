@@ -133,7 +133,6 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       }
       break;
 
-
       case NEWARRAY_UNRESOLVED_opcode: {
 	int typeRefId = NewArray.getType(inst).type.getDictionaryId();
 	OPT_Operand numberElements = NewArray.getClearSize(inst);
@@ -222,215 +221,50 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	} 
       }
-	break;
+      break;
 
-      case BYTE_ALOAD_opcode:
-      case UBYTE_ALOAD_opcode:
-      case SHORT_ALOAD_opcode:  
-      case USHORT_ALOAD_opcode:
-      case INT_ALOAD_opcode: 
-      case FLOAT_ALOAD_opcode:
-      case REF_ALOAD_opcode:
-      case LONG_ALOAD_opcode:
-      case DOUBLE_ALOAD_opcode: {
-	  // Lazy Redirect redirects the source array operand
-	  // Realtime GC will do segmented array access
-	  // Eager Redirect redirects the result if it is a ref type and not null
-	    OPT_RegisterOperand result = ALoad.getResult(inst);
-	    if (VM_Configuration.BuildWithLazyRedirect) {
-		// This barrier completely replaces all access instruction.
-		OPT_Operand origArray = AStore.getClearArray(inst);
-		OPT_RegisterOperand newArray = ir.regpool.makeTemp(origArray);
-		OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray, origArray, OPT_IRTools.TG());
-		redirectInst.bcIndex = inst.bcIndex;
-		inst.insertBefore(redirectInst);
-		ALoad.setArray(inst, newArray);  // let standard conversion take care of this
-	    }
-	    OPT_Instruction lastInst = inst;  // last instruction of possibly expanded code
-	    //-#if RVM_WITH_REALTIME_GC
-	    if (VM.BuildForRealtimeGC) {
-	      lastInst = VM_SegmentedArray.optSegmentedArrayAccess(ir, inst, opcode);
-	      inst = null;                   // no unique load instr anymore
-	      next = lastInst.nextInstructionInCodeOrder();
-	    }
-	    //-#endif
-	    if (VM_Configuration.BuildWithEagerRedirect) {
-		if (opcode == REF_ALOAD_opcode) {
-		    OPT_RedirectResult rr = conditionalRedirect(ir, lastInst, result);
-		    next = rr.next;
-		}
-	    }
-	  }
-	  break;
+      case REF_ASTORE_opcode: {
+	if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	  VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
+	  OPT_Instruction wb =
+	    Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()),
+			 OPT_MethodOperand.STATIC(target),
+			 AStore.getArray(inst).copy(), 
+			 AStore.getIndex(inst).copy(), 
+			 AStore.getValue(inst).copy());
+	  wb.bcIndex = RUNTIME_SERVICES_BCI;
+	  wb.position = inst.position;
+	  inst.insertBefore(wb);
+	  inline(wb, ir, true);
+	  next = inst.nextInstructionInCodeOrder(); 
+	}
+      }
+      break;
 
-      case BYTE_ASTORE_opcode:
-      case SHORT_ASTORE_opcode:
-      case INT_ASTORE_opcode:
-      case FLOAT_ASTORE_opcode:
-      case REF_ASTORE_opcode:
-      case LONG_ASTORE_opcode:
-      case DOUBLE_ASTORE_opcode:
-
-	  if (VM_Configuration.BuildWithLazyRedirect) {
-	      // (0) Leave ASTORE_? opcode for further translation
-	      // (1) Get real object for ASTORE_? opcode 
-	      // (2) Get real object for value to put if field is a reference type
-	      // (3) It is safe to use the real version for the lazy barrier
-	      OPT_Operand array = AStore.getClearArray(inst);
-	      OPT_RegisterOperand newArray = ir.regpool.makeTemp(array);
-	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray,
-								  array, OPT_IRTools.TG());
-	      redirectInst.bcIndex = inst.bcIndex;
-	      inst.insertBefore(redirectInst);
-	      AStore.setArray(inst,newArray);
-	      if (opcode == REF_ASTORE_opcode) {
-		  OPT_Operand value = AStore.getClearValue(inst);
-		  OPT_RedirectResult rr = conditionalRedirect(ir, inst.prevInstructionInCodeOrder(), value);  
-		  AStore.setValue(inst,rr.newValue.copy());
-		  next = inst.nextInstructionInCodeOrder();  // don't use rr.next
-	      }
-	  }
-	  //-#if RVM_WITH_REALTIME_GC
-	  if (VM.BuildForRealtimeGC) {  
-	      OPT_Instruction lastInst = VM_SegmentedArray.optSegmentedArrayAccess(ir, inst, opcode);
-	      inst = null;  // no unique store isntruction anymore
-	      next = lastInst.nextInstructionInCodeOrder();
-	  }
-	  //-#endif
-	  if (VM_Configuration.BuildWithEagerRedirect) {
-	      // no modifications needed for eager version on stores
-	  }
-	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	      if (opcode == REF_ASTORE_opcode) {
-		VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
-		OPT_Instruction wb =
-		  Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()),
-			       OPT_MethodOperand.STATIC(target),
-			       AStore.getArray(inst).copy(), 
-			       AStore.getIndex(inst).copy(), 
-			       AStore.getValue(inst).copy());
-		wb.bcIndex = RUNTIME_SERVICES_BCI;
-		wb.position = inst.position;
-		inst.insertBefore(wb);
-		inline(wb, ir, true);
-		next = inst.nextInstructionInCodeOrder(); 
-	      }
-	  }
-	break;
-
-    case GETFIELD_opcode:
-	  // Leave the opcode of the final GetField so we don't have to handle UNRESOLVED stuff
-	  if (VM_Configuration.BuildWithLazyRedirect) {
-	      OPT_Operand object = GetField.getClearRef(inst);
-	      OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
-	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newObject, object, 
-								 GetField.getGuard(inst).copy());
-	      redirectInst.bcIndex = inst.bcIndex;
-	      inst.insertBefore(redirectInst);
-	      GetField.setRef(inst,newObject.copy());
-	  }
-	  if (VM_Configuration.BuildWithEagerRedirect) {
-	      OPT_LocationOperand dataLoc = GetField.getLocation(inst);
-	      VM_FieldReference dataField = dataLoc.getFieldRef();
-	      OPT_Operand origObject = GetField.getClearRef(inst);
-	      if (VM_Configuration.BuildWithLazyRedirect) {
-		  OPT_RegisterOperand realObject = ir.regpool.makeTemp(origObject);
-		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, realObject, origObject, 
-								     GetField.getGuard(inst).copy());
-		  redirectInst.bcIndex = inst.bcIndex;
-		  inst.insertBefore(redirectInst);
-		  GetField.setRef(inst,realObject);
-	      }
-	      else {  // VM_Configuration.BuildWithEagerRedirect
-		  if (!dataField.getType().isPrimitiveType()) {
-		      OPT_RegisterOperand result = GetField.getClearResult(inst);
-		      OPT_RegisterOperand temp = ir.regpool.makeTemp(result);
-		      GetField.setResult(inst,temp);
-		      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
-		      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
-		      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
-		      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
-		      beforeBB.insertOut(afterBB);   // unusual path
-		      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, temp,
-							    new OPT_IntConstantOperand(0),  // NULL is 0
-							    OPT_ConditionOperand.EQUAL(),
-							    afterBB.makeJumpTarget(),
-							    OPT_BranchProfileOperand.unlikely());
-		      OPT_Instruction moveInst = Move.create(INT_MOVE, result, temp); // no REF_MOVE in lir
-		      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, result, temp, OPT_IRTools.TG());
-		      ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
-		      beforeBB.appendInstruction(moveInst);
-		      beforeBB.appendInstruction(ifInst);
-		      redirectBB.appendInstruction(redirectInst);
-		  }
-	      }
-	  }
-	break;
-
-
-        case PUTFIELD_opcode: {
+      case PUTFIELD_opcode: {
+	if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	  OPT_LocationOperand loc = PutField.getClearLocation(inst);
 	  VM_FieldReference field = loc.getFieldRef();
-	  if (VM_Configuration.BuildWithLazyRedirect) {
-	    // (0) Leave PUTFIELD_? opcode for further translation
-	    // (1) Get real object for PUTFIELD_? opcode 
-	    // (2) Get real object for value to put if field is a reference type
-	    // (3) It is safe to use the real version for the lazy barrier
-	    OPT_Operand object = PutField.getClearRef(inst);
-	    OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
-	    OPT_Instruction redirectInst1 = GuardedUnary.create(GET_OBJ_RAW, newObject, object,
-								PutField.getGuard(inst).copy());
-	    redirectInst1.bcIndex = inst.bcIndex;
-	    inst.insertBefore(redirectInst1);
-	    PutField.setRef(inst,newObject.copy());
-	    if (!field.getType().isPrimitiveType()) {
-	      OPT_Operand value = PutField.getClearValue(inst);
-	      OPT_RedirectResult rr = conditionalRedirect(ir, inst.prevInstructionInCodeOrder(), value);
-	      PutField.setValue(inst,rr.newValue.copy());
-	      next = inst.nextInstructionInCodeOrder();  // don't use rr.next
-	    }
-	  }
-	  if (VM_Configuration.BuildWithEagerRedirect) {
-	    // No modification needed
-	  }
-	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	    if (!field.getType().isPrimitiveType()) {
-	      VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
-	      OPT_Instruction wb = 
-		Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
-			     OPT_MethodOperand.STATIC(target),
-			     PutField.getRef(inst).copy(), 
-			     PutField.getOffset(inst).copy(),
-			     PutField.getValue(inst).copy());
-	      wb.bcIndex = RUNTIME_SERVICES_BCI;
-	      wb.position = inst.position;
-	      inst.insertBefore(wb);
-	      inline(wb, ir);
-	      next = inst.nextInstructionInCodeOrder();
-	    }
+	  if (!field.getType().isPrimitiveType()) {
+	    VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
+	    OPT_Instruction wb = 
+	      Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
+			   OPT_MethodOperand.STATIC(target),
+			   PutField.getRef(inst).copy(), 
+			   PutField.getOffset(inst).copy(),
+			   PutField.getValue(inst).copy());
+	    wb.bcIndex = RUNTIME_SERVICES_BCI;
+	    wb.position = inst.position;
+	    inst.insertBefore(wb);
+	    inline(wb, ir);
+	    next = inst.nextInstructionInCodeOrder();
 	  }
 	}
-	break;
-
-      case GETSTATIC_opcode: 
-	  if (VM_Configuration.BuildWithLazyRedirect) {
-	      // no modification needed
-	  }
-	  if (VM_Configuration.BuildWithEagerRedirect) {
-	      // Leave the opcode here for further translation so we can avoid dealing with UNRESOLVED
-	      OPT_LocationOperand loc = GetStatic.getClearLocation(inst);
-	      VM_FieldReference field = loc.getFieldRef();
-	      if (!field.getType().isPrimitiveType()) {
-		  OPT_RegisterOperand result = GetStatic.getResult(inst);
-		  OPT_RedirectResult rr = conditionalRedirect(ir, inst, result);
-		  next = rr.next;
-	      }
-	  }
-	  break;
+      }
+      break;
 	  
-      default:
-          break;
+    default:
+      break;
       }
     }
 
@@ -485,45 +319,5 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   private OPT_Simple _os = new OPT_Simple(false, false);
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
-
-  private static final class OPT_RedirectResult {
-      OPT_Instruction next;
-      OPT_RegisterOperand newValue;
-      public OPT_RedirectResult(OPT_Instruction i, OPT_RegisterOperand ro) {
-	  next = i;
-	  newValue = ro;
-      }
-  }
-
-  /**
-   * Insert basic blocks AFTER the given instructions that will check the contents of
-   * the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
-   * of the original register value.  
-   * The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
-   * and returned along with the first instruction after the added code is returned.
-   */
-  private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
-	
-      OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
-	                                                : ir.regpool.makeTemp(value);
-      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
-      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
-      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
-      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
-      beforeBB.insertOut(afterBB);   // unusual path
-      OPT_Instruction moveInst = Move.create(REF_MOVE, newValue.copyRO(), value.copy());
-      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, value.copy(),
-					    new OPT_IntConstantOperand(0),  // NULL is 0
-					    OPT_ConditionOperand.EQUAL(),
-					    afterBB.makeJumpTarget(),
-					    OPT_BranchProfileOperand.unlikely());
-      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newValue.copyRO(), value.copy(), OPT_IRTools.TG());
-      ifInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
-      beforeBB.appendInstruction(moveInst);
-      beforeBB.appendInstruction(ifInst);
-      redirectBB.appendInstruction(redirectInst);
-      return new OPT_RedirectResult(afterBB.firstInstruction(), newValue);
-  }
 
 }

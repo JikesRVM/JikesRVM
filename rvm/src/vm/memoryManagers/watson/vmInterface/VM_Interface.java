@@ -303,13 +303,6 @@ public class VM_Interface implements VM_Constants {
    * @return The instruction array
    */ 
   public static INSTRUCTION[] newInstructions(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newInstructions(n);
-      //-#endif
-    }
-
     return new INSTRUCTION[n];
   }
 
@@ -320,13 +313,6 @@ public class VM_Interface implements VM_Constants {
    * @return The stack array
    */ 
   public static int[] newStack(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newStack(n);
-      //-#endif
-    }
-
     return new int[n];
   }
 
@@ -352,13 +338,6 @@ public class VM_Interface implements VM_Constants {
    * @return The contiguous int array
    */ 
   public static int[] newContiguousIntArray(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newIntArray(n);
-      //-#endif
-    }
-
     return new int[n];
   }
 
@@ -367,17 +346,9 @@ public class VM_Interface implements VM_Constants {
    * @param n The number of objects
    * @return The contiguous object array
    */ 
-  public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n) throws
-    VM_PragmaInline {
-
-      if (VM.BuildForRealtimeGC) {
-        //-#if RVM_WITH_REALTIME_GC
-        return VM_SegmentedArray.newContiguousCompiledMethodArray(n);
-        //-#endif
-      }
-
-      return new VM_CompiledMethod[n];
-    }
+  public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n) throws VM_PragmaInline {
+    return new VM_CompiledMethod[n];
+  }
 
   /**
    * Allocate a contiguous VM_DynamicLibrary array
@@ -385,19 +356,11 @@ public class VM_Interface implements VM_Constants {
    * @return The contiguous object array
    */ 
   public static VM_DynamicLibrary[] newContiguousDynamicLibraryArray(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newContiguousDynamicLibraryArray(n);
-      //-#endif
-    }
-
     return new VM_DynamicLibrary[n];
   }
 
 
   public static Object[] newTIB (int n) throws VM_PragmaInline {
-
     if (true) {
       //-#if RVM_WITH_COPYING_GC
       //-#if RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL

@@ -63,18 +63,12 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         switch (s.getOpcode()) {
 	case ARRAYLENGTH_opcode:
 	  {
-	    if (VM.BuildForRealtimeGC) {
-	    //-#if RVM_WITH_REALTIME_GC
-		VM_SegmentedArray.optArrayLength(ir,s);
-	    //-#endif
-	    }
-	    else 
-		// array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
-		Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			    GuardedUnary.getClearVal(s),
-                            I(VM_ObjectModel.getArrayLengthOffset()), 
-			    new OPT_LocationOperand(), 
-			    GuardedUnary.getClearGuard(s));
+	    // array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
+	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
+			GuardedUnary.getClearVal(s),
+			I(VM_ObjectModel.getArrayLengthOffset()), 
+			new OPT_LocationOperand(), 
+			GuardedUnary.getClearGuard(s));
 	  }
 	  break;
 
@@ -83,17 +77,6 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	    VM_ObjectModel.lowerGET_OBJ_TIB(s, ir);
 	  }
 	  break;
-
-	  //-#if RVM_WITH_REALTIME_GC
-	case GET_OBJ_RAW_opcode:
-	  {
-	    OPT_Operand address = GuardedUnary.getClearVal(s);
-	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			address, I(OBJECT_REDIRECT_OFFSET), OPT_LocationOperand.createRedirection(),
-			GetField.getClearGuard(s));
-	  }
-	  break;
-	  //-#endif
 
 	case GET_CLASS_TIB_opcode:
 	  {

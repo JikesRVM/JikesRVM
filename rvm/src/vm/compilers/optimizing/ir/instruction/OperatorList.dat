@@ -1439,13 +1439,6 @@ none
 
 
 
-# Get the raw ptr of an object in an access barrier model
-GET_OBJ_RAW
-GuardedUnary
-none
-
-
-
 # Get the TIB ptr for type (from the jtoc)
 GET_CLASS_TIB
 Unary

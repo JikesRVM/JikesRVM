@@ -490,7 +490,6 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T0,  4, SP);                    // T0 is array index
     asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     asm.emitL   (T3,  0, SP);                    // T3 is value to store
-    emitSegmentedArrayAccess (asm, T1, T0, T2, 2);
     asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
     asm.emitSLI (T0, T0,  2);  // convert word index to byte index
     asm.emitSTX (T3, T0, T1);  // store ref value in array
@@ -2245,12 +2244,6 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_arraylength() {
     asm.emitL (T0, 0, SP);
     asm.emitL (T1, VM_ObjectModel.getArrayLengthOffset(), T0);
-    if (VM.BuildForRealtimeGC) {
-      asm.emitCMPI(T1, 0);
-      VM_ForwardReference fr = asm.emitForwardBC(GE);
-      asm.emitNEG(T1, T1);
-      fr.resolve(asm);
-    }
     asm.emitST(T1, 0, SP);
   }
 
@@ -2353,8 +2346,6 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T1,  4, SP);                    // T1 is array ref
     asm.emitL   (T0,  0, SP);                    // T0 is array index
     asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
-    if (logSize >= 0)
-	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
     asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
   }
 
@@ -2363,8 +2354,6 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T0,  4, SP);                    // T0 is array index
     asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     asm.emitL   (T3,  0, SP);                    // T3 is value to store
-    if (logSize >= 0)
-	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
     asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
   }
 
@@ -2373,20 +2362,11 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL    (T0,  8, SP);                    // T0 is array index
     asm.emitL    (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
-    emitSegmentedArrayAccess(asm, T1, T0, T2, 3);
     asm.emitTLLE(T2, T0);     // trap if index < 0 or index >= length
     asm.emitSLI  (T0, T0,  3);  // convert double index to byte index
     asm.emitSTFDX(F0, T0, T1);  // store double value in array
     asm.emitCAL  (SP, 16, SP);  // complete 3 pops (1st is 2 words)
   }
-
-  private static void emitSegmentedArrayAccess (VM_Assembler asm, int Tarr, int Tidx, int Tlen, int shift) {
-    if (VM.BuildForRealtimeGC) {
-    //-#if RVM_WITH_REALTIME_GC
-      VM_SegmentedArray.emitSegmentedArrayAccess(asm, Tarr, Tidx, Tlen, shift);
-    //-#endif
-    }
-  }  
 
   // Emit code to buy a stackframe, store incoming parameters, 
   // and acquire method synchronization lock.

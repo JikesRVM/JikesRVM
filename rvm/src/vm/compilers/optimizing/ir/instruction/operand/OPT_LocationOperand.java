@@ -46,8 +46,6 @@ public final class OPT_LocationOperand extends OPT_Operand
   public static final int ALENGTH_ACCESS = 4;
   /** Enumeration of Access type */
   public static final int METHOD_ACCESS = 5;
-  /** Enumeration of Access type */
-  public static final int REDIRECTION_ACCESS = 6;
 
   /**
    * The type of this location.
@@ -151,12 +149,6 @@ public final class OPT_LocationOperand extends OPT_Operand
     type = ALENGTH_ACCESS;
   }
 
-  public static OPT_LocationOperand createRedirection() {
-    OPT_LocationOperand result = new OPT_LocationOperand();
-    result.type = REDIRECTION_ACCESS;
-    return result;
-  }
-
   public final OPT_LocationOperand asFieldAccess()   { return this; }
   public final OPT_LocationOperand asArrayAccess()   { return this; }
   public final OPT_LocationOperand asJTOCAccess()    { return this; }
@@ -175,7 +167,6 @@ public final class OPT_LocationOperand extends OPT_Operand
   public final boolean isSpillAccess()   { return type == SPILL_ACCESS; }
   public final boolean isALengthAccess() { return type == ALENGTH_ACCESS; }
   public final boolean isMethodAccess() { return type == METHOD_ACCESS; }
-  public final boolean isRedirectionAccess() { return type == REDIRECTION_ACCESS; }
 
   /**
    * Is the accessed location possibly volatile?
@@ -212,9 +203,6 @@ public final class OPT_LocationOperand extends OPT_Operand
       break;
     case METHOD_ACCESS:  
       o = new OPT_LocationOperand(methOp);
-      break;
-    case REDIRECTION_ACCESS:  
-      o = createRedirection();
       break;
     default:
       o = new OPT_LocationOperand(); 
@@ -284,8 +272,6 @@ public final class OPT_LocationOperand extends OPT_Operand
       return "<mem loc: spill FP "+spillOffset+">";
     case ALENGTH_ACCESS: 
       return "<mem loc: array length>";
-    case REDIRECTION_ACCESS: 
-      return "<mem loc: redirect>";
     }
     return "<mem loc: no aliases>";
   }

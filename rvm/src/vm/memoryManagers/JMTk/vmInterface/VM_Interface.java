@@ -552,13 +552,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return The instruction array
    */ 
   public static INSTRUCTION[] newInstructions(int n) throws VM_PragmaInline, VM_PragmaInterruptible {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newInstructions(n);
-      //-#endif
-    }
-
     return new INSTRUCTION[n];
   }
 
@@ -569,13 +562,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return The stack array
    */ 
   public static int[] newStack(int n) throws VM_PragmaInline, VM_PragmaInterruptible {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newStack(n);
-      //-#endif
-    }
-
     return new int[n];
   }
 
@@ -635,13 +621,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return The contiguous int array
    */ 
   public static int[] newContiguousIntArray(int n) throws VM_PragmaInline, VM_PragmaInterruptible {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newIntArray(n);
-      //-#endif
-    }
-
     return new int[n];
   }
 
@@ -651,15 +630,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return The contiguous object array
    */ 
   public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n) throws VM_PragmaInline, VM_PragmaInterruptible {
-
-      if (VM.BuildForRealtimeGC) {
-        //-#if RVM_WITH_REALTIME_GC
-        return VM_SegmentedArray.newContiguousCompiledMethodArray(n);
-        //-#endif
-      }
-
-      return new VM_CompiledMethod[n];
-    }
+    return new VM_CompiledMethod[n];
+  }
 
   /**
    * Allocate a contiguous VM_DynamicLibrary array
@@ -667,13 +639,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return The contiguous object array
    */ 
   public static VM_DynamicLibrary[] newContiguousDynamicLibraryArray(int n) throws VM_PragmaInline, VM_PragmaInterruptible {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newContiguousDynamicLibraryArray(n);
-      //-#endif
-    }
-
     return new VM_DynamicLibrary[n];
   }
 

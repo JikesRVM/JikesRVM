@@ -1164,11 +1164,6 @@ implements BootImageWriterConstants {
         int arrayImageOffset = (overwriteOffset == -1) ? bootImage.allocateArray(rvmArrayType, arrayCount) : overwriteOffset;
         mapEntry.imageOffset = arrayImageOffset;
 
-        if (VM.BuildWithRedirectSlot)
-          VM.sysFail("Boot image writer not updated with new object model to handle redirects???");
-        // BootImage.setFullWord(arrayImageOffset + VM_ObjectLayoutConstants.OBJECT_REDIRECT_OFFSET, 
-        // bootImageAddress + arrayImageOffset);
-
         if (verbose >= 2) {
           if (depth == depthCutoff) 
             say(SPACES.substring(0,depth+1), "TOO DEEP: cutting off");
@@ -1291,10 +1286,6 @@ implements BootImageWriterConstants {
         //
         int scalarImageOffset = (overwriteOffset == -1) ? bootImage.allocateScalar(rvmScalarType) : overwriteOffset;
         mapEntry.imageOffset = scalarImageOffset;
-        if (VM.BuildWithRedirectSlot)
-          VM.sysFail("Boot image writer not updated with new object model to handle redirects???");
-        // BootImage.setFullWord(scalarImageOffset + VM_ObjectLayoutConstants.OBJECT_REDIRECT_OFFSET, 
-        // bootImageAddress + scalarImageOffset);
 
         if (verbose >= 2) {
           if (depth == depthCutoff) 
