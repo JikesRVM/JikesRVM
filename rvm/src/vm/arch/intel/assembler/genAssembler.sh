@@ -1128,8 +1128,9 @@ emitFloatBinAcc() {
   }
 
   // srcReg ${op}= ST(0); pop stack
-  final void emit${popAcronym}_Reg(byte dstReg) {
+  final void emit${popAcronym}_Reg_Reg(byte dstReg, byte srcReg) {
     int miStart = mi;
+    if (VM.VerifyAssertions) VM.assert(srcReg == FP0);
     setMachineCodes(mi++, (byte) 0xDE);
     setMachineCodes(mi++, (byte) (${to0Op} | dstReg));
     if (lister != null) lister.R(miStart, "${popAcronym}", dstReg);
