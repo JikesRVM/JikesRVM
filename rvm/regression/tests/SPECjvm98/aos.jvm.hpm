@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# (C) copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001
 #
 # $Id$
 #
@@ -16,8 +16,8 @@
 # CONSTRAINT:
 # Expect RVM_BUILD to be set to an adaptive configuration.
 #
-# author: Peter F. Sweeney
-# date: 10/5/2001
+# @author: Peter F. Sweeney
+# @date: 10/5/2001
 
 if [[ $# = 0 || $1 = -help || $# < 1 ]] then
   more <<EOF
