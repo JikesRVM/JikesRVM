@@ -197,23 +197,23 @@ public class VM_Allocator extends VM_GCStatistics
     return gcInProgress;
   }
 
-  public long totalSmallHeapMemory() {
+  public static long totalSmallHeapMemory() {
     return smallHeapSize;
   }
 
-  public long totalSmallHeapSemispaceMemory() {
+  public static long totalSmallHeapSemispaceMemory() {
     return smallHeapSize / 2;
   }
 
-  long freeSmallHeapSemispaceMemory()  { // free memory in the current semispace
+  public static long freeSmallHeapSemispaceMemory()  { // free memory in the current semispace
     return fromHeap.freeMemory();
   }
 
-  long totalLargeHeapMemory() {
+  public static long totalLargeHeapMemory() {
     return largeHeap.size;
   }
 
-  long freeLargeHeapMemory() {  // free memory in the large heap
+  public static long freeLargeHeapMemory() {  // free memory in the large heap
     return largeHeap.freeSpace();
   }
 
