@@ -1,7 +1,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-include                 $(JAL_ROOT)/build.Make.rules
+include                 $(JAL_ROOT)/rvm/build.Make.rules
 
 default:	$(GEN_FILES_DIR)/VM_Assembler.java
 

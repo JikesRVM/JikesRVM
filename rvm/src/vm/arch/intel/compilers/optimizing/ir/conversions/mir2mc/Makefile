@@ -1,10 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-include                 $(JAL_ROOT)/build.Make.rules
+include                 $(JAL_ROOT)/rvm/build.Make.rules
 
-ARCH_IFS = $(JAL_ROOT)/src/vm/arch/intel/compilers/optimizing/ir/instruction/InstructionFormatList.dat
-ARCH_OPS = $(JAL_ROOT)/src/vm/arch/intel/compilers/optimizing/ir/instruction/OperatorList.dat
+ARCH_IFS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/InstructionFormatList.dat
+ARCH_OPS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/OperatorList.dat
 
 SCRATCH_DIR=$(RVM_BUILD)/Jalapeno.scratch
 
@@ -28,9 +28,9 @@ SRCS=   $(TABLES_JAVA) \
 	$(OPCODE_JAVA) \
 	$(FAKE_SRC) \
 	$(VM_ASM_JAVA) \
-	$(JAL_ROOT)/src/vm/arch/intel/VM_RegisterConstants.java \
-	$(JAL_ROOT)/src/vm/arch/intel/assembler/VM_ForwardReference.java \
-	$(JAL_ROOT)/src/vm/arch/intel/assembler/VM_AssemblerConstants.java
+	$(JAL_ROOT)/rvm/src/vm/arch/intel/VM_RegisterConstants.java \
+	$(JAL_ROOT)/rvm/src/vm/arch/intel/assembler/VM_ForwardReference.java \
+	$(JAL_ROOT)/rvm/src/vm/arch/intel/assembler/VM_AssemblerConstants.java
 
 default:		assembler clean
 

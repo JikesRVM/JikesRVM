@@ -40,7 +40,7 @@ check:
 # performance runs
 #
 do-gather-performance:
-	$(AWK) -f $(JAL_ROOT)/regression/tests/SPECjbb2000/summarize.awk $(OUT) >> $(PERF_LOG)
+	$(AWK) -f $(JAL_ROOT)/rvm/regression/tests/SPECjbb2000/summarize.awk $(OUT) >> $(PERF_LOG)
 
 
 #
@@ -70,13 +70,13 @@ finish:
 #
 spec/jbb/JBBmain.class:		jbb.jar
 
-$(WORKING)/%.props:		$(JAL_ROOT)/regression/tests/SPECjbb2000/%.props $(WORKING)
+$(WORKING)/%.props:		$(JAL_ROOT)/rvm/regression/tests/SPECjbb2000/%.props $(WORKING)
 ifneq ($(WORKING),.)
 	cp $< $@
 	chmod a+rw $@
 endif
 
-$(WORKING)/Makefile:		$(JAL_ROOT)/regression/tests/SPECjbb2000/Makefile $(WORKING)
+$(WORKING)/Makefile:		$(JAL_ROOT)/rvm/regression/tests/SPECjbb2000/Makefile $(WORKING)
 ifneq ($(WORKING),.)
 	cp $< $@
 	chmod a+rw $@
