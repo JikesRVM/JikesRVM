@@ -1282,8 +1282,9 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
   
   /**
-   * Find an empty slot in the {@link #threads}[] array and bind it to this thread.
-   * Assumption: call is guarded by threadCreationMutex.
+   * Find an empty slot in the {@link VM_Scheduler#threads}[] array and bind
+   * it to this thread.  <br>
+   * <b>Assumption:</b> call is guarded by threadCreationMutex.
    */
   private void assignThreadSlot() {
     for (int cnt = VM_Scheduler.threads.length; --cnt >= 1; )
