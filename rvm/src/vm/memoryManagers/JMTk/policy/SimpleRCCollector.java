@@ -83,6 +83,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
    * @param mr (unused)
    */
   public void prepare(VMResource vm, MemoryResource mr) { 
+    phase = PROCESS;
   }
 
   /**
@@ -95,9 +96,6 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   public void release(SimpleRCAllocator allocator) { 
   }
 
-  public void setState(int newState) {
-    state = newState;
-  }
 
   /**
    *  This is called each time a cell is alloced (i.e. if a cell is
@@ -141,15 +139,27 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final VM_Address traceObject(VM_Address object, boolean root, 
-				      boolean decrementPhase)
+  public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
-    if (decrementPhase)
-      VM_Interface.getPlan().addToDecBuf(object);
-    else {
+    switch (phase) {
+    case PROCESS:  
       incRC(object);
       if (root)
-	VM_Interface.getPlan().addToRootSet(object);
+	VM_Interface.getPlan().addToRootSet(object); 
+      break;
+    case DECREMENT:
+      VM_Interface.getPlan().addToDecBuf(object); 
+      break;
+    case MARK:
+//       if (SimpleRCHeader.isPurple(object))
+// 	decRC(object);
+      break;
+    case SCAN:
+      if (SimpleRCHeader.isPurple(object))
+	incRC(object);
+      break;
+    default:
+      if (VM.VerifyAssertions) VM._assert(false);
     }
     return object;
   }
@@ -169,23 +179,30 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
       return 0;
   }
 
- public final void incRC(VM_Address object) 
+  public final void incRC(VM_Address object) 
     throws VM_PragmaInline {
-      SimpleRCHeader.incRC(object);
+    SimpleRCHeader.incRC(object);
+    if (Plan.refCountCycleDetection && phase == PROCESS)
+      SimpleRCHeader.clearPurpleBit(object);
   }
 
-  public final void decRC(VM_Address object, SimpleRCAllocator allocator) 
+  public final void decRC(VM_Address object, SimpleRCAllocator allocator,
+			  Plan plan) 
     throws VM_PragmaInline {
     if (SimpleRCHeader.decRC(object)) {
       // this object is now dead, scan it for recursive decrement
 //       VM.sysWrite(object); VM.sysWrite(" k\n");
-//       VM._assert(false);
       ScanObject.scan(object);
-      free(object, allocator);
+      if (!(Plan.refCountCycleDetection && phase == DECREMENT && 
+	    SimpleRCHeader.isBuffered(object)))
+	free(object, allocator);
+    } else if (Plan.refCountCycleDetection && phase == DECREMENT) {
+      if (SimpleRCHeader.makePurple(object))
+	plan.addToCycleBuf(VM_Magic.objectAsAddress(object));
     }
   }
 
-  private final void free(VM_Address object, SimpleRCAllocator allocator)
+  public final void free(VM_Address object, SimpleRCAllocator allocator)
     throws VM_PragmaNoInline {
     VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
     boolean isSmall = SimpleRCHeader.isSmallObject(VM_Magic.addressAsObject(object));
@@ -198,9 +215,17 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     allocator.free(cell, sp, sizeClass);
   }
 
-  public final int getState()
+  public final void decrementPhase() 
     throws VM_PragmaInline {
-    return state;
+    phase = DECREMENT;
+  }
+  public final void markPhase() 
+    throws VM_PragmaInline {
+    phase = MARK;
+  }
+  public final void scanPhase() 
+    throws VM_PragmaInline {
+    phase = SCAN;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -216,10 +241,10 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   //
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
-  private int state;
+  private int phase;
 
-  public static int COMPUTING_ROOTS = 0;
-  public static int PROCESSING = 1;
-  public static int INCREMENT = 2;
-  public static int RELEASE = 3;
+  private static final int PROCESS = 0;
+  private static final int DECREMENT = 1;
+  private static final int MARK = 2;
+  private static final int SCAN = 3;
 }

@@ -34,7 +34,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   public static final boolean needsWriteBarrier = true;
   public static final boolean needsRefCountWriteBarrier = true;
-  public static final boolean refCountCycleDetection = false;
+  public static final boolean refCountCycleDetection = true;
   public static final boolean movesObjects = false;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public static VM_Address traceObject(VM_Address obj, boolean root) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END) && addr.GE(RC_START))
-      return rcCollector.traceObject(obj, root, decrementPhase);
+      return rcCollector.traceObject(obj, root);
     
     // else this is not a rc heap pointer
     return obj;
@@ -146,6 +146,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     incBuffer = new AddressQueue("inc buf", incPool);
     decBuffer = new AddressQueue("dec buf", decPool);
     rootSet = new AddressQueue("root set", rootPool);
+    if (refCountCycleDetection) {
+      cycleBufferA = new AddressQueue("cycle buf A", cyclePoolA);
+      cycleBufferB = new AddressQueue("cycle buf B", cyclePoolB);
+      freeBuffer = new AddressQueue("free buffer", freePool);
+    }
   }
 
   /**
@@ -339,11 +344,19 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   }
   public final void addToIncBuf(VM_Address obj)
     throws VM_PragmaInline {
-    VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(false);
   }
   public void addToRootSet(VM_Address root) 
     throws VM_PragmaInline {
     rootSet.push(VM_Magic.objectAsAddress(root));
+  }
+  public final void addToCycleBuf(VM_Address obj)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions && !refCountCycleDetection) VM._assert(false);
+    if (cycleBufferAisOpen)
+      cycleBufferA.push(obj);
+    else
+      cycleBufferB.push(obj);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -407,7 +420,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("  Before Collection: ");
       showUsage();
     }
-    decrementPhase = false;
     Immortal.prepare(immortalVM, null);
     rcCollector.prepare(rcVM, rcMR);
   }
@@ -421,10 +433,13 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     processIncBufs();
 //     VM.sysWrite("processed incs\n");
     if (id == 1)
-      decrementPhase = true;
+      rcCollector.decrementPhase();
     VM_CollectorThread.gcBarrier.rendezvous();
     processDecBufs();
-//     VM.sysWrite("processed decs\n");
+    if (refCountCycleDetection) {
+      processCycleBufs();
+      processFreeBufs();
+    }
   }
 
   /**
@@ -444,6 +459,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       progress = false;
     } else
       progress = true;
+    if (refCountCycleDetection)
+      cycleBufferAisOpen = !cycleBufferAisOpen;
   }
 
   private final void processIncBufs() {
@@ -459,7 +476,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     VM_Address tgt;
     while (!(tgt = decBuffer.pop()).isZero()) {
 //       VM.sysWrite(tgt); VM.sysWrite(" d\n");
-      rcCollector.decRC(tgt, rc);
+      rcCollector.decRC(tgt, rc, this);
     }
   }
 
@@ -470,6 +487,29 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       decBuffer.push(tgt);
     }
   }
+
+  private final void processCycleBufs() {
+    VM_Address obj;
+    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
+    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
+    while (!(obj = src.pop()).isZero()) {
+      if (SimpleRCHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
+	if (SimpleRCHeader.isPurple(VM_Magic.addressAsObject(obj)))
+	  tgt.push(obj);
+	else
+	  SimpleRCHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
+      } else
+	freeBuffer.push(obj);
+    }
+  }
+  private final void processFreeBufs() {
+    VM_Address obj;
+    while (!(obj = freeBuffer.pop()).isZero())
+      rcCollector.free(obj, rc);
+  }
+  private final void trialDelete(VM_Address obj) {
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
@@ -481,6 +521,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private AddressQueue incBuffer;
   private AddressQueue decBuffer;
   private AddressQueue rootSet;
+  private AddressQueue cycleBufferA;
+  private AddressQueue cycleBufferB;
+  private AddressQueue freeBuffer;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -495,15 +538,17 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static MemoryResource rcMR;
   private static MemoryResource immortalMR;
 
-  private static boolean decrementPhase;
-
   private static SharedQueue incPool;
   private static SharedQueue decPool;
   private static SharedQueue rootPool;
+  private static SharedQueue cyclePoolA;
+  private static SharedQueue cyclePoolB;
+  private static SharedQueue freePool;
 
   // GC state
   private static boolean progress = true;  // are we making progress?
   private static int required;  // how many pages must this GC yeild?
+  private static boolean cycleBufferAisOpen = true;
 
   //
   // Final class variables (aka constants)
@@ -542,6 +587,14 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     decPool.newClient();
     rootPool = new SharedQueue(metaDataRPA, 1);
     rootPool.newClient();
+    if (refCountCycleDetection) {
+      cyclePoolA = new SharedQueue(metaDataRPA, 1);
+      cyclePoolA.newClient();
+      cyclePoolB = new SharedQueue(metaDataRPA, 1);
+      cyclePoolB.newClient();
+      freePool = new SharedQueue(metaDataRPA, 1);
+      freePool.newClient();
+    }
   }
 
 }

@@ -288,6 +288,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final boolean NEEDS_WRITE_BARRIER = Plan.needsWriteBarrier;
   public static final boolean NEEDS_RC_WRITE_BARRIER = Plan.needsRefCountWriteBarrier;
   public static final boolean MOVES_OBJECTS = Plan.movesObjects;
+  public static final boolean RC_CYCLE_DETECTION = Plan.refCountCycleDetection;
   public static boolean useMemoryController = false;
 
   public static final int bootImageAddress = 
