@@ -70,20 +70,32 @@ multiple Javadoc {\tt @author} tags, and there may
 additionally be a {\tt @modified} tag for someone who modified code but
 doesn't want to claim co-authorship.  ({\tt @modified} is our own
 extended tag.)  There is usually also a Javadoc {\tt @date} field for
-the date of authorship.  An example of the notices follow.  You can
-just cut-and-paste one from an existing source file.
+the date of authorship.  There are skeleton files for Java, C/C++,
+Bash (Bourne Shell), \texttt{make}, and \texttt{m4} in the source directory
+``\texttt{rvm/aux}''; just cut-and-paste the header text from them.  
 
-We add the Javadoc authorship tags even to non-Java\TMweb{} source files, such
-as shell scripts and C programs.
+A Java example of the notices follows.
+
 \begin{example}
-\tt{}/*
- * (C) Copyright IBM Corp 2003
- * \${}Id{}: SourceFile.java,v 1.105 2003/07/14 22:41:44 augart-oss Exp \$
- * @author Steven Augart
- * @date 10 July 2003
+/* -*-coding: iso-8859-1 -*-
+ *
+ * (C) Copyright © IBM Corp 2003
+ *
+ * \$Id$
+ */
+package com.ibm.JikesRVM;       // FILL ME IN with the appropriate package.
+
+import com.ibm.JikesRVM.classloader.VM_ClassLoader; // FILL ME IN 
+
+/** TODO Substitute a brief description of what this program or library does.
+ *
+ * @author Your Name Here
+ * @date 11 October 2003
  */
 \end{example}
 
+We add the Javadoc authorship tags even to non-Java\TMweb{} source
+files, such as shell scripts and C programs.
 
 \index{coding style}%
 \index{Java source code style}%
