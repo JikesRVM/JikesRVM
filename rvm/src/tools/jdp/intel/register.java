@@ -328,7 +328,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
   // public int getVMThreadSavedIP(int threadID) throws Exception {
   //   int gprs[] = getVMThreadSavedGPR(threadID);
   //   int fp = gprs[regGetNum("FP")];
-  //   int ip = owner.mem.read(fp + registerConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+  //   int ip = owner.mem.read(fp + VM_Constants.STACKFRAME_RETURN_ADDRESS_OFFSET);
   //   return ip;
   // }
 
