@@ -394,7 +394,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * then R0 is the only available scratch register.
    * The "normal" prologue must perform the following tasks:
    *    stack overflow check         
-   *    set cr2 for the yieldpoint if there is a prologue yieldpoint instruction)
+   *    set TSR for the yieldpoint if there is a prologue yieldpoint instruction
    *    save lr
    *    store cmid
    *    buy stack frame
@@ -428,7 +428,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
     boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
-    boolean yp = ir.stackManager.hasPrologueYieldpoint();
+    boolean yp = hasPrologueYieldpoint();
 
     int frameFixedSize = getFrameFixedSize();
     ir.compiledMethod.setFrameFixedSize(frameFixedSize);
@@ -507,7 +507,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
     boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
-    boolean yp = ir.stackManager.hasPrologueYieldpoint();
+    boolean yp = hasPrologueYieldpoint();
 
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
