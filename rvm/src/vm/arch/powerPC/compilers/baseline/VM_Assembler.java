@@ -19,6 +19,22 @@
  * 
  * mIP will be incremented to point to the next machine instruction.
  * 
+ * Machine code generators:
+ *
+ * Corresponding to a PowerPC assembler instruction of the form
+ *    xx A,B,C
+ * @modified Dave Grove
+ * there will be the following methods
+ *    int XX (int A, int B, int C), and
+ *    void emitXX (int A, int B, int C).
+ * 
+ * The XX method returns the machine code instruction as an integer; the
+ * emitXX method appends this instruction to an VM_MachineCode object.
+ * The name of a method for generating assembler instruction with the record
+ * bit set (say xx.) will be end in a lower-case r (XXr and emitXXr).
+ * 
+ * mIP will be incremented to point to the next machine instruction.
+ * 
  * @author Bowen Alpern
  * @author Maria Butrico
  * @author Anthony Cocchi
@@ -97,6 +113,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   void noteBytecode (int i, String bcode) {
     if (!VM.TraceAssembler) return;
     VM.sysWrite("[" + i + "] " + bcode + "\n");
+    if (!VM.TraceAssembler) return;
   }
 
   String comment = null;
@@ -385,14 +402,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
-  static final INSTRUCTION BLT (int relative_address) {
-    return BC(LT, relative_address);
-  }
-
-  final void emitBLT (int relative_address) {
-    emitBC(LT, relative_address);
-  }
-
   static final INSTRUCTION BGT (int relative_address) {
     return BC(GT, relative_address);
   }
@@ -403,6 +412,14 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final INSTRUCTION BEQ (int relative_address) {
     return BC(EQ, relative_address);
+  }
+
+  static final INSTRUCTION BLT (int relative_address) {
+    return BC(LT, relative_address);
+  }
+
+  final void emitBLT (int relative_address) {
+    emitBC(LT, relative_address);
   }
 
   final void emitBEQ (int relative_address) {

@@ -209,6 +209,19 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.BuildForThreadSwitchUsingControlRegisterBit) VM_Magic.clearThreadSwitchBit();
     VM_Processor.getCurrentProcessor().threadSwitchRequested = 0;
 
+    //-#if RVM_FOR_POWERPC
+    /* give a chance to check the sync request
+     */
+    if (VM_Processor.getCurrentProcessor().needsSync) {
+      VM_Processor.getCurrentProcessor().needsSync = false;
+      // make sure not get stale data
+      VM_Magic.isync();
+      synchronized(VM_Scheduler.syncObj) {
+	VM_Scheduler.toSyncProcessors--;
+      }
+    }
+    //-#endif
+
     if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) { 
       // thread in critical section: can't switch right now, defer 'till later
       VM_Processor.getCurrentProcessor().threadSwitchPending = true;

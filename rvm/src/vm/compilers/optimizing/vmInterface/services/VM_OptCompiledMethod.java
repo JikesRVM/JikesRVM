@@ -226,9 +226,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     int size = TYPE.getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.arrayOfIntType.getInstanceSize(eTable.length);
-    //-#if RVM_FOR_IA32
     if (patchMap != null) size += VM_Array.arrayOfIntType.getInstanceSize(patchMap.length);
-    //-#endif
     return size;
   }
 
@@ -261,9 +259,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   private VM_OptMachineCodeMap _mcMap;
   /** The encoded exception tables (null if there are none) */
   private int[] eTable;
-  //-#if RVM_FOR_IA32
   private int[] patchMap;
-  //-#endif
 
   // 64 bits to encode other tidbits about the method. Current usage is:
   // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN
@@ -444,7 +440,6 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  //-#if RVM_FOR_IA32
   /**
    * Create the code patching maps from the IR for the method
    * @param ir the ir 
@@ -471,8 +466,21 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
 	  int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
 	  // A patch map is the offset of the last byte of the patch point
 	  // and the new branch immediate to lay down if the code is ever patched.
+          //-#if RVM_FOR_IA32
 	  patchMap[idx++] = patchPoint-1;
 	  patchMap[idx++] = newTarget - patchPoint;
+          //-#endif
+          
+          // otherwise, it must be RVM_FOR_POWERPC
+          //-#if RVM_FOR_POWERPC
+          /* since currently we use only one NOP scheme, the offset 
+           * is adjusted for one word
+           */ 
+          patchMap[idx++] = 
+	    (patchPoint >> VM_RegisterConstants.LG_INSTRUCTION_WIDTH) -1;
+          patchMap[idx++] = (newTarget - patchPoint 
+                            + (1<<VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
+          //-#endif
 	}
       }
     }
@@ -485,10 +493,64 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
     if (patchMap != null) {
       INSTRUCTION[] code = cm.getInstructions();
       for (int idx=0; idx<patchMap.length; idx += 2) {
+        //-#if RVM_FOR_IA32  
 	VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+        //-#endif
+        //
+        //-#if RVM_FOR_POWERPC
+        OPT_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+        //-#endif
       }
+
+      //-#if RVM_FOR_POWERPC
+      /* we need synchronization on PPC to handle the weak memory model.
+       * before the class loading finish, other processor should get 
+       * synchronized.
+       */
+
+      boolean DEBUG_CODE_PATCH = false;
+
+      // let other processors see changes; although really physical processors
+      // need synchronization, we set each virtual processor to execute
+      // isync at thread switch point.
+      VM_Magic.sync();
+
+      if (VM_Scheduler.syncObj == null) {
+	VM_Scheduler.syncObj = new Object();
+      }
+
+      // how may processors to be synchronized
+      // no current process, no the first dummy processor
+      VM_Scheduler.toSyncProcessors = VM_Scheduler.numProcessors - 1;
+
+      synchronized(VM_Scheduler.syncObj) {
+	
+	for (int i=0; i<VM_Scheduler.numProcessors; i++) {
+	  VM_Processor proc = VM_Scheduler.processors[i+1];
+	  // do not sync the current processor
+	  if (proc != VM_Processor.getCurrentProcessor()) {
+	    proc.needsSync = true;
+	  }
+	}
+      }
+
+      if (DEBUG_CODE_PATCH) {
+	VM.sysWrite("processors to be synchronized : ");
+	VM.sysWrite(VM_Scheduler.toSyncProcessors, false);
+	VM.sysWrite("\n");
+      }
+
+      // do sync only when necessary 
+      while (VM_Scheduler.toSyncProcessors > 0) {
+	VM_Thread.getCurrentThread().yield();
+      }
+      
+      if (DEBUG_CODE_PATCH) {
+	VM.sysWrite("all processors get synchronized!\n");
+      }
+      //-#endif
+
     }
   }
-  //-#endif
 
 }

@@ -812,4 +812,18 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     writeDecimalDigits(n/10);
     VM.sysWrite((char) ('0' + (n%10)));
   }
+
+  ////////////////////////////////////////////////
+  // fields for synchronizing code patching
+  ////////////////////////////////////////////////
+
+  //-#if RVM_FOR_POWERPC
+  /* how may processors to be synchronized for code patching, the last
+   * one (0) will notify the blocked thread.
+   */
+  static int toSyncProcessors;
+  /* synchronize object 
+   */
+  static Object syncObj = null;
+  //-#endif
 }

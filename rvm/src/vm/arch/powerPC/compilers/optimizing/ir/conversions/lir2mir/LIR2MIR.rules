@@ -1634,3 +1634,11 @@ r:	LONG_BITS_AS_DOUBLE(r)
 40
 EMIT_INSTRUCTION
 GPR2FPR_64(burs, P(p));
+
+####
+# patch point instruction
+####
+r:	IG_PATCH_POINT
+10
+EMIT_INSTRUCTION
+EMIT(InlineGuard.mutate(P(p), IG_PATCH_POINT, null, null, null, InlineGuard.getTarget(P(p)), InlineGuard.getBranchProfile(P(p))));

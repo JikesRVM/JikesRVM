@@ -64,9 +64,26 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
       timer = new Timer();
       timer.start();
     }
-      
+
+    //-#if RVM_FOR_IA32
     VM_CompiledMethod cm = OPT_Compiler.compile(plan);
-      
+    //-#endif
+
+    //-#if RVM_FOR_POWERPC      
+    // only handle OPT_PatchPointGuardedInliningException here,
+    // see also OPT_Assembler.java
+    VM_CompiledMethod cm = null;
+    try {
+      cm = OPT_Compiler.compile(plan);
+    } catch (OPT_PatchPointGuardedInliningException pe) {
+      // aha, don't give up, turn IG_PATCH_POINT to IG_METHOD_TEST
+      // and compile again
+      plan.options = (OPT_Options)plan.options.clone();
+      plan.options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
+      cm = OPT_Compiler.compile(plan);
+    }
+    //-#endif
+
     if (VM.MeasureCompilation) {
       timer.finish();
       record(OPT_COMPILER, method, cm, timer);

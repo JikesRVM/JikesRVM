@@ -168,6 +168,9 @@ Use loop depth to approximate edge counts
 FIXED_JTOC -1 VM.BuildForIA32
 Exploit knowledge that the value of JTOC is a constant?
 
+CODE_PATCH_NOP -1 false
+Should all patch point be (unsafely) eliminated (at initial HIR)?
+
 CW_REFERENCED_CLASSES -1 true
 Apply Class Writer to referenced classes
 
@@ -281,4 +284,10 @@ Enable debugging support for final assembly
 
 DEBUG_ABCD -1 false
 Enable debugging support for ABCD (Array Bound Check elimination on Demand)
+
+###########
+# Profiling options
+###########
+PRINT_MC_SIZE -1 false
+Report generated machine code size
 

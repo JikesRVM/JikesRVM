@@ -861,4 +861,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     VM_Scheduler.writeHex(currentChunk2.toInt()); VM_Scheduler.writeString(" < ");
     VM_Scheduler.writeHex(endChunk2.toInt()); VM_Scheduler.writeString("\n");
   }
+
+
+  //-#if RVM_FOR_POWERPC
+  /* flag indicating this processor need synchronization.
+   */
+  boolean needsSync = false;
+  //-#endif
 }
