@@ -339,6 +339,14 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
+     * Does this interval contain a dfn?
+     * @param dfn the depth first numbering to compare to 
+     */
+    final boolean contains(int dfn) {
+      return begin <= dfn && end >= dfn;
+    }
+
+    /**
      * Does this interval start before another?
      * @param i the interval to compare with
      */
@@ -612,7 +620,6 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Assign this compound interval to a physical register.
-     * TODO: clean up this interface some more.
      */
     void assign(OPT_Register r) {
       getRegister().allocateToRegister(r);
@@ -645,11 +652,29 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     /**
      * Compute the headSet() [from java.util.SortedSet] but include all
-     * elements less than e <em>inclusive</em>
+     * elements less than upperBound <em>inclusive</em>
      */
     SortedSet headSetInclusive(BasicInterval upperBound) {
       BasicInterval newUpperBound = new BasicInterval(upperBound.getBegin()+1,upperBound.getEnd());
       return headSet(newUpperBound);
+    }
+
+    /**
+     * Compute the headSet() [from java.util.SortedSet] but include all
+     * elements less than upperBound <em>inclusive</em>
+     */
+    SortedSet headSetInclusive(int upperBound) {
+      BasicInterval newUpperBound = new BasicInterval(upperBound+1,upperBound+1);
+      return headSet(newUpperBound);
+    }
+
+    /**
+     * Compute the tailSet() [from java.util.SortedSet] but include all
+     * elements greater than lowerBound <em>inclusive</em>
+     */
+    SortedSet tailSetInclusive(int lowerBound) {
+      BasicInterval newLowerBound = new BasicInterval(lowerBound-1,lowerBound-1);
+      return tailSet(newLowerBound);
     }
 
     /**
@@ -721,19 +746,55 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
+     * Return the lowest DFN in this compound interval.
+     */
+    int getLowerBound() {
+      BasicInterval b = (BasicInterval)first();
+      return b.getBegin();
+    }
+
+    /**
+     * Return the highest DFN in this compound interval.
+     */
+    int getUpperBound() {
+      BasicInterval b = (BasicInterval)last();
+      return b.getEnd();
+    }
+
+    /**
      * Does this interval intersect with i?
      */
     boolean intersects(CompoundInterval i) {
+
+      if (isEmpty()) return false;
+      if (i.isEmpty()) return false;
       
       // Walk over the basic intervals of this interval and i.  
-      Iterator myIterator = iterator();
-      Iterator otherIterator = i.iterator();
+      // Restrict the walking to intervals that might intersect.
+      int lower = Math.max(getLowerBound(),i.getLowerBound());
+      int upper = Math.min(getUpperBound(),i.getUpperBound());
+
+      // we may have to move one interval lower on each side.
+      BasicInterval b = getBasicInterval(lower);
+      int myLower = (b == null) ? lower : b.getBegin();
+      if (myLower > upper) return false;
+      b = i.getBasicInterval(lower);
+      int otherLower = (b == null) ? lower : b.getBegin();
+      if (otherLower > upper) return false;
+
+      SortedSet myTailSet = tailSetInclusive(myLower);
+      SortedSet otherTailSet = i.tailSetInclusive(otherLower);
+      Iterator myIterator = myTailSet.iterator();
+      Iterator otherIterator = otherTailSet.iterator();
+
       BasicInterval current = myIterator.hasNext() ?
         (BasicInterval)myIterator.next() : null;
       BasicInterval currentI = otherIterator.hasNext() ? 
         (BasicInterval)otherIterator.next() : null;
 
       while (current != null && currentI != null) {
+        if (current.getBegin() > upper) break;
+        if (currentI.getBegin() > upper) break;
         if (current.intersects(currentI)) return true;
 
         if (current.startsBefore(currentI)) {
@@ -748,25 +809,30 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
+     * Return the first basic interval that contains a given
+     * instruction.
+     *
+     * If there is no such interval, return null;
+     * @param n DFN of instruction in question
+     */
+    BasicInterval getBasicInterval(OPT_Instruction s) {
+      return getBasicInterval(getDFN(s));
+    }
+    /**
      * Return the first basic interval that contains the given
      * instruction.
      *
      * If there is no such interval, return null;
+     * @param n DFN of instruction in question
      */
-    BasicInterval getBasicInterval(OPT_Instruction s) {
-      int n = getDFN(s);
-
-      for (Iterator i = iterator(); i.hasNext(); ) {
-        BasicInterval current = (BasicInterval)i.next();
-        int begin = current.getBegin();
-        int end = current.getEnd();
-        if (begin <= n && end >= n) return current;
-        if (begin > n) {
-          return null;
-        }
+    BasicInterval getBasicInterval(int n) {
+      SortedSet headSet = headSetInclusive(n);
+      if (!headSet.isEmpty()) {
+        BasicInterval last = (BasicInterval)headSet.last();
+        return last.contains(n) ? last : null;
+      } else {
+        return null;
       }
-      return null; 
-
     }
 
     /**
@@ -1710,17 +1776,9 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // Now search for any free interval.
       if (result == null) {
-// if (verboseDebug) System.out.println("Look for free interval from:");
-// if (verboseDebug){
-// for (Iterator i2 = freeIntervals.iterator(); i2.hasNext(); ) {
-//  System.out.println("INTERVAL " + i2.next());
-// }
-// } 
         for (Iterator i = freeIntervals.iterator(); i.hasNext(); ) {
           SpillLocationInterval s = (SpillLocationInterval)i.next();
-// if (verboseDebug) System.out.println("Check interval " + s);
           if (s.getSize() == spillSize && !s.intersects(ci)) {
-// if (verboseDebug) System.out.println("FOUND IT" + s);
             result = s;
             freeIntervals.remove(result);
             break;
