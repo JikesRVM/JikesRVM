@@ -121,7 +121,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
       // passed size heuristics. Do it.
       OPT_InlineDecision d = 
-	OPT_InlineDecision.guardedYES(callee,
+	OPT_InlineDecision.guardedYES(singleImpl,
 				      chooseGuard(caller, singleImpl, callee, state, false), 
 				      "static GUARDED interface inline passsed size checks");
       return d;
