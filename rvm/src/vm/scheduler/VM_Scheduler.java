@@ -211,7 +211,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       }
       //-#if RVM_WITH_HPM
       // boot virtual processor's HPM producer
-      processors[i].hpm.boot();    
+      if (VM_HardwarePerformanceMonitors.booted()) {
+	processors[i].hpm.boot();    
+      }
       //-#endif
     }
 

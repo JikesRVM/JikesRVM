@@ -1244,15 +1244,16 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     assignThreadSlot();
 
     //-#if RVM_WITH_HPM
-    if (hpm_counters == null) hpm_counters = new HPM_counters();
-    String name = getClass().toString();
-    assignGlobalTID();
-    if (VM_HardwarePerformanceMonitors.trace) {
-      VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, name);
+    if (VM_HardwarePerformanceMonitors.booted()) {
+      if (hpm_counters == null) hpm_counters = new HPM_counters();
+      String name = getClass().toString();
+      assignGlobalTID();
+      if (VM_HardwarePerformanceMonitors.trace) {
+	VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, name);
+      }
+      // stash away name for future use
+      VM_HardwarePerformanceMonitors.putThreadName(name, global_tid);
     }
-    // stash away name for future use
-    VM_HardwarePerformanceMonitors.putThreadName(name, global_tid);
-    
     //-#endif
 
     VM_Scheduler.threadCreationMutex.unlock();
