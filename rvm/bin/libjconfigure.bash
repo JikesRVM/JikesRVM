@@ -282,7 +282,7 @@ function signalled() {
     local -i xitstatus=$?
     local -i signum
 #    let signum=(xitstatus - 128)
-#    show_mesg >&2 "Got hit with  signal # $signum.  Exiting abruptly."  
+#    show_mesg >&2 "Got hit with signal # $signum.  Exiting abruptly."  
     show_mesg >&2 "Got hit with a signal while running in a Bash builtin.  Exiting abruptly."  
 #    Cleaning up..."; 
 #    eval $CLEANUP
@@ -325,7 +325,11 @@ function echo() {
 
 declare -i opened_at=0;
 function open_paren() {
-    echo -n "($*... "
+    if [[ "$*" ]]; then
+	echo -n "($*... "
+    else
+	echo -n '('
+    fi
     opened_at=$num_echos;
 }
 function close_paren() {
