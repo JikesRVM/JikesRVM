@@ -303,7 +303,7 @@ function doBuild {
     local -i failed=0;
 
     if [[ $BUILD = "Yes" ]]; then
-	say "creating $NAME $EXTRA_CONFIG_ARGS"
+	say "creating $NAME with $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME"
 	$GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null \
 		|| failed=$?
 	if (( failed )); then
@@ -327,8 +327,11 @@ function doBuild {
 	if (( ! failed )); then
 	    say "Building $NAME."
 	    say "Output from the build will go into ${RVM_BUILD}/RVM.trace"
-	    ./jbuild -trace -demographics &> RVM.trace || failed=$?
-	    if (( failed )); then
+            ./jbuild -trace -demographics &> ${RVM_BUILD}/RVM.trace || failed=$?
+	    # ./jbuild &> ${RVM_BUILD}/RVM.trace || failed=$?
+	    if (( failed == 1)); then
+		say "Successfully built image for $NAME in what must be a cross-platform build."
+	    elif (( failed )); then
 		say "FAILED while building $NAME."
 		say "  See $RVM_BUILD/RVM.trace for details"
 	    else
@@ -339,7 +342,10 @@ function doBuild {
 	if [[ $WAIT ]]; then
 	    say "Leaving a wait marker in \"$WAIT\""
 	    # Leave a marker to signify the building is done.
-	    if (( failed )); then
+	    if (( failed == 1 )); then
+		echo "SUCCESS Built boot image for $NAME in what must be a cross-platform build. Must still run jbuild -booter to create executable."
+		say "You may remove this file" 
+	    elif (( failed )); then
 		echo "FAILED to build $NAME at $(date) on $(hostname)"
 		say "  See $RVM_BUILD/RVM.trace for details"
 		say "You may remove this file" 
@@ -390,14 +396,21 @@ function doBuild {
 	(( failed )) && return $failed
 	
 	cd $RVM_BUILD || failed=$?
-	say "Output from the linking will go into ${RVM_BUILD}/RVM.trace"
-	./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
-	if (( failed )); then
+
+	# UMass regression tests do cross-builds
+	# If RVM.image not present, relink.
+        #
+        if [[ ! -e JikesRVM && -e RVM.image ]]; then
+	  say "Output from the linking will go into ${RVM_BUILD}/RVM.trace"
+	  ./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
+	  if (( failed )); then
 	    say "FAILED to build $NAME at $(date) on $(hostname)"
 	    say "  See $RVM_BUILD/RVM.trace for details"
-	else
+	  else
 	    say "Linked $NAME successfully"
+	  fi
 	fi
+
     fi
     
     return $failed;
