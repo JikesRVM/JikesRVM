@@ -414,6 +414,29 @@ public class VM_Runtime implements VM_Constants {
     throw new NegativeArraySizeException();
   }
 
+  /**
+   * Get a new object hashcode value.  Returns a 32 bit word
+   * containing a shifted 8-bit hashcode.
+   *
+   * @return word containing a new object hashcode
+   * @see java.lang.Object.hashCode()
+   */ 
+  public static int newObjectHashCode() {
+    int hashCode;       
+    // Generate a 32 bit integer with a non-0 hashcode.  A hashcode
+    // is a 8-bit number, left shifted 2 bits within a 32 bit word.
+    // The right 2 bits are used for garbage collection.
+    // Note that the hashcode generator is not guarded by a serialization
+    // lock, but that's ok because we're not required to guarantee 
+    // unique hashcodes.
+    //
+    do {
+      hashCodeGenerator += OBJECT_HASHCODE_UNIT;
+      hashCode = hashCodeGenerator & OBJECT_HASHCODE_MASK;
+    } while (hashCode == 0);
+    return hashCode;
+  }
+
 
   /**
    * Get an object's "hashcode" value.
@@ -428,21 +451,9 @@ public class VM_Runtime implements VM_Constants {
     if (hashCode != 0)
       return hashCode; // object already has a hashcode
        
-    // Generate a non-0 hashcode and read it into a local variable, to
-    // ensure that we return the same hashcode that we put into 
-    // the object's
-    // status word. Note that the hashcode generator is not guarded 
-    // by a serialization
-    // lock, but that's ok because we're not required to guarantee 
-    // unique hashcodes.
-    //
-    do {
-      hashCodeGenerator += OBJECT_HASHCODE_UNIT;
-      hashCode = hashCodeGenerator & OBJECT_HASHCODE_MASK;
-    } while (hashCode == 0);
-      
     // Install hashcode.
     //
+    hashCode = newObjectHashCode();
     while (true) {
       int statusWord = VM_Magic.prepare(object, OBJECT_STATUS_OFFSET);
       if ((statusWord & OBJECT_HASHCODE_MASK) != 0)
