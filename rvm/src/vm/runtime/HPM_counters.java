@@ -35,7 +35,7 @@ public final class HPM_counters
   public boolean dump_counters(HPM_info info) {
     // System.out.println("HPM_counters.dump() # of counters "+info.numberOfCounters);
     boolean notZero = false;
-    for (int i=0; i<info.numberOfCounters; i++) {
+    for (int i=0; i<=info.numberOfCounters; i++) {
       if (counters[i] > 0) {
 	notZero = true;
 	System.out.println(i+": "+info.short_name(i)+":"+format_long(counters[i]));
