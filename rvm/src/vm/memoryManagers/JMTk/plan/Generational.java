@@ -140,12 +140,11 @@ public abstract class Generational extends StopTheWorldGC
     addSpace(NURSERY_SPACE, "Nursery");
     addSpace(MATURE_SPACE, "Mature Space");
 
-    if (Plan.usesLOS) {
-      losMR = new MemoryResource("los", POLL_FREQUENCY);
-      losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-      losSpace = new TreadmillSpace(losVM, losMR);
-      addSpace(LOS_SPACE, "LOS Space");
-    }
+    losMR = new MemoryResource("los", POLL_FREQUENCY);
+    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
+    losSpace = new TreadmillSpace(losVM, losMR);
+    addSpace(LOS_SPACE, "LOS Space");
+
     fullHeap = new BooleanCounter("majorGC", true, true);
     if (GATHER_WRITE_BARRIER_STATS) {
       wbFast = new EventCounter("wbFast");
@@ -162,8 +161,8 @@ public abstract class Generational extends StopTheWorldGC
    */
   public Generational() {
     nursery = new BumpPointer(nurseryVM);
-    if (Plan.usesLOS) los = new TreadmillLocal(losSpace);
-    remset = new WriteBuffer(locationPool);
+    los = new TreadmillLocal(losSpace);
+    remset = new WriteBuffer(remsetPool);
   }
 
   /**
@@ -199,11 +198,7 @@ public abstract class Generational extends StopTheWorldGC
       VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      if (Plan.usesLOS) {
-        region = los.alloc(isScalar, bytes);
-      } else {
-        region = matureAlloc(isScalar, bytes);
-      }
+      region = los.alloc(isScalar, bytes);
     } else {
       switch (allocator) {
       case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
@@ -234,11 +229,7 @@ public abstract class Generational extends StopTheWorldGC
                               boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      if (Plan.usesLOS) {
-        Header.initializeLOSHeader(ref, tib, bytes, isScalar);
-      } else {
-        if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar);
-      }
+      Header.initializeLOSHeader(ref, tib, bytes, isScalar);
     } else {
       switch (allocator) {
       case  NURSERY_SPACE: return;
@@ -405,12 +396,12 @@ public abstract class Generational extends StopTheWorldGC
     if (fullHeapGC) {
       if (Stats.gatheringStats()) fullHeap.set();
       // prepare each of the collected regions
-      if (Plan.usesLOS) losSpace.prepare(losVM, losMR);
+      losSpace.prepare(losVM, losMR);
       globalMaturePrepare();
       ImmortalSpace.prepare(immortalVM, null);
 
       // we can throw away the remsets for a full heap GC
-      locationPool.clearDeque(1);
+      remsetPool.clearDeque(1);
     }
   }
 
@@ -428,7 +419,7 @@ public abstract class Generational extends StopTheWorldGC
     nursery.rebind(nurseryVM);
     if (fullHeapGC) {
       threadLocalMaturePrepare(count);
-      if (Plan.usesLOS) los.prepare();
+      los.prepare();
       remset.resetLocal();  // we can throw away remsets for a full heap GC
     } else if (count == NON_PARTICIPANT)
       flushRememberedSets();
@@ -455,7 +446,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected final void threadLocalRelease(int count) {
     if (fullHeapGC) { 
-      if (Plan.usesLOS) los.release();
+      los.release();
       threadLocalMatureRelease(count);
     }
     remset.flushLocal(); // flush any remset entries collected during GC
@@ -474,9 +465,9 @@ public abstract class Generational extends StopTheWorldGC
   protected void globalRelease() {
     // release each of the collected regions
     nurseryVM.release();
-    locationPool.clearDeque(1); // flush any remset entries collected during GC
+    remsetPool.clearDeque(1); // flush any remset entries collected during GC
     if (fullHeapGC) {
-      if (Plan.usesLOS) losSpace.release();
+      losSpace.release();
       globalMatureRelease();
       ImmortalSpace.release(immortalVM, null);
     }
@@ -689,7 +680,7 @@ public abstract class Generational extends StopTheWorldGC
   protected static final int getPagesUsed() {
     int pages = nurseryMR.reservedPages();
     pages += matureMR.reservedPages();
-    pages += (Plan.usesLOS) ? losMR.reservedPages() : 0;
+    pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
     pages += metaDataMR.reservedPages();
     return pages;
@@ -704,7 +695,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected static final int getPagesAvail() {
     int copyReserved = nurseryMR.reservedPages();
-    int nonCopyReserved = ((Plan.usesLOS) ? losMR.reservedPages() : 0) +immortalMR.reservedPages() + metaDataMR.reservedPages();
+    int nonCopyReserved = losMR.reservedPages() + immortalMR.reservedPages() + metaDataMR.reservedPages();
     if (Plan.copyMature)
       copyReserved += matureMR.reservedPages();
     else
@@ -726,7 +717,7 @@ public abstract class Generational extends StopTheWorldGC
   public final void show() {
     nursery.show();
     showMature();
-    if (Plan.usesLOS) los.show();
+    los.show();
     immortal.show();
   }
 }

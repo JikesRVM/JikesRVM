@@ -49,19 +49,19 @@ public abstract class StopTheWorldGC extends BasePlan
    * Class variables
    */
   // Global pools for load-balancing queues
-  protected static SharedDeque valuePool;
-  protected static SharedDeque locationPool;
-  protected static SharedDeque forwardPool;
-  protected static SharedDeque rootLocationPool;
-  protected static SharedDeque interiorRootPool;
+  protected static SharedDeque valuePool = new SharedDeque(metaDataRPA, 1);
+  protected static SharedDeque remsetPool = new SharedDeque(metaDataRPA, 1);
+  protected static SharedDeque forwardPool = new SharedDeque(metaDataRPA, 1);
+  protected static SharedDeque rootLocationPool = new SharedDeque(metaDataRPA, 1);
+  protected static SharedDeque interiorRootPool = new SharedDeque(metaDataRPA, 2);
 
   // Statistics
-  static Timer initTime;
-  static Timer rootTime;
-  static Timer scanTime;
-  static Timer finalizeTime;
-  static Timer refTypeTime;
-  static Timer finishTime;
+  static Timer initTime = new Timer("init", false, true);
+  static Timer rootTime = new Timer("root", false, true);
+  static Timer scanTime = new Timer("scan", false, true);
+  static Timer finalizeTime = new Timer("finalize", false, true);
+  static Timer refTypeTime = new Timer("refType", false, true);
+  static Timer finishTime = new Timer("finish", false, true);
 
   // GC state
   protected static boolean progress = true;  // are we making progress?
@@ -75,7 +75,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * Instance variables
    */
   protected AddressDeque values;          // gray objects
-  protected AddressDeque locations;       // locations containing white objects
+  protected AddressDeque remset;          // remset (containing white objects)
   protected AddressDeque forwardedObjects;// forwarded, unscanned objects
   protected AddressDeque rootLocations;   // root locs containing white objects
   protected AddressPairDeque interiorRootLocations; // interior root locations
@@ -91,20 +91,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
-  static {
-    valuePool = new SharedDeque(metaDataRPA, 1);
-    locationPool = new SharedDeque(metaDataRPA, 1);
-    forwardPool = new SharedDeque(metaDataRPA, 1);
-    rootLocationPool = new SharedDeque(metaDataRPA, 1);
-    interiorRootPool = new SharedDeque(metaDataRPA, 2);
-
-    initTime = new Timer("init", false, true);
-    rootTime = new Timer("root", false, true);
-    scanTime = new Timer("scan", false, true);
-    finalizeTime = new Timer("finalize", false, true);
-    refTypeTime = new Timer("refType", false, true);
-    finishTime = new Timer("finish", false, true);
-  }
+  static {}
 
   /**
    * Constructor
@@ -112,8 +99,8 @@ public abstract class StopTheWorldGC extends BasePlan
   StopTheWorldGC() {
     values = new AddressDeque("value", valuePool);
     valuePool.newClient();
-    locations = new AddressDeque("loc", locationPool);
-    locationPool.newClient();
+    remset = new AddressDeque("loc", remsetPool);
+    remsetPool.newClient();
     forwardedObjects = new AddressDeque("forwarded", forwardPool);
     forwardPool.newClient();
     rootLocations = new AddressDeque("rootLoc", rootLocationPool);
@@ -384,7 +371,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseGlobalRelease() {
     globalRelease();
     valuePool.reset();
-    locationPool.reset();
+    remsetPool.reset();
     forwardPool.reset();
     rootLocationPool.reset();
     interiorRootPool.reset();
@@ -398,7 +385,7 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void baseThreadLocalRelease(int order) {
     values.reset();
-    locations.reset();
+    remset.reset();
     forwardPool.reset();
     rootLocations.reset();
     interiorRootLocations.reset();
@@ -436,14 +423,14 @@ public abstract class StopTheWorldGC extends BasePlan
         VM_Address v = values.pop();
 	Scan.scanObject(v);  // NOT traceObject
       }
-      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing locations"); }
-      while (!locations.isEmpty()) {
-        VM_Address loc = locations.pop();
+      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing remset"); }
+      while (!remset.isEmpty()) {
+        VM_Address loc = remset.pop();
         traceObjectLocation(loc, false);
       }
       flushRememberedSets();
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
-               && values.isEmpty() && locations.isEmpty()));
+               && values.isEmpty() && remset.isEmpty()));
 
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
     VM_Interface.rendezvous(4300);
@@ -456,7 +443,15 @@ public abstract class StopTheWorldGC extends BasePlan
   protected void flushRememberedSets() {}
 
   /**
-   * 
+   * Collectors that move objects <b>must</b> override this method.
+   * It performs the deferred scanning of objects which are forwarded
+   * during bootstrap of each copying collection.  Because of the
+   * complexities of the collection bootstrap (such objects are
+   * generally themselves gc-critical), the forwarding and scanning of
+   * the objects must be dislocated.  It is an error for a non-moving
+   * collector to call this method.
+   *
+   * @param object The forwarded object to be scanned
    */
   protected void scanForwardedObject(VM_Address object) {
     if (VM_Interface.VerifyAssertions) 

@@ -58,7 +58,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
    *
    * Class variables
    */
-  protected static final boolean usesLOS = true;
   protected static final boolean copyMature = true;
 
   // virtual memory resources

@@ -100,7 +100,8 @@ public class Stats implements VM_Uninterruptible {
   }
 
   /**
-   * Start all counters
+   * Start all implicitly started counters (i.e. those for whom
+   * <code>start == true</code>).
    */
   public static void startAll() {
     if (gatheringStats) {

@@ -147,8 +147,10 @@ public abstract class Counter implements VM_Uninterruptible {
   String getName() { return name; }
 
   /**
-   * Return true if this counter is implicitly started at boot time.
-   * @return True if this counter is implicitly started at boot time.
+   * Return true if this counter is implicitly started when
+   * <code>startAll()</code> is called.
+   * @return True if this counter is implicitly started when
+   * <code>startAll()</code> is called.
    */
   boolean getStart() { return start; }
 
