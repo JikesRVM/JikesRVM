@@ -349,7 +349,7 @@ public class VM_StackTrace implements VM_Constants {
 	    VM.sysWriteln();
 	    VM.sysWriteln("VM_StackTrace.print4Real(): Caught OutOfMemoryError while flushing output.   Going on.");
 	  }
-	  VM.sysWriteln("VM_StackTrace.print4Real(): Caught OutOfMemoryError while printing one frame of stack trace.  Passing it up.");
+	  VM.sysWriteln("VM_StackTrace.print4Real(): Caught OutOfMemoryError while printing one frame of stack trace.  Re-throw()ing it.");
 	  throw e;		// pass up to caller.
 	}
       }
