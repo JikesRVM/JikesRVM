@@ -13,8 +13,7 @@
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-class VM_OptSaveVolatile
-    implements VM_SaveVolatile, VM_Constants, VM_Uninterruptible {
+class VM_OptSaveVolatile implements VM_SaveVolatile, VM_Uninterruptible {
  
   /**
    * Suspend execution of current thread and place it on tail of system
@@ -50,14 +49,6 @@ class VM_OptSaveVolatile
    */         
   public static void OPT_threadSwitchFromBackedge() {
     VM_Thread.threadSwitch(VM_Thread.BACKEDGE);
-  }
-
-  /**
-   * Wrapper to save/restore volatile registers when growing write buffers 
-   * in a generational garbage collector
-   */
-  public static void OPT_growWriteBuffer() {
-    VM_WriteBuffer.growWriteBuffer();
   }
 
   /**

@@ -1,21 +1,21 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$/
+
 /**
  * This class contains the Java code that the opt compiler will
  * inline at every ref_astore and putfield of reference type to
  * implement write barriers.
  *
  * NOTE: If the code defined here contains any aastores or putfields
- *       of references, they will NOT have write barrier code inserted (infinite loop).
+ *       of references, when the code is inlined by the opt compiler said
+ *       stores will NOT have write barrier code inserted (infinite loop).
  *
  * @author Dave Grove
  * 
- * @see OPT_SpecialInline (logic to inline this code to implement write barrier)
- * @see VM_Barrier (baseline compiler implementation of write barrier)
- *
+ * @see OPT_ExpandRuntimeServices (logic to inline this code)
  */
-
 class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
 
   /**

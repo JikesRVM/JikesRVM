@@ -12,11 +12,11 @@
  * The generated code at a dynamically linked site will 
  * load the appropriate value from the field/method offset table and 
  * check to see if the value is valid. If it is, then no dynamic linking 
- * is required.  If the value is invalid, then either resolveDynamicLink
+ * is required.  If the value is invalid, then resolveDynamicLink
  * is invoked to perfrom dynamic class loading.  During the
  * process of class loading, the required value will be stored in the 
  * appropriate offset table.
- * Thus when the resolve method returns, execution can be restarted 
+ * Thus when resolveDynamicLink returns, execution can be restarted 
  * by reloading/indexing the offset table.
  *
  * <p> NOTE: We believe that only use of invokespecial that could possibly 
@@ -143,9 +143,6 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
   static final VM_Method optThreadSwitchFromEpilogueMethod = 
       (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
       "OPT_threadSwitchFromEpilogue", "()V");
-  static final VM_Method optWriteBufferMethod = 
-      (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
-      "OPT_growWriteBuffer", "()V");
   static final VM_Method optResolveMethod = 
     (VM_Method)VM.getMember("LVM_OptSaveVolatile;", 
 			    "OPT_resolve", "()V");
