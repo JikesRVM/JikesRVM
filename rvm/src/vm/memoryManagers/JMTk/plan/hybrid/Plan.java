@@ -23,8 +23,7 @@ import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Processor;
 
 /**
- * This class implements a simple semi-space collector. See the Jones
- * & Lins GC book, section 2.2 for an overview of the basic algorithm.
+ * This class implements a simple non-generational copying, mark-sweep hybrid.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -398,6 +397,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("   After Collection: ");
       showUsage();
     }
+    if (getPagesReserved() >= getTotalPages()) {
+      if (!progress)
+	VM.sysFail("Out of memory");
+      progress = false;
+    } else
+      progress = true;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -425,6 +430,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static MemoryResource immortalMR;
 
   // GC state
+  private static boolean progress = true;  // are we making progress?
 
   //
   // Final class variables (aka constants)
@@ -437,8 +443,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   private static final VM_Address       HEAP_END = NURSERY_END;
 
-  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
-
+  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
+  
   public static final int NURSERY_ALLOCATOR = 0;
   public static final int MS_ALLOCATOR = 1;
   public static final int IMMORTAL_ALLOCATOR = 2;

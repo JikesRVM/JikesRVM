@@ -71,7 +71,7 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   protected static final VM_Address   PLAN_START  = META_DATA_END;
 
   private static final int META_DATA_POLL_FREQUENCY = (1<<31) - 1; // never
-
+  protected static final int DEFAULT_POLL_FREQUENCY = (128*1024)>>LOG_PAGE_SIZE;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   protected static final int NON_PARTICIPANT = 0;
 

@@ -111,7 +111,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("used pages = ", getPagesUsed());
       VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
       VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
-      VM.sysWrite("= (ms) ", msMR.reservedPages());
+      VM.sysWrite("+ (ms) ", msMR.reservedPages());
       VM.sysWrite(" + (imm) ",  immortalMR.reservedPages());
       VM.sysWriteln(" + (md) ",  metaDataMR.reservedPages());
   }
@@ -444,6 +444,13 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("   After Collection: ");
       showUsage();
     }
+
+    if (getPagesReserved() >= getTotalPages()) {
+      if (!progress)
+ 	VM.sysFail("Out of memory");
+      progress = false;
+    } else
+      progress = true;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -475,6 +482,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   // GC state
   private static boolean fullHeapGC = false;
+  private static boolean progress = true;  // are we making progress?
 
   //
   // Final class variables (aka constants)
@@ -487,7 +495,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   private static final VM_Address       HEAP_END = NURSERY_END;
 
-  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
+  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   private static final int NURSERY_THRESHOLD = (512*1024)>>LOG_PAGE_SIZE;
 
   public static final int NURSERY_ALLOCATOR = 0;

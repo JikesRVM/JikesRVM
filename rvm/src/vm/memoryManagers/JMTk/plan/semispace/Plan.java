@@ -397,6 +397,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("   After Collection: ");
       showUsage();
     }
+    if (getPagesReserved() >= getTotalPages()) {
+      if (!progress)
+	VM.sysFail("Out of memory");
+      progress = false;
+    } else
+      progress = true;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -426,6 +432,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   // GC state
   private static boolean hi = false;   // If true, we are allocating from the "higher" semispace.
+  private static boolean progress = true;  // are we making progress?
 
 
   //
@@ -444,7 +451,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 
-  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
+  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   public static final int SS_ALLOCATOR = 0;
   public static final int LOS_ALLOCATOR = 1;

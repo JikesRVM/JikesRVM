@@ -470,6 +470,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
       VM.sysWrite("      trigger = ", getTotalPages());
       VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
     }
+    if (getPagesReserved() >= getTotalPages()) {
+      if (!progress)
+	VM.sysFail("Out of memory");
+      progress = false;
+    } else
+      progress = true;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -507,7 +513,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   // GC state
   private static boolean hi = false;   // If true, we are allocating from the "higher" mature semispace.
   private static boolean fullHeapGC = false;
-
+  private static boolean progress = true;  // are we making progress?
 
   //
   // Final class variables (aka constants)
@@ -528,7 +534,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 
-  private static final int POLL_FREQUENCY = (256*1024)>>LOG_PAGE_SIZE;
+  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   private static final int NURSERY_THRESHOLD = (512*1024)>>LOG_PAGE_SIZE;
 
   public static final int NURSERY_ALLOCATOR = 0;
