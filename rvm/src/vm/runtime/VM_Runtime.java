@@ -437,7 +437,7 @@ public class VM_Runtime implements VM_Constants {
    * Prepare a class for use prior to first allocation, 
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
-   * @see VM_Member#needsDynamicLink
+   * @see VM_MemberReference#needsDynamicLink
    */ 
   public static void initializeClassForDynamicLink(VM_Class cls) 
     throws VM_ResolutionException {
