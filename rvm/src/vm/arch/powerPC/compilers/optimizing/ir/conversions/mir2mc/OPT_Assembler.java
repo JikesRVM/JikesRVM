@@ -816,9 +816,9 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
     if (shouldPrint) {
       OPT_Compiler.header("Final machine code", ir.method);
       for (int i = 0; i < machinecodes.length; i++) {
-	System.out.print(VM_OptExceptionTable.getHexString(i << LG_INSTRUCTION_WIDTH, true) + 
+	System.out.print(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true) + 
 			 " : " + 
-			 VM_OptExceptionTable.getHexString(machinecodes[i], false));
+			 VM_Services.getHexString(machinecodes[i], false));
 	System.out.print("  ");
 	System.out.print(disasm(machinecodes[i], i << LG_INSTRUCTION_WIDTH));
 	System.out.println();
