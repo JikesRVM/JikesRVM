@@ -388,14 +388,12 @@ function setSomeFromPath () {
     done
 }
 
-# If $host_jikes_version is the empty string, that means we have never 
-# tried to auto-detect the host's Jikes version.  We'll only auto-detect
-# the host's jikes version once.
-declare host_jikes_version=""
+
 
 function on_host_set_JIKES_test_Jikes_version () {
-        # Path for the Jikes java-to-byte-code compiler.  A necessary part of 
-    # the build process.  We only run JIKES on the host.
+    # Set JIKES, the path for the Jikes java-to-byte-code compiler.  
+    # A necessary part of the build process.  We only run JIKES 
+    # on the host.
     if [[ $CURRENT_CONFIG_FILE = $RVM_HOST_CONFIG ]]	\
 	&& ! [[ ${JIKES-} ]]				\
 	&& ! export JIKES=$(type -p jikes)
@@ -414,9 +412,11 @@ function on_host_set_JIKES_test_Jikes_version () {
 	## about the version of Jikes for the TARGET.
 	## Jikes 1.13 will exit with status 1 in response to "jikes -version",
 	## and spits the version message to stderr.
-	local jikes_msg		# If you combine the "local" declaration and 
-				# the assigment, it will always yield exit
-				# status zero, which is bad for us.
+
+	local jikes_msg # If you combine the "local" declaration of
+			# jikes_msg and the assigment of a value to
+			# jikes_msg, it will always yield exit status
+			# zero, which is bad for us.
 	set +e 
 	jikes_msg="$(${JIKES} -version 2>&1)"
 	local -i status=$?
@@ -431,34 +431,92 @@ function on_host_set_JIKES_test_Jikes_version () {
   The likely offending configuration file is  \"${CURRENT_CONFIG_FILE}\""
 	    exit 2
 	fi
+	local -i bad_byte_code=0
 	case "$jikes_msg" in
 	    *"Version 1.13"*)
 		host_jikes_version=1.13 
+		bad_byte_code=0
+		    ## -nowarn is *way* too dangerous in 1.13, since it means not to 
+		    ## complain even if the input file doesn't exist!
+		JIKES_WARNING_FLAGS=
+		jikes_dependency_flag=+U
+		copy_MMTk_directories_too=1
+		;;
+
+	    *"Version 1.14"*)
+		host_jikes_version=1.14
+		bad_byte_code=1
+		;;
+
+	    *"Version 1.15"*)
+		host_jikes_version=1.15
+		bad_byte_code=1
+		;;
+
+	    *"Version 1.16"*)
+		host_jikes_version=1.16
+		bad_byte_code=1
+		;;
+
+	    *"Version 1.17"*)
+		host_jikes_version=1.17
+		bad_byte_code=1
 		;;
 
 	    *"Version 1.18"*)
-		host_jikes_version=1.18 ;;
+		host_jikes_version=1.18 
+		bad_byte_code=0
+		jikes_dependency_flag=+U
+		JIKES_WARNING_FLAGS=-nowarn; # there are just too many style warnings...
+		;;
+
 	    *"Version 1.19"*)
-		host_jikes_version=1.19 ;;
-	    "") show_mesg >&2 "WARNING: I can not get a version message from 
-  the Jikes java-to-byte-code compiler; something may be badly wrong.  
-  Continuing anyway.  I tried using this invocation of Jikes:
+		host_jikes_version=1.19 
+		jikes_dependency_flag=+U
+		bad_byte_code=0
+		JIKES_WARNING_FLAGS=-nowarn # Still too many style warnings.
+		;;
+	    
+	    *"Version 1.20"*)
+		host_jikes_version=1.20
+		bad_byte_code=1	# Verified by Steve Augart...
+		jikes_dependency_flag= # +U triggers a Jikes assertion.
+		JIKES_WARNING_FLAGS=-nowarn # Still too many style warnings.
+		;;
+	    
+ 	    *"Version 1.21"*)
+ 		host_jikes_version=1.21
+		bad_byte_code=1	# Verified by Steve Augart...
+		jikes_dependency_flag= # +U triggers a Jikes assertion.
+ 		JIKES_WARNING_FLAGS=-nowarn # Still too many style warnings.
+ 		;;
+	    
+	    *"Version 1.22"*)
+		host_jikes_version=1.22 
+		bad_byte_code=1	# Verified by Steve Augart...
+		jikes_dependency_flag= # +U triggers a Jikes assertion.
+		JIKES_WARNING_FLAGS=-nowarn
+		;;
+	    
+	    "") show_mesg >&2 "WARNING: I can not get a version message from the Jikes java-to-byte-code compiler; something may be badly wrong. Continuing anyway.  I tried using this invocation of Jikes:
    \"${JIKES} -version\"" 
 		host_jikes_version=UNAVAILABLE-OR-BAD
 		;;
 	    *)
-		show_mesg >&2 "WARNING: \"${JIKES}\" is a version of Jikes
-  that may not be able to compile Jikes RVM -- the known
-  good versions are 1.13, 1.18, and 1.19.  Your version 
-  gives me the message:"
+		show_mesg >&2 "WARNING: \"${JIKES}\" is a version of Jikes that may not be able to compile Jikes RVM -- the known good versions are 1.13, 1.18, and 1.19.  Your version gives me the message:"
 		## If we can't find a line with the string Version, then
 		## print the whole message.
 		( echo "$jikes_msg" | ${FGREP-fgrep} "Version" \
 		      || echo "\"$jikes_msg\"" ) >&2 
-		host_jikes_version=BAD
+		host_jikes_version=UNKNOWN
 		;;
 	esac
     #     echo "JIKES VERSION: $jikes_version"
+
+	if (( bad_byte_code )); then
+	    show_mesg >&2 "WARNING: Jikes Version $host_jikes_version is known to have generated bad byte code when compiling Jikes RVM.  If you're lucky, the failure will be spectacular.   If you're not, it will waste a lot of your time.  PLEASE reconsider."
+	fi
+
     fi
 }
 
@@ -749,8 +807,28 @@ function load_config_file () {
 #---------------------------------------------------------------------------#
 
 
-## It may be necessary to set this to 1, but it probably is not!
-## # Set this to 1 if we find that the host is using Jikes 1.13, which has a bug.
+## At the same time, we'll automatically set the configuration variables
+## for Jikes.
+
+# If $host_jikes_version is the empty string, that means we have never 
+# tried to auto-detect the host's Jikes version.  We'll only auto-detect
+# the host's jikes version once.
+declare host_jikes_version=""
+
+# Start off blank.  These all get set at the same time that we
+# set host_jikes_version
+
+# Use Java warnings?
+## This would need to be set independently for the host and target,
+## if we ever ran Jikes on the target.
+## This default can be overridden by the config file(s) or by -D arguments
+## to jconfigure.
+declare JIKES_WARNING_FLAGS=
+declare jikes_dependency_flag=
+JAVAC_WARNING_FLAGS=-nowarn
+
+## Set this to 1 if we find that the host is using Jikes 1.13, which does not
+## support the -sourcepath argument.
 declare -i copy_MMTk_directories_too=0
 
 load_config_file "${RVM_HOST_CONFIG}"
@@ -924,20 +1002,6 @@ HOST_SHLD_STR="\$$HOST_SHLD_STR1"
 SED_STR1="SED"
 SED_STR="\$$SED_STR1"
 
-# Use Java warnings?
-## This would need to be set independently for the host and target,
-## if we ever ran Jikes on the target.
-## This default can be overridden by the config file(s) or by -D arguments
-## to jconfigure.
-if [[ $host_jikes_version = 1.13 ]]; then
-    JIKES_WARNING_FLAGS=
-elif [[ $host_jikes_version == 1.1[89] ]]; then
-    JIKES_WARNING_FLAGS=-nowarn
-else
-    JIKES_WARNING_FLAGS=
-fi
-JAVAC_WARNING_FLAGS=-nowarn
-
 # Generate map of bootimage?
 #
 declare -x -i GENERATE_MAP=1
@@ -951,7 +1015,7 @@ if [[ ! -f  $f ]]; then
     exit 3
 fi
 # Current version of RVM
-CVS_TIMESTAMP=$(cat $f)
+CVS_TIMESTAMP="$(< $f)"
 JIKESRVM_VERSION="Jikes RVM 2.3.4+CVS"
 
 # Default values for RunBootImage constants.
@@ -2557,12 +2621,12 @@ EOF
 
     if [[ $host_jikes_version = 1.13 ]]; then
 	cat <<- EOF
-	    ## Jikes 1.13 does not have a -sourcepath argument.
-	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g +U  -classpath .:${ROOT_DIRECTORY_STR}/MMTk/src:rvmrt.jar -d . $TOP_LEVEL_SOURCES"
+	     ## Jikes 1.13 does not have a -sourcepath argument.
+	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g ${jikes_dependency_flag}  -classpath .:${ROOT_DIRECTORY_STR}/MMTk/src:rvmrt.jar -d . $TOP_LEVEL_SOURCES"
 	EOF
     else
 	cat <<- EOF
-	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g +U -sourcepath .:${ROOT_DIRECTORY_STR}/MMTk/src -classpath .:rvmrt.jar -d . $TOP_LEVEL_SOURCES"
+	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g ${jikes_dependency_flag} -sourcepath .:${ROOT_DIRECTORY_STR}/MMTk/src -classpath .:rvmrt.jar -d . $TOP_LEVEL_SOURCES"
 	EOF
     fi
 
