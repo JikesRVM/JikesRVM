@@ -283,14 +283,12 @@ class BootMapExternal extends BootMap {
    * @param compiledMethodID index into the compiled methods table
    * @param address an address pointing to arbitrary machine instructions
    * @return the byte offset 
-   * @exception BmapNotFoundException if the address does not have an entry in the 
-   *            method map
    * @see
    */
   public int instructionOffset(int compiledMethodID, int address) {
     int startAddress = instructionAddress(compiledMethodID);
     int endAddress = owner.mem.read(startAddress + VM.ARRAY_LENGTH_OFFSET);
-    endAddress = startAddress + endAddress*4;
+    endAddress = startAddress + endAddress;
     // System.out.println("instructionOffset: code @ " + Integer.toHexString(startAddress) +
       		 // " to " + Integer.toHexString(endAddress));
     if (address<startAddress || address > endAddress) {
