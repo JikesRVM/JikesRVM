@@ -42,7 +42,7 @@ implements OPT_Operators {
    * registers in move instructions.  Note: as of Feb. 02, we think this
    * is a bad idea.
    */
-  private static boolean FLOAT_ESP = true;
+  private static boolean FLOAT_ESP = false;
 
   /**
    * Return the size of the fixed portion of the stack.
