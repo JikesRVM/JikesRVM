@@ -15,6 +15,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.AddressQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
+import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
@@ -207,11 +208,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static final int EXTERNALLY_TRIGGERED_GC = 0;
   public static final int RESOURCE_TRIGGERED_GC = 1;
-  public static final int TRIGGER_REASONS = 2;
+  public static final int INTERNALLY_TRIGGERED = 2;
+  public static final int TRIGGER_REASONS = 3;
   private static final String[] triggerReasons = {
     "external request",
-    "resource exhaustion"
+    "resource exhaustion",
+    "internal request"
   };
+
   public static final void triggerCollection(int why)
     throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
@@ -225,18 +229,24 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
     if (Plan.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
 					(int) (System.currentTimeMillis() - start));
+
     if (Plan.isLastGCFull()) {
-        double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
-        if (usage > OUT_OF_MEMORY_THRESHOLD) {
-            if (Plan.verbose >= 2) {
-                VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
-                VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
-                VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
-            }
-            throw (new OutOfMemoryError());
-        }
+      double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
+      if (usage > OUT_OF_MEMORY_THRESHOLD) {
+	  if (why == INTERNALLY_TRIGGERED) {
+	      if (Plan.verbose >= 2) {
+		  VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
+		  VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
+		  VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
+	      }
+	      throw (new OutOfMemoryError());
+	  }
+	  ReferenceProcessor.setClearSoftReferences(true); // clear all possible reference objects
+	  triggerCollection(INTERNALLY_TRIGGERED);
+      }
     }
   }
+
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
     if (Plan.verbose == 1) {

@@ -118,6 +118,9 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field arrayIndexTrapParamField= getField("Lcom/ibm/JikesRVM/VM_Processor;", "arrayIndexTrapParam", "I");
   //-#endif
    
+  public static final VM_Field referenceReferentField = getField("Ljava/lang/ref/Reference;", "referent", "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field referenceNextAsAddressField = getField("Ljava/lang/ref/Reference;", "nextAsAddress", "Lcom/ibm/JikesRVM/VM_Address;");
+
   //-#if RVM_WITH_OSR
   public static final VM_Method threadSwitchFromOsrBaseMethod = getMethod("Lcom/ibm/JikesRVM/VM_Thread;", "threadSwitchFromOsrBase", "()V");
   //-#endif

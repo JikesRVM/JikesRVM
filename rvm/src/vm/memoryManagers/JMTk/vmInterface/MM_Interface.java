@@ -6,6 +6,10 @@
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import java.util.Date;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.lang.ref.PhantomReference;
+
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
@@ -14,6 +18,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
 import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
+import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
@@ -319,6 +324,18 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
 //      return Plan.isLive(obj);
 //    }
 
+   public static void addSoftReference(SoftReference obj) throws VM_PragmaInterruptible {
+     ReferenceProcessor.addSoftCandidate(obj);
+   }
+ 
+   public static void addWeakReference(WeakReference obj) throws VM_PragmaInterruptible {
+     ReferenceProcessor.addWeakCandidate(obj);
+   }
+ 
+   public static void addPhantomReference(PhantomReference obj) throws VM_PragmaInterruptible {
+     ReferenceProcessor.addPhantomCandidate(obj);
+   }
+ 
   public static void showPlans() {
     for (int i=0; i<VM_Scheduler.processors.length; i++) {
       VM_Processor p = VM_Scheduler.processors[i];
