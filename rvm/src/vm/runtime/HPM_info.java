@@ -14,12 +14,28 @@ public final class HPM_info
   public static final int MAX_COUNTERS = 8;
   public static final int MAX_VALUES   = MAX_COUNTERS+1;
   /*
+   * Version number
+   */
+  public int version_number = 1;
+  /*
    * Possible HPM counters
    */
   public int    numberOfCounters = 0;		// number of counters
   public int    maxNumberOfEventsPerCounter = 0;// number of events per counter
   public String processorName   = "";		// processor name
-  public String traceFilePrefix = "HPMtraceFile";// trace file prefix
+  public String filenamePrefix = "HPM";         // trace and header file name prefices
+  /*
+   * Return header filename with out path.
+   * Assume header and trace files in the same directory.
+   */
+  public String headerFilename() {
+    String filename = "";
+    int index = filenamePrefix.lastIndexOf('/');
+    if (index != -1) {
+      filename = filenamePrefix.substring(index);
+    }
+    return filename+".headerFile";
+  }
 
   public  int              mode            = 12;
 
@@ -51,7 +67,8 @@ public final class HPM_info
     short_names[0] = "REAL_TIME     ";
   }
   public void dump(){
-    System.out.println(processorName+" has "+numberOfCounters+" counters");
+    System.out.println(processorName+" has "+numberOfCounters+" counters with "+mode+" mode");
+    dump_info();
   }
   public void dump_short_names(){
     for (int i=0; i<=numberOfCounters; i++) {
