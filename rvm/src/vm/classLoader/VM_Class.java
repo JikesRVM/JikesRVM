@@ -1292,6 +1292,20 @@ public final class VM_Class extends VM_Type
       VM_TableBasedDynamicLinker.setMethodOffset(method, method.offset);
     }
 
+    // RCGC: Determine if class is inherently acyclic
+    if (VM_Interface.RC_CYCLE_DETECTION) {	
+      acyclic = false;	// must initially be false for recursive types
+      boolean foundCyclic = false;
+      for (int i = 0; i < instanceFields.length; i++) {
+        if (!instanceFields[i].getType().isAcyclicReference()) {
+          foundCyclic = true; 
+          break;
+        }
+      }
+      if (!foundCyclic)
+        acyclic = true;
+    }
+
     state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
 
     VM_Callbacks.notifyClassResolved(this);
@@ -1308,6 +1322,14 @@ public final class VM_Class extends VM_Type
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   resolve " + descriptor + "\n");
   }
 
+
+  // RCGC: A reference to class is acyclic if the class is acyclic and
+  // final (otherwise the reference could be to a subsequently loaded
+  // cyclic subclass).
+  //
+  protected final boolean isAcyclicReference() {
+    return acyclic && isFinal();
+  }
 
   /** 
    * Insert the value of a final static field into the JTOC 

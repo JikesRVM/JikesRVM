@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 /**
  * Description of a java "primitive" type (int, float, etc.)
  * 
@@ -104,6 +105,8 @@ public final class VM_Primitive extends VM_Type
     this.tibSlot      = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.dimension    = -1;
     this.depth        = 0;
+    if (VM_Interface.RC_CYCLE_DETECTION)
+      this.acyclic  = true;	// RCGC: All primitives are inherently acyclic
 
     // install type information block (no method dispatch table) 
     // for use in type checking.

@@ -537,6 +537,10 @@ public final class VM_Array extends VM_Type
       this.innermostElementType = this.elementType;
     }
 
+    // RCGC: Array is acyclic if its references are acyclic
+    if (VM_Interface.RC_CYCLE_DETECTION)
+      this.acyclic = elementType.isAcyclicReference(); 
+
     // install partial type information block (type-slot but no method-slots) for use in type checking.
     // later, during instantiate(), we'll replace it with full type information block (including method-slots).
     //
