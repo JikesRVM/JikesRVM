@@ -3,12 +3,12 @@
  */
 //$Id$
 
-/**
- *
- * @author Julian Dolby
- */
 import instructionFormats.*;
 
+/**
+ * 
+ * @author Julian Dolby
+ */
 class OPT_AssemblerBase 
     extends VM_Assembler 
     implements OPT_Operators, VM_Constants, OPT_PhysicalRegisterConstants

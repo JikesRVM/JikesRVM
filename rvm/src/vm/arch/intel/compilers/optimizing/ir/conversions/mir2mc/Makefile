@@ -44,8 +44,8 @@ $(VM_ASM_JAVA):
 $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
 	$(GENERATE) OPT_InstructionFormatTables.template `$(HOST_JAVA_PATH_ADJUST) $(TABLES_JAVA)` FORMAT_FILE=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_IFS)`
 
-$(OPCODE_JAVA):		OPT_OperatorFormatTable.template $(ARCH_OPS)
-	$(GENERATE) OPT_OperatorFormatTable.template `$(HOST_JAVA_PATH_ADJUST) $(OPCODE_JAVA)` OPERATOR_FILE=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_OPS)`
+$(OPCODE_JAVA):		OPT_OperatorFormatTables.template $(ARCH_OPS)
+	$(GENERATE) OPT_OperatorFormatTables.template `$(HOST_JAVA_PATH_ADJUST) $(OPCODE_JAVA)` OPERATOR_FILE=`$(HOST_JAVA_PATH_ADJUST) $(ARCH_OPS)`
 
 $(SCRATCH_DIR)/%.java:	%.fake
 	cp $< $@

@@ -13,6 +13,8 @@ class VM {
 
     public static boolean VerifyAssertions;
 
+    public static boolean NOT_REACHED;
+
     public static void assert(boolean c) {
 
     }
