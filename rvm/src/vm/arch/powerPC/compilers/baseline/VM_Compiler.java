@@ -2594,6 +2594,24 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset);
       fr.resolve(asm);
+
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
+      if (options.INVOCATION_COUNTERS) {
+	int id = compiledMethod.getId();
+	com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
+	asm.emitLtoc (T0, VM_Entrypoints.invocationCountsField.getOffset());
+	asm.emitLVAL (T1, compiledMethod.getId() << 2);
+	asm.emitLX   (T2, T0, T1);
+	asm.emitAIr  (T2, T2, -1);
+	asm.emitSTX  (T2, T0, T1);
+	VM_ForwardReference fr2 = asm.emitForwardBC(asm.GT);
+	asm.emitLtoc (T0, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
+	asm.emitMTCTR(T0);
+	asm.emitLVAL (T0, id);
+	asm.emitCall(spSaveAreaOffset);
+	fr2.resolve(asm);
+      }
+      //-#endif
     }
   }
 

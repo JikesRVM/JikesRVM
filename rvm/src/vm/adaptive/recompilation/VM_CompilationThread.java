@@ -84,17 +84,19 @@ class VM_CompilationThread extends VM_Thread {
     
     // Compile the method.
     int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
-
-    // transfer the samples from the old CMID to the new CMID.
-    // scale the number of samples down by the expected speedup 
-    // in the newly compiled method.
     int prevCMID = plan.getPrevCMID();
-    double expectedSpeedup = plan.getExpectedSpeedup();
-    double oldNumSamples = VM_Controller.methodSamples.getData(prevCMID);
-    double newNumSamples = oldNumSamples / expectedSpeedup;
-    VM_Controller.methodSamples.reset(prevCMID);
-    if (newCMID > -1) {
-      VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
+
+    if (VM_Controller.options.sampling()) {
+      // transfer the samples from the old CMID to the new CMID.
+      // scale the number of samples down by the expected speedup 
+      // in the newly compiled method.
+      double expectedSpeedup = plan.getExpectedSpeedup();
+      double oldNumSamples = VM_Controller.methodSamples.getData(prevCMID);
+      double newNumSamples = oldNumSamples / expectedSpeedup;
+      VM_Controller.methodSamples.reset(prevCMID);
+      if (newCMID > -1) {
+	VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
+      }
     }
 
     // set the status of the plan accordingly

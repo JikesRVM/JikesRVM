@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_BaselineCompiler;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -167,29 +168,34 @@ class VM_ControllerThread extends VM_Thread {
   private void createOrganizerThreads() {
     VM_AOSOptions opts = VM_Controller.options;
 
-    // Primary backing store for method sample data
-    VM_Controller.methodSamples = new VM_MethodCountData();
+    if (opts.sampling()) {
+      // Primary backing store for method sample data
+      VM_Controller.methodSamples = new VM_MethodCountData();
 
-    // Instal organizer to drive method recompilation 
-    VM_MethodListener methodListener = 
-      new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
-    VM_Organizer methodOrganizer = 
-      new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
-    VM_Controller.organizers.addElement(methodOrganizer);
+      // Instal organizer to drive method recompilation 
+      VM_MethodListener methodListener = 
+	new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
+      VM_Organizer methodOrganizer = 
+	new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
+      VM_Controller.organizers.addElement(methodOrganizer);
 
-    // Decay runtime measurement data 
-    if (opts.ADAPTIVE_INLINING) {
-      VM_Organizer decayOrganizer = 
-	new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
-      VM_Controller.organizers.addElement(decayOrganizer);
+      // Decay runtime measurement data 
+      if (opts.ADAPTIVE_INLINING) {
+	VM_Organizer decayOrganizer = 
+	  new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
+	VM_Controller.organizers.addElement(decayOrganizer);
+      }
+    
+      if (opts.ADAPTIVE_INLINING) {
+	VM_Organizer AIOrganizer = 
+	  new VM_AIByEdgeOrganizer(new VM_EdgeListener());
+	VM_Controller.organizers.addElement(AIOrganizer);
+      }
+    } else if (opts.counters()) {
+      VM_InvocationCounts.createOptimizationPlan();
+      VM_BaselineCompiler.options.INVOCATION_COUNTERS=true;
     }
     
-    if (opts.ADAPTIVE_INLINING) {
-      VM_Organizer AIOrganizer = 
-	new VM_AIByEdgeOrganizer(new VM_EdgeListener());
-      VM_Controller.organizers.addElement(AIOrganizer);
-    }
-
     for (Enumeration e = VM_Controller.organizers.elements(); 
 	 e.hasMoreElements(); ) {
       VM_Organizer o = (VM_Organizer)e.nextElement();

@@ -2818,7 +2818,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private final void genThreadSwitchTest (int whereFrom) {
     if (!isInterruptible) {
       return;
-    } else if (VM.BuildForDeterministicThreadSwitching) {
+    } 
+    if (VM.BuildForDeterministicThreadSwitching) {
       // decrement the deterministic thread switch count field in the
       // processor object
       VM_ProcessorLocalState.emitDecrementField(asm, 
@@ -2852,6 +2853,20 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       fr1.resolve(asm);
     }
+
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    if (options.INVOCATION_COUNTERS) {
+      int id = compiledMethod.getId();
+      com.ibm.JikesRVM.adaptive.VM_InvocationCounts.allocateCounter(id);
+      asm.emitMOV_Reg_RegDisp(ECX, JTOC, VM_Entrypoints.invocationCountsField.getOffset());
+      asm.emitSUB_RegDisp_Imm(ECX, compiledMethod.getId() << 2, 1);
+      VM_ForwardReference notTaken = asm.forwardJcc(asm.GT);
+      asm.emitPUSH_Imm(id);
+      genParameterRegisterLoad(1);
+      asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
+      notTaken.resolve(asm);
+    }
+    //-#endif
   }
 
   private final boolean genMagic (VM_MethodReference m) {

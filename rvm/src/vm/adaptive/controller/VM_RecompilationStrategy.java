@@ -247,14 +247,13 @@ abstract class VM_RecompilationStrategy {
   }
 
 
+  private  OPT_OptimizationPlanElement[][] _optPlans;
+  private  OPT_Options[] _options;
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
    */
-  private  OPT_OptimizationPlanElement[][] _optPlans;
-  private  OPT_Options[] _options;
-
-   void createOptimizationPlans() {
+  void createOptimizationPlans() {
     OPT_Options options = new OPT_Options();
 
     int maxOptLevel = getMaxOptLevel();

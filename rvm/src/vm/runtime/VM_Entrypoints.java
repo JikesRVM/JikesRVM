@@ -281,6 +281,9 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field yieldCountListenerNumYieldsField= getField("Lcom/ibm/JikesRVM/adaptive/VM_YieldCounterListener;", "numYields", "I");
   
   public static final VM_Field counterArrayManagerCounterArraysField = getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterArrayManager;","counterArrays","[[D");
+
+  public static final VM_Field invocationCountsField             = getField("Lcom/ibm/JikesRVM/adaptive/VM_InvocationCounts;", "counts", "[I");
+  public static final VM_Method invocationCounterTrippedMethod   = getMethod("Lcom/ibm/JikesRVM/adaptive/VM_InvocationCounts;", "counterTripped", "(I)V");
   //-#endif
 
   //-#if RVM_WITH_GNU_CLASSPATH
