@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
-import OPT_IndexPropagation.*;
+import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
 
 /**
  * This class implements the redundant load elimination by

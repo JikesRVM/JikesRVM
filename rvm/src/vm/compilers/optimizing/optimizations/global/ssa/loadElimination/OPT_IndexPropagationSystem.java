@@ -3,11 +3,11 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.*;
+import java.util.*;
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import OPT_IndexPropagation.*;
+import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
 
 /**
  * Represents a set of dataflow equations used to solve the
