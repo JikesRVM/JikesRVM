@@ -762,7 +762,7 @@ implements OPT_Operators {
     if (s.hasMemoryOperand()) return true;
 
     // Check the architecture restrictions.
-    if (OPT_RegisterRestrictions.mustBeInRegister(r,s)) return true;
+    if (getRestrictions().mustBeInRegister(r,s)) return true;
     
     // Otherwise, everything is OK.
     return false;
@@ -1099,46 +1099,49 @@ implements OPT_Operators {
   }
 
   /**
-   * Return a FPR that does not appear in instruction s.
-   * Except, do NOT
-   * return any register that is a member of the reserved set.
+   * Return a FPR that does not appear in instruction s, to be used as a
+   * scratch register to hold register r
+   * Except, do NOT return any register that is a member of the reserved set.
    *
    * Throw an exception if none found.
    */ 
-  private OPT_Register getFirstFPRNotUsedIn(OPT_Instruction s, 
+  private OPT_Register getFirstFPRNotUsedIn(OPT_Register r, 
+                                            OPT_Instruction s, 
                                             HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
-      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
-        return r;
+      OPT_Register p = (OPT_Register)e.nextElement();
+      if (!appearsIn(p,s) && !p.isPinned() &&
+          !reserved.contains(p) && isLegal(r,p,s)) {
+        return p;
       }
     }
 
     OPT_OptimizingCompilerException.TODO(
-                                         "Could not find a free FPR in spill situation");
+                        "Could not find a free FPR in spill situation");
     return null;
   }
 
   /**
    * Return a FPR that does not appear in instruction s, and is dead
-   * before instruction s.
+   * before instruction s, to hold symbolic register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
    *
    * Return null if none found
    */ 
-  private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Instruction s, 
+  private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Register r, 
+                                                OPT_Instruction s, 
                                                 HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
-      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
-        if (isDeadBefore(r,s)) return r;
+      OPT_Register p = (OPT_Register)e.nextElement();
+      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
+        if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
     }
 
@@ -1146,61 +1149,66 @@ implements OPT_Operators {
   }
 
   /**
-   * Return a GPR that does not appear in instruction s.  
+   * Return a GPR that does not appear in instruction s, to hold symbolic
+   * register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
    *
    * Throw an exception if none found.
    */ 
-  private OPT_Register getFirstGPRNotUsedIn(OPT_Instruction s, 
+  private OPT_Register getFirstGPRNotUsedIn(OPT_Register r, 
+                                            OPT_Instruction s, 
                                             HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
-      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
-        return r;
+      OPT_Register p= (OPT_Register)e.nextElement();
+      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)
+          && isLegal(r,p,s)) {
+        return p;
       }
     }
     // next try the non-volatiles
     for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
          e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
-      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
-        return r;
+      OPT_Register p = (OPT_Register)e.nextElement();
+      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p) && 
+          isLegal(r,p,s)) {
+        return p;
       }
     }
     OPT_OptimizingCompilerException.TODO(
-                                         "Could not find a free GPR in spill situation");
+                             "Could not find a free GPR in spill situation");
     return null;
   }
 
   /**
    * Return a GPR that does not appear in instruction s, and is dead
-   * before instruction s.  
+   * before instruction s, to hold symbolic register r. 
    * Except, do NOT
    * return any register that is a member of the reserved set.
    *
    * return null if none found
    */ 
-  private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Instruction s, 
+  private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Register r,
+                                                OPT_Instruction s, 
                                                 HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
          e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
-      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
-        if (isDeadBefore(r,s)) return r;
+      OPT_Register p = (OPT_Register)e.nextElement();
+      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
+        if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
     }
     // next try the non-volatiles
     for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
          e.hasMoreElements(); ) {
-      OPT_Register r = (OPT_Register)e.nextElement();
-      if (!appearsIn(r,s) && !r.isPinned() && !reserved.contains(r)) {
-        if (isDeadBefore(r,s)) return r;
+      OPT_Register p = (OPT_Register)e.nextElement();
+      if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
+        if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
     }
     return null;
@@ -1347,13 +1355,34 @@ implements OPT_Operators {
   }
 
   /**
-   * Is scratch register r's assignment legal for use in instruction s?
+   * Is it legal to assign symbolic register symb to scratch register phys
+   * in instruction s?
    */
-  boolean isLegal(ScratchRegister sr, OPT_Instruction s) {
+  boolean isLegal(OPT_Register symb, OPT_Register phys, OPT_Instruction s) {
     // If the physical scratch register already appears in s, so we can't 
     // use it as a scratch register for another value.
-    if (appearsIn(sr.scratch,s)) return false;
+    if (appearsIn(phys,s)) return false;
 
+    // Check register restrictions for symb.
+    if (getRestrictions().isForbidden(symb,phys,s)) return false;
+
+    // Further assure legality for all other symbolic registers in symb
+    // which are mapped to the same spill location as symb.
+    int location = OPT_RegisterAllocatorState.getSpill(symb);
+    for (Enumeration e = s.getOperands(); e.hasMoreElements(); ) {
+      OPT_Operand op = (OPT_Operand)e.nextElement();
+      if (op.isRegister()) {
+        OPT_Register r = op.asRegister().register;
+        if (r.isSymbolic()) {
+          if (location == OPT_RegisterAllocatorState.getSpill(r)) {
+            if (getRestrictions().isForbidden(r,phys,s)) 
+              return false;
+          }
+        }
+      }
+    }
+
+    // Otherwise, all is kosher.
     return true;
   }
   /**
@@ -1366,7 +1395,7 @@ implements OPT_Operators {
     ScratchRegister r = getCurrentScratchRegister(symb);
     if (r != null) {
       // symb is currently assigned to scratch register r
-      if (isLegal(r,s)) {
+      if (isLegal(symb,r.scratch,s)) {
         if (r.currentContents != symb) {
           // we're reusing a scratch register based on the fact that symb
           // shares a spill location with r.currentContents.  However,
@@ -1399,10 +1428,8 @@ implements OPT_Operators {
    * Find a register which can serve as a scratch
    * register for symbolic register r in instruction s.
    *
-   * Insert spills if necessary to ensure that the returned scratch
+   * <p> Insert spills if necessary to ensure that the returned scratch
    * register is free for use.
-   *
-   * TODO: This version uses linear scan information. (not yet)
    */
   private ScratchRegister getScratchRegisterUsingIntervals(OPT_Register r,
                                                            OPT_Instruction s){
@@ -1410,9 +1437,9 @@ implements OPT_Operators {
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
-      phys = getFirstDeadFPRNotUsedIn(s,reservedScratch);
+      phys = getFirstDeadFPRNotUsedIn(r,s,reservedScratch);
     } else {
-      phys = getFirstDeadGPRNotUsedIn(s,reservedScratch);
+      phys = getFirstDeadGPRNotUsedIn(r,s,reservedScratch);
     }
     // The following is a horrendous hack.  For unknown reasons, applying this
     // optimization to a boot image with assertions turned off causes the
@@ -1426,9 +1453,9 @@ implements OPT_Operators {
     // if the version above failed, default to the dumber heuristics
     if (phys == null) {
       if (r.isFloatingPoint()) {
-        phys = getFirstFPRNotUsedIn(s,reservedScratch);
+        phys = getFirstFPRNotUsedIn(r,s,reservedScratch);
       } else {
-        phys = getFirstGPRNotUsedIn(s,reservedScratch);
+        phys = getFirstGPRNotUsedIn(r,s,reservedScratch);
       }
     }
     return createScratchBefore(s,phys,r);
@@ -1438,7 +1465,7 @@ implements OPT_Operators {
    * Find the first available register which can serve as a scratch
    * register for symbolic register r in instruction s.
    *
-   * Insert spills if necessary to ensure that the returned scratch
+   * <p> Insert spills if necessary to ensure that the returned scratch
    * register is free for use.
    */
   private ScratchRegister getFirstAvailableScratchRegister(OPT_Register r,
@@ -1447,9 +1474,9 @@ implements OPT_Operators {
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
-      phys = getFirstFPRNotUsedIn(s,reservedScratch);
+      phys = getFirstFPRNotUsedIn(r,s,reservedScratch);
     } else {
-      phys = getFirstGPRNotUsedIn(s,reservedScratch);
+      phys = getFirstGPRNotUsedIn(r,s,reservedScratch);
     }
     return createScratchBefore(s,phys,r);
   }
@@ -1561,17 +1588,19 @@ implements OPT_Operators {
   /**
    * Walk over the currently available scratch registers. 
    *
-   * For any scratch register r which is def'ed by instruction s, 
+   * <p>For any scratch register r which is def'ed by instruction s, 
    * spill r before s and remove r from the pool of available scratch 
    * registers.  
    *
-   * For any scratch register r which is used by instruction s, 
+   * <p>For any scratch register r which is used by instruction s, 
    * restore r before s and remove r from the pool of available scratch 
    * registers.  
    *
-   * For any scratch register r which has current contents symb, and 
+   * <p>For any scratch register r which has current contents symb, and 
    * symb is spilled to location M, and s defs M: the old value of symb is
    * dead.  Mark this.
+   *
+   * <p>Invalidate any scratch register assignments that are illegal in s.
    */
   private void restoreScratchRegistersBefore(OPT_Instruction s) {
     for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
@@ -1613,6 +1642,7 @@ implements OPT_Operators {
       }
 
       if (usedIn(scratch.scratch,s) ||
+          !isLegal(scratch.currentContents,scratch.scratch,s) ||
           (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // first spill the currents contents of the scratch register to 
         // memory 
@@ -1635,7 +1665,8 @@ implements OPT_Operators {
           } 
 
         }
-        // s uses the scratch register, so restore the correct contents.
+        // s or some future instruction uses the scratch register, 
+	// so restore the correct contents.
         if (verboseDebug) {
           System.out.println("RESTORE : reload because used " + scratch);
         }

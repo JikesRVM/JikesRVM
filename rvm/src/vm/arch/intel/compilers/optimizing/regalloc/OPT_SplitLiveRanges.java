@@ -79,12 +79,7 @@ implements OPT_Operators {
         }
 
         // handle special cases for IA32
-        // These fall into two classes:
         //  (1) Some operands must be in registers
-        //  (2) Some register operands must be in eax,ebx,ecx,or edx
-        //      because they are really 8 bit registers (al,bl,cl,dl).
-        //      This happens in a few special cases (MOVZX/MOZSX/SET)
-        //      and in any other operator that has an 8 bit memory operand.
         switch (s.getOpcode()) {
           case IA32_LOWTABLESWITCH_opcode:
             {
@@ -99,80 +94,6 @@ implements OPT_Operators {
               //       problems anyways, since LowTableSwitch is a branch).
               insertMoveBefore(temp, rOp.copyRO(), s); // move r into 'temp' before s
               rOp.register = temp.register;
-            }
-            break;
-          case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
-            {
-              OPT_RegisterOperand op = (OPT_RegisterOperand)MIR_Unary.getResult(s);
-              OPT_RegisterOperand temp = findOrCreateTemp(op, newMap, ir);
-              // move 'temp' into r after s
-              insertMoveAfter(op.copyRO(), temp.copyRO(), s);
-              op.register = temp.register;
-
-              // also add restrictions on the rhs (val), if it is a register.
-              OPT_Operand val = MIR_Unary.getVal(s);
-              if (val.isRegister()) {
-                OPT_RegisterOperand rval = (OPT_RegisterOperand)val;
-                OPT_RegisterOperand tempval = findOrCreateTemp(rval, newMap, ir);
-                // move 'temp' into rval before s
-                insertMoveBefore(tempval, rval.copyRO(), s);
-                rval.register = tempval.register;
-              }
-            }
-            break;
-          case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
-            {
-              OPT_RegisterOperand op = (OPT_RegisterOperand)MIR_CondMove.
-                                       getResult(s);
-              OPT_RegisterOperand temp = findOrCreateTemp(op, newMap, ir);
-              // move r into 'temp' before s
-              insertMoveBefore(temp.copyRO(), op.copyRO(), s);
-              // move 'temp' into r after s
-              insertMoveAfter(op.copyRO(), temp.copyRO(), s);
-              op.register = temp.register;
-            }
-            break;
-          case IA32_SET$B_opcode:
-            {
-              OPT_Operand op = MIR_Set.getResult(s);
-              if (op.isRegister()) {
-                OPT_RegisterOperand rOp = MIR_Set.getResult(s).asRegister();
-                OPT_RegisterOperand temp = findOrCreateTemp(rOp, newMap, ir);
-                // move 'temp' into r after s
-                insertMoveAfter(rOp.copyRO(), temp, s);
-                rOp.register = temp.register;
-              }
-            }
-            break;
-
-	  case IA32_TEST_opcode:
-	    {
-	      if (MIR_Test.getVal1(s).isRegister() &&
-		  MIR_Test.getVal1(s).similar(MIR_Test.getVal2(s))) {
-		OPT_RegisterOperand rop = MIR_Test.getVal1(s).asRegister();
-		OPT_RegisterOperand tmp = findOrCreateTemp(rop, newMap, ir);
-		insertMoveBefore(tmp.copyRO(), rop.copyRO(), s);
-		MIR_Test.getVal1(s).asRegister().register = tmp.register;
-		MIR_Test.getVal2(s).asRegister().register = tmp.register;
-	      } else {
-		// other cases are a little complex, so split all live ranges
-		// rather than thinking about the cases twice
-		// (let OPT_RegisterRestrictions do the heavy lifting).
-		splitAllLiveRanges(s, newMap, ir, true);
-	      }
-	    }
-	    break;
-	    
-          default:
-            {
-              for (OPT_OperandEnumeration e = s.getMemoryOperands(); 
-                   e.hasMoreElements(); ) {
-                OPT_MemoryOperand op = (OPT_MemoryOperand)e.next();
-                if (op.size == 1) {
-                  splitAllLiveRanges(s, newMap, ir, true);
-                  break;
-                }
-              }
             }
             break;
         }
