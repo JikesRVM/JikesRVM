@@ -70,9 +70,9 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     int n = VM_EdgeCounterDictionary.getNumValues();
     for (int i=0; i<n; i++) {
       VM_Triplet key = VM_EdgeCounterDictionary.getKey(i);
-      int mid = VM_MethodDictionary.findId(key);
+      int mid = VM_ClassLoader.getMethodIdFromKey(key);
       if (mid == -1) continue; // only should happen when we've read in a file of offline data.
-      VM_Method m = VM_MethodDictionary.getValue(mid);
+      VM_Method m = VM_ClassLoader.getMethodFromId(mid);
       if (!m.isLoaded()) continue; // ditto -- came from offline data
       int[] counters = VM_EdgeCounterDictionary.getValue(i);
       if (counters != null) new VM_BranchProfiles(m, i, counters).print(f);

@@ -323,9 +323,9 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     int  allocCount = 0, allocBytes = 0;
     int  copyCount = 0, copyBytes = 0;
     int  scanCount = 0, scanBytes = 0;
-    int  maxId = VM_TypeDictionary.getNumValues();
+    int  maxId = VM_ClassLoader.numTypes();
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       allocCount += type.allocCount;
       allocBytes += type.allocBytes;
       copyCount += type.copyCount;
@@ -334,7 +334,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       scanBytes += type.scanBytes;
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       if (type.allocBytes >= 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -342,7 +342,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       if (type.allocBytes >= 10 * 1024 && type.allocBytes < 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -350,7 +350,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       if (type.allocBytes < 1024 && type.allocBytes > 0)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,

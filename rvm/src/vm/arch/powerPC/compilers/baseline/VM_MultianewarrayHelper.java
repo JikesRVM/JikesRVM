@@ -48,7 +48,7 @@ public class VM_MultianewarrayHelper {
 
     // create array
     //
-    return VM_Runtime.buildMultiDimensionalArray(numElements, 0, VM_TypeDictionary.getValue(dictionaryId).asArray());
+    return VM_Runtime.buildMultiDimensionalArray(numElements, 0, VM_ClassLoader.getTypeFromId(dictionaryId).asArray());
   }
 }
 

@@ -103,7 +103,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
     if (iei == -1)
       return  null;
     int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-    return VM_MethodDictionary.getValue(mid);
+    return VM_ClassLoader.getMethodFromId(mid);
   }
 
   /**
@@ -502,7 +502,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
       boolean first = true;
       while (iei >= 0) {
 	int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-	VM_Method meth = VM_MethodDictionary.getValue(mid);
+	VM_Method meth = VM_ClassLoader.getMethodFromId(mid);
 	if (first) {
 	  first = false;
 	  VM.sysWrite("\n\tIn method    " + meth + " at bytecode " + bci);

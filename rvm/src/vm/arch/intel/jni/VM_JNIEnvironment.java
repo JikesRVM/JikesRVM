@@ -523,7 +523,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     throws Exception  {
 
     // get the parameter list as Java class
-    VM_Method mth = VM_MethodDictionary.getValue(methodID);
+    VM_Method mth = VM_ClassLoader.getMethodFromId(methodID);
     VM_Type[] argTypes = mth.getParameterTypes();
     Class[]   argClasses = new Class[argTypes.length];
     for (int i=0; i<argClasses.length; i++) {
@@ -759,7 +759,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " + 
     // 		   VM.intAsHexString(argAddress) + "\n");
     
-    targetMethod = VM_MethodDictionary.getValue(methodID);
+    targetMethod = VM_ClassLoader.getMethodFromId(methodID);
     VM_Type returnType = targetMethod.getReturnType();
 
     if (VM_JNIFunctions.traceJNI) 

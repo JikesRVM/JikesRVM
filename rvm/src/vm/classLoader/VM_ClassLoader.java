@@ -131,6 +131,22 @@ implements VM_Constants, VM_ClassLoaderConstants {
     return type;
   }
 
+
+  /**
+   * Short term migration aid as we phase out the global name space
+   * @param dictId the dictionaryId of a type
+   * @return the corresponding VM_Type object
+   */
+  public static VM_Type getTypeFromId(int id) {
+    return VM_TypeDictionary.getValue(id);
+  }
+  public static int numTypes() {
+    return VM_TypeDictionary.getNumValues();
+  }
+  public static VM_Type[] getTypes() {
+    return VM_TypeDictionary.getValues();
+  }
+
   /**
    * Find a field description, or create one if this is a field we 
    * haven't seen before.
@@ -180,6 +196,15 @@ implements VM_Constants, VM_ClassLoaderConstants {
     VM_TableBasedDynamicLinker.ensureFieldCapacity(fieldId);
 
     return fieldId;
+  }
+
+  /**
+   * Short term migration aid as we phase out the global name space
+   * @param dictId the dictionaryId of a field
+   * @return the corresponding VM_Field object
+   */
+  public static VM_Field getFieldFromId(int id) {
+    return VM_FieldDictionary.getValue(id);
   }
 
   /**
@@ -245,6 +270,30 @@ implements VM_Constants, VM_ClassLoaderConstants {
     return methodId;
   }
 
+  /**
+   * Short term migration aid as we phase out the global name space
+   * @param dictId the dictionaryId of a method
+   * @return the corresponding VM_Method object
+   */
+  public static VM_Method getMethodFromId(int id) {
+    return VM_MethodDictionary.getValue(id);
+  }
+  /**
+   * Short term migration aid as we phase out the global name space
+   * @param key VM_Triplet describing a method
+   * @return the dictionary Id of the method
+   */
+  public static int getMethodIdFromKey(VM_Triplet key) {
+    return VM_MethodDictionary.findId(key);
+  }
+  public static int numMethods() {
+    return VM_MethodDictionary.getNumValues();
+  }
+
+  /**
+   * Load a dynamic library
+   * @param libname the name of the library to load.
+   */
   public static void loadLibrary(String libname) {
     currentDynamicLibraryId++;
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
@@ -633,8 +682,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * @param referent the member being referenced
    * @param referrer the declaring class of the method containing the reference
    */
-  static public boolean needsDynamicLink(VM_Member referent, VM_Class referrer)
-  {
+  static public boolean needsDynamicLink(VM_Member referent, VM_Class referrer) {
     VM_Class referentClass = referent.getDeclaringClass();
 
     if (referentClass.isInitialized()) {

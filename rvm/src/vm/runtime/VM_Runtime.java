@@ -217,7 +217,7 @@ public class VM_Runtime implements VM_Constants {
   static Object unresolvedNewScalar(int dictionaryId) 
     throws VM_ResolutionException, OutOfMemoryError { 
 
-    VM_Class cls = VM_TypeDictionary.getValue(dictionaryId).asClass();
+    VM_Class cls = VM_ClassLoader.getTypeFromId(dictionaryId).asClass();
     if (VM.VerifyAssertions) VM._assert(cls.isClassType());
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
@@ -274,7 +274,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static Object unresolvedNewArray(int numElements, int dictionaryId) 
     throws VM_ResolutionException, OutOfMemoryError, NegativeArraySizeException { 
-    VM_Array array = VM_TypeDictionary.getValue(dictionaryId).asArray();
+    VM_Array array = VM_ClassLoader.getTypeFromId(dictionaryId).asArray();
     if (!array.isInitialized()) {
       VM_Type elementType = array.getElementType();
       array.load();

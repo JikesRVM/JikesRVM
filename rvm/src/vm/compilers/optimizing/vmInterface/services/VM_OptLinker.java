@@ -77,7 +77,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
     // create array
     //
-    VM_Array aType = VM_TypeDictionary.getValue(dictionaryId).asArray();
+    VM_Array aType = VM_ClassLoader.getTypeFromId(dictionaryId).asArray();
     return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
   }
 
@@ -98,7 +98,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     // create array
     //
     return VM_Runtime.buildMultiDimensionalArray(dimensions, 
-						 0, VM_TypeDictionary.getValue(dictionaryId).asArray(), generation);
+						 0, VM_ClassLoader.getTypeFromId(dictionaryId).asArray(), generation);
   }
   //-#endif
 }

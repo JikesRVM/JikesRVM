@@ -1477,7 +1477,7 @@ public abstract class VM_BaselineCompiler {
       case 0xb3: /* putstatic */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
-	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
+	VM_Field fieldRef = VM_ClassLoader.getFieldFromId(fieldId);
 	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + constantPoolIndex + " (" + fieldRef + ")");
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method)) {
@@ -1506,7 +1506,7 @@ public abstract class VM_BaselineCompiler {
       case 0xb5: /* putfield */ {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
-	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
+	VM_Field fieldRef = VM_ClassLoader.getFieldFromId(fieldId);
 	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + constantPoolIndex + " (" + fieldRef + ")");
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method)) {

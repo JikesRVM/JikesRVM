@@ -557,7 +557,7 @@ public class BootImageWriter extends BootImageWriterMessages
     // Show space usage in boot image by type
     //
     if (demographics) {
-	VM_Type[] types = VM_TypeDictionary.getValues();
+        VM_Type[] types = VM_ClassLoader.getTypes();
 	VM_Type[] tempTypes = new VM_Type[types.length - FIRST_TYPE_DICTIONARY_INDEX];
 	for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) 
 	    tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = types[i];
@@ -595,7 +595,7 @@ public class BootImageWriter extends BootImageWriterMessages
     // remainder of the virtual machine at run time!
     //
     if (false) {
-	VM_Type[] types = VM_TypeDictionary.getValues();
+        VM_Type[] types = VM_ClassLoader.getTypes();
 	for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
 	    VM_Type type = types[i];
 	    if (!type.isLoaded()) {
@@ -1662,7 +1662,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * @return field name
    */
   private static String getRvmStaticFieldName(int jtocSlot) {
-    VM_Type[] types = VM_TypeDictionary.getValues();
+    VM_Type[] types = VM_ClassLoader.getTypes();
     for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
       VM_Type type = types[i];
       if (type.isPrimitiveType())
@@ -1826,7 +1826,7 @@ public class BootImageWriter extends BootImageWriterMessages
           contents = VM.intAsHexString(rawslot1) + pad;
           details = "<?>";
           // search for a type that this is the TIB for
-          VM_Type[] types = VM_TypeDictionary.getValues();
+          VM_Type[] types = VM_ClassLoader.getTypes();
           for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i)
             if (types[i].getTibSlot() == jtocSlot) {
               details = types[i].toString();
@@ -1855,8 +1855,8 @@ public class BootImageWriter extends BootImageWriterMessages
     out.println("                          address             method");
     out.println("                          -------             ------");
     out.println();
-    for (int i = 0; i < VM_MethodDictionary.getNumValues(); ++i) {
-      VM_Method method = VM_MethodDictionary.getValue(i);
+    for (int i = 0; i < VM_ClassLoader.numMethods(); ++i) {
+      VM_Method method = VM_ClassLoader.getMethodFromId(i);
       if (method == null)       continue;
       if (!method.isLoaded()) continue; // bogus or unresolved
       if (!method.isCompiled()) continue;

@@ -99,7 +99,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       browser.setInlineEncodingIndex(iei);
       browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
       browser.setCompiledMethod(this);
-      browser.setMethod(VM_MethodDictionary.getValue(mid));
+      browser.setMethod(VM_ClassLoader.getMethodFromId(mid));
 
       if (VM.TraceStackTrace) {
 	  VM.sysWrite("setting stack to frame (opt): ");
@@ -126,7 +126,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
       browser.setInlineEncodingIndex( next );
       browser.setBytecodeIndex( bci );
-      browser.setMethod( VM_MethodDictionary.getValue(mid) );
+      browser.setMethod( VM_ClassLoader.getMethodFromId(mid) );
 
       if (VM.TraceStackTrace) {
 	  VM.sysWrite("up within frame stack (opt): ");
@@ -157,7 +157,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_Method m = VM_MethodDictionary.getValue(mid);
+        VM_Method m = VM_ClassLoader.getMethodFromId(mid);
         VM_LineNumberMap lmap = m.getLineNumberMap();
         int lineNumber = 0;
         if (lmap != null) {
@@ -199,7 +199,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_Method m = VM_MethodDictionary.getValue(mid);
+        VM_Method m = VM_ClassLoader.getMethodFromId(mid);
         VM_LineNumberMap lmap = m.getLineNumberMap();
         int lineNumber = 0;
         if (lmap != null) {

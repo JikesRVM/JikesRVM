@@ -195,30 +195,12 @@ class CCC {
     return nextId;
   }
 
-  // Retrieve pointer to keys currently stored in the dictionary.
-  // (Note: this is intended for the debugger only)
-  static KKK[] getKeysPointer() {
-    return keys;
-  }
-      
-  // Retrieve pointer to values currently stored in the dictionary.
-  // (Note: this is intended for the debugger only)
-  static VVV[][] getValuesPointer() {
-    return values;
-  }
-
-  // Retrieve pointer to the hash chains
-  // (Note: this is intended for the debugger only)
-  static int[][] getChainsPointer() {
-    return chains;
-  }
-
   //----------------//
   // implementation //
   //----------------//
 
   private static KKK[]   keys   = new KKK[20];    // dictionary keys
-  private static VVV[][] values = new VVV[20][];    // dictionary values
+  private static VVV[][] values = new VVV[20][];  // dictionary values
   private static int     nextId = 1;              // index of next free slot in keys[]/values[]
   private static int[][] chains = new int[201][]; // hash table for quickly determining presence of key in dictionary
   // - chains[i] is initial hash probe

@@ -359,7 +359,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * Hash VM_Dictionary keys.
    */ 
-  static int dictionaryHash(VM_Atom atom) {
+  public static int dictionaryHash(VM_Atom atom) {
     return atom.hash;
   }
 
@@ -369,7 +369,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    *           1 iff "leftKey" is to be considered a duplicate of "rightKey"
    *          -1 otherwise
    */
-  static int dictionaryCompare(VM_Atom left, VM_Atom right) {
+  public static int dictionaryCompare(VM_Atom left, VM_Atom right) {
     if (left == null)
       return 0;
          

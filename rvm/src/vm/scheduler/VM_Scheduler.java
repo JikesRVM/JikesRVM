@@ -622,7 +622,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
             int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
             for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
               int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-              method = VM_MethodDictionary.getValue(mid);
+              method = VM_ClassLoader.getMethodFromId(mid);
               VM_LineNumberMap lmap = method.getLineNumberMap();
 	      lineNumber = (lmap == null) ? 0 : lmap.getLineNumberForBCIndex(bci);
               writeString("   ");

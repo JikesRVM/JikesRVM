@@ -32,7 +32,6 @@ import com.ibm.JikesRVM.VM_EventLogger;
 import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_Statistic;
 import com.ibm.JikesRVM.VM_TimeStatistic;
-import com.ibm.JikesRVM.classloader.VM_TypeDictionary;
 
 /**
  * Contains common statistic, profiling, and debugging code
@@ -330,9 +329,9 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
     int  allocCount = 0, allocBytes = 0;
     int  copyCount = 0, copyBytes = 0;
     int  scanCount = 0, scanBytes = 0;
-    int  maxId = VM_TypeDictionary.getNumValues();
+    int  maxId = VM_ClassLoader.numTypes();
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       allocCount += type.allocCount;
       allocBytes += type.allocBytes;
       copyCount += type.copyCount;
@@ -341,7 +340,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
       scanBytes += type.scanBytes;
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       if (type.allocBytes >= 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -349,7 +348,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       if (type.allocBytes >= 10 * 1024 && type.allocBytes < 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -357,7 +356,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_ClassLoader.getTypeFromId(i);
       if (type.allocBytes < 1024 && type.allocBytes > 0)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,

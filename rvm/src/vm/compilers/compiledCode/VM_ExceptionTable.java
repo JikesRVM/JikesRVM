@@ -43,7 +43,7 @@ public abstract class VM_ExceptionTable {
       // offset starts are sorted by starting point
       if (instructionOffset > eTable[i + TRY_START] &&
 	  instructionOffset <= eTable[i + TRY_END]) {
-	VM_Type lhs = VM_TypeDictionary.getValue(eTable[i + EX_TYPE]);
+	VM_Type lhs = VM_ClassLoader.getTypeFromId(eTable[i + EX_TYPE]);
 	if (lhs == exceptionType) {
 	  return eTable[i + CATCH_START];
 	} else if (lhs.isInitialized()) {
@@ -70,7 +70,7 @@ public abstract class VM_ExceptionTable {
 		    VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
 		    VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
 		    VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
-		    VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
+		    VM_ClassLoader.getTypeFromId(eTable[i + EX_TYPE]));
     }
   }
 }

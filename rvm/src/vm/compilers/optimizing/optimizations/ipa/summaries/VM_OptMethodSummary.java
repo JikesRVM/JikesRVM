@@ -519,7 +519,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
           int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
           constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
           int fieldId = klass.getFieldRefId(constantPoolIndex);
-          VM_Field f = VM_FieldDictionary.getValue(fieldId);
+          VM_Field f = VM_ClassLoader.getFieldFromId(fieldId);
           written.addUniqueElement(f);
           summary = setFieldOp(summary);
           calleeSize += SIMPLE_OPERATION_COST;
@@ -531,7 +531,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
           int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
           constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
           int fieldId = klass.getFieldRefId(constantPoolIndex);
-          VM_Field f = VM_FieldDictionary.getValue(fieldId);
+          VM_Field f = VM_ClassLoader.getFieldFromId(fieldId);
           written.addUniqueElement(f);
           summary = setFieldOp(summary);
           calleeSize += SIMPLE_OPERATION_COST;

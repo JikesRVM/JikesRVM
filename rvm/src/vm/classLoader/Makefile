@@ -19,7 +19,6 @@ MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \
 			$(GEN_FILES_DIR)/VM_LongLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_DoubleLiteralDictionary.java \
 			$(GEN_FILES_DIR)/VM_StringLiteralDictionary.java \
-			$(GEN_FILES_DIR)/VM_StringVector.java \
 			$(GEN_FILES_DIR)/VM_TypeVector.java \
 			$(GEN_FILES_DIR)/VM_FieldVector.java \
 			$(GEN_FILES_DIR)/VM_MethodVector.java
@@ -44,22 +43,19 @@ $(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java: VM_DictionaryA.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_EdgeCounterDictionary com.ibm.JikesRVM.classloader.VM_Triplet int com.ibm.JikesRVM.classloader.VM_Triplet VM_DictionaryA.template $(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java
 
 $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_IntLiteralDictionary int int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_IntLiteralDictionary int int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java
 
 $(GEN_FILES_DIR)/VM_FloatLiteralDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_FloatLiteralDictionary int int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_FloatLiteralDictionary.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_FloatLiteralDictionary int int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_FloatLiteralDictionary.java
 
 $(GEN_FILES_DIR)/VM_LongLiteralDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_LongLiteralDictionary long int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_LongLiteralDictionary.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_LongLiteralDictionary long int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_LongLiteralDictionary.java
 
 $(GEN_FILES_DIR)/VM_DoubleLiteralDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_DoubleLiteralDictionary long int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_DoubleLiteralDictionary.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_DoubleLiteralDictionary long int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_DoubleLiteralDictionary.java
 
 $(GEN_FILES_DIR)/VM_StringLiteralDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_StringLiteralDictionary VM_Atom int VM_Atom VM_Dictionary.template $(GEN_FILES_DIR)/VM_StringLiteralDictionary.java
-
-$(GEN_FILES_DIR)/VM_StringVector.java:	VM_Vector.template
-			./InstantiateVectorTemplate com.ibm.JikesRVM.classloader VM_StringVector String VM_Vector.template $(GEN_FILES_DIR)/VM_StringVector.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_StringLiteralDictionary com.ibm.JikesRVM.classloader.VM_Atom int com.ibm.JikesRVM.classloader.VM_Atom VM_Dictionary.template $(GEN_FILES_DIR)/VM_StringLiteralDictionary.java
 
 $(GEN_FILES_DIR)/VM_TypeVector.java:	VM_Vector.template
 			./InstantiateVectorTemplate com.ibm.JikesRVM.classloader VM_TypeVector VM_Type VM_Vector.template $(GEN_FILES_DIR)/VM_TypeVector.java

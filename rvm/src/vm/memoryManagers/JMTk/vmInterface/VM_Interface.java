@@ -226,14 +226,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void unresolvedPutfieldWriteBarrier(Object ref, int fieldID,
 						    Object value)
     throws VM_PragmaInline {
-    int offset = VM_FieldDictionary.getValue(fieldID).getOffset();
+    int offset = VM_ClassLoader.getFieldFromId(fieldID).getOffset();
     getPlan().putFieldWriteBarrier(VM_Magic.objectAsAddress(ref), offset,
 				   VM_Magic.objectAsAddress(value));
   }
   
   public static void unresolvedPutStaticWriteBarrier(int fieldID, Object value)
     throws VM_PragmaInline { 
-    int offset = VM_FieldDictionary.getValue(fieldID).getOffset();
+    int offset = VM_ClassLoader.getFieldFromId(fieldID).getOffset();
     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
     getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
