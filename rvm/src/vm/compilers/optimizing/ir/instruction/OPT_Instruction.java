@@ -488,9 +488,6 @@ public final class OPT_Instruction
    * Doing so results in fragile code and is generally evil. 
    * Virtually all access to operands should be through the OperandEnumerations
    * or through accessor functions of the InstructionFormat classes.
-   * If we were using packages (or had C++ style friends) access to
-   * the getOperand, getClearOperand and putOperand methods would be severely
-   * restricted.
    */
 
 
@@ -1773,29 +1770,26 @@ public final class OPT_Instruction
    */
 
   /**
-   * USE DISCOURAGED: Return the ith operand.
-   *
    * NOTE: It is incorrect to use getOperand with a constant argument
    * outside of the automatically generated code in OPT_Operators.
    * The only approved direct use of getOperand is in a loop over
    * some subset of an instructions operands (all of them, all uses, all defs).
    *
    * @param i which operand to return
+   * @return the ith operand
    */
   public OPT_Operand getOperand(int i) {
     return ops[i];
   }
 
   /**
-   * USE DISCOURAGED: Return the ith operand, detaching it from 
-   * the instruction.
-   *
    * NOTE: It is incorrect to use getClearOperand with a constant argument
    * outside of the automatically generated code in OPT_Operators.
    * The only approved direct use of getOperand is in a loop over
    * some subset of an instructions operands (all of them, all uses, all defs).
    *
    * @param i which operand to return
+   * @return the ith operand detatching it from the instruction
    */
   public OPT_Operand getClearOperand(int i) {
     OPT_Operand o = ops[i];
@@ -1805,24 +1799,30 @@ public final class OPT_Instruction
   }
 
   /**
-   * USE DISCOURAGED: Update the ith operand to have a new value
-   *
    * NOTE: It is incorrect to use putOperand with a constant argument
    * outside of the automatically generated code in OPT_Operators.
    * The only approved direct use of getOperand is in a loop over
    * some subset of an instruction's operands (all of them, all uses, all defs).
-   *
+   * 
+   * @param i which operand to set
+   * @param op the operand to set it to
    */
   public void putOperand(int i, OPT_Operand op) {
-    ops[i] =  setInstruction(op);
-  }
-  private OPT_Operand setInstruction(OPT_Operand op) {
-    if (op == null) return null;
-    if ((op.instruction != null)) {
-	op = op.copy();
+    if (op == null) {
+      ops[i] = null;
+    } else {
+      // TODO: Replace this silly copying code with an assertion that operands 
+      //       are not shared between instructions and force people to be
+      //       more careful!
+      if (op.instruction != null) {
+	op = outOfLineCopy(op);
+      }
+      op.instruction = this;
+      ops[i] = op;
     }
-    op.instruction = this;
-    return op;
+  }
+  private OPT_Operand outOfLineCopy(OPT_Operand op) throws VM_PragmaNoInline {
+    return op.copy();
   }
 
   /**
@@ -1831,7 +1831,7 @@ public final class OPT_Instruction
    * 
    * @param newSize the new minimum number of operands.
    */
-  public void resizeNumberOfOperands(int newSize) {
+  void resizeNumberOfOperands(int newSize) {
     int oldSize = ops.length;
     if (oldSize != newSize) {
       OPT_Operand newOps[] = new OPT_Operand[newSize];
