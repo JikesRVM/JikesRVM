@@ -13,7 +13,7 @@ class TestDispatch
       {
       System.out.println("TestDispatch");
       TestDispatchWorker a = new TestDispatchWorker("ping"); a.start();
-      TestDispatchWorker b = new TestDispatchWorker("pong"); b.start();
+      TestDispatchWorker b = new TestDispatchWorker("                   pong"); b.start();
       while (!a.isFinished && !b.isFinished)
          Thread.currentThread().yield();
       TestDispatchWorker.say("main", "bye");
