@@ -169,7 +169,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
    * @param next The reference to which next should point.
    */
   private static final void setNext(VM_Address buf, VM_Address next) {
-    VM_Magic.setMemoryWord(buf, next.toInt());
+    VM_Magic.setMemoryAddress(buf, next);
   }
 
   /**
@@ -179,7 +179,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
    * @return The next field for this buffer.
    */
   private final VM_Address getNext(VM_Address buf) {
-    return VM_Address.fromInt(VM_Magic.getMemoryWord(buf));
+    return VM_Magic.getMemoryAddress(buf);
   }
 
   /**

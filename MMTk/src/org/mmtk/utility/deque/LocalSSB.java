@@ -104,7 +104,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
   protected final void uncheckedInsert(int value) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= WORDSIZE);
     tail = tail.sub(WORDSIZE);
-    VM_Magic.setMemoryWord(tail, value);
+    VM_Magic.setMemoryInt(tail, value);
     //    if (VM.VerifyAssertions) enqueued++;
   }
 
@@ -125,7 +125,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     VM_Address tgt = bufferFirst(tail);
     VM_Address last = tgt.add(bufferLastOffset(arity) - bufferOffset(tail));
     while(tgt.LE(last)) {
-      VM_Magic.setMemoryWord(tgt, VM_Magic.getMemoryWord(src));
+      VM_Magic.setMemoryInt(tgt, VM_Magic.getMemoryInt(src));
       src = src.add(WORDSIZE);
       tgt = tgt.add(WORDSIZE);
     }

@@ -395,7 +395,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     if (VERIFY_ZEROED_ALLOCATIONS) {
       for (int i=0; i<size; i+= 4) {
-        int val = VM_Magic.getMemoryWord(addr.add(i));
+        int val = VM_Magic.getMemoryInt(addr.add(i));
         if (val != 0) {
           VM.sysWrite("Non-zeroed memory allocated ");
           VM.sysWriteln("\taddress is ",addr.toInt());

@@ -115,7 +115,7 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
   protected final void uncheckedPush(int value) throws VM_PragmaInline {
     if (VM.VerifyAssertions) 
       VM._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
-    VM_Magic.setMemoryWord(head, value);
+    VM_Magic.setMemoryInt(head, value);
     head = head.add(WORD_SIZE);
     //    if (VM.VerifyAssertions) enqueued++;
   }
@@ -131,7 +131,7 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
     if (VM.VerifyAssertions) VM._assert(bufferOffset(head) >= WORD_SIZE);
     head = head.sub(WORD_SIZE);
     // if (VM.VerifyAssertions) enqueued--;
-    return VM_Magic.getMemoryWord(head);
+    return VM_Magic.getMemoryInt(head);
   }
 
   ////////////////////////////////////////////////////////////////////////////

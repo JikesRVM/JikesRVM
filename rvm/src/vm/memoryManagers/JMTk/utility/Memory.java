@@ -65,12 +65,12 @@ public class Memory implements VM_Uninterruptible {
 
   public static void zeroSmall(VM_Address start, int len) throws VM_PragmaInline {
     for (int i=0; i<len; i+=4) 
-      VM_Magic.setMemoryWord(start.add(i), 0);
+      VM_Magic.setMemoryInt(start.add(i), 0);
   }
 
   public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
     for (int i=0; i<len; i+=4) 
-      VM_Magic.setMemoryWord(start.add(i), v);
+      VM_Magic.setMemoryInt(start.add(i), v);
   }
 
   // start and len must both be OS-page aligned

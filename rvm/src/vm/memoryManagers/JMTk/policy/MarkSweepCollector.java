@@ -232,16 +232,16 @@ final class MarkSweepCollector implements Constants, VM_Uninterruptible {
       base = base.add(WORD_SIZE);
       VM_Address markBitmap = base;
       base = base.add(WORD_SIZE);
-      int mark = VM_Magic.getMemoryWord(markBitmap);
+      int mark = VM_Magic.getMemoryInt(markBitmap);
       if (release) {
-	int inuse = VM_Magic.getMemoryWord(inUseBitmap);
+	int inuse = VM_Magic.getMemoryInt(inUseBitmap);
 	int free = mark ^ inuse;
 	if (free != 0) {
 	  freeFromBitmap(allocator, sp, free, sizeClass, cellSize, pair, small);
-	  VM_Magic.setMemoryWord(inUseBitmap, mark); 
+	  VM_Magic.setMemoryInt(inUseBitmap, mark); 
 	}
 	if (mark != 0)
-	  VM_Magic.setMemoryWord(markBitmap, 0);
+	  VM_Magic.setMemoryInt(markBitmap, 0);
       } else {
 	if (mark != 0)
 	  return true;
@@ -525,7 +525,7 @@ final class MarkSweepCollector implements Constants, VM_Uninterruptible {
     int index = getCellIndex(ref, sp, small);
     VM_Word mask = getBitMask(index);
     VM_Address addr = getBitMapWord(index, sp, inuse, small);
-    VM_Word value = VM_Word.fromInt(VM_Magic.getMemoryWord(addr));
+    VM_Word value = VM_Magic.getMemoryWord(addr);
     return mask.EQ(value.and(mask));
   }
   private static int getCellIndex(VM_Address ref, VM_Address sp, boolean small)
@@ -561,13 +561,13 @@ final class MarkSweepCollector implements Constants, VM_Uninterruptible {
   private static void unsyncSetBit(VM_Address bitMapWord, VM_Word mask, 
 				   boolean set) 
     throws VM_PragmaInline {
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(bitMapWord));
+    VM_Word wd = VM_Magic.getMemoryWord(bitMapWord);
     if (set)
       wd = wd.or(mask);
     else
       wd = wd.and(mask.not());
 
-    VM_Magic.setMemoryWord(bitMapWord, wd.toInt());
+    VM_Magic.setMemoryWord(bitMapWord, wd);
   }
   private static void syncSetBit(VM_Address bitMapWord, VM_Word mask, 
 				 boolean set) 

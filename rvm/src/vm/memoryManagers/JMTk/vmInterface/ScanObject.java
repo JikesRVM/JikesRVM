@@ -141,11 +141,10 @@ public class ScanObject implements VM_Constants, Constants {
         int location = 0;    // for arrays = offset of [0] entry
         int end      = num_elements * 4;
         for ( location = 0; location < end; location += 4 ) {
-          VM_Address iref = VM_Address.fromInt(VM_Magic.getMemoryWord(ref.add(location)));
+          VM_Address iref = VM_Magic.getMemoryAddress(ref.add(location));
           if ( ! validateRefs( iref, depth-1 ) ) {
             VM.sysWrite("Referenced from Array: Ref = ", ref);
-            VM.sysWrite("                  At Index = ");
-            VM.sysWrite(location>>2);
+            VM.sysWrite("                  At Index = ", location>>2);
             VM.sysWriteln("              Array Length = ", num_elements);
             return false;
           }
