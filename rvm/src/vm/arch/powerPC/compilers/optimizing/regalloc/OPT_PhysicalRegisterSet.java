@@ -147,7 +147,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
     reg[FRAME_POINTER].setSpansBasicBlock();
     reg[JTOC_POINTER].setSpansBasicBlock();
-    reg[THREAD_ID_REGISTER].setSpansBasicBlock();
 
     // 8. set up the volatile FPRs
     for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE + 
@@ -216,7 +215,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
       case PROCESSOR_REGISTER:
       case FRAME_POINTER:
       case JTOC_POINTER:
-      case THREAD_ID_REGISTER:
         return false;
       default:
         return (r.number < FIRST_SPECIAL);
@@ -277,13 +275,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    */
   public OPT_Register getFP() {
     return reg[FRAME_POINTER];
-  }
-
-  /**
-   * @return the TI register
-   */
-  public OPT_Register getTI() {
-    return reg[THREAD_ID_REGISTER];
   }
 
   /**
@@ -516,7 +507,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
       regName[i + FIRST_CONDITION] = "C" + i;
     regName[JTOC_POINTER] = "JTOC";
     regName[FRAME_POINTER] = "FP";
-    regName[THREAD_ID_REGISTER] = "TI";
     regName[PROCESSOR_REGISTER] = "PR";
     regName[XER] = "XER";
     regName[LR] = "LR";

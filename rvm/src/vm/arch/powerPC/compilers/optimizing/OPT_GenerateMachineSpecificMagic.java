@@ -41,11 +41,6 @@ class OPT_GenerateMachineSpecificMagic
       bc2ir.push(gc.temps.makeJTOCOp(null,null));
     } else if (methodName == VM_MagicNames.getJTOC) {
       bc2ir.push(gc.temps.makeTocOp());
-    } else if (methodName == VM_MagicNames.getThreadId) {
-      OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
-      OPT_RegisterOperand TIOp = 
-	new OPT_RegisterOperand(phys.getTI(),VM_TypeReference.Int);
-      bc2ir.push(TIOp);
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
