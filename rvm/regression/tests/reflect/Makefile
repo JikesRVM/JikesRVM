@@ -21,5 +21,4 @@ sanity: $(TESTS)
 	$(MAKE) do-sanity-finish
 
 $(TESTS): %:
-	$(MAKE) START_NAME=$@ do-sanity-compare
-
+	$(MAKE) START_NAME=$@ EXPECTED=$@.expected sanity-diff
