@@ -15,6 +15,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_Word;
 
 /**
  * This class implements "block" data structures of various sizes.<p>
@@ -130,7 +131,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     
     if (VM_Interface.VerifyAssertions) {
       VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
-      VM_Interface._assert(rtn.EQ(rtn.toWord().and(mask).add(BLOCK_HEADER_SIZE).toAddress));
+      VM_Interface._assert(rtn.EQ(rtn.toWord().and(mask).add(VM_Word.fromInt(BLOCK_HEADER_SIZE)).toAddress()));
     }
 
     if (PARANOID)
@@ -298,7 +299,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (childSC == MAX_BLOCK_SIZE_CLASS)
       release(child, originalSC);
     else {
-      VM_Address buddy = child.toAddress().xor(buddyMask[childSC]).toAddress();
+      VM_Address buddy = child.toWord().xor(VM_Word.fromInt(buddyMask[childSC])).toAddress();
       byte flid = getFreeListID(childSC, originalSC);
       if (isFree(buddy) && (getFreeListID(buddy) == flid)) {
 	removeFromFreeList(buddy, flid);
