@@ -116,9 +116,11 @@ class GenerateInterfaceDeclarations {
     pln("#include <inttypes.h>");
     if (VM.BuildFor32Addr) {
       pln("#define VM_Address uint32_t");
+      pln("#define VM_Word uint32_t");
       pln("#define JavaObject_t uint32_t");
     } else {
       pln("#define VM_Address uint64_t");
+      pln("#define VM_Word uint64_t");
       pln("#define JavaObject_t uint64_t");
     }
     pln("#endif /* NEED_BOOT_RECORD_DECLARATIONS || NEED_VIRTUAL_MACHINE_DECLARATIONS */");
