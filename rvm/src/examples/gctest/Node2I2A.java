@@ -17,8 +17,10 @@ class Node2I2A {
   static int objectSize = 0;
   static Object fakeLock = new Object();
 
+  // This should require no more than 28 Megs even with 3 word headers
+  //
   public static void computeObjectSize() {
-    int estimateSize = 2000000;
+    int estimateSize = 1000000;
     while (true) {
       System.gc();
       long start = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
