@@ -589,116 +589,116 @@ EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_XOR, MO_AS(P(p), B_S, B), IC(1)));
 
 #####
-# BOOLEAN_CMP
+# BOOLEAN_CMP_INT
 #####
-r:	BOOLEAN_CMP(r,riv)
+r:	BOOLEAN_CMP_INT(r,riv)
 39
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), \
             BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)), \
 	    BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP(r,riv)
+boolcmp: BOOLEAN_CMP_INT(r,riv)
 13
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \
 EMIT(MIR_Compare.mutate(P(p), IA32_CMP, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p))));
 
-r:	BOOLEAN_CMP(r,INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(r,INT_CONSTANT)
 VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?37:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())); \
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP(r,INT_CONSTANT)
+boolcmp: BOOLEAN_CMP_INT(r,INT_CONSTANT)
 VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?11:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \
 EMIT(MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy()));
 
-r:	BOOLEAN_CMP(cz, INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(cz, INT_CONSTANT)
 isZERO(VR(p), 26)
 EMIT_INSTRUCTION 
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP(cz, INT_CONSTANT)
+boolcmp: BOOLEAN_CMP_INT(cz, INT_CONSTANT)
 isZERO(VR(p), 0)
 EMIT_INSTRUCTION 
 pushCOND(BooleanCmp.getCond(P(p))); 
 
-r:	BOOLEAN_CMP(szp, INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(szp, INT_CONSTANT)
 VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?26:INFINITE
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP(szp, INT_CONSTANT)
+boolcmp: BOOLEAN_CMP_INT(szp, INT_CONSTANT)
 VR(p) == 0 && EQ_NE(BooleanCmp.getCond(P(p)))?0:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p)));
 
 ## chaining of boolcmps
-r:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), consumeCOND());
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND());
 
-boolcmp:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+boolcmp:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
 NOFLAGS
 // use already pushed condition
 
-r:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
 
-boolcmp:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+boolcmp:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
 EMIT_INSTRUCTION
 pushCOND(consumeCOND().flipCode()); // invert already pushed condition
 
-r:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), consumeCOND());
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND());
 
-boolcmp:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+boolcmp:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
 NOFLAGS
 // use already pushed condition
 
-r:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
 
-boolcmp: BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+boolcmp: BOOLEAN_CMP_INT(boolcmp, INT_CONSTANT)
 VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
 EMIT_INSTRUCTION
 pushCOND(consumeCOND().flipCode()); // invert already pushed condition
 
 ### Memory operands ###
-r:	BOOLEAN_CMP(load32,riv)
+r:	BOOLEAN_CMP_INT(load32,riv)
 41
 EMIT_INSTRUCTION
-BOOLEAN_CMP(PL(p), BooleanCmp.getResult(P(p)), \
+BOOLEAN_CMP_INT(PL(p), BooleanCmp.getResult(P(p)), \
             consumeMO(), BooleanCmp.getVal2(P(p)), \
 	    BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP(load32,riv)
+boolcmp: BOOLEAN_CMP_INT(load32,riv)
 15
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \
 EMIT(MIR_Compare.mutate(PL(p), IA32_CMP, consumeMO(), BooleanCmp.getVal2(P(p)))); 
 
-r:	BOOLEAN_CMP(r,load32)
+r:	BOOLEAN_CMP_INT(r,load32)
 41
 EMIT_INSTRUCTION
-BOOLEAN_CMP(PR(p), BooleanCmp.getResult(P(p)), \
+BOOLEAN_CMP_INT(PR(p), BooleanCmp.getResult(P(p)), \
             BooleanCmp.getVal1(P(p)), consumeMO(), \
 	    BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP(r,load32)
+boolcmp: BOOLEAN_CMP_INT(r,load32)
 15
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \

@@ -817,7 +817,7 @@ class OPT_GenerateMagic implements OPT_Operators,
     OPT_Operand o2 = given_o2 == null ? bc2ir.pop() : given_o2;
     OPT_Operand o1 = bc2ir.pop();
     OPT_RegisterOperand res = gc.temps.makeTempInt();
-    bc2ir.appendInstruction(BooleanCmp.create(BOOLEAN_CMP, res.copyRO(), o1, o2, cond, new OPT_BranchProfileOperand()));
+    bc2ir.appendInstruction(BooleanCmp.create(BOOLEAN_CMP_ADDR, res.copyRO(), o1, o2, cond, new OPT_BranchProfileOperand()));
     bc2ir.push(res.copyD2U());
   }
 

@@ -33,7 +33,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
    */
   public static final boolean CF_INT = true;
   /** 
-   * Constant fold long operations?
+   * Constant fold address operations?
    */
   public static final boolean CF_LONG = true;
 
@@ -315,13 +315,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           int itv = tv.asIntConstant().value;
           int ifv = fv.asIntConstant().value;
           if (itv == 1 && ifv == 0) {
-            BooleanCmp.mutate(s, BOOLEAN_CMP, CondMove.getClearResult(s),
+            BooleanCmp.mutate(s, BOOLEAN_CMP_INT, CondMove.getClearResult(s),
                               CondMove.getClearVal1(s), CondMove.getClearVal2(s),
                               CondMove.getClearCond(s), new OPT_BranchProfileOperand());
             return REDUCED;
           }
           if (itv == 0 && ifv == 1) {
-            BooleanCmp.mutate(s, BOOLEAN_CMP, CondMove.getClearResult(s),
+            BooleanCmp.mutate(s, BOOLEAN_CMP_INT, CondMove.getClearResult(s),
                               CondMove.getClearVal1(s), CondMove.getClearVal2(s),
                               CondMove.getClearCond(s).flipCode(), new OPT_BranchProfileOperand());
             return REDUCED;
@@ -497,7 +497,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
         }
       }
       return UNCHANGED;
-    case BOOLEAN_CMP_opcode:
+    case BOOLEAN_CMP_INT_opcode:
+    case BOOLEAN_CMP_ADDR_opcode:
       if (CF_INT) {
         OPT_Operand op1 = BooleanCmp.getVal1(s);
         OPT_Operand op2 = BooleanCmp.getVal2(s);

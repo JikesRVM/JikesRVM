@@ -194,7 +194,8 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         IfCmp2.setVal2(s, asImmediateOrRegInt(IfCmp2.getClearVal2(s), s, ir, true));
         break;
 
-      case BOOLEAN_CMP_opcode:
+      case BOOLEAN_CMP_INT_opcode:
+      case BOOLEAN_CMP_ADDR_opcode:
         // val2 must be small enough.
         BooleanCmp.setVal2(s, asImmediateOrRegPolymorphic(BooleanCmp.getClearVal2(s),s,ir, true));
         break;

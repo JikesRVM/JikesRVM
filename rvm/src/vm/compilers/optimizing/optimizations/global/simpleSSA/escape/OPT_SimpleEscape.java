@@ -274,7 +274,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case ARRAYLENGTH_opcode:case REF_IFCMP_opcode:
       case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
       case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
-      case BOOLEAN_CMP_opcode:case OBJARRAY_STORE_CHECK_opcode:
+      case BOOLEAN_CMP_INT_opcode:case BOOLEAN_CMP_ADDR_opcode:case OBJARRAY_STORE_CHECK_opcode:
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:
       case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:case NEWARRAY_opcode:
@@ -446,7 +446,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case MONITOREXIT_opcode:case NULL_CHECK_opcode:case ARRAYLENGTH_opcode:
       case REF_IFCMP_opcode:case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
       case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
-      case BOOLEAN_CMP_opcode:
+      case BOOLEAN_CMP_INT_opcode:case BOOLEAN_CMP_ADDR_opcode:
       case OBJARRAY_STORE_CHECK_opcode:
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:

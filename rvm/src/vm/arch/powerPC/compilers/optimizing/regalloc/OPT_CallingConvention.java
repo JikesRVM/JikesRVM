@@ -167,7 +167,7 @@ implements OPT_PhysicalRegisterConstants {
           } else {                  // spilled parameter
             start.insertBack(MIR_Load.create(PPC_LFS, F(symParam), 
                                              A(FP), 
-                                             IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+                                             IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) + BYTES_IN_ADDRESS-BYTES_IN_FLOAT)));
             spilledArgumentCounter--;
           }
         }
@@ -203,7 +203,7 @@ implements OPT_PhysicalRegisterConstants {
             //-#if RVM_FOR_64_ADDR
             if (t.isIntType() || t.isShortType() || t.isByteType() || t.isCharType() || t.isBooleanType())
               start.insertBack(MIR_Load.create(PPC_LInt, new OPT_RegisterOperand(symParam, t), 
-                               A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+                               A(FP), IC((spilledArgumentCounter << LOG_BYTES_IN_ADDRESS) + BYTES_IN_ADDRESS - BYTES_IN_INT )));
             else //a reference or numeric long
             //-#endif
               start.insertBack(MIR_Load.create(PPC_LAddr, new OPT_RegisterOperand(symParam, t), 
@@ -254,8 +254,8 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(MIR_Store.create(PPC_STFS, F(reg), A(FP), IC(callSpillLoc)));
           callSpillLoc += BYTES_IN_ADDRESS;
+          p.insertBack(MIR_Store.create(PPC_STFS, F(reg), A(FP), IC(callSpillLoc - BYTES_IN_FLOAT)));
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
         }
@@ -299,18 +299,23 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
+          callSpillLoc += BYTES_IN_ADDRESS;
           //-#if RVM_FOR_64_ADDR
           if (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() || 
-              Reg.type.isCharType() || Reg.type.isBooleanType())
+              Reg.type.isCharType() || Reg.type.isBooleanType()){
+				//KV: 64_BIT AIX HACK, to be removed, once we find out where somebody is reading the wrong 4 bytes.
                   p.insertBack(MIR_Store.create(PPC_STW,
                                                 new OPT_RegisterOperand(reg, Reg.type),
-                                                A(FP), IC(callSpillLoc)));
-          else //a reference or numeric long
+                                                A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
+				//KV: end of HACK
+                  p.insertBack(MIR_Store.create(PPC_STW,
+                                                new OPT_RegisterOperand(reg, Reg.type),
+                                                A(FP), IC(callSpillLoc - BYTES_IN_INT)));
+          } else //a reference or numeric long
           //-#endif
                   p.insertBack(MIR_Store.create(PPC_STAddr,
                                                 new OPT_RegisterOperand(reg, Reg.type),
-                                                A(FP), IC(callSpillLoc)));
-          callSpillLoc += BYTES_IN_ADDRESS;
+                                                A(FP), IC(callSpillLoc - BYTES_IN_ADDRESS)));
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
         }

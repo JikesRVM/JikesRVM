@@ -328,6 +328,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         break;
 
       case PPC_CNTLZW_opcode:
+      case PPC_CNTLZAddr_opcode:
       case PPC_EXTSB_opcode:
       case PPC_EXTSBr_opcode:
       case PPC_EXTSH_opcode:
@@ -417,6 +418,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+//-#if RVM_FOR_32_ADDR
+      case PPC_SRAddrI_opcode:
+//-#endif
       case PPC_SRWI_opcode:
         /* pseudo opcode, equal to rlwinm Rx,Ry,32-n,n,31 */
       case PPC_SRWIr_opcode:
@@ -445,6 +449,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+//-#if RVM_FOR_32_ADDR
+      case PPC_SRAAddrI_opcode:
+//-#endif
       case PPC_SRAWI_opcode:
       case PPC_SRAWIr_opcode:
         {
@@ -457,6 +464,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         break;
 
 //-#if RVM_FOR_64_ADDR
+      case PPC_SRAAddrI_opcode:
       case PPC64_SRADI_opcode:
         {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
@@ -469,6 +477,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+      case PPC_SRAddrI_opcode:
       case PPC64_SRDI_opcode:
         {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;

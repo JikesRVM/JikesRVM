@@ -47,8 +47,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
         long_ifcmp(s, ir);
         break;
       //-#endif
-      case BOOLEAN_CMP_opcode:
-        boolean_cmp(s, ir);
+      case BOOLEAN_CMP_INT_opcode:
+        boolean_cmp(s, ir, true);
+        break;
+      case BOOLEAN_CMP_ADDR_opcode:
+        boolean_cmp(s, ir, VM.BuildFor32Addr?true:false);
         break;
       case DOUBLE_CMPL_opcode:
       case FLOAT_CMPL_opcode:
@@ -129,7 +132,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
   }
 //-#endif
 
-  private static void boolean_cmp (OPT_Instruction s, OPT_IR ir) {
+  private static void boolean_cmp (OPT_Instruction s, OPT_IR ir, boolean cmp32Bit) {
     // undo the optimization because it cannot efficiently be generated
     OPT_Register res = BooleanCmp.getClearResult(s).register;
     OPT_RegisterOperand one = (OPT_RegisterOperand)BooleanCmp.getClearVal1(s);
@@ -144,6 +147,15 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_RegisterOperand t = ir.regpool.makeTempInt();
     t.register.setCondition();
     OPT_Operator op;
+    //-#if RVM_FOR_64_ADDR
+    if (!cmp32Bit) {
+      if (two instanceof OPT_IntConstantOperand) {
+        op = cond.isUNSIGNED() ? PPC64_CMPLI : PPC64_CMPI;
+      } else { 
+        op = cond.isUNSIGNED() ? PPC64_CMPL : PPC64_CMP;
+      }
+    } else 
+    //-#endif
     if (two instanceof OPT_IntConstantOperand) {
       op = cond.isUNSIGNED() ? PPC_CMPLI : PPC_CMPI;
     } else { 

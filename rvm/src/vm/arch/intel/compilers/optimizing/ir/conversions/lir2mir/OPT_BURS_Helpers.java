@@ -942,7 +942,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
 
 
   /**
-   * Expansion of BOOLEAN_CMP
+   * Expansion of BOOLEAN_CMP_INT
    *
    * @param s the instruction to copy position info from
    * @param result the result operand
@@ -950,7 +950,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param val2   the second value
    * @param cond   the condition operand
    */
-  protected final void BOOLEAN_CMP(OPT_Instruction s,
+  protected final void BOOLEAN_CMP_INT(OPT_Instruction s,
                                    OPT_Operand res, 
                                    OPT_Operand val1,
                                    OPT_Operand val2,
@@ -963,7 +963,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
 
 
   /**
-   * Expansion of a special case of BOOLEAN_CMP when the 
+   * Expansion of a special case of BOOLEAN_CMP_INT when the 
    * condition registers have already been set by the previous
    * ALU op.
    *
@@ -971,7 +971,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param result the result operand
    * @param cond   the condition operand
    */
-  protected final void BOOLEAN_CMP(OPT_Instruction s,
+  protected final void BOOLEAN_CMP_INT(OPT_Instruction s,
                                    OPT_Operand res, 
                                    OPT_ConditionOperand cond) {
     OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);

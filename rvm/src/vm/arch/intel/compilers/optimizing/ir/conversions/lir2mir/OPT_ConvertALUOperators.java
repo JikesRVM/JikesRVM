@@ -147,6 +147,9 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case LONG_XOR_opcode: commutative(s, LONG_XOR_ACC, ir); break;
       case LONG_NEG_opcode: unary(s, LONG_NEG_ACC, ir); break;
       case LONG_NOT_opcode: unary(s, LONG_NOT_ACC, ir); break;
+      
+		// BURS doesn't really care, so consolidate to reduce rule space
+      case BOOLEAN_CMP_ADDR_opcode: s.operator = BOOLEAN_CMP_INT; break;
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case FLOAT_ADD_opcode: s.operator = FP_ADD; break;

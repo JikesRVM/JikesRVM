@@ -1230,8 +1230,15 @@ none
 
 
 
-# Compare two boolean values (int resister/contant operands) and put result in register
-BOOLEAN_CMP
+# Compare two int values (int resigter/contant operands) and put boolean result in register
+BOOLEAN_CMP_INT
+BooleanCmp
+compare
+
+
+
+# Compare two address values (address register/contant operands) and put boolean result in register
+BOOLEAN_CMP_ADDR
 BooleanCmp
 compare
 

@@ -518,7 +518,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                              TG());
           OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int,
                                                  entry, IC(interfaceMask));
-          s.insertBefore(BooleanCmp.create(BOOLEAN_CMP, result, 
+          s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, result, 
                                            bit,
                                            IC(0),
                                            OPT_ConditionOperand.NOT_EQUAL(),
@@ -528,7 +528,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             OPT_RegisterOperand doesImplLength = 
               InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copy(), TG());
             OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP, boundscheck, 
+            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, boundscheck, 
                                              doesImplLength,
                                              IC(interfaceIndex),
                                              OPT_ConditionOperand.GREATER(),
@@ -545,7 +545,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             // For a final class, we can do a PTR compare of 
             // rhsTIB and the TIB of the class
             OPT_Operand classTIB = getTIB(s, ir, LHSclass);
-            BooleanCmp.mutate(s, BOOLEAN_CMP, result, RHStib, classTIB, 
+            BooleanCmp.mutate(s, BOOLEAN_CMP_ADDR, result, RHStib, classTIB, 
                               OPT_ConditionOperand.EQUAL(),
                               new OPT_BranchProfileOperand());
             return s.prevInstructionInCodeOrder();
@@ -561,7 +561,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                superclassIds, LHSDepth << 1, 
                                new OPT_LocationOperand(VM_TypeReference.Short), 
                                TG());
-            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP, result, 
+            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, result, 
                                              refCandidate, 
                                              IC(LHSId), 
                                              OPT_ConditionOperand.EQUAL(),
@@ -571,7 +571,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                 InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, 
                                    superclassIds.copyD2U(), TG());
               OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-              s.insertBefore(BooleanCmp.create(BOOLEAN_CMP, boundscheck, 
+              s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, boundscheck, 
                                                superclassIdsLength, 
                                                IC(LHSDepth), 
                                                OPT_ConditionOperand.GREATER(),
@@ -606,7 +606,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           // [^k of primitive or [^k of final class. Just like final classes, 
           // a PTR compare of rhsTIB and the TIB of the class gives the answer.
           OPT_Operand classTIB = getTIB(s, ir, LHSArray);
-          BooleanCmp.mutate(s, BOOLEAN_CMP, result, RHStib, classTIB, 
+          BooleanCmp.mutate(s, BOOLEAN_CMP_ADDR, result, RHStib, classTIB, 
                             OPT_ConditionOperand.EQUAL(), new OPT_BranchProfileOperand());
           return s;
         }

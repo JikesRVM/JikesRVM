@@ -464,7 +464,7 @@ public final class OSR_OptExecStateExtractor
     // ASSUMING, spill offset is offset to FP in bytes.
     } else if (vtype == SPILL) {
 
-      int offset = fpOffset + value;
+      int offset = fpOffset + value + BYTES_IN_STACKSLOT - BYTES_IN_INT;
       return VM_Magic.getIntAtOffset(stack, offset);
 
     } else {
@@ -544,7 +544,7 @@ public final class OSR_OptExecStateExtractor
                                             byte[] stack,
                                             int fpOffset,
                                             OSR_TempRegisters registers) {
-    if ((vtype == ICONST) || (vtype == ACONST)) {
+    if (vtype == ACONST) {
       // the only constant object is NULL, I believe.
       if (VM.VerifyAssertions) VM._assert(value == 0);
       return VM_Magic.addressAsObject(Address.zero());

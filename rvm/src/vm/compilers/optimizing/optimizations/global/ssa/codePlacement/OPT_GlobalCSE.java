@@ -273,7 +273,8 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case OBJARRAY_STORE_CHECK_opcode:
     case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
     case BOOLEAN_NOT_opcode:
-    case BOOLEAN_CMP_opcode:
+    case BOOLEAN_CMP_INT_opcode:
+    case BOOLEAN_CMP_ADDR_opcode:
     case FLOAT_AS_INT_BITS_opcode:
     case INT_BITS_AS_FLOAT_opcode:
     case DOUBLE_AS_LONG_BITS_opcode:

@@ -79,8 +79,20 @@ public final class OPT_StackManager extends OPT_GenericStackManager
             insertEpilogue(inst);
           break;
         case PPC_LFD_opcode:
-        case PPC_LFS_opcode:
         case PPC_LAddr_opcode:
+          // the following to handle spilled parameters
+          // SJF: this is ugly.  clean it up someday.
+          if (MIR_Load.getAddress(inst).register ==
+              ir.regpool.getPhysicalRegisterSet().getFP()) {
+            OPT_Operand one = MIR_Load.getOffset(inst);
+            if (one instanceof OPT_IntConstantOperand) {
+              int offset = ((OPT_IntConstantOperand) one).value;
+              if (offset <= -256) {
+                MIR_Load.setOffset(inst, IC(frameSize - offset - 256));
+              }
+            }
+          }
+        case PPC_LFS_opcode:
         case PPC_LInt_opcode:
         case PPC_LWZ_opcode:
           // the following to handle spilled parameters
@@ -91,7 +103,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
             if (one instanceof OPT_IntConstantOperand) {
               int offset = ((OPT_IntConstantOperand) one).value;
               if (offset <= -256) {
-                MIR_Load.setOffset(inst, IC(frameSize - offset - 256));
+                MIR_Load.setOffset(inst, IC(frameSize - offset - 256 + BYTES_IN_ADDRESS - BYTES_IN_INT));
               }
             }
           }
@@ -117,7 +129,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register FP = phys.getFP();
     if (type == FLOAT_VALUE) {
       s.insertBack(MIR_Store.create(PPC_STFS, F(r), A(FP),
-                                    IC(location)));
+                                    IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
     } else if (type == DOUBLE_VALUE) {
       s.insertBack(MIR_Store.create(PPC_STFD, D(r), A(FP),
                                     IC(location)));
@@ -164,11 +176,11 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     if (type == CONDITION_VALUE) {
       OPT_Register temp = phys.getTemp();
       s.insertBack(MIR_Load.create(PPC_LWZ, I(temp), A(FP),
-                                   IC(location)));
+                                   IC(location +BYTES_IN_ADDRESS - BYTES_IN_INT)));
     } else if (type == DOUBLE_VALUE) {
         s.insertBack(MIR_Load.create(PPC_LFD, D(r), A(FP), IC(location)));
     } else if (type == FLOAT_VALUE) {
-      s.insertBack(MIR_Load.create(PPC_LFS, F(r), A(FP), IC(location)));
+      s.insertBack(MIR_Load.create(PPC_LFS, F(r), A(FP), IC(location + BYTES_IN_ADDRESS - BYTES_IN_FLOAT)));
     } else if (type == INT_VALUE) { // integer or half of long
       s.insertBack(MIR_Load.create(PPC_LAddr, A(r), A(FP), IC(location)));
     } else {

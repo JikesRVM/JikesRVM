@@ -802,14 +802,18 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   private OPT_ConditionOperand cc;
   private OPT_Operand val1;
   private OPT_Operand val2;
+  private boolean isAddress;
+  
   protected final void PUSH_BOOLCMP(OPT_ConditionOperand c,
                                     OPT_Operand v1,
-                                    OPT_Operand v2) {
+                                    OPT_Operand v2, boolean address) {
     if (VM.VerifyAssertions) VM._assert(cc == null);
     cc = c;
     val1 = v1;
     val2 = v2;
+    isAddress = address;
   }
+  
   protected final void FLIP_BOOLCMP() {
     if (VM.VerifyAssertions) VM._assert(cc != null);
     cc = cc.flipCode();
@@ -817,10 +821,18 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 
   protected final void EMIT_PUSHED_BOOLCMP(OPT_RegisterOperand res) {
     if (VM.VerifyAssertions) VM._assert(cc != null);
-    if (val2 instanceof OPT_IntConstantOperand) {
-      BOOLEAN_CMP_IMM(res, cc, R(val1), IC(val2));
+    if (isAddress) {
+      if (val2 instanceof OPT_IntConstantOperand) {
+        BOOLEAN_CMP_ADDR_IMM(res, cc, R(val1), IC(val2));
+      } else {
+        BOOLEAN_CMP_ADDR(res, cc, R(val1), R(val2));
+      }
     } else {
-      BOOLEAN_CMP(res, cc, R(val1), R(val2));
+      if (val2 instanceof OPT_IntConstantOperand) {
+        BOOLEAN_CMP_INT_IMM(res, cc, R(val1), IC(val2));
+      } else {
+        BOOLEAN_CMP_INT(res, cc, R(val1), R(val2));
+      }
     }
     if (VM.VerifyAssertions) {
       cc = null;
@@ -834,7 +846,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (VM.VerifyAssertions) VM._assert(cc != null);
     OPT_RegisterOperand cr = regpool.makeTempCondition();
     OPT_Operator op;
-    if (val2 instanceof OPT_IntConstantOperand) {
+    //-#if RVM_FOR_64_ADDR
+    if (isAddress) {
+      if (val2 instanceof OPT_IntConstantOperand) {
+        op = cc.isUNSIGNED() ? PPC64_CMPLI : PPC64_CMPI;
+      } else { 
+        op = cc.isUNSIGNED() ? PPC64_CMPL : PPC64_CMP;
+      }
+    } else 
+    //-#endif
+	 if (val2 instanceof OPT_IntConstantOperand) {
       op = cc.isUNSIGNED() ? PPC_CMPLI : PPC_CMPI;
     } else { 
       op = cc.isUNSIGNED() ? PPC_CMPL : PPC_CMP;
@@ -854,7 +875,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   /**
    * taken from: The PowerPC Compiler Writer's Guide, pp. 199 
    */
-  protected final void BOOLEAN_CMP_IMM(OPT_RegisterOperand def, 
+  protected final void BOOLEAN_CMP_INT_IMM(OPT_RegisterOperand def, 
                                        OPT_ConditionOperand cmp,
                                        OPT_RegisterOperand one, 
                                        OPT_IntConstantOperand two) {
@@ -864,127 +885,257 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
       if (value == 0) {
-        EMIT(MIR_Unary.create(PPC_CNTLZW, R(t), one)); 
+        EMIT(MIR_Unary.create(PPC_CNTLZW, I(t), one)); 
       } else {
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(t), one, IC(value)));
-        EMIT(MIR_Unary.create(PPC_CNTLZW, R(t), R(t)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, I(t), one, IC(value)));
+        EMIT(MIR_Unary.create(PPC_CNTLZW, I(t), I(t)));
       }
-      EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(5)));
+      EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(LOG_BITS_IN_INT)));
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(t), one, IC(-1)));
-        EMIT(MIR_Binary.create(PPC_SUBFE, def, R(t), one.copyRO()));
+        EMIT(MIR_Binary.create(PPC_ADDIC, I(t), one, IC(-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFE, def, I(t), one.copyRO()));
       } else {
         t1 = regpool.getInteger();
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(t1), one, IC(value)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(t), R(t1), IC(-1)));
-        EMIT(MIR_Binary.create(PPC_SUBFE, def, R(t), R(t1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, I(t1), one, IC(value)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, I(t), I(t1), IC(-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFE, def, I(t), I(t1)));
       }
       break;
     case OPT_ConditionOperand.LESS:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, def, one, IC(31)));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, one, IC(BITS_IN_INT - 1)));
       } else if (value > 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one, 
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, I(zero), one, 
                                IC(value - 1)));
-        EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else if (value != 0xFFFF8000) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), 
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, I(zero), one.copyRO(), 
                                IC(value - 1)));
-        EMIT(MIR_Unary.create(PPC_ADDME, def, R(t)));
+        EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
       } else {                  // value = 0xFFFF8000
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
-        EMIT(MIR_Unary.create(PPC_LDIS, R(zero), IC(1)));
-        EMIT(MIR_Binary.create(PPC_SUBFC, R(zero), one.copyRO(), R(zero)));
-        EMIT(MIR_Unary.create(PPC_ADDME, def, R(t)));
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Unary.create(PPC_LDIS, I(zero), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SUBFC, I(zero), one.copyRO(), I(zero)));
+        EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
       }
       break;
     case OPT_ConditionOperand.GREATER:
       if (value == 0) {
-        EMIT(MIR_Unary.create(PPC_NEG, R(t), one));
-        EMIT(MIR_Binary.create(PPC_ANDC, R(t), R(t), one.copyRO()));
-        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(31)));
+        EMIT(MIR_Unary.create(PPC_NEG, I(t), one));
+        EMIT(MIR_Binary.create(PPC_ANDC, I(t), I(t), one.copyRO()));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(BITS_IN_INT - 1)));
       } else if (value >= 0) {
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), 
+        EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, I(zero), one.copyRO(), 
                                IC(-value - 1)));
-        EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else {
         t1 = regpool.getInteger();
-        EMIT(MIR_Unary.create(PPC_LDI, R(t1), IC(1)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), 
+        EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, I(zero), one.copyRO(), 
                                IC(-value - 1)));
-        EMIT(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
       }
       break;
     case OPT_ConditionOperand.LESS_EQUAL:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_ADDI, R(t), one, IC(-1)));
-        EMIT(MIR_Binary.create(PPC_OR, R(t), R(t), one.copyRO()));
-        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(31)));
+        EMIT(MIR_Binary.create(PPC_ADDI, I(t), one, IC(-1)));
+        EMIT(MIR_Binary.create(PPC_OR, I(t), I(t), one.copyRO()));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(BITS_IN_INT - 1)));
       } else if (value >= 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), IC(value)));
-        EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, I(zero), one.copyRO(), IC(value)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), IC(value)));
-        EMIT(MIR_Unary.create(PPC_ADDME, def, R(t)));
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, I(zero), one.copyRO(), IC(value)));
+        EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
       }
       break;
     case OPT_ConditionOperand.GREATER_EQUAL:
       if (value == 0) {
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_XORI, def, R(t), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_XORI, def, I(t), IC(1)));
       } else if (value >= 0) {
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), IC(-value)));
-        EMIT(MIR_Unary.create(PPC_ADDZE, def, R(t)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, I(zero), one.copyRO(), IC(-value)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
       } else if (value != 0xFFFF8000) {
         t1 = regpool.getInteger();
-        EMIT(MIR_Unary.create(PPC_LDI, R(t1), IC(1)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), IC(-value)));
-        EMIT(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
+        EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, I(zero), one.copyRO(), IC(-value)));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
       } else {
-        EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null));
+        EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null));
         // value == 0xFFFF8000; code sequence below does not work --dave 7/25/02
         break;
         /*
           t1 = regpool.getInteger();
-          EMIT(MIR_Unary.create(PPC_LDI, R(t1), IC(1)));
-          EMIT(MIR_Binary.create(PPC_SRAWI, R(t), one, IC(31)));
-          EMIT(MIR_Unary.create(PPC_LDIS, R(zero), IC(1)));
-          EMIT(MIR_Binary.create(PPC_ADDC, R(zero), one.copyRO(), R(zero)));
-          EMIT(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
+          EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
+          EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(31)));
+          EMIT(MIR_Unary.create(PPC_LDIS, I(zero), IC(1)));
+          EMIT(MIR_Binary.create(PPC_ADDC, I(zero), one.copyRO(), I(zero)));
+          EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
         */
       }
       break;
     case OPT_ConditionOperand.HIGHER:
-      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null)); // todo
       break;
     case OPT_ConditionOperand.LOWER:
-      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null)); // todo
       break;
     case OPT_ConditionOperand.HIGHER_EQUAL:
-      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null)); // todo
       break;
     case OPT_ConditionOperand.LOWER_EQUAL:
-      EMIT(MIR_Unary.create(PPC_LDI, R(t), IC(-1)));
-      EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one, IC(value)));
-      EMIT(MIR_Unary.create(PPC_SUBFZE, def, R(t)));
+      EMIT(MIR_Unary.create(PPC_LDI, I(t), IC(-1)));
+      EMIT(MIR_Binary.create(PPC_SUBFIC, I(zero), one, IC(value)));
+      EMIT(MIR_Unary.create(PPC_SUBFZE, def, I(t)));
       break;
 
     default:
-      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null)); // todo
     }
   }
 
-  protected final void BOOLEAN_CMP(OPT_RegisterOperand def, 
+  protected final void BOOLEAN_CMP_ADDR_IMM(OPT_RegisterOperand def, 
+                                       OPT_ConditionOperand cmp,
+                                       OPT_RegisterOperand one, 
+                                       OPT_IntConstantOperand two) {
+    OPT_Register t1, t = regpool.getAddress(); //KV:not sure Addr or Int ?
+    OPT_Register zero = regpool.getPhysicalRegisterSet().getTemp();
+    int value = two.value;
+    switch (cmp.value) {
+    case OPT_ConditionOperand.EQUAL:
+      if (value == 0) {
+        EMIT(MIR_Unary.create(PPC_CNTLZAddr, I(t), one)); 
+      } else {
+        EMIT(MIR_Binary.create(PPC_SUBFIC, A(t), one, IC(value)));
+        EMIT(MIR_Unary.create(PPC_CNTLZAddr, I(t), A(t)));
+      }
+      EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(LOG_BITS_IN_ADDRESS)));
+      break;
+    case OPT_ConditionOperand.NOT_EQUAL:
+      if (value == 0) {
+        EMIT(MIR_Binary.create(PPC_ADDIC, A(t), one, IC(-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFE, def, A(t), one.copyRO()));
+      } else {
+        t1 = regpool.getAddress();
+        EMIT(MIR_Binary.create(PPC_SUBFIC, A(t1), one, IC(value)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, A(t), A(t1), IC(-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFE, def, A(t), A(t1)));
+      }
+      break;
+    case OPT_ConditionOperand.LESS:
+      if (value == 0) {
+        EMIT(MIR_Binary.create(PPC_SRAddrI, def, one, IC(BITS_IN_ADDRESS-1)));
+      } else if (value > 0) {
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, 
+                               IC(value - 1)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
+      } else if (value != 0xFFFF8000) {
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one.copyRO(), 
+                               IC(value - 1)));
+        EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
+      } else {                  // value = 0xFFFF8000
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Unary.create(PPC_LDIS, A(zero), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SUBFC, A(zero), one.copyRO(), A(zero)));
+        EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
+      }
+      break;
+    case OPT_ConditionOperand.GREATER:
+      if (value == 0) {
+        EMIT(MIR_Unary.create(PPC_NEG, A(t), one));
+        EMIT(MIR_Binary.create(PPC_ANDC, A(t), A(t), one.copyRO())); //KV: wat is andC ???
+        EMIT(MIR_Binary.create(PPC_SRAddrI, def, A(t), IC(BITS_IN_ADDRESS-1)));
+      } else if (value >= 0) {
+        EMIT(MIR_Binary.create(PPC_SRAAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), 
+                               IC(-value - 1)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
+      } else { //KV: is hier ook geen waarde die uit de boot valt?
+        t1 = regpool.getInteger();
+        EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SRAAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), 
+                               IC(-value - 1)));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
+      }
+      break;
+    case OPT_ConditionOperand.LESS_EQUAL:
+      if (value == 0) {
+        EMIT(MIR_Binary.create(PPC_ADDI, A(t), one, IC(-1)));
+        EMIT(MIR_Binary.create(PPC_OR, A(t), A(t), one.copyRO()));
+        EMIT(MIR_Binary.create(PPC_SRAddrI, def, A(t), IC(BITS_IN_ADDRESS-1)));
+      } else if (value >= 0) {
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one.copyRO(), IC(value)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
+      } else {
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one.copyRO(), IC(value)));
+        EMIT(MIR_Unary.create(PPC_ADDME, def, I(t)));
+      }
+      break;
+    case OPT_ConditionOperand.GREATER_EQUAL:
+      if (value == 0) {
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_XORI, def, I(t), IC(1)));
+      } else if (value >= 0) {
+        EMIT(MIR_Binary.create(PPC_SRAAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), IC(-value)));
+        EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
+      } else if (value != 0xFFFF8000) {
+        t1 = regpool.getInteger();
+        EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
+        EMIT(MIR_Binary.create(PPC_SRAAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_ADDIC, A(zero), one.copyRO(), IC(-value)));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
+      } else {
+        EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null));
+        // value == 0xFFFF8000; code sequence below does not work --dave 7/25/02
+        break;
+        /*
+          t1 = regpool.getInteger();
+          EMIT(MIR_Unary.create(PPC_LDI, I(t1), IC(1)));
+          EMIT(MIR_Binary.create(PPC_SRAWI, I(t), one, IC(31)));
+          EMIT(MIR_Unary.create(PPC_LDIS, I(zero), IC(1)));
+          EMIT(MIR_Binary.create(PPC_ADDC, A(zero), one.copyRO(), I(zero)));
+          EMIT(MIR_Binary.create(PPC_ADDE, def, I(t), I(t1)));
+        */
+      }
+      break;
+    case OPT_ConditionOperand.HIGHER:
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null)); // todo
+      break;
+    case OPT_ConditionOperand.LOWER:
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null)); // todo
+      break;
+    case OPT_ConditionOperand.HIGHER_EQUAL:
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null)); // todo
+      break;
+    case OPT_ConditionOperand.LOWER_EQUAL:
+      EMIT(MIR_Unary.create(PPC_LDI, I(t), IC(-1)));
+      EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, IC(value)));
+      EMIT(MIR_Unary.create(PPC_SUBFZE, def, I(t)));
+      break;
+
+    default:
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null)); // todo
+    }
+  }
+
+  protected final void BOOLEAN_CMP_INT(OPT_RegisterOperand def, 
                                    OPT_ConditionOperand cmp,
                                    OPT_RegisterOperand one,
                                    OPT_RegisterOperand two) {
@@ -992,41 +1143,87 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
       {
-        EMIT(MIR_Binary.create(PPC_SUBF, R(t), one, two));
-        EMIT(MIR_Unary.create(PPC_CNTLZW, R(t), R(t)));
-        EMIT(MIR_Binary.create(PPC_SRWI, def, R(t), IC(5)));
+        EMIT(MIR_Binary.create(PPC_SUBF, I(t), one, two));
+        EMIT(MIR_Unary.create(PPC_CNTLZW, I(t), I(t)));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(LOG_BITS_IN_INT)));
       }
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       {
         t1 = regpool.getInteger();
-        EMIT(MIR_Binary.create(PPC_SUBF, R(t), one, two));
-        EMIT(MIR_Binary.create(PPC_ADDIC, R(t1), R(t), IC(-1)));
-        EMIT(MIR_Binary.create(PPC_SUBFE, def, R(t1), R(t)));
+        EMIT(MIR_Binary.create(PPC_SUBF, I(t), one, two));
+        EMIT(MIR_Binary.create(PPC_ADDIC, I(t1), I(t), IC(-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFE, def, I(t1), I(t)));
       }
       break;
     case OPT_ConditionOperand.LESS_EQUAL:
       {
         t1 = regpool.getInteger();
         zero = regpool.getPhysicalRegisterSet().getTemp();
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t1), two, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFC, R(zero), one.copyRO(), two.copyRO()));
-        EMIT(MIR_Binary.create(PPC_ADDE, def, R(t1), R(t)));
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, I(t1), two, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SUBFC, I(zero), one.copyRO(), two.copyRO()));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t1), I(t)));
       }
       break;
     case OPT_ConditionOperand.GREATER_EQUAL:
       {
         t1 = regpool.getInteger();
         zero = regpool.getPhysicalRegisterSet().getTemp();
-        EMIT(MIR_Binary.create(PPC_SRWI, R(t), two, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SRAWI, R(t1), one, IC(31)));
-        EMIT(MIR_Binary.create(PPC_SUBFC, R(zero), two.copyRO(), one.copyRO()));
-        EMIT(MIR_Binary.create(PPC_ADDE, def, R(t1), R(t)));
+        EMIT(MIR_Binary.create(PPC_SRWI, I(t), two, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SRAWI, I(t1), one, IC(BITS_IN_INT - 1)));
+        EMIT(MIR_Binary.create(PPC_SUBFC, I(zero), two.copyRO(), one.copyRO()));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t1), I(t)));
       }
       break;
     default:
-      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_INT, def, one, two, cmp, null)); // todo
+    }
+  }
+
+  protected final void BOOLEAN_CMP_ADDR(OPT_RegisterOperand def, 
+                                   OPT_ConditionOperand cmp,
+                                   OPT_RegisterOperand one,
+                                   OPT_RegisterOperand two) {
+    OPT_Register t1, zero, t = regpool.getAddress();
+    switch (cmp.value) {
+    case OPT_ConditionOperand.EQUAL:
+      {
+        EMIT(MIR_Binary.create(PPC_SUBF, A(t), one, two));
+        EMIT(MIR_Unary.create(PPC_CNTLZAddr, I(t), A(t)));
+        EMIT(MIR_Binary.create(PPC_SRWI, def, I(t), IC(LOG_BITS_IN_ADDRESS)));
+      }
+      break;
+    case OPT_ConditionOperand.NOT_EQUAL:
+      {
+        t1 = regpool.getAddress();
+        EMIT(MIR_Binary.create(PPC_SUBF, A(t), one, two));
+        EMIT(MIR_Binary.create(PPC_ADDIC, A(t1), A(t), IC(-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFE, def, A(t1), A(t)));
+      }
+      break;
+    case OPT_ConditionOperand.LESS_EQUAL:
+      {
+        t1 = regpool.getInteger();
+        zero = regpool.getPhysicalRegisterSet().getTemp();
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SRAAddrI, I(t1), two, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFC, A(zero), one.copyRO(), two.copyRO()));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t1), I(t)));
+      }
+      break;
+    case OPT_ConditionOperand.GREATER_EQUAL:
+      {
+        t1 = regpool.getInteger();
+        zero = regpool.getPhysicalRegisterSet().getTemp();
+        EMIT(MIR_Binary.create(PPC_SRAddrI, I(t), two, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SRAAddrI, I(t1), one, IC(BITS_IN_ADDRESS-1)));
+        EMIT(MIR_Binary.create(PPC_SUBFC, A(zero), two.copyRO(), one.copyRO()));
+        EMIT(MIR_Binary.create(PPC_ADDE, def, I(t1), I(t)));
+      }
+      break;
+    default:
+      EMIT(BooleanCmp.create(BOOLEAN_CMP_ADDR, def, one, two, cmp, null)); // todo
     }
   }
 
@@ -1292,7 +1489,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, L(register), L(register), IC(bytes01)));
     } else if (fits(value, 48)) {
       EMIT(MIR_Unary.create(PPC_LDI, L(register), IC(bytes45)));
-      EMIT(MIR_Binary.create(PPC64_SLDI, L(register), L(register), IC(32)));
+      if (bytes45 != 0) EMIT(MIR_Binary.create(PPC64_SLDI, L(register), L(register), IC(32)));
       if (bytes23 != 0) EMIT(MIR_Binary.create(PPC_ORIS, L(register), L(register), IC(bytes23)));
       if (bytes01 != 0) EMIT(MIR_Binary.create(PPC_ORI, L(register), L(register), IC(bytes01)));
     } else {

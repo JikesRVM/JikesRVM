@@ -1,7 +1,31 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
-#//OperatorList_Alu64.dat
+#//OperatorList_Alu32.dat
 #//$Id$
 #
 # @author: Kris Venstermans
+####################
+PPC_CNTLZAddr
+MIR_Unary
+none
+
+
+(31<<26 | 26<<1)
+
+####################
+PPC_SRAAddrI
+MIR_Binary
+none
+XER
+
+(31<<26 | 824<<1)
+
+####################
+PPC_SRAddrI
+MIR_Binary
+none
+XER
+
+(21<<26 |  31<<1)
+

@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  * @author Michael Hind
  */
 abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
-  implements VM_OptGCMapIteratorConstants,
+  implements VM_OptGCMapIteratorConstants, VM_Constants,
              Uninterruptible {
 
   /**
@@ -447,7 +447,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       ref2 = ref1;
     }
 
-    for (Address i = ref1.add(4); i.LT(ref2); i = i.add(4)) {
+    for (Address i = ref1.add(BYTES_IN_ADDRESS); i.LT(ref2); i = i.add(BYTES_IN_ADDRESS)) {
       Address ptr = i.loadAddress();
       if (DEBUG) {
         VM.sysWrite(" Inspecting Spill: ");

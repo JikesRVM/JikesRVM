@@ -543,7 +543,7 @@ public final class OPT_BranchOptimizations
         return;
       }
     } 
-    BooleanCmp.mutate(cb, BOOLEAN_CMP, res, val1, val2, cond,
+    BooleanCmp.mutate(cb, BOOLEAN_CMP_INT, res, val1, val2, cond,
                       new OPT_BranchProfileOperand());
   }
 
