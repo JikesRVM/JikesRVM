@@ -59,10 +59,13 @@ cd $RVM_BUILD/Jalapeno.classes
 $FIND com -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
 $FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
 
-# Create the jar file
 cd $RVM_BUILD/Jalapeno.classes
-$FIND . -type f | $GREP -v \.class\$ | $XARGS rm -f
-$HOST_JAR -cvf $RVM_BUILD/rvmrt.jar com java
+# Create the file rvmrt.id, containing the date
+date > rvmrt.id
+
+# Create the jar file
+$FIND . -type f | $GREP -v \.class\$ | $GREP -v rvmrt.id | $XARGS rm -f
+$HOST_JAR -cvf $RVM_BUILD/rvmrt.jar com java rvmrt.id
 
 # Install the new jar file?
 if tty -s; then # keyboard is live (ie. this is not an automated build)
