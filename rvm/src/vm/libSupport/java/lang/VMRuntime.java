@@ -9,7 +9,6 @@ import java.util.Properties;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.VM_ClassLoader;
-import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.*;
 
 /**
