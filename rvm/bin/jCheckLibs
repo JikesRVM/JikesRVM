@@ -158,7 +158,7 @@ cat <<EOF
 Version [$revision] of rvmrt.jar is required for this build.
 
 You can download this revision from
-http://www-124.ibm.com/cgi-bin/jalapeno/jlibraries?rev=$revision.
+http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries?rev=$revision.
 EOF
 if [[ x$license = x || x$WGET = x ]] ; then
   exit 1
@@ -172,7 +172,7 @@ if [[ x$automatic = xy || x$automatic = xyes ]] ; then
   echo "Dowloading $RVM_ROOT/jlibraries-$revision.tar.gz"
   options="?rev=$revision&license=$license"
   $WGET -q -O $RVM_ROOT/jlibraries-$revision.tar.gz \
-  "http://www-124.ibm.com/cgi-bin/jalapeno/jlibraries.tar.gz$options"
+  "http://www-124.ibm.com/cgi-bin/jikesrvm/jlibraries.tar.gz$options"
   length=`cat $RVM_ROOT/jlibraries-$revision.tar.gz | wc -c`
   if [[ $length -lt 10000 ]] ; then
     echo
