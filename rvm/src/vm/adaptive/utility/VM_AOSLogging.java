@@ -50,7 +50,13 @@ public class VM_AOSLogging {
    * The output file stream, where all log messages will go
    */
   private static PrintStream log;
-  
+
+  /**
+   * Returns the log object
+   */
+  public static PrintStream getLog() {
+    return log;
+  }  
   /*
    * Record that the AOS logging has been booted.
    * Needed to allow fast exit from reporting to ensure
@@ -185,7 +191,32 @@ public class VM_AOSLogging {
   }
 
   /**
-   * Call this method when one run of the application is completed
+   * Call this method when the application begins
+   */
+  public static void appStart(String prog) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+        log.println(VM_Controller.controllerClock 
+                    +" Application "+prog+" starting");
+      }
+    }
+  }
+
+  /**
+   * Call this method when the application is completed
+   */
+  public static void appComplete(String prog) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+        log.println(VM_Controller.controllerClock 
+                    +" Application "+prog+" completed");
+      }
+    }
+  }
+
+
+  /**
+   * Call this method when one run of the application begins
    */
   public static void appRunStart(String prog, int run) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
