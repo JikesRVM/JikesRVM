@@ -228,10 +228,27 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	    CondMove.getCond(s).flipOperands();
 	  }
 	}
-	if (CondMove.getTrueValue(s).similar(CondMove.getFalseValue(s))) {
-	  OPT_Operand val = CondMove.getClearTrueValue(s);
-	  Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
-	  return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	OPT_Operand tv = CondMove.getTrueValue(s);
+	OPT_Operand fv = CondMove.getFalseValue(s);
+	if (tv.similar(fv)) {
+	  Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), tv.clear());
+	  return tv.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	}
+	if (tv.isIntConstant() && fv.isIntConstant()) {
+	  int itv = tv.asIntConstant().value;
+	  int ifv = fv.asIntConstant().value;
+	  if (itv == 1 && ifv == 0) {
+	    BooleanCmp.mutate(s, BOOLEAN_CMP, CondMove.getClearResult(s),
+			      CondMove.getClearVal1(s), CondMove.getClearVal2(s),
+			      CondMove.getClearCond(s), new OPT_BranchProfileOperand());
+	    return REDUCED;
+	  }
+	  if (itv == 0 && ifv == 1) {
+	    BooleanCmp.mutate(s, BOOLEAN_CMP, CondMove.getClearResult(s),
+			      CondMove.getClearVal1(s), CondMove.getClearVal2(s),
+			      CondMove.getClearCond(s).flipCode(), new OPT_BranchProfileOperand());
+	    return REDUCED;
+	  }
 	}
       }
       return UNCHANGED;
