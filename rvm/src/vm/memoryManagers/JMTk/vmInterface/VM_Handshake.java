@@ -122,7 +122,9 @@ public class VM_Handshake {
       VM_Scheduler.collectorMutex.unlock();
       if (len < maxCollectorThreads) {
 	  if (verbose >= 1) VM.sysWriteln("VM_Handshake.initiateCollection waiting for previous collection to finish");
+	  lock.release();	// release lock so other threads can make progress
 	  VM_Thread.getCurrentThread().yield();
+	  lock.acquire();	// acquire lock to make progress
       }
       else 
 	  break;
