@@ -58,29 +58,17 @@ public final class VM_CodeArray implements Uninterruptible {
    */
   public static class Factory {
     /**
-     * Allocate a code array to contain numInstrs instructions and initialize
-     * it by copying in instrs[0] to instrs[numInstrs-1].
-     * @param instrs an array of instructions
+     * Allocate a code array big enough to contain numInstrs instructions.
      * @param numInstrs the number of instructions to copy from instrs
      * @param isHot is this an allocation of code for a hot method?
      * @return a VM_CodeArray containing the instructions
      */
-    public static VM_CodeArray createAndFill(int[] instrs,
-                                             int numInstrs,
-                                             boolean isHot) {
-      if (VM.VerifyAssertions) VM._assert(numInstrs <= instrs.length);
-      VM_CodeArray code;
+    public static VM_CodeArray create(int numInstrs, boolean isHot) {
       if (VM.runningVM) {
-        code = MM_Interface.allocateCode(numInstrs, isHot);
-        VM_Memory.arraycopy32Bit(instrs, 0, code, 0, numInstrs);
-        return code;
+        return MM_Interface.allocateCode(numInstrs, isHot);
       } else {
-        code = VM_CodeArray.create(numInstrs);
-        for (int i=0; i<numInstrs; i++) {
-          code.set(i, instrs[i]);
-        }
+        return VM_CodeArray.create(numInstrs);
       }
-      return code;
     }
   }
 }

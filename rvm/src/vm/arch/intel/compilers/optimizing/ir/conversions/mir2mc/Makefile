@@ -28,7 +28,9 @@ FAKE_JAVA = $(patsubst %.fake,%.java,$(FAKES)) NoInlinePragma.java Offset.java
 FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/JikesRVM/%.java,$(FAKES)) \
            $(SCRATCH_DIR)/org/vmmagic/pragma/NoInlinePragma.java \
 	   $(SCRATCH_DIR)/org/vmmagic/unboxed/Offset.java
-FAKE_CLS = $(patsubst %.java,%.class,$(FAKE_SRC))
+FAKE_CLS = $(patsubst %.java,%.class,$(FAKE_SRC)) \
+	   $(SCRATCH_DIR)/com/ibm/JikesRVM/VM_CodeArray\$$Factory.class
+
 
 SRCS=   $(TABLES_JAVA) \
 	$(OPCODE_JAVA) \
@@ -68,4 +70,5 @@ $(GEN_FILES_DIR)/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.j
 	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR) GenerateAssembler
 
 clean:
-	$(RM) $(FAKE_SRC) $(FAKE_CLS)
+	echo $(RM) $(FAKE_SRC) $(FAKE_CLS)
+	$(RM) $(FAKE_SRC) $(FAKE_CLS) 

@@ -23,10 +23,8 @@ public final class VM_CodeArray {
   }
 
   public static class Factory {
-    public static VM_CodeArray createAndFill(byte[] code, 
-					     int numInstrs,
-					     boolean isHot) {
-     return null;
+    public static VM_CodeArray create(int numInstrs, boolean isHot) {
+      return null;
     }
   }
 }

@@ -295,9 +295,12 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @return a copy of the generated code as a VM_CodeArray.
    */
   public final VM_CodeArray getMachineCodes () {
-    return VM_CodeArray.Factory.createAndFill(machineCodes, 
-					      getMachineCodeIndex(),
-                                              isHotCode());
+    int len = getMachineCodeIndex();
+    VM_CodeArray trimmed = VM_CodeArray.Factory.create(len, isHotCode());
+    for (int i=0; i<len; i++) {
+      trimmed.set(i, machineCodes[i]);
+    }
+    return trimmed;
   }
     
   /**

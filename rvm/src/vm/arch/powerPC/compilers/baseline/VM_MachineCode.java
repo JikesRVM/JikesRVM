@@ -47,28 +47,23 @@ public final class VM_MachineCode {
   void finish () {
     if (VM.VerifyAssertions) VM._assert(instructions == null); // finish must only be called once
 
+    /* NOTE: MM_Interface.pickAllocator() depends on the name of this
+       class and method to identify code allocation */
     int n = (next_bundle-1)*size+next;
-    int[] code;
-    if (next_bundle == 1) {
-      // only 1 bundle; avoid useless copy.
-      code = current_bundle;
-    } else {
-      code = new int[n];
-      int k = 0;
-      for (int i=0; i<next_bundle; i++){
-        int[] b = (int[]) bundles.get(i);
-        int m = (i == next_bundle-1 ? next : size);
-        for (int j=0; j<m; j++) {
-          code[k++] = b[j];
-        }
+    instructions = VM_CodeArray.Factory.create(n, false);
+    int k = 0;
+    for (int i=0; i<next_bundle; i++){
+      int[] b = (int[]) bundles.get(i);
+      int m = (i == next_bundle-1 ? next : size);
+      for (int j=0; j<m; j++) {
+        instructions.set(k++, b[j]);
       }
     }
-    instructions = VM_CodeArray.Factory.createAndFill(code, n, false);
 
     // synchronize icache with generated machine code that was written through dcache
     //
     if (VM.runningVM)
-      VM_Memory.sync(VM_Magic.objectAsAddress(instructions), n << VM.LG_INSTRUCTION_WIDTH);
+      VM_Memory.sync(VM_Magic.objectAsAddress(instructions), instructions.length() << VM.LG_INSTRUCTION_WIDTH);
 
     // release work buffers
     //
@@ -120,7 +115,7 @@ public final class VM_MachineCode {
   private static final int  size = mask+1;
   private static final int shift = 8;
 
-  private VM_CodeArray  instructions;
+  private VM_CodeArray instructions;
   private ArrayList     bundles;
   private int[]         current_bundle;
   private int           next;
