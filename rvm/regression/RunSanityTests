@@ -19,6 +19,11 @@
 #
 ulimit -c 0
 
+# intitialization
+#
+total_tests=0
+passed_tests=0
+
 # How often to look to see if the builds are done
 SLEEP_DURATION="120"
 
@@ -89,6 +94,7 @@ function showHelp {
   echo '-wait <file>                sync build and run using file'
   echo '-performance <file>         record performance results to file'
   echo '-rc-args "args"             supply args to all runs'
+  echo '-config-args "args"         supply args to jconfigure'
   echo '-minimal                    run minimal test suite on OptOptSemispace image'
   echo '-help                       display this message'
 }
@@ -228,6 +234,13 @@ while [ $# != 0 ]; do
 	shift
    ;;
 
+   ## args to jconfigure
+   #
+   -config-args)
+	EXTRA_CONFIG_ARGS=$2
+	shift
+   ;;
+
    ## set up to run a minimal test suite on OptOptSemispace
    #
    -minimal)
@@ -290,7 +303,7 @@ function doBuild
    {
    if [[ $BUILD = "Yes" ]]; then
      say "creating $NAME"
-     $GENERATOR/jconfigure $NAME </dev/null
+     $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null
 
      if [[ $CLEAN = "Yes" ]]; then
         say "cleaning shadow"
@@ -377,6 +390,13 @@ function doRun
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
            clean sanity || say "$NAME: You are NOT sane in `pwd`"
 
+    # record status
+    test_status=$?
+    total_tests=`expr $total_tests + 1`
+    if [ test_status = 0 ]; then 
+       passed_tests=`expr $passed_tests + 1`
+    fi
+
     # done
     say "end $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
 
@@ -416,6 +436,17 @@ function main {
   for config in $CONFIG_LIST; do
     setConfiguration $config; time runTests
   done
+
+  if [ total_tests != 0 ]; then
+     say "$total_tests tests run"
+     say "$passed_tests tests passed"
+  fi
+
+  if [ x$PERFORMANCE != x ]; then
+    say "Performance Summary"
+    $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk < $PERFORMANCE
+  fi
+
   say "done"
 }
 
