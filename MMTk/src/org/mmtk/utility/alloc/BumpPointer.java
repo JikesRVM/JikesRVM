@@ -49,8 +49,8 @@ public final class BumpPointer extends Allocator
   }
 
   public void reset () {
-    cursor = INITIAL_CURSOR_VALUE;
-    limit = INITIAL_LIMIT_VALUE;
+    cursor = VM_Address.zero();
+    limit = VM_Address.zero();
   }
 
   /**
@@ -71,27 +71,22 @@ public final class BumpPointer extends Allocator
    * the coding is deliberaetly sensitive to the optimizing compiler.
    * After changing this, always check the IR/MC that is generated.
    *
-   * @param isScalar Is the object to be allocated a scalar (or array)?
    * @param bytes The number of bytes allocated
+   * @param align The requested alignment
+   * @param offset The offset from the alignment 
    * @return The address of the first byte of the allocated region
    */
-  final public VM_Address alloc(boolean isScalar, int bytes) 
+  final public VM_Address alloc(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    VM_Address oldCursor = cursor;
+    VM_Address oldCursor = alignAllocation(cursor, align, offset);
     VM_Address newCursor = oldCursor.add(bytes);
-    if (useLimit) {
       if (newCursor.GT(limit))
-        return allocSlow(isScalar, bytes);
-    } else {
-      VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
-      if (tmp.GT(TRIGGER))
-        return allocSlow(isScalar, bytes);
-    }
+      return allocSlow(bytes, align, offset);
     cursor = newCursor;
     return oldCursor;
   }
 
-  final protected VM_Address allocSlowOnce(boolean isScalar, int bytes, 
+  final protected VM_Address allocSlowOnce(int bytes, int align, int offset, 
                                            boolean inGC) {
     VM_Extent chunkSize = VM_Word.fromIntZeroExtend(bytes).add(CHUNK_MASK).and(CHUNK_MASK.not()).toExtent();
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
@@ -102,7 +97,7 @@ public final class BumpPointer extends Allocator
     // check for (dis)contiguity with previous chunk
     if (limit.NE(start)) cursor = start;
     limit = start.add(chunkSize);
-    return alloc(isScalar, bytes);
+    return alloc(bytes, align, offset);
   }
 
   public void show() {
@@ -136,8 +131,4 @@ public final class BumpPointer extends Allocator
    */
   private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
   private static final VM_Word CHUNK_MASK = VM_Word.one().lsh(LOG_CHUNK_SIZE).sub(VM_Word.one());
-  private static final VM_Word TRIGGER = CHUNK_MASK;  //should this be kept beside CHUNK_MASK ?
-  private static final VM_Address INITIAL_CURSOR_VALUE = TRIGGER.toAddress();
-  private static final VM_Address INITIAL_LIMIT_VALUE = INITIAL_CURSOR_VALUE;
-  private static final boolean useLimit = true;
 }

@@ -12,6 +12,7 @@ import java.lang.ref.PhantomReference;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
 import org.mmtk.utility.Barrier;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.HeapGrowthManager;
@@ -39,6 +40,7 @@ import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.VM_Magic;
@@ -63,7 +65,7 @@ import org.mmtk.vm.gcspy.GCSpy;
  * @version $Revision$
  * @date $Date$
  */  
-public class MM_Interface implements Constants, VM_Uninterruptible {
+public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible {
 
   /***********************************************************************
    *
@@ -562,11 +564,10 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
                                       int align, int offset)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     Plan plan = VM_Interface.getPlan();
-    allocator = Plan.checkAllocator(size, true, allocator);
-    VM_Address region = allocateSpace(plan, size, align, offset, allocator,
-				      true);
+    allocator = Plan.checkAllocator(size, align, allocator);
+    VM_Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, true, 
+    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size,  
 		   allocator);
     return result;
   }
@@ -598,12 +599,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       VM_Interface.failWithOutOfMemoryError();
     }
     int size = elemBytes + headerSize;
-    allocator = Plan.checkAllocator(size, false, allocator);
-    VM_Address region = allocateSpace(plan, size, align, offset, allocator,
-				      false);
+    allocator = Plan.checkAllocator(size, align, allocator);
+    VM_Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
-    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, false,
+    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, 
                    allocator);
     return result;
   }
@@ -616,14 +616,12 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
    * @param allocator The MMTk allocator to be used for this allocation
-   * @param scalar Is this allocation scalar (true) or array (false)?
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static VM_Address allocateSpace(Plan plan, int bytes, int align,
-					  int offset, int allocator,
-					  boolean scalar)
+					  int offset, int allocator)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return allocateSpace(plan, bytes, align, offset, scalar, false, allocator,
+    return allocateSpace(plan, bytes, align, offset, false, allocator,
 			 null);
   }
 
@@ -635,14 +633,12 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
    * @param from The source object from which this is to be copied
-   * @param scalar Is this allocation scalar (true) or array (false)?
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   public static VM_Address allocateSpace(Plan plan, int bytes, int align,
-					 int offset, VM_Address from,
-					 boolean scalar)
+					 int offset, VM_Address from)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return allocateSpace(plan, bytes, align, offset, scalar, true, 0, from);
+    return allocateSpace(plan, bytes, align, offset, true, 0, from);
   }
 
   /** 
@@ -659,25 +655,10 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static VM_Address allocateSpace(Plan plan, int bytes, int align,
-					  int offset, boolean scalar,
-					  boolean copy, int allocator,
-					  VM_Address from)
+					  int offset, boolean copy,
+					  int allocator, VM_Address from)
+					  
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    /*
-     * First adjust the request to accommodate alignment requirment
-     */
-    if (VM.VerifyAssertions) VM._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
-    int originalBytes = bytes;
-    if (align > BYTES_IN_PARTICLE) { 
-      /* mainly used for objects with doubles and floats on 32-bit
-       * most wasteful case: e.g. align==8 or even align==16;
-       * BYTES_IN_PARTICLE==4; */
-      bytes += align - BYTES_IN_PARTICLE; 
-    } else if (align > BYTES_IN_INT) {
-      /* mainly used on 64-bit.  Add pre alignment if necessary
-       * e.g. align==8; BYTES_IN_PARTICLE==8 */
-      bytes += VM_Memory.alignUp(offset, align) - offset;
-    }
     // MMTk requests must be in multiples of BYTES_IN_PARTICLE
     bytes = VM_Memory.alignUp(bytes, BYTES_IN_PARTICLE);
 
@@ -686,20 +667,14 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
      */
     VM_Address region;
     if (copy) {
-      region = plan.allocCopy(from, bytes, scalar);
+      region = plan.allocCopy(from, bytes, align, offset);
       if (Plan.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
 
     } else {
-      region = plan.alloc(bytes, scalar, allocator);
+      region = plan.alloc(bytes, align, offset, allocator);
       if (Plan.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
     }
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
-
-    /*
-     * Now post-align the result
-     */
-    if (originalBytes != bytes) 
-      region = alignAllocation(region, align, offset);
 
     return region;
   }
@@ -720,30 +695,9 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static final int alignAllocation(int initialOffset, int align,
                                           int offset)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Address region = VM_Address.fromInt(initialOffset);
-    return alignAllocation(region, align, offset).toInt();
-  }
-
-  /**
-   * Align an allocation using some modulo arithmetic to guarantee the
-   * following property:<br>
-   * <code>(region + offset) % alignment == 0</code>
-   *
-   * @param region The initial (unaligned) start value of the
-   * allocated region of memory.
-   * @param align The alignment requested, must be a power of two
-   * @param offset The offset at which the alignment is desired
-   * @return <code>region</code> plus some delta (possibly 0) such
-   * that the return value is aligned according to the above
-   * constraints.
-   */
-  public static final VM_Address alignAllocation(VM_Address region, int align,
-						 int offset)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-    VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-    VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-    return region.add(delta);
+    VM_Address region = VM_Memory.alignUp(VM_Address.fromInt(initialOffset),
+                                          BYTES_IN_PARTICLE);
+    return Allocator.alignAllocation(region, align, offset).toInt();
   }
 
   /**
@@ -793,20 +747,27 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     if (!immortal || !VM.runningVM)
       return new byte[bytes];
 
+
+    // NOTE that we explicitly perform our own page-grain alignment here.
     int logAlignment = 12;
     int alignment = 1 << logAlignment; // 4096
     VM_Array stackType = VM_Array.ByteArray;
     Object [] stackTib = stackType.getTypeInformationBlock();
     int offset = VM_JavaHeader.computeArrayHeaderSize(stackType);
-    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), BYTES_IN_PARTICLE);
-    int fullSize = arraySize + alignment;  // somewhat wasteful
+    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), 
+                                      BYTES_IN_PARTICLE);
+    // somewhat wasteful
+    int fullSize = VM_Memory.alignUp(arraySize + alignment, BYTES_IN_PARTICLE);
     if (VM.VerifyAssertions) VM._assert(alignment > offset);
-    VM_Address fullRegion = VM_Interface.getPlan().alloc(fullSize, false, Plan.IMMORTAL_SPACE);
+    VM_Address fullRegion = 
+      VM_Interface.getPlan().alloc(fullSize, BYTES_IN_PARTICLE, 
+                                   0, Plan.IMMORTAL_SPACE);
     VM_Address tmp = fullRegion.add(alignment);
     VM_Word mask = VM_Word.one().lsh(logAlignment).sub(VM_Word.one()).not();
     VM_Address region = tmp.toWord().and(mask).sub(VM_Word.fromIntSignExtend(offset)).toAddress();
     Object result = VM_ObjectModel.initializeArray(region, stackTib, bytes, arraySize);
-    VM_Interface.getPlan().postAlloc(VM_Magic.objectAsAddress(result), stackTib, arraySize, false, Plan.IMMORTAL_SPACE);
+    VM_Interface.getPlan().postAlloc(VM_Magic.objectAsAddress(result), 
+                              stackTib, arraySize, Plan.IMMORTAL_SPACE);
     return (byte []) result;
   }
 

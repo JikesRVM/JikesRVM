@@ -123,21 +123,21 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * This code first tries the fast version and, if needed, the slow path.
    *
-   * @param isScalar True if the object to occupy this space will be a
-   * scalar.
    * @param bytes The size of the object to occupy this space, in bytes.
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final VM_Address alloc(boolean isScalar, int bytes, boolean inGC) 
+  public final VM_Address alloc(int bytes, int align, int offset, boolean inGC) 
     throws VM_PragmaInline {
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
-    VM_Address cell = allocFast(isScalar, bytes, inGC);
+    VM_Address cell = allocFast(bytes, align, offset, inGC);
     if (cell.isZero()) 
-      return allocSlow(isScalar, bytes, inGC);
+      return allocSlow(bytes, align, offset, inGC);
     else
       return cell;
   }
@@ -151,27 +151,35 @@ public abstract class SegregatedFreeList extends Allocator
    * compiler.  We have a call to an abstract method that allows
    * subclasses to customize post-allocation.
    *
-   * @param isScalar True if the object to occupy this space will be a
-   * scalar.
    * @param bytes The size of the object to occupy this space, in bytes.
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final VM_Address allocFast(boolean isScalar, int bytes, boolean inGC) 
+  public final VM_Address allocFast(int bytes, int align, 
+                                    int offset, boolean inGC) 
     throws VM_PragmaInline {
 
-    int sizeClass = getSizeClass(bytes);
+    int alignedBytes = getMaximumAlignedSize(bytes, align);
+    int sizeClass = getSizeClass(alignedBytes);
     VM_Address cell = freeList.get(sizeClass);
     if (!cell.isZero()) {
       if (maintainInUse()) cellsInUse[sizeClass]++;
       freeList.set(sizeClass, getNextCell(cell));
       setNextCell(cell, VM_Address.zero()); // clear out the free list link
-      postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-    } 
-    return cell;
+      postAlloc(cell, currentBlock.get(sizeClass), sizeClass, alignedBytes, inGC);
 
+      if (alignedBytes != bytes) {
+        // Ensure aligned as requested.
+        return alignAllocation(cell, align, offset);
+      } 
+    } 
+
+    // Alignment request guaranteed or cell.isZero().
+    return cell;
   }
 
   abstract public void postAlloc(VM_Address cell, VM_Address block, 
@@ -196,22 +204,24 @@ public abstract class SegregatedFreeList extends Allocator
    * free list data structures.  The free list itself is not updated
    * (the caller must do so).<p>
    * 
-   * @param isScalar True if the object to occupy this space will be a
-   * scalar.
    * @param bytes The size of the object to occupy this space, in bytes.
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of the <code>bytes</code>
    * contigious bytes of zerod memory.
    */
-  public final VM_Address allocSlowOnce(boolean isScalar, int bytes,
+  public final VM_Address allocSlowOnce(int bytes, int align, int offset,
                                         boolean inGC) 
     throws VM_PragmaNoInline {
     
-    VM_Address cell = allocFast(isScalar, bytes, inGC);
+    VM_Address cell = allocFast(bytes, align, offset, inGC);
     if (!cell.isZero()) 
       return cell;
     
+    // Bytes within which we can guarantee an aligned allocation.
+    bytes = getMaximumAlignedSize(bytes, align); 
     int sizeClass = getSizeClass(bytes);
     VM_Address current = currentBlock.get(sizeClass);
     if (!current.isZero()) {
@@ -230,7 +240,7 @@ public abstract class SegregatedFreeList extends Allocator
           freeList.set(sizeClass, getNextCell(cell));
           setNextCell(cell, VM_Address.zero()); // clear out the free list link
           postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-          return cell;
+          return alignAllocation(cell, align, offset);
         }
         current = BlockAllocator.getNextBlock(current);
       }
@@ -244,7 +254,7 @@ public abstract class SegregatedFreeList extends Allocator
     freeList.set(sizeClass, getNextCell(cell));
     postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
     Memory.zeroSmall(cell, VM_Extent.fromIntZeroExtend(bytes));
-    return cell;
+    return alignAllocation(cell, align, offset);
   }
 
   abstract protected boolean preserveFreeList();
@@ -421,8 +431,11 @@ public abstract class SegregatedFreeList extends Allocator
    * This method may segregate arrays and scalars (currently it does
    * not).
    *
-   * @param isScalar True if the object to occupy the allocated space
-   * will be a scalar (i.e. not a array).
+   * This method should be more intelligent and take alignment requests
+   * into consideration. The issue with this is that the block header 
+   * which can be varied by subclasses can change the alignment of the 
+   * cells. 
+   *
    * @param bytes The number of bytes required to accommodate the
    * object to be allocated.
    * @return The size class capable of accomodating the allocation
@@ -436,7 +449,7 @@ public abstract class SegregatedFreeList extends Allocator
     if (VM_Interface.VerifyAssertions) VM_Interface._assert((bytes > 0) && (bytes <= 8192));
 
     int sz1 = bytes - 1;
-    int offset = 0;
+
     if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
       if (COMPACT_SIZE_CLASSES) 
         return ((sz1 <= 31) ?      (sz1 >>  2): //    4 bytes apart

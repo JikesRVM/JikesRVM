@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.plan.Header;
 import org.mmtk.plan.Plan;
+import org.mmtk.utility.MMType;
 
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.BootImageInterface;
@@ -24,7 +25,9 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Perry Cheng
  */
 public final class VM_AllocatorHeader extends Header {
-  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = Plan.STEAL_NURSERY_SCALAR_GC_HEADER;
+  public static final boolean STEAL_NURSERY_GC_HEADER = Plan.STEAL_NURSERY_GC_HEADER;
+  // not supported during expected transition to new object model.
+  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
 
   /**
    * Override the boot-time initialization method here, so that
@@ -35,7 +38,7 @@ public final class VM_AllocatorHeader extends Header {
                                       Object[] tib, int size, boolean isScalar)
     throws VM_PragmaInterruptible {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    VM_Word status = getBootTimeAvailableBits(ref, tib, size, isScalar, VM_Word.zero());
+    VM_Word status = getBootTimeAvailableBits(ref, tib, size, VM_Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 

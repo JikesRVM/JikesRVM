@@ -75,14 +75,15 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
   /**
    * Allocate space for an object
    *
-   * @param isScalar Is the object to be allocated a scalar (or array)?
    * @param bytes The number of bytes allocated
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  public final VM_Address alloc(boolean isScalar, int bytes) 
+  public final VM_Address alloc(int bytes, int align, int offset) 
     throws VM_PragmaNoInline {
-    VM_Address cell = allocSlow(isScalar, bytes, false);
+    VM_Address cell = allocSlow(bytes, align, offset, false);
     postAlloc(cell);
     return cell;
   }
@@ -94,20 +95,21 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * freed in page-grained units via the vm resource.  This routine
    * returned zeroed memory.
    *
-   * @param isScalar True if the object to occupy this space will be a scalar.
    * @param bytes The required size of this space in bytes.
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
-  final protected VM_Address allocSlowOnce (boolean isScalar, int bytes,
+  final protected VM_Address allocSlowOnce (int bytes, int align, int offset,
                                             boolean inGC) {
     int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of BYTES_IN_PARTICLE
-    int pages = (bytes + header + BYTES_IN_PAGE - 1)>>LOG_BYTES_IN_PAGE;
+    int pages = (getMaximumAlignedSize(bytes + header, align) + BYTES_IN_PAGE - 1) >>LOG_BYTES_IN_PAGE;
     VM_Address sp = allocSuperPage(pages);
     if (sp.isZero()) return sp;
-    VM_Address cell = sp.add(header);
+    VM_Address cell = alignAllocation(sp.add(header), align, offset);
     Memory.zero(cell, VM_Extent.fromIntZeroExtend(bytes));
     return cell;
   }

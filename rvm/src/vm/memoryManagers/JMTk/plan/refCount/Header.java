@@ -5,6 +5,7 @@
 
 package org.mmtk.plan;
 
+import org.mmtk.utility.MMType;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -149,11 +150,9 @@ public class Header extends RCHeader {
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    */
   public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
-                                                 int size, boolean isScalar,
+                                                 int size, 
                                                  VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.WITH_COALESCING_RC) status = status.or(UNLOGGED);

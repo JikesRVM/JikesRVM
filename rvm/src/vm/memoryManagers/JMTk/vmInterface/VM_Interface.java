@@ -442,7 +442,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     }
     return VM_Magic.objectAsType(type).isAcyclicReference();
   }
- 
+
   /***********************************************************************
    *
    * Trigger collections
@@ -885,11 +885,12 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = getPlan();
     VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
-						   from, true);
+						   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
     VM_Address to = VM_Magic.objectAsAddress(toObj);
-    plan.postCopy(to, tib, bytes, true);
-    ((MMType) type.getMMType()).profileCopy(bytes);
+    plan.postCopy(to, tib, bytes);
+    MMType mmType = (MMType) type.getMMType();
+    mmType.profileCopy(bytes);
     return to;
   }
 
@@ -902,17 +903,18 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = getPlan();
     VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
-						   from, false);
+						   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
     VM_Address to = VM_Magic.objectAsAddress(toObj);
-    plan.postCopy(to, tib, bytes, false);
+    plan.postCopy(to, tib, bytes);
     if (type == VM_Type.CodeArrayType) {
       // sync all moved code arrays to get icache and dcache in sync
       // immediately.
       int dataSize = bytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
       VM_Memory.sync(to, dataSize);
     }
-    ((MMType) type.getMMType()).profileCopy(bytes);
+    MMType mmType = (MMType) type.getMMType();
+    mmType.profileCopy(bytes);
     return to;
   }
 

@@ -210,16 +210,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Allocate space (for an object)
    *
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param allocator The allocator number to be used for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
+  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
-    case       RC_SPACE: return rc.alloc(isScalar, bytes, false);
-    case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
-    case      LOS_SPACE: return los.alloc(isScalar, bytes);
+    case       RC_SPACE: return rc.alloc(bytes, align, offset, false);
+    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
+    case      LOS_SPACE: return los.alloc(bytes, align, offset);
     default:
       if (VM_Interface.VerifyAssertions)
 	VM_Interface.sysFail("No such allocator");
@@ -234,11 +235,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-                              boolean isScalar, int allocator)
+                              int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
     case RC_SPACE: 
@@ -247,7 +247,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 	modBuffer.pushOOL(ref);
       decBuffer.pushOOL(VM_Magic.objectAsAddress(ref));
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(ref); 
-      Header.initializeHeader(ref, tib, bytes, isScalar);
+      Header.initializeHeader(ref, tib, bytes);
       return;
     case IMMORTAL_SPACE: 
       if (WITH_COALESCING_RC)
@@ -268,11 +268,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes,
-                                    boolean isScalar) throws VM_PragmaInline {
+                                    int align, int offset) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     // return VM_Address.zero();  this trips some Intel assembler bug
     return VM_Address.max();
@@ -284,10 +285,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-                             boolean isScalar) {} // do nothing
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes) {}
 
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == rc) return DEFAULT_SPACE;
