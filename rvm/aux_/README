@@ -19,7 +19,6 @@ skeleton.sh
 
     Like Skeleton.java but for Bourne-Again Shell (BASH) source code.
 
-
 GNUmakefile.skel
 
     A skeleton initial Makefile to use.  As the Java coding
@@ -28,6 +27,15 @@ GNUmakefile.skel
 
 jikes-rvm.el
 
-    GNU Emacs startup file for editing Jikes RVM source code.  This
-    customizes java mode, C++ mode, and C mode.
+    GNU Emacs source code for editing Jikes RVM source code.  This
+    customizes java mode, C++ mode, and C mode.  Since this file will
+    probably improve with time, I recommend you load it in rather
+    than cutting and pasting its contents into your ~/.emacs file.
+
+dot-emacs.el
+
+    If you're going to edit Jikes RVM C, C++, or Emacs code, I recommend 
+    adding the contents of dot-emacs.el, or something similar, to a file in
+    your home directory named ~/.emacs.
+
 
