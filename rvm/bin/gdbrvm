@@ -6,8 +6,10 @@
 #
 # Run Jikes RVM under the gdb debugger.
 #
-# The script handles passing command line arguments to the Jikes RVM
-# executable and executing a standard gdb macro file that does some
+# The script validates the RVM_ environment variables and
+# computes command line arguments for the Jikes RVM executable.
+#
+# It then executes a standard gdb macro file that does some
 # common setup tasks.
 #
 # @author Dave Grove
@@ -21,7 +23,7 @@ ME="${0##*/}"
 
 # Where are we?
 # Bash internal shorthand that works like the "dirname" command.
-mydir="${0%/*}"
+mydir="${0%/*}"			# temporary; directory we were run from
 
 function croak_nonusage () {
     # Display the error message.  If it's a multi-line error message, indent
@@ -36,6 +38,7 @@ function croak_nonusage () {
     exit 1
 }
 
+
 if [[ $mydir && $mydir != $ME ]]; then
     # Where to find auxiliary programs:
     bin_dir="${mydir}"
@@ -46,10 +49,14 @@ fi
 sanity_env="${bin_dir}/sanity-envars.bash"
 [[ -f $sanity_env ]] || croak_nonusage "Internal error: Cannot find the file sanity-envars.bash ($sanity_env); something is badly broken."
 [[ -r $sanity_env ]] || croak_nonusage "Internal error: Cannot read the file sanity-envars.bash ($sanity_env); something is badly broken.  You might check the file permissions or user id you used to extract Jikes RVM."
-. "${sanity_env}";		# sets ME, defines checkenv()
+. "${sanity_env}";		# Defines checkenv()
+
+## Sanity checks for environment variables.
 
 checkenv HOME
+# Place where source files reside.
 checkenv RVM_ROOT
+
 # We reset bin_dir so that we're sure to have an absolute pathname.
 bin_dir="${RVM_ROOT}/rvm/bin";
 checkenv RVM_BUILD
