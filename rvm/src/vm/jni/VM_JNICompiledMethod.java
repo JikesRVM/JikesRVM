@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -48,17 +48,7 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return VM_Offset.fromInt(-1);
   }
    
-  public final void printStackTrace(VM_Offset instructionOffset, java.io.PrintStream out) {
-    if (method != null) {
-      // print name of native method
-      out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		  + "." + method.getName() + " (native method)");
-    } else {
-      out.println("\tat <native method>");
-    }
-  }
-
-  public final void printStackTrace(VM_Offset instructionOffset, java.io.PrintWriter out) {
+  public final void printStackTrace(VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
     if (method != null) {
       // print name of native method
       out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
