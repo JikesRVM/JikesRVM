@@ -363,10 +363,11 @@ public class OPT_Compiler {
       throw new OPT_OperationNotImplementedException(msg);
     }
     if (options.hasEXCLUDE()) {
-      String name = 
-	method.getDeclaringClass().toString() + "." + method.getName();
+      String name = method.getDeclaringClass().toString() + "." + method.getName();
       if (options.fuzzyMatchEXCLUDE(name)) {
-        throw new OPT_OptimizingCompilerException("method excluded", false);
+	if (!method.getDeclaringClass().isSaveVolatile()) {
+          throw new OPT_OptimizingCompilerException("method excluded", false);
+	}
       }
     }
   }
