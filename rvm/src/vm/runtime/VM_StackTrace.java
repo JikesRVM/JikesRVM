@@ -173,18 +173,46 @@ public class VM_StackTrace implements VM_Constants {
   
 
   /**
-   * Print stack trace.
+   * Print the stack trace.  This is a safety net around print4Real(), a
+   * private method that does the actual work.  Here we just catch any stray
+   * OutOfMemoryError exceptions that we didn't think of when we wrote this
+   * code.
+   *
+   * @param out PrintLN to print on.
+   *
+   * @param trigger The Throwable that caused the stack trace.
+   *  Used to elide internal details from the stack trace.
+   *  If null, then we print a full stack trace, without eliding the
+   *  methods used internally to gather the stack trace.
+   */
+  
+  public void print(PrintLN out, Throwable trigger) {
+    try {
+      print4Real(out, trigger);
+    } catch (OutOfMemoryError e) {
+      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* out-of-memory error while displaying the stack trace.  I give up; what you see is what you got.");
+      /* Now, if we were triggered by an uncaught exception, processing will
+       * continue normally. */
+    }
+  }
+
+  /**
+   * Really Print the stack trace.
    * Delegate the actual printing of the stack trace to the
    * VM_CompiledMethod; this means it will deal with inlining by the opt
    * compiler in a sensible fashion. 
    * 
+   * This is not ever supposed to throw an OutOfMemoryError.  But if it should
+   * ever happen to do so, we will catch it in the caller, print.
+
    * @param out PrintLN to print on.
    * @param trigger The Throwable that caused the stack trace.
    *  Used to elide internal details from the stack trace.
    *  If null, then we print a full stack trace, without eliding the
    *  methods used internally to gather the stack trace.
    */
-  public void print(PrintLN out, Throwable trigger) {
+  
+  private void print4Real(PrintLN out, Throwable trigger) {
     //    out.println("Calling print(out, trigger = " + trigger.toString() + ")"); // DEBUG XXX
 
     /** Where'd we find the trigger? */
@@ -242,7 +270,12 @@ public class VM_StackTrace implements VM_Constants {
 	int newIndex = lastFrame - 9;
 	if (newIndex > oldIndex) {
 	  i = newIndex;
-	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
+	  try {
+	    out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
+	  } catch (OutOfMemoryError e) {
+	    VM.sysWriteln("\t... <some stack frames elided (also, Out of memory)>");
+	    // VM.sysWriteln("VM_StackTrace.print(): Caught OutOfMemoryError while trying to display how many stack frames are omitted (elided).");
+	  }
 	}
       }
       try {
@@ -259,7 +292,9 @@ public class VM_StackTrace implements VM_Constants {
 	}
       }
       catch (OutOfMemoryError e) {
-	VM.sysWriteln("Caught OutOfMemoryError while printing one frame of stack trace");
+	// VM.sysWriteln("VM_StackTrace.print(): Caught OutOfMemoryError while printing one frame of stack trace; on to the next frame.");
+	VM.sysWriteln("\tat <one undisplayable stack frame (Out of Memory) >");
+	
       }
     }
   }

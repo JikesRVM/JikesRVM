@@ -613,15 +613,27 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * @param fp address of starting frame. first frame output
    *           is the calling frame of passed frame
    */
+  static boolean dumpingStack = false;
+  
   static void dumpStack (VM_Address fp) {
-      VM_Address ip = VM_Magic.getReturnAddress(fp);
-      fp = VM_Magic.getCallerFramePointer(fp);
-      dumpStack( ip, fp );
+    if (VM.VerifyAssertions)
+      VM._assert(VM.runningVM);
+    if (dumpingStack) {
+      // Recursive stack dump!! Completely give up.
+      VM.shutdown(38);
+    }
+    dumpingStack = true;
+
+    VM_Address ip = VM_Magic.getReturnAddress(fp);
+    fp = VM_Magic.getCallerFramePointer(fp);
+    dumpStack( ip, fp );
+      
   }
 
   /**
    * Dump state of a (stopped) thread's stack.
-   * @param fp & ip for first frame to dump
+   * @param ip instruction pointer for first frame to dump
+   * @param fp frame pointer for first frame to dump
    */
   public static void dumpStack (VM_Address ip, VM_Address fp) {
     writeString("\n-- Stack --\n");
@@ -716,7 +728,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       // This is the first time I've been called, attempt to exit "cleanly"
       exitInProgress = true;
       dumpStack(fp);
-      VM.sysExit(9999);
+      VM.sysExit(124);		// unix system() only cleanly handles exit
+				// codes from 0 to 127. 
     } else {
       // Another failure occured while attempting to exit cleanly.  
       // Get out quick and dirty to avoid hanging.
