@@ -1281,6 +1281,7 @@ function emitCompiler
    print ""
 
    if (( RVM_WITH_JKSVM_JAR )); then
+     . $RVM_HOST_CONFIG
      print "   rm -f jksvm.jar"
      print "   $HOST_JAR cvf jksvm.jar Dummy.class 2>&1 > /dev/null"
      print "   $FIND . -name '*.class' | xargs $HOST_JAR uvf jksvm.jar >/dev/null 2>&1"
