@@ -7,16 +7,12 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_Memory;
 
 /**
  * Chooses the appropriate collector-specific header model.
@@ -80,7 +76,7 @@ public class Header extends RCHybridHeader {
 
   public static void setBarrierBit(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM._assert(false);
+    VM_Interface._assert(false);
   }
 
   static final int LOGGING_MASK = 0x3;
