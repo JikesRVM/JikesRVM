@@ -66,7 +66,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
   /**
    * references passed to native code
    */
-  protected int[] JNIRefs; 
+  protected VM_AddressArray JNIRefs; 
 
   /**
    * address of current top ref in JNIRefs array   
@@ -106,11 +106,10 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
    * Create a thread specific JNI environment.
    */
   public VM_JNIGenericEnvironment() {
-    JNIRefs = new int[JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH];
-    JNIRefs[0] = 0;                       // 0 entry for bottom of stack
+    JNIRefs = VM_AddressArray.create(JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH);
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
-    JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) * 4;   // byte offset to last entry
+    JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
     alwaysHasNativeFrame = false;
   }
 
@@ -125,7 +124,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
     return JNITopJavaFP;
   }
 
-  public final int[] refsArray() throws VM_PragmaUninterruptible {
+  public final VM_AddressArray refsArray() throws VM_PragmaUninterruptible {
     return JNIRefs;
   }
 
@@ -169,31 +168,30 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
    * @param ref the object to put on stack
    * @return offset of entry in JNIRefs stack
    */
-  public final int pushJNIRef( Object ref ) {
+  public final int pushJNIRef(Object ref) {
     if (ref == null)
       return 0;
 
     if (VM.VerifyAssertions) {
-      VM._assert(MM_Interface.validRef( VM_Magic.objectAsAddress(ref)));
+      VM._assert(MM_Interface.validRef(VM_Magic.objectAsAddress(ref)));
     }
 
-    if (JNIRefsTop>>2 >= JNIRefs.length) {
+    if ((JNIRefsTop >>> LOG_BYTES_IN_ADDRESS) >= JNIRefs.length()) {
       VM.sysFail("unchecked pushes exceeded fudge length!");
     }
 
-    JNIRefsTop += 4;
+    JNIRefsTop += BYTES_IN_ADDRESS;
+
     if (JNIRefsTop >= JNIRefsMax) {
       JNIRefsMax *= 2;
-      int[] newrefs = new int[ (JNIRefsMax>>2) + JNIREFS_FUDGE_LENGTH ];
-      for(int i = 0; i < JNIRefs.length; i++) {
-	newrefs[i] = JNIRefs[i];
-      }
-      for(int i = JNIRefs.length; i < newrefs.length; i++) {
-	newrefs[i] = 0;
+      VM_AddressArray newrefs = VM_AddressArray.create((JNIRefsMax>>>LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH);
+      for(int i = 0; i<JNIRefs.length(); i++) {
+	newrefs.set(i, JNIRefs.get(i));
       }
       JNIRefs = newrefs;
     }
-    JNIRefs[JNIRefsTop >> 2] = VM_Magic.objectAsAddress(ref).toInt();
+
+    JNIRefs.set(JNIRefsTop >>> LOG_BYTES_IN_ADDRESS, VM_Magic.objectAsAddress(ref));
     return JNIRefsTop;
   }
 
@@ -214,7 +212,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
     if (offset < 0)
       return VM_JNIGlobalRefTable.ref(offset);
     else
-      return VM_Magic.addressAsObject(VM_Address.fromInt(JNIRefs[ offset>>2 ]));
+      return VM_Magic.addressAsObject(JNIRefs.get(offset >>> LOG_BYTES_IN_ADDRESS));
   }
 
   /**
@@ -230,9 +228,9 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
       VM.sysWrite(")\n");
     }
     
-    JNIRefs[offset>>2] = 0;
+    JNIRefs.set(offset >>> LOG_BYTES_IN_ADDRESS, VM_Address.zero());
 
-    if (offset == JNIRefsTop) JNIRefsTop -= 4;
+    if (offset == JNIRefsTop) JNIRefsTop -= BYTES_IN_ADDRESS;
   }
 
   public final void dumpJniRefsStack () throws VM_PragmaUninterruptible {
@@ -245,13 +243,13 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
     VM.sysWrite(" * JNIRefsSavedFP = ");
     VM.sysWrite(JNIRefsSavedFP);
     VM.sysWrite(".\n*\n");
-    while (jniRefOffset >= 0) {
+    while (jniRefOffset>= 0) {
       VM.sysWrite(jniRefOffset);
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      MM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
-      jniRefOffset -= 4;
+      MM_Interface.dumpRef(JNIRefs.get(jniRefOffset >>> LOG_BYTES_IN_ADDRESS));
+      jniRefOffset -= BYTES_IN_ADDRESS;
     }
     VM.sysWrite("\n* * end of dump * *\n");
   }

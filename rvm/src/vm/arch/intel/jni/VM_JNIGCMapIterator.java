@@ -39,11 +39,11 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   //    	+ saved FP   +  <---- FP for called native method  
 
   // additional instance fields added by this subclass of VM_GCMapIterator
-  int[]         jniRefs;
-  int           jniNextRef;
-  int           jniFramePtr;
-  VM_Address    jniSavedProcessorRegAddr;     // -> saved PR reg
-  VM_Address    jniSavedReturnAddr;           // -> return addr in generated transition prolog
+  VM_AddressArray jniRefs;
+  int             jniNextRef;
+  int             jniFramePtr;
+  VM_Address      jniSavedProcessorRegAddr;     // -> saved PR reg
+  VM_Address      jniSavedReturnAddr;           // -> return addr in generated transition prolog
   
   public VM_JNIGCMapIterator(VM_WordArray registerLocations) {
     this.registerLocations = registerLocations;
@@ -66,6 +66,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
       this.jniSavedProcessorRegAddr = VM_Address.zero();  
                                     // necessary so getNextRefAddr() can be used to report
                                     // jniRefs in a "frame", without calling setup. 
+
     } 
   }
      
@@ -96,14 +97,14 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // first report jni refs in the current frame in the jniRef side stack
     // until all in the frame are reported
     //
-    if ( jniNextRef > jniFramePtr ) {
+    if (jniNextRef > jniFramePtr) {
       ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
-      jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
+      jniNextRef -= BYTES_IN_ADDRESS;
       return ref_address;
     }
 
     // report location of saved processor reg in the Java to C frame
-    if ( !jniSavedProcessorRegAddr.isZero() ) {
+    if (!jniSavedProcessorRegAddr.isZero()) {
       ref_address = jniSavedProcessorRegAddr;
       jniSavedProcessorRegAddr = VM_Address.zero();
       return ref_address;
@@ -117,8 +118,8 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // last jni frame in the JNIRefs stack.  If more frames, initialize for a
     // later scan of those refs.
     //
-    if ( jniFramePtr > 0 ) {
-      jniFramePtr = jniRefs[jniFramePtr >> LOG_BYTES_IN_ADDRESS];
+    if (jniFramePtr > 0) {
+      jniFramePtr = jniRefs.get(jniFramePtr >> LOG_BYTES_IN_ADDRESS).toInt();
       jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
     }
 
@@ -135,7 +136,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   
   public VM_Address getNextReturnAddressAddress() {
     VM_Address ref_address;
-    if ( !jniSavedReturnAddr.isZero() ) {
+    if (!jniSavedReturnAddr.isZero()) {
       ref_address = jniSavedReturnAddr;
       jniSavedReturnAddr = VM_Address.zero();
       return ref_address;

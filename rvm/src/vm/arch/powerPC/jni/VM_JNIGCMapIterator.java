@@ -51,7 +51,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   public static int verbose = 0;
   
    // additional instance fields added by this subclass of VM_GCMapIterator
-  private int[]  jniRefs;
+  private VM_AddressArray jniRefs;
   private int jniNextRef;
   private int jniFramePtr;
   private VM_Address jniSavedProcessorRegAddr;
@@ -115,7 +115,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     int nextFP;
     VM_Address ref_address;
 
-    if ( jniNextRef > jniFramePtr ) {
+    if (jniNextRef > jniFramePtr) {
       ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
       jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
       if (verbose > 0) VM.sysWriteln("JNI iterator returning JNI ref: ", ref_address);
@@ -135,8 +135,8 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // last jni frame in the JNIRefs stack.  If more frames, initialize for a
     // later scan of those refs.
     //
-    if ( jniFramePtr > 0) {
-      jniFramePtr = jniRefs[jniFramePtr >> LOG_BYTES_IN_ADDRESS];
+    if (jniFramePtr > 0) {
+      jniFramePtr = jniRefs.get(jniFramePtr >> LOG_BYTES_IN_ADDRESS).toInt();
       jniNextRef = jniNextRef - BYTES_IN_ADDRESS ;
     }
     
