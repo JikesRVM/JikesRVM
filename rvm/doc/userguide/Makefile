@@ -20,11 +20,11 @@ ifneq (${RVM_HOST_CONFIG},)
    endif
 
    ifeq (${HOST_VM_RT},)
-        HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_VM_RT-)
+        HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_VM_RT-})
    endif
 
    ifeq (${HOST_VM_RT},)
-        HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_JAVA-)
+        HOST_VM_RT := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_JAVA-})
    endif
 
    ifeq (${HOST_JAVAC},)
