@@ -972,7 +972,7 @@ public class VM_Runtime implements VM_Constants {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while (!MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
+    } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     return callee_fp;
   }
