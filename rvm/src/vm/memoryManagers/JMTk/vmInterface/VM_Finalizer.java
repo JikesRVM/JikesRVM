@@ -48,7 +48,7 @@ public class VM_Finalizer implements VM_Uninterruptible {
   // Implementation //
   //----------------//
 
-  private static int INITIAL_SIZE = 2048;
+  private static int INITIAL_SIZE = 4096;
   private static Lock lock = new Lock("Finalizer");
   private static int [] candidate = new int[INITIAL_SIZE];    // should be VM_Address [] but compiler does not support that type properly
   private static int candidateEnd;                            // candidate[0] .. candidate[candidateEnd-1] contains non-zero entries

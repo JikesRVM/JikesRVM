@@ -48,7 +48,7 @@ public class VM_Finalizer {
   // Implementation //
   //----------------//
 
-  private static int INITIAL_SIZE = 2048;
+  private static int INITIAL_SIZE = 4096;
   private static VM_Synchronizer locker = new VM_Synchronizer(); // to make addElement concurrent
   private static int [] candidate = new int[INITIAL_SIZE];    // should be VM_Address [] but compiler does not support that type properly
   private static int candidateEnd;                            // candidate[0] .. candidate[candidateEnd-1] contains non-zero entries
