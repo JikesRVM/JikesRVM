@@ -730,7 +730,6 @@ public class BootImageWriter2 extends BootImageWriterMessages
       VM_Type type = (VM_Type) e.nextElement();
       if (trace) say("instantiating " + type);
       type.instantiate();
-      System.gc();
     }
 
     //
@@ -1041,10 +1040,6 @@ public class BootImageWriter2 extends BootImageWriterMessages
   private static int depth = -1;
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
 
-  /** INTERNAL KLUDGE */
-  private static final int GC_FREQUENCY = 1000;
-  private static int gcKludge = 0;
-
   /**
    * Copy an object (and, recursively, any of its fields or elements that
    * are references) from host jdk address space into image.
@@ -1064,12 +1059,6 @@ public class BootImageWriter2 extends BootImageWriterMessages
       BootImageMap.findOrCreateEntry(jdkObject);
     if (mapEntry.imageOffset != OBJECT_NOT_ALLOCATED)
       return mapEntry.imageOffset; // object already copied
-
-    // KLUDGE: gc every so many objects
-    if (gcKludge++ == GC_FREQUENCY) {
-      System.gc();
-      gcKludge = 0;
-    }
 
     if (detailed_trace) depth++;
 
