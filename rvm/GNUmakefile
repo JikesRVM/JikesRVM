@@ -61,7 +61,7 @@ endif
 XFLAGS:=--no-run-if-empty
 
 find_ignore_docs:=-name \*.gif -o -name \*.jpg -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
-find_match_junk_names:=-name Old -prune -o -name '*.[ao]' -prune -o -name \*.so -prune -o -name CVS -prune -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' 
+find_match_junk_names:=-name Old -prune -o -name CVS -prune -o -name '*.[ao]' -o -name \*.so -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -name core -o -name core.\* -o -name \*.log
 append_java_templates=find src ../MMTk -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --language=java --append --output=$@ 
 
 # Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
