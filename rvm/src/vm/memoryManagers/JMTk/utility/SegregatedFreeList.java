@@ -166,8 +166,8 @@ abstract class SegregatedFreeList extends Allocator
     if (!cell.isZero()) {
       if (maintainInUse()) cellsInUse[sizeClass]++;
       freeList.set(sizeClass, getNextCell(cell));
+      setNextCell(cell, VM_Address.zero()); // clear out the free list link
       postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-      Memory.zeroSmall(cell, VM_Extent.fromInt(bytes));
     } 
     return cell;
 
@@ -214,7 +214,7 @@ abstract class SegregatedFreeList extends Allocator
     int sizeClass = getSizeClass(bytes);
     VM_Address current = currentBlock.get(sizeClass);
     if (!current.isZero()) {
-      // flush the current (empty) free list if necessary
+      // zero the current (empty) free list if necessary
       if (preserveFreeList())
 	flushFreeList(current, sizeClass, VM_Address.zero());
 
@@ -227,9 +227,8 @@ abstract class SegregatedFreeList extends Allocator
 	  currentBlock.set(sizeClass, current);
 	  if (maintainInUse()) cellsInUse[sizeClass] = getInUse(current) + 1;
 	  freeList.set(sizeClass, getNextCell(cell));
-	  postAlloc(cell, currentBlock.get(sizeClass),
-		    sizeClass, bytes, inGC);
-	  Memory.zeroSmall(cell, VM_Extent.fromInt(bytes));
+	  setNextCell(cell, VM_Address.zero()); // clear out the free list link
+	  postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
 	  return cell;
 	}
 	current = BlockAllocator.getNextBlock(current);
@@ -256,12 +255,14 @@ abstract class SegregatedFreeList extends Allocator
    * Expand a particular size class, allocating a new block, breaking
    * the block into cells and placing those cells on a free list for
    * that block.  The block becomes the current head for this size
-   * class and the address of the first available cell is returned.
+   * class and the address of the first available cell is returned.<p>
+   *
+   * <b>This is guaranteed to return pre-zeroed cells</b>
    *
    * @param sizeClass The size class to be expanded
    * @return The address of the first available cell in the newly
-   * allocated block, or zero if there were insufficient resources to
-   * allocate a new block.
+   * allocated block of pre-zeroed cells, or return zero if there were
+   * insufficient resources to allocate a new block.
    */
   private final VM_Address expandSizeClass(int sizeClass) 
     throws VM_PragmaInline {
@@ -273,9 +274,16 @@ abstract class SegregatedFreeList extends Allocator
 
     int cellExtent = cellSize[sizeClass];
     VM_Address cursor = block.add(blockHeaderSize[sizeClass]);
-    VM_Address sentinel = block.add(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    int blockSize = BlockAllocator.blockSize(blockSizeClass[sizeClass]);
+    int useableBlockSize = blockSize - blockHeaderSize[sizeClass];
+    VM_Address sentinel = block.add(blockSize);
     VM_Address lastCell = VM_Address.zero();
     int cellCount = 0;
+
+    // pre-zero the block
+    Memory.zero(cursor, VM_Extent.fromInt(useableBlockSize));
+
+    // construct the free list
     while (cursor.add(cellExtent).LE(sentinel)) {
       setNextCell(cursor, lastCell); 
       lastCell = cursor;
@@ -324,7 +332,7 @@ abstract class SegregatedFreeList extends Allocator
   /**
    * Free a cell.  The cell is added to the free list for the given
    * block, and the inuse count for the block is decremented, the
-   * block freed if empty.
+   * block freed if empty.  <b>The cell is zeroed as it is freed.</b>
    *
    * @param cell The cell to be freed
    * @param block The block on which the cell resides
@@ -332,6 +340,7 @@ abstract class SegregatedFreeList extends Allocator
    */
   protected final void free(VM_Address cell, VM_Address block, int sizeClass)
     throws VM_PragmaInline {
+    Memory.zeroSmall(cell, VM_Extent.fromInt(cellSize[sizeClass]));
     addToFreeList(cell, block);
     if (maintainInUse() && (decInUse(block) == 0))
       freeBlock(block, sizeClass);

@@ -215,11 +215,30 @@ final class MarkSweepLocal extends SegregatedFreeList
     VM_Interface._assert((INUSE_BITMAP_BASE + offset) < blockHeaderSize[sizeClass]);
   }
   
+  /**
+   * Initialize any header information for a new block.  In this case,
+   * this just means zeroing the header bits.
+   *
+   * @param block The new block whose header is to be zeroed
+   * @param sizeClass The sizeClass of the new block
+   */
   protected final void postExpandSizeClass(VM_Address block, int sizeClass){
     Memory.zeroSmall(block.add(BITMAP_BASE), 
 		     VM_Extent.fromInt(bitmapSets[sizeClass]<<(LOG_WORD_SIZE+LOG_SET_SIZE)));
   };
-  
+
+  /**
+   * Prepare the next block in the free block list for use by the free
+   * list allocator.  In the case of lazy sweeping this involves
+   * sweeping the available cells.  <b>The sweeping operation must
+   * ensure that cells are pre-zeroed</b>, as this method must return
+   * pre-zeroed cells.
+   *
+   * @param block The block to be prepared for use
+   * @param sizeClass The size class of the block
+   * @return The address of the first pre-zeroed cell in the free list
+   * for this block, or zero if there are no available cells.
+   */
   protected final VM_Address advanceToBlock(VM_Address block, int sizeClass) {
     if (LAZY_SWEEP) {
       if (maintainInUse())  {
@@ -310,7 +329,9 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
 
   /**
-   * Walk through a set of mark/inuse sets for a block.
+   * Walk through a set of mark/inuse sets for a block, and if the
+   * release flag is set, free cells that are not in use, zeroing them
+   * as they are freed.
    *
    * @param block The block
    * @param sizeClass The size class for this superpage
