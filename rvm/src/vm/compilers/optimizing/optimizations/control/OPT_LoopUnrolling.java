@@ -500,7 +500,9 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     tmp.insertBefore
     (Goto.create (GOTO, succBlock.makeJumpTarget()));
 
-    mainHeader.prependInstruction (Empty.create (YIELDPOINT_BACKEDGE));
+    if (mainHeader.firstInstruction().position.getMethod().isInterruptible()) {
+      mainHeader.prependInstruction (Empty.create (YIELDPOINT_BACKEDGE));
+    }
     
     // recompute normal outs
     guardBlock0.recomputeNormalOut(ir);
