@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 Ant build file for the eclipse plug in
 
@@ -32,7 +33,10 @@ $Id$
   <property name="name" value="${ant.project.name}"/>
 
   <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
-  <property name="package" value="com.ibm.JikesRVM.eclipse.jdt.launching_${jikesrvm.version}" />
+  <property name="package"     value="com.ibm.jikesrvm.launching_2.3.0.1"/>
+  <!-- property name="package"
+  value="com.ibm.JikesRVM.eclipse.jdt.launching_${jikesrvm.numericversion}"
+  / --->
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
@@ -105,16 +109,8 @@ $Id$
           depends="build.src"
           description="compiles source code">
     <mkdir dir="${build.classes}"/>
-       <!-- had the following as one of the attributes for the "javac" tag, 
-	    works with Ant 1.5.3, does not work with
-            Ant 1.4.1.  Can we put 1.4.1 in a mode where it won't
-            treat attributes it doesn't understand as fatal errors? -->
-	<!--  listfiles="${build.trace}" -->
-
     <javac destdir="${build.classes}"
 	   classpathref="project.classpath"
-	   failonerror="true"
-	   deprecation="true"
 	   debug="${build.config.debug}">
       <src path="${src.dir}"/>
       <src path="${build.src}"/>

@@ -19,4 +19,4 @@ eclipse.dir=/home/palm/MyEclipse/eclipse
 # 
 build.trace=true
 #
-jikesrvm.version=post_2.3.0
+jikesrvm.numericversion=2.3.0.1

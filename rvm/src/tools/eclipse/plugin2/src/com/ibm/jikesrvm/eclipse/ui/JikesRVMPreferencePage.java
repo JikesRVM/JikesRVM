@@ -1,24 +1,15 @@
 /*
  * ===========================================================================
- * IBM Confidential
- * Software Group 
- *
  * Eclipse/Jikes
  *
- * (C) Copyright IBM Corp., 2002.
+ * Copyright © IBM Corp., 2002, 2003.
  *
- * The source code for this program is not published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with the U.S.
- * Copyright office.
- *
- * ==========
  * $Source$
  * $Revision$
  * $Date$
  * $Author$
  * $Id$
  */
-//package org.eclipse.ui.jikesrvm2;
 package com.ibm.jikesrvm.eclipse.ui;
 
 import com.ibm.jikesrvm.eclipse.jdt.launching.*;
