@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.*;
 public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants, VM_SizeConstants {
 
   /**
-   * Used to cannonicalize VM_InterfaceMethodSignatures
+   * Used to canonicalize VM_InterfaceMethodSignatures
    */
   private static HashMap dictionary = new HashMap();
 

@@ -94,7 +94,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
 
   /**
    * Create an instance of a VM_Primitive
-   * @param typeRef the cannonical type reference for this primitive
+   * @param typeRef the canonical type reference for this primitive
    */
   VM_Primitive(VM_TypeReference tr) {
     super(tr);

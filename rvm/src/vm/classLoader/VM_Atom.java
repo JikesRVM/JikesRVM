@@ -10,7 +10,7 @@ import java.util.HashMap;
 /** 
  * An  utf8-encoded byte string.
  *
- * VM_Atom's are interned (cannonicalized) 
+ * VM_Atom's are interned (canonicalized) 
  * so they may be compared for equality using the "==" operator.
  *
  * VM_Atoms are used to represent names, descriptors, and string literals
@@ -23,7 +23,7 @@ import java.util.HashMap;
 public final class VM_Atom implements VM_ClassLoaderConstants {
 
   /**
-   * Used to cannonicalize VM_Atoms: Key => VM_Atom
+   * Used to canonicalize VM_Atoms: Key => VM_Atom
    */
   private static HashMap dictionary = new HashMap();
 
@@ -448,7 +448,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /*
-   * We cannonizalize VM_Atoms, therefore we can use == for equals
+   * We canonicalize VM_Atoms, therefore we can use == for equals
    */
   public final boolean equals(Object other) {
     return this == other;

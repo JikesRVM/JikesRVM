@@ -23,7 +23,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   protected final VM_Class declaringClass;
 
   /**
-   * The cannonical VM_MemberReference for this member
+   * The canonical VM_MemberReference for this member
    */
   protected final VM_MemberReference memRef;
 
@@ -42,7 +42,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * NOTE: Only {@link VM_Class} is allowed to create an instance of a VM_Member.
    * 
    * @param declaringClass the VM_Class object of the class that declared this member
-   * @param memRef the cannonical memberReference for this member.
+   * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    */
   protected VM_Member(VM_Class declaringClass, VM_MemberReference memRef,
@@ -66,7 +66,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   }
       
   /**
-   * Cannonical member reference for this member.
+   * Canonical member reference for this member.
    */ 
   public final VM_MemberReference getMemberRef() throws VM_PragmaUninterruptible { 
     return memRef;
@@ -89,7 +89,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
 
   /**
    * Get a unique id for this member.
-   * The id is the id of the cannonical VM_MemberReference for this member
+   * The id is the id of the canonical VM_MemberReference for this member
    * and thus may be used to find the member by first finding the member reference.
    */
   public final int getId() throws VM_PragmaUninterruptible {

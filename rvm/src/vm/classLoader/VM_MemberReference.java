@@ -18,7 +18,7 @@ import java.util.HashMap;
  * <li> a descriptor
  * </ul>
  * Resolving a VM_MemberReference to a VM_Member can
- * be an expensive operation.  Therefore we cannonicalize
+ * be an expensive operation.  Therefore we canonicalize
  * VM_MemberReference instances and cache the result of resolution.
  * 
  * @author Bowen Alpern
@@ -28,7 +28,7 @@ import java.util.HashMap;
 public abstract class VM_MemberReference {
 
   /**
-   * Used to cannonicalize memberReferences
+   * Used to canonicalize memberReferences
    */
   private static HashMap dictionary = new HashMap();
 
@@ -63,7 +63,7 @@ public abstract class VM_MemberReference {
   protected int id;
 
   /**
-   * Find or create the cannonical VM_MemberReference instance for
+   * Find or create the canonical VM_MemberReference instance for
    * the given tuple.
    * @param cl the type reference
    * @param mn the name of the member

@@ -23,7 +23,7 @@ public final class VM_AbstractMethod extends VM_Method {
 
   /**
    * @param declaringClass the VM_Class object of the class that declared this method
-   * @param memRef the cannonical memberReference for this member.
+   * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param exceptionTypes exceptions thrown by this method.
    */

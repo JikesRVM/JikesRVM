@@ -132,7 +132,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
 
   /**
    * @param dc the VM_Class object of the class that declared this field
-   * @param mr the cannonical memberReference for this member.
+   * @param mr the canonical memberReference for this member.
    * @param mo modifiers associated with this member.
    * @param et exceptions thrown by this method.
    * @param lw the number of local words used by the bytecode of this method

@@ -18,7 +18,7 @@ import java.util.HashMap;
  * <li> a type name
  * </ul>
  * Resolving a VM_TypeReference to a VM_Type can
- * be an expensive operation.  Therefore we cannonicalize
+ * be an expensive operation.  Therefore we canonicalize
  * VM_TypeReference instances and cache the result of resolution.
  * 
  * @author Bowen Alpern
@@ -28,7 +28,7 @@ import java.util.HashMap;
 public class VM_TypeReference implements VM_SizeConstants{
 
   /**
-   * Used to cannonicalize TypeReferences
+   * Used to canonicalize TypeReferences
    */
   private static HashMap dictionary = new HashMap();
 
@@ -124,7 +124,7 @@ public class VM_TypeReference implements VM_SizeConstants{
   protected VM_Type resolvedType;
 
   /**
-   * Find or create the cannonical VM_TypeReference instance for
+   * Find or create the canonical VM_TypeReference instance for
    * the given pair.
    * @param cl the classloader (defining/initiating depending on usage)
    * @param tn the name of the type
@@ -478,11 +478,11 @@ public class VM_TypeReference implements VM_SizeConstants{
       } else {
 	VM_Type elementType = getArrayElementType().resolve();
 	if (elementType.getClassLoader() != classloader) {
-	  // We aren't the cannonical type reference because the element type
+	  // We aren't the canonical type reference because the element type
 	  // was loaded using a different classloader. 
-	  // Find the cannonical type reference and ask it to resolve itself.
-	  VM_TypeReference cannonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
-	  resolvedType = cannonical.resolve();
+	  // Find the canonical type reference and ask it to resolve itself.
+	  VM_TypeReference canonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
+	  resolvedType = canonical.resolve();
 	} else {
 	  resolvedType = new VM_Array(this, elementType);
 	}

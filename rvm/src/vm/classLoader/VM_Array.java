@@ -161,7 +161,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
   /**
    * Create an instance of a VM_Array
-   * @param typeRef the cannonical type reference for this type.
+   * @param typeRef the canonical type reference for this type.
    * @param elementType the VM_Type object for the array's elements.
    */
   VM_Array(VM_TypeReference typeRef, VM_Type elementType) {

@@ -127,7 +127,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return MOVE_FOLDED;
 	    }
 	  } else {
-	    // cannonicalize
+	    // canonicalize
 	    TrapIf.mutate(s, TRAP_IF, TrapIf.getClearGuardResult(s),
 			  TrapIf.getClearVal2(s),
 			  TrapIf.getClearVal1(s),
@@ -284,7 +284,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
 	    }
 	  } else {	      
-	    // Cannonicalize by switching operands and fliping code.
+	    // Canonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
 	    CondMove.setVal1(s, CondMove.getClearVal2(s));
 	    CondMove.setVal2(s, tmp);
@@ -331,7 +331,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
 	    }
 	  } else {	      
-	    // Cannonicalize by switching operands and fliping code.
+	    // Canonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
 	    CondMove.setVal1(s, CondMove.getClearVal2(s));
 	    CondMove.setVal2(s, tmp);
@@ -361,7 +361,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
 	    }
 	  } else {	      
-	    // Cannonicalize by switching operands and fliping code.
+	    // Canonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
 	    CondMove.setVal1(s, CondMove.getClearVal2(s));
 	    CondMove.setVal2(s, tmp);
@@ -391,7 +391,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
 	    }
 	  } else {	      
-	    // Cannonicalize by switching operands and fliping code.
+	    // Canonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
 	    CondMove.setVal1(s, CondMove.getClearVal2(s));
 	    CondMove.setVal2(s, tmp);
@@ -421,7 +421,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
 	    }
 	  } else {	      
-	    // Cannonicalize by switching operands and fliping code.
+	    // Canonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
 	    CondMove.setVal1(s, CondMove.getClearVal2(s));
 	    CondMove.setVal2(s, tmp);
@@ -451,7 +451,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
 	    }
 	  } else {	      
-	    // Cannonicalize by switching operands and fliping code.
+	    // Canonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = CondMove.getClearVal1(s);
 	    CondMove.setVal1(s, CondMove.getClearVal2(s));
 	    CondMove.setVal2(s, tmp);
@@ -497,7 +497,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	      return MOVE_FOLDED;
 	    }
 	  } else {
-	    // Cannonicalize by switching operands and fliping code.
+	    // Canonicalize by switching operands and fliping code.
 	    OPT_Operand tmp = BooleanCmp.getClearVal1(s);
 	    BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
 	    BooleanCmp.setVal2(s, tmp);

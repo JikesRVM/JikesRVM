@@ -28,7 +28,7 @@ public final class VM_Field extends VM_Member {
    * NOTE: Only {@link VM_Class} is allowed to create an instance of a VM_Field.
    * 
    * @param declaringClass the VM_Class object of the class that declared this field
-   * @param memRef the cannonical memberReference for this member.
+   * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the field's attributed from
    */

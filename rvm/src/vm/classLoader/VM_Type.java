@@ -90,7 +90,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   private static VM_Type[] types = new VM_Type[1000];
 
   /**
-   * Cannonical type reference for this VM_Type instance
+   * Canonical type reference for this VM_Type instance
    */
   protected final VM_TypeReference typeRef;
 
@@ -164,7 +164,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
 
   /**
    * Create an instance of a VM_Type
-   * @param typeRef the cannonical type reference for this type.
+   * @param typeRef the canonical type reference for this type.
    */
   protected VM_Type(VM_TypeReference tr) {
     this.typeRef = tr;
@@ -183,7 +183,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   }
   
   /**
-   * Cannonical type reference for this type.
+   * Canonical type reference for this type.
    */
   public final VM_TypeReference getTypeRef() throws VM_PragmaUninterruptible {
     return typeRef;

@@ -29,7 +29,7 @@ public abstract class VM_Method extends VM_Member {
 
   /**
    * @param declaringClass the VM_Class object of the class that declared this field
-   * @param memRef the cannonical memberReference for this member.
+   * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param exceptionTypes exceptions thrown by this method.
    */
@@ -45,7 +45,7 @@ public abstract class VM_Method extends VM_Member {
    * instance of a VM_Method by reading the relevant data from the argument bytecode stream.
    * 
    * @param declaringClass the VM_Class object of the class that declared this method
-   * @param memRef the cannonical memberReference for this member.
+   * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the method's attributes from
    */
