@@ -91,6 +91,11 @@ echo >> $MSG
 echo Performance Summary >> $MSG
 $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
 
+# Print verbose performance data for SPECjvm98
+echo SPECjvm98 Performance Details >> $MSG
+echo --------- ----------- ------- >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 $RVM_ROOT/results/performance.log >> $MSG
+
 # Finally!  Send the mail message to those who care
 echo "mailing status to jikesrvm-regression@www-124.ibm.com"
 cat MSG >> $RUN_LOG
