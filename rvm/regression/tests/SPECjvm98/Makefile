@@ -38,7 +38,8 @@ ifneq ($(WORKING),.)
 endif
 
 check:
-	@$(FGREP) -v "**NOT" $(OUT) > /dev/null
+	@$(FGREP) "Finished" $(OUT) > /dev/null
+	@$(FGREP) "Finished" $(OUT) | $(FGREP) -v "**NOT" $(OUT) > /dev/null
 	@$(AWK) '/start\./{cnt++};/^-- Stack --/{cnt++};/Finished/{cnt--};END{exit cnt}' $(OUT)
 
 ifeq ($(MODE),PERFORMANCE)
