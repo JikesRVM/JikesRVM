@@ -124,8 +124,8 @@ nonstandard_usage()
     fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",Me);
     fprintf(SysTraceFile,"          (to execute a class)\n");
     fprintf(SysTraceFile,"where options include\n");
-    for (int i=0; i<numNonStandardUsageLines; i++) {
-        fprintf(SysTraceFile,nonStandardUsage[i]);
+    for (const char * const *msgp = nonStandardUsage; *msgp; ++msgp) {
+        fprintf(SysTraceFile, *msgp);
         fprintf(SysTraceFile,"\n");
     }
 }
