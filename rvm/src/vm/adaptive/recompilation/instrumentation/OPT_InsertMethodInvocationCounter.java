@@ -3,14 +3,11 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
- *
- * OPT_InsertMethodInvocationCounter.java
- *
  * An OPT_Phase that inserts a method invocation counter on the first
  * basic block of the method.  It uses a
  * VM_InstrumentedEventCounterManager to obtain the space to put the
@@ -23,45 +20,43 @@ import com.ibm.JikesRVM.opt.ir.*;
  * method.
  *
  * @author Matthew Arnold 
- *
- **/
-
+ */
 class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
-   static final boolean DEBUG = false;
+
+  static final boolean DEBUG = false;
 
   public final boolean shouldPerform(OPT_Options options) {
-     return options.INSERT_METHOD_COUNTERS_OPT;
-   }
+    return VM_Controller.options.INSERT_METHOD_COUNTERS_OPT;
+  }
 
-  public    final String getName() { return "InsertMethodInvocationCounters"; }
+  public final String getName() { return "InsertMethodInvocationCounters"; }
+  
+  /**
+   * Insert basic block counters
+   * 
+   * @param ir the governing IR
+   */
+  final public void perform(OPT_IR ir) {
+    // Don't insert counters in uninterruptible methods, 
+    // or when instrumentation is disabled
+    if (!ir.method.isInterruptible() ||
+	!VM_Instrumentation.instrumentationEnabled())
+      return;
+    
+    OPT_BasicBlock firstBB = ir.cfg.entry();
 
-   /**
-    * Insert basic block counters
-    * 
-    * @param ir the governing IR
-    */
-   final public void perform(OPT_IR ir) {
+    VM_MethodInvocationCounterData data = 
+      VM_AOSDatabase.methodInvocationCounterData;
 
-     // Don't insert counters in uninterruptible methods, 
-     // or when instrumentation is disabled
-     if (!ir.method.isInterruptible() ||
-	 !VM_Instrumentation.instrumentationEnabled())
-       return;
+    int cmid = ir.compiledMethod.getId();
 
-     OPT_BasicBlock firstBB = ir.cfg.entry();
+    // Create a dummy instruction that is later converted into an
+    // increment of the appropriate VM_CounterArray element.
+    OPT_Instruction c = data.createEventCounterInstruction(cmid);
 
-     VM_MethodInvocationCounterData data = 
-       VM_AOSDatabase.methodInvocationCounterData;
-
-     int cmid = ir.compiledMethod.getId();
-
-     // Create a dummy instruction that is later converted into an
-     // increment of the appropriate VM_CounterArray element.
-     OPT_Instruction c = data.createEventCounterInstruction(cmid);
-
-     // Insert it at the beginnging of the basic block
-     firstBB.prependInstructionRespectingPrologue(c);
-   }
+    // Insert it at the beginnging of the basic block
+    firstBB.prependInstructionRespectingPrologue(c);
+  }
 }
 
