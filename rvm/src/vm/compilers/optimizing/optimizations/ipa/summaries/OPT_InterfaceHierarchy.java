@@ -26,7 +26,7 @@ public class OPT_InterfaceHierarchy {
    * This method updates the dictionary to record the interface
    * implementors.
    */
-  public static void notifyClassInitialized(VM_Class c) {
+  public static synchronized void notifyClassInitialized(VM_Class c) {
     if (!c.isInterface()) {
       VM_Class[] interfaces = c.getAllImplementedInterfaces();
       for (int i=0; i<interfaces.length; i++) {
@@ -104,7 +104,7 @@ public class OPT_InterfaceHierarchy {
    * implementation.  If there is not a unique implementation, return
    * null.
    */
-  public static VM_Method getUniqueImplementation(VM_Method foo) {
+  public static synchronized VM_Method getUniqueImplementation(VM_Method foo) {
     VM_Class I = foo.getDeclaringClass();
 
     java.util.HashSet classes = allImplementors(I);
