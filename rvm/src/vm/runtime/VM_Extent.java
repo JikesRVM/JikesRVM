@@ -91,7 +91,7 @@ public final class VM_Extent implements VM_Uninterruptible {
 
   public int toInt () {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return value;
+    return (int)value;
   }
 
   public long toLong () {
