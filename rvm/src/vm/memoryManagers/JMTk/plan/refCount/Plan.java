@@ -402,8 +402,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    */
   protected final void threadLocalRelease(int count) {
     if (verbose == 2) processIncBufsAndCount(); else processIncBufs();
-    if (id == 1)
+    //    if (id == 1)
       rcSpace.decrementPhase();
+      //    else
+      //      VM._assert(false);
     VM_CollectorThread.gcBarrier.rendezvous();
     if (verbose == 2) processDecBufsAndCount(); else processDecBufs();
     if (refCountCycleDetection) {

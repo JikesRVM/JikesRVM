@@ -145,9 +145,9 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     switch (phase) {
     case PROCESS:  
+      if (VM.VerifyAssertions) VM._assert(root);
       increment(object);
-      if (root)
-	VM_Interface.getPlan().addToRootSet(object); 
+      VM_Interface.getPlan().addToRootSet(object); 
       break;
     case DECREMENT: 
       VM_Interface.getPlan().addToDecBuf(object); 
