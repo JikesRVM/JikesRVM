@@ -34,6 +34,7 @@
  *
  * @author Dick Attanasio
  * @modified by Stephen Smith
+ * @modified by David F. Bacon
  * 
  */
 public class VM_Allocator
@@ -73,6 +74,8 @@ public class VM_Allocator
 
   static final boolean writeBarrier = false;
   static final int    SMALL_SPACE_MAX = 2048;      // largest object in small heap
+
+  static final int GC_RETRY_COUNT = 3;             // number of times to GC before giving up
 
   static final boolean COMPILE_FOR_TIMING_RUN = true;   // touch heap in boot
 
@@ -358,7 +361,6 @@ public class VM_Allocator
 
   // Get the three arrays that control large object space
   short[] temp  = new short[bootrecord.largeSize/4096 + 1];
-  largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
 
   for (i = 0; i < GC_INITIAL_LARGE_SPACE_PAGES; i++)
     temp[i] = largeSpaceAlloc[i];
@@ -470,6 +472,8 @@ public class VM_Allocator
 		accum = new int[GC_SIZES];
 	}
 
+  largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
+
   VM_Callbacks.addExitMonitor(new VM_Allocator());
 
   }
@@ -483,370 +487,277 @@ public class VM_Allocator
     printSummaryStatistics();
   }
 
-  // 3-argument version of allocateScalar, for better optimization;
-  // opt compiler passes true or false for 3rd argument, avoiding
-  // runtime lookup, and also optimizes out the test, since the
-  // result is known.    
-  //
-  public static Object
-  allocateScalar (int size, Object[] tib, boolean hasFinalizer)
-    throws OutOfMemoryError
+  /**
+   * Allocate a "scalar" (non-array) Java object.  Ideally, both the size 
+   * and the hasFinalizer parameters are compile-time constants, allowing most 
+   * of the tests and code to be optimized away.  Note that the routines
+   * on the hot path through this method are all inlined.
+   *   @param size Size of the object in bytes, including the header
+   *   @param tib Pointer to the Type Information Block for the object type
+   *   @param hasFinalizer Does the object have a finalizer method?
+   *   @return Initialized object reference
+   */
+  public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer)
+      throws OutOfMemoryError
   {
-  VM_Magic.pragmaInline();  // make sure this method is inlined
-  int objaddr;
+      VM_Magic.pragmaInline();  // make sure this method is inlined
 
-  if (Debug_torture && VM_Scheduler.allProcessorsInitialized) {
-		gcCount++;
-		if ((gcCount % 100) == 0) {
-			VM.sysWrite(" gc count no. ");
-			VM.sysWrite(gcCount);
-			VM.sysWrite("\n");
-		}
-		gc_collect_now = true;
-		VM_CollectorThread.collect(VM_CollectorThread.collect);
-	}
-		
-
-  if (GC_COUNT_FAST_ALLOC) allocCount++;
-
-  // assumption: object blocks are always a word multiple,
-  // so we don't need to worry about address alignment or rounding
-  VM_Processor st = VM_Processor.getCurrentProcessor();
-/// DEBUG CODE
-if (st.processorMode == VM_Processor.NATIVE) {
-		VM_Scheduler.trace("VM_Allocator:"," About to quit", st.id);
-		VM_Scheduler.dumpVirtualMachine();
-		VM_Scheduler.traceback(" traceback coming");
-		VM.sysExit(1234);
-}
-
-	if (COUNT_ALLOCATIONS) {
-		st.totalBytesAllocated += size;
-		st.totalObjectsAllocated ++;
-	}
-
-  if (size <= GC_MAX_SMALL_SIZE) {
-    VM_SizeControl  the_size  = st.GC_INDEX_ARRAY[size];
-    if (the_size.next_slot != 0) {  // fastest path
-      objaddr = the_size.next_slot;
-      if (GC_COUNT_FAST_ALLOC) fastAllocCount++;
-      if (DebugLink) {
-        if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-        if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-      }
-      the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-      if (DebugLink && (the_size.next_slot != 0)) {
-        if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-        if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
-      }
-
-      VM_Magic.setMemoryWord(objaddr, 0);
-      objaddr += size - OBJECT_ADDR_POSITION;
-      VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-        VM_Magic.objectAsAddress(tib));
-      
-      if (hasFinalizer) {
-				Object ret = VM_Magic.addressAsObject(objaddr);
-        VM_Finalizer.addElement(objaddr);
-				return ret;
-      }
-
-      return VM_Magic.addressAsObject(objaddr);
-    }
-    else {
-      Object ret = allocateScalar1(the_size, tib, size, the_size.ndx);
-
-      if (hasFinalizer) {
-        VM_Finalizer.addElement(VM_Magic.objectAsAddress(ret));
-      }
+      // Allocate the memory
+      int objaddr = allocateRawMemory(size, tib, hasFinalizer);
+      // Initialize the object header
+      Object ret = initializeScalar(objaddr, size, tib);
+      // If it has a finalizer, put it on the queue
+      if (hasFinalizer) 
+	  VM_Finalizer.addElement(VM_Magic.objectAsAddress(ret));
 
       return ret;
-    }
-  }
-  else {
-    Object ret = allocateScalar1L(tib, size);
-    return ret;
-  }
-  } // 3 argument allocateScalar
-
-
-  static Object
-  allocateScalar1 (VM_SizeControl the_size, Object[] tib, int size, int ndx)
-  {
-  VM_Magic.pragmaNoInline(); // make sure this method is not inlined
-  int objaddr = allocatex(the_size, tib, size, the_size.ndx);
-  if (objaddr == 0) {
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" gc collection triggered by small scalar request \n", "XX");
-    gc1();
-    // reset the_size in case we are on a different processor after GC
-    VM_Processor st = VM_Processor.getCurrentProcessor();
-    the_size  = st.GC_INDEX_ARRAY[size];
-		if (DEBUG_FREE) if (the_size.current_block != the_size.first_block) {
-			VM_Scheduler.trace(" After gc, current_block not reset ", "AS1", ndx);
-		}
-  }
-  else {
-    return VM_Magic.addressAsObject(objaddr);
   }
 
-  // At this point allocation might or might not succeed, since the
-  // thread which originally requested the collection is usually not
-  // the one to run after gc is finished; therefore failing here is
-  // not a permanent failure necessarily
-  //
-	int control = 0;
-  while (control < 2) {
-  // try fast path again
-  if (the_size.next_slot != 0) {  // fastest path
-    objaddr = the_size.next_slot;
-    if (DebugLink) {
-      if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-    }
-    the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-    if (DebugLink && (the_size.next_slot != 0)) {
-      if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
-    }
 
-    VM_Magic.setMemoryWord(objaddr, 0);
-    objaddr += size - OBJECT_ADDR_POSITION;
-    VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-    VM_Magic.objectAsAddress(tib));
-    return VM_Magic.addressAsObject(objaddr);
-  }
-  else objaddr = allocatex(the_size, tib, size, the_size.ndx);
-  if (objaddr == 0) {   // failure
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" 2nd gc collection triggered by", " small scalar request \n", size);
-		flag2nd = true;
-    gc1();
-    // reset the_size in case we are on a different processor after GC
-    VM_Processor st = VM_Processor.getCurrentProcessor();
-    the_size  = st.GC_INDEX_ARRAY[size];
-  }
-  else {
-    return VM_Magic.addressAsObject(objaddr);
-  }
-  control++;
-	}
-	outOfMemory(size, 1300);
-  // outOfMemory does not return: following line is for compilation
-  return VM_Magic.addressAsObject(objaddr);
-  }   // allocateScalar1
+  /**
+   * Allocate a chunk of memory of a given size.  Always inlined.  All allocation 
+   * passes through this routine.
+   *   @param size Number of bytes to allocate
+   *   @param tib Pointer to the Type Information Block for the object type (debug only)
+   *   @param hasFinalizer Does the object have a finalizer method? (debug only)
+   *   @return Address of allocated storage
+   */
+  public static int allocateRawMemory (int size, Object[] tib, boolean hasFinalizer) {
+      VM_Magic.pragmaInline();
 
-  static Object
-  allocateScalar1L (Object[] tib, int size) 
-  {
-  // a large object is requested: use old code
-  VM_Magic.pragmaNoInline(); // make sure this method is not inlined
-  int objaddr = getlargeobj(size);            // address of new object
-  if (objaddr < 0) {
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" gc collection triggered by large scalar request \n", "XX");
-    gc1();
-    objaddr = getlargeobj(size);
-		// TODO: do the fix here for repeated gc's
-    if (objaddr < 0) {
-			outOfMemory(size, 2300);
-    // outOfMemory does not return: following line is for compilation
-    return VM_Magic.addressAsObject(objaddr);
-    }
-  }
+      debugAlloc(size, tib, hasFinalizer); // debug: usually inlined away to nothing
 
-  // objaddr will be 4 + the end of the object:
-  // Header resides at the end of the object (end means high address )
-
-  objaddr += size - OBJECT_ADDR_POSITION;
-  int tibAddr = VM_Magic.objectAsAddress(tib);
-  // set header pointer to VMT
-  //
-  VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, tibAddr);
-
-  // return object reference
-  //
-  return VM_Magic.addressAsObject(objaddr);
-
-  // for now, allocated space is zeroed in getspace
-    
-  }
-
-  // move on to next block, or get a new block, or return 0
-  static int allocatex (VM_SizeControl the_size, Object[] tib, int size, int ndx) {
-  int objaddr;
-  VM_BlockControl the_block = 
-    VM_Magic.addressAsBlockControl(blocks[the_size.current_block]);
-  while (the_block.nextblock != OUT_OF_BLOCKS) {
-    the_size.current_block = the_block.nextblock;
-    the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
-    if ( build_list(the_block, the_size) ) {
-      objaddr = the_size.next_slot;
-      if (DebugLink) {
-        if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-        if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
+      int objaddr;
+      if (size <= GC_MAX_SMALL_SIZE) {
+	  VM_SizeControl the_size  = VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY[size];
+	  if (the_size.next_slot != 0)
+	      objaddr = allocateSlotFast(the_size); // inlined: get available memory
+	  else
+	      objaddr = allocateSlot(the_size, size); // slow path: find a new block to allocate from
       }
-      the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-      if (DebugLink && (the_size.next_slot != 0)) {
-        if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-        if (!isPtrInBlock(the_size.next_slot, the_size)) 
-          VM.sysFail("Pointer out of block");
+      else 
+	  objaddr = allocateLarge(size); // slow path: allocate a large object
+      
+      return objaddr;
+  }
+
+
+  /**
+   * Encapsulate debugging operations when storage is allocated.  Always inlined.
+   * In production, all debug flags are false and this routine disappears.
+   *   @param size Number of bytes to allocate
+   *   @param tib Pointer to the Type Information Block for the object type 
+   *   @param hasFinalizer Does the object have a finalizer method?
+   */
+  static void debugAlloc (int size, Object[] tib, boolean hasFinalizer) {
+      VM_Magic.pragmaInline();
+
+      if (Debug_torture && VM_Scheduler.allProcessorsInitialized) {
+	  gcCount++;
+	  if ((gcCount % 100) == 0) {
+	      VM.sysWrite(" gc count no. ");
+	      VM.sysWrite(gcCount);
+	      VM.sysWrite("\n");
+	  }
+	  gc_collect_now = true;
+	  VM_CollectorThread.collect(VM_CollectorThread.collect);
       }
-      VM_Magic.setMemoryWord(objaddr, 0);
+		
+      if (GC_COUNT_FAST_ALLOC) allocCount++;
+
+      if (Debug) {		// Give it its own debug flag?
+	  VM_Processor st = VM_Processor.getCurrentProcessor();
+	  if (st.processorMode == VM_Processor.NATIVE) {
+	      VM_Scheduler.trace("VM_Allocator:"," About to quit", st.id);
+	      VM_Scheduler.dumpVirtualMachine();
+	      VM_Scheduler.traceback(" traceback coming");
+	      VM.sysExit(1234);
+	  }
+      }
+
+      if (COUNT_ALLOCATIONS) {
+	  VM_Processor st = VM_Processor.getCurrentProcessor();
+	  st.totalBytesAllocated += size;
+	  st.totalObjectsAllocated++;
+      }
+  }
+
+
+  /**
+   * Take a piece of raw memory and return an initialized object.
+   *   @param objaddr Address of raw storage
+   *   @param size Size of object in bytes (including header)
+   *   @param tib Pointer to the Type Information Block for the object type
+   *   @return Initialized object
+   */
+  static Object initializeScalar (int objaddr, int size, Object[] tib) {
+      VM_Magic.pragmaInline();
+
       objaddr += size - OBJECT_ADDR_POSITION;
       VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
-      return (objaddr);
-    }
-  }  // while.... ==> need to get another block
-    
-  while ( getPartialBlock(ndx) == 0 ) {
-    if (GSC_TRACE) {
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      VM.sysWrite("allocatex: adding partial block: ndx "); VM.sysWrite(ndx,false);
-      VM.sysWrite(" current was "); VM.sysWrite(the_size.current_block,false);
-      VM.sysWrite(" new current is "); VM.sysWrite(the_block.nextblock,false);
-      VM.sysWrite("\n");
-      VM_Processor.getCurrentProcessor().enableThreadSwitching();
-    }
-    the_size.current_block = the_block.nextblock;
-    the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
-    if ( build_list(the_block, the_size) ) {
-      // take next slot from list of free slots for this allocation
-      objaddr = the_size.next_slot;
-      the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-      VM_Magic.setMemoryWord(objaddr, 0);
-      // fill in object header for scalar object
-      objaddr += size - OBJECT_ADDR_POSITION;
-      VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(
-tib));
-      return (objaddr);
-    }
-    else {
-      if (GSC_TRACE) {
-  VM_Processor.getCurrentProcessor().disableThreadSwitching();
-  VM.sysWrite("allocatey: partial block was full\n");
-  VM_Processor.getCurrentProcessor().enableThreadSwitching();
-      }
-    }
+      return VM_Magic.addressAsObject(objaddr);
   }
 
-  if (getnewblock(ndx) == 0) {
-    the_size.current_block = the_block.nextblock;
-    build_list_for_new_block
-     (VM_Magic.addressAsBlockControl(blocks[the_size.current_block]), the_size);
-    objaddr = the_size.next_slot;
-    if (DebugLink) {
-      if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-    }
-    the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-    if (DebugLink && (the_size.next_slot != 0)) {
-      if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
-    }
 
-    VM_Magic.setMemoryWord(objaddr, 0);
-      objaddr += size - OBJECT_ADDR_POSITION;
-      VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-        VM_Magic.objectAsAddress(tib));
-      return (objaddr);
-    }
+  /**
+   * Allocate a fixed-size small chunk when we know one is available.  Always inlined.
+   *   @param the_size Header record for the given slot size
+   *   @return Address of free, zero-filled storage
+   */
+  static int allocateSlotFast (VM_SizeControl the_size) {
+      VM_Magic.pragmaInline();
+
+      if (VM.VerifyAssertions) VM.assert(the_size.next_slot != 0);
+      if (GC_COUNT_FAST_ALLOC) fastAllocCount++;
+
+      // Get the next object from the head of the list
+      int objaddr = the_size.next_slot;
+      if (DebugLink) {
+	  if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
+	  if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
+      }
+
+      // Update the next pointer
+      the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
+      if (DebugLink && (the_size.next_slot != 0)) {
+	  if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
+	  if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
+      }
+
+      // Zero out the old next pointer [NOTE: Possible MP bug]
+      VM_Magic.setMemoryWord(objaddr, 0);
+
+      // Return zero-filled storage
+      return objaddr;
+  }
+
+
+  /**
+   * Allocate a fixed-size small chunk when we have run off the end of the 
+   * current block.  This will either use a partially filled block of the 
+   * given size, or a completely empty block, or it may trigger GC.
+   *   @param the_size Header record for the given slot size
+   *   @param size Size in bytes to allocate
+   *   @return Address of free, zero-filled storage
+   */
+  static int allocateSlot (VM_SizeControl the_size, int size)
+  {
+      VM_Magic.pragmaNoInline(); // make sure this method is not inlined
+
+      for (int control = 0; control < GC_RETRY_COUNT; control++) {
+	  int objaddr = allocateSlotFromBlocks(the_size, size);
+	  if (objaddr != 0)
+	      return objaddr;
+
+	  if (VM.verboseGC) 
+	      VM_Scheduler.trace(" garbage collection triggered by", " small scalar request \n", size);
+	  if (control > 0)
+	      flag2nd = true;
+
+	  gc1();
+
+	  // reset the_size in case we are on a different processor after GC
+	  the_size  = VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY[size];
+
+	  if (DEBUG_FREE && the_size.current_block != the_size.first_block) 
+	      VM_Scheduler.trace(" After gc, current_block not reset ", "AS1", the_size.ndx);
+
+	  // At this point allocation might or might not succeed, since the
+	  // thread which originally requested the collection is usually not
+	  // the one to run after gc is finished; therefore failing here is
+	  // not a permanent failure necessarily
+
+	  if (the_size.next_slot != 0)  // try fast path again
+	      return allocateSlotFast(the_size);
+      }
+
+      outOfMemory(size, 1300);
+      return 0; // never reached: outOfMemory() does not return
+  }
+
+
+  /**
+   * Find a new block to use for the given slot size, format the 
+   * free list, and allocate an object from that list.  First tries to
+   * allocate from the processor-local list for the given size, then from 
+   * the global list of partially filled blocks of the given size, and
+   * finally tries to get an empty block and format it to the given size.
+   *   @param the_size Header record for the given slot size
+   *   @param size Size in bytes to allocate
+   *   @return Address of free storage or 0 if none is available
+   */
+  static int allocateSlotFromBlocks (VM_SizeControl the_size, int size) {
+      VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[the_size.current_block]);
+
+      // First, look for a slot in the blocks on the existing list
+      while (the_block.nextblock != OUT_OF_BLOCKS) {
+	  the_size.current_block = the_block.nextblock;
+	  the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
+	  if (build_list(the_block, the_size))
+	      return allocateSlotFast(the_size);
+      }
+    
+      // Next, try to get a partially filled block of the given size from the global pool
+      while (getPartialBlock(the_size.ndx) == 0) {
+	  if (GSC_TRACE) {
+	      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+	      VM.sysWrite("allocatex: adding partial block: ndx "); VM.sysWrite(the_size.ndx,false);
+	      VM.sysWrite(" current was "); VM.sysWrite(the_size.current_block,false);
+	      VM.sysWrite(" new current is "); VM.sysWrite(the_block.nextblock,false);
+	      VM.sysWrite("\n");
+	      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+	  }
+
+	  the_size.current_block = the_block.nextblock;
+	  the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
+
+	  if (build_list(the_block, the_size))
+	      return allocateSlotFast(the_size);
+
+	  if (GSC_TRACE) {
+	      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+	      VM.sysWrite("allocatey: partial block was full\n");
+	      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+	  }
+      }
+
+      // Finally, try to allocate a free block and format it to the given size
+      if (getnewblock(the_size.ndx) == 0) {
+	  the_size.current_block = the_block.nextblock;
+	  build_list_for_new_block(VM_Magic.addressAsBlockControl(blocks[the_size.current_block]), the_size);
+
+	  return allocateSlotFast(the_size);
+      }
   
-    else return 0;
+      // All attempts failed; time to GC
+      return 0;
   } 
 
-  // move on to next block, or get a new block, or return 0
-  static int allocatey (VM_SizeControl the_size, Object[] tib, 
-    int numElements, int size, int ndx) {
-    int objaddr;
-    VM_BlockControl the_block = 
-       VM_Magic.addressAsBlockControl(blocks[the_size.current_block]);
-    while (the_block.nextblock != OUT_OF_BLOCKS) {
-       the_size.current_block = the_block.nextblock;
-       the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
-       if (build_list(the_block, the_size)) {
-        objaddr = the_size.next_slot;
-        if (DebugLink) {
-           if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-           if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-         }
-        the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-        if (DebugLink && (the_size.next_slot != 0)) {
-           if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-           if (!isPtrInBlock(the_size.next_slot, the_size)) 
-            VM.sysFail("Pointer out of block");
-        }
 
-        VM_Magic.setMemoryWord(objaddr, 0);
-        objaddr -= OBJECT_HEADER_OFFSET ;
-        VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-        VM_Magic.objectAsAddress(tib));
-        VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
-        return (objaddr);
-       }
-    }  // while.... ==> need to get another block
-    
-    while (getPartialBlock(ndx) == 0) {
-      if (GSC_TRACE) {
-  VM_Processor.getCurrentProcessor().disableThreadSwitching();
-  VM.sysWrite("allocatey: adding partial block: ndx "); VM.sysWrite(ndx,false);
-  VM.sysWrite(" current was "); VM.sysWrite(the_size.current_block,false);
-  VM.sysWrite(" new current is "); VM.sysWrite(the_block.nextblock,false);
-  VM.sysWrite("\n");
-  VM_Processor.getCurrentProcessor().enableThreadSwitching();
-      }
-      the_size.current_block = the_block.nextblock;
-      the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
-      if ( build_list(the_block, the_size) ) {
-  // take next slot from list of free slots for this allocation
-  objaddr = the_size.next_slot;
-  the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-  VM_Magic.setMemoryWord(objaddr, 0);
-  // fill in object header for array object
-        objaddr -= OBJECT_HEADER_OFFSET ;
-        VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-             VM_Magic.objectAsAddress(tib));
-        VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
-  return (objaddr);
-      }
-      else {
-  if (GSC_TRACE) {
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-    VM.sysWrite("allocatey: partial block was full\n");
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
-  }
-      }
-    }
 
-    if (getnewblock(ndx) == 0) {
-       the_size.current_block = the_block.nextblock;
-       build_list_for_new_block
-       (VM_Magic.addressAsBlockControl(blocks[the_size.current_block]), the_size);
-       objaddr = the_size.next_slot;
+  /**
+   * Allocate a large object; if none available collect garbage and try again.
+   *   @param size Size in bytes to allocate
+   *   @return Address of zero-filled free storage
+   */
+  static int allocateLarge (int size) 
+  {
+      VM_Magic.pragmaNoInline(); // make sure this method is not inlined
 
-      if (DebugLink) {
-         if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-         if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
+      for (int control = 0; control < GC_RETRY_COUNT; control++) {
+	  int objaddr = getlargeobj(size);
+	  if (objaddr >= 0)
+	      return objaddr;
+
+	  if (VM.verboseGC) 
+	      VM_Scheduler.trace(" Garbage collection triggered by large request \n", "XX");
+	  if (control > 0)
+	      flag2nd = true;
+	  gc1();
       }
 
-      the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-
-      if (DebugLink && (the_size.next_slot != 0)) {
-         if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-         if (!isPtrInBlock(the_size.next_slot, the_size)) 
-          VM.sysFail("Pointer out of block");
-      }
-
-       VM_Magic.setMemoryWord(objaddr, 0);
-      objaddr -= OBJECT_HEADER_OFFSET;
-      VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-        VM_Magic.objectAsAddress(tib));
-      VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
-      return (objaddr);
-
-  }
-  
-      else return 0;
+      outOfMemory(size, 2300);
+      return 0; // never executed
   }
 
   // build, in the block, the list of free slot pointers, and update the
@@ -984,488 +895,99 @@ tib));
   }
   
     
-  // Allocate an object & optionally clone another object.
-  // Taken:   size of object (including header), in bytes
-  //         tib for object
-  // Returned: zero-filled, word aligned space for an object, with header installed
-  //        (ready for initializer to be run on it)
-  //
-  public static Object
-  cloneScalar (int size, Object[] tib, Object cloneSrc)
-    throws OutOfMemoryError
+  /**
+   * Allocate an object of the given size and the clone the data from
+   * the given source object into the newly allocated object.
+   *   @param size Size of the object in bytes, including the header
+   *   @param tib Pointer to the Type Information Block for the object type
+   *   @param cloneSrc Object to clone into the newly allocated object
+   *   @return Initialized, cloned object 
+   */
+  public static Object cloneScalar (int size, Object[] tib, Object cloneSrc)
+      throws OutOfMemoryError
   {
-  int objaddr;
+      if (DebugLink) VM_Scheduler.trace("cloneScalar", "called");
 
-  if (DebugLink) VM_Scheduler.trace("cloneScalar", "called");
-  if (GC_COUNT_FAST_ALLOC) allocCount++;
+      boolean hasFinalizer = false; // do something more?  LOOKS LIKE A BUG!!! - dfb
+      Object objref = allocateScalar(size, tib, hasFinalizer);
 
-  VM_Processor st = VM_Processor.getCurrentProcessor();
-
-
-  if (size <= GC_MAX_SMALL_SIZE) {
-    VM_SizeControl  the_size  = st.GC_INDEX_ARRAY[size];
-
-    if (the_size.next_slot != 0) {  // fastest path
-      objaddr = the_size.next_slot;
-    if (DebugLink) {
-      if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-    }
-    the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-    if (DebugLink && (the_size.next_slot != 0)) {
-      if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
-    }
-          
-    VM_Magic.setMemoryWord(objaddr, 0);
-    objaddr += size - OBJECT_ADDR_POSITION;
-    VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-      VM_Magic.objectAsAddress(tib));
-    if (cloneSrc != null) {
-      int cnt = size - SCALAR_HEADER_SIZE;
-      int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
-      int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.aligned32Copy(dst, src, cnt); 
-    }
-    return VM_Magic.addressAsObject(objaddr);
-  }
-
-  else objaddr = allocatex(the_size, tib, size, the_size.ndx);
-  if (objaddr == 0) {
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" gc collection triggered by small scalarclone request", "XX");
-    gc1();
-    // reset the_size in case we are on a different processor after GC
-    st = VM_Processor.getCurrentProcessor();
-    the_size  = st.GC_INDEX_ARRAY[size];
-		if (DEBUG_FREE) if (the_size.current_block != the_size.first_block) {
-			VM_Scheduler.trace(" After gc, current_block not reset ", "ASC1", the_size.ndx);
-		}
-  }
-
-  else {
-    if (cloneSrc != null) {
-      int cnt = size - SCALAR_HEADER_SIZE;
-      int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
-      int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.aligned32Copy(dst, src, cnt); 
-    }
-    return VM_Magic.addressAsObject(objaddr);
-  }
-
-	// Be prepared to do repeated gcs - see comment in allScalar1()
-  while (true) {
-  // try fast path again
-  if (the_size.next_slot != 0) {  // fastest path
-    objaddr = the_size.next_slot;
-    if (DebugLink) {
-      if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-    }
-    the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-    if (DebugLink && (the_size.next_slot != 0)) {
-      if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
-    }
-    // VM_Memory.zero(objaddr, objaddr + size);
-     VM_Magic.setMemoryWord(objaddr, 0);
-    objaddr += size - OBJECT_ADDR_POSITION;
-    VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
-    if (cloneSrc != null) {
-      int cnt = size - SCALAR_HEADER_SIZE;
-      int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
-      int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.aligned32Copy(dst, src, cnt); 
-    }
-    return VM_Magic.addressAsObject(objaddr);
-  }
-
-  else objaddr = allocatex(the_size, tib, size, the_size.ndx);
-
-  if (objaddr == 0) {    // failure
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" 2nd gc collection trigg. by small scalar request \n", "CL", size);
-		flag2nd = true;
-    gc1();
-    // reset the_size in case we are on a different processor after GC
-    st = VM_Processor.getCurrentProcessor();
-    the_size  = st.GC_INDEX_ARRAY[size];
-  }
-  else break;
-  }
-
-  // gc succeeded so proceed
-    if (cloneSrc != null) {
-      int cnt = size - SCALAR_HEADER_SIZE;
-      int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
-      int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-      VM_Memory.aligned32Copy(dst, src, cnt); 
-    }
-    return VM_Magic.addressAsObject(objaddr);
-  }
-
-  // a large object is requested: use old code
-  objaddr = getlargeobj(size);                // address of new object
-  if (objaddr < 0) {
-    if (VM.verboseGC)
-      VM_Scheduler.trace(" gc collection triggered by large scalar request \n", "XX");
-    gc1();
-    objaddr = getlargeobj(size);
-		// TODO - fix for repeated gcs
-    if (objaddr < 0) {
-			outOfMemory(size, 4300);
-      // outOfMemory does not return: following line is for compilation
-      return VM_Magic.addressAsObject(objaddr);
-    }
-  }
-
-  objaddr += size - OBJECT_ADDR_POSITION;
-  int tibAddr = VM_Magic.objectAsAddress(tib);
-  // set header pointer to VMT
-  //
-  VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, tibAddr);
-  VM_Magic.setMemoryWord(objaddr + OBJECT_STATUS_OFFSET, 0);
-
-  if (cloneSrc != null) {
-    int cnt = size - SCALAR_HEADER_SIZE;
-    int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
-    int dst = objaddr + OBJECT_HEADER_OFFSET - cnt;
-    VM_Memory.aligned32Copy(dst, src, cnt); 
-  }
-  else VM_Memory.zero(objaddr - (size - OBJECT_ADDR_POSITION), 
-  objaddr - (size - OBJECT_ADDR_POSITION) + size);
-  return VM_Magic.addressAsObject(objaddr);
-  }
-
-
-  // Allocate an array.
-  // Taken:   number of array elements
-  //        size of array object (including header), in bytes
-  //        tib for array object
-  // Returned: zero-filled array object with .length field set
-  //
-  public static Object
-  allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError
-  {
-  VM_Magic.pragmaInline();  // make sure this method is inlined
-  int objaddr;
-
-  if (GC_COUNT_FAST_ALLOC) allocCount++;
-
-  VM_Processor st = VM_Processor.getCurrentProcessor();
-
-	if (COUNT_ALLOCATIONS) {
-		st.totalBytesAllocated += size;
-		st.totalObjectsAllocated ++;
-	}
-
-
-  if (size <= GC_MAX_SMALL_SIZE) {
-    VM_SizeControl  the_size  = st.GC_INDEX_ARRAY[size];
-    if (the_size.next_slot != 0) {  // fastest path
-      if (GC_COUNT_FAST_ALLOC) fastAllocCount++;
-      if (DebugInterest) {
-        if (the_size.next_slot == the_array + OBJECT_HEADER_OFFSET) {
-          VM.sysWrite (" Allocating the_array \n");
-        }
-      }
-      objaddr = the_size.next_slot;
-      if (DebugLink) {
-         if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-         if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-      }
-      the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-      if (DebugLink && (the_size.next_slot != 0)) {
-        if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-        if (!isPtrInBlock(the_size.next_slot, the_size)) 
-          VM.sysFail("Pointer out of block");
-      }
-
-    if (((OBJECT_HEADER_OFFSET - OBJECT_TIB_OFFSET) != 0) &&
-     ((OBJECT_HEADER_OFFSET - ARRAY_LENGTH_OFFSET) != 0))
-      VM_Magic.setMemoryWord(objaddr, 0);
-    objaddr -= OBJECT_HEADER_OFFSET;
-    VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-      VM_Magic.objectAsAddress(tib));
-    VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
-    return VM_Magic.addressAsObject(objaddr);
-    }
-    else {
-      Object ret = allocateArray1(the_size, tib, numElements, size, the_size.ndx);
-      if (DebugInterest) {
-        if (VM_Magic.objectAsAddress(ret) == the_array) {
-          VM.sysWrite (" Allocating the_array in new page \n");
-         }
-      }
-      return ret;
-    }
-  }
-
-  else {
-    Object ret = allocateArray1L(numElements, size, tib);
-    return ret;
-  }
-  }
-
-/** This routine is called when the next_slot pointer
-  * is null - i.e., when allocation has reached the 
-  * end of the chunk for this size.  Move on to the 
-  * next allocated chunk if any, or else get a new one
-  */
-
-  static Object
-  allocateArray1 (VM_SizeControl the_size, Object[] tib, int numElements,
-    int size, int ndx)
-  {
-  VM_Magic.pragmaNoInline(); // make sure this method is not inlined
-  int objaddr = allocatey(the_size, tib, numElements, size, ndx);
-  if (objaddr == 0) {
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" gc collection triggered by small array request \n", "XX");
-    gc1();
-    // reset the_size in case we are on a different processor after GC
-    VM_Processor st = VM_Processor.getCurrentProcessor();
-    the_size  = st.GC_INDEX_ARRAY[size];
-		if (DEBUG_FREE) if (the_size.current_block != the_size.first_block) {
-			VM_Scheduler.trace(" After gc, current_block not reset ", "AA1", ndx);
-		}
-  }
-  else return VM_Magic.addressAsObject(objaddr);
-
-	// See comment in allocateScalar1() for repeated gcs
-	int control = 0;
-  while (control < 3) {
-  // try fast path again
-	control++;
-  if (the_size.next_slot != 0) {  // fastest path
-    objaddr = the_size.next_slot;
-    if (DebugLink) {
-      if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-      }
-    the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-    if (DebugLink && (the_size.next_slot != 0)) {
-      if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-      if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
-    }
-  
-    VM_Magic.setMemoryWord(objaddr, 0);
-    objaddr -= OBJECT_HEADER_OFFSET;
-    VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-      VM_Magic.objectAsAddress(tib));
-    VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
-    return VM_Magic.addressAsObject(objaddr);
-  }
-
-  else objaddr = allocatey(the_size, tib, numElements, size, ndx);
-
-  if (objaddr == 0) {    // failure
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" 2nd gc collection triggered by small array request ", "XX", size);
-		flag2nd = true;
-    gc1();
-    // reset the_size in case we are on a different processor after GC
-    VM_Processor st = VM_Processor.getCurrentProcessor();
-    the_size  = st.GC_INDEX_ARRAY[size];
-  }
-  else return VM_Magic.addressAsObject(objaddr);
-  }
-	outOfMemory(size, 5300);
-  // outOfMemory does not return: following line is for compilation
-  return VM_Magic.addressAsObject(objaddr);
-
-      
-  }  // allocateArray1
-    
-/** Called to allocate space for a large (<2048 bytes) array
- */
-
-  static Object
-  allocateArray1L (int numElements, int size, Object[] tib)
-  {
-  VM_Magic.pragmaNoInline(); // make sure this method is not inlined
-  int memAddr = getlargeobj(size);    // address of head of new object
-  if (memAddr < 0) {
-    if (VM.verboseGC) 
-      VM_Scheduler.trace(" gc collection triggered by large array request \n", "XX");
-    gc1();
-    memAddr = getlargeobj(size);
-    if (memAddr < 0) {
-		  outOfLargeMemory(size, 6300);
-      // outOfMemory does not return: following line is for compilation
-      return VM_Magic.addressAsObject(memAddr);
-    }
-    }
-    int objRef = memAddr - OBJECT_HEADER_OFFSET;
-
-    // set type information block in object header
-      
-    int tibAddr = VM_Magic.objectAsAddress(tib);
-    VM_Magic.setMemoryWord(objRef + OBJECT_TIB_OFFSET, tibAddr);
-
-    // set .length field
-    VM_Magic.setMemoryWord(objRef + ARRAY_LENGTH_OFFSET, numElements);
-
-    // return object reference
-    return VM_Magic.addressAsObject(objRef);
-
-}
-
-  // Allocate an array & optionally clone another array.
-  // Taken:   number of array elements
-  //        size of array object (including header), in bytes
-  //        tib for array object
-  // Returned: zero-filled array object with .length field set
-  //
-  public static Object
-  cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
-    throws OutOfMemoryError
-    {
-    int objaddr, objRef;
-    
-    if (GC_COUNT_FAST_ALLOC) allocCount++;
-    if (DebugLink) VM_Scheduler.trace("cloneArray", "called");
-
-    VM_Processor st = VM_Processor.getCurrentProcessor();
-
-
-    if (size <= GC_MAX_SMALL_SIZE) {
-      VM_SizeControl  the_size  = st.GC_INDEX_ARRAY[size];
-      if (the_size.next_slot != 0) {  // fastest path
-        if (GC_COUNT_FAST_ALLOC) fastAllocCount++;
-        objaddr = the_size.next_slot;
-        if (DebugLink) {
-          if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-           if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-        }
-        the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-        if (DebugLink && (the_size.next_slot != 0)) {
-          if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-          if (!isPtrInBlock(the_size.next_slot, the_size))
-            VM.sysFail("Pointer out of block");
-        }
-        VM_Memory.zero(objaddr, objaddr + size);
-        objaddr -= OBJECT_HEADER_OFFSET;
-        VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-          VM_Magic.objectAsAddress(tib));
-        VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
-        if (cloneSrc != null) {
-          int cnt = size - ARRAY_HEADER_SIZE;
-          int src = VM_Magic.objectAsAddress(cloneSrc);
-          int dst = objaddr;
-          VM_Memory.aligned32Copy(dst, src, cnt);
-        }
-
-        return VM_Magic.addressAsObject(objaddr);
-      }
-      else objaddr = allocatey(the_size, tib, numElements, size, the_size.ndx);
-       if (objaddr == 0) {
-        if (VM.verboseGC) 
-        VM_Scheduler.trace(" gc collection triggered by smallarrayclone request ", "XX");
-        gc1();
-	// reset the_size in case we are on a different processor after GC
-	st = VM_Processor.getCurrentProcessor();
-	the_size  = st.GC_INDEX_ARRAY[size];
-	if (DEBUG_FREE) if (the_size.current_block != the_size.first_block) {
-		VM_Scheduler.trace(" After gc, current_block not reset ", "AAC1", the_size.ndx);
-		}
-      }
-      else {
-        if (cloneSrc != null) {
-          int cnt = size - ARRAY_HEADER_SIZE;
-          int src = VM_Magic.objectAsAddress(cloneSrc);
-          int dst = objaddr;
-          VM_Memory.aligned32Copy(dst, src, cnt);
-        }
-         return VM_Magic.addressAsObject(objaddr);
-      }
-
-			// setup for repeated gc's - see allocateScalar1()
-			while (true) {
-      // try fast path again
-      if (the_size.next_slot != 0) {  // fastest path
-        objaddr = the_size.next_slot;
-        if (DebugLink) {
-          if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
-          if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
-         }
-        the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-        if (DebugLink && (the_size.next_slot != 0)) {
-           if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-          if (!isPtrInBlock(the_size.next_slot, the_size)) 
-            VM.sysFail("Pointer out of block");
-        }
-
-        VM_Magic.setMemoryWord(objaddr, 0);
-        objaddr -= OBJECT_HEADER_OFFSET;
-        VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET,
-        VM_Magic.objectAsAddress(tib));
-        VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
-        if (cloneSrc != null) {
-          int cnt = size - ARRAY_HEADER_SIZE;
-          int src = VM_Magic.objectAsAddress(cloneSrc);
-          int dst = objaddr;
-          VM_Memory.aligned32Copy(dst, src, cnt);
-        }
-        return VM_Magic.addressAsObject(objaddr);
-      }
-      else objaddr = allocatey(the_size, tib, numElements, size, the_size.ndx);
-      if (objaddr == 0) {    // failure
-        if (VM.verboseGC) 
-          VM_Scheduler.trace(" 2nd gc collection triggered by small array request", "CL", size);
-		    flag2nd = true;
-        gc1();
-        // reset the_size in case we are on a different processor after GC
-        st = VM_Processor.getCurrentProcessor();
-        the_size  = st.GC_INDEX_ARRAY[size];
-      }
-			else break;
-			}
       if (cloneSrc != null) {
-        int cnt = size - ARRAY_HEADER_SIZE;
-        int src = VM_Magic.objectAsAddress(cloneSrc);
-        int dst = objaddr;
-        VM_Memory.aligned32Copy(dst, src, cnt);
+	  int cnt = size - SCALAR_HEADER_SIZE;
+	  int src = VM_Magic.objectAsAddress(cloneSrc) + OBJECT_HEADER_OFFSET - cnt;
+	  int dst = VM_Magic.objectAsAddress(objref)   + OBJECT_HEADER_OFFSET - cnt;
+	  VM_Memory.aligned32Copy(dst, src, cnt); 
       }
+
+      return objref;
+  }
+
+
+  /**
+   * Allocate an array object.  Ideally, the size is a compile-time constant,
+   * allowing most of the tests and code to be optimized away.  Note that 
+   * the routines on the hot path through this method are all inlined.
+   *   @param numElements Number of elements in the array
+   *   @param size Size of the object in bytes, including the header
+   *   @param tib Pointer to the Type Information Block for the object type
+   *   @return Initialized array reference
+   */
+  public static Object allocateArray (int numElements, int size, Object[] tib)
+      throws OutOfMemoryError
+  {
+      VM_Magic.pragmaInline();  // make sure this method is inlined
+
+      int objaddr = allocateRawMemory(size, tib, false);
+      Object objptr = initializeArray(objaddr, numElements, tib);
+
+      if (DebugInterest && VM_Magic.objectAsAddress(objptr) == the_array) 
+          VM.sysWrite (" Allocating the_array in new page \n");
+
+      return objptr;
+  }
+
+
+  /**
+   * Take a piece of raw memory and return an initialized array.
+   *   @param objaddr Address of raw storage
+   *   @param numElements Number of elements in the array
+   *   @param tib Pointer to the Type Information Block for the object type
+   *   @return Initialized array reference
+   */
+  static Object initializeArray(int objaddr, int numElements, Object[] tib) {
+      VM_Magic.pragmaInline();  // make sure this method is inlined
+
+      objaddr -= OBJECT_HEADER_OFFSET;
+      VM_Magic.setMemoryWord(objaddr + OBJECT_TIB_OFFSET, VM_Magic.objectAsAddress(tib));
+      VM_Magic.setMemoryWord(objaddr + ARRAY_LENGTH_OFFSET, numElements);
       return VM_Magic.addressAsObject(objaddr);
-    }
-    
-    int memAddr = getlargeobj(size);    // address of head of new object
-    if (memAddr < 0) {
-      if (VM.verboseGC) 
-      VM_Scheduler.trace(" gc collection triggered by large array clone", "XX");
-      gc1();
-      memAddr = getlargeobj(size);
-			// TODO: fix for repeated gc's (see allocateScalar1())
-      if (memAddr < 0) {
-			  outOfLargeMemory(size, 8300);
-        // outOfLargeMemory does not return: following line is for compilation
-        return VM_Magic.addressAsObject(memAddr);
+  }
+
+
+  /**
+   * Allocate an array of the given size and the clone the data from
+   * the given source array into the newly allocated array.
+   *   @param numElements Number of array elements
+   *   @param size Size of the object in bytes, including the header
+   *   @param tib Pointer to the Type Information Block for the object type
+   *   @param cloneSrc Array to clone into the newly allocated object
+   *   @return Initialized, cloned array
+   */
+  public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
+      throws OutOfMemoryError
+  {
+      if (DebugLink) VM_Scheduler.trace("cloneArray", "called");
+
+      Object objref = allocateArray(numElements, size, tib);
+
+      if (cloneSrc != null) {
+          int cnt = size - ARRAY_HEADER_SIZE;
+          int src = VM_Magic.objectAsAddress(cloneSrc);
+          int dst = VM_Magic.objectAsAddress(objref);
+          VM_Memory.aligned32Copy(dst, src, cnt);
       }
-    }
-    VM_Memory.zero(memAddr, memAddr + size);
-    objRef = memAddr - OBJECT_HEADER_OFFSET;
 
-    // set type information block in object header
-      
-    int tibAddr = VM_Magic.objectAsAddress(tib);
-    VM_Magic.setMemoryWord(objRef + OBJECT_TIB_OFFSET, tibAddr);
-    VM_Magic.setMemoryWord(objRef + OBJECT_STATUS_OFFSET, 0);
-
-    // set .length field
-    VM_Magic.setMemoryWord(objRef + ARRAY_LENGTH_OFFSET, numElements);
-
-    // return object reference
-    if (cloneSrc != null) {
-      int cnt = size - ARRAY_HEADER_SIZE;
-      int src = VM_Magic.objectAsAddress(cloneSrc);
-      int dst = objRef;
-      VM_Memory.aligned32Copy(dst, src, cnt);
-    }
-    return VM_Magic.addressAsObject(objRef);
-
-    }
+      return objref;
+  }
 
 
   // made public so it could be called from VM_WriteBuffer
