@@ -833,6 +833,8 @@ function emitEnvironment
    print "export WGET='$WGET'"
    print "export DIFF='$DIFF'"  
    print "export TAR='$TAR'"  
+   print "export GNU_TAR='$GNU_TAR'"  
+   print "export MD5SUM='$MD5SUM'"  
    print ""
    print "export JAZZLIBDIR='$JAZZLIBDIR'"
    }
@@ -930,7 +932,9 @@ function emitController
    print ''
    print '. ./jbuild.environment'
    print ''
-
+   print '# do we still have the right version of rvmrt.jar?'
+   print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f)'
+   print ''
    print 'if [[ $CLEAN_FLAG = -clean ]]; then'
    print "   rm -rf $TOOL_DIRECTORY_STR"
    print '   ./jbuild.expand     $TRACE_FLAG -clean'
@@ -2077,8 +2081,7 @@ function emitToolCompiler
 # Do we have the correct libraries?
 #
 if (( ! BUILD_RVMRT_JAR )); then
-  echo "\c"
-#  $RVM_ROOT/rvm/bin/jCheckLibs
+  $RVM_ROOT/rvm/bin/jCheckLibs
 fi
 
 print "$ME: setting up $BUILD_DIRECTORY for $CONFIGURATION_NAME"
