@@ -8,108 +8,101 @@
 
 class FixedLive {
 
-  int data1;
-  int data2;
-  FixedLive car;
-  FixedLive cdr;
-
   static int liveSize = 0;  // in megabytes
-  static int objectSize = 0; // in bytes
-  static FixedLive root;
-  static FixedLive junk;
+  static Node2I2A root;
+  static Node2I2A junk;
 
   public static void main(String args[])  throws Throwable {
     if (args.length != 1)
-      System.out.println("Usage: FixedLive <live data in megabytes>");
+      System.out.println("Usage: Node2I2A <live data in megabytes>");
     liveSize = Integer.parseInt(args[0]);
     if (liveSize < 0)
       System.out.println("Amount of live data must be positive");
     runTest();
   }
 
-  public static double computeObjectSize() {
-    int estimateSize = 200000;
-    // System.out.println("totalMemory = " + Runtime.getRuntime().totalMemory());
-    // System.out.println("freeMemory = " + Runtime.getRuntime().freeMemory());
-    long start = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.println("start = " + start);
-    FixedLive head = new FixedLive();
-    FixedLive cur = head;
-    for (int i=0; i<estimateSize; i++) {
-      cur.cdr = new FixedLive();
-      cur = cur.cdr;
+  static double sumTraceRate = 0.0;
+  static double squaredSumTraceRate = 0.0;
+  static double sumAllocRate = 0.0;
+  static double squaredSumAllocRate = 0.0;
+  static int count = -2; // skips first two iterations
+
+  public static boolean addSample(double traceElapsed, double traceRate, double allocRate) {
+    count++;
+    System.out.print("GC occurred (" + traceElapsed + " s) : tracing rate = " + traceRate + " Mb/s");
+    System.out.println("   allocation rate = " + allocRate + " Mb/s");
+    if (count < 1) {
+      System.out.println("  <--- Skipping in cumulative numbers");
     }
-    // System.out.println("totalMemory = " + Runtime.getRuntime().totalMemory());
-    // System.out.println("freeMemory = " + Runtime.getRuntime().freeMemory());
-    long end = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-    System.out.println("end = " + end);
-    return (end - start) / ((double) estimateSize);
+    else {
+      System.out.println();
+      sumTraceRate += traceRate;
+      sumAllocRate += allocRate;
+      squaredSumTraceRate += traceRate * traceRate;
+      squaredSumAllocRate += allocRate * allocRate;
+    }
+    if (count == 5) {
+      double avgTraceRate = sumTraceRate / count;
+      double avgAllocRate = sumAllocRate / count;
+      double diffSquaredSumTraceRate = squaredSumTraceRate + count * (avgTraceRate * avgTraceRate) 
+                                                           - 2 * avgTraceRate * sumTraceRate;
+      double rmsTraceRate = Math.sqrt(diffSquaredSumTraceRate / count);
+      double diffSquaredSumAllocRate = squaredSumAllocRate + count * (avgAllocRate * avgAllocRate) 
+                                                           - 2 * avgAllocRate * sumAllocRate;
+      double rmsAllocRate = Math.sqrt(diffSquaredSumAllocRate / count);
+      avgTraceRate = ((int) (10000 * avgTraceRate) + 0.5) / 10000;
+      avgAllocRate = ((int) (10000 * avgAllocRate) + 0.5) / 10000;
+      rmsTraceRate = ((int) (10000 * rmsTraceRate) + 0.5) / 10000;
+      rmsAllocRate = ((int) (10000 * rmsAllocRate) + 0.5) / 10000;
+      System.out.print("Overall Rate:           tracing  rate = " + avgTraceRate + " Mb/s");
+      System.out.println("   allocation rate = " + avgAllocRate + " Mb/s");
+      System.out.print("Standard Deviation:     tracing sigma = " + rmsTraceRate + " Mb/s");
+      System.out.println("   allocation sigma = " + rmsAllocRate + " Mb/s");
+      return true;
+    }
+    return false;
   }
 
-  public static FixedLive createTree(int nodes) {
-    if (nodes == 0) return null;
-    int children = nodes - 1;
-    int left = children / 2;
-    int right = children - left;
-    FixedLive self = new FixedLive();
-    self.car = createTree(left);
-    self.cdr = createTree(right);
-    return self;
-  }
+  public static void allocateDie(int bytes) {
 
-  public static void allocateDie(int count) {
+    int count = bytes / Node2I2A.objectSize;
+    System.out.println("Allocating " + (bytes >> 20) + " Mb or " + count + " nodes which immediately die");
 
-    double cumulativeTraceRate = 0.0;
-    double cumulativeAllocRate = 0.0;
-    int cumulativeCount = -1;
-
-    int checkFreq = 64000 / objectSize;
+    int checkFreq = 64000 / Node2I2A.objectSize;
     long last = System.currentTimeMillis();
     double allocatedSize = 0;
     for (int i=0; i< count / checkFreq; i++) {
       long start = System.currentTimeMillis();
       for (int j=0; j<checkFreq; j++) 
-	junk = new FixedLive();
-      allocatedSize += checkFreq * objectSize;
+	junk = new Node2I2A();
+      allocatedSize += checkFreq * Node2I2A.objectSize;
       long end = System.currentTimeMillis();
       double traceElapsed = (end - start) / 1000.0;
       double allocElapsed = (start - last) / 1000.0;
       if (traceElapsed > 0.1) {
 	double traceRate = liveSize / traceElapsed; // Mb/s
 	double allocRate = (allocatedSize / 1e6) / allocElapsed; // Mb/s
-	cumulativeCount++;
-	if (cumulativeCount == 0) 
-	  System.out.println("Skipping first iteration in cumulative numbers");
-	else {
-	  cumulativeTraceRate += traceRate;
-	  cumulativeAllocRate += allocRate;
+	if (addSample(traceElapsed, traceRate, allocRate)) {
+	  return;
 	}
-	System.out.println("GC (probably) occurred (" + traceElapsed + " s) : copying rate = " + traceRate + " Mb/s");
-	System.out.println("                                allocation rate = " + allocRate + " Mb/s");
 	allocatedSize = 0;
 	last = end;
       }
     }
-    System.out.print("Overall Rate: tracing = " + (cumulativeTraceRate / cumulativeCount) + " Mb/s");
-    System.out.println("   allocating = " + (cumulativeAllocRate / cumulativeCount) + " Mb/s");
   }
 
   public static void runTest() throws Throwable {
 
     System.out.println("FixedLive running with " + liveSize + " Mb fixed live data");
     
-    double objSizeEstimate = computeObjectSize();
-    objectSize = (int) (objSizeEstimate + 0.5);
-    System.out.print("Estimated object size of a 4-field object is " + objSizeEstimate + " bytes.  ");
-    System.out.println("Rounded to " + objectSize + " bytes");
+    Node2I2A.computeObjectSize();
+    System.out.println("Estimated object size of a 4-field object (2 int, 2 ref) is " + Node2I2A.objectSize + " bytes");
 
-    int count = (int) (liveSize << 20) / objectSize;
+    int count = (int) (liveSize << 20) / Node2I2A.objectSize;
     System.out.println("Creating live tree with " + count + " nodes");
-    root = createTree(count);
-    int spinSize = 1 << 10; // in megabytes
-    int spinCount = (spinSize << 20) / objectSize;
-    System.out.println("Allocating " + spinSize + " Mb or " + spinCount + " nodes which immediately die");
-    allocateDie(spinCount);
+    root = Node2I2A.createTree(count);
+
+    allocateDie(1 << 30);
   }
 
 
