@@ -147,8 +147,11 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int len = JBC_length[opcode] - 1;
     if (wide) len += len;
-    if (len >= 0) bcIndex += len;
-    else          skipSpecialInstruction(opcode);
+    if (len >= 0) {
+      bcIndex += len;
+    } else {
+      skipSpecialInstruction(opcode);
+    }
   }
 
   /**
@@ -788,9 +791,9 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
         break;
       case JBC_wide:
         {
-          getWideOpcode();
-          int len = JBC_length[opcode] - 1;
-          bcIndex += len + len;
+          int oc = getWideOpcode();
+          int len = JBC_length[oc] - 1;
+	  bcIndex += len + len;
         }
         break;
       default:
