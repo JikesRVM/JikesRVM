@@ -8,6 +8,7 @@
 #
 
 SUPPORT =Node2I2A
+#TESTS =FixedLive LargeAlloc Exhaust
 TESTS =FixedLive LargeAlloc
 
 include		$(RVM_BUILD)/Make.rules
