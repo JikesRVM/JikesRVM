@@ -469,7 +469,6 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
     // >>>> THERE <<<<
     // End use of T0 and S0
-
   }
 
   /**************************************************************
@@ -551,8 +550,6 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
     // and go ahead and bump up the Top offset by the amount expected
     asm.emitADD_RegDisp_Imm(S0, VM_Entrypoints.JNIRefsTopOffset, numRefsExpected * WORDSIZE);
-
-
   }
 
   /**
@@ -661,10 +658,14 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     int bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
 
     // set 2nd word of header = return address already pushed by CALL
-    asm.emitPUSH_Reg(FP);          
+    // NOTE: C calling convention is that EBP contains the caller's framepointer.
+    //       Therefore our C to Java transition frames must follow this protocol,
+    //       not the RVM protocol in which the caller's framepointer is in 
+    //       pr.framePointer and EBP is a nonvolatile register.
+    asm.emitPUSH_Reg(EBP);          
 
     // start new frame:  set FP to point to the new frame
-    asm.emitMOV_Reg_Reg (FP, SP); 
+    asm.emitMOV_Reg_Reg (EBP, SP); 
 
     // set first word of header: method ID
     asm.emitPUSH_Imm (methodID); 
@@ -683,15 +684,15 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     for (int i=0; i<numArguments; i++) {
       if (types[i].isLongType() || types[i].isDoubleType()) {
         // handle 2-words case:
-        asm.emitMOV_Reg_RegDisp (EBX, FP, ((argOffset+1)*WORDSIZE));  
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, ((argOffset+1)*WORDSIZE));  
         asm.emitPUSH_Reg(EBX);
-        asm.emitMOV_Reg_RegDisp (EBX, FP, (argOffset*WORDSIZE));  
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, (argOffset*WORDSIZE));  
         asm.emitPUSH_Reg(EBX);
         argOffset+=2;
       } else {
         // Handle 1-word case:
         // add 2 to get to arg area in caller frame
-        asm.emitMOV_Reg_RegDisp (EBX, FP, (argOffset*WORDSIZE));  
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, (argOffset*WORDSIZE));  
         asm.emitPUSH_Reg(EBX);
         argOffset++;
       }
@@ -709,7 +710,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     // bootrecord. we could alternatively also put the bootrecord address at the end
     // of JNIFunctions or put it there INSTEAD of the JTOC
 
-    asm.emitMOV_Reg_RegDisp (EBX, FP, (2*WORDSIZE));   // pick up arg 0 (from callers frame)
+    asm.emitMOV_Reg_RegDisp (EBX, EBP, (2*WORDSIZE));   // pick up arg 0 (from callers frame)
     asm.emitMOV_Reg_RegDisp (JTOC, EBX, 0);                         // JTOC<-addr of JNIFunctions[0]
     asm.emitMOV_Reg_RegDisp (JTOC, JTOC, JNIFUNCTIONS_JTOC_OFFSET); // JTOC<-JNIFunctions[saved JTOC]
 
@@ -761,9 +762,9 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     // asm.emitMOV_Reg_RegDisp (PR, EBX, VM_Entrypoints.JNITopJavaFPOffset);  
     
     // get offset from current FP (PR <- PR - FP)
-    asm.emitSUB_Reg_Reg (ESI, FP);    
+    asm.emitSUB_Reg_Reg (ESI, EBP);    
 
-    asm.emitMOV_RegDisp_Reg (FP, SAVED_JAVA_FP_OFFSET, ESI);                // save in hdr of current frame 
+    asm.emitMOV_RegDisp_Reg (EBP, SAVED_JAVA_FP_OFFSET, ESI);                // save in hdr of current frame 
 
     // Restore the VM_Processor value saved on the Java to C transition
     VM_ProcessorLocalState.emitSetProcessor(asm, EBX, 
@@ -772,7 +773,7 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
 
     VM_ProcessorLocalState.emitMoveRegToField(asm,
                                               VM_Entrypoints.framePointerOffset,
-                                              FP);
+                                              EBP);
     
     // Test if calling Java JNIFunction on a RVM processor or 
     // a Native processor.
@@ -870,8 +871,13 @@ public class VM_JNICompiler implements VM_JNIConstants, VM_BaselineConstants {
     asm.emitPOP_Reg(EBX);         
     asm.emitPOP_Reg(JTOC); 
 
-    asm.emitMOV_Reg_Reg(SP, FP);                           // discard current stack frame
-    asm.emitPOP_Reg(FP);
+    // NOTE: C expects the framepointer to be restored to EBP, so 
+    //       the epilogue for the C to Java glue code must follow that 
+    //       convention, not the RVM one!
+    //       Also note that RVM treats EBP is a nonvolatile, so we don't
+    //       explicitly save/restore it.
+    asm.emitMOV_Reg_Reg(SP, EBP);                           // discard current stack frame
+    asm.emitPOP_Reg(EBP);
     asm.emitRET();              // return to caller
   }
 }
