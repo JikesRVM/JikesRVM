@@ -3431,6 +3431,13 @@ function emitConfigSummary () {
     echo "configuration name: ${CONFIGURATION_NAME}" 
     echo "preprocessor definitions:"
     echo "${PREPROCESSOR_DEFINITIONS}"
+    echo "other definitions set in RVM.scratch/RunBootImage.h:"
+    echo "JIKESRVM_VERSION=$JIKESRVM_VERSION"
+    echo "DEFAULT_INITIAL_HEAP_SIZE=${DEFAULT_INITIAL_HEAP_SIZE}"
+    echo "DEFAULT_MAXIMUM_HEAP_SIZE=${DEFAULT_MAXIMUM_HEAP_SIZE}"
+    echo "CVS_TIMESTAMP=${CVS_TIMESTAMP}"
+    echo "RVM_HOST_CONFIG=${RVM_HOST_CONFIG}"
+    echo "RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG}"
 }
 
 #------------------------------------------------#
