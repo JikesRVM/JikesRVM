@@ -449,9 +449,10 @@ class VM_DynamicTypeCheck implements VM_Constants {
       }
     }
     int LHSDimension = LHSType.getDimensionality();
+    int RHSDimension = RHSType.getDimensionality();
+    if (LHSDimension < 0 || RHSDimension < 0) return false;
     if (LHSDimension == 0) return instanceOfResolved(LHSType.asClass(), 
                                                      RHSType.getTypeInformationBlock());
-    if (LHSDimension < 0) return false;
     VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
     if (LHSInnermostElementType == VM_Type.JavaLangObjectType){
       return instanceOfObjectArray(LHSDimension, RHSType);
