@@ -85,7 +85,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	// copied by the scan.  queued for later scanning.
 	int[] oldstack = t.stack;    
 	ScanObject.rootScan(t);
-	if (t.jniEnv != null) ScanObject.scan(t.jniEnv);
+	if (t.jniEnv != null) ScanObject.rootScan(t.jniEnv);
 	ScanObject.rootScan(t.contextRegisters);
 	ScanObject.rootScan(t.hardwareExceptionRegisters);
 	if (oldstack != t.stack) 
