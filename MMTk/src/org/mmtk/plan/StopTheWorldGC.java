@@ -7,7 +7,6 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
@@ -425,7 +424,7 @@ public abstract class StopTheWorldGC extends BasePlan
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
         VM_Address v = values.pop();
-        ScanObject.scan(v);  // NOT traceObject
+	Scan.scanObject(v);  // NOT traceObject
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing locations"); }
       while (!locations.isEmpty()) {

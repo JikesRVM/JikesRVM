@@ -230,6 +230,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
  
     state = CLASS_RESOLVED;
+
+    MM_Interface.notifyClassResolved(this);
   }
 
 

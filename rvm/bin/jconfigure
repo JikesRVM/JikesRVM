@@ -2289,6 +2289,8 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;
 	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;
 	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Plan;
+	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MMType;
+	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Scan;
 	[Ljava/lang/Object;
 	[[Ljava/lang/Object;
 	[Ljava/lang/String;

@@ -8,7 +8,6 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -295,24 +294,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     }
   }
 
-  /**
-   * Advise the compiler/runtime which allocator to use for a
-   * particular allocation.  This should be called at compile time and
-   * the returned value then used for the given site at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return The allocator number to be used for this allocation.
-   */
-  public final int getAllocator(Type type, int bytes, CallSite callsite,
-                                AllocAdvice hint) {
-    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : NURSERY_SPACE;
-  }
-
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == nursery) return DEFAULT_SPACE;
     if (a == rc) return RC_SPACE;
@@ -340,7 +321,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, int bytes,
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
                                           CallSite callsite,
                                           AllocAdvice hint) {
     return null;
@@ -580,10 +561,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       if (RCBaseHeader.incSanityRC(object, root)) {
         if (VM_Interface.VerifyAssertions)
           VM_Interface._assert(addr.LT(NURSERY_START));
-        ScanObject.enumeratePointers(object, sanityEnum);
+        Scan.enumeratePointers(object, sanityEnum);
       }
     } else if (RCBaseHeader.markSanityRC(object)) {
-      ScanObject.enumeratePointers(object, sanityEnum);
+      Scan.enumeratePointers(object, sanityEnum);
     } else if (object.EQ(VM_Address.fromInt(0x43080334))) {
       Log.writeln("scanned by marked already!");
     }
@@ -616,11 +597,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
    if (addr.GE(RC_START)) {
      if (RCBaseHeader.checkAndClearSanityRC(object)) {
-       ScanObject.enumeratePointers(object, sanityEnum);
+       Scan.enumeratePointers(object, sanityEnum);
        rc.addLiveSanityObject(object);
      }
    } else if (RCBaseHeader.unmarkSanityRC(object)) {
-     ScanObject.enumeratePointers(object, sanityEnum);
+     Scan.enumeratePointers(object, sanityEnum);
    }
   }
   
@@ -653,7 +634,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object to be scanned.
    */
   protected final void scanForwardedObject(VM_Address object) {
-    ScanObject.scan(object);
+    Scan.scanObject(object);
     if (RefCountSpace.INC_DEC_ROOT) {
       RCBaseHeader.incRC(object);
       addToRootSet(object);
@@ -835,7 +816,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       VM_Interface._assert(!isNurseryObject(srcObj));
     if (Header.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
-      ScanObject.enumeratePointers(srcObj, decEnum);
+      Scan.enumeratePointers(srcObj, decEnum);
       Header.makeLogged(srcObj);
     }
   }
@@ -903,7 +884,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address obj = VM_Address.zero();
     while (!(obj = modBuffer.pop()).isZero()) {
       Header.makeUnlogged(obj);
-      ScanObject.enumeratePointers(obj, modEnum);
+      Scan.enumeratePointers(obj, modEnum);
     }
   }
 

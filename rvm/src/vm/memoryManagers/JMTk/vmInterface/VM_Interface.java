@@ -18,7 +18,10 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Enumerate;
 import com.ibm.JikesRVM.memoryManagers.JMTk.PreCopyEnumerator;
+import com.ibm.JikesRVM.memoryManagers.JMTk.MMType;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Scan;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
@@ -600,6 +603,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.topJavaFP());
   }
 
+  public static int getArrayLength(VM_Address object) throws VM_PragmaInline {
+    Object obj = VM_Magic.addressAsObject(object);
+    return VM_Magic.getArrayLength(obj);
+  }
+
   /**
    * Set a collector thread's so that a scan of its stack
    * will start at VM_CollectorThread.run
@@ -636,6 +644,62 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
 
   /**
+   * Return the type object for a give object
+   *
+   * @param object The object whose type is required
+   * @return The type object for <code>object</code>
+   */
+  public static MMType getObjectType(VM_Address object) 
+    throws VM_PragmaInline {
+    Object obj = VM_Magic.addressAsObject(object);
+    Object[] tib = VM_ObjectModel.getTIB(obj);
+    if (VM.VerifyAssertions) {
+      if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
+	VM.sysWriteln("getObjectType: objRef = ", object, "   tib = ", VM_Magic.objectAsAddress(tib));
+	VM.sysWriteln("               tib's type is not Object[]");
+        VM._assert(false);
+      }
+    }
+    VM_Type vmType = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    if (VM.VerifyAssertions) {
+      if (vmType == null) {
+        VM.sysWriteln("getObjectType: null type for object = ", object);
+        VM._assert(false);
+      }
+    }
+    if (VM.VerifyAssertions) VM._assert(vmType.getMMType() != null);
+    return (MMType) vmType.getMMType();
+  }
+
+  /**
+   * Delegated scanning of a object, processing each pointer field
+   * encountered. <b>Jikes RVM never delegates, so this is never
+   * executed</b>.
+   *
+   * @param object The object to be scanned.
+   */
+  public static void scanObject(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    // Never reached
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
+  
+  /**
+   * Delegated enumeration of the pointers in an object, calling back
+   * to a given plan for each pointer encountered. <b>Jikes RVM never
+   * delegates, so this is never executed</b>.
+   *
+   * @param object The object to be scanned.
+   * @param enum the Enumerate object through which the callback
+   * is made
+   */
+  public static void enumeratePointers(VM_Address object, Enumerate enum) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    // Never reached
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
+
+  /**
    * Prepares for using the <code>computeAllRoots</code> method.  The
    * thread counter allows multiple GC threads to co-operatively
    * iterate through the thread data structure (if load balancing
@@ -662,21 +726,21 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void preCopyGCInstances() {
     /* pre-copy all thread objects in parallel */
     if (rendezvous(4201) == 1) /* one thread forwards the threads object */
-      ScanObject.enumeratePointers(VM_Scheduler.threads, preCopyEnum);
+      enumeratePointers(VM_Scheduler.threads, preCopyEnum);
     rendezvous(4202);
     while (true) {
       int threadIndex = threadCounter.increment();
       if (threadIndex >= VM_Scheduler.threads.length) break;
       VM_Thread thread = VM_Scheduler.threads[threadIndex];
       if (thread != null) {
-        ScanObject.enumeratePointers(thread, preCopyEnum);
-        ScanObject.enumeratePointers(thread.contextRegisters, preCopyEnum);
-        ScanObject.enumeratePointers(thread.hardwareExceptionRegisters, preCopyEnum);
+        enumeratePointers(thread, preCopyEnum);
+        enumeratePointers(thread.contextRegisters, preCopyEnum);
+        enumeratePointers(thread.hardwareExceptionRegisters, preCopyEnum);
         if (thread.jniEnv != null) {
           // Right now, jniEnv are Java-visible objects (not C-visible)
           // if (VM.VerifyAssertions)
           //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
-          ScanObject.enumeratePointers(thread.jniEnv, preCopyEnum);
+          enumeratePointers(thread.jniEnv, preCopyEnum);
         }
       }
     }    
@@ -684,6 +748,20 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
  
   /**
+   * Enumerate the pointers in an object, calling back to a given plan
+   * for each pointer encountered. <i>NOTE</i> that only the "real"
+   * pointer fields are enumerated, not the TIB.
+   *
+   * @param object The object to be scanned.
+   * @param enum the Enumerate object through which the callback
+   * is made
+   */
+  private static void enumeratePointers(Object object, Enumerate enum) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    Scan.enumeratePointers(VM_Magic.objectAsAddress(object), enum);
+  }
+
+ /**
    * Computes all roots.  This method establishes all roots for
    * collection and places them in the root values, root locations and
    * interior root locations queues.  This method should not have side

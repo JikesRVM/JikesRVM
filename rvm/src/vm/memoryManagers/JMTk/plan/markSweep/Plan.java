@@ -5,8 +5,6 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -231,24 +229,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                              boolean isScalar) {} // do nothing
 
   /**
-   * Advise the compiler/runtime which allocator to use for a
-   * particular allocation.  This should be called at compile time and
-   * the returned value then used for the given site at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return The allocator number to be used for this allocation.
-   */
-  public final int getAllocator(Type type, int bytes, CallSite callsite,
-                                AllocAdvice hint) {
-    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
-  }
-
-  /**
    * Give the compiler/runtime statically generated alloction advice
    * which will be passed to the allocation routine at runtime.
    *
@@ -261,7 +241,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, int bytes,
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
                                           CallSite callsite,
                                           AllocAdvice hint) { 
     return null;

@@ -21,6 +21,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
+import com.ibm.JikesRVM.memoryManagers.JMTk.MMType;
 
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Type;
@@ -113,6 +114,9 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
 
+  /** Used by mmtypes for arrays */
+  private static final int [] zeroLengthIntArray = new int [0];
+  
   /* AJG: Not used */
 //   public static final boolean RC_CYCLE_DETECTION = Plan.REF_COUNT_CYCLE_DETECTION;
 
@@ -441,10 +445,9 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static int pickAllocator(VM_Type type, VM_Method method)
     throws VM_PragmaInterruptible {
     /*
-     * First we chcek the calling method so GC-data can go into
-     * special places.  Then we cache the result of the allocator
-     * assuming that it is type-based only.  A better implementation
-     * would be call-site specific which is strictly more refined.
+     * We check the calling method so GC-data can go into special
+     * places.  A better implementation would be call-site specific
+     * which is strictly more refined.
      */
     if (method != null) {
      // We should strive to be allocation-free here.
@@ -463,9 +466,19 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
         return Plan.IMMORTAL_SPACE;
       }
     }
-    Type t = type.JMTKtype;
-    if (t.initialized)
-      return t.allocator;
+    MMType t = (MMType) type.getMMType();
+    return t.getAllocator();
+  }
+
+  /**
+   * Determine the default allocator to be used for a given type.
+   *
+   * @param type The type in question
+   * @return The allocator to use for allocating instances of type
+   * <code>type</code>.
+   */
+  private static int pickAllocatorForType(VM_Type type)
+    throws VM_PragmaInterruptible {
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
     //-if RVM_WITH_GCSPY
@@ -479,8 +492,6 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.IMMORTAL_SPACE;
-    t.initialized = true;
-    t.allocator = allocator;
     return allocator;
   }
 
@@ -814,6 +825,31 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   *
   * Miscellaneous
   */
+
+  /**
+   * A new type has been resolved by the VM.  Create a new MM type to
+   * reflect the VM type, and associate the MM type with the VM type.
+   *
+   * @param vmType The newly resolved type
+   */
+  public static void notifyClassResolved(VM_Type vmType) 
+    throws VM_PragmaInterruptible {
+    MMType type;
+    if (vmType.isArrayType()) {
+      type = new MMType(false,
+                        vmType.asArray().getElementType().isReferenceType(),
+                        vmType.isAcyclicReference(),
+                        pickAllocatorForType(vmType),
+                        zeroLengthIntArray);
+    } else {
+      type = new MMType(false,
+                        false,
+                        vmType.isAcyclicReference(),
+                        pickAllocatorForType(vmType),
+                        vmType.asClass().getReferenceOffsets());
+    }
+    vmType.setMMType(type);
+  }
 
   /**
    * Generic hook to allow benchmarks to be harnessed.  A plan may use

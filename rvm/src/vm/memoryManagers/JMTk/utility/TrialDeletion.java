@@ -6,7 +6,6 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 
@@ -426,7 +425,7 @@ final class TrialDeletion extends CycleDetector
       
       if (!abort && !RCBaseHeader.isGrey(object)) {
         RCBaseHeader.makeGrey(object);
-        ScanObject.enumeratePointers(object, greyEnum);
+        Scan.enumeratePointers(object, greyEnum);
       }
       object = workQueue.pop();
     }
@@ -468,7 +467,7 @@ final class TrialDeletion extends CycleDetector
           phase = SCAN;
         } else {
           RCBaseHeader.makeWhite(object);
-          ScanObject.enumeratePointers(object, scanEnum);
+          Scan.enumeratePointers(object, scanEnum);
         }
       } 
       object = workQueue.pop();
@@ -488,7 +487,7 @@ final class TrialDeletion extends CycleDetector
         VM_Interface._assert(!RCBaseHeader.isGreen(object));
       if (!RCBaseHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
         RCBaseHeader.makeBlack(object);
-        ScanObject.enumeratePointers(object, scanBlackEnum);
+        Scan.enumeratePointers(object, scanBlackEnum);
       }
       object = blackQueue.pop();
     }
@@ -520,7 +519,7 @@ final class TrialDeletion extends CycleDetector
     while (!object.isZero()) {
       if (RCBaseHeader.isWhite(object) && !RCBaseHeader.isBuffered(object)) {
         RCBaseHeader.makeBlack(object);
-        ScanObject.enumeratePointers(object, collectEnum);
+        Scan.enumeratePointers(object, collectEnum);
         freeBuffer.push(object);
       }
       object = workQueue.pop();

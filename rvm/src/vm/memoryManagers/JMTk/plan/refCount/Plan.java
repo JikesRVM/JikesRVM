@@ -7,7 +7,6 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
 import com.ibm.JikesRVM.VM_Address;
@@ -266,24 +265,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
                              boolean isScalar) {} // do nothing
 
-  /**
-   * Advise the compiler/runtime which allocator to use for a
-   * particular allocation.  This should be called at compile time and
-   * the returned value then used for the given site at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return The allocator number to be used for this allocation.
-   */
-  public final int getAllocator(Type type, int bytes, CallSite callsite,
-                                AllocAdvice hint) {
-    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : RC_SPACE;
-  }
-
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == rc) return DEFAULT_SPACE;
     if (a == los) return LOS_SPACE;
@@ -309,7 +290,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, int bytes,
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
                                           CallSite callsite,
                                           AllocAdvice hint) {
     return null;
@@ -524,9 +505,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     
     if (space == RC_SPACE || space == LOS_SPACE) {
       if (RCBaseHeader.incSanityRC(object, root))
-        ScanObject.enumeratePointers(object, sanityEnum);
+        Scan.enumeratePointers(object, sanityEnum);
     } else if (RCBaseHeader.markSanityRC(object))
-      ScanObject.enumeratePointers(object, sanityEnum);
+      Scan.enumeratePointers(object, sanityEnum);
   }
   
   /**
@@ -548,9 +529,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     
     if (space == RC_SPACE || space == LOS_SPACE) {
       if (RCBaseHeader.checkAndClearSanityRC(object))
-        ScanObject.enumeratePointers(object, sanityEnum);
+        Scan.enumeratePointers(object, sanityEnum);
     } else if (RCBaseHeader.unmarkSanityRC(object))
-      ScanObject.enumeratePointers(object, sanityEnum);
+      Scan.enumeratePointers(object, sanityEnum);
   }
   
   /**
@@ -757,7 +738,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       VM_Interface._assert(WITH_COALESCING_RC);
     if (Header.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
-      ScanObject.enumeratePointers(srcObj, decEnum);
+      Scan.enumeratePointers(srcObj, decEnum);
       Header.makeLogged(srcObj);
     }
   }
@@ -891,7 +872,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address obj = VM_Address.zero();
     while (!(obj = modBuffer.pop()).isZero()) {
       Header.makeUnlogged(obj);
-      ScanObject.enumeratePointers(obj, modEnum);
+      Scan.enumeratePointers(obj, modEnum);
     }
   }
 

@@ -1214,6 +1214,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     state = CLASS_RESOLVED; // can't move this beyond "finalize" code block
     
     VM_Callbacks.notifyClassResolved(this);
+    MM_Interface.notifyClassResolved(this);
 
     // check for a "finalize" method that overrides the one in java.lang.Object
     //
