@@ -152,7 +152,9 @@ sysWriteLong(int value1, unsigned int value2, int hexToo)
 
 // Exit with a return code.
 //
+#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 extern "C" void
 sysExit(int value)
@@ -166,9 +168,13 @@ sysExit(int value)
    fflush(SysTraceFile);
    fflush(stdout);
 
+#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    pthread_mutex_lock( &DeathLock );
    exit(value);
    pthread_mutex_unlock( &DeathLock );  // :)
+#else
+   exit(value);
+#endif
    }
 
 // Access host o/s command line arguments.
@@ -685,7 +691,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     {
  #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n");
-    syssysExit(-1);
+    sysExit(-1);
     return (0);
  #else
     int           *sysVirtualProcessorArguments;
