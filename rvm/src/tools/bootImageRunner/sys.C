@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002,2004
  */
 //$Id$
 
@@ -867,8 +867,12 @@ setTimeSlicer(int msTimerDelay)
                 Me, strerror(errorCode));
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#elif (defined RVM_FOR_LINUX)  || (defined __MACH__)// && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    // NOTE: This code is ONLY called if we have defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.
+#elif (defined RVM_FOR_LINUX)  || (defined __MACH__) 
+    /* && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR */
+
+    /* NOTE: This code is ONLY called if we have defined
+     * RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  */
+
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
     //
 
@@ -886,7 +890,8 @@ setTimeSlicer(int msTimerDelay)
         perror(NULL);
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#else  // RMV_FOR_SINGLE_VIRTUAL_PROCESSOR, ! RVM_FOR_LINUX
+#else  /* RMV_FOR_SINGLE_VIRTUAL_PROCESSOR &&  ! defined RVM_FOR_LINUX && !
+          defined __MACH__ */
     // fetch system timer
     //
     timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
@@ -925,7 +930,7 @@ sysVirtualProcessorEnableTimeSlicing(int timeSlice)
         fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
     // timeSlice could be less than 1!
     if (timeSlice < 1 || timeSlice > 999) {
-        fprintf(SysErrorFile, "%s: timeslice of %d is outside range 1..999\n",
+        fprintf(SysErrorFile, "%s: timeslice of %d msec is outside range 1 msec ..999 msec\n",
                 Me, timeSlice);
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
