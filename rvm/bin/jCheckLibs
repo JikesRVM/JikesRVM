@@ -80,6 +80,7 @@ fi
 # make sure we have the jazzlib jar file
 if [[ ! -e $RVM_ROOT/support/lib/jazzlib.jar ]]; then
     echo "Installing jazzlib.jar"
+    mkdir -p $RVM_ROOT/support/lib
     $WGET -q -O $RVM_ROOT/support/lib/jazzlib.jar \
     'http://people.debian.org/~jewel/jikes/jikesport/jazzlib/jazzlib-binary-0.04-juz.jar'
 fi
