@@ -47,6 +47,15 @@ cvs checkout.  This avoids the problematic aclocal/autoconf/etc step
 and means that automatic downloading should work for all users and is
 now the recommended default. 
 
+**Progress in PowerPC64 port: we can run hello world
+***The Jikes RVM port to PPC64 has progressed to the point where a prototype 
+configuration boots and can run some simple programs.
+Getting this far requires that lots of things are working, so it is a
+fairly significant step.  However, there is more work to do with
+prootype and we haven't started work on the opt compiler. This is very
+much a work in progress (and members of the community are encouraged
+to help!).
+
 *Other notes:
 
 ***We have fixed all C and C++ compiler warnings in the Linux/x86 source
@@ -87,6 +96,7 @@ somewhere under the name "bash".
 
 **As much JNI reworking as possible (dave g)
 
-**PowerPC64 port: goal should be that the VM can run hello world...
-
-**Eclipse: goal should be that we run latest milestone build
+**Eclipse: goal should be that we run latest milestone build.
+I tried this earlier in the week and we die with a problem in
+classpath nio long before we get to the parts of Jikes RVM that aren't
+implementated. So, I think we have to postpone this for now. --dave
