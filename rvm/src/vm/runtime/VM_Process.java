@@ -245,7 +245,7 @@ public class VM_Process extends java.lang.Process {
 	// InterruptedException may be thrown,
 	// in which case we definitely did NOT do the waitpid()
 
-	if (VM.VerifyAssertions) VM_Scheduler._assert(waitData.finished);
+	if (VM.VerifyAssertions) VM._assert(waitData.finished);
 	return waitData.exitStatus;
     }
     

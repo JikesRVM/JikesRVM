@@ -119,7 +119,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
       handleMicrocontention(attempts++);
     } while (true);
     // i owns the lock
-    if (VM.VerifyAssertions && !MCS_Locking) VM_Scheduler._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions && !MCS_Locking) VM._assert(VM.NOT_REACHED);
     i.awaitingProcessorLock = this;
     if (p.awaitingProcessorLock != this) { // make i first (and only) waiter on the contender chain
       i.contenderLink = i;

@@ -30,10 +30,6 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
   // interface for event notification.  It also now supports
   // waiting on sets of file descriptors.
 
-  //----------------//
-  // Implementation //
-  //----------------//
-
   /**
    * Class to safely downcast from <code>VM_ThreadEventWaitData</code>
    * to <code>VM_ThreadIOWaitData</code>.
@@ -51,7 +47,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     }
 
     public void visitThreadProcessWaitData(VM_ThreadProcessWaitData waitData) {
-      if (VM.VerifyAssertions) VM_Scheduler._assert(false);
+      if (VM.VerifyAssertions) VM._assert(false);
     }
   }
 
@@ -203,7 +199,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
 	// Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
 	thread.waitData.accept(myDowncaster);
 	VM_ThreadIOWaitData waitData = myDowncaster.waitData;
-	if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+	if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
 	// Add file descriptors from wait data to the array of
 	// fds that we pass to select().
@@ -264,7 +260,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     thread.waitData.accept(myDowncaster);
     VM_ThreadIOWaitData waitData = myDowncaster.waitData;
-    if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+    if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
     // Any threads killed while blocked in Java
     // are woken up.
@@ -320,7 +316,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);
     VM_ThreadIOWaitData waitData = downcaster.waitData;
-    if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+    if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
     VM.sysWrite("(R");
     dumpFds(waitData.readFds);
@@ -354,7 +350,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);
     VM_ThreadIOWaitData waitData = downcaster.waitData;
-    if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+    if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
     StringBuffer buffer = new StringBuffer();
 

@@ -53,7 +53,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     public VM_ThreadProcessWaitData waitData;
 
     public void visitThreadIOWaitData(VM_ThreadIOWaitData waitData) {
-      if (VM.VerifyAssertions) VM_Scheduler._assert(false);
+      if (VM.VerifyAssertions) VM._assert(false);
     }
 
     public void visitThreadProcessWaitData(VM_ThreadProcessWaitData waitData) {
@@ -140,7 +140,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
 	  // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData
 	  thread.waitData.accept(myDowncaster);
 	  VM_ThreadProcessWaitData waitData = myDowncaster.waitData;
-	  if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+	  if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
 	  // Add pid to array of pids to query
 	  pidArray[numPids] = waitData.pid;
@@ -179,7 +179,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
 	// Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData
 	thread.waitData.accept(myDowncaster);
 	VM_ThreadProcessWaitData waitData = myDowncaster.waitData;
-	if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+	if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
 	waitData.finished = true;
 	waitData.exitStatus = exitStatusArray[numPids];
@@ -211,7 +211,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData
     thread.waitData.accept(myDowncaster);
     VM_ThreadProcessWaitData waitData = myDowncaster.waitData;
-    if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+    if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
     // See if this thread's process has finished
     boolean ready = waitData.finished;
@@ -234,7 +234,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);
     VM_ThreadProcessWaitData waitData = downcaster.waitData;
-    if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+    if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
     VM.sysWrite("pid=");
     VM.sysWrite(waitData.pid, false);
@@ -249,7 +249,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);
     VM_ThreadProcessWaitData waitData = downcaster.waitData;
-    if (VM.VerifyAssertions) VM_Scheduler._assert(waitData == thread.waitData);
+    if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
     return "pid=" + waitData.pid;
   }
 }

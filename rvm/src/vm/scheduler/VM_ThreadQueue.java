@@ -12,23 +12,34 @@ package com.ibm.JikesRVM;
  */
 public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
-  protected int       id;     // id of this queue, for event logging
-  protected VM_Thread head;   // first thread on list
-  protected VM_Thread tail;   // last thread on list
+  /**
+   * id of this queue, for event logging
+   */
+  protected int       id;     
+  /**
+   * first thread on list
+   */
+  protected VM_Thread head;   
+  /**
+   * last thread on list
+   */
+  protected VM_Thread tail;   
   
   public VM_ThreadQueue(int id) {
     this.id = id;
   }
 
-  // Are any threads on the queue?
-  //
+  /**
+   * Are any threads on the queue?
+   */  
   public boolean isEmpty () {
     return head == null;
   }
 
-  // Atomic test to determine if any threads on the queue?
-  //    note: The test is required for native idle threads
-  //
+  /**
+   * Atomic test to determine if any threads on the queue?
+   *    note: The test is required for native idle threads
+   */
   boolean atomicIsEmpty (VM_ProcessorLock lock) {
     boolean r;
 
@@ -43,7 +54,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   //
   public void enqueueHighPriority (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
-    if (VM.VerifyAssertions) VM_Scheduler._assert(t.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM._assert(t.next == null); // not currently on any other queue
     t.next = head;
     head = t;
     if (tail == null)
@@ -54,7 +65,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   //
   public void enqueue (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
-    if (VM.VerifyAssertions) VM_Scheduler._assert(t.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM._assert(t.next == null); // not currently on any other queue
     if (head == null)
       head = t;
     else

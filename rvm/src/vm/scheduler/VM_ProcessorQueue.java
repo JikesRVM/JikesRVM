@@ -21,24 +21,35 @@ package com.ibm.JikesRVM;
  */
 final class VM_ProcessorQueue implements VM_Uninterruptible {
 
-  private int          id;     // id of this queue, for event logging
-  private VM_Processor head;   // first thread on list
-  private VM_Processor tail;   // last thread on list
+  /**
+   * id of this queue, for event logging
+   */
+  private int          id;     
+  /**
+   * first thread on list
+   */
+  private VM_Processor head;   
+  /**
+   * last thread on list
+   */
+  private VM_Processor tail;   
  
   VM_ProcessorQueue (int i) {
     id = i;
   }  
 
-  // is the queue empty
-  //
+  /**
+   * is the queue empty
+   */ 
   boolean isEmpty () {
    return head == null;
   }
 
-  // Add a VP to tail of queue.
-  //
+  /**
+   * Add a VP to tail of queue.
+   */ 
   synchronized void enqueue (VM_Processor p) throws VM_PragmaInterruptible {
-    if (VM.VerifyAssertions) VM_Scheduler._assert(p.next == null); // not currently on any other queue
+    if (VM.VerifyAssertions) VM._assert(p.next == null); // not currently on any other queue
     if (head == null)
       head = p;
     else
@@ -46,9 +57,10 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
     tail = p;
   }
 
-  // Remove VP from head of queue.
-  // Returned: the thread (null --> queue is empty)
-  //
+  /**
+   * Remove VP from head of queue.
+   * @return the thread (null --> queue is empty)
+   */ 
   synchronized VM_Processor dequeue () throws VM_PragmaInterruptible {
     VM_Processor p = head;
     if (p == null)
@@ -61,8 +73,9 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
   }
 
  
-  // Number of items on queue (an estimate: queue is not locked during the scan).
-  //
+  /**
+   * Number of items on queue (an estimate: queue is not locked during the scan).
+   */ 
   int length() {
     int length = 0;
     for (VM_Processor p = head; p != null; p = p.next)
@@ -70,13 +83,13 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
     return length;
   }
 
-  // dump the vp queue
-  //
+  /**
+   * dump the vp queue
+   */ 
   void dump () {
     VM.sysWrite("Virtual Processor Dead Queue\n");
     for (VM_Processor p = head; p != null; p = p.next)
       p.dumpProcessorState();
     VM.sysWrite("\n");
   }
-  
 }
