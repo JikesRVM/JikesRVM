@@ -16,7 +16,8 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 public final class VM_CodeArray implements Uninterruptible {
   private byte [] data;
 
-  public static VM_CodeArray create (int size) throws InterruptiblePragma {
+  // only intended to be called from VM_CodeArray.factory
+  static VM_CodeArray create (int size) throws InterruptiblePragma {
     if (VM.runningVM) VM._assert(false);  // should be hijacked
     return new VM_CodeArray(size);
   }
@@ -70,7 +71,7 @@ public final class VM_CodeArray implements Uninterruptible {
       if (VM.VerifyAssertions) VM._assert(numInstrs <= instrs.length);
       VM_CodeArray code;
       if (VM.runningVM) {
-        code = MM_Interface.newCode(numInstrs, isHot);
+        code = MM_Interface.allocateCode(numInstrs, isHot);
         VM_Memory.arraycopy8Bit(instrs, 0, code, 0, numInstrs);
         return code;
       } else {

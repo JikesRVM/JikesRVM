@@ -484,44 +484,6 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
   public static int getDefaultAllocator() { return Plan.ALLOC_DEFAULT; }
 
   /**
-   * Determine whether an allocation is a code array from the baseline
-   * compiler. 
-   * 
-   * @param method The method allocating the array.
-   */
-  private static boolean isBaseCodeArrayAllocSite(VM_Method method) 
-    throws InterruptiblePragma, InlinePragma {
-    if (method != null) {
-      VM_Class cls = method.getDeclaringClass();
-      byte[] clsBA = cls.getDescriptor().toByteArray();
-      byte[] mthBA = method.getName().toByteArray();
-      return ((isPrefix("Lcom/ibm/JikesRVM/VM_Assembler", clsBA) && 
-               isPrefix("getMachineCodes", mthBA)) ||
-              (isPrefix("Lcom/ibm/JikesRVM/VM_MachineCode", clsBA) && 
-               isPrefix("finish", mthBA)));
-    } else
-      return false;
-  }
-
-  /**
-   * Determine whether an allocation is a code array from the opt
-   * compiler.
-   * 
-   * @param method The method allocating the array.
-   */
-  private static boolean isOptCodeArrayAllocSite(VM_Method method) 
-    throws InterruptiblePragma, InlinePragma {
-    if (method != null) {
-      VM_Class cls = method.getDeclaringClass();
-      byte[] clsBA = cls.getDescriptor().toByteArray();
-      byte[] mthBA = method.getName().toByteArray();
-      return (isPrefix("Lcom/ibm/JikesRVM/opt/OPT_ConvertMIRtoMC", clsBA) &&
-              isPrefix("perform", mthBA));
-    } else
-      return false;
-  }
-
-  /**
    * Returns the appropriate allocation scheme/area for the given type
    * and given method requesting the allocation.
    * 
@@ -531,17 +493,6 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */
   public static int pickAllocator(VM_Type type, VM_Method method)
     throws InterruptiblePragma {
-    /*
-     * We check the calling method so GC-data can go into special
-     * places.  A better implementation would be call-site specific
-     * which is strictly more refined.
-     */
-    if (type.isArrayType()) {
-      if (isBaseCodeArrayAllocSite(method))
-        return Plan.ALLOC_COLD_CODE;
-      else if (isOptCodeArrayAllocSite(method))
-        return Plan.ALLOC_HOT_CODE;
-    }
 
     if (method != null) {
      // We should strive to be allocation-free here.
@@ -562,7 +513,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     MMType t = (MMType) type.getMMType();
     return t.getAllocator();
   }
-
+  
   /**
    * Determine the default allocator to be used for a given type.
    *
@@ -766,7 +717,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
 
 
   /**
-   * Allocate a VM_CodeArray into a code space,
+   * Allocate a VM_CodeArray into a code space.
    * Currently the interface is fairly primitive;
    * just the number of instructions in the code array and a boolean
    * to indicate hot or cold code.
@@ -774,9 +725,17 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
-  public static VM_CodeArray newCode(int numInstrs, boolean isHot)
-    throws InlinePragma, InterruptiblePragma {
-    return VM_CodeArray.create(numInstrs);
+  public static VM_CodeArray allocateCode(int numInstrs, boolean isHot) {
+    VM_Array type = VM_Type.CodeArrayType;
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
+    int align = VM_ObjectModel.getAlignment(type);
+    int offset = VM_ObjectModel.getOffsetForAlignment(type);
+    int width  = type.getLogElementSize();
+    Object [] tib = type.getTypeInformationBlock();
+    int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
+    
+    return (VM_CodeArray) allocateArray(numInstrs, width, headerSize, tib,
+                                        allocator, align, offset);
   }
 
   /**
