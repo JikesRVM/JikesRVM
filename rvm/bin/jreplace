@@ -1,4 +1,15 @@
 #!/usr/agora/bin/perl
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+#
+# @author Perry Cheng
+
+# Search *.java source files in $RVM_ROOT/rvm for specified pattern and replace with the new string.
+#
+# Usage: jreplace <perl-pattern> <replacement>
+
 
 # Perform string replacement on java files
 # 
