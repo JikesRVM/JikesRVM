@@ -92,7 +92,6 @@ class VM_QuickExceptionDeliverer extends VM_ExceptionDeliverer
                        fp.loadWord(frameOffset));
     frameOffset = frameOffset.sub(BYTES_IN_ADDRESS);
 
-    registerSize = BYTES_IN_DOUBLE;           // fprs are 8 bytes wide
     for (int i = qcm.firstFPR; i <= qcm.lastFPR ; i++,frameOffset = frameOffset.sub(BYTES_IN_DOUBLE)) {
       long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
         registers.fprs[i] = VM_Magic.longBitsAsDouble(temp);
