@@ -15,7 +15,7 @@ all:
 	@echo >&2 ' all files in the source tree, skipping only Emacs backups and CVS files.)'
 
 
-FIND:=find . -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c \)
+FIND:=find src -name examples -prune -o -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c \)
 FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -type f 
 
 .PHONY: FORCE
