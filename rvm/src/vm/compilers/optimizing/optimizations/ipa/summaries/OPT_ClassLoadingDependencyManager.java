@@ -39,7 +39,6 @@ final class OPT_ClassLoadingDependencyManager {
    * invalidated if source is overridden.
    */
   public synchronized void addNotOverriddenDependency(VM_Method source, VM_CompiledMethod cm) {
-    if (VM.VerifyAssertions) VM.assert(VM.runningVM, "pre-existance not supported for boot image");
     int cmid = cm.getId();
     if (TRACE || DEBUG)
       report("CLDM: " + cmid + "("+cm.getMethod()+") is dependent on " + source + " not being overridden\n");
@@ -60,15 +59,7 @@ final class OPT_ClassLoadingDependencyManager {
   ////////////////////////
   // Implementation
   ////////////////////////
-  OPT_ClassLoadingDependencyManager() {
-    if (TRACE || DEBUG) {
-      try {
-        log = new PrintStream(new FileOutputStream("PREEX_OPTS.TRACE"));
-      } catch (IOException e) {
-        VM.sysWrite("\n\nCLDM: Error opening logging file!!\n\n");
-      }
-    }
-  }
+  OPT_ClassLoadingDependencyManager() { }
 
   /**
    * Take action when a method is overridden.
@@ -153,7 +144,18 @@ final class OPT_ClassLoadingDependencyManager {
   static final boolean TRACE = false;
 
   void report(String s) {
-    log.print(s);
+    if (VM.runningVM) {
+      if (log == null) {
+	try {
+	  log = new PrintStream(new FileOutputStream("PREEX_OPTS.TRACE"));
+	} catch (IOException e) {
+	  VM.sysWrite("\n\nCLDM: Error opening logging file!!\n\n");
+	}
+      }
+      log.print(s);
+    } else {
+      System.out.print(s);
+    }
   }
   private OPT_InvalidationDatabase db = new OPT_InvalidationDatabase();
   private static PrintStream log;

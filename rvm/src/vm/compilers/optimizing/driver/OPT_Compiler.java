@@ -96,17 +96,7 @@ public class OPT_Compiler {
     options.setOptLevel(3); 
 
     // Disable things that we think are a bad idea in this context
-    options.GUARDED_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
-
-    // Pre-existence based inlining isn't supported for bootimage writing.
-    // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
-    // The problem is that some subset of bootimage methods can't be safely invalidated.
-    // If a method that is executed when GC is disabled becomes invalid, we are unable
-    // to invalidate it (since we can't recompile it the next time it is called).
-    // We could work around this by doing eager recompilation of invalidated bootimage
-    // methods, but for now simply give up on these optimizations when writing the bootimage.
-    options.PREEX_INLINE = false;
-    options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
+    options.GUARDED_INLINE = options.guardWithCodePatch();
 
     // Compute summaries of bootimage methods if we haven't encountered them yet.
     // Does not handle unimplemented magics very well; disable until

@@ -1647,6 +1647,11 @@ function emitImageLinker
          print "   print 'LOPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
+
+         print "   print 'LOPT_ClassLoadingDependencyManager;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'LOPT_InvalidationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'LOPT_InvalidationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'LOPT_InterfaceHierarchy;'     >> $PRIMORDIAL_CLASSES_STR"
       fi
 
       if (( RVM_WITH_ALL_CLASSES )); then
