@@ -14,8 +14,12 @@ import org.mmtk.utility.Options;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TraceGenerator;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Collection;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Memory;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -116,7 +120,7 @@ public abstract class BasePlan
 
   // Memory layout constants
   protected static final Extent     SEGMENT_SIZE = Extent.fromIntZeroExtend(0x10000000);
-  public    static final Address      BOOT_START = VM_Interface.bootImageAddress;
+  public    static final Address      BOOT_START = Memory.bootImageAddress;
   protected static final Extent        BOOT_SIZE = SEGMENT_SIZE;
   protected static final Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
   protected static final Extent    IMMORTAL_SIZE = Extent.fromIntZeroExtend(32 * 1024 * 1024);
@@ -204,7 +208,7 @@ public abstract class BasePlan
 
   public static void fullyBooted() {
     initialized = true;
-    exceptionReserve = (int) (getTotalPages() * (1 - VM_Interface.OUT_OF_MEMORY_THRESHOLD));
+    exceptionReserve = (int) (getTotalPages() * (1 - Collection.OUT_OF_MEMORY_THRESHOLD));
   }
 
   /****************************************************************************
@@ -248,18 +252,18 @@ public abstract class BasePlan
   }
 
   protected Allocator getAllocatorFromSpace (byte s) {
-    if (s == BOOT_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given boot space");
-    if (s == META_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given meta space");
+    if (s == BOOT_SPACE) Assert.fail("BasePlan.getAllocatorFromSpace given boot space");
+    if (s == META_SPACE) Assert.fail("BasePlan.getAllocatorFromSpace given meta space");
     if (s == IMMORTAL_SPACE) return immortal;
-    VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
+    Assert.fail("BasePlan.getAllocatorFromSpace given unknown space");
     return null;
   }
 
   public static Allocator getOwnAllocator (Allocator a) {
     byte space = getSpaceFromAllocatorAnyPlan(a);
     if (space == UNUSED_SPACE)
-      VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
-    Plan plan = VM_Interface.getPlan();
+      Assert.fail("BasePlan.getOwnAllocator could not obtain space");
+    Plan plan = Plan.getInstance();
     return plan.getAllocatorFromSpace(space);
   }
 
@@ -303,7 +307,7 @@ public abstract class BasePlan
    */
   public static final void enqueue(Address obj)
     throws InlinePragma {
-    VM_Interface.getPlan().values.push(obj);
+    Plan.getInstance().values.push(obj);
   }
 
   /**
@@ -314,7 +318,7 @@ public abstract class BasePlan
    */
   public static final void enqueueForwardedUnscannedObject(Address obj)
     throws InlinePragma {
-    VM_Interface.getPlan().forwardedObjects.push(obj);
+    Plan.getInstance().forwardedObjects.push(obj);
   }
 
   /**
@@ -363,13 +367,13 @@ public abstract class BasePlan
                                                         boolean root) {
     Offset offset = interiorRef.diff(obj);
     Address newObj = Plan.traceObject(obj, root);
-    if (VM_Interface.VerifyAssertions) {
+    if (Assert.VERIFY_ASSERTIONS) {
       if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
         Log.write("       object base = "); Log.writeln(obj);
         Log.write("       interior reference = "); Log.writeln(interiorRef);
         Log.write("       delta = "); Log.writeln(offset);
-        VM_Interface._assert(false);
+        Assert._assert(false);
       }
     }
     return newObj.add(offset);
@@ -403,8 +407,7 @@ public abstract class BasePlan
    * forwarded.
    */
   public static void forwardObjectLocation(Address location) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    Assert._assert(!Plan.MOVES_OBJECTS);
   }
 
   /**
@@ -420,8 +423,7 @@ public abstract class BasePlan
    * this method.
    */
   public static Address getForwardedReference(Address object) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    Assert._assert(!Plan.MOVES_OBJECTS);
     return object;
   }
 
@@ -492,7 +494,7 @@ public abstract class BasePlan
                            Address tgt, int metaDataA, int metaDataB, int mode) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    Assert._assert(false);
   }
 
   /**
@@ -518,7 +520,7 @@ public abstract class BasePlan
 			      int bytes) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    Assert._assert(false);
     return false;
   }
 
@@ -536,7 +538,7 @@ public abstract class BasePlan
                                       int context)
     throws InlinePragma {
     // read barrier currently unimplemented
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    Assert._assert(false);
     return Address.max();
   }
 
@@ -560,15 +562,14 @@ public abstract class BasePlan
    */
   public boolean isReachable(Address obj) {
     if (obj.isZero()) return false;
-    Address addr = VM_Interface.refToAddress(obj);
+    Address addr = ObjectModel.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case IMMORTAL_SPACE:  return ImmortalSpace.isReachable(obj);
     case BOOT_SPACE:      return ImmortalSpace.isReachable(obj);
     default:
-      if (VM_Interface.VerifyAssertions) {
-	VM_Interface.sysFail("BasePlan.isReachable given object from unknown space");
-      }
+      if (Assert.VERIFY_ASSERTIONS)
+	Assert.fail("BasePlan.isReachable given object from unknown space");
       return false;
     }
   }
@@ -585,8 +586,7 @@ public abstract class BasePlan
    * @return The possibly moved reference.
    */
   public static Address followObject(Address obj) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    Assert._assert(!Plan.MOVES_OBJECTS);
     return Address.zero();
   }
   
@@ -596,12 +596,12 @@ public abstract class BasePlan
    */
 
   static public void addSpace (byte sp, String name) throws InterruptiblePragma {
-    if (spaceNames[sp] != null) VM_Interface.sysFail("addSpace called on already registed space");
+    if (spaceNames[sp] != null) Assert.fail("addSpace called on already registed space");
     spaceNames[sp] = name;
   }
 
   static public String getSpaceName (byte sp) {
-    if (spaceNames[sp] == null) VM_Interface.sysFail("getSpace called on unregisted space");
+    if (spaceNames[sp] == null) Assert.fail("getSpace called on unregisted space");
     return spaceNames[sp];
   }
 
@@ -689,9 +689,9 @@ public abstract class BasePlan
    * thus it is unsynchronized.
    */
   public static void checkForAsyncCollection() {
-    if (awaitingCollection && VM_Interface.noThreadsInGC()) {
+    if (awaitingCollection && Collection.noThreadsInGC()) {
       awaitingCollection = false;
-      VM_Interface.triggerAsyncCollection();
+      Collection.triggerAsyncCollection();
     }
   }
 
@@ -708,8 +708,7 @@ public abstract class BasePlan
    * state variable appropriately.
    */
   public static void collectionComplete() throws UninterruptiblePragma {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(collectionsInitiated > 0);
+    Assert._assert(collectionsInitiated > 0);
     // FIXME The following will probably break async GC.  A better fix
     // is needed
     collectionsInitiated = 0;
@@ -739,9 +738,9 @@ public abstract class BasePlan
    * @return True if a collection is in progress.
    */
   protected static void setGcStatus (int s) {
-    VM_Interface.isync();
+    Memory.isync();
     gcStatus = s;
-    VM_Interface.sync();
+    Memory.sync();
   }
 
   /**
@@ -793,7 +792,7 @@ public abstract class BasePlan
   public void error(String str) {
     MemoryResource.showUsage(PAGES);
     MemoryResource.showUsage(MB);
-    VM_Interface.sysFail(str);
+    Assert.fail(str);
   }
 
   /**
@@ -880,7 +879,7 @@ public abstract class BasePlan
       case MB:    Log.write(mb); Log.write(" Mb"); break;
       case PAGES_MB: Log.write(pages); Log.write(" pgs ("); Log.write(mb); Log.write(" Mb)"); break;
     case MB_PAGES: Log.write(mb); Log.write(" Mb ("); Log.write(pages); Log.write(" pgs)"); break;
-      default: VM_Interface.sysFail("writePages passed illegal printing mode");
+      default: Assert.fail("writePages passed illegal printing mode");
     }
   }
 
@@ -894,7 +893,7 @@ public abstract class BasePlan
    */
   protected static void spaceFailure(Address obj, byte space, 
                                      String source) {
-    Address addr = VM_Interface.refToAddress(obj);
+    Address addr = ObjectModel.refToAddress(obj);
     Log.write(source);
     Log.write(": obj "); Log.write(obj);
     Log.write(" or addr "); Log.write(addr);
@@ -902,10 +901,10 @@ public abstract class BasePlan
     Log.write(" is in unknown space ");
     Log.writeln(space);
     Log.write("Type = ");
-    Log.write(VM_Interface.getTypeDescriptor(obj));
+    Log.write(ObjectModel.getTypeDescriptor(obj));
     Log.writeln();
     Log.write(source);
-    VM_Interface.sysFail(": unknown space");
+    Assert.fail(": unknown space");
   }
 
   /**

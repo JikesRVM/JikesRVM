@@ -10,7 +10,7 @@
 
 package org.mmtk.vm.gcspy;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.utility.Log;
 
@@ -45,8 +45,7 @@ public class Util
    */
   public static final Address malloc(int size) {
     Address rtn  = VM_SysCall.sysMalloc(size);
-    if (rtn.isZero())
-      VM_Interface.sysFail("GCspy malloc failure");
+    if (rtn.isZero()) Assert.fail("GCspy malloc failure");
     return rtn;
   }
 
@@ -139,7 +138,7 @@ public class Util
 	//-#endif
 	shift += BITS_IN_BYTE;
       }
-      rtn.store(value, Offset.intAsOffset(offset));
+      rtn.store(value, Offset.fromInt(offset));
     }
     if (DEBUG_) {
       VM_SysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size);

@@ -6,11 +6,11 @@
  */
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.heap.LazyMmapper;
 import org.mmtk.utility.heap.VMResource;
-import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Memory;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -178,7 +178,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
   }
 
   public static boolean addrInBootImage(Address addr) {
-    return (addr.GE(VM_Interface.bootImageStart()))
-      && (addr.LT(VM_Interface.bootImageEnd()));
+    return (addr.GE(Memory.bootImageStart()))
+      && (addr.LT(Memory.bootImageEnd()));
   }
 } 

@@ -89,13 +89,13 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
    */
   private static final boolean isAllocCall(byte[] name) {    
     for (int i = 0; i < allocCallMethods.length; i++) {
-      byte[] funcName = VM_Interface.getArrayNoBarrier(allocCallMethods, i);
+      byte[] funcName = Barriers.getArrayNoBarrier(allocCallMethods, i);
       if (VM_Magic.getArrayLength(name) == VM_Magic.getArrayLength(funcName)) {
         /* Compare the letters in the allocCallMethod */
 	int j = VM_Magic.getArrayLength(funcName) - 1;
         while (j >= 0) {
-	  if (VM_Interface.getArrayNoBarrier(name, j) != 
-	      VM_Interface.getArrayNoBarrier(funcName, j))
+	  if (Barriers.getArrayNoBarrier(name, j) != 
+	      Barriers.getArrayNoBarrier(funcName, j))
 	    break;
 	  j--;
 	}

@@ -13,6 +13,7 @@ package org.mmtk.vm.gcspy;
 import org.mmtk.utility.Log;
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 
 

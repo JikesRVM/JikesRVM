@@ -5,8 +5,6 @@
 
 package org.mmtk.utility.alloc;
 
-import org.mmtk.vm.VM_Interface;
-
 /*
  * @author Perry Cheng
  */

@@ -4,7 +4,6 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;

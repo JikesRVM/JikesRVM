@@ -5,8 +5,8 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.utility.heap.RawPageAllocator;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Lock;
 
 import org.vmmagic.pragma.*;
@@ -136,8 +136,7 @@ public abstract class SortSharedDeque extends SharedDeque
     Address startPtr, startLink, endPtr, endLink;
     Word bitMask;
     if (!head.EQ(HEAD_INITIAL_VALUE)) {
-      if (VM_Interface.VerifyAssertions)
-	VM_Interface._assert(tail.NE(TAIL_INITIAL_VALUE));
+      Assert._assert(tail.NE(TAIL_INITIAL_VALUE));
       /* Obtain the bitmask for the first iteration and save the start &
 	 end pointers and the bitmask on the stack */
       initStack();
@@ -353,7 +352,7 @@ public abstract class SortSharedDeque extends SharedDeque
   * @param addr The slot containing the address of the buffer to check.
   */
   private final void checkIfSorted() {
-    if (VM_Interface.VerifyAssertions) {
+    if (Assert.VerifyAssertions) {
       Address next, buf, end;
       Word prevKey = Word.max();
       end = tail;
@@ -363,7 +362,7 @@ public abstract class SortSharedDeque extends SharedDeque
 	while (buf.LT(end)) {
 	  Address slot = buf.loadAddress();
 	  Word key = getKey(slot);
-	  VM_Interface._assert(key.LE(prevKey));
+	  Assert._assert(key.LE(prevKey));
 	  prevKey = key;
 	  buf = buf.add(BYTES_IN_ADDRESS);
 	}

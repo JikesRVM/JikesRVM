@@ -10,14 +10,16 @@
 
 package org.mmtk.utility.gcspy;
 
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.gcspy.AbstractDriver;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 
 //-#if RVM_WITH_GCSPY
 import com.ibm.JikesRVM.VM_Magic;
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 import org.mmtk.vm.gcspy.Color;
 import org.mmtk.vm.gcspy.AbstractTile;
 import org.mmtk.vm.gcspy.Subspace;
@@ -25,7 +27,7 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
 import org.mmtk.vm.gcspy.StreamConstants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import com.ibm.JikesRVM.classloader.VM_Type;  // FIXME => MMType !
 
@@ -265,9 +267,7 @@ public class SemiSpaceDriver extends AbstractDriver
    */
   public void zero () {
     for (int i = 0; i < tiles.length; i++) {
-      if (VM_Interface.VerifyAssertions) {
-        VM_Interface._assert(tiles[i] != null);
-      }
+      Assert._assert(tiles[i] != null);
       tiles[i].zero();
     }
     totalScalarObjects = 0;
@@ -345,8 +345,7 @@ public class SemiSpaceDriver extends AbstractDriver
 	if (isArray) {
 	  tiles[index].arrayObjects++;
 	  tiles[index].arrayUsedSpace += length;
-	  if (VM_Interface.VerifyAssertions) 
-	    VM_Interface._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
+	  Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
 	  if (total) {
 	    totalArrayObjects++;
 	    totalArrayUsedSpace += length;
@@ -354,8 +353,7 @@ public class SemiSpaceDriver extends AbstractDriver
 	} else {
 	  tiles[index].scalarObjects++;
 	  tiles[index].scalarUsedSpace += length;
-	  if (VM_Interface.VerifyAssertions) 
-	    VM_Interface._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
+	  Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
 	  if (total) {
 	    totalScalarObjects++;
 	    totalScalarUsedSpace += length;

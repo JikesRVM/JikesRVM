@@ -5,10 +5,11 @@
 
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.heap.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -71,7 +72,7 @@ public final class CopySpace extends BasePolicy
   public static void markObject(Address object, Word markState) 
     throws InlinePragma {
     if (testAndMark(object, markState)) 
-      VM_Interface.getPlan().enqueue(object);
+      Plan.enqueue(object);
   }
 
   /**
@@ -109,7 +110,7 @@ public final class CopySpace extends BasePolicy
 
     // We are the designated copier
     //
-    Address newObject = VM_Interface.copy(object);
+    Address newObject = ObjectModel.copy(object);
     setForwardingPointer(object, newObject);
     if (scan) {
       Plan.enqueue(newObject);       // Scan it later
@@ -137,8 +138,8 @@ public final class CopySpace extends BasePolicy
    * @param object the object ref to the storage to be initialized
    */
   public static void clearGCBits(Address object) throws InlinePragma {
-    Word header = VM_Interface.readAvailableBitsWord(object);
-    VM_Interface.writeAvailableBitsWord(object, header.and(GC_FORWARDING_MASK.not()));
+    Word header = ObjectModel.readAvailableBitsWord(object);
+    ObjectModel.writeAvailableBitsWord(object, header.and(GC_FORWARDING_MASK.not()));
   }
  
   /**
@@ -171,7 +172,7 @@ public final class CopySpace extends BasePolicy
    */
   private static Word getForwardingWord(Address object)
     throws InlinePragma {
-    return VM_Interface.readAvailableBitsWord(object);
+    return ObjectModel.readAvailableBitsWord(object);
   }
 
  /**
@@ -197,10 +198,10 @@ public final class CopySpace extends BasePolicy
     throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = VM_Interface.prepareAvailableBits(object);
+      oldValue = ObjectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!VM_Interface.attemptAvailableBits(object, oldValue, 
+    } while (!ObjectModel.attemptAvailableBits(object, oldValue, 
                                                 oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
@@ -218,9 +219,9 @@ public final class CopySpace extends BasePolicy
     throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = VM_Interface.prepareAvailableBits(object);
+      oldValue = ObjectModel.prepareAvailableBits(object);
       if (oldValue.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED)) return oldValue;
-    } while (!VM_Interface.attemptAvailableBits(object, oldValue,
+    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
                                                 oldValue.or(GC_BEING_FORWARDED)));
     return oldValue;
   }
@@ -270,6 +271,6 @@ public final class CopySpace extends BasePolicy
    */
   private static void setForwardingPointer(Address object, Address ptr)
     throws InlinePragma {
-    VM_Interface.writeAvailableBitsWord(object, ptr.toWord().or(GC_FORWARDED));
+    ObjectModel.writeAvailableBitsWord(object, ptr.toWord().or(GC_FORWARDED));
   }
 }

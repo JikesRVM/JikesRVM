@@ -5,12 +5,12 @@
 
 package org.mmtk.utility.alloc;
 
-import org.mmtk.plan.*;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
 
 import com.ibm.JikesRVM.VM_Memory;
 
@@ -71,14 +71,14 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static Address alignAllocation(Address region, int alignment, 
                                              int offset, int knownAlignment)
     throws InlinePragma {
-   if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(knownAlignment >= BYTES_IN_PARTICLE);
-      VM_Interface._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
-      VM_Interface._assert(alignment <= MAXIMUM_ALIGNMENT);
-      VM_Interface._assert(offset >= 0);
-      VM_Interface._assert((region.toInt() & (BYTES_IN_PARTICLE-1)) == 0);
-      VM_Interface._assert((alignment & (BYTES_IN_PARTICLE-1)) == 0);
-      VM_Interface._assert((offset & (BYTES_IN_PARTICLE-1)) == 0);
+   if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
+      Assert._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
+      Assert._assert(alignment <= MAXIMUM_ALIGNMENT);
+      Assert._assert(offset >= 0);
+      Assert._assert((region.toInt() & (BYTES_IN_PARTICLE-1)) == 0);
+      Assert._assert((alignment & (BYTES_IN_PARTICLE-1)) == 0);
+      Assert._assert((offset & (BYTES_IN_PARTICLE-1)) == 0);
     }
 
     // No alignment ever required.
@@ -132,9 +132,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static int getMaximumAlignedSize(int size, int alignment,
 						int knownAlignment) 
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(knownAlignment >= BYTES_IN_PARTICLE);
-    }
+    Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
     if (MAXIMUM_ALIGNMENT <= BYTES_IN_PARTICLE
         || alignment <= knownAlignment) {
       return size;
@@ -168,16 +166,16 @@ public abstract class Allocator implements Constants, Uninterruptible {
         current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
-      current = BasePlan.getOwnAllocator(current);
+      current = Plan.getOwnAllocator(current);
     }
     Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");
     Log.write(bytes);
     Log.write(" on space "); Log.writeln(Plan.getSpaceFromAllocatorAnyPlan(this));
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
     Log.write("gcCount (now) = "); Log.writeln(Stats.gcCount());
-    MemoryResource.showUsage(BasePlan.MB);
-    VM_Interface.dumpStack(); 
-    VM_Interface.failWithOutOfMemoryError();
+    MemoryResource.showUsage(Plan.MB);
+    Assert.dumpStack(); 
+    Assert.failWithOutOfMemoryError();
     /* NOTREACHED */
     return Address.zero();
   }

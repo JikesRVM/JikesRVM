@@ -7,7 +7,7 @@ package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 
@@ -93,7 +93,7 @@ public abstract class LongCounter extends Counter
    */
   public void start() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions)  VM_Interface._assert(!running);
+    Assert._assert(!running);
     running = true;
     startValue = getCurrentValue();
   }
@@ -103,7 +103,7 @@ public abstract class LongCounter extends Counter
    */
   public void stop() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(running);
+    Assert._assert(running);
     running = false;
     long delta = getCurrentValue() - startValue;
     count[Stats.phase] += delta;
@@ -134,8 +134,8 @@ public abstract class LongCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    if (VM_Interface.VerifyAssertions && mergePhases()) 
-      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (Assert.VERIFY_ASSERTIONS && mergePhases()) 
+      Assert._assert((phase | 1) == (phase + 1));
     if (mergePhases()) 
       printValue(count[phase] + count[phase+1]);
     else

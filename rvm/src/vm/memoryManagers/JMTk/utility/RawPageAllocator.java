@@ -7,7 +7,7 @@ package org.mmtk.utility.heap;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -64,7 +64,7 @@ public final class RawPageAllocator implements Constants, Uninterruptible {
     int pageIndex = freeList.alloc(pages);
     if (pageIndex == -1) {
       Log.writeln("RawPageAllocator: unable to satisfy raw page allocation request");
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+      Assert._assert(false);
     }
     Address result = base.add(Conversions.pagesToBytes(pageIndex));
     Address resultEnd = result.add(Conversions.pagesToBytes(pages));
@@ -72,7 +72,7 @@ public final class RawPageAllocator implements Constants, Uninterruptible {
       int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toWord().toExtent()); // rounded up
       Address tmp = vmResource.acquire(pagesNeeded, null);
       top = tmp.add(Conversions.pagesToBytes(pagesNeeded));
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(resultEnd.LE(top));
+      Assert._assert(resultEnd.LE(top));
     }
     lock.release();
     return result;

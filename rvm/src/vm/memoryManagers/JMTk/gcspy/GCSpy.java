@@ -9,7 +9,7 @@
 
 package org.mmtk.vm.gcspy;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Options;
 import org.vmmagic.pragma.*;

@@ -10,7 +10,6 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
@@ -20,11 +19,15 @@ import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.TraceGenerator;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Collection;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.Plan;
 import org.mmtk.vm.ReferenceGlue;
+import org.mmtk.vm.Scanning;
 import org.mmtk.vm.SynchronizedCounter;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Collection;
 
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Type;
@@ -143,7 +146,8 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static final void init() throws InterruptiblePragma {
     VM_CollectorThread.init();
-    VM_Interface.init();
+    Collection.init();
+    Scanning.init();
   }
 
   /**
@@ -228,7 +232,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
                                           int locationMetadata)
     throws InlinePragma {
     Address src = VM_Magic.objectAsAddress(ref);
-    VM_Interface.getPlan().writeBarrier(src,
+    Plan.getInstance().writeBarrier(src,
                                         src.add(offset),
                                         VM_Magic.objectAsAddress(value),
                                         offset,
@@ -269,7 +273,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     throws InlinePragma {
     Address array = VM_Magic.objectAsAddress(ref);
     int offset = (index<<LOG_BYTES_IN_ADDRESS);
-    VM_Interface.getPlan().writeBarrier(array,
+    Plan.getInstance().writeBarrier(array,
                                         array.add(offset),
                                         VM_Magic.objectAsAddress(value),
                                         offset,
@@ -297,7 +301,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
 					      Object tgt, int tgtOffset,
 					      int bytes) 
     throws InlinePragma {
-    return VM_Interface.getPlan().writeBarrier(VM_Magic.objectAsAddress(src),
+    return Plan.getInstance().writeBarrier(VM_Magic.objectAsAddress(src),
 					       srcOffset,
 					       VM_Magic.objectAsAddress(tgt),
 					       tgtOffset, bytes);
@@ -379,7 +383,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static final void gc() throws InterruptiblePragma {
     if (!Options.ignoreSystemGC)
-      VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
+      Collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 
   /****************************************************************************
@@ -497,7 +501,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (VM_Interface.GCSPY) {
+      if (Plan.WITH_GCSPY) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
 	  return Plan.GCSPY_SPACE;
@@ -523,7 +527,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     throws InterruptiblePragma {
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
-    if (VM_Interface.GCSPY) {
+    if (Plan.WITH_GCSPY) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
 	       isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
 	allocator = Plan.GCSPY_SPACE;
@@ -557,7 +561,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   public static Object allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset)
     throws UninterruptiblePragma, InlinePragma {
-    Plan plan = VM_Interface.getPlan();
+    Plan plan = Plan.getInstance();
     allocator = Plan.checkAllocator(size, align, allocator);
     Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
@@ -585,12 +589,12 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
                                      int allocator,
                                      int align, int offset) 
     throws UninterruptiblePragma, InlinePragma {
-    Plan plan = VM_Interface.getPlan();
+    Plan plan = Plan.getInstance();
 
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
       // asked to allocate more than Integer.MAX_VALUE bytes
-      VM_Interface.failWithOutOfMemoryError();
+      Assert.failWithOutOfMemoryError();
     }
     int size = elemBytes + headerSize;
     allocator = Plan.checkAllocator(size, align, allocator);

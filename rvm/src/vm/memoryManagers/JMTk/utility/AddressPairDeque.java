@@ -4,7 +4,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -44,8 +44,8 @@ public class AddressPairDeque extends LocalDeque implements Constants, Uninterru
    * @param addr2 the second address to be inserted into the address queue
    */
   public final void insert(Address addr1, Address addr2) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
+    Assert._assert(!addr1.isZero());
+    Assert._assert(!addr2.isZero());
     checkTailInsert(2);
     uncheckedTailInsert(addr1);
     uncheckedTailInsert(addr2);
@@ -58,8 +58,8 @@ public class AddressPairDeque extends LocalDeque implements Constants, Uninterru
    * @param addr2 the second value to be pushed onto the address queue
    */
   public final void push(Address addr1, Address addr2) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
+    Assert._assert(!addr1.isZero());
+    Assert._assert(!addr2.isZero());
     checkHeadInsert(2);
     uncheckedHeadInsert(addr2);
     uncheckedHeadInsert(addr1);

@@ -5,9 +5,9 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.utility.heap.RawPageAllocator;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -52,8 +52,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   final int getArity() throws InlinePragma { return arity; }
 
   final void enqueue(Address buf, int arity, boolean toTail) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(arity == this.arity);
+    Assert._assert(arity == this.arity);
     lock();
     if (toTail) {
       // Add to the tail of the queue
@@ -75,9 +74,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       head = buf;
     } 
     bufsenqueued++;
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(checkDequeLength(bufsenqueued));
-    }
+    Assert._assert(checkDequeLength(bufsenqueued));
     unlock();
   }
 
@@ -94,8 +91,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   final Address dequeue(int arity, boolean fromTail) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(arity == this.arity);
+    Assert._assert(arity == this.arity);
     return dequeue(false, fromTail);
   }
 
@@ -104,8 +100,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   final Address dequeueAndWait(int arity, boolean fromTail) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(arity == this.arity);
+    Assert._assert(arity == this.arity);
     Address buf = dequeue(false, fromTail);
     while (buf.isZero() && (completionFlag == 0)) {
       buf = dequeue(true, fromTail);
@@ -116,8 +111,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   public final void reset() {
     setNumClientsWaiting(0);
     setCompletionFlag(0);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(head.isZero() && tail.isZero());
+    Assert._assert(head.isZero() && tail.isZero());
   }
 
   public final void newClient() {
@@ -126,14 +120,12 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   final Address alloc() throws InlinePragma {
     Address rtn = rpa.alloc(PAGES_PER_BUFFER);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(rtn.EQ(bufferStart(rtn)));
+    Assert._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
 
   final void free(Address buf) throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
+    Assert._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rpa.free(buf);
   }
 
@@ -160,8 +152,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     lock();
     Address rtn = ((fromTail) ? tail : head);
     if (rtn.isZero()) {
-      if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(tail.isZero() && head.isZero());
+      Assert._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
         setNumClientsWaiting(numClientsWaiting + 1);
@@ -174,7 +165,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 	setTail(getPrev(tail));	
 	if (head.EQ(rtn)) {
 	  setHead(Address.zero());
-	  if (VM_Interface.VerifyAssertions) VM_Interface._assert(tail.isZero());
+	  Assert._assert(tail.isZero());
 	} else {
 	  setNext(tail, Address.zero());
 	}
@@ -183,7 +174,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       setHead(getNext(head));
       if (tail.EQ(rtn)) {
         setTail(Address.zero());
-        if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero());
+        Assert._assert(head.isZero());
 	} else {
 	  setPrev(head, Address.zero());
 	}

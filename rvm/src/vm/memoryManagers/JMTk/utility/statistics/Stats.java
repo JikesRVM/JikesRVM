@@ -6,10 +6,9 @@
 package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Options;
-
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 
@@ -108,7 +107,7 @@ public class Stats implements Uninterruptible {
     if (gatheringStats) {
       Log.writeln("Error: calling Stats.startAll() while stats running");
       Log.writeln("       verbosity > 0 and the harness mechanism may be conflicitng");
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+      Assert._assert(false);
     }
     gatheringStats = true;
     for (int c = 0; c < counters; c++) {

@@ -5,7 +5,7 @@
 //$Id$
 package org.mmtk.utility.scan;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -22,25 +22,13 @@ import org.vmmagic.pragma.*;
  */
 public class RCModifiedEnumerator extends Enumerate 
   implements Uninterruptible {
-  private Plan plan;
-
-  /**
-   * Constructor.
-   *
-   * @param plan The plan instance with respect to which the
-   * enumeration will occur.
-   */
-  public RCModifiedEnumerator(Plan plan) {
-    this.plan = plan;
-  }
 
   /**
    * Enumerate a pointer.  In this case it is an increment event.
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(Address location) 
-      throws InlinePragma {
-    plan.enumerateModifiedPointerLocation(location);
+  public void enumeratePointerLocation(Address location) throws InlinePragma {
+    Plan.getInstance().enumerateModifiedPointerLocation(location);
   }
 }

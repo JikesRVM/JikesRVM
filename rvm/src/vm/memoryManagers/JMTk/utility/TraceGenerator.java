@@ -4,12 +4,13 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.TraceInterface;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -170,7 +171,7 @@ public final class TraceGenerator
 					  Address slot, Address tgt)
     throws NoInlinePragma {
     /* Assert that this isn't the result of tracing */
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!traceBusy);
+    Assert._assert(!traceBusy);
 
     /* Process the old target potentially becoming unreachable, when needed. */
     if (MERLIN_ANALYSIS) {
@@ -208,7 +209,7 @@ public final class TraceGenerator
 				      Address typeRef, int bytes)
     throws LogicallyUninterruptiblePragma, NoInlinePragma {
     /* Assert that this isn't the result of tracing */
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!traceBusy);
+    Assert._assert(!traceBusy);
 
     boolean gcAllowed = TraceInterface.gcEnabled() && Plan.initialized()
       && !Plan.gcInProgress();
@@ -225,9 +226,9 @@ public final class TraceGenerator
       if (MERLIN_ANALYSIS) {
 	lastGC = TraceInterface.getOID();
 	TraceInterface.updateTime(lastGC);
-	VM_Interface.triggerCollectionNow(VM_Interface.INTERNAL_GC_TRIGGER);
+	Collection.triggerCollectionNow(Collection.INTERNAL_GC_TRIGGER);
       } else {
-	VM_Interface.triggerCollectionNow(VM_Interface.RESOURCE_GC_TRIGGER);
+	Collection.triggerCollectionNow(Collection.RESOURCE_GC_TRIGGER);
 	lastGC = TraceInterface.getOID(ref);
       }
     }
@@ -267,14 +268,14 @@ public final class TraceGenerator
     /* Only the merlin analysis needs to compute death times */
     if (MERLIN_ANALYSIS) {
       /* Start with an empty stack. */
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(worklist.isEmpty());
+      Assert._assert(worklist.isEmpty());
       /* Scan the linked list of objects within each region */
       for (int region = 0; region < Plan.UNUSED_SPACE; region++) {
 	Address thisRef = objectLinks.get(region);
 	/* Start at the top of each linked list */
 	while (!thisRef.isZero()) {
 	  /* Add the unreachable objects onto the worklist. */
-	  if (!VM_Interface.getPlan().isReachable(thisRef))
+	  if (!Plan.getInstance().isReachable(thisRef))
 	    worklist.push(thisRef);
 	  thisRef = TraceInterface.getLink(thisRef);
 	}
@@ -292,7 +293,7 @@ public final class TraceGenerator
 	Address nextRef = 
 	  TraceInterface.getLink(thisRef);
         /* Maintain reachable objects on the linked list of allocated objects */
-	if (VM_Interface.getPlan().isReachable(thisRef)) {
+	if (Plan.getInstance().isReachable(thisRef)) {
 	  thisRef = Plan.followObject(thisRef);
 	  TraceInterface.setLink(thisRef, prevRef);
 	  prevRef = thisRef;
@@ -338,7 +339,7 @@ public final class TraceGenerator
     /* If this death time is more accurate, set it. */
     if (TraceInterface.getDeathTime(ref).LT(agePropagate)) {
       /* If we should add the object for further processing. */
-      if (!VM_Interface.getPlan().isReachable(ref)) {
+      if (!Plan.getInstance().isReachable(ref)) {
 	TraceInterface.setDeathTime(ref, agePropagate);
         worklist.push(ref);
       } else {
@@ -355,7 +356,7 @@ public final class TraceGenerator
   private static final void computeTransitiveClosure() {
     /* The latest time an object can die. */
     agePropagate = Word.max();
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!worklist.isEmpty());
+    Assert._assert(!worklist.isEmpty());
     /* Process through the entire buffer. */
     Address ref = worklist.pop();
     while (!ref.isZero()) {

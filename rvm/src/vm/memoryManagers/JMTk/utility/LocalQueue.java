@@ -5,7 +5,7 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -74,8 +74,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
     if (bufferOffset(head).isZero()) {
       return dequeueUnderflow(arity);
     } else {
-      if (VM_Interface.VerifyAssertions)
-        VM_Interface._assert(bufferOffset(head).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
+      Assert._assert(bufferOffset(head).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
       return true;
     }
   }
@@ -89,8 +88,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    */
   protected final Address uncheckedDequeue() 
     throws InlinePragma{
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
+    Assert._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.sub(BYTES_IN_ADDRESS);
     return head.loadAddress();
   }
@@ -106,8 +104,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * @return True if the consumer has eaten all the entries
    */
   protected final boolean headStarved(int arity) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(arity == queue.getArity());
+    Assert._assert(arity == queue.getArity());
 
     // If the tail has entries...
     if (tail.NE(tailBufferEnd)) {
@@ -139,8 +136,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * replenished.
    */
   private final boolean dequeueUnderflow(int arity) throws NoInlinePragma {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(arity == queue.getArity());
+    Assert._assert(arity == queue.getArity());
     do {
       if (head.NE(Deque.HEAD_INITIAL_VALUE))
 	queue.free(head);

@@ -4,9 +4,8 @@
  */
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
 
 import com.ibm.JikesRVM.VM_Callbacks;
 
@@ -37,6 +36,6 @@ public class Monitor
    * @param value The exit value
    */
   public void notifyExit(int value) {
-    VM_Interface.getPlan().notifyExit(value);
+    Plan.getInstance().notifyExit(value);
   }
 }

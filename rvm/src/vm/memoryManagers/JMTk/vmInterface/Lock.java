@@ -132,7 +132,7 @@ public class Lock implements Uninterruptible {
             VM.sysWrite("GC Warning: Locked out thread: "); 
             VM_Thread.getCurrentThread().dump(1); 
             VM_Scheduler.dumpStack();
-            VM_Interface.sysFail("Deadlock or someone holding on to lock for too long");
+            Assert.fail("Deadlock or someone holding on to lock for too long");
         }
       }
     }
@@ -155,7 +155,7 @@ public class Lock implements Uninterruptible {
 
   public void check (int w) {
     if (!REPORT_SLOW) return;
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(VM_Thread.getCurrentThread() == thread);
+    Assert._assert(VM_Thread.getCurrentThread() == thread);
     long diff = (REPORT_SLOW) ? VM_Time.cycles() - start : 0;
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {

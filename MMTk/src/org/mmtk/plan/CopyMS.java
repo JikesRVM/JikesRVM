@@ -4,8 +4,7 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.vm.VM_Interface;
-
+import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.MarkSweepLocal;
@@ -17,17 +16,24 @@ import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Log;
-import org.mmtk.utility.Memory;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.scan.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Memory;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Collection;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements a simple mark-sweep collector.
+ * This class implements a simple non-generational copying, mark-sweep
+ * hybrid.  All allocation goes to the copying space.  Whenever the
+ * heap is full, both spaces are collected, with survivors in the
+ * copying space copied to the mark-sweep space.  This collector is
+ * more space efficient than a simple semi-space collector (it does
+ * not require a copy reserve for the non-copying space) and, like the
+ * semi-space collector, it does not require a write barrier.
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities.  Global activities must be
@@ -41,59 +47,58 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  *
+ * $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  *
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends StopTheWorldGC implements Uninterruptible {
-  public final static String Id = "$Id$"; 
+public class CopyMS extends StopTheWorldGC implements Uninterruptible {
 
   /****************************************************************************
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = false;
-  public static final int GC_HEADER_BITS_REQUIRED = MarkSweepSpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = MarkSweepSpace.GC_HEADER_BYTES_REQUIRED;
+  public static final boolean MOVES_OBJECTS = true;
+  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
+  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
 
   // virtual memory resources
+  private static MonotoneVMResource nurseryVM;
   private static FreeListVMResource msVM;
   private static FreeListVMResource losVM;
 
   // memory resources
+  private static MemoryResource nurseryMR;
   private static MemoryResource msMR;
   private static MemoryResource losMR;
 
-  // MS collector
+  // Mark-sweep collector (mark-sweep space, large objects)
   private static MarkSweepSpace msSpace;
   private static TreadmillSpace losSpace;
 
-  // GC state
-  private static int msReservedPages;
-  private static int availablePreGC;
-
   // Allocators
-  public static final byte MS_SPACE = 0;
-  public static final byte DEFAULT_SPACE = MS_SPACE;
+  private static final byte NURSERY_SPACE = 0;
+  private static final byte MS_SPACE = 1;
+  public static final byte DEFAULT_SPACE = NURSERY_SPACE;
 
   // Miscellaneous constants
-  // XXX 512<<10 should be a named constant
-  private static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_BYTES_IN_PAGE; // 1M
-  private static final double MS_RESERVE_FRACTION = 0.1;
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   // Memory layout constants
-  public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final Extent        LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
-  private static final Extent         MS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
+  public  static final long            AVAILABLE = Memory.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
+  private static final Extent    NURSERY_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3)));
+  private static final Extent         MS_SIZE = NURSERY_SIZE;
+  protected static final Extent      LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3 * 0.3)));
   public  static final Extent        MAX_SIZE = MS_SIZE;
-
-  private static final Address      LOS_START = PLAN_START;
-  private static final Address        LOS_END = LOS_START.add(LOS_SIZE);
+  protected static final Address    LOS_START = PLAN_START;
+  protected static final Address      LOS_END = LOS_START.add(LOS_SIZE);
   private static final Address       MS_START = LOS_END;
   private static final Address         MS_END = MS_START.add(MS_SIZE);
-  private static final Address       HEAP_END = MS_END;
+  private static final Address  NURSERY_START = MS_END;
+  private static final Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
+  private static final Address       HEAP_END = NURSERY_END;
 
   /****************************************************************************
    *
@@ -101,6 +106,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
 
   // allocators
+  private BumpPointer nursery;
   private MarkSweepLocal ms;
   private TreadmillLocal los;
 
@@ -116,22 +122,27 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * into the boot image by the build process.
    */
   static {
+    nurseryMR = new MemoryResource("nur", POLL_FREQUENCY);
     msMR = new MemoryResource("ms", POLL_FREQUENCY);
     losMR = new MemoryResource("los", POLL_FREQUENCY);
-    msVM = new FreeListVMResource(MS_SPACE, "MS",       MS_START,   MS_SIZE, VMResource.IN_VM, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
+    nurseryVM = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
+    msVM = new FreeListVMResource(MS_SPACE, "MS", MS_START, MS_SIZE, VMResource.IN_VM, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
     losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
     msSpace = new MarkSweepSpace(msVM, msMR);
     losSpace = new TreadmillSpace(losVM, losMR);
 
+    addSpace(NURSERY_SPACE, "Nusery Space");
     addSpace(MS_SPACE, "Mark-sweep Space");
     addSpace(LOS_SPACE, "LOS Space");
   }
 
+
   /**
    * Constructor
    */
-  public Plan() {
-    ms = new MarkSweepLocal(msSpace, this);
+  public CopyMS() {
+    nursery = new BumpPointer(nurseryVM);
+    ms = new MarkSweepLocal(msSpace);
     los = new TreadmillLocal(losSpace);
   }
 
@@ -142,7 +153,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   public static final void boot()
     throws InterruptiblePragma {
     StopTheWorldGC.boot();
-    msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }
 
 
@@ -163,12 +173,12 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     switch (allocator) {
+    case  NURSERY_SPACE: return nursery.alloc(bytes, align, offset);
     case       MS_SPACE: return ms.alloc(bytes, align, offset, false);
     case      LOS_SPACE: return los.alloc(bytes, align, offset);
     case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
     default:
-      if (VM_Interface.VerifyAssertions) 
-	VM_Interface.sysFail("No such allocator"); 
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
       return Address.zero();
     }
   }
@@ -178,7 +188,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * required.
    *
    * @param ref The newly allocated object
-   * @param typeRef The type reference for the instance being created
+   * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
@@ -186,12 +196,12 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
                               int allocator)
     throws InlinePragma {
     switch (allocator) {
-    case  MS_SPACE: msSpace.initializeHeader(ref); return;
-    case LOS_SPACE: losSpace.initializeHeader(ref); return;
+    case  NURSERY_SPACE: return;
+    case      LOS_SPACE: losSpace.initializeHeader(ref); return;
+    case       MS_SPACE: msSpace.initializeHeader(ref); return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
     default:
-      if (VM_Interface.VerifyAssertions)
-	VM_Interface.sysFail("No such allocator");
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
     }
   }
 
@@ -206,20 +216,24 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final Address allocCopy(Address original, int bytes,
-                                    int align, int offset) throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    // return Address.zero();  this trips some Intel assembler bug
-    return Address.max();
+                                    int align, int offset)
+    throws InlinePragma {
+    Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
+    return ms.alloc(bytes, align, offset, true);
   }
 
   /**  
-   * Perform any post-copy actions.  In this case nothing is required.
+   * Perform any post-copy actions.  Need to set the mark bit.
    *
    * @param ref The newly allocated object
-   * @param typeRef The type reference for the instance being created
+   * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address ref, Address typeRef, int size) {}
+  public final void postCopy(Address ref, Address typeRef, int bytes)
+    throws InlinePragma {
+    msSpace.writeMarkBit(ref);
+    MarkSweepLocal.liveObject(ref);
+  }
 
   /**
    * Give the compiler/runtime statically generated alloction advice
@@ -241,13 +255,15 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
-    if (a == ms) return DEFAULT_SPACE;
+    if (a == nursery) return NURSERY_SPACE;
+    if (a == ms) return MS_SPACE;
     if (a == los) return LOS_SPACE;
     return super.getSpaceFromAllocator(a);
   }
 
   protected final Allocator getAllocatorFromSpace (byte s) {
-    if (s == DEFAULT_SPACE) return ms;
+    if (s == NURSERY_SPACE) return nursery;
+    if (s == MS_SPACE) return ms;
     if (s == LOS_SPACE) return los;
     return super.getAllocatorFromSpace(s);
   }
@@ -261,7 +277,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * that would take the number of pages in use (committed for use)
    * beyond the number of pages available.  Collections are triggered
    * through the runtime, and ultimately call the
-   * <code>collect()</code> method of this class or its superclass.
+   * <code>collect()</code> method of this class or its superclass.<p>
    *
    * This method is clearly interruptible since it can lead to a GC.
    * However, the caller is typically uninterruptible and this fiat allows 
@@ -270,20 +286,21 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
-   * XXX No Javadoc params.
-   *
-   * @return Whether a collection is triggered
+   * @param mustCollect True if a this collection is forced.
+   * @param mr The memory resource that triggered this collection.
+   * @return True if a collection is triggered
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
     throws LogicallyUninterruptiblePragma {
     if (collectionsInitiated > 0 || !initialized || mr == metaDataMR)
       return false;
-    mustCollect |= stressTestGCRequired() || ms.mustCollect();
-    availablePreGC = getTotalPages() - getPagesReserved();
-    int reserve = (mr == msMR) ? msReservedPages : 0;
-    if (mustCollect || availablePreGC <= reserve) {
+    mustCollect |= stressTestGCRequired();
+    boolean heapFull = getPagesReserved() > getTotalPages();
+    boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
+    if (mustCollect || heapFull || nurseryFull) {
       required = mr.reservedPages() - mr.committedPages();
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
+      if (mr == nurseryMR) required = required<<1;  // account for copy reserve
+      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
@@ -309,9 +326,12 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * collection.  This is called by <code>StopTheWorld</code>, which will
    * ensure that <i>only one thread</i> executes this.<p>
    *
-   * In this case, it means preparing each of the collectors.
+   * In this case, it means resetting the nursery memory resource and
+   * preparing each of the collectors.
    */
   protected final void globalPrepare() {
+    nurseryMR.reset();
+    CopySpace.prepare(nurseryVM, nurseryMR);
     msSpace.prepare(msVM, msMR);
     ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
@@ -322,10 +342,11 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * for a collection.  This is called by <code>StopTheWorld</code>, which
    * will ensure that <i>all threads</i> execute this.<p>
    *
-   * In this case, it means resetting mark sweep allocator.
-   * XXX No Javadoc params.
+   * In this case, it means rebinding the nursery allocator and
+   * preparing the mark sweep allocator.
    */
   protected final void threadLocalPrepare(int count) {
+    nursery.reset();
     ms.prepare();
     los.prepare();
   }
@@ -338,7 +359,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    *
    * In this case, it means releasing the mark sweep space (which
    * triggers the sweep phase of the mark-sweep collector).
-   * XXX No Javadoc params.
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
@@ -355,21 +375,14 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void globalRelease() {
     // release each of the collected regions
+    nurseryVM.release();
     losSpace.release();
     msSpace.release();
     ImmortalSpace.release(immortalVM, null);
-    int available = getTotalPages() - getPagesReserved();
-
-    progress = (available > availablePreGC) && (available > exceptionReserve);
-    if (progress) {
-      msReservedPages = (int) (available * MS_RESERVE_FRACTION);
-      int threshold = 2 * exceptionReserve;
-      if (threshold < MS_PAGE_RESERVE) threshold = MS_PAGE_RESERVE;
-      if (msReservedPages < threshold) 
-        msReservedPages = threshold;
-    } else {
-      msReservedPages = msReservedPages/2;
-    }
+    if (getPagesReserved() + required >= getTotalPages()) {
+      progress = false;
+    } else
+      progress = true;
   }
 
 
@@ -389,16 +402,17 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   public static final Address traceObject(Address obj) {
     if (obj.isZero()) return obj;
-    Address addr = VM_Interface.refToAddress(obj);
+    Address addr = ObjectModel.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-    case MS_SPACE:        return msSpace.traceObject(obj);
-    case LOS_SPACE:       return losSpace.traceObject(obj);
-    case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
-    case BOOT_SPACE:      return ImmortalSpace.traceObject(obj);
-    case META_SPACE:      return obj;
+    case NURSERY_SPACE:  return CopySpace.traceObject(obj);
+    case MS_SPACE:       return msSpace.traceObject(obj);
+    case LOS_SPACE:      return losSpace.traceObject(obj);
+    case IMMORTAL_SPACE: return ImmortalSpace.traceObject(obj);
+    case BOOT_SPACE:     return ImmortalSpace.traceObject(obj);
+    case META_SPACE:     return obj;
     default:
-      if (VM_Interface.VerifyAssertions) 
+      if (Assert.VERIFY_ASSERTIONS) 
         spaceFailure(obj, space, "Plan.traceObject()");
       return obj;
     }
@@ -419,6 +433,67 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
+  /**
+   * Scan an object that was previously forwarded but not scanned.
+   * The separation between forwarding and scanning is necessary for
+   * the "pre-copying" mechanism to function properly.
+   *
+   * @param object The object to be scanned.
+   */
+  protected final void scanForwardedObject(Address object) {
+    Scan.scanObject(object);
+  }
+
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  public static void forwardObjectLocation(Address location) 
+    throws InlinePragma {
+    Address obj = location.loadAddress();
+    if (!obj.isZero()) {
+      Address addr = ObjectModel.refToAddress(obj);
+      if (VMResource.getSpace(addr) == NURSERY_SPACE) 
+        location.store(CopySpace.forwardObject(obj));
+    }
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.
+   */
+  public static final Address getForwardedReference(Address object) {
+    if (!object.isZero()) {
+      Address addr = ObjectModel.refToAddress(object);
+      if (VMResource.getSpace(addr) == NURSERY_SPACE) {
+        Assert._assert(CopySpace.isForwarded(object));
+        return CopySpace.getForwardingPointer(object);
+      }
+    }
+    return object;
+  }
+
+  /**
+   * Return true if the given reference is to an object that is within
+   * the nursery.
+   *
+   * @param ref The object in question
+   * @return True if the given reference is to an object that is within
+   * one of the semi-spaces.
+   */
+  public static final boolean isNurseryObject(Address base) {
+    Address addr = ObjectModel.refToAddress(base);
+    return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
+  }
 
   /**
    * Return true if <code>obj</code> is a live object.
@@ -428,20 +503,21 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   public static final boolean isLive(Address obj) {
     if (obj.isZero()) return false;
-    Address addr = VM_Interface.refToAddress(obj);
+    Address addr = ObjectModel.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
+    case NURSERY_SPACE:   return CopySpace.isLive(obj);
     case MS_SPACE:        return msSpace.isLive(obj);
     case LOS_SPACE:       return losSpace.isLive(obj);
     case IMMORTAL_SPACE:  return true;
     case BOOT_SPACE:      return true;
     case META_SPACE:      return true;
     default:
-      if (VM_Interface.VerifyAssertions) 
-        spaceFailure(obj, space, "Plan.isLive()");
+      if (Assert.VERIFY_ASSERTIONS) spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
   }
+
 
   /****************************************************************************
    *
@@ -450,37 +526,42 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
 
   /**
    * Return the number of pages reserved for use given the pending
-   * allocation.
+   * allocation.  This <i>includes</i> space reserved for copying.
    *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
-    return getPagesUsed();
+    return getPagesUsed() + nurseryMR.reservedPages();
   }
 
   /**
    * Return the number of pages reserved for use given the pending
-   * allocation.
+   * allocation.  This is <i>exclusive of</i> space reserved for
+   * copying.
    *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = msMR.reservedPages();
+    int pages = nurseryMR.reservedPages();
+    pages += msMR.reservedPages();
     pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
     return pages;
   }
 
   /**
-   * Return the number of pages available for allocation.
+   * Return the number of pages available for allocation, <i>assuming
+   * all future allocation is to the nursery</i>.
    *
-   * @return The number of pages available for allocation.
+   * @return The number of pages available for allocation, <i>assuming
+   * all future allocation is to the nursery</i>.
    */
   protected static final int getPagesAvail() {
-    return getTotalPages() - msMR.reservedPages() - losMR.reservedPages() - immortalMR.reservedPages();
+    int nurseryPages = getTotalPages() - msMR.reservedPages() 
+      - immortalMR.reservedPages() - losMR.reservedPages();
+    return (nurseryPages>>1) - nurseryMR.reservedPages();
   }
 
 
@@ -490,15 +571,22 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
 
   /**
+   * Return the mark sweep collector
+   *
+   * @return The mark sweep collector.
+   */
+  // AJ: Could not find any uses of this method.
+//   public final MarkSweepSpace getMS() {
+//     return msSpace;
+//   }
+
+  /**
    * Show the status of each of the allocators.
    */
   public final void show() {
+    nursery.show();
     ms.show();
-    los.show();
-    immortal.show();
   }
 
-  protected final void planExit(int value) {
-    ms.exit();
-  }
+
 }

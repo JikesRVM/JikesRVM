@@ -4,6 +4,7 @@
  */
 package org.mmtk.utility.deque;
 
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -16,7 +17,6 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */ 
-import org.mmtk.vm.VM_Interface;
 public class AddressDeque extends LocalDeque 
   implements Constants, Uninterruptible {
    public final static String Id = "$Id$"; 
@@ -45,7 +45,7 @@ public class AddressDeque extends LocalDeque
    * @param addr the address to be inserted into the address queue
    */
   public final void insert(Address addr) throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr.isZero());
+    Assert._assert(!addr.isZero());
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }
@@ -56,7 +56,7 @@ public class AddressDeque extends LocalDeque
    * @param addr the address to be pushed onto the address queue
    */
   public final void push(Address addr) throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr.isZero());
+    Assert._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
   }

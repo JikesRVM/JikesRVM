@@ -4,7 +4,6 @@
 package org.mmtk.utility;
 
 import org.mmtk.utility.gcspy.TreadmillDriver;
-import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;

@@ -5,8 +5,10 @@
 
 package org.mmtk.utility;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+
+import com.ibm.JikesRVM.VM_Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -15,15 +17,14 @@ import org.vmmagic.pragma.*;
  * @author Perry Cheng  
  */  
 
-public class Memory implements Uninterruptible, Constants {
+public class Memory implements Uninterruptible, Constants, VM_Constants {
 
   /* Inlining this loop into the uninterruptible code can cause/encourage the
    GCP into moving a get_obj_tib into the interruptible region where the tib
    is being installed via an int_store 
   */
   private static boolean isSetHelper(Address start, int size, boolean verbose, int v) throws NoInlinePragma {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert((size & (BYTES_IN_INT-1)) == 0);
+    Assert._assert((size & (BYTES_IN_INT-1)) == 0);
     for (int i=0; i < size; i += BYTES_IN_INT) 
       if (start.loadInt(Offset.fromInt(i)) != v) {
         if (verbose) {
@@ -47,8 +48,7 @@ public class Memory implements Uninterruptible, Constants {
   // this is in the inline allocation sequence when VM_Interface.VerifyAssertions
   // therefore it is very carefully written to reduce the impact on code space.
   public static void assertIsZeroed(Address start, int size) throws NoInlinePragma {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(isSetHelper(start, size, true, 0));
+    Assert._assert(isSetHelper(start, size, true, 0));
   }
 
   public static boolean assertIsSet(Address start, int size, int v) throws InlinePragma {
@@ -70,7 +70,7 @@ public class Memory implements Uninterruptible, Constants {
   //
   public static void zero(Address start, Extent len) throws InlinePragma {
     if (len.GT(Extent.fromIntZeroExtend(256))) 
-      VM_Interface.zero(start, len);
+      org.mmtk.vm.Memory.zero(start, len);
     else
       zeroSmall(start, len);
   }
@@ -78,11 +78,11 @@ public class Memory implements Uninterruptible, Constants {
   // start and len must both be OS-page aligned
   //
   public static void zeroPages(Address start, int len) throws InlinePragma {
-    VM_Interface.zeroPages(start, len);
+    org.mmtk.vm.Memory.zeroPages(start, len);
   }
 
   public static void dumpMemory(Address addr, int before, int after) {
-    VM_Interface.dumpMemory(addr, before, after);
+    org.mmtk.vm.Memory.dumpMemory(addr, before, after);
   }
 
 }

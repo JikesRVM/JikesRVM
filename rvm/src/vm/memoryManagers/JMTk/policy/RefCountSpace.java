@@ -4,15 +4,16 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.heap.MemoryResource;
 import org.mmtk.utility.heap.FreeListVMResource;
 import org.mmtk.utility.Log;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -47,8 +48,8 @@ public final class RefCountSpace implements Constants, Uninterruptible {
   public static final int GLOBAL_GC_BITS_REQUIRED = 0; 
   /** How many bytes are used by all GC header fields? */
   public static final int GC_HEADER_BYTES_REQUIRED = (RC_SANITY_CHECK) ? 2*BYTES_IN_ADDRESS : BYTES_IN_ADDRESS;
-  protected static final Offset RC_HEADER_OFFSET = Offset.fromInt(VM_Interface.GC_HEADER_OFFSET());
-  protected static final Offset RC_SANITY_HEADER_OFFSET = Offset.fromInt(VM_Interface.GC_HEADER_OFFSET() + BYTES_IN_ADDRESS);
+  protected static final Offset RC_HEADER_OFFSET = Offset.fromInt(ObjectModel.GC_HEADER_OFFSET());
+  protected static final Offset RC_SANITY_HEADER_OFFSET = Offset.fromInt(ObjectModel.GC_HEADER_OFFSET() + BYTES_IN_ADDRESS);
 
 
   /* Mask bits to signify the start/finish of logging an object */
@@ -156,9 +157,9 @@ public final class RefCountSpace implements Constants, Uninterruptible {
     throws InlinePragma {
     if (INC_DEC_ROOT) {
       incRC(object);
-      VM_Interface.getPlan().addToRootSet(object);
+      Plan.getInstance().addToRootSet(object);
     } else if (setRoot(object)) {
-      VM_Interface.getPlan().addToRootSet(object);
+      Plan.getInstance().addToRootSet(object);
     }
     return object;
   }
@@ -177,7 +178,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
    */
   public static boolean logRequired(Address object)
     throws UninterruptiblePragma, InlinePragma {
-    Word value = VM_Interface.readAvailableBitsWord(object);
+    Word value = ObjectModel.readAvailableBitsWord(object);
     return value.and(LOGGING_MASK).EQ(UNLOGGED);
   }
 
@@ -201,14 +202,14 @@ public final class RefCountSpace implements Constants, Uninterruptible {
     throws UninterruptiblePragma, InlinePragma {
     Word oldValue;
     do {
-      oldValue = VM_Interface.prepareAvailableBits(object);
+      oldValue = ObjectModel.prepareAvailableBits(object);
       if (oldValue.and(LOGGING_MASK).EQ(LOGGED)) return false;
     } while ((oldValue.and(LOGGING_MASK).EQ(BEING_LOGGED)) ||
-             !VM_Interface.attemptAvailableBits(object, oldValue, 
+             !ObjectModel.attemptAvailableBits(object, oldValue, 
                                                 oldValue.or(BEING_LOGGED)));
-    if (VM_Interface.VerifyAssertions) {
-      Word value = VM_Interface.readAvailableBitsWord(object);
-      VM_Interface._assert(value.and(LOGGING_MASK).EQ(BEING_LOGGED));
+    if (Assert.VERIFY_ASSERTIONS) {
+      Word value = ObjectModel.readAvailableBitsWord(object);
+      Assert._assert(value.and(LOGGING_MASK).EQ(BEING_LOGGED));
     }
     return true;
   }
@@ -223,10 +224,9 @@ public final class RefCountSpace implements Constants, Uninterruptible {
    */
   public static void makeLogged(Address object)
     throws UninterruptiblePragma, InlinePragma {
-    Word value = VM_Interface.readAvailableBitsWord(object);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(value.and(LOGGING_MASK).NE(LOGGED));
-    VM_Interface.writeAvailableBitsWord(object, value.and(LOGGING_MASK.not()));
+    Word value = ObjectModel.readAvailableBitsWord(object);
+    Assert._assert(value.and(LOGGING_MASK).NE(LOGGED));
+    ObjectModel.writeAvailableBitsWord(object, value.and(LOGGING_MASK.not()));
   }
 
   /**
@@ -236,10 +236,9 @@ public final class RefCountSpace implements Constants, Uninterruptible {
    */
   public static void makeUnlogged(Address object)
     throws UninterruptiblePragma, InlinePragma {
-    Word value = VM_Interface.readAvailableBitsWord(object);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(value.and(LOGGING_MASK).EQ(LOGGED));
-    VM_Interface.writeAvailableBitsWord(object, value.or(UNLOGGED));
+    Word value = ObjectModel.readAvailableBitsWord(object);
+    Assert._assert(value.and(LOGGING_MASK).EQ(LOGGED));
+    ObjectModel.writeAvailableBitsWord(object, value.or(UNLOGGED));
   }
 
   /****************************************************************************
@@ -260,7 +259,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
     throws InlinePragma {
     // all objects are birthed with an RC of INCREMENT
     int initialValue =  (initialInc) ? INCREMENT : 0;
-    if (Plan.REF_COUNT_CYCLE_DETECTION && VM_Interface.isAcyclic(typeRef))
+    if (Plan.REF_COUNT_CYCLE_DETECTION && ObjectModel.isAcyclic(typeRef))
       initialValue |= GREEN;
     object.store(initialValue, RC_HEADER_OFFSET);
   }
@@ -312,8 +311,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
     do {
       oldValue = object.prepareInt(RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
-      if (VM_Interface.VerifyAssertions)
-        VM_Interface._assert(newValue <= INCREMENT_LIMIT);
+      Assert._assert(newValue <= INCREMENT_LIMIT);
       if (Plan.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!object.attempt(oldValue, newValue, RC_HEADER_OFFSET));
   }
@@ -393,10 +391,9 @@ public final class RefCountSpace implements Constants, Uninterruptible {
     throws UninterruptiblePragma, InlinePragma {
     int rcv = object.loadInt(RC_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1);
     int sanityRCV = object.loadInt(RC_SANITY_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(sanityRCV == 0);
+    Assert._assert(sanityRCV == 0);
     if (sanityRCV == 0 && rcv != 0) {
-      VM_Interface.sysFail("");
+      Assert.fail("");
     }
   }
 
@@ -429,7 +426,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
         if (sanityRoot) Log.write(" sr");
         Log.writeln("");
         if (((sanityRC == 0) && !sanityRoot) || ((rc == 0) && !root)) {
-          VM_Interface.sysFail("");
+          Assert.fail("");
         }
       }
       object.store(0, RC_SANITY_HEADER_OFFSET);
@@ -653,8 +650,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
   }
   public static void makeGrey(Address object) 
     throws UninterruptiblePragma, InlinePragma {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(getHiRCColor(object) != GREEN);
+    Assert._assert(getHiRCColor(object) != GREEN);
     changeRCLoColor(object, GREY);
   }
   private static void changeRCLoColor(Address object, int color)

@@ -4,9 +4,9 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -72,8 +72,7 @@ public class LocalDeque extends LocalQueue
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
 	head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
-    else if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
+    else Assert._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
   
   /**
@@ -86,8 +85,7 @@ public class LocalDeque extends LocalQueue
    */
   protected final void uncheckedHeadInsert(Address value) 
     throws InlinePragma {
-      if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
+      Assert._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
     head = head.add(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
@@ -105,8 +103,7 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void headOverflow(int arity) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(arity == queue.getArity());
+    Assert._assert(arity == queue.getArity());
     if (head.NE(Deque.HEAD_INITIAL_VALUE))
       closeAndInsertHead(arity);
 
@@ -135,8 +132,7 @@ public class LocalDeque extends LocalQueue
    * @return True if the consumer has eaten all of the entries
    */
   private final boolean tailStarved(int arity) {
-      if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(arity == queue.getArity());
+      Assert._assert(arity == queue.getArity());
     // entries in tail, so consume tail
     if (!bufferOffset(head).isZero()) {
       tailBufferEnd = head;

@@ -5,16 +5,17 @@
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Collection;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_BootRecord;
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Scheduler;
@@ -287,7 +288,7 @@ public class VM_CollectorThread extends VM_Thread {
    * Run method for collector thread (one per VM_Processor).  Enters
    * an infinite loop, waiting for collections to be requested,
    * performing those collections, and then waiting again.  Calls
-   * VM_Interface.collect to perform the collection, which will be
+   * Collection.collect to perform the collection, which will be
    * different for the different allocators/collectors that the RVM
    * can be configured to use.
    */
@@ -325,7 +326,7 @@ public class VM_CollectorThread extends VM_Thread {
 
       /* actually perform the GC... */
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
-      if (isActive) VM_Interface.getPlan().collect(); // gc
+      if (isActive) Plan.getInstance().collect(); // gc
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       gcBarrier.rendezvous(5200);
@@ -336,7 +337,7 @@ public class VM_CollectorThread extends VM_Thread {
       }
       if (gcOrdinal == 1 && Plan.isLastGCFull()) {
         boolean heapSizeChanged = false;
-        if (Options.variableSizeHeap && handshake.gcTrigger != VM_Interface.EXTERNAL_GC_TRIGGER) {
+        if (Options.variableSizeHeap && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
           // Don't consider changing the heap size if gc was forced by System.gc()
           heapSizeChanged = HeapGrowthManager.considerHeapSize();
         }
@@ -363,7 +364,7 @@ public class VM_CollectorThread extends VM_Thread {
         handshake.reset();
 
         /* schedule the FinalizerThread, if there is work to do & it is idle */
-        VM_Interface.scheduleFinalizerThread();
+        Collection.scheduleFinalizerThread();
       } 
       
       /* wait for other collector threads to arrive here */

@@ -4,15 +4,15 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.Options;
-import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -117,7 +117,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * instances is bound.  The space's VMResource and MemoryResource
    * are used to initialize the superclass.
    */
-  public MarkSweepLocal(MarkSweepSpace space, Plan plan) {
+  public MarkSweepLocal(MarkSweepSpace space) {
     super(space.getVMResource(), space.getMemoryResource());
     msSpace = space;
     utilization = new int[FRAG_PERCENTILES];

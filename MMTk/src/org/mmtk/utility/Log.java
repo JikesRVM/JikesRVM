@@ -7,9 +7,11 @@
 //$Id$
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Strings;
+import org.mmtk.vm.Barriers;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -107,7 +109,7 @@ public class Log implements Constants, Uninterruptible {
   /** constructor */
   public Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
-      VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
+      Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
                                      OVERFLOW_MESSAGE.charAt(i));
   }
   
@@ -144,28 +146,28 @@ public class Log implements Constants, Uninterruptible {
     char [] intBuffer = getIntBuffer();
     
     nextDigit = (int)(l % 10);
-    nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+    nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                               negative
                                               ? - nextDigit
                                               : nextDigit);
-    VM_Interface.setArrayNoBarrier(intBuffer, index--, nextChar);
+    Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
     
     while (l != 0) {
       nextDigit = (int)(l % 10);
-      nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+      nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                                 negative
                                                 ? - nextDigit
                                                 : nextDigit);
-      VM_Interface.setArrayNoBarrier(intBuffer, index--, nextChar);
+      Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
       l = l / 10;
     }
     
     if (negative)
-      VM_Interface.setArrayNoBarrier(intBuffer, index--, '-');
+      Barriers.setArrayNoBarrier(intBuffer, index--, '-');
     
     for (index++; index < TEMP_BUFFER_SIZE; index++)
-      add(VM_Interface.getArrayNoBarrier(intBuffer, index));
+      add(Barriers.getArrayNoBarrier(intBuffer, index));
   }
 
   /**
@@ -244,9 +246,9 @@ public class Log implements Constants, Uninterruptible {
    * the first character
    */
   public static void write(char [] c, int len) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(len <= c.length);
+    Assert._assert(len <= c.length);
     for (int i = 0; i < len; i++)
-      add(VM_Interface.getArrayNoBarrier(c, i));
+      add(Barriers.getArrayNoBarrier(c, i));
   }
 
   /**
@@ -257,7 +259,7 @@ public class Log implements Constants, Uninterruptible {
    */
   public static void write(byte [] b) {
     for (int i = 0; i < b.length; i++)
-      add((char)VM_Interface.getArrayNoBarrier(b, i));
+      add((char)Barriers.getArrayNoBarrier(b, i));
   }
 
   /**
@@ -650,7 +652,7 @@ public class Log implements Constants, Uninterruptible {
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
       nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
-      char nextChar = VM_Interface.getArrayNoBarrier(hexDigitCharacter,
+      char nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                                      nextDigit);
       add(nextChar);
     }
@@ -675,8 +677,8 @@ public class Log implements Constants, Uninterruptible {
   }
 
   private static Log getLog() {
-    if (VM_Interface.runningVM())
-      return VM_Interface.getPlan().getLog();
+    if (Assert.runningVM())
+      return Plan.getInstance().getLog();
     else
       return log;
   }
@@ -688,7 +690,7 @@ public class Log implements Constants, Uninterruptible {
    */
   private void addToBuffer(char c) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE)
-      VM_Interface.setArrayNoBarrier(buffer, bufferIndex++, c);
+      Barriers.setArrayNoBarrier(buffer, bufferIndex++, c);
     else
       overflow = true;
   }
@@ -700,11 +702,11 @@ public class Log implements Constants, Uninterruptible {
    */
   private void addToBuffer(String s) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE) {
-      bufferIndex += VM_Interface.copyStringToChars(s, buffer, bufferIndex,
+      bufferIndex += Strings.copyStringToChars(s, buffer, bufferIndex,
                                                     MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
         overflow = true;
-        VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
+        Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
                                        OVERFLOW_MESSAGE_FIRST_CHAR); 
         bufferIndex--;
       }
@@ -719,9 +721,9 @@ public class Log implements Constants, Uninterruptible {
     int totalMessageSize = overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE
       : bufferIndex;
     if (threadIdFlag)
-      VM_Interface.sysWriteThreadId(buffer, totalMessageSize);
+      Strings.writeThreadId(buffer, totalMessageSize);
     else
-      VM_Interface.sysWrite(buffer, totalMessageSize);
+      Strings.write(buffer, totalMessageSize);
     threadIdFlag = false;
     overflow = false;
     bufferIndex = 0;

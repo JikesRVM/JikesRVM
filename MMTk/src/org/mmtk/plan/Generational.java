@@ -15,12 +15,16 @@ import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Memory;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Barriers;
+import org.mmtk.vm.Collection;
+import org.mmtk.vm.Memory;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -109,7 +113,7 @@ public abstract class Generational extends StopTheWorldGC
   // Memory layout constants
   // Note: The write barrier depends on the nursery being the highest
   // memory region.
-  public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
+  public    static final long           AVAILABLE = Memory.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
   protected static final Extent MATURE_SS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 3.3)));
   protected static final Extent   NURSERY_SIZE = MATURE_SS_SIZE;
   protected static final Extent       LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE / 3.3 * 0.3)));
@@ -218,8 +222,7 @@ public abstract class Generational extends StopTheWorldGC
     case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
     case      LOS_SPACE: return los.alloc(bytes, align, offset);
     default:
-      if (VM_Interface.VerifyAssertions) 
-	VM_Interface.sysFail("No such allocator");
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
       return Address.zero();
     }
   }
@@ -242,8 +245,7 @@ public abstract class Generational extends StopTheWorldGC
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(object); return;
     case      LOS_SPACE: losSpace.initializeHeader(object); return;
     default:
-      if (VM_Interface.VerifyAssertions)
-	VM_Interface.sysFail("No such allocator");
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
     }
   }
 
@@ -260,7 +262,7 @@ public abstract class Generational extends StopTheWorldGC
   public final Address allocCopy(Address original, int bytes,
                                     int align, int offset) 
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
+    Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     if (GATHER_MARK_CONS_STATS) {
       if (original.GE(NURSERY_START)) nurseryMark.inc(bytes);
     }
@@ -334,7 +336,7 @@ public abstract class Generational extends StopTheWorldGC
         required = required<<1;  // must account for copy reserve
       int nurseryYield = ((int)((float) nurseryMR.committedPages() * SURVIVAL_ESTIMATE))<<1;
       fullHeapGC = mustCollect || (nurseryYield < required) || fullHeapGC;
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
+      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
@@ -504,7 +506,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   public static final Address traceObject(Address obj) {
     if (obj.isZero()) return obj;
-    Address addr = VM_Interface.refToAddress(obj);
+    Address addr = ObjectModel.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     if (space == NURSERY_SPACE)
       return CopySpace.traceObject(obj);
@@ -551,7 +553,7 @@ public abstract class Generational extends StopTheWorldGC
     throws InlinePragma {
     Address obj = location.loadAddress();
     if (!obj.isZero()) {
-      Address addr = VM_Interface.refToAddress(obj);
+      Address addr = ObjectModel.refToAddress(obj);
       byte space = VMResource.getSpace(addr);
       if (space == NURSERY_SPACE) 
         location.store(CopySpace.forwardObject(obj));
@@ -580,11 +582,10 @@ public abstract class Generational extends StopTheWorldGC
    */
   public static final Address getForwardedReference(Address object) {
     if (!object.isZero()) {
-      Address addr = VM_Interface.refToAddress(object);
+      Address addr = ObjectModel.refToAddress(object);
       byte space = VMResource.getSpace(addr);
       if (space == NURSERY_SPACE) {
-        if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(CopySpace.isForwarded(object));
+        Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       } else if (fullHeapGC)
         return Plan.getForwardedMatureReference(object, space);
@@ -622,7 +623,7 @@ public abstract class Generational extends StopTheWorldGC
       if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       remset.insert(slot);
     }
-    VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**

@@ -7,7 +7,7 @@ package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 
@@ -85,8 +85,7 @@ public class BooleanCounter extends Counter
    * Set the boolean to true for this phase, increment the total.
    */
   public void set() {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!state[Stats.phase]);
+    Assert._assert(!state[Stats.phase]);
     state[Stats.phase] = true;
     total++;
   }
@@ -101,7 +100,7 @@ public class BooleanCounter extends Counter
    */
   protected void start() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions)  VM_Interface._assert(!running);
+    Assert._assert(!running);
     running = true;
   }
 
@@ -110,7 +109,7 @@ public class BooleanCounter extends Counter
    */
   protected void stop() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(running);
+    Assert._assert(running);
     running = false;
   }
 
@@ -130,8 +129,8 @@ public class BooleanCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    if (VM_Interface.VerifyAssertions && mergePhases()) 
-      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (Assert.VERIFY_ASSERTIONS && mergePhases()) 
+      Assert._assert((phase | 1) == (phase + 1));
     if (mergePhases()) 
       printValue((state[phase] || state[phase+1]) ? 1 : 0);
     else

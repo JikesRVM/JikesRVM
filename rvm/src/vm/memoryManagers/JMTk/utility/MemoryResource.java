@@ -5,12 +5,11 @@
  */
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.Plan;
-import org.mmtk.plan.BasePlan;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 
@@ -126,7 +125,7 @@ public final class MemoryResource implements Constants, Uninterruptible {
     reserved = committed + pages;
     if (reserved > pageBudget) {
       unlock();   // We cannot hold the lock across a GC point!
-      if (VM_Interface.getPlan().poll(false, this)) {
+      if (Plan.getInstance().poll(false, this)) {
         return false;
       }
       lock();
@@ -248,7 +247,7 @@ public final class MemoryResource implements Constants, Uninterruptible {
    */
   public static final void showUsage(int mode) {
     Log.write("used = ");
-    BasePlan.writePages(getPagesUsed(), mode);
+    Plan.writePages(getPagesUsed(), mode);
     boolean first = true;
     for (int i=0; i<allMRCount; i++) {
       MemoryResource mr = allMR[i];
@@ -256,7 +255,7 @@ public final class MemoryResource implements Constants, Uninterruptible {
       Log.write(first ? " = " : " + ");
       first = false;
       Log.write(mr.name); Log.write(" ");
-      BasePlan.writePages(mr.reservedPages(), mode);
+      Plan.writePages(mr.reservedPages(), mode);
     }
     Log.writeln();
   }

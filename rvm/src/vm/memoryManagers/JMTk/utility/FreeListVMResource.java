@@ -6,13 +6,13 @@
 
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -63,16 +63,14 @@ public final class FreeListVMResource extends VMResource implements Constants, U
   private final void reserveMetaData(int metaDataPagesPerRegion) {
     highWaterMark = 0;
     if (metaDataPagesPerRegion > 0) {
-      if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
+      Assert._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
       Extent size = end.diff(start).toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toExtent();
       Address cursor = start.add(size);
       while (cursor.GT(start)) {
         cursor = cursor.sub(EmbeddedMetaData.BYTES_IN_REGION);
         int unit = cursor.diff(start).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
         int tmp = freeList.alloc(metaDataPagesPerRegion, unit);
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(tmp == unit);
+        Assert._assert(tmp == unit);
       }
     }
   }
@@ -90,7 +88,7 @@ public final class FreeListVMResource extends VMResource implements Constants, U
   static int totalmeta = 0;
   public final Address acquire(int pages, MemoryResource mr,
                                   boolean chargeMR) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(mr != null);
+    Assert._assert(mr != null);
     if (chargeMR && !mr.acquire(pages))
       return Address.zero();
     lock();
@@ -108,7 +106,7 @@ public final class FreeListVMResource extends VMResource implements Constants, U
       unlock();
       if (chargeMR)
         mr.release(pages);
-      VM_Interface.getPlan().poll(true, mr);
+      Plan.getInstance().poll(true, mr);
       return Address.zero();
     }
     pagetotal += pages;
@@ -120,7 +118,7 @@ public final class FreeListVMResource extends VMResource implements Constants, U
     }
 
   public Address acquire(int request) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    Assert._assert(false);
     return Address.zero();
   }
 
@@ -146,7 +144,7 @@ public final class FreeListVMResource extends VMResource implements Constants, U
     pagetotal -= freedPages;
     if (chargeMR)
       mr.release(freedPages);
-    if (VM_Interface.GCSPY) {
+    if (Plan.WITH_GCSPY) {
       Extent bytes =  Conversions.pagesToBytes(freedPages);
       Plan.releaseVMResource(addr, bytes);
     }

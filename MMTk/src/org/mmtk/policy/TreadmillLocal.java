@@ -7,7 +7,7 @@ package org.mmtk.policy;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.heap.VMResource;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.mmtk.utility.gcspy.TreadmillDriver;
@@ -97,7 +97,7 @@ public final class TreadmillLocal extends LargeObjectAllocator
   public final void prepare() {
 //     if (PARANOID)
 //       sanity();
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(treadmill.toSpaceEmpty());
+    Assert._assert(treadmill.toSpaceEmpty());
   }
 
   /**
@@ -122,7 +122,7 @@ public final class TreadmillLocal extends LargeObjectAllocator
       free(cell);
     }
     treadmill.flip();
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(treadmill.toSpaceEmpty());
+    Assert._assert(treadmill.toSpaceEmpty());
   }
 
 

@@ -5,7 +5,7 @@
 //$Id$
 package org.mmtk.utility.scan;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

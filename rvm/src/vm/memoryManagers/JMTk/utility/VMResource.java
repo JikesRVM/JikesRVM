@@ -6,12 +6,14 @@
 
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.BasePlan;
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.*;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Barriers;
+import org.mmtk.vm.Memory;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -57,12 +59,12 @@ public abstract class VMResource implements Constants, Uninterruptible {
   }
 
   public static boolean refIsMovable (Address obj) {
-    Address addr = VM_Interface.refToAddress(obj);
+    Address addr = ObjectModel.refToAddress(obj);
     return (getPageStatus(addr) & MOVABLE) == MOVABLE;
   }
 
   public static boolean refInVM(Address ref) throws UninterruptiblePragma {
-    return addrInVM(VM_Interface.refToAddress(ref));
+    return addrInVM(ObjectModel.refToAddress(ref));
   }
 
   public static boolean addrInVM(Address addr) throws UninterruptiblePragma {
@@ -70,7 +72,7 @@ public abstract class VMResource implements Constants, Uninterruptible {
   }
 
   public static boolean refIsImmortal(Address ref) throws UninterruptiblePragma {
-    return addrIsImmortal(VM_Interface.refToAddress(ref));
+    return addrIsImmortal(ObjectModel.refToAddress(ref));
   }
 
   public static boolean addrIsImmortal(Address addr) throws UninterruptiblePragma {
@@ -106,7 +108,7 @@ public abstract class VMResource implements Constants, Uninterruptible {
 
   public static void boot() throws InterruptiblePragma {
     // resourceTable = new VMResource[NUM_PAGES];
-    resourceTable = (VMResource []) VM_Interface.cloneArray(resources,Plan.IMMORTAL_SPACE,
+    resourceTable = (VMResource []) ObjectModel.cloneArray(resources,Plan.IMMORTAL_SPACE,
                                                             NUM_PAGES);
     for (int i=0; i<resources.length; i++) {
       VMResource vm = resources[i];
@@ -116,19 +118,19 @@ public abstract class VMResource implements Constants, Uninterruptible {
         if (resourceTable[p] != null) {
           Log.write("Conflicting VMResource: "); Log.write(vm.name);
           Log.write(" and "); Log.writeln(resourceTable[p].name);
-          VM_Interface.sysFail("Conflicting VMResource");
+          Assert.fail("Conflicting VMResource");
         }
         resourceTable[p] = vm;
       }
     }
-    Extent bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toWord().toExtent();
-    Plan.bootVM.acquireHelp(BasePlan.BOOT_START, Conversions.bytesToPagesUp(bootSize));
-    LazyMmapper.boot(BasePlan.BOOT_START, bootSize);
+    Extent bootSize = Memory.bootImageEnd().diff(Memory.bootImageStart()).toWord().toExtent();
+    Plan.bootVM.acquireHelp(Plan.BOOT_START, Conversions.bytesToPagesUp(bootSize));
+    LazyMmapper.boot(Plan.BOOT_START, bootSize);
   }
 
   public static VMResource resourceForPage(Address addr) {
     if (resourceTable == null)
-      VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
+      Assert.fail("resourceForBlock called when resourceTable is null");
     int which = Conversions.addressToPagesDown(addr);
 //-#if RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_64_ADDR
     if (which >= resourceTable.length)
@@ -144,12 +146,12 @@ public abstract class VMResource implements Constants, Uninterruptible {
   }
 
   final public static byte getSpace(Address addr) throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) {
+    if (Assert.VERIFY_ASSERTIONS) {
         if (spaceTable == null)
-          VM_Interface.sysFail("getSpace called when spaceTable is null");
+          Assert.fail("getSpace called when spaceTable is null");
 	return spaceTable[Conversions.addressToPagesDown(addr)];
     }
-    return VM_Interface.getArrayNoBarrier(spaceTable, 
+    return Barriers.getArrayNoBarrier(spaceTable, 
 				    Conversions.addressToPagesDown(addr));
   }
 
@@ -161,7 +163,7 @@ public abstract class VMResource implements Constants, Uninterruptible {
    * Constructor
    */
   VMResource(byte space_, String vmName, Address vmStart, Extent bytes, byte status_) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(vmStart.EQ(Conversions.roundDownVM(vmStart)));
+    Assert._assert(vmStart.EQ(Conversions.roundDownVM(vmStart)));
     space = space_;
     start = vmStart;
     pages = Conversions.bytesToPages(bytes);
@@ -170,13 +172,13 @@ public abstract class VMResource implements Constants, Uninterruptible {
     index = count++;
     resources[index] = this;
     status = status_;
-    VM_Interface.setHeapRange(index, start, end);
-    if (end.GT(VM_Interface.MAXIMUM_MAPPABLE)) {
+    Memory.setHeapRange(index, start, end);
+    if (end.GT(Memory.MAXIMUM_MAPPABLE)) {
       Log.write("\nError creating VMResrouce "); Log.write(vmName);
       Log.write(" with range "); Log.write(start);
       Log.write(" to "); Log.writeln(end);
-      Log.write("Exceeds the maximum mappable address for this OS of "); Log.writeln(VM_Interface.MAXIMUM_MAPPABLE);
-      VM_Interface._assert(false);
+      Log.write("Exceeds the maximum mappable address for this OS of "); Log.writeln(Memory.MAXIMUM_MAPPABLE);
+      Assert._assert(false);
     }
   }
 
@@ -191,16 +193,15 @@ public abstract class VMResource implements Constants, Uninterruptible {
   public abstract Address acquire(int request, MemoryResource mr);
   
   protected void acquireHelp (Address start, int pageRequest) {
-    if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.acquireHelp called before VM is running");
+    if (!Assert.runningVM()) Assert.fail("VMResource.acquireHelp called before VM is running");
     if (spaceTable == null) 
-        VM_Interface.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
+        Assert.fail("VMResource.acquireHelp called when spaceTable is still empty");
     int pageStart = Conversions.addressToPages(start);
     // Log.write("Acquiring pages "); Log.write(pageStart);
     // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
     // Log.write(" for space "); Log.writeln(space);
     for (int i=0; i<pageRequest; i++) {
-      if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE 
+      Assert._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE 
                                // Suspect - FreeListVM
                                || spaceTable[pageStart+i] == space); 
       spaceTable[pageStart+i] = space;
@@ -208,14 +209,13 @@ public abstract class VMResource implements Constants, Uninterruptible {
   }
 
   protected void releaseHelp (Address start, int pageRequest) {
-    if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.releaseHelp called before VM is running");
+    if (!Assert.runningVM()) Assert.fail("VMResource.releaseHelp called before VM is running");
     int pageStart = Conversions.addressToPages(start);
     // Log.write("Releasing pages "); Log.write(pageStart);
     // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
     // Log.write(" for space "); Log.writeln(spac!e);
     for (int i=0; i<pageRequest; i++) {
-      if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(spaceTable[pageStart+i] == space ||
+      Assert._assert(spaceTable[pageStart+i] == space ||
                      spaceTable[pageStart+i] == Plan.UNUSED_SPACE); // Suspect - FreeListVM
       spaceTable[pageStart+i] = Plan.UNUSED_SPACE;
     }

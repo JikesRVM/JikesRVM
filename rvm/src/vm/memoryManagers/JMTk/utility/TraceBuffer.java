@@ -6,8 +6,8 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.utility.Log;
 import org.mmtk.utility.TracingConstants;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -167,7 +167,7 @@ public class TraceBuffer extends LocalQueue
 	    Log.write(val);
 	    traceState = TRACE_FIELD_TARGET;
 	  } else
-	    VM_Interface.sysFail("Cannot understand directive!\n");
+	    Assert.fail("Cannot understand directive!\n");
 	  if (traceState.EQ(TRACE_NEW_RECORD)) {
 	    entriesNotFlushed++;
 	    Log.writeln();

@@ -12,7 +12,8 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.heap.MonotoneVMResource;
 import org.mmtk.utility.heap.VMResource;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -47,12 +48,13 @@ import org.vmmagic.pragma.*;
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
  *
+ * $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends Generational implements Uninterruptible {
-  public final static String Id = "$Id$"; 
+public class GenCopy extends Generational implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -100,7 +102,7 @@ public class Plan extends Generational implements Uninterruptible {
   /**
    * Constructor
    */
-  public Plan() {
+  public GenCopy() {
     super();
     mature = new BumpPointer(mature0VM);
   }
@@ -226,7 +228,7 @@ public class Plan extends Generational implements Uninterruptible {
   protected static final void forwardMatureObjectLocation(Address location,
                                                           Address object,
                                                           byte space) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
+    Assert._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE))
       location.store(CopySpace.forwardObject(object));
@@ -240,13 +242,12 @@ public class Plan extends Generational implements Uninterruptible {
    * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
-  static final Address getForwardedMatureReference(Address object,
+  public static final Address getForwardedMatureReference(Address object,
                                                       byte space) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
+    Assert._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE)) {
-      if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(CopySpace.isForwarded(object));
+      Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
     } else {
       return object;
@@ -266,7 +267,7 @@ public class Plan extends Generational implements Uninterruptible {
   protected static final Address traceMatureObject(byte space,
                                                       Address obj,
                                                       Address addr) {
-    if (VM_Interface.VerifyAssertions && space != LOW_MATURE_SPACE
+    if (Assert.VERIFY_ASSERTIONS && space != LOW_MATURE_SPACE
         && space != HIGH_MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
     if ((!IGNORE_REMSET || fullHeapGC) && ((hi && addr.LT(MATURE_HI_START)) ||
@@ -299,7 +300,7 @@ public class Plan extends Generational implements Uninterruptible {
    * @return True if the object resides in a copying space.
    */
   public static final boolean isCopyObject(Address base) {
-    Address addr = VM_Interface.refToAddress(base);
+    Address addr = ObjectModel.refToAddress(base);
     return (addr.GE(MATURE_START) && addr.LE(HEAP_END));
   }
 
@@ -311,7 +312,7 @@ public class Plan extends Generational implements Uninterruptible {
    */
   public static final boolean isLive(Address obj) {
     if (obj.isZero()) return false;
-    Address addr = VM_Interface.refToAddress(obj);
+    Address addr = ObjectModel.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case NURSERY_SPACE:       return CopySpace.isLive(obj);
@@ -322,8 +323,7 @@ public class Plan extends Generational implements Uninterruptible {
     case BOOT_SPACE:          return true;
     case META_SPACE:          return true;
     default:
-      if (VM_Interface.VerifyAssertions) 
-        spaceFailure(obj, space, "Plan.isLive()");
+      if (Assert.VERIFY_ASSERTIONS) spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
   }
@@ -331,7 +331,7 @@ public class Plan extends Generational implements Uninterruptible {
   public static boolean willNotMove (Address obj) {
    boolean movable = VMResource.refIsMovable(obj);
    if (!movable) return true;
-   Address addr = VM_Interface.refToAddress(obj);
+   Address addr = ObjectModel.refToAddress(obj);
    return (hi ? mature1VM : mature0VM).inRange(addr);
   }
 

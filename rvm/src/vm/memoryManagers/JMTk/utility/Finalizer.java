@@ -5,9 +5,10 @@
 
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Plan;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -84,8 +85,7 @@ public class Finalizer implements Uninterruptible {
         rightCursor--;
       if (leftCursor >= rightCursor) // can be greater on first iteration if totally empty
         break;
-      if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
+      Assert._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
       candidate.set(leftCursor, candidate.get(rightCursor));
       candidate.set(rightCursor, Address.zero());
     }
@@ -142,7 +142,7 @@ public class Finalizer implements Uninterruptible {
     while (cursor < candidateEnd) {
       Address cand = candidate.get(cursor);
       candidate.set(cursor, Address.zero());
-      addLive(VM_Interface.addressAsObject(cand));
+      addLive(ObjectModel.addressAsObject(cand));
       cursor++;
     }
     
@@ -169,7 +169,7 @@ public class Finalizer implements Uninterruptible {
       boolean isFinalizable = Plan.isFinalizable(cand);
       if (isFinalizable) { // object died, enqueue for finalization
         candidate.set(cursor, Address.zero());
-        addLive(VM_Interface.addressAsObject(Plan.retainFinalizable(cand)));
+        addLive(ObjectModel.addressAsObject(Plan.retainFinalizable(cand)));
         newFinalizeCount++;
       } else {             // live beforehand but possibly moved
         candidate.set(cursor, Plan.getForwardedReference(cand));

@@ -6,7 +6,6 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.vm.Lock;
 

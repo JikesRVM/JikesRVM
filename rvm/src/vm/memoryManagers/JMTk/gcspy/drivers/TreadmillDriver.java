@@ -12,12 +12,12 @@ package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.gcspy.AbstractDriver;
 import org.mmtk.utility.heap.FreeListVMResource;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 
 //-#if RVM_WITH_GCSPY
-import org.mmtk.plan.Plan;
 import org.mmtk.policy.TreadmillLocal;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Treadmill;
@@ -29,7 +29,8 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
 import org.mmtk.vm.gcspy.StreamConstants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 
 //-#endif
 
@@ -270,13 +271,11 @@ public class TreadmillDriver extends AbstractDriver
     totalObjects++;
     tiles[index].objects++;
 
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(blockSize <= usedSpaceStream.getMaxValue());
+    Assert._assert(blockSize <= usedSpaceStream.getMaxValue());
       
     totalUsedSpace += length;
     int remainder = subspace.spaceRemaining(addr);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(remainder <= blockSize);
+    Assert._assert(remainder <= blockSize);
     if (length <= remainder) {  // fits in this tile
       tiles[index].usedSpace += length;
       //checkspace(index, length, "traceObject fits in first tile"); 

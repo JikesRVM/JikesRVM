@@ -7,9 +7,11 @@
 package org.mmtk.utility.heap;
 
 import org.mmtk.utility.*;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Memory;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -46,13 +48,13 @@ public final class LazyMmapper implements Constants, Uninterruptible {
       lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
         lock.check(101);
-        int errno = VM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
+        int errno = Memory.mmap(mmapStart, MMAP_CHUNK_SIZE);
         lock.check(102);
         if (errno != 0) {
           lock.release();
           Log.write("ensureMapped failed with errno "); Log.write(errno);
           Log.write(" on address "); Log.writeln(mmapStart);
-          VM_Interface._assert(false);
+          Assert._assert(false);
         }
         else {
           if (verbose) {
@@ -64,10 +66,10 @@ public final class LazyMmapper implements Constants, Uninterruptible {
       }
       if (mapped[chunk] == PROTECTED) {
         lock.check(201);
-        if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+        if (!Memory.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
           lock.check(202);
           lock.release();
-          VM_Interface.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
+          Assert.fail("LazyMmapper.ensureMapped (unprotect) failed");
         }
         else {
           if (verbose) {
@@ -92,9 +94,9 @@ public final class LazyMmapper implements Constants, Uninterruptible {
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
         Address mmapStart = Conversions.mmapChunksToAddress(chunk);
-        if (!VM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+        if (!Memory.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
           lock.release();
-          VM_Interface.sysFail("LazyMmapper.mprotect failed");
+          Assert.fail("LazyMmapper.mprotect failed");
         }
         else {
           if (verbose) {
@@ -105,7 +107,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
         mapped[chunk] = PROTECTED;
       }
       else {
-        if (VM_Interface.VerifyAssertions) VM_Interface._assert(mapped[chunk] == PROTECTED);
+        Assert._assert(mapped[chunk] == PROTECTED);
       }
     }
     lock.release();
@@ -117,7 +119,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
   }
 
   public static boolean refIsMapped (Address ref) throws UninterruptiblePragma {
-    return addrIsMapped(VM_Interface.refToAddress(ref));
+    return addrIsMapped(ObjectModel.refToAddress(ref));
   }
 
   /****************************************************************************

@@ -11,12 +11,12 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 //-#if RVM_WITH_GCSPY
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.heap.VMResource;
-import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.gcspy.Util;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 
 import com.ibm.JikesRVM.VM_Memory;
 
@@ -244,9 +244,7 @@ public class ObjectMap
     debug(2, "-", end);
     debugln(2, ")");
 
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(page <= lastPage, "ObjectMap.addOrRelease: start page > last page");
-    }
+    Assert._assert(page <= lastPage, "ObjectMap.addOrRelease: start page > last page");
                   
     if (add) { // adding chunks
       int slot = addressToSlot(start);
@@ -266,10 +264,8 @@ public class ObjectMap
       debug(2, ", end slot ", addressToSlot(end));
       debug(2, ", end word ", addressToWord(end));
       debugln(2, ", end bit ", addressToBit(end));
-      if (VM_Interface.VerifyAssertions) {
-        VM_Interface._assert(addressToWord(end) == 0, "addressToWord not zero"); // Must release complete bitmaps
-        VM_Interface._assert(addressToBit(end)  == 0, "addressToBit not zero");
-      }
+      Assert._assert(addressToWord(end) == 0, "addressToWord not zero"); // Must release complete bitmaps
+      Assert._assert(addressToBit(end)  == 0, "addressToBit not zero");
 
       int slot = addressToSlot(start);
       while (page <= lastPage  && page < PAGEMAPS_IN_OBJECTMAP) {
@@ -306,8 +302,7 @@ public class ObjectMap
    * @param s the slot to zero
    *
   private final void zeroSlot(int slot) { 
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!objectMap_.isZero(), "objectMap_ is null!");
+    Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
     Address addr = getSlotAddress(slot);
     if (VM_Interface.VerifyAssertions) {
       Address bitmap = VM _Magic.getMemoryAddress(addr);
@@ -326,14 +321,13 @@ public class ObjectMap
    * @param slot the slot to check
    */
   private final void freeBitmap(int page, int slot) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!objectMap_.isZero(), "objectMap_ is null!");
+    Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
     
     Address addr = getSlotAddress(page, slot);
     Address bitmap = addr.loadAddress();
     if (!bitmap.isZero()) {
       Util.free(bitmap);
-      addr.storeAddress(Address.zero());
+      addr.store(Address.zero());
       memoryConsumed -= BITMAP_SIZE;
     }
   }
@@ -383,11 +377,9 @@ public class ObjectMap
     
     Address slotAddr = getSlotAddress(page, slot);
     Address slotValue = slotAddr.loadAddress();
-    if (VM_Interface.VerifyAssertions) {
-      if (newpage) {
-        if (!slotValue.isZero())
-        VM_Interface._assert(slotValue.isZero(), "checkSlot: got a new pagemap but didn't need a new bitmap!");
-      }
+    if (Assert.VERIFY_ASSERTIONS) {
+      if (newpage)
+	Assert._assert(slotValue.isZero(), "checkSlot: got a new pagemap but didn't need a new bitmap!");
     }
     if (slotValue.isZero()) {
       Address bm = allocBitmap();
@@ -395,7 +387,7 @@ public class ObjectMap
       debug(2, ", slot ", slot);
       debug(2, " (address ", slotAddr);
       debugln(2, ") at  ", bm);
-      slotAddr.storeAddress(bm);
+      slotAddr.store(bm);
       return true;
     }
     return false;
@@ -410,8 +402,7 @@ public class ObjectMap
    */
   private final boolean checkPage(int page) //throws InlinePragma 
   {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!objectMap_.isZero(), "objectMap_ is null!");
+    Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
     
     Address pageAddr = getPageAddress(page);
     Address pagemap = pageAddr.loadAddress();
@@ -420,7 +411,7 @@ public class ObjectMap
       debug(2, "allocating new pagemap for page ", page);
       debug(2, " (address ", pageAddr);
       debugln(2, ") at ", pagemap);
-      pageAddr.storeAddress(pagemap);
+      pageAddr.store(pagemap);
       return true;
     }
     return false;
@@ -438,8 +429,7 @@ public class ObjectMap
    */
   public final void alloc(Address addr) throws InlinePragma {
     // Check that allocation is allowed
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!allocationTrap, "Unexpected allocation");
+    Assert._assert(!allocationTrap, "Unexpected allocation");
     
     // Get the slot, word and bit
     int page = addressToPage(addr);
@@ -468,8 +458,7 @@ public class ObjectMap
     int word = addressToWord(addr);
     int bit = addressToBit(addr);
 
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(addr == bitmapToAddress(page, slot, word, bit));
+    Assert._assert(addr == bitmapToAddress(page, slot, word, bit));
     
     /*
     // Check that this slot is in use
@@ -582,17 +571,17 @@ public class ObjectMap
    */
   private final int getBitmapInt(int page, int slot, int word) //throws InlinePragma 
   {
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
-      VM_Interface._assert(!emptyPage(page), "ObjectMap page not in use");
-      VM_Interface._assert(slot < BITMAPS_IN_PAGEMAP);
-      VM_Interface._assert(!emptyBitmap(page, slot), "ObjectMap slot not in use");
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(page < PAGEMAPS_IN_OBJECTMAP);
+      Assert._assert(!emptyPage(page), "ObjectMap page not in use");
+      Assert._assert(slot < BITMAPS_IN_PAGEMAP);
+      Assert._assert(!emptyBitmap(page, slot), "ObjectMap slot not in use");
     }
     Address bitmap = getBitmap(page, slot);
 
-    if (VM_Interface.VerifyAssertions) { 
-      VM_Interface._assert(!bitmap.isZero(), "failed to get bitmap from getBitmap");
-      VM_Interface._assert(word < INTS_IN_BITMAP);
+    if (Assert.VERIFY_ASSERTIONS) { 
+      Assert._assert(!bitmap.isZero(), "failed to get bitmap from getBitmap");
+      Assert._assert(word < INTS_IN_BITMAP);
     }
     int offset = word << LOG_BYTES_IN_INT;
     Address addr = bitmap.add(offset);
@@ -609,19 +598,18 @@ public class ObjectMap
    */
   private final void setBitmapInt(int page, int slot, int word, int value) //throws InlinePragma 
   {
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
-      VM_Interface._assert(!emptyPage(page), "ObjectMap page not in use");
-      VM_Interface._assert(slot < BITMAPS_IN_PAGEMAP);
-      VM_Interface._assert(!emptyBitmap(page, slot), "ObjectMap slot not in use");
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(page < PAGEMAPS_IN_OBJECTMAP);
+      Assert._assert(!emptyPage(page), "ObjectMap page not in use");
+      Assert._assert(slot < BITMAPS_IN_PAGEMAP);
+      Assert._assert(!emptyBitmap(page, slot), "ObjectMap slot not in use");
     }
     Address bitmap = getBitmap(page, slot);
          
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(word < INTS_IN_BITMAP);        
+    Assert._assert(word < INTS_IN_BITMAP);        
     int offset = word << LOG_BYTES_IN_INT;
     Address addr = bitmap.add(offset);
-    addr.storeInt(value);
+    addr.store(value);
   }
   
   /**
@@ -634,13 +622,13 @@ public class ObjectMap
    */
   private final boolean getBit(int page, int slot, int word, int bit) //throws InlinePragma 
   {
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
-      VM_Interface._assert(slot < BITMAPS_IN_PAGEMAP);
-      VM_Interface._assert(word < INTS_IN_BITMAP);
-      VM_Interface._assert(bit < BITS_IN_INT);
-      VM_Interface._assert(!getPagemap(page).isZero(), "setBit: bad page");
-      VM_Interface._assert(!getBitmap(page, slot).isZero(), "setBit: bad slot");
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(page < PAGEMAPS_IN_OBJECTMAP);
+      Assert._assert(slot < BITMAPS_IN_PAGEMAP);
+      Assert._assert(word < INTS_IN_BITMAP);
+      Assert._assert(bit < BITS_IN_INT);
+      Assert._assert(!getPagemap(page).isZero(), "setBit: bad page");
+      Assert._assert(!getBitmap(page, slot).isZero(), "setBit: bad slot");
     }
 
     // Get the value of the word
@@ -660,13 +648,13 @@ public class ObjectMap
    */
   private final void setBit(int page, int slot, int word, int bit, boolean set) //throws InlinePragma 
   {
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
-      VM_Interface._assert(slot < BITMAPS_IN_PAGEMAP);
-      VM_Interface._assert(word < INTS_IN_BITMAP);
-      VM_Interface._assert(bit < BITS_IN_INT);
-      VM_Interface._assert(!getPagemap(page).isZero(), "setBit: bad page");
-      VM_Interface._assert(!getBitmap(page, slot).isZero(), "setBit: bad slot");
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(page < PAGEMAPS_IN_OBJECTMAP);
+      Assert._assert(slot < BITMAPS_IN_PAGEMAP);
+      Assert._assert(word < INTS_IN_BITMAP);
+      Assert._assert(bit < BITS_IN_INT);
+      Assert._assert(!getPagemap(page).isZero(), "setBit: bad page");
+      Assert._assert(!getBitmap(page, slot).isZero(), "setBit: bad slot");
     }
 
     // Get the old value of the word
@@ -674,7 +662,7 @@ public class ObjectMap
     int mask = 1 << bit;
 
     // Check that it isn't / is already set
-    if (VM_Interface.VerifyAssertions) 
+    if (Assert.VERIFY_ASSERTIONS) 
       if (set) {
         if((wordValue & mask) != 0) {
           debug(0, "Bit already set for ", bitmapToAddress(page, slot, word, bit));
@@ -745,8 +733,7 @@ public class ObjectMap
       iterWord_ = addressToWord(start);
       iterBit_ = addressToBit(start);
       
-      if (VM_Interface.VerifyAssertions)
-        VM_Interface._assert(start == bitmapToAddress(iterPage_, iterSlot_, iterWord_, iterBit_));
+      Assert._assert(start == bitmapToAddress(iterPage_, iterSlot_, iterWord_, iterBit_));
       
       iterEnd_ = end;
       iterPageEnd_ = addressToPage(end);
@@ -872,12 +859,12 @@ public class ObjectMap
    */
   private static final int addressToPage(Address addr) //throws InlinePragma 
   {
-    if (VM_Interface.VerifyAssertions) {    
+    if (Assert.VERIFY_ASSERTIONS) {    
       boolean inHeap = VMResource.refInVM(addr);
       if (!inHeap) 
         debugln(0, "Bad address: ", addr);
-      VM_Interface._assert(inHeap, "Address is outside the heap");
-      VM_Interface._assert(((addr.toWord().rshl(PAGE_OFFSET).toInt()) < PAGEMAPS_IN_OBJECTMAP));
+      Assert._assert(inHeap, "Address is outside the heap");
+      Assert._assert(((addr.toWord().rshl(PAGE_OFFSET).toInt()) < PAGEMAPS_IN_OBJECTMAP));
     }
       
     return addr.toWord().rshl(PAGE_OFFSET).toInt();
@@ -892,11 +879,11 @@ public class ObjectMap
    */
   private static final int addressToSlot(Address addr) //throws InlinePragma 
   {
-    if (VM_Interface.VerifyAssertions) {    
+    if (Assert.VERIFY_ASSERTIONS) {    
       boolean inHeap = VMResource.refInVM(addr);
       if (!inHeap) 
         debugln(0, "Bad address: ", addr);
-      VM_Interface._assert(inHeap, "Address is outside the heap");
+      Assert._assert(inHeap, "Address is outside the heap");
     }   
     return (addr.toWord().rshl(SLOT_OFFSET).toInt() & (BITMAPS_IN_PAGEMAP - 1));
   }
@@ -939,11 +926,11 @@ public class ObjectMap
     
     Address addr = pageAddr.or(chunkAddr).or(wordAddr).or(wordAddr).or(bitAddr).toAddress();
 
-    if (VM_Interface.VerifyAssertions) {
-      VM_Interface._assert(page == addressToPage(addr));
-      VM_Interface._assert(slot == addressToSlot(addr));
-      VM_Interface._assert(word == addressToWord(addr));
-      VM_Interface._assert(bit == addressToBit(addr));
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(page == addressToPage(addr));
+      Assert._assert(slot == addressToSlot(addr));
+      Assert._assert(word == addressToWord(addr));
+      Assert._assert(bit == addressToBit(addr));
     }
 
     return addr;
@@ -995,7 +982,7 @@ public class ObjectMap
     testTranslation(HIGH_SS_START);
     testTranslation(HIGH_SS_START.add(252));
     testTranslation(HIGH_SS_START.sub(744));
-    VM_Interface.sysFail("bye from testTranslation"); 
+    Assert.fail("bye from testTranslation"); 
   }
   
   public  void testTranslation(Address testAddr) {

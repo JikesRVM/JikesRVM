@@ -5,6 +5,7 @@
  */
 
 package org.mmtk.policy;
+import org.mmtk.vm.Assert;
 
 import org.mmtk.utility.heap.MemoryResource;
 import org.mmtk.utility.heap.VMResource;
@@ -15,7 +16,6 @@ import org.vmmagic.unboxed.*;
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-import org.mmtk.vm.VM_Interface;
 abstract public class BasePolicy { // implements HeaderConstants {
   
   public final static String Id = "$Id$"; 
@@ -28,17 +28,17 @@ abstract public class BasePolicy { // implements HeaderConstants {
    * Maybe the whole class is unnecessary.
    */
   public static void prepare(VMResource vm, MemoryResource mr) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    Assert._assert(false);
   }
   public static void release(VMResource vm, MemoryResource mr) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false); 
+    Assert._assert(false); 
   }
   public static Address traceObject(Address object) { 
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false); 
+    Assert._assert(false); 
     return Address.zero(); 
   }
   public static    boolean isLive(Address obj) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false); 
+    Assert._assert(false); 
     return false; 
   }
 }

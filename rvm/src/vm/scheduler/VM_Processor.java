@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 

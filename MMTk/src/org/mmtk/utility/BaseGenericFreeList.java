@@ -8,6 +8,7 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -91,7 +92,6 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  *
  */
-import org.mmtk.vm.VM_Interface;
 abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    public final static String Id = "$Id$";
  
@@ -229,7 +229,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    */
   private final void split(int unit, int size) {
     int basesize = getSize(unit);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(basesize > size);
+    Assert._assert(basesize > size);
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);

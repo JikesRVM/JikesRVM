@@ -6,6 +6,7 @@
 package org.mmtk.utility;
 
 import org.mmtk.utility.heap.*;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -16,7 +17,6 @@ import org.vmmagic.pragma.*;
  *
  * @author Perry Cheng
  */
-import org.mmtk.vm.VM_Interface;
 public class Conversions implements Constants, Uninterruptible {
 
   public static Address roundDownVM(Address addr) {
@@ -69,7 +69,7 @@ public class Conversions implements Constants, Uninterruptible {
 
   public static int addressToPages (Address addr) {
     int page = addressToPagesDown(addr);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToAddress(page).EQ(addr));
+    Assert._assert(pagesToAddress(page).EQ(addr));
     return page;
   }
 
@@ -106,7 +106,7 @@ public class Conversions implements Constants, Uninterruptible {
   
   public static int bytesToPages(Extent bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
+    Assert._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
     return pages;
   }
 

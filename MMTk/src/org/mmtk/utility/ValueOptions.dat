@@ -13,61 +13,61 @@ ENUMS
 
 V verbose int 0 
 GC verbosity level
-if (val < 0) VM_Interface.sysFail("Unreasonable verbosity level " + val);
+if (val < 0) Assert.fail("Unreasonable verbosity level " + val);
 
 
 V minNurseryPages int Plan.DEFAULT_MIN_NURSERY fixedNursery
 Fix the minimum and maximum size of the nursery to this value (MB)
 int val2 = Conversions.bytesToPagesUp(val<<20); \
 maxNurseryPages = val2; \
-if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
+if (maxNurseryPages <= 0) Assert.fail("Unreasonable nursery size " + val); \
 val = val2;
 
 
 V maxNurseryPages int Plan.DEFAULT_MAX_NURSERY boundedNursery
 Bound the maximum size of the nursery to this value (MB)
 int val2 = Conversions.bytesToPagesUp(val<<20); \
-if (val2 <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
+if (val2 <= 0) Assert.fail("Unreasonable nursery size " + val); \
 val = val2;
 
 
 V metaDataPages int 4096 metaDataLimit
 Trigger a GC if the meta data volume grows to this limit (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
-if (val2 <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + val); \
+if (val2 <= 0) Assert.fail("Unreasonable metadata limit " + val); \
 val = val2;
 
 
 V cycleMetaDataPages int 512 cycleMetaDataLimit
 Trigger cycle detection if the meta data volume grows to this limit (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
-if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + val); \
+if (val2 <= 0) Assert.fail("Unreasonable cycle metadata limit " + val); \
 val = val2;
 
 
 V cycleDetectionPages int 512 cycleTriggerThreshold
 Trigger cycle detection if the space available falls below this threshold (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
-if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + val); \
+if (val2 <= 0) Assert.fail("Unreasonable cycle detection limit " + val); \
 val = val2;
 
 
 V cycleFilterPages int 1024 cycleFilterThreshold
 Trigger cycle buffer filtering if the space available falls below this threshold (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
-if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle filter limit " + val); \
+if (val2 <= 0) Assert.fail("Unreasonable cycle filter limit " + val); \
 val = val2;
 
 
 V gcTimeCap int 2000 timeCap
 Try to limit reference counting collections to this time cap (ms)
-if (val <= 0) VM_Interface.sysFail("Unreasonable time cap " + val);
+if (val <= 0) Assert.fail("Unreasonable time cap " + val);
 
 
 V stressPages int MAX_INT stressFactor
 Log 2 of the frequency (in bytes) with which to force stress test collections
 int val2 = Conversions.bytesToPagesUp(1<<val); \
-if (val2 <= Plan.DEFAULT_POLL_FREQUENCY) VM_Interface.sysFail("Unreasonable stress factor, must be at least equal to the log of the plan's poll frequency"); \
+if (val2 <= Plan.DEFAULT_POLL_FREQUENCY) Assert.fail("Unreasonable stress factor, must be at least equal to the log of the plan's poll frequency"); \
 val = val2;
 
 
@@ -79,12 +79,12 @@ val = 1<<val2;
 
 V gcspyPort int 0
 Port number for GCSpy server to connect with visualiser
-if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy port " + val);
+if (val <= 0) Assert.fail("Unreasonable gcspy port " + val);
 
 
 V gcspyTilesize int 131072
 GCSpy tile size in KB
-if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy tilesize " + val); \
+if (val <= 0) Assert.fail("Unreasonable gcspy tilesize " + val); \
 val <<= 10;
 
 

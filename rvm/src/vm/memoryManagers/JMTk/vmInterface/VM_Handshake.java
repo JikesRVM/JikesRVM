@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Collection;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -96,7 +96,7 @@ public class VM_Handshake {
   }
 
   public void reset() throws UninterruptiblePragma {
-    gcTrigger = VM_Interface.UNKNOWN_GC_TRIGGER;
+    gcTrigger = Collection.UNKNOWN_GC_TRIGGER;
     requestFlag = false;
     completionFlag = false;
   }

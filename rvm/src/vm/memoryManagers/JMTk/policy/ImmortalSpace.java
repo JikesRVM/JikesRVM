@@ -6,8 +6,10 @@
 package org.mmtk.policy;
 
 import org.mmtk.utility.heap.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -38,16 +40,16 @@ public final class ImmortalSpace extends BasePolicy
    * test to see if the mark bit has the given value
    */
   private static boolean testMarkBit(Address ref, Word value) {
-    return !(VM_Interface.readAvailableBitsWord(ref).and(value).isZero());
+    return !(ObjectModel.readAvailableBitsWord(ref).and(value).isZero());
   }
 
   /**
    * write the given value in the mark bit.
    */
   private static void writeMarkBit(Address ref, Word value) {
-    Word oldValue = VM_Interface.readAvailableBitsWord(ref);
+    Word oldValue = ObjectModel.readAvailableBitsWord(ref);
     Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-    VM_Interface.writeAvailableBitsWord(ref,newValue);
+    ObjectModel.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
@@ -55,9 +57,9 @@ public final class ImmortalSpace extends BasePolicy
    */
   private static void atomicWriteMarkBit(Address ref, Word value) {
     while (true) {
-      Word oldValue = VM_Interface.prepareAvailableBits(ref);
+      Word oldValue = ObjectModel.prepareAvailableBits(ref);
       Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-      if (VM_Interface.attemptAvailableBits(ref,oldValue,newValue)) break;
+      if (ObjectModel.attemptAvailableBits(ref,oldValue,newValue)) break;
     }
   }
 
@@ -69,10 +71,10 @@ public final class ImmortalSpace extends BasePolicy
     throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = VM_Interface.prepareAvailableBits(ref);
+      oldValue = ObjectModel.prepareAvailableBits(ref);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!VM_Interface.attemptAvailableBits(ref,oldValue,oldValue.xor(GC_MARK_BIT_MASK)));
+    } while (!ObjectModel.attemptAvailableBits(ref,oldValue,oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
 
@@ -91,7 +93,7 @@ public final class ImmortalSpace extends BasePolicy
 
   public static Address traceObject(Address object) {
     if (testAndMark(object, immortalMarkState)) 
-      VM_Interface.getPlan().enqueue(object);
+      Plan.enqueue(object);
     return object;
   }
 
@@ -127,6 +129,6 @@ public final class ImmortalSpace extends BasePolicy
    *         some may be unreachable.
    */
   public static boolean isReachable(Address ref) {
-    return (VM_Interface.readAvailableBitsWord(ref).and(GC_MARK_BIT_MASK).EQ(immortalMarkState));
+    return (ObjectModel.readAvailableBitsWord(ref).and(GC_MARK_BIT_MASK).EQ(immortalMarkState));
   }
 }

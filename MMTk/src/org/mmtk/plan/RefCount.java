@@ -20,7 +20,12 @@ import org.mmtk.utility.Memory;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Barriers;
+import org.mmtk.vm.Collection;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Statistics;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -29,102 +34,31 @@ import org.vmmagic.pragma.*;
  * This class implements a simple non-concurrent reference counting
  * collector.
  *
+ * $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends StopTheWorldGC implements Uninterruptible {
-  final public static String Id = "$Id$"; 
+public class RefCount extends RefCountBase implements Uninterruptible {
 
   /****************************************************************************
    *
    * Class variables
    */
-  public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = false;
   public static final int GC_HEADER_BITS_REQUIRED = RefCountSpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = RefCountSpace.GC_HEADER_BYTES_REQUIRED;
-  public static final boolean REF_COUNT_CYCLE_DETECTION = true;
-  public static final boolean SUPPORTS_PARALLEL_GC = false;
-
-  /**
-   * Decide whether to track incs/decs using the slot remembering
-   * technique by Levanoni and Petrank. Slot remembering is
-   * implemented at object-level granularity.
-   *
-   * <p> See Yossi Levanoni and Erez Petrank. <b>A scalable reference
-   * counting garbage collector</b>. Technical Report CS-0967,
-   * Technion - Israel Institute of Technology, Haifa, Israel,
-   * November 1999
-   * 
-   * <p> The paper is available from <a
-   * href="http://citeseer.nj.nec.com/levanoni99scalable.html">Citeseer</a>
-   */
-  public static final boolean WITH_COALESCING_RC = true;
-   
   private static final boolean INLINE_WRITE_BARRIER = WITH_COALESCING_RC;
 
-  // virtual memory resources
-  private static FreeListVMResource losVM;
-  private static FreeListVMResource rcVM;
-
-  // RC collection space
-  private static RefCountSpace rcSpace;
-
-  // memory resources
-  private static MemoryResource rcMR;
-
-  // shared queues
-  private static SharedDeque decPool;
-  private static SharedDeque newRootPool;
-  private static SharedDeque modPool; // only used with coalescing RC
-
-  // GC state
-  private static int required;  // how many pages must this GC yeild?
-  private static int lastRCPages = 0; // pages at end of last GC
-  private static long timeCap = 0; // time within which this GC should finish
-
-  // Allocators
-  public static final byte RC_SPACE = 0;
   public static final byte DEFAULT_SPACE = RC_SPACE;
-
-  // Miscellaneous constants
-  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-
-  // Memory layout constants
-  public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final Extent         RC_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
-  private static final Extent        LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
-  public  static final Extent        MAX_SIZE = RC_SIZE;
-
-  public  static final Address       RC_START = PLAN_START;
-  private static final Address         RC_END = RC_START.add(RC_SIZE);
-  private static final Address      LOS_START = RC_END;
-  private static final Address        LOS_END = LOS_START.add(LOS_SIZE);
   private static final Address       HEAP_END = LOS_END;
+
+  protected static int lastRCPages = 0; // pages at end of last GC
 
   /****************************************************************************
    *
    * Instance variables
    */
-
-  // allocator
-  private RefCountLocal rc;
-  private RefCountLOSLocal los;
-
-  // counters
-  static EventCounter wbFast;
-  static EventCounter wbSlow;
-
-  // queues (buffers)
-  private AddressDeque decBuffer;
-  private AddressDeque newRootSet;
-  private AddressDeque modBuffer; // only used with coalescing RC
-
-  // enumerators
-  public RCDecEnumerator decEnum;
-  RCSanityEnumerator  sanityEnum;
-  private RCModifiedEnumerator modEnum; // only used with coalescing RC
 
   /****************************************************************************
    *
@@ -137,54 +71,12 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
-  static {
-    // memory resources
-    rcMR = new MemoryResource("rc", POLL_FREQUENCY);
-
-    // virtual memory resources
-    rcVM = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM, RefCountLocal.META_DATA_PAGES_PER_REGION);
-    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-
-    // collectors
-    rcSpace = new RefCountSpace(rcVM, rcMR);
-    addSpace(RC_SPACE, "RC Space");
-
-    // instantiate shared queues
-    decPool = new SharedDeque(metaDataRPA, 1);
-    decPool.newClient();
-    newRootPool = new SharedDeque(metaDataRPA, 1);
-    newRootPool.newClient();
-    if (WITH_COALESCING_RC) {
-      modPool = new SharedDeque(metaDataRPA, 1);
-      modPool.newClient();
-    }
-    if (GATHER_WRITE_BARRIER_STATS) {
-      wbFast = new EventCounter("wbFast");
-      wbSlow = new EventCounter("wbSlow");
-    }
-  }
+  static { }
 
   /**
    * Constructor
    */
-  public Plan() {
-    decBuffer = new AddressDeque("dec buf", decPool);
-    newRootSet = new AddressDeque("new root set", newRootPool);
-    if (WITH_COALESCING_RC) modBuffer = new AddressDeque("mod buf", modPool);
-    los = new RefCountLOSLocal(losVM, rcMR);
-    rc = new RefCountLocal(rcSpace, this, los, decBuffer, newRootSet);
-    decEnum = new RCDecEnumerator(this);
-    if (WITH_COALESCING_RC) modEnum = new RCModifiedEnumerator(this);
-    if (RefCountSpace.RC_SANITY_CHECK) sanityEnum = new RCSanityEnumerator(rc);
-  }
-
-  /**
-   * The boot method is called early in the boot process before any
-   * allocation.
-   */
-  public static final void boot()
-    throws InterruptiblePragma {
-    StopTheWorldGC.boot();
+  public RefCount() {
   }
 
   /****************************************************************************
@@ -208,8 +100,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
     case      LOS_SPACE: return los.alloc(bytes, align, offset);
     default:
-      if (VM_Interface.VerifyAssertions)
-	VM_Interface.sysFail("No such allocator");
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
       return Address.zero();
     }
   }
@@ -242,8 +133,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
         ImmortalSpace.postAlloc(object);
       return;
     default:
-      if (VM_Interface.VerifyAssertions)
-	VM_Interface.sysFail("No such allocator");
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
       return;
     }
   }
@@ -259,8 +149,8 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final Address allocCopy(Address original, int bytes,
-                                    int align, int offset) throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+				 int align, int offset) throws InlinePragma {
+    Assert._assert(false);
     // return Address.zero();  this trips some Intel assembler bug
     return Address.max();
   }
@@ -286,24 +176,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     return super.getAllocatorFromSpace(s);
   }
 
-  /**
-   * Give the compiler/runtime statically generated alloction advice
-   * which will be passed to the allocation routine at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return Allocation advice to be passed to the allocation routine
-   * at runtime
-   */
-  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
-                                          CallSite callsite,
-                                          AllocAdvice hint) {
-    return null;
-  }
 
   /**
    * This method is called periodically by the allocation subsystem
@@ -339,7 +211,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
         return false;
       }
       required = mr.reservedPages() - mr.committedPages();
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
+      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
@@ -370,7 +242,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
-    timeCap = VM_Interface.cycles() + VM_Interface.millisToCycles(Options.gcTimeCap);
+    timeCap = Statistics.cycles() + Statistics.millisToCycles(Options.gcTimeCap);
     ImmortalSpace.prepare(immortalVM, null);
     rcSpace.prepare();
   }
@@ -385,8 +257,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void threadLocalPrepare(int count) {
     rc.prepare(Options.verboseTiming && count==1);
-    if (WITH_COALESCING_RC)
-      processModBufs();    
+    if (WITH_COALESCING_RC) processModBufs();    
   }
 
   /**
@@ -400,7 +271,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
-    rc.release(count, Options.verboseTiming && count==1);
+    rc.release(this, count);
   }
 
   /**
@@ -419,38 +290,10 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     lastRCPages = rcMR.committedPages();
   }
 
-  /**
-   * Perform any required initialization of the GC portion of the header.
-   * Called for objects created at boot time.
-   * 
-   * @param ref the object ref to the storage to be initialized
-   * @param typeRef the type reference for the instance being created
-   * @param size the number of bytes allocated by the GC system for
-   * this object.
-   * @param status the initial value of the status word
-   * @return The new value of the status word
-   */
-  public static Word getBootTimeAvailableBits(int ref, Address typeRef,
-                                              int size, Word status)
-    throws UninterruptiblePragma, InlinePragma {
-    if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);
-    return status;
-  }
- 
-
   /****************************************************************************
    *
    * Object processing and tracing
    */
-  
-  /**
-   * Flush any remembered sets pertaining to the current collection.
-   */
-  protected final void flushRememberedSets() {
-    if (WITH_COALESCING_RC) processModBufs();
-  }
-  
-  
 
   /**
    * Trace a reference during GC.  In this case we do nothing.  We
@@ -480,16 +323,16 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   public static final Address traceObject(Address object, boolean root) {
     if (object.isZero() || !root) 
       return object;
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     
     if (RefCountSpace.RC_SANITY_CHECK) 
-      VM_Interface.getPlan().rc.incSanityTraceRoot(object);
+      Plan.getInstance().rc.incSanityTraceRoot(object);
 
     if (space == RC_SPACE || space == LOS_SPACE)
       return rcSpace.traceObject(object);
     
-    if (VM_Interface.VerifyAssertions && space != BOOT_SPACE 
+    if (Assert.VERIFY_ASSERTIONS && space != BOOT_SPACE 
         && space != IMMORTAL_SPACE && space != META_SPACE) 
       spaceFailure(object, space, "Plan.traceObject()");
     // else this is not a rc heap pointer
@@ -510,7 +353,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   public final void incSanityTrace(Address object, Address location,
                             boolean root) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     
     if (space == RC_SPACE || space == LOS_SPACE) {
@@ -534,7 +377,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * directly from a root.
    */
   public final void checkSanityTrace(Address object, Address location) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     
     if (space == RC_SPACE || space == LOS_SPACE) {
@@ -551,7 +394,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return True if <code>obj</code> is a live object.
    */
   public static final boolean isLive(Address object) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
       return RefCountSpace.isLiveRC(object);
@@ -570,7 +413,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * to it.
    */
   public static boolean isFinalizable(Address object) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
       return RefCountSpace.isFinalizable(object);
@@ -591,7 +434,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The object (no copying is performed).
    */
   public static Address retainFinalizable(Address object) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
       RefCountSpace.clearFinalizer(object);
@@ -660,9 +503,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
       if (RefCountSpace.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+      Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {      
-      Address old = VM_Interface.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
+      Address old = Barriers.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
       if (old.GE(RC_START))
         decBuffer.pushOOL(old);
       if (tgt.GE(RC_START))
@@ -691,9 +534,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
       if (RefCountSpace.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+      Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {
-      Address old = VM_Interface.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
+      Address old = Barriers.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
       if (old.GE(RC_START))
         decBuffer.push(old);
       if (tgt.GE(RC_START))
@@ -764,8 +607,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   private final void coalescingWriteBarrierSlow(Address srcObj) 
     throws NoInlinePragma {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(WITH_COALESCING_RC);
+    Assert._assert(WITH_COALESCING_RC);
     if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
     if (RefCountSpace.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
@@ -781,22 +623,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
 
   /**
-   * A field of an object is being enumerated by ScanObject as part of
-   * a recursive decrement (when an object dies, its referent objects
-   * must have their counts decremented).  If the field points to the
-   * RC space, decrement the count for the referent.
-   *
-   * @param objLoc The address of a reference field with an object
-   * being enumerated.
-   */
-  public final void enumerateDecrementPointerLocation(Address objLoc)
-    throws InlinePragma {
-    Address object = objLoc.loadAddress();
-    if (isRCObject(object))
-      decBuffer.push(object);
-  }
-
-  /**
    * A field of an object in the modified buffer is being enumerated
    * by ScanObject. If the field points to the RC space, increment the
    * count of the referent object.
@@ -806,16 +632,14 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   public final void enumerateModifiedPointerLocation(Address objLoc)
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(WITH_COALESCING_RC);
+    Assert._assert(WITH_COALESCING_RC);
     Address object = objLoc.loadAddress();
     if (!object.isZero()) {
-      Address addr = VM_Interface.refToAddress(object);
+      Address addr = ObjectModel.refToAddress(object);
       if (addr.GE(RC_START))
         RefCountSpace.incRC(object);
     }
   }
-
 
   /****************************************************************************
    *
@@ -829,7 +653,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
-  protected static final int getPagesReserved() {
+  protected static int getPagesReserved() {
     return getPagesUsed();
   }
 
@@ -840,20 +664,11 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages reserved given the pending
    * allocation.
    */
-  protected static final int getPagesUsed() {
+  protected static int getPagesUsed() {
     int pages = rcMR.reservedPages();
     pages += immortalMR.reservedPages();
     pages += metaDataMR.reservedPages();
     return pages;
-  }
-
-  /**
-   * Return the number of pages consumed by meta data.
-   *
-   * @return The number of pages consumed by meta data.
-   */
-  public static final int getMetaDataPagesUsed() {
-    return metaDataMR.reservedPages();
   }
 
   /**
@@ -863,49 +678,10 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */
-  public static final int getPagesAvail() {
+  public static int getPagesAvail() {
     return getTotalPages() - getPagesUsed();
   }
 
-  /****************************************************************************
-   *
-   * RC methods
-   */
-
-  /**
-   * Add an object to the decrement buffer
-   *
-   * @param object The object to be added to the decrement buffer
-   */
-  public final void addToDecBuf(Address object)
-    throws InlinePragma {
-    decBuffer.push(object);
-  }
-  
-  /**
-   * Add an object to the root set
-   *
-   * @param root The object to be added to root set
-   */
-  public final void addToRootSet(Address root) 
-    throws InlinePragma {
-    newRootSet.push(root);
-  }
-
-  /**
-   * Process the modified object buffers, enumerating the fields of
-   * each object, generating an increment for each referent object.
-   */
-  private final void processModBufs() {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(WITH_COALESCING_RC);
-    modBuffer.flushLocal();
-    Address obj = Address.zero();
-    while (!(obj = modBuffer.pop()).isZero()) {
-      RefCountSpace.makeUnlogged(obj);
-      Scan.enumeratePointers(obj, modEnum);
-    }
-  }
 
   /****************************************************************************
    *
@@ -922,16 +698,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   }
 
   /**
-   * Return the cycle time at which this GC should complete.
-   *
-   * @return The time cap for this GC (i.e. the time by which it
-   * should complete).
-   */
-  public static final long getTimeCap() {
-    return timeCap;
-  }
-
-  /**
    * Return true if the object resides within the RC space
    *
    * @param object An object reference
@@ -942,10 +708,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     if (object.isZero()) 
       return false;
     else {
-      Address addr = VM_Interface.refToAddress(object);
+      Address addr = ObjectModel.refToAddress(object);
       if (addr.GE(RC_START)) {
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(addr.LT(HEAP_END));
+        Assert._assert(addr.LT(HEAP_END));
         return true;
       } else 
         return false;

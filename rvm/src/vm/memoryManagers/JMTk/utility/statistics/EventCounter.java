@@ -7,7 +7,7 @@ package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 
@@ -105,7 +105,7 @@ public class EventCounter extends Counter
    */
   protected void start() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions)  VM_Interface._assert(!running);
+    Assert._assert(!running);
     running = true;
   }
 
@@ -114,7 +114,7 @@ public class EventCounter extends Counter
    */
   protected void stop() {
     if (!Stats.gatheringStats) return;
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(running);
+    Assert._assert(running);
     running = false;
   }
 
@@ -139,8 +139,8 @@ public class EventCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    if (VM_Interface.VerifyAssertions && mergePhases()) 
-      VM_Interface._assert((phase | 1) == (phase + 1));
+    if (Assert.VERIFY_ASSERTIONS && mergePhases()) 
+      Assert._assert((phase | 1) == (phase + 1));
     if (mergePhases()) 
       printValue(count[phase] + count[phase+1]);
     else

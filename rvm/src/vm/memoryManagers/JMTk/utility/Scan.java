@@ -6,8 +6,10 @@
 
 package org.mmtk.utility.scan;
 
-import org.mmtk.plan.Plan;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Scanning;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -28,7 +30,7 @@ public final class Scan implements Uninterruptible {
    * @param object The object to be scanned.
    */
   public static void scanObject(Address object) throws InlinePragma {
-    MMType type = VM_Interface.getObjectType(object);
+    MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
@@ -36,7 +38,7 @@ public final class Scan implements Uninterruptible {
         Plan.traceObjectLocation(slot);
       }
     } else
-      VM_Interface.scanObject(object);
+      Scanning.scanObject(object);
   }
 
   /**
@@ -50,7 +52,7 @@ public final class Scan implements Uninterruptible {
    */
   public static void enumeratePointers(Address object, Enumerate enum) 
     throws InlinePragma {
-    MMType type = VM_Interface.getObjectType(object);
+    MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
@@ -58,6 +60,6 @@ public final class Scan implements Uninterruptible {
         enum.enumeratePointerLocation(slot);
       }
     } else
-      VM_Interface.enumeratePointers(object, enum);
+      Scanning.enumeratePointers(object, enum);
   }
 }

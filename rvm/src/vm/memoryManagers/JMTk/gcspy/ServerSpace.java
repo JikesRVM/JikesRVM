@@ -12,8 +12,8 @@ import org.mmtk.utility.Log;
 
 import com.ibm.JikesRVM.VM_SysCall;
 
-
 import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * ServerSpace.java

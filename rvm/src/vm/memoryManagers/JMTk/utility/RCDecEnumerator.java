@@ -5,7 +5,7 @@
 //$Id$
 package org.mmtk.utility.scan;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -19,25 +19,12 @@ import org.vmmagic.pragma.*;
  * @date $date: $
  */
 public class RCDecEnumerator extends Enumerate implements Uninterruptible {
-  private Plan plan;
-
-  /**
-   * Constructor.
-   *
-   * @param plan The plan instance with respect to which the
-   * enumeration will occur.
-   */
-  public RCDecEnumerator(Plan plan) {
-    this.plan = plan;
-  }
-
   /**
    * Enumerate a pointer.  In this case it is a decrement event.
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(Address location) 
-      throws InlinePragma {
-    plan.enumerateDecrementPointerLocation(location);
+  public void enumeratePointerLocation(Address location) throws InlinePragma {
+    Plan.getInstance().enumerateDecrementPointerLocation(location);
   }
 }

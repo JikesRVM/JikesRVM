@@ -6,11 +6,11 @@
 
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.gcspy.AbstractDriver;
 
 import org.vmmagic.unboxed.*;
@@ -71,7 +71,7 @@ public class MonotoneVMResource extends VMResource implements Constants, Uninter
     Address tmpCursor = cursor.add(bytes);
     if (tmpCursor.GT(sentinel)) {
       unlock();
-      VM_Interface.getPlan().poll(true, memoryResource);
+      Plan.getInstance().poll(true, memoryResource);
       return Address.zero();
     } else {
       Address oldCursor = cursor;
@@ -81,7 +81,7 @@ public class MonotoneVMResource extends VMResource implements Constants, Uninter
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
       Memory.zero(oldCursor, bytes);
       // Memory.zeroPages(oldCursor, bytes);
-      if (VM_Interface.GCSPY)
+      if (Plan.WITH_GCSPY)
         Plan.acquireVMResource(start, cursor, bytes);
       return oldCursor;
     }
@@ -97,7 +97,7 @@ public class MonotoneVMResource extends VMResource implements Constants, Uninter
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);
     cursor = start;
-    if (VM_Interface.GCSPY)
+    if (Plan.WITH_GCSPY)
       Plan.releaseVMResource(start, bytes);
   }
 

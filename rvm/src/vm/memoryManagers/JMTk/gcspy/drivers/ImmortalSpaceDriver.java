@@ -12,14 +12,13 @@ package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.gcspy.AbstractDriver;
 import org.mmtk.utility.heap.MonotoneVMResource;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 
 //-#if RVM_WITH_GCSPY
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
-
 import org.mmtk.vm.gcspy.Color;
 import org.mmtk.vm.gcspy.AbstractTile;
 import org.mmtk.vm.gcspy.Subspace;
@@ -27,10 +26,8 @@ import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
 import org.mmtk.vm.gcspy.StreamConstants;
-
-import org.mmtk.vm.VM_Interface;
-
-
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Assert;
 //-#endif
 
 /**
@@ -217,13 +214,11 @@ public class ImmortalSpaceDriver extends AbstractDriver
     int index = subspace.getIndex(start);
     int length = end.diff(start).toInt();
 
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(blockSize <= usedSpaceStream.getMaxValue());
+    Assert._assert(blockSize <= usedSpaceStream.getMaxValue());
       
     totalUsedSpace = length;
     int remainder = subspace.spaceRemaining(start);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(remainder <= blockSize);
+    Assert._assert(remainder <= blockSize);
     if (length <= remainder) {  // fits in this tile
       tiles[index].usedSpace = length;
       checkspace(index, "setRange fits in first tile"); 

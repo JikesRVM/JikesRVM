@@ -6,9 +6,9 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Plan;
 import org.mmtk.vm.ReferenceGlue;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -77,8 +77,7 @@ public class ReferenceProcessor implements Uninterruptible {
   public static Address processReference(Address reference,
                                             int semantics)
   {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!reference.isZero());
+    Assert._assert(!reference.isZero());
     
     if (TRACE) {
       Log.write("+++ old reference: "); Log.writeln(reference);

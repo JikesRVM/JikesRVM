@@ -22,7 +22,12 @@ import org.mmtk.utility.Options;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Barriers;
+import org.mmtk.vm.Collection;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Statistics;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -35,67 +40,34 @@ import org.vmmagic.pragma.*;
  * See S.M. Blackburn and K.S. McKinley, "Ulterior Reference Counting:
  * Fast Garbage Collection Without A Long Wait", OOPSLA, October 2003.
  *
+ * $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends StopTheWorldGC implements Uninterruptible {
-  public final static String Id = "$Id$"; 
+public class GenRC extends RefCountBase implements Uninterruptible {
 
   /****************************************************************************
    *
    * Class variables
    */
-  public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = true;
   public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = RefCountSpace.GC_HEADER_BYTES_REQUIRED;
-  public static final boolean REF_COUNT_CYCLE_DETECTION = true;
-  public static final boolean SUPPORTS_PARALLEL_GC = false;
   public static final boolean STEAL_NURSERY_GC_HEADER = false;
-  static final boolean WITH_COALESCING_RC = true;
-
-  // virtual memory regions
-  private static MonotoneVMResource nurseryVM;
-  private static FreeListVMResource losVM;
-  private static FreeListVMResource rcVM;
-
-  // RC collection space
-  private static RefCountSpace rcSpace;
 
   // memory resources
+  private static MonotoneVMResource nurseryVM;
   private static MemoryResource nurseryMR;
-  private static MemoryResource rcMR;
-
-  // shared queues
-  private static SharedDeque decPool;
-  private static SharedDeque modPool;
-  private static SharedDeque rootPool;
-
+  
   // GC state
-  private static int required;  // how many pages must this GC yeild?
   private static int previousMetaDataPages;  // meta-data pages after last GC
-  private static long timeCap = 0; // time within which this GC should finish
 
   // Allocators
-  public static final byte NURSERY_SPACE = 0;
-  public static final byte RC_SPACE = 1;
+  public static final byte NURSERY_SPACE = 1;
   public static final byte DEFAULT_SPACE = NURSERY_SPACE;
 
-  // Miscellaneous constants
-  private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-
-  // Memory layout constants
-  public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  protected static final Extent    MATURE_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.66)));
-  protected static final Extent   NURSERY_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.33)));
-  private static final Extent          RC_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(MATURE_SIZE.toLong() * 0.7)));
-  private static final Extent         LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(MATURE_SIZE.toLong() * 0.3)));
-  public    static final Extent       MAX_SIZE = MATURE_SIZE;
-  protected static final Address      RC_START = PLAN_START;
-  protected static final Address        RC_END = RC_START.add(RC_SIZE);
-  protected static final Address     LOS_START = RC_END;
-  protected static final Address       LOS_END = LOS_START.add(LOS_SIZE);
+  protected static final Extent   NURSERY_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.2)));
   protected static final Address NURSERY_START = LOS_END;
   protected static final Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   protected static final Address      HEAP_END = NURSERY_END;
@@ -106,23 +78,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
 
   // allocators
-  private BumpPointer nursery;
-  private RefCountLocal rc;
-  private RefCountLOSLocal los;
-
-  // queues (buffers)
-  private AddressDeque decBuffer;
-  private AddressDeque modBuffer;
-  private AddressDeque newRootSet;
-
-  // enumerators
-  public RCDecEnumerator decEnum;
-  private RCModifiedEnumerator modEnum;
-  private RCSanityEnumerator sanityEnum;
+  protected BumpPointer nursery;
 
   // counters
-  private static EventCounter wbFast;
-  private static EventCounter wbSlow;
   private int incCounter;
   private int decCounter;
   private int modCounter;
@@ -141,55 +99,16 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   static {
     // memory resources
     nurseryMR = new MemoryResource("nursery", POLL_FREQUENCY);
-    rcMR = new MemoryResource("rc", POLL_FREQUENCY);
 
     // virtual memory resources
     nurseryVM  = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR, NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
-    rcVM       = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM, RefCountLocal.META_DATA_PAGES_PER_REGION);
-    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-
-    // collectors
-    rcSpace = new RefCountSpace(rcVM, rcMR);
-    addSpace(RC_SPACE, "RC Space");
-
-    // instantiate shared queues
-    modPool = new SharedDeque(metaDataRPA, 1);
-    modPool.newClient();
-    decPool = new SharedDeque(metaDataRPA, 1);
-    decPool.newClient();
-    rootPool = new SharedDeque(metaDataRPA, 1);
-    rootPool.newClient();
-
-    if (GATHER_WRITE_BARRIER_STATS) {
-      wbFast = new EventCounter("wbFast");
-      wbSlow = new EventCounter("wbSlow");
-    }
   }
 
   /**
    * Constructor
    */
-  public Plan() {
+  public GenRC() {
     nursery = new BumpPointer(nurseryVM);
-    modBuffer = new AddressDeque("mod buf", modPool);
-    modEnum = new RCModifiedEnumerator(this);
-    decBuffer = new AddressDeque("dec buf", decPool);
-    newRootSet = new AddressDeque("root set", rootPool);
-    los = new RefCountLOSLocal(losVM, rcMR);
-    rc = new RefCountLocal(rcSpace, this, los, decBuffer, newRootSet);
-    decEnum = new RCDecEnumerator(this);
-    if (RefCountSpace.RC_SANITY_CHECK) {
-      sanityEnum = new RCSanityEnumerator(rc);
-    }
- }
-
-  /**
-   * The boot method is called early in the boot process before any
-   * allocation.
-   */
-  public static final void boot()
-    throws InterruptiblePragma {
-    StopTheWorldGC.boot();
   }
 
   /****************************************************************************
@@ -213,7 +132,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
       // this assertion is unguarded so will even fail in FastAdaptive!
       // we need to abstract the idea of stealing nursery header bytes,
       // but we want to wait for the forward object model first...
-      VM_Interface._assert(false);
+      Assert._assert(false);
     }
     switch (allocator) {
     case  NURSERY_SPACE: return nursery.alloc(bytes, align, offset);
@@ -221,8 +140,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
     case      LOS_SPACE: return los.alloc(bytes, align, offset);
     default:
-      if (VM_Interface.VerifyAssertions) 
-	VM_Interface.sysFail("No such allocator");
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
       return Address.zero();
     }
   }
@@ -254,8 +172,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
       modBuffer.push(ref);
       return;
     default:
-      if (VM_Interface.VerifyAssertions)
-        VM_Interface.sysFail("No such allocator");
+      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
       return;
     } 
   }
@@ -308,25 +225,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   }
 
   /**
-   * Give the compiler/runtime statically generated alloction advice
-   * which will be passed to the allocation routine at runtime.
-   *
-   * @param type The type id of the type being allocated
-   * @param bytes The size (in bytes) required for this object
-   * @param callsite Information identifying the point in the code
-   * where this allocation is taking place.
-   * @param hint A hint from the compiler as to which allocator this
-   * site should use.
-   * @return Allocation advice to be passed to the allocation routine
-   * at runtime
-   */
-  public final AllocAdvice getAllocAdvice(MMType type, int bytes,
-                                          CallSite callsite,
-                                          AllocAdvice hint) {
-    return null;
-  }
-
-  /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
    * collector with an opportunity to collect.<p>
@@ -363,7 +261,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
       }
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR) required = required<<1;  // account for copy reserve
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
+      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
@@ -393,7 +291,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
-    timeCap = VM_Interface.cycles() + VM_Interface.millisToCycles(Options.gcTimeCap);
+    timeCap = Statistics.cycles() + Statistics.millisToCycles(Options.gcTimeCap);
     nurseryMR.reset();
     rcSpace.prepare();
     ImmortalSpace.prepare(immortalVM, null);
@@ -423,7 +321,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
-    rc.release(count, Options.verboseTiming && count==1);
+    rc.release(this, count);
   }
 
   /**
@@ -443,31 +341,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     previousMetaDataPages = metaDataMR.committedPages();
   }
 
-  /**
-   * Flush any remembered sets pertaining to the current collection.
-   */
-  protected final void flushRememberedSets() {
-    processModBufs();
-  }
-
-  /**
-   * Perform any required initialization of the GC portion of the header.
-   * Called for objects created at boot time.
-   * 
-   * @param ref the object ref to the storage to be initialized
-   * @param typeRef the type reference for the instance being created
-   * @param size the number of bytes allocated by the GC system for
-   * this object.
-   * @param status the initial value of the status word
-   * @return The new value of the status word
-   */
-  public static Word getBootTimeAvailableBits(int ref, Address typeRef,
-                                              int size, Word status)
-    throws UninterruptiblePragma, InlinePragma {
-    if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);
-    return status;
-  }
-  
   /****************************************************************************
    *
    * Object processing and tracing
@@ -500,10 +373,10 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   public static final Address traceObject(Address object, boolean root) {
     if (object.isZero()) return object;
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (RefCountSpace.RC_SANITY_CHECK && root) 
-        VM_Interface.getPlan().rc.incSanityTraceRoot(object);
+        Plan.getInstance().rc.incSanityTraceRoot(object);
       if (addr.GE(NURSERY_START)) {
         Address rtn = CopySpace.traceObject(object);
         // every incoming reference to the from-space object must inc the
@@ -511,9 +384,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
         if (root) {
           if (RefCountSpace.INC_DEC_ROOT) {
             RefCountSpace.incRC(rtn);
-            VM_Interface.getPlan().addToRootSet(rtn);
+            Plan.getInstance().addToRootSet(rtn);
           } else if (RefCountSpace.setRoot(rtn)) {
-            VM_Interface.getPlan().addToRootSet(rtn);
+            Plan.getInstance().addToRootSet(rtn);
           }
         } else
           RefCountSpace.incRC(rtn);
@@ -543,21 +416,19 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   public final void incSanityTrace(Address object, Address location,
                                    boolean root) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     Address oldObject = object;
 
     // if nursery, then get forwarded RC object
     if (addr.GE(NURSERY_START)) {
-      if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(CopySpace.isForwarded(object));        
+      Assert._assert(CopySpace.isForwarded(object));        
       object = CopySpace.getForwardingPointer(object);
-      addr = VM_Interface.refToAddress(object);
+      addr = ObjectModel.refToAddress(object);
     }
 
     if (addr.GE(RC_START)) {
       if (RefCountSpace.incSanityRC(object, root)) {
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(addr.LT(NURSERY_START));
+        Assert._assert(addr.LT(NURSERY_START));
         Scan.enumeratePointers(object, sanityEnum);
       }
     } else if (RefCountSpace.markSanityRC(object)) {
@@ -581,15 +452,14 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * directly from a root.
    */
   public final void checkSanityTrace(Address object, Address location) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     Address oldObject = object;
 
     // if nursery, then get forwarded RC object
     if (addr.GE(NURSERY_START)) {
-      if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(CopySpace.isForwarded(object));        
+      Assert._assert(CopySpace.isForwarded(object));        
       object = CopySpace.getForwardingPointer(object);
-      addr = VM_Interface.refToAddress(object);
+      addr = ObjectModel.refToAddress(object);
     }
 
    if (addr.GE(RC_START)) {
@@ -615,10 +485,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
     Address object = location.loadAddress();
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
-      if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(!object.isZero());
+      Assert._assert(!object.isZero());
       location.store(CopySpace.forwardObject(object));
     }
   }
@@ -648,10 +517,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The forwarded value for <code>object</code>.
    */
   public static final Address getForwardedReference(Address object) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
-      if (VM_Interface.VerifyAssertions) 
-        VM_Interface._assert(CopySpace.isForwarded(object));
+      Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
     } else
       return object;
@@ -664,7 +532,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return True if <code>object</code> is a live object.
    */
   public static final boolean isLive(Address object) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
         return CopySpace.isLive(object);
@@ -685,7 +553,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * to it.
    */
   public static final boolean isFinalizable(Address object) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
         return !CopySpace.isLive(object);
@@ -708,7 +576,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    * @return The object (no copying is performed).
    */
   public static Address retainFinalizable(Address object) {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
         return CopySpace.traceObject(object);
@@ -719,7 +587,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   }
 
   public static boolean willNotMove (Address object) {
-   Address addr = VM_Interface.refToAddress(object);
+   Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
         return nurseryVM.inRange(addr);
@@ -755,7 +623,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (RefCountSpace.logRequired(src))
       writeBarrierSlow(src);
-    VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -801,8 +669,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   private final void writeBarrierSlow(Address src) 
     throws NoInlinePragma {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!isNurseryObject(src));
+    Assert._assert(!isNurseryObject(src));
     if (RefCountSpace.attemptToLog(src)) {
       if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       modBuffer.push(src);
@@ -845,15 +712,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   }
 
   /**
-   * Return the number of pages consumed by meta data.
-   *
-   * @return The number of pages consumed by meta data.
-   */
-  public static final int getMetaDataPagesUsed() {
-    return metaDataMR.reservedPages();
-  }
-
-  /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    *
@@ -865,40 +723,11 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     return (nurseryTotal>>1) - nurseryMR.reservedPages();
   }
 
-  /**
-   * Process the modified object buffers, enumerating each object's
-   * fields
-   */
-  private final void processModBufs() {
-    modBuffer.flushLocal();
-    Address obj = Address.zero();
-    while (!(obj = modBuffer.pop()).isZero()) {
-      RefCountSpace.makeUnlogged(obj);
-      Scan.enumeratePointers(obj, modEnum);
-    }
-  }
 
   /****************************************************************************
    *
    * Pointer enumeration
    */
-
-  /**
-   * A field of an object is being enumerated by ScanObject as part of
-   * a recursive decrement (when an object dies, its referent objects
-   * must have their counts decremented).  If the field points to the
-   * RC space, decrement the count for the referent.
-   *
-   * @param objLoc The address of a reference field with an object
-   * being enumerated.
-   */
-  public final void enumerateDecrementPointerLocation(Address objLoc)
-    throws InlinePragma {
-    Address object = objLoc.loadAddress();
-    if (isRCObject(object)) {
-      decBuffer.push(object);
-    }
-  }
 
   /**
    * A field of an object rememebered in the modified objects buffer
@@ -914,41 +743,14 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     throws InlinePragma {
     Address object = objLoc.loadAddress();
     if (!object.isZero()) {
-      Address addr = VM_Interface.refToAddress(object);
+      Address addr = ObjectModel.refToAddress(object);
       if (addr.GE(NURSERY_START)) {
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(addr.LE(NURSERY_END));
+        Assert._assert(addr.LE(NURSERY_END));
         remset.push(objLoc);
       } else if (addr.GE(RC_START))
         RefCountSpace.incRC(object);
     }
   }
-
-  /****************************************************************************
-   *
-   * RC methods
-   */
-
-  /**
-   * Add an object to the decrement buffer
-   *
-   * @param object The object to be added to the decrement buffer
-   */
-  public final void addToDecBuf(Address object)
-    throws InlinePragma {
-    decBuffer.push(object);
-  }
-
-  /**
-   * Add an object to the root set
-   *
-   * @param root The object to be added to root set
-   */
-  public final void addToRootSet(Address root) 
-    throws InlinePragma {
-    newRootSet.push(root);
-  }
-
 
   /****************************************************************************
    *
@@ -966,16 +768,6 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
   }
 
   /**
-   * Return the cycle time at which this GC should complete.
-   *
-   * @return The time cap for this GC (i.e. the time by which it
-   * should complete).
-   */
-  public static final long getTimeCap() {
-    return timeCap;
-  }
-
-  /**
    * Return true if the object resides within the RC space
    *
    * @param object An object reference
@@ -983,7 +775,7 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
    */
   public static final boolean isRCObject(Address object)
     throws InlinePragma {
-    Address addr = VM_Interface.refToAddress(object);
+    Address addr = ObjectModel.refToAddress(object);
     return addr.GE(RC_START) && addr.LT(NURSERY_START);
   }
 
@@ -998,10 +790,9 @@ public class Plan extends StopTheWorldGC implements Uninterruptible {
     if (object.isZero()) 
       return false;
     else {
-      Address addr = VM_Interface.refToAddress(object);
+      Address addr = ObjectModel.refToAddress(object);
       if (addr.GE(NURSERY_START)) {
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface._assert(addr.LT(NURSERY_END));
+        Assert._assert(addr.LT(NURSERY_END));
         return true;
       } else
         return false;

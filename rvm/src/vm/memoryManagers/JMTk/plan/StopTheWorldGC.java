@@ -13,8 +13,12 @@ import org.mmtk.utility.deque.*;
 import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Scanning;
+import org.mmtk.vm.Statistics;
+import org.mmtk.vm.Collection;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -157,34 +161,31 @@ public abstract class StopTheWorldGC extends BasePlan
    *      4. globalRelease()
    */
   public void collect() {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(collectionsInitiated > 0);
+    Assert._assert(collectionsInitiated > 0);
 
-    boolean designated = (VM_Interface.rendezvous(4210) == 1);
+    boolean designated = (Collection.rendezvous(4210) == 1);
     boolean timekeeper = Stats.gatheringStats() && designated;
     if (timekeeper) Stats.startGC();
     if (timekeeper) initTime.start();
     prepare();
-    if (VM_Interface.GCSPY)
-      gcspyPrepare();
+    if (Plan.WITH_GCSPY) gcspyPrepare();
     if (timekeeper) initTime.stop();
 
     if (timekeeper) rootTime.start();
-    VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
-    if (VM_Interface.GCSPY)
-      gcspyRoots(rootLocations, interiorRootLocations);
+    Scanning.computeAllRoots(rootLocations, interiorRootLocations);
+    if (Plan.WITH_GCSPY) gcspyRoots(rootLocations, interiorRootLocations);
     if (timekeeper) rootTime.stop();
 
     // This should actually occur right before preCopyGC but
     // a spurious complaint about setObsolete would occur.
     // The upshot is that objects coped by preCopyGC are not
     // subject to the sanity checking.
-    int order = VM_Interface.rendezvous(4900);
+    int order = Collection.rendezvous(4900);
     if (order == 1) {
-      VM_Interface.resetThreadCounter();
+      Scanning.resetThreadCounter();
       setGcStatus(GC_PROPER);    
     }
-    VM_Interface.rendezvous(4901);
+    Collection.rendezvous(4901);
 
     if (timekeeper) scanTime.start();
     processAllWork(); 
@@ -202,7 +203,7 @@ public abstract class StopTheWorldGC extends BasePlan
     } else {
       if (timekeeper) finalizeTime.start();
       if (designated) Finalizer.moveToFinalizable(); 
-      VM_Interface.rendezvous(4220);
+      Collection.rendezvous(4220);
       if (timekeeper) finalizeTime.stop();
     }
       
@@ -219,11 +220,9 @@ public abstract class StopTheWorldGC extends BasePlan
     }
 
     if (timekeeper) finishTime.start();
-    if (VM_Interface.GCSPY)
-      gcspyPreRelease();
+    if (Plan.WITH_GCSPY) gcspyPreRelease();
     release();
-    if (VM_Interface.GCSPY)
-      gcspyPostRelease();
+    if (Plan.WITH_GCSPY) gcspyPostRelease();
     if (timekeeper) finishTime.stop();
     if (timekeeper) Stats.endGC();
     if (timekeeper) printStats();
@@ -233,26 +232,26 @@ public abstract class StopTheWorldGC extends BasePlan
    * Prepare for a collection.
    */
   protected final void prepare() {
-    long start = VM_Interface.cycles();
-    int order = VM_Interface.rendezvous(4230);
+    long start = Statistics.cycles();
+    int order = Collection.rendezvous(4230);
     if (order == 1) {
       setGcStatus(GC_PREPARE);
       baseGlobalPrepare(start);
     }
-    VM_Interface.rendezvous(4240);
+    Collection.rendezvous(4240);
     if (order == 1)
       for (int i=0; i<planCount; i++) {
         Plan p = plans[i];
-        if (VM_Interface.isNonParticipating(p)) 
+        if (Collection.isNonParticipating(p)) 
           p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
-    VM_Interface.rendezvous(4250);
+    Collection.rendezvous(4250);
     if (Plan.MOVES_OBJECTS) {
-      VM_Interface.preCopyGCInstances();
-      VM_Interface.rendezvous(4260);
-      if (order == 1) VM_Interface.resetThreadCounter();
-      VM_Interface.rendezvous(4270);
+      Scanning.preCopyGCInstances();
+      Collection.rendezvous(4260);
+      if (order == 1) Scanning.resetThreadCounter();
+      Collection.rendezvous(4270);
     }
   }
 
@@ -313,11 +312,11 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   public final void baseThreadLocalPrepare(int order) {
     if (order == NON_PARTICIPANT) {
-      VM_Interface.prepareNonParticipating((Plan) this);  
+      Collection.prepareNonParticipating((Plan) this);  
     }
     else {
-      VM_Interface.prepareParticipating((Plan) this);  
-      VM_Interface.rendezvous(4260);
+      Collection.prepareParticipating((Plan) this);  
+      Collection.rendezvous(4260);
     }
     if (Options.verbose >= 4) Log.writeln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
@@ -328,13 +327,13 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   protected final void release() {
     if (Options.verbose >= 4) Log.writeln("  Preparing all collector threads for termination");
-    int order = VM_Interface.rendezvous(4270);
+    int order = Collection.rendezvous(4270);
     baseThreadLocalRelease(order);
     if (order == 1) {
       int count = 0;
       for (int i=0; i<planCount; i++) {
         Plan p = plans[i];
-        if (VM_Interface.isNonParticipating(p)) {
+        if (Collection.isNonParticipating(p)) {
           count++;
           ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
         }
@@ -344,12 +343,12 @@ public abstract class StopTheWorldGC extends BasePlan
         Log.writeln(" non-participating GC threads");
       }
     }
-    order = VM_Interface.rendezvous(4280);
+    order = Collection.rendezvous(4280);
     if (order == 1) {
       baseGlobalRelease();
       setGcStatus(NOT_IN_GC);    // GC is in progress until after release!
     }
-    VM_Interface.rendezvous(4290);
+    Collection.rendezvous(4290);
   }
 
   /**
@@ -426,7 +425,7 @@ public abstract class StopTheWorldGC extends BasePlan
                && values.isEmpty() && remset.isEmpty()));
 
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
-    VM_Interface.rendezvous(4300);
+    Collection.rendezvous(4300);
   }
 
   /**
@@ -447,8 +446,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param object The forwarded object to be scanned
    */
   protected void scanForwardedObject(Address object) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    Assert._assert(!Plan.MOVES_OBJECTS);
   }
 
   /**

@@ -4,13 +4,14 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -134,9 +135,9 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
     throws InlinePragma {
     if (testAndMark(object, markState)) {
       if (Plan.GATHER_MARK_CONS_STATS)
-	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
+	Plan.mark.inc(ObjectModel.getSizeWhenCopied(object));
       MarkSweepLocal.liveObject(object);
-      VM_Interface.getPlan().enqueue(object);
+      Plan.enqueue(object);
     }
     return object;
   }
@@ -163,9 +164,9 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
    */
   public final void initializeHeader(Address object) 
     throws InlinePragma {
-    Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    Word oldValue = ObjectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
-    VM_Interface.writeAvailableBitsWord(object, newValue);
+    ObjectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /**
@@ -179,10 +180,10 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
     throws InlinePragma {
     Word oldValue, markBit;
     do {
-      oldValue = VM_Interface.prepareAvailableBits(object);
+      oldValue = ObjectModel.prepareAvailableBits(object);
       markBit = oldValue.and(MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!VM_Interface.attemptAvailableBits(object, oldValue,
+    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
                                                 oldValue.xor(MARK_BIT_MASK)));
     return true;
   }
@@ -196,7 +197,7 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
    */
   private static boolean testMarkBit(Address object, Word value)
     throws InlinePragma {
-    return VM_Interface.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+    return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
 
   /**
@@ -205,9 +206,9 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
    * @param object The object whose mark bit is to be written
    */
   public void writeMarkBit(Address object) throws InlinePragma {
-    Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    Word oldValue = ObjectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
-    VM_Interface.writeAvailableBitsWord(object, newValue);
+    ObjectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /****************************************************************************

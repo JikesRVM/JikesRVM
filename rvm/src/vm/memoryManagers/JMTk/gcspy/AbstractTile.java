@@ -8,7 +8,8 @@
 
 package org.mmtk.vm.gcspy;
 
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This abstract class is the super-class for all tiles. In particular, it

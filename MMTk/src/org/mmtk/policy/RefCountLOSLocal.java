@@ -8,7 +8,6 @@ import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.heap.FreeListVMResource;
 import org.mmtk.utility.heap.MemoryResource;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

@@ -5,8 +5,6 @@
 
 package org.mmtk.utility.statistics;
 
-import org.mmtk.vm.VM_Interface;
-
 import org.vmmagic.pragma.*;
 
 /**

@@ -6,7 +6,7 @@
 package org.mmtk.utility.scan;
 
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -97,7 +97,7 @@ public final class MMType implements Constants, Uninterruptible {
    */
   int getReferences(Address object) throws InlinePragma {
     if (isReferenceArray)
-      return VM_Interface.getArrayLength(object);
+      return ObjectModel.getArrayLength(object);
     else
       return offsets.length;
   }

@@ -4,9 +4,10 @@
 //$Id$
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Statistics;
 
 import org.vmmagic.pragma.*;
 
@@ -87,8 +88,8 @@ public abstract class HeapGrowthManager implements Uninterruptible {
     if (initialHeapSize > maxHeapSize) 
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
-    if (VM_Interface.VerifyAssertions) sanityCheck();
-    endLastMajorGC = VM_Interface.cycles();
+    if (Assert.VERIFY_ASSERTIONS) sanityCheck();
+    endLastMajorGC = Statistics.cycles();
   }
 
   /**
@@ -139,7 +140,7 @@ public abstract class HeapGrowthManager implements Uninterruptible {
    * Reset timers used to compute gc load
    */
   public static void reset() {
-    endLastMajorGC = VM_Interface.cycles();
+    endLastMajorGC = Statistics.cycles();
     accumulatedGCTime = 0;
   }
 
@@ -173,8 +174,8 @@ public abstract class HeapGrowthManager implements Uninterruptible {
 
   private static double computeHeapChangeRatio(double liveRatio) {
     // (1) compute GC load.
-    long totalCycles = VM_Interface.cycles() - endLastMajorGC;
-    double totalTime = VM_Interface.cyclesToMillis(totalCycles);
+    long totalCycles = Statistics.cycles() - endLastMajorGC;
+    double totalTime = Statistics.cyclesToMillis(totalCycles);
     double gcLoad = accumulatedGCTime / totalTime;
 
     if (liveRatio > 1) {
@@ -192,12 +193,12 @@ public abstract class HeapGrowthManager implements Uninterruptible {
       }
       gcLoad = 1;
     }
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(liveRatio >= 0);
-    if (VM_Interface.VerifyAssertions && gcLoad < 0) {
+    Assert._assert(liveRatio >= 0);
+    if (Assert.VERIFY_ASSERTIONS && gcLoad < 0) {
       Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
       Log.write("\taccumulateGCTime was (ms) "); Log.writeln(accumulatedGCTime);
       Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);
-      VM_Interface._assert(false);
+      Assert._assert(false);
     }
     
     if (Options.verbose > 2) {
@@ -255,27 +256,26 @@ public abstract class HeapGrowthManager implements Uninterruptible {
   private static void sanityCheck() {
     // Check live ratio
     double[] liveRatio = function[0];
-    VM_Interface._assert(liveRatio[1] == 0);
-    VM_Interface._assert(liveRatio[liveRatio.length-1] == 1);
+    Assert._assert(liveRatio[1] == 0);
+    Assert._assert(liveRatio[liveRatio.length-1] == 1);
     for (int i=2; i<liveRatio.length; i++) {
-      VM_Interface._assert(liveRatio[i-1] < liveRatio[i]);
+      Assert._assert(liveRatio[i-1] < liveRatio[i]);
       for (int j=1; j<function.length; j++) {
-        VM_Interface._assert(function[j][i] >= 1 ||
-                             function[j][i] > liveRatio[i]);
+        Assert._assert(function[j][i] >= 1 || function[j][i] > liveRatio[i]);
       }
     }
 
     // Check GC load
-    VM_Interface._assert(function[1][0] == 0);
+    Assert._assert(function[1][0] == 0);
     int len = function.length;
-    VM_Interface._assert(function[len-1][0] == 1);
+    Assert._assert(function[len-1][0] == 1);
     for (int i=2; i<len; i++) {
-      VM_Interface._assert(function[i-1][0] < function[i][0]);
+      Assert._assert(function[i-1][0] < function[i][0]);
     }
 
     // Check that we have a rectangular matrix
     for (int i=1; i<function.length; i++) {
-      VM_Interface._assert(function[i-1].length == function[i].length);
+      Assert._assert(function[i-1].length == function[i].length);
     }
   }
 

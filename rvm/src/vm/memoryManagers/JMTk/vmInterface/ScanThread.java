@@ -5,7 +5,6 @@
 
 package org.mmtk.vm;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.deque.*;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
@@ -91,7 +90,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
   public static void scanThread(VM_Thread t, AddressDeque rootLocations, 
                                 AddressPairDeque codeLocations) {
         
-    Plan plan = VM_Interface.getPlan();
+    Plan plan = Plan.getInstance();
 
     if (VM.VerifyAssertions) {
       /* Currently we do not allow stacks to be moved.  If a stack

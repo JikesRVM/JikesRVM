@@ -8,9 +8,9 @@
 
 package org.mmtk.vm.gcspy;
 
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 
-
+import org.vmmagic.pragma.*;
 
 
 /**
@@ -59,8 +59,7 @@ public class Color
    * @param b blue component
    */
   public Color (short r, short g, short b) {    
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert((0 <= r) && (r <= 255) &&
+    Assert._assert((0 <= r) && (r <= 255) &&
 		           (0 <= g) && (g <= 255) &&
 		           (0 <= b) && (b <= 255));   
     this.r_ = r;

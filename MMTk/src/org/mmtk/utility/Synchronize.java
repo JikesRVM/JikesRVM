@@ -5,8 +5,6 @@
 
 package org.mmtk.utility;
 
-import org.mmtk.vm.VM_Interface;
-
 import org.vmmagic.pragma.*;
 
 /*

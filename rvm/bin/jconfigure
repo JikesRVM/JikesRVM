@@ -1335,27 +1335,6 @@ EOF
     #
     #    $RVM_ROOT/projects/myproject
 EOF
-    # collector specific classes
-    #
-    if (( $RVM_WITH_SEMI_SPACE )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semiSpace
-    elif (( $RVM_WITH_MARK_SWEEP )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/markSweep
-    elif (( $RVM_WITH_GEN_COPY )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
-    elif (( $RVM_WITH_GEN_MS )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
-    elif (( $RVM_WITH_GEN_RC )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genRC
-    elif (( $RVM_WITH_COPY_MS )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
-    elif (( $RVM_WITH_REF_COUNT )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
-    elif (( $RVM_WITH_GCTRACE )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/gcTrace
-    elif (( $RVM_WITH_NO_GC )); then
-        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
-    fi
 
     # GCSpy specific classes
     GCSPY_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
@@ -2920,7 +2899,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;
 	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;
 	[Lorg/mmtk/vm/SynchronizedCounter;
-	[Lorg/mmtk/plan/Plan;
+	[Lorg/mmtk/vm/Plan;
 	[Lorg/mmtk/utility/heap/VMResource;
 	[Lorg/mmtk/utility/heap/MemoryResource;
 	[Lorg/mmtk/utility/statistics/Stats;

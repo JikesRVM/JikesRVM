@@ -4,11 +4,11 @@
  */
 package org.mmtk.utility.alloc;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -293,8 +293,7 @@ public abstract class SegregatedFreeList extends Allocator
       cellCount++;
     }
 
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(!lastCell.isZero());
+    Assert._assert(!lastCell.isZero());
     return lastCell;
   }
 
@@ -418,7 +417,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getSizeClass(int bytes)
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert((bytes > 0) && (bytes <= 8192));
+    Assert._assert((bytes > 0) && (bytes <= 8192));
 
     int sz1 = bytes - 1;
 
@@ -466,7 +465,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getBaseCellSize(int sc) 
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert((sc >= 0) && (sc < SIZE_CLASSES));
+    Assert._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
     if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
       if (COMPACT_SIZE_CLASSES)
@@ -563,7 +562,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected final Address getFreeList(Address block) 
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(preserveFreeList());
+    Assert._assert(preserveFreeList());
     return BlockAllocator.getFreeListMeta(block);
   }
 
@@ -577,7 +576,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected final void setFreeList(Address block, Address cell)
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(preserveFreeList());
+    Assert._assert(preserveFreeList());
     BlockAllocator.setFreeListMeta(block, cell);
   }
 
@@ -593,7 +592,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   public static final void liveObject(Address object)
     throws InlinePragma {
-    liveAddress(VM_Interface.refToAddress(object), true);
+    liveAddress(ObjectModel.refToAddress(object), true);
   }
 
   /**
@@ -605,7 +604,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final void unsyncLiveObject(Address object)
     throws InlinePragma {
-    liveAddress(VM_Interface.refToAddress(object), false);
+    liveAddress(ObjectModel.refToAddress(object), false);
   }
 
   /**
@@ -635,7 +634,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final void deadObject(Address object)
     throws InlinePragma {
-    deadAddress(VM_Interface.refToAddress(object));
+    deadAddress(ObjectModel.refToAddress(object));
   }
 
   /**
@@ -690,7 +689,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected final boolean isEmpty(Address block,  Extent blockSize)
     throws InlinePragma {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(alignToLiveStride(block).EQ(block));
+    Assert._assert(alignToLiveStride(block).EQ(block));
     return isNonLive(block, block.add(blockSize));
   }
 

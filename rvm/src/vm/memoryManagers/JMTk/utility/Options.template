@@ -3,9 +3,10 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.plan.Plan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.Strings;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -150,16 +151,16 @@ $$$$ FOREACH OPTION VDATFILE
        FULL_NAME = filter_FULL_NAME(value);
           $$$$ ELSE
             $$$$ IF TYPE == int
-       FULL_NAME = filter_FULL_NAME(VM_Interface.primitiveParseInt(value));
+       FULL_NAME = filter_FULL_NAME(Strings.parseInt(value));
             $$$$ ELSE
               $$$$ IF TYPE == byte
-       FULL_NAME = filter_FULL_NAME((byte)VM_Interface.primitiveParseInt(value));
+       FULL_NAME = filter_FULL_NAME((byte)Strings.parseInt(value));
               $$$$ ELSE
                 $$$$ IF TYPE == double
-       FULL_NAME = filter_FULL_NAME(VM_Interface.primitiveParseFloat(value));
+       FULL_NAME = filter_FULL_NAME(Strings.parseFloat(value));
                 $$$$ ELSE
                   $$$$ IF TYPE == float
-       FULL_NAME = filter_FULL_NAME(VM_Interface.primitiveParseFloat(value));
+       FULL_NAME = filter_FULL_NAME(Strings.parseFloat(value));
                   $$$$ ELSE
        Hey! You tried to declare a value option of unrecognized type...fix it!
                   $$$$ END IF
@@ -252,7 +253,7 @@ $$$$ FOREACH OPTION VDATFILE
 $$$$ END FOREACH
 $$$$ END LOOP
 
-    VM_Interface.sysExit(1);
+    Assert.exit(1);
   }    
 
   // print the options values

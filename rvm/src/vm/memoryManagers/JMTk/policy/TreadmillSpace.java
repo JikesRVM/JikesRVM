@@ -6,8 +6,10 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Treadmill;
-import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
+import org.mmtk.vm.Plan;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -147,7 +149,7 @@ public final class TreadmillSpace implements Constants, Uninterruptible {
     throws InlinePragma {
     if (testAndMark(object, markState)) {
       internalMarkObject(object);
-      VM_Interface.getPlan().enqueue(object);
+      Plan.enqueue(object);
     }
     return object;
   }
@@ -173,7 +175,7 @@ public final class TreadmillSpace implements Constants, Uninterruptible {
    */
   private final void internalMarkObject(Address object) 
     throws InlinePragma {
-    Address cell = VM_Interface.objectStartRef(object);
+    Address cell = ObjectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
     tm.copy(node);
@@ -191,9 +193,9 @@ public final class TreadmillSpace implements Constants, Uninterruptible {
    */
   public final void initializeHeader(Address object) 
     throws InlinePragma {
-    Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    Word oldValue = ObjectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
-    VM_Interface.writeAvailableBitsWord(object, newValue);
+    ObjectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /**
@@ -207,10 +209,10 @@ public final class TreadmillSpace implements Constants, Uninterruptible {
     throws InlinePragma {
     Word oldValue, markBit;
     do {
-      oldValue = VM_Interface.prepareAvailableBits(object);
+      oldValue = ObjectModel.prepareAvailableBits(object);
       markBit = oldValue.and(MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!VM_Interface.attemptAvailableBits(object, oldValue,
+    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
                                                 oldValue.xor(MARK_BIT_MASK)));
     return true;
   }
@@ -224,7 +226,7 @@ public final class TreadmillSpace implements Constants, Uninterruptible {
    */
   static public boolean testMarkBit(Address object, Word value)
     throws InlinePragma {
-    return VM_Interface.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+    return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
 
  /****************************************************************************
