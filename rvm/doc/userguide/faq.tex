@@ -106,12 +106,12 @@ No. This project is no longer active or supported.
 
 \subsubsection{Can I get DejaVu?}
 
-Not yet.  The \xlink{DejaVu}{\DejavuURL} team hopes to 
-release some code shortly.
+No. This project is not supported. 
 
 \subsubsection{What happened to {\tt jdp}?}
 
-The jdp debugger has been deprecated.
+The jdp debugger has been deprecated.  See
+Section~\ref{section:debugging} for more details.
 
 \subsection{Building RVM}
 
@@ -153,15 +153,14 @@ it is run.
 \end{itemize}                
 
 \subsubsection{Which jikes should I use?}
-At Watson, we're currently using 
-\xlink{{\tt jikes}}{\jikesURL} v1.13 to compile the RVM source on
-both Linux and AIX\AIXTMFootnote.  We've had reports from users that
-v1.14 has problems 
-on Linux.  In order to build the {\tt rvmrt.jar} library, we applied 
-patch 62
-to the jikes build to fix a jikes scoping problem.
-We've had reports that v1.15 works.
-
+At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
+to compile the RVM source on both Linux and
+AIX\AIXTMFootnote. Previously we were using version 1.13. Version 1.14
+through 1.17 have been reported to not entirely work with Jikes
+RVM. In order to build the {\tt rvmrt.jar} library with jikes 1.13 ,
+we applied patch 62 to the jikes build to fix a jikes scoping
+problem.  Note that to use jikes version 1.18 with Jikes RVM you need
+to give it the command line argument {\tt -target 1.3}.
 
 \subsubsection{Has anybody thought about incremental boot image writing?}
 
@@ -209,8 +208,8 @@ No.  RVM relies on two compilers, and compiles all methods to native code.
 \subsubsection{Does RVM support JNI?}
 
 Most JNI functionality is supported. A few functions are not. 
-Some functions are supported on AIX\AIXTMFootnote,
-but not Linux.
+There are a few functions that are only supported on AIX\AIXTMFootnote
+and some other functions that are only supported on Linux/IA32.
 
 \subsubsection{Does RVM support user-defined class loaders?}
 
@@ -222,14 +221,16 @@ same name, but different definitions due to different classloaders.
 
 \subsubsection{Does RVM support the Java security model?} 
 
-No, Jikes RVM does not currently support the Java\trademark 2 security
-model.
+We believe we support it to the extent that the 
+\xlink{GNU Classpath}{\classpathURL}  
+libraries support it.
 
 \subsubsection{Does RVM support serialization?}
 
-Sort of.  RVM provides enough serialization support to run some codes.  
-However, serialization of classes in our class library may not match
-serialization as implemented in the Sun class library.
+We believe we support it to the extent that the 
+\xlink{GNU Classpath}{\classpathURL}  
+libraries support it. We have noticed that it sometimes doesn't
+entirely work exactly the same as in the Sun class library.
 
 \subsubsection{Does RVM enforce the Java Memory Model?}
 
@@ -249,13 +250,10 @@ kill" property.  However, there is a command-line option to enforce the
 property, which constrains the optimizations.
 \end{itemize}
 
-
 \subsubsection{Does RVM support zip files?}
 
-As of Jikes RVM v2.1.0, the RVM relies on the open-source
-\xlink{jazzlib}{\jazzlibURL}. 
-implementation of java.util.zip and java.util.jar.  These implementations
-are provided as part of the \xlink{GNU Classpath}{\classpathURL} project.
+As of Jikes RVM v2.1.0, we use the \xlink{GNU Classpath}{\classpathURL} 
+implementation of java.util.zip and java.util.jar. 
 
 \subsubsection{How do RVM's threads, Posix threads, and kernel
 threads relate to each other?}
@@ -339,10 +337,11 @@ will wait for a while, eventually declare the underlying pthread "out to
 lunch", and continue execution with the remaining pthreads.  Note that 
 JNI code is a GC safe point; non-malicious correct native code cannot
 perturb the Java heap without notifying the RVM through a JNI method
-invocation.  Hopefully the userguide will soon describe this in more
-detail.
+invocation.  Note that this premption mechanism is currently only
+implemented on AIX.
 
-See section~\ref{sec:threads} for more details on the thread system.
+See section~\ref{sec:threads} for more details on the thread system
+and section~\ref{section:jni} for more details on the jni implementation.
 
 \subsubsection{How do the various locking and synchronization mechanisms
 relate to each other?}
@@ -369,7 +368,7 @@ location.
 
 On PowerPC, the compilers implement prepare and attempt using the lwarx
 and stwcx instructions.  On IA32, the compilers rely on CMPXCHG with the
-LOCK prefix.
+LOCK prefix to implement attempt; prepare is a normal load instruction.
 \item [\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
 This class implements some useful common low-level synchronization
 sequences, such as fetch-and-add and test-and-set.  The VM\_Synchronization
@@ -409,9 +408,10 @@ No. There is nothing in RVM that remotely resembles HPI.
 
 \subsubsection{Does RVM run awt?}
 
-Not currently.  We've tried this recently; RVM does not currently provide
-all the JNI support needed for awt.  We have not looked into how difficult
-it would be to provide the missing JNI support.
+We believe we support it to the extent that the 
+\xlink{GNU Classpath}{\classpathURL}  
+libraries support it. The last time we tried it, classpath support was
+very incomplete. 
 
 \subsubsection{Can I run some standard library on RVM that is not included
 in rvmrt.jar?}
@@ -420,10 +420,8 @@ You can try.  Set your classpath to pick up the library you desire.
 
 \subsubsection{Why don't you use the GNU Classpath libraries?}
 
-There is effort underway outside of IBM to get the 
-\xlink{Classpath}{\classpathURL} libraries
-to work with Jikes RVM.   Check the mailing lists for the latest
-information on this topic.  Jikes RVM already uses the jazzlib jar file.
+As of version 2.2.0 we do. See section~\ref{section:libraries} for more
+details. 
 
 \subsection{Optimizing Compiler}
 
@@ -498,8 +496,8 @@ add phases to class
 \subsubsection{What if I want my pass to do inter-procedural analysis?}
 
 The normal RVM does not have a convenient entrypoint for IPA.  As Java is
-a dynamic language, the RVM continually compiles classes as they are
-loaded.  Each method is compiled individually.
+a dynamic language, the RVM continually compiles methods as they are
+invoked.  Each method is compiled individually.
 
 You can use the {\tt OptTestHarness} driver to define a set of classes. 
 This driver program loads a set of classes or methods defined on the
