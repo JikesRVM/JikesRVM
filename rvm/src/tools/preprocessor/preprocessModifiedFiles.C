@@ -68,6 +68,8 @@ int   Value[MAXNESTING];     // has current block at current nesting level evalu
 int   Unmatched[MAXNESTING]; // line number of currently active #if, #elif, or #else at each level
 int   PassLines;             // VV_TRUE --> pass lines through, VV_FALSE --> don't
 
+char *PutIntoPackage = NULL;
+
 // Forward references.
 //
 int  preprocess(char *srcFile, char *destinationFile);
@@ -148,6 +150,11 @@ main(int argc, char **argv)
          continue;
          }
          
+      if (strncmp(arg, "-package", 8) == 0) {
+	PutIntoPackage = strdup( (arg[8]=='=')? (char*)arg+9: (char*)++argv );
+	continue;
+      }
+
       fprintf(stderr, "%s: unrecognized argument: %s\n", Me, arg);
       exit(2);
       }
@@ -246,6 +253,10 @@ preprocess(char *srcFile, char *dstFile)
    SourceLine = 0;
    Nesting = 0;
    reviseState();
+
+   if (PutIntoPackage != NULL)
+     fprintf(fout, "\npackage %s;\n\n", PutIntoPackage);
+
    for (;;)
       {
       char line[MAXLINE];
@@ -444,41 +455,81 @@ scan(char *line, int *value)
    }
 
 // Evaluate <name> appearing in an `if' or `elif' directive.
-// Taken:    `//-#if <name>'
+// Taken:    `//-#if <conditional>'
 //                  ^cursor
-//    or:    `//-#elif <name>'
+//    or:    `//-#elif <conditional>'
 //                    ^cursor
-// Returned:  VV_TRUE  --> <name> is defined
-//            VV_FALSE --> <name> is undefined
+//		where conditional is name <&& name> <|| name>
+//			(!name toggles the sense)
+// Returned:  VV_TRUE  --> <conditional> is true
+//            VV_FALSE --> <conditional> is false
 //
+char *
+getToken(char **c)
+   {
+   char *start, *cursor;
+   cursor = *c;
+   while (*cursor == ' ' || *cursor == '\t')	// skip white space
+      ++cursor;
+   start = cursor;
+   while (*cursor != ' ' && *cursor != '\t' && *cursor != '\n' && *cursor != '\v' && *cursor != '\r' && *cursor != '&' && *cursor != '|')
+      ++cursor;
+   *c = cursor;
+   return start;
+   }
+
+int
+getBoolean(char **c)
+   {
+   char *cursor;
+   cursor = *c;
+   while (*cursor == ' ' || *cursor == '\t')	// skip white space
+      ++cursor;
+   *c = cursor;
+   return (cursor[0] == '|' && cursor[1] == '|') ||
+	  (cursor[0] == '&' && cursor[1] == '&');
+   }
+
 int 
 eval(char *cursor)
    {
-   while (*cursor == ' ' || *cursor == '\t')
-      ++cursor;
-
-   char *name = cursor;
-   
-   while (*cursor != ' ' && *cursor != '\t' && *cursor != '\n' && *cursor != '\v' && *cursor != '\r')
-      ++cursor;
-   
-   int len = cursor - name;
-   
-   if (len == 0)
-      {
-      fprintf(stderr, "%s: missing <name> in preprocessor directive at line %d of `%s'\n", Me, SourceLine, SourceName);
-      exit(1);
+   int match;
+   while ( 1 ) {
+      match = 0;
+      char *name = getToken( &cursor );
+      int toggle = 0;
+      if ( name[0] == '!' ) {
+         toggle = 1;
+         name++;
       }
-   
-   for (int i = 0; i < Directives; ++i)
-      {
-      char *directiveName = DirectiveName[i];
-      if (strlen(directiveName) == len && memcmp(directiveName, name, len) == 0)
-         return VV_TRUE;
+      int len = cursor - name;
+      if (len == 0)
+         {
+         fprintf(stderr, "%s: missing <name> in preprocessor directive at line %d of `%s'\n", Me, SourceLine, SourceName);
+         exit(1);
+         }
+      for (int i = 0; i < Directives; ++i)
+         {
+         char *directiveName = DirectiveName[i];
+         if (strlen(directiveName) == len &&
+		memcmp(directiveName, name, len) == 0)
+	   {
+              match = 1;
+	      break;
+	   }
       }
-
-   return VV_FALSE;
+      if ( toggle ) match = !match;
+      if ( !getBoolean( &cursor ) ) break;
+      if ( cursor[0] == '|' ) {
+	 if ( match ) return VV_TRUE;
+      } else {
+	 if ( !match ) return VV_FALSE;
+      }
+      cursor += 2;
    }
+   return match ? VV_TRUE : VV_FALSE;
+   }
+
 
 #ifdef __CYGWIN__
 // is a shell builtin, but doesn't seem to be in C lib.
