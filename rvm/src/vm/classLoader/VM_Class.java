@@ -1145,7 +1145,7 @@ public class VM_Class extends VM_Type
       // Should be ok to do here instead of in initialize, because
       // "new" will ensure that the class is instantiated before it 
       // creates an instance.
-      VM_ClassLoader.setFieldOffset(field, field.offset);
+      VM_TableBasedDynamicLinker.setFieldOffset(field, field.offset);
     }
 
     // record offsets of those instance fields that contain references
@@ -1184,7 +1184,7 @@ public class VM_Class extends VM_Type
       // Should be OK to do here instead of in initialize because 
       // "new" will ensure that the class is instantiated before 
       // it creates an instance
-      VM_ClassLoader.setMethodOffset(method, method.offset);
+      VM_TableBasedDynamicLinker.setMethodOffset(method, method.offset);
     }
 
     // RCGC: Determine if class is inherently acyclic
@@ -1339,11 +1339,11 @@ public class VM_Class extends VM_Type
       //
       for (int i = 0, n = staticFields.length; i < n; ++i) {
 	VM_Field field = staticFields[i];
-	VM_ClassLoader.setFieldOffset(field, field.getOffset());
+	VM_TableBasedDynamicLinker.setFieldOffset(field, field.getOffset());
       }
       for (int i = 0, n = staticMethods.length; i < n; ++i) {
 	VM_Method method = staticMethods[i];
-	VM_ClassLoader.setMethodOffset(method, method.getOffset());
+	VM_TableBasedDynamicLinker.setMethodOffset(method, method.getOffset());
       }
       state = CLASS_INITIALIZED; 
     } else {
@@ -1381,11 +1381,11 @@ public class VM_Class extends VM_Type
       // into a deadlock if the program has cyclic clinits.
       for (int i = 0, n = staticFields.length; i < n; ++i) {
 	VM_Field field = staticFields[i];
-	VM_ClassLoader.setFieldOffset(field, field.getOffset());
+	VM_TableBasedDynamicLinker.setFieldOffset(field, field.getOffset());
       }
       for (int i = 0, n = staticMethods.length; i < n; ++i) {
 	VM_Method method = staticMethods[i];
-	VM_ClassLoader.setMethodOffset(method, method.getOffset());
+	VM_TableBasedDynamicLinker.setMethodOffset(method, method.getOffset());
       }
       return;
     }
@@ -1424,11 +1424,11 @@ public class VM_Class extends VM_Type
     //
     for (int i = 0, n = staticFields.length; i < n; ++i) {
       VM_Field field = staticFields[i];
-      VM_ClassLoader.setFieldOffset(field, field.getOffset());
+      VM_TableBasedDynamicLinker.setFieldOffset(field, field.getOffset());
     }
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
       VM_Method method = staticMethods[i];
-      VM_ClassLoader.setMethodOffset(method, method.getOffset());
+      VM_TableBasedDynamicLinker.setMethodOffset(method, method.getOffset());
     }
 
     // report that a class is about to be marked initialized to 

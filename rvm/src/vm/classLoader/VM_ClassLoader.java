@@ -173,8 +173,7 @@ public class VM_ClassLoader
 
     // keep size of co-indexed array in pace with dictionary
     //
-    if (fieldId >= fieldOffsets.length)
-      fieldOffsets = growArray(fieldOffsets, fieldId << 1); // grow array by 2x in anticipation of more entries being added
+    VM_TableBasedDynamicLinker.ensureFieldCapacity(fieldId);
 
     return fieldId;
   }
@@ -192,28 +191,6 @@ public class VM_ClassLoader
     VM_InterfaceMethodSignature key = new VM_InterfaceMethodSignature(interfaceMethodName, interfaceMethodDescriptor);
     int id = VM_InterfaceMethodSignatureDictionary.findOrCreateId(key, UNRESOLVED_INTERFACE_METHOD_OFFSET);
     return id;
-  }
-
-  /**
-   * Get offset of field within jtoc or instance object, 
-   * for use by table-driven dynamic linking.
-   * @param fieldId field dictionary id
-   * @return field offset (a value of NEEDS_DYNAMIC_LINK means field hasn't 
-   * been resolved yet or class initializer hasn't been run)
-   * @see VM_FieldDictionary, @see VM_Field.getOffset()
-   */ 
-  static int getFieldOffset(int fieldId) {
-    return fieldOffsets[fieldId];
-  }
-
-  /**
-   * NOTE: This value is used by the table-based dynamic linking.
-   * A field's offset should not be set to valid until references to
-   * that field no longer require any class loading action to be performed.
-   */ 
-  static void setFieldOffset(VM_Field field, int offset) {
-    if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
-    fieldOffsets[field.getDictionaryId()] = offset;
   }
 
   /**
@@ -256,35 +233,9 @@ public class VM_ClassLoader
 
     // keep size of co-indexed array in pace with dictionary
     //
-    if (methodId >= methodOffsets.length)
-      // grow array by 2x in anticipation of more entries being added
-      methodOffsets = growArray(methodOffsets, methodId << 1); 
+    VM_TableBasedDynamicLinker.ensureMethodCapacity(methodId);
 
     return methodId;
-  }
-
-  /**
-   * Get offset of method within jtoc or tib, for use by 
-   * opt compiler's dynamic linker.
-   * @param methodId method dictionary id
-   * @return method offset (a value of NEEDS_DYNAMIC_LINK means method 
-   * hasn't been resolved yet or class initializer hasn't been run)
-   * @see VM_MethodDictionary
-   * @see VM_Method.getOffset()
-   */
-  static int getMethodOffset(int methodId) {
-    return methodOffsets[methodId];
-  }
-
-  /**
-   * NOTE: This value is used by the table-driven dynamic linker.
-   * A method's offset should not be set to valid until we are positive that
-   * a compiled method will be available at that offset before the offset
-   * could be read/used by any thread.
-   */
-  static void setMethodOffset(VM_Method method, int offset) {
-    if (VM.VerifyAssertions) VM.assert(offset != NEEDS_DYNAMIC_LINK);
-    methodOffsets[method.getDictionaryId()] = offset;
   }
 
   public static void loadLibrary(String libname) {
@@ -354,20 +305,6 @@ public class VM_ClassLoader
   static VM_Atom arrayNullCheckAttributeName;         // "ArrayNullCheckAttribute"
 
   /**
-   * Offsets of fields and methods of java classes that have been encountered 
-   * so far.
-   * Entries in these arrays are co-indexed with corresponding entries in
-   * VM_FieldDictionary and VM_MethodDictionary. Offsets are with respect to
-   * jtoc, object instance, or tib, as appropriate. 
-   * A value of NEEDS_DYNAMIC_LINK
-   * means the field or method hasn't been resolved yet or class initializer 
-   * hasn't been run.
-   * This information is maintained for use by table-based dynamic linker.
-   */ 
-  private static int[] fieldOffsets;
-  private static int[] methodOffsets;
-
-  /**
    * Dynamic libraries for native code
    * Note: this is static for now, but it needs to be a list per class loader
    */
@@ -418,9 +355,6 @@ public class VM_ClassLoader
     VM_MethodDictionary.init();
     if (VM.BuildForIMTInterfaceInvocation)
       VM_InterfaceMethodSignatureDictionary.init();
-
-    fieldOffsets  = new int[0];
-    methodOffsets = new int[0];
 
     VM_CompiledMethods.init();
     dynamicLibraries = new VM_DynamicLibrary[0];
@@ -607,22 +541,6 @@ public class VM_ClassLoader
     return null;
   }
 
-  /**
-   * Expand an array.
-   */ 
-  private static int[] growArray(int[] array, int newLength) {
-    // assertion: no special array initialization needed (default 0 is ok)
-    if (VM.VerifyAssertions) VM.assert(NEEDS_DYNAMIC_LINK == 0); 
-    int[] newarray = VM_RuntimeStructures.newContiguousIntArray(newLength);
-    for (int i = 0, n = array.length; i < n; ++i)
-      newarray[i] = array[i];
-
-    VM_Magic.sync();
-    return newarray;
-  }
-
-  // Expand an array.
-  //
 
   /**
    * Create id for use by C signal handler as placeholder to mark stackframe

@@ -381,9 +381,9 @@ class VM_Entrypoints implements VM_Constants {
       unimplementedBytecodeOffset = VM.getMember("LVM_Runtime;", "unimplementedBytecode", "(I)V").getOffset();
 
       resolveMethodMethod     = (VM_Method)VM.getMember("LVM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
-      methodOffsetsField      = (VM_Field)VM.getMember("LVM_ClassLoader;", "methodOffsets", "[I");   
+      methodOffsetsField      = (VM_Field)VM.getMember("LVM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
       resolveFieldMethod      = (VM_Method)VM.getMember("LVM_TableBasedDynamicLinker;", "resolveField", "(I)V");
-      fieldOffsetsField       = (VM_Field)VM.getMember("LVM_ClassLoader;", "fieldOffsets", "[I");    
+      fieldOffsetsField       = (VM_Field)VM.getMember("LVM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
 //-#if RVM_FOR_POWERPC // baseline compiler entrypoints
       invokeInterfaceOffset   = VM.getMember("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)[I").getOffset();
       findItableMethod        = (VM_Method)VM.getMember("LVM_Runtime;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
