@@ -1189,7 +1189,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // create "type information block" and initialize its first four words
     //
-    typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
+    if (isInterface()) {
+      // the TIB for an Interface doesn't need space for IMT and VTable; will never be used.
+      typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_INTERFACE_METHOD_INDEX);
+    } else {
+      typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
+    }
+      
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     // Initialize dynamic type checking data structures
     typeInformationBlock[TIB_TYPE_INDEX] = this;
@@ -1197,11 +1203,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
     // (element type for arrays not used classes)
 
-    // lay out virtual method section of type information block 
-    // (to be filled in by instantiate)
-    for (int i = 0, n = virtualMethods.length; i < n; ++i) {
-      VM_Method method = virtualMethods[i];
-      method.offset = (TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_ADDRESS;
+    if (!isInterface()) {
+      // lay out virtual method section of type information block 
+      // (to be filled in by instantiate)
+      for (int i = 0, n = virtualMethods.length; i < n; ++i) {
+        VM_Method method = virtualMethods[i];
+        method.offset = (TIB_FIRST_VIRTUAL_METHOD_INDEX + i) << LOG_BYTES_IN_ADDRESS;
+      }
     }
 
     // RCGC: Determine if class is inherently acyclic
@@ -1315,31 +1323,33 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       }
     }
 
-    // Initialize slots in the TIB for virtual methods
-    for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
-           n = virtualMethods.length; i < n; ++i, ++slot) {
-      VM_Method method = virtualMethods[i];
-      if (method.isPrivate() && method.getDeclaringClass() != this) {
-        typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB
-      } else {
-        typeInformationBlock[slot] = method.getCurrentInstructions();
+    if (!isInterface()) {
+      // Initialize slots in the TIB for virtual methods
+      for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
+             n = virtualMethods.length; i < n; ++i, ++slot) {
+        VM_Method method = virtualMethods[i];
+        if (method.isPrivate() && method.getDeclaringClass() != this) {
+          typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB
+        } else {
+          typeInformationBlock[slot] = method.getCurrentInstructions();
+        }
       }
-    }
 
-    // compile <init> methods and put their addresses into jtoc
-    for (int i = 0, n = constructorMethods.length; i < n; ++i) {
-      VM_Method method = constructorMethods[i];
-      VM_Statics.setSlotContents(method.getOffsetAsInt() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
-    }
-
-    // compile static methods and put their addresses into jtoc
-    for (int i = 0, n = staticMethods.length; i < n; ++i) {
-      // don't bother compiling <clinit> here;
-      // compile it right before we invoke it in initialize.
-      // This also avoids putting <clinit>s in the bootimage.
-      VM_Method method = staticMethods[i];
-      if (!method.isClassInitializer()) {
+      // compile <init> methods and put their addresses into jtoc
+      for (int i = 0, n = constructorMethods.length; i < n; ++i) {
+        VM_Method method = constructorMethods[i];
         VM_Statics.setSlotContents(method.getOffsetAsInt() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
+      }
+
+      // compile static methods and put their addresses into jtoc
+      for (int i = 0, n = staticMethods.length; i < n; ++i) {
+        // don't bother compiling <clinit> here;
+        // compile it right before we invoke it in initialize.
+        // This also avoids putting <clinit>s in the bootimage.
+        VM_Method method = staticMethods[i];
+        if (!method.isClassInitializer()) {
+          VM_Statics.setSlotContents(method.getOffsetAsInt() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
+        }
       }
     }
 
