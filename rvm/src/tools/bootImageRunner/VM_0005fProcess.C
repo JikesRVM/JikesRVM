@@ -164,7 +164,10 @@ static void closePipe(int descriptors[])
 // (from Runtime.exec()) if we can't change into the
 // working directory the caller specified.
 // Instead, we'll just return this value as the exit code.
-const int EXIT_STATUS_BAD_WORKING_DIR = 120;
+// See the definition (in VM.java) of VM.exitStatusJNITrouble; if you change
+// this value, change it there too.
+const int EXIT_STATUS_JNI_TROUBLE = 98;
+const int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
 
 //////////////////////////////////////////////////////////////
 // Implementation of native methods
