@@ -15,16 +15,30 @@
 #    Converted to Bash.
 
 # Sanity checks
+# What is our name?
+# Bash internal shorthand that works like the "basename" command.
+ME="${0##*/}"
+
 # Where are we?
-# 
+# Bash internal shorthand that works like the "dirname" command.
 mydir="${0%/*}"
 
-## Load aux. functions
-. $mydir/sanity-envars.bash
+if [[ $mydir && $mydir != $ME ]]; then
+    # Where to find auxiliary programs:
+    bin_dir="${mydir}"
+else
+    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
+fi
 
+sanity_env="${bin_dir}/sanity-envars.bash"
+[[ -f $sanity_env ]] || croak_nonusage "Internal error: Cannot find the file sanity-envars.bash ($sanity_env); something is badly broken."
+[[ -r $sanity_env ]] || croak_nonusage "Internal error: Cannot read the file sanity-envars.bash ($sanity_env); something is badly broken.  You might check the file permissions or user id you used to extract Jikes RVM."
+. "${sanity_env}";		# sets ME, defines checkenv()
 
 checkenv HOME
 checkenv RVM_ROOT
+# We reset bin_dir so that we're sure to have an absolute pathname.
+bin_dir="${RVM_ROOT}/rvm/bin";
 checkenv RVM_BUILD
 
 # TODO: This portion of the gdbrvm should be consolidated with the originally-identical part of runrvm.
