@@ -107,7 +107,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param registers a place to store information about temp registers
    */
   final static UseRecordSet replaceLoads (OPT_IR ir, OPT_DF_Solution available, 
-                                   HashMap registers) {
+                                          HashMap registers) {
     UseRecordSet result = new UseRecordSet();
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
@@ -202,7 +202,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param registers mapping from valueNumber -> temporary register
    */
   final static void replaceDefs (OPT_IR ir, UseRecordSet UseRepSet, 
-                          HashMap registers) {
+                                 HashMap registers) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
@@ -308,8 +308,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param type the type to store in the new register
    */
   static OPT_Register findOrCreateRegister (Object heapType, int valueNumber, 
-                                     HashMap registers, 
-                                     OPT_RegisterPool pool, VM_Type type) {
+                                            HashMap registers, 
+                                            OPT_RegisterPool pool, VM_Type type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -332,7 +332,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param type the type to store in the new register
    */
   static OPT_Register findOrCreateRegister (Object heapType, int v1, int v2, 
-                                     HashMap registers, OPT_RegisterPool pool, VM_Type type) {
+                                            HashMap registers, OPT_RegisterPool pool, VM_Type type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -420,72 +420,76 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     // store for each type. Then, when we see a second appearance,
     // if we've previously seen a load, then add this type to the
     // result set.
-    for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-         e.hasMoreElements();) {
-      OPT_Instruction s = e.next();
-      switch (s.operator().opcode) {
-        case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
-          OPT_LocationOperand loc = GetField.getLocation(s);
-          VM_Field f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          if (seenStore.contains(f))
-            resultSet.add(f);
-          seenLoad.add(f);
-          break;
-        case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
-          loc = PutField.getLocation(s);
-          f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          seenStore.add(f);
-          break;
-        case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
-          loc = GetStatic.getLocation(s);
-          f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          if (seenStore.contains(f))
-            resultSet.add(f);
-          seenLoad.add(f);
-          break;
-        case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
-          loc = PutStatic.getLocation(s);
-          f = loc.field;
-          if (seenLoad.contains(f))
-            resultSet.add(f);
-          seenStore.add(f);
-          break;
-        case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
-        case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
-        case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
-          VM_Type type = ALoad.getArray(s).getType();
+    for (Enumeration be = ir.getBasicBlocks(); be.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)be.nextElement();
+      if (!ir.options.FREQ_FOCUS_EFFORT || !bb.getInfrequent()) {
+        for (OPT_InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
+          OPT_Instruction s = e.next();
+          switch (s.operator().opcode) {
+            case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
+              OPT_LocationOperand loc = GetField.getLocation(s);
+              VM_Field f = loc.field;
+              if (seenLoad.contains(f))
+                resultSet.add(f);
+              if (seenStore.contains(f))
+                resultSet.add(f);
+              seenLoad.add(f);
+              break;
+            case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+              loc = PutField.getLocation(s);
+              f = loc.field;
+              if (seenLoad.contains(f))
+                resultSet.add(f);
+              seenStore.add(f);
+              break;
+            case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+              loc = GetStatic.getLocation(s);
+              f = loc.field;
+              if (seenLoad.contains(f))
+                resultSet.add(f);
+              if (seenStore.contains(f))
+                resultSet.add(f);
+              seenLoad.add(f);
+              break;
+            case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+              loc = PutStatic.getLocation(s);
+              f = loc.field;
+              if (seenLoad.contains(f))
+                resultSet.add(f);
+              seenStore.add(f);
+              break;
+            case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
+            case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
+            case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
+              VM_Type type = ALoad.getArray(s).getType();
 
-          if (type.isArrayType()) {
-            if (!type.asArray().getElementType().isPrimitiveType())
-              type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-            if (seenLoad.contains(type))
-              resultSet.add(type);
-            if (seenStore.contains(type))
-              resultSet.add(type);
-            seenLoad.add(type);
-          }
-          break;
-        case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
-        case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
-        case REF_ASTORE_opcode:case BYTE_ASTORE_opcode:
-        case SHORT_ASTORE_opcode:
-          type = AStore.getArray(s).getType();
+              if (type.isArrayType()) {
+                if (!type.asArray().getElementType().isPrimitiveType())
+                  type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                if (seenLoad.contains(type))
+                  resultSet.add(type);
+                if (seenStore.contains(type))
+                  resultSet.add(type);
+                seenLoad.add(type);
+              }
+              break;
+            case INT_ASTORE_opcode:case LONG_ASTORE_opcode:
+            case FLOAT_ASTORE_opcode:case DOUBLE_ASTORE_opcode:
+            case REF_ASTORE_opcode:case BYTE_ASTORE_opcode:
+            case SHORT_ASTORE_opcode:
+              type = AStore.getArray(s).getType();
 
-          if (type.isArrayType()) {
-            if (!type.asArray().getElementType().isPrimitiveType())
-              type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-            if (seenLoad.contains(type))
-              resultSet.add(type);
-            seenStore.add(type);
+              if (type.isArrayType()) {
+                if (!type.asArray().getElementType().isPrimitiveType())
+                  type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                if (seenLoad.contains(type))
+                  resultSet.add(type);
+                seenStore.add(type);
+              }
+            default:
+              break;
           }
-        default:
-          break;
+        }
       }
     }
     return  resultSet;
