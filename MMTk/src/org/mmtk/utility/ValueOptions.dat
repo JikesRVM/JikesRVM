@@ -27,33 +27,32 @@ if (val < 0) VM_Interface.sysFail("Unreasonable verbosity level " + val);
 
 
 V metaDataPages int 128 metadata_limit
-Trigger a GC if the meta data volume grows to this limit
+Trigger a GC if the meta data volume grows to this limit (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + val); \
 val = val2;
 
 
 V cycleMetaDataPages int MAX_INT cycle_metadata_limit
-Trigger cycle detection if the meta data volume grows to this limit
+Trigger cycle detection if the meta data volume grows to this limit (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + val); \
 val = val2;
 
 
 V cycleDetectionPages int 256 cycle_detection_limit
-Trigger cycle detection if the space available falls below this threshold
+Trigger cycle detection if the space available falls below this threshold (KB)
 int val2 = Conversions.bytesToPagesUp(val<<10); \
 if (val2 <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + val); \
 val = val2;
 
 
 V gcTimeCap int MAX_INT time_cap
-Try to limit reference counting collections to this number of milliseconds
+Try to limit reference counting collections to this time cap (ms)
 if (val <= 0) VM_Interface.sysFail("Unreasonable time cap " + val);
 
 
 V stressTest int MAX_INT stress
 Perform GCs very frequently ??????
 val = 1<<val;
-
 
