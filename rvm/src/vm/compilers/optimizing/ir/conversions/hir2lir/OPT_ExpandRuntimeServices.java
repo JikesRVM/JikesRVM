@@ -196,7 +196,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 
       case NEWARRAY_UNRESOLVED_opcode:
 	{
-	  int typeRefId = New.getType(inst).type.getDictionaryId();
+	  int typeRefId = NewArray.getType(inst).type.getDictionaryId();
 	  OPT_Operand numberElements = NewArray.getClearSize(inst);
 	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null, 
 		       OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedNewArrayMethod), 
