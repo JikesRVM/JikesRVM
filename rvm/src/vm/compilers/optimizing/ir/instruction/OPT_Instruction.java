@@ -1118,12 +1118,10 @@ public final class OPT_Instruction
   }
 
   /**
-   * NOTE: ONLY FOR USE ON MIR INSTRUCTIONS!!!!
    * Record that this instruction is not a PEI. 
    * Leave GCPoint status (if any) unchanged.
    */
   public void markAsNonPEI() {
-    if (VM.VerifyAssertions) VM.assert(getOpcode() > MIR_START_opcode);
     operatorInfo &= ~OI_PEI;
     operatorInfo |= OI_PEI_VALID;
   }
