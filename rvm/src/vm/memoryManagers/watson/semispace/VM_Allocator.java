@@ -509,12 +509,9 @@ public class VM_Allocator
     // if compiled for processor local "chunks", assume size is "small" and attempt to
     // allocate locally, if the local allocation fails, call the heavyweight allocate
     if (PROCESSOR_LOCAL_ALLOCATE == true) {
-      VM_Processor st = VM_Processor.getCurrentProcessor();
-
-      int new_current = st.localCurrentAddress + size;
-  	  
-      if ( new_current <= st.localEndAddress ) {
-	st.localCurrentAddress = new_current;   // increment allocation pointer
+      int new_current = VM_Processor.getCurrentProcessor().localCurrentAddress + size;
+      if ( new_current <= VM_Processor.getCurrentProcessor().localEndAddress ) {
+	VM_Processor.getCurrentProcessor().localCurrentAddress = new_current;   // increment allocation pointer
   	// note - ref for an object is 4 bytes beyond the object
   	new_ref = VM_Magic.addressAsObject(new_current - (SCALAR_HEADER_SIZE + OBJECT_HEADER_OFFSET));
   	VM_Magic.setObjectAtOffset(new_ref, OBJECT_TIB_OFFSET, tib);
@@ -632,11 +629,10 @@ public class VM_Allocator
      // allocate locally, if the local allocation fails, call the heavyweight allocate
      if (PROCESSOR_LOCAL_ALLOCATE == true) {
        if (size <= SMALL_SPACE_MAX) {
-  	 VM_Processor st = VM_Processor.getCurrentProcessor();
-  	 int new_current = st.localCurrentAddress + size;
-  	 if ( new_current <= st.localEndAddress ) {
-  	   objAddress = VM_Magic.addressAsObject(st.localCurrentAddress - OBJECT_HEADER_OFFSET);  // ref for new array
-  	   st.localCurrentAddress = new_current;            // increment processor allocation pointer
+  	 int new_current = VM_Processor.getCurrentProcessor().localCurrentAddress + size;
+  	 if ( new_current <= VM_Processor.getCurrentProcessor().localEndAddress ) {
+  	   objAddress = VM_Magic.addressAsObject(VM_Processor.getCurrentProcessor().localCurrentAddress - OBJECT_HEADER_OFFSET);  // ref for new array
+  	   VM_Processor.getCurrentProcessor().localCurrentAddress = new_current;            // increment processor allocation pointer
   	   // set tib field in header
   	   VM_Magic.setObjectAtOffset(objAddress, OBJECT_TIB_OFFSET, tib);
   	   // set status field, only if marking with 0 (ie new object is unmarked == 1)
