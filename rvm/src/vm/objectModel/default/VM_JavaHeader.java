@@ -75,7 +75,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   private static final int STATUS_OFFSET  = -8;
   private static final int TIB_OFFSET     = -12;
 
-  private static final int AVAILABLE_BITS_OFFSET = VM.LITTLE_ENDIAN ? (STATUS_OFFSET) : (STATUS_OFFSET + 3);
+  private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + 3);
 
   /*
    * Stuff for 10 bit header hash code in header

@@ -30,7 +30,7 @@ public abstract class VM_Configuration {
 	  false;
 	//-#endif
 
-  public static final boolean LITTLE_ENDIAN = BuildForIA32;
+  public static final boolean LittleEndian = BuildForIA32;
 
   public static final boolean BuildForAix =
 	//-#if RVM_FOR_AIX

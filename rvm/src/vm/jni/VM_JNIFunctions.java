@@ -59,8 +59,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   // one message for each JNI function called from native
   final static boolean traceJNI = false;
 
-  private static final boolean LittleEndian = VM.BuildForIA32;
-
   /**
    * GetVersion: the version of the JNI
    * @param a JREF index for the JNI environment object
@@ -4883,7 +4881,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5044,7 +5042,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5476,7 +5474,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5528,7 +5526,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5590,7 +5588,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5641,7 +5639,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5691,7 +5689,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5741,7 +5739,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5792,7 +5790,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5841,7 +5839,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set callers isCopy boolean to true, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00) | 0x00000001));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff) | 0x01000000));
@@ -5890,7 +5888,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
         for (int i=0; i<size; i+= 4) {
           VM_Address addr = copyBufferAddress.add(i);
           int data = VM_Magic.getMemoryInt(addr);
-          if (LittleEndian) {
+          if (VM.LittleEndian) {
             if (i<size) 
               sourceArray[i]   = ((data)        & 0x000000ff) == 0 ? false : true;
             if (i+1<size) 		    	         
@@ -6980,7 +6978,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // set Copy flag to false, if it's a valid address
       if (!isCopyAddress.isZero()) {
         int temp = VM_Magic.getMemoryInt(isCopyAddress);
-        if (LittleEndian) {
+        if (VM.LittleEndian) {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0xffffff00)));
         } else {
           VM_Magic.setMemoryInt(isCopyAddress, ((temp & 0x00ffffff)));

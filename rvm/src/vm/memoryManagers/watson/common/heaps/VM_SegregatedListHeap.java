@@ -278,13 +278,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	// get word with proper byte from map
 	temp1 = VM_Magic.prepare(this_block.mark, ((slotndx>>2)<<2));
 	if (this_block.mark[slotndx] != 0) return false;
-	//-#if RVM_FOR_IA32    
-	int index = slotndx%4; // get byte in word - little Endian
-	//-#else 
-	int index = 3 - (slotndx%4); // get byte in word - big Endian
-	//-#endif
+	int index = VM.LittleEndian ? slotndx%4 : 3 - (slotndx%4); 
 	int mask = tbyte << (index * 8); // convert to bit in word
-	temp  = temp1 | mask;        // merge into existing word
+	temp  = temp1 | mask;            // merge into existing word
       }  while (!VM_Magic.attempt(this_block.mark, ((slotndx>>2)<<2), temp1, temp));
     }
 

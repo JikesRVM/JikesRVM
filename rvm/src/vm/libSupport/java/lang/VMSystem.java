@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_Statics;
 import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Class;
@@ -47,11 +48,7 @@ final class VMSystem {
   }
 
   static boolean isWordsBigEndian() {
-    //-#if RVM_FOR_IA32
-    return true;
-    //-#else
-    return false;
-    //-#endif
+    return !VM.LittleEndian;
   }
 
   public static long currentTimeMillis() {

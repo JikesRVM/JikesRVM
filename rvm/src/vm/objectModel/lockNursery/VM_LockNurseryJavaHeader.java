@@ -41,7 +41,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
   private static final int SCALAR_PADDING_BYTES = 4;
 
   protected static final int TIB_OFFSET   = -8;
-  private static final int AVAILABLE_BITS_OFFSET = VM.LITTLE_ENDIAN ? (TIB_OFFSET) : (TIB_OFFSET + 3);
+  private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (TIB_OFFSET) : (TIB_OFFSET + 3);
 
   /** How many bits are allocated to a thin lock? */
   public static final int NUM_THIN_LOCK_BITS = 32;

@@ -310,14 +310,15 @@ public class VM_Statics implements VM_Constants {
    * Fetch contents of a slot-pair, as a long integer.
    */ 
   public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {	
-    //-#if RVM_FOR_IA32
-    long result = (((long) slots[slot+1]) << 32); // hi
-    result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
-    //-#else
-    long result = (((long) slots[slot]) << 32);   // hi
-    result |= ((long) slots[slot+1]) & 0xFFFFFFFFL; // lo
-    //-#endif
-    return result;
+    if (VM.LittleEndian) {
+      long result = (((long) slots[slot+1]) << 32); // hi
+      result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
+      return result;
+    } else {
+      long result = (((long) slots[slot]) << 32);     // hi
+      result |= ((long) slots[slot+1]) & 0xFFFFFFFFL; // lo
+      return result;
+    }
   }
 
   /**
@@ -345,13 +346,13 @@ public class VM_Statics implements VM_Constants {
    * Set contents of a slot, as a long integer.
    */
   public static void setSlotContents(int slot, long value) throws VM_PragmaUninterruptible {
-    //-#if RVM_FOR_IA32
-    slots[slot + 1] = (int)(value >>> 32); // hi
-    slots[slot    ] = (int)(value       ); // lo
-    //-#else
-    slots[slot    ] = (int)(value >>> 32); // hi
-    slots[slot + 1] = (int)(value       ); // lo
-    //-#endif
+    if (VM.LittleEndian) {
+      slots[slot + 1] = (int)(value >>> 32); // hi
+      slots[slot    ] = (int)(value       ); // lo
+    } else {
+      slots[slot    ] = (int)(value >>> 32); // hi
+      slots[slot + 1] = (int)(value       ); // lo
+    }
   }
 
   /**
