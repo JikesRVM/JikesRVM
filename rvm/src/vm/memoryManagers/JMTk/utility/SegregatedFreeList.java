@@ -133,7 +133,6 @@ public abstract class SegregatedFreeList extends Allocator
    */
   public final VM_Address alloc(boolean isScalar, int bytes, boolean inGC) 
     throws VM_PragmaInline {
-    if (Plan.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
     VM_Address cell = allocFast(isScalar, bytes, inGC);

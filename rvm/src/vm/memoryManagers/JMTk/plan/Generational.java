@@ -218,9 +218,9 @@ public abstract class Generational extends StopTheWorldGC
    */
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
     switch (allocator) {
-    case  NURSERY_SPACE: return nursery.alloc(isScalar, bytes);
+    case  NURSERY_SPACE: if (GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
+                         return nursery.alloc(isScalar, bytes);
     case   MATURE_SPACE: return matureAlloc(isScalar, bytes);
     case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
     case      LOS_SPACE: return los.alloc(isScalar, bytes);
@@ -269,8 +269,6 @@ public abstract class Generational extends StopTheWorldGC
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
     if (GATHER_MARK_CONS_STATS) {
-      cons.inc(bytes);
-      if (fullHeapGC) mark.inc(bytes);
       if (original.GE(NURSERY_START)) nurseryMark.inc(bytes);
     }
     return matureCopy(isScalar, bytes);

@@ -171,7 +171,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (GATHER_MARK_CONS_STATS) cons.inc(bytes);
     switch (allocator) {
     case       MS_SPACE: return ms.alloc(isScalar, bytes, false);
     case      LOS_SPACE: return los.alloc(isScalar, bytes);

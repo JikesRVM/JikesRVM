@@ -684,8 +684,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     VM_Address region;
     if (copy) {
       region = plan.allocCopy(from, bytes, scalar);
+      if (Plan.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
+
     } else {
       region = plan.alloc(bytes, scalar, allocator);
+      if (Plan.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
     }
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 

@@ -425,7 +425,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (GATHER_MARK_CONS_STATS) cons.inc(bytes);
     switch (allocator) {
     case  DEFAULT_SPACE: return ss.alloc(isScalar, bytes);
     case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
@@ -480,10 +479,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                     boolean isScalar) 
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
-    if (GATHER_MARK_CONS_STATS) {
-      cons.inc(bytes);
-      mark.inc(bytes);
-    }
+
     // Knock copied objects out of the object map so we can see what's left
     // (i.e. garbage) in fromspace after the collection.
     if (VM_Interface.GCSPY) 
