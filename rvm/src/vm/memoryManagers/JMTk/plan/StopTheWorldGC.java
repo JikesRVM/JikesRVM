@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
+import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -226,7 +227,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (order == 1)
       for (int i=0; i<planCount; i++) {
 	Plan p = plans[i];
-	if (VM_Interface.isNonParticipating(p))
+	if (VM_Interface.isNonParticipating(p)) 
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
@@ -301,8 +302,9 @@ public abstract class StopTheWorldGC extends BasePlan
    * caller's use of <code>rendezvous</code>.
    */
   public final void baseThreadLocalPrepare(int order) {
-    if (order == NON_PARTICIPANT)
+    if (order == NON_PARTICIPANT) {
       VM_Interface.prepareNonParticipating((Plan) this);  
+    }
     else {
       VM_Interface.prepareParticipating((Plan) this);  
       VM_Interface.rendezvous(4260);

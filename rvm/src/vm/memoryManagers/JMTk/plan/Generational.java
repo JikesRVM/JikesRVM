@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
+import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
@@ -433,6 +434,10 @@ public abstract class Generational extends StopTheWorldGC
       if (Plan.usesLOS) los.prepare();
       remset.resetLocal();  // we can throw away remsets for a full heap GC
     }
+    else {
+      if (count == NON_PARTICIPANT)
+	flushRememberedSets();
+    }
   }
 
   /**
@@ -440,14 +445,6 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected final void flushRememberedSets() {
     remset.flushLocal();
-  }
-
-  /**
-   * We reset the state for a GC thread that is not participating in
-   * this GC
-   */
-  final public void prepareNonParticipating() {
-    threadLocalPrepare(NON_PARTICIPANT);
   }
 
   abstract void threadLocalMatureRelease(int count);

@@ -442,14 +442,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   /**
-   * We reset the state for a GC thread that is not participating in
-   * this GC
-   */
-  public final void prepareNonParticipating() {
-    threadLocalPrepare(NON_PARTICIPANT);
-  }
-
-  /**
    * Perform operations with <i>thread-local</i> scope to clean up at
    * the end of a collection.  This is called by
    * <code>StopTheWorld</code>, which will ensure that <i>all threads</i>
