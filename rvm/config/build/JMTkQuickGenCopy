@@ -1,0 +1,3 @@
+   . $1/JMTkFastGenCopy
+   OPT_ARGS="-X:bc:include=JMTk"
+
