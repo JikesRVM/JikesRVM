@@ -191,7 +191,6 @@ public class VM_StackTrace implements VM_Constants {
       trigger.tallyOutOfMemoryError();
       printDegradingToVMSysWrite(out, trigger);
     } catch (Throwable e) {
-      e.printStackTrace();
       trigger.tallyWeirdError();
       VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* random exception while displaying the stack trace.  I can't go on; this is too strange.");
     }
