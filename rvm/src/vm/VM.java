@@ -267,11 +267,14 @@ public class VM extends VM_Properties implements VM_Constants,
     // and thread switching should be enabled.
     if (VM.verboseClassLoading) VM.sysWrite("[VM booted]\n");
 
-    // Do this late in boot process to allow compilers to responds to command line
-    // arguments before VM exits.  This supports the following useful idiom:
-    // rvm -X:irc 
+    /* Do this late in boot process to allow compilers to responds to command
+       line arguments before VM exits.  This supports the following useful
+       idiom: 
+       rvm -X:irc[:help] */
     if (applicationArguments.length == 0) {  
-      VM.sysWrite("vm: please specify a class to execute\n");
+      VM.sysWrite("vm: Please specify a class to execute.\n");
+      VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
+      
       VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
     // Create main thread.
