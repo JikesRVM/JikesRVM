@@ -164,25 +164,19 @@ enum scan_token {
 enum scan_token scan(const char *srcFile, char *line, int *value);
 
 
-// These work only under GNU C, not under GNU C++.  I do not know why.
-// #ifdef __GNUC__
-// #define UNUSED __attribute__((unused)) 
-//#endif // __GNUC__
-// #define UNUSED_DEF_ARG __attribute__((unused))
-// // :#define UNUSED_DECL_ARG __attribute__((unused))
-#define UNUSED_DEF_ARG
-#define UNUSED_DECL_ARG
+#define UNUSED_DECL_ARG __attribute__((__unused__))
+#define UNUSED_DEF_ARG __attribute__((__unused__))
 // The __signal__ attribute is only relevant on GCC on the AVR processor.
 // We don't (yet) work on the AVR, so this code will probably never be
 // #executed.,  
 #ifdef __avr__
-#define SIGNAL_ATTRIBUTE    __attribute__((signal))
+#define SIGNAL_ATTRIBUTE    __attribute__((__signal__))
 #else
 #define SIGNAL_ATTRIBUTE
 #endif
 
 //static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG);
-static void delete_on_trouble(int dummy_status UNUSED_DECL_ARG, void *dummy_arg UNUSED_DECL_ARG) 
+static void delete_on_trouble(UNUSED_DECL_ARG int dummy_status , UNUSED_DECL_ARG void *dummy_arg ) 
     SIGNAL_ATTRIBUTE;
 
 
@@ -209,15 +203,17 @@ streql(const char *s, const char *t)
 
 
 /* snprintf(), but with our own built-in error checks. */
-// void xsnprintf(char *buf, size_t bufsize, const char *format, ...) __attribute__((format));
-void xsnprintf(char *buf, size_t bufsize, const char *format, ...);
+void xsnprintf(char *buf, size_t bufsize, const char *format, ...)
+    __attribute__((__format__(__printf__, 3, 4)));
+// void xsnprintf(char *buf, size_t bufsize, const char *format, ...);
 
 void xsystem(const char *command);
 
 const char *DeleteOnTrouble = NULL; // delete this file on trouble.
 
+/** GNU C++ (at least in 3.3) requires the __unused__ to be present here. */
 static void 
-delete_on_trouble(int dummy_status UNUSED_DEF_ARG, void *dummy_arg UNUSED_DEF_ARG)
+delete_on_trouble(UNUSED_DEF_ARG int dummy_status, UNUSED_DEF_ARG void *  dummy_arg )
 {
     if (DeleteOnTrouble) {
 	// We're already in trouble, so might as well delete, no?
