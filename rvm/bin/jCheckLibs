@@ -1,0 +1,196 @@
+#! /bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+#$Id$
+#
+# check whether your rvmrt.jar is in sync with the RVM
+#
+# Invocation:  jCheckLibs
+#
+# Authors: Julian Dolby, Stephen Fink, David Grove, Martin Trapp
+
+# Stop immediately if any programs we call return errors.
+#
+set -e
+
+rvm_ids=$RVM_ROOT/rvm/bin/ids
+lib_dir=$RVM_ROOT/support/lib
+license_name=BinaryLibLicense.txt
+license_file=$lib_dir/$license_name
+license_cache=$HOME/.rvmrt
+jar_file=rvmrt.jar
+id_file=rvmrt
+ignore_HOST_CONFIG=""
+
+# Who we are.
+#
+ME=`basename $0`
+
+function usage
+{
+  echo usage: This script should not be called interactively,
+  echo        but is rather invoked by other scripts like jconfigure.
+  echo $ME checks whether your rvmrt.jar is in sync with the RVM
+  exit $1
+}
+
+##
+## Main part of script starts here
+##
+
+while [[ $# > 0 ]] ; do
+  case $1 in
+    --help) usage 0;;
+    -h) usage 0;;
+    -f) ignore_HOST_CONFIG="yes";;
+    *) usage 1;;
+  esac
+  shift
+done
+
+if [ $FORCE_LIB_DOWNLOAD ] ; then
+  automatic="y"
+fi
+
+# Place where the RVM resides.
+#
+if [[ x$RVM_ROOT = x ]]; then
+   echo "$ME: please set your RVM_ROOT environment variable"
+   echo "(eg. $HOME/jikesRVM-1.0.0)"
+   exit 1
+fi
+
+# What configuration will host the build process
+#
+if [[ x$ignore_HOST_CONFIG = x ]] ; then
+  if [[ $RVM_HOST_CONFIG = "" ]]; then
+    echo "$ME: please set your RVM_HOST_CONFIG environment variable"
+    echo " eg. $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0"
+    exit 1
+  fi
+  . $RVM_HOST_CONFIG
+fi
+
+
+if [[ x$WGET != x && ! -x $WGET ]] ; then
+    WGET=""
+fi
+
+cd $rvm_ids
+
+license=""
+# update global license cache
+if [[ -r $license_file && x$MD5SUM != x && -x $MD5SUM ]] ; then
+  md5=`$MD5SUM $license_file | awk '{print $1}'`
+  if [[ -f $license_cache ]] ; then
+    license=`grep $license_name $license_cache | awk '{print $2}'`
+  fi
+  if [[ $license != $md5 ]] ; then
+    if [[ -f $license_cache ]] ; then
+      grep -v $license_name $license_cache > $license_cache.$$
+    fi
+    echo "$license_name $md5" >> $license_cache.$$
+    mv -f $license_cache.$$ $license_cache
+  fi
+fi
+
+# is there a cached license?
+if [[ -f $license_cache ]] ; then
+  license=`grep $license_name $license_cache | awk '{print $2}'`
+fi
+
+# let's see what the rvm originally wanted
+if [[ -f ${id_file}.stamp ]] ; then
+  stamp_jar=`cat ${id_file}.stamp`
+fi
+
+# let's see what should be installed
+if [[ -f ${id_file}.installed ]] ; then
+  installed_jar=`cat ${id_file}.installed`
+fi
+
+# let's see what we got
+if [[ -f ${lib_dir}/${jar_file} ]] ; then
+  rm -f ${id_file}.id
+  # make an attempt for speed:
+  unzip -x ${lib_dir}/${jar_file} ${id_file}.id >/dev/null 2>&1 || true
+  if [ ! -f ${id_file}.id ] ; then
+    # fall back
+    $HOST_JAR xf ${lib_dir}/${jar_file} ${id_file}.id
+  fi
+  local_jar=`cat ${id_file}.id 2>/dev/null`
+  rm -f ${id_file}.id
+fi
+
+if [[ x$stamp_jar = x ]] ; then
+  echo "Fatal: You lost the file $rvm_ids/${id_file}.stamp."
+  echo "       I can not determine what version of ${jar_file} matches this \$RVM_ROOT."
+  exit 2
+fi
+
+if [[ x$local_jar != x ]] ; then
+
+# we have something sitting in ${lib_dir}/${jar_file}
+# no check, if this is ok.
+
+  # stamped version
+  # OK, if the local jar is the stamped one
+  if [[ x$stamp_jar = x$local_jar ]] ; then
+    cp -f ${id_file}.stamp ${id_file}.installed
+    exit 0
+  fi
+
+  # local version
+  # OK, if the local jar is the installed one
+  if [[ $installed_jar = $local_jar ]] ; then
+    echo "Note: You are using a local version of \$RVM_ROOT/support/lib/${jar_file}."
+    echo "      If you want to switch back to the $stamp_jar version,"
+    echo "      delete ${lib_dir}/${jar_file}."
+    exit 0
+  fi
+
+fi
+
+revision=$stamp_jar
+cat <<EOF
+
+Version [$revision] of rvmrt.jar is required for this build.
+
+You can download this revision from
+http://www-124.ibm.com/cgi-bin/jalapeno/jlibraries?rev=$revision.
+EOF
+if [[ x$license = x || x$WGET = x ]] ; then
+  exit 1
+fi
+
+if [[ x$automatic = x ]] ; then 
+  echo "Do you want to automatically download and install the new revision now? \c"
+  read automatic
+fi
+if [[ x$automatic = xy || x$automatic = xyes ]] ; then
+  echo "Dowloading $RVM_ROOT/jlibraries-$revision.tar.gz"
+  options="?rev=$revision&license=$license"
+  $WGET -q -O $RVM_ROOT/jlibraries-$revision.tar.gz \
+  "http://www-124.ibm.com/cgi-bin/jalapeno/jlibraries.tar.gz$options"
+  length=`cat $RVM_ROOT/jlibraries-$revision.tar.gz | wc -c`
+  if [[ $length -lt 10000 ]] ; then
+    echo
+    echo "A problem occured:"
+    cat $RVM_ROOT/jlibraries-$revision.tar.gz
+    rm $RVM_ROOT/jlibraries-$revision.tar.gz
+    exit 1
+  fi
+  cd $RVM_ROOT
+  echo "Installing $RVM_ROOT/jlibraries-$revision.tar.gz"
+  files=`$GNU_TAR ztf $RVM_ROOT/jlibraries-$revision.tar.gz`
+  for file in $files ; do
+    if [ -f $file ] ; then
+      mv -f $file $file.bak
+    fi
+  done
+  $GNU_TAR zxvf $RVM_ROOT/jlibraries-$revision.tar.gz
+  echo file jlibraries-$revision.tar.gz left in $RVM_ROOT
+  exit 0
+fi
+exit 1
