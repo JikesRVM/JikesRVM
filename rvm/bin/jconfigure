@@ -2085,6 +2085,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/VM_Code;
 	    
 	[Lcom/ibm/JikesRVM/VM_CodeArray;
+        [Lcom/ibm/JikesRVM/VM_AddressArray;
 
 	[Lcom/ibm/JikesRVM/classloader/VM_Class;
 	[Lcom/ibm/JikesRVM/VM_UnusualMaps;

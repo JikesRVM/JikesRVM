@@ -729,8 +729,7 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static void createBootImageObjects(Vector typeNames,
 					    String bootImageTypeNamesFile) 
-    throws IllegalAccessException, ClassNotFoundException 
-  {
+    throws IllegalAccessException, ClassNotFoundException {
       VM_Callbacks.notifyBootImage(typeNames.elements());
 
       //
@@ -826,8 +825,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	    if (verbose >= 1) say(count + " instantiating " + type);
 	    type.instantiate();
 	}
-      }
-      else {
+      } else {
         if (verbose >= 1) say("parallelizing with " + PARALLELIZE + " threads");
 	BootImageWorker.startup(bootImageTypes.elements());
 	BootImageWorker [] workers = new BootImageWorker[PARALLELIZE];
@@ -838,11 +836,14 @@ public class BootImageWriter extends BootImageWriterMessages
 	try {
 	  for (int i=0; i<workers.length; i++)
 	    workers[i].join();
-	}
-	catch (InterruptedException ie) {
-	    say("InterruptedException while instantiating");
+	} catch (InterruptedException ie) {
+	  say("InterruptedException while instantiating");
 	}
       }
+
+      // Do the portion of JNIEnvironment initialziation that can be done
+      // at bootimage writing time.
+      VM_JNIEnvironment.initFunctionTable();
 
       //
       // Collect the VM class Field to JDK class Field correspondence

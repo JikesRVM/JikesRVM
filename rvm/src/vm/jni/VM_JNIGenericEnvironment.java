@@ -23,8 +23,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
 							  VM_RegisterConstants,
 							  VM_SizeConstants {
 
-  protected static boolean initialized = false;
-  protected static String[] names;
+  protected final static String[] names = initNames();
 
   /**
    * initial size for JNI refs, later grow as needed
@@ -292,8 +291,8 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
     return -1;
   }
 
-  protected static String[] setNames() {
-    names = new String[FUNCTIONCOUNT];
+  protected static String[] initNames() {
+    String[] names = new String[FUNCTIONCOUNT];
     names[0]                             = "undefined";
     names[RESERVED0]                     = "reserved0";
     names[RESERVED1]                     = "reserved1";	  
@@ -527,6 +526,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_JNIConstants,
 
     return names;
   }
+
 
   /*
    * Utility functions called from VM_JNIFunction

@@ -34,11 +34,10 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   static int[] JNIFunctionPointers;        // made public so vpStatus could be set 11/16/00 SES
                                            // maybe need set & get functions ??
 
-  public static void init() {
-    // allocate the first dimension of the function array in the boot image so that
-    // we have an address pointing to it.  This is necessary for thread creation
-    // since the VM_JNIEnvironment object will contain a field pointing to this array
-
+  /**
+   *  Initialize the array of JNI functions.
+   */
+  public static void initFunctionTable() {
     // An extra entry is allocated, to hold the RVM JTOC 07/01 SES
     JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT+1];
 
@@ -46,21 +45,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     // Second word is address of current processors vpStatus word
     // (JTOC is now stored at end of shared JNIFunctions array)
     JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-  }
 
-  /**
-   *  Initialize the array of JNI functions.
-   *  To be called from VM_DynamicLibrary.java when a library is loaded,
-   *  expecting native calls to be made
-   */
-  public static void boot() {
-    if (initialized)
-      return;
-
-    // fill an array of JNI names
-    setNames();
-
-    // fill in the IP entries for each AIX linkage triplet
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JNIFunctions;"));
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
@@ -72,16 +57,16 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
 	JNIFunctions[jniIndex] = mths[i].getCurrentCompiledMethod().getInstructions();
       } 
     }
+  }
 
+  public static void boot() {
     // store RVM JTOC address in last (extra) entry in JNIFunctions array
     // to be restored when native C invokes JNI functions implemented in java
     //
-    // following causes exception in checkstore, so forced to setMemoryInt instead
-    // JNIFunctions[FUNCTIONCOUNT+1] = VM_Magic.addressAsByteArray(VM_Magic.getTocPointer());
+    // the array is not well typed, so forced to setMemoryAddress instead
+    // TODO: this is higly bogus and needs to be removed. --dave
     VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
 			      VM_Magic.getTocPointer());
-
-    initialized = true;
   }
 
   /**
@@ -93,10 +78,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
-  }
-
-  public VM_CodeArray getInstructions(int id) {    
-    return JNIFunctions[id];
   }
 
   /*****************************************************************************

@@ -232,6 +232,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // Create JNI Environment for boot thread.  
     // After this point the boot thread can invoke native methods.
+    VM_JNIEnvironment.boot();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
@@ -1122,9 +1123,6 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // initialize type subsystem and classloader
     VM_ClassLoader.init(vmClassPath);
-
-    // initialize JNI environment
-    VM_JNIEnvironment.init();
 
     // initialize remaining subsystems needed for compilation
     //

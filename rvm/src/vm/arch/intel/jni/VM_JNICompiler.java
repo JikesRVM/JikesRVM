@@ -458,9 +458,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
       }
     }
 
-    // don't need any more since the top was bumped at the beginning
-    // endJNIrefForProlog(asm);
-
     // >>>> THERE <<<<
     // End use of T0 and S0
   }
@@ -471,7 +468,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    *   (1) start by calling startJNIrefForProlog()
    *   (2) for each reference, put it in ebx and call pushJNIref() 
    *       to convert; the handler will be left in ebx
-   *   (3) finish by calling endJNIrefForProlog()
    *  
    *   +-------+
    *   |       |  <-JNIRefsMax (byte index of last entry)
@@ -523,12 +519,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     asm.emitCMP_Reg_RegDisp(T0, S0, VM_Entrypoints.JNIRefsMaxField.getOffset());   // check against JNIRefsMax for overflow 
     // TODO:  Do something if overflow!!!
 
-    // get and increment index of top 
-    // asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopOffset);  // T0 <- index of top
-    // asm.emitADD_Reg_Imm(T0, WORDSIZE);                                  // increment index of top        
-    // asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsTopOffset, T0);  // jniEnv.JNIRefsTop <- T0
-    
-
     asm.emitADD_RegDisp_Imm (S0, VM_Entrypoints.JNIRefsTopField.getOffset(), WORDSIZE); // increment index of top
     asm.emitMOV_Reg_RegDisp (T0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());  // T0 <- index of top
     asm.emitADD_Reg_Reg(T0, EBX);                                       // T0 <- address of top (not index)
@@ -568,22 +558,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
   }
 
   /**
-   * Wrap up the access to the JNIRefs array
-   * Expect:
-   *   -T0 pointing to the address of the valid top 
-   *   -S0 holding the pointer to jniEnv
-   * Perform these steps:
-   *   -recompute value in T0 as byte offset from jniEnv.JNIRefs base
-   *   -store value in T0 back into jniEnv.JNIRefsTop
-   *
-   */
-  // static void endJNIrefForProlog(VM_Assembler asm) {
-  //   asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffset());    // ebx <- JNIRefs base
-  //   asm.emitSUB_Reg_Reg     (T0, EBX);                                  // S0 <- index of top
-  //   asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsTopField.getOffset(), T0);  // jniEnv.JNIRefsTop <- T0
-  // }
-
-  /**
    * Generate the code to pop the frame in JNIRefs array for this Java to C transition
    * Expect:
    *  -JTOC, PR registers are valid
@@ -595,7 +569,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    *
    */
   static void popJNIrefForEpilog(VM_Assembler asm) {
-    
     // on entry, S0 contains a pointer to the VM_Thread.jniEnv
     // set TOP to point to entry below the last frame
     asm.emitMOV_Reg_RegDisp (T1, S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset());    // ebx <- JNIRefsSavedFP
@@ -603,10 +576,9 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     asm.emitSUB_RegDisp_Imm (S0, VM_Entrypoints.JNIRefsTopField.getOffset(), WORDSIZE);  // JNIRefsTop -= 4
 
     // load savedFP with the index to the last frame
-    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffset());    // ebx <- JNIRefs base
-    asm.emitMOV_Reg_RegIdx  (EBX, EBX, T1, asm.BYTE, 0);                // ebx <- (JNIRefs base + SavedFP index)
-    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), EBX);  // JNIRefsSavedFP <- ebx
-
+    asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffset());          // ebx <- JNIRefs base
+    asm.emitMOV_Reg_RegIdx  (EBX, EBX, T1, asm.BYTE, 0);                                 // ebx <- (JNIRefs base + SavedFP index)
+    asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), EBX);   // JNIRefsSavedFP <- ebx
   }
   
 
@@ -647,7 +619,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    *             low memory                        low memory
    *
    */
-
   static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_NormalMethod method, int methodID) {
     VM_Address bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
 
@@ -666,6 +637,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     asm.emitSUB_Reg_Imm (SP, WORDSIZE);  // leave room for saved -> preceeding java frame, set later
 
     // save registers that will be used in RVM, to be restored on return to C
+    // TODO: I don't think we need to do this: C has no nonvolatile registers on Linux/x86 --dave
     asm.emitPUSH_Reg(JTOC); 
     asm.emitPUSH_Reg(EBX);         
     asm.emitPUSH_Reg(S0);         
@@ -685,7 +657,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
         argOffset+=2;
       } else {
         // Handle 1-word case:
-        // add 2 to get to arg area in caller frame
         asm.emitMOV_Reg_RegDisp (EBX, EBP, (argOffset*WORDSIZE));  
         asm.emitPUSH_Reg(EBX);
         argOffset++;
@@ -700,10 +671,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     // Restore JTOC through the JNIEnv passed back from the C code as the first parameter:
     // an extra entry at the end of the JNIFunctions array contains the RVM JTOC
     //
-    // NOTE - we need the JTOC here only to get the sysYield.. entry point out of the
-    // bootrecord. we could alternatively also put the bootrecord address at the end
-    // of JNIFunctions or put it there INSTEAD of the JTOC
-
     asm.emitMOV_Reg_RegDisp (EBX, EBP, (2*WORDSIZE));   // pick up arg 0 (from callers frame)
     asm.emitMOV_Reg_RegDisp (JTOC, EBX, 0);                         // JTOC<-addr of JNIFunctions[0]
     asm.emitMOV_Reg_RegDisp (JTOC, JTOC, JNIFUNCTIONS_JTOC_OFFSET); // JTOC<-JNIFunctions[saved JTOC]
@@ -753,7 +720,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     // Retrieve -> preceeding "top" java FP from jniEnv and save in current 
     // frame of JNIFunction
     asm.emitMOV_Reg_RegDisp (ESI, EBX, VM_Entrypoints.JNITopJavaFPField.getOffset());  
-    // asm.emitMOV_Reg_RegDisp (PR, EBX, VM_Entrypoints.JNITopJavaFPField.getOffset());  
     
     // get offset from current FP (PR <- PR - FP)
     asm.emitSUB_Reg_Reg (ESI, EBP);    
@@ -764,13 +730,10 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     VM_ProcessorLocalState.emitSetProcessor(asm, EBX, 
 					    VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
-
     VM_ProcessorLocalState.emitMoveRegToField(asm,
                                               VM_Entrypoints.framePointerField.getOffset(),
                                               EBP);
-    
-    // Test if calling Java JNIFunction on a RVM processor or 
-    // a Native processor.
+
     // at this point: JTOC and PR have been restored & 
     // processor status = IN_JAVA,
     // arguments for the call have been setup, space on the stack for locals
@@ -778,12 +741,10 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
 
     // finally proceed with the normal Java compiled code
     // skip the thread switch test for now, see VM_Compiler.genThreadSwitchTest(true)
-
     asm.emitNOP(); // end of prologue marker
   }
 
   static void generateEpilogForJNIMethod(VM_Assembler asm, VM_Method method) {
-
     // assume RVM PR regs still valid. potentially T1 & T0 contain return
     // values and should not be modified. we use regs saved in prolog and restored
     // before return to do whatever needs to be done.  does not assume JTOC is valid,

@@ -20,13 +20,11 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   /**
    * This is the JNI function table, the address of this array will be
    * passed to the native code
-   * TODO: This is horrible and must be rewritten.
-   *       These are NOT int[][]'s by any stretch of the imagination!!!!
    */
-  //-#if RVM_FOR_LINUX
-  private static VM_CodeArray[]   JNIFunctions;
-  //-#elif RVM_FOR_AIX
-  private static int[][][] JNIFunctions;
+  private static VM_CodeArray[] JNIFunctions;
+
+  //-#if RVM_FOR_AIX
+  private static int[][][] AIXLinkageTriplets;
   //-#endif
   
   /**
@@ -40,66 +38,50 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   static int[] JNIFunctionPointers;        // made public so vpStatus could be set 11/16/00 SES
                                            // maybe need set & get functions ??
 
-  // allocate the first dimension of the function array in the boot image so that
-  // we have an address pointing to it.  This is necessary for thread creation
-  // since the VM_JNIEnvironment object will contain a field pointing to this array
-  public static void init() {
-    //-#if RVM_FOR_LINUX
+  /**
+   *  Initialize the array of JNI functions.
+   */
+  public static void initFunctionTable() {
+    //-#if RVM_FOR_AIX
+    JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT];
+    AIXLinkageTriplets = new int[FUNCTIONCOUNT][][];
+    //-#elif RVM_FOR_LINUX
     JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT+1];
-    //-#elif RVM_FOR_AIX
-    JNIFunctions = new int[FUNCTIONCOUNT][][];
     //-#endif
 	
     // 2 words for each thread
     JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
-  }
-
-  /**
-   *  Initialize the array of JNI functions
-   *  To be called from VM_DynamicLibrary.java when a library is loaded,
-   *  expecting native calls to be made
-   */
-  public static void boot() {
-
-    if (initialized)
-      return;
-
-    // fill an array of JNI names
-    setNames();
 
     //-#if RVM_FOR_AIX
-    // fill in the TOC entries for each AIX linkage triplet
+    // Allocate the linkage triplets 
     for (int i=0; i<JNIFunctions.length; i++) {
-      JNIFunctions[i] = new int[3][];
-      JNIFunctions[i][TOC] = VM_Statics.getSlotsAsIntArray();   // the JTOC value: address of TOC
+      AIXLinkageTriplets[i] = new int[3][];
     }
     //-#endif
 
-    // fill in the IP entries for each AIX linkage triplet
+    // initialize JNIFunctions
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JNIFunctions;"));
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     VM_Method[] mths = cls.getDeclaredMethods();
-    // VM.sysWrite("VM_JNIEnvironment:  scanning " + mths.length + " methods\n");
     for (int i=0; i<mths.length; i++) {
       String methodName = mths[i].getName().toString();
       int jniIndex = indexOf(methodName);
       if (jniIndex!=-1) {
-	//-#if RVM_FOR_LINUX
 	JNIFunctions[jniIndex] = mths[i].getCurrentInstructions();
-	//-#elif RVM_FOR_AIX
-	// GACK.  We need this horrible kludge because the array is not well typed.
-	Object array = JNIFunctions[jniIndex];
-	VM_Magic.setObjectAtOffset(array, IP, mths[i].getCurrentInstructions());
-	//-#endif
       } 
     }
+  }
 
+  public static void boot() {
     //-#if RVM_FOR_AIX
-    VM_Address functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][IP]);
-    // VM.sysWrite("   NewIntArray is at " + VM.intAsHexString(functionAddress) + "\n");
-    functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][TOC]);
-    // VM.sysWrite("   TOC is stored at " + VM.intAsHexString(functionAddress) + "\n");
+    // fill in the TOC entries for each AIX linkage triplet
+    for (int i=0; i<JNIFunctions.length; i++) {
+      int[][] triplet = AIXLinkageTriplets[i];
+      triplet[TOC] = VM_Statics.getSlotsAsIntArray();   // the JTOC value: address of TOC
+      // GACK. What a horrible thing to do.
+      VM_Magic.setObjectAtOffset(triplet, IP<<LOG_BYTES_IN_ADDRESS, JNIFunctions[i]);
+    }
     //-#endif
 
     //-#if RVM_FOR_LINUX
@@ -107,8 +89,6 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
 			      VM_Magic.getTocPointer());
     //-#endif
-    
-    initialized = true;
   }
 
   // Instance:  create a thread specific JNI environment.  threadSlot = creating threads
@@ -120,20 +100,14 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
 
     // uses 2 words for each thread, the first is the function pointer
     // to be used when making native calls
+    //-#if RVM_FOR_AIX
+    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(AIXLinkageTriplets).toInt();
+    //-#elif RVM_FOR_LINUX
     JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
+    //-#endif
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
   }
-
-  //-#if RVM_FOR_AIX
-  public int[] getInstructions(int id) {    
-    return JNIFunctions[id][IP];
-  }
-  //-#elif RVM_FOR_LINUX
-  public VM_CodeArray getInstructions(int id) {    
-    return JNIFunctions[id];
-  }
-  //-#endif
 
   /*****************************************************************************
    * Utility function called from VM_JNIFunction
@@ -268,17 +242,10 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * the spill area of the original caller, thereby doing the work that the callee
    * normally performs in the AIX C convention.
    *
-   * NOTE: This method contains internal stack pointer.
-   * For now we assume that the stack will not be relocatable while native code is running
-   * because native code can hold an address into the stack, so this code is OK,
-   * but this is an issue to be resolved later
-   *
    * NOTE:  this method assumes that it is immediately above the 
    * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and 
    * the C caller frame in the respective order.  
    * Therefore, this method will not work if called from anywhere else
-   *
-   *
    *
    *   |  fp  | <- VM_JNIEnvironment.pushVarArgToSpillArea
    *   | mid  |

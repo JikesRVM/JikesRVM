@@ -52,12 +52,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
     if (VM.verboseJNI) {
       VM.sysWriteln("[Loaded native library: "+libName+"]");
     }
-
-    // initialize the JNI environment if not already done
-    VM_JNIEnvironment.boot();
   }
-
-
 
   /**
    * look up this dynamic library for a symbol
