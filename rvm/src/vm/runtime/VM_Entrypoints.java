@@ -261,7 +261,7 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Method optNewArrayArrayMethod            = getMethod("Lcom/ibm/JikesRVM/opt/VM_OptLinker;", "newArrayArray", "([II)Ljava/lang/Object;");
 
-  public static final VM_Method sysArrayCopy = getMethod("Lcom/ibm/JikesRVM/librarySupport/SystemSupport;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+  public static final VM_Method sysArrayCopy = getMethod("Ljava/lang/VMSystem;", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
   //-#endif
 
   //-#if RVM_WITH_OSR

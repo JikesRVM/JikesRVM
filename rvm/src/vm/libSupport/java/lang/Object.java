@@ -4,22 +4,22 @@
 //$Id$
 package java.lang;
 
-import com.ibm.JikesRVM.librarySupport.SystemSupport;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_Lock;
+import com.ibm.JikesRVM.VM_Runtime;
 
 /**
- * Library support interface of Jikes RVM
+ * Jikes RVM implementation of Object.
  *
  * @author Julian Dolby
- *
  */
 public class Object {
 
   public Object() {
-
   }
 
   protected Object clone() throws CloneNotSupportedException {
-    return SystemSupport.clone(this);
+    return VM_Runtime.clone(this);
   }
 
   public boolean equals (Object o) {
@@ -27,27 +27,26 @@ public class Object {
   }
 
   protected void finalize () throws Throwable {
-
   }
 
   public final Class getClass() {
-    return SystemSupport.getClass(this);
+    return VM_ObjectModel.getObjectType(this).getClassForType();
   }
     
   public int hashCode() {
-    return SystemSupport.getDefaultHashCode(this);
+    return VM_ObjectModel.getObjectHashCode(this);
   }
 
   public final void notify() {
-    SystemSupport.notify(this);
+    VM_Lock.notify(this);
   }
 
   public final void notifyAll() {
-    SystemSupport.notifyAll(this);
+    VM_Lock.notifyAll(this);
   }
 
   public final void wait () throws InterruptedException {
-    SystemSupport.wait(this); // wait indefinitely
+    VM_Lock.wait(this);
   }
 
   public final void wait (long time) throws InterruptedException {
@@ -61,7 +60,11 @@ public class Object {
       } else if (frac >= 500000) {
 	time += 1;
       } 
-      SystemSupport.wait(this, time);
+      if (time == 0) {
+	VM_Lock.wait(this);
+      } else {
+	VM_Lock.wait(this, time);
+      }
     } else {
       throw new IllegalArgumentException();
     }

@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.librarySupport.SystemSupport;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -372,7 +371,7 @@ public class VM_Runtime implements VM_Constants {
       int      size  = ary.getInstanceSize(nelts);
       Object[] tib   = ary.getTypeInformationBlock();
       Object newObj  = resolvedNewArray(nelts, size, tib, allocator);
-      SystemSupport.arraycopy(obj, 0, newObj, 0, nelts);
+      System.arraycopy(obj, 0, newObj, 0, nelts);
       return newObj;
     } else {
       if (!(obj instanceof Cloneable))
