@@ -20,9 +20,9 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
   //
   //  0   	+ saved FP   + <---- FP for Jave to Native C glue frame
   // -4   	| methodID   |
-  // -8   	| returnAddr |  (redundant - may be removed)
-  // -C   	| saved EDI  |  non-volatile GPR (JTOC for baseline callers or ? for opt callers)
-  // -10  	| saved EBX  |  non-volatile GPR  
+  // -8   	| saved EDI  |  non-volatile GPR (JTOC for baseline callers or ? for opt callers)
+  // -C  	| saved EBX  |  non-volatile GPR  
+  // -10  	| saved EBP  |  non-volatile GPR  
   // -14        | returnAddr |  (for return from OutOfLineMachineCode)
   // -18        | saved PR   |  
   // -1C	| arg n-1    |  reordered arguments to native method
@@ -119,10 +119,11 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
 
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
-    // the save non-volatiles are EBX and EDI (JTOC)
+    // the save non-volatiles are EBX, EBP,  and EDI (JTOC)
     //
     registerLocations[JTOC] = framePtr + VM_JNICompiler.EDI_SAVE_OFFSET;
     registerLocations[EBX]  = framePtr + VM_JNICompiler.EBX_SAVE_OFFSET;
+    registerLocations[EBP]  = framePtr + VM_JNICompiler.EBP_SAVE_OFFSET;
 
     return 0;  // no more refs to report
   } //- implements VM_GCMapIterator

@@ -144,7 +144,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
 
     /* push a new frame */
-    asm.emitPUSH_Reg(FP);			// link this frame with next
+    asm.emitPUSH_Reg    (FP);			// link this frame with next
     asm.emitMOV_Reg_Reg (FP, SP);		// establish base of new frame
     asm.emitPUSH_Imm    (INVISIBLE_METHOD_ID);
     asm.emitADD_Reg_Imm (SP, STACKFRAME_BODY_OFFSET);
@@ -167,7 +167,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 					      VM_Entrypoints.framePointerOffset);
     asm.emitMOV_Reg_RegDisp (S0, S0, PARAMS_FP_OFFSET);// S0 <- Parameters
     asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- Parameters.length()
-    asm.emitCMP_Reg_Imm (T1, 0);			// length == 0 ?
+    asm.emitCMP_Reg_Imm     (T1, 0);			// length == 0 ?
 
     int parameterLoopLabel = asm.getMachineCodeIndex();
     VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);	// done? --> branch to end
