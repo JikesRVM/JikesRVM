@@ -116,19 +116,19 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   public final void postAlloc(Address object, Address typeRef, int bytes,
                               int allocator)
-    throws InlinePragma {
+    throws NoInlinePragma {
     switch (allocator) {
     case RC_SPACE:
       RefCountLocal.unsyncLiveObject(object);
     case LOS_SPACE: 
-      if (WITH_COALESCING_RC) modBuffer.pushOOL(object);
-      decBuffer.pushOOL(object);
+      if (WITH_COALESCING_RC) modBuffer.push(object);
+      decBuffer.push(object);
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(object); 
       RefCountSpace.initializeHeader(object, typeRef, true);
       return;
     case IMMORTAL_SPACE: 
       if (WITH_COALESCING_RC)
-	modBuffer.pushOOL(object);
+	modBuffer.push(object);
       else
         ImmortalSpace.postAlloc(object);
       return;
