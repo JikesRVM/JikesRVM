@@ -497,7 +497,8 @@ function emitSourceList
    print $RVM_ROOT/rvm/src/vm/utility
    print $RVM_ROOT/rvm/src/vm/verifier
    print $RVM_ROOT/rvm/src/vm/compilers/compiledCode
-   
+   print $RVM_ROOT/rvm/src/vm/libSupport
+
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
 
    # Baseline compiler components (always part of bootimage).
@@ -602,6 +603,37 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/adaptive/utility
    fi
 
+   # architecture specific writebarrier support for baseline compilers
+   #
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
+
+
+   # Bootimage compiler components.
+   #
+   if (( $RVM_WITH_BASE_BOOTIMAGE_COMPILER )); then
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/baseline
+   elif (( $RVM_WITH_OPT_BOOTIMAGE_COMPILER )); then
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/optimizing
+   fi
+
+   # Runtime compiler components.
+   #
+   print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime
+   if (( $RVM_WITH_BASE_RUNTIME_COMPILER )); then
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/baseline
+   elif (( $RVM_WITH_OPT_RUNTIME_COMPILER )); then
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/optimizing
+   elif (( $RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM )); then
+      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/adaptive
+   fi
+
+   if (( $RVM_WITH_SPECIALIZATION )); then
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/gnosys
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/specialization
+      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/specialization
+   fi
+
+
    # Memory manager components.
    #
    #
@@ -620,9 +652,6 @@ function emitSourceList
         suff=BlockIndirect
         GCTk_COL=$GCTk_COL$suff
       fi
-      # architecture specific writebarrier support for baseline compilers
-      #
-      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
 
       print $GCTk_ROOT
       print $GCTk_ROOT/allocators
@@ -655,10 +684,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/synchronization
    fi
 
-   # architecture specific writebarrier support for baseline compilers
-   #
-   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/baseline/writeBarrier
-
    # collector specific classes
    #
    if (( $RVM_WITH_COPYING_GC )); then
@@ -680,37 +705,12 @@ function emitSourceList
    fi
    fi
 
-   # Bootimage compiler components.
-   #
-   if (( $RVM_WITH_BASE_BOOTIMAGE_COMPILER )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/baseline
-   elif (( $RVM_WITH_OPT_BOOTIMAGE_COMPILER )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/harness/bootImage/optimizing
-   fi
-
-   # Runtime compiler components.
-   #
-   print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime
-   if (( $RVM_WITH_BASE_RUNTIME_COMPILER )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/baseline
-   elif (( $RVM_WITH_OPT_RUNTIME_COMPILER )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/optimizing
-   elif (( $RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/adaptive
-   fi
-
-   if (( $RVM_WITH_SPECIALIZATION )); then
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/gnosys
-      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/specialization
-      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/specialization
-   fi
 
    # Add the configuration specific directories
    #
    for dir in `echo "$CONF_SPECIFIC_SOURCES_LIST"`; do
      print $RVM_ROOT/$dir
    done
-
    }
 
 
@@ -1125,6 +1125,7 @@ fi
    print '   FILES2='
    print 'done'
 
+
    # Update from directories containing machine generated source files
    # Do this after we copy the "normal" files to allow us to
    # overwrite any dummy versions of the files we have sitting
@@ -1151,7 +1152,7 @@ if (( RVM_WITH_OPT_COMPILER )); then
    print 'fi'
    print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
    print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/instructionFormats $FILES'
+   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
    print 'RC=$?'
    print 'if [[ $RC = 1 ]]; then'
    print '   FILES_HAVE_CHANGED=1'
@@ -1165,24 +1166,6 @@ if (( RVM_WITH_OPT_COMPILER )); then
    print ''
 fi
 
-   # copy library support package
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   print -n "$ME: '$RVM_ROOT'/rvm/src/vm/libSupport"'
-   print 'fi'
-   print 'FILES=`/bin/ls' $RVM_ROOT'/rvm/src/vm/libSupport/*.java`'
-   print 'set +e'
-   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/com/ibm/JikesRVM/librarySupport $FILES'
-   print 'RC=$?'
-   print 'if [[ $RC = 1 ]]; then'
-   print '   FILES_HAVE_CHANGED=1'
-   print 'elif [[ $RC != 0 ]]; then'
-   print '   exit 1'
-   print 'fi'
-   print 'set -e'
-   print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '  print ""'
-   print 'fi'
-   print ''
 
    # script to preprocess GenerateInterfaceDeclarations.java
    #
@@ -1380,29 +1363,15 @@ function emitImageLinker
       print "   print '$exclusion'                  >> $EXCLUDED_CLASSES_STR"
    done
 
-   if (( RVM_WITH_ALL_CLASSES )); then
-      # Put (almost) all vm classes into bootimage.
-
-      # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
-      print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
-
-      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
-      print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-      print "   print $CLASSES_DIRECTORY_STR/instructionFormats/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@LinstructionFormats/\1;@' >> $PRIMORDIAL_CLASSES_STR"
-   else
-      # Put minimum number of vm classes into boot image (just sufficient to
-      # dynamically load remaining portions of the system).
+   # Put minimum number of vm classes into boot image (just sufficient to
+   # dynamically load remaining portions of the system).
       
-      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
-      print "   print $CLASSES_DIRECTORY_STR/VM*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-   fi
-      print "   print $CLASSES_DIRECTORY_STR/com/ibm/JikesRVM/librarySupport/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@Lcom\/ibm\/JikesRVM\/librarySupport/\1;@' >> $PRIMORDIAL_CLASSES_STR"
-
-
-
-   if (( RVM_WITH_GCTk )); then
-      print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
-   fi
+   print "   cd $CLASSES_DIRECTORY_STR"
+   print "   find . -name '*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+   print "   fgrep -v $EXCLUDED_CLASSES_STR $PRIMORDIAL_CLASSES_STR.1 > $PRIMORDIAL_CLASSES_STR.2"
+   print "   sed 's@./\(.*\)\.class@L\1;@' $PRIMORDIAL_CLASSES_STR.2 > $PRIMORDIAL_CLASSES_STR"
+   #print "   rm $PRIMORDIAL_CLASSES_STR.1"
+   #print "   rm $PRIMORDIAL_CLASSES_STR.2"
 
    # Now add classes sufficient to start up the vm and to dynamically load anything that's not
    # in the bootimage (including application programs). This list is discovered by trial and error.
@@ -1460,6 +1429,8 @@ function emitImageLinker
    # class loaders
    #
    if (( ! RVM_WITH_GNU_CLASSPATH )); then
+    print "   print 'Lcom/ibm/oti/util/Sorter;'                          >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Lcom/ibm/oti/util/Sorter\$Comparator;'                    >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/oti/vm/AppClassLoader;'                    >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/oti/vm/AbstractClassLoader;'               >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lcom/ibm/oti/vm/AbstractClassLoader\$ResourceCache;'>> $PRIMORDIAL_CLASSES_STR"
@@ -1486,6 +1457,8 @@ function emitImageLinker
    print "   print 'Ljava/io/OutputStream;'                             >> $PRIMORDIAL_CLASSES_STR"
    print "   print 'Ljava/io/ByteArrayOutputStream;'                    >> $PRIMORDIAL_CLASSES_STR"
 
+   print "   print 'Ljava/net/InetAddress;'                             >> $PRIMORDIAL_CLASSES_STR"
+   print "   print 'Ljava/net/SocketOptions;'                           >> $PRIMORDIAL_CLASSES_STR"
 
    # (GNU classloader)
    if (( RVM_WITH_GNU_CLASSPATH )); then
@@ -1652,15 +1625,15 @@ function emitImageLinker
    print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[LVM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[LMM/VM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[LMM/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-   print "   print '[LVM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[LMM/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
    fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
@@ -1668,6 +1641,7 @@ function emitImageLinker
    print "   print '[Ljava/lang/Class;'               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Field;'       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Method;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/lang/reflect/Member;'      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Constructor;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[B'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[C'                               >> $PRIMORDIAL_CLASSES_STR"
@@ -1694,7 +1668,7 @@ function emitImageLinker
 
    if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC || RVM_WITH_REALTIME_GC )); then
       print "   print '[LVM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[LVM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[LMM/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
@@ -2278,8 +2252,7 @@ mkdir -p $GENERATED_FILES_DIRECTORY
 mkdir -p $GENERATED_FILES_DIRECTORY/instructionFormats
 mkdir -p $SCRATCH_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY
-mkdir -p $CLASSES_DIRECTORY/instructionFormats
-mkdir -p $CLASSES_DIRECTORY/com/ibm/JikesRVM/librarySupport
+#mkdir -p $CLASSES_DIRECTORY/instructionFormats
 
 print -n "(directories created) "
 

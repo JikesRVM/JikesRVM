@@ -60,6 +60,7 @@ int   Directives;                    // number thereof
 
 // Source file currently being processed.
 //
+char package[MAXLINE];       // package name if it exists
 char *SourceName;            // file name
 int   SourceLine;            // current line number therein
 int   Nesting;               // number of unclosed #if's
@@ -75,7 +76,7 @@ char *PutIntoPackage = NULL;
 int  preprocess(char *srcFile, char *destinationFile);
 void reviseState();
 void printState(FILE *fout, char *directive, char *line);
-int  scan(char *line, int *value);
+int  scan(char *line, int *value1);
 int  eval(char *p);
 #ifdef __CYGWIN__
 static char* basename (char* name);
@@ -198,12 +199,34 @@ main(int argc, char **argv)
       // if (destinationTime != 0)
       //    chmod(destination, S_IREAD | S_IWRITE);
          
-         if (!preprocess(source, destination))
-            { // trouble
-            unlink(destination); // remove (partially generated) output file
-            exit(2);             // treat as fatal error
-            }
-           
+      if (!preprocess(source, destination)) {
+	// trouble
+	unlink(destination); // remove (partially generated) output file
+	exit(2);             // treat as fatal error
+      }
+
+      // Move file to the right subdirectory if it is part of a package
+      //
+      if (*package != 0) {
+	// Should do error-checking of package
+	char command[PATH_MAX + 100];
+	char finalDir[PATH_MAX + 1];
+	char finalDstFile[PATH_MAX + 1];
+	// Convert "." in package to "/"
+	char *cur = package;
+	while ((cur = strchr(cur, '.')) != NULL) {
+	    *cur = '/';
+	}
+	sprintf(finalDir, "%s/%s", outputDirectory, package);
+	sprintf(finalDstFile, "%s/%s", finalDir, basename(source));
+	sprintf(command, "mkdir -p %s", finalDir);
+	//fprintf(stderr, "%s\n", command);
+	system(command);
+	sprintf(command, "mv %s %s", destination, finalDstFile);
+	//fprintf(stderr, "%s\n", command);
+	system(command);
+      }
+
       // // make output file non-writable to discourage editing that will get clobbered by future preprocessing runs
       // chmod(destination, S_IREAD);
          
@@ -225,11 +248,13 @@ main(int argc, char **argv)
 // Preprocess a file.
 // Taken:    name of file to be read
 //           name of file to be written
+//           place to store real file name in case this is not in unnamed package
 // Returned: 1 --> success
 //           0 --> failure
 int
 preprocess(char *srcFile, char *dstFile)
    {
+   *package = 0;
    FILE *fin = fopen(srcFile, "r");
    if (!fin) 
       {
@@ -415,7 +440,24 @@ scan(char *line, int *value)
       if (*p == '\t') continue;
       break;
       }
-   
+
+   // look for "package [c.]*;"
+   //
+   if (strncmp(p, "package ", 8) == 0) {
+     if (PutIntoPackage)
+       fprintf(stderr, "WARNING: package declaration co-existing with specified package via -package");
+     if (*package != 0)
+       fprintf(stderr, "WARNING: multiple package declaration");
+     p += 8;
+     char *tmp = package;
+     while (*p != ';') {
+       if (*p == '\n') fprintf(stderr, "Ill-formed package declaration: %s", line);
+       *(tmp++) = *(p++);
+     }
+     *tmp = 0;
+     return TT_TEXT;
+   }
+
    // look for "//-#"
    //
    if (p[0] != '/') return TT_TEXT;
