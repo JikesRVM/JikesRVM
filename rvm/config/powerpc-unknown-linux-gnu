@@ -10,8 +10,6 @@
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
 
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.05
-
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #########
