@@ -20,15 +20,14 @@ import com.ibm.JikesRVM.VM_Reflection;
  * @author Dave Grove
  */
 public final class Method extends AccessibleObject implements Member {
-  VM_Method method;
+  final VM_Method method;
 
-  /**
-   * Prevent this class from being instantiated.
-   */
-  private Method() {}
+   // Prevent this class from being instantiated.
+  private Method() {
+    method = null;
+  }
     
-  // For use by java.lang.reflect.Constructor
-  //
+  // For use by JikesRVMSupport
   Method(VM_Method m) {
     method = m;
   }
