@@ -88,12 +88,12 @@ tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
 
 # if that worked, transfer the tar file
 # to developerWorks via a special CVS commit.
-if [ $? = 0 ] ; then
+if [[ $? -eq 0 ]] then
   cd $RVM_ROOT/sanityResults
   transfer=`uname`.tar.gz
   cp $tarfile $transfer
-  cvs add $transfer
-  cvs commit -m "night sanity" $transfer
+  $CVS add $transfer
+  $CVS commit -m "night sanity" $transfer
   rm -f $transfer
   mv CVS/Entries CVS/tmp
   grep -v $transfer < CVS/tmp > CVS/Entries
