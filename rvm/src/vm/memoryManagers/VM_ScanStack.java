@@ -33,9 +33,12 @@ public class VM_ScanStack
 
   /**
    * Scans a threads stack during collection to find object references.
-   * Locates and updates references in stack frames using stack maps.
-   * Moves code objects, and updates saved link registers in the stack frames.
-   * Locates and updates references associated with JNI native frames.
+   * Locates and updates references in stack frames using stack maps,
+   * and references associated with JNI native frames.  Located references
+   * are processed by calling VM_Allocator.processPtrField.
+   * <p>
+   * If relocate_code is true, moves code objects, and updates saved
+   * link registers in the stack frames.
    *
    * @param t              VM_Thread for the thread whose stack is being scanned
    * @param top_frame      address of stack frame at which to begin the scan
@@ -114,6 +117,10 @@ public class VM_ScanStack
     if (VM.VerifyAssertions) {
       if (t.hardwareExceptionRegisters.inuse) {
 	VM.sysWrite("VM_ScanStack: Unexpected hardwareExceptionRegisters.inuse!\n");
+	VM.sysWrite("Thread id "); VM.sysWrite(t.getIndex(),false);
+	VM.sysWrite(" during GC ");
+	VM.sysWrite(VM_Collector.collectionCount()+1,false);
+	VM.sysWrite("\n");
 	VM_Scheduler.dumpStack( ip, fp );
       }
     }
@@ -303,6 +310,9 @@ public class VM_ScanStack
   } //gc_scanStack
   
 
+  // dump contents of a stack frame. attempts to interpret each
+  // word a an object reference
+  //
   static void
   dumpStackFrame( int fp, int prevFp ) {
     int start,end;
