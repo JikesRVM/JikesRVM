@@ -285,8 +285,7 @@ static void shorthelp(FILE *out);
 /** Delete this file on trouble.  This is the interface to
  * delete_on_trouble().  */
 const char *DeleteOnTrouble = NULL;
-static void delete_on_trouble(UNUSED_DECL_ARG int dummy_status , UNUSED_DECL_ARG void *dummy_arg ) 
-    SIGNAL_ATTRIBUTE;
+static void delete_on_trouble(void) SIGNAL_ATTRIBUTE;
 
 int
 main(int argc, char **argv) 
@@ -501,7 +500,7 @@ main(int argc, char **argv)
 	  
 	    if (preprocess(source, DeleteOnTrouble = destination) < 0) {
 		if (keep_going) {
-		    delete_on_trouble(0, 0);
+		    delete_on_trouble();
 		    keep_going_xitstatus = 2;
 		    continue;
 		}
@@ -1115,7 +1114,7 @@ shorthelp(FILE *out)
       
 
 static void 
-delete_on_trouble(UNUSED_DEF_ARG int dummy_status, UNUSED_DEF_ARG void *dummy_arg)
+delete_on_trouble()
 {
     if (DeleteOnTrouble) {
 	// We're already in trouble, so might as well delete, no?
@@ -1133,7 +1132,7 @@ static void
 cleanup_and_die(int signum) 
 {
     fprintf(stderr, "%s: Dying due to signal # %d; cleaning up.\n", Me, signum);
-    delete_on_trouble(0, (void *) NULL);
+    delete_on_trouble();
     signal(signum, SIG_DFL);
     raise(signum);
 }
@@ -1168,7 +1167,7 @@ inputErr(const char msg[], ...)
     putc('\n', stderr);
 
     if (keep_going) {
-	delete_on_trouble(0, 0);
+	delete_on_trouble();
 	keep_going_xitstatus = 2;
 	return;
     }
@@ -1237,10 +1236,10 @@ static void (*xsignal)(int signum, void (*handler)(int)) = xsignal_sigaction;
 static void 
 set_up_trouble_handlers(void)
 {
-    if (on_exit(&delete_on_trouble, (void *) NULL)) {
+    if (atexit(&delete_on_trouble)) {
 	fprintf(stderr,"%s: ", Me);
 	perror("Unable to register delete_on_trouble() via on_exit.  This should never happen");
-	exit(2);
+	// exit(2);
     }
 
     xsignal(SIGINT, cleanup_and_die);
