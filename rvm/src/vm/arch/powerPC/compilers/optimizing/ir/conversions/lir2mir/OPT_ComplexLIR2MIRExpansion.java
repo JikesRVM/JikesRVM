@@ -348,11 +348,11 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     s.insertBack(MIR_Binary.create(PPC_CMP, R(cr), R(t0), R(defHigh)));
     MIR_CondBranch.mutate(s, PPC_BCOND, R(cr), 
 			  OPT_PowerPCConditionOperand.NOT_EQUAL(), 
-			  BB2.makeJumpTarget(),
+			  BB1.makeJumpTarget(),
 			  new OPT_BranchProfileOperand());
     // fix up CFG
     BB1.insertOut(BB2);
-    BB2.insertOut(BB2);
+    BB1.insertOut(BB1);
     ir.cfg.linkInCodeOrder(BB1, BB2);
   }
 
