@@ -82,10 +82,10 @@ final public class VM_Word implements VM_Uninterruptible {
 
   public long toLong () throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    if (VM.BuildFor32Addr) {
-      return 0x00000000ffffffffL & ((long) value);
+    if (VM.BuildFor64Addr) {
+      return value;
     } else {
-      return (long)value;
+      return 0x00000000ffffffffL & ((long) value);
     }
   }
 

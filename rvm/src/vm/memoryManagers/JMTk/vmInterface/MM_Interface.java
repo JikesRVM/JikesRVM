@@ -318,7 +318,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static Object allocateArray(int numElements, int size, Object [] tib, int allocator) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    size = (size + 3) & (~3);
+    size = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, size, null, null);
     VM_Address region = plan.alloc(size, false, allocator, advice);

@@ -217,7 +217,7 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
    mstsave *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/mstsave.h"
 #endif
 #ifdef RVM_FOR_64_ADDR
-    __context64 *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/context.h"
+   context64 *save = &context->sc_jmpbuf.jmp_context; // see "/usr/include/sys/context.h"
 #endif
    unsigned iar  =  save->iar;
 #endif
@@ -297,7 +297,20 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
 #ifdef RVM_FOR_AIX
   ulong_t testFaultingAddress = 0xdead1234;
   int faultingAddressLocation = -1; // uninitialized
+#if RVM_FOR_32_ADDR
   ulong_t getFaultingAddress(mstsave *save) {
+#endif
+#if RVM_FOR_64_ADDR
+  ulong_t getFaultingAddress(context64 *save) {
+#endif
+    if(lib_verbose)
+#if RVM_FOR_32_ADDR
+      fprintf(SysTraceFile, "save->o_vaddr=0x%08lx\n", save->o_vaddr);
+#endif
+#if RVM_FOR_64_ADDR
+      fprintf(SysTraceFile, "save->except[0]=0x%016llx\n", save->except[0]);
+#endif
+    /*
     if (faultingAddressLocation == -1) {
       if (save->o_vaddr == testFaultingAddress) faultingAddressLocation = 0;
       else if (save->except[0] == testFaultingAddress) faultingAddressLocation = 1;
@@ -306,16 +319,43 @@ void cSignalHandler(int signum, int zero, sigcontext *context) {
 	exit(-1);
       }
     }
+    
     if (faultingAddressLocation == 0)
       return save->o_vaddr;
     else if (faultingAddressLocation == 1)
       return save->except[0];
     exit(-1);
+    */
+#if RVM_FOR_32_ADDR    
+    if (faultingAddressLocation == -1) {
+      if (save->o_vaddr == testFaultingAddress) faultingAddressLocation = 0;
+      else {
+        fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
+        exit(-1);
+      }
+    }
+    return save->o_vaddr;
+#endif    
+#if RVM_FOR_64_ADDR
+    if (faultingAddressLocation == -1) {
+      if (save->except[0] == testFaultingAddress) faultingAddressLocation = 0;
+      else {
+        fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
+        exit(-1);
+      }
+    }
+    return save->except[0];
+#endif
   }
 
 void cTrapHandler(int signum, int zero, sigcontext *context) {
    // See "/usr/include/sys/mstsave.h"
+#if RVM_FOR_32_ADDR
    mstsave *save = &context->sc_jmpbuf.jmp_context; 
+#endif
+#if RVM_FOR_64_ADDR
+   context64 *save = &context->sc_jmpbuf.jmp_context; 
+#endif
    int firstFault = (faultingAddressLocation == -1);
    ulong_t faultingAddress = getFaultingAddress(save);
    if (firstFault) { 
@@ -779,6 +819,7 @@ int createJVM(int vmInSeparateThread) {
    AttachThreadRequestedOffset = bootRecord.attachThreadRequestedOffset;
    
    if (lib_verbose) {
+#ifdef RVM_FOR_32_ADDR
       fprintf(SysTraceFile, "%s: boot record contents:\n", me);
       fprintf(SysTraceFile, "   bootImageStart:       0x%08lx\n",   bootRecord.bootImageStart);
       fprintf(SysTraceFile, "   bootImageEnd:         0x%08lx\n",   bootRecord.bootImageEnd);
@@ -790,6 +831,20 @@ int createJVM(int vmInSeparateThread) {
       fprintf(SysTraceFile, "   tocRegister:          0x%08lx\n",   bootRecord.tocRegister);
       fprintf(SysTraceFile, "   sysTOC:               0x%08lx\n",   bootRecord.sysTOC);
       fprintf(SysTraceFile, "   sysWriteCharIP:       0x%08lx\n",   bootRecord.sysWriteCharIP);
+#endif
+#ifdef RVM_FOR_64_ADDR
+      fprintf(SysTraceFile, "%s: boot record contents:\n", me);
+      fprintf(SysTraceFile, "   bootImageStart:       0x%016llx\n",   bootRecord.bootImageStart);
+      fprintf(SysTraceFile, "   bootImageEnd:         0x%016llx\n",   bootRecord.bootImageEnd);
+      fprintf(SysTraceFile, "   initialHeapSize:      0x%08lx\n",   bootRecord.initialHeapSize);
+      fprintf(SysTraceFile, "   maximumHeapSize:      0x%08lx\n",   bootRecord.maximumHeapSize);
+      fprintf(SysTraceFile, "   tiRegister:           0x%016llx\n",   bootRecord.tiRegister);
+      fprintf(SysTraceFile, "   spRegister:           0x%016llx\n",   bootRecord.spRegister);
+      fprintf(SysTraceFile, "   ipRegister:           0x%016llx\n",   bootRecord.ipRegister);
+      fprintf(SysTraceFile, "   tocRegister:          0x%016llx\n",   bootRecord.tocRegister);
+      fprintf(SysTraceFile, "   sysTOC:               0x%016llx\n",   bootRecord.sysTOC);
+      fprintf(SysTraceFile, "   sysWriteCharIP:       0x%016llx\n",   bootRecord.sysWriteCharIP);
+#endif
    }
 
    // install a stack for cSignalHandler() and cTrapHandler() to run on
@@ -893,7 +948,7 @@ int createJVM(int vmInSeparateThread) {
 #ifdef RVM_FOR_AIX
    if (lib_verbose) 
      fprintf(SysTraceFile, "Testing faulting-address location\n");
-   *((int *) testFaultingAddress) = 42;
+   *((ulong_t *) testFaultingAddress) = 42;
    if (lib_verbose) 
      fprintf(SysTraceFile, "Done testing faulting-address location\n");
 #endif
@@ -933,8 +988,14 @@ int createJVM(int vmInSeparateThread) {
    else {
 
      if (lib_verbose) 
-       fprintf(SysTraceFile, "%s: calling boot thread: jtoc = 0x%x   pr = 0x%x   tid = %d   fp = 0x%x\n", 
+#ifdef RVM_FOR_32_ADDR
+       fprintf(SysTraceFile, "%s: calling boot thread: jtoc = 0x%08lx   pr = 0x%08lx   tid = %d   fp = 0x%08lx\n", 
 	       me, jtoc, pr, tid, fp);
+#endif
+#ifdef RVM_FOR_64_ADDR
+       fprintf(SysTraceFile, "%s: calling boot thread: jtoc = 0x%016llx   pr = 0x%016llx   tid = %d   fp = 0x%016llx\n", 
+	       me, jtoc, pr, tid, fp);
+#endif
      bootThread(jtoc, pr, tid, fp);
      fprintf(SysErrorFile, "Unexpected return from bootThread\n");
      return 1;
@@ -980,4 +1041,5 @@ extern int createJavaVM() {
   fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");
   return -1;
 }
+
 

@@ -1119,7 +1119,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       byte slotType;
       if (fieldType.isReferenceType())
 	slotType = VM_Statics.REFERENCE_FIELD;
-      else if (fieldType.getStackWords() == 2)
+      else if (fieldType.getSize() == BYTES_IN_LONG)
 	slotType = VM_Statics.WIDE_NUMERIC_FIELD;
       else
 	slotType = VM_Statics.NUMERIC_FIELD;

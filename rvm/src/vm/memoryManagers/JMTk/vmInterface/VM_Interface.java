@@ -92,7 +92,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static final VM_Address bootImageAddress = 
     //-#if RVM_FOR_32_ADDR
-    VM_Address.fromInt
+    VM_Address.fromIntZeroExtend
     //-#elif RVM_FOR_64_ADDR
     VM_Address.fromLong
     //-#endif
@@ -102,7 +102,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static VM_Address MAXIMUM_MAPPABLE = 
     //-#if RVM_FOR_32_ADDR
-    VM_Address.fromInt
+    VM_Address.fromIntZeroExtend
     //-#elif RVM_FOR_64_ADDR
     VM_Address.fromLong
     //-#endif

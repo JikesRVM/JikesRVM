@@ -40,12 +40,16 @@ final public class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Address(address);  //TODO: implement in magic
   }
-
-  public long toLong () {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return value;
-  }
 //-#endif
+
+  public long toLong () throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.BuildFor64Addr) {
+      return value;
+    } else {
+      return 0x00000000ffffffffL & ((long) value);
+    }
+  }
 
   public boolean equals(Object o) {
       return (o instanceof VM_Address) && ((VM_Address) o).value == value;

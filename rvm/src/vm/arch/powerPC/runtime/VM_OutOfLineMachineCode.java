@@ -371,11 +371,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitSTFD  (F3, scratchSecondsOffset,     T3);       // scratch_seconds := IEEEmagic
     
     if (VM.BuildFor64Addr) {
-//Kris Venstermans :  is this even close to correct ?
-        asm.emitMFTB  (T1);
-        asm.emitSTD   (T1, scratchNanosecondsOffset, T3);   
-        asm.emitLFD   (F1, scratchNanosecondsOffset, T3);       // f1 := T1
-        asm.emitFCFID(F0,F1); 
+      asm.emitMFTB (T0);
+      asm.emitSTW  (T0, scratchNanosecondsOffset + 4, T3);  // store lo 32-bits into "magic" float
+      asm.emitSRADI(T0, 32, T0);
+      asm.emitSTW  (T0, scratchSecondsOffset     + 4, T3);  // store hi 32-bits into "magic" float
     } else {
       int loopLabel = asm.getMachineCodeIndex();
       if (VM.BuildForLinux) {

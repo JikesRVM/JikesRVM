@@ -3786,21 +3786,27 @@ public class VM_Compiler extends VM_BaselineCompiler
       } // else no-op
     } else if (methodName == VM_MagicNames.wordFromIntZeroExtend) {
       if (VM.BuildFor64Addr) {
-        popInt(T0);
-        pushAddr(T0);
+    		asm.emitLWZ(T0, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_INT, FP);
+         pokeAddr(T0,0);
       } // else no-op
     } else if (methodName == VM_MagicNames.wordFromLong) {
       discardSlot();
     } else if (methodName == VM_MagicNames.wordAdd) {
-      // same as an integer add
-      popAddr(T0);
+      if (VM.BuildFor64Addr && (methodToBeCalled.getParameterTypes()[0] == VM_TypeReference.Int)){
+        popInt(T0);
+		} else {
+        popAddr(T0);
+		}
       popAddr(T1);
       asm.emitADD (T2, T1, T0);
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordSub ||
 	       methodName == VM_MagicNames.wordDiff) {
-      // same as an integer subtraction
-      popAddr(T0);
+      if (VM.BuildFor64Addr && (methodToBeCalled.getParameterTypes()[0] == VM_TypeReference.Int)){
+        popInt(T0);
+		} else {
+        popAddr(T0);
+		}
       popAddr(T1);
       asm.emitSUBFC (T2, T0, T1);
       pushAddr(T2);
