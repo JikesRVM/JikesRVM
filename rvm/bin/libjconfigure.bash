@@ -309,7 +309,7 @@ set -o nounset;			# may cause trouble!
 ## Routines to clean a list of files or other things.
 
 function cleanFileList() {
-    sed -e 's/^[ 	]*//' -e 's/[ 	]*#.*//' -e '/^$/d' "$@"
+    sed -e $'s/^[ \t]*//' -e $'s/[ \t]*#.*//' -e '/^$/d' "$@"
 }
 
 
