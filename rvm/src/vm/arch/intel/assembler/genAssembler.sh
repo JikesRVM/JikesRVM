@@ -1132,7 +1132,7 @@ emitFloatBinAcc() {
     int miStart = mi;
     if (VM.VerifyAssertions) VM.assert(srcReg == FP0);
     setMachineCodes(mi++, (byte) 0xDE);
-    setMachineCodes(mi++, (byte) (${to0Op} | dstReg));
+    setMachineCodes(mi++, (byte) (${toIop} | dstReg));
     if (lister != null) lister.R(miStart, "${popAcronym}", dstReg);
   }
 
