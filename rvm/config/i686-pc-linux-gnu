@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001, 2003, 2004
+# (C) Copyright IBM Corp. 2001, 2003, 2004, 2005
 # $Id$
 #
 # This file defines a set of environment variables needed to build and
@@ -138,9 +138,10 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 ## This will work.  I don't recommend doing it more than once, though
 ## -- if you and others are all working on Jikes RVM, then please just
 ## put Classpath in one place you can share.
-## You will also have to make sure that variable WGET has a rational value,
-## so tha the downloading will work.  (It's only used to retrieve GNU
-## classpath, so you can ignore it otherwise.)
+##
+## If you want to auto-download GNU Classpath, you will have to make sure
+##  that the  variable WGET has a rational value.  (It's only used to
+## retrieve GNU Classpath, so you can ignore it otherwise.)
 export WGET="/usr/bin/wget"
 
 # Path for GNU make
@@ -151,23 +152,35 @@ export GNU_MAKE="/usr/bin/make"
 # from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20 or 1.21.
 export JIKES=/usr/bin/jikes
 
-## What C compiler should be used?  We only use the GNU C compiler
-## on the project, although it is possible that other compilers might work.
-##
-## The following long list of warning flags are the warnings that one of the
-## project developers always uses when building Jikes RVM.
-## Some of these warnings are not present in all versions of GCC.
-##  That is why this particular setting of CC is not the default.
-#
-## We don't usually set -Wundef; Bison's "bison.simple" file refers to
-## preprocessor macros.
+## What C compiler should be used?  We only use the GNU C compiler on
+## the project, although we have tried to conditionalize any
+## GCC-specific constructs to give other compilers a chance of
+## working.  Please treat any unconditionalized GCC-specific construct
+## as a bug and report it.
+## 
+## Some of the Jikes RVM code we build is in the form of shared
+## libraries.  These require position-independent code (PIC).  Rather
+## than invoke the C compiler in two different ways (one for PIC, one
+## not), thereby adding Yet Another Configuration Variable, we take a
+## slight performance hit and always generate position-independent
+## code.
 
-# export CC="/usr/bin/gcc -pipe -ggdb3 -O -W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization"
-export CC="gcc -w -pipe -ggdb3 -O"
+## GCC Warnings:
+## The definitions with the (commented-out) long list of warning flags 
+## are the warnings that one of the  project developers (Steve Augart) always
+## uses when building Jikes RVM.   Some of these warnings are not present 
+## in all versions of GCC.  That is why this particular setting of CC is 
+## not the default.
+##
+## We don't usually set -Wundef since Bison's "bison.simple" file refers to
+## preprocessor macros that are not defined.
+
+# export CC="/usr/bin/gcc -pipe -ggdb3 -O -fPIC -W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization"
+export CC="gcc -w -pipe -ggdb3 -O -fPIC"
 
 ## What C++ compiler should be used?
-# export CPLUS='/usr/bin/g++ -pipe -ggdb3 -W -Wall  -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -O'
-export CPLUS="g++ -w -pipe -ggdb3 -O"
+# export CPLUS='/usr/bin/g++ -pipe -ggdb3 -fPIC -W -Wall  -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -O'
+export CPLUS="g++ -w -pipe -ggdb3 -O -fPIC"
 
 
 # how to link a shared C++ library (possibly also recompile one 
@@ -178,8 +191,9 @@ export LDSHARED="${CPLUS} -shared"
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
-# some Unix commands used in sanity rules and automatic rvmrt retrieval
+# AWK: For some Unix commands used in the regression test rules.
 export AWK="/usr/bin/awk"
+
 export BASH="/bin/bash"
 # You need one of Yacc or Bison (one will usually be installed)
 # If you're using Bison, uncomment the line below:
