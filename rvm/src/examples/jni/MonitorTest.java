@@ -14,7 +14,7 @@
 class MonitorTest {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
-  static boolean startCounting = false;
+  static volatile boolean startCounting = false;
   static int globalCount = 0;
   static String stringObject;
 
