@@ -3,17 +3,13 @@ JDK1.1
 JDK1.2
 JDK1.3
 JDK1.4
-JLS1.0
-JLS1.1
-JLS1.2
-JLS1.3
-JLS1.4
-JDBC1.0
-JDBC2.0
+!java.applet
+!java.awt
+!javax.naming
+!java.lang.Character.unicode
 
-!java.lang.Character.unicode # massive number of tests
+# exclusions due to defects in Jikes RVM
 !java.lang.Object.clone      # Jikes RVM defect 2905
-!java.lang.ref.              # Jikes RVM defect 2110
 !java.net.Socket.setSocketImplFactory # avoid bashing our sockets
 !java.net.DatagramSocket     # hangs Jikes RVM
 !java.net.MulticastSocket    # hangs Jikes RVM
