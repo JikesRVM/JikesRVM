@@ -40,6 +40,10 @@ completed.
     how magic is really implemented and what one needs to do to add a new
     VM_Magic operation.
 
+(12) Move brief subsection on AOS details out of optimizing compiler
+     section into its own section.  We've diverged enough from the
+     system described in the OOPSLA paper that there is probably some
+     things to say here that won't be redundant with the paper.
 
 (99) General proof reading -- defer until most of the other items are
      done to avoid having to proof a section twice.
