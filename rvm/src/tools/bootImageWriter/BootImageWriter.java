@@ -1064,12 +1064,13 @@ public class BootImageWriter extends BootImageWriterMessages
           else if (rvmFieldType.equals(VM_Type.AddressType)) {
 	      Object o = jdkFieldAcc.get(null);
 	      VM_Address addr = (VM_Address) o;
-	      int value = 0;
+	      int value = 0; // zero as default value 
 	      if (addr != null) {
 		  value = addr.toInt();
 		  int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
 		  int high = 0x10000000;  // we shouldn't have that many objects
-		  if (value > low && value < high && value != 32767) {
+		  if (value > low && value < high && value != 32767 && 
+		      (value < 4088 || value > 4096)) {
 		      say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
 			  " written for static field ", rvmField.toString());
 		  }

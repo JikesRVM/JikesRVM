@@ -306,7 +306,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static boolean useMemoryController = false;
 
   public static void checkBootImageAddress (int addr) {
-    if (VM.VerifyAssertions) VM._assert(bootImageAddress == addr);
+    if (bootImageAddress != addr) {
+      VM.sysWriteln("checkBootImageAddress detected mismatch");
+      VM.sysWriteln("  bootImageAddress = ", bootImageAddress);
+      VM.sysWriteln("  addr             = ", addr);
+      VM._assert(false);
+    }
   }
 
   public static void setWorkBufferSize (int size) {
