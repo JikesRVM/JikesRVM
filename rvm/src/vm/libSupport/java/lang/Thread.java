@@ -1,10 +1,13 @@
-/*
- * (C) Copyright IBM Corp 2002, 2004
+/* -*-coding: iso-8859-1 -*-
+ *
+ * Copyright © IBM Corp 2002, 2004
+ *
+ * $Id$
  */
-//$Id$
 package java.lang;
 
 import com.ibm.JikesRVM.VM;     // for VM.sysWrite()
+import com.ibm.JikesRVM.VM_Lock;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 import com.ibm.JikesRVM.VM_Wait;
@@ -196,7 +199,11 @@ public class Thread implements Runnable {
   }
 
   public static Thread currentThread () { 
-    return VM_Thread.getCurrentThread().thread;
+    Thread t = VM_Thread.getCurrentThread().thread;
+    final boolean dbg2 = false;
+    if ( dbg2 )
+      VM.sysWriteln("Thread.currentThread(): About to return " + t);
+    return t;
   }
 
   /** The JDK docs say "This method is not implemented".  We won't implement
@@ -304,6 +311,10 @@ public class Thread implements Runnable {
 
   }
     
+  /** The JDK 1.4.2 API says:
+   * « Automatically generated names are of the form "Thread-"+n, where n is an
+   *   integer. »
+   */
   private synchronized static String newName() {
     return "Thread-" + createCount++;
   }
@@ -318,6 +329,8 @@ public class Thread implements Runnable {
     vmdata.resume();
   }
 
+  /** Either someone subclasses Thread and overrides the  runnable() method or
+   * they call one of Thread's constructors that takes a Runnable.  */
   public void run() {
     if (runnable != null) {
       runnable.run();
@@ -386,9 +399,9 @@ public class Thread implements Runnable {
     VM_Thread.yield();
   }
 
-  /** Methods we used to inherit from VM_Thread. ** */
+  /** Does this Thread hold a lock on obj? */
   public boolean holdsLock(Object obj) {
-    throw new VM_UnimplementedError("java.lang.Thread.holdsLock(Object)");
+    return VM_Lock.owns(obj, vmdata);
   }
   
 
