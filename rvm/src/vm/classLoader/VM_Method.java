@@ -3,14 +3,15 @@
  */
 //$Id$
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 /**
  * A method of a java class.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import java.util.Stack;
-
 public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   //-----------//
   // Interface //
@@ -633,13 +634,13 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     offset = VM_Member.UNINITIALIZED_OFFSET;
   }
 
-  final void load(VM_BinaryData input, int modifiers) {
+  final void load(DataInputStream input, int modifiers) throws IOException {
     this.modifiers = modifiers;
     readAttributes(input);
     this.modifiers |= ACC_LOADED;
   }
 
-  private void readAttributes(VM_BinaryData input) {
+  private void readAttributes(DataInputStream input) throws IOException {
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i)
     {
       VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
@@ -652,7 +653,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
         localWords   = input.readUnsignedShort();
 
         bytecodes = new byte[input.readInt()];
-        input.readBytes(bytecodes);
+        input.readFully(bytecodes);
 
         //-#if RVM_WITH_OPT_COMPILER
 	VM_OptMethodSummary.summarizeMethod(this, bytecodes, 

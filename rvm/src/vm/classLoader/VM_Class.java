@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 // Following for beginning of classloader support
 import java.lang.ClassLoader;
 import java.io.InputStream;
+import java.io.DataInputStream;
 
 /**
  *  Description of a java "class" type.
@@ -773,7 +774,7 @@ public class VM_Class extends VM_Type
   /**
    * Read this class's description from specified data stream.
    */ 
-  final void load(VM_BinaryData input) throws ClassFormatError {
+  final void load(DataInputStream input) throws ClassFormatError, IOException {
     if (VM.VerifyAssertions && VM.runningVM) {
       VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.load called without holding VM_ClassLoader.lock");
     }
@@ -788,23 +789,20 @@ public class VM_Class extends VM_Type
     if (input.readUnsignedShort() != 3 || input.readUnsignedShort() != 45)
       throw new ClassFormatError("bad version number");
 
-    this.sourceRepository = input.getRepository();
-
     //
     // pass 1: read constant pool
     //
-
     int  tmpPool[] = new int[input.readUnsignedShort()];
     byte tmpTags[] = new byte[tmpPool.length];
 
     // note: slot 0 is unused
     for (int i = 1; i < tmpPool.length; ++i) {
-      switch (tmpTags[i] = (byte)input.readUnsignedByte())
+      switch (tmpTags[i] = input.readByte())
 	{
 	case TAG_UTF: 
 	  {
 	    byte utf[] = new byte[input.readUnsignedShort()];
-	    input.readBytes(utf);
+	    input.readFully(utf);
 	    tmpPool[i] = VM_Atom.findOrCreateAtomId(utf);
 	    break;  
 	  }
@@ -1760,13 +1758,6 @@ public class VM_Class extends VM_Type
 
   static VM_Class getInterface(int id) {
     return interfaces[id];
-  }
-
-  // where did I come from?
-  private String sourceRepository;
-
-  public String getSourceRepository() {
-      return sourceRepository;
   }
 
   private synchronized void assignInterfaceId() {

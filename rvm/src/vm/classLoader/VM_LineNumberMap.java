@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id:
+//$Id$
+
+import java.io.DataInputStream;
+import java.io.IOException;
 
 /**
  *  A java method's source line number information.
@@ -30,7 +33,7 @@ class VM_LineNumberMap {
     lineNumbers = new int[n];
   }
 
-  VM_LineNumberMap(VM_BinaryData input, int n) {
+  VM_LineNumberMap(DataInputStream input, int n) throws IOException {
     this(n);
     for (int i = 0; i < n; ++i) {
       startPCs[i]    = input.readUnsignedShort();

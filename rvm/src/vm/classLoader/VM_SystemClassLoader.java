@@ -44,15 +44,6 @@ public final class VM_SystemClassLoader extends com.ibm.oti.vm.AbstractClassLoad
     return loadedClass;
   }
 
-    private static byte[] getBytes(InputStream is) throws IOException {
-	byte[] buf = new byte[1024];
-	ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	int count;
-	while ((count = is.read(buf)) > 0)
-	    bos.write(buf, 0, count);
-	return bos.toByteArray();
-    }
-    
     protected Class findClass (String className) throws ClassNotFoundException {
       VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
       VM_Class cls = (VM_Class) VM_ClassLoader.findOrCreateType(classDescriptor, this);
@@ -64,7 +55,7 @@ public final class VM_SystemClassLoader extends com.ibm.oti.vm.AbstractClassLoad
 
 	synchronized(VM_ClassLoader.lock) {
 	  if (!cls.isLoaded()) {
-	    cls.load(new VM_BinaryData(getBytes(is)));
+	    cls.load(new DataInputStream(is));
 	  }
 	}
       } catch (Throwable e) {

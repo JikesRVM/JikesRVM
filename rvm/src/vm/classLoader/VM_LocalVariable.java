@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id:
+//$Id$
+
+import java.io.DataInputStream;
+import java.io.IOException;
 
 /**
  * A java method's local variable information (for use by debuggers).
@@ -19,7 +22,7 @@ class VM_LocalVariable {
   int startPC;                // range of bytecodes for which it resides in that stack slot,
   int endPC;                  // indexed from start of methods' bytecodes[] (inclusive)
 
-  VM_LocalVariable(VM_Class cls, VM_BinaryData input) {
+  VM_LocalVariable(VM_Class cls, DataInputStream input) throws IOException {
     startPC    = input.readUnsignedShort();
     endPC      = startPC + input.readUnsignedShort();
     name       = cls.getUtf(input.readUnsignedShort());

@@ -31,15 +31,6 @@ class VM_ApplicationClassLoader extends AppClassLoader {
    }
     
 
-    private static byte[] getBytes(InputStream is) throws IOException {
-	byte[] buf = new byte[1024];
-	ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	int count;
-	while ((count = is.read(buf)) > 0)
-	    bos.write(buf, 0, count);
-	return bos.toByteArray();
-    }
-
     private String findRepository(String resourceName) {
 	for(int i = 0; i < parsedPath.length; i++) 
 	    if (resourceName.startsWith(parsedPath[i]))
@@ -51,24 +42,19 @@ class VM_ApplicationClassLoader extends AppClassLoader {
 	throw new Error();
     }
 
-    protected Class findClass (String className) throws ClassNotFoundException
-    {
-	VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-	VM_Class cls = (VM_Class) VM_ClassLoader.findOrCreateType(classDescriptor, this);
+    protected Class findClass (String className) throws ClassNotFoundException {
+      VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+      VM_Class cls = (VM_Class) VM_ClassLoader.findOrCreateType(classDescriptor, this);
 	
-	try {
-	    URL x = findResource(classDescriptor.classFileNameFromDescriptor());
-
-	    InputStream is = x.openConnection().getInputStream();
-	    byte[] bytes = getBytes(is);
-
-	    VM_ClassLoader.defineClassInternal(className, bytes, 0, bytes.length, this, (ProtectionDomain)getFilePD( findRepository(x.getFile()) ));
-
-	} catch (Throwable e) {
-	    throw new ClassNotFoundException(className);
-	}
+      try {
+	URL x = findResource(classDescriptor.classFileNameFromDescriptor());
+	InputStream is = x.openConnection().getInputStream();
+	VM_ClassLoader.defineClassInternal(className, is, this, (ProtectionDomain)getFilePD(findRepository(x.getFile())));
+      } catch (Throwable e) {
+	throw new ClassNotFoundException(className);
+      }
 	
-	return cls.getClassForType();
+      return cls.getClassForType();
     }
 
 }

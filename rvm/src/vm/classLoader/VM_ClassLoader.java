@@ -4,9 +4,7 @@
 //$Id$
 
 import java.util.StringTokenizer;
-import java.io.File;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
 import java.util.Hashtable;
@@ -471,17 +469,38 @@ public class VM_ClassLoader
     cls.initialize();
   }
 
-  public static final Class defineClassInternal (String className, byte[] classRep, int offset, int length, ClassLoader classloader, ProtectionDomain pd) {
-      Class c = defineClassInternal(className, classRep, offset, length, classloader);
-      c.pd = pd;
-      return c;
+  public static final Class defineClassInternal(String className, 
+						byte[] classRep, 
+						int offset, 
+						int length, 
+						ClassLoader classloader, 
+						ProtectionDomain pd) throws ClassFormatError {
+    Class c = defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
+    c.pd = pd;
+    return c;
   }
 
-  public static final Class defineClassInternal (String className, byte[] classRep, int offset, int length, ClassLoader classloader)
-    throws ClassFormatError {
+  public static final Class defineClassInternal(String className, 
+						byte[] classRep, 
+						int offset, 
+						int length, 
+						ClassLoader classloader) throws ClassFormatError {
+    return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
+  }
 
-    VM_BinaryData classData;
+  public static final Class defineClassInternal(String className, 
+						InputStream is, 
+						ClassLoader classloader, 
+						ProtectionDomain pd) throws ClassFormatError {
+    Class c = defineClassInternal(className, is, classloader);
+    c.pd = pd;
+    return c;
+  }
 
+  
+  public static final Class defineClassInternal(String className, 
+						InputStream is, 
+						ClassLoader classloader) throws ClassFormatError {
     if (className == null) {
       VM.sysFail("ClassLoader.defineClass class name == null not implemented"); //!!TODO
       return null;
@@ -490,21 +509,17 @@ public class VM_ClassLoader
     VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, classloader).asClass();
 
-    if (offset > 0) {
-      // we have never seen an offset other than zero!
-      byte[] bytes = new byte[length];
-      VM_Array.arraycopy(classRep,offset,bytes,0,length);
-      classData = new VM_BinaryData( bytes );
-    }
-    else classData = new VM_BinaryData( classRep );
-
     synchronized (lock) {
       if (!cls.isLoaded()) {
 	if (VM.TraceClassLoading  && VM.runningVM)
 	  VM.sysWrite("loading " + cls + " with " + classloader);
-
+	
 	cls.classloader = classloader;
-	cls.load(classData);
+	try {
+	  cls.load(new DataInputStream(is));
+	} catch (IOException e) {
+	  throw new ClassFormatError(e.getMessage());
+	}
       }
     }
 
