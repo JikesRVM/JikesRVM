@@ -60,10 +60,11 @@ chmod -R 755 $RVM_ROOT/.. 2>> $RUN_LOG
 
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
+
 if [ `uname` = "Linux" ]; then
   (cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvjf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.bz2) >> $RUN_LOG 2>> $RUN_LOG
 else
-  (cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvzf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz) >> $RUN_LOG 2>> $RUN_LOG
+  (cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar) >> $RUN_LOG 2>> $RUN_LOG
 fi
 
 # determine how many ran, failed, and passed, then build a summary line
