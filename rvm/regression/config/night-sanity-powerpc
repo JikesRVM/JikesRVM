@@ -8,8 +8,8 @@ JMTkBaseBaseHybrid               -test-list nightly-tests
 JMTkBaseBaseGenCopy              -test-list nightly-tests
 JMTkBaseBaseGenHybrid            -test-list nightly-tests
 JMTkQuickMarkSweep               -test-list nightly-tests-gc
+JMTkExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
+JMTkFullOptSemispace -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
 FastMarkSweep                    -test-list nightly-tests-short
 FastAdaptiveSemispace            -test-list nightly-tests-short
 FastSemispace                    -test-list nightly-tests-short
-JMTkExtremeAssertionsOptOptSemispace -test-list nightly-tests-short
-JMTkFullOptSemispace -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
