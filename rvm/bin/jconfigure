@@ -1279,7 +1279,7 @@ function emitCompiler
    print "if [[ -e $CLASSES_INVALID_STR ]]; then"
    print "   cd $CLASSES_DIRECTORY_STR"
    print "   rm -f $TOP_LEVEL_CLASSES"
-   print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
+   print "   $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
    print '   print -n "(classes compiled) "'
    print ""
    print "   rm -f jksvm.jar"
@@ -1872,7 +1872,7 @@ function emitImageLinker
    # script to compile GenerateInterfaceDeclaration.java
    #
    print "cd $SCRATCH_DIRECTORY_STR &&\
-          $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
+          $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
 	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  GenerateInterfaceDeclarations.java"
 
@@ -2242,7 +2242,7 @@ function emitToolCompiler
    if (( BUILD_RVMRT_JAR )); then 
      print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    else
-     print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    fi
    }
   
