@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 set -e
 msg="Does printf() understand the '%z' modifier?"
-echo "Testing: $msg" >> ${LOG}
+echo "$msg" >> ${LOG}
 echo >&2 -n "$msg..."
 
 . ${JAL_BUILD}/environment.target
@@ -22,10 +22,12 @@ ${CC} -w -o ${SCRATCH}/${CMD} ${CMD}.c 2>&1 >> ${LOG}
 
 ${SCRATCH}/${CMD} > ${SCRATCH}/${CMD}.out
 if grep z ${SCRATCH}/${CMD}.out 2>&1 >> $LOG; then
-    echo "no" | tee -a ${LOG} >&2
+    echo "$msg...No" >> ${LOG}
+    echo No >&2
     echo "#undef PRINTF_HANDLES_PERCENT_Z"
 else
-    echo "yep" | tee -a ${LOG} >&2
+    echo "$msg...Yes" >> ${LOG} 
+    echo Yes >&2
     echo "#define PRINTF_HANDLES_PERCENT_Z 1"
 fi
 echo ""

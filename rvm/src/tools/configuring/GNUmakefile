@@ -19,7 +19,15 @@ CONFIG_H_DIR ?= .
 SCRATCH ?= ${CONFIG_H_DIR}/ConfigScratch
 CONFIG_H = ${CONFIG_H_DIR}/config.h
 LOG = ${CONFIG_H_DIR}/config.log
+## Is the SILENT (-s) flag specified?
 
+ifneq (,$(findstring s,${MFLAGS}))
+# If we are silent:
+SILENCE:=2> /dev/null
+else
+# If we are NOT being silent:
+SILENCE:=
+endif
 RUN:=SCRATCH=${SCRATCH} LOG=${LOG} JAL_BUILD=${JAL_BUILD} ${BASH} 
 
 all: ${CONFIG_H}
@@ -28,10 +36,11 @@ clean:
 	$(RM) -r ${CONFIG_H} ${SCRATCH} ${LOG}
 
 ${CONFIG_H}: prep
+	@(echo >&2 "Configuring target.  Log in ${LOG}, config.h in ${CONFIG_H}") ${SILENCE}
 	@> ${LOG}		# zero out the log file.
 	@> $@			# zero out config.h
-	@${RUN} have_strtold.sh >> $@
-	@${RUN} printf_handles_percent_z.sh >> $@
+	@${RUN} have_cxx_strtold.sh		>> $@ ${SILENCE}
+	@${RUN} printf_handles_percent_z.sh	>> $@ ${SILENCE}
 
 prep:
 	mkdir -p ${SCRATCH} ${CONFIG_H_DIR}
