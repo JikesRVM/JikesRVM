@@ -13,7 +13,7 @@ import java.util.*;
 /* not needed for build in separate RVM.tools directory */
 /* import PPC_Disassembler; */
 
-abstract class memory implements jdpConstants  
+abstract class memory implements jdpConstants, VM_Constants
 {
   //****************************************************************************
   // In the external implementations, these will be native methods 
@@ -169,8 +169,8 @@ abstract class memory implements jdpConstants
    */
   public boolean isLinkToBoot(int fp) {
     // up to next stack frame
-    int nextFp = read(fp+VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
-    if (nextFp==0)
+    int nextFp = read(fp+STACKFRAME_FRAME_POINTER_OFFSET);
+    if (nextFp==-2)
       return true;
     else 
       return false;
@@ -340,14 +340,16 @@ abstract class memory implements jdpConstants
     int depth = 0;
     int limit = 50;
     int fp = framepointer;
-    int linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+    int linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
     StringBuffer ret = new StringBuffer();
-    while ((linkaddr!=0) && (depth<=limit)) {
+    while (depth<=limit) {
       ret.append(printThisFrame(-1,linkaddr,fp));
       fp = read(fp);              // up to next stack frame
-      linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+      if (fp==STACKFRAME_SENTINAL_FP)
+	break;      
+      linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
       if (linkaddr==-1 || fp==-1) {
-	return ("ERROR:  stack corrupted at frame " + depth + " or earlier");
+	return ("ERROR 1:  stack corrupted at frame " + depth + " or earlier");
       }
     }
     return ret.toString();
@@ -371,38 +373,43 @@ abstract class memory implements jdpConstants
     depth = 0;
     linkaddr = owner.reg.currentIP();
     fp = owner.reg.currentFP();
-    while ((linkaddr!=0) && (depth<from)) {
+    while (depth<from) {
       fp = read(fp);                   
-      linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+      if (fp==STACKFRAME_SENTINAL_FP)
+	break;
+      linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
       if (linkaddr==-1 || fp==-1) {
-	return ("ERROR:  stack corrupted at frame " + depth + " or earlier");
+	return ("ERROR 2:  stack corrupted at frame " + depth + " or earlier");
       }
       depth++;
     }
-    if ((linkaddr==0) && (depth<from)) {
+    if ((fp==STACKFRAME_SENTINAL_FP) && (depth<from)) {
       return ("Requested frame " + from + " is beyond current stack depth: " + depth);
     }
 
     // then walk the stack to the desired end
-    while ((linkaddr!=0) && (depth<=to)) {
+    while (depth<=to) {
       ret.append(printThisFrame(depth,linkaddr,fp));
       // System.out.println(depth + "  " + Integer.toHexString(fp));
       fp = read(fp);              // up to next stack frame
-      linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+      if (fp==STACKFRAME_SENTINAL_FP)
+	break;
+      linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
       if (linkaddr==-1 || fp==-1) {
-	return ("ERROR:  stack corrupted at frame " + depth + " or earlier");
+	return ("ERROR 3:  stack corrupted at frame " + depth + " or earlier");
       }
       depth++;
       // System.out.println(depth + ": " + Integer.toHexString(fp) + ", " + Integer.toHexString(linkaddr));
     }
 
-    if (linkaddr!=0) {
+    if (fp!=STACKFRAME_SENTINAL_FP) {
       int remain = findFrameCountFrom(fp);
       if (remain==1000)
       {
-	ret.append("    ...(more than 1000 frames remain)...");
+	ret.append("    1 ...(more than 1000 frames remain)...");
+	ret.append(Integer.toHexString(fp));	
         ret.append('\n');
-      }
+       }
       else
       {
 	ret.append("    ...(" + remain + " more frames)...");
@@ -496,31 +503,35 @@ abstract class memory implements jdpConstants
     depth = 0;
     fp = owner.reg.currentFP();           // start with current frame
     linkaddr = owner.reg.currentIP();
-    while ((linkaddr!=0) && (depth<from-1)) {
+    while (depth<from-1) {
       fp = read(fp);                   
-      linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+      if (fp==STACKFRAME_SENTINAL_FP)
+	break;
+      linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
       if (linkaddr==-1 || fp==-1) {
-	return ("ERROR:  stack corrupted at frame " + depth + " or earlier");
+	return ("ERROR 4:  stack corrupted at frame " + depth + " or earlier");
       }
       depth++;
     }
 
     // System.out.println("depth " + depth + ", linkaddr " + linkaddr);
     if (depth<=from-1) {
-      if (linkaddr==0 || read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET)==0) {
+      if (linkaddr==0 || read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET)==0) {
 	return ("Requested frame " + from + " is beyond current stack depth: " + depth);
       }
     }
     
     // second, traverse for the desired section, saving fp and linkaddr
-    while (!reach_top && depth <= to) {      
+    while (depth <= to) {      
       fpvect.addElement(new Integer(fp));
       lrvect.addElement(new Integer(linkaddr));
       depth++;
       fp = read(fp);
-      linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
-      if (linkaddr==0)
+      if (fp==STACKFRAME_SENTINAL_FP) {
 	reach_top = true;
+	break;
+      }
+      linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
     }
     saved_fp = fp;
 
@@ -558,7 +569,7 @@ abstract class memory implements jdpConstants
       int remain = findFrameCountFrom(saved_fp);
       if (remain==1000)
       {
-	ret.append("    ...(more than 1000 frames remain)...");
+	ret.append("    2 ...(more than 1000 frames remain)...");
         ret.append('\n');
       }
       else
@@ -585,7 +596,7 @@ abstract class memory implements jdpConstants
     if (fp==owner.reg.currentFP()) {     
       return printThisFrameFull(0, owner.reg.currentIP(), fp);
     } else {
-      int linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+      int linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
       return printThisFrameFull(-1, linkaddr, fp);
     }
   }
@@ -744,7 +755,7 @@ abstract class memory implements jdpConstants
 
       // label the spill area for arguments
       for (addr=(fp+spillOffset), i=0; 
-	   addr>fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET; 
+	   addr>fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET; 
 	   addr-=4, i++) {
 	ret.append("   " + Integer.toHexString(addr) + 
                    " : " + dataAtEntry(addr) + "   spilled args " + i);
@@ -757,12 +768,12 @@ abstract class memory implements jdpConstants
     // if the method info is not available, just print the stack values without comments
     // catch (BmapNotFoundException e) {
     else {
-      int top = read(fp+VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
+      int top = read(fp+STACKFRAME_FRAME_POINTER_OFFSET);
       addr = top-8;
       ret.append("   " + Integer.toHexString(addr) + 
                  " : " + dataAtEntry(addr) + "   saved FPR ");
       ret.append('\n');
-      for (addr=(top-12); addr>fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET; addr-=4) {
+      for (addr=(top-12); addr>fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET; addr-=4) {
 	ret.append("   " + Integer.toHexString(addr) + 
                    " : " + dataAtEntry(addr));
         ret.append('\n');        
@@ -777,15 +788,15 @@ abstract class memory implements jdpConstants
     // 	 return;
     // }
 
-    addr = fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET;
+    addr = fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET;
     ret.append("   " + Integer.toHexString(addr) + 
                " : " + dataAtEntry(addr) + "   return address ");
     ret.append('\n');
-    addr = fp+VM_Constants.STACKFRAME_METHOD_ID_OFFSET;
+    addr = fp+STACKFRAME_METHOD_ID_OFFSET;
     ret.append("   " + Integer.toHexString(addr) + 
                " : " + dataAtEntry(addr) + "   method ID ");
     ret.append('\n');
-    addr = fp+VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET;
+    addr = fp+STACKFRAME_FRAME_POINTER_OFFSET;
     ret.append("   " + Integer.toHexString(addr) + 
                " : " + dataAtEntry(addr) + "   <- FP for this frame ");
     ret.append('\n');
@@ -833,14 +844,12 @@ abstract class memory implements jdpConstants
     boolean reach_top = false;
     int depth = 0;
     int fp = startFP;
-    int linkaddr = frameIP(fp);
     
     // traverse to the top of stack, or at least 1000 frames
     while (!reach_top && (depth < 1000)) {      
       depth++;
       fp = read(fp);
-      linkaddr = frameIP(fp);
-      if (linkaddr==0)
+      if (fp==STACKFRAME_SENTINAL_FP)
 	reach_top = true;
     } 
     return depth;
@@ -856,16 +865,12 @@ abstract class memory implements jdpConstants
     boolean reach_top = false;
     int depth = 0;
     int fp = startFP;
-    int linkaddr = frameIP(fp);
     
     // traverse to the desired depth
     while (!reach_top && (depth < numframe)) {      
       depth++;
-      //  System.out.println(depth + ": " + VM.intAsHexString(fp) + ", " + 
-      // 			    VM.intAsHexString(linkaddr));
       fp = read(fp);
-      linkaddr = frameIP(fp);
-      if (linkaddr==0)
+      if (fp==STACKFRAME_SENTINAL_FP)
 	reach_top = true;
     } 
     if (reach_top)
@@ -880,7 +885,7 @@ abstract class memory implements jdpConstants
    * @return the instruction pointer
    */
   public int frameIP(int fp) {
-    return read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+    return read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET);
   }
 
   
@@ -904,9 +909,9 @@ abstract class memory implements jdpConstants
     fp = owner.reg.currentFP();
     while (linkaddr!=0) {
       fp = read(fp);                   
-      linkaddr = read(fp+VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET); 
+      linkaddr = read(fp+STACKFRAME_NEXT_INSTRUCTION_OFFSET); 
       if (linkaddr==-1 || fp==-1) {
-	System.out.println("ERROR:  stack corrupted at frame " + depth + " or earlier");
+	System.out.println("ERROR 5:  stack corrupted at frame " + depth + " or earlier");
 	return false;
       }
       // thisMethod = VM_Magic.findMethodForInstruction(linkaddr);
