@@ -10,6 +10,22 @@
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
 
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#########
+# target architecutre is IA32
+export RVM_FOR_IA32=1
+
+# target OS is Cygwin
+export RVM_FOR_CYGWIN=1
+
+# no SMP support on cygwin yet.
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
+
+##########
+# PART II: Where to find tools and resources on this target
+########## 
+
 # NOTE: Assumes 'mount c:/Program\ Files/IBM /IBM'
 export HOST_JAVA_HOME="/IBM/Java13"
 

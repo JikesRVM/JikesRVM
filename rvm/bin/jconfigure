@@ -359,132 +359,18 @@ integer BUILD_RVMRT_JAR=0
 # Are we putting VM classes into a jar?
 integer RVM_WITH_JKSVM_JAR=0
 
-#--------------------------------------#
-# SECTION 3 - ENVIRONMENT VARIABLES    #
-#--------------------------------------#
+#---------------------------------------#
+# SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
+#---------------------------------------#
+# One use of the target_config file is to define
+# directives that hold for all configurations 
+# defined on the target. By sourcing it here,
+# we define such directives for all configs on the target,
+# but still allow them to be overridden on the command line
+# or in a build-config file.
 
-# 
-# The following environment (shell) variables are examined
-#	RVM_TARGET_ARCH
-#		values: powerpc, POWERPC, PPC, IS32, i686
-#	RVM_TARGET_OS
-#		values: aix, AIX, Linux, linux, linuxsmp, Cygwin, cygwin
-#	RVM_TARGET_CONFIG
-#		values: file name in config.guess format
-#	
+. $RVM_TARGET_CONFIG
 
-#
-# Make some choices based on the enviroment variable
-# RVM_TARGET_ARCH 
-# Odd syntax required to run on various ksh's
-#
-if [[ X"$RVM_TARGET_ARCH" = X"powerpc" ]]; then
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"POWERPC" ]]; then
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"PPC" ]]; then
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"IA32" ]]; then
-   export RVM_FOR_IA32=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"i686" ]]; then
-   export RVM_FOR_IA32=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"aix" ]]; then
-   # AIX implies PPC
-   export RVM_FOR_AIX=1
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"AIX" ]]; then
-   # AIX implies PPC
-   export RVM_FOR_AIX=1
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"Linux" ]]; then
-   export RVM_FOR_LINUX=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"linux" ]]; then
-   export RVM_FOR_LINUX=1
-fi
-
-# TODO soon: change this flag # this stanza is depricated
-if [[ X"$RVM_TARGET_OS" = X"linuxsmp" ]]; then
-   export RVM_FOR_LINUX=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"Cygwin" ]]; then
-   export RVM_FOR_CYGWIN=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"cygwin" ]]; then
-   export RVM_FOR_CYGWIN=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X ]]; then
-   # no target operating system specified
-   if (( !RVM_FOR_LINUX && !RVM_FOR_AIX )); then
-     # so far we have not guessed one so try to infer it from name of
-     # target configuration file
-     case $RVM_TARGET_CONFIG in
-       *aix* ) export RVM_FOR_AIX=1
-      	       export RVM_FOR_POWERPC=1 ;;
-       *linux* ) export RVM_FOR_LINUX=1 ;;
-       *cygwin* ) export RVM_FOR_CYGWIN=1 ;;
-     esac
-   fi
-   if (( !RVM_FOR_LINUX && !RVM_FOR_AIX )); then
-     # if we still have not guessed, lets default to current system
-     if [[ X`uname` = X"Linux" ]]; then
-       export RVM_FOR_LINUX=1
-     elif [[ X`uname` = X"AIX" ]]; then
-       export RVM_FOR_AIX=1
-       export RVM_FOR_POWERPC=1
-     elif [[ X`uname` = X"CYGWIN_NT-5.0" ]]; then
-       export RVM_FOR_CYGWIN=1
-     fi
-   fi
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X ]]; then
-   # no target architecture specified
-   if (( !RVM_FOR_IA32 && !RVM_FOR_POWERPC )); then
-     # so far we have not guessed one so try to infer it from name of
-     # target configuration file
-     case $RVM_TARGET_CONFIG in
-       *i686* ) export RVM_FOR_IA32=1 ;;
-       *powerpc* ) export RVM_FOR_POWERPC=1 ;;
-     esac
-   fi
-   if (( !RVM_FOR_IA32 && !RVM_FOR_POWERPC )); then
-     # if we still have not guessed, lets default to current system
-     if [[ X`uname -m` = X"ppc" ]]; then
-       export RVM_FOR_POWERPC=1
-     elif [[ X`uname -m` = X"i686" ]]; then
-       export RVM_FOR_IA32=1
-     fi
-   fi
-fi
-
-if (( RVM_FOR_CYGWIN )); then
-      export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 
-fi
-
-if (( RVM_FOR_LINUX )); then
-  case `uname -r` in
-    2.2.*) export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1  ;;
-  esac
-fi
 
 #--------------------------------------#
 # SECTION 4 - ARGUMENT PARSING         #

@@ -10,6 +10,22 @@
 # IMPORTANT: You need to modify this file to reflect your AIX environment!
 #
 
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#########
+# target architecutre is PowerPC
+export RVM_FOR_POWERPC=1
+
+# target OS is AIX
+export RVM_FOR_AIX=1
+
+# SMP support is always ok on AIX.
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+
+##########
+# PART II: Where to find tools and resources on this target
+########## 
+
 export HOST_JAVA_HOME="/usr/local"
 
 # the JDK java executable
