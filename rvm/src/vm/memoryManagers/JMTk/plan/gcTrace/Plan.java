@@ -258,6 +258,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     /* Now have the trace process aware of the new allocation. */
     traceInducedGC = TraceGenerator.MERLIN_ANALYSIS;
     TraceGenerator.traceAlloc(allocator == IMMORTAL_SPACE, ref, tib, bytes);
+    traceInducedGC = false;
   }
 
   /**
