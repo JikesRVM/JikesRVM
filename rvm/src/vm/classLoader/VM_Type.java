@@ -7,43 +7,36 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.*;
 
 /**
- * A description of a java object.
- *
+ * A description of a java type.
+ * 
  * This class is the base of the java type system. 
  * To the three kinds of java objects
  * (class-instances, array-instances, primitive-instances) 
  * there are three corresponding
  * subclasses of VM_Type: VM_Class, VM_Array, VM_Primitive.
- *
- * VM_Class's are constructed in four phases:
- *
+ * <p>
+ * A VM_Class is constructed in four phases:
  * <ul>
- * <li> A "forward reference" phase records the type descriptor but 
- * does not attempt to read
- *   the ".class" file.
- *
  * <li> A "load" phase reads the ".class" file but does not attempt to 
- * examine any of the symbolic references present there.
+ *      examine any of the symbolic references present there. This is done
+ *      by the VM_Class constructor as a result of a VM_TypeReference being
+ *      resolved.
  *
  * <li> A "resolve" phase follows symbolic references as needed to discover
  *   ancestry, to measure field sizes, and to allocate space in the jtoc
  *   for the class's static fields and methods.
  *
- * <li>  An "instantiate" phase compiles the class's methods, 
- * installs the type information block,
- *   static fields, and static methods into the jtoc.
+ * <li>  An "instantiate" phase initializes and 
+ * installs the type information block and static methods.
  *
  * <li> An "initialize" phase runs the class's static initializer.
  * </ul>
  *
- * VM_Array's are constructed in similar fashion to VM_Class's, 
- * except there is no 
- * "forward reference" or "load" phase, because the descriptions are 
- * completely self contained.
- *
+ * VM_Array's are constructed in a similar fashion.
+ * 
  * VM_Primitive's are constructed ab initio. 
- * They have no "forward reference", "load", 
- * "resolution", "instantiation", or "initialization" phases.
+ * Their "resolution", "instantiation", and "initialization" phases
+ * are no-ops.
  *
  * @author Bowen Alpern
  * @author Dave Grove
