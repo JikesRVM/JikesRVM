@@ -33,6 +33,8 @@ export BOOTIMAGE_LOAD_ADDRESS="0x41000000"
 ########## 
 
 export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.3.1"
+#export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
+#export HOST_JAVA_HOME="/opt/IBMJava-14"
 
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
@@ -56,9 +58,8 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 export GNU_MAKE="/usr/bin/make"
 
 # path for jikes.
-export JIKES="/homes/meriadoc/jalapeno/bin/i686/jikes-1.13"
-# for exprimenting with jikes 1.16
-#export JIKES="/usr/local/bin/jikes -target 1.3"
+#export JIKES="/homes/meriadoc/jalapeno/bin/i686/jikes-1.13"
+export JIKES="/homes/meriadoc/jalapeno/bin/i686/jikes-post1.17 -target 1.3 -nowarn"
 
 # what C compilers should be used?
 export CC='/usr/bin/gcc -w -O'
@@ -75,7 +76,6 @@ export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads
 # The configuration for building the user guide.
 # You may have to edit this file.
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
-
 
 #  some Unix commands
 export AWK="/bin/awk"
