@@ -202,6 +202,8 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
    *                                      the name of the class to search for.
    */
   public final Class findLoadedClassInternal (String className) {
+    if (VM.VerifyAssertions) VM._assert(className != null);
+
     // make a descriptor from the class name string
     VM_Atom classDescriptor;
     if (className.startsWith("[")||(className.startsWith("L")&&className.endsWith(";"))) {
@@ -216,6 +218,10 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     VM_Type t = VM_TypeDictionary.getValue(typeId);
     if (t == null) return null;
     if (!t.isLoaded()) return null;
+    
+    // make sure it was loaded by the system class loader (this one)
+    ClassLoader cl = t.getClassLoader();
+    if (! (cl == null || cl == this || t.isInBootImage())) return null;
 
     // found it. return the class
     return t.getClassForType();
