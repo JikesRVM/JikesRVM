@@ -8,6 +8,7 @@ import  java.io.PrintStream;
 import  java.util.*;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Emit a header file containing declarations required to access VM 
@@ -25,8 +26,29 @@ class GenerateInterfaceDeclarations {
   static void p(String s) {
     out.print(s);
   }
+  static void p(String s, Offset off) {
+    //-#if RVM_FOR_64_ADDR
+    out.print(s+ off.toLong());
+    //-#else
+    out.print(s+ off.toInt());
+    //-#endif
+  }
   static void pln(String s) {
     out.println(s);
+  }
+  static void pln(String s, Address addr) {
+    //-#if RVM_FOR_64_ADDR
+    out.print("const VM_Address " + s + addr.toLong()+ ";\n");
+    //-#else
+    out.print("const VM_Address " + s + addr.toInt() + ";\n");
+    //-#endif
+  }
+  static void pln(String s, Offset off) {
+    //-#if RVM_FOR_64_ADDR
+    out.print("const VM_Offset " + s + off.toLong() + ";\n");
+    //-#else
+    out.print("const VM_Offset " + s + off.toInt() + ";\n");
+    //-#endif
   }
   static void pln() {
     out.println();
@@ -114,10 +136,12 @@ class GenerateInterfaceDeclarations {
     pln("#include <inttypes.h>");
     if (VM.BuildFor32Addr) {
       pln("#define VM_Address uint32_t");
+      pln("#define VM_Offset int32_t");
       pln("#define VM_Word uint32_t");
       pln("#define JavaObject_t uint32_t");
     } else {
       pln("#define VM_Address uint64_t");
+      pln("#define VM_Offset int64_t");
       pln("#define VM_Word uint64_t");
       pln("#define JavaObject_t uint64_t");
     }
@@ -208,42 +232,45 @@ class GenerateInterfaceDeclarations {
 
     // Header Space for objects
     int startOffset = VM_ObjectModel.objectStartOffset(cls);
-    int current = startOffset;
-    for(int i = 0; current < fields[0].f.getOffsetAsInt(); i++) {
+    Offset current = Offset.fromIntSignExtend(startOffset);
+    for(int i = 0; current.sLT(fields[0].f.getOffset()); i++) {
       pln("  uint32_t    headerPadding" + i + ";\n");
-      current += 4; 
+      current=current.add(4); 
     }
     
     for (int i = 0; i<fields.length; i++) {
       VM_Field field = fields[i].f;
       VM_TypeReference t = field.getType();
-      int offset = field.getOffsetAsInt();
+      Offset offset = field.getOffset();
       String name = field.getName().toString();
       // Align by blowing 4 bytes if needed
-      if (needsAlign && current + 4 == offset) {
+      if (needsAlign && current.add(4).EQ(offset)) {
           pln("  uint32_t    padding" + i + ";");
-          current += 4;
+          current=current.add(4);
       }
-      if (current != offset) 
-        pln("current = " + current + " and offset = " + offset + " are neither identical not differ by 4");
+      if (!current.EQ(offset)) { 
+        p("current = ", current);
+        p(" and offset = ", offset);
+        pln(" are neither identical not differ by 4");
+      }
       if (t.isIntType()) {
-        current += 4;
+        current=current.add(4);
         p("   uint32_t " + name + ";\n");
       } else if (t.isLongType()) {
-        current += 8;
+        current=current.add(8);
         p("   uint64_t " + name + ";\n");
       } else if (t.isWordType()) {
         p("   VM_Address " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
         p("   VM_Address * " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
         p("   unsigned int * " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else if (t.isReferenceType()) {
         p("   JavaObject_t " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else {
         System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
         throw new RuntimeException("unexpected field type");
@@ -476,14 +503,15 @@ class GenerateInterfaceDeclarations {
         + VM_Constants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
     p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
         + VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
-    p("static const int VM_Constants_STACKFRAME_SENTINEL_FP             = "
-        + VM_Constants.STACKFRAME_SENTINEL_FP.toInt() + ";\n");
+    pln("VM_Constants_STACKFRAME_SENTINEL_FP             = ",
+         VM_Constants.STACKFRAME_SENTINEL_FP);
     p("\n");
 
     // values in VM_ObjectModel
     //
-    pln("static const int VM_ObjectModel_ARRAY_LENGTH_OFFSET = " + 
-                       VM_ObjectModel.getArrayLengthOffset().toInt() + "\n;");
+    pln("VM_ObjectModel_ARRAY_LENGTH_OFFSET = ", 
+                       VM_ObjectModel.getArrayLengthOffset());
+    pln();
 
     // values in VM_Scheduler
     //
@@ -589,104 +617,84 @@ class GenerateInterfaceDeclarations {
 
     // fields in VM_Processor
     //
-    int offset;
-    offset = VM_Entrypoints.timeSliceExpiredField.getOffsetAsInt();
-    p("static const int VM_Processor_timeSliceExpired_offset = "
-        + offset + ";\n");
-    offset = VM_Entrypoints.takeYieldpointField.getOffsetAsInt();
-    p("static const int VM_Processor_takeYieldpoint_offset = "
-        + offset + ";\n");
-    offset = VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt();
-    p("static const int VM_Processor_activeThreadStackLimit_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.pthreadIDField.getOffsetAsInt();
-    p("static const int VM_Processor_pthread_id_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.timerTicksField.getOffsetAsInt();
-    p("static const int VM_Processor_timerTicks_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.reportedTimerTicksField.getOffsetAsInt();
-    p("static const int VM_Processor_reportedTimerTicks_offset = "
-                    + offset + ";\n");
-    offset = VM_Entrypoints.activeThreadField.getOffsetAsInt();
-    p("static const int VM_Processor_activeThread_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.threadIdField.getOffsetAsInt();
-    p("static const int VM_Processor_threadId_offset = "
-                     + offset + ";\n");
+    Offset offset;
+    offset = VM_Entrypoints.timeSliceExpiredField.getOffset();
+    pln("VM_Processor_timeSliceExpired_offset = ", offset);
+    offset = VM_Entrypoints.takeYieldpointField.getOffset();
+    pln("VM_Processor_takeYieldpoint_offset = ", offset);
+    offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
+    pln("VM_Processor_activeThreadStackLimit_offset = ", offset);
+    offset = VM_Entrypoints.pthreadIDField.getOffset();
+    pln("VM_Processor_pthread_id_offset = ", offset);
+    offset = VM_Entrypoints.timerTicksField.getOffset();
+    pln("VM_Processor_timerTicks_offset = ", offset);
+    offset = VM_Entrypoints.reportedTimerTicksField.getOffset();
+    pln("VM_Processor_reportedTimerTicks_offset = ", offset);
+    offset = VM_Entrypoints.activeThreadField.getOffset();
+    pln("VM_Processor_activeThread_offset = ", offset);
+    offset = VM_Entrypoints.threadIdField.getOffset();
+    pln("VM_Processor_threadId_offset = ", offset);
     //-#if RVM_FOR_IA32
-    offset = VM_Entrypoints.framePointerField.getOffsetAsInt();
-    p("static const int VM_Processor_framePointer_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.jtocField.getOffsetAsInt();
-    p("static const int VM_Processor_jtoc_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.arrayIndexTrapParamField.getOffsetAsInt();
-    p("static const int VM_Processor_arrayIndexTrapParam_offset = "
-                     + offset + ";\n");
+    offset = VM_Entrypoints.framePointerField.getOffset();
+    pln("VM_Processor_framePointer_offset = ", offset);
+    offset = VM_Entrypoints.jtocField.getOffset();
+    pln("VM_Processor_jtoc_offset = ", offset);
+    offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
+    pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
     //-#endif
 
     // fields in VM_Thread
     //
-    offset = VM_Entrypoints.threadStackField.getOffsetAsInt();
-    p("static const int VM_Thread_stack_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.stackLimitField.getOffsetAsInt();
-    p("static const int VM_Thread_stackLimit_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffsetAsInt();
-    p("static const int VM_Thread_hardwareExceptionRegisters_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.jniEnvField.getOffsetAsInt();
-    p("static const int VM_Thread_jniEnv_offset = "
-                     + offset + ";\n");
+    offset = VM_Entrypoints.threadStackField.getOffset();
+    pln("VM_Thread_stack_offset = ", offset);
+    offset = VM_Entrypoints.stackLimitField.getOffset();
+    pln("VM_Thread_stackLimit_offset = ", offset);
+    offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
+    pln("VM_Thread_hardwareExceptionRegisters_offset = ", offset);
+    offset = VM_Entrypoints.jniEnvField.getOffset();
+    pln("VM_Thread_jniEnv_offset = ", offset);
 
     // fields in VM_Registers
     //
-    offset = VM_Entrypoints.registersGPRsField.getOffsetAsInt();
-    p("static const int VM_Registers_gprs_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.registersFPRsField.getOffsetAsInt();
-    p("static const int VM_Registers_fprs_offset = " + offset + ";\n");
-    offset = VM_Entrypoints.registersIPField.getOffsetAsInt();
-    p("static const int VM_Registers_ip_offset = " + offset + ";\n");
+    offset = VM_Entrypoints.registersGPRsField.getOffset();
+    pln("VM_Registers_gprs_offset = ", offset);
+    offset = VM_Entrypoints.registersFPRsField.getOffset();
+    pln("VM_Registers_fprs_offset = ", offset);
+    offset = VM_Entrypoints.registersIPField.getOffset();
+    pln("VM_Registers_ip_offset = ", offset);
     //-#if RVM_FOR_IA32
-    offset = VM_Entrypoints.registersFPField.getOffsetAsInt();
-    p("static const int VM_Registers_fp_offset = " + offset + ";\n");
+    offset = VM_Entrypoints.registersFPField.getOffset();
+    pln("VM_Registers_fp_offset = ", offset);
     //-#endif
     //-#if RVM_FOR_POWERPC
-    offset = VM_Entrypoints.registersLRField.getOffsetAsInt();
-    p("static const int VM_Registers_lr_offset = " + offset + ";\n");
+    offset = VM_Entrypoints.registersLRField.getOffset();
+    pln("VM_Registers_lr_offset = ", offset);
     //-#endif
 
-    offset = VM_Entrypoints.registersInUseField.getOffsetAsInt();
-    p("static const int VM_Registers_inuse_offset = " + 
-                     offset + ";\n");
+    offset = VM_Entrypoints.registersInUseField.getOffset();
+    pln("VM_Registers_inuse_offset = ", offset);  
 
     // fields in VM_JNIEnvironment
-    offset = VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt();
-    p("static const int VM_JNIEnvironment_JNIExternalFunctions_offset = " +
-      offset + ";\n");
+    offset = VM_Entrypoints.JNIExternalFunctionsField.getOffset();
+    pln("VM_JNIEnvironment_JNIExternalFunctions_offset = ", offset); 
 
     // fields in java.net.InetAddress
     //
-    offset = VM_Entrypoints.inetAddressAddressField.getOffsetAsInt();
-    p("static const int java_net_InetAddress_address_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.inetAddressFamilyField.getOffsetAsInt();
-    p("static const int java_net_InetAddress_family_offset = "
-                     + offset + ";\n");
+    offset = VM_Entrypoints.inetAddressAddressField.getOffset();
+    pln("java_net_InetAddress_address_offset = ", offset);
+    offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
+    pln("java_net_InetAddress_family_offset = ", offset);
 
     // fields in java.net.SocketImpl
     //
-    offset = VM_Entrypoints.socketImplAddressField.getOffsetAsInt();
-    p("static const int java_net_SocketImpl_address_offset = "
-                     + offset + ";\n");
-    offset = VM_Entrypoints.socketImplPortField.getOffsetAsInt();
-    p("static const int java_net_SocketImpl_port_offset = "
-                     + offset + ";\n");
+    offset = VM_Entrypoints.socketImplAddressField.getOffset();
+    pln("java_net_SocketImpl_address_offset = ", offset);
+    offset = VM_Entrypoints.socketImplPortField.getOffset();
+    pln("java_net_SocketImpl_port_offset = ", offset);
 
     // fields in com.ibm.JikesRVM.memoryManagers.JMTk.BasePlan
-    offset = VM_Entrypoints.gcStatusField.getOffsetAsInt();
-    p("static const int com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = "
-                     + offset + ";\n");
+    offset = VM_Entrypoints.gcStatusField.getOffset();
+    pln("com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = ", offset);
   }
 
 

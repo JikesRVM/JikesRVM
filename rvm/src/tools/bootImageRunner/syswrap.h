@@ -19,7 +19,7 @@ typedef int (*SelectFunc_t)(int, fd_set*, fd_set*, fd_set*, struct timeval*);
 typedef int (*PollFunc_t)(struct pollfd*, long unsigned int, int);
 
 // Init function for the syscall wrapper library.
-extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
+extern "C" void initSyscallWrapperLibrary(void *jtoc, VM_Offset processorsOffset,
                                           int vmProcessorId /* Only used in single-virtual-processor mode. */);
 
 // Accessor for real (libc) system call functions;

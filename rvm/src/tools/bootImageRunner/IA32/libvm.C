@@ -75,13 +75,13 @@ int lib_verbose = 0;
 static unsigned VmToc;
 
 /* TOC offset of VM_Scheduler.dumpStackAndDie */
-static int DumpStackAndDieOffset;
+static VM_Offset DumpStackAndDieOffset;
 
 /* TOC offset of VM_Scheduler.processors[] */
-static int ProcessorsOffset;
+static VM_Offset ProcessorsOffset;
 
 /* TOC offset of VM_Scheduler.debugRequested */
-static int DebugRequestedOffset;
+static VM_Offset DebugRequestedOffset;
 
 /* name of program that will load and run RVM */
 char *Me;
@@ -1004,7 +1004,7 @@ getJTOC(void)
 }
 
 // Get offset of VM_Scheduler.processors in JTOC.
-extern "C" int 
+extern "C" VM_Offset 
 getProcessorsOffset(void) 
 {
     return ProcessorsOffset;

@@ -22,6 +22,11 @@ extern "C" {
 
 #include "../../include/cAttributePortability.h"
 
+#if defined(RVM_FOR_32_ADDR)
+#define VM_Offset int32_t
+#elif defined(RVM_FOR_64_ADDR)
+#define VM_Offset int64_t
+#endif
 // Sink for messages relating to serious errors detected by C runtime.
 extern FILE *SysErrorFile;    // sink for serious error messages
 extern FILE *SysErrorFile;	// libvm.C
@@ -93,7 +98,7 @@ extern int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler rout
 
 // These are defined in libvm.C.
 extern void *getJTOC(void);
-extern int getProcessorsOffset(void);
+extern VM_Offset getProcessorsOffset(void);
 
 /* These are defined in sys.C; used in syswrap.C */
 extern pthread_key_t VmProcessorKey;

@@ -608,7 +608,7 @@ public class BootImageWriter extends BootImageWriterMessages
                                                           startupStack.length);
     bootRecord.ipRegister  = bootImageAddress.add(BootImageMap.getImageOffset(startupCode.getBacking()));
 
-    bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffsetAsInt();
+    bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
 
     bootRecord.bootImageStart = bootImageAddress;
     bootRecord.bootImageEnd   = bootImageAddress.add(bootImage.getSize());

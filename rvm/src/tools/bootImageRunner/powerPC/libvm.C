@@ -360,10 +360,10 @@ static uintptr_t VmToc;                 // Location of VM's JTOC
 int HardwareTrapMethodId;  
 
 /* TOC offset of VM_Runtime.deliverHardwareException */
-int DeliverHardwareExceptionOffset; 
-int DumpStackAndDieOffset;      // TOC offset of VM_Scheduler.dumpStackAndDie
-static int ProcessorsOffset;    // TOC offset of VM_Scheduler.processors[]
-int DebugRequestedOffset;       // TOC offset of VM_Scheduler.debugRequested
+VM_Offset DeliverHardwareExceptionOffset; 
+VM_Offset DumpStackAndDieOffset;      // TOC offset of VM_Scheduler.dumpStackAndDie
+static VM_Offset ProcessorsOffset;    // TOC offset of VM_Scheduler.processors[]
+VM_Offset DebugRequestedOffset;       // TOC offset of VM_Scheduler.debugRequested
 
 typedef void (*SIGNAL_HANDLER)(int); // Standard unix signal handler.
 
@@ -1524,7 +1524,7 @@ getJTOC()
 }
 
 // Get offset of VM_Scheduler.processors in JTOC.
-extern "C" int 
+extern "C" VM_Offset 
 getProcessorsOffset() 
 {
     return ProcessorsOffset;
