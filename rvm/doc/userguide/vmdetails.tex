@@ -68,10 +68,12 @@ be protected by an implicit null check.
 Logically, every object header contains the following components:
 \begin{description}
 %
-\index{TIB}
-\index{superclass}
-\index{interfaces}
-\index{virtual methods}
+\index{TIB}%
+\index{superclass}%
+\index{interfaces}%
+\index{virtual methods}%
+\index{instance methods}%
+\index{interface methods}%
 \begin{Label}{TIB}
 \item[TIB Pointer] The TIB (Type Information Block) holds information that
 applies to all objects of a type.  The structure of the TIB is defined by 
@@ -125,7 +127,7 @@ A compiled method body is an array of machine instructions (stored as
 {\tt int}s on PowerPC\TMweb{} and {\tt byte}s on x86-32). 
 The {\em Jikes RVM Table of Contents} (JTOC),
 stores pointers to static fields and methods.  However, 
-pointers for instance fields and virtual methods are stored in the receiver 
+pointers for instance fields and instance methods are stored in the receiver 
 class's \link{TIB}{TIB}.  Consequently, the dispatch mechanism differs
 between static methods and instance methods.
 \end{Label}
@@ -141,9 +143,9 @@ between static methods and instance methods.
 \caption{The Jikes RVM Table Of Contents and other objects.}
 \label{fig:jtoc}
 \end{figure}
-\index{literals}
-\index{constants}
-\index{dynamic type checking}
+\index{literals}%
+\index{constants}%
+\index{dynamic type checking}%
 The JTOC holds pointers to 
 each of Jikes\TMweb{} RVM's global data structures, as well as
 literals, numeric constants and references to \texttt{String} constants.
@@ -157,26 +159,36 @@ to identify the entries containing references.
 The JTOC
 is depicted \link*{in this figure}[in figure~\Ref, on page~\Pageref{}]{fig:jtoc}.  
 
-\paragraph{Virtual Methods}
-\index{virtual methods}
+\paragraph{Virtual Methods}%
+\index{virtual methods}%
+\index{instance methods}
 A \link{TIB}{TIB} contains pointers to the compiled method 
-bodies (executable code) for the virtual methods of its class. 
+bodies (executable code) for the virtual methods and other instance
+methods of its class. 
 Thus, the \link{TIB}{TIB} serves as Jikes RVM's virtual method table.
 A virtual method dispatch entails loading the \link{TIB}{TIB} pointer from 
 the object reference, loading the address of the method
 body at a given offset off the \link{TIB}{TIB} pointer, and making an indirect
-branch and link to it.
+branch and link to it.  A virtual method is dispatched to with the
+{\instruction invokevirtual} bytecode; other instance methods are
+invoked by the {\instruction invokespecial} bytecode.
 
-\paragraph{Static Fields and Methods} 
+\paragraph{Static Fields and Methods}%
 \index{static methods}
 Static fields and pointers to static method bodies are stored in the \link{JTOC}{JTOC}. 
 Static method dispatch is simpler than virtual dispatch, since 
-a well-known \link{JTOC}{JTOC} entry method holds the address of the compiled method
-body. 
+a well-known \link{JTOC}{JTOC} entry method holds the address of the
+compiled method body.  
 
-\paragraph{Lazy Method Compilation}\label{par:lazy}
-\index{lazy method compilation}
-\index{deferred compilation}
+\paragraph{Instance Initialization Methods}%
+\index{instance initialization methods}
+Pointers to the bodies of instance initialization
+methods, \texttt{<init>}, are stored in the \link{JTOC}{JTOC}.
+(They are always dispatched to with the {\instruction invokespecial} bytecode.)
+
+\paragraph{Lazy Method Compilation}\label{par:lazy}%
+\index{lazy method compilation}%
+\index{deferred compilation}%
 \index{lazy method invocation stub}
 Method slots in a \link{TIB}{TIB} or the \link{JTOC}{JTOC} may hold either
 a pointer to the compiled code, 
@@ -186,9 +198,9 @@ method, installs a pointer to the compiled code in the appropriate
 \link{TIB}{TIB} or the \link{JTOC}{JTOC} slot, then 
 jumps to the start of the compiled code. 
 
-\paragraph{Interface Methods}
-\index{interface methods}
-\index{IMT}
+\paragraph{Interface Methods}%
+\index{interface methods}%
+\index{IMT}%
 \index{conflict resolution stub}
 Regardless of whether or not a virtual method is overridden,
 virtual method dispatch is still simple since the method will occupy 
