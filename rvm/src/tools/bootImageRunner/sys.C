@@ -1468,7 +1468,7 @@ sysVirtualProcessorStartup(void *args)
 
     // branch to vm code
     //
-#if RVM_FOR_IA32
+#ifdef RVM_FOR_IA32
     {
 	*(unsigned *) (pr + VM_Processor_framePointer_offset) = fp;
 	int sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
