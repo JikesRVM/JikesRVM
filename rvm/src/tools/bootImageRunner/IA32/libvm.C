@@ -92,16 +92,16 @@ char *Me;
 static VM_BootRecord *bootRecord;
 
 static void vwriteFmt(int fd, const char fmt[], va_list ap)
-    __attribute__((nonnull (2), format (printf, 2, 0)));
+    NONNULL(2) __attribute__((format (printf, 2, 0)));
 static void vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
-    __attribute__((nonnull(3), format (printf, 3, 0)));
+    NONNULL(3) __attribute__((format (printf, 3, 0)));
 #if 0				// this isn't needed right now, but may be in
 				// the future.
 static void writeTrace(const char fmt[], ...)
-    __attribute__((nonnull(1), format (printf, 1, 2)));
+    NONNULL(1) __attribute__((format (printf, 1, 2)));
 #endif
 static void writeErr(const char fmt[], ...)
-    __attribute__((nonnull(1), format (printf, 1, 2)));
+    NONNULL(1) __attribute__((format (printf, 1, 2)));
 
 
 static int 
@@ -689,7 +689,7 @@ processTimerTick(void)
 
 static void 
 softwareSignalHandler(int signo, 
-		      siginfo_t __attribute__((unused)) *si, 
+		      siginfo_t UNUSED *si, 
 		      void *context) 
 {
 #ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
@@ -771,7 +771,7 @@ softwareSignalHandler(int signo,
 /* Returns 1 upon any errors; the only time it can return is if there's an
    error. */
 int
-createJVM(int __attribute__((unused)) vmInSeparateThread)
+createJVM(int UNUSED vmInSeparateThread)
 {
     SysErrorFile = stderr;
     SysErrorFd = 2;
