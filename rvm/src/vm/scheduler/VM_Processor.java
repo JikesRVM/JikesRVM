@@ -88,6 +88,48 @@ implements VM_Uninterruptible, VM_Constants {
     //-#endif
   }
 
+
+  /**
+   * Code executed to initialize a virtual processor and
+   * prepare it to execute Java threads.
+   */
+  void initializeProcessor() {
+    // bind our execution to a physical cpu
+    //
+    if (VM_Scheduler.cpuAffinity != VM_Scheduler.NO_CPU_AFFINITY)
+      VM_SysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + id - 1);
+     
+    // get pthread_id from AIX and store into vm_processor field
+    // 
+    pthread_id = VM_SysCall.sysPthreadSelf();
+    
+    //
+    // tell VM_Scheduler.boot() that we've left the C startup
+    // code/stack and are now running vm code/stack
+    //
+    isInitialized = true;
+    
+    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    VM_SysCall.sysWaitForVirtualProcessorInitialization();
+    //-#endif
+
+    // enable multiprocessing
+    //
+    enableThreadSwitching();
+
+    // wait for all other processors to do likewise
+    //
+    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    VM_SysCall.sysWaitForMultithreadingStart();
+    //-#endif
+
+    //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+    // Store VM_Processor in pthread
+    stashProcessorInPthread();
+    //-#endif
+  }
+
+  
   /**
    * Is it ok to switch to a new VM_Thread in this processor?
    */ 

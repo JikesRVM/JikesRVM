@@ -238,8 +238,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // Create one one idle thread per processor.
     //
     for (int i = 0; i < numProcessors; ++i) {
-      VM_Thread t = new VM_IdleThread(processors[1+i]);
-      t.start(processors[1+i].idleQueue);
+      int pid = i+1;
+      VM_Thread t = new VM_IdleThread(processors[pid], pid != PRIMORDIAL_PROCESSOR_ID);
+      processors[pid].idleQueue.enqueue(t);
     }
 
     // JNI support
@@ -250,7 +251,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // Create virtual cpu's.
     //
-
+    
     //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     //-#else
     //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS 
@@ -271,7 +272,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL, false));
+      VM_Thread target = processors[i].idleQueue.dequeue();
 
       // create virtual cpu and wait for execution to enter target's code/stack.
       // this is done with gc disabled to ensure that garbage collector doesn't move
