@@ -4,8 +4,11 @@
 \xname{eclipse_overview}
 \subsection{Overview}
 \index{Eclipse IDE, running under Jikes RVM}
+
 Since version 2.2.1, Jikes RVM has run
-\xlink{Eclipse}{\eclipseURL}.  This is really a technology preview and
+\xlink{Eclipse}{\eclipseURL}.  The current (October 2004) \jrvm{} CVS
+head, and \jrvm{} versions 2.3.4 and later,
+run Eclipse 3.0.  This is really a technology preview and
 for that reason we start with some caveats, the most obvious being
 that production-mode use of Eclipse with Jikes RVM
 is not recommended at this time.  Furthermore:
@@ -13,6 +16,9 @@ is not recommended at this time.  Furthermore:
 %% \item We strongly recommend you run a
 %% recent --- 7.3 or newer --- version of Red Hat\TMweb{} Linux\Rweb for Intel\Rweb{} IA-32/AMD\Rweb{}~x86-32;
 %% one of us has also had good results with SuSE\Rweb{} Linux 8.1 and 8.2.
+
+\item If running Eclipse 3.0, then you need to tell Jikes RVM to use
+the Xalan XML processor; we describe this process below.
 
 \item We would suggest using either the {\tt prototype} or 
 {\tt development} configurations to run Eclipse.
@@ -23,9 +29,10 @@ test these and work on Eclipse seems to focus on the GTK version.
 
 \item We recommend Eclipse 3.0.1, currently the latest release
 from \xlink{{\tt \eclipseURL}}{\eclipseURL}; this is what we use and
-test at Watson.  In the past we have successfully run Eclipse 2.1.0 and the
-Eclipse 3.0 prerelease CVS head.  The Eclipse 2.0.x releases may also
-work.  Do not try to use Eclipse 1.x versions.
+test at Watson.  In the past we have successfully run Eclipse 2.1.0,
+2.1.1, and the Eclipse 3.0 prerelease CVS head; the most testing has
+been done on Eclipse 2.1.1.  The Eclipse 2.0.x
+releases may also work.  Do not try to use Eclipse 1.x versions.
 
 \item The Eclipse debugging support for Java programs --- which relies
 on talking \xlink{JDWP}{\JDWPURL} to the VM --- will not work because
