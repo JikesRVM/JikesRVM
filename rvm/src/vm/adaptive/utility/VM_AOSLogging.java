@@ -502,25 +502,25 @@ class VM_AOSLogging {
   }
 
   /**
-   * This method reports a bulk detection of hot O2 methods to 
+   * This method reports a bulk detection of hot max-opt-level methods to 
    * have their call edges inspected.
    *
-   * @param numMethods the total number of O2 methods found to be hot
+   * @param numMethods the total number of max opt level methods found to be hot
    *                     and will have their call edges inspected
    */
-  public static void AIorganizerFoundHotO2Methods(int numMethods) {
+  public static void AIorganizerFoundHotMethods(int numMethods) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 
 		    +" AI organizer found "+numMethods
-		    +" hot O2 methods, will inspect their call edges.");
+		    +" hot max-opt-level methods, will inspect their call edges.");
       }
     }
   }
 
   /**
-   * This method logs that the a hot call edge from an O2 method
-   * has been identified.
+   * This method logs that the a hot call edge from an max-opt-level
+   * method has been identified.
    * 
    * @param hotMethod	method to be recompiled,
    * @param numSamples  number of samples attributed to the method 

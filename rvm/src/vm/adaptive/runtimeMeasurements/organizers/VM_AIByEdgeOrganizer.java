@@ -14,12 +14,14 @@ import java.util.*;
  * via threshold reached, it processes the sequence of triples 
  * that are contained in buffer.
  * After the buffer is processed, the organizer checks to see
- * if any O2 compiled methods should be recompiled due to 
- * inlining opportunities.
+ * if any methods compiled at VM_Controller.options.MAX_OPT_LEVEL
+ * should be recompiled due to inlining opportunities.
+ * 
  * EXPECTATION: buffer is filled all the way up with triples.
  * 
  * Potential problems: The system does not retain new edges between
- * organizer runs.  There could be a race condition where a 
+ * organizer runs.  There could be a race condition where a
+ * ??? where what?? --dave
  * 
  * @author Peter Sweeney 
  * @author Dave Grove
@@ -29,7 +31,7 @@ import java.util.*;
  */
 class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 
-   private final static boolean DEBUG = false;
+  private final static boolean DEBUG = false;
 
   /*
    * buffer provides the communication channel between the edge listener
@@ -221,10 +223,11 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	}
       }
       
-      VM_MethodCountSet HM_data = VM_Controller.methodSamples.
-          collectHotO2Methods(VM_Controller.options.AI_METHOD_HOTNESS_THRESHOLD);
+      VM_MethodCountSet HM_data = 
+	VM_Controller.methodSamples.collectHotMethods(VM_Controller.options.MAX_OPT_LEVEL,
+						      VM_Controller.options.AI_METHOD_HOTNESS_THRESHOLD);
       if (VM.LogAOSEvents) 
-	VM_AOSLogging.AIorganizerFoundHotO2Methods(HM_data.cmids.length);
+	VM_AOSLogging.AIorganizerFoundHotMethods(HM_data.cmids.length);
       
       findMethodsToRecompile(vectorOfTriples, HM_data);
     }
@@ -243,7 +246,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
     * in the vector and that call site has not been inlined.
     *
     * @param vectorOfTriples	new edges that are hot in call graph
-    * @param hotMethodSet	methods that are hot and compiled at O2.
+    * @param hotMethodSet	methods that are hot and compiled at max opt level.
     *
     */
    private void findMethodsToRecompile(Vector vectorOfTriples,
@@ -256,7 +259,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
        return;
      }
 
-     // Consider each hot O2 method
+     // Consider each hot max opt level method
      for (int i=0; i<hotMethodSet.cmids.length; i++) {
        int cmid	                   = hotMethodSet.cmids[i];
        VM_CompiledMethod hotMethod = VM_CompiledMethods.getCompiledMethod(cmid);
