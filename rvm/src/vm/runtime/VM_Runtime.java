@@ -876,9 +876,11 @@ public class VM_Runtime implements VM_Constants {
       MM_Interface.emergencyGrowHeap(5 * (1<<20)); // ask for 5 megs and pray
     handlePossibleRecursiveException();
     VM.enableGC();    
-    Thread thr = VM_Thread.getCurrentThread().thread;
+    VM_Thread vmThr = VM_Thread.getCurrentThread();
+    Thread thr = vmThr.getJavaLangThread();
     if (thr == null) {
-      VM.sysWrite("Exception in the primordial thread while booting: ");
+      VM.sysWrite("Exception in the primordial thread \"", vmThr.toString(), 
+                  "\" while booting: ");
     } else {
       // This is output like that of the Sun JDK.
       VM.sysWrite("Exception in thread \"", thr.getName(), "\": ");
