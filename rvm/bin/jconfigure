@@ -2651,7 +2651,7 @@ function emitCompiler () {
 	    # This avoids any limits on the size of the command-line arguments.
 	    # 'echo' is a bash builtin, and as such is unaffected by such O/S 
 	    # limits. 
-	    run-evaled echo \\\*.class \| \$XARGS rm -f
+	    run_evaled echo \\\*.class \| \$XARGS rm -f
 	    touch ${CLASSES_INVALID_STR} 
 	    close_paren "classes cleaned "
 	    trap "" EXIT
@@ -2692,7 +2692,7 @@ EOF
 	        TOP_LEVEL_CLASSES="\$(builtin echo \${TOP_LEVEL_SOURCES}| sed 's@\.java@.class@g')"
 	        run rm -f \$TOP_LEVEL_CLASSES
 	    else
-	        run-evaled find . -name '\*.class' \| \$XARGS rm -f
+	        run_evaled find . -name '\*.class' \| \$XARGS rm -f
 	    fi
 	EOF
 
