@@ -26,3 +26,8 @@ GNUmakefile.skel
     conventions suggest, we name our Makefiles "GNUmakefile".  Do the
     same with this one.
 
+jikes-rvm.el
+
+    GNU Emacs startup file for editing Jikes RVM source code.  This
+    customizes java mode, C++ mode, and C mode.
+
