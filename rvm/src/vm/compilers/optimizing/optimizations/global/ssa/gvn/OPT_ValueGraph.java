@@ -29,7 +29,6 @@ class OPT_ValueGraph implements OPT_Operators {
     addRegisterNodes(ir);
     // go through the IR and add nodes and edges to the value graph
     // for each instruction, as needed
-    // each def to the variables it uses
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       processInstruction(s);
@@ -108,7 +107,7 @@ class OPT_ValueGraph implements OPT_Operators {
       OPT_ValueGraphVertex node = (OPT_ValueGraphVertex)n.nextElement();
       s.append(node).append("\n");
     }
-    return  s.toString();
+    return s.toString();
   }
 
   /**
@@ -152,8 +151,14 @@ class OPT_ValueGraph implements OPT_Operators {
       processNewArray(s); 
     else if (Unary.conforms(s))
       processUnary(s); 
+    else if (GuardedUnary.conforms(s))
+      processGuardedUnary(s); 
+    else if (NullCheck.conforms(s))
+      processNullCheck(s); 
     else if (Binary.conforms(s))
       processBinary(s); 
+    else if (GuardedBinary.conforms(s))
+      processGuardedBinary(s); 
     else if (InlineGuard.conforms(s))
       processInlineGuard(s);
     else if (IfCmp.conforms(s))
@@ -338,6 +343,47 @@ class OPT_ValueGraph implements OPT_Operators {
   }
 
   /** 
+   * Update the value graph to account for a given GuardedUnary instruction.
+   * 
+   * <p><b>PRECONDITION:</b> <code> GuardedUnary.conforms(s); </code>
+   *
+   * Careful: we define two Guarded Unaries to be equivalent regardless of
+   * whether the guards are equivalent!  
+   *
+   * @param s the instruction in question
+   */
+  private void processGuardedUnary(OPT_Instruction s) {
+    // label the vertex corresponding to the result with the operator
+    OPT_RegisterOperand result = GuardedUnary.getResult(s);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    v.setLabel(s.operator(), 1);
+    // link node v to the operand it uses
+    OPT_Operand val = GuardedUnary.getVal(s);
+    // bypass Move instructions
+    val = bypassMoves(val);
+    link(v, findOrCreateVertex(val), 0);
+  }
+
+  /** 
+   * Update the value graph to account for a given NullCheck instruction.
+   * 
+   * <p><b>PRECONDITION:</b> <code> NullCheck.conforms(s); </code>
+   *
+   * @param s the instruction in question
+   */
+  private void processNullCheck(OPT_Instruction s) {
+    // label the vertex corresponding to the result with the operator
+    OPT_RegisterOperand result = NullCheck.getGuardResult(s);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    v.setLabel(s.operator(), 1);
+    // link node v to the operand it uses
+    OPT_Operand val = NullCheck.getRef(s);
+    // bypass Move instructions
+    val = bypassMoves(val);
+    link(v, findOrCreateVertex(val), 0);
+  }
+
+  /** 
    * Update the value graph to account for a given Binary instruction.
    * 
    * <p><b>PRECONDITION:</b> <code> Binary.conforms(s); </code>
@@ -355,6 +401,31 @@ class OPT_ValueGraph implements OPT_Operators {
     val = bypassMoves(val);
     link(v, findOrCreateVertex(val), 0);
     OPT_Operand val2 = Binary.getVal2(s);
+    val2 = bypassMoves(val2);
+    link(v, findOrCreateVertex(val2), 1);
+  }
+
+  /** 
+   * Update the value graph to account for a given GuardedBinary instruction.
+   * 
+   * <p><b>PRECONDITION:</b> <code> GuardedBinary.conforms(s); </code>
+   *
+   * Careful: we define two Guarded Binaries to be equivalent regardless of
+   * whether the guards are equivalent!  
+   *
+   * @param s the instruction in question
+   */
+  private void processGuardedBinary(OPT_Instruction s) {
+    // label the vertex corresponding to the result with the operator
+    OPT_RegisterOperand result = GuardedBinary.getResult(s);
+    OPT_ValueGraphVertex v = findOrCreateVertex(result.register);
+    v.setLabel(s.operator(), 2);
+    // link node v to the two operands it uses
+    // first link the first val
+    OPT_Operand val = GuardedBinary.getVal1(s);
+    val = bypassMoves(val);
+    link(v, findOrCreateVertex(val), 0);
+    OPT_Operand val2 = GuardedBinary.getVal2(s);
     val2 = bypassMoves(val2);
     link(v, findOrCreateVertex(val2), 1);
   }
