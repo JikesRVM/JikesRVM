@@ -51,7 +51,7 @@ public abstract class Space implements Constants, Uninterruptible {
   private static boolean DEBUG = false;
 
   // the following is somewhat arbitrary for the 64 bit system at this stage
-  private static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 32) ? 32 : 40;
+  private static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
   private static Address HEAP_START = chunkAlign(Memory.HEAP_START(), true);
   private static Address AVAILABLE_START = chunkAlign(Memory.AVAILABLE_START(), false);
   private static Address AVAILABLE_END = chunkAlign(Memory.AVAILABLE_END(), true);
