@@ -147,7 +147,7 @@ memAsLoad | memAsStore | acquire | tsp
 # Mark as threadswitch point because thread may be suspended waiting for lock
 MONITOREXIT
 MonitorOp
-memAsLoad | memAsStore | release | tsp
+memAsLoad | memAsStore | release | tsp | immedPEI
 
 
 
