@@ -429,7 +429,7 @@ function doRun
 # Build and test: more detailed.
 #
 function doTests {
-   if (fgrep -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR $RVM_BUILD/RVM.configuration)
+   if (fgrep -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 $RVM_BUILD/RVM.configuration)
    then
      echo "Ignoring -numprocs for single processor image"
      NUM_PROCS=1
