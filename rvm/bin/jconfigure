@@ -2242,7 +2242,7 @@ function emitBooterLinker () {
     fi
     echo ""
 
-    # build the JNI code for heavyweight networking calls
+    # build the JNI library for creating processes
     echo "cd \${JAL_ROOT}/rvm/src/tools/bootImageRunner/"
     if (( RVM_FOR_AIX )); then
 	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.a $JAL_BUILD/libjpnexec.a'
@@ -2277,7 +2277,7 @@ function emitBooterLinker () {
     fi
 
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -O2 -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	 echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo 'BOOTER_CCM="$BOOTER_CC -M"'
 	echo "CPP=\"$HOST_CC_STR -E $CC_DEFINES\""
@@ -2286,7 +2286,7 @@ function emitBooterLinker () {
 	echo 'IMAGE='
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
  	 echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CCM=\$BOOTER_CC"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
@@ -2295,7 +2295,7 @@ function emitBooterLinker () {
 	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
     elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
+	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES\""
 	echo "LDSHARED=\"$HOST_SHLD_STR\""
 	echo "BOOTER_CCM=\$BOOTER_CC"
 	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES -D__linuxsmp__\""
@@ -2304,19 +2304,14 @@ function emitBooterLinker () {
 	echo 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES\""
+	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES\""
 
 	echo 'CCLIBS="-lpthread -ldl"'
 	echo 'IMAGE='
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES\""
+	echo "BOOTER_CC=\"$HOST_CPLUS_STR -g -O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES\""
 
 	echo 'CCLIBS="-ldl"'
-	echo 'IMAGE='
-    elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
-	echo "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_CYGWIN -DRVM_FOR_IA32 $CC_DEFINES\""
-
-	echo 'CCLIBS=""'
 	echo 'IMAGE='
     fi
     echo ""
