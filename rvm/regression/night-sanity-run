@@ -92,7 +92,7 @@ tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
 
 echo "sending tar to dW" >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 cd $RVM_ROOT/sanityResults
-transfer=`uname`.tar.gz
+transfer=`date +"%A"`.`uname`.tar.gz
 cp $tarfile $transfer
 $CVS add $transfer >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 $CVS commit -m "night sanity" $transfer >> $VERBOSE_LOG 2>> $VERBOSE_LOG
