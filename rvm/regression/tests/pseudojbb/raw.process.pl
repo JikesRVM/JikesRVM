@@ -14,12 +14,12 @@ use POSIX;
 # USAGE:
 #  ./raw.process.pl input_file
 #
-# where inputfile is the sumary computed by raw.compute.
+# where inputfile is values computed by raw.preprocess.
 #
 # Generates two files:
-#  values      contains the median HPM values for each context
-#  statistics  computes the median, average, stdev, var, min, max and 
-#              stdev as per centage of median for all HPM events in a particular context.
+#  values.xls      contains the median HPM values for each <(thread|VP), HPM_event> pair.
+#  statistics.xls  computes the median, average, stdev, var, min, max and 
+#                  stdev as per centage of median for all HPM events in a particular context.
 #
 ###########################################################################
 
@@ -70,11 +70,11 @@ sub combine_executions
    print "length of sorted data ".(scalar @sorted_data)."\n";
    
    undef (%value_filename);
-   $value_filename = "$dir/values";
+   $value_filename = "$dir/values.xls";
    open(VALUES, ">$value_filename") || die("Can't write open file \"$value_filename\"!\n");
 
    undef (%statistics_filename);
-   $statistics_filename = "$dir/statistics";
+   $statistics_filename = "$dir/statistics.xls";
    open(STATISTICS, ">$statistics_filename") || die("Can't write open file \"$statistics_filename\"!\n");
 
 # for a given context, compute the statistics and pick the median.
