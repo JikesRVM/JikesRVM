@@ -197,8 +197,9 @@ final class VM_OptExceptionTable implements VM_Constants {
 
   /**
    * Return an upper bounds on the size of the exception table for an IR.
+   * Used by Classwriter code too.
    */
-  private int countExceptionTableSize(OPT_IR ir) {
+  public static int countExceptionTableSize(OPT_IR ir) {
     int tSize = 0;
     for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); 
 	 bblock != null; 
