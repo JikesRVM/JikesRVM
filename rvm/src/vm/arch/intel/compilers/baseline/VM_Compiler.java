@@ -3517,8 +3517,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     
     if (methodName == VM_MagicNames.getTimeBase) {
       asm.emitRDTSC();       // read timestamp counter instruction
-      asm.emitPUSH_Reg(EDX); // lower 32 bits ??
-      asm.emitPUSH_Reg(EAX); // upper 32 bits ??
+      asm.emitPUSH_Reg(EDX); // upper 32 bits
+      asm.emitPUSH_Reg(EAX); // lower 32 bits
       return true;
     }
 
