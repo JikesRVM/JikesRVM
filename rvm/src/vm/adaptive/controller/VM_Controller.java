@@ -9,7 +9,9 @@ import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_EdgeCounts;
+//-#if RVM_WITH_HPM
 import com.ibm.JikesRVM.VM_HardwarePerformanceMonitors;
+//-#endif
 import java.util.Vector;
 import java.util.Enumeration;
 
