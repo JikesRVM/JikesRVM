@@ -294,7 +294,7 @@ integer RVM_WITH_REALTIME_GC=0
 integer RVM_WITH_NO_GC=0
 
 integer RVM_WITH_BOOT_HEAP_ONLY=0
-
+integer RVM_WITH_HPM=0
 
 # Use the GNU CLASSPATH library?
 #
@@ -925,10 +925,15 @@ function emitController
    print 'if [[ $CLEAN_FLAG = -clean ]]; then'
    print "   rm -rf $TOOL_DIRECTORY_STR"
    print '   ./jbuild.expand     $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.copy       $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.compile    $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   exit 0'
    print 'fi'
 
@@ -939,14 +944,21 @@ function emitController
    print 'if [[ -e' $CLEANSE_STATUS_STR ']]; then'
    print "   rm -rf $TOOL_DIRECTORY_STR"
    print '   ./jbuild.expand     $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.copy       $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.compile    $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   rm -f' $CLEANSE_STATUS_STR
    print 'elif [[ $NOLINK_FLAG != -nolink ]]; then'
    print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
+   print '   print " $SECONDS s "'
    print 'fi'
 
 #
@@ -1011,7 +1023,7 @@ function emitExpander
    print "   cd $GENERATED_FILES_DIRECTORY_STR/instructionFormats"
    print '   echo *.* | xargs rm -f'
    fi
-   print '   print "(templates cleaned)"'
+   print '   print -n "(templates cleaned)"'
    print '   exit 0'
    print 'fi'
 
@@ -1077,7 +1089,7 @@ function emitCopier
    print '   cd' $CLASSES_DIRECTORY_STR
    print '   find . -name "*.java" -exec rm {} \;'
    print '   touch' $CLASSES_INVALID_STR
-   print '   print "(sources cleaned)"'
+   print '   print -n "(sources cleaned)"'
    print '   exit 0'
    print 'fi'
    print ''
@@ -1225,7 +1237,7 @@ function emitCompiler
    print '   cd' $CLASSES_DIRECTORY_STR
    print '   echo *.class | xargs rm -f'
    print '   touch' $CLASSES_INVALID_STR
-   print '   print "(classes cleaned) "'
+   print '   print -n "(classes cleaned) "'
    print '   exit 0'
    print 'fi'
    
@@ -1319,7 +1331,6 @@ function emitImageLinker
    print "   rm -f $SCRATCH_DIRECTORY_STR/GenerateInterfaceDeclaration.class"
    print "   rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclaration.h"
    print '   print -n "(bootimage cleaned) "'
-   print '   print ""'
    print '   exit 0'
    print 'fi'
    print ''
@@ -1892,7 +1903,7 @@ function emitBooterLinker
    print "rm -f libjni.a"
    print "cd $SCRATCH_DIRECTORY_STR"
    print "rm -f $BOOTER_STR RunBootImage.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h"
-   print 'print "(booter cleaned)"'
+   print 'print -n "(booter cleaned)"'
    print 'if [[ $1 = -clean ]]; then'
 
    print '   exit 0'
@@ -2273,7 +2284,7 @@ fi
 # Only allow hardware performance monitor support for PowerPC
 #
 . $RVM_TARGET_CONFIG
-if (( ! RVM_FOR_POWERPC && RVM_WITH_HPM )); then
+if (( RVM_WITH_HPM && !RVM_FOR_POWERPC )); then
     echo
     echo "***Hardware Performance monitor support is only provided for PowerPC architecture!***"
     echo
