@@ -54,25 +54,34 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // virtual memory resources
   private static FreeListVMResource msVM;
+  private static FreeListVMResource losVM;
 
   // memory resources
   private static MemoryResource msMR;
+  private static MemoryResource losMR;
 
   // MS collector
   private static MarkSweepCollector msCollector;
+  private static TreadmillSpace losCollector;
 
   // Allocators
   public static final byte MS_SPACE = 0;
+  public static final byte LOS_SPACE = 1;
   public static final byte DEFAULT_SPACE = MS_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
+  private static final EXTENT LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final EXTENT            MS_SIZE = (EXTENT) AVAILABLE;
+  private static final EXTENT           LOS_SIZE = Conversions.roundDownMB((int)(AVAILABLE * 0.3));
+  private static final EXTENT            MS_SIZE = Conversions.roundDownMB((int)(AVAILABLE * 0.7));
   public  static final int              MAX_SIZE = MS_SIZE;
-  private static final VM_Address       MS_START = PLAN_START;
+
+  private static final VM_Address      LOS_START = PLAN_START;
+  private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
+  private static final VM_Address       MS_START = LOS_END;
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address       HEAP_END = MS_END;
 
@@ -83,6 +92,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   private MarkSweepAllocator ms;
+  private TreadmillThread los;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -97,8 +107,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   static {
     msMR = new MemoryResource("ms", POLL_FREQUENCY);
+    losMR = new MemoryResource("los", POLL_FREQUENCY);
     msVM = new FreeListVMResource(MS_SPACE, "MS",       MS_START,   MS_SIZE, VMResource.IN_VM);
+    losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
     msCollector = new MarkSweepCollector(msVM, msMR);
+    losCollector = new TreadmillSpace(losVM, losMR);
+
+    addSpace(MS_SPACE, "MS Space");
+    addSpace(LOS_SPACE, "LOS Space");
   }
 
   /**
@@ -106,6 +122,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public Plan() {
     ms = new MarkSweepAllocator(msCollector);
+    los = new TreadmillThread(losCollector);
   }
 
   /**
@@ -136,9 +153,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) 
+      allocator = LOS_SPACE;
     VM_Address region;
     switch (allocator) {
       case       MS_SPACE: region = ms.alloc(isScalar, bytes); break;
+      case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       default:             region = VM_Address.zero();
 	                   if (VM.VerifyAssertions) VM.sysFail("No such allocator");
@@ -160,8 +180,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
+    if (allocator == DEFAULT_SPACE && size > LOS_SIZE_THRESHOLD) 
+	allocator = LOS_SPACE;
     switch (allocator) {
       case       MS_SPACE: return;
+      case      LOS_SPACE: return;
       case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
       default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator");
     }
@@ -243,11 +266,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == ms) return DEFAULT_SPACE;
+    if (a == los) return LOS_SPACE;
     return super.getSpaceFromAllocator(a);
   }
 
   protected final Allocator getAllocatorFromSpace (byte s) {
     if (s == DEFAULT_SPACE) return ms;
+    if (s == LOS_SPACE) return los;
     return super.getAllocatorFromSpace(s);
   }
 
@@ -294,6 +319,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   protected final void globalPrepare() {
     msCollector.prepare(msVM, msMR);
     Immortal.prepare(immortalVM, null);
+    losCollector.prepare(losVM, losMR);
   }
 
   /**
@@ -305,6 +331,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void threadLocalPrepare(int count) {
     ms.prepare();
+    los.prepare();
   }
 
   /**
@@ -326,6 +353,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
+    los.release();
   }
 
   /**
@@ -338,6 +366,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void globalRelease() {
     // release each of the collected regions
+    losCollector.release();
     msCollector.release();
     Immortal.release(immortalVM, null);
     if (getPagesReserved() + required >= getTotalPages()) {
@@ -369,6 +398,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case MS_SPACE:        return msCollector.traceObject(obj);
+      case LOS_SPACE:       return losCollector.traceObject(obj);
       case IMMORTAL_SPACE:  return Immortal.traceObject(obj);
       case BOOT_SPACE:	    return Immortal.traceObject(obj);
       case META_SPACE:	    return obj;
@@ -408,6 +438,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     byte space = VMResource.getSpace(addr);
     switch (space) {
       case MS_SPACE:        return msCollector.isLive(obj);
+      case LOS_SPACE:       return losCollector.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
@@ -453,6 +484,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected static final int getPagesReserved() {
     int pages = msMR.reservedPages();
+    pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
     pages += metaDataMR.reservedPages();
     return pages;
@@ -467,6 +499,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected static final int getPagesUsed() {
     int pages = msMR.reservedPages();
+    pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
     pages += metaDataMR.reservedPages();
     return pages;
@@ -478,7 +511,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The number of pages available for allocation.
    */
   protected static final int getPagesAvail() {
-    return getTotalPages() - msMR.reservedPages() - immortalMR.reservedPages();
+    return getTotalPages() - msMR.reservedPages() - losMR.reservedPages() - immortalMR.reservedPages();
   }
 
 
@@ -492,6 +525,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final void show() {
     ms.show();
+    los.show();
+    immortal.show();
   }
 
 
