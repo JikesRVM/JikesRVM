@@ -3246,6 +3246,8 @@ java/util/GregorianCalendar
 java/util/Locale
 java/util/Date
 java/util/TimeZone
+## No longer needed for class loading from Jars as of Classpath CVS head
+## of Jan 23, 2005
 java/util/SimpleTimeZone
 java/lang/Cloneable
 java/security/AccessController
