@@ -1,0 +1,3 @@
+   . $1/FastSemispace
+   export OPT_ARGS=" -X:bc:O1"
+
