@@ -8,7 +8,7 @@ Toolkit) became the default memory management system for Jikes RVM.
 JMTk is designed to be a portable toolkit, with Jikes
 RVM-specific code factored out as far as possible.
 
-\subsubsection{Directory Structure and Packages} \label{sssec:directories}
+\subsection{Directory Structure and Packages} \label{sssec:directories}
 
 JMTk classes are contained in the
 \texttt{\$RVM\_ROOT/rvm/src/vm/memoryManagers/JMTk} directory.
@@ -35,7 +35,7 @@ sub-directory contains classes implementing generic utilities (such as
 \xlink{load-balancing parallel queues}{\SharedQueueURL},
 \xlink{sequential store buffers}{\LocalSSBURL}, etc.).
 
-\subsubsection{Choosing a Garbage Collector} \label{ssec:choosinggc}
+\subsection{Choosing a Garbage Collector} \label{ssec:choosinggc}
 
 Depending on your purposes, you may choose to build Jikes RVM with one
 of the following plans:
@@ -56,7 +56,7 @@ collection can proceed even when some threads are executing in native
 code. When a collection starts, threads in native code are blocked
 from returning to Java code for the duration of that collection.
 
-\subsubsection{Plans} \label{sssec:plans}
+\subsection{Plans} \label{sssec:plans}
 \index{garbage collection}
 \index{stop-the-world garbage collection}
 
@@ -118,7 +118,7 @@ The basic steps are:
   non-generational.
 \end{enumerate}
 
-\subsubsection{Policy} \label{sssec:policy}
+\subsection{Policy} \label{sssec:policy}
 
 The \texttt{policy} sub-directory contains implementations of key
 memory management policy choices, such as \xlink{bump-pointer
@@ -127,7 +127,7 @@ memory management policy choices, such as \xlink{bump-pointer
     collection}{\CopyURL} and \xlink{mark-sweep
   collection}{\MarkSweepCollectorURL}.
 
-\subsubsection{Utility} \label{sssec:utility}
+\subsection{Utility} \label{sssec:utility}
 
 The \texttt{utility} sub-directory contains basic utilities and
 mechanisms, including:
@@ -157,7 +157,7 @@ mechanisms, including:
       memory}{\RawPageAllocatorURL} (for use by meta data, for example).
 \end{itemize}
 
-\subsubsection{VMInterface} \label{sssec:vminterface}
+\subsection{VMInterface} \label{sssec:vminterface}
 
 The \texttt{vmInterface} sub-directory provides the interface between
 Jikes RVM and JMTk.  The primary interface is provided by
