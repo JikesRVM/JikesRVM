@@ -20,6 +20,7 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method instanceOfMethod         = getMethod("LVM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
   static final VM_Method instanceOfFinalMethod    = getMethod("LVM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;I)Z");
   static final VM_Method checkcastMethod          = getMethod("LVM_Runtime;", "checkcast", "(Ljava/lang/Object;I)V");
+  static final VM_Method checkcastFinalMethod     = getMethod("LVM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;I)V");
   static final VM_Method checkstoreMethod         = getMethod("LVM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   static final VM_Method athrowMethod             = getMethod("LVM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
   static final VM_Method newScalarMethod          = getMethod("LVM_Runtime;", "newScalar", "(I)Ljava/lang/Object;");

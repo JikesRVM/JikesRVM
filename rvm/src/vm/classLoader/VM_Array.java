@@ -15,7 +15,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Array extends VM_Type
+public final class VM_Array extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants  {
 
   //-----------//
@@ -37,19 +37,19 @@ public class VM_Array extends VM_Type
   /** 
    * Stack space requirement. 
    */
-  public final int getStackWords() {
+  public final int getStackWords() throws VM_PragmaUninterruptible {
     return 1;
   }
       
   /** 
    * Element type.
    */
-  public final VM_Type getElementType() { 
+  public final VM_Type getElementType() throws VM_PragmaUninterruptible { 
     return elementType;
   }
 
   // Convenience method.
-  final VM_Type getInnermostElementType() {
+  final VM_Type getInnermostElementType() throws VM_PragmaUninterruptible {
     return innermostElementType;
   }
       
@@ -57,7 +57,7 @@ public class VM_Array extends VM_Type
    * Size, in bytes, of an array element, log base 2.
    * @return log base 2 of array element size
    */
-  final int getLogElementSize() {
+  final int getLogElementSize() throws VM_PragmaUninterruptible {
     switch (getDescriptor().parseForArrayElementTypeCode()) 
       {
       case VM_Atom.ClassTypeCode:   return 2;
@@ -79,7 +79,7 @@ public class VM_Array extends VM_Type
    * Total size, in bytes, of an instance of this array type (including object header).
    * @return size
    */
-  public final int getInstanceSize(int numelts) {
+  public final int getInstanceSize(int numelts) throws VM_PragmaUninterruptible {
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
@@ -91,7 +91,7 @@ public class VM_Array extends VM_Type
   /**
    * Does this class override java.lang.Object.finalize()?
    */
-  public final boolean hasFinalizer() {
+  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
     return false;
   }
 
@@ -126,7 +126,7 @@ public class VM_Array extends VM_Type
   /**
    * Runtime type information for this array type.
    */
-  public final Object[] getTypeInformationBlock() {
+  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return typeInformationBlock;
   }

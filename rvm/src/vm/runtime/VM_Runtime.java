@@ -89,14 +89,13 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * quick version for final classes or array of primitives
+   * quick version for final classes, array of final class or array of primitives
    */
-  static boolean instanceOfFinal(Object object, int targetTibOffset) {
+  static boolean instanceOfFinal(Object object, int targetTibOffset) throws VM_PragmaUninterruptible {
     if (object == null)
       return false; // null is not an instance of any type
 
-    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
-                                              targetTibOffset);
+    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
     Object rhsTib= VM_ObjectModel.getTIB(object);
     return (lhsTib == rhsTib);
   }
@@ -125,11 +124,29 @@ public class VM_Runtime implements VM_Constants {
                                             (lhsTib,TIB_TYPE_INDEX));
     VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
                                             (rhsTib,TIB_TYPE_INDEX));
-    if (isAssignableWith(lhsType, rhsType))
-      return;
-    throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
+    if (!isAssignableWith(lhsType, rhsType)) {
+      raiseCheckcastException(lhsType, rhsType);
+    }
   }
 
+  /**
+   * quick version for final classes, array of final class or array of primitives
+   */
+  static void checkcastFinal(Object object, int targetTibOffset) throws VM_PragmaUninterruptible {
+    if (object == null) return; // null can be cast to any type
+
+    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
+    Object rhsTib= VM_ObjectModel.getTIB(object);
+    if (lhsTib != rhsTib) {
+      VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,TIB_TYPE_INDEX));
+      VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,TIB_TYPE_INDEX));
+      raiseCheckcastException(lhsType, rhsType);
+    }
+  }
+
+  private static final void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) {
+    throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
+  }
 
   /**
    * Throw exception iff array assignment is illegal.

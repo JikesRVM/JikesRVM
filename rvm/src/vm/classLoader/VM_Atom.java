@@ -274,7 +274,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return type code  - something like VM.ObjectTypeCode or VM.IntTypeCode
    * The type code will be one of the constants appearing in the table above.
    */ 
-  final byte parseForArrayElementTypeCode()  {
+  final byte parseForArrayElementTypeCode() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(val[0] == '[');
     return val[1];
   }
@@ -294,7 +294,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
   // debugging //
   //-----------//
    
-  final void sysWrite() {
+  final void sysWrite() throws VM_PragmaUninterruptible {
     for (int i = 0, n = val.length; i < n; ++i)
       VM.sysWrite((char)val[i]);
   }

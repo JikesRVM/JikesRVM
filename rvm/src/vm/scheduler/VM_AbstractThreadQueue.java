@@ -9,7 +9,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-abstract class VM_AbstractThreadQueue {
+abstract class VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   // Are any threads on the queue?
   //

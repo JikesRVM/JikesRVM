@@ -85,7 +85,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   /**
    * Setup done during bootimage writing
    */
-  public void init (VM_Processor st) {
+  public void init (VM_Processor st) throws VM_PragmaInterruptible {
     partialBlockList = new int[GC_SIZES];          // GSC
     for (int i = 0; i<GC_SIZES; i++) {
       partialBlockList[i] = OUT_OF_BLOCKS;
@@ -128,7 +128,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  public void boot (VM_Processor st, VM_ImmortalHeap immortalHeap) {
+  public void boot (VM_Processor st, VM_ImmortalHeap immortalHeap) throws VM_PragmaInterruptible {
     blocks = init_blocks;
 
     // Now set the beginning address of each block into each VM_BlockControl

@@ -58,12 +58,12 @@
     * Note that tib is incomplete (contains a type-slot but no method-slots) 
     * until the class/array has been "instantiated".
     */ 
-   public final int getTibSlot() { return tibSlot; }
+   public final int getTibSlot() throws VM_PragmaUninterruptible { return tibSlot; }
 
    /**
     * Get offset of tib slot from start of jtoc, in bytes.
     */ 
-   public final int getTibOffset() { return tibSlot << 2; }
+   public final int getTibOffset() throws VM_PragmaUninterruptible { return tibSlot << 2; }
 
    /**
     * Deprecated.
@@ -73,23 +73,23 @@
 
    // Classification.
    //
-   public final boolean isClassType()     { return dimension == 0; } 
-   public final boolean isArrayType()     { return dimension > 0;  }
-   public final boolean isPrimitiveType() { return (dimension < 0) || isAddressType();  }
-   public final boolean isReferenceType() { return !isPrimitiveType(); }
+   public final boolean isClassType() throws VM_PragmaUninterruptible { return dimension == 0; } 
+   public final boolean isArrayType() throws VM_PragmaUninterruptible { return dimension > 0;  }
+   public final boolean isPrimitiveType() throws VM_PragmaUninterruptible { return (dimension < 0) || isAddressType();  }
+   public final boolean isReferenceType() throws VM_PragmaUninterruptible { return !isPrimitiveType(); }
    
   // Downcasting.
-  public final VM_Class asClass() { 
+  public final VM_Class asClass() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(dimension == 0);
     return (VM_Class)this;
   }
 
-  public final VM_Array asArray() { 
+  public final VM_Array asArray() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(dimension > 0);
     return (VM_Array)this;
   }
 
-  public final VM_Primitive asPrimitive() { 
+  public final VM_Primitive asPrimitive() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(dimension < 0);
     return (VM_Primitive)this;
   }
@@ -109,7 +109,7 @@
    * For an array, something like "[I" or "[Ljava/lang/String;".
    * For a primitive, something like "I".
    */ 
-  public final VM_Atom getDescriptor() { return descriptor; }
+  public final VM_Atom getDescriptor() throws VM_PragmaUninterruptible { return descriptor; }
    
   /**
    * Space required when this type is stored on the stack 
@@ -122,17 +122,17 @@
    * <li> all other primitive types require 1 word
    * </ul>
    */ 
-  public abstract int getStackWords();
+  public abstract int getStackWords() throws VM_PragmaUninterruptible;
 
   /**
    * Number of [ in descriptor. 
    */ 
-  public final int getDimensionality() { return dimension; }
+  public final int getDimensionality() throws VM_PragmaUninterruptible { return dimension; }
 
   /**
    * Index of this type in the type dictionary
    */ 
-  public final int getDictionaryId() { return dictionaryId; }
+  public final int getDictionaryId() throws VM_PragmaUninterruptible { return dictionaryId; }
    
   /**
    * Redefine hashCode(), to allow use of consistent hash codes during
@@ -154,7 +154,7 @@
    * then its declared member and field names are available.
    * Arrays and primitives are always treated as "loaded".
    */ 
-  public final boolean isLoaded() { return state >= CLASS_LOADED; }
+  public final boolean isLoaded() throws VM_PragmaUninterruptible { return state >= CLASS_LOADED; }
    
   /**
    * Resolution status.
@@ -165,7 +165,7 @@
    * code to access fields/methods symbolically, via dynamic linking stubs).
    * Primitives are always treated as "resolved".
    */ 
-  public final boolean isResolved() { return state >= CLASS_RESOLVED; }
+  public final boolean isResolved() throws VM_PragmaUninterruptible { return state >= CLASS_RESOLVED; }
    
   /**
    * Instantiation status.
@@ -174,7 +174,7 @@
    * and its type information block has been placed in the jtoc.
    * Primitives are always treated as "instantiated".
    */ 
-  public final boolean isInstantiated() { return state >= CLASS_INSTANTIATED; }
+  public final boolean isInstantiated() throws VM_PragmaUninterruptible { return state >= CLASS_INSTANTIATED; }
    
   /**
    * Initialization status.
@@ -184,7 +184,7 @@
    * "initialized" immediately upon "instantiation".
    * Primitives are always treated as "initialized".
    */ 
-  public final boolean isInitialized() { return state == CLASS_INITIALIZED; }
+  public final boolean isInitialized() throws VM_PragmaUninterruptible { return state == CLASS_INITIALIZED; }
 
   /**
    * Cause loading to take place.
@@ -214,7 +214,7 @@
   /**
    * Does this type override java.lang.Object.finalize()?
    */
-  public abstract boolean hasFinalizer();
+  public abstract boolean hasFinalizer() throws VM_PragmaUninterruptible;
 
   /**
    * Static fields of this class/array type.
@@ -241,7 +241,7 @@
   /**
    * Runtime type information for this class/array type.
    */ 
-  public abstract Object[] getTypeInformationBlock();
+  public abstract Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible;
 
   /**
    * Get the class loader for this type
@@ -253,7 +253,7 @@
    *   0 java.lang.Object, VM_Primitive, and VM_Classes that are interfaces
    *   1 for VM_Arrays and classes that extend Object directly
    */ 
-  public final int getTypeDepth () { return depth; };
+  public final int getTypeDepth ()  throws VM_PragmaUninterruptible { return depth; };
 
   /**
    * Instance of java.lang.Class corresponding to this type.
@@ -358,27 +358,27 @@
 
   // Convenience methods.
   //
-  public final boolean isVoidType()              { return this == VoidType;           }
-  public final boolean isBooleanType()           { return this == BooleanType;        }
-  public final boolean isByteType()              { return this == ByteType;           }
-  public final boolean isShortType()             { return this == ShortType;          }
-  public final boolean isIntType()               { return this == IntType;            }
-  public final boolean isLongType()              { return this == LongType;           }
-  public final boolean isFloatType()             { return this == FloatType;          }
-  public final boolean isDoubleType()            { return this == DoubleType;         }
-  public final boolean isCharType()              { return this == CharType;           }
-  public final boolean isIntLikeType()           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isAddressType(); }
+  public final boolean isVoidType() throws VM_PragmaUninterruptible               { return this == VoidType;           }
+  public final boolean isBooleanType() throws VM_PragmaUninterruptible           { return this == BooleanType;        }
+  public final boolean isByteType() throws VM_PragmaUninterruptible              { return this == ByteType;           }
+  public final boolean isShortType() throws VM_PragmaUninterruptible             { return this == ShortType;          }
+  public final boolean isIntType() throws VM_PragmaUninterruptible               { return this == IntType;            }
+  public final boolean isLongType() throws VM_PragmaUninterruptible              { return this == LongType;           }
+  public final boolean isFloatType() throws VM_PragmaUninterruptible             { return this == FloatType;          }
+  public final boolean isDoubleType() throws VM_PragmaUninterruptible            { return this == DoubleType;         }
+  public final boolean isCharType() throws VM_PragmaUninterruptible              { return this == CharType;           }
+  public final boolean isIntLikeType() throws VM_PragmaUninterruptible           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isAddressType(); }
 
-  public final boolean isJavaLangObjectType()    { return this == JavaLangObjectType;    }
-  public final boolean isJavaLangThrowableType() { return this == JavaLangThrowableType; }
-  public final boolean isJavaLangStringType()    { return this == JavaLangStringType;    }
-  public final boolean isMagicType()             { return this == MagicType;             }
-  public final boolean isAddressType()           { return this == AddressType;           }
-  public final boolean isUninterruptibleType()   { return this == UninterruptibleType;   }
-  public final boolean isSynchronizedObjectType(){ return this == SynchronizedObjectType;   }
-  public final boolean isDynamicBridgeType()     { return this == DynamicBridgeType;     }
-  public final boolean isSaveVolatileType()      { return this == SaveVolatileType;      }
-  public final boolean isNativeBridgeType()      { return this == NativeBridgeType;      }
+  public final boolean isJavaLangObjectType() throws VM_PragmaUninterruptible    { return this == JavaLangObjectType;    }
+  public final boolean isJavaLangThrowableType() throws VM_PragmaUninterruptible { return this == JavaLangThrowableType; }
+  public final boolean isJavaLangStringType() throws VM_PragmaUninterruptible    { return this == JavaLangStringType;    }
+  public final boolean isMagicType() throws VM_PragmaUninterruptible             { return this == MagicType;             }
+  public final boolean isAddressType() throws VM_PragmaUninterruptible           { return this == AddressType;           }
+  public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
+  public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
+  public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
+  public final boolean isSaveVolatileType() throws VM_PragmaUninterruptible      { return this == SaveVolatileType;      }
+  public final boolean isNativeBridgeType() throws VM_PragmaUninterruptible      { return this == NativeBridgeType;      }
 
   /**
    * Get array type corresponding to "this" array element type.
@@ -393,7 +393,7 @@
   /**
    * get superclass id vector (see VM_DynamicTypeCheck)
    */ 
-  final short[] getSuperclassIds () {
+  final short[] getSuperclassIds () throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
     return VM_Magic.objectAsShortArray(getTypeInformationBlock()
                                        [VM.TIB_SUPERCLASS_IDS_INDEX]);
@@ -402,7 +402,7 @@
   /**
    * get doesImplement vector (@see VM_DynamicTypeCheck)
    */ 
-  final int[] getDoesImplement () {
+  final int[] getDoesImplement () throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
@@ -417,7 +417,7 @@
   /**
    * Is this class part of the virtual machine's boot image?
    */ 
-  public final boolean isInBootImage() {
+  public final boolean isInBootImage() throws VM_PragmaUninterruptible {
     return inBootImage;
   }
 
@@ -642,7 +642,7 @@
    * RCGC: Is a reference of this type contained 
    * in another object inherently acyclic?
    */ 
-  protected boolean isAcyclicReference() {
+  protected boolean isAcyclicReference() throws VM_PragmaUninterruptible {
     return acyclic;
   }
 

@@ -8,7 +8,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_CompiledMethod {
+class VM_CompiledMethod implements VM_Uninterruptible {
   //-----------//
   // interface //
   //-----------//

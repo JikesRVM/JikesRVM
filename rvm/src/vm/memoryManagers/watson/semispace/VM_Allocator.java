@@ -91,7 +91,7 @@ public class VM_Allocator extends VM_GCStatistics
   /**
    * Initialize for boot image.
    */
-  static void init () {
+  static void init () throws VM_PragmaInterruptible {
     VM_GCLocks.init();           // to alloc lock fields used during GC (in bootImage)
     VM_GCWorkQueue.init();       // to alloc shared work queue
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary

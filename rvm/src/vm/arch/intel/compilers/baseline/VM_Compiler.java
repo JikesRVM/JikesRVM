@@ -2438,9 +2438,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int emptyStackOffset = firstLocalOffset - (method.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
       asm.emitADD_Reg_Imm (SP, emptyStackOffset);		// set aside room for non parameter locals
       /*
-     * generate stacklimit check
-     */
-      if (method.isInterruptible()) {
+       * generate stacklimit check
+       */
+      if (isInterruptible) {
 	// S0<-limit
 	VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
 						  VM_Entrypoints.activeThreadStackLimitField.getOffset());
@@ -2756,7 +2756,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
   private final void genThreadSwitchTest (int whereFrom) {
-    if (!method.isInterruptible()) {
+    if (!isInterruptible) {
       return;
     } else if (VM.BuildForDeterministicThreadSwitching) {
       // decrement the deterministic thread switch count field in the

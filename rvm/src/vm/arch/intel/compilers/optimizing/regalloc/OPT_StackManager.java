@@ -309,8 +309,6 @@ implements OPT_Operators {
     }
 
     if (ir.MIRInfo.info.isSaveVolatile()) {
-      OPT_OptimizingCompilerException.UNREACHABLE(
-                                                  "SaveVolatile should be uninterruptible");
       return;
     }
 
@@ -342,8 +340,6 @@ implements OPT_Operators {
     }
 
     if (ir.MIRInfo.info.isSaveVolatile()) {
-      OPT_OptimizingCompilerException.UNREACHABLE(
-                                                  "SaveVolatile should be uninterruptible");
       return;
     }
 

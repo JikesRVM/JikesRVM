@@ -125,7 +125,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Layout the instance fields declared in this class.
    */
-  public static void layoutInstanceFields(VM_Class klass) {
+  public static void layoutInstanceFields(VM_Class klass) throws VM_PragmaInterruptible {
     int fieldOffset = VM_JavaHeader.objectEndOffset(klass);
     VM_Field fields[] = klass.getDeclaredFields();
     for (int i = 0, n = fields.length; i < n; ++i) {
@@ -186,7 +186,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, int tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, int refOffset, 
+			    int tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     VM_JavaHeader.setTIB(bootImage, refOffset, tibAddr, type);
   }
 
@@ -232,7 +233,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param jdpService
    * @param address address of the object
    */
-  public static int getTIB(JDPServiceInterface jdpService, int ptr) {
+  public static int getTIB(JDPServiceInterface jdpService, int ptr) throws VM_PragmaInterruptible {
     return VM_JavaHeader.getTIB(jdpService, VM_Address.fromInt(ptr)).toInt();
   }
 
@@ -404,7 +405,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Compute the header size of an object 
    */
-  public static int computeHeaderSize(Object ref) {
+  public static int computeHeaderSize(Object ref) throws VM_PragmaInterruptible {
     VM_Type type = ref.getClass().getVMType();
     return computeHeaderSize(type);
   }
@@ -456,7 +457,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param klass the VM_Class object of the instance to create.
    * @return the offset of object in bootimage (in bytes)
    */
-  public static int allocateScalar(BootImageInterface bootImage, VM_Class klass) {
+  public static int allocateScalar(BootImageInterface bootImage, VM_Class klass) throws VM_PragmaInterruptible {
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     int ptr = bootImage.allocateStorage(size);
@@ -499,7 +500,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static int allocateArray(BootImageInterface bootImage, 
 				  VM_Array array,
-				  int numElements) {
+				  int numElements) throws VM_PragmaInterruptible {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     boolean align = array.getElementType().isClassType(); // Approximation for "is it an array of Object[]?", ie a TIB pointer
@@ -557,7 +558,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 					 //-#elif RVM_FOR_IA32
 					 byte dest, byte object
 					 //-#endif
-					 ) {
+					 ) throws VM_PragmaInterruptible {
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 
@@ -569,7 +570,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param s the GET_OBJ_TIB instruction to lower
    * @param ir the enclosing OPT_IR
    */
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) {
+  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws VM_PragmaInterruptible {
     VM_JavaHeader.lowerGET_OBJ_TIB(s, ir);
   }
   //-#endif

@@ -25,14 +25,14 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Get type of this field's value.
    */ 
-  public final VM_Type getType() {
+  public final VM_Type getType() throws VM_PragmaUninterruptible {
     return type;
   }
 
   /**
    * Get size of this field's value, in bytes.
    */ 
-  final int getSize() {
+  final int getSize() throws VM_PragmaUninterruptible {
     return type.getStackWords() << 2;
   }
 
@@ -49,7 +49,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Shared among all instances of this class?
    */ 
-  public final boolean isStatic() {
+  public final boolean isStatic() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_STATIC) != 0;
@@ -58,7 +58,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * May only be assigned once?
    */ 
-  final boolean isFinal() {
+  final boolean isFinal() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
@@ -67,7 +67,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Value not to be cached in a register?
    */ 
-  final boolean isVolatile() {
+  final boolean isVolatile() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_VOLATILE) != 0;
@@ -76,7 +76,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Value not to be written/read by persistent object manager?
    */ 
-  final boolean isTransient() {
+  final boolean isTransient() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_TRANSIENT) != 0;
@@ -87,7 +87,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
    * "static final constant" field's value.
    * @return constant pool index (0 --> field is not a "static final constant")
    */ 
-  final int getConstantValueIndex() {
+  final int getConstantValueIndex() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return constantValueIndex;
   }
@@ -116,7 +116,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
    * <p> For non-static field, offset is with respect to
    * object pointer.
    */ 
-  public final int getOffset() {
+  public final int getOffset() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(getDeclaringClass().isResolved());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return offset;

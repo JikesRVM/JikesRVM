@@ -20,7 +20,7 @@ public class VM_GCUtil
   private static final VM_ProcessorLock outOfMemoryLock = new VM_ProcessorLock();
   private static boolean outOfMemoryReported = false;
 
-  static void boot() {
+  static void boot() throws VM_PragmaInterruptible {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.getPrimitiveArrayType(10);
     tibForArrayType = VM_ObjectModel.getTIB(t);

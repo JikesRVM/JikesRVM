@@ -23,7 +23,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */ 
   static void initForBootImageWriter(String classPath, 
-				     String[] bootCompilerArgs) throws VM_ResolutionException {
+				     String[] bootCompilerArgs) 
+    throws VM_ResolutionException,
+	   VM_PragmaInterruptible {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -32,7 +34,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Prepare vm classes for use by tools.
    * @exception VM_ResolutionException
    */
-  static void initForTool() throws VM_ResolutionException {
+  static void initForTool() throws VM_ResolutionException, VM_PragmaInterruptible  {
     runningTool = true;
     LoadLocalVariableTables = true;  // make sure to load the local table
     init(System.getProperty("java.class.path"), null);
@@ -43,7 +45,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param classpath class path to be used by VM_ClassLoader
    * @exception VM_ResolutionException
    */
-  static void initForTool(String classpath) throws VM_ResolutionException {
+  static void initForTool(String classpath) throws VM_ResolutionException, VM_PragmaInterruptible {
     runningTool = true;
     LoadLocalVariableTables = true;  // make sure to load the local table
     init(classpath, null);
@@ -76,8 +78,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any method calls, 
-    // because it's accessed
-    // by compiler-generated stack overflow checks.
+    // because it's accessed by compiler-generated stack overflow checks.
     //
     if (verbose >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
@@ -232,7 +233,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Called by the compilers when compiling a static synchronized method
    * during bootimage writing.
    */
-  static void deferClassObjectCreation(VM_Class c) {
+  static void deferClassObjectCreation(VM_Class c) throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
       if (classObjects[i] == c) return; // already recorded
     }
@@ -245,7 +246,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Create the java.lang.Class objects needed for 
    * static synchronized methods in the bootimage.
    */
-  private static void createClassObjects() {
+  private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
       classObjects[i].getClassForType();
     }
@@ -256,7 +257,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * in bootimage.
    * @param className
    */
-  private static void runClassInitializer(String className) {
+  private static void runClassInitializer(String className) throws VM_PragmaInterruptible {
     VM_Atom  classDescriptor = 
        VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
@@ -340,7 +341,6 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value  what is printed
    */
   public static void sysWrite(VM_Member value) {
-////  VM.sysWrite(value.getDeclaringClass().getName());
     VM.sysWrite(value.getDeclaringClass().getDescriptor());
     VM.sysWrite(".");
     VM.sysWrite(value.getName());
@@ -354,14 +354,12 @@ public class VM extends VM_Properties implements VM_Constants,
    */
   public static void sysWrite(String value) {
     if (runningVM) {
-      boolean enabled = VM_Processor.getCurrentProcessor().threadSwitchingEnabled();
-      if (enabled) VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
       for (int i = 0, n = value.length(); i < n; ++i) {
         sysWrite(value.charAt(i));
       }
-      if (enabled) VM_Processor.getCurrentProcessor().enableThreadSwitching();
-    }
-    else {
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    } else {
       System.err.print(value);
     }
   }
@@ -814,65 +812,6 @@ public class VM extends VM_Properties implements VM_Constants,
 
   //-#endif
 
-  /**
-   * Find or create unique string instance.
-   * !!TODO: probably doesn't belong in VM. Where should it go? --DL
-   * @param spelling  desired spelling
-   * @return unique string with that spelling See: java.lang.String.intern()
-   */
-  public static String findOrCreateString(String spelling) {
-    //!!TODO: This pollutes the jtoc with strings that needn't be allocated statically.
-    //        We need to keep a separate table for intern'd strings that
-    //        don't originate from class constant pools. [--DL]
-    try {
-      VM_Atom atom = VM_Atom.findOrCreateUnicodeAtom(spelling);
-      int     slot = VM_Statics.findOrCreateStringLiteral(atom);
-      return  (String)VM_Magic.addressAsObject(VM_Address.fromInt(VM_Statics.getSlotContentsAsInt(slot)));
-    } catch (java.io.UTFDataFormatException x) {
-      throw new InternalError();
-    }
-  }
-   
-  /**
-   * Get description of virtual machine component (field or method).
-   * Note: This is method is intended for use only by VM classes that need
-   * to address their own fields and methods in the runtime virtual machine
-   * image.  It should not be used for general purpose class loading.
-   * @param classDescriptor  class  descriptor - something like "LVM_Runtime;"
-   * @param memberName       member name       - something like "invokestatic"
-   * @param memberDescriptor member descriptor - something like "()V"
-   * @return description
-   */
-  static VM_Member getMember(String classDescriptor, String memberName,
-                             String memberDescriptor) {
-    VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
-    VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
-    VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
-    try {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
-      cls.load();
-      cls.resolve();
-
-      VM_Member member;
-      if ((member = cls.findDeclaredField(memName, memDescriptor)) != null)
-        return member;
-      if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null)
-        return member;
-
-      // The usual causes for VM.getMember() to fail are:
-      //  1. you mispelled the class name, member name, or member signature
-      //  2. the class containing the specified member didn't get compiled
-      //
-      VM.sysWrite("VM.getMember: can't find class="+classDescriptor+" member="+memberName+" desc="+memberDescriptor+"\n");
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    } catch (VM_ResolutionException e) {
-      VM.sysWrite("VM.getMember: can't resolve class=" + classDescriptor+
-                  " member=" + memberName + " desc=" + memberDescriptor + "\n");
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    }
-    return null;
-  }
-
    //----------------//
    // implementation //
    //----------------//
@@ -885,7 +824,7 @@ public class VM extends VM_Properties implements VM_Constants,
    *                         boot compiler's init routine.
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
-    throws VM_ResolutionException {
+    throws VM_ResolutionException, VM_PragmaInterruptible {
     // create dummy boot record
     //
     VM_BootRecord.the_boot_record = new VM_BootRecord();
@@ -1022,7 +961,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * getMainMethod
    * @return the main method of the main thread
    */
-  public static VM_Method getMainMethod()  {
+  public static VM_Method getMainMethod() throws VM_PragmaInterruptible {
     if(VM.VerifyAssertions) VM.assert(_mainThread != null);
     return ((MainThread)_mainThread).getMainMethod();
   } 

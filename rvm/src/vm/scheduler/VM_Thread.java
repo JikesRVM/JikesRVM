@@ -66,7 +66,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     return false;
   }
 
-  public String toString() {
+  public String toString() throws VM_PragmaInterruptible {
     return "VM_Thread";
   }
 
@@ -74,14 +74,14 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Method to be executed when this thread starts running.
    * Subclass should override with something more interesting.
   */
-  public void run () {
+  public void run () throws VM_PragmaInterruptible {
   }
 
   /**
    * Method to be executed when this thread termnates.
    * Subclass should override with something more interesting.
    */ 
-  public void exit () {
+  public void exit () throws VM_PragmaInterruptible {
   }
 
   /**

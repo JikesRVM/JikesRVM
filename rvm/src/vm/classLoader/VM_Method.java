@@ -25,15 +25,17 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Classifiers.
    */
-  public final boolean isClassInitializer()   
-  { return name == VM_ClassLoader.StandardClassInitializerMethodName;  }
-  public final boolean isObjectInitializer()  
-  { return name == VM_ClassLoader.StandardObjectInitializerMethodName; }
+  public final boolean isClassInitializer() throws VM_PragmaUninterruptible { 
+    return name == VM_ClassLoader.StandardClassInitializerMethodName;  
+  }
+  public final boolean isObjectInitializer() throws VM_PragmaUninterruptible { 
+    return name == VM_ClassLoader.StandardObjectInitializerMethodName; 
+  }
 
   /**
    * Type of this method's return value.
    */
-  public final VM_Type getReturnType() {
+  public final VM_Type getReturnType() throws VM_PragmaUninterruptible {
     return returnType;
   }
 
@@ -41,7 +43,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Type of this method's parameters.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final VM_Type[] getParameterTypes() {
+  public final VM_Type[] getParameterTypes() throws VM_PragmaUninterruptible {
     return parameterTypes;
   }
 
@@ -49,7 +51,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Space required by this method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  final int getParameterWords() {
+  final int getParameterWords() throws VM_PragmaUninterruptible {
     return parameterWords;
   }
 
@@ -84,8 +86,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     int[] startPCs       = lineNumberMap.startPCs;
     int[] lineNumbers    = lineNumberMap.lineNumbers;
     int   candidateIndex = -1;
-    for (int i = 0, n = startPCs.length; i < n; ++i)
-    {
+    for (int i = 0, n = startPCs.length; i < n; ++i) {
       if (startPCs[i] >= pc)
         break;
       candidateIndex = i;
@@ -148,7 +149,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Declared as statically dispatched?
    */
-  public final boolean isStatic() {
+  public final boolean isStatic() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_STATIC) != 0;
@@ -157,7 +158,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Declared as non-overridable by subclasses?
    */
-  final boolean isFinal() {
+  final boolean isFinal() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
@@ -166,7 +167,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Guarded by monitorenter/monitorexit?
    */
-  final boolean isSynchronized() {
+  final boolean isSynchronized() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_SYNCHRONIZED) != 0;
@@ -175,7 +176,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Not implemented in java?
    */
-  final boolean isNative() {
+  final boolean isNative() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_NATIVE) != 0;
@@ -184,7 +185,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * Implemented in subclass?
    */
-  final boolean isAbstract() {
+  final boolean isAbstract() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0;
@@ -194,7 +195,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
-  final int getLocalWords() {
+  final int getLocalWords() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return localWords;
@@ -203,14 +204,14 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * setter for localWords
    */
-  final void setLocalWords(int lwords) {
+  final void setLocalWords(int lwords) throws VM_PragmaUninterruptible {
     localWords = lwords;
   }
 
   /**
    * Space required by this method for its operand stack, in words.
    */
-  final int getOperandWords() {
+  final int getOperandWords() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return operandWords;
@@ -227,7 +228,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Bytecodes to be executed by this method.
    * @return bytecodes (null --> native or abstract: no code)
    */
-  final byte[] getBytecodes() {
+  final byte[] getBytecodes() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return bytecodes;
@@ -245,7 +246,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Local variables defined by this method.
    * @return info (null --> no locals or method wasn't compiled with "-g")
    */
-  final VM_LocalVariable[] getLocalVariables() {
+  final VM_LocalVariable[] getLocalVariables() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return localVariables;
@@ -255,7 +256,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Exceptions caught by this method.
    * @return info (null --> method doesn't catch any exceptions)
    */
-  final VM_ExceptionHandlerMap getExceptionHandlerMap() {
+  final VM_ExceptionHandlerMap getExceptionHandlerMap() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return exceptionHandlerMap;
@@ -264,18 +265,16 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   /**
    * setter for exception handler map
    */
-  final void
-    setExceptionHandlerMap(VM_ExceptionHandlerMap ehm)
-    {
-      exceptionHandlerMap = ehm;
-    }
+  final void setExceptionHandlerMap(VM_ExceptionHandlerMap ehm) {
+    exceptionHandlerMap = ehm;
+  }
 
   /**
    * Exceptions thrown by this method - 
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
-  public final VM_Type[] getExceptionTypes() {
+  public final VM_Type[] getExceptionTypes() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return exceptionTypes;
@@ -285,7 +284,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * Line numbers for this method.
    * @return info (null --> native or abstract: no code, no exception map)
    */
-  final VM_LineNumberMap getLineNumberMap() {
+  final VM_LineNumberMap getLineNumberMap() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return lineNumberMap;
@@ -300,14 +299,31 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
   /**
    * Is this method interruptible?
-   * @return true unless this method can throw {@link VM_PragmaUninterruptible}
-   * <EM>or</EM> its declaring class implements {@link VM_Uninterruptible}
-   * (specification at the class level may be phased out)
+   * In other words, should the compiler insert threadswitch points
+   * aka yieldpoints in method prologue, epilogue, and backwards branches.
+   * Also, methods that are Uninterruptible do not have stackoverflow checks
+   * in the method prologue (since there is no mechanism for handling a stackoverflow
+   * that doesn't violate the uninterruptiblity of the method).
+   * A method is Uninterruptible if 
+   * <ul>
+   * <li> It is not a <clinit> or <init> method.
+   * <li> it throws the <CODE>VM_PragmaUninterruptible</CODE> exception.
+   * <li> it's declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
+   *      interface and the method does not throw the <CODE>VM_PragmaInterruptible</CODE>
+   *      exception.
+   * </ul>
    */
   final boolean isInterruptible() {
-    return (!VM_PragmaUninterruptible.declaredBy(this)) && declaringClass.isInterruptible();
+    if (isClassInitializer() || isObjectInitializer()) return true;
+    if (VM_PragmaInterruptible.declaredBy(this)) return true;
+    if (VM_PragmaUninterruptible.declaredBy(this)) return false;
+    VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
+    for (int i = 0, n = interfaces.length; i < n; ++i) {
+      if (interfaces[i].isUninterruptibleType()) return false;
+    }
+    return true;
   }
-
+    
   //------------------------------------------------------------------//
   //                        Section 2.                                //
   // The following are available after the declaring class has been   //
@@ -342,7 +358,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * <p> For non-static method, offset is with respect to
    * object's type information block.
    */
-  public final int getOffset() {
+  public final int getOffset() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isResolved());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return offset;

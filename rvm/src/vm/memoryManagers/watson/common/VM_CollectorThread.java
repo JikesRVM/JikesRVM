@@ -90,7 +90,7 @@ class VM_CollectorThread extends VM_Thread
   /**
    * Initialize for boot image. Should be called from VM_Allocator.init() 
    */
-  static void  init() {
+  static void  init() throws VM_PragmaInterruptible {
     gcBarrier = new VM_GCSynchronizationBarrier();
 
     collectorThreads = new VM_CollectorThread[ 1 + VM_Scheduler.MAX_PROCESSORS ];
@@ -460,7 +460,7 @@ class VM_CollectorThread extends VM_Thread
   // Note: "stack" must be in pinned memory: currently done by allocating it in the boot image.
   //
   static VM_CollectorThread 
-    createActiveCollectorThread(int[] stack, VM_Processor processorAffinity) {
+    createActiveCollectorThread(int[] stack, VM_Processor processorAffinity) throws VM_PragmaInterruptible {
     //-#if RVM_WITH_CONCURRENT_GC
     return new VM_RCCollectorThread(stack, true, processorAffinity);
     //-#else
@@ -476,7 +476,7 @@ class VM_CollectorThread extends VM_Thread
   // Note: "stack" must be in pinned memory: currently done by allocating it in the boot image.
   //
   static VM_CollectorThread 
-    createPassiveCollectorThread(int[] stack, VM_Processor processorAffinity) {
+    createPassiveCollectorThread(int[] stack, VM_Processor processorAffinity) throws VM_PragmaInterruptible {
     return new VM_CollectorThread(stack, false,  processorAffinity);
   }
 

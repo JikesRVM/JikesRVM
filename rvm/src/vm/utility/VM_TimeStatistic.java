@@ -9,7 +9,7 @@
  * @author Perry Cheng
  * 
  */
-class VM_TimeStatistic extends VM_Statistic {
+class VM_TimeStatistic extends VM_Statistic implements VM_Uninterruptible {
 
     private double curStart = -1.0;
     double lastStart = -1.0;

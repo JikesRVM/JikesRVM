@@ -109,7 +109,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("waiting on " + o);
+      raiseIllegalMonitorStateException("waiting on", o);
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread n = l.entering.dequeue();
@@ -157,7 +157,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("waiting on " + o);
+      raiseIllegalMonitorStateException("waiting on", o);
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread n = l.entering.dequeue();
@@ -196,7 +196,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("notifying " + o);
+      raiseIllegalMonitorStateException("notifying ", o);
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread t = l.waiting.dequeue();
     if (false) { // this "optimization" seems tempting, but actually makes things worse (on Volano, at least) [--DL]
@@ -223,7 +223,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("notifying " + o);
+      raiseIllegalMonitorStateException("notifying ", o);
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread t = l.waiting.dequeue();
     while (t != null) {
@@ -311,7 +311,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     mutex.lock(); // Note: thread switching is not allowed while mutex is held.
     if (ownerId != VM_Magic.getThreadId()) {
       mutex.unlock(); // thread-switching benign
-      throw new IllegalMonitorStateException("heavy unlocking " + o);
+      raiseIllegalMonitorStateException("heavy unlocking", o);
     }
     if (0 < --recursionCount) {
       mutex.unlock(); // thread-switching benign
@@ -381,7 +381,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   /**
    * Sets up the data structures for holding heavy-weight locks.
    */
-  static void init() {
+  static void init() throws VM_PragmaInterruptible {
     lockAllocationMutex = new VM_ProcessorLock();
     VM_Scheduler.locks  = new VM_Lock[MAX_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
@@ -520,6 +520,11 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     lockAllocationMutex.unlock();
   }
 
+  static void raiseIllegalMonitorStateException(String msg, Object o) throws VM_PragmaInterruptible {
+    throw new IllegalMonitorStateException(msg + o);
+  }
+
+
   ///////////////////////////////////////////////////////////////
   /// Section 4: Support for debugging and performance tuning ///
   ///////////////////////////////////////////////////////////////
@@ -623,7 +628,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     //             Statistics                   //
     //////////////////////////////////////////////
 
-  public static void boot () {
+  public static void boot () throws VM_PragmaInterruptible {
     VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
     VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
   }

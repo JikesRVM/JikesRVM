@@ -23,7 +23,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * This is the entry point for all build-time activity in the collector.
    */
-  public static final void init () {
+  public static final void init () throws VM_PragmaInterruptible {
     VM_Allocator.init();
   }
 
@@ -32,7 +32,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * initialization).  This is only executed by one processor (the
    * primordial thread).
    */
-  public static final void boot (VM_BootRecord theBootRecord) {
+  public static final void boot (VM_BootRecord theBootRecord) throws VM_PragmaInterruptible {
     VM_Allocator.boot(theBootRecord);
     VM_GCStatistics.boot();
   }

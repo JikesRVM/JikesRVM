@@ -2700,11 +2700,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
     // Generate trap if new frame would cross guard page.
     //
-    if (method.isInterruptible()) {
+    if (isInterruptible) {
       asm.emitStackOverflowCheck(frameSize);                            // clobbers R0, S0
-    } else {
-      // TODO!! make sure stackframe of uninterruptible method doesn't overflow guard page
-      // asm.emitUninterruptibleStackOverflowCheck(frameSize - STACK_SIZE_GUARD);
     }
 
     // Buy frame.
@@ -2808,7 +2805,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
   private void genThreadSwitchTest (int whereFrom) {
-    if (klass.isInterruptible()) {
+    if (isInterruptible) {
       // alternate ways of setting the thread switch bit
       if (VM.BuildForDeterministicThreadSwitching) { // set THREAD_SWITCH_BIT every N method calls
 	

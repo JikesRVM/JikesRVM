@@ -177,7 +177,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           return;
         } 
         VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", old);
-        throw new IllegalMonitorStateException();
+	VM_Lock.raiseIllegalMonitorStateException("thin unlocking", o);
       }
       int countbits = old & TL_LOCK_COUNT_MASK; // get count
       if (countbits == 0) { // this is the last lock

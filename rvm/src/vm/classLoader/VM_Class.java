@@ -22,7 +22,7 @@ import java.io.DataInputStream;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Class extends VM_Type
+public final class VM_Class extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants {
 
   //------------------------------------------------------------------//
@@ -40,7 +40,7 @@ public class VM_Class extends VM_Type
   /**
    * Stack space requirement.
    */ 
-  public final int getStackWords() {
+  public final int getStackWords() throws VM_PragmaUninterruptible {
     return 1;
   }
 
@@ -57,7 +57,7 @@ public class VM_Class extends VM_Type
   /**
    * An "interface" description rather than a "class" description?
    */ 
-  public final boolean isInterface() { 
+  public final boolean isInterface() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_INTERFACE) != 0; 
   } 
@@ -65,7 +65,7 @@ public class VM_Class extends VM_Type
   /**
    * Usable from other packages?
    */ 
-  final boolean isPublic() { 
+  final boolean isPublic() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_PUBLIC) != 0; 
   }
@@ -73,7 +73,7 @@ public class VM_Class extends VM_Type
   /**
    * Non-subclassable?
    */ 
-  final boolean isFinal()     { 
+  final boolean isFinal() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0; 
   }
@@ -81,7 +81,7 @@ public class VM_Class extends VM_Type
   /**
    * Non-instantiable?
    */ 
-  final boolean isAbstract()  { 
+  final boolean isAbstract() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
@@ -89,7 +89,7 @@ public class VM_Class extends VM_Type
   /**
    * Use new-style "invokespecial" semantics for method calls in this class?
    */ 
-  final boolean isSpecial() { 
+  final boolean isSpecial() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_SPECIAL) != 0; 
   }
@@ -112,7 +112,7 @@ public class VM_Class extends VM_Type
    * Superclass of this class (null means "no superclass", 
    * ie. class is "java/lang/Object").
    */
-  public final VM_Class getSuperClass() { 
+  public final VM_Class getSuperClass() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return superClass;
   }
@@ -120,7 +120,7 @@ public class VM_Class extends VM_Type
   /**
    * Currently loaded classes that "extend" this class.
    */ 
-  final VM_Class[] getSubClasses() {
+  final VM_Class[] getSubClasses() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return subClasses;
   }
@@ -129,7 +129,7 @@ public class VM_Class extends VM_Type
    * Interfaces implemented directly by this class 
    * (ie. not including superclasses).
    */
-  public final VM_Class[] getDeclaredInterfaces() { 
+  public final VM_Class[] getDeclaredInterfaces() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredInterfaces;
   }
@@ -137,7 +137,7 @@ public class VM_Class extends VM_Type
   /**
    * Fields defined directly by this class (ie. not including superclasses).
    */ 
-  public final VM_Field[] getDeclaredFields() { 
+  public final VM_Field[] getDeclaredFields() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredFields;
   }
@@ -146,7 +146,7 @@ public class VM_Class extends VM_Type
    * Methods defined directly by this class (ie. not including superclasses).
    * TODO: must prevent user access.
    */
-  public final VM_Method[] getDeclaredMethods() { 
+  public final VM_Method[] getDeclaredMethods() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredMethods;
   }
@@ -155,7 +155,7 @@ public class VM_Class extends VM_Type
    * Static initializer method for this class (null -> no static initializer
    *  or initializer already been run).
    */ 
-  final VM_Method getClassInitializerMethod() {
+  final VM_Method getClassInitializerMethod() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return classInitializerMethod;
   }
@@ -303,22 +303,6 @@ public class VM_Class extends VM_Type
 
   /**
    * Should the methods of this class be compiled with 
-   * thread switching prologue?
-   * almost deprecated: Use {@link VM_Method#isInterruptible()} which respects
-   * per-method <CODE>throws VM_PragmaUninterruptible</CODE> as well as
-   * class-wide (almost deprecated) <CODE>implements VM_Uninterruptible</CODE>.
-   * @see VM_Uninterruptible
-   * @see VM_PragmaUninterruptible
-   */ 
-  final boolean isInterruptible () {
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i].isUninterruptibleType()) return false;
-    return true; // does not (directly) implement VM_Uninterruptible
-  }
-
-  /**
-   * Should the methods of this class be compiled with 
    */ 
   final boolean isBootImageInitialized () {
     VM_Class[] interfaces = getDeclaredInterfaces();
@@ -396,7 +380,7 @@ public class VM_Class extends VM_Type
   /**
    * Does this class override java.lang.Object.finalize()?
    */
-  public final boolean hasFinalizer() {
+  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return (finalizeMethod != null);
   }
@@ -405,7 +389,7 @@ public class VM_Class extends VM_Type
    * Get finalize method that overrides java.lang.Object.finalize(), 
    * if one exists
    */
-  public final VM_Method getFinalizer() {
+  public final VM_Method getFinalizer() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return finalizeMethod;
   }
@@ -449,12 +433,12 @@ public class VM_Class extends VM_Type
    * Total size, in bytes, of an instance of this class 
    * (including object header).
    */
-  public final int getInstanceSize() {
+  public final int getInstanceSize() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return instanceSize;
   }
 
-  final int getInstanceSizeInternal() {
+  final int getInstanceSizeInternal() throws VM_PragmaUninterruptible {
     return instanceSize;
   }
 
@@ -462,7 +446,7 @@ public class VM_Class extends VM_Type
    * Add a field to the object; only meant to be called from VM_ObjectModel et al.
    * must be called when lock on class object is already held (ie from resolve).
    */
-  final void increaseInstanceSize(int numBytes) {
+  final void increaseInstanceSize(int numBytes) throws VM_PragmaUninterruptible {
     instanceSize += numBytes;
   }
 
@@ -470,7 +454,7 @@ public class VM_Class extends VM_Type
    * Offsets of reference-containing instance fields of this class type.
    * Offsets are with respect to object pointer -- see VM_Field.getOffset().
    */
-  public final int[] getReferenceOffsets() {
+  public final int[] getReferenceOffsets() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return referenceOffsets;
   }
@@ -533,7 +517,7 @@ public class VM_Class extends VM_Type
   /**
    * Runtime type information for this class type.
    */
-  public final Object[] getTypeInformationBlock() {
+  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return typeInformationBlock;
   }
@@ -637,8 +621,6 @@ public class VM_Class extends VM_Type
   // implementation //
   //----------------//
 
-  // debug flag: CRA
-  private static boolean DEBUG = false;
   //
   // The following are always valid.
   //
@@ -1086,13 +1068,24 @@ public class VM_Class extends VM_Type
 	if (method.isObjectInitializer() || method.isStatic())  {
 	  VM_Callbacks.notifyMethodOverride(method, null);
 	  staticMethods.addElement(method);
+	  if (VM.VerifyUnint) {
+	    if (!method.isInterruptible() && method.isSynchronized()) {
+	      VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	    }
+	  }
 	  continue;
 	}
 
 	// Now deal with virtual methods
 
-	if (method.isSynchronized())
+	if (method.isSynchronized()) {
 	  VM_ObjectModel.allocateThinLock(this);
+	  if (VM.VerifyUnint) {
+	    if (!method.isInterruptible()) {
+	      VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	    }
+	  }
+	}
 
 	// method could override something in superclass - check for it
 	//
@@ -1111,9 +1104,13 @@ public class VM_Class extends VM_Type
 	  VM_Callbacks.notifyMethodOverride(method, null);
 	  virtualMethods.addElement(method);                          // append
 	} else {
-	  VM_Callbacks.notifyMethodOverride(method,
-					    (VM_Method)virtualMethods.
-					    elementAt(superclassMethodIndex));
+	  VM_Method superc = (VM_Method)virtualMethods.elementAt(superclassMethodIndex);
+	  if (VM.VerifyUnint) {
+	    if (!superc.isInterruptible() && method.isInterruptible()) {
+	      VM.sysWriteln("WARNING: interruptible "+method+" overrides uninterruptible "+superc);
+	    }
+	  }
+	  VM_Callbacks.notifyMethodOverride(method, superc);
 	  virtualMethods.setElementAt(method, superclassMethodIndex); // override
 	}
       }
@@ -1238,7 +1235,7 @@ public class VM_Class extends VM_Type
   // RCGC: A reference to class is acyclic if the class is acyclic and final
   //    (otherwise the reference could be to a subsequently loaded cyclic subclass).
   //
-  protected final boolean isAcyclicReference() {
+  protected final boolean isAcyclicReference() throws VM_PragmaUninterruptible {
     return acyclic && isFinal();
   }
 

@@ -134,7 +134,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   // Initialize boot image.
   //
-  static void init() {
+  static void init() throws VM_PragmaInterruptible {
     threadCreationMutex     = new VM_ProcessorLock();
     outputMutex             = new VM_ProcessorLock();
     if (VM.BuildForStrongVolatileSemantics) doublewordVolatileMutex = new VM_ProcessorLock();
@@ -170,7 +170,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //           VM_Scheduler.numProcessors == number of virtual processors desired
   // Returned: never returns (virtual processors begin running)
   //
-  static void boot (VM_Thread mainThread) {
+  static void boot (VM_Thread mainThread) throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM.assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)

@@ -52,7 +52,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
   static final int MINOR = 1;
   static final int MAJOR = 2;
 
-  static void boot() {
+  static void boot() throws VM_PragmaInterruptible {
     VM_Callbacks.addExitMonitor(new VM_GCStatistics());
     VM_Callbacks.addAppRunStartMonitor(new VM_GCStatistics());
   }

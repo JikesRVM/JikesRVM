@@ -39,7 +39,7 @@ public class VM_CompiledMethods
 
   // Fetch a previously compiled method.
   //
-  static VM_CompiledMethod getCompiledMethod(int compiledMethodId) {
+  static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
@@ -52,19 +52,19 @@ public class VM_CompiledMethods
 
   // Get number of methods compiled so far.
   //
-  static int numCompiledMethods() {
+  static int numCompiledMethods() throws VM_PragmaUninterruptible {
     return currentCompiledMethodId + 1;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  static VM_CompiledMethod[] getCompiledMethods() {
+  static VM_CompiledMethod[] getCompiledMethods() throws VM_PragmaUninterruptible {
     return compiledMethods;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  static int numCompiledMethodsLess1() {
+  static int numCompiledMethodsLess1() throws VM_PragmaUninterruptible {
     return currentCompiledMethodId;
   }
 
@@ -201,8 +201,7 @@ public class VM_CompiledMethods
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
 					       int newLength) {
     VM_CompiledMethod[] newarray = VM_RuntimeStructures.newContiguousCompiledMethodArray(newLength);
-    for (int i = 0, n = array.length; i < n; ++i)
-      newarray[i] = array[i];
+    System.arraycopy(array, 0, newarray, 0, array.length);
 
     VM_Magic.sync();
     return newarray;

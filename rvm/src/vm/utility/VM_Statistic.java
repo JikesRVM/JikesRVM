@@ -9,7 +9,7 @@
  * @author Perry Cheng
  * 
  */
-class VM_Statistic {
+class VM_Statistic implements VM_Uninterruptible {
 
     protected int    count = 0;
     protected double last;

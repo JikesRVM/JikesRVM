@@ -16,8 +16,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class VM_EventLogger implements VM_Uninterruptible
-   {
+public class VM_EventLogger implements VM_Uninterruptible {
    //---------------//
    // instance data //
    //---------------//
@@ -209,7 +208,7 @@ public class VM_EventLogger implements VM_Uninterruptible
    public  static void  logOptDLSiteExecutedEvent() {}
    
    static void
-   boot()
+   boot() throws VM_PragmaInterruptible 
       {
       if (eventLoggers == null)
          {
@@ -411,7 +410,7 @@ public class VM_EventLogger implements VM_Uninterruptible
    // Returned: nothing
    //
    public static void
-   dump(FileOutputStream out) throws IOException
+     dump(FileOutputStream out) throws IOException, VM_PragmaInterruptible 
       {
       if (eventLoggers == null)
          {
@@ -526,7 +525,7 @@ public class VM_EventLogger implements VM_Uninterruptible
    // Returned:   string, right justified and blank padded
    //
    private static String
-   format2(String str)
+   format2(String str) throws VM_PragmaInterruptible
       {
       int len = str.length();
       return len < 2 ? "  ".substring(0, 2 - len) + str : str;
@@ -537,18 +536,17 @@ public class VM_EventLogger implements VM_Uninterruptible
    // Returned:   string, right justified and blank padded
    //
    private static String
-   format10(String str)
+   format10(String str) throws VM_PragmaInterruptible
       {
       int len = str.length();
       return len < 10 ? "          ".substring(0, 10 - len) + str : str;
       }
                                                                     
-   private static void
-   write(FileOutputStream out, String str) throws IOException
-      {
-      int    len   = str.length();
-      byte[] ascii = new byte[len];
-      str.getBytes(0, len, ascii, 0);
-      out.write(ascii, 0, len);
-      }
+   private static void write(FileOutputStream out, String str) 
+     throws IOException, VM_PragmaInterruptible {
+     int    len   = str.length();
+     byte[] ascii = new byte[len];
+     str.getBytes(0, len, ascii, 0);
+     out.write(ascii, 0, len);
    }
+}
