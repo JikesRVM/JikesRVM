@@ -1,30 +1,43 @@
+/* -*-coding: iso-8859-1 -*-
+ *
+ * (C) Copyright © IBM Corp 2004
+ *
+ * $Id$
+ */
+
+/** 
+ * Define a bunch of stubs so that we never have any calls to real pthread
+ * methods in our own sources.  This requires that we build shadowed versions
+ * of sys.o and libvm.o.
+ *
+ * @author Steven Augart
+ * @date   11 Feb 2005
+ */
 #ifndef _PTHREAD_WRAPPERS_H_
 #define _PTHREAD_WRAPPERS_H_
+/*
+ * It is unfortunate that stdio.h on the GNU libc defines various
+ * pthread types, such as pthread_t and pthread_mutex_t.  It means that we
+ * can not define our own silly versions of those types below; that would be
+ * the natural thing to do, but we can't.  
+ * So, FIRST we include <pthread.h>, to define all of the types that the
+ * function prototypes need, THEN we define macro versions of all of the
+ * functions that we use. 
+ *
+ * Including <pthread.h> means that if we ignorantly fail to override some
+ * pthread function or other, we may not immediately get a failure to compile.
+ *
+ * We won't even necessarily fail to link with -lpthread, because the GNU C
+ * library includes its own versions of some of those stubs.  Ugly.
+ */
 #include <pthread.h>            /* Just use the normal version of this file if
                                  * we are not doing the
                                  * single-virtual-processor stuff. */  
 
 #if defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-/* Define a bunch of stubs so that we never have any calls to real pthread
- * methods in our own sources.  This requires that we build shadowed versions
- * of sys.o and libvm.o.
- *
- * It is unfortunate that stdio.h on the GNU libc defines various
- * pthread types, such as pthread_t and pthread_mutex_t.  It means that we
- * can not define our own stub versions below, but must instead include
- * <pthread.h>.  So, FIRST we include <pthread.h>, THEN we override its
- * functions.
- *
- * Including it means that if we ignorantly fail to override some pthread
- * function or other, we may not immediately get a failure to compile.
- *
- * We won't even necessarily fail to link with -lpthread, because the GNU C
- * library includes its own versions of some of those stubs.  Ugly.
- */
-
 #include <stdio.h>
 
-
+/* This is the approach that does not work: */
 /* typedef int pthread_t; */
 /* typedef int pthread_mutex_t; */
 /* #define PTHREAD_MUTEX_INITIALIZER 0xCCCCCCC */
