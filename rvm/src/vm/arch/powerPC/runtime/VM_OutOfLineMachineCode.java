@@ -387,7 +387,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitADDI (T0, VM_Entrypoints.JNIExternalFunctionsField.getOffset(), S0);
 
     //
-    // change the vpstatus of the VP to "in Native"
+    // change the vpstatus of the VP to IN_NATIVE
     //
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0);   
     asm.emitLVAL (S0,  VM_Processor.IN_NATIVE);
