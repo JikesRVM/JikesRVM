@@ -96,7 +96,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   }
 
   public final void initializeJNIEnv() throws VM_PragmaInterruptible {
-      jniEnv = new VM_JNIEnvironment( threadSlot );
+    jniEnv = new VM_JNIEnvironment(threadSlot);
   }
 
   /**
@@ -106,7 +106,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    *        true afterward
    */
   public final boolean hasNativeStackFrame() {
-      return jniEnv != null && jniEnv.hasNativeStackFrame();
+    return jniEnv != null && jniEnv.hasNativeStackFrame();
   }
 
   public String toString() throws VM_PragmaInterruptible {
@@ -1327,7 +1327,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	
     contextRegisters.gprs.set(FRAME_POINTER, fp);
     contextRegisters.ip  = ip;
-//-#endif
+    //-#endif
 
     VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
@@ -1338,7 +1338,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM_HardwarePerformanceMonitors.hpm_trace) {
       VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
     }
-    //-#endif
+//-#endif
 
     VM_Scheduler.threadCreationMutex.unlock();
 
@@ -1354,7 +1354,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // threadSlot determines which jni function pointer is passed to native C
 
     if (VM.runningVM)
-         jniEnv = new VM_JNIEnvironment(threadSlot);
+      jniEnv = new VM_JNIEnvironment(threadSlot);
 
     //-#if RVM_WITH_OSR
     onStackReplacementEvent = new OSR_OnStackReplacementEvent();
