@@ -41,9 +41,8 @@ public class VM_CompilerDNA implements VM_Constants {
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
-   * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
-   * and turangalila (Linux/IA32) using unweighted compilation rate, 
-   * which is different than previous collections
+   * These numbers were from a shadow on July 22, 2004 on munchkin (AIX/PPC)
+   * and turangalila (Linux/IA32) using unweighted compilation rate.
    */
   //-#if RVM_FOR_POWERPC
   private static final double[] speedupRates = {1.00, 4.73, 6.65, 7.39};
