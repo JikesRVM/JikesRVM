@@ -55,15 +55,15 @@ V DECAY_FREQUENCY int 100
 After how many clock ticks should we decay
 
 
-V DECAY_RATE double 1.5
-What factor should we decay by AI hotness by
+V DECAY_RATE double 1.1
+What factor should we decay AI hotness by
 
 
 V FIXED_RECOMPILATION_OVERHEAD double 1.0
 Fixed cost of recompiling and installing a method
 
 
-V AI_SAMPLE_SIZE int 100
+V AI_SAMPLE_SIZE int 200
 After how many samples do we update the weights in the dynamic call graph?
 
 
@@ -71,7 +71,7 @@ V INITIAL_AI_THRESHOLD double 0.06
 What fraction (0.0 to 1.0) of total dynamic calls makes an edge hot, at program startup?
 
 
-V FINAL_AI_THRESHOLD double 0.015
+V FINAL_AI_THRESHOLD double 0.01
 What fraction (0.0 to 1.0) of total dynamic calls makes an edge hot, in steady state?
 
 
@@ -79,7 +79,7 @@ V AI_METHOD_HOTNESS_THRESHOLD double 0.0025
 What fraction (0.0 to 1.0) of total method samples makes a callee hot enough to consider for recompilation to inline a hot non-inlined call edge?
 
 
-V MAX_EXPECTED_AI_BOOST double 4.0
+V MAX_EXPECTED_AI_BOOST double 3.0
 How much more effective do we expected an optimization level to be if boosted by adaptive inlining?
 
 
