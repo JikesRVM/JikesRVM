@@ -363,6 +363,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * allow one list of classes to work with different bootimages and 
    * different version of classpath (eg 0.05 vs. cvs head).
    * 
+   * This method is called only while the VM boots.
+   * 
    * @param className
    */
   static void runClassInitializer(String className) throws VM_PragmaInterruptible {
