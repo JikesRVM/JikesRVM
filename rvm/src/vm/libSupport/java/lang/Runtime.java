@@ -16,12 +16,12 @@ import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 
 import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
-import com.ibm.JikesRVM.librarySupport.SystemSupport;
 import com.ibm.JikesRVM.librarySupport.UnimplementedError;
 
 import com.ibm.JikesRVM.FinalizerThread;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Process;
 
 /**
  * Library support interface of Jikes RVM
@@ -104,7 +104,8 @@ public class Runtime {
       SecurityManager smngr = System.getSecurityManager();
       if (smngr != null)
 	smngr.checkExec(progArray[0]);
-      return SystemSupport.createProcess(progArray[0], progArray, envp, dir);
+      String dirPath = (dir != null) ? dir.getPath() : null;
+      return new VM_Process(progArray[0], progArray, envp, dirPath);
     } else {
       throw new java.io.IOException();
     }
