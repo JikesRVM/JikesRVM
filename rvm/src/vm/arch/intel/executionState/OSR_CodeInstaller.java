@@ -46,17 +46,28 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
 
     // 1. generate bridge instructions to recover saved registers
     if (cType == VM_CompiledMethod.BASELINE) {
+
+//	  asm.emitINT_Imm(3);  // break here for debugging
+			
       // unwind stack pointer, SP is FP now
       asm.emitADD_Reg_Imm(SP, sp2fpOffset);
-      // restore JTOC
-      asm.emitMOV_Reg_RegDisp(JTOC, SP, JTOC_SAVE_OFFSET);
+
+	  // before restoring caller's JTOC (maybe from opt compiler), we need
+	  // to use the true JTOC to get target address
+	  // use scratch register S0 to hold the address
+	  // ASSUMPTION: JTOC is really a JTOC, it is true for baseline compiler
+//	  VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+	  asm.emitMOV_Reg_RegDisp(S0, JTOC, cm.getOsrJTOCoffset());
+	  
+      // restore the caller's JTOC
+      asm.emitMOV_Reg_RegDisp(JTOC, SP, JTOC_SAVE_OFFSET); // this is the caller's JTOC
       // restore saved EBX
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
       asm.emitPOP_RegDisp(PR, VM_Entrypoints.framePointerField.getOffset());
       // donot pop return address and parameters, 
       // we make a faked call to newly compiled method
-      asm.emitJMP_RegDisp(JTOC, cm.getOsrJTOCoffset());
+      asm.emitJMP_Reg(S0);
     } else if (cType == VM_CompiledMethod.OPT) {
       ///////////////////////////////////////////////////
       // recover saved registers from foo's stack frame
