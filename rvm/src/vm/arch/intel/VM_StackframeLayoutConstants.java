@@ -23,7 +23,7 @@
  * Note: this (array) object is drawn upside down compared to other objects
  * because the hardware stack grows from high memory to low memory, but
  * array objects are layed out from low memory to high (header first).
- *
+ * <pre>
  *  hi-memory
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
@@ -66,7 +66,7 @@
  *  low-memory  +---------------+
  *
  *
- 
+ *
  *  The opt compiler uses a different stackframe layout
  *
  *  hi-memory
@@ -120,6 +120,8 @@
  *              +---------------+ /
  *              |(object header)|
  *  low-memory  +---------------+
+ *
+ * </pre>
  *
  * @author David Grove
  * @author Bowen Alpern

@@ -24,7 +24,7 @@
  * Note: this (array) object is drawn upside down compared to other objects
  * because the hardware stack grows from high memory to low memory, but
  * array objects are layed out from low memory to high (header first).
- *
+ * <pre>
  *  hi-memory
  *                 +===============+
  *                 |  LR save area |
@@ -70,6 +70,8 @@
  *
  * note: (++) means "baseline compiler frame layout and register 
  * usage conventions"
+ * 
+ * </pre>
  *
  * @author Bowen Alpern
  * @author Derek Lieber
