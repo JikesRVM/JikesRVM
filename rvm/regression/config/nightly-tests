@@ -3,6 +3,7 @@ opttests
 reflect
 threads
 utf8
+memberNaming
 jni
 CaffeineMark
 jBYTEmark
