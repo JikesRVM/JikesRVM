@@ -42,6 +42,18 @@ public abstract class PragmaException extends java.lang.RuntimeException {
     VM_TypeReference[] exceptions = method.getExceptionTypes();
     if (exceptions != null) {
       for (int i = 0; i<exceptions.length; i++) {
+        VM_TypeReference e = exceptions[i];
+        if (!e.isResolved()) {
+          if (e.getName().equals(eclass.getName())) {
+            try {
+              e.resolve();
+            } catch (NoClassDefFoundError e1) {
+              // if we can't resolve it without error, then it doesn't match
+            } catch (IllegalArgumentException e2) {
+              // if we can't resolve it without error, then it doesn't match
+            }
+          }
+        }
         if (exceptions[i].definitelySame(eclass)) {
           return true;
         }
