@@ -5,7 +5,6 @@ These are release notes for the future Jikes RVM release 2.3.1.
  *Highlights
  *Other Notes
  *Bug Fixes
- *TODO
 
 *Highlights of this release include:
 
@@ -14,8 +13,20 @@ Generously contributed by Chris Hoffman of the University of
 Massachusetts (USA).
 ***Details:
 If you want to build Jikes RVM for Mac OSX, you will need to patch
-your copy (version 0.06 or CVS head) of GNU Classpath with the patch
+your copy (version 0.06 or better) of GNU Classpath with the patch
 file located in aux/gnu-classpath-on-mac-osx.patch.
+
+** Seven user contributions incorporated since 2.3.0
+*** Contributions were improvements to JMTk from Robin Garner,  
+port to OSX from Chris Hoffman, refCount coalescing extension from Ian
+Warrington, bug fixes for the OSX port and opt compiler on PPC from
+Alan Lawrence, implementation of -jar cmd line arg from Anders Biehl
+Norgaard, and support for getting the classpath from CLASSPATH envar
+from Philippe Faes.
+
+** Switched to classpath 0.07
+*** Classpath 0.06 is expected to also work with this release of Jikes RVM, 
+but we recommend upgrading to the latest classpath release.
 
 **Build system improvements:
 ***If you run "jbuild" with --trace, 
@@ -49,7 +60,7 @@ now the recommended default.
 
 **Progress in PowerPC64 port: we can run hello world
 ***The Jikes RVM port to PPC64 has progressed to the point where a prototype 
-configuration boots and can run some simple programs.
+configuration boots and can run many simple programs.
 Getting this far requires that lots of things are working, so it is a
 fairly significant step.  However, there is more work to do with
 prototype and we haven't started work on the opt compiler. This is very
@@ -88,15 +99,4 @@ It is now the case that, when you run "jconfigure" and "jbuild", you
 should have your PATH set so that there is some Bash version in it
 somewhere under the name "bash".
 
-*TODO ITEMS
-
-**Stablize GC system
-***Generational GC
-***Load balancing problems with parallel collectors on SMPs
-
-**As much JNI reworking as possible (dave g)
-
-**Eclipse: goal should be that we run latest milestone build.
-I tried this earlier in the week and we die with a problem in
-classpath nio long before we get to the parts of Jikes RVM that aren't
-implemented. So, I think we have to postpone this for now. --dave
+*** Other misc bugs fixed as well; see the bug tracking software.
