@@ -114,7 +114,7 @@ class OPT_OptimizationPlanner {
    */
   private static void initializeMasterPlan() {
     Vector temp = new Vector();
-    BC2HIR(temp);
+    BC2HIR(temp);    
     HIROptimizations(temp);
     HIR2LIR(temp);
     LIROptimizations(temp);
@@ -146,10 +146,10 @@ class OPT_OptimizationPlanner {
   private static void BC2HIR(Vector p) {
     composeComponents(p, "Convert Bytecodes to HIR", new Object[] {
       // Generate HIR from bytecodes
-      new OPT_ConvertBCtoHIR(), 
+      new OPT_ConvertBCtoHIR(),
+
       // Always do initial wave of peephole branch optimizations
-      new OPT_BranchOptimizations(0,
-				  true),  // Restrict branch optimizations
+      new OPT_BranchOptimizations(0, true, false),  // Restrict branch optimizations
 
       // Optional printing of initial HIR 
       // Do this after branch optmization, since without merging
@@ -158,8 +158,7 @@ class OPT_OptimizationPlanner {
 	  boolean shouldPerform(OPT_Options options) {
 	    return options.PRINT_HIGH;
 	  }
-	}, 
-
+	}
     });
   }
 
@@ -174,6 +173,7 @@ class OPT_OptimizationPlanner {
     addComponent(p, new  OPT_TailRecursionElimination());
     // Insert yield points on back edges
     addComponent(p, new OPT_YieldPoints());
+
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(true, true));
 
@@ -190,8 +190,10 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_Simple(true, true));
     // Loop unrolling
     addComponent(p, new OPT_LoopUnrolling());
+
     // SSA meta-phase
     SSAinHIR(p);
+
     // Perform local copy propagation for a factored basic block.
     addComponent(p, new OPT_LocalCopyProp());
     // Perform local constant propagation for a factored basic block.
@@ -203,7 +205,6 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_FieldAnalysis());
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Insert counter on each method prologue
-    addComponent(p, new OPT_InsertMethodInvocationCounter());
     // Insert yieldpoint counters
     addComponent(p,new OPT_InsertYieldpointCounters());
     // Insert counter on each HIR instruction
@@ -229,10 +230,12 @@ class OPT_OptimizationPlanner {
         new OPT_LocalConstantProp(),
         // Insert PI Nodes
         new OPT_PiNodes(true), 
+	// branch optimization
+	new OPT_BranchOptimizations(0, true, false),
         // Compute dominators
         new OPT_DominatorsPhase(true), 
         // compute dominance frontier
-        new OPT_DominanceFrontier(), 
+        new OPT_DominanceFrontier(),
         // load elimination
         new OPT_LoadElimination(1), 
         // load elimination
@@ -264,7 +267,7 @@ class OPT_OptimizationPlanner {
           }
         },
         // Coalesce moves
-        new OPT_CoalesceMoves(), 
+	new OPT_CoalesceMoves(), 
 
         // SSA reveals new opportunites for the following
         new OPT_OptimizationPlanCompositeElement
@@ -297,7 +300,7 @@ class OPT_OptimizationPlanner {
 	    // Compute dominators
 	    new OPT_DominatorsPhase(true), 
 	    // compute dominance frontier
-            new OPT_DominanceFrontier(), 
+            new OPT_DominanceFrontier(),
             // Global Code Placement,
             new OPT_GCP(), 
             // Leave SSA 
@@ -344,6 +347,7 @@ class OPT_OptimizationPlanner {
           return options.PRINT_FINAL_HIR;
         }
       }, 
+
       // Inlining "runtime service" methods
       new OPT_ExpandRuntimeServices(), 
       // Peephole branch optimizations
@@ -386,7 +390,7 @@ class OPT_OptimizationPlanner {
     // Perform basic block reordering
     addComponent(p, new OPT_ReorderingPhase());
     // Perform peephole branch optimizations
-    addComponent(p, new OPT_BranchOptimizations(1));
+    addComponent(p, new OPT_BranchOptimizations(1,false,true));
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Convert high level place holder instructions into actual instrumenation
