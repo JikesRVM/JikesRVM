@@ -122,6 +122,9 @@ endif
 # support for server codes
 #
 
+# program for finding free inet sockets
+FREEPORT_SH=$(JAL_ROOT)/rvm/regression/freeport.sh
+
 # wait for server to generate sentinel output
 wait:	
 ifeq ($(LIMIT),0)
@@ -141,7 +144,7 @@ start:
 	$(MAKE) OUT=$(OUT).server LIMIT=15 wait
 
 wait-for-end:
-	(ps -p $(PID) | fgrep -qv $(PID)) || (sleep 10; $(MAKE) wait-for-end)
+	($(PS) -e | $(FGREP) -qv $(PID)) || (sleep 10; $(MAKE) wait-for-end)
 
 # start server, run client, finish server
 do-server-run:
@@ -150,6 +153,8 @@ do-server-run:
 	$(MAKE) client
 	$(MAKE) finish
 	$(MAKE) wait-for-end PID=`cat $(OUT).server.pid`
+	kill -9 `cat $(OUT).server.pid` || true
+	$(MAKE) OUT=$(OUT).server server-check
 
 client:
 	$(MAKE) START_NAME=$(CLIENT_NAME) START_ARGS=$(CLIENT_ARGS) OUT=$(OUT).client bench
@@ -157,15 +162,12 @@ client:
 
 finish:
 	$(MAKE) START_NAME=$(STOP_NAME) START_ARGS=$(STOP_ARGS) OUT=$(OUT).stop bench
-	$(MAKE) OUT=$(OUT).server server-check
 
 
 server-sanity-check-rules:
 	@$(MAKE) do-server-run
 	@$(MAKE) do-sanity-finish
 
-server-sanity-self-checking:
-	@$(MAKE) do-server-run
 
 #
 # sanity tests
