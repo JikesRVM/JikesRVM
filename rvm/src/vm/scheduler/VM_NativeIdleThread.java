@@ -11,7 +11,7 @@
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
 // alternate implementation of jni
 
-/*
+/**
  * This thread is scheduled when there is no native work left on a 
  * native virtual processor.  Since we do not wish the underlying pthread
  * to interfere with the execution and scheduling of the other pthreads
@@ -21,7 +21,7 @@
 //-#else
 // default implementation of jni   
 
-/*
+/**
  * This thread is scheduled when there is no native work left on a 
  * native virtual processor.  Since we do not wish the underlying pthread
  * to interfere with the execution and scheduling of the other pthreads
@@ -80,13 +80,17 @@ class VM_NativeIdleThread extends VM_IdleThread {
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
 // alternate implementation of jni
 
-  public void run() { // overrides VM_IdleThread
-    VM_Processor myProcessor = VM_Magic.getProcessorRegister();
-    int          lockoutAddr = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record) + VM_Entrypoints.lockoutProcessorOffset;
+  public void run() { 
+    VM_Processor myProcessor = VM_ProcessorLocalState.getCurrentProcessor(); 
+    int lockoutAddr = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record) + VM_Entrypoints.lockoutProcessorOffset;
 
 
     //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
+    //  references stored in registers by the opt compiler will 
+    //  not be relocated by GC
+    //  
+    //  ???? (SJF): this is news to me.  What does this mean?  Is there a
+    //  bug in the opt-compiler GC maps?
     VM_Magic.pragmaNoOptCompile();
 
       // save current frame pointer in threads JNIEnv, and set flag recognized by GC
@@ -118,10 +122,11 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
       inSysWait = false;
 
-      // if GC occurred while this thread was in sigwait, in which case the local variable
-      // myProcessor has been relocated by GC, so reset the PR reg using that variable
-      VM_Magic.setProcessorRegister(myProcessor);
-
+      // if GC occurred while this thread was in sigwait, 
+      // in which case the local variable
+      // myProcessor has been relocated by GC, 
+      // so reset the PR reg using that variable
+      VM_ProcessorLocalState.setCurrentProcessor(myProcessor);
 
       if (myProcessor.transferQueue.atomicIsEmpty(myProcessor.transferMutex)) {
 	  VM_Scheduler.trace("VM_NativeIdleThread:","after sigWait Transfer Queue Empty: myProcessor.id =",
@@ -164,17 +169,20 @@ class VM_NativeIdleThread extends VM_IdleThread {
     //
     VM_Magic.pragmaNoOptCompile();
 
-    // Save current frame pointer in threads JNIEnv, and set flag recognized by GC
+    // Save current frame pointer in threads JNIEnv, 
+    // and set flag recognized by GC
     // which will cause this (NativeIdleThread) thread to have its stack scanned
     // starting at this frame, if it is in a sigwait syscall during a collection.
     //
     VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
 
-    // Get the Native Processor this NativeIdleThread is running on. It will always
+    // Get the Native Processor this NativeIdleThread is running on. 
+    // It will always
     // be associated with the same Native Processor, although it will "visit" 
     // other RVM Processors.
     //
-    VM_Processor myNativeProcessor = VM_Magic.getProcessorRegister();
+    VM_Processor myNativeProcessor =
+      VM_ProcessorLocalState.getCurrentProcessor();
 
     while (true) {
       
@@ -214,14 +222,18 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
       inSysWait = false;
 
-      // Someone (watchdog daemon likely) has woken this NativeIdleThread up. Another Java thread,
-      // blocked in native, should have displaced this thread as the active thread on 
-      // the native processor. This idle thread should have been set to be the activeThread
-      // of the processor, although the processor register (restored by AIX after the
+      // Someone (watchdog daemon likely) has woken this 
+      // NativeIdleThread up. Another Java thread,
+      // blocked in native, should have displaced this thread 
+      // as the active thread on 
+      // the native processor. This idle thread should have 
+      // been set to be the activeThread
+      // of the processor, although the processor register 
+      // (restored by AIX after the
       // sigWait) still points to the native processor.
       //
 
-      VM_Magic.setProcessorRegister( blockedProcessor );
+      VM_ProcessorLocalState.setCurrentProcessor(blockedProcessor);
 
       // change the status of the processor this thread is now running
       // on to IN_JAVA (from IN_SIGWAIT)
@@ -255,19 +267,26 @@ class VM_NativeIdleThread extends VM_IdleThread {
   }  // end of run
 
   public void run_ForAttachJVM() { // similar to run() for Red/Blue threads
-    VM_Processor myNativeProcessor = VM_Magic.getProcessorRegister();
+    VM_Processor myNativeProcessor = VM_ProcessorLocalState.getCurrentProcessor();
 
     //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
+    //  references stored in registers by the opt compiler 
+    //  will not be relocated by GC
+    // (SJF: once again, what does this mean??  If you think there's a bug
+    // in the opt-compiler, please report it.)
+    //
     VM_Magic.pragmaNoOptCompile();
 
-    // save current frame pointer in threads JNIEnv, and set flag recognized by GC
+    // save current frame pointer in threads JNIEnv, and 
+    // set flag recognized by GC
     // which will cause this (NativeIdleThread) thread to have its stack scanned
     // starting at this frame
     //
-    // no more - now sysCallSigWait sets ip & fp in context regs to start scanStack 
+    // no more - now sysCallSigWait sets ip & fp 
+    // in context regs to start scanStack 
     // in this frame (if in sigwait at time of GC)
-    //VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
+    //VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = 
+    //VM_Magic.getFramePointer();
 
     while (true) {
       if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
@@ -286,9 +305,11 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
       inSysWait = false;
 
-      // if GC occurred while this thread was in sigwait, in which case the local variable
-      // myProcessor has been relocated by GC, so reset the PR reg using that variable
-      VM_Magic.setProcessorRegister(myNativeProcessor);
+      // if GC occurred while this thread was in sigwait, 
+      // in which case the local variable
+      // myProcessor has been relocated by GC, 
+      // so reset the PR reg using that variable
+      VM_ProcessorLocalState.setCurrentProcessor(myNativeProcessor);
 
       // Change the status of this native processor back to Java now that the thread is woken up
       VM_Processor.vpStatus[myNativeProcessor.vpStatusIndex] = VM_Processor.IN_JAVA;

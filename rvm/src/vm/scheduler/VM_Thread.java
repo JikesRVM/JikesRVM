@@ -569,8 +569,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */
   static void becomeRVMThread () {
 
-    VM_Magic.getProcessorRegister().activeThread.returnAffinity.
-      transferMutex.lock();
+    VM_Processor currentProcessor = VM_ProcessorLocalState.getCurrentProcessor();
+    currentProcessor.activeThread.returnAffinity.transferMutex.lock();
+
     // morph to RVM processor
     yield( VM_Thread.getCurrentThread().returnAffinity.transferQueue,  
            VM_Thread.getCurrentThread().returnAffinity.transferMutex); 

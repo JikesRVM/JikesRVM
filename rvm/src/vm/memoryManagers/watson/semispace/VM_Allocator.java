@@ -1959,8 +1959,10 @@ public class VM_Allocator
       VM_Magic.setObjectAtOffset(VM_Scheduler.processors, st.id*4, st);
     }
   
-    // each gc thread updates its PROCESSOR_REGISTER after copying its VM_Processor object
-    VM_Magic.setProcessorRegister(st);
+    // each gc thread updates its PROCESSOR_REGISTER after copying its 
+    // VM_Processor object
+    VM_ProcessorLocalState.setCurrentProcessor(st);
+    // VM_Magic.setProcessorRegister(st);
 
     if (PROCESSOR_LOCAL_ALLOCATE) {
       // reset local heap pointers - to force exception upon attempt to allocate

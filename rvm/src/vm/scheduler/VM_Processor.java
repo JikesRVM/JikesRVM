@@ -47,11 +47,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    */ 
   VM_Processor (int id,  int processorType ) {
 
-//-#if RVM_FOR_IA32
+    //-#if RVM_FOR_IA32
     // presave JTOC register contents 
     // (so lintel compiler can us JTOC for scratch)
     if (VM.runningVM) jtoc = VM_Magic.getJTOC();
-//-#endif
+    //-#endif
 
     this.id = id;
     this.transferMutex     = new VM_ProcessorLock();
@@ -63,14 +63,14 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     this.isInSelect        = false;
     this.processorMode     = processorType;
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS (alternate implementation of jni)
-//-#else                                    (default implementation of jni)
+    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS (alternate implementation of jni)
+    //-#else                                    (default implementation of jni)
     lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
     this.vpStatusIndex = lastVPStatusIndex;
     this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus) + (this.vpStatusIndex << 2);
     if (VM.VerifyAssertions) VM.assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
-//-#endif
+    //-#endif
 
     if (VM.BuildForDeterministicThreadSwitching) { // where we set THREAD_SWITCH_BIT every N method calls
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
@@ -115,9 +115,9 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   /**
    * Get processor that's being used to run the current java thread.
    */
-  static VM_Processor getCurrentProcessor () {
+  static VM_Processor getCurrentProcessor() {
     VM_Magic.pragmaInline();
-    return VM_Magic.getProcessorRegister();
+    return VM_ProcessorLocalState.getCurrentProcessor();
   }
   
   /**
@@ -125,7 +125,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    */ 
   static int getCurrentProcessorId () {
     VM_Magic.pragmaInline();
-    return VM_Magic.getProcessorRegister().id;
+    return getCurrentProcessor().id;
   }
 
   /**
@@ -153,14 +153,17 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     activeThread   = newThread;
     activeThreadStackLimit = newThread.stackLimit;
 
-//-#if RVM_FOR_IA32
+    //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
     // save this threads next instruction address to be the return address of the call to dispatch()
     // TODO!! eliminate this ugliness by unifying VM_Magic.saveThreadState() and VM_Magic.restoreThreadExecution
     previousThread.contextRegisters.ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
-//-#endif
-    
-    if (idleProcessor != null && !readyQueue.isEmpty() && getCurrentProcessor().processorMode != NATIVEDAEMON) { // if we've got too much work, transfer some of it to another processor that has nothing to do
+    //-#endif
+
+    if (idleProcessor != null && !readyQueue.isEmpty() 
+        && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
+      // if we've got too much work, transfer some of it to another 
+      // processor that has nothing to do
       VM_Thread t = readyQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "dispatch: offload ", t.getIndex());
       scheduleThread(t);
@@ -177,7 +180,9 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
       newThread.cpuStartTime = now;  // this thread has started running
     }
     
-    VM_Magic.resumeThreadExecution(previousThread, newThread.contextRegisters); // (sets "previousThread.beingDispatched = false")
+    // (sets "previousThread.beingDispatched = false")
+    VM_Magic.resumeThreadExecution(previousThread, newThread.contextRegisters); 
+
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
 
@@ -454,27 +459,27 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 	if(VM_Magic.attempt(VM_BootRecord.the_boot_record, 
 			    VM_Entrypoints.lockoutProcessorOffset,
 			    VM_Magic.objectAsAddress
-                            (VM_Magic.getProcessorRegister()),
+                            (VM_ProcessorLocalState.getCurrentProcessor()),
 			    0, lockoutId))
-	  break;
+          break;
       }else VM_Thread.yield();
     }
 
 
     newProcessor.activeThread = target;
     newProcessor.activeThreadStackLimit = target.stackLimit;
-//-#if RVM_FOR_POWERPC
+    //-#if RVM_FOR_POWERPC
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				 VM_Magic.objectAsAddress(newProcessor),
-				 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
-				 target.contextRegisters.gprs[VM.FRAME_POINTER]);
-//-#endif
-//-#if RVM_FOR_IA32
+                                 VM_Magic.objectAsAddress(newProcessor),
+                                 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
+                                 target.contextRegisters.gprs[VM.FRAME_POINTER]);
+    //-#endif
+    //-#if RVM_FOR_IA32
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				 VM_Magic.objectAsAddress(newProcessor),
-				 0, 
-				 target.contextRegisters.gprs[VM.FRAME_POINTER]);
-//-#endif
+                                 VM_Magic.objectAsAddress(newProcessor),
+                                 0, 
+                                 target.contextRegisters.gprs[VM.FRAME_POINTER]);
+    //-#endif
     while (!newProcessor.isInitialized)
       VM.sysVirtualProcessorYield();
     ///    VM.enableGC();

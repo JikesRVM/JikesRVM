@@ -10,7 +10,7 @@
  *
  * @author Stephen Fink
  */
-final class VM_ProcessorLocalState {
+final class VM_ProcessorLocalState implements VM_Uninterruptible {
   
   static byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
