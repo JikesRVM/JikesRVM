@@ -47,7 +47,7 @@ platform.  (Please remove this paragraph if you do so.)
 
 **Jikes RVM installable as a production runtime environment
 You can install Jikes RVM on your system as a production runtime
-environment for Java.  Once you've build Jikes RVM, cd to
+environment for Java.  Once you've built Jikes RVM, cd to
 src/tools/install and read the file README to find out how to
 install a Jikes RVM executable as /usr/bin/rvm (or in some other
 location of your choice). 
@@ -65,9 +65,18 @@ refactoring of reference processing (java.lang.ref.*).
 *Other notes:
 
 **Compiler DNA updated -- x86 adaptive system now uses Opt level O2 sometimes.
-The x86 Opt compiler has had some minor improvements.  The result is
-that the Adaptive system will now sometimes compile at Opt level O2.
+The compiler DNA (precompute cost & benefit of using various
+compiler/optimization levels has been updated.  Due to improvements
+over the past 10 months, the optimizing compiler's level 2 is now
+better than level 1, on average, on both platforms.  (Previously,
+this was not the case on IA32.)  The result is that the adaptive
+system may now choose to use Opt level 2 on some methods because
+its model can now determine that is will sometimes be beneficial to do so.
 
 *Bug Fixes:
-** Calls to the JNI function pair GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical can now be nested . 
-** The 
+** Calls to the JNI function pair 
+GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical can now be nested. 
+** Fixed a bug in the GC map iterator code (both platforms) that was returning 
+references multiple times in dynamic linking frames.
+** Fixed a bug in the GC map iterator code on PPC that was failing to return 
+spilled parameters in dynamic linking frames.
