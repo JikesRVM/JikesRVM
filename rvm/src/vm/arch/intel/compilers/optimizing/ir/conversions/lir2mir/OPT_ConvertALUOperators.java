@@ -104,8 +104,13 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case BOOLEAN_NOT_opcode: unary(s, BOOLEAN_NOT_ACC, ir); break;
       case INT_NOT_opcode: unary(s, INT_NOT_ACC, ir); break;
       case LONG_NOT_opcode: unary(s, LONG_NOT_ACC, ir); break;
-      case FLOAT_COND_MOVE_opcode: s.operator = FP_COND_MOVE; break;
-      case DOUBLE_COND_MOVE_opcode: s.operator = FP_COND_MOVE; break;
+
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case INT_COND_MOVE_opcode: s.operator = CMOV; break;
+      case FLOAT_COND_MOVE_opcode: s.operator = CMOV; break;
+      case DOUBLE_COND_MOVE_opcode: s.operator = CMOV; break;
+      case LONG_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
+      case GUARD_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
       default:
 	break; // nothing to do
       }

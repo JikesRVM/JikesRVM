@@ -1450,26 +1450,30 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to copy position info from
-   * @param movop the operator to use for moves
-   * @param cmovop the operator to use for conditional moves
    * @param result the result of the conditional move
    * @param cond the condition operand
    * @param trueVal the value to move to result if cond is true
    * @param falseVal the value to move to result if cond is not true
    */
   final void CMOV_MOV(OPT_BURS burs, OPT_Instruction s,
-		      OPT_Operator movop,
-		      OPT_Operator cmovop,
 		      OPT_RegisterOperand result,
 		      OPT_ConditionOperand cond,
 		      OPT_Operand trueValue,
 		      OPT_Operand falseValue) {
+    OPT_Operator movop, cmovop;
+    if (result.type.isDoubleType() || result.type.isFloatType()) {
+      movop = IA32_FMOV;
+      cmovop = IA32_FCMOV;
+    } else {
+      movop = IA32_MOV;
+      cmovop = IA32_CMOV;
+    }
+
     if (result.similar(trueValue)) {
       // in this case, only need a conditional move for the false branch.
       burs.append(MIR_CondMove.mutate(s, cmovop, result,
 				      asReg(burs, s, movop, falseValue),
 				      COND(cond.flipCode())));
-
     } else if (result.similar(falseValue)) {
       // in this case, only need a conditional move for the true branch.
       burs.append(MIR_CondMove.mutate(s, cmovop, result, 
@@ -1477,12 +1481,18 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 				      COND(cond)));
     } else {
       // need to handle both possible assignments. Unconditionally
-      // assign trueValue, then conditionally assign falseValue.
-      burs.append(CPOS(s,MIR_Move.create(movop, result,
-					 asReg(burs, s, movop, trueValue))));
-      burs.append(MIR_CondMove.mutate(s, cmovop, result.copy(), 
-				      asReg(burs, s, movop, falseValue),
-				      COND(cond.flipCode())));
+      // assign one value then conditionally assign the other.
+      if (falseValue.isRegister()) {
+	burs.append(CPOS(s,MIR_Move.create(movop, result, trueValue)));
+	burs.append(MIR_CondMove.mutate(s, cmovop, result.copy(), 
+					falseValue,
+					COND(cond.flipCode())));
+      } else {
+	burs.append(CPOS(s,MIR_Move.create(movop, result, falseValue)));
+	burs.append(MIR_CondMove.mutate(s, cmovop, result.copy(), 
+					asReg(burs, s, movop, trueValue),
+					COND(cond)));
+      }
     }
   }
 

@@ -314,9 +314,9 @@ none
 
 
 
-# Move a float/double value from one (register/constant) operand 
-# to a register operand.  Value is unchanged.
-FP_COND_MOVE
+# Move a value from one of two (register/constant) operands 
+# to a register operand.  Values are unchanged.
+CMOV
 CondMove
 compare
 
