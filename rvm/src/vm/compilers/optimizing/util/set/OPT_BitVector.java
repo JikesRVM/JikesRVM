@@ -169,7 +169,7 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
   
   /**
    * Check if the intersection of the two sets is empty
-   * @param set the set to check intersection with
+   * @param other the set to check intersection with
    */
   public boolean intersectionEmpty(OPT_BitVector other) {
     int n = bits.length;
