@@ -2720,7 +2720,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
 	  -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
 
-	\${BOOTER_CXX} -Wno-unreachable-code \
+	\${BOOTER_CXX} \
 	  -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
 	   -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
 
