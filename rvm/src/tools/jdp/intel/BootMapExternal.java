@@ -686,7 +686,7 @@ class BootMapExternal extends BootMap {
    */
   public int getCompiledMethodID(int fp, int address) {
     
-    if (!isInJVMspace(address)) {
+    if (!isInRVMspace(address)) {
       return NATIVE_METHOD_ID;
     }
 
@@ -789,6 +789,8 @@ class BootMapExternal extends BootMap {
 	}
       }
 
+      System.out.println("Done filling address table"); 
+
       // now get the address range of the boot image
       field = findVMField("VM_BootRecord", "the_boot_record");
       int bootRecordAddress = owner.mem.readTOC(field.getOffset());
@@ -799,10 +801,10 @@ class BootMapExternal extends BootMap {
       field = findVMField("VM_BootRecord", "endAddress");
       vmEndAddress = bootRecordAddress + field.getOffset();
 
-      //  System.out.println("Method table: " + methodArraySize + " entries, boot address " +
-      // 		    Integer.toHexString(bootStart) + " : " + 
-      // 		    Integer.toHexString(bootEnd) + " : @" +
-      // 		    Integer.toHexString(vmEndAddress));
+        System.out.println("Method table: " + methodArraySize + " entries, boot address " +
+       		    Integer.toHexString(bootStart) + " : " + 
+       		    Integer.toHexString(bootEnd) + " : @" +
+       		    Integer.toHexString(vmEndAddress));
 
 
 
@@ -882,7 +884,7 @@ class BootMapExternal extends BootMap {
     int methodArrayAddress = owner.mem.readTOC(compiledMethodTable_offset);
     int numMethods;
 
-    if (!isInJVMspace(address)) {
+    if (!isInRVMspace(address)) {
       return NATIVE_METHOD_ID;
     }
 
