@@ -23,6 +23,12 @@ command=$1
 if [ "x$command" = xkill ] ; then
     shift
 
+    if [ $# -eq 0 ]; then
+	echo >&2 "$basename kill: Need one or more PID arguments to do anything"
+	exit 0
+    fi
+
+    kill -STOP $*
     # for all argument pids
     while [ $# -gt 0 ] ; do
 	pid=$1
@@ -32,7 +38,7 @@ if [ "x$command" = xkill ] ; then
         # Think about a portable way to stop $pid from spawning new processes
         # (note: done in the Bash version) --Steve Augart
         # find kids and call script recursiveley
-	if [[ `uname` = Darwin ]]; then
+	if [ `uname` = Darwin ]; then
             children="$(ps -wwajx | awk '$3~/'$pid'/{print $2}')"
 	else
             children="$(ps -ef | awk '$3~/'$pid'/{print $2}')"
@@ -50,7 +56,7 @@ else
 
     #echo "$basename $interval $@"
 
-    eval "$@" &
+    "$@" &
     worker=$!
     trap "$mypath kill $worker" INT
 
