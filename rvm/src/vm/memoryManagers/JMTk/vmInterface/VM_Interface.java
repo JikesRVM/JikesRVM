@@ -13,6 +13,9 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Statistics;
 import com.ibm.JikesRVM.memoryManagers.JMTk.WorkQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
+import com.ibm.JikesRVM.memoryManagers.JMTk.AddressQueue;
+import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairQueue;
+import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Time;
@@ -129,6 +132,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     Plan.boot();
     Statistics.boot();
     synchronizedCounterOffset = VM_Entrypoints.synchronizedCounterField.getOffset();
+    Monitor.boot();
   }
 
   /**
@@ -412,6 +416,48 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return Plan.isLive(obj);
   }
 
+  public static void showPlans() {
+    for (int i=0; i<VM_Scheduler.processors.length; i++) {
+      VM_Processor p = VM_Scheduler.processors[i];
+      if (p == null) continue;
+      VM.sysWrite(i, ": ");
+      getPlanFromProcessor(p).show();
+    }
+  }
+  static SynchronizedCounter threadCounter = new SynchronizedCounter();
+  public static void resetComputeAllRoots() {
+    threadCounter.reset();
+  }
+  public static void computeAllRoots(AddressQueue rootLocations,
+				     AddressPairQueue interiorRootLocations) {
+    AddressPairQueue codeLocations = MOVES_OBJECTS ? interiorRootLocations : null;
+
+    ScanStatics.scanStatics(rootLocations);
+    while (true) {
+      int threadIndex = threadCounter.increment();
+      if (threadIndex >= VM_Scheduler.threads.length) break;
+      VM_Thread th = VM_Scheduler.threads[threadIndex];
+      if (th == null) continue;
+      // See comment of ScanThread.scanThread
+      //
+      VM_Address thAddr = VM_Magic.objectAsAddress(th);
+      VM_Thread th2 = VM_Magic.addressAsThread(Plan.traceObject(thAddr, true));
+      if (VM_Magic.objectAsAddress(th2).EQ(thAddr))
+	ScanObject.rootScan(thAddr);
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.stack));
+      if (th.jniEnv != null) {
+	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv));
+	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv.JNIRefs));
+      }
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters));
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters.gprs));
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters));
+      ScanObject.rootScan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters.gprs));
+      ScanThread.scanThread(th2, rootLocations, codeLocations);
+    }
+    ScanObject.rootScan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
+  }
+
   // The collector threads of processors currently running threads off in JNI-land cannot run.
   //
   public static void prepareNonParticipating() {
@@ -499,7 +545,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
 
-
+  public static double now() {
+    return VM_Time.now();
+  }
 
 
   /**

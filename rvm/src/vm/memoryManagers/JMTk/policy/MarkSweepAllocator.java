@@ -32,12 +32,32 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class MarkSweepAllocator extends BaseFreeList implements Constants, VM_Uninterruptible {
+final class MarkSweepAllocator extends BaseFreeList 
+  implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////
   //
-  // Public methods
+  // Class variables
+  //
+  private static int cellSize[];
+  private static int sizeClassPages[];
+
+  private static final boolean PARANOID = false;
+  public static final int MAX_SMALL_SIZE = 512;  // statically verified below..
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Instance variables
+  //
+  private MarkSweepCollector collector;
+  private Lock treadmillLock;
+  public VM_Address treadmillFromHead;
+  public VM_Address treadmillToHead;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Initialization
   //
 
   /**
@@ -52,6 +72,87 @@ final class MarkSweepAllocator extends BaseFreeList implements Constants, VM_Uni
     collector = collector_;
     treadmillLock = new Lock("MarkSweepAllocator.treadmillLock");
   }
+
+  /**
+   * The following statically initializes the cellSize and
+   * sizeClassPages arrays.
+   */
+  static {
+    cellSize = new int[SIZE_CLASSES];
+    sizeClassPages = new int[SIZE_CLASSES];
+    for(int sc = 1; sc < SIZE_CLASSES; sc++) {
+      int size = getBaseCellSize(sc);
+      if (isSmall(sc)) {
+	cellSize[sc] = size;
+	sizeClassPages[sc] = 1;
+      } else {
+	cellSize[sc] = size + NON_SMALL_OBJ_HEADER_SIZE;
+	sizeClassPages[sc] = optimalPagesForSuperPage(sc, cellSize[sc],
+						      BASE_SP_HEADER_SIZE);
+	int cells = (sizeClassPages[sc]/cellSize[sc]);
+	if (VM.VerifyAssertions) VM._assert(cells <= MarkSweepCollector.MAX_MID_OBJECTS);
+      }
+      if (sc == MAX_SMALL_SIZE_CLASS)
+	if (VM.VerifyAssertions) VM._assert(size == MAX_SMALL_SIZE);
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Allocation
+  //
+
+  /**
+   * Initialize a new cell and return the address of the first useable
+   * word.  This is called only when the cell is first created, not
+   * each time it is reused via a call to alloc.<p>
+   *
+   * In this system, small cells require no header, but all other
+   * cells require a single word that points to the first word of the
+   * superpage.
+   *
+   * @param cell The address of the first word of the allocated cell.
+   * @param sp The address of the first word of the superpage
+   * containing the cell.
+   * @param small True if the cell is a small cell (single page
+   * superpage).
+   * @return The address of the first useable word.
+   */
+  protected final VM_Address initializeCell(VM_Address cell, VM_Address sp,
+					    boolean small, boolean large)
+    throws VM_PragmaInline {
+    if (!small) {
+      VM_Magic.setMemoryAddress(cell, sp);
+      return cell.add(NON_SMALL_OBJ_HEADER_SIZE);
+    } else 
+      return cell;
+  }
+
+  /**
+   *  This is called each time a cell is alloced (i.e. if a cell is
+   *  reused, this will be called each time it is reused in the
+   *  lifetime of the cell, by contrast to initializeCell, which is
+   *  called exactly once.).
+   *
+   * @param cell The newly allocated cell
+   * @param isScalar True if the cell will be occupied by a scalar
+   * @param bytes The size of the cell in bytes
+   * @param small True if the cell is for a small object
+   * @param large True if the cell is for a large object
+   * @param copy True if this allocation is for a copy rather than a
+   * fresh allocation.
+   */
+  protected final void postAlloc(VM_Address cell, boolean isScalar,
+				 EXTENT bytes, boolean small, boolean large,
+				 boolean copy) 
+    throws VM_PragmaInline {
+    collector.postAlloc(cell, isScalar, bytes, small, large, copy, this);
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Collection
+  //
 
   /**
    * Prepare for a collection.  Clear the treadmill to-space head and
@@ -94,6 +195,45 @@ final class MarkSweepAllocator extends BaseFreeList implements Constants, VM_Uni
     treadmillFromHead = treadmillToHead;
     treadmillToHead = VM_Address.zero();
   }
+
+  /**
+   * Sweep all of the non-large superpages for free objects.  Performa
+   * a sanity check if paranoid.
+   */
+  public final void sweepSuperPages() {
+    for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
+      sweepSuperPages(VM_Address.fromInt(superPageFreeList[sizeClass]), sizeClass, true);
+      sweepSuperPages(VM_Address.fromInt(superPageUsedList[sizeClass]), sizeClass, false);
+    }
+    if (PARANOID)
+      sanity();
+  }
+
+  /**
+   * Sweep a superpage list
+   *
+   * @param sp The head of the list
+   * @param sizeClass The size class for all superpages in this list
+   * @param free True if these superpages are on the free superpage
+   * list, otherwise they are on the used superpage list.
+   */
+  private final void sweepSuperPages(VM_Address sp, int sizeClass,
+				     boolean free)
+    throws VM_PragmaInline {
+    if (!sp.EQ(VM_Address.zero())) {
+      int cellSize = cellSize(sizeClass);
+      while (!sp.EQ(VM_Address.zero())) {
+	VM_Address next = getNextSuperPage(sp);
+	collector.sweepSuperPage(this, sp, sizeClass, cellSize, free);
+	sp = next;
+      }
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Treadmill
+  //
 
   /**
    * Set the head of the from-space threadmill
@@ -151,6 +291,11 @@ final class MarkSweepAllocator extends BaseFreeList implements Constants, VM_Uni
     treadmillLock.release();
   }
 
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Miscellaneous size-related methods
+  //
+
   /**
    * Return the size of a cell for a given class size, *including* any
    * per-cell header space.
@@ -171,71 +316,6 @@ final class MarkSweepAllocator extends BaseFreeList implements Constants, VM_Uni
   protected final int cellSize(int sizeClass) 
     throws VM_PragmaInline {
     return getCellSize(sizeClass);
-  }
-
-  /**
-   * Sweep all of the non-large superpages for free objects.  Performa
-   * a sanity check if paranoid.
-   */
-  public final void sweepSuperPages() {
-    for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      sweepSuperPages(VM_Address.fromInt(superPageFreeList[sizeClass]), sizeClass, true);
-      sweepSuperPages(VM_Address.fromInt(superPageUsedList[sizeClass]), sizeClass, false);
-    }
-    if (PARANOID)
-      sanity();
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Protected and private methods
-  //
-
-  /**
-   * Sweep a superpage list
-   *
-   * @param sp The head of the list
-   * @param sizeClass The size class for all superpages in this list
-   * @param free True if these superpages are on the free superpage
-   * list, otherwise they are on the used superpage list.
-   */
-  private final void sweepSuperPages(VM_Address sp, int sizeClass,
-				     boolean free)
-    throws VM_PragmaInline {
-    if (!sp.EQ(VM_Address.zero())) {
-      int cellSize = cellSize(sizeClass);
-      while (!sp.EQ(VM_Address.zero())) {
-	VM_Address next = getNextSuperPage(sp);
-	collector.sweepSuperPage(this, sp, sizeClass, cellSize, free);
-	sp = next;
-      }
-    }
-  }
-  
-  /**
-   * Do sanity check of all superpages
-   */
-  private final void sanity() {
-    for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      sanity(VM_Address.fromInt(superPageFreeList[sizeClass]), sizeClass);
-      sanity(VM_Address.fromInt(superPageUsedList[sizeClass]), sizeClass);
-    }
-  }
-
-  /**
-   * Peform a sanity check of all superpages in a given superpage list
-   *
-   * @param sp The head superpage of the list
-   * @param sizeClass The sizeclass for this superpage list
-   */
-  private final void sanity(VM_Address sp, int sizeClass) {
-    if (!sp.EQ(VM_Address.zero())) {
-      int cellSize = cellSize(sizeClass);
-      while (!sp.EQ(VM_Address.zero())) {
-	superPageSanity(sp, sizeClass);
-	sp = getNextSuperPage(sp);
-      }
-    }
   }
 
   /**
@@ -299,52 +379,37 @@ final class MarkSweepAllocator extends BaseFreeList implements Constants, VM_Uni
     return small ? 0 : NON_SMALL_OBJ_HEADER_SIZE;
   }
 
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Sanity checks and debugging
+  //
+  
   /**
-   * Initialize a new cell and return the address of the first useable
-   * word.  This is called only when the cell is first created, not
-   * each time it is reused via a call to alloc.<p>
-   *
-   * In this system, small cells require no header, but all other
-   * cells require a single word that points to the first word of the
-   * superpage.
-   *
-   * @param cell The address of the first word of the allocated cell.
-   * @param sp The address of the first word of the superpage
-   * containing the cell.
-   * @param small True if the cell is a small cell (single page
-   * superpage).
-   * @return The address of the first useable word.
+   * Do sanity check of all superpages
    */
-  protected final VM_Address initializeCell(VM_Address cell, VM_Address sp,
-					    boolean small, boolean large)
-    throws VM_PragmaInline {
-    if (!small) {
-      VM_Magic.setMemoryAddress(cell, sp);
-      return cell.add(NON_SMALL_OBJ_HEADER_SIZE);
-    } else 
-      return cell;
+  private final void sanity() {
+    for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
+      sanity(VM_Address.fromInt(superPageFreeList[sizeClass]), sizeClass);
+      sanity(VM_Address.fromInt(superPageUsedList[sizeClass]), sizeClass);
+    }
   }
 
   /**
-   *  This is called each time a cell is alloced (i.e. if a cell is
-   *  reused, this will be called each time it is reused in the
-   *  lifetime of the cell, by contrast to initializeCell, which is
-   *  called exactly once.).
+   * Peform a sanity check of all superpages in a given superpage list
    *
-   * @param cell The newly allocated cell
-   * @param isScalar True if the cell will be occupied by a scalar
-   * @param bytes The size of the cell in bytes
-   * @param small True if the cell is for a small object
-   * @param large True if the cell is for a large object
-   * @param copy True if this allocation is for a copy rather than a
-   * fresh allocation.
+   * @param sp The head superpage of the list
+   * @param sizeClass The sizeclass for this superpage list
    */
-  protected final void postAlloc(VM_Address cell, boolean isScalar,
-				 EXTENT bytes, boolean small, boolean large,
-				 boolean copy) 
-    throws VM_PragmaInline {
-    collector.postAlloc(cell, isScalar, bytes, small, large, copy, this);
-  };
+  private final void sanity(VM_Address sp, int sizeClass) {
+    if (!sp.EQ(VM_Address.zero())) {
+      int cellSize = cellSize(sizeClass);
+      while (!sp.EQ(VM_Address.zero())) {
+	superPageSanity(sp, sizeClass);
+	sp = getNextSuperPage(sp);
+      }
+    }
+  }
 
   /**
    * Check the sanity of a superpage.  Ensure that all metadata is
@@ -378,41 +443,6 @@ final class MarkSweepAllocator extends BaseFreeList implements Constants, VM_Uni
       }
 //       VM.sysWrite(sp); VM.sysWrite(" "); VM.sysWrite(sizeClass); VM.sysWrite("\n--------------\n\n");
       if (VM.VerifyAssertions) VM._assert(inUse == getInUse(sp));
-    }
-  }
-    
-  private MarkSweepCollector collector;
-  private Lock treadmillLock;
-  public VM_Address treadmillFromHead;
-  public VM_Address treadmillToHead;
-  private static int cellSize[];
-  private static int sizeClassPages[];
-
-  private static final boolean PARANOID = false;
-
-  public static final int MAX_SMALL_SIZE = 512;  // statically verified below..
-
-  /**
-   * The following statically initializes the cellSize and
-   * sizeClassPages arrays.
-   */
-  static {
-    cellSize = new int[SIZE_CLASSES];
-    sizeClassPages = new int[SIZE_CLASSES];
-    for(int sc = 1; sc < SIZE_CLASSES; sc++) {
-      int size = getBaseCellSize(sc);
-      if (isSmall(sc)) {
-	cellSize[sc] = size;
-	sizeClassPages[sc] = 1;
-      } else {
-	cellSize[sc] = size + NON_SMALL_OBJ_HEADER_SIZE;
-	sizeClassPages[sc] = optimalPagesForSuperPage(sc, cellSize[sc],
-						      BASE_SP_HEADER_SIZE);
-	int cells = (sizeClassPages[sc]/cellSize[sc]);
-	if (VM.VerifyAssertions) VM._assert(cells <= MarkSweepCollector.MAX_MID_OBJECTS);
-      }
-      if (sc == MAX_SMALL_SIZE_CLASS)
-	if (VM.VerifyAssertions) VM._assert(size == MAX_SMALL_SIZE);
     }
   }
 
