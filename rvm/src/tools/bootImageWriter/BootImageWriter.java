@@ -1369,7 +1369,7 @@ public class BootImageWriter extends BootImageWriterMessages
 	  if (verbose >= 2) depth--;
 	  VM_AddressArray addrArray = (VM_AddressArray) jdkObject;
 	  Object backing = addrArray.getBacking();
-	  return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
 	}
 
 	if (rvmType == VM_Type.OffsetArrayType) {
@@ -2117,6 +2117,14 @@ public class BootImageWriter extends BootImageWriterMessages
       Object jdkObject = BootImageMap.getObject(ival);
       if (jdkObject instanceof VM_CodeArray) {
 	jdkObject = ((VM_CodeArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof VM_AddressArray) {
+	jdkObject = ((VM_AddressArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof VM_ExtentArray) {
+	jdkObject = ((VM_ExtentArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof VM_OffsetArray) {
+	jdkObject = ((VM_OffsetArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof VM_WordArray) {
+	jdkObject = ((VM_WordArray)jdkObject).getBacking();
       }
       addr = BootImageMap.getImageAddress(bootImageAddress, jdkObject);
     }
