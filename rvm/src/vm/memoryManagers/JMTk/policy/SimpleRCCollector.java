@@ -82,11 +82,8 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
-   *
-   * @param vm (unused)
-   * @param mr (unused)
    */
-  public void prepare(VMResource vm, MemoryResource mr) { 
+  public void prepare() { 
     bootMark = !bootMark;
     phase = PROCESS;
   }
@@ -94,11 +91,8 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
-   *
-   * @param vm (unused)
-   * @param mr (unused)
    */
-  public void release(SimpleRCAllocator allocator) { 
+  public void release() { 
   }
 
 

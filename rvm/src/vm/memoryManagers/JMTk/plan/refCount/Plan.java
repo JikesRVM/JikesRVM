@@ -193,7 +193,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    */
   public final VM_Address alloc (EXTENT bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
-    throws VM_PragmaNoInline {
+    throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address result;
     switch (allocator) {
@@ -240,7 +240,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
 				    boolean isScalar) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(false);
-    return null;
+    // return VM_Address.zero();  this trips some Intel assembler bug
+    return VM_Address.max();
   }
 
   /**  
@@ -376,7 +377,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    */
   protected final void globalPrepare() {
     Immortal.prepare(immortalVM, null);
-    rcSpace.prepare(rcVM, rcMR);
+    rcSpace.prepare();
   }
 
   /**
@@ -456,7 +457,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    */
   protected final void globalRelease() {
     // release each of the collected regions
-    rcSpace.release(rc);
+    rcSpace.release();
     Immortal.release(immortalVM, null);
     if (verbose == 1) {
       VM.sysWrite("->");
