@@ -18,7 +18,7 @@
 import java.util.Stack;
 import java.lang.Exception;
 
-public class VM_Verifier  implements VM_BytecodeConstants , VM_JBCOpcodeName {
+public class VM_Verifier  implements VM_BytecodeConstants {
 
   //type of local variable and stack cell
   static final private int V_NULL = 0; 
