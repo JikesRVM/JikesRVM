@@ -165,7 +165,7 @@ for arg in $*; do
       JDP_ARGS="$arg $JDP_ARGS"
    elif [[ $arg = -jdpbootonly* ]]; then
       INTERPRETERMODE="bootonly"
-      JDP_ARGS="$arg $JDP_ARGS"
+      JDP_ARGS="$arg -jdpviewboot $JDP_ARGS"
    elif [[ $arg = -jdpGUI* ]]; then
       JDP_ARGS="-jdpserver $JDP_ARGS"
    elif [[ $arg = -X:record* ]]; then
