@@ -11,6 +11,7 @@ JDK1.4
 # exclusions due to defects in Jikes RVM
 !java.net.Socket.setSocketImplFactory # avoid bashing our sockets
 !java.net.DatagramSocket     # hangs Jikes RVM
+!java.net.DatagramPacket     # hangs Jikes RVM
 !java.net.MulticastSocket    # hangs Jikes RVM
 !java.net.ServerSocket       # hangs Jikes RVM
 !java.net.URLClassLoader.getResourceRemote # hangs Jikes RVM
