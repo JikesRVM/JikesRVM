@@ -150,11 +150,6 @@ Should we dump out compile-time statistics for basic blocks?
 LOOP_DEPTH_EDGE_COUNTS -1 false
 Use loop depth to approximate edge counts
 
-# Instrumentation Options
-#
-INSERT_INSTRUMENTATION -1 false
-Should instrumentation of any kind be performed?
-
 ##########
 # Next, declare all the printing options
 # MUST start with PRINT_ or VCG_ prefix

@@ -153,10 +153,6 @@ class OPT_OptimizationPlanner {
       new OPT_BranchOptimizations(0,
 				  true),  // Restrict branch optimizations
 
-      // Initialize and/or insert edge counters.  These are in BC2HIR
-      // because they should always occur before any of the HIR
-      // optimizations.
-
       // Optional printing of initial HIR 
       // Do this after branch optmization, since without merging
       // FallThroughOuts, the IR is quite ugly. 

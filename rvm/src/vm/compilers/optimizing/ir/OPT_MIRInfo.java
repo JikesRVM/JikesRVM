@@ -65,7 +65,6 @@ final class OPT_MIRInfo {
     info = new VM_OptCompilerInfo(ir.method);
     info.setSaveVolatile(ir.method.getDeclaringClass().isSaveVolatile());
     info.setOptLevel(ir.options.getOptLevel());
-    info.setInstrumentedMethod(ir.options.INSERT_INSTRUMENTATION);
   }
 
 }
