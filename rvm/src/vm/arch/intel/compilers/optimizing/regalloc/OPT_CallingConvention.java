@@ -28,15 +28,6 @@ final class OPT_CallingConvention
     OPT_PhysicalRegisterConstants {
 
   /**
-   * Enable a dead-code elimination optimization during prologue
-   * expansion?
-   * TODO: enable this; this is currently broken: it appears that register
-   * lists don't work on MIR for some reason.  This breaks Sieve in
-   * symantec if enabled.
-   */
-  private static final boolean DEAD_CODE_ELIM = false; 
-
-  /**
    * Size of a word, in bytes
    */
   private static final int WORDSIZE = 4;
@@ -579,16 +570,15 @@ final class OPT_CallingConvention
    * Expand the prologue instruction.
    */
   private static void expandPrologue(OPT_IR ir) {
-    // set up register lists for dead code elimination.
-    if (DEAD_CODE_ELIM && ir.options.SIMPLE_OPT) {
+    if (ir.options.SIMPLE_OPT) {
+      // set up register lists for dead code elimination.
       OPT_DefUse.computeDU(ir);
     }
-
+    
     OPT_Instruction p = ir.firstInstructionInCodeOrder().
       nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM.assert(p.operator == IR_PROLOGUE);
     OPT_Instruction start = p.nextInstructionInCodeOrder();
-
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     int gprIndex = 0; 
@@ -607,8 +597,7 @@ final class OPT_CallingConvention
       VM_Type rType = symbOp.type;
       if (rType.isFloatType() || rType.isDoubleType()) {
         // if optimizing, only define the register if it has uses
-        if (!DEAD_CODE_ELIM || !ir.options.SIMPLE_OPT 
-            || symbOp.register.useList != null) {
+        if (!ir.options.SIMPLE_OPT || symbOp.register.useList != null) {
           if (fprIndex < phys.getNumberOfFPRParams()) {
             // insert a MOVE symbolic register = parameter
             // Note that if k FPRs are passed in registers, 
@@ -638,15 +627,21 @@ final class OPT_CallingConvention
         parameterWord += (rType.isFloatType()) ? 1 : 2;
       } else {
         // if optimizing, only define the register if it has uses
-        if (!DEAD_CODE_ELIM || !ir.options.SIMPLE_OPT || 
-            symbOp.register.useList != null) {
+        if (!ir.options.SIMPLE_OPT || symbOp.register.useList != null) {
           // t is object, 1/2 of a long, int, short, char, byte, or boolean
           if (gprIndex < phys.getNumberOfGPRParams()) {
-            // insert a MOVE symbolic register = parameter
+	    // to give the register allocator more freedom, we
+	    // insert two move instructions to get the physical into
+	    // the symbolic.  First a move from the physical to a fresh temp 
+	    // before start and second a move from the temp to the
+	    // 'real' parameter symbolic after start.
+	    OPT_RegisterOperand tmp = ir.gc.temps.makeTemp(rType);
             OPT_Register param = phys.getGPRParam(gprIndex);
 	    OPT_RegisterOperand pOp = new OPT_RegisterOperand(param, rType);
-            start.insertBefore(OPT_PhysicalRegisterTools.makeMoveInstruction
-                               (symbOp.copyRO(),pOp));
+            start.insertBefore(OPT_PhysicalRegisterTools.makeMoveInstruction(tmp,pOp));
+	    OPT_Instruction m2 = OPT_PhysicalRegisterTools.makeMoveInstruction(symbOp.copyRO(),tmp.copyD2U());
+	    start.insertBefore(m2);
+	    start = m2;
           } else {
             // spilled parameter: We can't insert the load instruction
             // directly, since we don't know the stackframe size yet.
@@ -660,7 +655,7 @@ final class OPT_CallingConvention
         parameterWord++;
       }
     }
-
+    
     // Now that we've made the calling convention explicit in the prologue,
     // set IR_PROLOGUE to have no defs.
     p.replace(Prologue.create(IR_PROLOGUE, 0));
