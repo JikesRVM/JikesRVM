@@ -11,14 +11,15 @@ BENCH_NAME=pseudojbb
 include		$(JAL_ROOT)/rvm/regression/Local.rules
 
 BENCH_JARS=jbb.jar jbb_no_precompile.jar check.jar reporter.jar
-BENCH_CLASS_PATH=$(foreach JAR, $(BENCH_JARS), $(BENCH_HOME)/$(JAR))
+#BENCH_CLASS_PATH=$(foreach JAR, $(BENCH_JARS), $(BENCH_HOME)/$(JAR))
+BENCH_CLASS_PATH=$(BENCH_HOME)/src
 
 vpath %.jar	$(BENCH_HOME)
 
 START_NAME=spec.jbb.JBBmain
 
-HEAPSIZE=400
-LHEAPSIZE=200
+INITIAL_HEAPSIZE=300
+HEAPSIZE=600
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
@@ -37,14 +38,10 @@ endif
 
 ifeq ($(MODE),PERFORMANCE)
 check:
-	@$(FGREP) -q "JVM Check OK" < $(OUT)
-	@$(FGREP) -q "Run will be COMPLIANT" < $(OUT)
-	@$(FGREP) -q "No errors.  Valid run." < $(OUT)
-	@$(FGREP) -q "Valid run, Score is" < $(OUT)
+	@$(FGREP) -q "Finished time(secs):" < $(OUT)
 else
 check:
-	@$(FGREP) -q "JVM Check OK" < $(OUT)
-	@egrep -q "(Valid run, Score is)|(INVALID run; Score is  Invalid, but estimate is)" < $(OUT)
+	@$(FGREP) -q "Finished time(secs):" < $(OUT)
 endif
 
 #
