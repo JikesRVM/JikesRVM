@@ -24,27 +24,10 @@ import java.util.*;
  *
  */
 
-class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, VM_StackframeLayoutConstants {
+class VM_EdgeListener extends VM_ContextListener 
+  implements VM_Uninterruptible, VM_StackframeLayoutConstants {
 
   protected static final boolean DEBUG = false;
-
-  /**
-   *  Number of samples taken so far
-   */
-  protected int samplesTaken = 0;
-
-  /**
-   * Number of times update is called
-   */
-  protected int calledUpdate = 0;
-
-  /**
-   * returns the number of times that update is called
-   * @returns the number of times that update is called
-   */
-  int getTimesUpdateCalled() { 
-    return calledUpdate; 
-  }
 
   /**
    * buffer provides the communication channel between the listener and the
@@ -58,39 +41,74 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
   private int[] buffer;
 
   /**
-   * the number of triples contained in buffer.
+   * the index in the buffer of the next free triple
    */
-  private int bufferSize;
+  private int nextIndex;
+
+  /*
+   * Offset of nextIndex field, needed for fetchAndAdd synchronization
+   */
+  static final int nextIndexOffset = 
+    VM.getMember("LVM_EdgeListener;", "nextIndex", "I").getOffset();
+  
+  /**
+   * Number of samples to be taken before issuing callback to controller 
+   */
+  private int desiredSamples;
 
   /**
-   * the index into the buffer
+   *  Number of samples taken so far
    */
-  private int bufferIndex;
+  protected int samplesTaken = 0;
 
-  // Number of samples to be taken before issuing callback to controller 
-  private int  numberOfBufferTriples;
-   /**
-    * Setup buffer and buffer size.  
-    * This method must be called before any data can be written to
-    * the buffer.
-    */
-  public void setBuffer (int[] buffer, int bufferSize) {
-     if (DEBUG) VM.sysWrite("VM_EdgeListener.setBuffer("+bufferSize+"): enter\n");     
-     this.buffer           = buffer;
-     this.bufferSize       = bufferSize;
-     numberOfBufferTriples = bufferSize/3;
-     resetBuffer();
-  }
+  /*
+   * Offset of numSamples field, needed for fetchAndAdd synchronization
+   */
+  static final int samplesTakenOffset = 
+    VM.getMember("LVM_EdgeListener;", "samplesTaken", "I").getOffset();
+  
+  /**
+   * Number of times update is called
+   */
+  protected int calledUpdate = 0;
 
   /**
    * Constructor
-   * @param _buffer	buffer with which listener communicates with organizer.
-   * @param _bufferSize length of buffer in words.
    */
    public VM_EdgeListener() {
-      buffer                = null;
-      bufferSize            = 0;
-      numberOfBufferTriples = 0;
+      buffer         = null;
+      desiredSamples = 0;
+  }
+
+  /**
+   * returns the number of times that update is called
+   * @returns the number of times that update is called
+   */
+  int getTimesUpdateCalled() { 
+    return calledUpdate; 
+  }
+
+  /**
+   * Setup buffer and buffer size.  
+   * This method must be called before any data can be written to
+   * the buffer.
+   *
+   * @param buffer the allocated buffer to contain the samples, size should
+   *      be a muliple of 3
+   */
+  public void setBuffer(int[] buffer) {
+    // ensure buffer is proper length
+    if (VM.VerifyAssertions) {
+      VM.assert(buffer.length%3 == 0);
+    }
+
+    if (DEBUG) {
+      VM.sysWrite("VM_EdgeListener.setBuffer("+buffer.length+"): enter\n");     
+    }
+
+    this.buffer    = buffer;
+    desiredSamples = buffer.length / 3;
+    resetBuffer();
   }
 
   /**
@@ -118,7 +136,7 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
 
      calledUpdate++;
 
-     // only take the sample for prologues and epilogues
+     // don't take a sample for back edge yield points
      if (whereFrom == VM_Thread.BACKEDGE) return; 
 
      // in order to walk this stack, we need to disable GC.
@@ -127,7 +145,8 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
      // VM.disableGC() will attempt to resize and move this stack. So, sample
      // only if we have this much space left.  TODO:  look into this
      // again.  This may compromise the sampling accuracy a bit.
-     if (VM_Magic.getFramePointer() - STACK_SIZE_GCDISABLED < VM_Thread.getCurrentThread().stackLimit) {
+     if (VM_Magic.getFramePointer() - STACK_SIZE_GCDISABLED < 
+	 VM_Thread.getCurrentThread().stackLimit) {
        return;
      }
 
@@ -156,8 +175,6 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
      }
 
 
-
-
      calleeCMID = VM_Magic.getCompiledMethodID(sfp);
      if (calleeCMID == INVISIBLE_METHOD_ID) {
 	if(DEBUG){      // Skip assembler routines!
@@ -173,7 +190,6 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
        throw new RuntimeException();
      }
 
-     buffer[bufferIndex+0] = calleeCMID;
      // VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodID);
      // VM_Method callee         = compiledMethod.getMethod();
 
@@ -185,25 +201,29 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
      }
      callerCMID = VM_Magic.getCompiledMethodID(sfp);
      if (callerCMID == INVISIBLE_METHOD_ID) {
-	if(DEBUG){ VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-                   VM.sysWrite(callerCMID); VM.sysWrite("\n"); }	
-	buffer[bufferIndex+1] = 0;	VM.enableGC(); return;
+	if(DEBUG){ 
+	  VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
+	  VM.sysWrite(callerCMID); VM.sysWrite("\n"); 
+	}	
+	VM.enableGC(); 
+	return;
      }
 
      if (VM_CompiledMethods.getCompiledMethod(callerCMID) == null) {
        VM.sysWrite("VM_EdgeListener:update: Found a caller cmid (");
        VM.sysWrite(calleeCMID, false);
        VM.sysWrite(") with a null compiled method, exiting");
+       VM.enableGC(); 
        throw new RuntimeException();
      }
 
-     buffer[bufferIndex+1] = callerCMID;
 
      // store the offset of the return address from the beginning of the 
      // instruction
      VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
      int beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
-     buffer[bufferIndex+2] = returnAddress - beginningOfMachineCode;
+
+     int callSite = returnAddress - beginningOfMachineCode;
 
      if(DEBUG){ 
 	VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");
@@ -236,29 +256,43 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
 	}
      }
 
+     // done with stack inspection, re-enable GC
      VM.enableGC();
 
-     // next triple
-     bufferIndex += 3;
+     // Try to get 3 buffer slots and update nextIndex appropriately
+     int idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 3);
 
-    // Keep track of the number of samples taken
-     samplesTaken++;
-     if (samplesTaken == numberOfBufferTriples) {
-	// going to call the organizer.  do not activate.
-        // The organizer will call activate for us.
-	thresholdReached();
-     } else { 
-        // threshold not yet reached.  enable listening again.
-        // If we reach this else, we are guarantee there are more slots
-        // available in the buffer because of the invariant
-        //      numberOfBufferTriples = bufferSize/3;
-        //
-        //   (See setBuffer)
-     	synchronized (this) {
-	  activate();
-        }
-     }
-  }
+     // Ensure that we got slots for our sample, if we don't (because another
+     // thread is racing with us) we'll just ignore this sample
+     if (idx < buffer.length) {
+       buffer[idx+0] = calleeCMID;
+       buffer[idx+1] = callerCMID;
+       buffer[idx+2] = callSite;
+
+       // Determine which sample we just completed
+       // fetchAndAdd returns the value before the increment, add one to
+       // determine which sample we were
+       int sampleNumber = 
+	 VM_Synchronization.fetchAndAdd(this, samplesTakenOffset, 1) + 1;
+
+       // If we are the last sample, we need to take action
+       if (sampleNumber == desiredSamples) {
+	 // going to call the organizer.  do not activate.
+	 // The organizer will call activate for us.
+	 thresholdReached();
+       } else { 
+	 // threshold not yet reached.  enable listening again.
+	 // There are more slots available in the buffer
+	 synchronized (this) {
+	   activate();
+	 }
+       } // passed sample threshold
+     } // got a valid buffer index
+     // Note: if we didn't get a valid index then there is another thread
+     //  that is also in update that got the last index before us.  Since
+     //  that thread will notify the organizer, who will eventually activtate
+     //  this listener, we do not want to activiate the listener.
+  } 
 
   /** 
    *  report() noop
@@ -293,9 +327,9 @@ class VM_EdgeListener extends VM_ContextListener implements VM_Uninterruptible, 
    *  Resets the buffer
    */
   private void resetBuffer() {
-    for (int i=0; i<bufferSize; i++) {
-       buffer[i]=0;
+    for (int i=0; i<buffer.length; i++) {
+       buffer[i] = 0;
     }
-    bufferIndex = 0;
+    nextIndex = 0;
   }
 }  // end of class
