@@ -96,6 +96,30 @@ final class VM_ImmortalHeap extends VM_Heap
     // flip the sense of the mark bit.
     markValue = markValue ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
   }    
+
+
+  /**
+   * Allocate an array object whose pointer is N bit aligned
+   * 
+   * @param type  VM_Array of type to be instantiated
+   * @param numElements  number of array elements
+   * @param alignment 
+   *
+   * @return the reference for the allocated array object 
+   */
+  public Object allocateAlignedArray(VM_Array type, int numElements, int alignment) {
+    if (VM.VerifyAssertions) VM.assert(type.isInitialized());
+    int size = type.getInstanceSize(numElements);
+    size = VM_Memory.align(size, WORDSIZE);
+    Object[] tib = type.getTypeInformationBlock();
+    int offset = VM_JavaHeader.computeArrayHeaderSize(type);
+    VM_Address region = allocateZeroedMemory(size, alignment, offset);
+    VM_GCStatistics.profileAlloc(region, size, tib); // profile/debug: usually inlined away to nothing
+    Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
+    postAllocationProcessing(newObj);
+    return newObj;
+  }
+
   
   /**
    * Allocate a chunk of memory of a given size.

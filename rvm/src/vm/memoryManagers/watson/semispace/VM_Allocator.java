@@ -925,19 +925,13 @@ public class VM_Allocator extends VM_GCStatistics
     
   //-#if RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL
   static Object[] newTIB (int n) {
-      if (! VM.runningVM)
-	  return new Object[n];
-
-      VM_Array objectArray    = VM_Type.JavaLangObjectArrayType;
-      Object[] objectArrayTIB = objectArray.getTypeInformationBlock();
-      int      size           = VM_Type.JavaLangObjectArrayType.getInstanceSize(n);
-      VM_Address storage      = immortalHeap.allocateRawMemory(size, VM_JavaHeader.TIB_ALIGNMENT, 
-							       VM_JavaHeader.computeArrayHeaderSize(objectArray));
-      Object[] newtib         = (Object[]) VM_ObjectModel.initializeArray(storage, objectArrayTIB, n, size);
-
-      VM_AllocatorHeader.writeMarkBit(newtib, BOOT_MARK_VALUE);
+    if (VM.runningVM) {
+      Object[] newtib = (Object[])immortalHeap.allocateAlignedArray(VM_Type.JavaLangObjectArrayType, n, VM_JavaHeader.TIB_ALIGNMENT);
       if (VM.VerifyAssertions) VM.assert((VM_Magic.objectAsAddress(newtib).toInt() & (VM_JavaHeader.TIB_ALIGNMENT-1)) == 0);
       return newtib;
+    } else {
+      return new Object[n];
+    }
   }
   //-#endif
 

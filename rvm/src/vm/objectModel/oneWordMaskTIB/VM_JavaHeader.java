@@ -176,7 +176,6 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
 	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
-	VM.assert(VM_AllocatorHeader.GC_FORWARDED != VM_Collector.MARK_VALUE);
 	VM.assert(dest != object);
       }
       asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
