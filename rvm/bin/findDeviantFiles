@@ -90,8 +90,13 @@ fi
 
 function croak_nonusage () {
     # Display the error message.  If it's a multi-line error message, indent
-    # the second and subsequent lines by a few spaces.
-    echo "${ME}: $*" | sed -e '2,$s/^/     /' >&2
+    # the second and subsequent lines by a few spaces.  
+    # Try to auto-wrap the message if we have GNU Fold.
+
+    local gnufold="/usr/bin/fold --width=65 --spaces"
+    $gnufold < /dev/null &> /dev/null || gnufold=cat
+
+    echo "${ME}: $*" | $gnufold | sed -e '2,$s/^/     /' >&2
     trap '' EXIT
     exit 1
 }
