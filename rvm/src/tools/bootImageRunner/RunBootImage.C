@@ -49,7 +49,7 @@ extern "C" char *sys_siglist[];
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 
-#if IBM_AIX
+#ifdef RVM_FOR_IBM
 #include <AixLinkageLayout.h>
 #endif
 

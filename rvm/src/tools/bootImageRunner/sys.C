@@ -39,7 +39,7 @@ extern "C" int sched_yield();
 #include <time.h>
 #include <utime.h>
 
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
 #include <asm/cache.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
@@ -705,7 +705,7 @@ void *timeSlicerThreadMain(void *arg) {
       int nsTimerDelay = timerDelay * 1000000;
       int errorCode = pthread_create(&timeSlicerThread, NULL, timeSlicerThreadMain, (void*)nsTimerDelay);
 #else
- #if (defined __linux__)
+ #if (defined RVM_FOR_LINUX)
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
     //
 
@@ -823,7 +823,7 @@ void *timeSlicerThreadMain(void *arg) {
     {
     int numpc = 1;  /* default */
 
-    #ifdef __linux__
+    #ifdef RVM_FOR_LINUX
       #ifdef RVM_FOR_POWERPC
       numpc = get_nprocs_conf();
       #elif RVM_FOR_IA32
@@ -886,7 +886,7 @@ void *timeSlicerThreadMain(void *arg) {
 extern "C" int
 sysHPMinit()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMinit() called: no support for linux\n");
   exit(1);
   return 0;
@@ -915,7 +915,7 @@ sysHPMinit()
 extern "C" int
 sysHPMsetEvent(int e1, int e2, int e3, int e4)
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetEvent(%d,%d,%d,%d) called: no support for linux\n",
 	  e1,e2,e3,e4);
   exit(1);
@@ -945,7 +945,7 @@ sysHPMsetEvent(int e1, int e2, int e3, int e4)
 extern "C" int
 sysHPMsetEventX(int e5, int e6, int e7, int e8)
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetEventX(%d,%d,%d,%d) called: no support for linux\n",
 	  e5,e6,e7,e8);
   exit(1);
@@ -977,7 +977,7 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
 extern "C" int
 sysHPMsetMode(int mode)
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetMode(%d) called: no support for linux\n",
 	  mode);
   exit(1);
@@ -1010,7 +1010,7 @@ sysHPMsetMode(int mode)
 extern "C" int
 sysHPMsetProgramMyThread()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetProgramMyThread() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1038,7 +1038,7 @@ sysHPMsetProgramMyThread()
 extern "C" int
 sysHPMsetProgramMyGroup()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMsetProgramMyGroup() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1065,7 +1065,7 @@ sysHPMsetProgramMyGroup()
 extern "C" int
 sysHPMstartMyThread()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMstartMyThread() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1092,7 +1092,7 @@ sysHPMstartMyThread()
 extern "C" int
 sysHPMstartMyGroup()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMstartMyGroup() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1121,7 +1121,7 @@ sysHPMstartMyGroup()
 extern "C" int
 sysHPMstopMyThread()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMstopMyThread() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1146,7 +1146,7 @@ sysHPMstopMyThread()
 extern "C" int
 sysHPMstopMyGroup()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMstopMyGroup() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1171,7 +1171,7 @@ sysHPMstopMyGroup()
 extern "C" int
 sysHPMresetMyThread()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMresetMyThread() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1196,7 +1196,7 @@ sysHPMresetMyThread()
 extern "C" int
 sysHPMresetMyGroup()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMresetMyGroup() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1224,7 +1224,7 @@ sysHPMresetMyGroup()
 extern "C" long long
 sysHPMgetCounterMyThread(int counter)
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMgetCounterMyThread(%d) called: no support for linux\n",
 	  counter);
   exit(1);
@@ -1250,7 +1250,7 @@ sysHPMgetCounterMyThread(int counter)
 extern "C" long long
 sysHPMgetCounterMyGroup(int counter)
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMgetCounterMyGroup(%d) called: no support for linux\n",
 	  counter);
   exit(1);
@@ -1275,7 +1275,7 @@ sysHPMgetCounterMyGroup(int counter)
 extern "C" int
 sysHPMgetNumberOfCounters()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMgetNumberofCounters() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1302,7 +1302,7 @@ sysHPMgetNumberOfCounters()
 extern "C" int
 sysHPMtest()
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMtest() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1324,7 +1324,7 @@ sysHPMtest()
 extern "C" int
 sysHPMprintMyGroup() 
 {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMprintMyGroup() called: no support for linux\n");
   exit(1);
   return 0;
@@ -1443,7 +1443,7 @@ sysHPMprintMyGroup()
     fprintf(SysTraceFile, "sys: %d cpu's\n", numCpus);
 
  // Linux does not seem to have this
- #ifndef __linux__
+ #ifndef RVM_FOR_LINUX
     if (numCpus == -1)
        {
        fprintf(SysErrorFile, "vm: sysconf failed (errno=%d)\n", errno);
@@ -1562,7 +1562,7 @@ sysPthreadSelf()
    sigemptyset(&input_set);
    sigaddset(&input_set, SIGCONT);
 
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
    /*
     *  Provide space for this pthread to process exceptions.  This is 
     * needed on Linux because multiple pthreads can handle signals
@@ -1581,7 +1581,7 @@ sysPthreadSelf()
    }
 #endif
 
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
    rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
 #else
    rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
@@ -1672,7 +1672,7 @@ sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
 
    sigemptyset(&input_set);
    sigaddset(&input_set, SIGCONT);
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
    pthread_sigmask(SIG_BLOCK, NULL, &output_set);
 #else
    sigthreadmask(SIG_BLOCK, NULL, &output_set);
@@ -1921,10 +1921,10 @@ sysSyncCache(caddr_t address, int size)
    fprintf(SysTraceFile, "sys: sync 0x%08x %d\n", (int)address, size);
    #endif
 
-   #ifdef IBM_AIX
+   #ifdef RVM_FOR_AIX
    _sync_cache_range(address, size);
    #else
-   #ifdef __linux__
+   #ifdef RVM_FOR_LINUX
    #ifdef RVM_FOR_POWERPC
      {
        if (size < 0) {
@@ -2110,7 +2110,7 @@ sysMSync(char *start, char *length, int flags)
 extern "C" int
 sysMAdvise(char *start, char *length, int advice)
    {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
    return -1; // unimplemented in Linux
 #else
    return madvise(start, (size_t)(length), advice);
@@ -2213,7 +2213,7 @@ sysSlibclean()
 
 // #define DEBUG_NET
 
-#ifdef IBM_AIX
+#ifdef RVM_FOR_AIX
 // Work around header file differences: AIX 4.1 vs AIX 4.2 vs AIX 4.3
 //
 #define getsockname xxxgetsockname
@@ -2223,7 +2223,7 @@ sysSlibclean()
 #include <sys/select.h>
 #include <netdb.h>
 #include <netinet/tcp.h>
-#ifdef IBM_AIX
+#ifdef RVM_FOR_AIX
 #undef  getsockname
 #undef  accept
 extern "C" int getsockname(int socketfd, struct sockaddr *address, int *address_len);
@@ -2278,7 +2278,7 @@ sysNetLocalHostName(char *buf, int limit)
 extern "C" int
 sysNetRemoteHostName(int internetAddress, char *buf, int limit)
    {
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
    hostent * resultAddress;
 
    fprintf(SysTraceFile, "untested system call sysNetRemoteHostName()\n");
@@ -2366,7 +2366,7 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
    }
 #endif
 
-#ifdef __linux__
+#ifdef RVM_FOR_LINUX
 extern "C" int
 sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
    {
@@ -2419,10 +2419,10 @@ extern "C" int
 sysNetSocketPort(int fd)
    {
    sockaddr_in info;
-   #ifdef IBM_AIX
+   #ifdef RVM_FOR_AIX
    int len;
    #endif
-   #ifdef __linux__
+   #ifdef RVM_FOR_LINUX
    socklen_t len;
    #endif
 
@@ -2448,10 +2448,10 @@ extern "C" int
 sysNetSocketLocalAddress(int fd)
    {
    sockaddr_in info;
-   #ifdef IBM_AIX
+   #ifdef RVM_FOR_AIX
    int len;
    #endif
-   #ifdef __linux__
+   #ifdef RVM_FOR_LINUX
    socklen_t len;
    #endif
 
@@ -2477,10 +2477,10 @@ extern "C" int
 sysNetSocketFamily(int fd)
    {
    sockaddr_in info;
-   #ifdef IBM_AIX
+   #ifdef RVM_FOR_AIX
    int len;
    #endif
-   #ifdef __linux__
+   #ifdef RVM_FOR_LINUX
    socklen_t len;
    #endif
 
@@ -2641,10 +2641,10 @@ sysNetSocketAccept(int fd, void *connectionObject) {
    int interruptsThisTime = 0;
    int connectionFd = -1;
    sockaddr_in info;
-   #ifdef IBM_AIX
+   #ifdef RVM_FOR_AIX
    int len;
    #endif
-   #ifdef __linux__
+   #ifdef RVM_FOR_LINUX
    socklen_t len;
    #endif
    
