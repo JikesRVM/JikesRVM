@@ -300,17 +300,17 @@ sanity checking and benchmark invocation.
 sizes needed by the benchmark and any extra boot time arguments to
 Jikes RVM.  These variables are as follows:
 \begin{description}
-\item[BENCH\_SOURCE\_PATH] is a list of directories in which to find
+\item[\varName{BENCH\_SOURCE\_PATH}] is a list of directories in which to find
 Java\TMweb{} source files that are used by this benchmark.  This is not a
 colon-separated classpath, but a normal whitespace-separated makefile
 list.  
-\item[BENCH\_CLASS\_PATH] is a list of directories and jar files in
+\item[\varName{BENCH\_CLASS\_PATH}] is a list of directories and jar files in
 which to find Java class files that are used by this benchmark.  This
 is not a colon-separated classpath, but a normal whitespace-separated
 makefile list.  
-\item[INITIAL\_HEAPSIZE] is the maximum heap size in megabytes.
-\item[HEAPSIZE] is the maximum heap size in megabytes.
-\item[BENCH\_RVM\_ARGS] is extra boot time arguments to provide to
+\item[\varName{INITIAL\_HEAPSIZE}] is the maximum heap size in megabytes.
+\item[\varName{HEAPSIZE}] is the maximum heap size in megabytes.
+\item[\varName{BENCH\_RVM\_ARGS}] is extra boot time arguments to provide to
 RVM. 
 \end{description}
 
@@ -319,14 +319,14 @@ result of running the program to see if it correct.  You can define an
 expected output and also filters to remove extraneous program output
 before comparison.  These variables are as follows:
 \begin{description}
-\item[EXPECTED] is a file containing expected output of a program,
+\item[\varName{EXPECTED}] is a file containing expected output of a program,
 against which to diff to check whether the program generated the
 correct result.
-\item[AWK\_FILTER] is a filter to apply to the output of the program
+\item[\varName{AWK\_FILTER}] is a filter to apply to the output of the program
 before diffing with EXPECTED.  This filter will be applied by GNU
 awk. Defining both AWK\_FILTER and SED\_FILTER is not
 allowed. 
-\item[SED\_FILTER] is a filter to apply to the output of the program
+\item[\varName{SED\_FILTER}] is a filter to apply to the output of the program
 before diffing with EXPECTED.  This filter will be applied by GNU sed.
 Defining both AWK\_FILTER and SED\_FILTER is not allowed. 
 \end{description}
@@ -337,11 +337,11 @@ variables depending upon whether the benchmark is a stand-alone program
 or a client-server one.  For stand-alone programs, the variables are as
 follows: 
 \begin{description}
-\item[START\_CLASS] is the name of the class to give when invoking
+\item[\varName{START\_CLASS}] is the name of the class to give when invoking
 Jikes RVM
 for this benchmark; this is a normal class name, not a descriptor, so
 it expects dots rather than slashes for package names.
-\item[START\_ARGS] is a string of arguments to pass when invoking
+\item[\varName{START\_ARGS}] is a string of arguments to pass when invoking
 Jikes RVM
 for this benchmark.  These arguments are passed after the class name,
 so they are arguments to the Java program itself, not boot time
@@ -355,19 +355,19 @@ client, and one used to stop the server.  The client presumably will
 stop by itself, but servers typically must be started and stopped
 explicitly.  The variables are as follows:
 \begin{description}
-\item[SERVER\_NAME] is the name of the main Java class to use when
+\item[\varName{SERVER\_NAME}] is the name of the main Java class to use when
 starting the server program.
-\item[SERVER\_ARGS] is a string of the arguments to pass to the server
+\item[\varName{SERVER\_ARGS}] is a string of the arguments to pass to the server
 program when it is started.
-\item[SENTINEL] is output from the server program which indicates that
+\item[\varName{SENTINEL}] is output from the server program which indicates that
 it is ok to start the client program.
-\item[CLIENT\_NAME] is the name of the main Java class to use when
+\item[\varName{CLIENT\_NAME}] is the name of the main Java class to use when
 starting the client program.
-\item[CLIENT\_ARGS] is a string of the arguments to pass to the client
+\item[\varName{CLIENT\_ARGS}] is a string of the arguments to pass to the client
 program when it is started.
-\item[STOP\_NAME] is the name of the main Java class to use when
+\item[\varName{STOP\_NAME}] is the name of the main Java class to use when
 stopping the server program.
-\item[STOP\_ARGS] is a string of the arguments to pass to the program
+\item[\varName{STOP\_ARGS}] is a string of the arguments to pass to the program
 that stops the server.
 \end{description}
 \end{Label}
@@ -414,7 +414,7 @@ client output and the ``server-check'' rule with the server output.
 \item[do-gather-performance]  This optional rule is used in
 performance mode.  It is given the output file of the program in OUT,
 and is expected to write arbitrary text describing performance to the
-file PERF\_LOG.  One line of this output should be a summary and that
+file \varName{\$PERF\_LOG}.  One line of this output should be a summary and that
 line must start with the phrase ``Bottom Line:''
 
 \end{description}
