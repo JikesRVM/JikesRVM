@@ -144,7 +144,9 @@ public class VM_Runtime implements VM_Constants {
     }
   }
 
-  private static final void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) {
+  private static final void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) 
+    throws VM_PragmaLogicallyUninterruptible,
+	   VM_PragmaUninterruptible {
     throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
   }
 

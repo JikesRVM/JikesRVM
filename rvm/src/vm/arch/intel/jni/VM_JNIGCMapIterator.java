@@ -14,7 +14,8 @@
  * @see VM_JNICompiler
  * @author Steve Smith
  */
-final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineConstants  {
+final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineConstants,
+								    VM_Uninterruptible {
 
   // Java to Native C transition frame...(see VM_JNICompiler)
   //

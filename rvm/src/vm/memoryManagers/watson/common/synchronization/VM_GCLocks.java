@@ -14,13 +14,7 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-public class VM_GCLocks {
-  
-  // Lockwords defined to control the synchronization of GC threads
-  // during collection
-  //
-  private static int[] locks;
-  private static int[] threadlocks;
+public class VM_GCLocks implements VM_Uninterruptible {
   
   private final static int NUM_LOCKS = 10;
   
@@ -31,10 +25,12 @@ public class VM_GCLocks {
   private final static int STATISTICS_LOCK = 4;
   private final static int RESET_LOCK = 5;
   
-  static void init() {
-    locks = new int[NUM_LOCKS];
-    threadlocks = new int[VM_Scheduler.MAX_THREADS];
-  }
+  // Lockwords defined to control the synchronization of GC threads
+  // during collection
+  //
+  private static final int[] locks = new int[NUM_LOCKS];
+
+  private static final int[] threadlocks = new int[VM_Scheduler.MAX_THREADS];
   
   // reset all locks except the finishLock & finishMajorLock
   //

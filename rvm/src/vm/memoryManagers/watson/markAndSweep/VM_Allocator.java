@@ -75,11 +75,7 @@ public class VM_Allocator extends VM_GCStatistics
    * Setup done during bootimage building
    */
   static  void init () {
-    VM_GCLocks.init();  
-
     smallHeap.init(VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID]);
-
-    VM_GCWorkQueue.workQueue = new VM_GCWorkQueue();
 
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
@@ -104,8 +100,6 @@ public class VM_Allocator extends VM_GCStatistics
     smallHeap.boot(st, immortalHeap);
 
     VM_GCUtil.boot();
-
-    VM_Finalizer.setup();
 
     if (verbose >= 1) showParameter();
   }

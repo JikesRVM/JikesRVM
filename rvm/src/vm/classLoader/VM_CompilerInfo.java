@@ -22,13 +22,13 @@ abstract class VM_CompilerInfo  {
    * @return one of the constants, above
    * Note: use this instead of "instanceof" when gc is disabled (ie. during gc)
    */ 
-  abstract int getCompilerType();
+  abstract int getCompilerType() throws VM_PragmaUninterruptible ;
 
   /**
    * Get handler to deal with stack unwinding and exception delivery for this 
    * method's stackframes.
    */ 
-  abstract VM_ExceptionDeliverer getExceptionDeliverer();
+  abstract VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible;
    
   /**
    * Find "catch" block for a machine instruction of 
@@ -92,7 +92,7 @@ abstract class VM_CompilerInfo  {
    * <ul>
    */
   abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
-                               int instructionOffset);
+                               int instructionOffset) throws VM_PragmaUninterruptible;
 
    /**
     * Find source line number corresponding to one of this method's 

@@ -51,8 +51,6 @@ public class VM_Allocator extends VM_GCStatistics
    * Initialize for boot image - executed when bootimage is being build
    */
   static  void init () {
-    VM_GCLocks.init();	
-    VM_GCWorkQueue.init();      // to alloc shared work queue0
     VM_CollectorThread.init();  // to alloc rendezvous arrays, if necessary
     smallHeap.init(VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID]);
   } 
@@ -96,9 +94,6 @@ public class VM_Allocator extends VM_GCStatistics
     majorCollectionThreshold = nurserySize/GC_BLOCKSIZE;
 
     VM_GCUtil.boot();
-
-    // create the finalizer object
-    VM_Finalizer.setup();
 
     if (verbose >= 1) showParameter();
   }

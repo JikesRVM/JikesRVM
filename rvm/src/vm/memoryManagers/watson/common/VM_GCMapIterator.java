@@ -14,7 +14,7 @@
  *
  * @author Janice Shepherd
  */
-abstract class VM_GCMapIterator {
+abstract class VM_GCMapIterator implements VM_Uninterruptible {
   
   /** thread whose stack is currently being scanned */
   VM_Thread thread; 

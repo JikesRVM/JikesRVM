@@ -24,7 +24,7 @@
  * @modified by Stephen Smith
  * @modified by anyone adding a new iterator
  */
-final class VM_GCMapIteratorGroup {
+final class VM_GCMapIteratorGroup implements VM_Uninterruptible {
   
   /** current location (memory address) of each gpr register */
   private int[]                registerLocations;
@@ -49,7 +49,6 @@ final class VM_GCMapIteratorGroup {
   
   
   VM_GCMapIteratorGroup() {
-    
     registerLocations         = new int[VM_Constants.NUM_GPRS];
     
     bootImageCompilerIterator = VM_BootImageCompiler.createGCMapIterator(registerLocations);
@@ -80,18 +79,17 @@ final class VM_GCMapIteratorGroup {
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
   void newStackWalk(VM_Thread thread) {
-    
-      VM_Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
-      for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
-	  registerLocations[i] = registerLocation.toInt();
-	  registerLocation = registerLocation.add(4);
-      }
-      bootImageCompilerIterator.newStackWalk(thread);
-      runtimeCompilerIterator.newStackWalk(thread);
-      hardwareTrapIterator.newStackWalk(thread);
-      fallbackCompilerIterator.newStackWalk(thread);
-      if (testOptCompilerIterator != null) testOptCompilerIterator.newStackWalk(thread);
-      if (jniIterator != null) jniIterator.newStackWalk(thread);
+    VM_Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
+    for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
+      registerLocations[i] = registerLocation.toInt();
+      registerLocation = registerLocation.add(4);
+    }
+    bootImageCompilerIterator.newStackWalk(thread);
+    runtimeCompilerIterator.newStackWalk(thread);
+    hardwareTrapIterator.newStackWalk(thread);
+    fallbackCompilerIterator.newStackWalk(thread);
+    if (testOptCompilerIterator != null) testOptCompilerIterator.newStackWalk(thread);
+    if (jniIterator != null) jniIterator.newStackWalk(thread);
   }
   
   /**
@@ -103,9 +101,7 @@ final class VM_GCMapIteratorGroup {
    *
    * @return VM_GCMapIterator to use
    */
-  VM_GCMapIterator 
-    selectIterator(VM_CompiledMethod compiledMethod) {
-    
+  VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) {
     int type = compiledMethod.getCompilerInfo().getCompilerType();
     
     if (type == bootImageCompilerIterator.getType())
@@ -139,8 +135,4 @@ final class VM_GCMapIteratorGroup {
     if (VM.VerifyAssertions) VM.assert(jniIterator!=null);
     return jniIterator;  
   }
-  
-  // !!TODO: obsolete, can be deleted when callers no longer reference it [--DL]
-  // ...I think its gone, if the builds aren't breaking remove this...anyone.
-  // void  endStackWalk(VM_Thread thread) { }
 }

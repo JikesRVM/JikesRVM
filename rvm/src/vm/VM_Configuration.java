@@ -63,6 +63,9 @@ public abstract class VM_Configuration {
   // Disabled for just a little longer since we get too many false positives
   public static final boolean VerifyUnint = false && VerifyAssertions;
 
+  // Ignore supression pragma and print all warning messages.
+  public static final boolean ParanoidVerifyUnint = false;
+
   // Multiprocessor operation.
   //  false --> vm will use multiple processors (requires operatying system that
   //            supports posix pthread, e.g., AIX)

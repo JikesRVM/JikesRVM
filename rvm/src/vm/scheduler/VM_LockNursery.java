@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id:
+//$Id$
 
 /**
  *   VM_LockNursery provides RVM support for synchronization on objects that
@@ -15,8 +15,6 @@
  *  @author Stephen Fink
  *  @author Dave Grove
  */
-
-
 public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
 
   private static final class VM_LockBucket {
@@ -26,7 +24,6 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
   }
 
   private static final int SIZE = 317;
-
   private static final int ALLOC = 1024;
 
   private static final boolean DEBUG = false;
@@ -59,13 +56,11 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
    */
   public static void lock(Object o) {
     VM_Lock lock = nursery.findOrInsert(o, true);
-
     while (!lock.lockHeavy(o)) {
       if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
         VM_Thread.yield(); // wait, hope o gets unlocked
       }
     }
-
     if (STATS) lockOperations++;
   }
 
@@ -76,14 +71,16 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
    */
   public static void unlock (Object o) {
     VM_Lock lock = nursery.findOrInsert(o, false);
-
-    if (lock == null) 
-      throw new IllegalMonitorStateException();
-    else
+    if (lock == null) {
+      VM_Lock.raiseIllegalMonitorStateException("lock nursery: unlock", o);
+    } else {
       lock.unlockHeavy(o);
+    }
   }
 
-  public static VM_Lock findOrCreate (Object o, boolean create) { return nursery.findOrInsert(o, create); }
+  public static VM_Lock findOrCreate (Object o, boolean create) { 
+    return nursery.findOrInsert(o, create); 
+  }
 
   /**
    * Finds a lock bucket for object o, or creates one if insert is true.
@@ -124,19 +121,20 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
   private VM_LockBucket allocate () {
     VM_LockBucket b = freeBuckets;
     freeBuckets = freeBuckets.next;
-    if (b == null)
-      throw new InternalError("Out of space for VM_LockNursery; increase ALLOC");
+    if (b == null) {
+      VM.sysFail("Out of space for VM_LockNursery; increase ALLOC");
+    }
     if (STATS) lockNumber++;
     return b;
   }
 
   static void notifyAppRunStart(int value) {
-    if (! STATS) return;
+    if (!STATS) return;
     lockNumber = 0;
     lockOperations = 0;
   }
   static void notifyExit(int value) {
-    if (! STATS) return;
+    if (!STATS) return;
     VM.sysWrite("LockNursery: "); VM.sysWrite(lockNumber, false); VM.sysWrite(" nursery locks created\n");
     VM.sysWrite("LockNursery: "); VM.sysWrite(lockOperations, false); VM.sysWrite(" nursery lock operations");
     VM_Stats.percentage(lockOperations, value, "all lock operations");

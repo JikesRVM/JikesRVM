@@ -15,7 +15,8 @@
  * @author Anthony Cocchi
  */
 final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants {
+  implements VM_BaselineConstants,
+	     VM_Uninterruptible {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL  = false; // dynamic link frames
 

@@ -52,6 +52,8 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
   static final int MINOR = 1;
   static final int MAJOR = 2;
 
+  private static final VM_Atom TOTALAtom = VM_Atom.findOrCreateAsciiAtom("TOTAL");
+
   static void boot() throws VM_PragmaInterruptible {
     VM_Callbacks.addExitMonitor(new VM_GCStatistics());
     VM_Callbacks.addAppRunStartMonitor(new VM_GCStatistics());
@@ -329,11 +331,11 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
                         type.scanCount, type.scanBytes);
     }
     VM.sysWriteln();
-    printCountsLine(VM_Atom.findOrCreateAsciiAtom("TOTAL"),
+    printCountsLine(TOTALAtom,
                     allocCount, allocBytes,
                     copyCount, copyBytes,
                     scanCount, scanBytes);
-  } // printCountsByType
+  }
 
 
   public  static void printclass (VM_Address ref) {

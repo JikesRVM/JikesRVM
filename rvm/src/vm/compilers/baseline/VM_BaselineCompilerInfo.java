@@ -9,7 +9,7 @@
  *
  * @author Bowen Alpern
  */
-class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineConstants {
+final class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineConstants {
 
   /**
    * Baseline exception deliverer object
@@ -21,13 +21,13 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
   //-----------//
   // Get compiler that generated this method's machine code.
   //
-  final int getCompilerType () {
+  final int getCompilerType () throws VM_PragmaUninterruptible {
     return BASELINE;
   }
 
   // Get handler to deal with stack unwinding and exception delivery for this method's stackframes.
   //
-  final VM_ExceptionDeliverer getExceptionDeliverer () {
+  final VM_ExceptionDeliverer getExceptionDeliverer () throws VM_PragmaUninterruptible {
     return exceptionDeliverer;
   }
 
@@ -73,7 +73,7 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
   //           offset of machine instruction that issued the call
   // Returned: nothing
   //
-  final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) {
+  final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
     int bytecodeIndex = -1;
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
     for (int i = 0, n = _bytecodeMap.length; i < n; ++i) {

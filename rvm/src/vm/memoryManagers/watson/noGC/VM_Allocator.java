@@ -24,7 +24,6 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
    * Initialize for boot image.
    */
   static void init() {
-    VM_GCWorkQueue.init();
     VM_CollectorThread.init();
   }
   
@@ -42,7 +41,6 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
     immortalHeap.attach(bootrecord.smallSpaceSize);
 
     VM_GCUtil.boot();
-    VM_Finalizer.setup();
   }
   
   /**

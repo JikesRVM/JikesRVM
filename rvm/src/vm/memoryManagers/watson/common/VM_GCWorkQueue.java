@@ -71,7 +71,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   static int WORK_BUFFER_SIZE = 4 * 1024;
 
   /** single instance of GCWorkQueue, allocated in the bootImage */
-  static VM_GCWorkQueue workQueue = null;
+  static VM_GCWorkQueue workQueue = new VM_GCWorkQueue();
   
   //-----------------------
   //instance variables
@@ -87,18 +87,6 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   /** constructor */
   VM_GCWorkQueue() {
     numRealProcessors = 1;     // default to 1 real physical processor
-  }
-
-  /**
-   * Initialization for the BootImage. Called from VM_Allocator.init().
-   */
-  static void
-    init () {
-    // we want the GCWorkQueue object in the bootimage so it doesn't get moved.
-    // we invoke synchronized methods/blocks on these, and if moved, the lock state
-    // may not get maintained correctly, ie lock in one copy & unlock in the other copy
-    //
-    workQueue = new VM_GCWorkQueue();
   }
 
   /**

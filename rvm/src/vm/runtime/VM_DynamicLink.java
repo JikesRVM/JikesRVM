@@ -9,7 +9,8 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-final class VM_DynamicLink implements VM_BytecodeConstants {
+final class VM_DynamicLink implements VM_BytecodeConstants, 
+				      VM_Uninterruptible {
   private VM_Method methodRef; // method referenced at a call site
   private int       bytecode;  // how method was called at that site
 

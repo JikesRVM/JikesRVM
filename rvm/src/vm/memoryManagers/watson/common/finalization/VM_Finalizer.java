@@ -23,8 +23,7 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-public class VM_Finalizer
-{
+public class VM_Finalizer {
 
   //----------------//
   // Implementation //
@@ -35,7 +34,7 @@ public class VM_Finalizer
   static VM_FinalizerListElement finalize_head;
   static int live_count;
   static int finalize_count;
-  private static VM_Synchronizer locker;	    
+  private static VM_Synchronizer locker = new VM_Synchronizer();
   static boolean foundFinalizableObject;
   static int foundFinalizableCount = 0;    // set by each call to moveToFinalizable
 
@@ -45,59 +44,46 @@ public class VM_Finalizer
   private static final boolean  TRACE_DETAIL            = false;
   private static final boolean  PRINT_FINALIZABLE_COUNT = false;
 
-  // following should be set to match VM_Allocator.GC_COUNT_BY_TYPES
-  private static final boolean  COUNT_BY_TYPES = false;	 
-
   //-----------//
   // interface //
   //-----------//
 
-  public static void 
-    setup ()
-    {
-      locker = new VM_Synchronizer();
-    }
-
   // Add item.
   //
-  static final void addElement (Object item)
-    {
-      // (SJF: This method must NOT be inlined into an inlined allocation
-      // sequence, since it contains a lock!)
-      VM_Magic.pragmaNoInline();
-      synchronized (locker) {
-        live_count++;
-        if (TRACE_DETAIL) VM_Scheduler.trace(" VM_Finalizer: ",
-                                             " addElement	called, count = ", live_count);
-        VM_FinalizerListElement le = new VM_FinalizerListElement(item);
-        VM_FinalizerListElement old = live_head;
-        live_head = le;
-        le.next	= old; 
-      }		// synchronized
-
-    }
+  static final void addElement (Object item) {
+    // (SJF: This method must NOT be inlined into an inlined allocation
+    // sequence, since it contains a lock!)
+    VM_Magic.pragmaNoInline();
+    synchronized (locker) {
+      live_count++;
+      if (TRACE_DETAIL) VM_Scheduler.trace(" VM_Finalizer: ",
+					   " addElement	called, count = ", live_count);
+      VM_FinalizerListElement le = new VM_FinalizerListElement(item);
+      VM_FinalizerListElement old = live_head;
+      live_head = le;
+      le.next	= old; 
+    }		// synchronized
+  }
 
 
   /**
    * Called from the mutator thread: return the first object queued 
    * on the finalize list, or null if none
    */
-  final static Object
-    get()
-    {
-      VM_FinalizerListElement temp = finalize_head;
-      if (temp == null) return null;
-      //
-      finalize_head = temp.next;
-      finalize_count--;
-      if (TRACE_DETAIL) {  
-        VM_Scheduler.trace(" VM_Finalizer: ", "get returning ", 
-                           VM_Magic.objectAsAddress(temp.pointer));
-        VM_Scheduler.trace(" VM_Finalizer: ", "finalize count is ", 
-                           finalize_count);
-      }
-      return temp.pointer;
+  final static Object get() {
+    VM_FinalizerListElement temp = finalize_head;
+    if (temp == null) return null;
+    //
+    finalize_head = temp.next;
+    finalize_count--;
+    if (TRACE_DETAIL) {  
+      VM_Scheduler.trace(" VM_Finalizer: ", "get returning ", 
+			 VM_Magic.objectAsAddress(temp.pointer));
+      VM_Scheduler.trace(" VM_Finalizer: ", "finalize count is ", 
+			 finalize_count);
     }
+    return temp.pointer;
+  }
 
   /**
    * return true if there are objects with finalizers
@@ -105,22 +91,17 @@ public class VM_Finalizer
    * gcs at the end of a collection to determine whether 	
    * to call moveToFinalizable()
    */
-  final static boolean
-    existObjectsWithFinalizers() 
-    {
-      return (live_head != null);
-    }
+  final static boolean existObjectsWithFinalizers() throws VM_PragmaUninterruptible {
+    return (live_head != null);
+  }
 
   /** 
    * Move all finalizable objects to the to-be-finalized queue
    * Called on shutdown
   */
-  final static void
-  finalizeAll () {
-
+  final static void finalizeAll () {
     VM_FinalizerListElement le	= live_head;
     VM_FinalizerListElement from = live_head;
-		
     while (le != null) {
 	live_count--;
 	finalize_count++;
@@ -155,8 +136,7 @@ public class VM_Finalizer
    * Scan the array for objects which have become garbage
    * and move them to the Finalizable class
    */
-  final static void 
-  moveToFinalizable ()	{
+  final static void moveToFinalizable () throws VM_PragmaUninterruptible {
     if (TRACE) VM_Scheduler.trace(" VM_Finalizer: "," move to finalizable ");
     boolean added = false;
     boolean is_live = false;
@@ -173,8 +153,8 @@ public class VM_Finalizer
 	from = le;
 	le = le.next;
 	continue;
-      }  // is_live
-      else {    // associated object is dead
+      } else {
+	// associated object is dead
 	added = true;
 	live_count--;
 	finalize_count++;
@@ -212,7 +192,7 @@ public class VM_Finalizer
       }
     }
     
-    if ( PRINT_FINALIZABLE_COUNT && VM_Allocator.verbose >= 1) {
+    if (PRINT_FINALIZABLE_COUNT && VM_Allocator.verbose >= 1) {
       VM.sysWrite("<GC ");
       VM.sysWrite(VM_Collector.collectionCount(),false);
       VM.sysWrite(" moveToFinalizable: finalize_count: before = ");
@@ -238,71 +218,57 @@ public class VM_Finalizer
 
   // methods for statistics and debugging
 
-  static int
-    countHasFinalizer()
-    {
-      int count = 0;
-      VM_FinalizerListElement le = live_head;
-      while (le != null) 
-      {
-        count++;
-        le = le.next;
-      }
-      return count;
+  static int countHasFinalizer() {
+    int count = 0;
+    VM_FinalizerListElement le = live_head;
+    while (le != null) {
+      count++;
+      le = le.next;
     }
+    return count;
+  }
 
-  static int
-    countToBeFinalized()
-    {
-      int count = 0;
-      VM_FinalizerListElement le = finalize_head;
-      while (le != null) 
-      {
-        count++;
-        le = le.next;
-      }
-      return count;
+  static int countToBeFinalized() {
+    int count = 0;
+    VM_FinalizerListElement le = finalize_head;
+    while (le != null) {
+      count++;
+      le = le.next;
     }
+    return count;
+  }
 
   /**
    * A debugging routine: print out the type of each object in live_list
    */
-  final static void
-    dump_live()
-    {
-      VM_Scheduler.trace(" VM_Finalizer.dump_live", "cnt is ", live_count);
+  final static void dump_live() {
+    VM_Scheduler.trace(" VM_Finalizer.dump_live", "cnt is ", live_count);
+    VM.sysWrite("\n");
+    VM_FinalizerListElement le = live_head;
+    while (le != null) {
+      VM.sysWrite(" In live_list: object type is ");
+      VM_GCUtil.printclass(le.value);
+      VM.sysWrite(" at ");
+      VM.sysWrite(le.value);
       VM.sysWrite("\n");
-      VM_FinalizerListElement le = live_head;
-      while (le != null) 
-      {
-        VM.sysWrite(" In live_list: object type is ");
-        VM_GCUtil.printclass(le.value);
-        VM.sysWrite(" at ");
-        VM.sysWrite(le.value);
-        VM.sysWrite("\n");
-        le = le.next;
-      }
+      le = le.next;
     }
+  }
 
   /** 
    * A debugging routine: print out the type of each object to be finalized
    */
-  final static void
-    dump_finalize()
-    {
-      VM_Scheduler.trace(" VM_Finalizer.dump_finalize", "cnt is ", finalize_count);
+  final static void dump_finalize() {
+    VM_Scheduler.trace(" VM_Finalizer.dump_finalize", "cnt is ", finalize_count);
+    VM.sysWrite("\n");
+    VM_FinalizerListElement le = finalize_head;
+    while (le != null) {
+      VM.sysWrite(" In finalize_list: object type is ");
+      VM_GCUtil.printclass(le.value);
+      VM.sysWrite(" at ");
+      VM.sysWrite(le.value);
       VM.sysWrite("\n");
-      VM_FinalizerListElement le = finalize_head;
-      while (le != null) 
-      {
-        VM.sysWrite(" In finalize_list: object type is ");
-        VM_GCUtil.printclass(le.value);
-        VM.sysWrite(" at ");
-        VM.sysWrite(le.value);
-        VM.sysWrite("\n");
-        le = le.next;
-      }
+      le = le.next;
     }
-
-
+  }
 }

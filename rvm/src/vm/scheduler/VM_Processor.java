@@ -337,7 +337,7 @@ if (loopcheck++ >= 1000000) break;
   static final int IN_SIGWAIT              = 4;
   static final int BLOCKED_IN_SIGWAIT      = 5;
 
-  static int generateNativeProcessorId () {
+  static int generateNativeProcessorId () throws VM_PragmaInterruptible {
     int r;
     synchronized (nativeProcessorCountLock) {
       r = ++numberNativeProcessors;
@@ -358,8 +358,8 @@ if (loopcheck++ >= 1000000) break;
    *   -as an entry in the attachedProcessors array for use by GC
    *
    */
-  static VM_Processor createNativeProcessorForExistingOSThread
-    (VM_Thread withThisThread) {
+  static VM_Processor createNativeProcessorForExistingOSThread(VM_Thread withThisThread) 
+    throws VM_PragmaInterruptible {
 
     VM_Processor newProcessor = new VM_Processor(generateNativeProcessorId(), NATIVE);
     // create idle thread for this native processor, running in attached mode
@@ -380,7 +380,6 @@ if (loopcheck++ >= 1000000) break;
       return newProcessor;
     else
       return null;                // out of space to hold this new VP
-
   }
 
   static int registerAttachedProcessor(VM_Processor newProcessor) {

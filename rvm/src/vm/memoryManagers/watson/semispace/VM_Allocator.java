@@ -92,15 +92,13 @@ public class VM_Allocator extends VM_GCStatistics
    * Initialize for boot image.
    */
   static void init () throws VM_PragmaInterruptible {
-    VM_GCLocks.init();           // to alloc lock fields used during GC (in bootImage)
-    VM_GCWorkQueue.init();       // to alloc shared work queue
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
 
   /**
    * Initialize for execution.
    */
-  static void boot (VM_BootRecord bootrecord) {
+  static void boot (VM_BootRecord bootrecord) throws VM_PragmaInterruptible {
     verbose = bootrecord.verboseGC;
 
     // smallHeapSize might not originally have been an even number of pages
@@ -120,10 +118,8 @@ public class VM_Allocator extends VM_GCStatistics
     fromHeap.reset();
 
     VM_GCUtil.boot();
-    VM_Finalizer.setup();
  
     if (verbose >= 1) showParameter();
-
   }
 
   static void showParameter() {
@@ -815,7 +811,7 @@ public class VM_Allocator extends VM_GCStatistics
   /*
    * Initialize a VM_Processor for allocation and collection.
    */
-  static void setupProcessor (VM_Processor p) {
+  static void setupProcessor (VM_Processor p) throws VM_PragmaInterruptible {
     if (PROCESSOR_LOCAL_ALLOCATE) 
       VM_Chunk.resetChunk1(p, fromHeap, false);
     if (writeBarrier)

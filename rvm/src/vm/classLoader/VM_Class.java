@@ -248,7 +248,7 @@ public final class VM_Class extends VM_Type
    * @return id of type that was referenced, for use 
    * by "VM_TypeDictionary.getValue()"
    */
-  final int getTypeRefId(int constantPoolIndex) {
+  final int getTypeRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -256,7 +256,7 @@ public final class VM_Class extends VM_Type
    * Get contents of a "typeRef" constant pool entry.
    * @return type that was referenced
    */
-  final VM_Type getTypeRef(int constantPoolIndex) {
+  final VM_Type getTypeRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_TypeDictionary.getValue(getTypeRefId(constantPoolIndex));
   }
 
@@ -265,7 +265,7 @@ public final class VM_Class extends VM_Type
    * @return id of field that was referenced, for use by 
    * "VM_FieldDictionary.getValue()"
    */
-  final int getFieldRefId(int constantPoolIndex) {
+  final int getFieldRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -273,7 +273,7 @@ public final class VM_Class extends VM_Type
    * Get contents of a "fieldRef" constant pool entry.
    * @return field that was referenced
    */
-  final VM_Field getFieldRef(int constantPoolIndex) {
+  final VM_Field getFieldRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_FieldDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
@@ -282,7 +282,7 @@ public final class VM_Class extends VM_Type
    * @return id of method that was referenced, for use by 
    * "VM_MethodDictionary.getValue()"
    */ 
-  final int getMethodRefId(int constantPoolIndex) {
+  final int getMethodRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -290,33 +290,22 @@ public final class VM_Class extends VM_Type
    * Get contents of a "methodRef" constant pool entry.
    * @return method that was referenced
    */
-  final VM_Method getMethodRef(int constantPoolIndex) {
+  final VM_Method getMethodRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_MethodDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
   /**
    * Get contents of a "utf" constant pool entry.
    */
-  final VM_Atom getUtf(int constantPoolIndex) {
+  final VM_Atom getUtf(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_AtomDictionary.getValue(constantPool[constantPoolIndex]);
-  }
-
-  /**
-   * Should the methods of this class be compiled with 
-   */ 
-  final boolean isBootImageInitialized () {
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-	if (interfaces[i].getName().equals("VM_BootImageInitialization"))
-	    return true;
-    return false; // does not (directly) implement VM_BootImageInitialization
   }
 
   /**
    * Does this object implement the VM_SynchronizedObject interface?
    * @see VM_SynchronizedObject
    */ 
-  final boolean isSynchronizedObject() {
+  final boolean isSynchronizedObject() throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSynchronizedObjectType()) return true;
@@ -328,7 +317,7 @@ public final class VM_Class extends VM_Type
    * register save/restore logic?
    * @see VM_DynamicBridge
    */
-  final boolean isDynamicBridge () {
+  final boolean isDynamicBridge () throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isDynamicBridgeType()) return true;
@@ -340,7 +329,7 @@ public final class VM_Class extends VM_Type
    * they are compiled with
    * a special prolog to interface with the native stack frame.
    */
-  final boolean isBridgeFromNative() {
+  final boolean isBridgeFromNative() throws VM_PragmaUninterruptible {
     // The only class that returns true is the VM_JNIFunctions
     // which must have been loaded by the first call to System.loadLibrary
     // If this class is not loaded yet, we can assume that it
@@ -357,7 +346,7 @@ public final class VM_Class extends VM_Type
    * Should the methods of this class save incoming registers ?
    * @see VM_SaveVolatile
    */
-  final boolean isSaveVolatile() {
+  final boolean isSaveVolatile() throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSaveVolatileType()) return true;

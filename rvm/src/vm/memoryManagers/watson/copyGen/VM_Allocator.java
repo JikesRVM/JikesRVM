@@ -86,13 +86,7 @@ public class VM_Allocator
    * Initialize for boot image.
    */
   static void init () {
-
-    gc_serialize = new Object();
-    
-    VM_GCLocks.init();    // to alloc lock fields used during GC (in bootImage)
-    VM_GCWorkQueue.init();       // to alloc shared work queue      
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
-    
   }
   
   /**
@@ -159,10 +153,9 @@ public class VM_Allocator
     }
     
     VM_GCUtil.boot();
-    VM_Finalizer.setup();
 
     if (verbose >= 1) showParameter();
-  }   // boot()
+  }
 
   static void showParameter() {
 
@@ -410,9 +403,6 @@ public class VM_Allocator
   static boolean gcInProgress;      // true if collection in progress, initially false
   
   private static int    collisionCount = 0;      // counts attempts to mark same object
-  
-  
-  private static Object  gc_serialize = null;   // allocated in bootImage in init()
   
   static final boolean debugNative = false;             // temp - debugging JNI Native C
   static int verbose = 0;

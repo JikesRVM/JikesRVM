@@ -120,7 +120,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
                 VM.sysWrite(index,true);
                 VM.sysWrite("\n");
                 VM.sysWrite("  Object class: ");
-                VM.sysWrite(o.getClass().toString());
+                VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
                 VM.sysWrite("\n");
               }
             }

@@ -108,7 +108,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @param p The <code>VM_Processor</code> object.
    */
-  public static final void setupProcessor(VM_Processor p) {
+  public static final void setupProcessor(VM_Processor p) throws VM_PragmaInterruptible {
     VM_Allocator.setupProcessor(p);
   }
 

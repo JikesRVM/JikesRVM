@@ -419,8 +419,9 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 	lockAllocationMutex.unlock();
 	mine.lastLockIndex = mine.nextLockIndex + LOCK_ALLOCATION_UNIT_SIZE - 1;
 	if (MAX_LOCKS <= mine.lastLockIndex) {
-	  VM.sysFail("Too many thick locks on processor " + mine.id); // make MAX_LOCKS bigger?
-	  return null;                                                // we can keep going
+	  VM.sysWriteln("Too many fat locks on processor ", mine.id); // make MAX_LOCKS bigger? we can keep going??
+	  VM.sysFail("Exiting VM with fatal error");
+	  return null;
 	}
       }
       l.index = mine.nextLockIndex++;
@@ -520,7 +521,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     lockAllocationMutex.unlock();
   }
 
-  static void raiseIllegalMonitorStateException(String msg, Object o) throws VM_PragmaInterruptible {
+  static void raiseIllegalMonitorStateException(String msg, Object o) throws VM_PragmaLogicallyUninterruptible {
     throw new IllegalMonitorStateException(msg + o);
   }
 

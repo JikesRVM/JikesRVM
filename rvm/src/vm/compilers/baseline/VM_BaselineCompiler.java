@@ -1911,7 +1911,7 @@ abstract class VM_BaselineCompiler {
    * @param msg description of bytecode that is violating the invariant
    */
   protected final void forbiddenBytecode(String msg) {
-    if (method == VM_Entrypoints.bootMethod) return; // Special case: VM.boot is logically interruptible, but thread state isn't setup on entry so prologue would crash and burn.
+    if (!VM.ParanoidVerifyUnint && VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; //Programmer has asserted that we don't have to do checking for this method.
     VM.sysWriteln("WARNING "+ method + ": contains forbidden bytecode "+msg);
   }
 
@@ -1921,7 +1921,7 @@ abstract class VM_BaselineCompiler {
    * @param target the target methodRef
    */
   protected final void checkTarget(VM_Method target) {
-    if (method == VM_Entrypoints.bootMethod) return; // Special case: VM.boot is logically interruptible, but thread state isn't setup on entry so prologue would crash and burn.
+    if (!VM.ParanoidVerifyUnint && VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; //Programmer has asserted that we don't have to do checking for this method.
     if (target.isInterruptible()) {
       VM.sysWriteln("WARNING "+ method + ": contains call to interruptible method "+target);
     }

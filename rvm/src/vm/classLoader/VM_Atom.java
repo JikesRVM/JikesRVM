@@ -299,8 +299,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
       VM.sysWrite((char)val[i]);
   }
 
-  final int length() {
-      return val.length;
+  final int length() throws VM_PragmaUninterruptible {
+    return val.length;
   }
 
   /**

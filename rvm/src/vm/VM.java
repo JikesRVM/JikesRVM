@@ -62,7 +62,7 @@ public class VM extends VM_Properties implements VM_Constants,
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  public static void boot() throws Exception {
+  public static void boot() throws Exception, VM_PragmaLogicallyUninterruptible {
     VM.writingBootImage = false;
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
@@ -298,7 +298,7 @@ public class VM extends VM_Properties implements VM_Constants,
     if (!b) _assertionFailure(message);
   }
 
-  private static void _assertionFailure(String message) {
+  private static void _assertionFailure(String message) throws VM_PragmaLogicallyUninterruptible {
     VM_Magic.pragmaNoInline(); // prevent opt compiler from inlining failure code.
     if (message == null) message = "vm internal error at:";
     if (VM.runningVM) {
@@ -312,10 +312,11 @@ public class VM extends VM_Properties implements VM_Constants,
    * Format a 32 bit number as "0x" followed by 8 hex digits.
    * Do this without referencing Integer or Character classes, 
    * in order to avoid dynamic linking.
+   * TODO: move this method to VM_Services.
    * @param number
    * @return a String with the hex representation of the integer
    */
-  static String intAsHexString(int number) {
+  static String intAsHexString(int number) throws VM_PragmaInterruptible {
     char[] buf   = new char[10];
     int    index = 10;
     while (--index > 1) {
@@ -352,7 +353,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void sysWrite(String value) {
+  public static void sysWrite(String value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
       for (int i = 0, n = value.length(); i < n; ++i) {
@@ -368,7 +369,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value	what is printed
    */
-  public static void sysWrite(char value) {
+  public static void sysWrite(char value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM)
       sysCall1(VM_BootRecord.the_boot_record.sysWriteCharIP, value);
     else
@@ -381,7 +382,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value   double to be printed
    *
    */
-  public static void sysWrite(double value) {
+  public static void sysWrite(double value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
       int ones = (int) value;
       int hundredths = (int) (100.0 * (value - ones));
@@ -399,29 +400,29 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value	what is printed
    */
-  public static void sysWrite(int value) {
+  public static void sysWrite(int value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
-	int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
-	sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
-    }
-    else
+      int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
+      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
+    } else {
       System.err.print(value);
+    }
   }
 
   /**
    * Low level print to console.
    * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
    */
-  public static void sysWriteField(int fieldWidth, int value) {
+  public static void sysWriteField(int fieldWidth, int value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
-	int len = 1, temp = value;
-	if (temp < 0) { len++; temp = -temp; }
-	while (temp >= 10) { len++; temp /= 10; }
-	while (fieldWidth > len++) sysWrite(" ");
-	sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
-    }
-    else
+      int len = 1, temp = value;
+      if (temp < 0) { len++; temp = -temp; }
+      while (temp >= 10) { len++; temp /= 10; }
+      while (fieldWidth > len++) sysWrite(" ");
+      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+    } else {
       System.err.print(value);
+    }
   }
 
   /**
@@ -429,16 +430,16 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
    */
   public static void sysWriteField(int fieldWidth, VM_Atom s) {
-      int len = s.length();
-      while (fieldWidth > len++) sysWrite(" ");
-      sysWrite(s);
+    int len = s.length();
+    while (fieldWidth > len++) sysWrite(" ");
+    sysWrite(s);
   }
 
   /**
    * Low level print to console.
    * @param value	what is printed, as hex only
    */
-  public static void sysWriteHex(int value) {
+  public static void sysWriteHex(int value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM)
       sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 2 /*just hex*/);
     else
@@ -451,7 +452,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void sysWrite(int value, boolean hexToo) {
+  public static void sysWrite(int value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM)
       sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, hexToo?1:0);
     else
@@ -472,7 +473,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void sysWrite(long value, boolean hexToo) {
+  public static void sysWrite(long value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
       int val1, val2;
       val1 = (int)(value>>32);
@@ -530,7 +531,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
-  public static void sysExit(int value) {
+  public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible {
     // SJF: I don't want this method inlined, since I use it as a
     // breakpoint for the jdp regression test.
     VM_Magic.pragmaNoInline();
@@ -554,8 +555,9 @@ public class VM extends VM_Properties implements VM_Constants,
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
-    } else
+    } else {
       sysCall1(VM_BootRecord.the_boot_record.sysExitIP, value);
+    }
   }
 
   /**
@@ -845,9 +847,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
     VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
      
-    // initialization of reference maps locks for jsr processing
-    VM_ReferenceMaps.init(); 
-
     // initialize JNI environment
     VM_JNIEnvironment.init();
 

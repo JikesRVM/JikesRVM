@@ -847,7 +847,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 	
 
-  void setupProcessor (VM_Processor st) {
+  void setupProcessor (VM_Processor st) throws VM_PragmaInterruptible {
     VM_Array scArrayType = VM_SizeControl.TYPE.getArrayTypeForElementType();
     int scArraySize = scArrayType.getInstanceSize(GC_SIZES);
     int scSize = VM_SizeControl.TYPE.getInstanceSize();
