@@ -510,7 +510,8 @@ static unsigned int parse_heap_sizeIntOnly(
 /* TODO: Import BYTES_IN_PAGE from
    com.ibm.JikesRVM.memoryManagers.vmInterface.Constants */
 static unsigned int
-parse_heap_size(const char *sizeName, const char *sizeFlag, 
+parse_heap_size(const char *sizeName, //  "initial" or "maximum"
+                const char *sizeFlag, // "ms" or "mx"
 		const char *token, const char *subtoken, bool *fastExit)
 {
     const unsigned LOG_BYTES_IN_PAGE = 12;
@@ -519,8 +520,8 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
     char *endp;                 /* really should be const char *, but C++
                                    can't handle that kind of overloaded
                                    function. */ 
-    long double factor = 1; // multiplication factor; M for
-                                     // Megabytes, K for kilobytes, etc.
+    long double factor = 1; /* multiplication factor; M for Megabytes, 
+                               K for kilobytes, etc. */
 
     errno = 0;
     double hs = strtod(subtoken, &endp);  // heap size number
@@ -528,16 +529,35 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
     // First, set the factor appropriately, and make sure there aren't extra
     // characters at the end of the line.
     if (*endp == '\0') {
-	// no suffix.  Here we differ from the Sun JVM, by assuming
-	// megabytes. (Historical compat.)  The Sun JVM would specify
-	// 1 here. 
+	/* no suffix.  Here we differ from the Sun JVM, by assuming
+           no suffix implies megabytes. (Historical compat. with previous
+           Jikes RVM behaviour.)  The Sun JVM assumes no suffix implies
+           bytes. */ 
 	factor = 1024.0 * 1024.0;
     } else if (endp[1] == '\0') {
-	if (*endp == 'm' || *endp == 'M')
-	    factor = 1024.0 * 1024.0; // megabytes
-	else if (*endp == 'k' || *endp == 'K')
+        char e = *endp;
+        /* At this time, with our using a 32-bit quantity to indicate memory
+         * size, we can't use T and are unlikely to use G.  But it doesn't
+         * hurt to have the code in here, since a double is guaranteed to be
+         * able to represent quantities of the magnitude 2^40, and this only
+         * wastes a couple of instructions, once during the program run.  When
+         * we go up to 64 bits, we'll be glad.  I think. --steve augart */
+	if (e == 't' || e == 'T')
+            /* We'll always recognize T, but we don't show it in the help
+               message unless we're on a 64-bit platform, since it's not
+               useful on a 32-bit platform. */
+	    factor = 1024.0 * 1024.0 * 1024.0 * 1024.0; // Terabytes
+	else if (e == 'g' || e == 'G')
+	    factor = 1024.0 * 1024.0 * 1024.0; // Gigabytes
+	else if (e == 'm' || e == 'M')
+	    factor = 1024.0 * 1024.0; // Megabytes
+	else if (e == 'k' || e == 'K')
 	    factor = 1024.0;	// kilobytes
-	else if (*endp == 'b' || *endp == 'B')
+        /* b for bytes.  Seems mnemonic, BUT I am mildly concerned because
+           "dd" uses "b" to mean "blocks".   "dd" also uses "c" for
+           "characters" to mean what we mean by bytes, so we'll at least make
+           "c" legal syntax, right? */
+	else if (e == 'b' || e == 'B' || e == 'c' || e == 'C' )
 	    factor = 1.0;	// Bytes.  Not avail. in Sun JVM
 	else {
 	    goto bad_strtold;
@@ -550,13 +570,13 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
 
     // Note: on underflow, strtod() returns 0.
     if (!*fastExit) {
-	if (hs <= 0.0) {
+        if (hs <= 0.0) {
 	    fprintf(SysTraceFile, 
-		    "%s: You may not specify a %s initial heap size;", 
-		    Me, hs < 0.0 ? "negative" : "zero");
+		    "%s: You may not specify a %s %s heap size;\n", 
+		    Me, hs < 0.0 ? "negative" : "zero", sizeName);
 	    fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
 	    *fastExit = true;
-	}
+        }
     } 
 
     if (!*fastExit) {
@@ -578,8 +598,19 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
                 "or (in kilobytes) using \"-X%s<positive number>K\",\n",
                 (int) namelen, (int) namelen, " ", sizeFlag);
 	fprintf(SysTraceFile, "\t               %*.*s        "
-                "or (in bytes) using \"-X%s<positive number>B\"\n",
+                "or (in bytes) using \"-X%s<positive number>b\"\n",
                 (int) namelen, (int) namelen, " ", sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in gigabytes) using \"-X%s<positive number>G\",\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
+#ifdef RVM_FOR_64_ADDR
+	fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in terabytes) using \"-X%s<positive number>t\"\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
+#endif // RVM_FOR_64_ADDR
+        fprintf(SysTraceFile, "    If you specify floating point values,"
+                " the # of bytes will be rounded up\n"
+                " to a multiple of the virtual memory page size.\n");
 	return 0U;		// Distinguished value meaning trouble.
     } 
     long double tot_d = hs * factor;
@@ -592,9 +623,9 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
             =  ((tot >> LOG_BYTES_IN_PAGE) + 1) << LOG_BYTES_IN_PAGE;
 	
 	fprintf(SysTraceFile, 
-                "%s: Rounding up %s heap size from %u bytes to %u,"
-		" the next multiple of %u bytes\n", Me, sizeName, tot, newtot, 
-                BYTES_IN_PAGE);
+                "%s: Rounding up %s heap size from %u bytes to %u,\n"
+		"\tthe next multiple of %u bytes\n", 
+                Me, sizeName, tot, newtot, BYTES_IN_PAGE);
 	tot = newtot;
     }
     return tot;
