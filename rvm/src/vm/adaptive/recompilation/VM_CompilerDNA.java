@@ -31,8 +31,8 @@ public class VM_CompilerDNA implements VM_Constants {
   /**
    * Average bytecodes compiled per millisec
    * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
-   *  and turangalila (Linux/IA32) using unweighted compilation rate,
-   *  which is different than previous collections
+   * and turangalila (Linux/IA32) using unweighted compilation rate,
+   * which is different than previous collections
    */
   //-#if RVM_FOR_POWERPC
   private static final double[] compilationRates = {377.76, 9.29, 5.69, 1.81};
@@ -43,41 +43,13 @@ public class VM_CompilerDNA implements VM_Constants {
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
    * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
-   *  and turangalila (Linux/IA32) using unweighted compilation rate, 
-   *  which is different than previous collections
+   * and turangalila (Linux/IA32) using unweighted compilation rate, 
+   * which is different than previous collections
    */
   //-#if RVM_FOR_POWERPC
   private static final double[] speedupRates = {1.00, 4.26, 6.07, 6.61};
   //-#elif RVM_FOR_IA32
   private static final double[] speedupRates = {1.00, 4.03, 5.55, 5.34};
-  //-#endif
-
-  /**
-   * Another way of estimating compile time is to fit observed compilation times
-   * to a linear function of bytecode bytes.
-   * <pre>
-   *   CompileTime = slope * bytecodeBytes + intercept
-   * </pre>
-   * This array encodes the slope value for each of the compilers.
-   */
-  //-#if RVM_FOR_POWERPC
-  private static final double[] compilationSlope = {0.001209, 0.126066, 0.172639, 0.6149};
-  //-#elif RVM_FOR_IA32
-  private static final double[] compilationSlope = {0.00056, 0.077262, 0.127397, 0.402457};
-  //-#endif
-
-  /**
-   * Another way of estimating compile time is to fit observed compilation times
-   * to a linear function of bytecode bytes.
-   * <pre>
-   *   CompileTime = slope * bytecodeBytes + intercept
-   * </pre>
-   * This array encodes the intercept value for each of the compilers.
-   */
-  //-#if RVM_FOR_POWERPC
-  private static final double[] compilationIntercept = {0.085628, -4.6271, 0.438648, 0.575841};
-  //-#elif RVM_FOR_IA32
-  private static final double[] compilationIntercept = {0.063658, -1.85443, 1.001976, -1.42386};
   //-#endif
 
   /**
@@ -129,26 +101,16 @@ public class VM_CompilerDNA implements VM_Constants {
   static double estimateCompileTime(int compiler, VM_NormalMethod meth) {
     double bytes = (double)meth.getBytecodeLength();
     double runtimeBaselineRate = VM_RuntimeCompiler.getBaselineRate();
-    if (VM_Controller.options.rate()) {
-      double compileTime = bytes / runtimeBaselineRate;
-      if (compiler != BASELINE) {
-	compileTime *= compileTimeRatio[BASELINE][compiler];
-      }
-      return compileTime;
-    } else {
-      double compileTime = compilationSlope[compiler] * bytes + compilationIntercept[compiler];
-      // Now scale from measured machine to actual machine.
-      // compileTime is currently in measured ms; we want it in runtime ms.
-      // so we compute mesured ms * ((measured bcb/ms)/(runtime bcb/ms))
-      // this gives us the desired units on compileTime.
-      double adjustment = compilationRates[BASELINE] / runtimeBaselineRate;
-      return compileTime * adjustment;
+    double compileTime = bytes / runtimeBaselineRate;
+    if (compiler != BASELINE) {
+      compileTime *= compileTimeRatio[BASELINE][compiler];
     }
+    return compileTime;
   }
     
   /**
    * Returns the compilation rates of the baseline compiler in 
-   *  bytecodes/millisecond
+   *  bytecodes/millisecond.
    * @return the compilation rates of the baseline compiler in 
    *   bytecodes/millisecond
    */
