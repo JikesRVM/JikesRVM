@@ -80,7 +80,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * not return zero.
    */
   public final VM_Address alloc(boolean isScalar, int bytes) 
-    throws VM_PragmaInline {
+    throws VM_PragmaNoInline {
     VM_Address cell = allocSlow(isScalar, bytes, false);
     postAlloc(cell);
     return cell;
