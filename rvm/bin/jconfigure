@@ -672,7 +672,7 @@ function emitSourceList
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
       elif (( $RVM_WITH_COPY_MS )); then
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
-      elif (( $RVM_WITH_SIMPLE_RC )); then
+      elif (( $RVM_WITH_REF_COUNT )); then
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/refCount
       elif (( $RVM_WITH_NO_GC )); then
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
