@@ -51,13 +51,11 @@ of the following plans:
 The relative performance of these collectors is highly dependent on
 the application. 
 
-
-Currently, some of these collectors are more stable than others. 
-The \texttt{SemiSpace}, \texttt{MarkSweep}, and \texttt{CopyMS} 
-are the stablest collectors, with \texttt{CopyMS} being the
-most heavily tested GC.\@  \texttt{NoGC} is provided for pedagogical and
+\texttt{NoGC} is provided for pedagogical and
 experimental purposes only; it is not suitable for general use.
 GC researchers will of course want to experiment with other GC choices.
+The \texttt{RefCount} collector is currently slightly less stable than
+the others and is not quite ready for heavy usage.
 
 All of the memory managers (except \texttt{NoGC} and \texttt{RefCount}) 
 support finalization and weak, soft, and phantom references.  They are all parallel 
