@@ -8,7 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_BaselineGCMapIterator;
-//-#if RVM_WITH_OPT_COMPILER
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.opt.VM_OptGCMapIterator;
 //-#endif
 import com.ibm.JikesRVM.VM_JNIGCMapIterator;
@@ -17,8 +17,6 @@ import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_WordArray;
-import com.ibm.JikesRVM.VM_RuntimeCompiler;
-import com.ibm.JikesRVM.VM_BootImageCompiler;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_SizeConstants;
@@ -43,25 +41,19 @@ import com.ibm.JikesRVM.VM_SizeConstants;
  * @modified by Stephen Smith
  * @modified by anyone adding a new iterator
  */
-public final class VM_GCMapIteratorGroup implements VM_SizeConstants{
+public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
   
   /** current location (memory address) of each gpr register */
   private VM_WordArray         registerLocations;
+
+  /** iterator for baseline compiled frames */
+  private VM_GCMapIterator     baselineIterator;
   
-  /** iterator for VM_BootImageCompiler stackframes */
-  private VM_GCMapIterator     bootImageCompilerIterator;
-  
-  /** iterator for VM_RuntimeCompiler stackframes */
-  private VM_GCMapIterator     runtimeCompilerIterator;
+  /** iterator for opt compiled frames */
+  private VM_GCMapIterator     optIterator;
   
   /** iterator for VM_HardwareTrap stackframes */
   private VM_GCMapIterator     hardwareTrapIterator;
-  
-  /** iterator for fallback compiler (baseline) stackframes */
-  private VM_GCMapIterator     fallbackCompilerIterator;
-  
-  /** iterator for test compiler (opt) stackframes */
-  private VM_GCMapIterator     testOptCompilerIterator;
   
   /** iterator for JNI Java -> C  stackframes */
   private VM_GCMapIterator     jniIterator;
@@ -70,18 +62,12 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants{
   public VM_GCMapIteratorGroup() throws VM_PragmaUninterruptible {
     registerLocations         = VM_WordArray.create(VM_Constants.NUM_GPRS);
     
-    bootImageCompilerIterator = VM_BootImageCompiler.createGCMapIterator(registerLocations);
-    runtimeCompilerIterator   = VM_RuntimeCompiler.createGCMapIterator(registerLocations);
-    hardwareTrapIterator      = new VM_HardwareTrapGCMapIterator(registerLocations);
-    fallbackCompilerIterator  = new VM_BaselineGCMapIterator(registerLocations);
-    
-    // deal with the fact that testing harnesses can install additional compilers.
-    // 
+    baselineIterator = new VM_BaselineGCMapIterator(registerLocations);
     //-#if RVM_WITH_OPT_COMPILER
-    testOptCompilerIterator = new VM_OptGCMapIterator(registerLocations);
+    optIterator = new VM_OptGCMapIterator(registerLocations);
     //-#endif
-    
     jniIterator = new VM_JNIGCMapIterator(registerLocations);
+    hardwareTrapIterator      = new VM_HardwareTrapGCMapIterator(registerLocations);
   }
   
   /**
@@ -103,12 +89,10 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants{
       registerLocations.set(i, registerLocation);
       registerLocation = registerLocation.add(BYTES_IN_ADDRESS);
     }
-    bootImageCompilerIterator.newStackWalk(thread);
-    runtimeCompilerIterator.newStackWalk(thread);
+    baselineIterator.newStackWalk(thread);
+    if (optIterator != null) optIterator.newStackWalk(thread);
     hardwareTrapIterator.newStackWalk(thread);
-    fallbackCompilerIterator.newStackWalk(thread);
-    if (testOptCompilerIterator != null) testOptCompilerIterator.newStackWalk(thread);
-    if (jniIterator != null) jniIterator.newStackWalk(thread);
+    jniIterator.newStackWalk(thread);
   }
   
   /**
@@ -121,27 +105,15 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants{
    * @return VM_GCMapIterator to use
    */
   public VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) throws VM_PragmaUninterruptible {
-    int type = compiledMethod.getCompilerType();
-    
-    if (type == bootImageCompilerIterator.getType())
-      return bootImageCompilerIterator;
-    
-    if (type == runtimeCompilerIterator.getType())
-      return runtimeCompilerIterator;
-    
-    if (type == hardwareTrapIterator.getType())
-      return hardwareTrapIterator;
-    
-    if (type == fallbackCompilerIterator.getType())
-      return fallbackCompilerIterator;
-    
-    if (jniIterator != null && type == jniIterator.getType())
-      return jniIterator;
-    
-    if (testOptCompilerIterator != null && type == testOptCompilerIterator.getType())
-      return testOptCompilerIterator;
-    
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    switch (compiledMethod.getCompilerType()) {
+    case VM_CompiledMethod.TRAP: return hardwareTrapIterator;
+    case VM_CompiledMethod.BASELINE: return baselineIterator;
+    case VM_CompiledMethod.OPT: return optIterator;
+    case VM_CompiledMethod.JNI: return jniIterator;
+    }
+    if (VM.VerifyAssertions) {
+      VM._assert(false, "VM_GCMapIteratorGroup.selectIterator: Unknown type of compiled method");
+    }
     return null;
   }
   
