@@ -73,16 +73,16 @@ if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
 	declare -i stat=0
 	$DIFF $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp > /dev/null || stat=$?
 	if (( stat == 1 )); then
-	    echo >&2 "${ME}: I think you want me to automatically download and build GNU Classpath.  But, there's already some sort of Classpath checkout in $DEST_DIR."
+	    echo >&2 "${ME}: I think you want me to automatically download and build GNU Classpath.  But, there's already some sort of Classpath download in $DEST_DIR."
 	    echo >&2 "The timestamp in $DEST_DIR/stamp is: $(< $DEST_DIR/stamp)"
 	    echo >&2 "The timestamp I expect is: $(< $RVM_ROOT/rvm/bin/classpath.stamp)"
 	    let ++mismatch;
 	elif (( stat != 0 )); then
-	    echo >&2 "$ME: diff failed with bad status $stat; aborting"
+	    echo >&2 "$ME: $DIFF failed with bad status $stat; aborting"
 	    exit $stat
 	fi
     elif [[ -e $DEST_DIR ]]; then
-	echo >&2 "${ME}: $DEST_DIR contains what might be an unknown GNU Classpath checkout"
+	echo >&2 "${ME}: $DEST_DIR contains what might be an unknown GNU Classpath download"
 	echo >&2 "${ME}: I expected to find a file named $DEST_DIR/stamp"
 	echo >&2 "${ME}: that contains the timestamp: $(<  $RVM_ROOT/rvm/bin/classpath.stamp )"
 	let ++mismatch;
@@ -90,7 +90,7 @@ if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
 fi
 
 if (( mismatch )); then
-    echo >&2 "Either you need to set one of the CLASSPATH_ variables in your config file or you need to delete $DEST_DIR and restart this build.  If you wipe out $DEST_DIR, I will automatically download GNU Classpath and build it for you."
+    echo >&2 "${ME}: Either (a) set one of the CLASSPATH_ variables in your config file and rerun \"jconfigure\" or (b) delete $DEST_DIR.  Then restart this build.  If you wipe out $DEST_DIR, I will automatically download GNU Classpath and build it for you.  If you set one of the CLASSPATH_ variables, I will use the already built or installed GNU Classpath that I find there."
     exit 1
 fi
 
