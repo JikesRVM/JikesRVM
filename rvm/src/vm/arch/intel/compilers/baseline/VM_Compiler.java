@@ -62,17 +62,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
 
   /**
-   * Emit code to complete the dynamic linking of a
-   * prematurely resolved VM_Type.
-   * @param dictionaryId of type to link (if necessary)
-   */
-  protected final void emit_initializeClassIfNeccessary(int dictionaryId) {
-    asm.emitMOV_Reg_Imm (T0, dictionaryId);
-    asm.emitPUSH_Reg    (T0);
-    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
-  }
-
-  /**
    * Emit the code for a threadswitch tests (aka a yieldpoint).
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
@@ -1876,20 +1865,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-      }
       asm.emitPUSH_RegDisp(JTOC, fieldOffset+WORDSIZE); // get high part
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);          // get low part
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-      }
     }
   }
 
@@ -1925,20 +1902,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-      }
       asm.emitPOP_RegDisp(JTOC, fieldOffset);          // store low part
       asm.emitPOP_RegDisp(JTOC, fieldOffset+WORDSIZE); // store high part
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-      }
     }
   }
 
@@ -1974,22 +1939,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-      }
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
       asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
       asm.emitPUSH_RegDisp(T0, fieldOffset);                 // push low part of field value
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-      }
     }
   }
 
@@ -2037,24 +1990,12 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockMethod.getOffset());
-      }
       // TODO!! use 8-byte move if possible
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
       asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
       asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
       asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
       asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
-      if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	asm.emitPUSH_Reg        (T0);
-	VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
-	asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockMethod.getOffset());
-      }
       asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
     }
   }

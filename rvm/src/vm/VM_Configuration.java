@@ -221,36 +221,6 @@ public abstract class VM_Configuration {
         true;
       //-#endif
 
-  // Use synchronization on PowerPC to access one word fields declared volatile and
-  // on all platforms to access two word fields declared volatile.
-  //
-  // If this control is not set, volatile fields will not be kept in registers but stale
-  // values may still be visible in processor caches.
-  //
-  // Note: for best results the following controls should also be set:
-  //     BuildForPrematureClassResolution - so that volatile fields can be recognized as such at compilation time
-  //     BuildForLazyCompilation - to avoid sucking in the whole world with premature class resolution.
-  //
-  public static final boolean BuildForStrongVolatileSemantics = 
-      //-#if RVM_WITH_STRONG_VOLATILE_SEMANTICS
-        true;
-      //-#else
-        false;
-      //-#endif
-  
-  // Resolve classes when a compiler encounters a reference to a not yet loaded class.
-  // 
-  // Note: setting BuildForLazyCompilation will prevent a cascade effect from sucking in too much irrelevant stuff.
-  //
-  public static final boolean BuildForPrematureClassResolution = 
-      //-#if RVM_WITH_PREMATURE_CLASS_RESOLUTION
-        true;
-      //-#else
-        false
-        || BuildForStrongVolatileSemantics // TEMP!! remove this clause when dynamic linking for strong volatiles is implemented
-        ;
-      //-#endif
-
   // Lazy vs. eager method compilation during class loading.
   //
   public static final boolean BuildForLazyCompilation =

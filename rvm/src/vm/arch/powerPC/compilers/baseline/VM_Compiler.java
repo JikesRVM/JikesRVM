@@ -122,18 +122,6 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
   /**
-   * Emit code to complete the dynamic linking of a
-   * prematurely resolved VM_Type.
-   * @param dictionaryId of type to link (if necessary)
-   */
-  protected final void emit_initializeClassIfNeccessary(int dictionaryId) {
-    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryMethod.getOffset());
-    asm.emitMTLR(S0);
-    asm.emitLVAL(T0, dictionaryId); 
-    asm.emitCall(spSaveAreaOffset);
-  }
-
-  /**
    * Emit the code for a threadswitch tests (aka a yieldpoint).
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
    */
@@ -1829,40 +1817,13 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_getstatic(VM_Field fieldRef) {
     int fieldOffset = fieldRef.getOffset();
-
-    if (!(VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitLtoc(T0, fieldOffset);
-	asm.emitSTU (T0, -4, SP);
-      } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLFDtoc(F0, fieldOffset, T0);
-	asm.emitSTFDU (F0, -8, SP);
-      }
-    } else { // strong volatiles case
-      // asm.emitISYNC(); // to make getstatic of a volatile field a read barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
-      if (fieldRef.getSize() == 4) {  // see Appendix E of PowerPC Microprocessor Family: The Programming nvironments
-	asm.emitLVAL  (T1, fieldOffset); // T1 = fieldOffset
-	int label = asm.getMachineCodeIndex();
-	asm.emitLWARX (T0, JTOC, T1);    // T0 = value
-	asm.emitSTWCXr(T0, JTOC, T1);    // atomically rewrite value
-	asm.emitBC    (NE, label);       // retry, if reservation lost
-	asm.emitSTU   (T0, -4, SP);      // push value
-      } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
-	asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
-	asm.emitMTLR  (S0);
-	asm.emitCall  (spSaveAreaOffset);
-	asm.emitLFDtoc(F0, fieldOffset, T0);
-	asm.emitSTFDU (F0, -8, SP);
-	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
-	asm.emitL     (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
-	asm.emitMTLR  (S0);
-	asm.emitCall  (spSaveAreaOffset);
-      }
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitLtoc(T0, fieldOffset);
+      asm.emitSTU (T0, -4, SP);
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      asm.emitLFDtoc(F0, fieldOffset, T0);
+      asm.emitSTFDU (F0, -8, SP);
     }
   }
 
@@ -1903,55 +1864,21 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
     }
-    if (!(VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitL    (T0, 0, SP);
-	asm.emitCAL  (SP, 4, SP);
-	if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
-	  //-#if RVM_WITH_CONCURRENT_GC
-	  VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
-	  //-#endif
-	} else {
-	  asm.emitSTtoc(T0, fieldOffset, T1);
-	}
-      } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLFD    (F0, 0, SP );
-	asm.emitCAL    (SP, 8, SP);
-	asm.emitSTFDtoc(F0, fieldOffset, T0);
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitL    (T0, 0, SP);
+      asm.emitCAL  (SP, 4, SP);
+      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
+	//-#if RVM_WITH_CONCURRENT_GC
+	VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
+	//-#endif
+      } else {
+	asm.emitSTtoc(T0, fieldOffset, T1);
       }
-    } else {		// strong volatiles case
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitL     (T0, 0, SP);
-	asm.emitCAL   (SP, 4, SP);
-	if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
-	  //-#if RVM_WITH_CONCURRENT_GC 
-	  VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
-	  //-#endif
-	} else { // see Appendix E of PowerPC Microprocessor Family: The Programming Environments
-	  asm.emitLVAL  (T1, fieldOffset); // T1 = fieldOffset
-	  int label = asm.getMachineCodeIndex();
-	  asm.emitLWARX (S0, JTOC, T1);    // S0 = old value
-	  asm.emitSTWCXr(T0, JTOC, T1);    // atomically replace with new value (T0)
-	  asm.emitBC    (NE, label);       // retry, if reservation lost
-	}
-	// asm.emitSYNC(); // to make putstatic of a volatile field a write barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
-      } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLtoc   (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
-	asm.emitL      (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
-	asm.emitMTLR   (S0);
-	asm.emitCall   (spSaveAreaOffset);
-	asm.emitLFD    (F0, 0, SP );
-	asm.emitCAL    (SP, 8, SP);
-	asm.emitSTFDtoc(F0, fieldOffset, T0);
-	asm.emitLtoc   (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
-	asm.emitL      (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
-	asm.emitMTLR   (S0);
-	asm.emitCall   (spSaveAreaOffset);
-      }
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      asm.emitLFD    (F0, 0, SP );
+      asm.emitCAL    (SP, 8, SP);
+      asm.emitSTFDtoc(F0, fieldOffset, T0);
     }
   }
 
@@ -1979,43 +1906,14 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_getfield(VM_Field fieldRef) {
     int fieldOffset = fieldRef.getOffset();
-    if (!(VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
-      asm.emitL (T1, 0, SP); // T1 = object reference
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitL (T0, fieldOffset, T1);
-	asm.emitST(T0, 0, SP);
-      } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLFD  (F0, fieldOffset, T1);
-	asm.emitSTFDU(F0, -4, SP);
-      }
-    } else {		// strong volatiles case
-      if (fieldRef.getSize() == 4) { // field is one word
-	// asm.emitISYNC(); // to make getfield of a volatile field a read barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
-	asm.emitL  (T1, 0, SP);                // T1 = object to read
-	// see Appendix E of PowerPC Microprocessor Family: The Programming Environments
-	asm.emitCAL   (T1, fieldOffset, T1); // T1 = pointer to slot
-	int label = asm.getMachineCodeIndex();
-	asm.emitLWARX (T0, 0, T1);           // T0 = value
-	asm.emitSTWCXr(T0, 0, T1);           // atomically replace with new value (T0)
-	asm.emitBC    (NE, label);           // retry, if reservation lost
-	asm.emitST    (T0, 0, SP);           // push value
-      } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
-	asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
-	asm.emitMTLR  (S0);
-	asm.emitCall  (spSaveAreaOffset);
-	asm.emitL     (T1, 0, SP);
-	asm.emitLFD   (F0, fieldOffset, T1);
-	asm.emitSTFDU (F0, -4, SP);
-	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);	
-	asm.emitL     (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
-	asm.emitMTLR  (S0);
-	asm.emitCall  (spSaveAreaOffset);
-      }
+    asm.emitL (T1, 0, SP); // T1 = object reference
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitL (T0, fieldOffset, T1);
+      asm.emitST(T0, 0, SP);
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      asm.emitLFD  (F0, fieldOffset, T1);
+      asm.emitSTFDU(F0, -4, SP);
     }
   }
 
@@ -2058,59 +1956,23 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset);
     }
-    if (!(VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitL  (T1, 4, SP); // T1 = object reference
-	asm.emitL  (T0, 0, SP); // T0 = value
-	asm.emitCAL(SP, 8, SP);  
-	if (!(VM.BuildForConcurrentGC && !fieldRef.getType().isPrimitiveType())) { // normal case
-	  asm.emitST (T0, fieldOffset, T1);
-	} else {	// barrier needed for reference counting GC
-	  //-#if RVM_WITH_CONCURRENT_GC
-	  VM_RCBarriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
-	  //-#endif
-	}
-      } else { // field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLFD (F0,  0, SP); // F0 = doubleword value
-	asm.emitL   (T1,  8, SP); // T1 = object reference
-	asm.emitCAL (SP, 12, SP);
-	asm.emitSTFD(F0, fieldOffset, T1);
+    if (fieldRef.getSize() == 4) { // field is one word
+      asm.emitL  (T1, 4, SP); // T1 = object reference
+      asm.emitL  (T0, 0, SP); // T0 = value
+      asm.emitCAL(SP, 8, SP);  
+      if (!(VM.BuildForConcurrentGC && !fieldRef.getType().isPrimitiveType())) { // normal case
+	asm.emitST (T0, fieldOffset, T1);
+      } else {	// barrier needed for reference counting GC
+	//-#if RVM_WITH_CONCURRENT_GC
+	VM_RCBarriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
+	//-#endif
       }
-    } else {		// strong volatiles case
-      if (fieldRef.getSize() == 4) { // field is one word
-	asm.emitL  (T1, 4, SP);                // T1 = object to update
-	asm.emitL  (T0, 0, SP);                // T0 = new value
-	asm.emitCAL(SP, 8, SP);                // pop stack
-	if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
-	  //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBarriers not available for non concurrent GC builds
-	  VM_RCBarriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
-	  //-#endif
-	} else { // see Appendix E of PowerPC Microprocessor Family: The Programming Environments
-	  asm.emitCAL   (T1, fieldOffset, T1); // T1 = pointer to slot
-	  int label = asm.getMachineCodeIndex();
-	  asm.emitLWARX (S0, 0, T1);           // S0 = old value
-	  asm.emitSTWCXr(T0, 0, T1);           // atomically replace with new value (T0)
-	  asm.emitBC    (NE, label);           // retry, if reservation lost
-	}
-	// asm.emitSYNC(); // to make putfield of a volatile field a write barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
-      } else { // volatile field is two words (double or long)
-	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
-	asm.emitL     (S0, VM_Entrypoints.processorLockMethod.getOffset(), T1);
-	asm.emitMTLR  (S0);
-	asm.emitCall  (spSaveAreaOffset);
-	asm.emitLFD   (F0,  0, SP);
-	asm.emitL     (T1,  8, SP);
-	asm.emitCAL   (SP, 12, SP);
-	asm.emitSTFD  (F0, fieldOffset, T1);
-	asm.emitLtoc  (T0, VM_Entrypoints.doublewordVolatileMutexField.getOffset());
-	VM_ObjectModel.baselineEmitLoadTIB(asm, T1, T0);
-	asm.emitL     (S0, VM_Entrypoints.processorUnlockMethod.getOffset(), T1);
-	asm.emitMTLR  (S0);
-	asm.emitCall  (spSaveAreaOffset);
-      }
+    } else { // field is two words (double or long)
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+      asm.emitLFD (F0,  0, SP); // F0 = doubleword value
+      asm.emitL   (T1,  8, SP); // T1 = object reference
+      asm.emitCAL (SP, 12, SP);
+      asm.emitSTFD(F0, fieldOffset, T1);
     }
   }
 

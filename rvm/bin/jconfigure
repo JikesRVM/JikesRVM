@@ -351,11 +351,6 @@ integer RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking
 integer RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 integer RVM_WITH_SPECIALIZATION=0 # support for method cloning
 
-# support for strong semantics for Java volatile fields
-# also to avoid dynamic linking
-integer RVM_WITH_STRONG_VOLATILE_SEMANTICS=0 # synchronize on each access
-integer RVM_WITH_PREMATURE_CLASS_RESOLUTION=0 # resolve classes referred to by method being compiled
-
 # The following flags tweak the memory model used by the optimizing compiler
 # to constrain optimization
 integer RVM_WITH_NOFLUSH=0	 # omit sync/isync in all cases

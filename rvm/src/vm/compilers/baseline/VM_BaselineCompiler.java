@@ -1474,27 +1474,8 @@ public abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "getstatic " + constantPoolIndex  + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !fieldRefClass.isInitialized() &&
-	    !(fieldRefClass == klass) &&
-	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)) { 
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
-	  emit_initializeClassIfNeccessary(fieldRefClass.getDictionaryId());
-	  classPreresolved = true;
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic "+fieldRef);
 	  emit_unresolved_getstatic(fieldRef);
 	} else {
@@ -1508,27 +1489,8 @@ public abstract class VM_BaselineCompiler {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (shouldPrint) asm.noteBytecode(biStart, "putstatic " + constantPoolIndex + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !fieldRefClass.isInitialized() &&
-	    !(fieldRefClass == klass) &&
-	    !(fieldRefClass.isInBootImage() && VM.writingBootImage)) { 
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
-	  emit_initializeClassIfNeccessary(fieldRefClass.getDictionaryId());
-	  classPreresolved = true;
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic "+fieldRef);
 	  emit_unresolved_putstatic(fieldRef);
 	} else {
@@ -1541,20 +1503,8 @@ public abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + constantPoolIndex  + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
 	  emit_unresolved_getfield(fieldRef);
 	} else {
@@ -1568,19 +1518,8 @@ public abstract class VM_BaselineCompiler {
 	int fieldId = klass.getFieldRefId(constantPoolIndex);
 	VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	if (shouldPrint) asm.noteBytecode(biStart, "putfield " + constantPoolIndex + " (" + fieldRef + ")");
-	boolean classPreresolved = false;
 	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    fieldRefClass.load();
-	    fieldRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	  if (VM.VerifyAssertions) VM._assert(!VM.BuildForStrongVolatileSemantics); // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
+	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield "+fieldRef);
 	  emit_unresolved_putfield(fieldRef);
 	} else {
@@ -1597,18 +1536,8 @@ public abstract class VM_BaselineCompiler {
 	  emit_Magic(methodRef);
 	  break;
 	} 
-	boolean classPreresolved = false;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
-	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
+	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
 	} else {
@@ -1625,14 +1554,6 @@ public abstract class VM_BaselineCompiler {
 	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + constantPoolIndex + " (" + methodRef + ")");
 	VM_Method target;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (!methodRef.getDeclaringClass().isResolved() && VM.BuildForPrematureClassResolution && false) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	  } catch (Exception e) { 
-	    System.err.println("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  } // report the exception at runtime
-	}
 	if (methodRef.getDeclaringClass().isResolved() && (target = VM_Class.findSpecialMethod(methodRef)) != null) {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
 	  emit_resolved_invokespecial(methodRef, target);
@@ -1651,26 +1572,8 @@ public abstract class VM_BaselineCompiler {
 	  emit_Magic(methodRef);
 	  break;
 	}
-	boolean classPreresolved = false;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
-	if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
-	  try {
-	    methodRefClass.load();
-	    methodRefClass.resolve();
-	    classPreresolved = true;
-	  } catch (Exception e) { // report the exception at runtime
-	    VM.sysWrite("WARNING: during compilation of " + method + " premature resolution of " + methodRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
-	  }
-	}
-	if (VM.BuildForPrematureClassResolution &&
-	    !methodRefClass.isInitialized() &&
-	    !(methodRefClass == klass) &&
-	    !(methodRefClass.isInBootImage() && VM.writingBootImage)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
-	  emit_initializeClassIfNeccessary(methodRefClass.getDictionaryId());
-	  classPreresolved = true;
-	}
-	if (methodRef.needsDynamicLink(method) && !classPreresolved) {
+	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
 	  emit_unresolved_invokestatic(methodRef);
 	} else {
@@ -1968,13 +1871,6 @@ public abstract class VM_BaselineCompiler {
    * Emit the prologue for the method
    */
   protected abstract void emit_prologue();
-
-  /**
-   * Emit code to complete the dynamic linking of a
-   * prematurely resolved VM_Type.
-   * @param dictionaryId of type to link (if necessary)
-   */
-  protected abstract void emit_initializeClassIfNeccessary(int dictionaryId);
 
   /**
    * Emit the code for a threadswitch tests (aka a yieldpoint).

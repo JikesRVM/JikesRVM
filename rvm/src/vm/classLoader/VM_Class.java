@@ -1496,18 +1496,6 @@ public final class VM_Class extends VM_Type
                                           + descriptor + "\n");
   }
 
-  //-#if RVM_WITH_PREMATURE_CLASS_RESOLUTION
-  // Initialize a preresolved class immediately prior to its first use.
-  //
-  static final void initializeClassIfNecessary (int classId) {
-    VM_Class c = (VM_Class) VM_TypeDictionary.getValue(classId);
-    if (c.isInitialized()) return;
-    c.instantiate();
-    c.initialize();
-  }
-  //-#endif
-
-
   /**
    * Add to list of classes that derive from this one.
    */

@@ -99,10 +99,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //
   public static VM_ProcessorLock     outputMutex;         // guard for improving readability of trace output
 
-  // Guarding access to two word volatile fields.
-  //
-  public static VM_ProcessorLock     doublewordVolatileMutex;
-
   // Thick locks.
   //
   public static VM_Lock [] locks;
@@ -132,7 +128,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   static void init() throws VM_PragmaInterruptible {
     threadCreationMutex     = new VM_ProcessorLock();
     outputMutex             = new VM_ProcessorLock();
-    if (VM.BuildForStrongVolatileSemantics) doublewordVolatileMutex = new VM_ProcessorLock();
     threads                 = new VM_Thread[MAX_THREADS];
     threadAllocationIndex   = PRIMORDIAL_THREAD_INDEX;
 
