@@ -17,6 +17,7 @@ class Node2I2A {
   static int objectSize = 0;
 
   public static void computeObjectSize() {
+    System.out.println("computeObjectSize entered");
     int estimateSize = 200000;
     long start = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     System.out.println("start = " + start);
