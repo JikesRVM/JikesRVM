@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
@@ -24,9 +24,6 @@ final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {
 
   private VM_MethodCountData data;
 
-  /**
-   * @param listener         the associated listener
-   */
   VM_AccumulatingMethodSampleOrganizer() {
     makeDaemon(true);
   }
