@@ -256,6 +256,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // Create thread-specific data key which will allow us to find
     // the correct VM_Processor from an arbitrary pthread.
     VM.sysCreateThreadSpecificDataKeys();
+
+    // enable spoofing of blocking native select calls
+    System.loadLibrary("syswrap");
     //-#endif
 
     if (VM.BuildWithNativeDaemonProcessor)

@@ -8,4 +8,4 @@
 include			$(JAL_BUILD)/Make.rules
 
 $(DEST):		syswrap.C syswrap.h
-	$(LDSHARED) -o $(DEST) $(CXXFLAGS) -I$(JAL_ROOT)/rvm/src/include -I$(JAL_BUILD)/RVM.scratch -O -g $<
+	$(LDSHARED) -nostartfiles -Wl,--export-dynamic -o $(DEST) $(CXXFLAGS) -I$(JAL_ROOT)/rvm/src/include -I$(JAL_BUILD)/RVM.scratch -O -g $<

@@ -18,8 +18,8 @@ HEAPSIZE=64
 LHEAPSIZE=32
 START_NAME=
 EXPECTED=
-BENCH_JDK_ARGS=
-BENCH_RVM_ARGS=
+BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
+BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
@@ -49,8 +49,7 @@ sanity: $(LIBS) $(TESTS)
 ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
 
 single:	$(ONE_TEST_LIB)
-	export LIBPATH=$(BENCH_CLASS_CP); export LD_LIBRARY_PATH=$(BENCH_CLASS_CP); \
-		$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
+	$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
 	$(MAKE) do-sanity-finish
 
 vpath %.c	$(BENCH_HOME)
@@ -66,6 +65,5 @@ lib%.a:	%.c %.h
 	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
 
 $(TESTS): % :
-	export LIBPATH=$(BENCH_CLASS_CP); export LD_LIBRARY_PATH=$(BENCH_CLASS_CP); \
 	$(MAKE) START_NAME=$@ START_ARGS=-quiet do-sanity-compare
 

@@ -308,6 +308,22 @@ public class VM_CommandLineArgs {
   }
 
   /**
+   * Extract the first -D... command line argument that matches a given
+   * variable, and return it.
+   * @return the environment arg, or null if there is none.
+   */
+  public static String getEnvironmentArg(String variable) {
+      String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
+      String prefix = variable + "=";
+      if (allEnvArgs != null)
+	  for(int i = 0; i < allEnvArgs.length; i++) 
+	      if (allEnvArgs[i].startsWith(prefix))
+		  return allEnvArgs[i].substring(variable.length()+1);
+
+      return null;
+  }
+
+  /**
    * Extract the -X:vmClasses command line argument and return it.
    * @return null if no such command line argument is given.
    */

@@ -2053,7 +2053,6 @@ function emitBooterLinker
       else
         print '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap.so CXXFLAGS="'"$SMP_STR"'" $JAL_BUILD/libsyswrap.so'
       fi
-      print 'EXTRA_CCLIBS="-L$JAL_BUILD -lsyswrap"'
    fi
 
    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
@@ -2062,7 +2061,7 @@ function emitBooterLinker
          print 'BOOTER_CCM="$BOOTER_CC -M"'
 	 print "CPP=\"$HOST_CC_STR -E\""
 
-	 print 'CCLIBS="$EXTRA_CCLIBS -lpthread -lm"'
+	 print 'CCLIBS="-lpthread -lm"'
          print 'IMAGE='
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -2075,23 +2074,23 @@ function emitBooterLinker
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CC_STR -DRVM_FOR_POWERPC $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CC_STR -rdynamic -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR -D__linuxsmp__\""
 
-	 print 'CCLIBS="$EXTRA_CCLIBS -lpthread -ldl -lm"'
+	 print 'CCLIBS="-lpthread -ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 -D_REENTRANT $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CPLUS_STR -rdynamic -DRVM_FOR_IA32 -D_REENTRANT $SMP_STR\""
 
-	 print 'CCLIBS="$EXTRA_CCLIBS -lpthread -ldl"'
+	 print 'CCLIBS="-lpthread -ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 $SMP_STR\""
 
-	 print 'CCLIBS="$EXTRA_CCLIBS -ldl"'
+	 print 'CCLIBS="-ldl"'
          print 'IMAGE='
    elif (( RVM_FOR_IA32 && RVM_FOR_CYGWIN )); then
 	 print "BOOTER_CC=\"$HOST_CPLUS_STR -DRVM_FOR_IA32 $SMP_STR\""

@@ -162,11 +162,9 @@ sysWriteLong(int value1, unsigned int value2, int hexToo)
 
 // Exit with a return code.
 //
-#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
-#endif
 
-static bool done = false;
+static bool systemExiting = false;
 
 extern "C" void
 sysExit(int value)
@@ -180,12 +178,11 @@ sysExit(int value)
    fflush(SysTraceFile);
    fflush(stdout);
 
-   done = true;
+   systemExiting = true;
 
 #if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    pthread_mutex_lock( &DeathLock );
    exit(value);
-   pthread_mutex_unlock( &DeathLock );  // :)
 #else
    exit(value);
 #endif
@@ -647,7 +644,7 @@ void *timeSlicerThreadMain(void *arg) {
 	howLong.tv_nsec = ns;
 	int errorCode = nanosleep( &howLong, &remaining );
 	
-	if (done) break;
+	if (systemExiting) pthread_exit(0);
 	
 	processTimerTick();
     }
@@ -1303,7 +1300,6 @@ extern "C" void sysCreateThreadSpecificDataKeys(void) {
 #ifdef DEBUG_SYS
   fprintf(stderr, "sys: vm processor key=%u\n", VmProcessorIdKey);
 #endif
-  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), VmProcessorIdKey);
 
   // creation of other keys can go here...
 }
@@ -1935,7 +1931,7 @@ sysDlopen(char *libname)
    {
        void * libHandler;
        do {
-	   libHandler = dlopen(libname, RTLD_LAZY);
+	   libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
        }
        while( (libHandler == 0 /*null*/) && (errno == EINTR) );
        if (libHandler == 0) {
@@ -2768,10 +2764,4 @@ sysSprintf(char buffer[], double d)
     sprintf(buffer, "%G", d);
     return strlen(buffer);
   }
-
-extern int createJavaVM();
-
-extern "C" int sysCreateJavaVM() {
-  return createJavaVM();
-}
 

@@ -14,7 +14,10 @@ import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import com.ibm.JikesRVM.classloader.VM_ResolutionException;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
+
 import java.security.ProtectionDomain;
+
+import java.net.URL;
 
 /**
  * This class provides a set of static method entrypoints used in the
@@ -48,16 +51,19 @@ public class ClassLoaderSupport {
   /**
    * Loads and links the library specified by the argument.
    *
-   * @param		pathName		the absolute (ie: platform dependent)
-   *								path to the library to load
+   * @param		pathName	the name of the library to load
    *
-   * @exception	UnsatisfiedLinkError if the library could not be loaded
+   * @exception	UnsatisfiedLinkError	if the library could not be loaded
    * @exception	SecurityException    if the library was not allowed to be loaded
    */
   public static void load(String pathName) {
-    VM_ClassLoader.load(pathName);
+      SecurityManager smngr = System.getSecurityManager();
+      if (smngr != null)
+	  smngr.checkLink(pathName);
+      
+      VM_ClassLoader.load(pathName);
   }
-
+    
   /**
    * Loads and links the library specified by the argument.
    *
@@ -67,8 +73,13 @@ public class ClassLoaderSupport {
    * @exception	SecurityException       if the library was not allowed to be loaded
    */
   public static void loadLibrary(String libName) {
-    VM_ClassLoader.loadLibrary(libName);
+      SecurityManager smngr = System.getSecurityManager();
+      if (smngr != null)
+	  smngr.checkLink(libName);
+      
+      VM_ClassLoader.loadLibrary( libName );
   }
+
   /**
    * Answers the classloader which was used to load the
    * class C. Answer null if the

@@ -16,6 +16,8 @@ import java.net.URL;
 
 import java.io.*;
 
+import com.ibm.JikesRVM.librarySupport.FileSupport;
+
 /** 
  * VM_SystemClassLoader.java
  *
@@ -366,5 +368,17 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
       return (multiple)? h.getResult(): null;
   }
-	      
+
+    protected String findLibrary(String libName) {
+	String platformLibName = System.mapLibraryName( libName );
+	
+	String path = VM_ClassLoader.getSystemNativePath();
+
+	String lib = path + File.separator + platformLibName;
+
+	if (VM_FileSystem.access(lib, FileSupport.ACCESS_R_OK) == 0)
+	    return lib;
+	else
+	    return null;
+    }
 }

@@ -24,8 +24,7 @@ typedef int (*SelectFunc)(int, fd_set*, fd_set*, fd_set*, struct timeval*);
 extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
   int vmProcessorId);
 #else
-extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
-  pthread_key_t vmProcessorIdKey);
+extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset);
 #endif
 
 // Accessor for real (libc) system call functions;

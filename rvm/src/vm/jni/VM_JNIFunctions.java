@@ -5498,7 +5498,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) {
       VM.sysWrite("JNI called: GetByteArrayElements for ");
       VM.sysWrite(arrayJREF);
-      VM.sysWrite(":");
+      VM.sysWriteln(":");
     }
 
     VM_JNIEnvironment env;
@@ -6852,11 +6852,13 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   // this is the address of the malloc'ed JavaVM struct (one per VM)
   private static VM_Address JavaVM; 
 
+  private static native int createJavaVM();
+
   private static int GetJavaVM(int envJREF, VM_Address StarStarJavaVM) {
      VM.sysWrite("JNI called: GetJavaVM \n");
 
     if (JavaVM == null) {
-	int addr = VM.sysCall0(VM_BootRecord.the_boot_record.sysCreateJavaVMIP);
+	int addr = createJavaVM();
 	JavaVM = VM_Address.fromInt( addr );
 	VM.sysWriteln(addr);
     }

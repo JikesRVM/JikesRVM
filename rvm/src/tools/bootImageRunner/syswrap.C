@@ -30,6 +30,11 @@
 
 extern jint GetEnv(JavaVM *, void **, jint);
 
+extern "C" void *getJTOC();
+extern "C" int getProcessorsOffset();
+
+extern pthread_key_t VmProcessorIdKey;
+
 #include "syswrap.h"
 
 //////////////////////////////////////////////////////////////
@@ -103,10 +108,6 @@ static int ProcessorsOffset;
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 // ID of the single VM_Processor object.
 static int VmProcessorId;
-#else
-// Thread-specific data key for accessing ID of VM_Processor
-// from the pthread it runs on.
-static pthread_key_t VmProcessorIdKey;
 #endif
 
 // Return the number of file descriptors which are set in given
@@ -188,23 +189,15 @@ extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
   Jtoc = jtoc;
   ProcessorsOffset = processorsOffset;
   VmProcessorId = vmProcessorId;
-  //fprintf(stderr, "Set VmProcessorId = %d\n", VmProcessorId);
 }
 #else
 // Initialization function for configurations with
 // multiple VM_Processors.
 // Called by the VM to tell us the thread-specific data key
 // storing the id of each pthread's VM_Processor object.
-extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
-  pthread_key_t vmProcessorIdKey)
-{
-#if 0
-  fprintf(stderr, "initSyscallWrapperLibrary called, key=%u, self=%u!\n",
-    vmProcessorIdKey, pthread_self());
-#endif
+extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset) {
   Jtoc = jtoc;
   ProcessorsOffset = processorsOffset;
-  VmProcessorIdKey = vmProcessorIdKey;
 }
 #endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 
@@ -346,7 +339,7 @@ struct JNIInvokeInterface_ externalJNIFunctions = {
   GetEnv
 };
 
-extern int createJavaVM() {
+int createJavaVM() {
   JavaVM *theJikesRVM = (struct JavaVM_ *) malloc (sizeof(struct JavaVM_));
   theJikesRVM->functions = &externalJNIFunctions;
 
@@ -355,3 +348,17 @@ extern int createJavaVM() {
   return (int) theJikesRVM;
 }
 
+/*
+ * Class:     VM_JNIFunctions
+ * Method:    createJavaVM
+ * Signature: ()I
+ */
+extern "C" JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1JNIFunctions_createJavaVM
+  (JNIEnv *, jclass)
+{
+  return createJavaVM();
+}
+
+extern "C" void _init() {
+  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset());
+}

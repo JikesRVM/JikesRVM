@@ -294,35 +294,65 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * Load a dynamic library
    * @param libname the name of the library to load.
    */
-  public static void loadLibrary(String libname) {
-    currentDynamicLibraryId++;
-    if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
-      dynamicLibraries = growArray(dynamicLibraries, currentDynamicLibraryId << 1); // grow array by 2x
-    if (VM.VerifyAssertions) VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
-
-    // prepend "lib" if there is no path in the name
-    // attach the suffix .a to the library name for AIX, .so for Linux
-    //-#if RVM_FOR_LINUX  
-    String suf = ".so";
-    //-#else
-    String suf = ".a";
-    //-#endif
-    if (libname.indexOf('/')==-1)
-      dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary("lib" + libname + suf);
-    else
-      dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(libname + suf);
-  }
-
   public static void load(String libname) {
     currentDynamicLibraryId++;
-    if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
-      dynamicLibraries = growArray(dynamicLibraries, currentDynamicLibraryId << 1); // grow array by 2x
-    if (VM.VerifyAssertions) VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
 
+    if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
+	dynamicLibraries = 
+	    growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
+    
+    if (VM.VerifyAssertions)
+	VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
+    
     dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(libname);
   }
 
+  /**
+   * Load a dynamic library
+   * @param libname the name of the library to load.
+   */
+  public static void loadLibrary(String libname) {
+    currentDynamicLibraryId++;
+    if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
+      dynamicLibraries = 
+	  growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
 
+    if (VM.VerifyAssertions)
+	VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
+
+    //-#if RVM_WITH_GNU_CLASSPATH    
+    String platformLibName = System.mapLibraryName( libname );
+    //-#else
+    // this is ugly, but will go away soon anyway
+    String platformLibName;
+    if (VM.BuildForLinux)
+	platformLibName = "lib" + libname + ".so";
+    else if (VM.BuildForAix)
+	platformLibName = "lib" + libname + ".a";
+    else {
+	platformLibName = null;
+	VM._assert(NOT_REACHED);
+    }
+    //-#endif
+
+    StringTokenizer javaLibDirs =
+	new StringTokenizer(javaLibPath, File.pathSeparator, false);
+
+    while (javaLibDirs.hasMoreElements()) {
+	String javaLibDir = javaLibDirs.nextToken();
+	File javaLib = new File(javaLibDir, platformLibName);
+	
+	if (javaLib.exists()) {
+	    dynamicLibraries[currentDynamicLibraryId] = 
+		new VM_DynamicLibrary(javaLib.getPath());
+
+	    return;
+	}
+    }
+
+    throw new UnsatisfiedLinkError("Cannot find library " + libname);
+  }
+    
   static VM_DynamicLibrary[] getDynamicLibraries() {
     return dynamicLibraries;
   }
@@ -412,6 +442,32 @@ implements VM_Constants, VM_ClassLoaderConstants {
     //-#endif
   }
 
+    private static String javaLibPath;
+
+    private static void setJavaLibPath() {
+	javaLibPath = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
+	if (javaLibPath == null) javaLibPath="";
+
+	//-#if !RVM_WITH_GNU_CLASSPATH
+	// an ugly hack that will go away soon
+	javaLibPath = javaLibPath + File.pathSeparator + VM_CommandLineArgs.getEnvironmentArg("rvm.build");
+	//-#endif
+    }
+
+    public static String getJavaLibPath() {
+	return javaLibPath;
+    } 
+
+    private static String systemNativePath;
+
+    private static void setSystemNativePath() {
+	systemNativePath = VM_CommandLineArgs.getEnvironmentArg("rvm.build");
+    }
+
+    public static String getSystemNativePath() {
+	return systemNativePath;
+    } 
+
   /**
    * Initialize for execution.
    * @param vmClasses name of directory containing vm .class and .zip/.jar 
@@ -419,8 +475,10 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * bootimage was created)
    * @return nothing
    */
-  public static void boot(String vmClasses) {
+  public static void boot(String vmClasses) {      
     setVmRepositories(vmClasses);
+    setSystemNativePath();
+    setJavaLibPath();
     currentDynamicLibraryId = 0;
     dynamicLibraries = new VM_DynamicLibrary[0];
   }
