@@ -41,7 +41,7 @@ public abstract class VM_Method extends VM_Member {
   }
   
   /**
-   * Called from {@link VM_Class#load(DataInputStream, ClassLoader, VM_Atom)} to create an
+   * Called from {@link VM_Class#VM_Class(VM_TypeReference, DataInputStream)} to create an
    * instance of a VM_Method by reading the relevant data from the argument bytecode stream.
    * 
    * @param declaringClass the VM_Class object of the class that declared this method

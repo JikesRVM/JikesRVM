@@ -465,8 +465,6 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the type reference (as a VM_Type)
    * Used for new, anewarray, checkcast, instanceof, multianewarray
    * @return type reference
-   * @see #getTypeReferenceIndex()
-   * @see #getTypeReference(int)
    */
   public final VM_TypeReference getTypeReference() {
     if (VM.VerifyAssertions)
@@ -521,7 +519,6 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @param klass element type
    * @return array type
    * @see #getTypeReference()
-   * @see #getTypeReference(int)
    * @see #getObjectArrayType()
    */
   public final VM_Type getObjectArrayType(VM_Type klass) {
