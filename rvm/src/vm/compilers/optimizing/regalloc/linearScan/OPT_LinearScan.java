@@ -909,30 +909,18 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       this.ir = ir;
       this.spillManager = sm;
 
-      if (ir.options.getOptLevel() >= 2) {
-        if (ir.hasReachableExceptionHandlers()) {
+      switch (ir.options.SPILL_COST_ESTIMATE) {
+        case OPT_Options.SIMPLE_SPILL_COST:
           spillCost = new OPT_SimpleSpillCost(ir);
-        } else {
-          spillCost = new OPT_LoopDepthSpillCost(ir);
-        }
-      } else {
-        switch (ir.options.SPILL_COST_ESTIMATE) {
-          case OPT_Options.SIMPLE_SPILL_COST:
-            spillCost = new OPT_SimpleSpillCost(ir);
-            break;
-          case OPT_Options.BRAINDEAD_SPILL_COST:
-            spillCost = new OPT_BrainDeadSpillCost(ir);
-            break;
-          case OPT_Options.LOOPDEPTH_SPILL_COST:
-            if (ir.hasReachableExceptionHandlers()) {
-              spillCost = new OPT_SimpleSpillCost(ir);
-            } else {
-              spillCost = new OPT_LoopDepthSpillCost(ir);
-            }
-            break;
-          default:
-            OPT_OptimizingCompilerException.UNREACHABLE("unsupported spill cost");
-        }
+          break;
+        case OPT_Options.BRAINDEAD_SPILL_COST:
+          spillCost = new OPT_BrainDeadSpillCost(ir);
+          break;
+        case OPT_Options.BLOCK_COUNT_SPILL_COST:
+          spillCost = new OPT_BlockCountSpillCost(ir);
+          break;
+        default:
+          OPT_OptimizingCompilerException.UNREACHABLE("unsupported spill cost");
       }
     }
 

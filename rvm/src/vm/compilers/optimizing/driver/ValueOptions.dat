@@ -82,11 +82,11 @@ How to interpret block and edge frequencies?
 "BLACK_AND_WHITE bw bw" \
 "SHADES_OF_GREY grey grey"
 
-E SPILL_COST_ESTIMATE byte SIMPLE_SPILL_COST
+E SPILL_COST_ESTIMATE byte BLOCK_COUNT_SPILL_COST
 Selection of spilling heuristic
 "SIMPLE_SPILL_COST simpleSpillCost simple" \
 "BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
-"LOOPDEPTH_SPILL_COST loopDepthSpillCost loopDepth"
+"BLOCK_COUNT_SPILL_COST blockCountSpillCost blockCount"
 
 S METHOD_TO_WRITE String
 Write class file from HIR for this method
