@@ -7,18 +7,26 @@ HOST_REPOSITORIES := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_REPOSITORIES)
 GENERATOR_DIR := $(RVM_ROOT)/rvm/src/tools/templateExpander
 GENERATOR := GenerateFromTemplate
 
-OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
-SHARED_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/baseline
-OPT_BOOLEAN_DAT_FILES := ${SHARED_DIR}/SharedBooleanOptions.dat ${OPTION_DIR}/BooleanOptions.dat
-OPT_VALUE_DAT_FILES := ${SHARED_DIR}/SharedValueOptions.dat ${OPTION_DIR}/ValueOptions.dat
-OPT_DAT_FILES := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
-
-ADAPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/adaptive/utility/
+ADAPT_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/adaptive/utility/
 ADAPT_BOOLEAN_DAT_FILES := ${ADAPT_OPTION_DIR}/BooleanOptions.dat \
 			   ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat
-ADAPT_VALUE_DAT_FILES := ${ADAPT_OPTION_DIR}/ValueOptions.dat \
-			 ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
-ADAPT_DAT_FILES := $(ADAPT_BOOLEAN_DAT_FILES) $(ADAPT_VALUE_DAT_FILES)
+ADAPT_VALUE_DAT_FILES   := ${ADAPT_OPTION_DIR}/ValueOptions.dat \
+			   ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
+ADAPT_DAT_FILES         := $(ADAPT_BOOLEAN_DAT_FILES) $(ADAPT_VALUE_DAT_FILES)
+
+BASE_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/baseline
+BASE_BOOLEAN_DAT_FILES := $(BASE_OPTION_DIR)/SharedBooleanOptions.dat
+BASE_VALUE_DAT_FILES   := $(BASE_OPTION_DIR)/SharedValueOptions.dat
+BASE_DAT_FILES         := $(BASE_BOOLEAN_DAT_FILES) $(BASE_VALUE_DAT_FILES)
+
+OPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
+OPT_BOOLEAN_DAT_FILES := ${OPT_OPTION_DIR}/BooleanOptions.dat \
+                         ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat \
+                         ${BASE_OPTION_DIR}/SharedBooleanOptions.dat
+OPT_VALUE_DAT_FILES   := ${OPT_OPTION_DIR}/ValueOptions.dat \
+                         ${ADAPT_OPTION_DIR}/SharedValueOptions.dat \
+                         ${BASE_OPTION_DIR}/SharedValueOptions.dat 
+OPT_DAT_FILES         := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
 include $(config_file)
 LATEX  ?= latex
@@ -46,14 +54,14 @@ INPUT_FILES = 	userguide.tex \
 		vmdetails.tex \
 		aosdetails.tex
 
-GEN_INPUTS =	opt_options.tex adaptive_options.tex
+GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex
 
 GENERATOR_FILES = ${GENERATOR}.class QuotedStringTokenizer.class \
 		  UnterminatedStringException.class
 
 TEX_FILES = $(INPUT_FILES) $(GEN_INPUTS) 
 
-TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux
+TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux base_options.aux
 
 HTML_GRAPHICS = jtoc.gif stack.gif arch-AOSOverview.gif
 
@@ -119,8 +127,9 @@ opt_options.tex:	${GENERATOR_FILES} options.template ${OPT_DAT_FILES}
 			  opt_options.tex \
 			  BOOLEAN_DAT_FILES="$(OPT_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(OPT_VALUE_DAT_FILES)" \
-			  OPTPREFIX="-X:irc" \
-			  USE_OPT_LEVELS="YES"
+			  OPTPREFIX="-X:opt" \
+			  USE_OPT_LEVELS="YES" \
+			  OPTION_TYPE="OPTIMIZE"
 
 
 
@@ -130,4 +139,17 @@ adaptive_options.tex:	${GENERATOR_FILES} options.template $(ADAPT_DAT_FILES)
 			  BOOLEAN_DAT_FILES="$(ADAPT_BOOLEAN_DAT_FILES)" \
 			  VALUE_DAT_FILES="$(ADAPT_VALUE_DAT_FILES)" \
 			  OPTPREFIX="-X:aos" \
-			  USE_OPT_LEVELS="NO"
+			  USE_OPT_LEVELS="NO" \
+			  OPTION_TYPE="ADAPTIVE"
+
+
+base_options.tex:	${GENERATOR_FILES} options.template $(BASE_DAT_FILES)
+			$(HOST_JAVA) ${GENERATOR} options.template \
+			  base_options.tex \
+			  BOOLEAN_DAT_FILES="$(BASE_BOOLEAN_DAT_FILES)" \
+			  VALUE_DAT_FILES="$(BASE_VALUE_DAT_FILES)" \
+			  OPTPREFIX="-X:base" \
+			  USE_OPT_LEVELS="NO" \
+			  OPTION_TYPE="BASELINE"
+
+

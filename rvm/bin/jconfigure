@@ -256,7 +256,7 @@ export GENERATE_MAP=1
 BOOTIMAGE_LOAD_ADDRESS="0x30000000"
 
 # Current version of RVM
-JIKESRVM_VERSION="Jikes Research VM for Java 2.1.0"
+JIKESRVM_VERSION="Jikes Research VM for Java 2.1.1"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -492,6 +492,7 @@ function emitSourceList
    print $RVM_ROOT/rvm/src/vm/scheduler
    print $RVM_ROOT/rvm/src/vm/profiler                #!!TEMP kludge to resolve VM_EventLogger references
    print $RVM_ROOT/rvm/src/vm/utility
+   print $RVM_ROOT/rvm/src/vm/compilers/compiledCode
    
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
 
@@ -782,8 +783,8 @@ function emitEnvironmentPerl
    print "#      $CURRENT_CONFIG_FILE"
 
    print ""
-   print "\$ENV{BUILD_DIRECTORY_STR1} = '$RVM_BUILD';"
-   print "\$ENV{ROOT_DIRECTORY_STR1} = '$RVM_ROOT';"
+   print "\$ENV{$BUILD_DIRECTORY_STR1} = '$RVM_BUILD';"
+   print "\$ENV{$ROOT_DIRECTORY_STR1} = '$RVM_ROOT';"
    print ""
    print "\$ENV{HOST_JIKES_STR1} = '$JIKES';"
    print "\$ENV{HOST_JAVA_STR1} = '$HOST_JAVA';"
@@ -888,6 +889,8 @@ function emitController
    print 'while [[ $# != 0 ]]; do'
    print '   if [[ $1 = -trace ]]; then'
    print '      TRACE_FLAG=-trace'
+   print '   elif [[ $1 = -demographics ]]; then'
+   print '      DEMOGRAPHICS_FLAG=-demographics'
    print '   elif [[ $1 = -clean ]]; then'
    print '      CLEAN_FLAG=-clean'
    print '   elif [[ $1 = -recompile ]]; then'
@@ -900,7 +903,7 @@ function emitController
    print '      NOLINK_FLAG=-nolink'
    print '      BOOTER_FLAG=-booter'
    print '   else'
-   print '      print "usage: $ME [-trace] [-clean] [-recompile] [-nolink] [-nobooter] [-booter]"'
+   print '      print "usage: $ME [-trace] [-demographics] [-clean] [-recompile] [-nolink] [-nobooter] [-booter]"'
    print '      exit 1'
    print '   fi'
    print '   shift'
@@ -917,7 +920,7 @@ function emitController
    print '   ./jbuild.expand     $TRACE_FLAG -clean'
    print '   ./jbuild.copy       $TRACE_FLAG -clean'
    print '   ./jbuild.compile    $TRACE_FLAG -clean'
-   print '   ./jbuild.linkImage  $TRACE_FLAG -clean'
+   print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
    print '   exit 0'
    print 'fi'
@@ -931,11 +934,11 @@ function emitController
    print '   ./jbuild.expand     $TRACE_FLAG -clean'
    print '   ./jbuild.copy       $TRACE_FLAG -clean'
    print '   ./jbuild.compile    $TRACE_FLAG -clean'
-   print '   ./jbuild.linkImage  $TRACE_FLAG -clean'
+   print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
    print '   rm -f' $CLEANSE_STATUS_STR
    print 'elif [[ $NOLINK_FLAG != -nolink ]]; then'
-   print '   ./jbuild.linkImage  $TRACE_FLAG -clean'
+   print '   ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG -clean'
    print '   ./jbuild.linkBooter $TRACE_FLAG -clean'
    print 'fi'
 
@@ -959,7 +962,7 @@ function emitController
    print '   ./jbuild.copy       $TRACE_FLAG'
    print '   ./jbuild.compile    $TRACE_FLAG'
    print '   if [[ $NOLINK_FLAG != -nolink ]]; then'
-   print '      ./jbuild.linkImage  $TRACE_FLAG'
+   print '      ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG'
    print '      if [[ X"$RVM_BUILD_COPY" != X ]]; then'
    print '          $RVM_BUILD_COPY'
    print '      elif [[ $NOBOOTER_FLAG != -nobooter ]]; then'
@@ -1303,6 +1306,10 @@ function emitImageLinker
    print '   SILENT_MAKE='
    print '   shift'
    print 'fi'
+   print 'if [[ $1 = -demographics ]]; then'
+   print '   DEMOGRAPHICS_FLAG=-demographics'
+   print '   shift'
+   print 'fi'
    
    print ''
    print '. ./jbuild.environment'
@@ -1547,6 +1554,7 @@ function emitImageLinker
    print "   print '[LVM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[[LVM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
@@ -1693,7 +1701,7 @@ function emitImageLinker
    
    ADDRESS_TYPE="int"
 
-   BOOTIMAGE_WRITER_ARGS="\$TRACE_FLAG"
+   BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$TRACE_FLAG"
 
    BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_LOAD_ADDRESS"
 
@@ -1870,12 +1878,12 @@ function emitBooterLinker
    fi
 
    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	 print "BOOTER_CC=\"$HOST_CC_STR -DIBM_AIX $SMP_STR\""
+	 print "BOOTER_CC=\"$HOST_CC_STR -DIBM_AIX -DRVM_FOR_POWERPC $SMP_STR\""
  	 print "LDSHARED=\"$HOST_SHLD_STR\""
          print 'BOOTER_CCM="$BOOTER_CC -M"'
 	 print "CPP=\"$HOST_CC_STR -E\""
 
-	 print 'CCLIBS=-lpthread'
+	 print 'CCLIBS="-lpthread -lm"'
          print 'IMAGE='
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -1884,7 +1892,7 @@ function emitBooterLinker
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR\""
 
-	 print 'CCLIBS="-ldl"'
+	 print 'CCLIBS="-ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"'
 
    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
@@ -1893,7 +1901,7 @@ function emitBooterLinker
 	 print 'BOOTER_CCM=$BOOTER_CC'
 	 print "CPP=\"$HOST_CPP_STR -D__linuxsmp__\""
 
-	 print 'CCLIBS="-lpthread -ldl"'
+	 print 'CCLIBS="-lpthread -ldl -lm"'
 	 print 'IMAGE="-DIMAGE_ADDRESS=0x31000000"' 
 
    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then

@@ -90,7 +90,7 @@ class VM_CollectorThread extends VM_Thread
   /**
    * Initialize for boot image. Should be called from VM_Allocator.init() 
    */
-  static void  init() {
+  static void  init() throws VM_PragmaInterruptible {
     gcBarrier = new VM_GCSynchronizationBarrier();
 
     collectorThreads = new VM_CollectorThread[ 1 + VM_Scheduler.MAX_PROCESSORS ];
@@ -105,16 +105,15 @@ class VM_CollectorThread extends VM_Thread
    *
    * @param handshake VM_Handshake for the requested collection
    */
-  static void  collect(VM_Handshake handshake) {
-    
+  static void collect(VM_Handshake handshake) throws VM_PragmaLogicallyUninterruptible /* suppress warning about handshake */{
     if (trace) {
       double start = VM_Time.now();
       handshake.requestAndAwaitCompletion();
       double stop  = VM_Time.now();
       VM.sysWrite("VM_CollectorThread.collect: " + (stop - start) + " seconds\n");
-    }
-    else
+    } else {
       handshake.requestAndAwaitCompletion();
+    }
   }
   
   // FOLLOWING NO LONGER TRUE... we now scan the stack frame for the run method,
@@ -161,7 +160,7 @@ class VM_CollectorThread extends VM_Thread
    * will be different for the different allocators/collectors
    * that the RVM can be configured to use.
    */
-  public void run() {
+  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */ {
     int mypid;   // id of processor thread is running on - constant for the duration
     // of each collection - actually should always be id of associated processor
     
@@ -459,8 +458,8 @@ class VM_CollectorThread extends VM_Thread
   // Returned: collector
   // Note: "stack" must be in pinned memory: currently done by allocating it in the boot image.
   //
-  static VM_CollectorThread 
-    createActiveCollectorThread(int[] stack, VM_Processor processorAffinity) {
+  static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) throws VM_PragmaInterruptible {
+    int[] stack =  VM_RuntimeStructures.newImmortalStack(STACK_SIZE_COLLECTOR>>2);
     //-#if RVM_WITH_CONCURRENT_GC
     return new VM_RCCollectorThread(stack, true, processorAffinity);
     //-#else
@@ -476,7 +475,7 @@ class VM_CollectorThread extends VM_Thread
   // Note: "stack" must be in pinned memory: currently done by allocating it in the boot image.
   //
   static VM_CollectorThread 
-    createPassiveCollectorThread(int[] stack, VM_Processor processorAffinity) {
+    createPassiveCollectorThread(int[] stack, VM_Processor processorAffinity) throws VM_PragmaInterruptible {
     return new VM_CollectorThread(stack, false,  processorAffinity);
   }
 

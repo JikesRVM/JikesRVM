@@ -23,7 +23,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Primitive extends VM_Type
+public final class VM_Primitive extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants, VM_SynchronizedObject {
   //-----------//
   // Interface //
@@ -39,7 +39,7 @@ public class VM_Primitive extends VM_Type
   /**
    * Stack space requirement.
    */ 
-  public final int getStackWords() {
+  public final int getStackWords() throws VM_PragmaUninterruptible {
     return stackWords;
   }
       
@@ -71,12 +71,12 @@ public class VM_Primitive extends VM_Type
   }
 
   // these should never be called.
-  public final boolean hasFinalizer() {
+  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     return false;
   }
       
-  public final Object[] getTypeInformationBlock() {
+  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     return null;
   }

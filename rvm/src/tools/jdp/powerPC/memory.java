@@ -449,7 +449,7 @@ JDPServiceInterface
    * @see printJVMstackTrace
    */
   private String printThisFrame(int depth, int linkaddr, int fp) {
-    VM_CompilerInfo compInfo;
+    VM_CompiledMethod compMethod;
     // System.out.println("methodID " + methodID);
     BootMap bmap = owner.bootmap();
     String depthString;
@@ -488,9 +488,9 @@ JDPServiceInterface
       	if (depth==0)            // for IP, get the current line
       	  line = bmap.findLineNumberAsString(compiledMethodID, linkaddr);   
       	else {                    // for LR, get the previous line (for baseline)
-	  compInfo = bmap.findVMCompilerInfo(compiledMethodID, true);
-	  if (compInfo != null && 
-	      compInfo.getCompilerType() == VM_CompilerInfo.OPT)
+	  compMethod = bmap.findVMCompiledMethod(compiledMethodID, true);
+	  if (compMethod != null && 
+	      compMethod.getCompilerType() == VM_CompiledMethod.OPT)
 	    line = bmap.findLineNumberAsString(compiledMethodID, linkaddr);
 	  else 
 	    line = bmap.findPreviousLineNumberAsString(compiledMethodID, linkaddr); 

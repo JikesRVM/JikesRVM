@@ -22,7 +22,7 @@ import java.io.DataInputStream;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Class extends VM_Type
+public final class VM_Class extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants {
 
   //------------------------------------------------------------------//
@@ -40,7 +40,7 @@ public class VM_Class extends VM_Type
   /**
    * Stack space requirement.
    */ 
-  public final int getStackWords() {
+  public final int getStackWords() throws VM_PragmaUninterruptible {
     return 1;
   }
 
@@ -57,7 +57,7 @@ public class VM_Class extends VM_Type
   /**
    * An "interface" description rather than a "class" description?
    */ 
-  public final boolean isInterface() { 
+  public final boolean isInterface() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_INTERFACE) != 0; 
   } 
@@ -65,7 +65,7 @@ public class VM_Class extends VM_Type
   /**
    * Usable from other packages?
    */ 
-  final boolean isPublic() { 
+  final boolean isPublic() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_PUBLIC) != 0; 
   }
@@ -73,7 +73,7 @@ public class VM_Class extends VM_Type
   /**
    * Non-subclassable?
    */ 
-  final boolean isFinal()     { 
+  final boolean isFinal() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0; 
   }
@@ -81,7 +81,7 @@ public class VM_Class extends VM_Type
   /**
    * Non-instantiable?
    */ 
-  final boolean isAbstract()  { 
+  final boolean isAbstract() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
@@ -89,7 +89,7 @@ public class VM_Class extends VM_Type
   /**
    * Use new-style "invokespecial" semantics for method calls in this class?
    */ 
-  final boolean isSpecial() { 
+  final boolean isSpecial() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_SPECIAL) != 0; 
   }
@@ -112,7 +112,7 @@ public class VM_Class extends VM_Type
    * Superclass of this class (null means "no superclass", 
    * ie. class is "java/lang/Object").
    */
-  public final VM_Class getSuperClass() { 
+  public final VM_Class getSuperClass() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return superClass;
   }
@@ -120,7 +120,7 @@ public class VM_Class extends VM_Type
   /**
    * Currently loaded classes that "extend" this class.
    */ 
-  final VM_Class[] getSubClasses() {
+  final VM_Class[] getSubClasses() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return subClasses;
   }
@@ -129,7 +129,7 @@ public class VM_Class extends VM_Type
    * Interfaces implemented directly by this class 
    * (ie. not including superclasses).
    */
-  public final VM_Class[] getDeclaredInterfaces() { 
+  public final VM_Class[] getDeclaredInterfaces() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredInterfaces;
   }
@@ -137,16 +137,15 @@ public class VM_Class extends VM_Type
   /**
    * Fields defined directly by this class (ie. not including superclasses).
    */ 
-  public final VM_Field[] getDeclaredFields() { 
+  public final VM_Field[] getDeclaredFields() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredFields;
   }
 
   /**
    * Methods defined directly by this class (ie. not including superclasses).
-   * TODO: must prevent user access.
    */
-  public final VM_Method[] getDeclaredMethods() { 
+  public final VM_Method[] getDeclaredMethods() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return declaredMethods;
   }
@@ -155,7 +154,7 @@ public class VM_Class extends VM_Type
    * Static initializer method for this class (null -> no static initializer
    *  or initializer already been run).
    */ 
-  final VM_Method getClassInitializerMethod() {
+  final VM_Method getClassInitializerMethod() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return classInitializerMethod;
   }
@@ -248,7 +247,7 @@ public class VM_Class extends VM_Type
    * @return id of type that was referenced, for use 
    * by "VM_TypeDictionary.getValue()"
    */
-  final int getTypeRefId(int constantPoolIndex) {
+  final int getTypeRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -256,7 +255,7 @@ public class VM_Class extends VM_Type
    * Get contents of a "typeRef" constant pool entry.
    * @return type that was referenced
    */
-  final VM_Type getTypeRef(int constantPoolIndex) {
+  final VM_Type getTypeRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_TypeDictionary.getValue(getTypeRefId(constantPoolIndex));
   }
 
@@ -265,7 +264,7 @@ public class VM_Class extends VM_Type
    * @return id of field that was referenced, for use by 
    * "VM_FieldDictionary.getValue()"
    */
-  final int getFieldRefId(int constantPoolIndex) {
+  final int getFieldRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -273,7 +272,7 @@ public class VM_Class extends VM_Type
    * Get contents of a "fieldRef" constant pool entry.
    * @return field that was referenced
    */
-  final VM_Field getFieldRef(int constantPoolIndex) {
+  final VM_Field getFieldRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_FieldDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
@@ -282,7 +281,7 @@ public class VM_Class extends VM_Type
    * @return id of method that was referenced, for use by 
    * "VM_MethodDictionary.getValue()"
    */ 
-  final int getMethodRefId(int constantPoolIndex) {
+  final int getMethodRefId(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return constantPool[constantPoolIndex];
   }
 
@@ -290,45 +289,22 @@ public class VM_Class extends VM_Type
    * Get contents of a "methodRef" constant pool entry.
    * @return method that was referenced
    */
-  final VM_Method getMethodRef(int constantPoolIndex) {
+  final VM_Method getMethodRef(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_MethodDictionary.getValue(constantPool[constantPoolIndex]);
   }
 
   /**
    * Get contents of a "utf" constant pool entry.
    */
-  final VM_Atom getUtf(int constantPoolIndex) {
+  final VM_Atom getUtf(int constantPoolIndex) throws VM_PragmaUninterruptible {
     return VM_AtomDictionary.getValue(constantPool[constantPoolIndex]);
-  }
-
-  /**
-   * Should the methods of this class be compiled with 
-   * thread switching prologue?
-   * @see VM_Uninterruptible
-   */ 
-  final boolean isInterruptible () {
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i].isUninterruptibleType()) return false;
-    return true; // does not (directly) implement VM_Uninterruptible
-  }
-
-  /**
-   * Should the methods of this class be compiled with 
-   */ 
-  final boolean isBootImageInitialized () {
-    VM_Class[] interfaces = getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-	if (interfaces[i].getName().equals("VM_BootImageInitialization"))
-	    return true;
-    return false; // does not (directly) implement VM_BootImageInitialization
   }
 
   /**
    * Does this object implement the VM_SynchronizedObject interface?
    * @see VM_SynchronizedObject
    */ 
-  final boolean isSynchronizedObject() {
+  final boolean isSynchronizedObject() throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSynchronizedObjectType()) return true;
@@ -340,7 +316,7 @@ public class VM_Class extends VM_Type
    * register save/restore logic?
    * @see VM_DynamicBridge
    */
-  final boolean isDynamicBridge () {
+  final boolean isDynamicBridge () throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isDynamicBridgeType()) return true;
@@ -352,7 +328,7 @@ public class VM_Class extends VM_Type
    * they are compiled with
    * a special prolog to interface with the native stack frame.
    */
-  final boolean isBridgeFromNative() {
+  final boolean isBridgeFromNative() throws VM_PragmaUninterruptible {
     // The only class that returns true is the VM_JNIFunctions
     // which must have been loaded by the first call to System.loadLibrary
     // If this class is not loaded yet, we can assume that it
@@ -369,7 +345,7 @@ public class VM_Class extends VM_Type
    * Should the methods of this class save incoming registers ?
    * @see VM_SaveVolatile
    */
-  final boolean isSaveVolatile() {
+  final boolean isSaveVolatile() throws VM_PragmaUninterruptible {
     VM_Class[] interfaces = getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i)
       if (interfaces[i].isSaveVolatileType()) return true;
@@ -392,7 +368,7 @@ public class VM_Class extends VM_Type
   /**
    * Does this class override java.lang.Object.finalize()?
    */
-  public final boolean hasFinalizer() {
+  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return (finalizeMethod != null);
   }
@@ -401,7 +377,7 @@ public class VM_Class extends VM_Type
    * Get finalize method that overrides java.lang.Object.finalize(), 
    * if one exists
    */
-  public final VM_Method getFinalizer() {
+  public final VM_Method getFinalizer() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return finalizeMethod;
   }
@@ -445,12 +421,12 @@ public class VM_Class extends VM_Type
    * Total size, in bytes, of an instance of this class 
    * (including object header).
    */
-  public final int getInstanceSize() {
+  public final int getInstanceSize() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return instanceSize;
   }
 
-  final int getInstanceSizeInternal() {
+  final int getInstanceSizeInternal() throws VM_PragmaUninterruptible {
     return instanceSize;
   }
 
@@ -458,7 +434,7 @@ public class VM_Class extends VM_Type
    * Add a field to the object; only meant to be called from VM_ObjectModel et al.
    * must be called when lock on class object is already held (ie from resolve).
    */
-  final void increaseInstanceSize(int numBytes) {
+  final void increaseInstanceSize(int numBytes) throws VM_PragmaUninterruptible {
     instanceSize += numBytes;
   }
 
@@ -466,7 +442,7 @@ public class VM_Class extends VM_Type
    * Offsets of reference-containing instance fields of this class type.
    * Offsets are with respect to object pointer -- see VM_Field.getOffset().
    */
-  public final int[] getReferenceOffsets() {
+  public final int[] getReferenceOffsets() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return referenceOffsets;
   }
@@ -529,7 +505,7 @@ public class VM_Class extends VM_Type
   /**
    * Runtime type information for this class type.
    */
-  public final Object[] getTypeInformationBlock() {
+  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     return typeInformationBlock;
   }
@@ -633,8 +609,6 @@ public class VM_Class extends VM_Type
   // implementation //
   //----------------//
 
-  // debug flag: CRA
-  private static boolean DEBUG = false;
   //
   // The following are always valid.
   //
@@ -656,6 +630,11 @@ public class VM_Class extends VM_Type
   private VM_Method[]  declaredMethods;
   private VM_Atom      sourceName;
   private VM_Method    classInitializerMethod;
+
+  // Cannonical empty arrays
+  private static final VM_Class[] emptyVMClass = new VM_Class[0];
+  private static final VM_Field[] emptyVMField = new VM_Field[0];
+  private static final VM_Method[] emptyVMMethod = new VM_Method[0];
 
   //
   // The following are valid only when "state >= CLASS_RESOLVED".
@@ -719,7 +698,7 @@ public class VM_Class extends VM_Type
     this.descriptor   = descriptor;
     this.dictionaryId = dictionaryId;
     this.tibSlot      = VM_Statics.allocateSlot(VM_Statics.TIB);
-    this.subClasses   = new VM_Class[0];
+    this.subClasses   = emptyVMClass;
     this.classloader  = classloader;
 
     // install partial type information block 
@@ -943,32 +922,47 @@ public class VM_Class extends VM_Type
       superClass.addSubClass(this);
     }
 
-    declaredInterfaces = new VM_Class[input.readUnsignedShort()];
-    for (int i = 0, n = declaredInterfaces.length; i < n; ++i)
-      declaredInterfaces[i] = getTypeRef(input.readUnsignedShort()).asClass();
-
-    declaredFields = new VM_Field[input.readUnsignedShort()];
-    for (int i = 0, n = declaredFields.length; i < n; ++i) {
-      int      modifiers       = input.readUnsignedShort();
-      VM_Atom  fieldName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Atom  fieldDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Field field           = VM_ClassLoader.findOrCreateField(getDescriptor(), fieldName, fieldDescriptor, classloader);
-      
-      field.load(input, modifiers);
-      declaredFields[i] = field;
+    int numInterfaces = input.readUnsignedShort();
+    if (numInterfaces == 0) {
+      declaredInterfaces = emptyVMClass;
+    } else {
+      declaredInterfaces = new VM_Class[numInterfaces];
+      for (int i = 0, n = declaredInterfaces.length; i < n; ++i)
+	declaredInterfaces[i] = getTypeRef(input.readUnsignedShort()).asClass();
     }
 
-    declaredMethods = new VM_Method[input.readUnsignedShort()];
-    for (int i = 0, n = declaredMethods.length; i < n; ++i) {
-      int       modifiers        = input.readUnsignedShort();
-      VM_Atom   methodName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Atom   methodDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Method method           = VM_ClassLoader.findOrCreateMethod(getDescriptor(), methodName, methodDescriptor, classloader);
+    int numFields = input.readUnsignedShort();
+    if (numFields == 0) {
+      declaredFields = emptyVMField;
+    } else {
+      declaredFields = new VM_Field[numFields];
+      for (int i = 0, n = declaredFields.length; i < n; ++i) {
+	int      modifiers       = input.readUnsignedShort();
+	VM_Atom  fieldName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Atom  fieldDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Field field           = VM_ClassLoader.findOrCreateField(getDescriptor(), fieldName, fieldDescriptor, classloader);
+	
+	field.load(input, modifiers);
+	declaredFields[i] = field;
+      }
+    }
 
-      method.load(input, modifiers);
-      declaredMethods[i] = method;
-      if (method.isClassInitializer())
-	classInitializerMethod = method;
+    int numMethods = input.readUnsignedShort();
+    if (numMethods == 0) {
+      declaredMethods = emptyVMMethod;
+    } else {
+      declaredMethods = new VM_Method[numMethods];
+      for (int i = 0, n = declaredMethods.length; i < n; ++i) {
+	int       modifiers        = input.readUnsignedShort();
+	VM_Atom   methodName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Atom   methodDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Method method           = VM_ClassLoader.findOrCreateMethod(getDescriptor(), methodName, methodDescriptor, classloader);
+	
+	method.load(input, modifiers);
+	declaredMethods[i] = method;
+	if (method.isClassInitializer())
+	  classInitializerMethod = method;
+      }
     }
 
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
@@ -1082,13 +1076,27 @@ public class VM_Class extends VM_Type
 	if (method.isObjectInitializer() || method.isStatic())  {
 	  VM_Callbacks.notifyMethodOverride(method, null);
 	  staticMethods.addElement(method);
+	  if (VM.VerifyUnint) {
+	    if (!method.isInterruptible() && method.isSynchronized()) {
+	      if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
+		VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	      }
+	    }
+	  }
 	  continue;
 	}
 
 	// Now deal with virtual methods
-
-	if (method.isSynchronized())
+	if (method.isSynchronized()) {
 	  VM_ObjectModel.allocateThinLock(this);
+	  if (VM.VerifyUnint) {
+	    if (!method.isInterruptible()) {
+	      if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
+		VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	      }
+	    }
+	  }
+	}
 
 	// method could override something in superclass - check for it
 	//
@@ -1107,9 +1115,13 @@ public class VM_Class extends VM_Type
 	  VM_Callbacks.notifyMethodOverride(method, null);
 	  virtualMethods.addElement(method);                          // append
 	} else {
-	  VM_Callbacks.notifyMethodOverride(method,
-					    (VM_Method)virtualMethods.
-					    elementAt(superclassMethodIndex));
+	  VM_Method superc = (VM_Method)virtualMethods.elementAt(superclassMethodIndex);
+	  if (VM.VerifyUnint) {
+	    if (!superc.isInterruptible() && method.isInterruptible()) {
+	      VM.sysWriteln("WARNING: interruptible "+method+" overrides uninterruptible "+superc);
+	    }
+	  }
+	  VM_Callbacks.notifyMethodOverride(method, superc);
 	  virtualMethods.setElementAt(method, superclassMethodIndex); // override
 	}
       }
@@ -1175,7 +1187,11 @@ public class VM_Class extends VM_Type
     //
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
       VM_Method method = staticMethods[i];
-      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << 2;
+      if (method.isClassInitializer()) {
+	method.offset = 0xdeadbeef; // should never be used.
+      } else {
+	method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << 2;
+      }
     }
 
     // create "type information block" and initialize its first four words
@@ -1234,7 +1250,7 @@ public class VM_Class extends VM_Type
   // RCGC: A reference to class is acyclic if the class is acyclic and final
   //    (otherwise the reference could be to a subsequently loaded cyclic subclass).
   //
-  protected final boolean isAcyclicReference() {
+  protected final boolean isAcyclicReference() throws VM_PragmaUninterruptible {
     return acyclic && isFinal();
   }
 
@@ -1322,37 +1338,22 @@ public class VM_Class extends VM_Type
     for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
 	   n = virtualMethods.length; i < n; ++i, ++slot) {
       VM_Method method = virtualMethods[i];
-      if (method.isCompiled()) {
-	if (method.isPrivate())
-	  // This must be the parents private method which we won't be
-	  // invoking directly
-	  typeInformationBlock[slot] = null;
-	else
-	  // inherited method already compiled, no point in going through 
-	  // lazy invoker
-	  typeInformationBlock[slot] = method.getMostRecentlyGeneratedInstructions();
+      if (method.isPrivate() && method.getDeclaringClass() != this) {
+	typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB
+      } else {
+	typeInformationBlock[slot] = method.getCurrentInstructions();
       }
-      else if (method.isNative())
-	typeInformationBlock[slot] = VM_Method.getNativeMethodInvokerInstructions(); 
-      else
-	// new method
-	typeInformationBlock[slot] = getInitialInstructions(method);  
     }
 
     // compile static methods and put their addresses into jtoc
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
-      // !!TODO: no need to put <clinit>'s instructions into the jtoc, 
-      // because we never call the code from anywhere other than 
-      // "VM_Class.initialize()", below.
-      // this would save us a precious jtoc slot.
-
+      // don't bother compiling <clinit> here;
+      // compile it right before we invoke it in initialize.
+      // This also avoids putting clinit's in the bootimage.
       VM_Method method = staticMethods[i];
-      if (method.isNative())
-        VM_Statics.setSlotContents(method.getOffset() >> 2, 
-                                   VM_Method.getNativeMethodInvokerInstructions());
-      else
-        VM_Statics.setSlotContents(method.getOffset() >> 2, 
-                                   getInitialInstructions(method));
+      if (!method.isClassInitializer()) {
+	VM_Statics.setSlotContents(method.getOffset() >> 2, method.getCurrentInstructions());
+      }
     }
 
     VM_InterfaceInvocation.initializeDispatchStructures(this);
@@ -1379,7 +1380,7 @@ public class VM_Class extends VM_Type
       VM_Callbacks.notifyClassInitialized(this);
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (end)   instantiate " 
-                                          + descriptor + "\n");
+							  + descriptor + "\n");
   }
 
   /**
@@ -1435,15 +1436,20 @@ public class VM_Class extends VM_Type
     // run <clinit>
     //
     if (classInitializerMethod != null) {
-      INSTRUCTION[] instructions;
-      instructions = classInitializerMethod.compile();
+      VM_CompiledMethod cm = classInitializerMethod.getCurrentCompiledMethod();
+      while (cm == null) {
+	classInitializerMethod.compile();
+	cm = classInitializerMethod.getCurrentCompiledMethod();
+      }
+
       if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for "
 					      +descriptor.
 					      classNameFromDescriptor()+"]\n");
-      VM_Magic.invokeClassInitializer(instructions);
+
+      VM_Magic.invokeClassInitializer(cm.getInstructions());
 
       // <clinit> is no longer needed: reclaim space by removing references to it
-      classInitializerMethod.clearMostRecentCompilation();
+      classInitializerMethod.invalidateCompiledMethod(cm);
       classInitializerMethod               = null;
     }
 
@@ -1459,8 +1465,11 @@ public class VM_Class extends VM_Type
     }
 
     // report that a class is about to be marked initialized to 
-    // anyone who has registered interest
-    reportInitialize();
+    // the opt compiler so it can invalidate speculative CHA optimizations
+    // before an instance of this class could actually be created.
+    //-#if RVM_WITH_OPT_COMPILER
+    if (OptCLDepManager != null) OptCLDepManager.classInitialized(this);
+    //-#endif
 
     state = CLASS_INITIALIZED;
 
@@ -1505,189 +1514,74 @@ public class VM_Class extends VM_Type
   //-#endif
 
   /**
-   * This method is invoked from VM_Class.initialize() immediately before 
-   * 'this' is marked as INITIALIZED.  
+   * Given a method declared by this class, update all
+   * dispatching tables to refer to the current compiled
+   * code for the method.
    */
-  private void reportInitialize() {
-    //-#if RVM_WITH_OPT_COMPILER
-    if (OptCLDepManager != null)
-      OptCLDepManager.classInitialized(this);
-    //-#endif
-  }
-
-  /**
-   * return a newly-compiled version of the method (if lazy compilation
-   * is off) or the lazy compilation stub.
-   */
-  private INSTRUCTION[] getInitialInstructions(VM_Method m) {
-    if (VM.BuildForLazyCompilation && !VM.writingBootImage)
-      return VM_Method.getLazyMethodInvokerInstructions();
-    else
-      return m.compile(); // must compile now
-  }
-
-  /**
-   * return a newly-compiled version of the method corresponding to the
-   * given compiled method (if lazy compilation is off) or the lazy
-   * compilation stub.
-   */
-  private INSTRUCTION[] getInitialInstructions(VM_CompiledMethod cm) {
-    return getInitialInstructions(cm.getMethod());
-  }
-
-  /**
-   * If cm is the current compiled version of a static method, then 
-   * reset its jtoc slot to point to a newly-compiled version of the
-   * method (if lazy compilation is off) or the lazy compilation stub.
-   */
-  void resetStaticMethod(VM_CompiledMethod cm, INSTRUCTION[] code) {
+  public void updateMethod(VM_Method m) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
-    VM_Method m = cm.getMethod();
-    if (VM.VerifyAssertions)
-      VM.assert(m.isStatic() || m.isObjectInitializer() ||
-                m.isClassInitializer());
-    int slot = m.getOffset() >>> 2;
-    if (VM_Statics.getSlotContentsAsObject(slot) == cm.getInstructions())
-      VM_Statics.setSlotContents(slot, code);
-  }
+    if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
+    if (m.isClassInitializer()) return; // we never put this method in the jtoc anyways!
 
-  /**
-   * Given a static method, reset its jtoc slot to point to the given
-   * instruction array
-   */
-  synchronized void resetStaticMethod(VM_Method m) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (VM.VerifyAssertions)
-      VM.assert(m.isStatic() || m.isObjectInitializer() ||
-                m.isClassInitializer());
-    INSTRUCTION[] code = m.getMostRecentlyGeneratedInstructions();
-    int slot = m.getOffset() >>> 2;
-    VM_Statics.setSlotContents(slot, code);
-  }
-
-  /**
-   * If cm is the current compiled version of a virtual method for this 
-   * class tib then reset its tib slot to point to a newly-compiled
-   * version of the method (if lazy compilation is off) or the lazy
-   * compilation stub.
-   */
-  void resetTIBEntry(VM_CompiledMethod cm) {
-    resetTIBEntry(cm, getInitialInstructions(cm));
-  }
-  synchronized void resetTIBEntry(VM_CompiledMethod cm, INSTRUCTION[] code) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    VM_Method m = cm.getMethod();
-    if (VM.VerifyAssertions)
-      VM.assert(!m.isStatic() && !m.isObjectInitializer() && 
-                !m.isClassInitializer());
-    int offset = m.getOffset() >>> 2;
-    if (typeInformationBlock[offset] == cm.getInstructions()) {
-      typeInformationBlock[offset] = code;
-    }
-    VM_InterfaceInvocation.resetTIBEntry(this, cm, code);
-  }
-
-  /**
-   * Given a virtual method, reset its TIB entry to point to the given
-   * instruction array
-   */
-  synchronized void resetTIBEntry(VM_Method m) {
-    resetTIBEntry(m, m.getMostRecentlyGeneratedInstructions());
-  }
-
-  synchronized void resetTIBEntry(VM_Method m, INSTRUCTION[] code) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (VM.VerifyAssertions)
-      VM.assert(!m.isStatic() && !m.isObjectInitializer() &&
-                !m.isClassInitializer());
-    int offset = m.getOffset() >>> 2;
-    typeInformationBlock[offset] = code;
-    VM_InterfaceInvocation.resetTIBEntry(this, m, code);
-  }
-
-  /**
-   * If cm is the current compiled version of a virtual method, then 
-   * reset its TIB slot in this class and all subclasses that don't
-   * override the method to point to a newly-compiled version of the
-   * method (if lazy compilation is off) or the lazy compilation stub.
-   */
-  private void resetVirtualMethod(VM_CompiledMethod cm) {
-    resetVirtualMethod(cm, getInitialInstructions(cm));
-  }
-
-  private void resetVirtualMethod(VM_CompiledMethod cm, INSTRUCTION[] code) {
-    if (!isResolved()) return;
-    VM_Method m = cm.getMethod();
-    VM_Method dm = findDeclaredMethod(m.getName(), m.getDescriptor());
-    if (dm != null && dm != m) return;  // this method got overridden
-    resetTIBEntry(cm, code);
-    if (m.isPrivate()) return; // can't override
-    VM_Class[] subClasses = getSubClasses(); 
-    for (int i = 0; i < subClasses.length; i++)
-      subClasses[i].resetVirtualMethod(cm, code);
-  }
-
-  synchronized void resetVirtualMethod(VM_Method m) {
-    resetVirtualMethod( m, m.getMostRecentlyGeneratedInstructions() );
-  }
-
-  void resetVirtualMethod(VM_Method m, INSTRUCTION[] code) {
-    if (!isResolved()) return;
-    VM_Method dm = findDeclaredMethod(m.getName(), m.getDescriptor());
-    if (dm != null && dm != m) return;  // this method got overridden
-    resetTIBEntry(m, code);
-    if (m.isPrivate()) return; // can't override
-    VM_Class[] subClasses = getSubClasses(); 
-    for (int i = 0; i < subClasses.length; i++)
-      subClasses[i].resetVirtualMethod(m, code);
-  }
-
-  /**
-   * If cm is the current compiled version of a method, then 
-   * reset its TIB slot in this class (and all subclasses that don't
-   * override the method) if it's virtual or its jtoc slot if it's
-   * static to point to a newly-compiled version of the method (if lazy
-   * compilation is off) or the lazy compilation stub.
-   */
-  void resetMethod(VM_CompiledMethod cm) {
-    resetMethod(cm, getInitialInstructions(cm), true);
-  }
-
-  void resetMethod(VM_CompiledMethod cm, boolean recurse) {
-    resetMethod(cm, getInitialInstructions(cm), recurse);
-  }
-
-  void resetMethod(VM_CompiledMethod cm, INSTRUCTION[] code, boolean recurse) {
-    if (VM.VerifyAssertions) VM.assert(isResolved());
-    VM_Method m = cm.getMethod();
-    if (m.isStatic() || m.isObjectInitializer() || m.isClassInitializer()) {
-      // invalidate jtoc slot
-      resetStaticMethod(cm, code);
+    if (m.isStatic() || m.isObjectInitializer()) {
+      updateJTOCEntry(m);
     } else {
-      // invalidate TIB entry
-      if (recurse)
-        resetVirtualMethod(cm, code);
-      else
-        resetTIBEntry(cm, code);
+      updateVirtualMethod(m);
     }
   }
 
   /**
-   * Given a method, reset its TIB slot in this class (and all
-   * subclasses that don't override the method) if it's virtual or its
-   * jtoc slot if it's static to point to the given instruction array.
+   * Update the JTOC slot for the given static method to point to
+   * the current compiled code for the given method.
+   * NOTE: This method is intentionally not synchronized to avoid deadlocks.
+   *       We instead rely on the fact that we are always updating the JTOC with
+   *       the most recent instructions for the method.
    */
-  void resetMethod(VM_Method m, boolean recurse) {
+  public void updateJTOCEntry(VM_Method m) {
+    if (VM.VerifyAssertions) VM.assert(m.getDeclaringClass() == this);
     if (VM.VerifyAssertions) VM.assert(isResolved());
-    if (m.isStatic() || m.isObjectInitializer() || m.isClassInitializer()) {
-      // invalidate jtoc slot
-      resetStaticMethod(m);
-    } else {
-      // invalidate TIB entry
-      if (recurse)
-        resetVirtualMethod(m);
-      else
-        resetTIBEntry(m);
+    if (VM.VerifyAssertions) VM.assert(m.isStatic() || m.isObjectInitializer());
+    int slot = m.getOffset() >>> 2;
+    VM_Statics.setSlotContents(slot, m.getCurrentInstructions());
+  }
+
+
+  /**
+   * Update this class's TIB entry for the given method to point to
+   * the current compiled code for the given method.
+   * NOTE: This method is intentionally not synchronized to avoid deadlocks.
+   *       We instead rely on the fact that we are always updating the JTOC with
+   *       the most recent instructions for the method.
+   */
+  public void updateTIBEntry(VM_Method m) {
+    if (VM.VerifyAssertions) {
+      VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
+      VM.assert(vm == m);
+    }
+    int offset = m.getOffset() >>> 2;
+    typeInformationBlock[offset] = m.getCurrentInstructions();
+    VM_InterfaceInvocation.updateTIBEntry(this, m);
+  }
+
+
+  /**
+   * Update the TIB entry's for all classes that inherit the given method 
+   * to point to the current compiled code for the given method.
+   * NOTE: This method is intentionally not synchronized to avoid deadlocks.
+   *       We instead rely on the fact that we are always updating the JTOC with
+   *       the most recent instructions for the method.
+   */
+  public void updateVirtualMethod(VM_Method m) {
+    VM_Method dm = findDeclaredMethod(m.getName(), m.getDescriptor());
+    if (dm != null && dm != m) return;  // this method got overridden
+    updateTIBEntry(m);
+    if (m.isPrivate()) return; // can't override
+    VM_Class[] subClasses = getSubClasses(); 
+    for (int i = 0; i < subClasses.length; i++) {
+      VM_Class sc = subClasses[i];
+      if (sc.isResolved()) {
+	sc.updateVirtualMethod(m);
+      }
     }
   }
 

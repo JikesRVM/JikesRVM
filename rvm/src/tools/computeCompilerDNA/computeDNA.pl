@@ -1,4 +1,4 @@
-#!/usr/agora/bin/perl5
+#!/usr/bin/perl
 
 #
 # (C) Copyright IBM Corp. 2001

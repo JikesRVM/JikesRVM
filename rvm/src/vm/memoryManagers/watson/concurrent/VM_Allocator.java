@@ -611,11 +611,8 @@ public class VM_Allocator
     // Returned: zero-filled, word aligned space for an object, with header installed
     //           (ready for initializer to be run on it)
     //
-    public static Object
-    allocateScalar (int size, Object[] tib)
-	throws OutOfMemoryError
+    public static Object allocateScalar(int size, Object[] tib) throws OutOfMemoryError
     {
-	//      VM_Magic.pragmaInline();  // make sure this method is inlined
 
 	long startTime;
 	int allocType = 0;
@@ -830,10 +827,7 @@ public class VM_Allocator
     // Returned: zero-filled array object with .length field set
     //
     public static Object
-    allocateArray (int numElements, int size, Object[] tib)
-	throws OutOfMemoryError
-    {
-	//      VM_Magic.pragmaInline();  // make sure this method is inlined
+    allocateArray (int numElements, int size, Object[] tib) throws OutOfMemoryError {
 
 	Object result;
 	long startTime;

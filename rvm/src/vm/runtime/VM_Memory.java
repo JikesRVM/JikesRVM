@@ -34,51 +34,50 @@ class VM_Memory implements VM_Uninterruptible {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
-    VM_Magic.pragmaInline();
+  static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) throws VM_PragmaInline {
     if (len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos), 
-	      VM_Magic.objectAsAddress(src).add(srcPos), 
-	      len);
+              VM_Magic.objectAsAddress(src).add(srcPos), 
+              len);
     } else {
       if (len >= 4 && (srcPos & 0x3) == (dstPos & 0x3)) {
-	// alignment is the same
-	int byteStart = srcPos;
-	int wordStart = (srcPos + 3) & ~0x3;
-	int wordEnd = (srcPos + len) & ~0x3;
-	int byteEnd = srcPos + len;
-	int startDiff = wordStart - byteStart;
-	int endDiff = byteEnd - wordEnd;
-	int wordLen = wordEnd - wordStart;
-	if (startDiff == 3) {
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	} else if (startDiff == 2) {
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	} else if (startDiff == 1) {
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	}
-	internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos),
-			      VM_Magic.objectAsAddress(src).add(srcPos),
-			      wordLen);
-	srcPos += wordLen;
-	dstPos += wordLen;
-	if (endDiff == 3) {
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	} else if (endDiff == 2) {
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	} else if (endDiff == 1) {
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	}	  
+        // alignment is the same
+        int byteStart = srcPos;
+        int wordStart = (srcPos + 3) & ~0x3;
+        int wordEnd = (srcPos + len) & ~0x3;
+        int byteEnd = srcPos + len;
+        int startDiff = wordStart - byteStart;
+        int endDiff = byteEnd - wordEnd;
+        int wordLen = wordEnd - wordStart;
+        if (startDiff == 3) {
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        } else if (startDiff == 2) {
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        } else if (startDiff == 1) {
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        }
+        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos),
+                              VM_Magic.objectAsAddress(src).add(srcPos),
+                              wordLen);
+        srcPos += wordLen;
+        dstPos += wordLen;
+        if (endDiff == 3) {
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        } else if (endDiff == 2) {
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        } else if (endDiff == 1) {
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        }	  
       } else {
-	for (int i=0; i<len; i++) {
-	  VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-	}
+        for (int i=0; i<len; i++) {
+          VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
+        }
       }
     }
   }    
@@ -93,38 +92,37 @@ class VM_Memory implements VM_Uninterruptible {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) {
-    VM_Magic.pragmaInline();
+  static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) throws VM_PragmaInline {
     if (len > (NATIVE_THRESHOLD>>1)) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<1), 
-	      VM_Magic.objectAsAddress(src).add(srcPos<<1), 
-	      len<<1);
+              VM_Magic.objectAsAddress(src).add(srcPos<<1), 
+              len<<1);
     } else {
       if (len > 1 && (srcPos & 0x1) == (dstPos & 0x1)) {
-	// alignment is the same
-	int byteStart = srcPos<<1;
-	int wordStart = (byteStart + 3) & ~0x3;
-	int wordEnd = (byteStart + (len<<1)) & ~0x3;
-	int byteEnd = byteStart + (len<<1);
-	int startDiff = wordStart - byteStart;
-	int endDiff = byteEnd - wordEnd;
-	int wordLen = wordEnd - wordStart;
-	if (startDiff != 0) {
-	  dst[dstPos++] = src[srcPos++];
-	}
-	internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<1),
-			      VM_Magic.objectAsAddress(src).add(srcPos<<1),
-			      wordLen);
-	wordLen = wordLen >>> 1;
-	srcPos += wordLen;
-	dstPos += wordLen;
-	if (endDiff != 0) {
-	  dst[dstPos++] = src[srcPos++];
-	}	  
+        // alignment is the same
+        int byteStart = srcPos<<1;
+        int wordStart = (byteStart + 3) & ~0x3;
+        int wordEnd = (byteStart + (len<<1)) & ~0x3;
+        int byteEnd = byteStart + (len<<1);
+        int startDiff = wordStart - byteStart;
+        int endDiff = byteEnd - wordEnd;
+        int wordLen = wordEnd - wordStart;
+        if (startDiff != 0) {
+          dst[dstPos++] = src[srcPos++];
+        }
+        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<1),
+                              VM_Magic.objectAsAddress(src).add(srcPos<<1),
+                              wordLen);
+        wordLen = wordLen >>> 1;
+        srcPos += wordLen;
+        dstPos += wordLen;
+        if (endDiff != 0) {
+          dst[dstPos++] = src[srcPos++];
+        }	  
       } else {
-	for (int i=0; i<len; i++) {
-	  dst[dstPos+i] = src[srcPos+i];
-	}
+        for (int i=0; i<len; i++) {
+          dst[dstPos+i] = src[srcPos+i];
+        }
       }
     }
   }    
@@ -139,38 +137,37 @@ class VM_Memory implements VM_Uninterruptible {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) {
-    VM_Magic.pragmaInline();
+  static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) throws VM_PragmaInline {
     if (len > (NATIVE_THRESHOLD>>1)) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<1), 
-	      VM_Magic.objectAsAddress(src).add(srcPos<<1), 
-	      len<<1);
+              VM_Magic.objectAsAddress(src).add(srcPos<<1), 
+              len<<1);
     } else {
       if (len > 1 && (srcPos & 0x1) == (dstPos & 0x1)) {
-	// alignment is the same
-	int byteStart = srcPos<<1;
-	int wordStart = (byteStart + 3) & ~0x3;
-	int wordEnd = (byteStart + (len<<1)) & ~0x3;
-	int byteEnd = byteStart + (len<<1);
-	int startDiff = wordStart - byteStart;
-	int endDiff = byteEnd - wordEnd;
-	int wordLen = wordEnd - wordStart;
-	if (startDiff != 0) {
-	  dst[dstPos++] = src[srcPos++];
-	}
-	internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<1),
-			      VM_Magic.objectAsAddress(src).add(srcPos<<1),
-			      wordLen);
-	wordLen = wordLen >>> 1;
-	srcPos += wordLen;
-	dstPos += wordLen;
-	if (endDiff != 0) {
-	  dst[dstPos++] = src[srcPos++];
-	}	  
+        // alignment is the same
+        int byteStart = srcPos<<1;
+        int wordStart = (byteStart + 3) & ~0x3;
+        int wordEnd = (byteStart + (len<<1)) & ~0x3;
+        int byteEnd = byteStart + (len<<1);
+        int startDiff = wordStart - byteStart;
+        int endDiff = byteEnd - wordEnd;
+        int wordLen = wordEnd - wordStart;
+        if (startDiff != 0) {
+          dst[dstPos++] = src[srcPos++];
+        }
+        internalAligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<1),
+                              VM_Magic.objectAsAddress(src).add(srcPos<<1),
+                              wordLen);
+        wordLen = wordLen >>> 1;
+        srcPos += wordLen;
+        dstPos += wordLen;
+        if (endDiff != 0) {
+          dst[dstPos++] = src[srcPos++];
+        }	  
       } else {
-	for (int i=0; i<len; i++) {
-	  dst[dstPos+i] = src[srcPos+i];
-	}
+        for (int i=0; i<len; i++) {
+          dst[dstPos+i] = src[srcPos+i];
+        }
       }
     }
   }    
@@ -184,8 +181,7 @@ class VM_Memory implements VM_Uninterruptible {
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  static void aligned32Copy(VM_Address dst, VM_Address src, int numBytes) {
-    VM_Magic.pragmaInline();
+  static void aligned32Copy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
     if (numBytes > NATIVE_THRESHOLD) {
       memcopy(dst, src, numBytes);
     } else {
@@ -200,8 +196,7 @@ class VM_Memory implements VM_Uninterruptible {
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  private static void internalAligned32Copy(VM_Address dst, VM_Address src, int numBytes) {
-    VM_Magic.pragmaInline();
+  private static void internalAligned32Copy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
     for (int i=0; i<numBytes; i+= 4) {
       VM_Magic.setMemoryWord(dst.add(i), VM_Magic.getMemoryWord(src.add(i)));
     }
@@ -220,7 +215,7 @@ class VM_Memory implements VM_Uninterruptible {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM.sysCall3(bootRecord.sysCopyIP, dst.toInt(), src.toInt(), cnt);
   }
-   
+
   /**
    * Fill a region of memory.
    * Taken:    destination address
@@ -243,7 +238,7 @@ class VM_Memory implements VM_Uninterruptible {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM.sysCall2(bootRecord.sysZeroIP, start.toInt(), end.diff(start));
   }
-   
+
   // temporary different name
   static void zeroTemp(VM_Address start, int len) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -278,13 +273,13 @@ class VM_Memory implements VM_Uninterruptible {
     VM.sysCall2(bootRecord.sysSyncCacheIP, address.toInt(), size);
   }
 
-  
+
   ////////////////////////
   // (3) MMap
   ////////////////////////
 
   // constants for protection and mapping calls
-//-#if RVM_FOR_LINUX
+  //-#if RVM_FOR_LINUX
   static final int PROT_NONE  = 0;
   static final int PROT_READ  = 1;
   static final int PROT_WRITE = 2;
@@ -298,8 +293,8 @@ class VM_Memory implements VM_Uninterruptible {
   static final int MS_ASYNC      = 1;
   static final int MS_INVALIDATE = 2;
   static final int MS_SYNC       = 4;
-//-#endif
-//-#if RVM_FOR_AIX
+  //-#endif
+  //-#if RVM_FOR_AIX
   static final int PROT_NONE  = 0;
   static final int PROT_READ  = 1;
   static final int PROT_WRITE = 2;
@@ -313,43 +308,43 @@ class VM_Memory implements VM_Uninterruptible {
   static final int MS_ASYNC      = 16;
   static final int MS_INVALIDATE = 32;
   static final int MS_SYNC       = 64;
-//-#endif
+  //-#endif
 
 
 
   static boolean isPageMultiple(int val) {
-      int pagesizeMask = getPagesize() - 1;
-      return ((val & pagesizeMask) == 0);
+    int pagesizeMask = getPagesize() - 1;
+    return ((val & pagesizeMask) == 0);
   }
 
   static boolean isPageMultiple(long val) {
-      int pagesizeMask = getPagesize() - 1;
-      return ((val & ((long) pagesizeMask)) == 0);
+    int pagesizeMask = getPagesize() - 1;
+    return ((val & ((long) pagesizeMask)) == 0);
   }
 
   static boolean isPageAligned(VM_Address addr) {
-      return isPageMultiple(addr.toInt());
+    return isPageMultiple(addr.toInt());
   }
 
-    // Round size (interpreted as an unsigned int) up to the next page
-    static public int roundDownPage(int size) {     
-	size &= ~(getPagesize() - 1);   
-	return size;
-    }
+  // Round size (interpreted as an unsigned int) up to the next page
+  static public int roundDownPage(int size) {     
+    size &= ~(getPagesize() - 1);   
+    return size;
+  }
 
-    static public VM_Address roundDownPage(VM_Address addr) { 
-	int temp = addr.toInt();  // might be negative - consider as unsigned
-	temp &= ~(getPagesize() - 1);
-	return VM_Address.fromInt(temp);
-    }
+  static public VM_Address roundDownPage(VM_Address addr) { 
+    int temp = addr.toInt();  // might be negative - consider as unsigned
+    temp &= ~(getPagesize() - 1);
+    return VM_Address.fromInt(temp);
+  }
 
-    static public int roundUpPage(int size) {     // Round size up to the next page
-	return roundDownPage(size + getPagesize() - 1);
-    }
+  static public int roundUpPage(int size) {     // Round size up to the next page
+    return roundDownPage(size + getPagesize() - 1);
+  }
 
-    static public VM_Address roundUpPage(VM_Address addr) {
-	return VM_Address.fromInt(roundUpPage(addr.toInt()));
-    }
+  static public VM_Address roundUpPage(VM_Address addr) {
+    return VM_Address.fromInt(roundUpPage(addr.toInt()));
+  }
 
   /**
    * Do mmap general memory mapping call (not implemented)
@@ -362,9 +357,9 @@ class VM_Memory implements VM_Uninterruptible {
    * Returned: VM_Address (of region)
    */
   static VM_Address mmap(VM_Address address, int size, 
-			 int prot, int flags, int fd, long offset) {
+                         int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
-	VM.assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
+      VM.assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
     return VM_Address.max();  // not implemented: requires new magic for 6 args, etc.
     // VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     // return VM.sysCallXXX(bootRecord.sysMMapIP, address, size, prot, flags, fd, offset);
@@ -480,48 +475,48 @@ class VM_Memory implements VM_Uninterruptible {
   }
 
 
-    //-#if RVM_FOR_AIX
-    static final int SHMGET_IPC_CREAT = 1 * 512; // 0001000 Creates the data structure if it does not already exist. 
-    static final int SHMGET_IPC_EXCL = 2 * 512;  // 0002000 Causes the shmget subroutine to be unsuccessful 
-                                          //         if the IPC_CREAT flag is also set, and the data structure already exists. 
-    static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
-    static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
-    static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
-    static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
-    static final int SHMGET_IROTH = 4;      // 0000004 others can read
-    static final int SHMGET_IWOTH = 2;      // 0000002 others can write
+  //-#if RVM_FOR_AIX
+  static final int SHMGET_IPC_CREAT = 1 * 512; // 0001000 Creates the data structure if it does not already exist. 
+  static final int SHMGET_IPC_EXCL = 2 * 512;  // 0002000 Causes the shmget subroutine to be unsuccessful 
+  //         if the IPC_CREAT flag is also set, and the data structure already exists. 
+  static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
+  static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
+  static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
+  static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
+  static final int SHMGET_IROTH = 4;      // 0000004 others can read
+  static final int SHMGET_IWOTH = 2;      // 0000002 others can write
 
-    static final int SHMAT_MAP = 4 * 512;     // 004000 Maps a file onto the address space instead of a shared memory segment. 
-                                              //        The SharedMemoryID parameter must specify an open file descriptor.
-    static final int SHMAT_LBA = 268435456;   // 0x10000000 Specifies the low boundary address multiple of a segment. 
-    static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
-    static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
-                                              //        to the next lower segment boundary, if necessary. 
-    static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
-    // There are other SHMCTL that are not included for now.
-    //-#endif
+  static final int SHMAT_MAP = 4 * 512;     // 004000 Maps a file onto the address space instead of a shared memory segment. 
+  //        The SharedMemoryID parameter must specify an open file descriptor.
+  static final int SHMAT_LBA = 268435456;   // 0x10000000 Specifies the low boundary address multiple of a segment. 
+  static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
+  static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
+  //        to the next lower segment boundary, if necessary. 
+  static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
+  // There are other SHMCTL that are not included for now.
+  //-#endif
 
-    //-#if RVM_FOR_LINUX
-    static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
-    static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
-    static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait
+  //-#if RVM_FOR_LINUX
+  static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
+  static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
+  static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait
 
-    static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
-    static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
-    static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
-    static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
-    static final int SHMGET_IROTH = 4;      // 0000004 others can read
-    static final int SHMGET_IWOTH = 2;      // 0000002 others can write
+  static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
+  static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
+  static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
+  static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
+  static final int SHMGET_IROTH = 4;      // 0000004 others can read
+  static final int SHMGET_IWOTH = 2;      // 0000002 others can write
 
-    static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
-    static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
-    static final int SHMAT_REMAP = 4 * 4096;    // 040000 take-over region on attach
-    // static final int SHMAT_MAP  - can't find this in linux's shm.h
+  static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
+  static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
+  static final int SHMAT_REMAP = 4 * 4096;    // 040000 take-over region on attach
+  // static final int SHMAT_MAP  - can't find this in linux's shm.h
 
-    static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
+  static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
 
-    // There are other SHMCTL that are not included for now.
-    //-#endif
+  // There are other SHMCTL that are not included for now.
+  //-#endif
 
 
   /**
@@ -583,47 +578,47 @@ class VM_Memory implements VM_Uninterruptible {
   static int getPagesize() {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     if (pagesize == -1) {
-	pagesize = VM.sysCall0(bootRecord.sysGetPageSizeIP);
-	pagesizeLog = -1;
-	int temp = pagesize;
-	while (temp > 0) {
-	    temp >>>= 1;
-	    pagesizeLog++;
-	}
-	if (VM.VerifyAssertions) VM.assert((1 << pagesizeLog) == pagesize);
+      pagesize = VM.sysCall0(bootRecord.sysGetPageSizeIP);
+      pagesizeLog = -1;
+      int temp = pagesize;
+      while (temp > 0) {
+        temp >>>= 1;
+        pagesizeLog++;
+      }
+      if (VM.VerifyAssertions) VM.assert((1 << pagesizeLog) == pagesize);
     }
     return pagesize;
   }
 
-    static int getPagesizeLog() {
-	if (pagesize == -1) 
-	    getPagesize();
-	return pagesizeLog;
-    }
+  static int getPagesizeLog() {
+    if (pagesize == -1) 
+      getPagesize();
+    return pagesizeLog;
+  }
 
   static void dumpMemory(VM_Address start, int beforeBytes, int afterBytes) {
 
-      beforeBytes = beforeBytes & ~3;
-      afterBytes = (afterBytes + 3) & ~3;
-      VM.sysWrite("---- Dumping memory from ");
-      VM.sysWrite(start.sub(beforeBytes));
-      VM.sysWrite(" to ");
-      VM.sysWrite(start.add(afterBytes));
-      VM.sysWrite(" ----\n");
-      for (int i = beforeBytes; i < afterBytes; i += 4) {
-	  VM.sysWrite(i, ": ");
-	  VM.sysWrite(start.add(i));
-	  VM.sysWrite(" ");
-	  int value = VM_Magic.getMemoryWord(start.add(i));
-	  VM.sysWrite(value);
-	  VM.sysWrite("\n");
+    beforeBytes = beforeBytes & ~3;
+    afterBytes = (afterBytes + 3) & ~3;
+    VM.sysWrite("---- Dumping memory from ");
+    VM.sysWrite(start.sub(beforeBytes));
+    VM.sysWrite(" to ");
+    VM.sysWrite(start.add(afterBytes));
+    VM.sysWrite(" ----\n");
+    for (int i = beforeBytes; i < afterBytes; i += 4) {
+      VM.sysWrite(i, ": ");
+      VM.sysWrite(start.add(i));
+      VM.sysWrite(" ");
+      int value = VM_Magic.getMemoryWord(start.add(i));
+      VM.sysWrite(value);
+      VM.sysWrite("\n");
     }
   }
 
   static void dumpMemory(VM_Address start, int afterBytes) {
-      dumpMemory(start, 0, afterBytes);
+    dumpMemory(start, 0, afterBytes);
   }
-  
+
   // test routine
   static void test_mmap() {
     int psize = VM_Memory.getPagesize();
@@ -645,26 +640,26 @@ class VM_Memory implements VM_Uninterruptible {
     if (addr.toInt() != -1) {
       VM_Magic.setMemoryWord(addr, 17);
       if (VM_Magic.getMemoryWord(addr) == 17) {
-	VM.sysWrite("write and read in memory region succeeded\n");
+        VM.sysWrite("write and read in memory region succeeded\n");
       } else {
-	VM.sysWrite("read in memory region did not return value written\n");
+        VM.sysWrite("read in memory region did not return value written\n");
       }
 
       if (!VM_Memory.mprotect(addr, size, ro)) {
-	VM.sysWrite("mprotect failed\n");
+        VM.sysWrite("mprotect failed\n");
       } else {
-	VM.sysWrite("mprotect succeeded!\n");
+        VM.sysWrite("mprotect succeeded!\n");
       }
       if (VM_Magic.getMemoryWord(addr) == 17) {
-	VM.sysWrite("read in memory region succeeded\n");
+        VM.sysWrite("read in memory region succeeded\n");
       } else {
-	VM.sysWrite("read in memory region did not return value written\n");
+        VM.sysWrite("read in memory region did not return value written\n");
       }
 
       if (VM_Memory.munmap(addr, size) == 0) 
-	VM.sysWrite("munmap succeeded!\n");
+        VM.sysWrite("munmap succeeded!\n");
       else 
-	VM.sysWrite("munmap failed\n");
+        VM.sysWrite("munmap failed\n");
     }
 
     addr = VM_Memory.mmap(size);
@@ -678,42 +673,39 @@ class VM_Memory implements VM_Uninterruptible {
     if (addr.toInt() != -1) {
       VM_Magic.setMemoryWord(addr, 17);
       if (VM_Magic.getMemoryWord(addr) == 17) {
-	VM.sysWrite("write and read in memory region succeeded\n");
+        VM.sysWrite("write and read in memory region succeeded\n");
       } else {
-	VM.sysWrite("read in memory region did not return value written\n");
+        VM.sysWrite("read in memory region did not return value written\n");
       }
 
       if (!VM_Memory.mprotect(addr, size, ro)) {
-	VM.sysWrite("mprotect failed\n");
+        VM.sysWrite("mprotect failed\n");
       } else {
-	VM.sysWrite("mprotect succeeded!\n");
+        VM.sysWrite("mprotect succeeded!\n");
       }
 
       if (VM_Magic.getMemoryWord(addr) == 17) {
-	VM.sysWrite("read in memory region succeeded\n");
+        VM.sysWrite("read in memory region succeeded\n");
       } else {
-	VM.sysWrite("read in memory region did not return value written\n");
+        VM.sysWrite("read in memory region did not return value written\n");
       }
 
       if (VM_Memory.munmap(addr, size) == 0) 
-	VM.sysWrite("munmap succeeded!\n");
+        VM.sysWrite("munmap succeeded!\n");
       else
-	VM.sysWrite("munmap failed\n");
+        VM.sysWrite("munmap failed\n");
     }
 
     VM.sysWrite("mmap tests done\n");
   }
 
 
-  static VM_Address align (VM_Address address, int alignment) {
-      VM_Magic.pragmaInline();
-      return VM_Address.fromInt((address.toInt() + alignment - 1) & ~(alignment - 1));
+  static VM_Address align (VM_Address address, int alignment) throws VM_PragmaInline {
+    return VM_Address.fromInt((address.toInt() + alignment - 1) & ~(alignment - 1));
   }
 
   // This version is here to accomodate the boot image writer
-  static int align (int address, int alignment) {
-      VM_Magic.pragmaInline();
-      return ((address + alignment - 1) & ~(alignment - 1));
+  static int align (int address, int alignment) throws VM_PragmaInline {
+    return ((address + alignment - 1) & ~(alignment - 1));
   }
-
 }

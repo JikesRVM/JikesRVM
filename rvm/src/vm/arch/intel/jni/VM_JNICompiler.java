@@ -39,7 +39,9 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    *
    */
 
-  static VM_MachineCode generateGlueCodeForNative ( int compiledMethodId, VM_Method method ) {
+  static VM_MachineCode generateGlueCodeForNative (VM_CompiledMethod cm) {
+    int compiledMethodId = cm.getId();
+    VM_Method method     = cm.getMethod();
     VM_Assembler asm	 = new VM_Assembler(100);   // some size for the instruction array
     int nativeIP         = method.getNativeIP();
     // recompute some constants

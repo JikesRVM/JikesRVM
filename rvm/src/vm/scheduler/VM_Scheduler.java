@@ -100,18 +100,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //
   static VM_Lock [] locks;
 
-  // Stack for use by VM_CollectorThread's.
-  // !!TODO: this is temporary until we have a way to create
-  //         pinned memory objects outside the heap
-  //
-  static int[][] collectorThreadStacks;
-
-  // Stacks for use by VM_StartupThread's.
-  // !!TODO: this is temporary until we have a way to create
-  //         pinned memory objects outside the heap
-  //
-  static int[][] startupThreadStacks;
-
   // Flag set by external signal to request debugger activation at next thread switch.
   // See also: RunBootImage.C
   //
@@ -134,7 +122,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   // Initialize boot image.
   //
-  static void init() {
+  static void init() throws VM_PragmaInterruptible {
     threadCreationMutex     = new VM_ProcessorLock();
     outputMutex             = new VM_ProcessorLock();
     if (VM.BuildForStrongVolatileSemantics) doublewordVolatileMutex = new VM_ProcessorLock();
@@ -144,16 +132,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
     // show up as recursive use of hardware exception registers (eg the long-standing lisp bug)
     VM_BootRecord.the_boot_record.dumpStackAndDieOffset = VM_Entrypoints.dumpStackAndDieMethod.getOffset();
-
-    // pre-allocate pinned stacks for later use in boot()
-    //
-    collectorThreadStacks = new int[MAX_PROCESSORS][];
-    for (int i = 0; i < MAX_PROCESSORS; ++i)
-      collectorThreadStacks[i] = VM_RuntimeStructures.newStack(STACK_SIZE_COLLECTOR);
-
-    startupThreadStacks   = new int[MAX_PROCESSORS][];
-    for (int i = 0; i < MAX_PROCESSORS; ++i)
-      startupThreadStacks[i]   = VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL);
 
     // allocate initial processor list
     //
@@ -170,7 +148,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //           VM_Scheduler.numProcessors == number of virtual processors desired
   // Returned: never returns (virtual processors begin running)
   //
-  static void boot (VM_Thread mainThread) {
+  static void boot (VM_Thread mainThread) throws VM_PragmaInterruptible {
     if (VM.VerifyAssertions) VM.assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)
@@ -183,10 +161,10 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     VM_Processor primordialProcessor = processors[PRIMORDIAL_PROCESSOR_ID];
 
-    processors = new VM_Processor[1 + numProcessors + 1];
+    processors = new VM_Processor[1 + numProcessors + 1];  // first slot unused; then normal processors; then 1 ndp
 
     processors[PRIMORDIAL_PROCESSOR_ID] = primordialProcessor;
-    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; )
+    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) 
       processors[i] = new VM_Processor(i, VM_Processor.RVM);
 
     // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
@@ -240,7 +218,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM_CollectorThread.boot(numProcessors);
     for (int i = 0; i < numProcessors; ++i) {
       VM_Thread t;
-      t = VM_CollectorThread.createActiveCollectorThread(collectorThreadStacks[i], processors[1+i]);
+      t = VM_CollectorThread.createActiveCollectorThread(processors[1+i]);
       t.start(processors[1+i].readyQueue);
 
       t = new VM_IdleThread(processors[1+i]);
@@ -251,7 +229,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (VM.BuildWithNativeDaemonProcessor) {
       // Create one collector thread and one idle thread for the NATIVEDAEMON processor
-      t = VM_CollectorThread.createActiveCollectorThread(collectorThreadStacks[numProcessors], processors[nativeDPndx]);
+      t = VM_CollectorThread.createActiveCollectorThread(processors[nativeDPndx]);
       t.start(processors[nativeDPndx].readyQueue);
       t = new VM_IdleThread(processors[nativeDPndx]);
       t.start(processors[nativeDPndx].idleQueue);
@@ -300,7 +278,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_Thread target = new VM_StartupThread(startupThreadStacks[i-1]);
+      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2)); 
 
       // create virtual cpu and wait for execution to enter target's code/stack.
       // this is done with gc disabled to ensure that garbage collector doesn't move
@@ -331,7 +309,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     }
 
     if (VM.BuildWithNativeDaemonProcessor) {
-      VM_Thread target = new VM_StartupThread(startupThreadStacks[numProcessors]);
+
+      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2));
 
       processors[nativeDPndx].activeThread = target;
       processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
@@ -625,12 +604,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         VM_Method         method            = compiledMethod.getMethod();
         int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
-        int               lineNumber        = compiledMethod.getCompilerInfo().findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
+        int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
 
         //-#if RVM_WITH_OPT_COMPILER
-        VM_CompilerInfo   info              = compiledMethod.getCompilerInfo();
-        if (info.getCompilerType() == VM_CompilerInfo.OPT) {
-          VM_OptCompilerInfo optInfo = (VM_OptCompilerInfo)info;
+        if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+          VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
           // Opt stack frames may contain multiple inlined methods.
           VM_OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);

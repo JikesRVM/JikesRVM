@@ -52,7 +52,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase
    * @param ir the governing IR
    */
   final public void perform (OPT_IR ir) {
-    if (!ir.method.getDeclaringClass().isInterruptible()) {
+    if (!ir.method.isInterruptible()) {
       return;   // don't insert yieldpoints in Uninterruptible code.
     }
     
@@ -89,7 +89,7 @@ class OPT_YieldPoints extends OPT_CompilerPhase
 		bbNum < hasYP.length && 
 		!hasYP[bbNum]) {
 	      OPT_Instruction dest = destBB.firstInstruction();
-	      if (dest.position.getMethod().getDeclaringClass().isInterruptible()) {
+	      if (dest.position.getMethod().isInterruptible()) {
 		prependYield(destBB, YIELDPOINT_BACKEDGE, dest.bcIndex, dest.position);
 		hasYP[bbNum] = true;
 	      }

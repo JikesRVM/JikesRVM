@@ -12,12 +12,13 @@
  */
 
 abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
-  implements VM_OptGCMapIteratorConstants {
+  implements VM_OptGCMapIteratorConstants,
+	     VM_Uninterruptible {
 
   /**
-   * The compiler info for this method
+   * The compiled method
    */
-  protected VM_OptCompilerInfo compilerInfo;
+  protected VM_OptCompiledMethod compiledMethod;
 
   /**
    *  The GC map for this method
@@ -44,7 +45,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   /**
    * just used for debugging, all output statements use VM.syswrite
    */
-  static final boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
   /**
    * just used for verbose debugging, all output statements use VM.syswrite
@@ -72,7 +73,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param instructionOffset the place in the method we current are
    * @param framePtr the current frame pointer
    */
-  public void setupIterator(VM_CompiledMethod compiledMethod, 
+  public void setupIterator(VM_CompiledMethod cm, 
 			    int instructionOffset, VM_Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
@@ -89,8 +90,8 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
     // retrieve and save the corresponding VM_OptMachineCodeMap for
     // this method and instructionOffset
-    compilerInfo = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
-    map = compilerInfo.getMCMap();
+    compiledMethod = (VM_OptCompiledMethod)cm;
+    map = compiledMethod.getMCMap();
     mapIndex = map.findGCMapIndex(instructionOffset);
     if (mapIndex == VM_OptGCMap.ERROR) {
       VM.sysWrite("VM_OptMachineCodeMap: findGCMapIndex failed\n");
@@ -257,7 +258,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // primitive types aren't worth reinitialing because setUpIterator
     //   will take care of this.
     map = null;
-    compilerInfo = null;
+    compiledMethod = null;
   }
 
   /**
@@ -265,7 +266,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * cause an allocation
    */
   public int getType() {
-    return VM_GCMapIterator.OPT;
+    return VM_CompiledMethod.OPT;
   }
 
   /**

@@ -9,7 +9,7 @@ include		$(RVM_BUILD)/Make.rules
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/jdp
 BENCH_SOURCE_PATH=$(BENCH_HOME)
-HEAPSIZE=100
+HEAPSIZE=200
 START_NAME=arraymethod
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules

@@ -4,12 +4,13 @@
 //$Id$
 
 /**
- * Place for VM_CompilerInfo.getDynamicLink() to deposit return information.
+ * Place for VM_CompiledMethod.getDynamicLink() to deposit return information.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-final class VM_DynamicLink implements VM_BytecodeConstants {
+final class VM_DynamicLink implements VM_BytecodeConstants, 
+				      VM_Uninterruptible {
   private VM_Method methodRef; // method referenced at a call site
   private int       bytecode;  // how method was called at that site
 

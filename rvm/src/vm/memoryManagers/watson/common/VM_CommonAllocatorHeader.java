@@ -101,8 +101,7 @@ public class VM_CommonAllocatorHeader
    * if the object is already forwarded (or being forwarded)
    * or write the bit pattern that indicates that the object is being forwarded
    */
-  static int attemptToForward(Object base) {
-    VM_Magic.pragmaInline();
+  static int attemptToForward(Object base) throws VM_PragmaInline {
     int oldValue;
     do {
       oldValue = VM_ObjectModel.prepareAvailableBits(base);

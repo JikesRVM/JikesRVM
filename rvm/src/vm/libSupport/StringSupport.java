@@ -4,7 +4,8 @@
 //$Id$
 
 package com.ibm.JikesRVM.librarySupport;
-import VM;
+import VM_Atom;
+import VM_Statics;
 
 /**
  * This class provides a set of static method entrypoints used in the
@@ -23,6 +24,15 @@ public class StringSupport {
    * @return		the interned string equal to this String
    */
   public static String intern(String s) { 
-    return VM.findOrCreateString(s); 
+    //!!TODO: This pollutes the jtoc with strings that needn't be allocated statically.
+    //        We need to keep a separate table for intern'd strings that
+    //        don't originate from class constant pools. [--DL]
+    try {
+      VM_Atom atom = VM_Atom.findOrCreateUnicodeAtom(s);
+      int     slot = VM_Statics.findOrCreateStringLiteral(atom);
+      return (String)VM_Statics.getSlotContentsAsObject(slot);
+    } catch (java.io.UTFDataFormatException x) {
+      throw new InternalError();
+    }
   }
 }

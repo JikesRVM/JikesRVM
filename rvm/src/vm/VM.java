@@ -23,7 +23,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */ 
   static void initForBootImageWriter(String classPath, 
-				     String[] bootCompilerArgs) throws VM_ResolutionException {
+				     String[] bootCompilerArgs) 
+    throws VM_ResolutionException,
+	   VM_PragmaInterruptible {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -32,7 +34,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Prepare vm classes for use by tools.
    * @exception VM_ResolutionException
    */
-  static void initForTool() throws VM_ResolutionException {
+  static void initForTool() throws VM_ResolutionException, VM_PragmaInterruptible  {
     runningTool = true;
     LoadLocalVariableTables = true;  // make sure to load the local table
     init(System.getProperty("java.class.path"), null);
@@ -43,7 +45,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param classpath class path to be used by VM_ClassLoader
    * @exception VM_ResolutionException
    */
-  static void initForTool(String classpath) throws VM_ResolutionException {
+  static void initForTool(String classpath) throws VM_ResolutionException, VM_PragmaInterruptible {
     runningTool = true;
     LoadLocalVariableTables = true;  // make sure to load the local table
     init(classpath, null);
@@ -60,7 +62,7 @@ public class VM extends VM_Properties implements VM_Constants,
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  public static void boot() throws Exception {
+  public static void boot() throws Exception, VM_PragmaLogicallyUninterruptible {
     VM.writingBootImage = false;
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
@@ -76,8 +78,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any method calls, 
-    // because it's accessed
-    // by compiler-generated stack overflow checks.
+    // because it's accessed by compiler-generated stack overflow checks.
     //
     if (verbose >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
@@ -106,6 +107,10 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verbose >= 1) VM.sysWriteln("Setting up memory manager");
     VM_Collector.boot(VM_BootRecord.the_boot_record);
 
+    // Reset the options for the baseline compiler to avoid carrying them over from
+    // bootimage writing time.
+    // 
+    VM_BaselineCompiler.initOptions();
     
     // Create class objects for static synchronized methods in the bootimage.
     // This must happen before any bootimage static synchronized methods 
@@ -123,13 +128,6 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verbose >= 1) VM.sysWriteln("Initializing class loader");
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
-
-    //  Start up the baseline compiler's options before any compilations happen
-    //
-
-    if (verbose >= 1) VM.sysWriteln("Retrieving compiler's boot options");
-    VM_Compiler.bootOptions();
-
 
     //
     // At this point the virtual machine is running as a single thread 
@@ -202,7 +200,7 @@ public class VM extends VM_Properties implements VM_Constants,
     // method_to_print restriction
     //
     if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
-    VM_Compiler.postBootOptions();
+    VM_BaselineCompiler.postBootOptions();
 
 
     // Allow Collector to respond to command line arguments
@@ -235,7 +233,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Called by the compilers when compiling a static synchronized method
    * during bootimage writing.
    */
-  static void deferClassObjectCreation(VM_Class c) {
+  static void deferClassObjectCreation(VM_Class c) throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
       if (classObjects[i] == c) return; // already recorded
     }
@@ -248,7 +246,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Create the java.lang.Class objects needed for 
    * static synchronized methods in the bootimage.
    */
-  private static void createClassObjects() {
+  private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
       classObjects[i].getClassForType();
     }
@@ -259,12 +257,14 @@ public class VM extends VM_Properties implements VM_Constants,
    * in bootimage.
    * @param className
    */
-  private static void runClassInitializer(String className) {
+  private static void runClassInitializer(String className) throws VM_PragmaInterruptible {
     VM_Atom  classDescriptor = 
-       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+      VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
     if (cls.isInBootImage()) {
-      VM_Magic.invokeClassInitializer(cls.getClassInitializerMethod().getMostRecentlyGeneratedInstructions());
+      VM_Method clinit = cls.getClassInitializerMethod();
+      clinit.compile();
+      VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
       cls.setAllFinalStaticJTOCEntries();
     }
   }
@@ -300,8 +300,7 @@ public class VM extends VM_Properties implements VM_Constants,
     if (!b) _assertionFailure(message);
   }
 
-  private static void _assertionFailure(String message) {
-    VM_Magic.pragmaNoInline(); // prevent opt compiler from inlining failure code.
+  private static void _assertionFailure(String message) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
     if (message == null) message = "vm internal error at:";
     if (VM.runningVM) {
       sysFail(message);
@@ -314,10 +313,11 @@ public class VM extends VM_Properties implements VM_Constants,
    * Format a 32 bit number as "0x" followed by 8 hex digits.
    * Do this without referencing Integer or Character classes, 
    * in order to avoid dynamic linking.
+   * TODO: move this method to VM_Services.
    * @param number
    * @return a String with the hex representation of the integer
    */
-  static String intAsHexString(int number) {
+  static String intAsHexString(int number) throws VM_PragmaInterruptible {
     char[] buf   = new char[10];
     int    index = 10;
     while (--index > 1) {
@@ -343,7 +343,6 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value  what is printed
    */
   public static void sysWrite(VM_Member value) {
-////  VM.sysWrite(value.getDeclaringClass().getName());
     VM.sysWrite(value.getDeclaringClass().getDescriptor());
     VM.sysWrite(".");
     VM.sysWrite(value.getName());
@@ -355,16 +354,14 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value   what is printed
    */
-  public static void sysWrite(String value) {
+  public static void sysWrite(String value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
-      boolean enabled = VM_Processor.getCurrentProcessor().threadSwitchingEnabled();
-      if (enabled) VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
       for (int i = 0, n = value.length(); i < n; ++i) {
         sysWrite(value.charAt(i));
       }
-      if (enabled) VM_Processor.getCurrentProcessor().enableThreadSwitching();
-    }
-    else {
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    } else {
       System.err.print(value);
     }
   }
@@ -373,7 +370,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value	what is printed
    */
-  public static void sysWrite(char value) {
+  public static void sysWrite(char value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM)
       sysCall1(VM_BootRecord.the_boot_record.sysWriteCharIP, value);
     else
@@ -386,7 +383,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value   double to be printed
    *
    */
-  public static void sysWrite(double value) {
+  public static void sysWrite(double value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
       int ones = (int) value;
       int hundredths = (int) (100.0 * (value - ones));
@@ -404,29 +401,35 @@ public class VM extends VM_Properties implements VM_Constants,
    * Low level print to console.
    * @param value	what is printed
    */
-  public static void sysWrite(int value) {
+  public static void sysWrite(int value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
-	int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
-	sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
-    }
-    else
+      int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
+      sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
+    } else {
       System.err.print(value);
+    }
+  }
+
+
+  public static void sysWriteField(int fieldWidth, String s) throws VM_PragmaLogicallyUninterruptible {
+      sysWrite(s);
+      int len = s.length();
+      while (fieldWidth > len++) sysWrite(" ");
   }
 
   /**
    * Low level print to console.
    * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
    */
-  public static void sysWriteField(int fieldWidth, int value) {
-    if (runningVM) {
-	int len = 1, temp = value;
-	if (temp < 0) { len++; temp = -temp; }
-	while (temp >= 10) { len++; temp /= 10; }
-	while (fieldWidth > len++) sysWrite(" ");
-	sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
-    }
-    else
-      System.err.print(value);
+  public static void sysWriteField(int fieldWidth, int value) throws VM_PragmaLogicallyUninterruptible {
+      int len = 1, temp = value;
+      if (temp < 0) { len++; temp = -temp; }
+      while (temp >= 10) { len++; temp /= 10; }
+      while (fieldWidth > len++) sysWrite(" ");
+      if (runningVM) 
+	  sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+      else 
+	  System.err.print(value);
   }
 
   /**
@@ -434,16 +437,16 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
    */
   public static void sysWriteField(int fieldWidth, VM_Atom s) {
-      int len = s.length();
-      while (fieldWidth > len++) sysWrite(" ");
-      sysWrite(s);
+    int len = s.length();
+    while (fieldWidth > len++) sysWrite(" ");
+    sysWrite(s);
   }
 
   /**
    * Low level print to console.
    * @param value	what is printed, as hex only
    */
-  public static void sysWriteHex(int value) {
+  public static void sysWriteHex(int value) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM)
       sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 2 /*just hex*/);
     else
@@ -456,7 +459,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void sysWrite(int value, boolean hexToo) {
+  public static void sysWrite(int value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM)
       sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, hexToo?1:0);
     else
@@ -477,7 +480,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param hexToo  how to print: true  - print as decimal followed by hex
    *                              false - print as decimal only
    */
-  public static void sysWrite(long value, boolean hexToo) {
+  public static void sysWrite(long value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible {
     if (runningVM) {
       int val1, val2;
       val1 = (int)(value>>32);
@@ -535,10 +538,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
-  public static void sysExit(int value) {
+  public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
     // SJF: I don't want this method inlined, since I use it as a
     // breakpoint for the jdp regression test.
-    VM_Magic.pragmaNoInline();
     if (runningVM) {
       System.out.flush();
       System.err.flush();
@@ -559,8 +561,9 @@ public class VM extends VM_Properties implements VM_Constants,
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
-    } else
+    } else {
       sysCall1(VM_BootRecord.the_boot_record.sysExitIP, value);
+    }
   }
 
   /**
@@ -626,9 +629,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param ip address of a function in sys.C 
    * @return integer value returned by function in sys.C
    */
-  public static int sysCall0 (int ip) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall0(ip, VM_BootRecord.the_boot_record.sysTOC);
+  public static int sysCall0(int ip) throws VM_PragmaInline {
+    return VM_Magic.sysCall0(ip, VM_BootRecord.the_boot_record.sysTOC);
   }
 
   /**
@@ -637,10 +639,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p1
    * @return integer value returned by function in sys.C
    */
-  public static int sysCall1 (int ip, int p1) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall1(ip, VM_BootRecord.the_boot_record.sysTOC, 
-        p1);
+  public static int sysCall1(int ip, int p1) throws VM_PragmaInline {
+    return VM_Magic.sysCall1(ip, VM_BootRecord.the_boot_record.sysTOC, p1);
   }
 
   /**
@@ -650,10 +650,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall2 (int ip, int p1, int p2) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall2(ip, VM_BootRecord.the_boot_record.sysTOC, 
-        p1, p2);
+  public static int sysCall2(int ip, int p1, int p2) throws VM_PragmaInline {
+    return  VM_Magic.sysCall2(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2);
   }
 
   /**
@@ -664,10 +662,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p3
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall3 (int ip, int p1, int p2, int p3) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall3(ip, VM_BootRecord.the_boot_record.sysTOC, 
-        p1, p2, p3);
+  public static int sysCall3(int ip, int p1, int p2, int p3) throws VM_PragmaInline {
+    return  VM_Magic.sysCall3(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2, p3);
   }
 
   /**
@@ -679,10 +675,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p4
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall4 (int ip, int p1, int p2, int p3, int p4) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall4(ip, VM_BootRecord.the_boot_record.sysTOC, 
-        p1, p2, p3, p4);
+  public static int sysCall4(int ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
+    return VM_Magic.sysCall4(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2, p3, p4);
   }
 
   /**
@@ -690,9 +684,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param ip  address of a function in sys.C 
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_0 (int ip) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall_L_0(ip, VM_BootRecord.the_boot_record.sysTOC);
+  public static long sysCall_L_0(int ip) throws VM_PragmaInline {
+    return VM_Magic.sysCall_L_0(ip, VM_BootRecord.the_boot_record.sysTOC);
   }
 
   /**
@@ -701,10 +694,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p1
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_I (int ip, int p1) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall_L_I(ip, VM_BootRecord.the_boot_record.sysTOC, 
-        p1);
+  public static long sysCall_L_I(int ip, int p1) throws VM_PragmaInline {
+    return VM_Magic.sysCall_L_I(ip, VM_BootRecord.the_boot_record.sysTOC, p1);
   }
 
   /**
@@ -714,10 +705,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCallAD (int ip, int p1, double p2) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCallAD(ip, VM_BootRecord.the_boot_record.sysTOC, 
-        p1, p2);
+  public static int sysCallAD(int ip, int p1, double p2) throws VM_PragmaInline {
+    return  VM_Magic.sysCallAD(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2);
   }
 
   //-#endif
@@ -727,8 +716,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param ip  address of a function in sys.C 
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall0 (int ip) {
-    VM_Magic.pragmaInline();
+  public static int sysCall0(int ip) throws VM_PragmaInline {
     return  VM_Magic.sysCall0(ip);
   }
 
@@ -738,8 +726,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p1
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall1 (int ip, int p1) {
-    VM_Magic.pragmaInline();
+  public static int sysCall1(int ip, int p1) throws VM_PragmaInline {
     return  VM_Magic.sysCall1(ip, p1);
   }
 
@@ -750,8 +737,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall2 (int ip, int p1, int p2) {
-    VM_Magic.pragmaInline();
+  public static int sysCall2(int ip, int p1, int p2) throws VM_PragmaInline {
     return  VM_Magic.sysCall2(ip, p1, p2);
   }
 
@@ -763,8 +749,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p3
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall3 (int ip, int p1, int p2, int p3) {
-    VM_Magic.pragmaInline();
+  public static int sysCall3(int ip, int p1, int p2, int p3) throws VM_PragmaInline {
     return  VM_Magic.sysCall3(ip, p1, p2, p3);
   }
 
@@ -777,9 +762,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p4
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall4 (int ip, int p1, int p2, int p3, int p4) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall4(ip, p1, p2, p3, p4);
+  public static int sysCall4(int ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
+    return VM_Magic.sysCall4(ip, p1, p2, p3, p4);
   }
 
   /**
@@ -787,9 +771,8 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param ip  address of a function in sys.C 
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_0 (int ip) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCall_L_0(ip);
+  public static long sysCall_L_0(int ip) throws VM_PragmaInline {
+    return VM_Magic.sysCall_L_0(ip);
   }
 
   /**
@@ -798,8 +781,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p1
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_I (int ip, int p1) {
-    VM_Magic.pragmaInline();
+  public static long sysCall_L_I(int ip, int p1) throws VM_PragmaInline {
     return  VM_Magic.sysCall_L_I(ip, p1);
   }
 
@@ -810,71 +792,11 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCallAD (int ip, int p1, double p2) {
-    VM_Magic.pragmaInline();
-    return  VM_Magic.sysCallAD(ip, p1, p2);
+  public static int sysCallAD(int ip, int p1, double p2) throws VM_PragmaInline {
+    return VM_Magic.sysCallAD(ip, p1, p2);
   }
 
   //-#endif
-
-  /**
-   * Find or create unique string instance.
-   * !!TODO: probably doesn't belong in VM. Where should it go? --DL
-   * @param spelling  desired spelling
-   * @return unique string with that spelling See: java.lang.String.intern()
-   */
-  public static String findOrCreateString(String spelling) {
-    //!!TODO: This pollutes the jtoc with strings that needn't be allocated statically.
-    //        We need to keep a separate table for intern'd strings that
-    //        don't originate from class constant pools. [--DL]
-    try {
-      VM_Atom atom = VM_Atom.findOrCreateUnicodeAtom(spelling);
-      int     slot = VM_Statics.findOrCreateStringLiteral(atom);
-      return  (String)VM_Magic.addressAsObject(VM_Address.fromInt(VM_Statics.getSlotContentsAsInt(slot)));
-    } catch (java.io.UTFDataFormatException x) {
-      throw new InternalError();
-    }
-  }
-   
-  /**
-   * Get description of virtual machine component (field or method).
-   * Note: This is method is intended for use only by VM classes that need
-   * to address their own fields and methods in the runtime virtual machine
-   * image.  It should not be used for general purpose class loading.
-   * @param classDescriptor  class  descriptor - something like "LVM_Runtime;"
-   * @param memberName       member name       - something like "invokestatic"
-   * @param memberDescriptor member descriptor - something like "()V"
-   * @return description
-   */
-  static VM_Member getMember(String classDescriptor, String memberName,
-                             String memberDescriptor) {
-    VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
-    VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
-    VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
-    try {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
-      cls.load();
-      cls.resolve();
-
-      VM_Member member;
-      if ((member = cls.findDeclaredField(memName, memDescriptor)) != null)
-        return member;
-      if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null)
-        return member;
-
-      // The usual causes for VM.getMember() to fail are:
-      //  1. you mispelled the class name, member name, or member signature
-      //  2. the class containing the specified member didn't get compiled
-      //
-      VM.sysWrite("VM.getMember: can't find class="+classDescriptor+" member="+memberName+" desc="+memberDescriptor+"\n");
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    } catch (VM_ResolutionException e) {
-      VM.sysWrite("VM.getMember: can't resolve class=" + classDescriptor+
-                  " member=" + memberName + " desc=" + memberDescriptor + "\n");
-      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-    }
-    return null;
-  }
 
    //----------------//
    // implementation //
@@ -888,7 +810,7 @@ public class VM extends VM_Properties implements VM_Constants,
    *                         boot compiler's init routine.
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
-    throws VM_ResolutionException {
+    throws VM_ResolutionException, VM_PragmaInterruptible {
     // create dummy boot record
     //
     VM_BootRecord.the_boot_record = new VM_BootRecord();
@@ -909,9 +831,6 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
     VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
      
-    // initialization of reference maps locks for jsr processing
-    VM_ReferenceMaps.init(); 
-
     // initialize JNI environment
     VM_JNIEnvironment.init();
 
@@ -934,7 +853,6 @@ public class VM extends VM_Properties implements VM_Constants,
     //
     VM_Entrypoints.init();
     VM_OutOfLineMachineCode.init();
-    VM_Compiler.init();   // initialize compiler that lives in boot image
     if (writingBootImage) // initialize compiler that builds boot image
       VM_BootImageCompiler.init(bootCompilerArgs);
     VM_Runtime.init();
@@ -971,8 +889,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
    * they are never called while gc is disabled.
    */
-  public static void disableGC() { 
-    VM_Magic.pragmaInline();
+  public static void disableGC() throws VM_PragmaInline, VM_PragmaInterruptible  { 
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
     // 1. make sure we have enough stack space to run until gc is re-enabled
@@ -1008,8 +925,7 @@ public class VM extends VM_Properties implements VM_Constants,
   /**
    * enable GC
    */
-  public static void enableGC() { 
-    VM_Magic.pragmaInline();
+  public static void enableGC() throws VM_PragmaInline { 
     if (VM.VerifyAssertions) {
       VM_Thread myThread = VM_Thread.getCurrentThread();
       // recursion not allowed
@@ -1026,7 +942,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * getMainMethod
    * @return the main method of the main thread
    */
-  public static VM_Method getMainMethod()  {
+  public static VM_Method getMainMethod() throws VM_PragmaInterruptible {
     if(VM.VerifyAssertions) VM.assert(_mainThread != null);
     return ((MainThread)_mainThread).getMainMethod();
   } 
@@ -1034,7 +950,10 @@ public class VM extends VM_Properties implements VM_Constants,
   /**
    * Place to set breakpoints (called by compiled code).
    */
-  public static void debugBreakpoint() {
-    VM_Magic.pragmaNoInline();
+  public static void debugBreakpoint() throws VM_PragmaNoInline {
+    // the following forces this method to have a prologue.
+    // In general, jdp cannot set breakpoints in opt methods that
+    // have no prologues.
+    VM_Magic.pragmaNoOptCompile();
   }
 }

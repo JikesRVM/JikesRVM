@@ -58,8 +58,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(Object o) { 
-    VM_Magic.pragmaInline();
+  public static Object[] getTIB(Object o) throws VM_PragmaInline { 
     int tibWord = VM_Magic.getIntAtOffset(o,TIB_OFFSET);
     if (VM_Collector.MOVES_OBJECTS) {
       int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;
@@ -75,8 +74,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Object ref, Object[] tib) {
-    VM_Magic.pragmaInline();
+  public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
     int tibPtr = VM_Magic.objectAsAddress(tib).toInt();
     if (VM.VerifyAssertions) {
       VM.assert((tibPtr & BITS_MASK) == 0);
@@ -152,7 +150,6 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       if (VM.VerifyAssertions) {
 	VM.assert(dest != 0);
 	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
-	VM.assert(VM_AllocatorHeader.GC_FORWARDED != VM_Collector.MARK_VALUE);
       }
       asm.emitL   (dest, TIB_OFFSET, object);
       asm.emitANDI(0, dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
@@ -216,7 +213,6 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
 	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
-	VM.assert(VM_AllocatorHeader.GC_FORWARDED != VM_Collector.MARK_VALUE);
       }
 
       OPT_BasicBlock prevBlock = s.getBasicBlock();

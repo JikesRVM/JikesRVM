@@ -787,31 +787,30 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    */
   void X_getfield(Object ref) {
     int index = byte_codes.fetch2BytesUnsigned();      
-    mapVM mappedObject = (mapVM) ref;
+    mapVM mappedObject = (mapVM)ref;
     // if (traceInterpreter >= 2) 
     // System.out.println("X_getfield: constant pool index " + index + " of current class " + getCurrentClass() + ", for mapped object " + mappedObject);
 
     // (1) Compute pointer to the VM_Type, which should be VM_Class since we expect an object
-    int addr = VM_ObjectModel.getTIB(this,mappedObject.getAddress());
-    // int addr = JDPObjectModel.getTIBFromPlatform(mappedObject.getAddress());
-    addr = Platform.readmem(addr);           
+    int addr = mapVM.manualTypeSearch(getCurrentClass().getDescriptor().toString());
     // System.out.println("X_getfield: candidate object VM_Class @ " + Integer.toHexString(addr));
 
     // (1a) This may not be the right VM_Class because the method may belong to the superclass
     // so check the class name and traverse up the class hierarchy if necessary
     String declaringClassName = getCurrentClass().getDescriptor().toString();    
+    // System.out.println("DeclaringClassName " + declaringClassName);
 
     // This should be an infinite loop, but use a count for now to be sure
     for (int i=0; i<20; i++) {  
       int nameAddr =  Platform.readmem(addr + mapVM.VMClassName_offset);
       String realName = mapVM.getVMAtomString(nameAddr);
+      // System.out.println("realName " + realName);
       if (declaringClassName.equals(realName)) {
 	break;
       } else {
 	addr = Platform.readmem(addr + mapVM.VMClassSuper_offset);
 	if (addr==0) {
-	  System.out.println("X_getfield: ERROR, cannot find class " + declaringClassName +
-			     " in the class hierarchy for this object");
+	  // System.out.println("X_getfield: ERROR, cannot find class " + declaringClassName + " in the class hierarchy for this object");
 	  break;
 	}
       }

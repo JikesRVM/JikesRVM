@@ -15,7 +15,8 @@
  * @author Anthony Cocchi
  */
 final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
-  implements VM_BaselineConstants {
+  implements VM_BaselineConstants,
+	     VM_Uninterruptible {
   private static final boolean TRACE_ALL = false;
   private static final boolean TRACE_DL  = false; // dynamic link frames
 
@@ -61,7 +62,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       
     // setup stackframe mapping
     //
-    maps      = ((VM_BaselineCompilerInfo)compiledMethod.getCompilerInfo()).referenceMaps;
+    maps      = ((VM_BaselineCompiledMethod)compiledMethod).referenceMaps;
     mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
     mapOffset = 0;
     if (mapId < 0) {
@@ -91,10 +92,9 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
                         fp                       = VM_Magic.getCallerFramePointer(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
       VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      VM_CompilerInfo   callingCompilerInfo      = callingCompiledMethod.getCompilerInfo();
       int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()));
 
-      callingCompilerInfo.getDynamicLink(dynamicLink, callingInstructionOffset);
+      callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
       bridgeTarget                    = dynamicLink.methodRef();
       bridgeParameterTypes            = bridgeTarget.getParameterTypes();
       if (dynamicLink.isInvokedWithImplicitThisParameter()) {
@@ -105,7 +105,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
 	bridgeSpilledParamInitialOffset =  4; // return addr
       }
       bridgeSpilledParamInitialOffset  += (4 * bridgeTarget.getParameterWords());
-      if (callingCompilerInfo.getCompilerType() == VM_CompilerInfo.BASELINE) {
+      if (callingCompiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
 	bridgeSpilledParameterMappingRequired = false;
       } else {
 	bridgeSpilledParameterMappingRequired = true;
@@ -279,7 +279,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   }
 
   int getType() {
-    return VM_GCMapIterator.BASELINE;
+    return VM_CompiledMethod.BASELINE;
   }
 
   // For debugging (used with checkRefMap)
@@ -296,7 +296,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
 
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
-  private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompilerInfo.getDynamicLink
+  private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
   private VM_Method      currentMethod;                  // method for the frame
   private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method

@@ -89,14 +89,13 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * quick version for final classes or array of primitives
+   * quick version for final classes, array of final class or array of primitives
    */
-  static boolean instanceOfFinal(Object object, int targetTibOffset) {
+  static boolean instanceOfFinal(Object object, int targetTibOffset) throws VM_PragmaUninterruptible {
     if (object == null)
       return false; // null is not an instance of any type
 
-    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
-                                              targetTibOffset);
+    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
     Object rhsTib= VM_ObjectModel.getTIB(object);
     return (lhsTib == rhsTib);
   }
@@ -125,11 +124,31 @@ public class VM_Runtime implements VM_Constants {
                                             (lhsTib,TIB_TYPE_INDEX));
     VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
                                             (rhsTib,TIB_TYPE_INDEX));
-    if (isAssignableWith(lhsType, rhsType))
-      return;
-    throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
+    if (!isAssignableWith(lhsType, rhsType)) {
+      raiseCheckcastException(lhsType, rhsType);
+    }
   }
 
+  /**
+   * quick version for final classes, array of final class or array of primitives
+   */
+  static void checkcastFinal(Object object, int targetTibOffset) throws VM_PragmaUninterruptible {
+    if (object == null) return; // null can be cast to any type
+
+    Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
+    Object rhsTib= VM_ObjectModel.getTIB(object);
+    if (lhsTib != rhsTib) {
+      VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(lhsTib,TIB_TYPE_INDEX));
+      VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset(rhsTib,TIB_TYPE_INDEX));
+      raiseCheckcastException(lhsType, rhsType);
+    }
+  }
+
+  private static final void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) 
+    throws VM_PragmaLogicallyUninterruptible,
+	   VM_PragmaUninterruptible {
+    throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
+  }
 
   /**
    * Throw exception iff array assignment is illegal.
@@ -158,6 +177,7 @@ public class VM_Runtime implements VM_Constants {
 
     throw new ArrayStoreException();
   }
+
 
   /**
    * May a variable of type "lhs" be assigned a value of type "rhs"?
@@ -471,8 +491,7 @@ public class VM_Runtime implements VM_Constants {
    * Keep out of line to mitigate code space when quickNewArray is inlined.
    */
   private static void raiseNegativeArraySizeException()
-    throws NegativeArraySizeException {
-    VM_Magic.pragmaNoInline();
+    throws NegativeArraySizeException, VM_PragmaNoInline {
     throw new NegativeArraySizeException();
   }
 
@@ -554,12 +573,11 @@ public class VM_Runtime implements VM_Constants {
    * does not return 
    * (stack is unwound and execution resumes in a catch block)
    */
-  static void athrow(Throwable exceptionObject) {
-    VM_Magic.pragmaNoInline();
+  static void athrow(Throwable exceptionObject) throws VM_PragmaNoInline {
     VM_Registers registers = new VM_Registers();
-    registers.inuse = true;
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     VM_Magic.saveThreadState(registers);
+    registers.inuse = true;
     deliverException(exceptionObject,registers);
   }
 
@@ -591,22 +609,13 @@ public class VM_Runtime implements VM_Constants {
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) && 
 	myThread.stack.length < (STACK_SIZE_MAX >> 2) && 
 	!myThread.hasNativeStackFrame()) { 
-      // determine whether the method causing the overflow is native
-      VM.disableGC();   // because we're holding raw addresses (ip)
-      VM_Address ip                    = exceptionRegisters.getInnermostInstructionAddress();
-      VM_CompiledMethod	compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
-      VM.enableGC();
-      VM_CompilerInfo	compilerInfo	= compiledMethod.getCompilerInfo();
-      VM_Method 	myMethod	= compiledMethod.getMethod();
-
       // expand stack by the size appropriate for normal or native frame 
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> 2), exceptionRegisters);
-	// VM.sysWrite("Growing native stack before entry\n");
       } else {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters); // grow
+	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM.assert(exceptionRegisters.inuse == true); 
       exceptionRegisters.inuse = false;
@@ -614,7 +623,6 @@ public class VM_Runtime implements VM_Constants {
 
       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     }
-
 
     Throwable exceptionObject;
     switch (trapCode) {
@@ -659,8 +667,7 @@ public class VM_Runtime implements VM_Constants {
    * (null --> deliver NullPointerException).
    * does not return (stack is unwound and execution resumes in a catch block)
    */ 
-  static void unlockAndThrow (Object objToUnlock, Throwable objToThrow) {
-    VM_Magic.pragmaNoInline();
+  static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) throws VM_PragmaNoInline {
     VM_ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
@@ -670,8 +677,7 @@ public class VM_Runtime implements VM_Constants {
    * Only used in some configurations where it is easier to make a call
    * then recover the array index from a trap instruction.
    */
-  static void raiseArrayIndexOutOfBoundsException(int index) {
-    VM_Magic.pragmaNoInline();
+  static void raiseArrayIndexOutOfBoundsException(int index) throws VM_PragmaNoInline {
     throw new java.lang.ArrayIndexOutOfBoundsException(index);
   }
 
@@ -681,8 +687,7 @@ public class VM_Runtime implements VM_Constants {
    * an array access will unconditionally raise an array bounds check
    * error, but it has lost track of exactly what the index is going to be.
    */
-  static void raiseArrayIndexOutOfBoundsException() {
-    VM_Magic.pragmaNoInline();
+  static void raiseArrayIndexOutOfBoundsException() throws VM_PragmaNoInline {
     throw new java.lang.ArrayIndexOutOfBoundsException();
   }
 
@@ -695,8 +700,7 @@ public class VM_Runtime implements VM_Constants {
    * opt compiler has determined that an instruction will unconditionally
    * raise a null pointer exception.
    */
-  public static void raiseNullPointerException() {
-    VM_Magic.pragmaNoInline();
+  public static void raiseNullPointerException() throws VM_PragmaNoInline {
     throw new java.lang.NullPointerException();
   }
 
@@ -707,8 +711,7 @@ public class VM_Runtime implements VM_Constants {
    * opt compiler has determined that an instruction will unconditionally
    * raise an arithmetic exception.
    */
-  static void raiseArithmeticException() {
-    VM_Magic.pragmaNoInline();
+  static void raiseArithmeticException() throws VM_PragmaNoInline {
     throw new java.lang.ArithmeticException();
   }
 
@@ -716,8 +719,7 @@ public class VM_Runtime implements VM_Constants {
    * Create and throw a java.lang.AbstractMethodError.
    * Used to handle error cases in invokeinterface dispatching.
    */
-  static void raiseAbstractMethodError() {
-    VM_Magic.pragmaNoInline();
+  static void raiseAbstractMethodError() throws VM_PragmaNoInline {
     throw new java.lang.AbstractMethodError();
   }
 
@@ -725,8 +727,7 @@ public class VM_Runtime implements VM_Constants {
    * Create and throw a java.lang.IllegalAccessError.
    * Used to handle error cases in invokeinterface dispatching.
    */
-  static void raiseIllegalAccessError() {
-    VM_Magic.pragmaNoInline();
+  static void raiseIllegalAccessError() throws VM_PragmaNoInline {
     throw new java.lang.IllegalAccessError();
   }
 
@@ -822,11 +823,10 @@ public class VM_Runtime implements VM_Constants {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
 	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	  VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
-	  VM_ExceptionDeliverer exceptionDeliverer = compilerInfo.getExceptionDeliverer();
+	  VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
 	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
 	  VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	  int catchBlockOffset = compilerInfo.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
+	  int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
 
 	  if (catchBlockOffset >= 0) { 
 	      // found an appropriate catch block
@@ -865,7 +865,7 @@ public class VM_Runtime implements VM_Constants {
    * return address of the glue frame)
    * Ton Ngo 7/30/01
    */
-  public static VM_Address unwindNativeStackFrame(VM_Address currfp) {
+  public static VM_Address unwindNativeStackFrame(VM_Address currfp) throws VM_PragmaUninterruptible {
     VM_Address ip, callee_fp;
     VM_Address fp = VM_Magic.getCallerFramePointer(currfp);
 

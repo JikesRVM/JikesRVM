@@ -6,9 +6,9 @@
 import instructionFormats.*;
 
 /** 
- * An implementation of VM_CompilerInfo for the OPT compiler.
+ * An implementation of VM_CompiledMethod for the OPT compiler.
  *
- * <p> NOTE: VM_OptCompilerInfos live as long as their corresponding
+ * <p> NOTE: VM_OptCompilerMethod live as long as their corresponding
  * compiled machine code.  Therefore, they should only contain
  * state that is really required to be persistent.  Anything
  * transitory should be stored on the OPT_IR object. 
@@ -16,14 +16,18 @@ import instructionFormats.*;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-final class VM_OptCompilerInfo extends VM_CompilerInfo 
-  implements OPT_Operators {
+final class VM_OptCompiledMethod extends VM_CompiledMethod
+  implements OPT_Operators, VM_Uninterruptible  {
+
+  VM_OptCompiledMethod(int id, VM_Method m) {
+    super(id,m);    
+  }
 
   /**
    * Get compiler that generated this method's machine code.
    */ 
   final int getCompilerType() {
-    return VM_CompilerInfo.OPT;
+    return VM_CompiledMethod.OPT;
   }
 
   /**
@@ -38,12 +42,11 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
    * Find "catch" block for a machine instruction of this method.
    */ 
   final int findCatchBlockForInstruction(int instructionOffset, 
-					 VM_Type exceptionType) {
-    if (_eMap == null) {
+					 VM_Type exceptionType) throws VM_PragmaInterruptible {
+    if (eTable == null) {
       return -1;
     } else {
-      return _eMap.findCatchBlockForInstruction(instructionOffset, 
-						exceptionType);
+      return VM_ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
     }
   }
 
@@ -54,7 +57,7 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
    * @param instructionOffset offset of machine instruction that issued 
    *                          the call
    */ 
-  final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset){
+  final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     VM_Method realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null)
@@ -73,61 +76,26 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0)
       return 0;
-    VM_LineNumberMap lmap = _method.getLineNumberMap();
+    VM_LineNumberMap lmap = method.getLineNumberMap();
     if (lmap == null)
       return 0;
     return lmap.getLineNumberForBCIndex(bci);
   }
 
   /**
-   * Find (earliest) machine instruction corresponding one of 
-   * this method's source line numbers.
-   */
-  final int findInstructionForLineNumber(int lineNumber) {
-    // This is very hard to do reliably in opt compiled code.
-    // We reorder instructions fairly aggressively and only 
-    // generate bcIndex info for a subset of the instructions
-    return -1;
-  }
-
-  /**
-   * Find (earliest) machine instruction corresponding to the 
-   * next valid source code line
-   * following this method's source line numbers.
-   * @return -1 if there is no more valid source code in this method
-   */
-  final int findInstructionForNextLineNumber(int lineNumber) {
-    // This is very hard to do reliably in opt compiled code.
-    // We reorder instructions fairly aggressively and only generate bcIndex 
-    // info for a subset of the instructions
-    return -1;
-  }
-
-  /**
-   * Find local variables that are in scope of specified machine instruction.
-   */ 
-  final VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
-    // This is virtually impossible to do in opt compiled code.
-    // (1) We reorder instructions.
-    // (3) We only maintain partial bytecode index information.
-    // (2) We don't attempt to preserve/idenitfy local variables.
-    return null;
-  }
-
-  /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  final void set(VM_StackBrowser browser, int instr) {
+  final void set(VM_StackBrowser browser, int instr) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
       int[] inlineEncoding = map.inlineEncoding;
       int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
 
-      browser.setInlineEncodingIndex( iei );
-      browser.setBytecodeIndex( map.getBytecodeIndexForMCOffset(instr) );
-      browser.setCompilerInfo( this );
-      browser.setMethod( VM_MethodDictionary.getValue(mid) );
+      browser.setInlineEncodingIndex(iei);
+      browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
+      browser.setCompiledMethod(this);
+      browser.setMethod(VM_MethodDictionary.getValue(mid));
 
       if (VM.TraceStackTrace) {
 	  VM.sysWrite("setting stack to frame (opt): ");
@@ -135,16 +103,15 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
 	  VM.sysWrite( browser.getBytecodeIndex() );
 	  VM.sysWrite("\n");
       }
+    } else {
+      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
     }
-    
-    else
-	VM.assert(VM.NOT_REACHED);
   }
 
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  final boolean up(VM_StackBrowser browser) {
+  final boolean up(VM_StackBrowser browser) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
@@ -176,7 +143,7 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
    * @param offset the offset of machine instruction from start of method
    * @param out    the PrintStream to print the stack trace to.
    */
-  final void printStackTrace(int instructionOffset, java.io.PrintStream out) {
+  final void printStackTrace(int instructionOffset, java.io.PrintStream out) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -203,10 +170,10 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
       }
     } else {
       out.println("\tat " 
-		  + _method.getDeclaringClass().getDescriptor().
+		  + method.getDeclaringClass().getDescriptor().
 		  classNameFromDescriptor()
-		  + "." + _method.getName() + " (" 
-		  + _method.getDeclaringClass().getSourceName()
+		  + "." + method.getName() + " (" 
+		  + method.getDeclaringClass().getSourceName()
 		  + ": machine code offset " + 
 		  VM.intAsHexString(instructionOffset)
 		  + ")");
@@ -218,7 +185,7 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
    * @param instructionOffset offset of machine instruction from start of method
    * @param out               the PrintWriter to print the stack trace to.
    */
-  final void printStackTrace(int instructionOffset, java.io.PrintWriter out) {
+  final void printStackTrace(int instructionOffset, java.io.PrintWriter out) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -245,37 +212,39 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
       }
     } else {
       out.println("\tat " 
-		  + _method.getDeclaringClass().getDescriptor().
+		  + method.getDeclaringClass().getDescriptor().
 		  classNameFromDescriptor()
-		  + "." + _method.getName() + " (" 
-		  + _method.getDeclaringClass().getSourceName()
+		  + "." + method.getName() + " (" 
+		  + method.getDeclaringClass().getSourceName()
 		  + ": machine code offset " + 
 		  VM.intAsHexString(instructionOffset) + ")");
     }
   }
 
-  /**
-   * Create the compiler info for a given VM_Method
-   * @param   VM_Method meth
-   */
-  VM_OptCompilerInfo (VM_Method meth) {
-    _method = meth;
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  final int size() throws VM_PragmaInterruptible {
+    int size = TYPE.getInstanceSize();
+    size += _mcMap.size();
+    if (eTable != null) size += VM_Array.arrayOfIntType.getInstanceSize(eTable.length);
+    //-#if RVM_FOR_IA32
+    if (patchMap != null) size += VM_Array.arrayOfIntType.getInstanceSize(patchMap.length);
+    //-#endif
+    return size;
   }
 
   /**
    * Get the offset for the end of the prologue
-   * 
    */
   final int getEndPrologueOffset() {
-    return endPrologueOffset;
+    return bitField1 & AVAIL_BITS;
   }
 
   /**
    * Get the offset for the end of the prologue
-   * *param  int endPrologue
+   * @param endPrologue
    */
   final void setEndPrologueOffset(int endPrologue) {
-    this.endPrologueOffset = endPrologue;
+    bitField1 |= endPrologue & AVAIL_BITS;
   }
 
   //----------------//
@@ -291,15 +260,10 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   /** The primary machine code maps */
   private VM_OptMachineCodeMap _mcMap;
   /** The encoded exception tables (null if there are none) */
-  private VM_OptExceptionTable _eMap;
-  /** The outermost method */
-  private VM_Method _method;
+  private int[] eTable;
   //-#if RVM_FOR_IA32
   private int[] patchMap;
   //-#endif
-  // Used with jdp to locate instruction after prologue
-  private int endPrologueOffset;  
-
 
   // 64 bits to encode other tidbits about the method. Current usage is:
   // SSSS SSSS SSSS SSSU VOOO FFFF FFII IIII EEEE EEEE EEEE EEEE NNNN NNNN NNNN NNNN
@@ -445,6 +409,12 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
     //-#endif
   }
 
+  /**
+   * Print the eTable
+   */
+  public final void printExceptionTable() {
+    if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
+  }
 
   /**
    * @return the machine code map for the compiled method.
@@ -454,19 +424,12 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   }
 
   /**
-   * @return the encoded exeption table for the compiled method.
-   */
-  public VM_OptExceptionTable getExceptionTable () {
-    return _eMap;
-  }
-
-  /**
    * Create the final machine code map for the compiled method.
    * Remember the offset for the end of prologue too for jdp
    * @param ir the ir 
    * @param machineCodeLength the number of machine code instructions.
    */
-  public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) {
+  public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) throws VM_PragmaInterruptible {
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
     setEndPrologueOffset(ir.MIRInfo.instAfterPrologue.getmcOffset());
   }
@@ -475,9 +438,9 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
    * Create the final exception table from the IR for the method.
    * @param ir the ir 
    */
-  public final void createFinalExceptionTable (OPT_IR ir) {
+  public final void createFinalExceptionTable (OPT_IR ir) throws VM_PragmaInterruptible {
     if (ir.hasReachableExceptionHandlers()) {
-      _eMap = new VM_OptExceptionTable(ir);
+      eTable = VM_OptExceptionTable.encode(ir);
     }
   }
 
@@ -486,7 +449,7 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
    * Create the code patching maps from the IR for the method
    * @param ir the ir 
    */
-  public final void createCodePatchMaps(OPT_IR ir) {
+  public final void createCodePatchMaps(OPT_IR ir) throws VM_PragmaInterruptible {
     // (1) count the patch points
     int patchPoints = 0;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
@@ -518,7 +481,7 @@ final class VM_OptCompilerInfo extends VM_CompilerInfo
   /**
    * Apply the code patches to the INSTRUCTION array of cm
    */
-  public final void applyCodePatches(VM_CompiledMethod cm) {
+  public final void applyCodePatches(VM_CompiledMethod cm) throws VM_PragmaInterruptible {
     if (patchMap != null) {
       INSTRUCTION[] code = cm.getInstructions();
       for (int idx=0; idx<patchMap.length; idx += 2) {

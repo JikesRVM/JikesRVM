@@ -987,6 +987,20 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         restoreAllScratchRegistersBefore(s);
       }
 
+      // SJF: This is a bad hack which avoids bug 2642.  For some reason,
+      // if we cache a reference value in ECX across the prologue_yieldpoint in
+      // method java.Hashtable.put(), bad things happen and the program
+      // non-deterministically crashes with apparent bad GC Maps.  
+      // I have not figured out what's really going on, despite great
+      // effort.  I'm giving up for now, and instead resorting to this
+      // woeful hack to avoid the problem.
+      // To reproduce the bug, comment out the following and run SPECjbb
+      // using the night-sanity parameters on OptOptSemispace; the program
+      // should crash with a bad GC map about half the time.
+      if (s.operator == YIELDPOINT_PROLOGUE) {
+        restoreAllScratchRegistersBefore(s);
+      }
+
       // If s is a GC point, and scratch register r currently caches the
       // value of symbolic symb, and r is dirty: Then update the GC map to 
       // account for the fact that symb's spill location does not
@@ -1350,7 +1364,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     initForArch(ir);
 
     // (4) save caughtExceptionOffset where the exception deliverer can find it
-    ir.MIRInfo.info.setUnsignedExceptionOffset(caughtExceptionOffset);
+    ir.compiledMethod.setUnsignedExceptionOffset(caughtExceptionOffset);
 
     // (5) initialize the restrictions object
     restrict = new OPT_RegisterRestrictions(ir.regpool.getPhysicalRegisterSet());

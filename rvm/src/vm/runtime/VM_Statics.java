@@ -164,7 +164,7 @@
      * @return    slot number that was allocated
      * Side effect: literal value is stored into jtoc
      */ 
-    static int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
+    public static int findOrCreateStringLiteral(VM_Atom literal) throws java.io.UTFDataFormatException {
       int id   = VM_StringLiteralDictionary.findOrCreateId(literal, nextSlot);
       int slot = VM_StringLiteralDictionary.getValue(id);
       if (slot == nextSlot)
@@ -214,14 +214,14 @@
     /**
      * Fetch number of jtoc slots currently allocated.
      */ 
-    static int getNumberOfSlots() {
+    static int getNumberOfSlots() throws VM_PragmaUninterruptible {
       return nextSlot;
     }
 
     /**
      * Fetch total number of slots comprising the jtoc.
      */ 
-    static int getTotalNumberOfSlots() {
+    static int getTotalNumberOfSlots() throws VM_PragmaUninterruptible {
       return slots.length;
     }
 
@@ -230,7 +230,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return true --> slot contains a reference
      */ 
-    static boolean isReference(int slot) {
+    static boolean isReference(int slot) throws VM_PragmaUninterruptible {
       return (descriptions[slot] & VM_Statics.REFERENCE_TAG) != 0;
     }
 
@@ -239,7 +239,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return description of slot contents (see "kinds", above)
      */
-    static byte getSlotDescription(int slot) {
+    static byte getSlotDescription(int slot) throws VM_PragmaUninterruptible {
       return descriptions[slot];
     }
 
@@ -270,21 +270,21 @@
     /**
      * Fetch jtoc object (for JNI environment).
      */ 
-    public static int[] getSlots() {
+    public static int[] getSlots() throws VM_PragmaUninterruptible {
       return slots;
     }
 
     /**
      * Fetch contents of a slot, as an integer
      */ 
-    public static int getSlotContentsAsInt(int slot) {
+    public static int getSlotContentsAsInt(int slot) throws VM_PragmaUninterruptible {
       return slots[slot];
     }
 
     /**
      * Fetch contents of a slot-pair, as a long integer.
      */ 
-    public static long getSlotContentsAsLong(int slot) {	
+    public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {	
       //-#if RVM_FOR_IA32
       long result = (((long) slots[slot+1]) << 32); // hi
       result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
@@ -298,21 +298,21 @@
     /**
      * Fetch contents of a slot, as an object.
      */ 
-    public static Object getSlotContentsAsObject(int slot) {
+    public static Object getSlotContentsAsObject(int slot) throws VM_PragmaUninterruptible {
 	return VM_Magic.addressAsObject(VM_Address.fromInt(slots[slot]));
     }
 
     /**
      * Fetch contents of a slot, as an object array.
      */ 
-    public static Object[] getSlotContentsAsObjectArray(int slot) {
+    public static Object[] getSlotContentsAsObjectArray(int slot) throws VM_PragmaUninterruptible {
       return VM_Magic.addressAsObjectArray(VM_Address.fromInt(slots[slot]));
     }
 
     /**
      * Set contents of a slot, as an integer.
      */
-    public static void setSlotContents(int slot, int value) {
+    public static void setSlotContents(int slot, int value) throws VM_PragmaUninterruptible {
       slots[slot] = value;
       if (VM.BuildForConcurrentGC && VM.runningVM && isReference(slot)) 
       {
@@ -325,7 +325,7 @@
     /**
      * Set contents of a slot, as a long integer.
      */
-    public static void setSlotContents(int slot, long value) {
+    public static void setSlotContents(int slot, long value) throws VM_PragmaUninterruptible {
       //-#if RVM_FOR_IA32
       slots[slot + 1] = (int)(value >>> 32); // hi
       slots[slot    ] = (int)(value       ); // lo
@@ -338,7 +338,7 @@
     /**
      * Set contents of a slot, as an object.
      */ 
-    static void setSlotContents(int slot, Object object) {
+    static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
       VM_Address newContent = VM_Magic.objectAsAddress(object);
       if (VM.BuildForConcurrentGC && VM.runningVM) 
       {

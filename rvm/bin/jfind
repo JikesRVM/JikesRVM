@@ -9,77 +9,28 @@
 # Search rvm source files for specified word.
 # If no word is specified, list names of all rvm source files.
 
-if [ $# = 0 ]; then
-   find $RVM_ROOT/rvm/src/vm -name CVS -prune \
-	         -o -name '*.java'     \
-                 -o -name '*.C'        \
-                 -o -name '*.c'        \
-                 -o -name '*.s'        \
-                 -o -name '*.h'        \
-                 -o -name '*.template' \
-                 -o -name 'Make*'      
+cd $RVM_ROOT/rvm
 
+if [ $# = 0 ]; then
+   find src/vm -name CVS -prune -o -type f -print
 else
-   find $RVM_ROOT/rvm/src/vm -name CVS -prune \
-	         -o -name '*.java'     \
-                 -o -name '*.C'        \
-                 -o -name '*.c'        \
-                 -o -name '*.s'        \
-                 -o -name '*.h'        \
-                 -o -name '*.template' \
-                 -o -name 'Make*'      \
-                 | xargs fgrep -n -- "$*"
+   find src/vm -name CVS -prune -o -type f -print | xargs fgrep -n -- "$*"
 fi
 
 if [ $# = 0 ]; then
-   find $RVM_ROOT/rvm/src/tools -name CVS -prune \
-	         -o -name '*.java'     \
-                 -o -name '*.C'        \
-                 -o -name '*.c'        \
-                 -o -name '*.s'        \
-                 -o -name '*.h'        \
-                 -o -name '*.template' \
-                 -o -name 'Make*'      
-
+   find src/tools -name CVS -prune -o -type f -print
 else
-   find $RVM_ROOT/rvm/src/tools -name CVS -prune \
-	         -o -name '*.java'     \
-                 -o -name '*.C'        \
-                 -o -name '*.c'        \
-                 -o -name '*.s'        \
-                 -o -name '*.h'        \
-                 -o -name '*.template' \
-                 -o -name 'Make*'      \
-                 | xargs fgrep -n -- "$*"
+   find src/tools -name CVS -prune -o -type f -print | xargs fgrep -n -- "$*"
 fi
 
 if [ $# = 0 ]; then
-   find $RVM_ROOT/rvm/src/include -name CVS -prune \
-	         -o -name '*.java'     \
-                 -o -name '*.C'        \
-                 -o -name '*.c'        \
-                 -o -name '*.s'        \
-                 -o -name '*.h'        \
-                 -o -name '*.template' \
-                 -o -name 'Make*'      
-
+   find src/include -name CVS -prune -o -type f -print
 else
-   find $RVM_ROOT/rvm/src/include -name CVS -prune \
-	         -o -name '*.java'     \
-                 -o -name '*.C'        \
-                 -o -name '*.c'        \
-                 -o -name '*.s'        \
-                 -o -name '*.h'        \
-                 -o -name '*.template' \
-                 -o -name 'Make*'      \
-                 | xargs fgrep -n -- "$*"
+   find src/include -name CVS -prune -o -type f -print | xargs fgrep -n -- "$*"
 fi
 
-
 if [ $# = 0 ]; then
-   find $RVM_ROOT/rvm/bin -name CVS -prune -o -name '*' 
-
+   find bin -name CVS -prune -o -type f -print
 else
-   find $RVM_ROOT/rvm/bin -name CVS -prune -o -name '*' \
-                 | xargs fgrep -n -- "$*"
+   find bin -name CVS -prune -o -type f -print | xargs fgrep -n -- "$*"
 fi

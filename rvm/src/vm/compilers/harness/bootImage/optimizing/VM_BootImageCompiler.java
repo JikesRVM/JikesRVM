@@ -13,7 +13,7 @@ class VM_BootImageCompiler {
 
   // Identity.
   //
-  public static final int COMPILER_TYPE = VM_CompilerInfo.OPT;
+  public static final int COMPILER_TYPE = VM_CompiledMethod.OPT;
 
   /** 
    * Initialize boot image compiler.
@@ -21,14 +21,14 @@ class VM_BootImageCompiler {
    */
   public static void init(String[] args) {
     try {
+      VM_BaselineCompiler.initOptions();
       options = new OPT_Options();
       VM.sysWrite("VM_BootImageCompiler: init (opt compiler)\n");
 	 
       // Writing a boot image is a little bit special.  We're not really 
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
-
-      OPT_Compiler.setBootOptions( options );
+      OPT_Compiler.setBootOptions(options);
 
       // An unexpected error when building the opt boot image should be fatal
       options.ERRORS_FATAL = true; 
@@ -65,13 +65,14 @@ class VM_BootImageCompiler {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
 	e.printStackTrace();
-	VM.sysFail(msg);
+	System.exit(101);
       } else {
 	VM.sysWrite(msg);
       }
     } catch (VM_ResolutionException e) {
       String msg = "VM_BootImageCompiler: Failure during initialization: "+e+"\n";
-      VM.sysFail(msg);
+      e.printStackTrace();
+      System.exit(101);
     }
   }
 
@@ -84,7 +85,7 @@ class VM_BootImageCompiler {
   public static VM_CompiledMethod compile(VM_Method method) {
 
     VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
-    if (!compilerEnabled) return VM_Compiler.compile(method); // Other half of kludge for java.lang.Object (see above)
+    if (!compilerEnabled) return VM_BaselineCompiler.compile(method); // Other half of kludge for java.lang.Object (see above)
     try {
       OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
       return OPT_Compiler.compile(cp);
@@ -93,7 +94,7 @@ class VM_BootImageCompiler {
       String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
       if (e.isFatal && options.ERRORS_FATAL) {
 	e.printStackTrace();
-	VM.sysFail(msg);
+	System.exit(101);
       } else {
 	boolean printMsg = true;
 	if (e instanceof OPT_MagicNotImplementedException) {
@@ -101,7 +102,7 @@ class VM_BootImageCompiler {
 	}
 	if (printMsg) VM.sysWrite(msg);
       }
-      return VM_Compiler.compile(method);
+      return VM_BaselineCompiler.compile(method);
     }
   }
 

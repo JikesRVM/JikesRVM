@@ -104,7 +104,9 @@ public class BootImage extends BootImageWriterMessages
    * @return offset of object within bootimage, in bytes
    */
   public int allocateScalar(VM_Class klass) {
-    numObjects += 1;
+    numObjects++;
+    klass.bootCount++;
+    klass.bootBytes += klass.getInstanceSize();
     return VM_ObjectModel.allocateScalar(this, klass);
   }
 
@@ -115,8 +117,13 @@ public class BootImage extends BootImageWriterMessages
    * @param numElements number of elements
    * @return offset of object within bootimage, in bytes
    */
+  int bootStackCount = 0;
+  int bootStackBytes = 0;
   public int allocateArray(VM_Array array, int numElements) {
-    numObjects += 1;
+    numObjects++;
+    array.bootCount++;
+    int size = array.getInstanceSize(numElements);
+    array.bootBytes += ((size + 3) & ~3);
     return VM_ObjectModel.allocateArray(this, array, numElements);
   }
 

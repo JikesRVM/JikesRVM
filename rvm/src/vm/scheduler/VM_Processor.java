@@ -80,9 +80,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   /**
    * Is it ok to switch to a new VM_Thread in this processor?
    */ 
-  boolean threadSwitchingEnabled () {
-   VM_Magic.pragmaInline();
-   return threadSwitchingEnabledCount == 1;
+  boolean threadSwitchingEnabled() throws VM_PragmaInline {
+    return threadSwitchingEnabledCount == 1;
   }
 
   /**
@@ -105,24 +104,21 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   /**
    * Disable thread switching in this processor.
    */ 
-  void disableThreadSwitching () {
-    VM_Magic.pragmaInline();
+  void disableThreadSwitching() throws VM_PragmaInline {
     --threadSwitchingEnabledCount;
   }
 
   /**
    * Get processor that's being used to run the current java thread.
    */
-  static VM_Processor getCurrentProcessor() {
-    VM_Magic.pragmaInline();
+  static VM_Processor getCurrentProcessor() throws VM_PragmaInline {
     return VM_ProcessorLocalState.getCurrentProcessor();
   }
-  
+
   /**
    * Get id of processor that's being used to run the current java thread.
    */ 
-  static int getCurrentProcessorId () {
-    VM_Magic.pragmaInline();
+  static int getCurrentProcessorId() throws VM_PragmaInline {
     return getCurrentProcessor().id;
   }
 
@@ -141,7 +137,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
       newThread.suspendLock.unlock();
       newThread = getRunnableThread();
     }
-    
+
     previousThread = activeThread;
     activeThread   = newThread;
     activeThreadStackLimit = newThread.stackLimit;
@@ -150,7 +146,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     //-#endif
 
     if (!previousThread.isDaemon && 
-	idleProcessor != null && !readyQueue.isEmpty() 
+        idleProcessor != null && !readyQueue.isEmpty() 
         && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
       // if we've got too much work, transfer some of it to another 
       // processor that has nothing to do
@@ -171,7 +167,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
       previousThread.cpuStartTime = 0;    // this thread has stopped running
       newThread.cpuStartTime = now;  // this thread has started running
     }
-    
+
     // (sets "previousThread.beingDispatched = false")
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
   }
@@ -180,37 +176,36 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * Find a thread that can be run by this processor and remove it 
    * from its queue.
    */ 
-  private VM_Thread getRunnableThread() {
-    VM_Magic.pragmaInline();
+  private VM_Thread getRunnableThread() throws VM_PragmaInline {
 
-int loopcheck = 0;
+    int loopcheck = 0;
     for (int i=transferQueue.length(); 0<i; i--) {
       transferMutex.lock();
       VM_Thread t = transferQueue.dequeue();
       transferMutex.unlock();
       if (t.isGCThread){
-	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", t.getIndex());
-	return t;
+        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", t.getIndex());
+        return t;
       } else if (t.beingDispatched && t != VM_Thread.getCurrentThread()) { // thread's stack in use by some OTHER dispatcher
-	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
-	transferMutex.lock();
-	transferQueue.enqueue(t);
-	transferMutex.unlock();
-	if (processorMode == NATIVE) {
-		// increase loop counter so this thread will be looked at 
-		// again - isbeingdispatched goes off when dispatcher stops
-		// running on the RVM processor, using this thread's stack.
-		// RARE CASE: the stuck thread has returned from this native
-		// processor, but being dispatched in the nativeidlethread has not
-		// yet gone off because its stack is still being used by dispatcher
-		// on the RVM	
-		i++;
-if (loopcheck++ >= 1000000) break;
-		if (VM.VerifyAssertions) VM.assert (t.isNativeIdleThread);
-	}
+        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
+        transferMutex.lock();
+        transferQueue.enqueue(t);
+        transferMutex.unlock();
+        if (processorMode == NATIVE) {
+          // increase loop counter so this thread will be looked at 
+          // again - isbeingdispatched goes off when dispatcher stops
+          // running on the RVM processor, using this thread's stack.
+          // RARE CASE: the stuck thread has returned from this native
+          // processor, but being dispatched in the nativeidlethread has not
+          // yet gone off because its stack is still being used by dispatcher
+          // on the RVM	
+          i++;
+          if (loopcheck++ >= 1000000) break;
+          if (VM.VerifyAssertions) VM.assert (t.isNativeIdleThread);
+        }
       } else {
-	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
-	readyQueue.enqueue(t);
+        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
+        readyQueue.enqueue(t);
       }
     }
 
@@ -220,10 +215,10 @@ if (loopcheck++ >= 1000000) break;
       // We round robin this among the virtual processors to avoid serializing
       // thread switching in the call to select.
       if (ioQueue.isReady()) {
-	VM_Thread t = ioQueue.dequeue();
-	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
-	if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
-	return t;
+        VM_Thread t = ioQueue.dequeue();
+        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
+        if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+        return t;
       }
     }
 
@@ -275,7 +270,7 @@ if (loopcheck++ >= 1000000) break;
    * non-null --> a processor that has no work to do
    */
   static VM_Processor idleProcessor; 
-  
+
   /**
    * Put thread onto most lightly loaded virtual processor.
    */ 
@@ -313,7 +308,7 @@ if (loopcheck++ >= 1000000) break;
     // otherwise distribute threads round robin
     if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread",  "outgoing to round-robin processor:", t.getIndex());
     chooseNextProcessor(t).transferThread(t);
-    
+
   }
 
   /**
@@ -337,7 +332,7 @@ if (loopcheck++ >= 1000000) break;
   static final int IN_SIGWAIT              = 4;
   static final int BLOCKED_IN_SIGWAIT      = 5;
 
-  static int generateNativeProcessorId () {
+  static int generateNativeProcessorId () throws VM_PragmaInterruptible {
     int r;
     synchronized (nativeProcessorCountLock) {
       r = ++numberNativeProcessors;
@@ -358,32 +353,31 @@ if (loopcheck++ >= 1000000) break;
    *   -as an entry in the attachedProcessors array for use by GC
    *
    */
-  static VM_Processor createNativeProcessorForExistingOSThread
-    (VM_Thread withThisThread) {
+  static VM_Processor createNativeProcessorForExistingOSThread(VM_Thread withThisThread) 
+    throws VM_PragmaInterruptible {
 
-    VM_Processor newProcessor = new VM_Processor(generateNativeProcessorId(), NATIVE);
-    // create idle thread for this native processor, running in attached mode
-    VM_Thread t = new VM_NativeIdleThread(newProcessor, true);
-    t.start(newProcessor.idleQueue);
+      VM_Processor newProcessor = new VM_Processor(generateNativeProcessorId(), NATIVE);
+      // create idle thread for this native processor, running in attached mode
+      VM_Thread t = new VM_NativeIdleThread(newProcessor, true);
+      t.start(newProcessor.idleQueue);
 
-    // Make the current thread the active thread for this native VP
-    newProcessor.activeThread = withThisThread;
-    newProcessor.activeThreadStackLimit = withThisThread.stackLimit;
+      // Make the current thread the active thread for this native VP
+      newProcessor.activeThread = withThisThread;
+      newProcessor.activeThreadStackLimit = withThisThread.stackLimit;
 
-    // Because the start up thread will not be executing to 
-    // initialize itself as in the
-    // normal case, we have set the isInitialized flag for the processor here
-    newProcessor.isInitialized = true;
+      // Because the start up thread will not be executing to 
+      // initialize itself as in the
+      // normal case, we have set the isInitialized flag for the processor here
+      newProcessor.isInitialized = true;
 
-    // register this VP for GC purpose
-    if (registerAttachedProcessor(newProcessor) != 0)
-      return newProcessor;
-    else
-      return null;                // out of space to hold this new VP
+      // register this VP for GC purpose
+      if (registerAttachedProcessor(newProcessor) != 0)
+        return newProcessor;
+      else
+        return null;                // out of space to hold this new VP
+    }
 
-  }
-
-  static int registerAttachedProcessor(VM_Processor newProcessor) {
+  static int registerAttachedProcessor(VM_Processor newProcessor) throws VM_PragmaInterruptible {
 
     if (numberAttachedProcessors == 100) {
       // VM.sysWrite("VM_Processor.registerAttachedProcessor: no more room\n");
@@ -404,7 +398,7 @@ if (loopcheck++ >= 1000000) break;
     return 0;
   }
 
-  static int unregisterAttachedProcessor(VM_Processor pr) {
+  static int unregisterAttachedProcessor(VM_Processor pr) throws VM_PragmaInterruptible {
     // entry 0 is kept empty
     for (int i=1; i<attachedProcessors.length; i++) {
       if (attachedProcessors[i]!=pr) {
@@ -419,9 +413,9 @@ if (loopcheck++ >= 1000000) break;
 
   // create a native processor for default implementation of jni
   //
-  static VM_Processor createNativeProcessor () {
+  static VM_Processor createNativeProcessor () throws VM_PragmaInterruptible {
 
-//-#if RVM_FOR_IA32
+    //-#if RVM_FOR_IA32
 
     // NOT YET IMPLEMENTED !!!
     VM.sysWrite("VM_Processor createNativeProcessor NOT YET IMPLEMENTED for IA32\n");
@@ -429,7 +423,7 @@ if (loopcheck++ >= 1000000) break;
 
     return null;
 
-//-#else
+    //-#else
 
     // create native processor object without id - set later
     VM_Processor newProcessor = new VM_Processor(0, NATIVE);
@@ -455,7 +449,7 @@ if (loopcheck++ >= 1000000) break;
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
+    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2));
 
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 
@@ -474,9 +468,9 @@ if (loopcheck++ >= 1000000) break;
     newProcessor.activeThreadStackLimit = target.stackLimit;
     target.registerThread(); // let scheduler know that thread is active.
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				 VM_Magic.objectAsAddress(newProcessor),
-				 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
-				 target.contextRegisters.getInnermostFramePointer());
+                                 VM_Magic.objectAsAddress(newProcessor),
+                                 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
+                                 target.contextRegisters.getInnermostFramePointer());
     while (!newProcessor.isInitialized)
       VM.sysVirtualProcessorYield();
     VM.enableGC();
@@ -490,7 +484,7 @@ if (loopcheck++ >= 1000000) break;
 
     return newProcessor;
 
-//-#endif
+    //-#endif
 
   } // createNativeProcessor
 
@@ -569,7 +563,7 @@ if (loopcheck++ >= 1000000) break;
    * interrogated by every compiled method, typically in the method's prologue.
    */ 
   int threadSwitchRequested;
-  
+
   /**
    * thread currently running on this processor
    */
@@ -581,7 +575,7 @@ if (loopcheck++ >= 1000000) break;
    */
   VM_Address activeThreadStackLimit;
 
-//-#if RVM_FOR_IA32
+  //-#if RVM_FOR_IA32
   // On powerpc, these values are in dedicated registers,
   // we don't have registers to burn on IA32, so we indirect
   // through the PR register to get them instead.
@@ -605,9 +599,9 @@ if (loopcheck++ >= 1000000) break;
    * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
    */
   int    arrayIndexTrapParam; 
-//-#endif
+  //-#endif
 
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   // Chunk 1 -- see VM_Chunk.java
   // By convention, chunk1 is used for 'normal' allocation 
   VM_Address startChunk1;
@@ -645,7 +639,7 @@ if (loopcheck++ >= 1000000) break;
   /*
    * END FREQUENTLY ACCESSED INSTANCE FIELDS
    */
-  
+
   /**
    * Identity of this processor.
    * Note: 1. VM_Scheduler.processors[id] == this processor
@@ -661,7 +655,7 @@ if (loopcheck++ >= 1000000) break;
    *   true  means "cpu is now executing vm code (on a vm stack)"
    */ 
   boolean isInitialized;
-  
+
   /**
    * Should this processor dispatch a new VM_Thread when 
    * "threadSwitch" is called?
@@ -672,7 +666,7 @@ if (loopcheck++ >= 1000000) break;
    * <= 0 means "no"  (switching disabled)
    */ 
   int threadSwitchingEnabledCount;
-  
+
   /**
    * Was "threadSwitch" called while this processor had 
    * thread switching disabled?
@@ -727,7 +721,7 @@ if (loopcheck++ >= 1000000) break;
   // Start of GC stuff. //
   //--------------------//
 
-//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   //-#if RVM_WITH_CONCURRENT_GC
   VM_Address incDecBuffer;        // the buffer
   VM_Address incDecBufferTop;     // address of most recently filled slot in buffer
@@ -742,9 +736,9 @@ if (loopcheck++ >= 1000000) break;
   long   totalBytesAllocated;	// used for instrumentation in allocators
   long   totalObjectsAllocated; // used for instrumentation in allocators
   long   synchronizedObjectsAllocated; // used for instrumentation in allocators
-//-#endif
+  //-#endif
 
-//-#if RVM_WITH_GCTk
+  //-#if RVM_WITH_GCTk
   GCTk_Collector collector;
   ADDRESS writeBuffer0;
   ADDRESS writeBuffer1;
@@ -770,7 +764,7 @@ if (loopcheck++ >= 1000000) break;
   ADDRESS allocSync5;
   ADDRESS allocSync6;
   ADDRESS allocSync7;
-//-#endif
+  //-#endif
 
   //--------------------//
   //  End of GC stuff.  //

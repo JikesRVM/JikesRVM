@@ -22,8 +22,7 @@ import instructionFormats.*;
 
 
 final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
-  implements OPT_Operators, OPT_Constants, VM_Uninterruptible
-{
+  implements OPT_Operators, OPT_Constants {
 
   static final boolean DEBUG=false;
 
@@ -58,8 +57,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param handle  The handle describing which the data to be resized
    * @param countersNeeded The number of counters being requested 
    **/
-  synchronized public void resizeCounterSpace(int handle, int countersNeeded)
-  {
+  synchronized public void resizeCounterSpace(int handle, int countersNeeded) {
     // allocate the new array
     double[] temp = new double[countersNeeded];
     
@@ -82,8 +80,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param index The relative index number of the counter
    * @return The value of the counter
    */
-  public double getCounter(int handle, int index)
-  {
+  public double getCounter(int handle, int index) {
     return counterArrays[handle][index];
   }
 
@@ -94,8 +91,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param index The relative index number of the counter
    * @param value The new value of the counter
    */
-  public void setCounter(int handle, int index, double value)
-  {
+  public void setCounter(int handle, int index, double value) {
     counterArrays[handle][index] = value;
   }
 
@@ -109,8 +105,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @return The counter instruction
    **/
   public OPT_Instruction createEventCounterInstruction(int handle, int index,
-						       double incrementValue)
-  {
+						       double incrementValue) {
 
     // Doubles are annoying. They are too big to fit into the
     // instruction, so they must be loaded from the JTOC.  That means
@@ -143,8 +138,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param ir The governing IR
    **/
   public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, 
-					       OPT_IR ir)
-  {
+					       OPT_IR ir) {
     if (VM.VerifyAssertions)
       VM.assert(InstrumentedCounter.conforms(counterInst));
 

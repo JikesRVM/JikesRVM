@@ -322,7 +322,7 @@ class OptTestHarness {
     for(int i = 0; i < size ; i++) {
       VM_Method method = (VM_Method) baselineMethodVector.elementAt(i);
       VM_CompiledMethod cm = null;
-      cm = VM_Compiler.compile(method);
+      cm = VM_BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
     }
 

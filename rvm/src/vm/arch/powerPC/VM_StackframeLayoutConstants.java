@@ -116,7 +116,7 @@ interface VM_StackframeLayoutConstants  {
    // Stacks for "normal" threads grow as needed by trapping on guard region.
    // Stacks for "boot" and "collector" threads are fixed in size and cannot grow.
    //
-   static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +   4*1024; // initial stack space to allocate for normal    thread (includes guard region)
+   static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +   8*1024; // initial stack space to allocate for normal    thread (includes guard region)
    static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for boot      thread (includes guard region)
    static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for collector thread (includes guard region)
    static final int STACK_SIZE_MAX       = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 244*1024; // upper limit on stack size (includes guard region)

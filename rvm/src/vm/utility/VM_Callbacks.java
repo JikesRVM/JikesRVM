@@ -366,7 +366,7 @@ public final class VM_Callbacks {
      *       whether the VM is running
      * @param method the method that will be compiled
      * @param compiler the compiler that will be invoked.
-     *        Values are constants in VM_CompilerInfo
+     *        Values are constants in VM_CompiledMethod
      */
     public void notifyMethodCompile(VM_Method method, int compiler);
   }
@@ -399,7 +399,7 @@ public final class VM_Callbacks {
    *       whether the VM is running
    * @param method the method that will be compiled
    * @param compiler the compiler that will be invoked
-   *        Values are constants in VM_CompilerInfo
+   *        Values are constants in VM_CompiledMethod
    */
   public static void notifyMethodCompile(VM_Method method, int compiler) {
     // NOTE: will need synchronization if allowing unregistering

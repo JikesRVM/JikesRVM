@@ -45,7 +45,7 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
 
      // Don't insert counters in uninterruptible methods, 
      // the boot image, or when instrumentation is disabled
-     if (!ir.method.getDeclaringClass().isInterruptible() ||
+     if (!ir.method.isInterruptible() ||
 	 ir.method.getDeclaringClass().isInBootImage() ||
 	 !VM_Instrumentation.instrumentationEnabled())
        return;

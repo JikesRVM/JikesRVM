@@ -193,11 +193,10 @@ final class VM_SlopeDetectingMethodSampleOrganizer extends VM_Organizer {
 	if (totalSamples > 3.0) {
 	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
 	  if (cm != null) {
-	    VM_CompilerInfo info = cm.getCompilerInfo();
-	    int compilerType = info.getCompilerType();
-	    if (!(compilerType == VM_CompilerInfo.TRAP ||
-		  (compilerType == VM_CompilerInfo.OPT && 
-		   (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
+	    int compilerType = cm.getCompilerType();
+	    if (!(compilerType == VM_CompiledMethod.TRAP ||
+		  (compilerType == VM_CompiledMethod.OPT && 
+		   (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
 
 	      // (2a) compute prediction
 	      int histSamples = -samplesThisTime;

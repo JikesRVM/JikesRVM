@@ -338,26 +338,22 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
       inTryBlock = true;
       reachableHandlersCount = 0;
       for (i=0; i<tryHandlerLength; i++)
-	if (tryStartPC[i] <= start &&
-	    tryEndPC[i] >= end) {
+	if (start <= tryEndPC[i] && end >= tryStartPC[i]) {
 	  reachableHandlerBBNums[reachableHandlersCount] = 
 	                                 byteToBlockMap[tryHandlerPC[i]];
           reachableHandlersCount++;
-
-	  // if (tryStartPC[i] == start) {
-	    int handlerBBNum = byteToBlockMap[tryHandlerPC[i]];
-	    if (bbMaps[handlerBBNum] == null) {
-              bbMaps[handlerBBNum] = new byte[currBBMap.length];
-	      for (int k=0; k<=currBBStkEmpty; k++)
-	        bbMaps[handlerBBNum][k] = currBBMap[k];
-	      bbMaps[handlerBBNum][currBBStkEmpty+1] = REFERENCE;
-	      blockStkTop[handlerBBNum] = currBBStkEmpty+1;
-	    }
-	  // }
+	  int handlerBBNum = byteToBlockMap[tryHandlerPC[i]];
+	  if (bbMaps[handlerBBNum] == null) {
+	    bbMaps[handlerBBNum] = new byte[currBBMap.length];
+	    for (int k=0; k<=currBBStkEmpty; k++)
+	      bbMaps[handlerBBNum][k] = currBBMap[k];
+	    bbMaps[handlerBBNum][currBBStkEmpty+1] = REFERENCE;
+	    blockStkTop[handlerBBNum] = currBBStkEmpty+1;
+	  }
 	}
-    }
-    else
+    } else {
       inTryBlock = false;
+    }
 
     boolean processNextBlock = true;
 

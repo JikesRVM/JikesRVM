@@ -25,14 +25,14 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * Class from which this field or method was inherited.
    */ 
-  public final VM_Class getDeclaringClass() { 
+  public final VM_Class getDeclaringClass() throws VM_PragmaUninterruptible { 
     return declaringClass;
   }
       
   /**
    * Name of this field or method - something like "foo".
    */ 
-  public final VM_Atom getName() { 
+  public final VM_Atom getName() throws VM_PragmaUninterruptible { 
     return name;
   }
 
@@ -40,14 +40,14 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * Descriptor for this field or method - 
    * something like "I" for a field or "(I)V" for a method.
    */ 
-  public final VM_Atom getDescriptor() {
+  public final VM_Atom getDescriptor() throws VM_PragmaUninterruptible {
     return descriptor;
   }
 
   /**
    * Index of this field or method in the field or method dictionary
    */ 
-  public final int getDictionaryId() {
+  public final int getDictionaryId() throws VM_PragmaUninterruptible {
     return dictionaryId;
   }
  
@@ -71,7 +71,7 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * Loaded?
    */ 
-  public final boolean isLoaded()  {
+  public final boolean isLoaded() throws VM_PragmaUninterruptible {
     return (modifiers & ACC_LOADED) != 0; 
   }
 
@@ -174,7 +174,7 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    * @see VM_Class#getLiteralOffset
    * to obtain offset of constant from start of jtoc
    */ 
-  abstract int getOffset();
+  abstract int getOffset() throws VM_PragmaUninterruptible ;
    
   //----------------//
   // Implementation //

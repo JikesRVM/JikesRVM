@@ -283,31 +283,6 @@ Posix thread.
 On some platforms, only $m$-to-1 threading is supported.  See 
 question~\ref{singleProcessorQuestion}.
 
-\subsubsection{What are the semantics of {\tt VM\_Uninterruptible}?}
-
-The semantics of uninterruptibility are: if a class 
-directly implements 
-\xlink{{\tt VM\_Uninterruptible}}{\VMUninterruptibleURL}
-, then the compiler will not
-generate yield points in methods of the class.  So, there will be no
-timer-driven thread switches caused by SIGALARMs in these methods.
-Additionally, the compiler will {\em not} check for stack overflow in the
-method prologue.  So, an uninterruptible method will never cause a stack
-overflow trap.  
-
-You should exercise extreme caution when modifying uninterruptible code.  It
-is generally not legal (although not enforced) to throw an exception or 
-cause GC from an uninterruptible method.  Uninterruptible code should not
-call interruptible code. Furthermore, any uninterruptible method should
-not need more stack space than specified in VM\_StackFrameLayoutConstants
-for the stack ``guard'' area.
-
-It is unfortunate that the uninterruptible attribute is currently
-specified on a class level.  In some cases, we have declared an entire
-class uninterruptible, even though only a few methods of the class are
-really not safe to interrupt.  We would like to someday use a finer-grain
-mechanism by which to annotate individual methods as uninterruptible.
-
 \subsubsection{What is the list of operations that may cause a GC?}
 
 Any operation that allocates memory or causes memory to be allocated may

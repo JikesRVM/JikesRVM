@@ -283,18 +283,6 @@ public final class OPT_BranchOptimizations
   /**
    * Perform optimizations for an inline guard.  
    *
-   * <pre>
-   * 1)   IF .. GOTO A	        replaced by  IF .. GOTO B
-   *      ...
-   *   A: GOTO B
-   * 2)   IF .. GOTO A	     replaced by  IF .. GOTO B
-   *   A: LABEL	     
-   *   	  BBEND
-   *   B: 
-   * 3)   conditional branch to next instruction eliminated
-   * 4)  fallthrough to a goto: replicate goto to enable other optimizations.
-   * </pre>
-   *
    * <p> Precondition: InlineGuard.conforms(cb)
    *
    * @param ir the governing IR
@@ -364,18 +352,6 @@ public final class OPT_BranchOptimizations
   /**
    * Perform optimizations for a two way conditional branch.  
    *
-   * <pre>
-   * 1)   IF .. GOTO A	        replaced by  IF .. GOTO B
-   *      ...
-   *   A: GOTO B
-   * 2)   conditional branch to next instruction eliminated
-   * 3)   IF .. GOTO A	     replaced by  IF .. GOTO B
-   *   A: LABEL	     
-   *   	  BBEND
-   *   B: 
-   * 4)  fallthrough to a goto: replicate goto to enable other optimizations.
-   * </pre>
-   *
    * <p> Precondition: IfCmp2.conforms(cb)
    *
    * @param ir the governing IR
@@ -425,7 +401,7 @@ public final class OPT_BranchOptimizations
 	if (VM.VerifyAssertions) VM.assert(cb.operator() == INT_IFCMP2);
 	IfCmp.mutate(cb, INT_IFCMP,
 		     IfCmp2.getGuardResult(cb), IfCmp2.getVal1(cb),
-		     IfCmp2.getVal1(cb), IfCmp2.getCond1(cb), 
+		     IfCmp2.getVal2(cb), IfCmp2.getCond1(cb), 
 		     IfCmp2.getTarget1(cb), IfCmp2.getBranchProfile1(cb));
 	return true;
       }

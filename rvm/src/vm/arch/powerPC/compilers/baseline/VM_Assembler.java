@@ -9,7 +9,7 @@
  * @author Anthony Cocchi
  * @author Derek Lieber
  */
-class VM_Assembler implements VM_BaselineConstants {
+final class VM_Assembler implements VM_BaselineConstants {
 
   /* Machine code generators:
 
@@ -30,11 +30,15 @@ class VM_Assembler implements VM_BaselineConstants {
 
      mIP will be incremented to point to the next machine instruction.
   */
-
   VM_Assembler (int length) {
+    this(length, false);
+  }
+
+  VM_Assembler (int length, boolean sp) {
     mc = new VM_MachineCode();
     b2m = new int[length];
     mIP = 0;
+    shouldPrint = sp;
   }
 
   /* machine code */
@@ -44,6 +48,8 @@ class VM_Assembler implements VM_BaselineConstants {
 
   /* map from bytecode indeces to  machine code indeces */
   private int[]  b2m;                // 0, if bcodes[n] not an instruction
+
+  private boolean shouldPrint;
 
   /* assembler stuff:
 
@@ -90,11 +96,8 @@ class VM_Assembler implements VM_BaselineConstants {
     return s; 
   }
 
-  String binstr = null;
-  void noteBytecode (String bi) {
-    binstr = bi;
-    if (VM.TraceAssembler) 
-      System.out.println(right(""+bIP,6) + " " + bi + " ");
+  void noteBytecode (int i, String bcode) {
+    VM.sysWrite("[" + i + "] " + bcode + "\n");
   }
 
   String comment = null;
@@ -177,6 +180,9 @@ class VM_Assembler implements VM_BaselineConstants {
   }
 
   int currentInstructionOffset () {
+    return mIP;
+  }
+  int getMachineCodeIndex () {
     return mIP;
   }
 
@@ -2018,9 +2024,26 @@ class VM_Assembler implements VM_BaselineConstants {
 
   // Convert generated machine code into final form.
   //
+  VM_MachineCode finalizeMachineCode (int[] ignored) {
+    return makeMachineCode();
+  }
+
   VM_MachineCode makeMachineCode () {
     mc.setBytecodeMap(b2m);
     mc.finish();
+    if (shouldPrint) {
+      INSTRUCTION[] instructions = mc.getInstructions();
+      VM_BaselineCompiler.options.PRINT_MACHINECODE=false;
+      for (int i = 0; i < instructions.length; i++) {
+	VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
+	VM.sysWrite(" : ");
+	VM.sysWrite(VM_Services.getHexString(instructions[i], false));
+	VM.sysWrite("  ");
+	VM.sysWrite(PPC_Disassembler.disasm(instructions[i], i << LG_INSTRUCTION_WIDTH));
+	VM.sysWrite("\n");
+      }
+      VM_BaselineCompiler.options.PRINT_MACHINECODE=true;
+    }
     return mc;
   }
 

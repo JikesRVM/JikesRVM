@@ -170,8 +170,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   }
 
 
-  private void start(OPT_GenerationContext context) {
-    VM_Magic.pragmaNoInline();
+  private void start(OPT_GenerationContext context) throws VM_PragmaNoInline {
     gc = context;
     // To use the following you need to change the declarations
     // in OPT_IRGenOption.java
@@ -1349,6 +1348,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?GETSTATIC_UNRESOLVED:GETSTATIC;
+	  if (!unresolved) field = field.resolve();
 	  s = GetStatic.create(operator, t, makeStaticFieldRef(field));
 
 	  // optimization: 
@@ -1412,6 +1412,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_Operand r = pop(fieldType);
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?PUTSTATIC_UNRESOLVED:PUTSTATIC;
+	  if (!unresolved) field = field.resolve();
 	  s = PutStatic.create(operator, r, makeStaticFieldRef(field));
 	  if (unresolved)
 	    rectifyStateWithErrorHandler();
@@ -1443,6 +1444,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?GETFIELD_UNRESOLVED:GETFIELD;
+	  if (!unresolved) field = field.resolve();
 	  s = GetField.create(operator, t, op1, makeInstanceFieldRef(field), 
 			      getCurrentGuard());
 	  push(t.copyD2U(), fieldType);
@@ -1462,6 +1464,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
 	  OPT_Operator operator = unresolved?PUTFIELD_UNRESOLVED:PUTFIELD;
+	  if (!unresolved) field = field.resolve();
 	  s = PutField.create(operator, val, obj, makeInstanceFieldRef(field), 
 			      getCurrentGuard());
 	  if (unresolved)
@@ -1498,6 +1501,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
+	  if (!unresolved) meth = meth.resolve();
 	  OPT_MethodOperand methOp = 
 	    OPT_MethodOperand.VIRTUAL(meth, unresolved);
 	  s = _callHelper(methOp);
@@ -1575,6 +1579,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean unresolved = 
 	    !meth.getDeclaringClass().isResolved() ||
 	    (OPT_ClassLoaderProxy.findSpecialMethod(meth) == null);
+	  if (!unresolved) meth = meth.resolve();
 	  s = _callHelper(OPT_MethodOperand.SPECIAL(meth, unresolved));
 	  if (s == null) {
 	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
@@ -1625,6 +1630,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	  }
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
+	  if (!unresolved) meth = meth.resolve();
 	  s = _callHelper(OPT_MethodOperand.STATIC(meth, unresolved));
 	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
 	    OPT_InlineReport.classUnresolved(unresolved, meth);
@@ -1866,7 +1872,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    if (type != OPT_ClassLoaderProxy.JavaLangObjectType)
 	      assertIsAssignable(OPT_ClassLoaderProxy.JavaLangThrowableType, type);
 	  }
-	  if (!gc.method.getDeclaringClass().isInterruptible()) {
+	  if (!gc.method.isInterruptible()) {
 	    // prevent code motion in or out of uninterruptible code sequence
 	    appendInstruction(Empty.create(UNINT_END));
 	  }
@@ -3916,7 +3922,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       new OPT_CompilationState(call, 
 			       gc.localMCSizeEstimate+gc.parentMCSizeEstimate,
 			       computedTarget, isExtant, gc.options, 
-			       gc.original_cmid);
+			       gc.original_cm);
     OPT_InlineDecision d = gc.inlinePlan.shouldInline(state);
     if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
       OPT_InlineReport.setValues(state);
@@ -4686,8 +4692,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     /**
      * Initialize the global exception handler arrays for the method.<p>
-     * TODO: If we modified VM_ExceptionMap to substitute 
-     * java.lang.Throwable for 'null' then we could just use eMap directly...
      */
     private void parseExceptionTables() {
       VM_ExceptionHandlerMap eMap = gc.method.getExceptionHandlerMap();
@@ -4699,14 +4703,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       int numExceptionHandlers = startPCs.length;
       exceptionTypes = new OPT_TypeOperand[numExceptionHandlers];
       for (int i = 0; i < numExceptionHandlers; i++) {
-	if (eMap.getExceptionType(i) == null) {
-	  // A finally block...set to java.lang.Throwable to avoid
-	  // needing to think about this case anywhere else.
-	  exceptionTypes[i] = new OPT_TypeOperand(OPT_ClassLoaderProxy.JavaLangThrowableType);
-	} else {
-	  exceptionTypes[i] = new OPT_TypeOperand(eMap.getExceptionType(i));
-	}
-
+	exceptionTypes[i] = new OPT_TypeOperand(eMap.getExceptionType(i));
 	if (DBG_EX) db("\t\t[" + startPCs[i] + "," + endPCs[i] + "] " + eMap.getExceptionType(i));
       }
     }

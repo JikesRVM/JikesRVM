@@ -20,12 +20,11 @@ abstract class VM_HotMethodEvent {
   public final VM_CompiledMethod getCompiledMethod() { return cm; }
   public final VM_Method getMethod() { return cm.getMethod();  }
   public final boolean isOptCompiled() {
-    int compType = cm.getCompilerInfo().getCompilerType();
-    return compType == VM_CompilerInfo.OPT;
+    return cm.getCompilerType() == VM_CompiledMethod.OPT;
   }
   public final int getOptCompiledLevel() {
     if (!isOptCompiled()) return -1;
-    return ((VM_OptCompilerInfo)cm.getCompilerInfo()).getOptLevel();
+    return ((VM_OptCompiledMethod)cm).getOptLevel();
   }
 
 

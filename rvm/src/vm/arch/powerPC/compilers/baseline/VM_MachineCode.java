@@ -66,26 +66,14 @@ class VM_MachineCode {
   }
 
   void addInstruction (INSTRUCTION instr) {
-    if (false) {
-      try {
-        current_bundle[next++] = instr;
-      } catch (ArrayIndexOutOfBoundsException e) {
-        current_bundle = new INSTRUCTION[size];
-        bundles.addElement(current_bundle);
-        next_bundle++;
-        next = 0;
-        current_bundle[next++] = instr;
-      }
-    } else { // old code: jdp used to be unable to cope with array bounds traps...
-      if (next < current_bundle.length) {
-        current_bundle[next++] = instr;
-      } else {
-        current_bundle = new INSTRUCTION[size];
-        bundles.addElement(current_bundle);
-        next_bundle++;
-        next = 0;
-        current_bundle[next++] = instr;
-      }
+    if (next < current_bundle.length) {
+      current_bundle[next++] = instr;
+    } else {
+      current_bundle = new INSTRUCTION[size];
+      bundles.addElement(current_bundle);
+      next_bundle++;
+      next = 0;
+      current_bundle[next++] = instr;
     }
   }
 

@@ -67,18 +67,12 @@ interface VM_RegisterConstants {
   static final byte[]  NONVOLATILE_GPRS = { EBP, EDI, EBX};
   static final int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
     
-  static final byte[]  SCRATCH_GPRS = { ECX };
-  static final int NUM_SCRATCH_GPRS = SCRATCH_GPRS.length;
-    
   static final byte[]  VOLATILE_FPRS = { FP0, FP1, FP2, FP3, FP4, FP5, FP6, FP7 }; 
   static final int NUM_VOLATILE_FPRS = VOLATILE_FPRS.length;
     
   static final byte[]  NONVOLATILE_FPRS = {  }; 
   static final int NUM_NONVOLATILE_FPRS = NONVOLATILE_FPRS.length;
 
-  static final byte[]  SCRATCH_FPRS = { }; 
-  static final int NUM_SCRATCH_FPRS = SCRATCH_FPRS.length;
-    
   /*
    * These constants represent the number of volatile registers used
    * to pass parameters in registers.  They are defined to mean that

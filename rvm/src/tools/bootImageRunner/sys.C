@@ -1058,6 +1058,35 @@ extern "C" long long sysDoubleToLong(double a) {
   return (long long)a;
 }
 
+#ifdef RVM_FOR_POWERPC
+#include <math.h>
+extern "C" double sysDoubleRemainder(double a, double b) {
+  double tmp = remainder(a, b);
+  if (a > 0.0) {
+    if (b > 0.0) {
+      if (tmp < 0.0) {
+	tmp += b;
+      }
+    } else if (b < 0.0) {
+      if (tmp < 0.0) {
+	tmp -= b;
+      }
+    }
+  } else {
+    if (b > 0.0) {
+      if (tmp > 0.0) {
+	tmp -= b;
+      }
+    } else {
+      if (tmp > 0.0) {
+	tmp += b;
+      }
+    }
+  }
+  return tmp;
+}
+#endif
+
 //-------------------//
 // Memory operations //
 //-------------------//

@@ -318,8 +318,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, int tibWord) {
-    VM_Magic.pragmaInline();
+				  VM_Array type, int tibWord) throws VM_PragmaInline {
     int hashState = tibWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
       VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(ARRAY_HEADER_SIZE);

@@ -12,18 +12,17 @@ import java.util.Enumeration;
 class VM_CodeFinder {
 
   private static boolean containsMethod(VM_CompiledMethod c, VM_Method m) {
-    VM_CompilerInfo info = c.getCompilerInfo();
-    switch ( info.getCompilerType() ) {
+    switch (c.getCompilerType() ) {
 
-    case VM_CompilerInfo.BASELINE:
+    case VM_CompiledMethod.BASELINE:
       return (c.getMethod() == m);
 
     //-#if RVM_WITH_OPT_COMPILER
-    case VM_CompilerInfo.OPT: 
+    case VM_CompiledMethod.OPT: 
       if (c.getMethod() == m) 
 	return true;
       else {
-	VM_OptCompilerInfo x = (VM_OptCompilerInfo)info;
+	VM_OptCompiledMethod x = (VM_OptCompiledMethod)c;
 	VM_OptMachineCodeMap map = x.getMCMap();
 	int[] enc = map.inlineEncoding;
 	int i = 2; 

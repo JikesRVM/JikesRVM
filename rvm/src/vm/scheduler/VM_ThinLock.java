@@ -27,8 +27,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    * @param lockOffset the offset of the thin lock word in the object.
    * @see OPT_ExpandRuntimeServices
    */
-  static void inlineLock (Object o, int lockOffset) {
-    VM_Magic.pragmaInline();
+  static void inlineLock(Object o, int lockOffset) throws VM_PragmaInline {
     int old = VM_Magic.prepare(o, lockOffset);
     if ((old >>> TL_THREAD_ID_SHIFT) == 0) { 
       // implies that fatbit == 0 & threadid == 0
@@ -51,8 +50,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    * @param lockOffset the offset of the thin lock word in the object.
    * @see  OPT_ExpandRuntimeServices
    */
-  static void inlineUnlock (Object o, int lockOffset) {
-    VM_Magic.pragmaInline();
+  static void inlineUnlock(Object o, int lockOffset) throws VM_PragmaInline {
     int old = VM_Magic.prepare(o, lockOffset);
     if (((old ^ VM_Magic.getThreadId()) >>> TL_LOCK_COUNT_SHIFT) == 0) { // implies that fatbit == 0 && count == 0 && lockid == me
       VM_Magic.sync(); // memory barrier: subsequent locker will see previous writes
@@ -71,8 +69,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
    */
-  static void lock (Object o, int lockOffset) {
-    VM_Magic.pragmaNoInline();
+  static void lock(Object o, int lockOffset) throws VM_PragmaNoInline {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logOtherLockContentionEvent(); }
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit; 
@@ -107,6 +104,23 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
             int index = old & TL_LOCK_ID_MASK;
             index >>>= TL_LOCK_ID_SHIFT;
+            if (VM.VerifyAssertions) {
+              if (index >= VM_Scheduler.locks.length) {
+                VM.sysWrite("Error in VM_ThinLock.lock:\n");
+                VM.sysWrite("  VM_Scheduler.locks.length: ");
+                VM.sysWrite(VM_Scheduler.locks.length,false);
+                VM.sysWrite("\n");
+                VM.sysWrite("  index: ");
+                VM.sysWrite(index,false);
+                VM.sysWrite("\n");
+                VM.sysWrite("  old status word: ");
+                VM.sysWrite(index,true);
+                VM.sysWrite("\n");
+                VM.sysWrite("  Object class: ");
+                VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
+                VM.sysWrite("\n");
+              }
+            }
             if (VM_Scheduler.locks[index].lockHeavy(o)) {
               break major; // lock succeeds (note that lockHeavy has issued an isync)
             }
@@ -146,8 +160,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
    */
-  static void unlock (Object o, int lockOffset) {
-    VM_Magic.pragmaNoInline();
+  static void unlock(Object o, int lockOffset) throws VM_PragmaNoInline {
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
       int old = VM_Magic.prepare(o, lockOffset);
@@ -160,7 +173,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           return;
         } 
         VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", old);
-        throw new IllegalMonitorStateException();
+	VM_Lock.raiseIllegalMonitorStateException("thin unlocking", o);
       }
       int countbits = old & TL_LOCK_COUNT_MASK; // get count
       if (countbits == 0) { // this is the last lock

@@ -14,7 +14,7 @@
 import java.util.*;
 import java.io.*;
 /* not needed for build in separate RVM.tools directory */
-/* import BootImageWriter2; */
+/* import BootImageWriter; */
 
 class BootMapExternal extends BootMap {
     
@@ -60,7 +60,7 @@ class BootMapExternal extends BootMap {
    * @param mainClass  the original name of the program
    * @param classesNeededFilename the file name of the list of classes in the boot map
    * @param classpath  class path to ensure the TOC is loaded in the same sequence as
-   *                   done by BootImageWriter2
+   *                   done by BootImageWriter
    * @return
    * @see BootMap
    */
@@ -81,7 +81,7 @@ class BootMapExternal extends BootMap {
     // If we are running under the JDK (and not the mapping interpreter)
     // set up the JVM data structure for lookup later on
     if (first_time) {
-      // The classpath must be identical to the one used by BootImageWriter2
+      // The classpath must be identical to the one used by BootImageWriter
       // so that the TOC will be loaded in the same order;  if not, the
       // offset for the static fields will not match between jdp and the 
       // boot image.
@@ -89,7 +89,7 @@ class BootMapExternal extends BootMap {
       // System.out.println("BootMapExternal: classpath " + classpath);
       VM.initForTool(classpath);
     
-      // load the classes identically to BootImageWriter2
+      // load the classes identically to BootImageWriter
       try {
 	preloadClasses(classesNeededFilename);
 	first_time = false;
@@ -454,8 +454,8 @@ class BootMapExternal extends BootMap {
 	//		   Integer.toHexString(codeAddress));
         return new breakpoint(compiledMethodID, 0, codeAddress);
       } else {
-	VM_CompilerInfo compInfo = findVMCompilerInfo(compiledMethodID, true);
-        int offset = getPrologSize(compInfo, codeAddress);
+	VM_CompiledMethod compMethod = findVMCompiledMethod(compiledMethodID, true);
+        int offset = getPrologSize(compMethod, codeAddress);
 	// System.out.println("breakpointForMethod: " + compiledMethodID + ", " + offset +  
 	//		   " at " + Integer.toHexString(codeAddress + offset));
         return new breakpoint(compiledMethodID, offset, codeAddress + offset);
@@ -471,19 +471,19 @@ class BootMapExternal extends BootMap {
   /**
    * Get the prolog size 
    * If the compilerinfo indicates this is an opt compiled method, then
-   * the compilerInfo has the end of prologue offset. If the method
+   * the compilerMethod has the end of prologue offset. If the method
    * is baseline compiled then use the scan prolog approach
-   * @param compInfo VM_CompilerInfo of the method of interest
+   * @param compMethod VM_CompiledMethod of the method of interest
    * @param startAddress starting address of the method
    * @return size of the prologue (ie offset of instruction after the prologue)
    */
-  public int getPrologSize(VM_CompilerInfo compInfo, int startAddress) {
-    if (compInfo == null)
+  public int getPrologSize(VM_CompiledMethod compMethod, int startAddress) {
+    if (compMethod == null)
       return 0;
     else {
       //-#if RVM_WITH_OPT_COMPILER
-      if (compInfo.getCompilerType() == VM_CompilerInfo.OPT) {
-	return ((VM_OptCompilerInfo)compInfo).getEndPrologueOffset();
+      if (compMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+	return ((VM_OptCompiledMethod)compMethod).getEndPrologueOffset();
       } else
       //-#endif
       {
@@ -553,7 +553,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled() && mth.getDeclaringClass().getName().equals(cls.getName()))
       {
-        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getCurrentCompiledMethod().findInstructionForLineNumber(linenum);
         // System.out.println("... checking static method " + methods[i].getName().toString() +
         // ": offset " + offset);
         if (offset!=-1) {
@@ -573,7 +573,7 @@ class BootMapExternal extends BootMap {
       // TODO:   scan the compiled method table to get all codes for this method
       if (mth.isCompiled() && mth.getDeclaringClass().getName().equals(cls.getName()))
       {
-        offset = mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().findInstructionForLineNumber(linenum);
+        offset = mth.getCurrentCompiledMethod().findInstructionForLineNumber(linenum);
         //System.out.println("... checking virtual method " + methods[i].getName().toString() +
         //": offset " + offset);
         if (offset!=-1) {
@@ -630,15 +630,15 @@ class BootMapExternal extends BootMap {
   }
 
   /**
-   * Implement abstract method: find the VM_CompilerInfo given a method ID
+   * Implement abstract method: find the VM_CompiledMethod given a method ID
    * @param methodID  an index into either the method dictionary table or the compiled method table
    * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
    *                              false if indexing the method dictionary table
-   * @return the runtime VM_CompilerInfo for this method
+   * @return the runtime VM_CompiledMethod for this method
    * @exception BmapNotFoundException if the name is not in the map
    * @see findVMMethodByIndex
    */
-  public VM_CompilerInfo findVMCompilerInfo(int methodID, boolean usingCompiledMethodID){
+  public VM_CompiledMethod findVMCompiledMethod(int methodID, boolean usingCompiledMethodID){
     if (usingCompiledMethodID) {
       // the methodID is an index into the compiled method table VM_CompiledMethods.compiledMethods[]
       VM_CompiledMethod[] compiledMths = VM_CompiledMethods.getCompiledMethods();
@@ -646,22 +646,14 @@ class BootMapExternal extends BootMap {
       // 	 " out of " + compiledMths.length);
       // System.out.println("findVMMethod: compiled " + VM_CompiledMethods.numCompiledMethods());
       
-      VM_CompiledMethod compiledMethod = compiledMths[methodID];
-      if (compiledMethod !=null) {
-	VM_CompilerInfo compInfo = compiledMethod.getCompilerInfo();
-	// System.out.println("findVMCompilerInfo: found " + compInfo.getCompilerType() + 
-	// 		   " at compiled method ID " + methodID);
-	return compInfo;
-      } else {
-	return null;
-      }
+      return compiledMths[methodID];
     } else {
       // the methodID is an index into the method dictionary VM_MethodDictionary.values[]
       VM_Method[] mthArray = VM_MethodDictionary.getValuesPointer();    
       int limit = VM_MethodDictionary.getNumValues();
       if (methodID > 0 && methodID < limit) {
 	VM_Method mth = mthArray[methodID];
-	return mth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo();
+	return mth.getCurrentCompiledMethod();
       }
       else
 	return null;
@@ -974,7 +966,7 @@ class BootMapExternal extends BootMap {
    * @param testname the name of the boot image file
    * @param classesNeededFilename the file listing the classes included in the boot image
    * @return
-   * @see BootImageWriter2
+   * @see BootImageWriter
    */
   private void preloadClasses(String classesNeededFilename) 
     throws Exception, VM_ResolutionException
@@ -987,8 +979,8 @@ class BootMapExternal extends BootMap {
     // new boot image writer -- work in progress [DL]
     try {
       VM.writingBootImage = true;   // disable lazy compilation so preloading can occur
-      Vector typeNames = BootImageWriter2.readTypeNames(classesNeededFilename);
-      BootImageWriter2.createBootImageObjects(typeNames, "dummyName");
+      Vector typeNames = BootImageWriter.readTypeNames(classesNeededFilename);
+      BootImageWriter.createBootImageObjects(typeNames, "dummyName");
     } catch (Exception e) {
       System.out.println("preloadClasses fails");
       e.printStackTrace();

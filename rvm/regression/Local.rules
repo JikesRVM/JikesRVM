@@ -50,6 +50,11 @@ Servlet_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/jakarta-servleta
 Servlet_JARS=$(Servlet_HOME)/lib/servlet.jar
 
 #
+# Jigsaw webserver
+#
+Jigsaw_HOME=/homes/fury5/jalapeno/contrib/benchmarks/jigsaw_2.2.1
+
+#
 # Borland InterClient JDBC Driver
 #
 InterClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/interclient
@@ -64,6 +69,22 @@ HTTPClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 # Java Grande Forum Benchmarks v2.0
 #
 JGF_HOME=/u/sfink/tmp/jgf_v2.0
+
+#
+# Xerces 2.0.2
+#
+Xerces_HOME=/homes/fury5/jalapeno/contrib/benchmarks/xerces-2_0_2
+
+#
+# Xalan 2.4.D1
+#
+Xalan_HOME=/homes/fury5/jalapeno/contrib/benchmarks/xalan-j_2_4_D1
+
+#
+# Shakespeare in XML obtained from
+# http://www.ibiblio.org/pub/sun-info/standards/xml/eg/shakespeare.1.10.xml.zip
+#
+XML_DATA=/homes/fury5/jalapeno/contrib/benchmarks/xmlFiles
 
 #
 # rules

@@ -394,43 +394,10 @@ implements VM_Constants
     }
     
     
-    //****************************************************************
-    // This is the original code for _invokespecial
-    // Get the method as if it were called statically.  It will not be the
-    // the right one to call, but the name and signature will be correct.
-    //
-    // VM_Class sender = getCurrentClass();
-    // VM_Method called_method_prototype = 
-    // 	 getCalledMethodFromPoolIndex(byte_codes.fetch2BytesUnsigned(), sender);
-    // 
-    // VM_Method called_method = VM_Class.findSpecialMethod(called_method_prototype);
-    // if (called_method == null) 
-    // 	 throw new NoSuchMethodError(called_method_prototype.toString());
-    // 
-    // int numparams = called_method.getParameterWords();  // does not count "this"
-    // 	 
-    // if (!called_method.isStatic()) 
-    // 	 numparams += 1;  // for virtual methods, add one for "this" 
-    // 
-    // if (traceInterpreter) 
-    // 	 println("invokespecial (" + called_method_prototype + ") with " +
-    // 		 numparams+" parameters");
-    // Push this method on to the stack to cause the frame to be activated 
-    // and locals to be defined.
-    //
-    // byte_codes = new ByteCodeContext(called_method);
-    // stack.push(byte_codes, numparams);
-    // The "return" bytecode will pop the stack, 
-    // push the return value, and reset the byte_codes member variable.        
   }
 
   /**
-   *  When one of the 
-   *
-   *
-   *
    */
-
   private final void _invokeInitializer(VM_Method called_method, Object newobj) {
     Class unInitClass;
     VM_Class newclass;

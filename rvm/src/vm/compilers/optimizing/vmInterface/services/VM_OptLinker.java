@@ -23,9 +23,9 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * then examining the bytecodes to see what field/method was being referenced,
    * then calling VM_TableBasedDynamicLinker to do the actually work.
    */
-  public static void resolveDynamicLink (VM_OptCompilerInfo info, int offset) 
+  public static void resolveDynamicLink (VM_OptCompiledMethod cm, int offset) 
     throws VM_ResolutionException {
-    VM_OptMachineCodeMap map = info.getMCMap();
+    VM_OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
     VM_Method realMethod = map.getMethodForMCOffset(offset);
     if (bci == -1 || realMethod == null)

@@ -922,18 +922,6 @@ EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_FDIV, Binary.getResult(P(p)),                \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
-r:	FLOAT_REM(r,r)
-10
-EMIT_INSTRUCTION
-DOUBLE_REM(burs, P(p), Binary.getResult(P(p)),                    \
-                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
-
-r:	DOUBLE_REM(r,r)
-10
-EMIT_INSTRUCTION
-DOUBLE_REM(burs, P(p), Binary.getResult(P(p)),                    \
-                       R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
-
 ##### FMA & ilk.
 r: 	FLOAT_ADD(FLOAT_MUL(r, r), r)
 burs.ir.options.strictFP()?INFINITE:10

@@ -17,6 +17,8 @@ import java.util.Iterator;
 class OPT_ExpressionFolding implements OPT_Operators {
   static final boolean DEBUG = false;
 
+  static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
+
   /** 
    * Perform the transformation.
    *
@@ -36,7 +38,6 @@ class OPT_ExpressionFolding implements OPT_Operators {
    * @param ir the governing IR
    */
   final public static void perform(OPT_IR ir) {
-
     
     // Create a set of potential computations to fold.
     HashSet candidates = new HashSet(20);
@@ -49,6 +50,10 @@ class OPT_ExpressionFolding implements OPT_Operators {
       if (r != null) {
         candidates.add(r);
       }
+    }
+
+    if (RESTRICT_TO_DEAD_EXPRESSIONS) {
+      pruneCandidates(candidates);
     }
 
     boolean didSomething = true;
@@ -87,6 +92,29 @@ class OPT_ExpressionFolding implements OPT_Operators {
       }
     }
   }      
+
+  /**
+   * Prune the candidate set; restrict candidates to only allow
+   * transformations that result in dead code to be eliminated
+   */
+  private static void pruneCandidates(HashSet candidates) {
+    for (Iterator i = candidates.iterator(); i.hasNext(); ) {
+      OPT_Register r = (OPT_Register)i.next();
+      OPT_Instruction s = r.getFirstDef();
+      OPT_Operand val1 = Binary.getVal1(s);
+      OPT_Register v1 = val1.asRegister().register;
+      if (candidates.contains(v1)) {
+        for (Enumeration uses = OPT_DefUse.uses(v1); uses.hasMoreElements();) {
+          OPT_RegisterOperand op = (OPT_RegisterOperand)uses.nextElement();
+          OPT_Instruction u = op.instruction;
+          if (isCandidateExpression(u) == null) {
+            i.remove();
+            break;
+          }
+        }
+      }
+    }
+  }
 
   /**
    * Perform the transfomation on the instruction s = A +/- c
@@ -162,6 +190,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
         // if val1 is constant too, this should've been constant folded
         // beforehand.  Give up.
         if (val1.isConstant()) return null;
+
         return Binary.getResult(s).asRegister().register;
       }
     }

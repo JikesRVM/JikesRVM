@@ -417,7 +417,7 @@ class VM_CommandLineArgs {
       case AOS_IRC_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BASEOptions.printHelp("-X:aos:base");
+	VM_BaseOptions.printHelp("-X:aos:base");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
@@ -462,7 +462,7 @@ class VM_CommandLineArgs {
       case AOS_BASE_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BASEOptions.printHelp("-X:aos:base");
+	VM_BaseOptions.printHelp("-X:aos:base");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
@@ -604,7 +604,7 @@ class VM_CommandLineArgs {
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
 	//-#else
-	VM_BASEOptions.printHelp("-X:base");
+	VM_BaseOptions.printHelp("-X:base");
 	//-#endif
 	break;
       case BASE_ARG: // "-X:base:arg"; pass 'arg' as an option
@@ -629,8 +629,14 @@ class VM_CommandLineArgs {
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
 	//-#else
-	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompilerInfo.OPT)
-	  VM_RuntimeCompiler.processCommandLineArg("help");
+	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompiledMethod.OPT) {
+	//-#if RVM_WITH_OPT_COMPILER
+	    OPT_Options.printHelp("-X:opt");
+	//-#else
+	  VM.sysWrite("vm: This should be unreachable.");
+	  VM.sysExit(1);
+	//-#endif
+	}
 	else {
 	  VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
 	  VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
@@ -643,7 +649,7 @@ class VM_CommandLineArgs {
 	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
 	VM.sysExit(1);
 	//-#else
-	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompilerInfo.OPT)
+	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompiledMethod.OPT)
 	  VM_RuntimeCompiler.processCommandLineArg(arg);
 	else {
 	  VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");

@@ -51,7 +51,6 @@ class MainThread extends Thread {
 
     // find method to run
     String[]      mainArgs = null;
-    INSTRUCTION[] mainCode = null;
     // load class specified by args[0]
     //
     VM_Class cls = null;
@@ -78,7 +77,7 @@ class MainThread extends Thread {
     for (int i = 0, n = mainArgs.length; i < n; ++i)
       mainArgs[i] = args[i + 1];
     
-    mainCode = mainMethod.compile();
+    mainMethod.compile();
     
     // Notify other clients that the startup is complete.
     //
@@ -89,7 +88,6 @@ class MainThread extends Thread {
     VM.debugBreakpoint();
 
     // invoke "main" method with argument list
-    //
-    VM_Magic.invokeMain(mainArgs, mainCode);
+    VM_Magic.invokeMain(mainArgs, mainMethod.getCurrentCompiledMethod().getInstructions());
   }
 }

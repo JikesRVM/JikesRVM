@@ -85,25 +85,19 @@ public class VM_Allocator
   /**
    * Initialize for boot image.
    */
-  static void init () {
-
-    gc_serialize = new Object();
-    
-    VM_GCLocks.init();    // to alloc lock fields used during GC (in bootImage)
-    VM_GCWorkQueue.init();       // to alloc shared work queue      
+  static void init () throws VM_PragmaInterruptible {
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
-    
   }
   
   /**
    * Initialize for execution.
    */
-  static void boot (VM_BootRecord bootrecord) { 
+  static void boot (VM_BootRecord bootrecord) throws VM_PragmaInterruptible { 
     verbose = bootrecord.verboseGC;
 
     smallHeapSize = bootrecord.smallSpaceSize;
     int largeSize = bootrecord.largeSpaceSize;
-    int immortalSize = VM_Memory.roundUpPage((4 * largeSize / VM_Memory.getPagesize()) + 4 * VM_Memory.getPagesize());
+    int immortalSize = VM_Memory.roundUpPage(1024 * 1024 + (4 * largeSize / VM_Memory.getPagesize()) + 4 * VM_Memory.getPagesize());
     int nurserySize = bootrecord.nurserySize; 
     int oneSpaceSize = VM_Memory.roundUpPage(smallHeapSize / 2);
    
@@ -159,10 +153,9 @@ public class VM_Allocator
     }
     
     VM_GCUtil.boot();
-    VM_Finalizer.setup();
 
     if (verbose >= 1) showParameter();
-  }   // boot()
+  }
 
   static void showParameter() {
 
@@ -260,9 +253,8 @@ public class VM_Allocator
    *
    * @return the reference for the allocated object
    */
-  public static Object allocateScalar (int size, Object[] tib)
-    throws OutOfMemoryError {
-    VM_Magic.pragmaInline();
+  public static Object allocateScalar(int size, Object[] tib)
+    throws OutOfMemoryError, VM_PragmaInline  {
 
     if (size >= SMALL_SPACE_MAX) {
       return largeHeap.allocateScalar(size, tib);
@@ -287,9 +279,8 @@ public class VM_Allocator
    * @return the reference for the allocated array object 
    */
   public static Object allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError {
+    throws OutOfMemoryError, VM_PragmaInline {
     
-    VM_Magic.pragmaInline();
     
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
@@ -398,7 +389,7 @@ public class VM_Allocator
   private static VM_ContiguousHeap fromHeap = new VM_ContiguousHeap("Mature Small Object Heap 1");
   private static VM_ContiguousHeap toHeap   = new VM_ContiguousHeap("Mature Small Object Heap 2");
   private static VM_ContiguousHeap nurseryHeap = new VM_ContiguousHeap("Nursery Heap");
-  private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
+          static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap = new VM_LargeHeap(immortalHeap);
   private static VM_AppelHeap appelHeap = new VM_AppelHeap("Appel-style container heap");
   //-#if RVM_WITH_VARIABLE_NURSERY
@@ -410,9 +401,6 @@ public class VM_Allocator
   static boolean gcInProgress;      // true if collection in progress, initially false
   
   private static int    collisionCount = 0;      // counts attempts to mark same object
-  
-  
-  private static Object  gc_serialize = null;   // allocated in bootImage in init()
   
   static final boolean debugNative = false;             // temp - debugging JNI Native C
   static int verbose = 0;
@@ -453,7 +441,7 @@ public class VM_Allocator
 	// threads work buffers so the referenced objects will be scanned.
 	VM_WriteBuffer.moveToWorkQueue(vp);
 	}
-      }
+    }
   
     // in case native processors have writebuffer entries, move them also.
     for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
@@ -482,9 +470,12 @@ public class VM_Allocator
 	// Reset chunk space to the new fromSpace, but don't acquire a chunk
 	// since we might never use it.
 	if (PROCESSOR_LOCAL_ALLOCATE) 
-	  VM_Chunk.resetChunk1(vp, fromHeap, false);
+	  VM_Chunk.resetChunk1(vp, nurseryHeap, false);
       }
     }
+
+    // nothing for native processors which cannot allocate
+
   }
 
 
@@ -1122,8 +1113,7 @@ public class VM_Allocator
   // For Debugging - Checks that writeBuffer attached to the running GC threads
   // current processor is empty, if not print diagnostics & reset
   //
-  static void
-    gc_checkWriteBuffers () {
+  static void gc_checkWriteBuffers () {
     VM_WriteBuffer.checkForEmpty(VM_Processor.getCurrentProcessor());
   }
   
@@ -1143,8 +1133,8 @@ public class VM_Allocator
 	// change entry in threads array to point to new copy of thread
 	VM_Magic.setObjectAtOffset(VM_Scheduler.threads, i*4, t);
       }
-    } 
-  } 
+    }
+  }
 
   // initProcessor is called by each GC thread to copy the processor object of the
   // processor it is running on, and reset it processor register, and update its
@@ -1290,7 +1280,7 @@ public class VM_Allocator
   // Called from VM_Processor constructor: 
   // Must alloc & initialize write buffer
   // allocation chunk associated with nursery
-  static void setupProcessor (VM_Processor p) {
+  static void setupProcessor (VM_Processor p) throws VM_PragmaInterruptible {
     VM_WriteBuffer.setupProcessor(p);
     if (PROCESSOR_LOCAL_ALLOCATE) 
       VM_Chunk.resetChunk1(p, nurseryHeap, false);
@@ -1415,4 +1405,6 @@ public class VM_Allocator
     VM.assert(false);
     return null;
   }
+
+
 } 

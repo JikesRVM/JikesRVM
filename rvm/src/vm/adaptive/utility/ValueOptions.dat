@@ -17,15 +17,15 @@ V MIN_SAMPLES int 1
 How many samples are needed for a method before we treat it as significant? (i.e., < than this number is treated as noise)
 
 
-V MAX_OPT_LEVEL int VM.BuildForIA32?1:2
+V MAX_OPT_LEVEL int 2
 What is the highest optimization level to use when adaptive recompilation is employed?
 
 
-V DEFAULT_OPT_LEVEL int VM.BuildForIA32?1:2
+V DEFAULT_OPT_LEVEL int 2
 The optimization level to use for recompilation (with simple strategy)
 
 
-V FILTER_OPT_LEVEL int VM.BuildForIA32?1:2
+V FILTER_OPT_LEVEL int 2
 At what optimization level should we begin to NOT return to methods to the controller
 
 

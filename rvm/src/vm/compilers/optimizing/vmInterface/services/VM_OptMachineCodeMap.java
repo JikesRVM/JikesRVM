@@ -7,7 +7,7 @@ import instructionFormats.*;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
- * Since there will be an instance of this class with every VM_OptCompilerInfo,
+ * Since there will be an instance of this class with every VM_OptCompiledMethod,
  * we attempt to pack the data into a reasonably small number of bits.
  * 
  * <p> The supported functions are:
@@ -41,8 +41,9 @@ import instructionFormats.*;
  * @author Michael Hind
  * @author Mauricio Serrano
  */
-public final class VM_OptMachineCodeMap
-  implements VM_Constants, OPT_Constants {
+public final class VM_OptMachineCodeMap implements VM_Constants, 
+						   OPT_Constants,
+						   VM_Uninterruptible {
   
   /**
    * Constructor, called during compilation
@@ -58,13 +59,7 @@ public final class VM_OptMachineCodeMap
     generateMCInformation(ir.MIRInfo.gcIRMap);
 
     if (DUMP_MAP_SIZES) {
-      VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      VM_Array longArrayType = VM_Array.getPrimitiveArrayType(11);
-      int ie = (inlineEncoding == null) ? 0 : intArrayType.getInstanceSize(inlineEncoding.length);
-      int gc = (gcMaps == null) ? 0 : intArrayType.getInstanceSize(gcMaps.length);
-      int mySize = this.getClass().getVMType().asClass().getInstanceSize();
-      int totalMapBytes = ie + gc + mySize + longArrayType.getInstanceSize(MCInformation.length);
-      recordStats(ir.method, totalMapBytes, machineCodeSize << LG_INSTRUCTION_WIDTH);
+      recordStats(ir.method, size(), machineCodeSize << LG_INSTRUCTION_WIDTH);
     }
 
     if (DUMP_MAPS) {
@@ -244,7 +239,7 @@ public final class VM_OptMachineCodeMap
    *  @param irMap  the irmap to translate from
    *  @param gcMap  the VM_OptGCMap instance that is building the encoded GCMap
    */
-  private void generateMCInformation(OPT_GCIRMap irMap) {
+  private void generateMCInformation(OPT_GCIRMap irMap) throws VM_PragmaInterruptible {
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
     int numEntries = 0;
     
@@ -479,7 +474,7 @@ public final class VM_OptMachineCodeMap
   //  Debugging
   ////////////////////////////////////////////
 
-  public void dumpMCInformation() {
+  public void dumpMCInformation() throws VM_PragmaInterruptible {
     if (DUMP_MAPS) {
       VM.sysWrite("  Dumping the MCInformation\n");
       for (int idx = 0; idx<MCInformation.length;) {
@@ -493,7 +488,7 @@ public final class VM_OptMachineCodeMap
    * Prints the MCInformation for this entry
    * @param entry  the entry to print
    */
-  private final void printMCInformationEntry(int entry) {
+  private final void printMCInformationEntry(int entry) throws VM_PragmaInterruptible {
     if (DUMP_MAPS) {
       VM.sysWrite(entry + "\tMC: " + getMCOffset(entry));
       int bci = getBytecodeIndex(entry);
@@ -533,7 +528,7 @@ public final class VM_OptMachineCodeMap
    * @param machineCodeSize
    */
   private void recordStats(VM_Method method, int mapSize, 
-			   int machineCodeSize) {
+			   int machineCodeSize) throws VM_PragmaInterruptible {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double)mapSize/machineCodeSize;
       VM.sysWrite(method);
@@ -545,6 +540,17 @@ public final class VM_OptMachineCodeMap
       VM.sysWrite("  Cumulative maps are now " + (int)(MCPct*100) + 
 		  "% (" + totalMapSize + "/" + totalMCSize + ") of MC.\n");
     }
+  }
+
+  /**
+   * Total bytes used by arrays of primitives to encode the machine code map
+   */
+  int size() {
+    int size = TYPE.getInstanceSize();
+    size += VM_Array.arrayOfLongType.getInstanceSize(MCInformation.length);
+    if (inlineEncoding != null) size += VM_Array.arrayOfIntType.getInstanceSize(inlineEncoding.length);
+    if (gcMaps != null) size += VM_Array.arrayOfIntType.getInstanceSize(gcMaps.length);
+    return size;
   }
 
   ////////////////////////////////////////////
@@ -643,4 +649,6 @@ public final class VM_OptMachineCodeMap
    */
   private static int totalMCSize = 0;
   private static int totalMapSize = 0;
+
+  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
 }

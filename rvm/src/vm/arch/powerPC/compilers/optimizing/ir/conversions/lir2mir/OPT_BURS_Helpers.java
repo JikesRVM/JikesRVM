@@ -1067,30 +1067,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_Binary.create(PPC_FSUB, D(res), D(res), D(tempF)));
   }
 
-  // DOUBLE arithmetic:
-  void DOUBLE_REM(OPT_BURS burs, OPT_Instruction s, 
-		  OPT_RegisterOperand def, 
-		  OPT_RegisterOperand left, 
-		  OPT_RegisterOperand right) {
-    // FO = b, F1 = a
-    OPT_Register res = def.register;
-    OPT_Register a = left.register;
-    OPT_Register b = right.register;
-    OPT_Register tempF = burs.ir.regpool.getDouble();
-    OPT_Register temp1 = burs.ir.regpool.getDouble();
-    OPT_Register temp2 = burs.ir.regpool.getDouble();
-    burs.append(MIR_Binary.create(PPC_FDIV, D(temp1), D(a), D(b)));
-    emitLFtoc(burs, PPC_LFS, tempF, VM_Entrypoints.halfFloatField);
-    burs.append(MIR_Unary.create(PPC_FNEG, D(temp2), D(tempF)));
-    burs.append(MIR_Ternary.create(PPC_FSEL, D(tempF), D(temp1), D(tempF), 
-				   D(temp2)));
-    burs.append(MIR_Binary.create(PPC_FSUB, D(temp1), D(temp1), D(tempF)));
-    emitLFtoc(burs, PPC_LFD, tempF, VM_Entrypoints.IEEEmagicField);
-    burs.append(MIR_Binary.create(PPC_FADD, D(temp1), D(temp1), D(tempF)));
-    burs.append(MIR_Binary.create(PPC_FSUB, D(temp1), D(temp1), D(tempF)));
-    burs.append(MIR_Ternary.create(PPC_FNMSUB, D(res), D(temp1), D(b), D(a)));    
-  }
-
   // LONG arithmetic:
   void LONG_2INT(OPT_BURS burs, OPT_Instruction s, 
 		 OPT_RegisterOperand def, 

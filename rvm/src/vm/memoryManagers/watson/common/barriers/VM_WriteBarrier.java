@@ -78,9 +78,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * generates the same sequence in all cases and only uses the ref parameter.
    * So, we share an internal implementation method...
    */
-  private static void internalWriteBarrier(Object ref) {
+  private static void internalWriteBarrier(Object ref) throws VM_PragmaInline {
     // force internal method to be inlined when compiled by Opt
-    VM_Magic.pragmaInline();
     if (VM_AllocatorHeader.testBarrierBit(ref)) {
       doWriteBarrierInsertion(ref);
     }
@@ -91,8 +90,7 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * Put out of line due to Steve Blackburn et al experience that
    * outlining the uncommon case yields the best performance.
    */
-  private static void doWriteBarrierInsertion(Object ref) {
-    VM_Magic.pragmaNoInline();
+  private static void doWriteBarrierInsertion(Object ref) throws VM_PragmaNoInline {
 
     // (1) mark reference as being in the write buffer 
     VM_AllocatorHeader.clearBarrierBit(ref);

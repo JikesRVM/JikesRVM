@@ -359,7 +359,6 @@ public class VM_ClassLoader
     if (VM.BuildForIMTInterfaceInvocation)
       VM_InterfaceMethodSignatureDictionary.init();
 
-    VM_CompiledMethods.init();
     dynamicLibraries = new VM_DynamicLibrary[0];
 
     VM_Type.init();
@@ -411,12 +410,10 @@ public class VM_ClassLoader
 							 VM_Atom.findOrCreateAsciiAtom("<trap>"),
 							 VM_Atom.findOrCreateAsciiAtom("()V"),
 							 VM_SystemClassLoader.getVMClassLoader());
+    VM_CompiledMethod compiledMethod   = VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.TRAP);
     INSTRUCTION[]     instructions     = VM_RuntimeStructures.newInstructions(0);
-    VM_CompilerInfo   compilerInfo     = new VM_HardwareTrapCompilerInfo();
-    int               compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
-    VM_CompiledMethod compiledMethod   = new VM_CompiledMethod(compiledMethodId, method, instructions, compilerInfo);
-    VM_CompiledMethods.setCompiledMethod(compiledMethodId, compiledMethod);
-    return compiledMethodId;
+    compiledMethod.compileComplete(instructions);
+    return compiledMethod.getId();
   }
 
 

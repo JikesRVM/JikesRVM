@@ -71,7 +71,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   static int WORK_BUFFER_SIZE = 4 * 1024;
 
   /** single instance of GCWorkQueue, allocated in the bootImage */
-  static VM_GCWorkQueue workQueue = null;
+  static VM_GCWorkQueue workQueue = new VM_GCWorkQueue();
   
   //-----------------------
   //instance variables
@@ -90,23 +90,10 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   }
 
   /**
-   * Initialization for the BootImage. Called from VM_Allocator.init().
-   */
-  static void
-    init () {
-    // we want the GCWorkQueue object in the bootimage so it doesn't get moved.
-    // we invoke synchronized methods/blocks on these, and if moved, the lock state
-    // may not get maintained correctly, ie lock in one copy & unlock in the other copy
-    //
-    workQueue = new VM_GCWorkQueue();
-  }
-
-  /**
    * Reset the shared work queue, setting the number of
    * participating gc threads.
    */
-  synchronized void
-    initialSetup (int n) {
+  synchronized void initialSetup (int n) throws VM_PragmaLogicallyUninterruptible {
     
     if(trace) VM.sysWrite(" GCWorkQueue.initialSetup entered\n");
     
@@ -193,7 +180,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param bufferAddress address of buffer to add to shared queue
    */
-  void addBuffer (VM_Address bufferAddress) {
+  void addBuffer (VM_Address bufferAddress) throws VM_PragmaLogicallyUninterruptible {
 
     synchronized (this) {
 
@@ -218,7 +205,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @return address of buffer or 0 if none available
    */
-  synchronized VM_Address getBuffer() {
+  synchronized VM_Address getBuffer() throws VM_PragmaLogicallyUninterruptible {
     
     if(trace) VM.sysWrite(" GCWorkQueue.getBuffer entered\n");
 
@@ -242,7 +229,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * @return address of a buffer
    *         zero if no buffers available & all participants waiting
    */
-  VM_Address getBufferAndWait () {
+  VM_Address getBufferAndWait () throws VM_PragmaLogicallyUninterruptible {
     VM_Address  temp;
     int debug_counter = 0;
     int debug_counter_counter = 0;

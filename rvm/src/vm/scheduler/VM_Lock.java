@@ -101,7 +101,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @param o the object synchronized on
    * @see java.lang.Object#wait()
    */
-  public static void wait (Object o) {
+  public static void wait (Object o) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
     if (STATS) waitOperations++;
     VM_Thread t = VM_Thread.getCurrentThread();
@@ -109,7 +109,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("waiting on " + o);
+      raiseIllegalMonitorStateException("waiting on", o);
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread n = l.entering.dequeue();
@@ -145,7 +145,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @param millis the number of milliseconds to wait for notification
    * @see java.lang.Object#wait(long time)
    */
-  public static void wait (Object o, long millis) {
+  public static void wait (Object o, long millis) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
     double time;
     VM_Thread t = VM_Thread.getCurrentThread();
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
@@ -157,7 +157,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("waiting on " + o);
+      raiseIllegalMonitorStateException("waiting on", o);
     // allow an entering thread a chance to get the lock
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread n = l.entering.dequeue();
@@ -196,7 +196,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("notifying " + o);
+      raiseIllegalMonitorStateException("notifying ", o);
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread t = l.waiting.dequeue();
     if (false) { // this "optimization" seems tempting, but actually makes things worse (on Volano, at least) [--DL]
@@ -223,7 +223,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
     if (l.ownerId != VM_Magic.getThreadId())
-      throw new IllegalMonitorStateException("notifying " + o);
+      raiseIllegalMonitorStateException("notifying ", o);
     l.mutex.lock(); // until unlock(), thread-switching fatal
     VM_Thread t = l.waiting.dequeue();
     while (t != null) {
@@ -311,7 +311,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     mutex.lock(); // Note: thread switching is not allowed while mutex is held.
     if (ownerId != VM_Magic.getThreadId()) {
       mutex.unlock(); // thread-switching benign
-      throw new IllegalMonitorStateException("heavy unlocking " + o);
+      raiseIllegalMonitorStateException("heavy unlocking", o);
     }
     if (0 < --recursionCount) {
       mutex.unlock(); // thread-switching benign
@@ -381,7 +381,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   /**
    * Sets up the data structures for holding heavy-weight locks.
    */
-  static void init() {
+  static void init() throws VM_PragmaInterruptible {
     lockAllocationMutex = new VM_ProcessorLock();
     VM_Scheduler.locks  = new VM_Lock[MAX_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
@@ -398,7 +398,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    *
    * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  static VM_Lock allocate () {
+  static VM_Lock allocate () throws VM_PragmaLogicallyUninterruptible /* ok because the code is prepared to lose control when it allocates a lock -- dave */ {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
     if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {
@@ -419,8 +419,9 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 	lockAllocationMutex.unlock();
 	mine.lastLockIndex = mine.nextLockIndex + LOCK_ALLOCATION_UNIT_SIZE - 1;
 	if (MAX_LOCKS <= mine.lastLockIndex) {
-	  VM.sysFail("Too many thick locks on processor " + mine.id); // make MAX_LOCKS bigger?
-	  return null;                                                // we can keep going
+	  VM.sysWriteln("Too many fat locks on processor ", mine.id); // make MAX_LOCKS bigger? we can keep going??
+	  VM.sysFail("Exiting VM with fatal error");
+	  return null;
 	}
       }
       l.index = mine.nextLockIndex++;
@@ -519,6 +520,11 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     }
     lockAllocationMutex.unlock();
   }
+
+  static void raiseIllegalMonitorStateException(String msg, Object o) throws VM_PragmaLogicallyUninterruptible {
+    throw new IllegalMonitorStateException(msg + o);
+  }
+
 
   ///////////////////////////////////////////////////////////////
   /// Section 4: Support for debugging and performance tuning ///
@@ -623,7 +629,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     //             Statistics                   //
     //////////////////////////////////////////////
 
-  public static void boot () {
+  public static void boot () throws VM_PragmaInterruptible {
     VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
     VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
   }

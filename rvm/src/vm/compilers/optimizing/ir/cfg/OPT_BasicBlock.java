@@ -1806,8 +1806,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
       return value;
     }      
     protected abstract OPT_BasicBlock advance();
-    protected static void fail() throws java.util.NoSuchElementException {
-      VM_Magic.pragmaNoInline();
+    protected static void fail() throws java.util.NoSuchElementException, VM_PragmaNoInline {
       throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }
@@ -1835,8 +1834,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
       if (current >=  numBlocks) fail();
       return blocks[current++];
     }
-    protected static void fail() throws java.util.NoSuchElementException {
-      VM_Magic.pragmaNoInline();
+    protected static void fail() throws java.util.NoSuchElementException, VM_PragmaNoInline {
       throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }

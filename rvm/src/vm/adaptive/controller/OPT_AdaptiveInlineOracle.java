@@ -21,8 +21,8 @@ final class OPT_AdaptiveInlineOracle extends OPT_ProfileDirectedInlineOracle {
    * didn't want to inline a hot edge to avoid triggering a 
    * recompilation for the sole purpose of attempting to inline said edge.
    */
-  protected void recordRefusalToInlineHotEdge(int cmid, VM_Method caller, int bcX, VM_Method callee) {
-    VM_AdaptiveInlining.recordRefusalToInlineHotEdge(cmid, caller, bcX, callee);
+  protected void recordRefusalToInlineHotEdge(VM_CompiledMethod cm, VM_Method caller, int bcX, VM_Method callee) {
+    VM_AdaptiveInlining.recordRefusalToInlineHotEdge(cm.getId(), caller, bcX, callee);
   }
   
 }

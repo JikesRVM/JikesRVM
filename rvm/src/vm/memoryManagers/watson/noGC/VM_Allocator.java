@@ -16,7 +16,7 @@
  */
 public class VM_Allocator implements VM_Constants, VM_GCConstants {
   private static final VM_BootHeap bootHeap = new VM_BootHeap();   
-  private static final VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
+          static final VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
 
   static int verbose = 0; // control chattering during progress of GC
   
@@ -24,7 +24,6 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
    * Initialize for boot image.
    */
   static void init() {
-    VM_GCWorkQueue.init();
     VM_CollectorThread.init();
   }
   
@@ -42,7 +41,6 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
     immortalHeap.attach(bootrecord.smallSpaceSize);
 
     VM_GCUtil.boot();
-    VM_Finalizer.setup();
   }
   
   /**
@@ -147,7 +145,6 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
   // Other fields and methods referenced from common GC classes or elsewhere
   // in VM (ex. VM_Entrypoints)
   //
-  static final int     MARK_VALUE = 0;
   static final boolean movesObjects = false;
   static final boolean writeBarrier = false;
   static boolean       gcInProgress;

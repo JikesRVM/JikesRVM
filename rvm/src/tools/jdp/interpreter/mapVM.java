@@ -76,8 +76,6 @@ class mapVM implements JDPServiceInterface {
   static int FieldDictionary_values_index  ;  
   static int FieldDictionary_nextId_index  ;  
   static int FieldDictionary_chains_index  ;  
-  static int ClassLoader_compiledMethods_index          ;  
-  static int ClassLoader_currentCompiledMethodId_index  ;  
 
   // These offset constants are identical for both the mapped JVM and the external 
   // VM_* data structures, so they are precomputed for use later
@@ -108,8 +106,6 @@ class mapVM implements JDPServiceInterface {
   static int FieldDictionary_values  ;  //  [LVM_Field;
   static int FieldDictionary_nextId  ;  //  I
   static int FieldDictionary_chains  ;  //  [[I
-  static int ClassLoader_compiledMethods          ;  // [LVM_CompiledMethod;
-  static int ClassLoader_currentCompiledMethodId  ;  // I
 
   // these indicates the address space of the JVM
   // they are needed to support mixed stack frames of Java and native code
@@ -261,10 +257,6 @@ class mapVM implements JDPServiceInterface {
       	    FieldDictionary_nextId_index   = offset;  
       	  } else if (fieldName.equals("VM_FieldDictionary.chains")) {
       	    FieldDictionary_chains_index   = offset; 
-      	  } else if (fieldName.equals("VM_ClassLoader.compiledMethods")) {
-	    ClassLoader_compiledMethods_index = offset;
-      	  } else if (fieldName.equals("VM_ClassLoader.currentCompiledMethodId")) {
-	    ClassLoader_currentCompiledMethodId_index = offset;
 	  }
 
 	} catch (NumberFormatException e) {
@@ -398,10 +390,6 @@ class mapVM implements JDPServiceInterface {
       FieldDictionary_values  = Platform.readmem(toc + FieldDictionary_values_index*4);  
       FieldDictionary_nextId  = Platform.readmem(toc + FieldDictionary_nextId_index*4);   
       FieldDictionary_chains  = Platform.readmem(toc + FieldDictionary_chains_index*4);   
-      ClassLoader_compiledMethods          = Platform.readmem(toc + ClassLoader_compiledMethods_index*4);   
-      ClassLoader_currentCompiledMethodId  = Platform.readmem(toc + ClassLoader_currentCompiledMethodId_index*4);
-
-      // dumpCache();
 
     } catch (RuntimeException e) {
       System.out.println("mapVM.cachePointer:  cannot find JTOC register using the name JT, has the name been changed in VM_BaselineConstants.java?");
@@ -535,7 +523,7 @@ class mapVM implements JDPServiceInterface {
   }
     
   /**
-   *  This method provides the entry to the mapped VM.  
+   * This method provides the entry to the mapped VM.  
    * It intercepts calls to access methods for VM_ object, then
    * substitutes the object being accessed with a mapVM object 
    * that wraps this object for later use.
@@ -544,7 +532,6 @@ class mapVM implements JDPServiceInterface {
    *   VM_AtomDictionary.getChainsPointer() -> return mapped array of array of int
    *   VM_AtomDictionary.getValuesPointer() -> return mapped array of VM_Atom
    *   VM_TypeDictionary.getKeysPointer()   -> return mapped array
-   *   VM_ClassLoader.getCompiledMethods()  -> return mapped array of VM_CompiledMethod 
    *  Return null if the invocation target is not intercepted.
    */
   static Object getMapBase(VM_Class cls, VM_Method mth) {
@@ -555,14 +542,6 @@ class mapVM implements JDPServiceInterface {
 
     /* If a primitive value is to be returned, read it directly and return */
     /* If an object is to be returned, wrap it with the address and return */
-
-    if (clsName.equals("VM_ClassLoader")) {
-      if (mthName.equals("getCompiledMethods")) {
-	/* expect [LVM_CompiledMethod; */
-	return (Object) (new mapVM(returnType, ClassLoader_compiledMethods, PointerSize));
-      } 
-    }
-
 
     if (clsName.equals("VM_AtomDictionary")) {
       if (mthName.equals("getKeysPointer")) {
@@ -920,9 +899,6 @@ class mapVM implements JDPServiceInterface {
 		       ", superclass = " + VMClassSuper_offset);
     System.out.println("VM_Atom val = " + VMAtomVal_offset);
     System.out.println("VM_Type descriptor = " + VMTypeDescriptor_offset);
-    System.out.println("VM_ClassLoader compiledMethods = " + ClassLoader_compiledMethods);
-    System.out.println("VM_ClassLoader currentCompiledMethodId  = " +   
-		       ClassLoader_currentCompiledMethodId);
   }
 
   /**

@@ -17,7 +17,6 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
   private static boolean initialized = false;
   private static String[] names;
-  static VM_CompilerInfo   javaToCCompilerInfo;  // shared VM_CompilerInfo for all native method glue code
 
   /**
    * This is the JNI function table, the address of this array will be
@@ -97,10 +96,6 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     // fill an array of JNI names
     setNames();
 
-    // create method ID for JNI transition stackframes
-    // XXX now have method specific JNICompilerInfos  SES 073101
-    // javaToCCompilerInfo = new VM_JNICompilerInfo();
-
     // fill in the IP entries for each AIX linkage triplet
     try {
       VM_Class cls = VM_Class.forName("VM_JNIFunctions");
@@ -109,7 +104,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 	String methodName = mths[i].getName().toString();
 	int jniIndex = indexOf(methodName);
 	if (jniIndex!=-1) {
-	  JNIFunctions[jniIndex] = mths[i].getMostRecentlyGeneratedInstructions();
+	  JNIFunctions[jniIndex] = mths[i].getCurrentCompiledMethod().getInstructions();
 	  // VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex]));
 	} 
       }
@@ -566,9 +561,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   public static Object invokeWithDotDotVarArg(int methodID, VM_Type expectReturnType)
-    throws Exception {
+    throws Exception, VM_PragmaNoInline {
     VM_Magic.pragmaNoOptCompile();	// expect a certain stack frame structure
-    VM_Magic.pragmaNoInline();
 
     VM_Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
@@ -587,9 +581,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
    */
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
 					      VM_Type expectReturnType, boolean skip4Args)
-    throws Exception {
+    throws Exception, VM_PragmaNoInline {
     VM_Magic.pragmaNoOptCompile();	// expect a certain stack frame structure
-    VM_Magic.pragmaNoInline();
 
     VM_Address varargAddress = getVarArgAddress(skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
@@ -755,9 +748,8 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
 					VM_Type expectReturnType, boolean skip4Args, 
 					boolean isVarArg) 
-    throws Exception {
+    throws Exception, VM_PragmaNoInline {
     VM_Magic.pragmaNoOptCompile();   // expect a certain stack frame structure
-    VM_Magic.pragmaNoInline();
 
     VM_Method targetMethod;
     int returnValue;

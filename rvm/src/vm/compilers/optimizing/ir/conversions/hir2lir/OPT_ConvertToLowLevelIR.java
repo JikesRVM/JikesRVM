@@ -333,7 +333,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       VM.assert(number > 0);    // also checks that there are < 2^31 targets
     OPT_Operand val = TableSwitch.getClearValue(s);
     OPT_BranchOperand defaultLabel = TableSwitch.getClearDefault(s);
-    if (number < 4) {           // convert into a lookupswitch
+    if (number < 8) {           // convert into a lookupswitch
       OPT_Instruction l = LookupSwitch.create(LOOKUPSWITCH, val, null, 
 					      null, defaultLabel, 
 					      TableSwitch.getClearDefaultBranchProfile(s),

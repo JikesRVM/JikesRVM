@@ -26,19 +26,33 @@ class VM_ExceptionHandlerMap {
   // Implementation //
   //----------------//
 
-  int[] startPCs;           // bytecode offset at which i-th try block begins
-  // 0-indexed from start of method's bytecodes[]
+  /**
+   * bytecode offset at which i-th try block begins
+   * 0-indexed from start of method's bytecodes[]
+   */
+  int[] startPCs;
 
-  int[] endPCs;             // bytecode offset at which i-th try block ends (exclusive)
-  // 0-indexed from start of method's bytecodes[]
+  /**
+   * bytecode offset at which i-th try block ends (exclusive)
+   * 0-indexed from start of method's bytecodes[]
+   */
+  int[] endPCs;
 
-  int[] handlerPCs;         // bytecode offset at which exception handler for i-th try block begins
-  // 0-indexed from start of method's bytecodes[]
+  /**
+   * bytecode offset at which exception handler for i-th try block begins
+   * 0-indexed from start of method's bytecodes[]
+   */
+  int[] handlerPCs; 
 
-  VM_Type[] exceptionTypes; // exception type for which i-th handler is to be invoked
-  // - something like "java/lang/IOException".
-  // a null indicates a "finally block" (handler accepts all
-  // exceptions).
+  /**
+   * exception type for which i-th handler is to be invoked
+   * - something like "java/lang/IOException".
+   * NOTE: When constructing the VM_ExceptionHandlerMap we replace
+   * 'null' entries (means a finally block that catches everything)
+   * with VM_Type.JavaLangThrowableType so we don't have to do anything
+   * special anywhere else in the VM.
+   */
+  VM_Type[] exceptionTypes; 
 
   VM_ExceptionHandlerMap(DataInputStream input, 
 			 VM_Class declaringClass, 
@@ -51,7 +65,14 @@ class VM_ExceptionHandlerMap {
       startPCs[i]       = input.readUnsignedShort();
       endPCs[i]         = input.readUnsignedShort();
       handlerPCs[i]     = input.readUnsignedShort();
-      exceptionTypes[i] = declaringClass.getTypeRef(input.readUnsignedShort()); // possibly null
+      VM_Type et = declaringClass.getTypeRef(input.readUnsignedShort()); // possibly null
+      if (et == null) {
+	// A finally block...set to java.lang.Throwable to avoid
+	// needing to think about this case anywhere else in the VM.
+	exceptionTypes[i] = VM_Type.JavaLangThrowableType;
+      } else {
+	exceptionTypes[i] = et;
+      }
     }
   }
 }

@@ -85,14 +85,18 @@ public final class OPT_MethodOperand extends OPT_Operand {
     method    = callee;
     type      = t;
     unresolved= r;
-    // put direct information. used for a) inlining 
-    // b) devirtualization, and c) IPA
-    // TODO: add more rules
-    VM_Class klass = callee.getDeclaringClass();
-    if (klass.isLoaded()) {
-      if (callee.isStatic() || callee.isFinal() || klass.isFinal() ||
-	  callee.isObjectInitializer() )  {
+    if (!unresolved) {
+      // put direct information. used for a) inlining 
+      // b) devirtualization, and c) IPA
+      // TODO: add more rules
+      VM_Class klass = callee.getDeclaringClass();
+      switch (t) {
+      case STATIC: case SPECIAL:
 	isSingleTarget = true;
+	break;
+      case VIRTUAL:
+	isSingleTarget = callee.isFinal() || callee.getDeclaringClass().isFinal();
+	break;
       }
     }
   }

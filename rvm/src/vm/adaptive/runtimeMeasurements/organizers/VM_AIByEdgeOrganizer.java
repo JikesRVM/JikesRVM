@@ -122,31 +122,28 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
       VM_Method stackFrameCaller = compiledMethod.getMethod();
        
       int MCOffset = buffer[i+2];
-      VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
-       
       int bytecodeIndex = -1;
       VM_Method caller = null;
 
-      int compilerType = compilerInfo.getCompilerType();
-      switch (compilerType) {
-      case VM_CompilerInfo.TRAP:
-      case VM_CompilerInfo.JNI:
+      switch (compiledMethod.getCompilerType()) {
+      case VM_CompiledMethod.TRAP:
+      case VM_CompiledMethod.JNI:
 	if (DEBUG) VM.sysWrite("Skipping sample with TRAP/JNI caller");
 	continue;
-      case VM_CompilerInfo.BASELINE:
+      case VM_CompiledMethod.BASELINE:
 	{
-	  VM_BaselineCompilerInfo baseCompilerInfo = 
-	    (VM_BaselineCompilerInfo)compilerInfo;
+	  VM_BaselineCompiledMethod baseCompiledMethod = 
+	    (VM_BaselineCompiledMethod)compiledMethod;
 	  // note: the following call expects the offset in INSTRUCTIONS!
-	  bytecodeIndex = baseCompilerInfo.findBytecodeIndexForInstruction
+	  bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction
 	    (MCOffset>>VM.LG_INSTRUCTION_WIDTH);
 	  caller = stackFrameCaller;
 	}
 	break;
-      case VM_CompilerInfo.OPT:
+      case VM_CompiledMethod.OPT:
 	{
-	  VM_OptCompilerInfo optCompilerInfo = (VM_OptCompilerInfo)compilerInfo;
-	  VM_OptMachineCodeMap mc_map = optCompilerInfo.getMCMap();
+	  VM_OptCompiledMethod optCompiledMethod = (VM_OptCompiledMethod)compiledMethod;
+	  VM_OptMachineCodeMap mc_map = optCompiledMethod.getMCMap();
 	  try {
 	    bytecodeIndex = mc_map.getBytecodeIndexForMCOffset(MCOffset);
 	    if (bytecodeIndex == -1) {
@@ -256,7 +253,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
        VM_CompiledMethod hotMethod = hotMethodSet.cms[i];
        int cmid                    = hotMethod.getId();
        double numSamples           = hotMethodSet.counters[i];
-       VM_OptMachineCodeMap mcMap  = ((VM_OptCompilerInfo)hotMethod.getCompilerInfo()).getMCMap();
+       VM_OptMachineCodeMap mcMap  = ((VM_OptCompiledMethod)hotMethod).getMCMap();
        double edgeHotness          = 0.0;
 
        if (DEBUG) VM.sysWrite(" Process hot method: "+

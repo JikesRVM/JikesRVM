@@ -330,7 +330,6 @@ class OPT_BytecodeInfo {
    */
   final VM_Field getFieldReference (int constantPoolIndex) {
       VM_Field f = declaringClass.getFieldRef(constantPoolIndex);
-      if (! OPT_ClassLoaderProxy.needsDynamicLink(f, declaringClass)) f = f.resolve();
       return f;
   }
 
@@ -361,7 +360,6 @@ class OPT_BytecodeInfo {
    */
   final VM_Method getMethodReference (int constantPoolIndex) {
     VM_Method m = declaringClass.getMethodRef(constantPoolIndex);
-    if (! OPT_ClassLoaderProxy.needsDynamicLink(m, declaringClass)) m = m.resolve();
     return m;
   }
 

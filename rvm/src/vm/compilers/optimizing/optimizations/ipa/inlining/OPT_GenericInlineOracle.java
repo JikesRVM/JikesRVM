@@ -112,11 +112,9 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 					  + callee + " into " + caller + "\n");
 	}
 	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-							    state.getCompiledMethodId());
+							    state.getCompiledMethod());
       }
-    } 
-    else
-    if (guard == OPT_Options.IG_CODE_PATCH) {
+    } else if (guard == OPT_Options.IG_CODE_PATCH) {
       guard = OPT_Options.IG_METHOD_TEST;
     }
 

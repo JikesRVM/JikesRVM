@@ -30,6 +30,9 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
   static void generateMagic(OPT_BC2IR bc2ir, 
 			    OPT_GenerationContext gc, 
 			    VM_Method meth) throws OPT_MagicNotImplementedException {
+
+    if (gc.method.hasNoInlinePragma()) gc.allocFrame = true;
+    
     // HACK: Don't schedule any bbs containing unsafe magics.
     // TODO: move this to individual magics that are unsafe.
     // -- igor 08/13/1999

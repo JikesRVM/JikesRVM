@@ -123,7 +123,8 @@ public class VM_MallocHeap extends VM_Heap
     VM_Address region = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, size));
     VM_Address regionEnd = region.add(size);
     if (region.isZero()) {
-      VM.sysFail("VM_MallocHeap failed to malloc " + size  + " bytes");
+      VM.sysWriteln("VM_MallocHeap failed to malloc ", size, " bytes");
+      VM.sysFail("Exiting VM with fatal error");
     }
     VM_Memory.zero(region, regionEnd);
 

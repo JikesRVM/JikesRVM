@@ -5,7 +5,7 @@
  * Class to handle command-line arguments and options for the 
  * baseline compiler.
  * <p>
- * Note: This file is mechanically generated from BASE_Options.template
+ * Note: This file is mechanically generated from VM_BaseOptions.template
  *       and MasterOptionsTemplate.template
  * <p>
  * Note: Boolean options are defined in BOOLEAN_DAT_FILES 
@@ -15,7 +15,7 @@
  * @author Janice Shepherd
  * @author Dave Grove
  **/
-class VM_BASEOptions {
+class VM_BaseOptions {
 
   private String printToStringHeader() {
     return "Current value of options for Baseline compiler:\n";

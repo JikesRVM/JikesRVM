@@ -16,14 +16,14 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /** 
    * Pass control to a catch block.
    */
-  void deliverException(VM_CompiledMethod compiledMethod, 
+  void deliverException(VM_CompiledMethod cm, 
 			VM_Address catchBlockInstructionAddress, 
 			Throwable exceptionObject, 
 			VM_Registers registers) {
 
     // store exception object for later retrieval by catch block
-    VM_OptCompilerInfo info = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
-    int offset = info.getUnsignedExceptionOffset();
+    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod)cm;
+    int offset = compiledMethod.getUnsignedExceptionOffset();
     if (offset != 0) {
       // only put the exception object in the stackframe if the catch block is expecting it.
       // (if the method hasn't allocated a stack slot for caught exceptions, then we can safely
@@ -47,22 +47,20 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   /**
    * Unwind a stackframe.
    */ 
-  void unwindStackFrame(VM_CompiledMethod compiledMethod, 
-		       VM_Registers registers) {
+  void unwindStackFrame(VM_CompiledMethod cm, VM_Registers registers) {
     VM_Address fp = registers.getInnermostFramePointer();
-    VM_Method method = compiledMethod.getMethod();
-    VM_OptCompilerInfo info = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
+    VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod)cm;
 
     // restore non-volatile registers
-    int frameOffset = info.getUnsignedNonVolatileOffset();
-    int firstInteger = info.getFirstNonVolatileGPR();
+    int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
+    int firstInteger = compiledMethod.getFirstNonVolatileGPR();
     if (firstInteger >= 0) {
       for (int i = firstInteger; i < 32; i++) {
 	registers.gprs[i] = VM_Magic.getMemoryWord(fp.add(frameOffset));
 	frameOffset += 4;
       }
     }
-    int firstFloat = info.getFirstNonVolatileFPR();
+    int firstFloat = compiledMethod.getFirstNonVolatileFPR();
     if (firstFloat >= 0) {
       frameOffset = (frameOffset + 7) & ~7;  // align pointer for doubles
       for (int i = firstFloat; i < 32; i++) {

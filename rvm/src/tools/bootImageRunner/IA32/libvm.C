@@ -397,7 +397,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
   if ((long unsigned)sp <= stackLimit - 384) {
     write (SysErrorFd, buf,
 	   sprintf (buf,
-		    "sp too far below stackLimit to recover\n"));
+		    "sp too far below stackLimit to recover. SP = %x, limit = %x\n", sp, stackLimit));
       exit (2);
   }
   sp = (long unsigned int *)stackLimit - 384;

@@ -137,7 +137,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, int tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, int refOffset, 
+			    int tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr);
   }
 
@@ -180,8 +181,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, 
-				  int numBytes, VM_Class type, int availBitsWord) {
-    VM_Magic.pragmaInline();
+				  int numBytes, VM_Class type, int availBitsWord) throws VM_PragmaInline {
     if (ADDRESS_BASED_HASHING) {
       int hashState = availBitsWord & HASH_STATE_MASK;
       if (hashState == HASH_STATE_UNHASHED) {
@@ -221,8 +221,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, int availBitsWord) {
-    VM_Magic.pragmaInline();
+				  VM_Array type, int availBitsWord) throws VM_PragmaInline {
     if (ADDRESS_BASED_HASHING) {
       int hashState = availBitsWord & HASH_STATE_MASK;
       if (hashState == HASH_STATE_UNHASHED) {
@@ -262,7 +261,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param jdpService
    * @param address address of the object
    */
-  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) {
+  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) throws VM_PragmaInterruptible {
     return VM_Address.fromInt(jdpService.readMemory(ptr.add(TIB_OFFSET).toInt()));
   }
 
@@ -302,8 +301,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
   
   /** Install a new hashcode (only used if !ADDRESS_BASED_HASHING) */
-  private static int installHashCode(Object o) {
-    VM_Magic.pragmaNoInline();
+  private static int installHashCode(Object o) throws VM_PragmaNoInline {
     int hashCode;
     do {
       hashCodeGenerator += (1 << HASH_CODE_SHIFT);
@@ -486,7 +484,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static int initializeScalarHeader(BootImageInterface bootImage, int ptr, 
-					   Object[] tib, int size) {
+					   Object[] tib, int size) throws VM_PragmaInterruptible {
     int ref = ptr + size + SCALAR_PADDING_BYTES;
     // (TIB set by BootImageWriter2)
 
@@ -530,7 +528,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static int initializeArrayHeader(BootImageInterface bootImage, int ptr, 
-					  Object[] tib, int size) {
+					  Object[] tib, int size) throws VM_PragmaInterruptible {
     int ref = ptr + ARRAY_HEADER_SIZE;
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
 
@@ -576,12 +574,12 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
-                                         int object) {
+                                         int object) throws VM_PragmaInterruptible {
     asm.emitL(dest, TIB_OFFSET, object);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
-                                         byte object) {
+                                         byte object) throws VM_PragmaInterruptible {
     asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
   }
   //-#endif
@@ -594,7 +592,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param s the GET_OBJ_TIB instruction to lower
    * @param ir the enclosing OPT_IR
    */
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) {
+  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws VM_PragmaInterruptible {
     // TODO: valid location operand.
     OPT_Operand address = GuardedUnary.getClearVal(s);
     Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 

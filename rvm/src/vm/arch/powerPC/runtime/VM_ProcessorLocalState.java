@@ -23,16 +23,14 @@ final class VM_ProcessorLocalState implements VM_Uninterruptible {
   /**
    * Return the current VM_Processor object
    */
-  static VM_Processor getCurrentProcessor() {
-    VM_Magic.pragmaInline();
+  static VM_Processor getCurrentProcessor() throws VM_PragmaInline {
     return VM_Magic.getProcessorRegister();
   }
 
   /**
    * Set the current VM_Processor object
    */
-  static void setCurrentProcessor(VM_Processor p) {
-    VM_Magic.pragmaInline();
+  static void setCurrentProcessor(VM_Processor p) throws VM_PragmaInline {
     VM_Magic.setProcessorRegister(p);
   }
 }

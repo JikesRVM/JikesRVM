@@ -145,7 +145,7 @@ class CCC {
   // Taken:    id obtained from findOrCreateId()
   // Returned: key
   //
-  static KKK getKey(int id) {
+  static KKK getKey(int id) throws VM_PragmaUninterruptible {
     return keys[id];
   }
    
@@ -161,7 +161,7 @@ class CCC {
   // Taken:    id obtained from findOrCreateId()
   // Returned: value
   //
-  static VVV getValue(int id) {
+  static VVV getValue(int id)  throws VM_PragmaUninterruptible {
     return values[id];
   }
    
@@ -185,7 +185,7 @@ class CCC {
 
   // Report how many values are currently stored in the dictionary.
   //
-  static int getNumValues() {
+  static int getNumValues()  throws VM_PragmaUninterruptible {
     return nextId;
   }
 
@@ -197,13 +197,13 @@ class CCC {
       
   // Retrieve pointer to values currently stored in the dictionary.
   // (Note: this is intended for the debugger only)
-  static VVV[] getValuesPointer()    {
+  static VVV[] getValuesPointer() {
     return values;
   }
 
   // Retrieve pointer to the hash chains
   // (Note: this is intended for the debugger only)
-  static int[][] getChainsPointer()   {
+  static int[][] getChainsPointer() {
     return chains;
   }
 

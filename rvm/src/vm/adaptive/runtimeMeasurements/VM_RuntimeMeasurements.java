@@ -3,7 +3,10 @@
  */
 //$Id$
 
-/*
+import java.util.Vector;
+import java.util.Enumeration;
+
+/**
  * RuntimeMeasurements manages listeners, decayable objects, and 
  * reportable objects.
  *
@@ -26,12 +29,8 @@
  * @author Matthew Arnold
  * @author Stephen Fink
  * @modified Peter Sweeney
- **/
-
-import java.util.Vector;
-import java.util.Enumeration;
-
-abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
+ */
+abstract class VM_RuntimeMeasurements {
 
   /**
    * listeners for methods
@@ -95,7 +94,7 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * Determine if at least one active method listener exists
    * @return true if at least one active method listener
    */
-  static boolean hasMethodListener() { 
+  static boolean hasMethodListener() throws VM_PragmaUninterruptible { 
     VM_Listener[] tmp = methodListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
       if (tmp[i].isActive()) return true;
@@ -106,7 +105,7 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * Determine if at least one active context listener exists
    * @return true if at least one active context listener
    */
-  static boolean hasContextListener() { 
+  static boolean hasContextListener() throws VM_PragmaUninterruptible { 
     VM_Listener[] tmp = contextListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
       if (tmp[i].isActive()) return true;
@@ -117,7 +116,7 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * Determine if at least one active null listener exists
    * @return true if at least one active null listener
    */
-  static boolean hasNullListener() { 
+  static boolean hasNullListener() throws VM_PragmaUninterruptible { 
     VM_Listener[] tmp = nullListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
       if (tmp[i].isActive()) return true;
@@ -133,7 +132,7 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *           EPILOGUE?
    */
-  static void activateMethodListeners(int cmid, int callerCmid, int whereFrom) {
+  static void activateMethodListeners(int cmid, int callerCmid, int whereFrom) throws VM_PragmaUninterruptible {
     activateMethodListeners_count++;     
     VM_MethodListener[] tmp = methodListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
@@ -150,7 +149,7 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
-  static void activateContextListeners(VM_Address sfp, int whereFrom) {
+  static void activateContextListeners(VM_Address sfp, int whereFrom) throws VM_PragmaUninterruptible {
     activateContextListeners_count++;     
     VM_ContextListener[] tmp = contextListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
@@ -165,7 +164,7 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
-  static void activateNullListeners(int whereFrom) {
+  static void activateNullListeners(int whereFrom) throws VM_PragmaUninterruptible {
     activateNullListeners_count++;     
     VM_NullListener[] tmp = nullListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {

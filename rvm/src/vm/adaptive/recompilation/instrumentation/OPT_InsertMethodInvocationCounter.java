@@ -43,7 +43,7 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
 
      // Don't insert counters in uninterruptible methods, 
      // or when instrumentation is disabled
-     if (!ir.method.getDeclaringClass().isInterruptible() ||
+     if (!ir.method.isInterruptible() ||
 	 !VM_Instrumentation.instrumentationEnabled())
        return;
 
@@ -52,7 +52,7 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
      VM_MethodInvocationCounterData data = 
        VM_AOSDatabase.methodInvocationCounterData;
 
-     int cmid = ir.compiledMethodId;
+     int cmid = ir.compiledMethod.getId();
 
      // Create a dummy instruction that is later converted into an
      // increment of the appropriate VM_CounterArray element.

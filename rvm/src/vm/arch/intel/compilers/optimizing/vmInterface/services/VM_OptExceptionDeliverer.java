@@ -21,24 +21,24 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 			VM_Address catchBlockInstructionAddress,
 			Throwable exceptionObject,
 			VM_Registers registers)  {
-    VM_OptCompilerInfo info = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
+    VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;
     VM_Address fp = registers.getInnermostFramePointer();
     VM_Thread myThread = VM_Thread.getCurrentThread();
     
     if (TRACE) {
       VM.sysWrite("Frame size of ");
-      VM.sysWrite(compiledMethod.getMethod());
+      VM.sysWrite(optMethod.getMethod());
       VM.sysWrite(" is ");
-      VM.sysWrite(info.getFrameFixedSize());
+      VM.sysWrite(optMethod.getFrameFixedSize());
       VM.sysWrite("\n");
     }
 
     // reset sp to "empty params" state (ie same as it was after prologue)
-    VM_Address sp = fp.sub(info.getFrameFixedSize());
+    VM_Address sp = fp.sub(optMethod.getFrameFixedSize());
     registers.gprs[STACK_POINTER] = sp.toInt();
 
     // store exception object for later retrieval by catch block
-    int offset = info.getUnsignedExceptionOffset();
+    int offset = optMethod.getUnsignedExceptionOffset();
     if (offset != 0) {
       // only put the exception object in the stackframe if the catch block is expecting it.
       // (if the method hasn't allocated a stack slot for caught exceptions, then we can safely
@@ -57,7 +57,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     if (TRACE) {
       VM.sysWrite("Registers before delivering exception in ");
-      VM.sysWrite(compiledMethod.getMethod());
+      VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);
@@ -103,11 +103,11 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
   void unwindStackFrame(VM_CompiledMethod compiledMethod, 
 			VM_Registers registers) {
     VM_Address fp = registers.getInnermostFramePointer();
-    VM_OptCompilerInfo info = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
+    VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;
     
     if (TRACE) {
       VM.sysWrite("Registers before unwinding frame for ");
-      VM.sysWrite(compiledMethod.getMethod());
+      VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);
@@ -118,8 +118,8 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     }
 
     // restore non-volatile registers
-    int frameOffset = info.getUnsignedNonVolatileOffset();
-    for (int i = info.getFirstNonVolatileGPR(); 
+    int frameOffset = optMethod.getUnsignedNonVolatileOffset();
+    for (int i = optMethod.getFirstNonVolatileGPR(); 
 	 i<NUM_NONVOLATILE_GPRS; 
 	 i++, frameOffset += 4) {
       registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryWord(fp.sub(frameOffset));
@@ -130,7 +130,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
 
     if (TRACE) {
       VM.sysWrite("Registers after unwinding frame for ");
-      VM.sysWrite(compiledMethod.getMethod());
+      VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
       for (int i=0; i<NUM_GPRS; i++) {
 	VM.sysWrite(GPR_NAMES[i]);

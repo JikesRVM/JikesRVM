@@ -7,7 +7,12 @@
  */
 public class TestFloatingRem {
    public static void main(String[] args) {
-      System.out.println("Testing frem:");
+     runTest();
+   }
+
+  public static void runTest() {
+      System.out.println("TestFloatingRem");
+      System.out.println("\n-- frem --");
       // easy cases
       testFREM(   5f,    3f);
       testFREM(  -5f,    3f);
@@ -38,7 +43,7 @@ public class TestFloatingRem {
       testFREM(-Inff,    1f, NaNf);
       testFREM(   1f, -Inff,   1f);
 
-      System.out.println("Testing drem:");
+      System.out.println("\n-- drem --");
       // easy cases
       testDREM(   5,    3);
       testDREM(  -5,    3);
@@ -68,7 +73,8 @@ public class TestFloatingRem {
       testDREM(   1,  Inf,   1);
       testDREM(-Inf,    1, NaN);
       testDREM(   1, -Inf,   1);
-   }
+      System.out.println();
+  }
 
    private static void testFREM(float a, float b) {
       float apb = (float) (a % b);

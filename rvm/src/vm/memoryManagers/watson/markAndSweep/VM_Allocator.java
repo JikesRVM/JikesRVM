@@ -60,7 +60,7 @@ public class VM_Allocator extends VM_GCStatistics
   private static VM_BootHeap bootHeap            = new VM_BootHeap();   
   private static VM_MallocHeap mallocHeap        = new VM_MallocHeap();
   private static VM_SegregatedListHeap smallHeap = new VM_SegregatedListHeap("Small Object Heap", mallocHeap);
-  private static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
+          static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
 
   static boolean gcInProgress = false;
@@ -74,18 +74,14 @@ public class VM_Allocator extends VM_GCStatistics
   /**
    * Setup done during bootimage building
    */
-  static  void init () {
-    VM_GCLocks.init();  
-
+  static void init () throws VM_PragmaInterruptible {
     smallHeap.init(VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID]);
-
-    VM_GCWorkQueue.workQueue = new VM_GCWorkQueue();
 
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
 
 
-  static void boot (VM_BootRecord bootrecord) {
+  static void boot (VM_BootRecord bootrecord) throws VM_PragmaInterruptible {
     verbose = bootrecord.verboseGC;
 
     int smallHeapSize = bootrecord.smallSpaceSize;
@@ -104,8 +100,6 @@ public class VM_Allocator extends VM_GCStatistics
     smallHeap.boot(st, immortalHeap);
 
     VM_GCUtil.boot();
-
-    VM_Finalizer.setup();
 
     if (verbose >= 1) showParameter();
   }
@@ -127,8 +121,7 @@ public class VM_Allocator extends VM_GCStatistics
    *   @return Initialized object reference
    */
   public static Object allocateScalar (int size, Object[] tib)
-    throws OutOfMemoryError {
-    VM_Magic.pragmaInline(); 
+    throws OutOfMemoryError, VM_PragmaInline {
     if (size > SMALL_SPACE_MAX) {
       return largeHeap.allocateScalar(size, tib);
     } else {
@@ -148,8 +141,7 @@ public class VM_Allocator extends VM_GCStatistics
    *   @return Initialized array reference
    */
   public static Object allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError {
-    VM_Magic.pragmaInline(); 
+    throws OutOfMemoryError, VM_PragmaInline {
     if (size > SMALL_SPACE_MAX) {
       return largeHeap.allocateArray(numElements, size, tib);
     } else {
@@ -526,7 +518,7 @@ public class VM_Allocator extends VM_GCStatistics
   // Normally called from constructor of VM_Processor
   // Also called a second time for the PRIMORDIAL processor during VM.boot
   //
-  static  void setupProcessor (VM_Processor st) {
+  static void setupProcessor(VM_Processor st) throws VM_PragmaInterruptible {
     // for the PRIMORDIAL processor allocation of sizes, etc occurs
     // during init(), nothing more needs to be done
     //

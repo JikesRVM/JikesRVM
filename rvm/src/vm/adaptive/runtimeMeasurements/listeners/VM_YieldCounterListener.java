@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import java.util.*;
+
 /**
  * A VM_YieldCounterListener samples yield points, and
  * notifies an Organizer when a threshold is reached.
@@ -13,9 +15,6 @@
  * @author Stephen Fink
  * @modified Peter Sweeney
  */
-
-import java.util.*;
-
 class VM_YieldCounterListener extends VM_NullListener implements VM_Uninterruptible {
 
   /**
@@ -27,7 +26,8 @@ class VM_YieldCounterListener extends VM_NullListener implements VM_Uninterrupti
     this.yieldThreshold = yieldThreshold;
   }
 
-  /** update();  This method is called when its time to record that a 
+  /** 
+   * This method is called when its time to record that a 
    * yield point has occurred.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *             EPILOGUE?
@@ -49,7 +49,7 @@ class VM_YieldCounterListener extends VM_NullListener implements VM_Uninterrupti
   }
 
   public void report() {
-     VM.sysWrite("Yield points counted: " + totalYields);
+     VM.sysWriteln("Yield points counted: ", totalYields);
   }
 
   private int yieldThreshold;

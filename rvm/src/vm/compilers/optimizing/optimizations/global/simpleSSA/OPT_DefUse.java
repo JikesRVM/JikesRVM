@@ -472,12 +472,8 @@ final class OPT_DefUse implements OPT_Operators {
       current = current.getNext();
       return tmp;
     }
-    private static void raiseNoSuchElementException() {
-      VM_Magic.pragmaNoInline();
+    private static void raiseNoSuchElementException() throws VM_PragmaNoInline {
       throw new java.util.NoSuchElementException("RegOpListWalker");
     }
   }
 }
-
-
-
