@@ -20,13 +20,6 @@ public interface BootImageInterface {
   public int allocateStorage(int size);
 
   /**
-   * Allocate space in bootimage. Moral equivalent of 
-   * memory managers allocating raw storage at runtime.
-   * @param size the number of bytes to allocate
-   */
-  public int allocateAlignedStorage(int size);
-
-  /**
    * Fill in 1 byte of bootimage.
    *
    * @param offset offset of target from start of image, in bytes

@@ -144,23 +144,6 @@ public class BootImage extends BootImageWriterMessages
 
 
   /**
-   * Allocate space in bootimage. Moral equivalent of 
-   * memory managers allocating raw storage at runtime.
-   * @param size the number of bytes to allocate
-   */
-  public int allocateAlignedStorage(int size) {
-      // DFB: MAJOR HACK
-      freeOffset += 8;
-      freeOffset = VM_Memory.align(freeOffset, 16);
-      int result = freeOffset - 8;
-      freeOffset = VM_Memory.align(freeOffset + size - 8, 4);
-      if (freeOffset > endOffset)
-	  fail("bootimage full (need " + size + " more bytes)");
-      return result;
-  }
-
-
-  /**
    * Fill in 1 byte of bootimage.
    *
    * @param offset offset of target from start of image, in bytes

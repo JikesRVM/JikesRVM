@@ -526,8 +526,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 				  int numElements) throws VM_PragmaInterruptible {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
-    boolean align = array.getElementType().isClassType(); // Approximation for "is it an array of Object[]?", ie a TIB pointer
-    int ptr = align ? bootImage.allocateAlignedStorage(size) : bootImage.allocateStorage(size);
+    int ptr = bootImage.allocateStorage(size);
 
     int ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
     bootImage.setFullWord(ref + getArrayLengthOffset(), numElements);
