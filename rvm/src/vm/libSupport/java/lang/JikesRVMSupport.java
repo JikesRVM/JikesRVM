@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.classloader.VM_Type;
 import org.vmmagic.pragma.*;
 
 import com.ibm.JikesRVM.VM;              // for VerifyAssertions and _assert()
+import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Thread;
 
 /**
@@ -73,7 +74,10 @@ public class JikesRVMSupport {
   /** However, under Classpath 0.10, we don't set the ProtectionDomain, and
    * that might be necessary.  We have to use an ugly reflection hack, though,
    * to use Classpath's java.lang.Class, since the field is private. */
-  VM_Entrypoints.javaLangClassProtectionDomain.setObjectValueUnchecked(c, pd);
+  public static void setClassProtectionDomain(Class c, ProtectionDomain pd) {
+    VM_Entrypoints.javaLangClassProtectionDomain
+      .setObjectValueUnchecked(c, pd);
+  }
   //-#endif
   //-#endif
 
