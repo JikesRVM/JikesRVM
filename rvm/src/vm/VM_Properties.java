@@ -65,6 +65,13 @@ public class VM_Properties extends VM_Options {
     //-#endif
 
   /**
+   * The following is set on by -X:verboseBoot= command line arg.
+   * When true, it generates messages to the sysWrite stream summarizing
+   * progress during the execution of VM.boot
+   */
+  public static int verboseBoot = 0;
+
+  /**
    * The following is set on by -verbose:class command line arg.
    * When true, it generates messages to the sysWrite stream summarizing
    * class loading activities

@@ -60,6 +60,7 @@ extern "C" char *sys_siglist[];
 unsigned initialHeapSize;  /* Declared in bootImageRunner.h */
 unsigned maximumHeapSize;  /* Declared in bootImageRunner.h */
 
+int verboseBoot;
 
 /* See VM.exitStatusBogusCommandLineArg in VM.java.  
  * If you change this value, change it there too. */
@@ -196,6 +197,8 @@ const int maxTokens = 256;
 //   return result;
 // }
 
+extern VM_BootRecord *bootRecord;
+
 /*
  * Identify all command line arguments that are VM directives.
  * VM directives are positional, they must occur before the application
@@ -260,7 +263,16 @@ processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit)
     }
     if (!strcmp(token, nonStandardArgs[VERBOSE_INDEX])) {
       ++lib_verbose;
-      //      JCLAs[n_JCLAs++]=token;
+      continue;
+    }
+    if (!strncmp(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
+      subtoken = token + 15;
+      int vb = atoi(subtoken);
+      if (vb < 0) {
+	fprintf(SysTraceFile, "%s: You may not specify a negative verboseBoot value", me);
+	*fastExit = 1; break;
+      }
+      verboseBoot = vb;
       continue;
     }
     if (!strcmp(token, "-version")) {

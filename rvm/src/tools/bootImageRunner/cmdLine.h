@@ -14,7 +14,8 @@
 /* These definitions shadow nonStandardArgs, the array immediately below. */
 static const int HELP_INDEX                    = 0;
 static const int VERBOSE_INDEX                 = HELP_INDEX+1;
-static const int INITIAL_HEAP_INDEX            = VERBOSE_INDEX+1;
+static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
+static const int INITIAL_HEAP_INDEX            = VERBOSE_BOOT_INDEX+1;
 static const int MS_INDEX                      = INITIAL_HEAP_INDEX+1;
 static const int MX_INDEX                      = MS_INDEX+1;
 static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
@@ -36,6 +37,7 @@ static const int numNonstandardArgs            = PROCESSORS_INDEX+1;
 static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X", 
    "-X:verbose",
+   "-X:verboseBoot=",
    "-X:h=",
    "-Xms",
    "-Xmx",
@@ -58,7 +60,8 @@ static const int EXTRA_USAGE_LINES = 7;
 static const int numNonStandardUsageLines= numNonstandardArgs + EXTRA_USAGE_LINES;
 static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "    -X                       print usage on nonstandard options", 
-   "    -X:verbose               print out additional information for GC",
+   "    -X:verbose               print out additional lowlevel information",
+   "    -X:verboseBoot=<number>  print out messages while booting VM",
    "    -Xms<number>             initial size of heap in megabytes",
    "    -Xmx<number>             maximum size of heap in megabytes",
    "    -X:sysLogfile=<filename> write standard error message to <filename>",

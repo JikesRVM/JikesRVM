@@ -36,10 +36,10 @@ extern char *bootFilename;	/* Defined in libvm.C */
 // name of program that will load and run RVM
 extern char *me;		// Defined in libvm.C
 
-
 /* libvm.C and RunBootImage.C */
 extern unsigned initialHeapSize;
 extern unsigned maximumHeapSize;
+extern int verboseBoot;
 
 /* Defined in libvm.C; used in RunBootImage.C */
 extern "C" int createJVM(int);

@@ -38,46 +38,45 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  *                  |  lock word    |  |
  *                  +---------------+ /
  *                       hi-mem
-* </pre>
-*
-* The "spRegister" field of the boot record points to the word immediately
-* preceeding the top of a stack object (ie. it's ready to accept a "push" 
-                                        * instruction). The stack object is an array of words that looks like this:
-*
-* <pre>
-*                       lo-mem
-*                  +---------------+ \
-*                  |  tib pointer  |  |
-*                  +---------------+  | array
-*                  |  lock word    |  |   object
-*                  +---------------+  |      header
-*                  |    .length    |  | 
-*                  +---------------+ /
-*                  |    <empty>    |
-*                  +---------------+
-*                  |     ...       |
-*                  +---------------+
-*                  |    <empty>    |
-*                  +---------------+
-*    spRegister ->      hi-mem
-* </pre>
-*
-* <P> The "ipRegister" field of the boot record points to the first word
-* of an array of machine instructions comprising
-* the virtual machine's startoff code -- see "VM.boot()".
-*
-* <P> The "tocRegister" field of the boot record points to an array of words
-* containing the static fields and method addresses of the virtual
-* machine image -- see "VM_Statics.slots[]".
-*
-* <P> The remaining fields of the boot record serve as a function linkage area
-* between services residing in the host operating system and services
-* residing in the virtual machine.
-*
-* @author Bowen Alpern
-* @author Derek Lieber
-*/
-
+ * </pre>
+ *
+ * The "spRegister" field of the boot record points to the word immediately
+ * preceeding the top of a stack object (ie. it's ready to accept a "push" 
+ * instruction). The stack object is an array of words that looks like this:
+ *
+ * <pre>
+ *                       lo-mem
+ *                  +---------------+ \
+ *                  |  tib pointer  |  |
+ *                  +---------------+  | array
+ *                  |  lock word    |  |   object
+ *                  +---------------+  |      header
+ *                  |    .length    |  | 
+ *                  +---------------+ /
+ *                  |    <empty>    |
+ *                  +---------------+
+ *                  |     ...       |
+ *                  +---------------+
+ *                  |    <empty>    |
+ *                  +---------------+
+ *    spRegister ->      hi-mem
+ * </pre>
+ *
+ * <P> The "ipRegister" field of the boot record points to the first word
+ * of an array of machine instructions comprising
+ * the virtual machine's startoff code -- see "VM.boot()".
+ *
+ * <P> The "tocRegister" field of the boot record points to an array of words
+ * containing the static fields and method addresses of the virtual
+ * machine image -- see "VM_Statics.slots[]".
+ *
+ * <P> The remaining fields of the boot record serve as a function linkage area
+ * between services residing in the host operating system and services
+ * residing in the virtual machine.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 public class VM_BootRecord {
   /**
    * The following static field is initialized by the boot image writer.
@@ -118,8 +117,6 @@ public class VM_BootRecord {
   // If you add/remove/change fields here, be sure to change the 
   // corresponding code in RunBootImage.
 
-  // RVM image
-  //
   /**
    * address at which image is to be loaded into memory
    */
@@ -130,6 +127,7 @@ public class VM_BootRecord {
    * initial size of heap
    */
   public int initialHeapSize;
+
   /**
    * maximum size of heap
    */
@@ -137,7 +135,13 @@ public class VM_BootRecord {
 
   public VM_AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
                                      // C-style termination with sentinel values
-
+  /**
+   * Verbosity level for booting
+   * set by -X:verboseBoot=
+   */
+  int verboseBoot = 0;
+  
+  
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register

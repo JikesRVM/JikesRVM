@@ -798,6 +798,7 @@ int createJVM(int vmInSeparateThread) {
    bootRecord.maximumHeapSize  = maximumHeapSize;
    bootRecord.bootImageStart   = (int) bootRegion;
    bootRecord.bootImageEnd     = (int) bootRegion + roundedImageSize;
+   bootRecord.verboseBoot      = verboseBoot;
   
    // set host o/s linkage information into boot record
    //

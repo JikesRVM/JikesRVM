@@ -744,6 +744,7 @@ createJVM(int vmInSeparateThread)
    bootRecord->maximumHeapSize  = maximumHeapSize;
    bootRecord->bootImageStart   = (int) bootRegion;
    bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
+   bootRecord->verboseBoot      = verboseBoot;
   
   /* write sys.C linkage information into boot record */
   setLinkage(bootRecord);
