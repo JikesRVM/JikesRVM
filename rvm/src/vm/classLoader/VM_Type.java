@@ -359,7 +359,7 @@
   public final boolean isFloatType()             { return this == FloatType;          }
   public final boolean isDoubleType()            { return this == DoubleType;         }
   public final boolean isCharType()              { return this == CharType;           }
-  public final boolean isIntLikeType()           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType(); }
+  public final boolean isIntLikeType()           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isAddressType(); }
 
   public final boolean isJavaLangObjectType()    { return this == JavaLangObjectType;    }
   public final boolean isJavaLangThrowableType() { return this == JavaLangThrowableType; }
