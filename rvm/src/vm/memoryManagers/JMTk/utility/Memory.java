@@ -49,21 +49,31 @@ public class Memory implements VM_Uninterruptible {
     return isZeroedHelper(start, size, true);
   }
 
+  // start and len must both be 4-byte aligned
+  //
+  public static void zero(VM_Address start, int len) throws VM_PragmaInline {
+    if (len > 256)
+      VM_Memory.zero(start, len);
+    else
+      zeroSmall(start, len);
+  }
+
   public static void zeroSmall(VM_Address start, int len) throws VM_PragmaInline {
     for (int i=0; i<len; i+=4) 
       VM_Magic.setMemoryWord(start.add(i), 0);
   }
 
-  public static void zero(VM_Address start, int len) throws VM_PragmaInline {
-    VM_Memory.zero(start, len);
-  }
-
+  // start and len must both be OS-page aligned
+  //
   public static void zeroPages(VM_Address start, int len) throws VM_PragmaInline {
     VM_Memory.zeroPages(start, len);
   }
 
-  // Derived form
-  //
+  // Derived forms
+  public static void zeroSmall(VM_Address start, VM_Address end) throws VM_PragmaInline {
+    zeroSmall(start, end.diff(start).toInt());
+  }
+
   public static void zero(VM_Address start, VM_Address end) throws VM_PragmaInline {
     zero(start, end.diff(start).toInt());
   }
