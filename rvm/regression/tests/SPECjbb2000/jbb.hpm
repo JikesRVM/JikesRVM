@@ -21,8 +21,8 @@
 # @author: Brendon Cahoon
 # @author: Peter F. Sweeney
 
-export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U.watrg1
-export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U.watrg1
+export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U
+export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U
 
 echo "RVM_HOST_CONFIG: $RVM_HOST_CONFIG"
 
@@ -91,7 +91,7 @@ hpm_event7=0
 hpm_event8=0
 #####################################
 # Determine events
-setting=10
+setting=400
 if [[ $# = 3 || $# > 3 ]]; then
   if [[ $3 != '+' ]]; then
     setting=$3
@@ -449,16 +449,28 @@ if [[ $# = 6 || $# > 6 ]]; then
   fi
 fi
 
-echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; execution: $execution\n"
+out_file="HPM.$config.$machine_type.$setting.$execution"
+ aos_log="log.$config.$machine_type.$setting.$execution"
+
+echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; out_file: $out_file; execution: $execution\n"
 
 # 4 processors
 # smallHeap=512
 # 8 processors
 smallHeap=1024
-verbose=1
+verbose=0
+trace_verbose=0
+logging_level=0
+###############################
+# set up command line arguments
+# notify_vm_complete and measureCompilation results in compilation statistics
+jvm_options="-Xmx$smallHeap -X:processors=$numProcs -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc" 
 
-echo "./run.test -jvmopts "-X:mx$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:filename=$out_dir/HPM.$config.$machine_type.$setting.$execution" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config"
-      ./run.test -jvmopts "-X:mx$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:filename=$out_dir/HPM.$config.$machine_type.$setting.$execution -X:hpm:trace=true" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config > data/HPM.$config.$machine_type.$setting.$execution.output
+hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4  -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7  -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:trace_verbose=$trace_verbose -X:hpm:filename=$out_file  -X:hpm:trace=true"
 
-# 
+cp="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/jbb.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/jbb_no_precompile.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/check.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/reporter.jar:/homes/turangalila/jalapeno/nightShadow/results/sanity//rvm/regression/tests/SPECjbb2000/cp:jbb.jar:jbb_no_precompile.jar:check.jar:reporter.jar"
+
+echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config"
+
+      $RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config
 
