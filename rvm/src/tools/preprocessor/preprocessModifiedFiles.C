@@ -481,6 +481,8 @@ main(int argc, char **argv)
 	if (stat(source, &info) < 0) {
 	    fprintf(stderr, "%s: Trouble looking at the file \"%s\": %s\n",
 		    Me, source, strerror(errno));
+	    fprintf(stderr, __FILE__ ":%d: stat() failed\n", __LINE__);
+	    
 	    if (keep_going) {
 		++failed;
 		continue;
