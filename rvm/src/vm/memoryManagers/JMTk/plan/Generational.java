@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -581,6 +582,17 @@ public abstract class Generational extends StopTheWorldGC
       else if (fullHeapGC) 
 	Plan.forwardMatureObjectLocation(location, obj, space);
     }
+  }
+
+  /**
+   * Scan an object that was previously forwarded but not scanned.
+   * The separation between forwarding and scanning is necessary for
+   * the "pre-copying" mechanism to function properly.
+   *
+   * @param object The object to be scanned.
+   */
+  protected final void scanForwardedObject(VM_Address object) {
+    ScanObject.scan(object);
   }
 
   /**

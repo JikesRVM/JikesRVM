@@ -236,6 +236,17 @@ public abstract class BasePlan
   }
 
   /**
+   * Add an unscanned, forwarded object for subseqent processing.
+   * This mechanism is necessary for "pre-copying".
+   *
+   * @param obj The object to be enqueued
+   */
+  public static final void enqueueForwardedUnscannedObject(VM_Address obj)
+    throws VM_PragmaInline {
+    VM_Interface.getPlan().forwardedObjects.push(obj);
+  }
+
+  /**
    * Trace a reference during GC.  This involves determining which
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
@@ -344,6 +355,16 @@ public abstract class BasePlan
     return object;
   }
 
+  /**
+   * Make alive an object that was not otherwise known to be alive.
+   * This is used by the ReferenceProcessor, for example.
+   *
+   * @param object The object which is to be made alive.
+   */
+  static void makeAlive(VM_Address object) {
+    Plan.traceObject(object);
+  }
+ 
   /**
    * An object is unreachable and is about to be added to the
    * finalizable queue.  The collector must ensure the object is not

@@ -275,16 +275,16 @@ public class ReferenceProcessor implements VM_Uninterruptible {
 
 
   private static void makeAlive(VM_Address addr) {
-    Plan.traceObject(addr);    
+    Plan.makeAlive(addr);    
   }
 
+  // FIXME The following is never called.  Should it be?
   private static void makeDead (VM_Address addr) {
-    // no-op for mark-sweep or copying collectors
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
   
   private static VM_Address getForwardingAddress(VM_Address addr) {
-    // TODO: use new routine in Plan!
-    return Plan.traceObject(addr);
+    return Plan.getForwardedReference(addr);
   }
 
   /** Set flag indicating if soft references referring to non-strongly

@@ -78,8 +78,7 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
    *   t.hardwareExceptionRegisters
    *   t.hardwareExceptionRegisters.gprs 
    */
-  public static void scanThread(VM_Thread t, RootEnumerator rootEnum,
-				AddressDeque rootLocations, 
+  public static void scanThread(VM_Thread t, AddressDeque rootLocations, 
 				AddressPairDeque codeLocations) {
 	
     Plan plan = VM_Interface.getPlan();
@@ -95,16 +94,6 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
        * be moved, but we can't move the native stack. */
       VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
     }				  
-
-    ScanObject.enumeratePointers(t, rootEnum);
-    if (t.jniEnv != null) {
-      ScanObject.enumeratePointers(t.jniEnv, rootEnum);
-      ScanObject.enumeratePointers(t.jniEnv.refsArray(), rootEnum);
-    }
-    ScanObject.enumeratePointers(t.contextRegisters, rootEnum);
-    ScanObject.enumeratePointers(t.contextRegisters.gprs, rootEnum);
-    ScanObject.enumeratePointers(t.hardwareExceptionRegisters, rootEnum);
-    ScanObject.enumeratePointers(t.hardwareExceptionRegisters.gprs, rootEnum);
 
     if (VM.VerifyAssertions) {
       VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));

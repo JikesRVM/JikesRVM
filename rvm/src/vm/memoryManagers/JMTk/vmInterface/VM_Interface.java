@@ -687,14 +687,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * balancing parallel GC can share the work of scanning threads.
    * </ul>
    *
-   * @param rootEnum an enumerator used to enumerate object references
-   * and place the references in the root values queue.
    * @param rootLocations set to store addresses containing roots
    * @param interiorRootLocations set to store addresses containing
    * return adddresses, or <code>null</code> if not required
    */
-  public static void computeAllRoots(RootEnumerator rootEnum,
- 				     AddressDeque rootLocations,
+  public static void computeAllRoots(AddressDeque rootLocations,
   				     AddressPairDeque interiorRootLocations) {
     AddressPairDeque codeLocations = MM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
     
@@ -705,14 +702,15 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     while (true) {
       int threadIndex = threadCounter.increment();
       if (threadIndex >= VM_Scheduler.threads.length) break;
-      if (threadIndex == 0)  /* the first one scans the threads object too */
- 	ScanObject.enumeratePointers(VM_Scheduler.threads, rootEnum);
       
       VM_Thread thread = VM_Scheduler.threads[threadIndex];
       if (thread == null) continue;
       
       /* scan the thread (stack etc.) */
-       ScanThread.scanThread(thread, rootEnum, rootLocations, codeLocations);
+      ScanThread.scanThread(thread, rootLocations, codeLocations);
+
+      /* identify this thread as a root */
+      rootLocations.push(VM_Magic.objectAsAddress(VM_Scheduler.threads).add(threadIndex<<LOG_BYTES_IN_ADDRESS));
     }
     rendezvous(4200);
   }

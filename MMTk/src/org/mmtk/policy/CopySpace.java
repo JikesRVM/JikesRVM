@@ -30,7 +30,41 @@ final class CopySpace extends BasePolicy
   public static void prepare(VMResource vm, MemoryResource mr) { }
   public static void release(VMResource vm, MemoryResource mr) { }
 
+  /**
+   * Trace an object under a copying collection policy.
+   * If the object is already copied, the copy is returned.
+   * Otherwise, a copy is created and returned.
+   * In either case, the object will be marked on return.
+   *
+   * @param object The object to be traced.
+   * @return The forwarded object.
+   */
+  public static VM_Address traceObject(VM_Address object) 
+    throws VM_PragmaInline {
+    return forwardObject(object, true);
+  }
+
+  /**
+   * Forward an object.
+   *
+   * @param object The object to be forwarded.
+   * @return The forwarded object.
+   */
   public static VM_Address forwardObject(VM_Address object) 
+    throws VM_PragmaInline {
+    return forwardObject(object, false);
+  }
+
+  /**
+   * Forward an object.  If the object has not already been forwarded,
+   * then conditionally enqueue it for scanning.
+   *
+   * @param object The object to be forwarded.
+   * @param scan If <code>true</code>, then enqueue the object for
+   * scanning if the object was previously unforwarded.
+   * @return The forwarded object.
+   */
+  private static VM_Address forwardObject(VM_Address object, boolean scan) 
     throws VM_PragmaInline {
     int forwardingPtr = CopyingHeader.attemptToForward(object);
     // prevent instructions moving infront of attemptToForward
@@ -51,28 +85,17 @@ final class CopySpace extends BasePolicy
     //
     VM_Address newObject = VM_Interface.copy(object, forwardingPtr);
     CopyingHeader.setForwardingPointer(object, newObject);
-
-    return newObject;
-  }
-
-  /**
-   * Trace an object under a copying collection policy.
-   * If the object is already copied, the copy is returned.
-   * Otherwise, a copy is created and returned.
-   * In either case, the object will be marked on return.
-   *
-   * @param object The object to be copied.
-   */
-  public static VM_Address traceObject(VM_Address object) 
-    throws VM_PragmaInline {
-    VM_Address newObject = forwardObject(object);
-    if (newObject != object)
+    if (scan) {
       Plan.enqueue(newObject);       // Scan it later
+    } else {
+      Plan.enqueueForwardedUnscannedObject(newObject);
+    }
+
     return newObject;
   }
+
 
   public static boolean isLive(VM_Address obj) {
     return CopyingHeader.isForwarded(obj);
   }
-
 }

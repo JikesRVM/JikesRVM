@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -462,6 +463,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final VM_Address traceObject(VM_Address obj, boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
+  }
+
+  /**
+   * Scan an object that was previously forwarded but not scanned.
+   * The separation between forwarding and scanning is necessary for
+   * the "pre-copying" mechanism to function properly.
+   *
+   * @param object The object to be scanned.
+   */
+  protected final void scanForwardedObject(VM_Address object) {
+    ScanObject.scan(object);
   }
 
   /**
