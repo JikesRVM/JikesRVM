@@ -378,7 +378,7 @@ function doRun
     fi
 
     . $RVM_BUILD/environment
-    $RVM_ROOT/regression/limited.ksh 1800 $GNU_MAKE -ks \
+    $RVM_ROOT/regression/limited.ksh `expr 1800 '*' $NUM_PROCS` $GNU_MAKE -ks \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
            JBOOT=$RVM_ROOT/bin/jalapeno\
            PROCESSORS="$NUM_PROCS"\
