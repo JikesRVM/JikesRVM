@@ -200,7 +200,6 @@ hidden parameter to dispatch to the desired interface method.
 
 This section describes register, stack, and calling conventions that apply to 
 RVM on PowerPC.
-Other architectures will require other conventions to maximize performance.
 
 Stackframe layout and calling conventions may evolve as our understanding
 of the RVM's performance improves.  Where possible API's should be used
@@ -241,11 +240,11 @@ categorized into four types:
 \end{description}
 
 \item [volatile ("caller save", or "parameter")]
-     Like scratch registers these can be used by the compiler as 
-temporaries,
-     but they are not preserved across calls.  (Volatile registers differ
-     from scratch registers in that they (the former) can be used to pass
-     parameters and result(s) to and from methods.)
+     Like scratch registers these can be used by the compiler as
+     temporaries, but they are not preserved across calls.  (Volatile
+     registers differ from scratch registers in that they (the former)
+     can be used to pass parameters and result(s) to and from
+     methods.)
 
 \item [Nonvolatile ("callee save", or "preserved")]
      These can be used (and are preserved across calls), but they must be
@@ -257,7 +256,8 @@ temporaries,
 \begin{description}
 \item    [CR0 - CR1] scratch
 
-\item    [CR2 - TSCR] dedicated (thread switching, bit 8 TSCRB)
+\item    [CR2 - TSCR] dedicated (thread switching, bit 8 TSCRB) (this
+     convention is being phased out, and in fact is not being used in RVM 2.0)
 
 \item    [CR3 - CR7] scratch
 \end{description}
@@ -266,8 +266,7 @@ temporaries,
 
 \noindent{\bf Stack conventions}
 
-Stacks grow from high memory to low memory.  The stack frame for a method
-B called by A is shown in figure~\ref{fig:stackframe}. 
+Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
 \xlink{{\tt \$RVM\_ROOT/rvm/src/vm/arch/powerpc/VM\_StackframeLayoutConstants.java}}
 {\PPCStackframeLayoutURL}.
@@ -302,30 +301,28 @@ The layout of the stackframe appears in a block comment in
 \item Save the caller's next instruction pointer (callee's return address,
        from the Link Register).
 
-\item Save any nonvolatile floating-point registers used by B.
+\item Save any nonvolatile floating-point registers used by callee.
 
-\item Save any nonvolatile general-purpose registers used by B.
+\item Save any nonvolatile general-purpose registers used by callee.
 
 \item Store and update the frame pointer FP.
 
-\item Save B's compiled method ID (eventually, this may not be needed).
+\item Store callee's compiled method ID (eventually, this may not be needed).
 
-\item Check Condition Register bit TSCRB.  If it is set:
-         save any of B's parameters that are in volatile registers
-         call VM\_Dispatcher.yield();
-         restore volatile registers, if necessary
+\item Check to see if the Java thread must yield the VM\_Processor
+(and yield if threadswitch was requested). 
 \end{enumerate}
 
 \item [Method epilogue responsibilities]
 
 \begin{enumerate}
-\item Restore FP to point to A's stack frame.
+\item Restore FP to point to caller's stack frame.
 
-\item Restore any nonvolatile general-purpose registers used by B.
+\item Restore any nonvolatile general-purpose registers used by callee.
 
-\item Restore any nonvolatile floating-point registers used by B.
+\item Restore any nonvolatile floating-point registers used by callee.
 
-\item Branch to A's next instruction pointer.
+\item Branch to the return address in caller.
 \end{enumerate}
 \end{description}
 
@@ -334,8 +331,10 @@ The layout of the stackframe appears in a block comment in
 \index{register conventions}
 \index{calling conventions}
 
-This section describes register, stack, and calling conventions that apply to 
-RVM on Linux/IA32.
+This section describes register, stack, and calling conventions that
+apply to RVM on Linux/IA32.  {\em Linux/IA32 conventions are still
+changing; be sure to check the relevant files for the most accurate
+information!}
 
 \noindent{\bf Register conventions}
 
@@ -360,7 +359,8 @@ RVM on Linux/IA32.
 \item[EBP]
     Frame pointer, valid at method call/return, must be shadowed in the
     framePointer field of the VM\_Processor object pointed to by ESI (see
-    below).
+    below). Expected to become a nonvolatile (and FP only in the
+    baseline compiler) very soon.
 
 \item[ESI]
     Processor register, reference to the VM\_Processor object for the current
@@ -373,8 +373,7 @@ RVM on Linux/IA32.
 
 \noindent{\bf Stack conventions}
 
-Stacks grow from high memory to low memory.  The stack frame for a method
-B called by A is shown in figure~\ref{fig:stackframe}. 
+Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
 \xlink{{\tt
 \$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_StackframeLayoutConstants.java}}
@@ -383,19 +382,16 @@ The layout of the stackframe appears in a block comment in
 \noindent{\bf Calling Conventions}
 
 \begin{description}
-\item[At the beginning of B's prologue]
-The first two areas of B's stackframe (see above) have been
-     established.  ESP points to A's next instruction pointer (2).
-     EBP points to A's frame.  If B has (non fp) parameters and
-     0 < LINTEL\_PARAMETER\_GPRS, then the first of these is in EAX.
-     If B has more than one (non fp) parameters and
-     LINTEL\_PARAMETER\_GPRS = 2, then the second of these is in EDX.
-     If B has floating-point parameters, then the first
-     LINTEL\_PARAMETER\_FPRS of these are at the top of the fp register
-     stact (first deepest).
-\item[After B's epilogue]
-B's stackframe has been removed.  ESP points to the word above where
-     B's frame was.  EBP points to A's frame.  (The framePointer field
+\item[At the beginning of callee's prologue]
+The first two areas of the callee's stackframe (see above) have been
+     established.  ESP points to caller's return address.
+     Parameters from caller to callee are as mandated by 
+\xlink{{\tt
+\$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_RegisterConstants.java}}
+{\LintelRegisterConstantsURL}.
+\item[After callee's epilogue]
+     Callee's stackframe has been removed.  ESP points to the word above where
+     callee's frame was.  EBP points to A's frame.  (The framePointer field
      of the VM\_Processor object pointed to by ESI must also contain
      this value.)  If B returns a floating-point result, this is at
      the top of the fp register stack.  If B returns a long, the
@@ -419,6 +415,8 @@ fields and methods have been calculated.
 \item[instantiated] the superclass has been instantiated and pointers to the
 compiled methods have been inserted into the JTOC(for static methods) and the
 TIB (for virtual methods).
+\item[initializing] the superclass has been initialized and the class
+initializer is being run.
 \item[initialized] the superclass has been initialized and the class
 initializer has been run.
 \end{description}
@@ -454,6 +452,11 @@ virtual methods.
 The slots in the JTOC are filled in with pointers to the compiled code for the 
 static methods.
 
+\paragraph{Initializing} 
+\index{class initializer}
+In this state the superclass has been initialized. The class
+initializer is being run. 
+
 \paragraph{Initialized} 
 \index{class initializer}
 In this state the superclass has been initialized. The class initializer has 
@@ -462,7 +465,7 @@ been run.
 \subsection{VM Callbacks}\label{sssec:callbacks}
 \index{callbacks}
 
-The RVM provides callbacks for most runtime events of interest to the RVM
+The RVM provides callbacks for many runtime events of interest to the RVM
 programmer, such as classloading, VM bootimage creation, and VM exit.  The
 callbacks allow arbitrary code to be executed on any of the supported events.
 
