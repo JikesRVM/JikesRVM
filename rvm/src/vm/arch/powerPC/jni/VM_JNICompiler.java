@@ -323,10 +323,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     
     // offset to the spill area in the callee (OS frame):
     int spillOffsetOS;
-    if (VM.BuildForAix || VM.BuildForOsx) {
+    if ((VM.BuildForLinux && VM.BuildForPowerPC && VM.BuildFor64Addr) || VM.BuildForAix || VM.BuildForOsx) {
       // 1st spill = JNIEnv, 2nd spill = class
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE + 2*BYTES_IN_STACKSLOT;
-    } else if (VM.BuildForLinux) {
+    } else if (VM.BuildForLinux && VM.BuildFor32Addr) {
       spillOffsetOS = NATIVE_FRAME_HEADER_SIZE;
     }
 
