@@ -82,7 +82,10 @@ public class VM_Runtime implements VM_Constants {
 	if one is looking at it from the point of view of the "instanceof"
 	operator.  */
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
-    VM_Type lhsType = tRef.resolve(); // may throw CNF Exception
+    VM_Type lhsType = tRef.peekResolvedType();
+    if (lhsType == null) {
+      lhsType = tRef.resolve();
+    }
     if (!lhsType.isResolved()) {
       lhsType.resolve(); // forces loading/resolution of super class/interfaces
     }
@@ -148,7 +151,10 @@ public class VM_Runtime implements VM_Constants {
       return; // null may be cast to any type
 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.resolve();
+    VM_Type lhsType = tRef.peekResolvedType();
+    if (lhsType == null) {
+      lhsType = tRef.resolve();
+    }
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
     if (lhsType == rhsType)
       return; // exact match
@@ -261,7 +267,11 @@ public class VM_Runtime implements VM_Constants {
     throws ClassNotFoundException, 
 	   OutOfMemoryError { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Class cls = tRef.resolve().asClass();
+    VM_Type t = tRef.peekResolvedType();
+    if (t == null) {
+      t = tRef.resolve();
+    }
+    VM_Class cls = t.asClass();
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
 
@@ -314,7 +324,11 @@ public class VM_Runtime implements VM_Constants {
   static Object unresolvedNewArray(int numElements, int id) 
     throws ClassNotFoundException, OutOfMemoryError, NegativeArraySizeException { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Array array = tRef.resolve().asArray();
+    VM_Type t = tRef.peekResolvedType();
+    if (t == null) {
+      t = tRef.resolve();
+    }
+    VM_Array array = t.asArray();
     if (!array.isInitialized()) {
       array.resolve();
       array.instantiate();
