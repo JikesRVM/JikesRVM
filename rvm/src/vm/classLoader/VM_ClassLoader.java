@@ -460,13 +460,15 @@ public class VM_ClassLoader
 
   public static final void resolveClassInternal(Class clazz) {
     VM_Type cls = clazz.getVMType();
-    synchronized (cls) {
-	try {
-	    cls.resolve();
-	    cls.instantiate();
-	    cls.initialize();
-	} catch (VM_ResolutionException e) { }
+    synchronized(lock) {
+      try {
+	cls.resolve();
+      } catch (VM_ResolutionException e) { 
+	VM.sysWrite("ERROR: DROPPING EXCEPTION: "+e+" ON THE FLOOR\n");
+      }
+      cls.instantiate();
     }
+    cls.initialize();
   }
 
   public static final Class defineClassInternal (String className, byte[] classRep, int offset, int length, ClassLoader classloader, ProtectionDomain pd) {
@@ -477,10 +479,6 @@ public class VM_ClassLoader
 
   public static final Class defineClassInternal (String className, byte[] classRep, int offset, int length, ClassLoader classloader)
     throws ClassFormatError {
-    // original code...
-    // Class answer = defineClassImpl(className, classRep, offset, length);
-    // answer.setPDImpl(getDefaultProtectionDomain());
-    // return answer;
 
     VM_BinaryData classData;
 
@@ -500,14 +498,14 @@ public class VM_ClassLoader
     }
     else classData = new VM_BinaryData( classRep );
 
-    synchronized (cls) {
-	if (! cls.isLoaded()) {
-	    if (VM.TraceClassLoading  && VM.runningVM)
-		VM.sysWrite("loading " + cls + " with " + classloader);
+    synchronized (lock) {
+      if (!cls.isLoaded()) {
+	if (VM.TraceClassLoading  && VM.runningVM)
+	  VM.sysWrite("loading " + cls + " with " + classloader);
 
-	    cls.classloader = classloader;
-	    cls.load( classData );
-	}
+	cls.classloader = classloader;
+	cls.load(classData);
+      }
     }
 
     return cls.getClassForType();

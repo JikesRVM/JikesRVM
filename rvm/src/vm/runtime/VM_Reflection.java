@@ -24,22 +24,18 @@ public class VM_Reflection implements VM_Constants {
    * See also: java/lang/reflect/Method.invoke()
    */ 
   public static Object invoke(VM_Method method, Object thisArg, 
-                              Object[] otherArgs) {
+                              Object[] otherArgs) throws VM_ResolutionException {
     return invoke(method, thisArg, otherArgs, false);
   }
 
   public static Object invoke(VM_Method method, Object thisArg, 
-                              Object[] otherArgs, boolean isNonvirtual) {
+                              Object[] otherArgs, boolean isNonvirtual) throws VM_ResolutionException {
 
     // the class must be initialized before we can invoke a method
     //
-    try {
-	method.getDeclaringClass().load();
-	method.getDeclaringClass().resolve();
-	method.getDeclaringClass().instantiate();
-	method.getDeclaringClass().initialize();
-    } catch (Throwable e) {
-	e.printStackTrace();
+    VM_Class klass = method.getDeclaringClass();
+    if (!klass.isInitialized()) {
+      VM_Runtime.initializeClassForDynamicLink(klass);
     }
 
     // choose actual method to be called
