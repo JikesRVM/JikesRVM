@@ -44,6 +44,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
           new OPT_OptimizationPlanAtomicElement(new OPT_CoalesceMoves()),
           // 1. Insert the split operations.
           new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
+          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2)),
           // 2. Use SSA to rename
           new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
           new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
@@ -187,10 +188,9 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * to split
      */
     private static void transform(OPT_IR ir, HashMap xform) {
-      for (Iterator i = xform.entrySet().iterator(); i.hasNext(); ) {
-        Map.Entry entry = (Map.Entry)i.next();
-        BasicBlockPair bbp = (BasicBlockPair)entry.getKey();
-        HashSet toSplit = (HashSet)entry.getValue();
+      for (Iterator i = xform.keySet().iterator(); i.hasNext(); ) {
+        BasicBlockPair bbp = (BasicBlockPair)i.next();
+        HashSet toSplit = (HashSet)xform.get(bbp);
         
         // we go ahead and split all edges, instead of just critical ones.
         // we'll clean up the mess later after SSA.
@@ -268,8 +268,10 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
         this.dest = dest;
       }
 
+      static int nextHash = 0;
+      int myHash = ++nextHash;
       public int hashCode() {
-        return src.hashCode() + dest.hashCode()<<16;
+        return myHash;
       }
 
       public boolean equals(Object o) {
