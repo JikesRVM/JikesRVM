@@ -151,7 +151,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param offset the offset of machine instruction from start of method
    * @param out    the PrintStream to print the stack trace to.
    */
-  public final void printStackTrace(VM_Offset instructionOffset, com.ibm.PrintLN out) 
+  public final void printStackTrace(VM_Offset instructionOffset, PrintLN out) 
     throws VM_PragmaInterruptible 
   {
     VM_OptMachineCodeMap map = getMCMap();
