@@ -164,12 +164,13 @@ public class VM_ClassLoader implements VM_Constants,
   private static int currentDynamicLibraryId = 0;
 
   /**
-   * Initialize for bootimage.
+   * Initialize for boot image.
    */
   public static void init(String vmClassPath) {
     // specify place where vm classes and resources live
     //
-    setVmRepositories(vmClassPath);
+    if (vmClassPath != null)
+      setVmRepositories(vmClassPath);
     applicationRepositories = null;
     VM_SystemClassLoader.boot();
 
@@ -226,12 +227,14 @@ public class VM_ClassLoader implements VM_Constants,
   /**
    * Initialize for execution.
    * @param vmClasses name of directory containing vm .class and .zip/.jar 
-   * files (null -> use values specified by setVmRepositories() when 
-   * bootimage was created)
+   * files.  This may contain several names separated with colons (':'), just
+   * as a classpath may.   (null -> use values specified by
+   * setVmRepositories() when boot image was created)
    * @return nothing
    */
   public static void boot(String vmClasses) {      
-    setVmRepositories(vmClasses);
+    if (vmClasses != null)
+      setVmRepositories(vmClasses);
     setSystemNativePath();
     setJavaLibPath();
     currentDynamicLibraryId = 0;
