@@ -117,7 +117,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
    */
   public final void postAlloc(VM_Address cell, boolean isScalar,
 			      EXTENT bytes, boolean small, boolean large,
-			      boolean copy, SimpleRCAllocator allocator)
+			      SimpleRCAllocator allocator)
     throws VM_PragmaInline {
   }
 
