@@ -131,7 +131,6 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     if (sp.isZero()) return sp;
     VM_Address cell = sp.add(header);
     Memory.zero(cell, bytes);
-    VM.sysWrite("LargeObjectAllocator returning ", cell);
     return cell;
   }
 
