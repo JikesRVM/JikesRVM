@@ -1541,25 +1541,25 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_i2f() {  
     if (VM.BuildFor64Addr) {
-      popInt(T0); 		//TO is X  (an int)
+      popInt(T0); 		// TO is X  (an int)
       pushLong(T0,T0);
-      popDouble(F0);              // load long 
-      asm.emitFCFID(F0, F0);      // convert it
-      pushFloat(F0);  // store the float
+      popDouble(F0);            // load long 
+      asm.emitFCFID(F0, F0);    // convert it
+      pushFloat(F0);            // store the float
     } else {
-      popInt(T0); 		//TO is X  (an int)
+      popInt(T0); 		// TO is X  (an int)
       asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
-      pushDouble(F0);		//MAGIC on stack    
-      pokeInt(T0, 1);               // if 0 <= X, MAGIC + X 
-      asm.emitCMPI  (T0,  0);                   // is X < 0
+      asm.emitSTFD  (F0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitSTW   (T0, VM_Entrypoints.scratchSecondsField.getOffset()+4, PROCESSOR_REGISTER);
+      asm.emitCMPI  (T0,  0);                // is X < 0
       VM_ForwardReference fr = asm.emitForwardBC(GE);
-      popInt(T0);  				//T0 is top of MAGIC 
-      asm.emitADDI   (T0, -1, T0);               // decrement top of MAGIC
-      pushInt(T0);               // MAGIC + X is on stack
+      asm.emitLInt  (T0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitADDI  (T0, -1, T0);            // decrement top of MAGIC
+      asm.emitSTW   (T0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER); // MAGIC + X in scratch field
       fr.resolve(asm);
-      popDouble(F1);               // F1 is MAGIC + X
-      asm.emitFSUB    (F1, F1, F0);               // F1 is X
-      pushFloat(F1);               // float(X) is on stack 
+      asm.emitLFD   (F1, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER); // F1 is MAGIC + X
+      asm.emitFSUB  (F1, F1, F0);            // F1 is X
+      pushFloat(F1);                         // float(X) is on stack 
     }
   }
 
