@@ -23,8 +23,8 @@ augment the functionality of existing components.  Since JMTk is
 designed to be a separable module within the VM, JMTk contributions
 should adhere to certain modularity constraints.  Namely,
 communication with the rest of the VM should occur only through the
-classes VM_Interface and MM_Interface and certain magic classes
-(VM_Address, VM_Word, VM_Offset, and VM_Extent).
+classes {\tt VM\_Interface} and {\tt MM\_Interface} and certain magic classes
+({\tt VM\_Address}, {\tt VM\_Word}, {\tt VM\_Offset}, and {\tt VM\_Extent}).
 
 \item{Being up-to-date}  
 Contributions should be with respect to CVS head or something
@@ -46,7 +46,7 @@ for more details.
 The contributor of a significant contribution is expected to be the
 advocate of the system and will fix the submitted components if and
 when defects are discovered.  We expect serious failures (failure rate
-> 15%) to be fixed within a few days or a week.  Other failures (low
+> 15\%) to be fixed within a few days or a week.  Other failures (low
 failure rate or non-deterministic failures) should be fixed before a
 release.  The core team will strive to announce planned releases with
 at least 3 weeks notice.
