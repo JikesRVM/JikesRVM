@@ -319,6 +319,7 @@ public class VM_CollectorThread extends VM_Thread {
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
 
       gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, 0, 1) + 1;
+      long startCycles = VM_Time.cycles();
       
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
@@ -366,7 +367,11 @@ public class VM_CollectorThread extends VM_Thread {
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       gcBarrier.rendezvous(5200);
-      
+
+      if (gcOrdinal == 1) {
+	long elapsedCycles = VM_Time.cycles() - startCycles;
+	HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
+      }
       if (gcOrdinal == 1 && Plan.isLastGCFull()) {
         boolean heapSizeChanged = false;
 	if (Options.variableSizeHeap && handshake.gcTrigger != VM_Interface.EXTERNAL_GC_TRIGGER) {

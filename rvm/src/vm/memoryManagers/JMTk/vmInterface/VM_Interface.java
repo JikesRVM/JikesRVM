@@ -445,7 +445,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
     long end = VM_Time.cycles();
     double gcTime = VM_Time.cyclesToMillis(end - start);
-    HeapGrowthManager.recordGCTime(gcTime);
     if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
 
     if (Plan.isLastGCFull() && 
