@@ -47,12 +47,16 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     // resync gc
     ir.gc.resync();
     
+    // String name = ir.method.getDeclaringClass() + "." + ir.method.getName() + ir.method.getDescriptor();
+
     OPT_Instruction next;
     for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
 	 inst != null; 
 	 inst = next) {
       next = inst.nextInstructionInCodeOrder();
-      switch (inst.getOpcode()) {
+      int opcode = inst.getOpcode();
+
+      switch (opcode) {
 
       case NEW_opcode:
 	{ 
@@ -279,183 +283,362 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	} 
 	break;
 
+
+/* 
+--------- START TEMP STUFF ----------------
+partial fragmented array stuff 
+	      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+	      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst.getPrev(), ir);  
+	      ir.cfg.insertAfterInCodeOrder(beforeBB, afterBB);
+	      OPT_BasicBlock negativeBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+	      beforeBB.insertOut(negativeBB);   // unusual path
+	      negativeBB.insertOut(afterBB);    // unusual path
+	      ir.cfg.addLastInCodeOrder(negativeBB);
+	      negativeBB.setInfrequent(true);
+	      // Modify the before block to branch to negatiev block if necessary
+	      OPT_RegisterOperand array_length = ir.gc.temps.makeTempInt(); // logical length
+	      inst.insertBefore(GuardedUnary.create(ARRAYLENGTH, array_length,  
+						    BoundsCheck.getClearRef(inst),
+						    BoundsCheck.getClearGuard(inst)));
+	      inst.insertBefore(IfCmp.create(INT_IFCMP, null,
+					     array_length, 
+					     new OPT_IntConstantOperand(0),
+					     OPT_ConditionOperand.LESS(),
+					     negativeBB.makeJumpTarget(),
+					     OPT_BranchProfileOperand.unlikely()));
+--------- END TEMP STUFF ----------------
+*/
+
+
+      case INT_ALOAD_opcode:
+      case LONG_ALOAD_opcode:
+      case FLOAT_ALOAD_opcode:
+      case DOUBLE_ALOAD_opcode:
+      case REF_ALOAD_opcode:
+      case BYTE_ALOAD_opcode:
+      case UBYTE_ALOAD_opcode:
+      case USHORT_ALOAD_opcode:
+      case SHORT_ALOAD_opcode:
+	  if (VM_Configuration.BuildWithLazyRedirect) {
+	      // This barrier completely replaces all access instruction.
+	      OPT_Operand origArray = AStore.getClearArray(inst);
+	      OPT_RegisterOperand newArray = ir.gc.temps.makeTemp(origArray);
+	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray, origArray, OPT_IRTools.TG());
+	      redirectInst.bcIndex = inst.bcIndex;
+	      inst.insertBefore(redirectInst);
+	      ALoad.setArray(inst, newArray);  // let standard conversion take care of this
+	  }
+	  else if (VM_Configuration.BuildWithEagerRedirect) {
+	      // This barrier completely replaces just REF_ALOAD
+	      if (opcode == REF_ALOAD_opcode) {
+		  OPT_RegisterOperand result = ALoad.getClearResult(inst);
+		  OPT_RegisterOperand temp = ir.gc.temps.makeTemp(result);
+		  ALoad.setResult(inst,temp);
+		  OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+		  OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		  OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
+		  ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+		  ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+		  beforeBB.insertOut(afterBB);   // unusual path
+		  OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, temp,
+							new OPT_IntConstantOperand(0),  // NULL is 0
+							OPT_ConditionOperand.EQUAL(),
+							afterBB.makeJumpTarget(),
+							OPT_BranchProfileOperand.unlikely());
+		  OPT_Instruction moveInst = Move.create(INT_MOVE, result, temp); // no REF_MOVE in lir
+		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, result, temp, OPT_IRTools.TG());
+		  ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+		  beforeBB.appendInstruction(moveInst);
+		  beforeBB.appendInstruction(ifInst);
+		  redirectBB.appendInstruction(redirectInst);
+		  next = inst.nextInstructionInCodeOrder();   // needed since we split blocks
+	      }
+	  }
+	  break;
+      case INT_ASTORE_opcode:
+      case LONG_ASTORE_opcode:
+      case FLOAT_ASTORE_opcode:
+      case DOUBLE_ASTORE_opcode:
       case REF_ASTORE_opcode:
+      case BYTE_ASTORE_opcode:
+      case SHORT_ASTORE_opcode:
+	  if (VM_Configuration.BuildWithLazyRedirect) {
+	      // This barrier completely replaces all access instruction.
+	      OPT_Operand origArray = AStore.getClearArray(inst);
+	      OPT_RegisterOperand newArray = ir.gc.temps.makeTemp(origArray);
+	      OPT_Instruction redirectInst1 = GuardedUnary.create(GET_OBJ_RAW, newArray, origArray, OPT_IRTools.TG());
+	      redirectInst1.bcIndex = inst.bcIndex;
+	      inst.insertBefore(redirectInst1);
+	      AStore.setArray(inst, newArray);
+	      if (opcode == REF_ASTORE_opcode) {
+		  OPT_Operand value = AStore.getClearValue(inst);
+		  OPT_RegisterOperand temp = ir.gc.temps.makeTemp(value);
+		  AStore.setValue(inst,temp);
+		  OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+		  OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		  OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst.getPrev(), ir);  
+		  ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+		  ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+		  beforeBB.insertOut(afterBB);   // unusual path
+		  OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, temp,
+							new OPT_IntConstantOperand(0),  // NULL is 0
+							OPT_ConditionOperand.EQUAL(),
+							afterBB.makeJumpTarget(),
+							OPT_BranchProfileOperand.unlikely());
+		  OPT_Instruction moveInst = Move.create(INT_MOVE, temp, value); // no REF_MOVE in lir
+		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, temp, value, OPT_IRTools.TG());
+		  ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+		  beforeBB.appendInstruction(moveInst);
+		  beforeBB.appendInstruction(ifInst);
+		  redirectBB.appendInstruction(redirectInst);
+		  next = inst.nextInstructionInCodeOrder();   // needed since we split blocks
+	      }
+	  }
+	  else if (VM_Configuration.BuildWithEagerRedirect) {
+	      // no modifications needed for eager version on stores
+	  }
+	  
+	  else if (opcode == REF_ASTORE_opcode) {
 	//-#if RVM_WITH_CONCURRENT_GC
-	Call.mutate3(inst, CALL, null, null, 
-		     OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_aastoreMethod), 
-		     AStore.getClearArray(inst), 
-		     AStore.getClearIndex(inst), 
-		     AStore.getClearValue(inst));
-	inline(inst, ir);
-	//-#else
-	if (VM_Collector.NEEDS_WRITE_BARRIER) {
-	  OPT_Instruction wb =
-	    Call.create3(CALL, null, null, 
-			 OPT_MethodOperand.STATIC(VM_Entrypoints.arrayStoreWriteBarrierMethod), 
-			 AStore.getArray(inst).copy(), 
-			 AStore.getIndex(inst).copy(), 
-			 AStore.getValue(inst).copy());
-	  wb.bcIndex = RUNTIME_SERVICES_BCI;
-	  wb.position = inst.position;
-	  inst.insertBefore(wb);
-	  inline(wb, ir, true);
-	  next = inst.nextInstructionInCodeOrder(); 
-	}
+	      Call.mutate3(inst, CALL, null, null, 
+			   OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_aastoreMethod), 
+			   AStore.getClearArray(inst), 
+			   AStore.getClearIndex(inst), 
+			   AStore.getClearValue(inst));
+	      inline(inst, ir);
+        //-#else
+	      if (VM_Collector.NEEDS_WRITE_BARRIER) {
+		  OPT_Instruction wb =
+		      Call.create3(CALL, null, null, 
+				   OPT_MethodOperand.STATIC(VM_Entrypoints.arrayStoreWriteBarrierMethod), 
+				   AStore.getArray(inst).copy(), 
+				   AStore.getIndex(inst).copy(), 
+				   AStore.getValue(inst).copy());
+		  wb.bcIndex = RUNTIME_SERVICES_BCI;
+		  wb.position = inst.position;
+		  inst.insertBefore(wb);
+		  inline(wb, ir, true);
+		  next = inst.nextInstructionInCodeOrder(); 
+	      }
 	//-#endif
+	  }
 	break;
 
-        case PUTFIELD_opcode:
-          {
-	    OPT_LocationOperand loc = PutField.getLocation(inst);
-	    VM_Field field = loc.field;
-	    if (!field.getType().isPrimitiveType()) {
-	      //-#if RVM_WITH_CONCURRENT_GC
-	      String className = 
-		field.getDeclaringClass().getDescriptor().toString();
-	      if (className.equals("LVM_BlockControl;")) {
-		VM.sysWrite("Omitting barrier for method " + ir.method
-			    + " field " + field + "\n");
-	      } else {
-		Call.mutate3(inst, CALL, null, null, 
-			     OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_resolvedPutfieldMethod), 
-			     PutField.getClearRef(inst), 
-			     new OPT_IntConstantOperand(field.getOffset()), 
-			     PutField.getClearValue(inst));
-		inline(inst, ir);
+    case GETFIELD_opcode:
+    case GETFIELD_UNRESOLVED_opcode:
+	{
+	  if ((VM_Configuration.BuildWithLazyRedirect ||
+	      VM_Configuration.BuildWithEagerRedirect)) {
+	      // Leave the opcode so we don't have to handle UNRESOLVED stuff
+	      OPT_LocationOperand dataLoc = GetField.getLocation(inst);
+	      VM_Field dataField = dataLoc.field;
+	      OPT_Operand origObject = GetField.getClearRef(inst);
+	      if (VM_Configuration.BuildWithLazyRedirect) {
+		  OPT_RegisterOperand realObject = ir.gc.temps.makeTemp(origObject);
+		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, realObject, origObject, 
+								     GetField.getGuard(inst).copy());
+		  redirectInst.bcIndex = inst.bcIndex;
+		  inst.insertBefore(redirectInst);
+		  GetField.setRef(inst,realObject);
 	      }
-	      //-#else
-	      if (VM_Collector.NEEDS_WRITE_BARRIER) {
-                OPT_Instruction wb = 
-		  Call.create3(CALL, null, null, 
-			       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedPutfieldWriteBarrierMethod), 
-			       PutField.getRef(inst).copy(), 
-			       new OPT_IntConstantOperand(field.getOffset()), 
-			       PutField.getValue(inst).copy());
-                wb.bcIndex = RUNTIME_SERVICES_BCI;
-                wb.position = inst.position;
-                inst.insertBefore(wb);
-		inline(wb, ir, true);
-                next = inst.nextInstructionInCodeOrder();
-              }
-	      //-#endif
+	      else {  // VM_Configuration.BuildWithEagerRedirect
+		  if (!dataField.getType().isPrimitiveType()) {
+		      OPT_RegisterOperand result = GetField.getClearResult(inst);
+		      OPT_RegisterOperand temp = ir.gc.temps.makeTemp(result);
+		      GetField.setResult(inst,temp);
+		      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
+		      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+		      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+		      beforeBB.insertOut(afterBB);   // unusual path
+		      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, temp,
+							    new OPT_IntConstantOperand(0),  // NULL is 0
+							    OPT_ConditionOperand.EQUAL(),
+							    afterBB.makeJumpTarget(),
+							    OPT_BranchProfileOperand.unlikely());
+		      OPT_Instruction moveInst = Move.create(INT_MOVE, result, temp); // no REF_MOVE in lir
+		      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, result, temp, OPT_IRTools.TG());
+		      ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+		      beforeBB.appendInstruction(moveInst);
+		      beforeBB.appendInstruction(ifInst);
+		      redirectBB.appendInstruction(redirectInst);
+		  }
+	      }
+	  }
+	  else { 
+	      //-#if RVM_WITH_READ_BARRIER2
+            if ( (VM.CompileForIBGCinst || VM.CompileForCBGCinstrumentation || VM.CompileForDCacheSimulation) &&
+		 safeToInlineForInstrumentation(field, ir) ) {
+                // Sharad: load of a ref, instrument for both CBGC and cacheSimulator
+		OPT_Instruction rb =
+		    (opcode == GETFIELD_opcode) ?
+		    Call.create2(CALL, null, null,
+				 OPT_MethodOperand.STATIC(OPT_Entrypoints.resolvedGetfieldReadBarrierMethod),
+				 GetField.getRef(inst).copy(),
+				 new OPT_IntConstantOperand(field.getOffset())) :
+		    Call.create2(CALL, null, null,
+				 OPT_MethodOperand.STATIC(OPT_Entrypoints.unresolvedGetfieldReadBarrierMethod),
+				 GetField.getRef(inst).copy(),
+				 new OPT_IntConstantOperand(field.getDictionaryId()));
+		rb.bcIndex = RUNTIME_SERVICES;
+		rb.position = inst.position;
+		inst.insertBefore(rb);
+		// do inlining here and adjust next
+		inline(rb, ir);
+		next = inst.nextInstructionInCodeOrder();
 	    }
+	    //-#endif RVM_WITH_READ_BARRIER2
+	  }
+	}
+	break;
+
+
+        case PUTFIELD_opcode:
+        case PUTFIELD_UNRESOLVED_opcode:
+          {
+	    OPT_LocationOperand loc = PutField.getClearLocation(inst);
+	    VM_Field field = loc.field;
+	    if (VM_Configuration.BuildWithLazyRedirect) {
+		// This barrier leaves the PUTFIELD_? there for further translation so we don't have to handle UNRESOLVED
+		OPT_Operand origObject = PutField.getClearRef(inst);
+		OPT_RegisterOperand realObject = ir.gc.temps.makeTemp(origObject);
+		OPT_Operand redirectOffset = new OPT_IntConstantOperand(VM_ObjectLayoutConstants.OBJECT_REDIRECT_OFFSET);
+		OPT_Instruction redirectInst1 = GuardedUnary.create(GET_OBJ_RAW, realObject, origObject, 
+								   GetField.getGuard(inst).copy());
+		redirectInst1.bcIndex = inst.bcIndex;
+		inst.insertBefore(redirectInst1);
+		PutField.setRef(inst, realObject);
+		if (!field.getType().isPrimitiveType()) {
+		    OPT_Operand value = PutField.getClearValue(inst);
+		    OPT_RegisterOperand temp = ir.gc.temps.makeTemp(value);
+		    PutField.setValue(inst,temp);
+		    OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+		    OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		    OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst.getPrev(), ir);  // afterBB contains PutField
+		    ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+		    ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+		    beforeBB.insertOut(afterBB);   // unusual path
+		    OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, value,
+							  new OPT_IntConstantOperand(0),  // NULL is 0
+							  OPT_ConditionOperand.EQUAL(),
+							  afterBB.makeJumpTarget(),
+							  OPT_BranchProfileOperand.unlikely());
+		    OPT_Instruction moveInst = Move.create(INT_MOVE, temp, value); // no REF_MOVE in lir
+		    OPT_Instruction redirectInst = 
+			GuardedUnary.create(GET_OBJ_RAW, temp, value, OPT_IRTools.TG());
+		    ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+		    beforeBB.appendInstruction(moveInst);
+		    beforeBB.appendInstruction(ifInst);
+		    redirectBB.appendInstruction(redirectInst);
+		    next = inst.nextInstructionInCodeOrder();   // needed since we split blocks
+		}
+	    }
+	    else if (VM_Configuration.BuildWithEagerRedirect) {
+		// No modification needed
+	    }
+	    else if (!field.getType().isPrimitiveType()) {
+		    //-#if RVM_WITH_CONCURRENT_GC
+		    String className = 
+			field.getDeclaringClass().getDescriptor().toString();
+		    if (className.equals("LVM_BlockControl;")) {
+			VM.sysWrite("Omitting barrier for method " + ir.method
+				    + " field " + field + "\n");
+		    } else {
+			if (opcode == PUTFIELD_opcode)
+			    Call.mutate3(inst, CALL, null, null, 
+				     OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_resolvedPutfieldMethod), 
+				     PutField.getClearRef(inst), 
+				     new OPT_IntConstantOperand(field.getOffset()), 
+				     PutField.getClearValue(inst));
+			else // opcode == PUTFIELD_UNRESOLVED_opcode
+			    Call.mutate3(inst, CALL, null, null, 
+					 OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_unresolvedPutfieldMethod), 
+					 PutField.getClearRef(inst), 
+					 new OPT_IntConstantOperand(field.getDictionaryId()), 
+					 PutField.getClearValue(inst));
+			inline(inst, ir);
+		    }
+		    //-#else
+		    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+			OPT_Instruction wb = 
+			    (opcode == PUTFIELD_opcode) ? 
+			    Call.create3(CALL, null, null, 
+					 OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedPutfieldWriteBarrierMethod), 
+					 PutField.getRef(inst).copy(), 
+					 new OPT_IntConstantOperand(field.getOffset()), 
+					 PutField.getValue(inst).copy()) :
+			    Call.create3(CALL, null, null, 
+					 OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedPutfieldWriteBarrierMethod), 
+					 PutField.getRef(inst).copy(), 
+					 new OPT_IntConstantOperand(field.getDictionaryId()), 
+					 PutField.getValue(inst).copy());
+			wb.bcIndex = RUNTIME_SERVICES_BCI;
+			wb.position = inst.position;
+			inst.insertBefore(wb);
+			inline(wb, ir);
+			next = inst.nextInstructionInCodeOrder();
+		    }
+		    //-#endif
+	    } // else if
 	  }
 	  break;
 
-      case PUTFIELD_UNRESOLVED_opcode:
-	{
-	  OPT_LocationOperand loc = PutField.getLocation(inst);
-	  VM_Field field = loc.field;
-	  if (!field.getType().isPrimitiveType()) {
-	    //-#if RVM_WITH_CONCURRENT_GC
-	    Call.mutate3(inst, CALL, null, null, 
-			 OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_unresolvedPutfieldMethod), 
-			 PutField.getClearRef(inst), 
-			 new OPT_IntConstantOperand(field.getDictionaryId()), 
-			 PutField.getClearValue(inst));
-	    inline(inst, ir);
-	    //-#else
-	    if (VM_Collector.NEEDS_WRITE_BARRIER) {
-	      OPT_Instruction wb = 
-		Call.create3(CALL, null, null, 
-			     OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedPutfieldWriteBarrierMethod), 
-			     PutField.getRef(inst).copy(), 
-			     new OPT_IntConstantOperand(field.getDictionaryId()), 
-			     PutField.getValue(inst).copy());
-	      wb.bcIndex = RUNTIME_SERVICES_BCI;
-	      wb.position = inst.position;
-	      inst.insertBefore(wb);
-	      inline(wb, ir);
-	      next = inst.nextInstructionInCodeOrder();
-	    }
-	    //-#endif
+      case GETSTATIC_opcode: 
+      case GETSTATIC_UNRESOLVED_opcode: 
+	  if (VM_Configuration.BuildWithEagerRedirect) {
+	      // Leave the opcode here for further translation so we can avoid dealing with UNRESOLVED
+	      OPT_LocationOperand loc = GetStatic.getClearLocation(inst);
+	      VM_Field field = loc.field;
+	      if (!field.getType().isPrimitiveType()) {
+		  OPT_RegisterOperand result = ALoad.getClearResult(inst);
+		  OPT_RegisterOperand temp = ir.gc.temps.makeTemp(result);
+		  GetStatic.setResult(inst,temp);
+		  OPT_BasicBlock beforeBB = inst.getBasicBlock();           
+		  OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		  OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
+		  ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
+		  ir.cfg.linkInCodeOrder(redirectBB, afterBB);
+		  beforeBB.insertOut(afterBB);   // unusual path
+		  OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null,temp,
+							new OPT_IntConstantOperand(0),  // NULL is 0
+							OPT_ConditionOperand.EQUAL(),
+							afterBB.makeJumpTarget(),
+							OPT_BranchProfileOperand.unlikely());
+		  OPT_Instruction moveInst = Move.create(INT_MOVE, result, temp); // no REF_MOVE in lir
+		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, result, temp, OPT_IRTools.TG());
+		  ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
+		  beforeBB.appendInstruction(moveInst);
+		  beforeBB.appendInstruction(ifInst);
+		  redirectBB.appendInstruction(redirectInst);
+	      }
 	  }
-	}
-	break;
+	  break;
 
       case PUTSTATIC_opcode:
-	{
-	  //-#if RVM_WITH_CONCURRENT_GC
-	  OPT_LocationOperand loc = PutStatic.getLocation(inst);
-	  VM_Field field = loc.field;
-	  if (!field.getType().isPrimitiveType()) {
-	    Call.mutate2(inst, CALL, null, null, 
-			 OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_resolvedPutstaticMethod), 
-			 new OPT_IntConstantOperand(field.getOffset()), 
-			 PutStatic.getClearValue(inst));
-	    inline(inst, ir);
-	  }
-	  //-#endif
-	}
-	break;
-
       case PUTSTATIC_UNRESOLVED_opcode:
 	{
 	  //-#if RVM_WITH_CONCURRENT_GC
 	  OPT_LocationOperand loc = PutStatic.getLocation(inst);
 	  VM_Field field = loc.field;
 	  if (!field.getType().isPrimitiveType()) {
-	    Call.mutate2(inst, CALL, null, null, 
-			 OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_unresolvedPutstaticMethod), 
-			 new OPT_IntConstantOperand(field.getDictionaryId()), 
-			 PutStatic.getClearValue(inst));
-	    inline(inst, ir);
+	      if (opcode == PUTSTATIC_opcode)
+		  Call.mutate2(inst, CALL, null, null, 
+			       OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_resolvedPutstaticMethod), 
+			       new OPT_IntConstantOperand(field.getOffset()), 
+			       PutStatic.getClearValue(inst));
+	      else
+		  Call.mutate2(inst, CALL, null, null, 
+			       OPT_MethodOperand.STATIC(OPT_Entrypoints.RCGC_unresolvedPutstaticMethod), 
+			       new OPT_IntConstantOperand(field.getDictionaryId()), 
+			       PutStatic.getClearValue(inst));
+	      inline(inst, ir);
 	  }
 	  //-#endif
 	}
 	break;
 
-//-#if RVM_WITH_READ_BARRIER
-    case GETFIELD_opcode:
-	{
-	  // Sharad: load of a ref, instrument for both CBGC and cacheSimulator
-	  OPT_LocationOperand loc = GetField.getLocation(inst);
-	  VM_Field field = loc.field;
-	  if ( (VM.CompileForIBGCinst || VM.CompileForCBGCinstrumentation || VM.CompileForDCacheSimulation) &&
-	       safeToInlineForInstrumentation(field, ir) ) {
-	    OPT_Instruction rb = Call.create2(CALL, null, null,
-                    OPT_MethodOperand.STATIC(
-		       OPT_Entrypoints.resolvedGetfieldReadBarrierMethod),
-		       GetField.getRef(inst).copy(),
-                       new OPT_IntConstantOperand(field.getOffset())
-			 );
-
-	    rb.bcIndex = RUNTIME_SERVICES;
-	    rb.position = inst.position;
-	    inst.insertBefore(rb);
-	    // do inlining here and adjust next
-	    inline(rb, ir);
-	    next = inst.nextInstructionInCodeOrder();
-	  }
-	}
-	break;
-
-      case GETFIELD_UNRESOLVED_opcode:
-	{
-	  // Sharad: if load of a reference field, need for cache simulator
-	  OPT_LocationOperand loc = GetField.getLocation(inst);
-	  VM_Field field = loc.field;
-	  if ( (VM.CompileForIBGCinst || VM.CompileForCBGCinstrumentation || VM.CompileForDCacheSimulation) &&
-	       safeToInlineForInstrumentation(field, ir) ) {
-	    OPT_Instruction rb = Call.create2(CALL, null, null,
-                    OPT_MethodOperand.STATIC(
-                       OPT_Entrypoints.unresolvedGetfieldReadBarrierMethod),
-		       GetField.getRef(inst).copy(),
-                       new OPT_IntConstantOperand(field.getDictionaryId())
-			 );
-
-	    rb.bcIndex = RUNTIME_SERVICES;
-	    rb.position = inst.position;
-	    inst.insertBefore(rb);
-	    // do inlining here and adjust next
-	    inline(rb, ir);
-	    next = inst.nextInstructionInCodeOrder();
-	  }
-	}
-	break;
-//-#endif RVM_WITH_READ_BARRIER
-
-        default:
+      default:
           break;
       }
     }
