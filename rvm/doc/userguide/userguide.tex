@@ -15,18 +15,20 @@
 
 %Define macros
 %%  Releases
+%%     Oct, 2001: 2.0.0
 %%     Jan, 2001: 1.0, 1.0a
 %%     Apr, 2001: 1.1
-\newcommand{\version}{1.1}
+\newcommand{\version}{2.0.0}
 \newcommand{\jp}{Jalape\~{n}o}
-\newcommand{\jjvm}{\jp\ RVM}
+\newcommand{\jrvm}{Jikes RVM}
 \newcommand{\ignore}[1]{{}}
 \newcommand{\spec}{SPECjvm98}
 
 %% Html declarations: Output directory and filenames, node title
 %\htmlcss{http://www.w3.org/StyleSheets/Core/Steely}
-\htmltitle{\jp\ User's Guide v\version}
-\W \htmldirectory{HTML}
+\htmltitle{The Jikes\trademark Research Virtual Machine for Java\trademark
+\\ 
+User's Guide v\version} \W \htmldirectory{HTML}
 \W \renewcommand{\HlxIcons}{}
 \W \renewcommand{\htmlpanelfield}[3][\link]{\HlxAppend{\HlxPanelFields}%
   {\xml*{td bgcolor="###99ccff" align="center"}%
@@ -63,8 +65,10 @@
 \W \newcommand{\remark}[1]{}
 
 
-\title{\texonly{\vfill} {\huge \jp\ User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill}}
-\author{{\huge The \jp\ Team}} 
+\title{\texonly{\vfill} {\huge The Jikes\trademark Research Virtual
+Machine for Java\trademark
+\\
+User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill}}
 
 \makeindex
 
@@ -88,7 +92,7 @@
 \input{installation}
 
 \T \newpage
-\section{Running \jp} \label{section:running}
+\section{Running RVM} \label{section:running}
 \input{running}
 
 \T \newpage
@@ -110,11 +114,11 @@
 \input{mmdetails}
 
 \T \newpage
-\section{JDP: the \jp\ debugger}
+\section{JDP: the \jrvm debugger}
 \input{jdp}
 
 \T \newpage
-\section{Using \jp\ to Profile an Application}
+\section{Using the \jrvm to Profile an Application}
 \input{profiling}
 
 \T \newpage
@@ -124,10 +128,6 @@
 \T \newpage
 \section{Coding Style Guidelines}
 \input{codingstyle}
-
-\T \newpage
-\section{Unsupported Features}
-\input{unsupported}
 
 \T \newpage
 \section{FAQ}
@@ -142,14 +142,9 @@
 \T \bibliography{main}
 
 \T \newpage
-\section{Appendix A: \jp\ command-line directives}
+\section{Appendix A: RVM command-line directives}
 \label{appendix:nonadaptive:cmdline}
 \input{cmdline}
-
-\T \newpage 
-\section{Appendix B: Directory Structure Roadmap}
-\label{directories}
-\input{directories}
 
 \W \section*{\indexname}\label{hlxindex}
 \W \htmlprintindex

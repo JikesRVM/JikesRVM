@@ -32,7 +32,6 @@ INPUT_FILES = 	userguide.tex \
 		aosdetails.tex \
 		cmdline.tex \
 		codingstyle.tex \
-		directories.tex \
 		faq.tex \
 		installation.tex \
 		intro.tex \
@@ -42,10 +41,8 @@ INPUT_FILES = 	userguide.tex \
 		performance.tex \
 		profiling.tex \
 		running.tex \
-		unsupported.tex	\
 		remark.tex \
-		vmdetails.tex \
-		whatsnew.tex
+		vmdetails.tex
 
 GEN_INPUTS =	opt_options.tex adaptive_options.tex
 

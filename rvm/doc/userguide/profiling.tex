@@ -24,7 +24,7 @@ Here's how
 \end{verbatim}
 
 \item Run the application using the opt compiler as the runtime compiler and
-instructing \jp\ to gather profile data.
+instructing RVM to gather profile data.
 \begin{verbatim}
 % jalapeno -X:aos:primary_strategy=optonly -X:aos:gather_profile_data=true <classfile>
 \end{verbatim}
@@ -33,7 +33,7 @@ instructing \jp\ to gather profile data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Instrumented Event Counters}
 \label{counting_events}
-This section describes how the \jp\ optimizing compiler can be used to
+This section describes how the RVM optimizing compiler can be used to
 insert counters in the optimized code to count the frequency of
 specific events.  Infrastructure for counting events is in place that
 hides many of the implementation details of the counters, so that

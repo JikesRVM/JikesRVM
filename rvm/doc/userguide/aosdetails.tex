@@ -9,14 +9,14 @@ as of July 2000.
 
 
 \subsection{System Architecture}
-The \jp\ Adaptive Optimization System (AOS) contains three components, 
+The RVM Adaptive Optimization System (AOS) contains three components, 
 each of which encompasses one or more separate threads of control. 
 These subsystems are 
 the {\em runtime measurements subsystem\/}, 
 the {\em controller\/},  
 and the {\em recompilation subsystem\/}.  
 Figure~\ref{fig:arch-AOSOverview} depicts the internal structure of
-the \jp\ adaptive optimization system and the interactions between its
+the RVM adaptive optimization system and the interactions between its
 components. 
 In addition to the components, the {\em AOS database} provides a 
 repository that records component decisions and allows components 
@@ -98,7 +98,7 @@ process, or may record information in the AOS database for later
 queries by other AOS components.
 
 The sampling implementation takes advantage of existing mechanisms in
-\jp.  Before switching threads, a counter associated with the current
+RVM.  Before switching threads, a counter associated with the current
 method is incremented.  The system attributes a sample taken on a back
 edge to the current method.  A sample taken in a method prologue is
 credited to both the calling and current method, capturing the fact
@@ -187,7 +187,7 @@ activations of the method will continue to use the old compiled
 code for the method until that method's activation completes.  Nothing
 in our design precludes using stack frame rewriting to enable previous
 activations of the method to use the new compiled version, but this
-functionality has not yet been implemented.  We expect that \jp\ will
+functionality has not yet been implemented.  We expect that RVM will
 eventually rewrite baseline stack frames to optimized stack frames. 
 It is as yet unclear if there is sufficient motivation to support
 the more difficult transition between two optimized stack frames. 

@@ -1,4 +1,4 @@
-This section provides information regarding {\tt jdp}, the \jp\
+This section provides information regarding {\tt jdp}, the RVM
 debugger.
 \index{debugging}
 \index{jdp}
@@ -6,12 +6,12 @@ debugger.
 \subsection{About {\tt jdp}}
 
 \index{Remote Reflection}
-  {\tt jdp}, the \jp\ Debugger Primitive, is a low-level symbolic debugger 
+  {\tt jdp}, the RVM Debugger Primitive, is a low-level symbolic debugger 
 developed to support the
 RVM effort.  Because no existing debugger satisfactorily meets the
 needs of our RVM, {\tt jdp} was written essentially from scratch, hence the
 name primitive.  {\tt jdp} uses a technique called Remote
-Reflection (see the related paper on the \jp\ 
+Reflection (see the related paper on the RVM 
 \xlink{web page}{http://www.research.ibm.com/jalapeno}.  This
 allows {\tt jdp} to run out-of-process, yet it uses reflection extensively to
 access the internal data structures as if it resides inside the RVM.
@@ -26,7 +26,7 @@ used to connect {\tt jdp} with the RVM:  it maps the access bytecodes in the
 reflection methods to obtain the internal values in the RVM.
   
   {\tt jdp} is not intended to be a general purpose debugger; it is driven
-by the needs of the \jp\ group.  
+by the needs of the RVM group.  
 
    Because the optimizing compiler does not currently provide all of
    the mapping support required, {\tt jdp} functionality is limited in

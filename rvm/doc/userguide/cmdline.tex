@@ -15,7 +15,7 @@ directives are specified in a adaptive configuration.
 \label{subsection:nonadaptive:cmdline}
 
 This section describes how nonstandard RVM command line options are 
-specified for a nonadaptive configuration of \jp.
+specified for a nonadaptive configuration of RVM.
 In a nonadaptive configuration, the command line options modifies
 the behavior of the initial runtime compile when this compiler
 is the optimizing compiler.
@@ -153,7 +153,7 @@ implementation details for AOS command-line options.
 \index{VM\_AOSOptions class}
 The command-line options to AOS are
 stored as fields in an object of type {\tt VM\_AOSOptions}.
-The \jp\ build process generates the {\tt VM\_AOSOptions.java} 
+The RVM build process generates the {\tt VM\_AOSOptions.java} 
 file automatically from a template.  
 
 \index{BooleanOptions.dat}
@@ -167,21 +167,21 @@ The options in the {\tt ShareBooleanOptions.dat} and {\tt ShareValueOptions.dat}
 files are defined as both AOS and optimizing compiler options.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Adding \jp\ RVM Nonstandard Command-Line Options}
+\subsection{Adding RVM RVM Nonstandard Command-Line Options}
 
 This section states how nonstandard RVM command-line options can be added
-to \jp.  
-Nonstandard RVM command-line options are those options that are specific to \jp.
+to RVM.  
+Nonstandard RVM command-line options are those options that are specific to RVM.
 The format of a nonstandard RVM option is {\tt -X:o=v} where {\tt o} is the 
 option and {\tt v} is the value it is to be set to.
 Adherence to this format is important to keep command-line options processing
 from becoming unweildy.
 
-\jp\ command-line options are processed in two places: {\tt RunBootImage.C} and
+RVM command-line options are processed in two places: {\tt RunBootImage.C} and
 {\tt VM\_CommandLineArgs.java}.  
-{\tt RunBootImage.C} is called first before the \jp\ boot image is loaded,
+{\tt RunBootImage.C} is called first before the RVM boot image is loaded,
 and {\tt VM\_CommandLineArgs.java} is called after.
-In addition to processing any option which does not require \jp\ boot image
+In addition to processing any option which does not require RVM boot image
 to be loaded (such as {\tt help} and {\tt version}), 
 {\tt RunBootImage.C} processes any nonstandard option that impacts either 
 heap size, message output, or where to find the boot image.

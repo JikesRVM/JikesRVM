@@ -1,11 +1,11 @@
 This section provides some information on various
-implementation details for the \jp\ runtime system.
+implementation details for the RVM runtime system.
 
 \subsection{Object Layout} \label{sssec:objects}
 Values in Java\trademark are either {\em primitive} (e.g. {\tt int},
 {\tt double}, etc.)  or they are {\em references} (that is, pointers) to
 objects.  Objects are either {\em arrays} having components or {\em
-simple objects} having fields.  \jp's object model is governed by four
+simple objects} having fields.  RVM's object model is governed by four
 criteria: 
 \begin{itemize}
 \item{}
@@ -28,7 +28,7 @@ component.
 
 \index{NullPointerException}
 Java\trademark requires that an attempt to access an object through a {\tt null}
-object reference generate a NullPointerException.  In \jp, references
+object reference generate a NullPointerException.  In the RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
 The AIX operating system permits loads from low memory, but accesses
 to very high memory, at small {\em negative} offsets from a null
@@ -40,7 +40,7 @@ be addressed by a commercial JVM.  It would be sufficient to forbid
 read and write access to the last page of addressable memory.
 (Accesses to some of the fields of objects bigger than a page could be
 checked explicitly without having a major impact on performance.)}
-Thus, attempts to index off a null \jp\ array reference are trapped by
+Thus, attempts to index off a null array reference are trapped by
 the hardware, because array accesses require loading the array length
 which is $-4$ bytes off the array reference.  A hardware null-pointer
 check for field accesses is effected by locating fields at negative
@@ -52,13 +52,13 @@ offsets from the object reference.
 \hbox{\psfig{file=object.ps,height=3.5in}}
 }\hfil
 \end{gif}
-\caption{Layout of a simple object and an array object in \jp.}
+\caption{Layout of a simple object and an array object in RVM.}
 \label{fig:objects}
 \end{figure}
 
 \index{field access}
 \index{array access}
-In summary, in \jp, arrays grow up from the object reference (with the
+In summary, in RVM, arrays grow up from the object reference (with the
 array length at a fixed negative offset), while simple objects grow
 down from the object reference with all fields at a negative offset
 (see figure~\ref{fig:objects}).  A field access is accomplished with a
@@ -103,7 +103,7 @@ as well as has pointers to the class' virtual methods.
 A compiled method body is an array of machine instructions (stored as
 {\tt int}s). 
 While the pointers for static fields and methods are stored in the 
-{\em \jp\ Table of Contents} (JTOC),
+{\em RVM/J Table of Contents} (JTOC),
 pointers for instance fields and virtual methods are stored in the class's TIB.
 Consequently the dispatch mechanism is different for static and virtual 
 methods.
@@ -116,13 +116,13 @@ methods.
 \hbox{\psfig{file=jtoc.ps,height=3.5in}}
 }\hfil
 \end{gif}
-\caption{The \jp\ Table Of Contents and other objects.}
+\caption{The RVM Table Of Contents and other objects.}
 \label{fig:jtoc}
 \end{figure}
 \index{literals}
 \index{constants}
 \index{dynamic type checking}
-All of \jp's global data structures are stored in the JTOC. 
+All of RVM's global data structures are stored in the JTOC. 
 Literals, numeric
 constants and references to String constants, are also stored there.
 To enable fast common-case dynamic type checking, the JTOC also
@@ -130,7 +130,7 @@ contains references to the TIB for each class in the system.
 Since these 
 structures can have many types and the JTOC is declared to be an array of 
 {\tt int}s  
-\jp\ uses a descriptor array, co-indexed with the JTOC, 
+RVM uses a descriptor array, co-indexed with the JTOC, 
 to identify the entries containing references.
 A reference to the JTOC is maintained in a dedicated machine register 
 (the JTOC register).
@@ -141,7 +141,7 @@ is depicted in figure~\ref{fig:jtoc}.
 \index{virtual methods}
 A TIB contains pointers to the compiled method 
 bodies (executable code) for the virtual methods of its class. 
-Thus, the TIB serves as \jp's virtual method table.
+Thus, the TIB serves as RVM's virtual method table.
 A
 virtual method dispatch entails loading the TIB pointer at a fixed
 offset off the object reference, loading the address of the method
@@ -199,7 +199,7 @@ hidden parameter to dispatch to the desired interface method.
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that apply to 
-\jp\ on PowerPC.
+RVM on PowerPC.
 Other architectures will require other conventions to maximize performance.
 
 Stackframe layout and calling conventions may evolve as our understanding
@@ -308,7 +308,7 @@ temporaries,
 
 \end{verbatim}
 \label{fig:stackframe}
-\caption{\jp\ stack convention.}
+\caption{RVM stack convention.}
 \end{figure}
 
 Stacks grow from high memory to low memory.  The stack frame for a method
@@ -468,7 +468,7 @@ registers
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that apply to 
-\jp\ on Linux/IA32.
+RVM on Linux/IA32.
 
 \noindent{\bf Register conventions}
 
@@ -547,7 +547,7 @@ This section describes register, stack, and calling conventions that apply to
 
 \end{verbatim}
 \label{fig:lintel-stackframe}
-\caption{\jp\ Lintel stack convention.}
+\caption{RVM Lintel stack convention.}
 \end{figure}
 
 Stacks grow from high memory to low memory.  The stack frame for a method
@@ -606,7 +606,7 @@ pointed to by ESI must be set to point to region 3 of this frame.)
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
 
-\jp\ implements Java's dynamic class loading. While a class is being loaded it
+RVM implements Java's dynamic class loading. While a class is being loaded it
 can be in one of five states. These are
 \begin{description}
 \item[vacant] a forward reference exists to the class but loading has not yet 
@@ -661,7 +661,7 @@ been run.
 \subsection{VM Callbacks}\label{sssec:callbacks}
 \index{callbacks}
 
-The \jp\ RVM provides callbacks for most runtime events of interest to the RVM
+The RVM provides callbacks for most runtime events of interest to the RVM
 programmer, such as classloading, VM bootimage creation, and VM exit.  The
 callbacks allow arbitrary code to be executed on any of the supported events.
 
@@ -676,7 +676,7 @@ VM\_Callbacks.addClassInstantiatedMonitor()} with an instance of your class.
 When any class is instantiated, the {\tt notifyClassInstantiated} method in
 your instance will be invoked.
 
-The \jp\ RVM currently supports callbacks for the following events.
+The RVM currently supports callbacks for the following events.
 \begin{itemize}
 \item {\tt ClassLoaded}, which happens when a class is {\em loaded}.
 \item {\tt ClassResolved}, which happens when a class is {\em resolved}.

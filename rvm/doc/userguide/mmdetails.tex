@@ -1,5 +1,5 @@
 This Section provides additional information on the implementation
-of the memory management component of \jp\ runtime system.
+of the memory management component of RVM runtime system.
  
 \subsection{Directory Structure} \label{sssec:directories}
 The classes related to memory management are contained in the 
@@ -8,17 +8,17 @@ contain classes for a specific memory management strategy.
 For example, the allocator/copyingGC directory implements a
 simple semi-space copying allocator and collector.
 
-A \jp\ configuration specifies a memory management strategy, 
+A RVM configuration specifies a memory management strategy, 
 and the jconfigure command will include in the build all the
 classes in the allocator directory and all the classes in the
 sub-directory for the specified memory management strategy.
 The allocator directory contains classes common to multiple
 configurations, such as the load balancing work queue (see
-VM\_GCWorkQueue.java) which is used by all of the \jp\
+VM\_GCWorkQueue.java) which is used by all of the RVM
 garbage collectors.
 
 \subsection{Choosing an Allocator/Collector} \label{sssec:choosinggc}
-Depending on your purposes, you may choose to build \jp\
+Depending on your purposes, you may choose to build RVM
 with a copying, noncopying (mark-sweep), or hybrid collector.
 For programs which do not perform many collections, the
 copying collector will most likely perform best, since object
@@ -29,7 +29,7 @@ can be quite fast, and major collections are noncopying.
 
 Generally, the noncopying (mark-sweep)
 collector requires smaller heap storage for a given application	
-than a copying collector, which in \jp\ uses a semispace structure.
+than a copying collector, which in RVM uses a semispace structure.
 Also, major collections are faster with a noncopying collector,
 since objects are not moved.  The best performance for a particular	
 application should be determined by experiment.
@@ -37,7 +37,7 @@ application should be determined by experiment.
 \subsection{Adding A New Allocator/Collector} \label{sssec:newalloc}
 \index{garbage collection}
 \index{stop-the-world garbage collection}
-It is not difficult to add your own Allocator/Collector to \jp\,
+It is not difficult to add your own Allocator/Collector to RVM,
 especially if it uses the same ``stop the world'' parallel collection
 strategy used by all the collectors in this release.  The basic steps
 are:
@@ -53,7 +53,7 @@ and modify it, choosing one that has similar properties, such as copying or
 non-copying.  If you want to start from scratch, start with VM\_Allocator in noGC.
 This file provides simple implementations of the required object allocation
 methods, and stubs for the other fields and methods expected by the rest
-of the \jp\ runtime (not all will be needed in any one implementation).
+of the RVM runtime (not all will be needed in any one implementation).
 \end{enumerate}
 
 The provided collectors contain a number of common methods which you
@@ -75,7 +75,7 @@ All threads, except the executing collector threads, will be stopped a safe poin
 \index{finalizable objects}
 \index{finalizer method}
 The class VM\_GCWorkQueue, implements a load balancing workqueue
-which is used by all the \jp\ collectors to find all references reachable from
+which is used by all the RVM collectors to find all references reachable from
 some initial set of references.  It is used to find all objects reachable
 from roots, and also to find all objects reachable from finalizable objects
 that are made live in order to execute their finalizer methods.
@@ -93,9 +93,9 @@ example with 256 entries per buffer.
 \index{write buffer}
 \index{write barrier}
 \index{object header}
-\jp\ provides a class VM\_WriteBarrier to support generational garbage 
+RVM provides a class VM\_WriteBarrier to support generational garbage 
 collection. When the static final field VM\_Allocator.writeBarrier is true,
-all \jp\ compilers generate write barrier code, which tests a specified
+all RVM compilers generate write barrier code, which tests a specified
 bit in the object header of an object into which a ref is being stored,
 and, if the bit is set to one, makes an entry into a write buffer of the 
 address of the object, and sets the bit to zero.  Thus generational 
@@ -105,7 +105,7 @@ younger than themselves.  During garbage collection, collectors should
 turn the bit back to one, so that subsequent mutator execution that stores
 refs into such objects will be recorded.
 
-Currently, \jp\ copying generational and hybrid 
+Currently, RVM copying generational and hybrid 
 `collectors treat all objects which
 survive one garbage collection as old.  The noncopying (mark-sweep) 
 generational contains an as yet very experimental capability to require
@@ -143,7 +143,7 @@ or extend the VM\_Handshake and VM\_CollectorThread classes.
 \index{VM\_Allocator class}
 When the ``-verbose:gc'' command line argument is specified, the time
 spent in each collection will be written out after each collection.
-In addition, summary statistics are generated when \jp\ exits, which
+In addition, summary statistics are generated when RVM exits, which
 specify the number of collections, and average and maximum collection times.
 For generational collectors, this is given for Minor and Major collections.
 Some collectors provide additional information, that can be measured
@@ -159,7 +159,7 @@ This flag will cause the collector to measure the time spent in each
 of the phases of garbage collection, such as stopping mutators, finding roots,
 marking reachable objects, and finalization.  Turning on this flag will cause
 the summary statistics, with average times in each phase, to be generated 
-when \jp\ exits.  If -verbose:gc is specified the output is generated after
+when RVM exits.  If -verbose:gc is specified the output is generated after
 each collection. Turning on TIME\_GC\_PHASES in the common VM\_CollectorThread
 class will cause it to be set in what ever VM\_Allocator is being used.
 
@@ -169,7 +169,7 @@ spends waiting during a collection.  This is time waiting for buffers while
 processing the Work Queue, and time waiting in Rendezvous between phases of the
 collection process. Turning on this flag will cause
 the summary statistics, with average wait times, to be generated 
-when \jp\ exits.  If -verbose:gc is specified the output is generated after
+when RVM exits.  If -verbose:gc is specified the output is generated after
 each collection, for each collector thread.
 Turning on MEASURE\_WAIT\_TIMES in the common VM\_CollectorThread
 class will cause necessary flags in VM\_Allocator and VM\_GCWorkQueue to be set.
@@ -188,7 +188,7 @@ Not all flags are available in all VM\_Allocator files.
 
 \subsection{Expected Revisions} \label{sssec:revisions}
 At the time of this release, some revisions to the
-memory management component of \jp\
+memory management component of RVM
 are being planned.  It is likely that they will appear in
 the next release.
 
@@ -198,7 +198,7 @@ directory get compiled and included in all builds, even though
 only some subset will get used in any particular build.  The 
 files in the allocator directory will probably be moved into strategy
 specific subdirectories, such as for copying and non-copying 
-collectors, so that builds of \jp\ need only include the files
+collectors, so that builds of RVM need only include the files
 needed in a specific build.
 
 \paragraph{Factoring Out Common Code}
@@ -222,9 +222,9 @@ and collection is performed.
 (Note that the optional builds have not been recently tested)
 
 \paragraph{Thread Private Work Queues}
-\jp\ originally used private work queues for each collector thread
+RVM originally used private work queues for each collector thread
 participating in collection.  This has been replaced by the current
-load balancing work queue strategy.  It is possible to build \jp\
+load balancing work queue strategy.  It is possible to build RVM
 with the old thread private queues by setting the flag
 USE\_OLD\_PRIVATE\_WORKQUEUE in VM\_GCWorkQueue.java to true.
 (This is not recommended, but can be used to observe the relative

@@ -1,12 +1,12 @@
-This section describes how to run a \jp\ image built from the previous
+This section describes how to run an RVM  image built from the previous
 section. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Running \jp}
+\subsection{Running RVM}
 
 \index{jikes}
-\index{jalapeno script}
-\jp\ executes bytecodes from {\tt .class} files. It does {\em not} compile
+\index{rvm script}
+RVM executes bytecodes from {\tt .class} files. It does {\em not} compile
 Java\trademark source code. Therefore, all files 
 required by your program must have already been compiled into bytecode
 files by a Java\trademark compiler.  We recommend you use the IBM Jikes\trademark compiler.
@@ -25,7 +25,7 @@ jalapeno [rvm options] class [args]
 \end{verbatim}
 
 \index{command-line options}
-You may choose from myriad options for the \jp\ command-line.  
+You may choose from myriad options for the RVM command-line.  
 Options fall into two categories: {\em standard} and {\em
 non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
 
@@ -34,7 +34,7 @@ non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
 
 We currently support a subset of the JDK 1.3 standard options.  Below
 is a list of all options and their descriptions.  Unless otherwise noted each
-option is supported in \jp.
+option is supported in RVM.
 \begin{description}
 \item[{\tt -cp -classpath <directories and zip/jar files separated by :>}]
 set search path for application classes and resources

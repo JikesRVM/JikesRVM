@@ -1,5 +1,5 @@
-So you've gotten the \jp\ distribution.  Now what?  This section gives
-instructions on how to install and run \jp\ for the new \jp\ user.
+So you've gotten the RVM distribution.  Now what?  This section gives
+instructions on how to install and run RVM for the new RVM user.
 
 \subsection{System Prerequisites}
 To build on any platform you will need the following:
@@ -25,7 +25,7 @@ experienced problems with the AIX tar program truncating file names.
 
 \subsubsection{AIX/PowerPC}
 In addition to the software mentioned above, to install, build, and
-run \jp\ on a AIX/PowerPC environment, 
+run RVM on a AIX/PowerPC environment, 
 you will need 
 \begin{itemize}
 \item a PowerPC processor
@@ -38,7 +38,7 @@ you will need
 
 \subsubsection{Linux/IA32}
 In addition to the software mentioned above, to install, build, and
-run \jp\ on a Linux Intel environment, you will need 
+run RVM on a Linux Intel environment, you will need 
 \begin{itemize}
 \item an Intel Architecture 32 bit processor
 \item Linux  (we have run on RedHat 6.0 and 7.0)
@@ -52,7 +52,7 @@ an optimum size of memory, especially since the system has not been fully develo
 
 \subsubsection{Win32 and Cygwin/IA32}
 In addition to the software mentioned above, to install, build, and
-run \jp\ on a Win32/Cygwin Intel environment, you will need 
+run RVM on a Win32/Cygwin Intel environment, you will need 
 \begin{itemize}
 \item an Intel Architecture 32 bit processor
 \item a Win32 operating system (we have only tried it on Windows 2000).
@@ -71,7 +71,7 @@ installed.
 \xlink{{\tt http://www.cs.mun.ca/\~{}michael/pdksh}}
        {http://www.cs.mun.ca/\~{}michael/pdksh}.
 \end{itemize}
-Currently this option for running \jp\ is even less functional than
+Currently this option for running RVM is even less functional than
 the Linux/IA32 configuration. In particular,
 \begin{itemize}
 \item We haven't managed to successfully install a handler for hardware traps,
@@ -81,7 +81,7 @@ an ugly core dump.
 systems and one can thus build from a DFS-mounted shadow
 directory. However, something about them (most likely the 
 $\backslash\backslash$ ) is
-still confusing \jp.  Therefore, your build directories and all class
+still confusing RVM.  Therefore, your build directories and all class
 files for the programs you want to run must be on your local file
 system. Failure to do this will result in a class-not-found error.
 \item Spaces in directory names aren't handled by jconfigure and the
@@ -92,22 +92,22 @@ C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 
 
 \subsection{Installation Overview}
-The \jp\ distribution consists of a directory structure, which shadows a
+The RVM distribution consists of a directory structure, which shadows a
 CVS repository at Watson. 
 \index{shadow}
 We will refer to your own private copy of the 
-directory tree as your {\em shadow}.  The shadow holds the \jp\ 
-source files, tools needed to build \jp, and the sources of standard
+directory tree as your {\em shadow}.  The shadow holds the RVM 
+source files, tools needed to build RVM, and the sources of standard
 library files. 
 A more complete description of the shadow directory structure
 is provided in Section~\ref{rvmroot}.
 
-\jp\ can be configured in various ways. Multiple versions of \jp,
+RVM can be configured in various ways. Multiple versions of RVM,
 corresponding to different configurations, can be generated from 
 one shadow. See Section~\ref{configs} for information about the various 
 configurations.
 \index{configurations}
-The \jp\  {\em boot image} and other files generated during the 
+The RVM  {\em boot image} and other files generated during the 
 configuration process
 \index{boot image}
 are stored in a {\em build directory} which is logically separate from 
@@ -115,15 +115,15 @@ the shadow. See Section~\ref{rvmbuild} for a detailed description of the
 files in the build directory.
 \index{build directory}
 
-In order to install \jp\  you must:
+In order to install RVM  you must:
 \begin{enumerate}
 \item Obtain the shadow
 \item Set various environment variables
-\item Edit two \jp\ environment scripts
+\item Edit two RVM environment scripts
 \item Choose a configuration and run the configuration script to write
 the appropriate directory and configuration specific files to the
 build directory
-\item Build an executable version of \jp
+\item Build an executable version of RVM
 \end{enumerate}
 
 The remainder of this section describes the process in greater detail.
@@ -133,7 +133,7 @@ The remainder of this section describes the process in greater detail.
 \begin{enumerate}
 \item Obtain the shadow
 
-Extract the \jp\ distribution into
+Extract the RVM distribution into
 a directory such as {\tt \$HOME/jalapeno-1.1}
 
 \index{environment variables}
@@ -148,7 +148,7 @@ You need to set up the following shell environment variables:
 \item [{\tt RVM\_ROOT}] the directory that contains the extracted
 distribution 
 \item [{\tt RVM\_BUILD}] the directory where you would like the build
-process to generate an executable \jp\ configuration
+process to generate an executable RVM configuration
 
 \item [{\tt RVM\_HOST\_CONFIG}] the configuration file used to specify
 the software environment on which the system is generated i.e. where the
@@ -245,10 +245,10 @@ may need definitions.
 
 You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
-first choose a \jp\ configuration.
+first choose a RVM configuration.
 
 For novice users, two configurations are recommended.  (A discussion
-of \jp\ configurations is contained in Section~\ref{configs}.)
+of RVM configurations is contained in Section~\ref{configs}.)
 
 \begin{itemize}
 \item {\tt BaseBasecopyingGC}: a non-adaptive system that uses the
@@ -286,13 +286,13 @@ the following command:
 \index{jbuild script}
 \index{boot image}
 \index{RVM\_BUILD}
-\item Build an executable version of \jp\ .  
+\item Build an executable version of RVM .  
 
 Use the {\tt jbuild} script, located in the {\tt \$RVM\_BUILD} directory,
 to build an executable system.  This script copies source files into
 {\tt \$RVM\_BUILD/Jalapeno.classes}, preprocesses these files, generates
 some code with template expansions, builds an executable C program to
-start the RVM, and writes the \jp\ boot image.  The boot image is the
+start the RVM, and writes the RVM boot image.  The boot image is the
 binary image of a ready-to-go instance of the RVM.
 
 The {\tt jbuild} script must be run from the {\tt \$RVM\_BUILD}
@@ -306,7 +306,7 @@ save for future reference by redirecting standard out and err.
 
 
 After the {\tt jbuild} script has completed successfully you should be able 
-to run \jp.  (See Section~\ref{section:running}.)
+to run RVM.  (See Section~\ref{section:running}.)
 
 Note: The jbuild for Linux/Intel currently produces approximately 13 error
 messages, most pertaining to the fact that Reflection is not implemented.
@@ -314,12 +314,12 @@ They do not affect the operation of the system.
 
 \end{enumerate}
 
-\subsection{\jp\ Configurations}\label{configs}
+\subsection{RVM Configurations}\label{configs}
 \index{configuration names}
 
-This section describes the \jp\ build configurations.
+This section describes the RVM build configurations.
 
-The standard \jp\ configurations follow the following naming scheme
+The standard RVM configurations follow the following naming scheme
 \begin{verbatim}
        <boot image compiler> <runtime compiler> <garbage collector>
 \end{verbatim}
@@ -328,7 +328,7 @@ The standard \jp\ configurations follow the following naming scheme
 \index{runtime compiler}
 where
 \begin{itemize}
-\item the {\em boot image compiler} is the compiler used to compile the \jp\ boot image.
+\item the {\em boot image compiler} is the compiler used to compile the RVM boot image.
 \item the {\em runtime compiler} is the ``compiler'' used to compile
 the classes loaded at runtime.  
 \item the {\em garbage collector} is the garbage collection scheme used.
@@ -371,8 +371,8 @@ The standard configurations may be modified in the following manner.
 \item The word 
 {\em Full} at the beginning of the configuration name identifies a 
 configuration
-such that all the \jp\ classes are included in the boot image (by default
-a small subset of the \jp\ classes are included in the boot image). 
+such that all the RVM classes are included in the boot image (by default
+a small subset of the RVM classes are included in the boot image). 
 \item The word
 {\em Fast} at the beginning of the configuration name identifies a Full
 configuration where all assertion checking has been turned off. 
@@ -435,8 +435,8 @@ Some configurations may not be available at your site.
 
 \subsection{Cross Platform Building}
 
-The \jp\ build process consists of two major phases: the building of a
-\jp\ {\em boot image}, and the building of a \jp\ {\em boot loader}.
+The RVM build process consists of two major phases: the building of a
+RVM {\em boot image}, and the building of a RVM {\em boot loader}.
 The boot image is build using a Java\trademark program executed within a host
 JVM and is therefore platform-neutral.  By contrast, the boot loader
 is written in C, and must be compiled on the target platform.
@@ -489,7 +489,7 @@ The build process is then completed by building just the boot loader {\em
 \end{verbatim}
 
 After the {\tt jbuild -booter} script has completed successfully you should be able 
-to run \jp. 
+to run RVM. 
 
 The building of the boot loader must occur in the same directory as
 the rest of the build.  This can either be done transparently via a
