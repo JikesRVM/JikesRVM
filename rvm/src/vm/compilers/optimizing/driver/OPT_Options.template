@@ -48,12 +48,6 @@ $$$$ END LET USE_OPT_LEVELS
       }
       return true;
     }
-
-    //-#if RVM_WITH_OPT_INSTRUMENTATION
-    if (VM_OptInstrumentor.processCommandLineArg(name, value))
-      return true;
-    //-#endif
-
     return false;
   }    
 
