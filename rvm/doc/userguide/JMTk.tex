@@ -2,36 +2,36 @@
 
 \newcommand{\vmInterfacePackageURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/package-frame.html}
 \newcommand{\JMTkPackageURL}{{\RVMJavadocURL}/memoryManagers/JMTk/package-frame.html}
-\newcommand{\BaseFreeListURL}{{\RVMJavadocURL}/BaseFreeList.html}
-\newcommand{\MarkSweepCollectorURL}{{\RVMJavadocURL}/MarkSweepCollector.html}
-\newcommand{\BumpPointerURL}{{\RVMJavadocURL}/BumpPointer.html}
-\newcommand{\SharedQueueURL}{{\RVMJavadocURL}/SharedQueue.html}
-\newcommand{\LocalSSBURL}{{\RVMJavadocURL}/LocalSSB.html}
-\newcommand{\BasePlanURL}{{\RVMJavadocURL}/BasePlan.html}
-\newcommand{\StopTheWorldGCURL}{{\RVMJavadocURL}/StopTheWorldGC.html}
-\newcommand{\GenerationalURL}{{\RVMJavadocURL}/Generational.html}
-\newcommand{\VMResourceURL}{{\RVMJavadocURL}/VMResource.html}
-\newcommand{\CopyURL}{{\RVMJavadocURL}/Copy.html}
-\newcommand{\AddressQueueURL}{{\RVMJavadocURL}/AddressQueue.html}
-\newcommand{\MemoryResourceURL}{{\RVMJavadocURL}/MemoryResource.html}
-\newcommand{\MonotoneVMResourceURL}{{\RVMJavadocURL}/MonotoneVMResource.html}
-\newcommand{\FreeListVMResourceURL}{{\RVMJavadocURL}/FreeListVMResource.html}
-\newcommand{\LazyMmapperURL}{{\RVMJavadocURL}/LazyMmapper.html}
-\newcommand{\RawPageAllocatorURL}{{\RVMJavadocURL}/RawPageAllocator.html}
-\newcommand{\VMInterfaceURL}{{\RVMJavadocURL}/VM\_Interface.html}
-\newcommand{\ScanObjectURL}{{\RVMJavadocURL}/ScanObject.html}
-\newcommand{\ScanStaticsURL}{{\RVMJavadocURL}/ScanStatics.html}
-\newcommand{\ScanThreadURL}{{\RVMJavadocURL}/ScanThread.html}
-\newcommand{\VMGCMapIteratorURL}{{\RVMJavadocURL}/VM\_GCMapIterator.html}
-\newcommand{\VMCollectorThreadURL}{{\RVMJavadocURL}/VM\_CollectorThread.html}
-\newcommand{\VMHandshakeURL}{{\RVMJavadocURL}/VM\_Handshake.html}
+\newcommand{\BaseFreeListURL}{{\RVMJavadocURL}/memoryManagers/JMTk/BaseFreeList.html}
+\newcommand{\MarkSweepCollectorURL}{{\RVMJavadocURL}/memoryManagers/JMTk/MarkSweepCollector.html}
+\newcommand{\BumpPointerURL}{{\RVMJavadocURL}/memoryManagers/JMTk/BumpPointer.html}
+\newcommand{\SharedQueueURL}{{\RVMJavadocURL}/memoryManagers/JMTk/SharedQueue.html}
+\newcommand{\LocalSSBURL}{{\RVMJavadocURL}/memoryManagers/JMTk/LocalSSB.html}
+\newcommand{\BasePlanURL}{{\RVMJavadocURL}/memoryManagers/JMTk/BasePlan.html}
+\newcommand{\StopTheWorldGCURL}{{\RVMJavadocURL}/memoryManagers/JMTk/StopTheWorldGC.html}
+\newcommand{\GenerationalURL}{{\RVMJavadocURL}/memoryManagers/JMTk/Generational.html}
+\newcommand{\VMResourceURL}{{\RVMJavadocURL}/memoryManagers/JMTk/VMResource.html}
+\newcommand{\CopyURL}{{\RVMJavadocURL}/memoryManagers/JMTk/Copy.html}
+\newcommand{\AddressQueueURL}{{\RVMJavadocURL}/memoryManagers/JMTk/AddressQueue.html}
+\newcommand{\MemoryResourceURL}{{\RVMJavadocURL}/memoryManagers/JMTk/MemoryResource.html}
+\newcommand{\MonotoneVMResourceURL}{{\RVMJavadocURL}/memoryManagers/JMTk/MonotoneVMResource.html}
+\newcommand{\FreeListVMResourceURL}{{\RVMJavadocURL}/memoryManagers/JMTk/FreeListVMResource.html}
+\newcommand{\LazyMmapperURL}{{\RVMJavadocURL}/memoryManagers/JMTk/LazyMmapper.html}
+\newcommand{\RawPageAllocatorURL}{{\RVMJavadocURL}/memoryManagers/JMTk/RawPageAllocator.html}
+\newcommand{\VMInterfaceURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/VM\_Interface.html}
+\newcommand{\ScanObjectURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/ScanObject.html}
+\newcommand{\ScanStaticsURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/ScanStatics.html}
+\newcommand{\ScanThreadURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/ScanThread.html}
+\newcommand{\VMGCMapIteratorURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/VM\_GCMapIterator.html}
+\newcommand{\VMCollectorThreadURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/VM\_CollectorThread.html}
+\newcommand{\VMHandshakeURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/VM\_Handshake.html}
 
 This section provides information on the implementation of JMTk, the
-memory management component of Jikes\trademark RVM runtime system.
+memory management component of Jikes\trademark\ RVM runtime system.
 
-From Jikes\trademark RVM 2.2.0 onward, JMTk (Java Memory management
+From Jikes RVM 2.2.0 onward, JMTk (Java Memory management
 Toolkit) became the default memory management system for Jikes RVM.
-JMTk is designed to be a portable toolkit, with Jikes\trademark
+JMTk is designed to be a portable toolkit, with Jikes
 RVM-specific code factored out as far as possible.
 
 \subsubsection{Directory Structure and Packages} \label{sssec:directories}
