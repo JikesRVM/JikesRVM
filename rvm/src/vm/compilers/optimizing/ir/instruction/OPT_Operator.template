@@ -300,6 +300,8 @@ $$$$ END IF
   static final private int dynLink      = 0x00080000; 
   // operator is a yield point
   static final private int yieldPoint   = 0x00100000; 
+  // operator pops floating-point stack after performing defs
+  static final private int fpPop        = 0x00200000; 
 
   /**
    * Does the operator represent a simple move (the value is unchanged) 
