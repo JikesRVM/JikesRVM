@@ -1,0 +1,61 @@
+\newcommand{\eclipseURL}{http://www.eclipse.org}
+\newcommand{\antURL}{http://ant.apache.org}
+
+ Version 2.2.1 of Jikes RVM is the first release that purports to run
+\xlink{Eclipse}{\eclipseURL}; this is really a technology preview and
+for that reason we start with some caveats, the most obvious being
+that any attempt at production-mode use of Eclipse with Jikes RVM
+would be very silly. Furthermore:
+\begin{itemize}
+\item Do even attempt to try this unless you are running a
+recent---7.3 or newer---version of RedHat Linux for Intel IA32. 
+\item Use only BaseBase* and *Adaptive* Jikes RVM builds when trying
+to run Eclipse.  The *Opt* images have terrible performance, and are
+the most likely to trip over bugs.
+\item Use only the *SemiSpace builds of Jikes RVM.  We have seen
+various limitations of the other collectors, such as severe
+fragmentation and implementation-specific resource limits.
+\item Use only the Eclipse builds for Linux and GTK.  There are builds
+for Linux and Motif, but we never test these and work on Eclipse seems
+to focus on the GTK version.
+\item We strongly recommend Eclipse 2.1 versions, currently the latest
+stable builds from \xlink{{\tt \eclipseURL}}{\eclipseURL}.  Eclipse
+2.0.x releases may also work.
+\item The Eclipse debugging support for Java programs---which relies
+on talking JDWP to the vm---will certainly not work, since there is no
+debugging support in Jikes RVM.
+\end{itemize}
+
+ Given these caveats, Eclipse has been running on Jikes RVM at
+Watson in various configurations since the summer of 2002, and
+more-or-less all of the standard Eclipse functionality appears to work
+(The single biggest exception is debugging support, as mentioned
+above).  We have successfully developed and run Java programs, checked
+projects out of CVS repositories, used the refactoring support, run
+the Web-based help system, applied updates to Eclipse, and so on.
+Furthermore, performance is generally not too bad, at least when
+adaptive builds of Jikes RVM are used.  Most importantly, we very much
+want people outside to try running Eclipse on Jikes RVM: we eagerly
+solicit feedback regarding bugs and would be especially grateful for
+any contributions that enhance the usability of Eclipse on Jikes RVM.  
+
+ Setting up Eclipse and Jikes RVM is relatively straightforward; you
+have to install Jikes RVM and Eclipse themselves first, and, after
+that, there are just a few steps:
+\begin{enumerate}
+\item Install Ant---the Java-based build tool.  You can get this from
+\xlink{{\tt \antURL}}{\antURL}. 
+\item Add two variables to your Jikes RVM configuration file:
+ \begin{description}
+ \item[ANT\_CMD] is the full pathname of the executable Ant command
+ \item[ECLIPSE\_INSTALL\_DIR] is the root of your Eclipse install
+ \end{description}
+\item In a fresh build directory, run ./jbuild.plugin to install
+support for Eclipse to use Jikes RVM
+\end{enumerate}
+
+ Once you have done this, you will be able to run Eclipse on Jikes RVM
+using the {\tt RVM\_ROOT/rvm/bin/rvmeclipse} command.  This wrapper
+calls the normal Eclipse command, instructing it to use Jikes RVM to
+run Eclipse.  You must have RVM\_ROOT and RVM\_BUILD set whenever you
+invoke {\tt rvmeclipse}.

@@ -1,19 +1,49 @@
-As of version 2.2.0, Jikes\JikesTMFootnote\ RVM has mostly switched to
-using the \xlink{GNU Classpath}{\classpathURL} class libraries.  The
-default library configuration is a ``hybrid'' configuration that uses
-the original OTI-derived class libraries for the {\tt java.lang}, {\tt
-java.lang.ref}, {\tt java.lang.reflect}, {\tt java.util}, {\tt
-java.io}, and {\tt java.net} packages.  All other packages come from
-GNU Classpath.
+ As of version 2.2.1, Jikes\JikesTMFootnote\ RVM has adopted the
+\xlink{GNU Classpath}{http://www.classpath.org} libraries.  GNU
+Classpath is an ongoing project working towards a complete set of
+Java\JavaTMFootnote\ libraries, and rough guides to what portions of
+the libraries exist can be found on the GNU Classpath web site.  Jikes
+RVM runs with unmodified versions of GNU Classpath straight from its
+ftp site, and the Jikes RVM configuration process checks out
+appropriate versions of the library as needed.  Thus, the integration
+can be seemless from a user's perspective.
 
-There is also an experimental ``pure'' configuration that uses only
-the GNU Classpath class libraries. Although we are moving towards
-making the classpath-only configuration the default for Jikes RVM, it
-is not yet ready for general use. We hope to make this the default in
-the near future.
+ The automatic, seamless use of GNU Classpath is appropriate for
+nearly all users of Jikes RVM, and is strongly recommended.  There are
+two other configurations that work in this release, but both are
+subject to change without notice in CVS head (including possible
+deletion). 
 
-Some library classes require special VM support.  This is provided by
+\begin{description}
+\item[Manual GNU Classpath] If you set the CLASSPATH\_SRC variable in
+your Jikes RVM configuration file, the build process will use the
+libraries that are located there.  The setup must mimic the one
+generated automatically, which means that
+CLASSPATH\_SRC/`config.guess` must cointain a build for your platform
+and CLASSPATH\_SRC/classpath must be a version of GNU Classpath from
+CVS.  This option is primarily for people who want to work on the
+Jikes RVM integration with GNU Classpath; it will be maintained in
+some form in the future, although the mechanics may change
+arbitrarily.
+
+\item[Hybrid OTI-GNU Classpath] This is what was standard in
+the last release: a few core packages come from our old OTI-derived
+libraries and the rest is from GNU Classpath.  To use these libraries
+henceforth, you must give the RVM\_WITH\_GNU\_CLASSPATH=0 option to
+jconfigure.  This configuration is significantly less functional than
+the GNU Classpath-only version, and is provided in this release for
+migration purposes only.  {\em This configuration is deprecated and
+will be deleted in the future; you are STRONGLY DISCOURAGED from using
+it for ANY purpose save that of migrating code that currently depends
+upon it.}
+\end{description}
+
+ Some library classes require special VM support.  This is provided by
 {\tt com.ibm.JikesRVM.librarySupport} and the classes found in
-{\tt rvm/src/vm/OTILibrarySupport} and {\tt rvm/src/vm/GNUClasspathSupport}. 
+{\tt rvm/src/vm/OTILibrarySupport} and {\tt
+rvm/src/vm/GNUClasspathSupport}.  With the impending demise of the
+hybrid-OTI libraries, we anticipate that this code will be
+restructured in a forthcoming release.
 
+\JavaTMFooter
 \JikesTMFooter

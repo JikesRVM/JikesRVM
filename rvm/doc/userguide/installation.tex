@@ -1,101 +1,156 @@
-So you've downloaded the Jikes\trademark RVM distribution.  Now what?
-This section gives 
-instructions on how to install and run the system.
+ This section gives instructions on how to install and run Jikes RVM.
+If your system meets certain prerequisites, the install process is
+quite simple; if not, you may need to do some preparatory work.  We
+present the simple case first.  We then present details for installing
+on other platforms, and finally discuss further installation steps for
+running Eclipse on Jikes RVM.
 
-\subsection{System Prerequisites}
-To build on any platform you will need the following:
+\subsection{Installing on RedHat Linux 7.3 and 8.x for Intel x86}
+
+ Increasingly, the primary platform for Jikes RVM is RedHat Linux for
+Intel IA32.  If you have either a developer or full install of RedHat
+Linux 7.3 or newer, your system will have almost everything you need
+to run Jikes RVM.  The following instructions describe how to install
+Jikes RVM and build an executable version of it:
+\begin{enumerate}
+
+\item Download and install a Java Virtual Machine if you have not
+already done so.  We currently recommend the Blackdown VM, v1.3.1,
+which you can download from \xlink{{\tt \BlackdownURL}}
+{\BlackdownURL}. \footnote{We have seen problems using the IBM 1.3.1
+DK; avoid it until these problems can be resolved. Also, please note
+that RedHat 8.x does have a `java' command, but that does not invoke a
+JVM and will not suffice for building Jikes RVM.}
+
+\item Download and install {\tt ksh} if you have not already done so.
+Obtain the latest rpm file for pdksh; you can get this from
+\xlink{rpmfind}{http://rpmfind.net}. 
+
+\item Download and install the Jikes compiler, if you have not already
+done so (it is not included in standard RedHat installs).  You can
+obtain Jikes from \xlink{the Jikes developerWorks site}{\JikesURL}.
+Use the pre-built rpm file for jikes-1.18 or higher.
+
+\item Download Jikes RVM from developerWorks and unpack it.  We shall
+hereinafter call the location of the RVM distribution RVM\_ROOT/rvm.
+
+\item Edit a configuration file so that it fits your machine.  One of
+the i686-pc-linux files in RVM\_ROOT/rvm/config will probably be
+more-or-less right to begin with.  On Linux, most standard commands
+(and Jikes) are in /usr/bin.  Hereinafter, we will call your edited
+file RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine
+
+\item Setup your evironment with definitions required by Jikes RVM.
+There are four of these that you must use; in addition,
+RVM\_ROOT/rvm/bin should be in your path.
+\begin{description}
+
+\item[RVM\_ROOT] is the location of the Jikes RVM distribution.  It
+must be RVM\_ROOT as given above.
+
+\item[RVM\_HOST\_CONFIG] is the configuration file of the machine
+building Jikes RVM.  It must be
+RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine.
+
+\item[RVM\_TARGET\_CONFIG] is the configuration of the machine running
+Jikes RVM.  It must be RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine.
+
+\item[RVM\_BUILD] is the location where Jikes RVM is to be built.  It
+can be anywhere.
+\end{description}
+
+\item Setup a build directory with `jconfigure BaseBaseSemiSpace,' or
+use some other configuration if you prefer.
+
+\item Build Jikes RVM: go to RVM\_BUILD and type `./jbuild'
+
+\end{enumerate}
+
+\newcommand{\gccURL}{ftp://ftp.gnu.org/gnu/gcc}
+\newcommand{\glibcURL}{ftp://ftp.gnu.org/gnu/glibc}
+\newcommand{\makeURL}{ftp://ftp.gnu.org/gnu/make}
+\newcommand{\tarURL}{ftp://ftp.gnu.org/gnu/tar}
+\newcommand{\autoconfURL}{ftp://ftp.gnu.org/gnu/autoconf}
+\newcommand{\automakeURL}{ftp://ftp.gnu.org/gnu/automake}
+\newcommand{\kshURL}{http://www.cs.mun.ca/~michael/pdksh}
+\newcommand{\linuxPPCJDKURL}{http://www.ibm.com/java/jdk/linux/index.html}
+\newcommand{\linuxKernelURL}{http://www.kernel.org}
+
+\subsection{The Hard Way}
+
+ For any platform that is not RedHat Linux 7.3 or newer for Intel
+IA32, installation can be more complicated.  We present a list system
+prerequisites, and then a series of install steps that assumes you
+have those.
+
+\subsubsection{System Prerequisites}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|l|l|l|} \hline\hline
+{\em software} & {\em version} & {\em site} \\ \hline
+\multicolumn{3}{|c|}{\em All platforms}                     \\ \hline
+GNU make       & 3.79+    & \xlink{\tt \makeURL}{\makeURL}         \\ 
+GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\ 
+automake       & 1.6.3+   & \xlink{\tt \automakeURL}{\automakeURL} \\
+autoconf       & 2.53+    & \xlink{\tt \autoconfURL}{\autoconfURL} \\
+gcc            & 2.95+    & \xlink{\tt \gccURL}{\gccURL}           \\
+unzip          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
+Jikes          & 1.18+    & \xlink{\tt \jikesURL}{\jikesURL}       \\
+ksh            & {\em any}& \xlink{\tt \kshURL}{\kshURL}	   \\ \hline
+\multicolumn{3}{|c|}{\em Linux/IA32}                      \\ \hline
+kernel         & 2.4+ ({\em See below}) & \xlink{\tt \linuxKernelURL}{\linuxKernelURL} \\
+JDK            & Blackdown 1.3.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
+glibc          & 2.2+ ({\em See below}) & \xlink{\tt \glibcURL}{\glibcURL} \\ \hline
+\multicolumn{3}{|c|}{\em AIX/PowerPC}                     \\ \hline
+AIX            & 4.3+     & yeah, right :)                         \\
+JDK            & IBM DK 1.3.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ \hline
+\multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
+JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
+\hline\hline 
+\end{tabular}
 \begin{itemize}
-\item GNU make. You can download this from
-\xlink{{\tt \gnuMakeURL}} {\gnuMakeURL}.
-
-\item The Jikes\trademark Java\trademark compiler 
-You can download this from
-\xlink{{\tt \jikesURL}} {\jikesURL}.
-You can use any of the pre-compiled binaries, or build it yourself
-from the source. We recommend either version 1.13 or version 1.18.  
-We have seen problems with version 1.14 through 1.17.  For releases of
-Jikes RVM before version 2.2.0, you must use jikes 1.13. 
-
-\item GNU tar is needed to extract the distribution tar file.  
-You can download this from
-\xlink{{\tt \gnuTarURL}} {\gnuTarURL}.
-We have experienced problems with the AIX\AIXTMFootnote\ tar program
-truncating file names. 
-
-\item unzip. 
-You can download an {\tt unzip} implementation from
-\xlink{{\tt \unzipURL}} {\unzipURL}.
-
+\item {\tt glibc} for Linux/IA32 must use the GS register for
+thread-local state.  See the build instructions for glibc for details;
+if that scares you, use a recent RedHat Linux distribution.
+\item It is possible to use 2.2 Linux kernels with multiprocessor
+support disabled in Jikes RVM.  We do not recommend this; if you
+insist, look in {\tt jconfigure} for details.
 \end{itemize}
-
-%% footnotes not allowed in section headings, so we specialize
-\htmlonly{\subsubsection{AIX/PowerPC\trademark}}
-\texonly {\subsubsection{AIX/PowerPC\trademark}}
-
-In addition to the software mentioned above, to install, build, and
-run the Jikes RVM on a AIX/PowerPC environment, 
-you will need 
-\begin{itemize}
-\item a PowerPC processor
-\item AIX 4.3 or later, and
-\item (recommended) 512MB of memory.
-\item the IBM AIX Developer Kit for Java version 1.3.0.  You can
-download this from \xlink{{\tt \AIXJdkURL}} {\AIXJdkURL}. 
-\item a C/C++ compiler.  We recommend {\tt gcc v2.95.3}; it's been
-reported that other gcc versions on AIX don't work.  It's also been
-reported that IBM's {\tt xlC} works.
-\end{itemize}
-
-\subsubsection{Linux/IA32}
-In addition to the software mentioned above, to install, build, and
-run the Jikes RVM on a Linux Intel\copyright environment, you will need 
-\begin{itemize}
-\item an Intel Architecture 32 bit processor
-\item Linux  (we have run on RedHat 6.0 and 7.0)
-\item The system has run in 386MB; we have not established a lower bound.
-\item a JDK.  We currently recommend the Blackdown VM, v1.3.1. You can
-download this from 
-\xlink{{\tt \BlackdownURL}} {\BlackdownURL}. 
-We have seen problems using the IBM 1.3.1 DK; avoid it until these problems
-can be resolved.
-\item {\tt ksh}. This must be installed in {\tt /bin/ksh}. If you
-don't already have a ksh, we recommend {\tt pdksh}.
-\end{itemize}
+\end{center}
+\caption{System prerequisites for Jikes RVM}
+\label{prereqs}
+\end{table}
 
 \AIXPPCJikesTMFooter
 
 \JavaTMFooter
 
-\subsection{Installation Overview}
+\subsubsection{Installation Overview}
 
-To install and build the Jikes\trademark RVM, three items are required
+To install and build the Jikes\trademark RVM, two items are required
 \begin{itemize}
 \item The Jikes RVM source distribution.  This is available as a
 compressed tar file {\tt \RVMTarFile}.  You can also work with the
 contents of this repository with CVS from the 
 \xlink{public repository}{\RVMCVSURL}.
 
-\item The Jikes RVM standard libraries. This is a jar file {\tt \LibTarFile}.
-
 \item The 
 \xlink{Classpath}{\classpathURL} libraries. 
 \end{itemize}
 
 Each item is distributed under a different license.  The licenses for
-the first two items are provided in Appendix~\ref{appendix:licenses}.  The GNU
-Classpath license is available at
-\xlink{{\tt \classpathURL}}{\classpathURL}.
+the first item is provided in Appendix~\ref{appendix:licenses}.  The
+GNU Classpath license is available at \xlink{{\tt
+\classpathURL}}{\classpathURL}. 
 
-The first and second items are available  from the Jikes RVM
-\xlink{download}{\RVMDownloadURL} page. The third item is available at
+The first item is available  from the Jikes RVM
+\xlink{download}{\RVMDownloadURL} page. The second item is available at
 \xlink{{\tt \classpathURL}}{\classpathURL}.
-You do not always need to explicitly download the
-second and third items; the Jikes RVM build process will automatically
-check that these two items are present. If they are not present, and if
-the build process can confirm that you have viewed the appropriate license
-for JLIBRARIES, the build process
-will automatically download these items after asking for your
-confirmation. 
+You do not usually need to explicitly download the GNU Classpath
+libraries; the Jikes RVM build process will automatically check that
+the right version is present. If not, the build process will
+automatically download it.
 
 Once these files have been downloaded, you will set up 
 a working directory holding the Jikes RVM source files, standard
@@ -129,7 +184,7 @@ The remainder of this section describes the process in greater detail.
 
 \JikesTMFooter
 
-\subsection{Installation Steps}
+\subsubsection{Installation Steps}
 
 \begin{enumerate}
 \item {\bf Set up a working directory.}
@@ -142,16 +197,6 @@ directory such as
 % mkdir rvmRoot
 % cd rvmRoot
 % zcat jikesrvm-[version].tar.gz | tar xvf - 
-\end{verbatim}
-
-Next, extract the Jikes RVM standard libraries. If you have previously
-downladed some version of the libraries, you may ignore this step and
-it will happen automatically for you when you try to build a
-Jikes RVM configuration.  The following installs the
-standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
-\begin{verbatim}
-% cd $HOME/rvmRoot
-% zcat jlibraries-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
 \index{environment variables}
@@ -235,9 +280,9 @@ RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR
 \begin{description}
 \item {\tt AIX/PowerPC} 0 
 \item {\tt Linux/PowerPC} 1 
-\item {\tt Linux/IA32} 1 with a 2.2 kernel; 
-0 with a 2.4 kernel and glibc compiled to use the GS
-segment register to access pthread-specific state.
+\item {\tt Linux/IA32} 0\footnote{You must use 1 here if you do not
+have 2.4 kernel and glibc compiled to use the GS segment register to
+access pthread-specific state.  We do not recommend such a setup.}
 \end{description}                
 The second section in the configuration file is used to define how to
 find tools that Jikes RVM needs. You must set the following variables:
@@ -522,40 +567,6 @@ a stream-lined process.
 \JikesAIXTMFooter
 
 \JavaTMFooter
-
-\subsection{Building the Libraries}
-
-Most Jikes\trademark RVM users will not need to rebuild the libraries;
-thus the default 
-process described above provides a ``binary'' {\tt rvmrt.jar}.  However,
-the library source for the RVM is available at
-\xlink{{\tt \RVMDownloadURL}}{\RVMDownloadURL}.  
-Please consult the 
-\xlink{license}{\RVMLibSourceLicenseURL} for restrictions.  
-
-Should you decide to modify the library, you will need to rebuild the 
-{\tt rvmrt.jar}.  The script to do this is
-{\tt \$RVM\_ROOT/rvm/bin/jBuildLibs}.  Running this script will compile the
-library sources in {\tt \$RVM\_ROOT/support/lib}, and build a new {\tt
-rvmrt.jar} in {\tt \$RVM\_BUILD}.
-
-You will find that some versions (including 1.13) of 
-\xlink{{\tt Jikes}}{ \jikesURL } fail to compile the
-libraries, dying with myriad errors.  You need to apply Jikes 
-patch 62 to
-the Jikes build to fix a problem with variable shadowing by inner classes. 
-We have
-successfully applied this patch to Jikes version 1.13 on both
-AIX\copyright and Linux/IA32.
-
-The {\tt jBuildLibs} script will prompt you whether to install 
-the new {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.  
-If you answer {\tt 'y'}, future invocations of {\tt jbuild} will pick up
-the new library build.  However, this will
-{\em overwrite} the original version of {\tt rvmrt.jar}, so  be
-careful!
-
-\JikesAIXTMFooter
 
 \subsection{Building Documentation}
 
