@@ -19,6 +19,26 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
+ *
+ * This abstract class implements a simple segregated free list.<p>
+ *
+ * See: Wilson, Johnstone, Neely and Boles "Dynamic Storage
+ * Allocation: A Survey and Critical Review", IWMM 1995, for an
+ * overview of free list allocation and the various implementation
+ * strategies, including segregated free lists.<p>
+ *
+ * We maintain a number of size classes, each size class having a free
+ * list of available objects of that size (the list may be empty).  We
+ * call the storage elements "cells".  Cells reside within chunks of
+ * memory called "blocks".  All cells in a given block are of the same
+ * size (i.e. blocks are homogeneous with respect to size class).
+ * Each block maintains its own free list (free cells within that
+ * block).  For each size class a list of blocks is maintained, one of
+ * which will serve the role of the current free list.  When the free
+ * list on the current block is exhausted, the next block for that
+ * size class becomes the current block and its free list is used.  If
+ * there are no more blocks the a new block is allocated.<p>
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
@@ -66,7 +86,7 @@ abstract class SegregatedFreeList extends Allocator
   protected VM_AddressArray firstBlock;
   protected VM_AddressArray lastBlock;
   protected VM_AddressArray currentBlock;
-  protected int []          cellsInUse;
+  protected int [] cellsInUse;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -80,6 +100,7 @@ abstract class SegregatedFreeList extends Allocator
    * allocator will acquire virtual memory.
    * @param mr The memory resource against which memory consumption
    * for this free list allocator will be accounted.
+   * @param plan The plan with which this instance is associated.
    */
   SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, Plan plan) {
     blockAllocator = new BlockAllocator(vmr, mr, plan);
@@ -140,13 +161,17 @@ abstract class SegregatedFreeList extends Allocator
    * forced out of line to reduce pressure on the compilation of the
    * core alloc routine.<p>
    *
-   * Precondtion: The free list for <code>sizeClass</code> is exhausted.<p>
+   * Precondition: The free list for <code>sizeClass</code> is
+   * exhausted.<p>
    *
    * Postconditions: A new cell has been allocated (not zeroed), and
    * the block containing the cell has been placed on the appropriate
    * free list data structures.  The free list itself is not updated
    * (the caller must do so).<p>
-   *
+   * 
+   * @param isScalar True if the object to occupy this space will be a
+   * scalar.
+   * @param bytes The size of the object to occupy this space, in bytes.
    * @param sizeClass  The size class of the cell to be allocated.
    * @return The address of the first word of the <code>bytes</code>
    * contigious bytes of non-zerod memory.
@@ -156,12 +181,16 @@ abstract class SegregatedFreeList extends Allocator
     throws VM_PragmaNoInline {
     VM_Address current = currentBlock.get(sizeClass);
     if (!current.isZero()) {
+      // flush the current (empty) free list
       flushFreeList(current, sizeClass, VM_Address.zero());
+
+      // find a free list which is not empty
       current = BlockAllocator.getNextBlock(current);
       while (!current.isZero()) {
 	advanceToBlock(current, sizeClass);
 	VM_Address cell = getFreeList(current);
 	if (!cell.isZero()) {
+	  // this block has at least one free cell, so use it
 	  currentBlock.set(sizeClass, current);
 	  cellsInUse[sizeClass] = getInUse(current) + 1;
 	  freeList.set(sizeClass, getNextCell(cell));
@@ -176,6 +205,19 @@ abstract class SegregatedFreeList extends Allocator
     return allocSlow(isScalar, bytes);
   }
 
+  /**
+   * Perform a slow path allocation, attempting just once to acquire
+   * space.  This method is called by the super class's allocSlow()
+   * method which will handle the case of resource exhaustion,
+   * re-calling this method if necessary.
+   *
+   * @param isScalar True if the object to occupy this space will be a
+   * scalar.
+   * @param bytes The size of the object to occupy this space, in bytes.
+   * @return The address of the first word of <code>bytes</code>
+   * contigious bytes of zeroed memory, or zero if memory could not be
+   * acquired.
+   */
   protected final VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes)
     throws VM_PragmaInline {
     int sizeClass = getSizeClass(bytes);
@@ -193,6 +235,17 @@ abstract class SegregatedFreeList extends Allocator
 
   abstract protected void advanceToBlock(VM_Address block, int sizeClass);
 
+  /**
+   * Expand a particular size class, allocating a new block, breaking
+   * the block into cells and placing those cells on a free list for
+   * that block.  The block becomes the current head for this size
+   * class and the address of the first available cell is returned.
+   *
+   * @param sizeClass The size class to be expanded
+   * @return The address of the first available cell in the newly
+   * allocated block, or zero if there were insufficient resources to
+   * allocate a new block.
+   */
   private final VM_Address expandSizeClass(int sizeClass) 
     throws VM_PragmaInline {
     VM_Address block = blockAllocator.alloc(blockSizeClass[sizeClass]);
@@ -206,15 +259,12 @@ abstract class SegregatedFreeList extends Allocator
     VM_Address sentinal = block.add(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
     VM_Address lastCell = VM_Address.zero();
     int cellCount = 0;
-    //    VM.sysWrite("xs["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(sizeClass); VM.sysWrite(" "); VM.sysWrite(blockHeaderSize[sizeClass]); VM.sysWrite(" "); VM.sysWrite(block.add(blockHeaderSize[sizeClass])); VM.sysWrite(" "); VM.sysWrite(sentinal); VM.sysWrite(" "); 
     while (cursor.add(cellExtent).LE(sentinal)) {
-      //      VM.sysWrite(cursor); VM.sysWrite(" "); 
-      setNextCell(cursor, lastCell); // fixme why did I want to pass classsize as third arg???
+      setNextCell(cursor, lastCell); 
       lastCell = cursor;
       cursor = cursor.add(cellExtent);
       cellCount++;
     }
-    //    VM.sysWrite("]\n");
     cellsInUse[sizeClass] = 0;
     postExpandSizeClass(block, sizeClass);
     
@@ -225,11 +275,24 @@ abstract class SegregatedFreeList extends Allocator
 
   abstract void postExpandSizeClass(VM_Address block, int sizeClass);
 
+  /**
+   * Return the next cell in a free list chain.
+   *
+   * @param cell The address of teh current cell.
+   * @return The next cell in a free list chain (null if this is the
+   * last).
+   */
   protected final VM_Address getNextCell(VM_Address cell)
     throws VM_PragmaInline {
     return VM_Magic.getMemoryAddress(cell);
   }
 
+  /**
+   * Set the next cell in a free list chain
+   *
+   * @param cell The cell whose link is to be set
+   * @param next The next cell in the chain.
+   */
   private final void setNextCell(VM_Address cell, VM_Address next)
     throws VM_PragmaInline {
     VM_Magic.setMemoryAddress(cell, next);
@@ -240,18 +303,32 @@ abstract class SegregatedFreeList extends Allocator
   // Freeing
   //
 
+  /**
+   * Free a cell.  The cell is added to the free list for the given
+   * block, and the inuse count for the block is decremented, the
+   * block freed if empty.
+   *
+   * @param cell The cell to be freed
+   * @param block The block on which the cell resides
+   * @param sizeClass The size class of the cell and block
+   */
   protected final void free(VM_Address cell, VM_Address block, int sizeClass)
     throws VM_PragmaInline {
-    //    VM.sysWrite("f<"); VM.sysWrite(cell); VM.sysWrite(">\n");
     addToFreeList(cell, block);
     if (decInUse(block) == 0)
       freeBlock(block, sizeClass);
   }
 
+  /**
+   * Add a cell to its block's free list.
+   * 
+   * @param cell The cell to be added to the free list
+   * @param block The block on which the cell resides
+   */
   private final void addToFreeList(VM_Address cell, VM_Address block)
     throws VM_PragmaInline {
     VM_Address next = getFreeList(block);
-    setNextCell(cell, next); // fixme why did I want to pass classsize as third arg???
+    setNextCell(cell, next);
     setFreeList(block, cell);
   }
 
@@ -260,6 +337,13 @@ abstract class SegregatedFreeList extends Allocator
   // Block management
   //
 
+  /**
+   * Install a new block. The block needs to be added to the size
+   * class's linked list of blocks and made the current block.
+   *
+   * @param block The block to be added
+   * @param sizeClass The size class to which the block is being added
+   */
   private final void installNewBlock(VM_Address block, int sizeClass) 
     throws VM_PragmaInline {
     BlockAllocator.linkedListInsert(block, lastBlock.get(sizeClass));
@@ -269,9 +353,15 @@ abstract class SegregatedFreeList extends Allocator
       firstBlock.set(sizeClass, block);
   }
 
+  /**
+   * Free a block.  The block needs to be removed from its size
+   * class's linked list before being freed.
+   *
+   * @param block The block to be freed
+   * @param sizeClass The size class with which the block was associated.
+   */
   protected final void freeBlock(VM_Address block, int sizeClass) 
     throws VM_PragmaInline {
-    //   VM.sysWrite("fb<");VM.sysWrite(block); VM.sysWrite(">\n");
     VM_Address next = BlockAllocator.getNextBlock(block);
     VM_Address prev = BlockAllocator.getPrevBlock(block);
     BlockAllocator.unlinkBlock(block);
@@ -357,7 +447,6 @@ abstract class SegregatedFreeList extends Allocator
   //
 
   public final void flushFreeLists() {
-    //    VM.sysWrite("Flushing free lists!\n");
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
       if (!currentBlock.get(sizeClass).isZero()) {
 	VM_Address block = currentBlock.get(sizeClass);
@@ -369,7 +458,6 @@ abstract class SegregatedFreeList extends Allocator
   }
 
   public final void restoreFreeLists() {
-    //    VM.sysWrite("Flushing free lists!\n");
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
       currentBlock.set(sizeClass, firstBlock.get(sizeClass));
       VM_Address block = firstBlock.get(sizeClass);
@@ -401,14 +489,8 @@ abstract class SegregatedFreeList extends Allocator
     VM_Word value = VM_Word.fromInt((cell.toInt() & FREE_LIST_MASK) | (sizeClass << SIZE_CLASS_SHIFT) | (inuse << INUSE_SHIFT));
     VM_Magic.setMemoryWord(block.add(FREE_LIST_OFFSET), value);
     
-    if (block.EQ(DEBUG_BLOCK)) {
-      VM.sysWrite(inuse); VM.sysWrite(" "); VM.sysWrite(value); VM.sysWrite(" "); VM.sysWrite(inuse << INUSE_SHIFT); VM.sysWrite(" "); VM.sysWrite(value.toInt()>>INUSE_SHIFT); VM.sysWrite(" sfliu\n");
-    }
     if (VM.VerifyAssertions) {
       VM._assert(inuse == getInUse(block));
-      if (cell != getFreeList(block)) {
-	VM.sysWrite(cell); VM.sysWrite(" != "); VM.sysWrite(getFreeList(block)); VM.sysWrite("\n");
-      }
       VM._assert(cell == getFreeList(block));
       VM._assert(sizeClass == getSizeClass(block));
     }
@@ -448,9 +530,6 @@ abstract class SegregatedFreeList extends Allocator
   protected static final int getInUse(VM_Address block) 
     throws VM_PragmaInline {
     int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
-    if (block.EQ(DEBUG_BLOCK)) {
-      VM.sysWrite(value); VM.sysWrite(" "); VM.sysWrite(value>>INUSE_SHIFT); VM.sysWrite(" giu\n");
-    }
     return value >> INUSE_SHIFT;
   }
 
@@ -458,9 +537,6 @@ abstract class SegregatedFreeList extends Allocator
     throws VM_PragmaInline {
     int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & ~INUSE_MASK) | (inuse << INUSE_SHIFT);
-    if (block.EQ(DEBUG_BLOCK)) {
-      VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(value); VM.sysWrite(" "); VM.sysWrite(value>>INUSE_SHIFT); VM.sysWrite(" siu\n");
-    }
     VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
   }
 
