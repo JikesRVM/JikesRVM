@@ -176,11 +176,21 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     VM_Processor primordialProcessor = processors[PRIMORDIAL_PROCESSOR_ID];
 
+    //-#if RVM_WITH_HPM
+    // boot primordial virtual processor's HPM producer
+    primordialProcessor.hpm.boot();    
+    //-#endif
+
     processors = new VM_Processor[1 + numProcessors + 1];  // first slot unused; then normal processors; then 1 ndp
 
     processors[PRIMORDIAL_PROCESSOR_ID] = primordialProcessor;
-    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) 
+    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       processors[i] = new VM_Processor(i, VM_Processor.RVM);
+      //-#if RVM_WITH_HPM
+      // boot virtual processor's HPM producer
+      processors[i].hpm.boot();    
+      //-#endif
+    }
 
     // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
     // so reset here...maybe change everything to just use index
@@ -269,16 +279,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (cpuAffinity != NO_CPU_AFFINITY)
       VM.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
-
-    //-#if RVM_WITH_HPM
-    // set up HPM settings for current virtual processor
-    if (VM_HardwarePerformanceMonitors.enabled()) {
-      if (VM.TraceThreads)      
-	trace("VM_Scheduler.boot()","call to sysHPMsetSettings() and sysHPMstartCounting()\n");
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMsetSettingsIP);
-      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
-    }
-    //-#endif
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
