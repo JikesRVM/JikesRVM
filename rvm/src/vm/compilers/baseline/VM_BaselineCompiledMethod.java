@@ -49,11 +49,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    */
   private int[] lineInstructionOffsets;    
   
-  // Local variable tables for use by "findLocalVariablesForInstruction()"
-  // Null tables mean "method has no local variable information".
-  private int[] localStartInstructionOffsets;           // range of instructions for which...
-  private int[] localEndInstructionOffsets;             // ...i-th table entry is in scope (inclusive)
-
   //-#if RVM_WITH_OSR
   /* To make a compiled method's local/stack offset independ of
    * original method, we move 'getFirstLocalOffset' and 'getEmptyStackOffset'
@@ -206,26 +201,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     return -1;
   }
 
-  // Find local variables that are in scope of specified machine instruction.
-  //
-  public final VM_LocalVariable[] findLocalVariablesForInstruction (int instructionOffset) {
-    VM_LocalVariable[] localVariables = method.getLocalVariables();
-    if (localVariables == null)
-      return null;
-    // pass 1
-    int count = 0;
-    for (int i = 0, n = localVariables.length; i < n; ++i)
-      if (instructionOffset >= localStartInstructionOffsets[i] && instructionOffset <= localEndInstructionOffsets[i])
-        count++;
-      // pass 2
-    VM_LocalVariable[] results = new VM_LocalVariable[count];
-    count = 0;
-    for (int i = 0, n = localVariables.length; i < n; ++i)
-      if (instructionOffset >= localStartInstructionOffsets[i] && instructionOffset <= localEndInstructionOffsets[i])
-        results[count++] = localVariables[i];
-    return results;
-  }
-
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
@@ -341,22 +316,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
         lineInstructionOffsets[i] = (bytecodeMap[startPCs[i]] << VM.LG_INSTRUCTION_WIDTH);
     }
 
-    // create local variable tables
-    //
-    VM_LocalVariable[] vmap = method.getLocalVariables();
-    if (vmap != null) {
-      localStartInstructionOffsets = new int[vmap.length];
-      localEndInstructionOffsets = new int[vmap.length];
-      for (int i = 0, n = vmap.length; i < n; ++i) {
-        VM_LocalVariable v = vmap[i];
-        localStartInstructionOffsets[i] = bytecodeMap[v.startPC] << VM.LG_INSTRUCTION_WIDTH;
-	if (v.endPC < bytecodeMap.length) {
-	  localEndInstructionOffsets[i] = bytecodeMap[v.endPC] << VM.LG_INSTRUCTION_WIDTH;
-	} else { 
-	  localEndInstructionOffsets[i] = numInstructions << VM.LG_INSTRUCTION_WIDTH;
-	}
-      }
-    }
   }
 
   private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
@@ -367,8 +326,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     if (eTable != null) size += intArray.getInstanceSize(eTable.length);
     if (lineInstructionOffsets != null) size += intArray.getInstanceSize(lineInstructionOffsets.length);
     if (referenceMaps != null) size += referenceMaps.size();
-    if (localStartInstructionOffsets != null) size += intArray.getInstanceSize(localStartInstructionOffsets.length);
-    if (localEndInstructionOffsets != null) size += intArray.getInstanceSize(localEndInstructionOffsets.length);
     return size;
   }
 }

@@ -1719,7 +1719,6 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Field;'          >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Lcom/ibm/JikesRVM/classloader/VM_Field;'         >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Method;'         >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Lcom/ibm/JikesRVM/classloader/VM_LocalVariable;'  >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_MemberReference;'>> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_MethodReference;'>> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_FieldReference;' >> $PRIMORDIAL_CLASSES_STR"

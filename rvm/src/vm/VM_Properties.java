@@ -70,10 +70,6 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean verboseJNI = false;
 
-  // Symbolic info to support debugger.
-  //
-  public static boolean LoadLocalVariableTables = false;
-
   /**
    * The following is set on by -X:measureCompilation=true command line arg.
    * When true, it times compilations and generates a report at VM exit.

@@ -49,10 +49,6 @@ public final class VM_Method extends VM_Member {
    * pc to source-line info (null --> none)
    */
   private final VM_LineNumberMap lineNumberMap;       
-  /**
-   * info for use by debugger (null --> none)
-   */
-  private final VM_LocalVariable[] localVariables;      
 
   // Byte Code Annotations
   private short[]	annotationPC;
@@ -104,7 +100,6 @@ public final class VM_Method extends VM_Member {
     VM_ExceptionHandlerMap tmp_exceptionHandlerMap = null;
     VM_Type[] tmp_exceptionTypes = null;
     VM_LineNumberMap tmp_lineNumberMap = null;      
-    VM_LocalVariable[] tmp_localVariables = null;  
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i<n; i++) {
@@ -130,13 +125,6 @@ public final class VM_Method extends VM_Member {
 	    cnt = input.readUnsignedShort();
 	    if (cnt != 0) {
 	      tmp_lineNumberMap = new VM_LineNumberMap(input, cnt);
-	    }
-	  } else if (VM.LoadLocalVariableTables && attName == VM_ClassLoader.localVariableTableAttributeName) {
-	    cnt = input.readUnsignedShort();
-	    if (cnt != 0) {
-	      tmp_localVariables = new VM_LocalVariable[cnt];
-	      for (int k = 0, m = tmp_localVariables.length; k < m; k++)
-		tmp_localVariables[k] = new VM_LocalVariable(declaringClass, input);
 	    }
 	  } else if (attName == VM_ClassLoader.arrayNullCheckAttributeName) {
 	    annotationNum = 0;
@@ -183,8 +171,6 @@ public final class VM_Method extends VM_Member {
     exceptionHandlerMap = tmp_exceptionHandlerMap;
     exceptionTypes = tmp_exceptionTypes;
     lineNumberMap = tmp_lineNumberMap;
-    localVariables = tmp_localVariables;
-
 
     //-#if RVM_WITH_OPT_COMPILER
     if (bytecodes != null) {
@@ -366,14 +352,6 @@ public final class VM_Method extends VM_Member {
 
   public final int getBytecodeLength() {
     return bytecodes == null ? 0 : bytecodes.length;
-  }
-
-  /**
-   * Local variables defined by this method.
-   * @return info (null --> no locals or method wasn't compiled with "-g")
-   */
-  public final VM_LocalVariable[] getLocalVariables() throws VM_PragmaUninterruptible {
-    return localVariables;
   }
 
   /**

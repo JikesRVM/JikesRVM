@@ -315,15 +315,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   }
 
   /**
-   * Find local variables that are in scope of specified machine instruction.
-   * @param instructionOffset offset of machine instruction from start of method
-   * @return local variables (null --> no local variable information available)
-   */
-  public VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
-    return null;
-  }
-
-  /**
    * Print this compiled method's portion of a stack trace 
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintStream to print the stack trace to.

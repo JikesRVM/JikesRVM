@@ -39,7 +39,6 @@ public class VM extends VM_Properties
    */
   public static void initForTool() throws VM_ResolutionException, VM_PragmaInterruptible  {
     runningTool = true;
-    LoadLocalVariableTables = true;  // make sure to load the local table
     init(System.getProperty("java.class.path"), null);
   }
 
@@ -50,7 +49,6 @@ public class VM extends VM_Properties
    */
   public static void initForTool(String classpath) throws VM_ResolutionException, VM_PragmaInterruptible {
     runningTool = true;
-    LoadLocalVariableTables = true;  // make sure to load the local table
     init(classpath, null);
   }
 
