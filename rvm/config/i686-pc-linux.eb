@@ -90,7 +90,9 @@ export SED="/bin/sed"
 export WGET="/usr/bin/wget"
 export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
+export ANT_CMD="/usr/local/ant/bin/ant"
 
-export CLASSPATH_SRC=/home/dolby/projects/classpath/classpath-cvs
+export ECLIPSE_INSTALL_DIR="/home/dolby/projects/eclipse/eclipse-I20030129"
+
 
 
