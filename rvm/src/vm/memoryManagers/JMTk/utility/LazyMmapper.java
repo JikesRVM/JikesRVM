@@ -112,6 +112,15 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     lock.release();
   }
 
+  public static boolean addrIsMapped (VM_Address addr) throws VM_PragmaUninterruptible {
+    int chunk = Conversions.addressToMmapChunksDown(addr);
+    return mapped[chunk] == MAPPED;
+  }
+
+  public static boolean refIsMapped (VM_Address ref) throws VM_PragmaUninterruptible {
+    return addrIsMapped(VM_Interface.refToAddress(ref));
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Private static methods and variables
@@ -143,6 +152,13 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     for (int c = 0; c < MMAP_NUM_CHUNKS; c++) {
       mapped[c] = UNMAPPED;
     }
+  }
+
+  public static void boot (VM_Address bootStart, int bootSize) {
+    int startChunk = Conversions.addressToMmapChunksDown(bootStart);
+    int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
+    for (int i=startChunk; i<=endChunk; i++)
+      mapped[i] = MAPPED;
   }
 
 }
