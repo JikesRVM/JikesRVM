@@ -9,21 +9,16 @@
  *
  */
 // #include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
-// Sink for messages relating to serious errors detected by C runtime.
-//
-#include <stdio.h>
 
-#if ! defined __GNUC__ || (__GNUC__ < 3)
-/* Unless we're running GCC 3.0 or greater, just turn off the 'unused',
-   attributes, since GCC 2.96 complains about them, and other compilers will
-   not even parse them.  */ 
-#define __attribute__(args)
-#endif
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif    
 
+#include "../../include/cAttributePortability.h"
+
+// Sink for messages relating to serious errors detected by C runtime.
 extern FILE *SysErrorFile;    // sink for serious error messages
 extern FILE *SysErrorFile;	// libvm.C
 // extern int SysErrorFd;	// in IA32 libvm.C, not in powerpc.
@@ -88,6 +83,7 @@ extern pthread_key_t IsVmProcessorKey;
 extern void sysSyncCache(caddr_t, int size);
 // Defined in libvm.C.  Used in sys.C.
 extern void processTimerTick(void);
+
 
 #ifdef __cplusplus
 }

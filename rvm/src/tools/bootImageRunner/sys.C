@@ -105,18 +105,6 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #define VERBOSE_PTHREAD lib_verbose
 #endif
 
-#ifndef UNUSED
-/* In GNU C, __attribute__((unused)) really means "possibly unused". */
-#  define POSSIBLY_UNUSED UNUSED
-#  define UNUSED __attribute__((unused))
-#  ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-#    define UNUSED_SVP UNUSED
-#  else
-#    define UNUSED_SVP
-#  endif
-#endif
-
-
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 

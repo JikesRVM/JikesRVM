@@ -37,10 +37,6 @@ extern jint GetEnv(JavaVM *, void **, jint);
 
 #include "syswrap.h"
 
-#ifndef UNUSED
-#define UNUSED __attribute__((unused))
-#endif
-
 //////////////////////////////////////////////////////////////
 // Private functions and data
 //////////////////////////////////////////////////////////////

@@ -156,6 +156,7 @@ static const char license[] =
 #ifndef __cplusplus
 #include <stdbool.h>
 #endif
+#include "cAttributePortability.h"
 
 char *Me; // name to appear in error messages
 
@@ -259,17 +260,6 @@ union scan_arg {
 
 enum scan_token scan(const char *srcFile, char *line, union scan_arg *argp,
 		     int &trouble);
-
-#define UNUSED_DECL_ARG __attribute__((__unused__))
-#define UNUSED_DEF_ARG __attribute__((__unused__))
-// The __signal__ attribute is only relevant on GCC on the AVR processor.
-// We don't (yet) work on the AVR, so this code will probably never be
-// executed.  
-#ifdef __avr__
-#define SIGNAL_ATTRIBUTE    __attribute__((__signal__))
-#else
-#define SIGNAL_ATTRIBUTE
-#endif
 
 
 /* snprintf(), but with our own built-in error checks. */
@@ -945,7 +935,7 @@ scan(const char *srcFile, char *line, union scan_arg *argp, int &trouble)
 //  
 //    The only characters forbidden to a token are '&', '|', and whitespace.
 char *
-getToken(char **cursorp, int __attribute__((unused)) &trouble)
+getToken(char **cursorp, int UNUSED &trouble)
 {
     char *start, *cursor;
     cursor = *cursorp;
