@@ -284,7 +284,7 @@ public class VM extends VM_Properties
     //-#elif RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
     //-#else
-    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD
+    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_CVS_HEAD
     /** This one absolutely requires that we have a working Application/System
         class loader, or at least a returnable one.  That, in turn, requires
         lots of things be set up for Jar.  */
@@ -427,7 +427,7 @@ public class VM extends VM_Properties
     //-#elif RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
     //-#else
-    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD
+    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_CVS_HEAD
     /** This one absolutely requires that we have a working Application/System
         class loader, or at least a returnable one.  That, in turn, requires
         lots of things be set up for Jar.  */
