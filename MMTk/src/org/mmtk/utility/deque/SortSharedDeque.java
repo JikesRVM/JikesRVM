@@ -349,7 +349,6 @@ public abstract class SortSharedDeque extends SharedDeque
   *  Debug routine, used to check if the object buffer is sorted correctly in
   *  decreasing final reference deletion time
   *
-  * @param addr The slot containing the address of the buffer to check.
   */
   private final void checkIfSorted() {
     if (Assert.VERIFY_ASSERTIONS) {

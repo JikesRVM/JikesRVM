@@ -29,7 +29,7 @@ public class EnumOption extends Option {
    * Create a new enumeration option.
    *
    * @param name The space separated name for the option.
-   * @param desc The purpose of the option.
+   * @param description The purpose of the option.
    * @param values A mapping of int to string for the enum.
    * @param defaultValue The default value of the option.
    */ 

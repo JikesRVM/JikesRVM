@@ -24,7 +24,7 @@ public class LongOption extends Option {
    * Create a new long option.
    *
    * @param name The space separated name for the option.
-   * @param desc The purpose of the option
+   * @param description The purpose of the option
    * @param defaultValue The default value of the option.
    */ 
   protected LongOption(String name, String description, long defaultValue) { 
