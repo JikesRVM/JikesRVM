@@ -21,9 +21,10 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   /*
    * constants for bitField1
    */
-  protected final static int COMPILED   = 0x80000000;
-  protected final static int INVALID    = 0x40000000;
-  protected final static int OBSOLETE   = 0x20000000;
+  private final static int COMPILED     = 0x80000000;
+  private final static int INVALID      = 0x40000000;
+  private final static int OBSOLETE     = 0x20000000;
+  protected final static int AVAIL_BITS = 0x0fffffff;
 
   /**
    * The compiled method id of this compiled method (index into VM_CompiledMethods)
@@ -203,8 +204,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    /**
     * Find source line number corresponding to one of this method's 
     * machine instructions.
-    * @param instructionOffset of machine instruction from start of 
-    * this method, in bytes
+    * @param instructionOffset of machine instruction from start of this method, in bytes
     * @return source line number 
     * (0 == no line info available, 1 == first line of source file)
     *
@@ -222,7 +222,9 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
     * instruction pointer
     * to point to the "call site" or "exception site".
     */
-  abstract int findLineNumberForInstruction(int instructionOffset);
+  int findLineNumberForInstruction(int instructionOffset) {
+    return 0;
+  }
 
   /**
    * Find (earliest) machine instruction corresponding one of this method's 
@@ -231,7 +233,9 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @return instruction offset from start of this method, 
    * in bytes (-1 --> not found)
    */
-  abstract int findInstructionForLineNumber(int lineNumber);
+  int findInstructionForLineNumber(int lineNumber) {
+    return -1;
+  }
 
   /**
    * Find (earliest) machine instruction corresponding to the next 
@@ -240,14 +244,18 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @return instruction offset from start of this method, in bytes 
    * (-1 --> no more valid code line)
    */
-  abstract int findInstructionForNextLineNumber(int lineNumber);
+  int findInstructionForNextLineNumber(int lineNumber) {
+    return -1;
+  }
 
   /**
    * Find local variables that are in scope of specified machine instruction.
    * @param instructionOffset offset of machine instruction from start of method
    * @return local variables (null --> no local variable information available)
    */
-  abstract VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset);
+  VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
+    return null;
+  }
 
   /**
    * Print this compiled method's portion of a stack trace 
@@ -271,8 +279,13 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  abstract boolean up(VM_StackBrowser browser);
+  boolean up(VM_StackBrowser browser) { return false; }
 
+  /**
+   * Return the number of bytes of primitive arrays used to encode
+   * the compiler-specific mapping information for this compiled method.
+   * Used to gather stats on the space costs of mapping schemes.
+   */
   int dataSize() { return 0; }
 
 }

@@ -84,41 +84,6 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   }
 
   /**
-   * Find (earliest) machine instruction corresponding one of 
-   * this method's source line numbers.
-   */
-  final int findInstructionForLineNumber(int lineNumber) {
-    // This is very hard to do reliably in opt compiled code.
-    // We reorder instructions fairly aggressively and only 
-    // generate bcIndex info for a subset of the instructions
-    return -1;
-  }
-
-  /**
-   * Find (earliest) machine instruction corresponding to the 
-   * next valid source code line
-   * following this method's source line numbers.
-   * @return -1 if there is no more valid source code in this method
-   */
-  final int findInstructionForNextLineNumber(int lineNumber) {
-    // This is very hard to do reliably in opt compiled code.
-    // We reorder instructions fairly aggressively and only generate bcIndex 
-    // info for a subset of the instructions
-    return -1;
-  }
-
-  /**
-   * Find local variables that are in scope of specified machine instruction.
-   */ 
-  final VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
-    // This is virtually impossible to do in opt compiled code.
-    // (1) We reorder instructions.
-    // (3) We only maintain partial bytecode index information.
-    // (2) We don't attempt to preserve/idenitfy local variables.
-    return null;
-  }
-
-  /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
   final void set(VM_StackBrowser browser, int instr) {

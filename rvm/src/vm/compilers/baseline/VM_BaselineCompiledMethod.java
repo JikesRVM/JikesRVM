@@ -45,10 +45,6 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
       //
       if (instructionOffset <= tryStartInstructionOffsets[i] || instructionOffset > tryEndInstructionOffsets[i])
         continue;
-      if (exceptionTypes[i] == null) {
-        // catch block handles any exception
-        return catchInstructionOffsets[i];
-      }
       VM_Type lhs = exceptionTypes[i];
       if (lhs.isInitialized()) {
         if (VM.BuildForFastDynamicTypeCheck) {
@@ -303,22 +299,17 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   // needs to be released.  Note: for this scheme to work, VM_Lock must not
   // allow a yield after it has been obtained.
   //
-  int lockAcquisitionOffset = 0;                // used only for synchronized methods
 
-  // Create compiled method description, for synchronized methods only.
-  // Taken: method that was compiled
-  //        bytecode-index to machine-instruction-index map for method
-  //        number of instructions for method
-  //        offset of the monitor acquisition instruction (in prologue)
-  //
-  void encodeMappingInfo(VM_ReferenceMaps referenceMaps, 
-			 int[] bytecodeMap, int numInstructions, 
-			 int lockOffset) {
-    encodeMappingInfo(referenceMaps, bytecodeMap, numInstructions);
-    lockAcquisitionOffset = lockOffset;
+  // We use the available bits in bitField1 to encode the lock acquistion offset
+  // for synchronized methods
+  void setLockAcquisitionOffset(int off) {
+    bitField1 |= (off & AVAIL_BITS);
   }
 
-  // Create compiled method description.
+  int getLockAcquisitionOffset() {
+    return bitField1 & AVAIL_BITS;
+  }
+
   // Taken: method that was compiled
   //        bytecode-index to machine-instruction-index map for method
   //        number of instructions for method

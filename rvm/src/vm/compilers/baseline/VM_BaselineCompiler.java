@@ -198,10 +198,9 @@ abstract class VM_BaselineCompiler {
     INSTRUCTION[]   instructions = machineCode.getInstructions();
     int[]           bytecodeMap  = machineCode.getBytecodeMap();
     if (method.isSynchronized()) {
-      compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length, lockOffset);
-    } else {
-      compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
+      compiledMethod.setLockAcquisitionOffset(lockOffset);
     }
+    compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
     compiledMethod.compileComplete(instructions);
   }
 

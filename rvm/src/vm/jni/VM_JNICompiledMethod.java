@@ -28,14 +28,12 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
 
   final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible { 
     // this method should never get called.
-    //
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
     return null;
   }
       
   final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible { 
     // this method should never get called.
-    //
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
 
@@ -43,42 +41,6 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return -1;
   }
    
-  final int findLineNumberForInstruction(int instructionOffset) {
-    return 0;
-  }
-
-  final int findBytecodeIndexForInstruction(int instructionOffset) {
-    return -1;
-  }
-      
-  final int findInstructionForLineNumber(int lineNumber) {
-    return -1;
-  }
-      
-  final int findInstructionForNextLineNumber(int lineNumber) {
-    return -1;
-  }
-
-  public final VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
-    return null;
-  }
-
-  /**
-   * Set the stack browser to the innermost logical stack frame of this method
-   */
-  final void set(VM_StackBrowser browser, int instr) {
-    browser.setBytecodeIndex( -1 );
-    browser.setCompiledMethod( this );
-    browser.setMethod( method );
-  }
-
-  /**
-   * Advance the VM_StackBrowser up one internal stack frame, if possible
-   */
-  final boolean up(VM_StackBrowser browser) {
-    return false;
-  }
-
   public final void printStackTrace(int instructionOffset, java.io.PrintStream out) {
     if (method != null) {
       // print name of native method
@@ -97,5 +59,11 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
     } else {
       out.println("\tat <native method>");
     }
+  }
+
+  final void set(VM_StackBrowser browser, int instr) {
+    browser.setBytecodeIndex(-1);
+    browser.setCompiledMethod(this);
+    browser.setMethod(method);
   }
 }

@@ -29,36 +29,16 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return null;
   }
       
+  final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
+    return -1;
+  }
+   
   final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
     //
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-  }
-
-  final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
-    return -1;
-  }
-   
-  final int findLineNumberForInstruction(int instructionOffset) {
-    return 0;
-  }
-
-  final int findBytecodeIndexForInstruction(int instructionOffset) {
-    return -1;
-  }
-      
-  final int findInstructionForLineNumber(int lineNumber) {
-    return -1;
-  }
-      
-  final int findInstructionForNextLineNumber(int lineNumber) {
-    return -1;
-  }
-
-  public final VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
-    return null;
   }
 
   public final void printStackTrace(int instructionOffset, java.io.PrintStream out) {

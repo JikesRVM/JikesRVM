@@ -4685,8 +4685,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
     /**
      * Initialize the global exception handler arrays for the method.<p>
-     * TODO: If we modified VM_ExceptionMap to substitute 
-     * java.lang.Throwable for 'null' then we could just use eMap directly...
      */
     private void parseExceptionTables() {
       VM_ExceptionHandlerMap eMap = gc.method.getExceptionHandlerMap();
@@ -4698,14 +4696,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       int numExceptionHandlers = startPCs.length;
       exceptionTypes = new OPT_TypeOperand[numExceptionHandlers];
       for (int i = 0; i < numExceptionHandlers; i++) {
-	if (eMap.getExceptionType(i) == null) {
-	  // A finally block...set to java.lang.Throwable to avoid
-	  // needing to think about this case anywhere else.
-	  exceptionTypes[i] = new OPT_TypeOperand(OPT_ClassLoaderProxy.JavaLangThrowableType);
-	} else {
-	  exceptionTypes[i] = new OPT_TypeOperand(eMap.getExceptionType(i));
-	}
-
+	exceptionTypes[i] = new OPT_TypeOperand(eMap.getExceptionType(i));
 	if (DBG_EX) db("\t\t[" + startPCs[i] + "," + endPCs[i] + "] " + eMap.getExceptionType(i));
       }
     }
