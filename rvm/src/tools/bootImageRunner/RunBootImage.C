@@ -72,19 +72,23 @@
 #include <InterfaceDeclarations.h>
 
 
-uint64_t initialHeapSize;  /* Declared in bootImageRunner.h */
-uint64_t maximumHeapSize;  /* Declared in bootImageRunner.h */
+uint64_t initialHeapSize;       /* Declared in bootImageRunner.h */
+uint64_t maximumHeapSize;       /* Declared in bootImageRunner.h */
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+uint64_t initialStackSize;      /* Declared in bootImageRunner.h */
+uint64_t stackGrowIncrement;      /* Declared in bootImageRunner.h */
+uint64_t maximumStackSize;      /* Declared in bootImageRunner.h */
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
 
 
 static int DEBUG = 0;                   // have to set this from a debugger
+static const unsigned BYTES_IN_PAGE = MMTk_Constants_BYTES_IN_PAGE;
+
 
 static bool strequal(const char *s1, const char *s2);
 static bool strnequal(const char *s1, const char *s2, size_t n);
-static unsigned int parse_heap_size(
-    const char *sizeName, const char *sizeFlag, 
-    const char *token, const char *subtoken, bool *fastExit);
 
 /*
  * What standard command line arguments are supported?
@@ -144,9 +148,9 @@ fullVersion()
     fprintf(SysTraceFile, "\tcvs timestamp: %s\n", rvm_cvstimestamp);
     fprintf(SysTraceFile, "\thost config: %s\n\ttarget config: %s\n",
             rvm_host_configuration, rvm_target_configuration);
-    fprintf(SysTraceFile, "\theap default initial size: %u MBytes\n",
+    fprintf(SysTraceFile, "\theap default initial size: %u MiBytes\n",
             heap_default_initial_size/(1024*1024));
-    fprintf(SysTraceFile, "\theap default maximum size: %u MBytes\n",
+    fprintf(SysTraceFile, "\theap default maximum size: %u MiBytes\n",
             heap_default_maximum_size/(1024*1024));
 }
 
@@ -318,29 +322,59 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                 megabytes = "M";
             fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s%s.\n", subtoken, subtoken, megabytes);
             fprintf(SysTraceFile, "\tTo set a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
-            goto set_initial_heap_size;
+            /* Go ahead and set the initial heap size, now. */
+            // size. 
+            token = nonStandardArgs[MS_INDEX];
         }
 
         if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
             subtoken = token + 4;
-        set_initial_heap_size:
             initialHeapSize 
-                = parse_heap_size("initial", "ms", token, subtoken, fastExit);
+                = parse_memory_size("initial heap size", "ms", "M", BYTES_IN_PAGE,
+                                    token, subtoken, fastExit);
             continue;
         }
 
         if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
             subtoken = token + 4;
             maximumHeapSize 
-                = parse_heap_size("maximum", "mx", token, subtoken, fastExit);
+                = parse_memory_size("maximum heap size", "mx", "M", BYTES_IN_PAGE,
+                                    token, subtoken, fastExit);
             continue;
         }
+
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+        if (strnequal(token, nonStandardArgs[SS_INDEX], 4)) {
+            subtoken = token + 4;
+            initialStackSize
+                = parse_memory_size("initial stack size", "ss", "K", 4, 
+                                    token, subtoken, fastExit);
+            continue;
+        }
+
+        if (strnequal(token, nonStandardArgs[SG_INDEX], 4)) {
+            subtoken = token + 4;
+            stackGrowIncrement
+                = parse_memory_size("stack growth increment", "sg", "K", 4, 
+                                    token, subtoken, fastExit);
+            continue;
+        }
+
+        if (strnequal(token, nonStandardArgs[SX_INDEX], 4)) {
+            subtoken = token + 4;
+            maximumStackSize
+                = parse_memory_size("maximum stack size", "sx", "K", 4,
+                                    token, subtoken, fastExit);
+            continue;
+        }
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
 
         if (strnequal(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
             subtoken = token + 14;
             FILE* ftmp = fopen(subtoken, "a");
             if (!ftmp) {
                 fprintf(SysTraceFile, "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
+                *fastExit = true;
                 continue;
             }
             fprintf(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
@@ -411,6 +445,23 @@ main(int argc, const char **argv)
     --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
+
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+    const unsigned stack_minimum_size         = 
+        VM_Constants_STACK_SIZE_MIN;
+    const unsigned stack_default_initial_size = 
+        VM_Constants_STACK_SIZE_NORMAL_DEFAULT;
+    const unsigned stack_grow_minimum_increment = 
+        VM_Constants_STACK_SIZE_GROW_MIN;
+    const unsigned stack_default_grow_increment = 
+        VM_Constants_STACK_SIZE_GROW_DEFAULT;
+    const unsigned stack_default_maximum_size = 
+        VM_Constants_STACK_SIZE_MAX_DEFAULT;
+    
+    initialStackSize = stack_default_initial_size;
+    stackGrowIncrement = stack_default_grow_increment;
+    maximumStackSize = stack_default_maximum_size;
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
   
     /*
      * Debugging: print out command line arguments.
@@ -425,7 +476,7 @@ main(int argc, const char **argv)
     // call processCommandLineArguments().
     bool fastBreak = false;
     // Sets JavaArgc
-    JavaArgs = processCommandLineArguments(argv, argc, &fastBreak);
+    JavaArgs = processCommandLineArguments((const char **) argv, argc, &fastBreak);
     if (fastBreak) {
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
@@ -437,6 +488,7 @@ main(int argc, const char **argv)
         }
     }
   
+    /* Verify heap sizes for sanity. */
     if (initialHeapSize == heap_default_initial_size &&
         maximumHeapSize != heap_default_maximum_size &&
         initialHeapSize > maximumHeapSize) {
@@ -450,15 +502,65 @@ main(int argc, const char **argv)
     }
 
     if (maximumHeapSize < initialHeapSize) {
-        fprintf(SysTraceFile, "%s: maximum heap size %d is less than initial heap size %d\n", 
-                Me, maximumHeapSize/(1024*1024), initialHeapSize/(1024*1024));
+        fprintf(SysTraceFile, "%s: maximum heap size %lu MiB is less than initial heap size %lu MiB\n", 
+                Me, (unsigned long) maximumHeapSize/(1024*1024), 
+                (unsigned long) initialHeapSize/(1024*1024));
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+    /* Verify stack sizes for sanity. */
+    if (initialStackSize == stack_default_initial_size &&
+        maximumStackSize != stack_default_maximum_size &&
+        initialStackSize > maximumStackSize) {
+        initialStackSize = maximumStackSize;
+    }
+
+    if (maximumStackSize == stack_default_maximum_size &&
+        initialStackSize != stack_default_initial_size &&
+        initialStackSize > maximumStackSize) {
+        maximumStackSize = initialStackSize;
+    }
+
+    if (maximumStackSize < initialStackSize) {
+        fprintf(SysTraceFile, "%s: maximum stack size %lu KiB is less than initial stack size %lu KiB\n", 
+                Me, (unsigned long) maximumStackSize/1024, 
+                (unsigned long) initialStackSize/1024);
+        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+    }
+
+    if (initialStackSize < stack_minimum_size) {
+        fprintf(SysTraceFile, "%s: initial stack size %lu KiB is less than minimum stack size %lu KiB\n", 
+                Me, (unsigned long) initialStackSize/1024, 
+                (unsigned long) stack_minimum_size/1024);
+        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+    }
+
+    if (stackGrowIncrement < stack_grow_minimum_increment) {
+        fprintf(SysTraceFile, "%s: stack growth increment %lu KiB is less than minimum growth increment %lu KiB\n", 
+                Me, (unsigned long) stackGrowIncrement/1024, 
+                (unsigned long) stack_grow_minimum_increment/1024);
+        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+    }
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+
     if (DEBUG){
         printf("\nRunBootImage.main(): VM variable settings\n");
-        printf("initialHeapSize %d\nmaxHeapSize %d\nbootFileName |%s|\nlib_verbose %d\n",
-               initialHeapSize, maximumHeapSize, bootFilename, lib_verbose);
+        printf("initialHeapSize %lu\nmaxHeapSize %lu\n"
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+               "initialStackSize %lu\n"
+               "stackGrowIncrement %lu\n"
+               "maxStackSize %lu\n"
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+               "bootFileName |%s|\nlib_verbose %d\n",
+               (unsigned long) initialHeapSize, 
+               (unsigned long) maximumHeapSize, 
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+               (unsigned long) initialStackSize, 
+               (unsigned long) stackGrowIncrement,
+               (unsigned long) maximumStackSize,
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+               bootFilename, lib_verbose);
     }
 
     if (!bootFilename) {
@@ -494,48 +596,83 @@ strnequal(const char *s1, const char *s2, size_t n)
     return strncmp(s1, s2, n) == 0;
 }
 
-/* TODO: Import BYTES_IN_PAGE from
-   com.ibm.JikesRVM.memoryManagers.vmInterface.Constants */
-
 /** Return a # of bytes, rounded up to the next page size.  Setting fastExit
-    means trouble or failure.  If we set fastExit we'll also return the value
-    0U. */
-static unsigned int
-parse_heap_size(const char *sizeName, //  "initial" or "maximum"
-                const char *sizeFlag, // "ms" or "mx"
-                const char *token, const char *subtoken, bool *fastExit)
+ *  means trouble or failure.  If we set fastExit we'll also return the value
+ *  0U.
+ *
+ * NOTE: Given the context, we treat "MB" as having its
+ * historic meaning of "MiB" (2^20), rather than its 1994 ISO
+ * meaning, which would be a factor of 10^7. 
+ */
+extern "C"
+unsigned int
+parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
+                                            "initial stack" or "maximum stack" 
+                                        */ 
+                  const char *sizeFlag, // "-Xms" or "-Xmx" or
+                                        // "-Xss" or "-Xsg" or "-Xsx" 
+                  const char *defaultFactor, // "M" or "K" are used
+                  unsigned roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+                  const char *token /* e.g., "-Xms200M" or "-Xms200" */,
+                  const char *subtoken /* e.g., "200M" or "200" */,
+                  bool *fastExit)
 {
-    const unsigned LOG_BYTES_IN_PAGE = 12;
-    const unsigned BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
-    
-    char *endp;                 /* really should be const char *, but C++
-                                   can't handle that kind of overloaded
-                                   function. */ 
-    long double factor = 1; /* multiplication factor; M for Megabytes, 
-                               K for kilobytes, etc. */
-
     errno = 0;
-    long double heapsz;
+    long double userNum;
+    char *endp;                 /* Should be const char *, but if we do that,
+                                   then the C++ compiler complains about the
+                                   prototype for strtold() or strtod().   This
+                                   is probably a bug in the specification
+                                   of the prototype. */
 #ifdef HAVE_CXX_STRTOLD
         /* This gets around some nastiness in AIX 5.1, where <stdlib.h> only
            prototypes strtold() if we're using the 96 or 128 bit "long double"
            type.  Which is an option to the IBM Visual Age C compiler, but
            apparently not (yet) available for GCC.  */
-    heapsz = strtold(subtoken, &endp);
+
+    userNum = strtold(subtoken, &endp);
 #else
-    heapsz = strtod(subtoken, &endp);
+    userNum = strtod(subtoken, &endp);
 #endif
 
+    if (endp == subtoken) {
+        fprintf(SysTraceFile, "%s: \"%s\": -X%s must be followed"
+                " by a number.\n", Me, token, sizeFlag);
+        *fastExit = true;
+    }
+    
     // First, set the factor appropriately, and make sure there aren't extra
     // characters at the end of the line.
+    const char *factorStr = defaultFactor;
+    long double factor = 0.0;   // 0.0 is a sentinel meaning Unset
+
     if (*endp == '\0') {
-        /* no suffix.  Here we differ from the Sun JVM, by assuming
-           no suffix implies megabytes. (Historical compat. with previous
-           Jikes RVM behaviour.)  The Sun JVM assumes no suffix implies
-           bytes. */ 
-        factor = 1024.0 * 1024.0;
-    } else if (endp[1] == '\0') {
-        char e = *endp;
+        /* no suffix.  Here, -Xms and -Xmx differ from the Sun JVM, by assuming
+           megabytes -- historical compat. with previous
+           Jikes RVM behaviour.  The Sun JVM assumes that no suffix implies
+           bytes.   Other flags specify their own default factors. */ 
+    } else if (strequal(endp, "c")) {
+        /* The "dd" Unix utility has used "c" for "characters" to mean what we
+           mean by bytes, so we go ahead and make "c" legal syntax.  This is
+           handled specially, since we don't want to treat "cib" or "cB" as
+           legal -- that would just be sick. */
+        factor = 1.0;
+    } else if (strequal(endp, "pages") || strequal(endp, "p")) {
+        factor = BYTES_IN_PAGE;
+    } else if (   /* Handle constructs like "M" and "K" */
+                  endp[1] == '\0' 
+                  /* Handle constructs like "MiB" or "MB".*/
+               || strequal(endp + 2, "iB") || strequal(endp + 2, "ib") 
+               || strequal(endp + 2, "B") || strequal(endp + 2, "b") ) {
+        factorStr = endp;
+    } else {
+        fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
+                " unit of memory size\n", Me, token, endp);          
+        *fastExit = true;
+    }
+
+    if (! *fastExit && factor == 0.0) {
+        char e = *factorStr;
         /* At this time, with our using a 32-bit quantity to indicate memory
          * size, we can't use T and are unlikely to use G.  But it doesn't
          * hurt to have the code in here, since a double is guaranteed to be
@@ -546,87 +683,96 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
             /* We'll always recognize T, but we don't show it in the help
                message unless we're on a 64-bit platform, since it's not
                useful on a 32-bit platform. */
-            factor = 1024.0 * 1024.0 * 1024.0 * 1024.0; // Terabytes
+            factor = 1024.0 * 1024.0 * 1024.0 * 1024.0; // Tebibytes
         else if (e == 'g' || e == 'G')
-            factor = 1024.0 * 1024.0 * 1024.0; // Gigabytes
+            factor = 1024.0 * 1024.0 * 1024.0; // Gibibytes
         else if (e == 'm' || e == 'M')
-            factor = 1024.0 * 1024.0; // Megabytes
+            factor = 1024.0 * 1024.0; // Mebibytes
         else if (e == 'k' || e == 'K')
-            factor = 1024.0;    // kilobytes
-        /* b for bytes.  Seems mnemonic, BUT I am mildly concerned because
-           "dd" uses "b" to mean "blocks".   "dd" also uses "c" for
-           "characters" to mean what we mean by bytes, so we'll at least make
-           "c" legal syntax, right? */
-        else if (e == 'b' || e == 'B' || e == 'c' || e == 'C' )
-            factor = 1.0;       // Bytes.  Not avail. in Sun JVM
+            factor = 1024.0;    // Kibibytes
+        /* b for bytes.  Seems mnemonic.  Hotspot interprets the absence of a
+           suffix to mean bytes, but that conflicts with historic Jikes RVM
+           practice. 
+
+           Potential Conflict: 
+           "dd" uses "b" to mean "blocks", a factor of 512.  This makes sense
+           in a context of a disk utility, but little sense in a context of
+           VM memory sizes. */
+        else if (e == 'b' || e == 'B') 
+            factor = 1.0;
         else {
-            goto bad_strtold;
+            fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a"
+                    " unit of memory size\n", Me, token, factorStr);          
+            *fastExit = true;
         }
-    } else {
-    bad_strtold:
-        fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a memory size\n", Me, token, subtoken);          
-        *fastExit = true;
     }
 
     // Note: on underflow, strtod() returns 0.
     if (!*fastExit) {
-        if (heapsz <= 0.0) {
+        if (userNum <= 0.0) {
             fprintf(SysTraceFile, 
-                    "%s: You may not specify a %s %s heap size;\n", 
-                    Me, heapsz < 0.0 ? "negative" : "zero", sizeName);
+                    "%s: You may not specify a %s %s;\n", 
+                    Me, userNum < 0.0 ? "negative" : "zero", sizeName);
             fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
             *fastExit = true;
         }
     } 
 
     if (!*fastExit) {
-        if (errno == ERANGE 
-            || heapsz > ((long double) (UINT_MAX - BYTES_IN_PAGE)/factor)) 
+        if (   errno == ERANGE 
+            || userNum > ((long double) (UINT_MAX - roundTo)/factor)) 
         {
-        // If message not already printed, print it.
-            fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
+            fprintf(SysTraceFile, "%s: \"%s\": out of range"
+                    " to represent internally\n", Me, subtoken);
             *fastExit = true;
         }
     }
 
     if (*fastExit) {
         size_t namelen = strlen(sizeName);
-        fprintf(SysTraceFile, "\tPlease specify %s heap size "
-                "(in megabytes) using \"-X%s<positive number>M\",\n", 
+        fprintf(SysTraceFile, "\tPlease specify %s size as follows:\n"
+                "\t   (in megabytes) using \"-X%s<positive number>M\",\n", 
                 sizeName, sizeFlag);
-        fprintf(SysTraceFile, "\t               %*.*s        "
-                "or (in kilobytes) using \"-X%s<positive number>K\",\n",
-                (int) namelen, (int) namelen, " ", sizeFlag);
-        fprintf(SysTraceFile, "\t               %*.*s        "
-                "or (in bytes) using \"-X%s<positive number>b\"\n",
-                (int) namelen, (int) namelen, " ", sizeFlag);
-        fprintf(SysTraceFile, "\t               %*.*s        "
-                "or (in gigabytes) using \"-X%s<positive number>G\",\n",
-                (int) namelen, (int) namelen, " ", sizeFlag);
+        fprintf(SysTraceFile, 
+                "\tor (in kilobytes) using \"-X%s<positive number>K\",\n",
+                sizeFlag);
+        fprintf(SysTraceFile, 
+                "\tor (in bytes) using \"-X%s<positive number>B\"\n",
+                sizeFlag);
+        fprintf(SysTraceFile,
+                "\tor (in gigabytes) using \"-X%s<positive number>G\",\n",
+                sizeFlag);
+        fprintf(SysTraceFile,
+                "\tor (in virt. memory pages of %u bytes) using "
+                "\"-X%s<positive number>pages\",\n", BYTES_IN_PAGE, sizeFlag);
 #ifdef RVM_FOR_64_ADDR
-        fprintf(SysTraceFile, "\t               %*.*s        "
-                "or (in terabytes) using \"-X%s<positive number>t\"\n",
-                (int) namelen, (int) namelen, " ", sizeFlag);
+        fprintf(SysTraceFile, 
+                "\tor (in terabytes) using \"-X%s<positive number>T\"\n",
+                sizeFlag);
 #endif // RVM_FOR_64_ADDR
-        fprintf(SysTraceFile, "    If you specify floating point values,"
-                " the # of bytes will be rounded up\n"
-                " to a multiple of the virtual memory page size.\n");
+        fprintf(SysTraceFile,
+                "\t<positive number> can be a floating point value.\n"
+                "\tThe # of bytes will be rounded up\n"
+                " to a multiple of ");
+        if (roundTo == BYTES_IN_PAGE)
+            fprintf(SysTraceFile, "the virtual memory page size: ");
+        fprintf(SysTraceFile, "%u\n", roundTo);
         return 0U;              // Distinguished value meaning trouble.
     } 
-    long double tot_d = heapsz * factor;
-    assert(tot_d <= (UINT_MAX - BYTES_IN_PAGE));
+    long double tot_d = userNum * factor;
+    assert(tot_d <= (UINT_MAX - roundTo));
     assert(tot_d >= 1);
     
     unsigned tot = (unsigned) tot_d;
-    if (tot % BYTES_IN_PAGE) {
-        unsigned newtot
-            =  ((tot >> LOG_BYTES_IN_PAGE) + 1) << LOG_BYTES_IN_PAGE;
-        
+    if (tot % roundTo) {
+        unsigned newTot = tot + roundTo - (tot % roundTo);
         fprintf(SysTraceFile, 
-                "%s: Rounding up %s heap size from %u bytes to %u,\n"
-                "\tthe next multiple of %u bytes\n", 
-                Me, sizeName, tot, newtot, BYTES_IN_PAGE);
-        tot = newtot;
+                "%s: Rounding up %s size from %u bytes to %u,\n"
+                "\tthe next multiple of %u bytes%s\n", 
+                Me, sizeName, tot, newTot, roundTo,
+                roundTo == BYTES_IN_PAGE ?
+                           ", the virtual memory page size" : "");
+        tot = newTot;
     }
     return tot;
 }
