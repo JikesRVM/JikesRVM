@@ -119,11 +119,10 @@ instructing Jikes RVM to gather profile data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Instrumented Event Counters}
 \label{counting_events}
-This section describes how the Jikes RVM optimizing compiler
-can be used to 
-insert counters in the optimized code to count the frequency of
-specific events.  Infrastructure for counting events is in place that
-hides many of the implementation details of the counters, so that
+This section describes how the Jikes RVM optimizing compiler can be
+used to insert counters in the optimized code to count the frequency
+of specific events.  Infrastructure for counting events is in place
+that hides many of the implementation details of the counters, so that
 (hopefully) adding new code to count events should be easy.  All of
 the instrumentation phases described below require an adaptive boot
 image (any one should work).  Most of the code regarding
@@ -134,6 +133,11 @@ adaptive/recompilation/instrumentation}.
 Section~\ref{existing_phases} describes existing instrumentation
 phases and how to run them, and Section~\ref{adding_phases}
 describes the details of how a new phase can be added.
+
+To instrument all dynamically compiled code, use the following command
+line arguments to force all dynamically compiled methods to be
+compiled by the optimizing compiler: {\tt
+-X:aos:enable\_recompilation=false -X:aos:initial\_compiler=opt}
 
 \subsubsection{Existing Instrumentation Phases}
 \label{existing_phases}
