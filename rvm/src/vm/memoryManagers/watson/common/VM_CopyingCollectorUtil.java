@@ -32,6 +32,8 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 					 VM_GCConstants {
 
 
+//-#if RVM_WITH_NONCOPYING_GC
+//-#else
   /**
    * Processes live objects that need to be marked, copied and
    * forwarded during collection.  Returns the new address of the object
@@ -111,7 +113,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
     if (scan) VM_GCWorkQueue.putToWorkBuffer(toRef);
     return toRef;
   }
-
+//-#endif
 
   /**
    * Scans all threads in the VM_Scheduler threads array.  A threads stack
