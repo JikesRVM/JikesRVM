@@ -556,6 +556,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FCMOV
+MIR_CondMove
+none
+C0_C1_C2_C3
+CF_PF_ZF
+
+####################
 IA32_FCOMI
 MIR_Compare
 compare
@@ -579,6 +586,13 @@ C0_C1_C2_C3
 ####################
 IA32_FDIVR
 MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
+IA32_FEXAM
+MIR_UnaryNoRes
 none
 C0_C1_C2_C3
 
@@ -672,6 +686,13 @@ IA32_FLD
 MIR_Move
 none
 
+
+
+####################
+IA32_FLDZ
+MIR_Nullary
+none
+C0_C1_C2_C3
 
 
 ####################
