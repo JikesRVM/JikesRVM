@@ -32,7 +32,7 @@ class VM_RCBarriers implements VM_BaselineConstants {
 	asm.emitCMP  (Ttmp, Told);
 	asm.emitBLE  (VM_Assembler.CALL_INSTRUCTIONS + 3);
 	// Buffer overflowed; call function to expand it.
-	asm.emitL    (S0, VM_Entrypoints.processIncDecBufferField.getOffset(), JTOC);
+	asm.emitL    (S0, VM_Entrypoints.processIncDecBufferMethod.getOffset(), JTOC);
 	asm.emitMTLR (S0);
 	asm.emitCall (spSaveAreaOffset);
     }
