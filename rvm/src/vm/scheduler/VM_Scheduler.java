@@ -39,8 +39,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * flag to allow SMP builds WITHOUT a native daemon thread/processor.
    * set to false to avoid creating the native daemeon
    **/
-  static final boolean BuildWithNativeDaemon =
-    (!VM.BuildForConcurrentGC) && true;
+  static final boolean BuildWithNativeDaemon = false;
  
   // Flag for controlling virtual-to-physical processor binding.
   //
@@ -298,11 +297,22 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     tt.makeDaemon(true);
     VM_Processor.getCurrentProcessor().scheduleThread(tt);
 
+    // the one we're running on
+    processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true; 
+
     // Create virtual cpu's.
     //
-    processors[PRIMORDIAL_PROCESSOR_ID].isInitialized = true; // the one we're running on
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    //-#else
+    if (!VM.BuildForDedicatedNativeProcessors&&processors[nativeDPndx]!=null)
+      VM.sysInitializeStartupLocks( numProcessors + 1 );
+    else
+      VM.sysInitializeStartupLocks( numProcessors );
+
     if (cpuAffinity != NO_CPU_AFFINITY)
       VM.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+
+    // VM.disableGC();
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
@@ -317,7 +327,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       if (VM.TraceThreads)
 	trace("VM_Scheduler.boot", "starting processor id", i);
 
-      VM.disableGC();
       processors[i].activeThread = target;
       //-#if RVM_FOR_POWERPC
       VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
@@ -331,27 +340,13 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 				   target.contextRegisters.ip,
 				   target.contextRegisters.fp);
       //-#endif
-      int loop_count = 1;
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot", "starting to wait for processor id", i);
-      while (!processors[i].isInitialized) {
-	++loop_count;
-	if ( VM.TraceThreads && loop_count%100 == 0 )
-	  trace("VM_Scheduler.boot","waiting for processor - loop_count =",loop_count);
-	if ( loop_count%10000 == 0 ) 
-	  VM.sysFail("VM_Scheduler.boot: hanging after sysVirtualProcessorCreate()");
-	VM.sysVirtualProcessorYield();
-      }
-      VM.enableGC();
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot", "started processor id", i);
+
     }
 
-    if (!VM.BuildForDedicatedNativeProcessors &&!VM.BuildForSingleVirtualProcessor && (processors[nativeDPndx] != null)) {
-
+    if (!VM.BuildForDedicatedNativeProcessors&&processors[nativeDPndx]!=null)
+    {
       VM_Thread target = new VM_StartupThread(startupThreadStacks[numProcessors]);
 
-      VM.disableGC();
       processors[nativeDPndx].activeThread = target;
       if (VM.TraceThreads)
 	trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
@@ -367,17 +362,17 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 				     0,
 				     target.contextRegisters.fp);
       //-#endif
-      while (!processors[nativeDPndx].isInitialized)
-	VM.sysVirtualProcessorYield();
-      VM.enableGC();
       if (VM.TraceThreads)
 	trace("VM_Scheduler.boot", "started native daemon processor id", nativeDPndx);
     }
 
-    // Allow virtual cpus to commence feeding off the work queues.
+    // wait for everybody to start up
     //
+    VM.sysWaitForVirtualProcessorInitialization();
+    //-#endif
 
     allProcessorsInitialized = true;
+
     //    for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; ++i)
     //      processors[i].enableThreadSwitching();
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -391,6 +386,13 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     if (VM.BuildForEventLogging)
       VM_EventLogger.boot();
+
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    //-#else
+    // Allow virtual cpus to commence feeding off the work queues.
+    //
+    VM.sysWaitForMultithreadingStart();
+    //-#endif
 
     // End of boot thread. Relinquish control to next job on work queue.
     //

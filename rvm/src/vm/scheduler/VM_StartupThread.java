@@ -46,14 +46,16 @@ class VM_StartupThread extends VM_Thread
       // code/stack and are now running vm code/stack
       //
       VM_Processor.getCurrentProcessor().isInitialized = true;
+      VM.sysWaitForVirtualProcessorInitialization();
+
+      // enable multiprocessing
+      //
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
 
       // wait for all other processors to do likewise
       //
-      while (VM_Scheduler.allProcessorsInitialized == false)
-         VM.sysVirtualProcessorYield();
+      VM.sysWaitForMultithreadingStart();
       
-      VM_Processor.getCurrentProcessor().enableThreadSwitching();
-
       // we've done our job
       //
       if (VM.TraceThreads) VM_Scheduler.trace("VM_StartupThread", "terminating");

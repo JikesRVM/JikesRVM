@@ -41,6 +41,9 @@ extern "C" int sched_yield();
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <asm/ioctls.h>
+#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#include <sched.h>
+#endif
 
 #elif __CYGWIN__
 
@@ -445,350 +448,384 @@ sysWriteBytes(int fd, char *buf, int cnt)
       return rc;
    if (err == EAGAIN)
       {
-      fprintf(SysTraceFile, "sys: write on %d would have blocked: needs retry\n", fd);
-      return -1;
-      }
-   if (err == EPIPE)
-      {
-      //fprintf(SysTraceFile, "sys: write on %d with nobody to read it\n", fd);
-      return -3;
-      }
-   fprintf(SysTraceFile, "sys: write error %d (%s) on %d\n", err, strerror( err ), fd);
-   return -2;
-   }
+	  // fprintf(SysTraceFile, "sys: write on %d would have blocked: needs retry\n", fd);
+       return -1;
+       }
+    if (err == EPIPE)
+       {
+       //fprintf(SysTraceFile, "sys: write on %d with nobody to read it\n", fd);
+       return -3;
+       }
+    fprintf(SysTraceFile, "sys: write error %d (%s) on %d\n", err, strerror( err ), fd);
+    return -2;
+    }
 
-// Change i/o position on file.
-// Taken:    file descriptor
-//           number of bytes by which to adjust position
-//           how to interpret adjustment (see VM_FileSystem.SEEK_XXX)
-// Returned: new i/o position, as byte offset from start of file (-1: error)
-//
-extern "C" int
-sysSeek(int fd, int offset, int whence)
-   {
-// fprintf(SysTraceFile, "sys: seek %d %d %d\n", fd, offset, whence);
-   switch (whence)
-      {
-      case VM_FileSystem_SEEK_SET: return lseek(fd, offset, SEEK_SET);
-      case VM_FileSystem_SEEK_CUR: return lseek(fd, offset, SEEK_CUR);
-      case VM_FileSystem_SEEK_END: return lseek(fd, offset, SEEK_END);
-      default:                     return -1;
-      }
-   }
+ // Change i/o position on file.
+ // Taken:    file descriptor
+ //           number of bytes by which to adjust position
+ //           how to interpret adjustment (see VM_FileSystem.SEEK_XXX)
+ // Returned: new i/o position, as byte offset from start of file (-1: error)
+ //
+ extern "C" int
+ sysSeek(int fd, int offset, int whence)
+    {
+ // fprintf(SysTraceFile, "sys: seek %d %d %d\n", fd, offset, whence);
+    switch (whence)
+       {
+       case VM_FileSystem_SEEK_SET: return lseek(fd, offset, SEEK_SET);
+       case VM_FileSystem_SEEK_CUR: return lseek(fd, offset, SEEK_CUR);
+       case VM_FileSystem_SEEK_END: return lseek(fd, offset, SEEK_END);
+       default:                     return -1;
+       }
+    }
 
-// Close file or socket.
-// Taken:    file/socket descriptor
-// Returned:  0: success
-//           -1: file/socket not currently open
-//           -2: i/o error
-//
-extern "C" int
-sysClose(int fd)
-   {
-   #ifdef DEBUG_SYS
-   fprintf(SysTraceFile, "sys: close %d\n", fd);
-   #endif
+ // Close file or socket.
+ // Taken:    file/socket descriptor
+ // Returned:  0: success
+ //           -1: file/socket not currently open
+ //           -2: i/o error
+ //
+ extern "C" int
+ sysClose(int fd)
+    {
+    #ifdef DEBUG_SYS
+    fprintf(SysTraceFile, "sys: close %d\n", fd);
+    #endif
 
-   if ( -1 == fd ) return -1;
+    if ( -1 == fd ) return -1;
 
-   int rc = close(fd);
+    int rc = close(fd);
 
-   if (rc == 0)
-      return 0; // success
+    if (rc == 0)
+       return 0; // success
 
-   if (errno == EBADF)
-      return -1; // not currently open
+    if (errno == EBADF)
+       return -1; // not currently open
 
-   fprintf(SysErrorFile, "vm: close on %d failed (errno=%d)\n", fd, errno);
-   return -2; // some other error
-   }
+    fprintf(SysErrorFile, "vm: close on %d failed (errno=%d)\n", fd, errno);
+    return -2; // some other error
+    }
 
-//--------------------------//
-// System timer operations. //
-//--------------------------//
+ //--------------------------//
+ // System timer operations. //
+ //--------------------------//
 
-extern int VmBottom, VmMiddle, VmTop;
-#ifdef _AIX
-#include <mon.h>
-#endif
+ extern int VmBottom, VmMiddle, VmTop;
+ #ifdef _AIX
+ #include <mon.h>
+ #endif
 
-// Start/stop interrupt generator for thread timeslicing.
-// The interrupt will be delivered to whatever virtual processor
-// happens to be running when the timer fires.
-//
-// Taken:    interrupt interval, in milliseconds (0: "disable timer")
-// Returned: nothing
-//
-static void
-setTimeSlicer(int timerDelay)
-   {
-#if (defined __linux__)
-   // set it to issue a periodic SIGALRM (or 0 to disable timer)
-   //
+ // Start/stop interrupt generator for thread timeslicing.
+ // The interrupt will be delivered to whatever virtual processor
+ // happens to be running when the timer fires.
+ //
+ // Taken:    interrupt interval, in milliseconds (0: "disable timer")
+ // Returned: nothing
+ //
+ static void
+ setTimeSlicer(int timerDelay)
+    {
+ #if (defined __linux__)
+    // set it to issue a periodic SIGALRM (or 0 to disable timer)
+    //
 
-   struct itimerval timerInfo, oldtimer;
+    struct itimerval timerInfo, oldtimer;
 
-   timerInfo.it_value.tv_sec     = 0;
-   timerInfo.it_value.tv_usec    = timerDelay * 1000;
-   timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
-   timerInfo.it_interval.tv_usec = timerInfo.it_value.tv_usec;
+    timerInfo.it_value.tv_sec     = 0;
+    timerInfo.it_value.tv_usec    = timerDelay * 1000;
+    timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
+    timerInfo.it_interval.tv_usec = timerInfo.it_value.tv_usec;
 
-   if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer))
-      {
-      fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
-      exit(1);
-      }
-#elif __CYGWIN__
-   fprintf(SysErrorFile, "vm: skipping call to incinterval\n");
-#else
-   // fetch system timer
-   //
-   timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
-   if (timerId == -1)
-      {
-      fprintf(SysErrorFile, "vm: gettimerid failed (errno=%d)\n", errno);
-      exit(1);
-      }
+    if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer))
+       {
+       fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
+       exit(1);
+       }
+ #elif __CYGWIN__
+    fprintf(SysErrorFile, "vm: skipping call to incinterval\n");
+ #else
+    // fetch system timer
+    //
+    timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
+    if (timerId == -1)
+       {
+       fprintf(SysErrorFile, "vm: gettimerid failed (errno=%d)\n", errno);
+       exit(1);
+       }
 
-   // set it to issue a periodic SIGALRM (or 0 to disable timer)
-   //
-   struct itimerstruc_t timerInfo, oldtimer;
-   timerInfo.it_value.tv_sec     = 0;
-   timerInfo.it_value.tv_nsec    = timerDelay * 1000 * 1000;
-   timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
-   timerInfo.it_interval.tv_nsec = timerInfo.it_value.tv_nsec;
-   if (incinterval(timerId, &timerInfo, &oldtimer))
-      {
-      fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
-      exit(1);
-      }
-#endif
-// fprintf(SysTraceFile, "sys: timeslice is %dms\n", timerDelay);
-   }
+    // set it to issue a periodic SIGALRM (or 0 to disable timer)
+    //
+    struct itimerstruc_t timerInfo, oldtimer;
+    timerInfo.it_value.tv_sec     = 0;
+    timerInfo.it_value.tv_nsec    = timerDelay * 1000 * 1000;
+    timerInfo.it_interval.tv_sec  = timerInfo.it_value.tv_sec;
+    timerInfo.it_interval.tv_nsec = timerInfo.it_value.tv_nsec;
+    if (incinterval(timerId, &timerInfo, &oldtimer))
+       {
+       fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
+       exit(1);
+       }
+ #endif
+ // fprintf(SysTraceFile, "sys: timeslice is %dms\n", timerDelay);
+    }
 
-extern "C"  void
-sysVirtualProcessorEnableTimeSlicing()
-   {
-   setTimeSlicer(TimerDelay);
-   }
-   
-//
-// returns the time of day in the buffer provided
-//
-/*
-extern "C" int
-sysGetTimeOfDay(char * buffer) {
-        int rc;
-        struct timeval tv;
-        struct timezone tz;
+ extern "C"  void
+ sysVirtualProcessorEnableTimeSlicing()
+    {
+    setTimeSlicer(TimerDelay);
+    }
 
-        rc = gettimeofday(&tv, &tz);
-        if (rc != 0) return rc;
+ //
+ // returns the time of day in the buffer provided
+ //
+ /*
+ extern "C" int
+ sysGetTimeOfDay(char * buffer) {
+	 int rc;
+	 struct timeval tv;
+	 struct timezone tz;
 
-        buffer[0] = (tv.tv_sec >> 24) & 0x000000ff;
-        buffer[1] = (tv.tv_sec >> 16) & 0x000000ff;
-        buffer[2] = (tv.tv_sec >> 8) & 0x000000ff;
-        buffer[3] = tv.tv_sec & 0x000000ff;
+	 rc = gettimeofday(&tv, &tz);
+	 if (rc != 0) return rc;
 
-        buffer[4] = (tv.tv_usec >> 24) & 0x000000ff;
-        buffer[5] = (tv.tv_usec >> 16) & 0x000000ff;
-        buffer[6] = (tv.tv_usec >> 8) & 0x000000ff;
-        buffer[7] = tv.tv_usec & 0x000000ff;
+	 buffer[0] = (tv.tv_sec >> 24) & 0x000000ff;
+	 buffer[1] = (tv.tv_sec >> 16) & 0x000000ff;
+	 buffer[2] = (tv.tv_sec >> 8) & 0x000000ff;
+	 buffer[3] = tv.tv_sec & 0x000000ff;
 
-        return rc;
+	 buffer[4] = (tv.tv_usec >> 24) & 0x000000ff;
+	 buffer[5] = (tv.tv_usec >> 16) & 0x000000ff;
+	 buffer[6] = (tv.tv_usec >> 8) & 0x000000ff;
+	 buffer[7] = tv.tv_usec & 0x000000ff;
+
+	 return rc;
+ }
+ */
+ extern "C" long long
+ sysGetTimeOfDay() {
+	 int rc;
+	 long long returnValue;
+	 struct timeval tv;
+	 struct timezone tz;
+
+	 returnValue = 0;
+
+	 rc = gettimeofday(&tv, &tz);
+	 if (rc != 0) {
+		 returnValue = rc;
+	 }
+	 else {
+		 returnValue = (long long) tv.tv_sec * 1000000;
+		 returnValue += tv.tv_usec;
+	 }
+
+	 return returnValue;
+ }
+
+
+ //-----------------------//
+ // Processor operations. //
+ //-----------------------//
+
+ #ifdef _AIX
+ #include <sys/systemcfg.h>
+ #endif
+
+ // How many physical cpu's are present?
+ // Taken:    nothing
+ // Returned: number of cpu's
+ //
+ extern "C" int
+ sysNumProcessors()
+    {
+    int numpc = 1;  /* default */
+
+    #ifdef __linux__
+      #ifdef RVM_FOR_POWERPC
+      numpc = get_nprocs_conf();
+      #elif RVM_FOR_IA32
+      numpc = get_nprocs_conf();
+      #endif
+    #elif __CYGWIN__
+      fprintf(SysTraceFile, "\nuntested system call: sysNumProcessors()\n");
+      numpc = 1; // bogus.
+    #else
+      numpc = _system_configuration.ncpus;
+    #endif
+
+    #ifdef DEBUG_SYS
+    fprintf(SysTraceFile, "sysNumProcessors: returning %d\n", numpc );
+    #endif
+    return numpc;
+    }
+
+ #if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+ #include <pthread.h>
+ #endif
+ static void *sysVirtualProcessorStartup(void *arg);
+ #ifdef RVM_FOR_IA32
+ extern "C" void bootThread(int ip, int jtoc, int pr, int sp); // assembler routine
+ #else
+ extern "C" void bootThread(int jtoc, int pr, int ti, int fp); // assembler routine
+ #endif
+
+ // Create a virtual processor (aka "unix kernel thread", "pthread").
+ // Taken:    register values to use for pthread startup
+ // Returned: virtual processor's o/s handle
+ //
+ extern "C" int
+ sysVirtualProcessorCreate(int jtoc, int pr, int ti_or_ip, int fp)
+    {
+ #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    fprintf(stderr, "sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n");
+    exit (-1);
+    return (0);
+ #else
+    int           *sysVirtualProcessorArguments;
+    pthread_attr_t sysVirtualProcessorAttributes;
+    pthread_t      sysVirtualProcessorHandle;
+    int            rc;
+
+    // create arguments
+    //
+    sysVirtualProcessorArguments = new int[4];
+    sysVirtualProcessorArguments[0] = jtoc;
+    sysVirtualProcessorArguments[1] = pr;
+    sysVirtualProcessorArguments[2] = ti_or_ip;
+    sysVirtualProcessorArguments[3] = fp;
+
+    // create attributes
+    //
+    if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes)))
+       {
+       fprintf(SysErrorFile, "vm: pthread_attr_init failed (rc=%d)\n", rc);
+       exit(1);
+       }
+
+    // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
+    //
+    pthread_attr_setscope(&sysVirtualProcessorAttributes, PTHREAD_SCOPE_SYSTEM);
+
+    // create virtual processor
+    //
+    if ((rc = pthread_create(&sysVirtualProcessorHandle,
+			     &sysVirtualProcessorAttributes,
+			     sysVirtualProcessorStartup,
+			     sysVirtualProcessorArguments)))
+       {
+       fprintf(SysErrorFile, "vm: pthread_create failed (rc=%d)\n", rc);
+       exit(1);
+       }
+
+ #ifdef VERBOSE_PTHREAD
+    fprintf(SysTraceFile, "sys: pthread_create 0x%08x\n", sysVirtualProcessorHandle);
+ #endif
+    return (int)sysVirtualProcessorHandle;
+ #endif
+    }
+
+ static void *
+ sysVirtualProcessorStartup(void *args)
+    {
+    int jtoc	= ((int *)args)[0];
+    int pr	= ((int *)args)[1];
+    int ti_or_ip	= ((int *)args)[2];
+    int fp	= ((int *)args)[3];
+
+ #ifdef VERBOSE_PTHREAD
+    fprintf(SysTraceFile, "sys: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ti_or_ip=0x%08x fp=0x%08x\n", jtoc, pr, ti_or_ip, fp);
+ #endif
+
+    // branch to vm code
+    //
+    #if RVM_FOR_IA32
+    {
+    int sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
+    bootThread(ti_or_ip, jtoc, pr, sp);
+    }
+    #else
+    bootThread(jtoc, pr, ti_or_ip, fp);
+    #endif
+
+    // not reached
+    //
+    fprintf(SysTraceFile, "vm: sysVirtualProcessorStartup: failed\n");
+    return 0;
+    }
+
+ // Bind execution of current virtual processor to specified physical cpu.
+ // Taken:    physical cpu id (0, 1, 2, ...)
+ // Returned: nothing
+ //
+ extern "C" void
+ sysVirtualProcessorBind(int cpuId)
+    {
+ #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    int rc = 0;
+    fprintf(stderr, "sysVirtualProcessorBind: Unsupported operation with single virtual processor with single virtual processor\n");
+    exit (-1);
+ #else
+    int numCpus;
+    numCpus = sysconf(_SC_NPROCESSORS_ONLN);
+ #ifdef VERBOSE_PTHREAD
+    fprintf(SysTraceFile, "sys: %d cpu's\n", numCpus);
+ #endif
+
+ // Linux does not seem to have this
+ #ifndef __linux__
+    if (numCpus == -1)
+       {
+       fprintf(SysErrorFile, "vm: sysconf failed (errno=%d)\n", errno);
+       exit(1);
+       }
+
+    cpuId = cpuId % numCpus;
+
+    int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
+    fprintf(SysTraceFile, "sys: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
+
+    if (rc)
+       {
+       fprintf(SysErrorFile, "vm: bindprocessor failed (errno=%d)\n", errno);
+       exit(1);
+       }
+ #endif
+ #endif
+    }
+
+ #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+ pthread_cond_t VirtualProcessorStartup = PTHREAD_COND_INITIALIZER;
+ pthread_cond_t MultithreadingStartup = PTHREAD_COND_INITIALIZER;
+
+pthread_mutex_t VirtualProcessorStartupLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t MultithreadingStartupLock = PTHREAD_MUTEX_INITIALIZER;
+
+int VirtualProcessorsLeftToStart;
+int VirtualProcessorsLeftToWait;
+
+extern "C" void sysInitializeStartupLocks(int howMany) {
+  VirtualProcessorsLeftToStart = howMany;
+  VirtualProcessorsLeftToWait = howMany;
 }
-*/
-extern "C" long long
-sysGetTimeOfDay() {
-        int rc;
-	long long returnValue;
-        struct timeval tv;
-        struct timezone tz;
 
-	returnValue = 0;
-
-        rc = gettimeofday(&tv, &tz);
-        if (rc != 0) {
-		returnValue = rc;
-	}
-	else {
-		returnValue = (long long) tv.tv_sec * 1000000;
-		returnValue += tv.tv_usec;
-	}
-
-	return returnValue;
+extern "C" void sysWaitForVirtualProcessorInitialization() {
+  pthread_mutex_lock( &VirtualProcessorStartupLock );
+  if (--VirtualProcessorsLeftToStart == 0)
+    pthread_cond_broadcast( &VirtualProcessorStartup );
+  else
+    pthread_cond_wait(&VirtualProcessorStartup, &VirtualProcessorStartupLock);
+  pthread_mutex_unlock( &VirtualProcessorStartupLock );
 }
 
-
-//-----------------------//
-// Processor operations. //
-//-----------------------//
-
-#ifdef _AIX
-#include <sys/systemcfg.h>
+extern "C" void sysWaitForMultithreadingStart() {
+  pthread_mutex_lock( &MultithreadingStartupLock );
+  if (--VirtualProcessorsLeftToWait == 0)
+    pthread_cond_broadcast( &MultithreadingStartup );
+  else
+    pthread_cond_wait(&MultithreadingStartup, &MultithreadingStartupLock);
+  pthread_mutex_unlock( &MultithreadingStartupLock );
+}
 #endif
-
-// How many physical cpu's are present?
-// Taken:    nothing
-// Returned: number of cpu's
-//
-extern "C" int
-sysNumProcessors()
-   {
-   int numpc = 1;  /* default */
-
-   #ifdef __linux__
-     #ifdef RVM_FOR_POWERPC
-     numpc = get_nprocs_conf();
-     #elif RVM_FOR_IA32
-     numpc = get_nprocs_conf();
-     #endif
-   #elif __CYGWIN__
-     fprintf(SysTraceFile, "\nuntested system call: sysNumProcessors()\n");
-     numpc = 1; // bogus.
-   #else
-     numpc = _system_configuration.ncpus;
-   #endif
-
-   #ifdef DEBUG_SYS
-   fprintf(SysTraceFile, "sysNumProcessors: returning %d\n", numpc );
-   #endif
-   return numpc;
-   }
-
-#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-#include <pthread.h>
-#endif
-static void *sysVirtualProcessorStartup(void *arg);
-#ifdef RVM_FOR_IA32
-extern "C" void bootThread(int ip, int jtoc, int pr, int sp); // assembler routine
-#else
-extern "C" void bootThread(int jtoc, int pr, int ti, int fp); // assembler routine
-#endif
-
-// Create a virtual processor (aka "unix kernel thread", "pthread").
-// Taken:    register values to use for pthread startup
-// Returned: virtual processor's o/s handle
-//
-extern "C" int
-sysVirtualProcessorCreate(int jtoc, int pr, int ti_or_ip, int fp)
-   {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-   fprintf(stderr, "sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n");
-   exit (-1);
-   return (0);
-#else
-   int           *sysVirtualProcessorArguments;
-   pthread_attr_t sysVirtualProcessorAttributes;
-   pthread_t      sysVirtualProcessorHandle;
-   int            rc;
-   
-   // create arguments
-   //
-   sysVirtualProcessorArguments = new int[4];
-   sysVirtualProcessorArguments[0] = jtoc;
-   sysVirtualProcessorArguments[1] = pr;
-   sysVirtualProcessorArguments[2] = ti_or_ip;
-   sysVirtualProcessorArguments[3] = fp;
-
-   // create attributes
-   //
-   if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes)))
-      {
-      fprintf(SysErrorFile, "vm: pthread_attr_init failed (rc=%d)\n", rc);
-      exit(1);
-      }
-     
-   // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
-   //
-   pthread_attr_setscope(&sysVirtualProcessorAttributes, PTHREAD_SCOPE_SYSTEM);
-
-   // create virtual processor
-   //
-   if ((rc = pthread_create(&sysVirtualProcessorHandle,
-                            &sysVirtualProcessorAttributes,
-                            sysVirtualProcessorStartup,
-                            sysVirtualProcessorArguments)))
-      {
-      fprintf(SysErrorFile, "vm: pthread_create failed (rc=%d)\n", rc);
-      exit(1);
-      }
-
-#ifdef VERBOSE_PTHREAD
-   fprintf(SysTraceFile, "sys: pthread_create 0x%08x\n", sysVirtualProcessorHandle);
-#endif
-   return (int)sysVirtualProcessorHandle;
-#endif
-   }
-
-static void *
-sysVirtualProcessorStartup(void *args)
-   {
-   int jtoc	= ((int *)args)[0];
-   int pr	= ((int *)args)[1];
-   int ti_or_ip	= ((int *)args)[2];
-   int fp	= ((int *)args)[3];
-   
-#ifdef VERBOSE_PTHREAD
-   fprintf(SysTraceFile, "sys: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ti_or_ip=0x%08x fp=0x%08x\n", jtoc, pr, ti_or_ip, fp);
-#endif
-
-   // branch to vm code
-   //
-   #if RVM_FOR_IA32
-   {
-   int sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
-   bootThread(ti_or_ip, jtoc, pr, sp);
-   }
-   #else
-   bootThread(jtoc, pr, ti_or_ip, fp);
-   #endif
-
-   // not reached
-   //
-   fprintf(SysTraceFile, "vm: sysVirtualProcessorStartup: failed\n");
-   return 0;
-   }
-
-// Bind execution of current virtual processor to specified physical cpu.
-// Taken:    physical cpu id (0, 1, 2, ...)
-// Returned: nothing
-//
-extern "C" void
-sysVirtualProcessorBind(int cpuId)
-   {
-#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-   int rc = 0;
-   fprintf(stderr, "sysVirtualProcessorBind: Unsupported operation with single virtual processor with single virtual processor\n");
-   exit (-1);
-#else
-   int numCpus;
-   numCpus = sysconf(_SC_NPROCESSORS_ONLN);
-#ifdef VERBOSE_PTHREAD
-   fprintf(SysTraceFile, "sys: %d cpu's\n", numCpus);
-#endif
-
-// Linux does not seem to have this
-#ifndef __linux__
-   if (numCpus == -1)
-      {
-      fprintf(SysErrorFile, "vm: sysconf failed (errno=%d)\n", errno);
-      exit(1);
-      }
-      
-   cpuId = cpuId % numCpus;
-
-   int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
-   fprintf(SysTraceFile, "sys: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
-
-   if (rc)
-      {
-      fprintf(SysErrorFile, "vm: bindprocessor failed (errno=%d)\n", errno);
-      exit(1);
-      }
-#endif
-#endif
-   }
 
 // Routines to support sleep/wakeup of idle threads:
 // CRA, Maria
@@ -880,15 +917,7 @@ sysPthreadExit()
 extern "C" void
 sysVirtualProcessorYield()
    {
-// fprintf(SysTraceFile, "sysVirtualProcessorYield\n");
-#if (defined _AIX43)
-   sched_yield();
-#elif (defined __linux__)
-   /* temporary becuase we have not included pthread.h we cannot use this function.
-      simply return as a path */
-   //sched_yield();
-   return;
-#elif (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+#if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    sched_yield();
 #else
    fprintf(stderr, "sysVirtualProcessorYield: Unsupported operation with single virtual processor\n");

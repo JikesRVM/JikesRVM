@@ -633,15 +633,22 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     boolean terminateSystem = false;
 
     //VM_Scheduler.trace("VM_Thread", "terminate");
+
     VM_Thread myThread = getCurrentThread();
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     myThread.exit(); 
-    synchronized (myThread) { // release anybody waiting on this thread - 
-                              // in particular, see java.lang.Thread.join()
-      myThread.isAlive = false;
-      myThread.notifyAll();
-    }
 
+    // begin critical section
+    //
+    VM_Scheduler.threadCreationMutex.lock();
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+
+    synchronized (myThread) { // release anybody waiting on this thread - 
+	// in particular, see java.lang.Thread.join()
+	myThread.isAlive = false;
+	myThread.notifyAll();
+    }
+	
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
     if (VM.BuildForCpuMonitoring) VM_RuntimeMeasurements.monitorThreadExit();
 //-#endif
@@ -652,11 +659,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // garbage collector will attempt to relocate its ip field.
     myThread.hardwareExceptionRegisters.inuse = false;
     
-    // begin critical section
-    //
-    VM_Scheduler.threadCreationMutex.lock();
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-
     VM_Scheduler.numActiveThreads -= 1;
     if (myThread.isDaemon)
       VM_Scheduler.numDaemons -= 1;

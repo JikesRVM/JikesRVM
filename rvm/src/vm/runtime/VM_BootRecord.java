@@ -262,4 +262,12 @@ class VM_BootRecord
    public int sysNetSelectIP;
 
    public int sysSprintfIP;
+
+   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+   //-#else
+   // system startup pthread sync. primitives
+   public int sysInitializeStartupLocksIP;
+   public int sysWaitForVirtualProcessorInitializationIP;
+   public int sysWaitForMultithreadingStartIP;
+   //-#endif
    }

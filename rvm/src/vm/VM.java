@@ -448,7 +448,11 @@ public class VM extends VM_Properties implements VM_Constants,
    * Yield execution of current virtual processor back to o/s.
    */
   static void sysVirtualProcessorYield() {
-    sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+      //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+      return;
+      //-#else
+      sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+      //-#endif
   }
 
   /**
@@ -460,6 +464,21 @@ public class VM extends VM_Properties implements VM_Constants,
     sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP);
   }
    
+  //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  //-#else
+  static void sysWaitForVirtualProcessorInitialization() {
+      sysCall0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
+  }
+
+  static void sysWaitForMultithreadingStart() {
+      sysCall0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
+  }
+
+  static void sysInitializeStartupLocks(int howMany) {
+      sysCall1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
+  }
+  //-#endif
+
   //-#if RVM_FOR_POWERPC
   /**
    * Make calls to host operating system services.
