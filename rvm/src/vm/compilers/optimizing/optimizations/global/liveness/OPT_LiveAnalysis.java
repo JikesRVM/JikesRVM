@@ -869,9 +869,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // The old test would exclude all physical registers.  However,
     // register allocation needs to know about physical registers, except
     // for the ones listed below.  Such regs are inserted in the IR
-    // during call expansion.
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    if (phys.excludeFromLiveness(regOp.register)
+    // during call expansion. 
+    if (regOp.register.isExcludedLiveA()
 	|| (regOp.register.isValidation() && skipGuards)) {
       return  true;
     }

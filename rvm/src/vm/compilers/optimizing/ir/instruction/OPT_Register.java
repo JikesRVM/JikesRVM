@@ -49,6 +49,9 @@ final class OPT_Register {
   static private final int VOLATILE         = 0x02000;  
   static private final int NON_VOLATILE     = 0x04000;
 
+  /* used with live analysis */
+  static private final int EXCLUDE_LIVEANAL = 0x08000; /* reg is excluded from live analysis */
+
   /* used by the register allocator */
   static private final int  SPILLED         = 0x10000; /* spilled into a memory location */
   static private final int  TOUCHED         = 0x20000; /* register touched */
@@ -81,6 +84,7 @@ final class OPT_Register {
   boolean isLong()          { return (flags & LONG            ) != 0; }
   boolean isCondition()     { return (flags & CONDITION       ) != 0; }
   boolean isValidation()    { return (flags & VALIDATION      ) != 0; }
+  boolean isExcludedLiveA() { return (flags & EXCLUDE_LIVEANAL) != 0; }
 
   int     getType()         { return (flags>>>TYPE_SHIFT)&(NUMBER_TYPE-1); }  
 
@@ -99,6 +103,7 @@ final class OPT_Register {
   void setLong()            { flags |= LONG;             }
   void setCondition()       { flags =  (flags & ~TYPE_MASK) | CONDITION; }
   void setValidation()      { flags |= VALIDATION;       }
+  void setExcludedLiveA()   { flags |= EXCLUDE_LIVEANAL; }
 
   void setVolatile()        { flags |= VOLATILE;         }
   void setNonVolatile()     { flags |= NON_VOLATILE;     }
