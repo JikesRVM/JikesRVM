@@ -147,7 +147,7 @@ that another invocation of RunSanityTests will use.
  This option controls whether a clean is performed immediately before
 each test is run.  Giving this option means a clean is not performed.
 
-\item{\tt{wait}} {\em filename}
+\item{\tt{-wait}} {\em filename}
 
  This options is used to synchronize parallel RunSanityTests invocation
 that are building and running the same set of boot images.  When this
@@ -197,7 +197,7 @@ reflect the location of each benchmark.  {\tt{Local.rules}} defines
 the following variables for a benchmark.
 \begin{description}
 \item[BENCH\_HOME] is the home directory where the benchmark is
-located.  This used for benchmarks for which a test harness but not
+located.  This is used for benchmarks for which a test harness but not
 the benchmark itself is distributed with the Jikes RVM distribution. 
 \item[BENCH\_JARS] defines a set of jar files to be included in the
 classpath of compiles and runs of this benchmark.
@@ -455,14 +455,20 @@ critical.  Thus, we have the following two files:
 \begin{description}
 \item[nightly-tests] file
 \begin{verbatim}
+gctest
 bytecodeTests
 opttests
 reflect
 threads
 utf8
+memberNaming
+jni
 CaffeineMark
 jBYTEmark
 javalex 
+xerces
+xalan
+soot
 SPECjvm98 
 SPECjbb2000 
 \end{verbatim}
@@ -472,9 +478,9 @@ bytecodeTests
 opttests
 reflect
 threads
-utf8
 CaffeineMark
 jBYTEmark
+javalex
 \end{verbatim}
 \end{description}
 

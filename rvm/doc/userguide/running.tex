@@ -10,7 +10,9 @@ Jikes\trademark\ RVM executes bytecodes from {\tt .class} files. It does {\em
 not} compile 
 Java\trademark\ source code. Therefore, all files 
 required by your program must have already been compiled into bytecode
-files by a Java compiler.  We recommend you use the IBM Jikes compiler.
+files by a Java compiler.  We recommend you use the IBM Jikes
+compiler. If you use version 1.17 or higher of jikes, be sure to give
+it the command line argument {\tt -target 1.3}.
 
 For example, to run class {\tt foo} with source code in file {\tt foo.java}:
 \begin{verbatim}
@@ -63,6 +65,12 @@ enable verbose output; currently ``jni'' is not supported
 The non-standard options are
 
 \begin{description}
+\item [{\tt -X}]
+print usage on nonstandard options
+
+\item[{\tt -X:verbose}]
+print out additional information for GC and hardware trap handling
+
 \item[{\tt -X:h=<number>}]
 allocate {\tt <number>} megabytes of small object heap
 
@@ -78,23 +86,21 @@ allocate {\tt <number>} megabytes of nursery object heap
 \item[{\tt -X:ph=<number>}]
 allocate {\tt <number>} megabytes of permanent object heap 
 
-\item[{\tt -X:i=<filename>}]
-read boot image from {\tt <filename>}
-
 \item[{\tt -X:sysLogfile=<filename>}]
 writes standard error message to {\tt <filename>}
 
-\item[{\tt -X:vmClasses=<filename>}]
-load classes from {\tt <filename>}
+\item[{\tt -X:i=<filename>}]
+read boot image from {\tt <filename>}
 
-\item[{\tt -X:cpuAffinity=<int>}]
-physical cpu to which first virtual processor is bound
+\item[{\tt -X:traceClassLoading}]
+produce a report on class loading activity. More details than 
+{\tt -verbose:class}. 
 
-\item[{\tt -X:processors=<int|``all''>}]
-number of processors to use on a multiprocessor
+\item[{\tt -X:gc[:help]}]
+print options supported by memory management system
 
-\item[{\tt -X:verbose}]
-print out additional information for GC
+\item[{\tt -X:aos:<option>}]
+pass {\tt <option>} to the memory management system
 
 \item[{\tt -X:aos[:help]}]
 print options supported by adaptive optimization system when in an
@@ -124,6 +130,26 @@ non-adaptive configuration
 \item[{\tt -X:opt:<option>}]
 pass {\tt <option>} to the optimizing compiler when in a non-adaptive configuration
 
+\item[{\tt -X:prof:<option>}]
+pass {\tt <option>} to the profiling subsystem
+
+\item[{\tt -X:vmClasses=<filename>}]
+load classes from {\tt <filename>}
+
+\item[{\tt -X:cpuAffinity=<int>}]
+physical cpu to which first virtual processor is bound
+
+\item[{\tt -X:processors=<int|``all''>}]
+number of processors to use on a multiprocessor
+
+\item[{\tt -X:measureCompilation=<boolean>}]
+produce a report on compilation time
+
+\item[{\tt -X:measureClassLoading=<int>}]
+produce a report on class loading time (1 dump at end of run, 2 dump
+at every load).
+
+\item[{\tt -X:verify=<boolean>}] verify bytecodes
 \end{description}
 
 See Appendix~\ref{appendix:nonadaptive:cmdline} for more details on 
