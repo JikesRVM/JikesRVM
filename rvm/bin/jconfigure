@@ -4,7 +4,7 @@
 #
 #$Id$
 # Generate control files necessary to build a particular "configuration"
-# of the Jalapeno virtual machine.
+# of the Research Virtual Machine.
 #
 # Invocation:  jconfigure configuration-name
 #        or:   jconfigure configuration-name </dev/null (to suppress interactive questions)
@@ -32,7 +32,7 @@ if [[ $RVM_ROOT = "" ]]; then
    exit 1
 fi
 
-# Place where jalapeno bootimage, booter, and runtime support files will be placed.
+# Place where RVM bootimage, booter, and runtime support files will be placed.
 #
 if [[ $RVM_BUILD = "" ]]; then
    print "$ME: please set your RVM_BUILD environment variable (eg. $HOME/rvmBuild)"
@@ -63,7 +63,7 @@ if [[ $# = 0 || $1 = -help ]]; then
    more <<EOF
    
    This script generates control files necessary to build a particular 
-   "configuration" of the Jalapeno virtual machine.
+   "configuration" of the Research Virtual Machine.
 
    Normally it is invoked as:
       $0 <configuration-name>
@@ -75,7 +75,7 @@ if [[ $# = 0 || $1 = -help ]]; then
    This script creates the \$RVM_BUILD directory and populates it with a skeleton 
    directory structure along with some scripts and control files.
 
-   After running this script, you can build a Jalapeno executable by typing:
+   After running this script, you can build an RVM executable by typing:
        cd \$RVM_BUILD
        jbuild
 
@@ -84,7 +84,7 @@ if [[ $# = 0 || $1 = -help ]]; then
    and booter will be placed into the \$RVM_BUILD directory.
 
    To execute the resulting bootimage (from any directory), type:
-      jalapeno <vm-flags> classname <application-args>
+      rvm <vm-flags> classname <application-args>
 
    Later, if you make changes to your \$RVM_ROOT tree, type "jbuild" again.
    Modified source files will be discovered, copied to the build directory, 
