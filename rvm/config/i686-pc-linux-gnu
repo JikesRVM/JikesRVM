@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001, 2003
+# (C) Copyright IBM Corp. 2001, 2003, 2004
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -23,10 +23,19 @@ export RVM_FOR_LINUX=1
 # NOTE: the key requirement for setting this to 0 (ie having SMP support)
 #       is that you have a 2.4 kernel and that glibc is compiled 
 #       to use the GS segment register to access pthread-local storage.  
-#       See discussion in rvm-researchers archive and the userguide FAQ.
-#  This is now quite common. For example, in Red Hat 7 and later.  
-#  So, the default is 0
+#	(Another way of saying this is that glibc is compiled to 
+#	 handle "floating stacks").
+#       See the FAQ in the Jikes RVM User's Guide.
+#
+#       This is now quite common. For example, in Red Hat 7 and later.  
+#       So, the default is 0.  The Big Exception is if you are using Debian
+#       GNU/Linux with a 2.4 or 2.2 kernel.  Debian with a 2.6 kernel will 
+#	work, but it won't work with a 2.4 or 2.2 kernel.
+#
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+## Use this for Debian GNU/Linux with a Linux 2.4 kernel, 
+## and for any Linux 2.2 kernel:
+# export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 
 export BOOTIMAGE_LOAD_ADDRESS=0x43000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
@@ -78,7 +87,7 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 # Uncomment this line only if you manually downloaded the Classpath sources.
 # export CLASSPATH_ROOT=/opt/classpath-0.08
 
-## OR you can leave both of them unset and let the build 
+## OR you can leave all of the CLASSPATH_ variables unset and let the build 
 ## process download and build GNU Classpath for you.
 
 # Path for GNU make
@@ -86,7 +95,7 @@ export GNU_MAKE="/usr/bin/make"
 
 # Path for the Jikes java-to-byte-code compiler.
 # Try Jikes 1.13 if you have trouble figuring out the error messages
-# from Jikes 1.18 or 1.19.
+# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20.
 export JIKES=/usr/bin/jikes
 
 # What C compilers should be used?
