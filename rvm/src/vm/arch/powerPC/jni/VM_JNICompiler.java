@@ -25,7 +25,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   -Save the nonvolatile registers in a known space in the frame to be used 
    *    for the GC stack map
    *   -Push a new JREF frame on the JNIRefs stack
-   *   -Set the VM_Processor affinity so that this thread won't migrate while in native
    *   -Supply the first JNI argument:  the JNI environment pointer
    *   -Supply the second JNI argument:  class object if static, "this" if virtual
    *   -Hardcode the TOC and IP to the corresponding native code
@@ -260,15 +259,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     fr1.resolve(asm);
     asm.emitL(S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);  // S0 holds thread pointer
 
-    // reset threads processor affinity if it was previously zero, before the call.
-    // ...again, rethink if the setting & resetting of processor affinity is still necessary
-    //
-    asm.emitL(T2, frameSize - JNI_AFFINITY_OFFSET, FP);          // saved affinity in glue frame
-    asm.emitCMPI(T2,0);
-    VM_ForwardReference fr2 = asm.emitForwardBC(NE);
-    asm.emitST(T2, VM_Entrypoints.processorAffinityField.getOffset(), S0);  // store 0 into affinity field
-    fr2.resolve(asm);
-		 
     // reestablish S0 to hold jniEnv pointer
     asm.emitL(S0, VM_Entrypoints.jniEnvField.getOffset(), S0);       
 
