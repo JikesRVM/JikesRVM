@@ -56,7 +56,6 @@ TOP_LEVEL_PACKAGES="java javax gnu"
 ##
 declare -i CHECK=0
 export DEST_DIR=${CLASSPATH_ROOT:-$RVM_ROOT/classpath}
-export OS_VER=$(uname -v)
 OSNAME="$(uname)"
 
 if [[ ${JIKES-:} ]]; then
@@ -65,6 +64,7 @@ fi
 JAR_TOOL=$JAR
 
 declare -i AIX=0
+# OSTYPE is a Bash builtin, not a typo for OSNAME
 [[ $OSTYPE == aix* ]] && AIX=1
 
 CLASSPATH_URL=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
