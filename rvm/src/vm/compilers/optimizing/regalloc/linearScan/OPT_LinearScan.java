@@ -458,6 +458,13 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
   static class CompoundInterval extends IncreasingStartIntervalSet {
 
     /**
+     * Is this compound interval fully contained in infrequent code?
+     */
+    private boolean _infrequent = true;
+    final void setFrequent() { _infrequent = false; }
+    final boolean isInfrequent() { return _infrequent; }
+
+    /**
      * The register this compound interval represents
      */
     private OPT_Register reg;
@@ -1221,6 +1228,11 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     final OPT_Register findAvailableRegister(CompoundInterval ci) {
 
+      if (ir.options.FREQ_FOCUS_EFFORT && ci.isInfrequent()) {
+        // don't bother trying to find an available register
+        return null;
+      }
+
       OPT_Register r = ci.getRegister();
       OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
 
@@ -1229,8 +1241,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         OPT_Register p = getPhysicalPreference(ci);
         if (p != null) {
           if (debugCoalesce) {
-            System.out.println("REGISTER PREFERENCE " + ci + " "
-                               + p);
+            System.out.println("REGISTER PREFERENCE " + ci + " " + p);
           }
           return p;
         }
@@ -1276,8 +1287,7 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         OPT_Register p = getPhysicalPreference(symb);
         if (p != null) {
           if (debugCoalesce) {
-            System.out.println("REGISTER PREFERENCE " + symb + " "
-                               + p);
+            System.out.println("REGISTER PREFERENCE " + symb + " " + p);
           }
           return p;
         }
@@ -1541,6 +1551,16 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      */
     private CompoundInterval getSpillCandidate(CompoundInterval newInterval) {
       if (verboseDebug) System.out.println("GetSpillCandidate from " + this);
+
+      if (ir.options.FREQ_FOCUS_EFFORT && newInterval.isInfrequent()) {
+        // if it's legal to spill this infrequent interval, then just do so!
+        // don't spend any more effort.
+        OPT_RegisterRestrictions restrict = ir.stackManager.getRestrictions();
+        if (!restrict.mustNotSpill(newInterval.getRegister())) {
+          return newInterval;
+        }
+      }
+
       return spillMinUnitCost(newInterval);
     }
 
@@ -1740,8 +1760,10 @@ final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           if (live.getRegister().isPhysical() &&
               !phys.isAllocatable(live.getRegister())) continue;
 
-          CompoundInterval resultingInterval = processLiveInterval(live, 
-                                                                   bb);
+          CompoundInterval resultingInterval = processLiveInterval(live, bb);
+          if (!bb.getInfrequent() && resultingInterval != null) {
+            resultingInterval.setFrequent();
+          }
         } 
       }
 

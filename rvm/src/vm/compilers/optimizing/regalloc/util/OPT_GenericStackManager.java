@@ -5,7 +5,7 @@
 
 import instructionFormats.*;
 import java.util.Enumeration;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Iterator;
 /**
  * Class to manage the allocation of the "compiler-independent" portion of 
@@ -39,7 +39,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * For each physical register, holds a ScratchRegister which records
    * the current scratch assignment for the physical register.
    */
-  protected HashSet scratchInUse = new HashSet(20);
+  protected ArrayList scratchInUse = new ArrayList(20);
 
   /**
    * An array which holds the spill location number used to stash nonvolatile
@@ -146,9 +146,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * @param symb the symbolic register operand to replace
    */
   abstract void replaceOperandWithSpillLocation(OPT_Instruction s, 
-                                               OPT_RegisterOperand symb);
+                                                OPT_RegisterOperand symb);
 
-    // Get the spill location previously assigned to the symbolic
+  // Get the spill location previously assigned to the symbolic
   /**
    * Should we use information from linear scan in choosing scratch
    * registers?
@@ -161,26 +161,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * scan analysis.
    */
   private OPT_LinearScan.ActiveSet activeSet = null;
-
-  /**
-   * Return the size of a type of value, in bytes.
-   * NOTE: For the purpose of register allocation, a FLOAT_VALUE is 64 bits!
-   *
-   * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
-   */
-  /*
-  private static byte getSizeOfType(byte type) {
-    switch(type) {
-      case INT_VALUE:
-        return (byte)(WORDSIZE);
-      case FLOAT_VALUE: case DOUBLE_VALUE:
-        return (byte)(2 * WORDSIZE);
-      default:
-        OPT_OptimizingCompilerException.TODO("getSizeOfValue: unsupported");
-        return 0;
-    }
-  }
-  */
 
   /**
    * Replace all occurences of register r1 in an instruction with register
@@ -245,7 +225,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * instruction s.  
    */
   protected void unloadScratchRegisterBefore(OPT_Instruction s, 
-                                           ScratchRegister scratch) {
+                                             ScratchRegister scratch) {
     // if the scratch register is not dirty, don't need to write anything, 
     // since the stack holds the current value
     if (!scratch.isDirty()) return;
@@ -263,7 +243,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * Restore the contents of a scratch register before instruction s.  
    */
   protected void reloadScratchRegisterBefore(OPT_Instruction s, 
-                                            ScratchRegister scratch) {
+                                             ScratchRegister scratch) {
     if (scratch.hadToSpill()) {
       // Restore the live contents into the scratch register.
       int location = OPT_RegisterAllocatorState.getSpill(scratch.scratch);
@@ -276,8 +256,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * Return the set of scratch registers which are currently reserved
    * for use in instruction s.
    */
-  private HashSet getReservedScratchRegisters(OPT_Instruction s) {
-    HashSet result = new HashSet(3);
+  private ArrayList getReservedScratchRegisters(OPT_Instruction s) {
+    ArrayList result = new ArrayList(3);
 
     for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
@@ -402,14 +382,17 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * a symbolic register will be held in a particular scratch physical
    * register.
    * 
+   * @param beCheap don't expend much effort optimizing scratch
+   * assignments
    * @return the physical scratch register that holds the value 
    *         after instruction s
    */
   private ScratchRegister holdInScratchAfter(OPT_Instruction s, 
-                                             OPT_Register symb) {
+                                             OPT_Register symb,
+                                             boolean beCheap) {
 
     // Get a scratch register.
-    ScratchRegister sr = getScratchRegister(symb,s);
+    ScratchRegister sr = getScratchRegister(symb,s,beCheap);
 
     // make the scratch register available to hold the new 
     // symbolic register
@@ -463,9 +446,12 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   /**
    * Get a scratch register to hold symbolic register symb in instruction
    * s.
+   *
+   * @param beCheap don't expend too much effort
    */
   private ScratchRegister getScratchRegister(OPT_Register symb,
-                                             OPT_Instruction s) {
+                                             OPT_Instruction s,
+                                             boolean beCheap) {
 
     ScratchRegister r = getCurrentScratchRegister(symb);
     if (r != null) {
@@ -493,12 +479,12 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     // if we get here, either there is no current scratch assignment, or
     // the current assignment is illegal.  Find a new scratch register.
     ScratchRegister result = null;
-    if (activeSet == null) {
+    if (beCheap || activeSet == null) {
       result = getFirstAvailableScratchRegister(symb,s);
     } else {
       result = getScratchRegisterUsingIntervals(symb,s);
     }
-    
+
     // Record that we will touch the scratch register.
     result.scratch.touchRegister(); 
     return result;
@@ -513,7 +499,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   private ScratchRegister getScratchRegisterUsingIntervals(OPT_Register r,
                                                            OPT_Instruction s){
-    HashSet reservedScratch = getReservedScratchRegisters(s);
+    ArrayList reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
@@ -542,7 +528,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   private ScratchRegister getFirstAvailableScratchRegister(OPT_Register r,
                                                            OPT_Instruction s){
-    HashSet reservedScratch = getReservedScratchRegisters(s);
+    ArrayList reservedScratch = getReservedScratchRegisters(s);
 
     OPT_Register phys = null;
     if (r.isFloatingPoint()) {
@@ -558,13 +544,16 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * before instruction s to load the register from the appropriate stack
    * location.
    *
+   * @param beCheap don't expend to much effort to optimize scratch
+   * assignments
    * @return the physical register used to hold the value when it is
    * loaded from the spill location
    */
   private ScratchRegister moveToScratchBefore(OPT_Instruction s, 
-                                              OPT_Register symb) {
+                                              OPT_Register symb,
+                                              boolean beCheap) {
 
-    ScratchRegister sr = getScratchRegister(symb,s);
+    ScratchRegister sr = getScratchRegister(symb,s,beCheap);
 
     OPT_Register scratchContents = sr.currentContents;
     if (scratchContents != symb) {
@@ -741,7 +730,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstFPRNotUsedIn(OPT_Register r, 
                                             OPT_Instruction s, 
-                                            HashSet reserved) {
+                                            ArrayList reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
@@ -753,8 +742,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
       }
     }
 
-    OPT_OptimizingCompilerException.TODO(
-                        "Could not find a free FPR in spill situation");
+    OPT_OptimizingCompilerException.TODO("Could not find a free FPR in spill situation");
     return null;
   }
 
@@ -768,7 +756,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstDeadFPRNotUsedIn(OPT_Register r, 
                                                 OPT_Instruction s, 
-                                                HashSet reserved) {
+                                                ArrayList reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     // first try the volatiles
@@ -792,7 +780,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstGPRNotUsedIn(OPT_Register r, 
                                             OPT_Instruction s, 
-                                            HashSet reserved) {
+                                            ArrayList reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
@@ -813,7 +801,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
       }
     }
     OPT_OptimizingCompilerException.TODO(
-                             "Could not find a free GPR in spill situation");
+                                         "Could not find a free GPR in spill situation");
     return null;
   }
 
@@ -827,7 +815,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */ 
   private OPT_Register getFirstDeadGPRNotUsedIn(OPT_Register r,
                                                 OPT_Instruction s, 
-                                                HashSet reserved) {
+                                                ArrayList reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
@@ -971,119 +959,130 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
 
     // walk over each instruction in the IR
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
-      if (verboseDebug) {
-        System.out.println(s);
-      }
+    for (Enumeration blocks = ir.getBasicBlocks(); blocks.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)blocks.nextElement();
+      for (Enumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
 
-      // If any scratch registers are currently in use, but use physical
-      // registers that appear in s, then free the scratch register.
-      restoreScratchRegistersBefore(s);  
+        // If the following is true, don't expend effort trying to
+        // optimize scratch assignements
+        boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
 
-      // we must spill all scratch registers before leaving this basic block
-      if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || 
-          s.isReturn()) {
-        restoreAllScratchRegistersBefore(s);
-      }
+        OPT_Instruction s = (OPT_Instruction)e.nextElement();
+        if (verboseDebug) {
+          System.out.println(s);
+        }
 
-      // SJF: This is a bad hack which avoids bug 2642.  For some reason,
-      // if we cache a reference value in ECX across the prologue_yieldpoint in
-      // method java.Hashtable.put(), bad things happen and the program
-      // non-deterministically crashes with apparent bad GC Maps.  
-      // I have not figured out what's really going on, despite great
-      // effort.  I'm giving up for now, and instead resorting to this
-      // woeful hack to avoid the problem.
-      // To reproduce the bug, comment out the following and run SPECjbb
-      // using the night-sanity parameters on OptOptSemispace; the program
-      // should crash with a bad GC map about half the time.
-      if (s.operator == YIELDPOINT_PROLOGUE) {
-        restoreAllScratchRegistersBefore(s);
-      }
+        // If any scratch registers are currently in use, but use physical
+        // registers that appear in s, then free the scratch register.
+        restoreScratchRegistersBefore(s);  
 
-      // If s is a GC point, and scratch register r currently caches the
-      // value of symbolic symb, and r is dirty: Then update the GC map to 
-      // account for the fact that symb's spill location does not
-      // currently hold a valid reference.
-      if (s.isGCPoint()) {
-        markDirtyScratchRegisters(s);
-      }
+        // we must spill all scratch registers before leaving this basic block
+        if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || s.isReturn()) {
+          restoreAllScratchRegistersBefore(s);
+        }
 
-      // Walk over each operand and insert the appropriate spill code.
-      // for the operand.
-      for (Enumeration ops = s.getOperands(); ops.hasMoreElements(); ) {
-        OPT_Operand op = (OPT_Operand)ops.nextElement();
-        if (op != null && op.isRegister()) {
-          OPT_Register r = op.asRegister().register;
-          if (!r.isPhysical()) {
-            // Is r currently assigned to a scratch register?
-            ScratchRegister scratch = getCurrentScratchRegister(r);
-            if (verboseDebug) {
-              System.out.println(r + " SCRATCH " + scratch);
-            }
-            if (scratch != null) {
-              // r is currently assigned to a scratch register.  Continue to
-              // use the same scratch register.
-              boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
-              if (defined) {
-                scratch.setDirty(true);
+        // SJF: This is a bad hack which avoids bug 2642.  For some reason,
+        // if we cache a reference value in ECX across the prologue_yieldpoint in
+        // method java.Hashtable.put(), bad things happen and the program
+        // non-deterministically crashes with apparent bad GC Maps.  
+        // I have not figured out what's really going on, despite great
+        // effort.  I'm giving up for now, and instead resorting to this
+        // woeful hack to avoid the problem.
+        // To reproduce the bug, comment out the following and run SPECjbb
+        // using the night-sanity parameters on OptOptSemispace; the program
+        // should crash with a bad GC map about half the time.
+        if (s.operator == YIELDPOINT_PROLOGUE) {
+          restoreAllScratchRegistersBefore(s);
+        }
+
+        // If s is a GC point, and scratch register r currently caches the
+        // value of symbolic symb, and r is dirty: Then update the GC map to 
+        // account for the fact that symb's spill location does not
+        // currently hold a valid reference.
+        if (s.isGCPoint()) {
+          // note that if we're being cheap, no scratch registers are
+          // currently dirty, since we've restored them all.
+          markDirtyScratchRegisters(s);
+        }
+
+        // Walk over each operand and insert the appropriate spill code.
+        // for the operand.
+        for (Enumeration ops = s.getOperands(); ops.hasMoreElements(); ) {
+          OPT_Operand op = (OPT_Operand)ops.nextElement();
+          if (op != null && op.isRegister()) {
+            OPT_Register r = op.asRegister().register;
+            if (!r.isPhysical()) {
+              // Is r currently assigned to a scratch register?
+              // Note that if we're being cheap, the answer is always no (null)
+              ScratchRegister scratch = getCurrentScratchRegister(r);
+              if (verboseDebug) {
+                System.out.println(r + " SCRATCH " + scratch);
               }
-              replaceRegisterWithScratch(s,r,scratch.scratch);
-            } else {
-              // r is currently NOT assigned to a scratch register.
-              // Do we need to create a new scratch register to hold r?
-              // Note that we never need scratch floating point register
-              // for FMOVs, since we already have a scratch stack location
-              // reserved.
-              if (needScratch(r,s)) {
-                // We must create a new scratch register.
-                boolean used = usedIn(r,s) || usesSpillLocation(r,s);
+              if (scratch != null) {
+                // r is currently assigned to a scratch register.  Continue to
+                // use the same scratch register.
                 boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
-                if (used) {
-                  if (!usedIn(r,s)) {
-                    OPT_Register r2 = spillLocationUse(r,s);
-                    scratch = moveToScratchBefore(s,r2);
-                    if (verboseDebug) {
-                      System.out.println("MOVED TO SCRATCH BEFORE " + r2 + 
-                                         " " + scratch);
-                    }
-                  } else {
-                    scratch = moveToScratchBefore(s,r);
-                    if (verboseDebug) {
-                      System.out.println("MOVED TO SCRATCH BEFORE " + r + 
-                                         " " + scratch);
-                    }
-                  }
-                }   
                 if (defined) {
-                  scratch = holdInScratchAfter(s,r);
                   scratch.setDirty(true);
-                  if (verboseDebug) {
-                    System.out.println("HELD IN SCRATCH AFTER" + r + 
-                                       " " + scratch);
-                  }
                 }
-                // replace the register in the target instruction.
                 replaceRegisterWithScratch(s,r,scratch.scratch);
               } else {
-                //-#if RVM_FOR_IA32
-                // No need to use a scratch register here.
-                replaceOperandWithSpillLocation(s,op.asRegister());
-                //-#else
-                VM.assert(NOT_REACHED);
-                //-#endif
+                // r is currently NOT assigned to a scratch register.
+                // Do we need to create a new scratch register to hold r?
+                // Note that we never need scratch floating point register
+                // for FMOVs, since we already have a scratch stack location
+                // reserved.
+                // If we're being cheap, then always create a new scratch register.
+                if (needScratch(r,s)) {
+                  // We must create a new scratch register.
+                  boolean used = usedIn(r,s) || usesSpillLocation(r,s);
+                  boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
+                  if (used) {
+                    if (!usedIn(r,s)) {
+                      OPT_Register r2 = spillLocationUse(r,s);
+                      scratch = moveToScratchBefore(s,r2,beCheap);
+                      if (verboseDebug) {
+                        System.out.println("MOVED TO SCRATCH BEFORE " + r2 + 
+                                           " " + scratch);
+                      }
+                    } else {
+                      scratch = moveToScratchBefore(s,r,beCheap);
+                      if (verboseDebug) {
+                        System.out.println("MOVED TO SCRATCH BEFORE " + r + 
+                                           " " + scratch);
+                      }
+                    }
+                  }   
+                  if (defined) {
+                    scratch = holdInScratchAfter(s,r,beCheap);
+                    scratch.setDirty(true);
+                    if (verboseDebug) {
+                      System.out.println("HELD IN SCRATCH AFTER" + r + 
+                                         " " + scratch);
+                    }
+                  }
+                  // replace the register in the target instruction.
+                  replaceRegisterWithScratch(s,r,scratch.scratch);
+                } else {
+                  //-#if RVM_FOR_IA32
+                  // No need to use a scratch register here.
+                  replaceOperandWithSpillLocation(s,op.asRegister());
+                  //-#else
+                  VM.assert(NOT_REACHED);
+                  //-#endif
+                }
               }
             }
           }
         }
-      }
 
-      // deal with sys calls that may bash non-volatiles
-      //-#if RVM_FOR_IA32
-      if (isSysCall(s)) {
-        OPT_CallingConvention.saveNonvolatilesAroundSysCall(s,ir);
+        // deal with sys calls that may bash non-volatiles
+        //-#if RVM_FOR_IA32
+        if (isSysCall(s)) {
+          OPT_CallingConvention.saveNonvolatilesAroundSysCall(s,ir);
+        }
+        //-#endif
       }
-      //-#endif
     }
   }
 
@@ -1256,7 +1255,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     } 
     return caughtExceptionOffset;
   }
-  
+
   /**
    * Called as part of the register allocator startup.
    * (1) examine the IR to determine whether or not we need to 
@@ -1283,14 +1282,14 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         if (s.operator() == LOWTABLESWITCH) {
           // uses BL to get pc relative addressing.
           frameRequired = true;
-	  preventYieldPointRemoval = true;
+          preventYieldPointRemoval = true;
           break;
         } else if (s.isGCPoint() && !s.isYieldPoint() &&
-		   s.operator() != IR_PROLOGUE) {
-	  // frame required for GCpoints that are not yield points 
-	  //  or IR_PROLOGUE, which is the stack overflow check
+                   s.operator() != IR_PROLOGUE) {
+          // frame required for GCpoints that are not yield points 
+          //  or IR_PROLOGUE, which is the stack overflow check
           frameRequired = true;
-	  preventYieldPointRemoval = true;
+          preventYieldPointRemoval = true;
           break;
         }
       }
@@ -1341,15 +1340,15 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     if (removeYieldpoints) {
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
            s != null;
-	   s = s.nextInstructionInCodeOrder()) {
-	if (s.isYieldPoint()) {
-	  OPT_Instruction save = s;
-	  // get previous instruction, so we can continue 
-	  // after we remove this instruction
-	  s = s.prevInstructionInCodeOrder();
-	  save.remove();
-	  ir.MIRInfo.gcIRMap.delete(save);
-	}
+           s = s.nextInstructionInCodeOrder()) {
+        if (s.isYieldPoint()) {
+          OPT_Instruction save = s;
+          // get previous instruction, so we can continue 
+          // after we remove this instruction
+          s = s.prevInstructionInCodeOrder();
+          save.remove();
+          ir.MIRInfo.gcIRMap.delete(save);
+        }
       }
       prologueYieldpoint = false;
     } else {
@@ -1390,7 +1389,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   final OPT_Register allocateVolatileRegister(OPT_Register symbReg) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    
+
     int physType = phys.getPhysicalRegisterType(symbReg);
     for (Enumeration e = phys.enumerateVolatiles(physType);
          e.hasMoreElements(); ) {

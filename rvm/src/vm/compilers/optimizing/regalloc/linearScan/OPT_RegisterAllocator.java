@@ -44,6 +44,5 @@ final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
     final public void perform (OPT_IR ir) {
       ir.stackManager.prepare(ir);
     }
-
   }
 }
