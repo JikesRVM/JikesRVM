@@ -1540,13 +1540,16 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
       if (expOuts.hasMoreElements() && e.hasMoreElements()) {
 	OPT_BasicBlock next = splitNodeWithLinksAt(s, ir);
 	next.unfactor(ir);
-	pruneExceptionalOutAfterSplit();
+	pruneExceptionalOut();
 	return;
       }
     }
   }
-  // helper function for unfactor
-  private void pruneExceptionalOutAfterSplit() {
+  /**
+   * Prune away exceptional out edges that are not reachable given this
+   * block's instructions.
+   */
+  final void pruneExceptionalOut() {
     int n = getNumberOfExceptionalOut();
     if (n > 0) {
       ComputedBBEnum handlers = new ComputedBBEnum(n);
