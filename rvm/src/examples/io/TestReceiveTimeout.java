@@ -1,8 +1,15 @@
-// Test that we can set a timeout on receiving data from a socket
-// input stream.
-
+/*
+ * Copyright (C) IBM 2002
+ */
 import java.io.*;
 import java.net.*;
+
+/**
+ * Test that we can set a timeout on receiving data from a socket
+ * input stream.
+ * 
+ * @author David Hovemeyer
+ */
 
 public class TestReceiveTimeout implements Runnable {
 

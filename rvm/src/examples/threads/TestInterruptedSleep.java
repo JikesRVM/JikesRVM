@@ -1,5 +1,11 @@
+/*
+ * Copyright (C) IBM 2002
+ */
+
 /**
  * Test that Thread.sleep() can be interrupted.
+ *
+ * @author David Hovemeyer
  */
 public class TestInterruptedSleep {
 

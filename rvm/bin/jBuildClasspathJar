@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# Copyright (C) IBM 2002
+#
+# @author Julian Dolby
+#
 
 if [ `uname` = Linux ]; then
   CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath

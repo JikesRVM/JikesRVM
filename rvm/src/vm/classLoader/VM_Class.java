@@ -794,7 +794,7 @@ public final class VM_Class extends VM_Type
     
     int major = input.readUnsignedShort();
     int minor = input.readUnsignedShort();
-    if ((major != 3 && major != 0) || (minor != 45 && minor != 46)) {
+    if ((major != 3 && major != 0) || (minor != 45 && minor != 46 && minor !=47 )) {
       throw new ClassFormatError("bad version number " + major + "." + minor);
     }
 

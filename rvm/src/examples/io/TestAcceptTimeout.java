@@ -1,9 +1,15 @@
-// Test that we can set a timeout for accepting a connection on
-// a server socket.
-
+/*
+ * Copyright (C) IBM 2002
+ */
 import java.io.*;
 import java.net.*;
 
+/**
+ * Test that we can set a timeout for accepting a connection on
+ * a server socket.
+ *
+ * @author David Hovemeyer
+ */
 class TestAcceptTimeout {
     public static void main(String[] argv) {
 	try {

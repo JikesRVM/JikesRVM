@@ -62,6 +62,23 @@ public class VM_Verifier  implements VM_BytecodeConstants {
   private int[] blockStkTop = null;
   private VM_PendingJSRInfo[] bbPendingJsrs = null;
 
+  private int currentByteCodeIndex = -1;
+
+  private void verificationFailure(String message) {
+      VM.sysWrite("Verification error: ");
+
+      VM.sysWrite(currMethodName);
+      if (currentByteCodeIndex != -1) {
+	  VM.sysWrite(" at ");
+	  VM.sysWrite(currentByteCodeIndex);
+      }
+
+      VM.sysWrite(": ");
+      VM.sysWrite(JBC_name[ opcode ]);
+
+      VM.sysWrite(": ");
+      VM.sysWriteln(message);
+  }
 
   /**
    * Verify the bytecode of a given class. If the class hasn't been loaded, this method
@@ -80,7 +97,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         cls.load();
       }catch(Exception e){
         e.printStackTrace();
-        VM.sysWrite("Verify error: class can't be loaded. \n");
+        verificationFailure(" class can't be loaded. \n");
         return;
       }
 
@@ -127,7 +144,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
     currMethodName = method.toString();
     if(!method.isLoaded()){
-      VM.sysWrite("Verify error: method " + method + " hasn't been loaded.\n");
+      verificationFailure(" method " + method + " hasn't been loaded.\n");
       return false;
     }
 
@@ -265,7 +282,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           inJSRSub = true;
       }
       else{
-        VM.sysWrite("Verify error: found a block on work stack without starting map.\n");
+        verificationFailure(" found a block on work stack without starting map.\n");
         throw new Exception();
       }
 
@@ -318,6 +335,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       for(i=start; i <= end; ){
         opcode = ((int)bytecodes[i]) & 0x000000FF;
         opLength = JBC_length[opcode];
+	currentByteCodeIndex = i;
 
         /* debug
            VM.sysWrite("#" + i + ": " + opcode + " , length: "+ opLength + "\n");
@@ -604,7 +622,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_pop:
                           currBBStkTop--;
                           if(currBBStkTop < currBBStkEmpty){
-                            VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+                            verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                                         " in method " + currMethodName+ " \n");
                             return false;
                           }
@@ -612,7 +630,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_pop2:
                           currBBStkTop-=2;
                           if(currBBStkTop < currBBStkEmpty){
-                            VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+                            verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                                         " in method " + currMethodName+ " \n");
                             return false;
                           }
@@ -643,13 +661,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_swap:{
                           //check stack underflow
                           if(currBBStkTop -1 <= currBBStkEmpty){
-                            VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                            verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                         " in method " + currMethodName+ " \n");
                             return false;
                           }
                           //check type, can't be 64-bits data
                           if(currBBMap[currBBStkTop]<=V_LONG || currBBMap[currBBStkTop-1] <= V_LONG){
-                            VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                            verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                         +" in method " + currMethodName+ " \n");
                             return false;
                           }
@@ -695,13 +713,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                            */
                           //check stack underflow
                           if(currBBStkTop <= currBBStkEmpty){
-                            VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                            verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                         " in method " + currMethodName+ " \n");
                             throw new Exception();
                           }
 
                           if(currBBMap[currBBStkTop] != V_INT){
-                            VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                            verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                         +" in method " + currMethodName+ " \n");
                             throw new Exception();
                           }
@@ -748,13 +766,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                           //check index validity
                           int index = ((int)bytecodes[i+1])&0xFF;
                           if(index <0 || index > currBBStkEmpty){
-                            VM.sysWrite("Verify error: invalid register index when " + JBC_name[opcode]
+                            verificationFailure(" invalid register index when " + JBC_name[opcode]
                                         + " index: " + index + " in method "+ currMethodName+ " \n");
                             return false;
                           }
                           //check type in the register
                           if(currBBMap[index]!=V_INT){
-                            VM.sysWrite("Verify error: register " + index +" has wrong type when " +
+                            verificationFailure(" register " + index +" has wrong type when " +
                                         JBC_name[opcode] + " in method "+ currMethodName+ " \n");
                             return false;
                           }
@@ -869,7 +887,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                                      (((int)bytecodes[i+2])&0xFF));
                                //check the validity of branch offset
                                if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                                 VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                                 verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                              +" in method "+ currMethodName+ " \n");
                                  return false;
                                }
@@ -896,7 +914,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                                 (((int)bytecodes[i+2])&0xFF));
                           //check the validity of branch offset
                           if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                            VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                            verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                         +" in method "+ currMethodName+ " \n");
                             return false;
                           }
@@ -924,7 +942,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                                //check the validity of branch offset
                                if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                                 VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                                 verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                              +" in method "+ currMethodName+ " \n");
                                  return false;
                                }
@@ -947,7 +965,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                                //check the validity of branch offset
                                if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                                 VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                                 verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                              +" in method "+ currMethodName+ " \n");
                                  return false;
                                }
@@ -969,7 +987,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                           //check the validity of branch offset
                           if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                            VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                            verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                         +" in method "+ currMethodName+ " \n");
                             return false;
                           }
@@ -985,7 +1003,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                             //check the validity of branch offset
                             if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                              VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                              verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                           +" in method "+ currMethodName+ " \n");
                               return false;
                             }
@@ -1002,13 +1020,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                                    //check stack underflow
                                    if(currBBStkTop <= currBBStkEmpty){
-                                     VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                     verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                                  " in method " + currMethodName+ " \n");
                                      return false;
                                    }
                                    //top of stack: index must be int
                                    if(currBBMap[currBBStkTop]!=V_INT){
-                                     VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                     verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                  +" in method " + currMethodName+ " \n");
                                      return false;
                                    }
@@ -1019,7 +1037,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                    int def = getIntOffset(i-1,bytecodes);  // getIntOffset expects byte before 
                                    // offset
                                    if(j+def <0 || j+def > bytecodes.length){
-                                     VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                                     verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                                  +" in method "+ currMethodName+ " \n");
                                      return false;
                                    }
@@ -1040,7 +1058,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                      // get next offset
                                      int offset = getIntOffset(l-1,bytecodes);
                                      if(j+offset <0 || j+offset > bytecodes.length){
-                                       VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                                       verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                                    +" in method "+ currMethodName+ " \n");
                                        return false;
                                      }
@@ -1057,13 +1075,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                                     //check stack underflow
                                     if(currBBStkTop <= currBBStkEmpty){
-                                      VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                                   " in method " + currMethodName+ " \n");
                                       return false;
                                     }
                                     //top of stack: key must be int
                                     if(currBBMap[currBBStkTop]!=V_INT){
-                                      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                   +" in method " + currMethodName+ " \n");
                                       return false;
                                     }
@@ -1074,7 +1092,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                     int def = getIntOffset(i-1,bytecodes);  // getIntOffset expects byte before 
                                     // offset
                                     if(j+def <0 || j+def > bytecodes.length){
-                                      VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                                      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                                   +" in method "+ currMethodName+ " \n");
                                       return false;
                                     }
@@ -1093,7 +1111,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                       // get next offset
                                       int offset = getIntOffset(l-1,bytecodes);
                                       if(j+offset <0 || j+offset > bytecodes.length){
-                                        VM.sysWrite("Verify error: invalid branch offset when " + JBC_name[opcode]
+                                        verificationFailure(" invalid branch offset when " + JBC_name[opcode]
                                                     +" in method "+ currMethodName+ " \n");
                                         return false;
                                       }
@@ -1112,13 +1130,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                            currBBStkTop++;
                            //check stack overflow
                            if(currBBStkTop >= currBBMap.length){
-                             VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+                             verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                                          " in method " + currMethodName+ " \n");
                              return false;
                            }
                            currBBMap[currBBStkTop] = V_RETURNADDR; 
                            if(i+offset <0 || i+offset > bytecodes.length){
-                             VM.sysWrite("Verify error: invalid jsr offset in method "+ 
+                             verificationFailure(" invalid jsr offset in method "+ 
                                          currMethodName+ " \n");
                              return false;
                            }
@@ -1168,13 +1186,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                              currBBStkTop++;
                              //check stack overflow
                              if(currBBStkTop >= currBBMap.length){
-                               VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+                               verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                                            " in method " + currMethodName+ " \n");
                                return false;
                              }
                              currBBMap[currBBStkTop] = V_RETURNADDR; 
                              if(i+offset <0 || i+offset > bytecodes.length){
-                               VM.sysWrite("Verify error: invalid jsr offset in method "+ 
+                               verificationFailure(" invalid jsr offset in method "+ 
                                            currMethodName+ " \n");
                                return false;
                              }
@@ -1306,7 +1324,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                                //check stack underflow
                                if(currBBStkTop <= currBBStkEmpty){
-                                 VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                 verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                              " in method " + currMethodName+ " \n");
                                  return false;
                                }
@@ -1347,7 +1365,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
                                 //check stack underflow
                                 if(currBBStkTop <= currBBStkEmpty){
-                                  VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                  verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                               " in method " + currMethodName+ " \n");
                                   return false;
                                 }
@@ -1380,7 +1398,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                          //check stack overflow
                          currBBStkTop ++;
                          if(currBBStkTop >= currBBMap.length){
-                           VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+                           verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                                        " in method " + currMethodName+ " \n");
                            return false;
                          }
@@ -1396,13 +1414,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_newarray:{
                               //check stack underflow
                               if(currBBStkTop <= currBBStkEmpty){
-                                VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                             " in method " + currMethodName+ " \n");
                                 return false;
                               }
                               //check whether the top of stack is int
                               if(currBBMap[currBBStkTop]!=V_INT){
-                                VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                             +" in method " + currMethodName+ " \n");
                                 return false;
                               }
@@ -1422,13 +1440,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_anewarray:{
                                //check stack underflow
                                if(currBBStkTop <= currBBStkEmpty){
-                                 VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                 verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                              " in method " + currMethodName+ " \n");
                                  return false;
                                }
                                //check whether the top of stack is int
                                if(currBBMap[currBBStkTop]!=V_INT){
-                                 VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                 verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                              +" in method " + currMethodName+ " \n");
                                  return false;
                                }
@@ -1465,7 +1483,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                     int dimension = ((int)bytecodes[i+3]) & 0xFFFF;
                                     //check stack underflow
                                     if(currBBStkTop - dimension < currBBStkEmpty){
-                                      VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                                   " in method " + currMethodName+ " \n");
                                       return false;
                                     }
@@ -1473,7 +1491,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                     for(int k=0; k<dimension; k++){
                                       //check whether the top of stack is int
                                       if(currBBMap[currBBStkTop]!=V_INT){
-                                        VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                     +" in method " + currMethodName+ " \n");
                                         return false;
                                       }
@@ -1489,7 +1507,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_arraylength:
                                   //check stack underflow
                                   if(currBBStkTop <= currBBStkEmpty){
-                                    VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+                                    verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                                                 " in method " + currMethodName+ " \n");
                                     return false;
                                   }
@@ -1497,7 +1515,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                   //check whether stack top is an array reference
                                   if(currBBMap[currBBStkTop]<=0 || 
                                      !VM_TypeDictionary.getValue(currBBMap[currBBStkTop]).isArrayType()){
-                                    VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                    verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                 +" in method " + currMethodName+ " \n");
                                     return false;
                                   }
@@ -1510,7 +1528,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                   {
                                     //check whether type of top stack is a subclass of Throwable
                                     if(currBBMap[currBBStkTop] < 0){	//not a reference
-                                      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                   +" in method " + currMethodName+ " \n");
                                       return false;
                                     }
@@ -1524,7 +1542,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                     VM_Class cls = VM_TypeDictionary.getValue(typeId).asClass();
 
                                     if(!cls.isClassType()){   // not a object reference
-                                      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                   +" in method " + currMethodName+ " \n");
                                       return false;
                                     }
@@ -1543,7 +1561,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                                       cls = cls.getSuperClass();
 
                                     if(cls==null){
-                                      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                   +" in method " + currMethodName+ " \n");
                                       return false;
                                     }
@@ -1555,7 +1573,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_monitorenter:
           case JBC_monitorexit:
                                   if(currBBMap[currBBStkTop] < 0){  // not a reference
-                                    VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+                                    verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                                                 +" in method " + currMethodName+ " \n");
                                     return false;
                                   }
@@ -1631,13 +1649,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                             int index = (((int)bytecodes[i+2]) << 8 |
                                          (((int)bytecodes[i+3]) & 0xFF)) & 0xFFFF;
                             if(index <0 || index > currBBStkEmpty){
-                              VM.sysWrite("Verify error: invalid register index when " + JBC_name[opcode]
+                              verificationFailure(" invalid register index when " + JBC_name[opcode]
                                           + " index: " + index + " in method "+ currMethodName+ " \n");
                               return false;
                             }
                             //check type in the register
                             if(currBBMap[index]!=V_INT){
-                              VM.sysWrite("Verify error: register " + index +" has wrong type when " +
+                              verificationFailure(" register " + index +" has wrong type when " +
                                           JBC_name[opcode] + " in method "+ currMethodName+ " \n");
                               return false;
                             }
@@ -1740,7 +1758,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       currBBStkTop += stackWords;
       //check stack overflow   ---- must be done for all load like instructions
       if(currBBStkTop >= currBBMap.length){
-        VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -1748,7 +1766,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       if(checkIndex == true){			//*load_<n>*
         //check register index
         if(index > currBBStkEmpty){
-          VM.sysWrite("Verify error: invalid register index when " + JBC_name[opcode]
+          verificationFailure(" invalid register index when " + JBC_name[opcode]
                       + " index: " + index + " in method "+ currMethodName+ " \n");
           throw new Exception();
         }
@@ -1760,7 +1778,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[index]==expectType && currBBMap[index+stackWords -1] == expectType);
 
         if(correct == false){
-          VM.sysWrite("Verify error: register " + index +" has wrong type when " +
+          verificationFailure(" register " + index +" has wrong type when " +
                       JBC_name[opcode] + " in method "+ currMethodName+ " \n");
           throw new Exception();
         }
@@ -1796,7 +1814,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       currBBStkTop +=numOfWord;
       //check stack overflow 
       if(currBBStkTop >= currBBMap.length){
-        VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -1807,7 +1825,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           cpType != VM_Statics.FLOAT_LITERAL && cpType!=VM_Statics.STRING_LITERAL)
          ||(numOfWord == 2 && 
             cpType != VM_Statics.LONG_LITERAL && cpType!=VM_Statics.DOUBLE_LITERAL)){
-        VM.sysWrite("Verify error: wrong constant pool type in method " + currMethodName+ " \n");
+        verificationFailure(" wrong constant pool type in method " + currMethodName+ " \n");
         throw new Exception();
       }
 
@@ -1829,7 +1847,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           currBBMap[currBBStkTop]= currBBMap[currBBStkTop-1] = V_DOUBLE;
           break;
         default:
-          VM.sysWrite("Verify error: wrong constant pool type in method " + currMethodName+ " \n");
+          verificationFailure(" wrong constant pool type in method " + currMethodName+ " \n");
           throw new Exception();
       }
     }
@@ -1856,19 +1874,19 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       for(i = 0; i < fromWord; i++)
         correct = (currBBMap[currBBStkTop-i]==fromType);
       if(correct == false){
-        VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                     +" in method " + currMethodName+ " \n");
         throw new Exception();
       }
       //check stack underflow
       if(currBBStkTop-fromWord +1 <= currBBStkEmpty){
-        VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
       //check stack overflow
       if(fromWord < toWord && currBBStkTop +1 >= currBBMap.length){	
-        VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -1915,20 +1933,20 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         correct = (currBBMap[currBBStkTop-i] == expectType);
     }
     if(correct == false){
-      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                   +" in method " + currMethodName+ " \n");
       throw new Exception();
     }
     //check validity of index
     if(index + storeWord -1 > currBBStkEmpty || index <0 ){
-      VM.sysWrite("Verify error: invalid register index when " + JBC_name[opcode]
+      verificationFailure(" invalid register index when " + JBC_name[opcode]
                   + " index: " + index + " in method "+ currMethodName+ " \n");
       throw new Exception();
     }
 
     //check stack underflow
     if(currBBStkTop-storeWord +1 <= currBBStkEmpty){
-      VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                   " in method " + currMethodName+ " \n");
       throw new Exception();
     }
@@ -1964,7 +1982,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
   private void dup_like(int numTodup, int numTodown) throws Exception {
     //check stack overflow
     if(currBBStkTop +numTodup >= currBBMap.length){	
-      VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+      verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                   " in method " + currMethodName+ " \n");
       throw new Exception();
     }
@@ -1973,7 +1991,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
        || (numTodup + numTodown > 1 && 
            currBBMap[currBBStkTop-numTodup - numTodown +1]<=V_LONG &&
            currBBMap[currBBStkTop-numTodup - numTodown +2]>V_LONG )){
-      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                   +" in method " + currMethodName+ " \n");
       throw new Exception();
     }
@@ -2002,7 +2020,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
   private void arith_like(int expectType, int numOfOpd, int numOfWord) throws Exception{
     //check stack underflow
     if(currBBStkTop-numOfWord +1 <= currBBStkEmpty){
-      VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                   " in method " + currMethodName+ " \n");
       throw new Exception();
     }
@@ -2012,7 +2030,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     for(int i=0; correct && i< numOfWord*numOfOpd; i++)
       correct = (currBBMap[currBBStkTop-i]==expectType);
     if(correct == false){
-      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                   +" in method " + currMethodName+ " \n");
       throw new Exception();
     }
@@ -2040,7 +2058,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     throws Exception {
       //check stack underflow
       if(currBBStkTop-numOfWord +1 <= currBBStkEmpty){
-        VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2053,7 +2071,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[currBBStkTop-i]==expectType);
 
       if(correct == false){
-        VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                     +" in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2084,13 +2102,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 						    getValue(currBBMap[currBBStkTop]));
           break;
         default:
-          VM.sysWrite("Verify error: invalid return type when " + JBC_name[opcode]
+          verificationFailure(" invalid return type when " + JBC_name[opcode]
                       +" in method " + currMethodName+ " \n");
           throw new Exception();
 
       }
       if(correct == false){
-        VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                     +" in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2115,13 +2133,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
   private void aaload_like(int expectType, int numOfWord) throws Exception{
     //check stack underflow
     if((currBBStkTop-2)  < currBBStkEmpty){
-      VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                   " in method " + currMethodName+ " \n");
       throw new Exception();
     }
     //check stack type
     if(currBBMap[currBBStkTop]!=V_INT || currBBMap[currBBStkTop-1]<= 0){ 
-      VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                   +" in method " + currMethodName+ " \n");
       throw new Exception();
     }	
@@ -2129,7 +2147,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     //check whether the second top of stack is an arrayType
     VM_Type arrayType = VM_TypeDictionary.getValue(currBBMap[currBBStkTop-1]);
     if( !arrayType.isArrayType()){
-      VM.sysWrite("Verify error: not arrayRef when " + JBC_name[opcode] +
+      verificationFailure(" not arrayRef when " + JBC_name[opcode] +
                   " in method " + currMethodName+ " \n");
       throw new Exception();
     }
@@ -2141,7 +2159,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
        (eleType.isFloatType() && expectType != V_FLOAT) ||
        (eleType.isDoubleType() && expectType != V_DOUBLE) ||
        (eleType.isReferenceType() && expectType != V_REF)){
-      VM.sysWrite("Verify error: incompatible element type when " + JBC_name[opcode]
+      verificationFailure(" incompatible element type when " + JBC_name[opcode]
                   +" in method " + currMethodName+ " \n");
       throw new Exception();
     }
@@ -2173,7 +2191,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     throws Exception {
       //check stack underflow
       if((currBBStkTop-2-numOfWord)  < currBBStkEmpty){
-        VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2187,13 +2205,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[currBBStkTop-i] == expectType);
 
       if(correct == false){
-        VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                     +" in method " + currMethodName+ " \n");
         throw new Exception();
       }
       //check index and arrayRef type
       if(currBBMap[currBBStkTop-numOfWord]!=V_INT || currBBMap[currBBStkTop-numOfWord-1]<= 0){ 
-        VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                     +" in method " + currMethodName+ " \n");
         throw new Exception();
       }	
@@ -2201,7 +2219,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       //check whether the third top of stack is an arrayType
       VM_Type arrayType = VM_TypeDictionary.getValue(currBBMap[currBBStkTop- numOfWord - 1]);
       if( !arrayType.isArrayType()){
-        VM.sysWrite("Verify error: not arrayRef when " + JBC_name[opcode] +
+        verificationFailure(" not arrayRef when " + JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2214,7 +2232,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
          (eleType.isDoubleType() && expectType != V_DOUBLE) ||
          (eleType.isReferenceType() && (expectType!=V_REF || (currBBMap[currBBStkTop]!=V_NULL 
                                                               && !VM_Runtime.isAssignableWith(eleType, VM_TypeDictionary.getValue(currBBMap[currBBStkTop])))))){
-        VM.sysWrite("Verify error: incompatible element type when " + JBC_name[opcode]
+        verificationFailure(" incompatible element type when " + JBC_name[opcode]
                     + " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2243,7 +2261,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     throws Exception {
       //check stack underflow
       if((currBBStkTop-numOfWord*numOfOpd)  < currBBStkEmpty){
-        VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2255,7 +2273,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         else
           correct = (currBBMap[currBBStkTop-i]==expectType);
       if(correct == false){
-        VM.sysWrite("Verify error: stack has wrong type when " + JBC_name[opcode]
+        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
                     +" in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2284,7 +2302,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       if(!isStatic){
         //check stack underflow
         if(currBBStkTop-1 < currBBStkEmpty){
-          VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+          verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
@@ -2292,13 +2310,13 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         if(currBBMap[currBBStkTop]<0 || currBBMap[currBBStkTop]!=V_NULL
            && !VM_Runtime.isAssignableWith(field.getDeclaringClass(),
 					   VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
-          VM.sysWrite("Verify error: incompatible object reference when " + JBC_name[opcode]
+          verificationFailure(" incompatible object reference when " + JBC_name[opcode]
                       + " in method " + currMethodName+ " \n");
           throw new Exception();
         }
 
         if(newObjectInfo[currBBStkTop-currBBStkEmpty-1]){	//uninitialized object
-          VM.sysWrite("Verify error: uninitialized object reference when getfield " + 
+          verificationFailure(" uninitialized object reference when getfield " + 
                       field + " in method " + currMethodName+ " \n");
           throw new Exception();
         }
@@ -2310,7 +2328,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       //check stack overflow
       currBBStkTop += fieldType.getStackWords();
       if(currBBStkTop >= currBBMap.length){
-        VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack overflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2346,7 +2364,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       VM_Type fieldType = field.getType();
       //check stack underflow
       if(currBBStkTop-fieldType.getStackWords() < currBBStkEmpty){
-        VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+        verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2366,7 +2384,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           ((currBBMap[currBBStkTop] == V_NULL || 
             VM_Runtime.isAssignableWith(fieldType, VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))));
       if(correct == false){
-        VM.sysWrite("Verify error: incompatible field type when " + JBC_name[opcode]
+        verificationFailure(" incompatible field type when " + JBC_name[opcode]
                     + " in method " + currMethodName+ " \n");
       }
       currBBStkTop -= fieldType.getStackWords();
@@ -2375,20 +2393,20 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       if(!isStatic){
         //check stack underflow
         if(currBBStkTop-1 < currBBStkEmpty){
-          VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+          verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
         //check the compatibility
         if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(field.getDeclaringClass(), 
 								     VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
-          VM.sysWrite("Verify error: incompatible object reference when " + JBC_name[opcode]
+          verificationFailure(" incompatible object reference when " + JBC_name[opcode]
                       + " in method " + currMethodName+ " \n");
           throw new Exception();
         }
 
         if(newObjectInfo[currBBStkTop-currBBStkEmpty-1]){	//uninitialized object
-          VM.sysWrite("Verify error: uninitialized object reference when putfield " + 
+          verificationFailure(" uninitialized object reference when putfield " + 
                       field + " in method " + currMethodName+ " \n");
           throw new Exception();
         }
@@ -2427,7 +2445,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       //if the destination block already has a map
       //fist check the height of stack
       if(blockStkTop[brBBNum] != newBBStkTop){
-        VM.sysWrite("Verify error: different stack height when merge type maps in method " 
+        verificationFailure(" different stack height when merge type maps in method " 
                     + currMethodName+ " \n");
         throw new Exception();
       }
@@ -2745,7 +2763,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         int numOfWord = parameterTypes[i].getStackWords();
         //check stack underflow
         if(currBBStkTop-numOfWord < currBBStkEmpty){
-          VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+          verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
@@ -2763,7 +2781,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[currBBStkTop] == V_NULL || 
                      VM_Runtime.isAssignableWith(parameterTypes[i], VM_TypeDictionary.getValue(currBBMap[currBBStkTop])));
         if(correct == false){
-          VM.sysWrite("Verify error: incompatible parameter when call " + calledMethod.getName() +
+          verificationFailure(" incompatible parameter when call " + calledMethod.getName() +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
@@ -2776,7 +2794,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       if(!isStatic){
         //check stack underflow
         if(currBBStkTop-1 < currBBStkEmpty){
-          VM.sysWrite("Verify error: stack underflow when "+ JBC_name[opcode] +
+          verificationFailure(" stack underflow when "+ JBC_name[opcode] +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
@@ -2784,14 +2802,14 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         //this isn't a reference type or isn't a compatible reference type
         if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(calledMethod.getDeclaringClass(),
 								     VM_TypeDictionary.getValue(currBBMap[currBBStkTop]))){
-          VM.sysWrite("Verify error: incompatible this reference when call " + calledMethod +
+          verificationFailure(" incompatible this reference when call " + calledMethod +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
 
         if(calledMethod.getName() != VM_ClassLoader.StandardObjectInitializerMethodName){
           if(newObjectInfo[currBBStkTop-currBBStkEmpty-1]){	//uninitialized object
-            VM.sysWrite("Verify error: uninitialized object reference when call " + 
+            verificationFailure(" uninitialized object reference when call " + 
                         calledMethod + " in method " + currMethodName+ " \n");
             throw new Exception();
           }
@@ -2812,7 +2830,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         currBBStkTop += returnType.getStackWords();
         //check stack overflow
         if(currBBStkTop >= currBBMap.length){
-          VM.sysWrite("Verify error: stack overflow when "+ JBC_name[opcode] +
+          verificationFailure("stack overflow when "+ JBC_name[opcode] +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }

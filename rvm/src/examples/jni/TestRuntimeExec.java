@@ -1,6 +1,14 @@
+/*
+ * Copyright (C) IBM 2002
+ */
 import java.io.*;
 import java.lang.Process;
 
+/**
+ * Test whether the Runtime.exec API works
+ *
+ * @author David Hovemeyer
+ */
 class TestRuntimeExec extends Thread {
 
     public static void main(String[] argv) {

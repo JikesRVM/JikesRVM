@@ -7,6 +7,7 @@
 package com.ibm.JikesRVM.librarySupport;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_Lock;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
@@ -193,5 +194,14 @@ public class SystemSupport {
     return new VM_Process(program, args, env, dirPath);
   }
 
+  public static void addShutdownHook(final Thread hook) {
+      VM_Callbacks.addExitMonitor(
+	  new VM_Callbacks.ExitMonitor() {
+	      public void notifyExit(int value) {
+		  hook.start();
+	      }
+	  });
+  }
+	  
 }
 	
