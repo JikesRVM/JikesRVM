@@ -360,7 +360,7 @@ RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR:
 \begin{description}
 \item[AIX/PowerPC] {\tt 0 }
 \item[Linux/PowerPC] {\tt 1}
-\item[OSX/PowerPC] {\tt 1}
+\item[OS~X/PowerPC] {\tt 1}
 \item[Linux/IA32] {\tt 0}\footnote{You must use 1 here if you do not
 have a 2.4 kernel and {\tt glibc} compiled to use the GS segment register to
 access pthread-specific state.  We do not recommend such a setup.}
@@ -507,11 +507,24 @@ affect system viability.
 
 \subsubsection{Mac OS X}
 
+\begin{enumerate}
+\item
 If your Mac OS~X build complains about a missing file  \texttt{dlfcn.h}, then 
 you need to have the \texttt{dlcompat} library installed, available from 
 \xlink{\texttt{http://www.o\-pendar\-win.org/\-pro\-jects/\-dl\-compat/}}{http://www.opendarwin.org/projects/dlcompat/}
 ---~the 2003-06-29 release of \texttt{dlcompat} works, according to a posting to
 the \texttt{jikesrvm-researchers} mailing list dated 2003-10-26.
+
+\item
+If you want to build Jikes RVM for Mac OS~X, you will need to patch
+your copy (version 0.06 or CVS head) of GNU Classpath with the patch
+file located
+in \texttt{\$RVM\_ROOT/rvm/aux/gnu-classpath-on-mac-osx.patch}.  The
+next incremental release of GNU Classpath will probably have that
+patch included in it.
+
+\end{enumerate}
+
 
 \subsection{Jikes RVM Configurations}\label{configs}
 \index{configuration names}
