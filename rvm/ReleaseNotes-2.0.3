@@ -3,13 +3,14 @@ of this release are bug fixes, ???
 
 Highlights include:
   -- Improved jdp on Linux/IA32. Previously several commands
-     with BaseOpt or OptOpt type builds would crash a message
-     about "Pop wrong type" - that's not been fixed. 
+     with BaseOpt or OptOpt type builds would crash with a message
+     about "Pop wrong type" - that's now been fixed. 
   -- Other jdp improvements include: requiring hex values to
      be prefixed with '0x' or '0X'; clarifications in the help
      messages and userguide; stepline command fixed for BaseBase
      type builds; and print variable-name command fixed for BaseBase
-     when LoadLocalVariableTable is true;
+     when LoadLocalVariableTable is true; However jdp still works
+     better with BaseBase builds. 
   
 
 To see more details on other miscellaneous bug fixes, see
