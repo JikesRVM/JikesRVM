@@ -21,7 +21,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
- *  A mark-sweep area to hold "large" objects (typically at least 2K).
+ *  A mark-sweep area to hold "large" objects (in 4K chunks)
  *  The large space code is obtained by factoring out the code in various
  *  collectors.
  *
@@ -63,6 +63,7 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
   private MemoryResource memoryResource;
   private int pagesAllocated = 0;
   private int pagesMarked = 0;
+  private int pagesOverCommitted = 0;  // extra pages committed from memoryresource point of view
 
   /**
    * Initialize for boot image - called from init of various collectors
@@ -100,6 +101,9 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
   }
 
 
+  /*
+   * Debug function for pinpointing where deadlock was caused.
+   */
   private void LOScheckpoint(int where) {
     if (Plan.gcInProgress())
       LOSgcLock.checkpoint(where);
@@ -129,34 +133,42 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
 
     if (VM.VerifyAssertions) VM._assert(allocated != null);
 
+    int num_pages = (size + (pageSize - 1)) / pageSize;    // Number of pages needed
+    int bytes = num_pages * pageSize;
+    
+    int bytesToCommit = bytes - pagesOverCommitted * pageSize;
+    int blocks = 0;
+    if (bytesToCommit < 0) {
+      pagesOverCommitted -= bytes / pageSize;
+    }
+    else {
+      blocks = Conversions.bytesToBlocks(bytesToCommit);
+      int overcommitBytes = Conversions.blocksToBytes(blocks) - bytesToCommit;
+	if (!memoryResource.acquire(blocks))
+	  return VM_Address.zero();
+	pagesOverCommitted = overcommitBytes / pageSize;
+    }
+
     // Cycle through twice to make sure we covered everything
-    // This is  bit wasteful...
+    // This is a bit wasteful since the second cycle does not need to go past the original starting position
     //
+    int current = lastAllocated;  // could be initialized to any value not inside an allocated block or at the initial position
+    int last_possible = totalPages - num_pages;
     for (int count=0; count < 2 ; count++) {
 
-      int num_pages = (size + (pageSize - 1)) / pageSize;    // Number of pages needed
-      int bytes = num_pages * pageSize;
-
-      if (!memoryResource.acquire(Conversions.bytesToBlocks(bytes))) 
-	return VM_Address.zero();
-
       LOSlock();
-      int last_possible = totalPages - num_pages;
-      LOScheckpoint(1);
-      while (allocated[lastAllocated] != 0) 
-	lastAllocated += allocated[lastAllocated];
-      int first_free = lastAllocated;
-      while (first_free <= last_possible) {
-	// Now find contiguous pages for this object
-	// first find the first available page
-	// i points to an available page: remember it
+      while (current <= last_possible) {
+	// Increment until first free block found
+	while (allocated[current] != 0) {
+	  if (VM.VerifyAssertions) VM._assert(allocated[current] > 0);
+	  current += allocated[current];
+	}
+	// Look for needed number of free pages.  Search aborted if not found.
 	int i;
-      LOScheckpoint(3);
-	for (i = first_free + 1; i < first_free + num_pages ; i++) {
+	for (i = current; i < current + num_pages ; i++) {
 	  if (allocated[i] != 0) break;
 	}
-      LOScheckpoint(4);
-	if (i == (first_free + num_pages )) {  
+	if (i == (current + num_pages )) {  
 
 	  // successful: found num_pages contiguous pages
 	  // mark the newly allocated pages
@@ -165,39 +177,31 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
 	  // so that when marking (ref is input) will know which extreme 
 	  // of the range the ref identifies, and then can find the other
 	  
-	  VM_Address result = start.add(pageSize * first_free);
+	  VM_Address result = start.add(pageSize * current);
 	  VM_Address resultEnd = result.add(size);
-      LOScheckpoint(5);
 	  if (resultEnd.GT(cursor)) {
 	    int neededBytes = resultEnd.diff(cursor).toInt();
-	    int blocks = Conversions.bytesToBlocks(neededBytes);
-	    VM_Address newArea = acquire(blocks);
-      LOScheckpoint(6);
+	    int neededBlocks = Conversions.bytesToBlocks(neededBytes);
+	    VM_Address newArea = acquire(neededBlocks);
 	    if (newArea.isZero()) {
-      LOScheckpoint(7);
 	      LOSunlock();
 	      return VM_Address.zero();
 	    }
 	  }
-      LOScheckpoint(10);
 	  if (VM.VerifyAssertions) VM._assert(resultEnd.LE(cursor));
-	  allocated[first_free + num_pages - 1] = (short)(-num_pages);
-	  allocated[first_free] = (short)(num_pages);
+	  allocated[current] = (short)(num_pages);
+	  allocated[current + num_pages - 1] = (short)(-num_pages);
 	  pagesAllocated += num_pages;
-      LOScheckpoint(11);
+	  lastAllocated = current + num_pages;
 	  LOSunlock();
 	  Memory.zero(result, resultEnd);
 	  return result;
 	} else {  
-      LOScheckpoint(12);
 	  // free area did not contain enough contig. pages
-	  first_free = i + allocated[i]; 
-	  while (allocated[first_free] != 0) 
-	    first_free += allocated[first_free];
-      LOScheckpoint(13);
+	  if (VM.VerifyAssertions) VM._assert(allocated[i] > 0);
+	  current = i + allocated[i]; 
 	}
       }
-      LOScheckpoint(14);
       LOSunlock();
     } // for 
 
@@ -230,6 +234,9 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
       return ref;
     }
     int temp = allocated[page_num];
+    pagesMarked += (temp > 0) ? temp : -temp;
+    if (Plan.verbose > 3)
+      VM.sysWriteln("LOS.marking ", ref);
     if (temp == 1) 
       mark[page_num] = 1;
     else {
@@ -237,12 +244,10 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
       if (temp > 0) {
 	ij = page_num + temp -1;
 	mark[ij] = (short)-temp;
-	pagesMarked += temp;
       }
       else {
 	ij = page_num + temp + 1;
 	mark[ij] = (short)-temp;
-	pagesMarked += (-temp);
       }
       mark[page_num] = (short)temp;
     }
