@@ -75,6 +75,7 @@ final class VM_ContiguousHeap extends VM_Heap
       VM.sysWrite("   cur = ");
       VM.sysWrite(current);
       VM.sysWrite((sense == FORWARD) ? " -->" : " <--");
+      VM.sysWrite("    ", usedMemory() / 1024, "  Kb used");
       if (newline) VM.sysWriteln();
   }
 
@@ -193,5 +194,15 @@ final class VM_ContiguousHeap extends VM_Heap
 	return end.diff(current);
     else
 	return current.diff(start);
+  }
+
+  /**
+   * How much memory is used in the heap?
+   */
+  public int usedMemory() {
+    if (sense == FORWARD)
+	return current.diff(start);
+    else
+	return end.diff(current);
   }
 }
