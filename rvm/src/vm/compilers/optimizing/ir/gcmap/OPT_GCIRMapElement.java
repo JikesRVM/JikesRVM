@@ -63,6 +63,13 @@ final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   }
 
   /**
+   * Delete a spill list element from this map element
+   */
+  public final void deleteRegSpillElement(OPT_RegSpillListElement e) {
+    regSpillList.remove(e);
+  }
+
+  /**
    * Counts and returns the number of references for this map
    * @return the number of references, either regs or spills for this map
    */

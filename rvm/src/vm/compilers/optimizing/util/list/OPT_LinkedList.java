@@ -9,38 +9,25 @@
  */
 class OPT_LinkedList {
 
-  /**
-   * put your documentation comment here
-   */
-  OPT_LinkedList () {
+  OPT_LinkedList() {
   }
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_LinkedListElement e
-   */
-  OPT_LinkedList (OPT_LinkedListElement e) {
+  OPT_LinkedList(OPT_LinkedListElement e) {
     start = end = e;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  final public OPT_LinkedListElement first () {
-    return  start;
+  final public OPT_LinkedListElement first() {
+    return start;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
-  final public OPT_LinkedListElement last () {
+  final public OPT_LinkedListElement last() {
     return  end;
   }
 
-  // append at the end of the list
-  final public void append (OPT_LinkedListElement e) {
+  /**
+   * append at the end of the list
+   */
+  final public void append(OPT_LinkedListElement e) {
     if (e == null)
       return;
     OPT_LinkedListElement End = end;
@@ -53,8 +40,10 @@ class OPT_LinkedList {
     end = e;
   }
 
-  // insert at the start of the list
-  final public void prepend (OPT_LinkedListElement e) {
+  /**
+   * insert at the start of the list
+   */
+  final public void prepend(OPT_LinkedListElement e) {
     OPT_LinkedListElement Start = start;
     if (Start != null) {
       e.next = Start;
@@ -66,8 +55,10 @@ class OPT_LinkedList {
     start = e;
   }
 
-  // removes the next element from the list
-  final public void removeNext (OPT_LinkedListElement e) {
+  /**
+   * removes the next element from the list
+   */
+  final public void removeNext(OPT_LinkedListElement e) {
     // update end if needed
     if (end == e.getNext())
       end = null;
@@ -75,8 +66,32 @@ class OPT_LinkedList {
     e.next = e.getNext().getNext();
   }
 
-  // removes the head element from the list
-  final public OPT_LinkedListElement removeHead () {
+  /**
+   * remove an element from the list.
+   */
+  final public void remove(OPT_LinkedListElement e) {
+    if (start == e) {
+      removeHead();
+    } else {
+      if (start == null) return;
+      OPT_LinkedListElement current = start;
+      OPT_LinkedListElement next = start.next;
+      while (next != null) {
+        if (next == e) {
+          removeNext(current);
+          return;
+        } else {
+          current = next;
+          next = current.next;
+        }
+      }
+    }
+  }
+
+  /**
+   * removes the head element from the list
+   */
+  final public OPT_LinkedListElement removeHead() {
     if (start == null)
       return  null;
     OPT_LinkedListElement result = start;

@@ -3,8 +3,7 @@
  */
 //$Id$
 
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.*;
 
 /**
  * This class holds information on scratch register usage, needed to
@@ -19,13 +18,19 @@ final class OPT_ScratchMap {
   /**
    * For each register, the set of intervals describing the register.
    */
-  private java.util.HashMap map = new java.util.HashMap();
+  private HashMap map = new HashMap();
 
   /**
    * For each register, a pending (incomplete) interval under
    * construction.
    */
-  private java.util.HashMap pending = new java.util.HashMap();
+  private HashMap pending = new HashMap();
+
+  /**
+   * For each GC Point s, a set of symbolic registers that are cached in
+   * dirty scratch registers before s.
+   */
+  private HashMap dirtyMap = new HashMap();
 
   /**
    * Begin a new interval of scratch-ness for a symbolic register.
@@ -148,13 +153,38 @@ final class OPT_ScratchMap {
     return map.isEmpty();
   }
 
+  /**
+   * Note that at GC point s, the real value of register symb is cached in
+   * a dirty scratch register.
+   */
+  public void markDirty(OPT_Instruction s, OPT_Register symb) {
+    HashSet set = (HashSet)dirtyMap.get(s);
+    if (set == null) {
+      set = new HashSet(3);
+      dirtyMap.put(s,set);
+    }
+    set.add(symb);
+  }
+
+  /**
+   * At GC point s, is the value of register r cached in a dirty scratch
+   * register?
+   */
+  public boolean isDirty(OPT_Instruction s, OPT_Register r) {
+    HashSet set = (HashSet)dirtyMap.get(s);
+    if (set == null) {
+      return false;
+    } else {
+      return set.contains(r);
+    }
+  }
 
   /**
    * Return a String representation.
    */
   public String toString() {
     String result = "";
-    for (java.util.Iterator i = map.values().iterator(); i.hasNext(); ) {
+    for (Iterator i = map.values().iterator(); i.hasNext(); ) {
       Vector v = (Vector)i.next();
       for (Enumeration e = v.elements(); e.hasMoreElements(); ) {
         result += e.nextElement() + "\n";
