@@ -81,7 +81,7 @@ public class VM_CommandLineArgs {
   public static final int HPM_ARG              = 26;
   public static final int QUICK_ARG            = 27;
   public static final int QUICK_HELP_ARG       = 28;
-  public static final int VM_CLASSES_ARG       = 29;
+  public static final int BOOTSTRAP_CLASSES_ARG = 29;
   public static final int CPUAFFINITY_ARG      = 30;
   public static final int PROCESSORS_ARG       = 31;
 
@@ -114,7 +114,7 @@ public class VM_CommandLineArgs {
     new Prefix("-verbose:class$",       VERBOSE_CLS_ARG),
     new Prefix("-verbose:jni$",         VERBOSE_JNI_ARG),
     new Prefix("-verbose$",             VERBOSE_CLS_ARG),
-    new Prefix("-X:vmClasses=",         VM_CLASSES_ARG),
+    new Prefix("-X:vmClasses=",         BOOTSTRAP_CLASSES_ARG),
     new Prefix("-X:cpuAffinity=",       CPUAFFINITY_ARG),
     new Prefix("-X:processors=",        PROCESSORS_ARG),
     new Prefix("-X:irc:help$",          IRC_HELP_ARG),
@@ -373,8 +373,8 @@ public class VM_CommandLineArgs {
    * Extract the -X:vmClasses command line argument and return it.
    * @return null if no such command line argument is given.
    */
-  static String getVMClasses() {
-    String[] vmClassesAll = getArgs(VM_CLASSES_ARG);
+  static String getBootstrapClasses() {
+    String[] vmClassesAll = getArgs(BOOTSTRAP_CLASSES_ARG);
     String vmClasses = null;
     // could be specified multiple times, use last specification
     if (vmClassesAll.length > 0)
@@ -396,10 +396,24 @@ public class VM_CommandLineArgs {
       Prefix p = findPrefix(type);
       if (DEBUG) VM.sysWrite(" VM_CommandLineArgs.earlyProcessCLA("+p.value+arg+")\n");
       switch (type) {
+
+      case CLASSPATH_ARG:
+        // arguments of the form "-classpath a:b:c" or "-cp a:b:c"
+        // We are experimentally processing this early so that we can have the
+        // Application class loader complete for when 
+        // ClassLoader$StaticData's initializer is run.
+        VM_ClassLoader.stashApplicationRepositories(arg);
+        break;
+
+      case JAR_ARG:
+        // maybe also load classes on the classpath list in the manifest
+        VM_ClassLoader.stashApplicationRepositories(arg);
+        break;
+
       case VERBOSE_CLS_ARG:
         VM.verboseClassLoading = true;
         break;
- 
+
      case VERBOSE_JNI_ARG:
         VM.verboseJNI = true;
         break;
@@ -630,12 +644,14 @@ public class VM_CommandLineArgs {
         }
         break;
 
-      case CLASSPATH_ARG:
+      case CLASSPATH_ARG:   // This is run in duplicate.
         // arguments of the form "-classpath a:b:c" or "-cp a:b:c"
         VM_ClassLoader.setApplicationRepositories(arg);
         break;
 
-      case JAR_ARG:
+
+      case JAR_ARG:             // XXX This WILL BECOME  the second half of
+                                // handling JAR_ARG.  TODO
         // arguments of the form -jar <jarfile>
         java.util.jar.Manifest mf = null;
         try {
