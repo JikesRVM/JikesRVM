@@ -333,7 +333,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
       OPT_Instruction s = e.next();
       if (s.operator == PI) {
         OPT_RegisterOperand result = GuardedUnary.getResult(s);
-        OPT_Operator mv = OPT_IRTools.getMoveOp(result.type, false);
+        OPT_Operator mv = OPT_IRTools.getMoveOp(result.type);
         OPT_Operand val = GuardedUnary.getVal(s);
         Move.mutate(s, mv, result, val);
       }

@@ -154,6 +154,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
       // BURS doesn't really care, so consolidate to reduce rule space
       case INT_COND_MOVE_opcode: s.operator = CMOV; break;
+      case REF_COND_MOVE_opcode: s.operator = CMOV; break;
       case FLOAT_COND_MOVE_opcode: s.operator = CMOV; break;
       case DOUBLE_COND_MOVE_opcode: s.operator = CMOV; break;
       case LONG_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
@@ -162,6 +163,14 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       // BURS doesn't really care, so consolidate to reduce rule space
       case INT_2FLOAT_opcode: s.operator = INT_2FP; break;
       case INT_2DOUBLE_opcode: s.operator = INT_2FP; break;
+
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case REF_LOAD_opcode: s.operator = INT_LOAD; break;
+      case REF_STORE_opcode: s.operator = INT_STORE; break;
+      case REF_ALOAD_opcode: s.operator = INT_ALOAD; break;
+      case REF_ASTORE_opcode: s.operator = INT_ASTORE; break;
+      case REF_MOVE_opcode: s.operator = INT_MOVE; break;
+      case REF_IFCMP_opcode: s.operator = INT_IFCMP; break;
       }
 
       if (OPTIMIZE) {
@@ -224,8 +233,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	    OPT_DefUse.recordDefUse(rop1);
 	    BinaryAcc.mutate(s, opCode, rop1, op2);
 	    OPT_Instruction move =   
-	      Move.create(OPT_IRTools.getMoveOp(result.type, true), 
-			  result, rop1.copy());
+	      Move.create(getMoveOp(result.type), result, rop1.copy());
 	    OPT_DefUse.updateDUForNewInstruction(move);
 	    s.insertAfter(move);
 	    return;
@@ -249,8 +257,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	    OPT_DefUse.recordDefUse(rop2);
 	    BinaryAcc.mutate(s, opCode, rop2, op1);
 	    OPT_Instruction move =   
-	      Move.create(OPT_IRTools.getMoveOp(result.type, true), 
-			  result, rop2.copy());
+	      Move.create(getMoveOp(result.type), result, rop2.copy());
 	    OPT_DefUse.updateDUForNewInstruction(move);
 	    s.insertAfter(move);
 	    return;
@@ -261,7 +268,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
     // Sigh, need some kind of move instruction
     OPT_Instruction move =   
-      Move.create(OPT_IRTools.getMoveOp(result.type, true), result.copyRO(), op1.copy());
+      Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
     OPT_DefUse.updateDUForNewInstruction(move);
     s.insertBefore(move);
     OPT_DefUse.removeDef(result);
@@ -306,8 +313,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	    OPT_DefUse.recordDefUse(rop1);
 	    BinaryAcc.mutate(s, opCode, rop1, op2);
 	    OPT_Instruction move =   
-	      Move.create(OPT_IRTools.getMoveOp(result.type, true), 
-			  result, rop1.copy());
+	      Move.create(getMoveOp(result.type), result, rop1.copy());
 	    OPT_DefUse.updateDUForNewInstruction(move);
 	    s.insertAfter(move);
 	    return;
@@ -320,7 +326,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     if (result.similar(op2)) {
       OPT_RegisterOperand tmp = ir.gc.temps.makeTemp(op1);
       OPT_Instruction move = 
-	Move.create(OPT_IRTools.getMoveOp(tmp.type, true), tmp.copyRO(), op1.copy());
+	Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
       s.insertBefore(move);
       OPT_DefUse.updateDUForNewInstruction(move);
       OPT_DefUse.removeDef(result);
@@ -329,12 +335,12 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	OPT_DefUse.removeUse(op1.asRegister());
       }
       BinaryAcc.mutate(s, opCode, tmp, op2);
-      move = Move.create(OPT_IRTools.getMoveOp(tmp.type, true), result.copyRO(), tmp.copyRO());
+      move = Move.create(getMoveOp(tmp.type), result.copyRO(), tmp.copyRO());
       s.insertAfter(move);
       OPT_DefUse.updateDUForNewInstruction(move);
     } else {
       OPT_Instruction move =   
-	Move.create(OPT_IRTools.getMoveOp(result.type, true), result.copyRO(), op1.copy());
+	Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
       OPT_DefUse.updateDUForNewInstruction(move);
       s.insertBefore(move);
       OPT_DefUse.removeDef(result);
@@ -378,8 +384,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 	    OPT_DefUse.recordDefUse(rop1);
 	    UnaryAcc.mutate(s, opCode, rop1);
 	    OPT_Instruction move =   
-	      Move.create(OPT_IRTools.getMoveOp(result.type, true), 
-			  result, rop1.copy());
+	      Move.create(getMoveOp(result.type), result, rop1.copy());
 	    OPT_DefUse.updateDUForNewInstruction(move);
 	    s.insertAfter(move);
 	    return;
@@ -390,7 +395,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
 
     // Sigh, need the move instruction before op.
     OPT_Instruction move =   
-      Move.create(OPT_IRTools.getMoveOp(result.type, true), result.copyRO(), op1.copy());
+      Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
     OPT_DefUse.updateDUForNewInstruction(move);
     s.insertBefore(move);
     OPT_DefUse.removeDef(result);
@@ -399,6 +404,15 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.removeUse(op1.asRegister());
     }
     UnaryAcc.mutate(s, opCode, result);
+  }
+
+  private static OPT_Operator getMoveOp(VM_Type t) {
+    OPT_Operator op = OPT_IRTools.getMoveOp(t);
+    if (op == REF_MOVE) { 
+      return INT_MOVE;
+    } else {
+      return op;
+    }
   }
 
   // Use the scratch field of the register to record 

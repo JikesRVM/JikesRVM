@@ -33,7 +33,7 @@ final class OPT_MutateSplits extends OPT_CompilerPhase implements OPT_Operators{
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       if (s.operator == SPLIT) {
         OPT_RegisterOperand lhs = Unary.getResult(s);
-        OPT_Operator mv = OPT_IRTools.getMoveOp(lhs.type, ir.IRStage == ir.LIR);
+        OPT_Operator mv = OPT_IRTools.getMoveOp(lhs.type);
         OPT_Operand rhs = Unary.getVal(s);
         Move.mutate(s,mv,lhs,rhs);
       }

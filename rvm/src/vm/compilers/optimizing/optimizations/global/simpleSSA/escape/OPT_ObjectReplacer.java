@@ -49,8 +49,7 @@ public class OPT_ObjectReplacer
     for (int i = 0; i < fields.size(); i++) {
       VM_Field f = (VM_Field)fields.elementAt(i);
       OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(f.getType());
-      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue, 
-          false);
+      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
       scalars[i].type = f.getType();
     }
     // now remove the def
@@ -121,7 +120,7 @@ public class OPT_ObjectReplacer
           VM_Field f = PutField.getLocation(inst).field;
           int index = fields.indexOf(f);
           VM_Type type = scalars[index].type;
-          OPT_Operator moveOp = OPT_IRTools.getMoveOp(type, false);
+          OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
           OPT_Instruction i = Move.create(moveOp, scalars[index], 
               PutField.getValue(inst));
           inst.insertBefore(i);
@@ -134,7 +133,7 @@ public class OPT_ObjectReplacer
           VM_Field f = GetField.getLocation(inst).field;
           int index = fields.indexOf(f);
           VM_Type type = scalars[index].type;
-          OPT_Operator moveOp = OPT_IRTools.getMoveOp(type, false);
+          OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
           OPT_Instruction i = Move.create(moveOp, GetField.getClearResult(inst), 
               scalars[index]);
           inst.insertBefore(i);

@@ -169,8 +169,7 @@ implements OPT_Operators {
   void replaceLoadWithMove (OPT_Register r, OPT_Instruction load) {
     OPT_RegisterOperand dest = ResultCarrier.getResult(load);
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, dest.type);
-    // TODO: note that the use of getMoveOp restricts us to HIR
-    load.replace(Move.create(OPT_IRTools.getMoveOp(dest.type, false), 
+    load.replace(Move.create(OPT_IRTools.getMoveOp(dest.type), 
                              dest, rop));
   }
 
@@ -272,8 +271,7 @@ implements OPT_Operators {
   void appendMove (OPT_Register r, OPT_Operand src, OPT_Instruction store) {
     VM_Type type = src.getType();
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, type);
-    // TODO: note that the use of getMoveOp restricts us to HIR
-    store.insertAfter(Move.create(OPT_IRTools.getMoveOp(type, false), 
+    store.insertAfter(Move.create(OPT_IRTools.getMoveOp(type), 
                                   rop, src));
   }
 

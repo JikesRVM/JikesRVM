@@ -201,17 +201,14 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Returns the correct operator for moving the given data type.
    *
    * @param type desired type to move
-   * @param isLIR do we want a LIR operator?
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  static final OPT_Operator getMoveOp(VM_Type type, boolean isLIR) {
+  static final OPT_Operator getMoveOp(VM_Type type) {
     if (type.isLongType())    return LONG_MOVE;
     if (type.isFloatType())   return FLOAT_MOVE;
     if (type.isDoubleType())  return DOUBLE_MOVE;
     if (type == OPT_ClassLoaderProxy.VALIDATION_TYPE) return GUARD_MOVE;
-    if (!isLIR && type.isReferenceType()) {
-      return REF_MOVE;
-    }
+    if (type.isReferenceType()) return REF_MOVE;
     return INT_MOVE;
   }
 
@@ -221,17 +218,14 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * type.
    *
    * @param type desired type to move
-   * @param isLIR do we want a LIR operator?
    * @return the OPT_Operator to use for moving a value of the given type
    */
-  static final OPT_Operator getCondMoveOp(VM_Type type, boolean isLIR) {
+  static final OPT_Operator getCondMoveOp(VM_Type type) {
     if (type.isLongType())    return LONG_COND_MOVE;
     if (type.isFloatType())   return FLOAT_COND_MOVE;
     if (type.isDoubleType())  return DOUBLE_COND_MOVE;
     if (type == OPT_ClassLoaderProxy.VALIDATION_TYPE) return GUARD_COND_MOVE;
-    if (!isLIR && type.isReferenceType()) {
-      return REF_COND_MOVE;
-    }
+    if (type.isReferenceType()) return REF_COND_MOVE;
     return INT_COND_MOVE;
   }
 
@@ -240,10 +234,9 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Returns the correct operator for loading from the given field
    *
    * @param field field to load from
-   * @param isLIR do we want a LIR operator?
    * @return the OPT_Operator to use when loading the given field
    */
-  static final OPT_Operator getLoadOp(VM_Field field, boolean isLIR) {
+  static final OPT_Operator getLoadOp(VM_Field field) {
     VM_Type type = field.getType();
     // TODO: Actually pack subword fields and then use these operators
     //       on PPC (a Big endian machine) too!
@@ -256,9 +249,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isLongType())      return LONG_LOAD;
     if (type.isFloatType())     return FLOAT_LOAD;
     if (type.isDoubleType())    return DOUBLE_LOAD;
-    if (!isLIR && type.isReferenceType()) {
-      return REF_LOAD;
-    }
+    if (type.isReferenceType()) return REF_LOAD;
     return INT_LOAD;
   }
 
@@ -266,10 +257,9 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Returns the correct operator for storing to the given field.
    *
    * @param type desired type to store
-   * @param isLIR do we want a LIR operator?
    * @return the OPT_Operator to use when storing to the given field
    */
-  static final OPT_Operator getStoreOp(VM_Field field, boolean isLIR) {
+  static final OPT_Operator getStoreOp(VM_Field field) {
     VM_Type type = field.getType();
     // TODO: Actually pack subword fields and then use these operators
     //       on PPC (a Big endian machine) too!
@@ -282,9 +272,7 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isLongType())       return LONG_STORE;
     if (type.isFloatType())      return FLOAT_STORE;
     if (type.isDoubleType())     return DOUBLE_STORE;
-    if (!isLIR && type.isReferenceType()) {
-      return REF_STORE;
-    }
+    if (type.isReferenceType())  return REF_STORE;
     return INT_STORE;
   }
 
@@ -296,18 +284,16 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param pool register pool to allocate from
    * @param s instruction to insert before
    * @param op operand to copy to a register
-   * @param isLIR generate an LIR instruction?
    * @return register operand that we copied into
    */
   static final OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
 						    OPT_Instruction s,
-						    OPT_Operand op,
-						    boolean isLIR) {
+						    OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       return (OPT_RegisterOperand) op;
     }
     VM_Type type = op.getType();
-    OPT_Operator move_op = OPT_IRTools.getMoveOp(type,isLIR);
+    OPT_Operator move_op = OPT_IRTools.getMoveOp(type);
     return moveIntoRegister(type, move_op, pool, s, op);
   }
 

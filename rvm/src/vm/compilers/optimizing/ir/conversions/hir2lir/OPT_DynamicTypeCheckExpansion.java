@@ -111,7 +111,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_BasicBlock trueBranch = 
 	branchCondition ? branchBB : fallThroughBB;
       OPT_Instruction nullComp = 
-	IfCmp.create(INT_IFCMP, guard, ref.copyU2U(), I(0), 
+	IfCmp.create(REF_IFCMP, guard, ref.copyU2U(), 
+		     new OPT_NullConstantOperand(),
 		     OPT_ConditionOperand.EQUAL(), 
 		     falseBranch.makeJumpTarget(),
 		     new OPT_BranchProfileOperand());
@@ -132,8 +133,9 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_BasicBlock nextBB = instanceOfBlock.nextBasicBlockInCodeOrder();
       OPT_BasicBlock nullCaseBB = 
 	instanceOfBlock.createSubBlock(s.bcIndex, ir);
-      prevBB.appendInstruction(IfCmp.create(INT_IFCMP, guard, 
-					    ref.copyU2U(), I(0),
+      prevBB.appendInstruction(IfCmp.create(REF_IFCMP, guard, 
+					    ref.copyU2U(), 
+					    new OPT_NullConstantOperand(),
 					    OPT_ConditionOperand.EQUAL(), 
 					    nullCaseBB.makeJumpTarget(),
 					    new OPT_BranchProfileOperand()));
@@ -215,7 +217,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     VM_Type LHStype = TypeCheck.getType(s).type;
     OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
     OPT_Instruction nullCond = 
-      IfCmp.create(INT_IFCMP, guard, ref.copyU2U(), I(0),
+      IfCmp.create(REF_IFCMP, guard, ref.copyU2U(), 
+		   new OPT_NullConstantOperand(),
 		   OPT_ConditionOperand.EQUAL(), 
 		   null, // KLUDGE...we haven't created the block yet!
 		   new OPT_BranchProfileOperand());
@@ -401,7 +404,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 						 rhsGuard.copyRO()));
 
       // (1) is rhs null?
-      IfCmp.mutate(s, INT_IFCMP, rhsGuard, elemRef, I(0),
+      IfCmp.mutate(s, REF_IFCMP, rhsGuard, elemRef, 
+		   new OPT_NullConstantOperand(),
 		   OPT_ConditionOperand.EQUAL(), 
 		   contBlock.makeJumpTarget(), new OPT_BranchProfileOperand());
       // (2) is lhs runtime type the same as the declared compile 
@@ -418,7 +422,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       if (arrayRef.isDeclaredType() || 
 	  compType == OPT_ClassLoaderProxy.JavaLangObjectArrayType) {
 	OPT_RegisterOperand declTIB = getTIB(continueAt, ir, compType);
-	continueAt.insertBefore(IfCmp.create(INT_IFCMP, guardResult.copyRO(), 
+	continueAt.insertBefore(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
 					     declTIB, lhsTIB,
 					     OPT_ConditionOperand.EQUAL(), 
 					     contBlock.makeJumpTarget(),
@@ -433,7 +437,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	InsertUnary(continueAt, ir, GET_ARRAY_ELEMENT_TIB_FROM_TIB, 
 		    OPT_ClassLoaderProxy.JavaLangObjectArrayType, 
 		    lhsTIB.copyU2U());
-      continueAt.insertBefore(IfCmp.create(INT_IFCMP, guardResult.copyRO(), 
+      continueAt.insertBefore(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
 					   rhsTIB, lhsElemTIB,
 					   OPT_ConditionOperand.EQUAL(), 
 					   contBlock.makeJumpTarget(),
@@ -914,7 +918,7 @@ oldGuard) {
 	     innermostElementType.asClass().isFinal())) {
 	  // [^k of primitive or [^k of final class. Just like final classes, 
 	  // a PTR compare of rhsTIB and the TIB of the class gives the answer.
-	  continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
+	  continueAt.insertBefore(IfCmp.create(REF_IFCMP, oldGuard, 
 					       RHStib, classTIB,
 					       OPT_ConditionOperand.NOT_EQUAL(), 
 					       falseBlock.makeJumpTarget(),
@@ -922,7 +926,7 @@ oldGuard) {
 	  return continueAt;
 	}
 	OPT_Instruction shortcircuit = 
-	  IfCmp.create(INT_IFCMP, oldGuard, RHStib, classTIB,
+	  IfCmp.create(REF_IFCMP, oldGuard, RHStib, classTIB,
 		       OPT_ConditionOperand.EQUAL(), 
 		       trueBlock.makeJumpTarget(),
 		       new OPT_BranchProfileOperand());
@@ -1002,7 +1006,7 @@ oldGuard) {
 	// type equality test
 	OPT_Instruction t = myBlock.lastInstruction();
 	OPT_RegisterOperand LHStib = getTIB(t, ir, LHStype);
-	t.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
+	t.insertBefore(IfCmp.create(REF_IFCMP, oldGuard, 
 				    RHStib, 
 				    LHStib.copyD2U(),
 				    OPT_ConditionOperand.EQUAL(),
@@ -1012,11 +1016,11 @@ oldGuard) {
 	// cache check
 	t = cacheBlock.lastInstruction();
 	OPT_RegisterOperand cacheEntry = 
-	  InsertLoadOffset(t, ir, INT_LOAD,
+	  InsertLoadOffset(t, ir, REF_LOAD,
 			   OPT_ClassLoaderProxy.JavaLangObjectArrayType,
 			   RHStib.copyD2U(),
 			   TIB_TYPE_CACHE_TIB_INDEX << 2);
-	t.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
+	t.insertBefore(IfCmp.create(REF_IFCMP, oldGuard, 
 				    cacheEntry,
 				    LHStib.copyD2U(),
 				    OPT_ConditionOperand.EQUAL(),

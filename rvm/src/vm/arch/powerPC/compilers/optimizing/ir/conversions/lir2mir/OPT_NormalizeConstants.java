@@ -112,6 +112,9 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
 	//////////
 	// LOAD/STORE
 	//////////
+      case REF_STORE_opcode:
+	s.operator = INT_STORE;
+	// fallthrough!
       case BYTE_STORE_opcode:case SHORT_STORE_opcode:case INT_STORE_opcode:
 	// On PowerPC, the value being stored must be in a register
 	Store.setValue(s, asReg(Store.getClearValue(s), s, ir));
@@ -135,6 +138,9 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
 	Store.setOffset(s, asImmediateOrReg(Store.getClearOffset(s), s, ir));
 	break;
 
+      case REF_LOAD_opcode:
+	s.operator = INT_LOAD;
+	// fallthrough!
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case SHORT_LOAD_opcode:case USHORT_LOAD_opcode:case INT_LOAD_opcode:
       case LONG_LOAD_opcode:case FLOAT_LOAD_opcode:case DOUBLE_LOAD_opcode:
@@ -149,6 +155,14 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
 	Prepare.setOffset(s, asReg(Prepare.getOffset(s), s, ir));
 	break;
 
+      case REF_MOVE_opcode:
+	s.operator = INT_MOVE;
+	break;
+
+      case REF_COND_MOVE_opcode:
+	s.operator = INT_COND_MOVE;
+	break;
+	
 	//////////
 	// INT ALU OPS
 	//////////
@@ -159,6 +173,9 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
 	GuardedBinary.setVal2(s, asReg(GuardedBinary.getClearVal2(s), s, ir));
 	break;
 
+      case REF_IFCMP_opcode:
+	s.operator = INT_IFCMP;
+	// fallthrough!
       case INT_IFCMP_opcode:
 	// val1 can't be a constant, val2 must be small enough.
 	IfCmp.setVal1(s, asReg(IfCmp.getClearVal1(s), s, ir));

@@ -329,7 +329,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
 
   private OPT_Operator getMoveOp(OPT_RegisterOperand r) {
-    return OPT_IRTools.getMoveOp(r.type, isLIR);
+    return OPT_IRTools.getMoveOp(r.type);
   }
 
 

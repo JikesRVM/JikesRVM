@@ -41,8 +41,6 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
           return options.PRINT_FINAL_LIR;
         }
       }, 
-      // Convert from 3-operand to 2-operand ALU ops.
-      new OPT_ConvertALUOperators(), 
       // Change operations that split live ranges to moves
       new OPT_MutateSplits(),
       // Instruction Selection

@@ -1353,7 +1353,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 		// 4)
 		if (declaringClass.isInitialized()) {
 		  // optimize: change load to a move from a constant operand
-		  operator = OPT_IRTools.getMoveOp(field.getType(), false);
+		  operator = OPT_IRTools.getMoveOp(field.getType());
 		  OPT_ConstantOperand rhsOperand = 
 		    OPT_RVMIRTools.getStaticFieldValue(field);
 		  if (rhsOperand != null) {
@@ -2549,7 +2549,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     else 
       setLocal(index, set);
     OPT_Instruction s = 
-      Move.create(OPT_IRTools.getMoveOp(type, false), op0, op1);
+      Move.create(OPT_IRTools.getMoveOp(type), op0, op1);
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
     return s;
@@ -3649,7 +3649,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         OPT_RegisterOperand lop = (OPT_RegisterOperand)op;
         OPT_RegisterOperand t = gc.temps.makeTemp(lop);
         OPT_Instruction s = 
-	  Move.create(OPT_IRTools.getMoveOp(t.type, false), t, op);
+	  Move.create(OPT_IRTools.getMoveOp(t.type), t, op);
         stack.replaceFromTop(i, t.copyD2U());
         s.position = gc.inlineSequence;
         s.bcIndex = instrIndex;
@@ -4259,7 +4259,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	if (sop.isConstant()) {
 	  OPT_RegisterOperand rop = gc.temps.makeTemp(sop);
 	  OPT_Instruction move = 
-	    Move.create(OPT_IRTools.getMoveOp(rop.type, false), rop, sop);
+	    Move.create(OPT_IRTools.getMoveOp(rop.type), rop, sop);
 	  move.bcIndex = RECTIFY_BCI;
 	  move.position = gc.inlineSequence;
 	  block.appendInstructionRespectingTerminalBranch(move);
@@ -4296,7 +4296,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	      temp.setInheritableFlags(rop);
 	      setGuard(temp, getGuard(rop));
 	      OPT_Instruction move = 
-		Move.create(OPT_IRTools.getMoveOp(rop.type, false), temp, rop);
+		Move.create(OPT_IRTools.getMoveOp(rop.type), temp, rop);
 	      move.bcIndex = RECTIFY_BCI;
 	      move.position = gc.inlineSequence;
 	      block.appendInstructionRespectingTerminalBranch(move);
@@ -4331,8 +4331,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	      OPT_RegisterOperand temp = rsop.copyRO();
 	      temp.setRegister(rmop.register);
 	      OPT_Instruction move = 
-		Move.create(OPT_IRTools.getMoveOp(temp.type, false), 
-			    temp, rsop);
+		Move.create(OPT_IRTools.getMoveOp(temp.type), temp, rsop);
 	      move.bcIndex = RECTIFY_BCI;
 	      move.position = gc.inlineSequence;
 	      block.appendInstructionRespectingTerminalBranch(move);
