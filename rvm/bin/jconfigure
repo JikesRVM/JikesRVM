@@ -733,6 +733,7 @@ function emitEnvironmentKsh
    print "export $HOST_JAR_STR1=\"$HOST_JAR\""
    print "export $HOST_REPOSITORIES_STR1=$HOST_REPOSITORIES"
    print "export $HOST_TOOLS_STR1=$HOST_TOOLS"
+   print "export LD_LIBRARY_PATH=\"\$LD_LIBRARY_PATH:$HOST_JAVA_LD_LIBRARY_PATH\""
    print ""
    print "export $GNU_MAKE_STR1=$GNU_MAKE"
    print ""
