@@ -17,14 +17,13 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Dave Grove
  */
 abstract class OPT_GenericInlineOracle extends OPT_InlineTools
-    implements OPT_InlineOracle {
+  implements OPT_InlineOracle {
 
   /**
    * Should we inline a particular call site?
    *
    * @param state information needed to make the inlining decision
    * @return an OPT_InlineDecision with the result
-   *
    */
   public OPT_InlineDecision shouldInline (OPT_CompilationState state) {
     if (!state.getOptions().INLINE) {

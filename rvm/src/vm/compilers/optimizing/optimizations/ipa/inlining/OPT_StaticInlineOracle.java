@@ -56,7 +56,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     if (needsGuard) {
 
       if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
-	  return OPT_InlineDecision.NO("Forbidden speculation");
+	return OPT_InlineDecision.NO("Forbidden speculation");
       }
 
       if (preEx) {
@@ -71,13 +71,13 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
       } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
 	OPT_InlineDecision YES = OPT_InlineDecision.guardedYES(callee, 
-					     chooseGuard(caller, callee, callee, state, true), 
-					     "static guarded inline passsed size checks");
+							       chooseGuard(caller, callee, callee, state, true), 
+							       "static guarded inline passsed size checks");
 	//-#if RVM_WITH_OSR
         if (opts.OSR_GUARDED_INLINING && 
             OPT_Compiler.getAppStarted() &&
-			(VM_Controller.options != null) &&
-	                 VM_Controller.options.ENABLE_RECOMPILATION) {
+	    (VM_Controller.options != null) &&
+	    VM_Controller.options.ENABLE_RECOMPILATION) {
 	  // note that we will OSR the failed case.
 	  YES.setOSRTestFailed();
         }
@@ -108,11 +108,11 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       return OPT_InlineDecision.NO("invokeinterface");
       
     if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
-	return OPT_InlineDecision.NO("Forbidden speculation");
+      return OPT_InlineDecision.NO("Forbidden speculation");
     }
 
     VM_Method singleImpl = 
-	OPT_InterfaceHierarchy.getUniqueImplementation(callee);
+      OPT_InterfaceHierarchy.getUniqueImplementation(callee);
     if (singleImpl != null) {
       // Don't allow the static inline oracle to inline recursive calls.
       // It isn't smart enough to do this effectively.
@@ -185,14 +185,13 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     if (sizeCheck != null) return sizeCheck;
 
     if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
-	return OPT_InlineDecision.NO("Forbidden speculation");
+      return OPT_InlineDecision.NO("Forbidden speculation");
     }
 
     // Ok, the size looks good, attempt to do it.
     if (preEx) {
       if (OPT_ClassLoadingDependencyManager.TRACE || 
 	  OPT_ClassLoadingDependencyManager.DEBUG) {
-
 	VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
 					+ singleImpl + " into " + caller + "\n");
       }
@@ -232,7 +231,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     // under any circumstances?
     // We need to repeat this test again because the generic inline oracle
     // only applies it to unguarded inlines.
-    if (cost < state.getOptions().IC_MAX_ALWAYS_INLINE_TARGET_SIZE)
+    if (cost < opts.IC_MAX_ALWAYS_INLINE_TARGET_SIZE)
       return null; // size check passes
     
     // Now, we'll make a decision based on how much inlining we've done already.
@@ -263,6 +262,3 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 		    opts.IC_MAX_METHOD_SIZE + rootSize);
   }
 }
-
-
-
