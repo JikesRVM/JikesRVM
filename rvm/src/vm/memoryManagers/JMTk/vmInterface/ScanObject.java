@@ -84,7 +84,7 @@ public class ScanObject implements VM_Constants, Constants {
     //
     // Since it is hidden, the TIB is not considered a "pointer" when
     // enumerating pointers, so is not enumerated.
-    if (trace && MM_Interface.MOVES_OBJECTS)
+    if (trace && MM_Interface.MOVES_TIBS)
       VM_ObjectModel.gcProcessTIB(objRef, root);
 
     Object obj = VM_Magic.addressAsObject(objRef);

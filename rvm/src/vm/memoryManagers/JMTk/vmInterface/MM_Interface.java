@@ -198,6 +198,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = Plan.NEEDS_PUTSTATIC_WRITE_BARRIER;
   public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = Plan.NEEDS_TIB_STORE_WRITE_BARRIER;
   public static final boolean MOVES_OBJECTS = Plan.MOVES_OBJECTS;
+  public static final boolean MOVES_TIBS = Plan.MOVES_TIBS;
   public static final boolean RC_CYCLE_DETECTION = Plan.REF_COUNT_CYCLE_DETECTION;
 
 
