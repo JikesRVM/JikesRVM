@@ -67,6 +67,10 @@ class VM_Lister {
 
   }
  
+  final void RA (int i, String op, int d) {
+
+  }
+
   final void RFD (int i, String op, byte X, short s, int d) {
 
   }
@@ -80,6 +84,10 @@ class VM_Lister {
   }
 
   final void RFDI (int i, String op, byte X, short s, int d, int n) {
+
+  }
+
+  final void RAI (int i, String op, int d, int n) {
 
   }
 
@@ -100,6 +108,10 @@ class VM_Lister {
   }
   
   final void RRFD (int i, String op, byte R0, byte X, short s, int d) {
+
+  }
+  
+  final void RRA (int i, String op, byte R0, int d) {
 
   }
   
@@ -124,6 +136,18 @@ class VM_Lister {
   }
 
   final void RFDRR (int i, String op, byte X, short s, int d, byte R1, byte R2) {
+
+  }
+
+  final void RAR (int i, String op, int d, byte R0) {
+
+  }
+
+  final void RARI (int i, String op, int d, byte R0, int imm) {
+
+  }
+
+  final void RARR (int i, String op, int d, byte R1, byte R2) {
 
   }
 

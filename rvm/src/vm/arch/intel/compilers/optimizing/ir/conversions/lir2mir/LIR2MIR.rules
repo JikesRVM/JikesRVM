@@ -257,16 +257,16 @@ augmentAddress(BinaryAcc.getValue(P(p)));
 
 # TODO: we can enable these as soon as Julian fixes the assembler
 # to handle scaled index + displacement without a base register
-#address1scaledreg:	INT_SHL_ACC(r,iv)
-#LEA_SHIFT(BinaryAcc.getValue(P(p)), 0)
-#1
-#pushAddress(null, BinaryAcc.getResult(P(p)), LEA_SHIFT(BinaryAcc.getValue(P(p))), 0);
-#
-#address1scaledreg:	INT_SHL_ACC(INT_MOVE(r),iv)
-#LEA_SHIFT(BinaryAcc.getValue(P(p)), 0)
-#1
-#pushAddress(null, R(Move.getVal(PL(p))), LEA_SHIFT(BinaryAcc.getValue(P(p))), 0);
-#
+address1scaledreg:	INT_SHL_ACC(r,iv)
+LEA_SHIFT(BinaryAcc.getValue(P(p)), 0)
+EMIT_INSTRUCTION
+pushAddress(null, BinaryAcc.getResult(P(p)), LEA_SHIFT(BinaryAcc.getValue(P(p))), 0);
+
+address1scaledreg:	INT_SHL_ACC(INT_MOVE(r),iv)
+LEA_SHIFT(BinaryAcc.getValue(P(p)), 0)
+EMIT_INSTRUCTION
+pushAddress(null, R(Move.getVal(PL(p))), LEA_SHIFT(BinaryAcc.getValue(P(p))), 0);
+
 address1scaledreg:	INT_ADD_ACC(address1scaledreg, iv)
 0
 EMIT_INSTRUCTION

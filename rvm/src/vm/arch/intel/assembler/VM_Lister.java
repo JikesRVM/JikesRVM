@@ -189,11 +189,31 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite("\n");
   }
 
+  final void RA (int i, String op, int d) {
+    VM.sysWrite(right(hex(i),6) + "| ");
+    VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
+    VM.sysWrite( left(op, OP_AREA_SIZE));
+    VM.sysWrite(right("[" + hex(d) + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right("", SOURCE_AREA_SIZE) + " | ");
+    asm.writeLastInstruction(i);
+    VM.sysWrite("\n");
+  }
+
   final void RFDI (int i, String op, byte X, short s, int d, int n) {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", DEST_AREA_SIZE));
+    VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE) + " | ");
+    asm.writeLastInstruction(i);
+    VM.sysWrite("\n");
+  }
+
+  final void RAI (int i, String op, int d, int n) {
+    VM.sysWrite(right(hex(i),6) + "| ");
+    VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
+    VM.sysWrite( left(op, OP_AREA_SIZE));
+    VM.sysWrite(right("[" + hex(d) + "]", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n), SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -311,6 +331,48 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
+    asm.writeLastInstruction(i);
+    VM.sysWrite("\n");
+  }
+
+  final void RRA (int i, String op, byte R0, int d) {
+    VM.sysWrite(right(hex(i),6) + "| ");
+    VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
+    VM.sysWrite( left(op, OP_AREA_SIZE));
+    VM.sysWrite(right(GPR_NAMES[R0], DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
+    asm.writeLastInstruction(i);
+    VM.sysWrite("\n");
+  }
+  
+  final void RAR (int i, String op, int d, byte R0) {
+    VM.sysWrite(right(hex(i),6) + "| ");
+    VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
+    VM.sysWrite( left(op, OP_AREA_SIZE));
+    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
+    asm.writeLastInstruction(i);
+    VM.sysWrite("\n");
+  }
+
+  final void RARI (int i, String op, int d, byte R0, int imm) {
+    VM.sysWrite(right(hex(i),6) + "| ");
+    VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
+    VM.sysWrite( left(op, OP_AREA_SIZE));
+    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
+    asm.writeLastInstruction(i);
+    VM.sysWrite("\n");
+  }
+
+  final void RARR (int i, String op, int d, byte R0, byte R2) {
+    VM.sysWrite(right(hex(i),6) + "| ");
+    VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
+    VM.sysWrite( left(op, OP_AREA_SIZE));
+    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     VM.sysWrite(right(GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");

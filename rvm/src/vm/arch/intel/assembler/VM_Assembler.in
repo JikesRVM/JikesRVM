@@ -513,8 +513,26 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * @param reg2 the other operand or the extended opcode
    */
   private void emitRegOffRegOperands(byte index, short scale, int disp, byte reg2) {
-      setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
+      setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
       setMachineCodes(mi++, sib(scale, (byte) 0x5, index));
+      emitImm32(disp);
+  }
+
+  /**
+   *  Generate the appropriate bytes into the generated code to denote
+   * an absolute-addresss--register instruction.  This
+   * expresses the case where the SIB byte is used, but no base and no 
+   * index register is desired.  This method handles the somewhat convoluted
+   * special case used to express this mode (both the r/m register and
+   * the base register must both be 5, and the index must 4; scale can be
+   * anything, and we choose 0).
+   *
+   * @param disp the displacement for the r/m operand
+   * @param reg2 the other operand or the extended opcode
+   */
+  private void emitAbsRegOperands(int disp, byte reg2) {
+      setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
+      // setMachineCodes(mi++, sib((byte) 0x0, (byte) 0x5, (byte) 0x4));
       emitImm32(disp);
   }
 
@@ -531,6 +549,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * @param reg2 the other operand or the extended opcode
    */
   private void emitSIBRegOperands(byte base, byte index, short scale, int disp, byte reg2) {
+      if (VM.VerifyAssertions) VM.assert(index != ESP);
       if (disp == 0 && base != EBP) {
 	  setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
 	  setMachineCodes(mi++, sib(scale, base, index));
@@ -923,6 +942,20 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   /**
    *  Conditionally move the source to the destination, i.e.
    * <PRE>
+   * if (cond) dst = [disp2]
+   * </PRE>
+   */
+  final void emitCMOV_Cond_Reg_Abs(byte cond, byte dst, int disp2) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x40, cond);
+      emitAbsRegOperands(disp2, dst);
+      if (lister != null) lister.RRA(miStart, "CMOV" + CONDITION[cond], dst, disp2);
+  }
+
+  /**
+   *  Conditionally move the source to the destination, i.e.
+   * <PRE>
    * if (cond) dst = [base2 + index2<<scale2 + disp2]
    * </PRE>
    */
@@ -984,6 +1017,14 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RFD(miStart, "SET" + CONDITION[cond], index, scale, disp);
   }
 
+  final void emitSET_Cond_Abs_Byte(byte cond, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x90, cond);
+      emitAbsRegOperands(disp, (byte) 0x00);
+      if (lister != null) lister.RA(miStart, "SET" + CONDITION[cond], disp);
+  }
+
   final void emitIMUL2_Reg_Reg(byte dstReg, byte srcReg) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1014,6 +1055,14 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       setMachineCodes(mi++, (byte) 0xAF);
       emitRegOffRegOperands(srcIndex, scale, disp, dstReg);
       if (lister != null) lister.RRFD(miStart, "IMUL", dstReg, srcIndex, scale, disp);
+  }
+
+  final void emitIMUL2_Reg_Abs(byte dstReg, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xAF);
+      emitAbsRegOperands(disp, dstReg);
+      if (lister != null) lister.RRA(miStart, "IMUL", dstReg, disp);
   }
 
   final void emitIMUL2_Reg_RegIdx(byte dstReg, byte srcBase, byte srcIndex, short scale, int disp) {
@@ -1159,6 +1208,13 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       setMachineCodes(mi++, (byte) 0x8D);
       emitRegOffRegOperands(idx, scale, disp, dstReg);
       if (lister != null) lister.RRFD(miStart, "LEA", dstReg, idx, scale, disp);
+  }
+
+  final void emitLEA_Reg_Abs(byte dstReg, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x8D);
+      emitAbsRegOperands(disp, dstReg);
+      if (lister != null) lister.RRA(miStart, "LEA", dstReg, disp);
   }
 
   final void emitLEA_Reg_RegIdx(byte dstReg, byte base, byte idx, short scale, int disp) {

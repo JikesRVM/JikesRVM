@@ -218,6 +218,12 @@ class GenerateAssembler {
      */
     static final int Condition = 2;
     /**
+     * Constant representing arguments to VM_Assembler calls that use the
+     * scaled-index-base (SIB) addressing mode in the special way that uses
+     * neither a base not an index to generate an absolute address
+     */
+    static final int Absolute = 3;
+    /**
      * Constant representing IA32 memory operands that use register-
      * displacement addressing mode (usually mod bits 01 and 10) arguments 
      * to VM_Assembler calls.  The VM_Assembler takes care of choosing the
@@ -226,7 +232,7 @@ class GenerateAssembler {
      * VM_Assembler also handles the special cases in which this mode
      * requires weird SIB bytes.
      */
-    static final int RegisterDisplacement = 3;
+    static final int RegisterDisplacement = 4;
     /**
      * Constant representing arguments to VM_Assembler calls that use the
      * scaled-index-base (SIB) addressing mode in the special way that does
@@ -235,18 +241,18 @@ class GenerateAssembler {
      * care of generating the special mod/rm that causes the base register
      * to be ignored.
      */
-    static final int RegisterOffset = 4;
+    static final int RegisterOffset = 5;
     /**
      * Constant representing scaled-index-base (SIB) mode arguments to 
      * VM_Assembler calls.
      */
-    static final int RegisterIndexed = 5;
+    static final int RegisterIndexed = 6;
     /**
      * Constant representing register-indirect arguments to VM_Assembler 
      * calls.  This mode handles what is (usually) mod 00 in the mod/rm
      * byte.
      */
-    static final int RegisterIndirect = 6;
+    static final int RegisterIndirect = 7;
     /**
      * Constant representing labels used as branch targets.  While code
      * is being generated, the machine code offset for a forward branch
@@ -257,14 +263,14 @@ class GenerateAssembler {
      * VM_Assembler.  These synthetic offsets are passed to the
      * VM_Assembler where it expected Label arguments.
      */
-    static final int Label = 7;
+    static final int Label = 8;
     /**
      * Constant representing arguments to VM_Assembler calls in which
      * it may be either a backward branch target (resolved to an
      * immediate being the exact branch displacement) or a forward
      * branch (which will be a synthetic Label).
      */
-    static final int LabelOrImmediate = 8;
+    static final int LabelOrImmediate = 9;
 
     /**
      * How many different sizes of instruction operand are there, not
@@ -274,15 +280,15 @@ class GenerateAssembler {
     /**
      * Constant representing instructions that operate upon bytes
      */
-    static final int Byte = 9;
+    static final int Byte = 10;
     /**
      * Constant representing instructions that operate upon words (16 bits)
      */
-    static final int Word = 10;
+    static final int Word = 11;
     /**
      * Constant representing instructions that operate upon quad words (64 bits)
      */
-    static final int Quad = 11;
+    static final int Quad = 12;
 
     /**
      *  This array denotes all possible encodings in a VM_Assembler emitter
@@ -304,6 +310,7 @@ class GenerateAssembler {
     {"Imm",		// encoding[Immediate]
      "Reg",		// encoding[Register]
      "Cond",		// encoding[Condition]
+     "Abs",		// encoding[Absolute]
      "RegDisp",		// encoding[RegisterDisplacement]
      "RegOff",		// encoding[RegisterOffset]
      "RegIdx",		// encoding[RegisterIndexed]
@@ -439,6 +446,8 @@ class GenerateAssembler {
 	    emit("getImm(" + op + "), getLabel(" + op + ")");
     	else if (argEncoding == RegisterDisplacement)
 	    emit("getBase(" + op + "), getDisp(" + op + ")");
+	else if (argEncoding == Absolute)
+	    emit("getDisp(" + op + ")");
 	else if (argEncoding == RegisterOffset)
 	    emit("getIndex(" + op + "), getScale(" + op + 
 		 "), getDisp(" + op + ")");
@@ -506,6 +515,7 @@ class GenerateAssembler {
      *   <LI> {@link #Immediate}
      *   <LI> {@link #Label}
      *   <LI> {@link #LabelOrImmediate}
+     *   <LI> {@link #Absolute}
      *   <LI> {@link #Register}
      *   <LI> {@link #RegisterIndirect}
      *   <LI> {@link #RegisterOffset}
@@ -573,6 +583,7 @@ class GenerateAssembler {
 	 *   <LI> {@link #Immediate}
 	 *   <LI> {@link #Label}
 	 *   <LI> {@link #LabelOrImmediate}
+	 *   <LI> {@link #Absolute}
 	 *   <LI> {@link #Register}
 	 *   <LI> {@link #RegisterIndirect}
 	 *   <LI> {@link #RegisterOffset}

@@ -237,6 +237,28 @@ abstract class OPT_AssemblerBase
 
     /**
      *  Determine if a given operand is a memory operand representing
+     * absolute mode addressing.  This method takes an
+     * arbitrary operand, checks whether it is a memory operand, and,
+     * if it is, checks whether it should be assembled as IA32
+     * absolute address mode.  That is, does it have a non-zero
+     * displacement, but no scale, no scale and no index register?
+     *
+     * @param op the operand being queried
+     * @return true if op should be assembled as absolute mode
+     */
+    static boolean isAbs(OPT_Operand op) {
+	if (op instanceof OPT_MemoryOperand) {
+	    OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
+	    return (mop.base == null) &&
+		(mop.index == null) &&
+		(mop.disp != 0) &&
+		(mop.scale == 0);
+	} else
+	    return false;
+    }
+
+    /**
+     *  Determine if a given operand is a memory operand representing
      * register-indirect mode addressing.  This method takes an
      * arbitrary operand, checks whether it is a memory operand, and,
      * if it is, checks whether it should be assembled as IA32
@@ -293,7 +315,7 @@ abstract class OPT_AssemblerBase
      */
     static boolean isRegIdx(OPT_Operand op) {
 	if (op instanceof OPT_MemoryOperand) 
-	    return !(isRegInd(op) || isRegDisp(op) || isRegOff(op));
+	    return !(isAbs(op) || isRegInd(op) || isRegDisp(op) || isRegOff(op));
 	else
 	    return false;
     }
