@@ -199,7 +199,7 @@ public class Thread implements Runnable {
   }
 
   public static Thread currentThread () { 
-    Thread t = VM_Thread.getCurrentThread().thread;
+    Thread t = VM_Thread.getCurrentThread().getJavaLangThread();
     final boolean dbg2 = false;
     if ( dbg2 )
       VM.sysWriteln("Thread.currentThread(): About to return " + t);
