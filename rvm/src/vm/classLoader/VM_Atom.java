@@ -19,11 +19,11 @@ import com.ibm.JikesRVM.*;
  */
 public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 
-   /**
-    * Find or create an atom.
-    * @param str atom value, as string literal whose characters are unicode
-    * @return atom
-    */
+  /**
+   * Find or create an atom.
+   * @param str atom value, as string literal whose characters are unicode
+   * @return atom
+   */
   public static VM_Atom findOrCreateUnicodeAtom(String str) {
     byte[] utf8 = VM_UTF8Convert.toUTF8(str);
     return VM_AtomDictionary.getValue(findOrCreateAtomId(utf8));
@@ -304,14 +304,6 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 
   public final int length() throws VM_PragmaUninterruptible {
     return val.length;
-  }
-
-  /**
-   * Access internal representation.
-   * (Note: this is intended for the debugger only)
-   */ 
-  public final byte[] getBytes() {
-    return val;
   }
 
   //----------------//

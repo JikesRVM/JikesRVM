@@ -179,7 +179,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
                                  VM_Atom fieldName, 
                                  VM_Atom fieldDescriptor,
                                  ClassLoader classloader) {
-    VM_Triplet fieldKey = new VM_Triplet(classDescriptor, fieldName, 
+    VM_MemberReference fieldKey = new VM_MemberReference(classDescriptor, fieldName, 
                                          fieldDescriptor);
     int        fieldId  = VM_FieldDictionary.findOrCreateId(fieldKey, null);
 
@@ -253,7 +253,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
                                   ClassLoader classloader) {
     if (classDescriptor.isArrayDescriptor())
 	classDescriptor = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;");
-    VM_Triplet methodKey = new VM_Triplet(classDescriptor, methodName, 
+    VM_MemberReference methodKey = new VM_MemberReference(classDescriptor, methodName, 
                                           methodDescriptor);
     int        methodId  = VM_MethodDictionary.findOrCreateId(methodKey, null);
     if (VM_MethodDictionary.getValue(methodId) == null) {
@@ -280,10 +280,10 @@ implements VM_Constants, VM_ClassLoaderConstants {
   }
   /**
    * Short term migration aid as we phase out the global name space
-   * @param key VM_Triplet describing a method
+   * @param key VM_MemberReference describing a method
    * @return the dictionary Id of the method
    */
-  public static int getMethodIdFromKey(VM_Triplet key) {
+  public static int getMethodIdFromKey(VM_MemberReference key) {
     return VM_MethodDictionary.findId(key);
   }
   public static int numMethods() {

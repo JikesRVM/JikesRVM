@@ -39,12 +39,12 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       registered = true;
       VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
     }
-    VM_Triplet key = m.getDictionaryKey();
+    VM_MemberReference key = m.getDictionaryKey();
     return VM_EdgeCounterDictionary.findOrCreateId(key, null);
   }
 
   public static int findId(VM_Method m) {
-    VM_Triplet key = m.getDictionaryKey();
+    VM_MemberReference key = m.getDictionaryKey();
     return VM_EdgeCounterDictionary.findId(key);
   }
 
@@ -78,7 +78,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     }
     int n = VM_EdgeCounterDictionary.getNumValues();
     for (int i=0; i<n; i++) {
-      VM_Triplet key = VM_EdgeCounterDictionary.getKey(i);
+      VM_MemberReference key = VM_EdgeCounterDictionary.getKey(i);
       int mid = VM_ClassLoader.getMethodIdFromKey(key);
       if (mid == -1) continue; // only should happen when we've read in a file of offline data.
       VM_Method m = VM_ClassLoader.getMethodFromId(mid);
@@ -107,7 +107,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 	  VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-	  VM_Triplet key = new VM_Triplet(dc, mn, md);
+	  VM_MemberReference key = new VM_MemberReference(dc, mn, md);
 	  int id = VM_EdgeCounterDictionary.findOrCreateId(key, new int[numCounts]);
 	  cur = VM_EdgeCounterDictionary.getValue(id);
 	  curIdx = 0;

@@ -31,16 +31,16 @@ $(GEN_FILES_DIR)/VM_TypeDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_TypeDictionary VM_Atom VM_Type VM_Atom VM_Dictionary.template $(GEN_FILES_DIR)/VM_TypeDictionary.java
 
 $(GEN_FILES_DIR)/VM_FieldDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_FieldDictionary VM_Triplet VM_Field VM_Triplet VM_Dictionary.template $(GEN_FILES_DIR)/VM_FieldDictionary.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_FieldDictionary VM_MemberReference VM_Field VM_MemberReference VM_Dictionary.template $(GEN_FILES_DIR)/VM_FieldDictionary.java
 
 $(GEN_FILES_DIR)/VM_MethodDictionary.java: VM_Dictionary.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_MethodDictionary VM_Triplet VM_Method VM_Triplet VM_Dictionary.template $(GEN_FILES_DIR)/VM_MethodDictionary.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_MethodDictionary VM_MemberReference VM_Method VM_MemberReference VM_Dictionary.template $(GEN_FILES_DIR)/VM_MethodDictionary.java
 
 $(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM.classloader VM_InterfaceMethodSignatureDictionary VM_InterfaceMethodSignature int VM_InterfaceMethodSignature VM_Dictionary.template $(GEN_FILES_DIR)/VM_InterfaceMethodSignatureDictionary.java
 
 $(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java: VM_DictionaryA.template
-			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_EdgeCounterDictionary com.ibm.JikesRVM.classloader.VM_Triplet int com.ibm.JikesRVM.classloader.VM_Triplet VM_DictionaryA.template $(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java
+			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_EdgeCounterDictionary com.ibm.JikesRVM.classloader.VM_MemberReference int com.ibm.JikesRVM.classloader.VM_MemberReference VM_DictionaryA.template $(GEN_FILES_DIR)/VM_EdgeCounterDictionary.java
 
 $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java: VM_Dictionary.template
 			./InstantiateDictionaryTemplate com.ibm.JikesRVM VM_IntLiteralDictionary int int com.ibm.JikesRVM.VM_Statics VM_Dictionary.template $(GEN_FILES_DIR)/VM_IntLiteralDictionary.java

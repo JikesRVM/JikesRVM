@@ -17,10 +17,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
  * @author Derek Lieber
  */
 public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
-  //-----------//
-  // Interface //
-  //-----------//
-
   //------------------------------------------------------------------//
   //                       Section 0.                                 //
   //       The following are always available.                        //

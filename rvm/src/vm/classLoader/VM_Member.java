@@ -15,10 +15,6 @@ import java.io.IOException;
  * @author Derek Lieber
  */
 public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
-  //-----------//
-  // Interface //
-  //-----------//
-   
   //--------------------------------------------------------------------//
   //                         Section 0.                                 //
   // The following are always available.                                //
@@ -62,10 +58,10 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   /**
    * Get the triplet that is the dictionary key for this VM_Member
    */
-  public final VM_Triplet getDictionaryKey() {
-    return new VM_Triplet(getDeclaringClass().getDescriptor(),
-			  getName(),
-			  getDescriptor());
+  public final VM_MemberReference getDictionaryKey() {
+    return new VM_MemberReference(getDeclaringClass().getDescriptor(),
+				  getName(),
+				  getDescriptor());
   }
 
 
@@ -122,12 +118,8 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
     
     if (thisClass.isInitialized()) {
       // No dynamic linking code is required to access this field or 
-      // call this method
-      // because its size and offset are known and its class's static 
-      // initializer
-      // has already run, thereby compiling this method or initializing 
-      // this field.
-      //
+      // call this method because its size and offset are known and 
+      // its class's static initializer has already run.
       return false;
     }
         
@@ -137,16 +129,14 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
       // because its size and offset is known and its class has no static
       // initializer, therefore its value need not be specially initialized
       // (its default value of zero or null is sufficient).
-      //
       return false;
     }
         
     if (VM.writingBootImage && thisClass.isInBootImage()) {
       // Loads, stores, and calls within boot image are compiled without dynamic
       // linking code because all boot image classes are explicitly 
-      // loaded/resolved/compiled
-      // and have had their static initializers run by the boot image writer.
-      //
+      // loaded/resolved/compiled and have had their static initializers 
+      // run by the boot image writer.
       if (!thisClass.isResolved()) VM.sysWrite("unresolved: \"" + this + "\" referenced from \"" + that + "\"\n");
       if (VM.VerifyAssertions) VM._assert(thisClass.isResolved());
       return false;
@@ -155,14 +145,12 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
     if (thisClass == that.getDeclaringClass()) {
       // Intra-class references don't need to be compiled with dynamic linking
       // because they execute *after* class has been loaded/resolved/compiled.
-      //
       return false;
     }
   
     // This member needs size and offset to be computed, or its class's static
     // initializer needs to be run when the member is first "touched", so
     // dynamic linking code is required to access the member.
-    //
     return true;
   }
 
@@ -187,17 +175,13 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    */ 
   public abstract int getOffset() throws VM_PragmaUninterruptible ;
    
-  //----------------//
-  // Implementation //
-  //----------------//
-
   protected final static int UNINITIALIZED_OFFSET = -1;
 
   protected final VM_Class declaringClass;
-  protected final VM_Atom  name;
-  protected final VM_Atom  descriptor;
-  protected int      modifiers;
-  protected final int      dictionaryId;
+  protected final VM_Atom name;
+  protected final VM_Atom descriptor;
+  protected int modifiers;
+  protected final int dictionaryId;
 
   /**
    * To guarantee uniqueness, only the VM_ClassLoader class may construct 
