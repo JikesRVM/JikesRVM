@@ -97,7 +97,7 @@ public class tInstance
       if (imethod==null) 
          {
          System.out.println("tInstance.iuserFunction not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else {
          System.out.println("================= READY TO CALL: "+imethod);
@@ -106,7 +106,7 @@ public class tInstance
          if (iresult != 7) {
            System.out.println("Wrong answer from iuserFunction");
            System.out.println(iresult);
-           System.exit(-1);
+           System.exit(1);
          }
       }
 
@@ -117,7 +117,7 @@ public class tInstance
       if (dmethod==null) 
          {
          System.out.println("tInstance.duserFunction not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else {
          System.out.println("================= READY TO CALL: "+dmethod);
@@ -126,7 +126,7 @@ public class tInstance
          if (dresult < 12.2 || dresult >=12.2000001) {
            System.out.println("Wrong answer from duserFunction");
            System.out.println(dresult);
-           System.exit(-1);
+           System.exit(1);
          }
       }
 
@@ -137,7 +137,7 @@ public class tInstance
       if (bmethod==null) 
          {
          System.out.println("tInstance.buserFunction not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else {
          System.out.println("================= READY TO CALL: "+bmethod);
@@ -145,7 +145,7 @@ public class tInstance
          boolean bresult = ((Boolean)bmethod.invoke(myInstance,methodargs)).booleanValue();
          if (bresult != true) {
            System.out.println("Wrong answer from buserFunction");
-           System.exit(-1);
+           System.exit(1);
          }
       }
 
@@ -156,7 +156,7 @@ public class tInstance
       if (omethod==null) 
          {
          System.out.println("tInstance.ouserFunction not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else {
          System.out.println("================= READY TO CALL: "+omethod);
@@ -164,7 +164,7 @@ public class tInstance
          Object oresult = omethod.invoke(myInstance,methodargs);
          if (! (oresult instanceof java.lang.String)  || !((java.lang.String)oresult).equals("123abc")) {
            System.out.println("Wrong answer from ouserFunction");
-           System.exit(-1);
+           System.exit(1);
          }
        }
 
@@ -176,7 +176,7 @@ public class tInstance
       if (vmethod==null) 
          {
          System.out.println("tInstance.vuserFunction not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else {
          System.out.println("================= READY TO CALL: "+vmethod);
@@ -186,7 +186,7 @@ public class tInstance
          Object vresult = vmethod.invoke(myInstance,twoargs);
          if ((vresult != null)  || (myInstance.ifield != 18 )) {
            System.out.println("Wrong results from vuserFunction");
-           System.exit(-1);
+           System.exit(1);
          }
        }
       System.out.println("Test success");
