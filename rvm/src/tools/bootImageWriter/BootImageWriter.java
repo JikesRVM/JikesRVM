@@ -618,6 +618,21 @@ implements BootImageWriterConstants {
       totalCount += type.bootCount;
       totalBytes += type.bootBytes;
     }
+    VM.sysWriteln("\nBoot image space report:");
+    VM.sysWriteln("------------------------------------------------------------------------------------------");
+    VM.sysWriteField(60, "TOTAL");
+    VM.sysWriteField(15, totalCount);
+    VM.sysWriteField(15, totalBytes);
+    VM.sysWriteln();
+
+    VM.sysWriteln("\nCompiled methods space report:");
+    VM.sysWriteln("------------------------------------------------------------------------------------------");
+    VM_CompiledMethods.spaceReport();
+    VM.sysWriteln("\nClass Loader Space Report:");
+    VM.sysWriteln("------------------------------------------------------------------------------------------");
+    VM_ClassLoader.spaceReport();
+
+    VM.sysWriteln("------------------------------------------------------------------------------------------");
     VM.sysWriteln("\nBoot image space usage by types:");
     VM.sysWriteln("Type                                                               Count             Bytes");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
@@ -634,12 +649,6 @@ implements BootImageWriterConstants {
         VM.sysWriteln();
       }
     }
-    VM.sysWriteln("\nCompiled methods space report:");
-    VM.sysWriteln("------------------------------------------------------------------------------------------");
-    VM_CompiledMethods.spaceReport();
-    VM.sysWriteln("\nClass Loader Space Report:");
-    VM.sysWriteln("------------------------------------------------------------------------------------------");
-    VM_ClassLoader.spaceReport();
   }
 
   /**

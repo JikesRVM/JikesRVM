@@ -195,6 +195,19 @@ class CCC {
     return nextId;
   }
 
+  static int size() {
+    com.ibm.JikesRVM.classloader.VM_Array it = com.ibm.JikesRVM.classloader.VM_Array.arrayOfIntType;
+    int size = it.getInstanceSize(keys.length);
+    size += it.getInstanceSize(values.length);
+    size += it.getInstanceSize(chains.length);
+    for (int i=0; i<chains.length; i++) {
+      if (chains[i] != null) {
+	size += it.getInstanceSize(chains[i].length);
+      }
+    }
+    return size;
+  }
+
   //----------------//
   // implementation //
   //----------------//

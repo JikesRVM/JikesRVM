@@ -366,4 +366,25 @@ public class VM_Statics implements VM_Constants {
    * Compare VM_Dictionary keys.
    */ 
   public static int dictionaryCompare(int l, int r) { if (l == 0) return 0; if (l == r) return 1; return -1; }
+
+  public static int spaceReport() {
+    int total = 0;
+    int size = VM_IntLiteralDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_IntLiteralDictionary\t\t\t", size);
+    size = VM_FloatLiteralDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_FloatLiteralDictionary\t\t", size);
+    size = VM_LongLiteralDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_LongLiteralDictionary\t\t", size);
+    size = VM_DoubleLiteralDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_DoubleLiteralDictionary\t\t", size);
+    size = VM_StringLiteralDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_StringLiteralDictionary\t\t", size);
+    return total;
+  }
+
 }

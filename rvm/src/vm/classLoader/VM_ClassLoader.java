@@ -146,12 +146,26 @@ public class VM_ClassLoader implements VM_Constants,
   }
 
   public static void spaceReport() {
+    VM.sysWriteln("Backing stores for dictionaries");
+    int total = 0;
+    int size = VM_AtomDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_AtomDictionary\t\t\t", size);
+    size = VM_TypeDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_TypeDictionary\t\t\t", size);
+    size = VM_InterfaceMethodSignatureDictionary.size();
+    total += size;
+    VM.sysWriteln("\tVM_InterfaceMethodSignatureDictionary\t", size);
+    total += VM_Statics.spaceReport();
+    VM.sysWriteln("Total backing store for dictionaries:\t\t", total);
+
     int atomBytes = 0;
     for (int i=1; i<VM_AtomDictionary.getNumValues(); i++) {
       VM_Atom val = VM_AtomDictionary.getValue(i);
       if (val != null) atomBytes += val.length();
     }
-    VM.sysWriteln("\t[B in VM_Atoms ",atomBytes);
+    VM.sysWriteln("\n[B that are backing store for VM_Atom instances ", atomBytes);
   }
 
   /**
