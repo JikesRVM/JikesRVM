@@ -1867,9 +1867,13 @@ class Debugger implements jdpConstants {
     try {
       switch (args.length) {
       case 0:
+	// See if context had been set; report what it had been set to
+	threadID = user.reg.getContextThreadID();
+	if (threadID != 0)
+	  jdp_console.writeOutput("context had been set to thread: " + threadID);
 	// return to the thread context in the hardware (R15)
 	threadID = user.reg.registerToTPIndex(user.reg.hardwareTP());
-	jdp_console.writeOutput("context of executing thread: " + threadID);
+	jdp_console.writeOutput("setting context to executing thread: " + threadID);
 	user.reg.setContextThreadID(threadID);
 	break;
       case 1:
