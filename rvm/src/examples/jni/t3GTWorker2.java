@@ -1,3 +1,17 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+/**
+ * Part of thread management test in
+ * the face of long-running native calls;
+ * this thread sleeps for the specified time when called
+ * repeatedly, until it receives a signal
+ *
+ * @author Dick Attanasio
+ */
+
 class t3GTWorker2 extends Thread {
 
   int        arg1;

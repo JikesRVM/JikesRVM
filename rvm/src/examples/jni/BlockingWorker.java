@@ -1,3 +1,18 @@
+
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+/**
+ * Part of test of 3GT - thread management in 
+ * the face of long-running native calls;
+ * this thread executes a native method call
+ * that sleeps for the specified time.
+ * @author Stephen Smith
+ * @modified by Dick Attanasio
+ */
+
 class BlockingWorker extends Thread {
 
   static final boolean trace = false;
@@ -20,13 +35,9 @@ class BlockingWorker extends Thread {
   {
     int loopctr = 5;
 
-  //if (trace) VM_Scheduler.trace("Worker","hello - time",sleepTime);
     for (int i=0; i < loopctr; i++) {
- //   if (trace) VM_Scheduler.trace("Worker","calling nativeBlocking for time = ",sleepTime);
       t3GT3.nativeBlocking(sleepTime);
-   // if (trace) VM_Scheduler.trace("Worker","returned from nativeBlocking for time = ",sleepTime);
     }
-//  if (trace) VM_Scheduler.trace("Worker","bye - time",sleepTime);
     isFinished = true;
   }
 }

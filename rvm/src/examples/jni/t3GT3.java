@@ -1,3 +1,20 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+/**
+ * Driver for thread management test in
+ * the face of long-running native calls;
+ * this thread creates two types of worker
+ * threads: one that runs gcbench - generating
+ * requirements for gc, and another
+ * that executes a call to a native method
+ * that sleeps for the specified time.
+ *
+ * @author Dick Attanasio
+ */
+
 // Test multi-threaded execution
 // 
 
@@ -23,11 +40,12 @@ class t3GT3
 
     long starttime, endtime;
     int arg1 = Integer.parseInt(args[1]);
+    int arg2 = Integer.parseInt(args[2]);
 		t3GTWorker2 w2 = null; 
 
     System.loadLibrary("t3GT3");
 
-    t3GTGC.runit();
+    t3GTGC.runit(1,10);
 //System.gc();
 
 //VM_Scheduler.dumpVirtualMachine();
@@ -36,7 +54,7 @@ class t3GT3
 			// have main thread do the computing
 			// now take the time
       starttime = System.currentTimeMillis();
-		for (int i = 0; i < arg1; i++) t3GTGC.runit();
+		for (int i = 0; i < arg1; i++) t3GTGC.runit(arg1, arg2);
    if (FORCE_GC) {
      VM_Scheduler.trace("\nMain calling","System.gc:\n");
      System.gc();
@@ -45,9 +63,9 @@ class t3GT3
 
     else {
       int waiters, wait_time;
-			if (args.length > 3) {
-				waiters = Integer.parseInt(args[2]);
-				wait_time = Integer.parseInt(args[3]);
+			if (args.length > 4) {
+				waiters = Integer.parseInt(args[3]);
+				wait_time = Integer.parseInt(args[4]);
 				System.out.println( waiters + " waiters, for time " + wait_time);
 			}
 			else waiters = wait_time = 0;
@@ -67,7 +85,7 @@ System.out.println(" Blocking workers started");
       t3GT3Worker a[] = new t3GT3Worker[NUMBER_OF_WORKERS];
       for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++ )
 			{
-	    	a[wrk] = new t3GT3Worker(arg1); 
+	    	a[wrk] = new t3GT3Worker(arg1, arg2); 
 	      a[wrk].start();
 			}
 
