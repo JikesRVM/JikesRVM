@@ -465,7 +465,7 @@ implements BootImageWriterConstants {
       fail("can't copy jtoc: "+e);
     }
 
-    if ((jtocImageOffset + bootImageAddress) != bootRecord.tocRegister)
+    if ((jtocImageOffset + bootImageAddress) != bootRecord.tocRegister.toInt())
       fail("mismatch in JTOC placement "+(jtocImageOffset + bootImageAddress)+" != "+bootRecord.tocRegister);
 
     //
@@ -517,11 +517,11 @@ implements BootImageWriterConstants {
     INSTRUCTION[] startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
-    bootRecord.spRegister  = bootImageAddress +
-      BootImageMap.getImageOffset(startupStack) +
-      (startupStack.length << 2);
-    bootRecord.ipRegister  = bootImageAddress +
-      BootImageMap.getImageOffset(startupCode);
+    bootRecord.spRegister  = VM_Address.fromInt(bootImageAddress +
+						BootImageMap.getImageOffset(startupStack) +
+						(startupStack.length << 2));
+    bootRecord.ipRegister  = VM_Address.fromInt(bootImageAddress +
+						BootImageMap.getImageOffset(startupCode));
 
     bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
     bootRecord.threadsOffset = VM_Entrypoints.threadsField.getOffset();
@@ -739,7 +739,7 @@ implements BootImageWriterConstants {
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      bootRecord.tocRegister = bootImageAddress + rvmBRType.getInstanceSize() + intArrayType.getInstanceSize(0);
+      bootRecord.tocRegister = VM_Address.fromInt(bootImageAddress + rvmBRType.getInstanceSize() + intArrayType.getInstanceSize(0));
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.

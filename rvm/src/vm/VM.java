@@ -846,7 +846,7 @@ public class VM extends VM_Properties
    * @param ip address of a function in sys.C 
    * @return integer value returned by function in sys.C
    */
-  public static int sysCall0(int ip) throws VM_PragmaInline {
+  public static int sysCall0(VM_Address ip) throws VM_PragmaInline {
     return VM_Magic.sysCall0(ip, VM_BootRecord.the_boot_record.sysTOC);
   }
 
@@ -856,7 +856,7 @@ public class VM extends VM_Properties
    * @param p1
    * @return integer value returned by function in sys.C
    */
-  public static int sysCall1(int ip, int p1) throws VM_PragmaInline {
+  public static int sysCall1(VM_Address ip, int p1) throws VM_PragmaInline {
     return VM_Magic.sysCall1(ip, VM_BootRecord.the_boot_record.sysTOC, p1);
   }
 
@@ -867,7 +867,7 @@ public class VM extends VM_Properties
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall2(int ip, int p1, int p2) throws VM_PragmaInline {
+  public static int sysCall2(VM_Address ip, int p1, int p2) throws VM_PragmaInline {
     return  VM_Magic.sysCall2(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2);
   }
 
@@ -879,7 +879,7 @@ public class VM extends VM_Properties
    * @param p3
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall3(int ip, int p1, int p2, int p3) throws VM_PragmaInline {
+  public static int sysCall3(VM_Address ip, int p1, int p2, int p3) throws VM_PragmaInline {
     return  VM_Magic.sysCall3(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2, p3);
   }
 
@@ -892,7 +892,7 @@ public class VM extends VM_Properties
    * @param p4
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall4(int ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
+  public static int sysCall4(VM_Address ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
     return VM_Magic.sysCall4(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2, p3, p4);
   }
 
@@ -901,7 +901,7 @@ public class VM extends VM_Properties
    * @param ip  address of a function in sys.C 
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_0(int ip) throws VM_PragmaInline {
+  public static long sysCall_L_0(VM_Address ip) throws VM_PragmaInline {
     return VM_Magic.sysCall_L_0(ip, VM_BootRecord.the_boot_record.sysTOC);
   }
 
@@ -911,7 +911,7 @@ public class VM extends VM_Properties
    * @param p1
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_I(int ip, int p1) throws VM_PragmaInline {
+  public static long sysCall_L_I(VM_Address ip, int p1) throws VM_PragmaInline {
     return VM_Magic.sysCall_L_I(ip, VM_BootRecord.the_boot_record.sysTOC, p1);
   }
 
@@ -922,7 +922,7 @@ public class VM extends VM_Properties
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCallAD(int ip, int p1, double p2) throws VM_PragmaInline {
+  public static int sysCallAD(VM_Address ip, int p1, double p2) throws VM_PragmaInline {
     return  VM_Magic.sysCallAD(ip, VM_BootRecord.the_boot_record.sysTOC, p1, p2);
   }
 
@@ -933,7 +933,7 @@ public class VM extends VM_Properties
    * @param ip  address of a function in sys.C 
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall0(int ip) throws VM_PragmaInline {
+  public static int sysCall0(VM_Address ip) throws VM_PragmaInline {
     return  VM_Magic.sysCall0(ip);
   }
 
@@ -943,7 +943,7 @@ public class VM extends VM_Properties
    * @param p1
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall1(int ip, int p1) throws VM_PragmaInline {
+  public static int sysCall1(VM_Address ip, int p1) throws VM_PragmaInline {
     return  VM_Magic.sysCall1(ip, p1);
   }
 
@@ -954,7 +954,7 @@ public class VM extends VM_Properties
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall2(int ip, int p1, int p2) throws VM_PragmaInline {
+  public static int sysCall2(VM_Address ip, int p1, int p2) throws VM_PragmaInline {
     return  VM_Magic.sysCall2(ip, p1, p2);
   }
 
@@ -966,7 +966,7 @@ public class VM extends VM_Properties
    * @param p3
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall3(int ip, int p1, int p2, int p3) throws VM_PragmaInline {
+  public static int sysCall3(VM_Address ip, int p1, int p2, int p3) throws VM_PragmaInline {
     return  VM_Magic.sysCall3(ip, p1, p2, p3);
   }
 
@@ -979,7 +979,7 @@ public class VM extends VM_Properties
    * @param p4
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCall4(int ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
+  public static int sysCall4(VM_Address ip, int p1, int p2, int p3, int p4) throws VM_PragmaInline {
     return VM_Magic.sysCall4(ip, p1, p2, p3, p4);
   }
 
@@ -988,7 +988,7 @@ public class VM extends VM_Properties
    * @param ip  address of a function in sys.C 
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_0(int ip) throws VM_PragmaInline {
+  public static long sysCall_L_0(VM_Address ip) throws VM_PragmaInline {
     return VM_Magic.sysCall_L_0(ip);
   }
 
@@ -998,7 +998,7 @@ public class VM extends VM_Properties
    * @param p1
    * @return long value returned by function in sys.C
    */
-  public static long sysCall_L_I(int ip, int p1) throws VM_PragmaInline {
+  public static long sysCall_L_I(VM_Address ip, int p1) throws VM_PragmaInline {
     return  VM_Magic.sysCall_L_I(ip, p1);
   }
 
@@ -1009,10 +1009,9 @@ public class VM extends VM_Properties
    * @param p2
    * @return  integer value returned by function in sys.C
    */
-  public static int sysCallAD(int ip, int p1, double p2) throws VM_PragmaInline {
+  public static int sysCallAD(VM_Address ip, int p1, double p2) throws VM_PragmaInline {
     return VM_Magic.sysCallAD(ip, p1, p2);
   }
-
   //-#endif
 
   //----------------//

@@ -39,7 +39,7 @@ public class VM_Magic {
   /** Get contents of "jtoc" register. */
   public static VM_Address getTocPointer() {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return VM_Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
+    return VM_BootRecord.the_boot_record.tocRegister;
   }
 
   /** Set contents of "jtoc" register. */
@@ -778,44 +778,44 @@ public class VM_Magic {
    *
    */
 //-#if RVM_FOR_POWERPC
-   public static int  sysCall0(int ip, int toc)                                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall1(int ip, int toc, int p0)                         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall2(int ip, int toc, int p0, int p1)                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall3(int ip, int toc, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall4(int ip, int toc, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall0(VM_Address ip, VM_Address toc)                                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall1(VM_Address ip, VM_Address toc, int p0)                         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall2(VM_Address ip, VM_Address toc, int p0, int p1)                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall3(VM_Address ip, VM_Address toc, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall4(VM_Address ip, VM_Address toc, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
 
-   public static long sysCall_L_0(int ip, int toc)                              { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static long sysCall_L_I(int ip, int toc, int p0)                      { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCallAD(int ip, int toc, int p0, double p1)             { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static long sysCall_L_0(VM_Address ip, VM_Address toc)                              { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static long sysCall_L_I(VM_Address ip, VM_Address toc, int p0)                      { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCallAD(VM_Address ip, VM_Address toc, int p0, double p1)             { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
 //-#endif
 
 //-#if RVM_FOR_IA32
-   public static int  sysCall0(int ip) { 
+   public static int  sysCall0(VM_Address ip) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall1(int ip, int p0) { 
+   public static int  sysCall1(VM_Address ip, int p0) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall2(int ip, int p0, int p1) { 
+   public static int  sysCall2(VM_Address ip, int p0, int p1) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall3(int ip, int p0, int p1, int p2) { 
+   public static int  sysCall3(VM_Address ip, int p0, int p1, int p2) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall4(int ip, int p0, int p1, int p2, int p3) { 
+   public static int  sysCall4(VM_Address ip, int p0, int p1, int p2, int p3) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static long sysCall_L_0(int ip) { 
+   public static long sysCall_L_0(VM_Address ip) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static long sysCall_L_I(int ip, int p0) { 
+   public static long sysCall_L_I(VM_Address ip, int p0) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCallAD(int ip, int p0, double p1) { 
+   public static int  sysCallAD(VM_Address ip, int p0, double p1) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 //-#endif
-   public static int  sysCallSigWait(int ip, int toc, int p0, 
+   public static int sysCallSigWait(VM_Address ip, VM_Address toc, int p0, 
                                      int p1, VM_Registers r){ 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }

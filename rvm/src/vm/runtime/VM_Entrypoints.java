@@ -210,26 +210,26 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field the_boot_recordField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record", "Lcom/ibm/JikesRVM/VM_BootRecord;");
   static final VM_Field tiRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tiRegister", "I");
-  static final VM_Field spRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "spRegister", "I");
-  static final VM_Field ipRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "ipRegister", "I");
-  static final VM_Field tocRegisterField                = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tocRegister", "I");
+  static final VM_Field spRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "spRegister",  "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Field ipRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "ipRegister",  "Lcom/ibm/JikesRVM/VM_Address;");
+  static final VM_Field tocRegisterField                = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tocRegister",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field processorsOffsetField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "processorsOffset", "I");
   public static final VM_Field threadsOffsetField              = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "threadsOffset", "I");
   static final VM_Field globalGCInProgressFlagField     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "globalGCInProgressFlag", "I");
   public static final VM_Field lockoutProcessorField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "lockoutProcessor", "I");
-  public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysVirtualProcessorYieldIP", "I");
+  public static final VM_Field sysVirtualProcessorYieldIPField = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysVirtualProcessorYieldIP",  "Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field externalSignalFlagField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "externalSignalFlag", "I");
-  public static final VM_Field sysLongDivideIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongDivideIP", "I");
-  public static final VM_Field sysLongRemainderIPField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongRemainderIP", "I");
-  public static final VM_Field sysLongToFloatIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToFloatIP", "I");
-  public static final VM_Field sysLongToDoubleIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToDoubleIP", "I");
-  public static final VM_Field sysFloatToIntIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToIntIP", "I");
-  public static final VM_Field sysDoubleToIntIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToIntIP", "I");
-  public static final VM_Field sysFloatToLongIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToLongIP", "I");
-  public static final VM_Field sysDoubleToLongIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToLongIP", "I");
+  public static final VM_Field sysLongDivideIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongDivideIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysLongRemainderIPField         = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongRemainderIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysLongToFloatIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToFloatIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysLongToDoubleIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysLongToDoubleIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysFloatToIntIPField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToIntIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysDoubleToIntIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToIntIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysFloatToLongIPField           = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysFloatToLongIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysDoubleToLongIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToLongIP",  "Lcom/ibm/JikesRVM/VM_Address;");
   //-#if RVM_FOR_POWERPC
-  public static final VM_Field sysDoubleRemainderIPField       = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleRemainderIP", "I");
-  public static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC", "I");
+  public static final VM_Field sysDoubleRemainderIPField       = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleRemainderIP",  "Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC",  "Lcom/ibm/JikesRVM/VM_Address;");
   //-#endif
 
   public static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounts;", "data", "[[I");

@@ -137,18 +137,12 @@ public class VM_BootRecord {
 
   public int verboseGC;             // GC verbosity level 
 
-  // Relocation not supported
-  //
-  // VM_Address relocaterAddress;    // address of first word of an array of offsets to all addresses in the image.
-  // int relocaterLength;     
-
-
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register
-  public int spRegister;          // value to place into SP register
-  public int ipRegister;          // value to place into IP register
-  public int tocRegister;         // value to place into TOC register
+  public VM_Address spRegister;          // value to place into SP register
+  public VM_Address ipRegister;          // value to place into IP register
+  public VM_Address tocRegister;         // value to place into TOC register
 
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
@@ -187,6 +181,8 @@ public class VM_BootRecord {
    */
   int externalSignalFlag;             
 
+  public int traceClassLoading;
+
   // Support for JNI Native functions
   //
   /**
@@ -203,7 +199,6 @@ public class VM_BootRecord {
    */
   int lockoutProcessor; 
 
-
   // Host operating system entrypoints - see "sys.C"
   //
 
@@ -211,154 +206,151 @@ public class VM_BootRecord {
   /**
    * value to place in TOC register when issuing "sys" calls
    */
-  public int sysTOC;           
+  public VM_Address sysTOC;           
   /**
    * dummy function to pair with sysTOC
    */
-  int sysIP;            
+  VM_Address sysIP;            
   //-#endif
 
   // startup/shutdown
-  public int sysWriteCharIP;    
-  public int sysWriteIP;            
-  public int sysWriteLongIP;
-  public int sysExitIP;                     
-  public int sysArgIP;
+  public VM_Address sysWriteCharIP;    
+  public VM_Address sysWriteIP;            
+  public VM_Address sysWriteLongIP;
+  public VM_Address sysExitIP;                     
+  public VM_Address sysArgIP;
 
   // memory
-  public int sysCopyIP;         
-  public int sysFillIP;
-  public int sysMallocIP;
-  public int sysFreeIP;
-  public int sysZeroIP;
-  public int sysZeroPagesIP;
-  public int sysSyncCacheIP;
+  public VM_Address sysCopyIP;         
+  public VM_Address sysFillIP;
+  public VM_Address sysMallocIP;
+  public VM_Address sysFreeIP;
+  public VM_Address sysZeroIP;
+  public VM_Address sysZeroPagesIP;
+  public VM_Address sysSyncCacheIP;
 
   // files
-  public int sysStatIP;         
-  public int sysListIP;
-  public int sysOpenIP;                
-  public int sysUtimeIP;                
-  public int sysReadByteIP;            
-  public int sysWriteByteIP;
-  public int sysReadBytesIP;
-  public int sysWriteBytesIP;
-  public int sysSeekIP;
-  public int sysCloseIP;
-  public int sysDeleteIP;
-  public int sysRenameIP;
-  public int sysMkDirIP;
-  public int sysBytesAvailableIP;
-  public int sysSyncFileIP;
-  public int sysIsTTYIP;
-  public int sysSetFdCloseOnExecIP;
+  public VM_Address sysStatIP;         
+  public VM_Address sysListIP;
+  public VM_Address sysOpenIP;                
+  public VM_Address sysUtimeIP;                
+  public VM_Address sysReadByteIP;            
+  public VM_Address sysWriteByteIP;
+  public VM_Address sysReadBytesIP;
+  public VM_Address sysWriteBytesIP;
+  public VM_Address sysSeekIP;
+  public VM_Address sysCloseIP;
+  public VM_Address sysDeleteIP;
+  public VM_Address sysRenameIP;
+  public VM_Address sysMkDirIP;
+  public VM_Address sysBytesAvailableIP;
+  public VM_Address sysSyncFileIP;
+  public VM_Address sysIsTTYIP;
+  public VM_Address sysSetFdCloseOnExecIP;
   
-  public int sysAccessIP;
+  public VM_Address sysAccessIP;
   // shm* - memory mapping
-  public int sysShmgetIP;
-  public int sysShmctlIP;
-  public int sysShmatIP;
-  public int sysShmdtIP;
+  public VM_Address sysShmgetIP;
+  public VM_Address sysShmctlIP;
+  public VM_Address sysShmatIP;
+  public VM_Address sysShmdtIP;
 
   // mmap - memory mapping
-  public int sysMMapIP;
-  public int sysMMapNonFileIP;
-  public int sysMMapGeneralFileIP;
-  public int sysMMapDemandZeroFixedIP;
-  public int sysMMapDemandZeroAnyIP;
-  public int sysMUnmapIP;
-  public int sysMProtectIP;
-  public int sysMSyncIP;
-  public int sysMAdviseIP;
-  public int sysGetPageSizeIP;
+  public VM_Address sysMMapIP;
+  public VM_Address sysMMapNonFileIP;
+  public VM_Address sysMMapGeneralFileIP;
+  public VM_Address sysMMapDemandZeroFixedIP;
+  public VM_Address sysMMapDemandZeroAnyIP;
+  public VM_Address sysMUnmapIP;
+  public VM_Address sysMProtectIP;
+  public VM_Address sysMSyncIP;
+  public VM_Address sysMAdviseIP;
+  public VM_Address sysGetPageSizeIP;
 
   // threads
-  public int sysNumProcessorsIP;
-  public int sysVirtualProcessorCreateIP;
-  public int sysVirtualProcessorBindIP;
-  public int sysVirtualProcessorYieldIP;
-  public int sysVirtualProcessorEnableTimeSlicingIP;
-  public int sysPthreadSelfIP;
-  public int sysPthreadSigWaitIP;
-  public int sysPthreadSignalIP;
-  public int sysPthreadExitIP;
-  public int sysPthreadJoinIP;
+  public VM_Address sysNumProcessorsIP;
+  public VM_Address sysVirtualProcessorCreateIP;
+  public VM_Address sysVirtualProcessorBindIP;
+  public VM_Address sysVirtualProcessorYieldIP;
+  public VM_Address sysVirtualProcessorEnableTimeSlicingIP;
+  public VM_Address sysPthreadSelfIP;
+  public VM_Address sysPthreadSigWaitIP;
+  public VM_Address sysPthreadSignalIP;
+  public VM_Address sysPthreadExitIP;
+  public VM_Address sysPthreadJoinIP;
   //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   //-#else
-  public int sysStashVmProcessorIdInPthreadIP;
+  public VM_Address sysStashVmProcessorIdInPthreadIP;
   //-#endif
 
   // arithmetic 
-  int sysLongDivideIP;
-  int sysLongRemainderIP;
-  int sysLongToFloatIP;
-  int sysLongToDoubleIP;
-  int sysFloatToIntIP;
-  int sysDoubleToIntIP;
-  int sysFloatToLongIP;
-  int sysDoubleToLongIP;
+  VM_Address sysLongDivideIP;
+  VM_Address sysLongRemainderIP;
+  VM_Address sysLongToFloatIP;
+  VM_Address sysLongToDoubleIP;
+  VM_Address sysFloatToIntIP;
+  VM_Address sysDoubleToIntIP;
+  VM_Address sysFloatToLongIP;
+  VM_Address sysDoubleToLongIP;
   //-#if RVM_FOR_POWERPC
-  int sysDoubleRemainderIP;
+  VM_Address sysDoubleRemainderIP;
   //-#endif
 
   // time
-  int sysGetTimeOfDayIP;
+  VM_Address sysGetTimeOfDayIP;
 
   // shared libraries
-  int sysDlopenIP;
-  int sysDlcloseIP;
-  int sysDlsymIP;
-  int sysSlibcleanIP;
+  VM_Address sysDlopenIP;
+  VM_Address sysDlcloseIP;
+  VM_Address sysDlsymIP;
+  VM_Address sysSlibcleanIP;
 
   // network
-  public int sysNetLocalHostNameIP;
-  public int sysNetRemoteHostNameIP;
-  public int sysNetHostAddressesIP;
-  public int sysNetSocketCreateIP;
-  public int sysNetSocketPortIP;
-  public int sysNetSocketFamilyIP;
-  public int sysNetSocketLocalAddressIP;
-  public int sysNetSocketBindIP;
-  public int sysNetSocketConnectIP;
-  public int sysNetSocketListenIP;
-  public int sysNetSocketAcceptIP;
-  public int sysNetSocketLingerIP;
-  public int sysNetSocketNoDelayIP;
-  public int sysNetSocketNoBlockIP;
-  public int sysNetSocketCloseIP;
-  public int sysNetSocketShutdownIP;
-  public int sysNetSelectIP;
+  public VM_Address sysNetLocalHostNameIP;
+  public VM_Address sysNetRemoteHostNameIP;
+  public VM_Address sysNetHostAddressesIP;
+  public VM_Address sysNetSocketCreateIP;
+  public VM_Address sysNetSocketPortIP;
+  public VM_Address sysNetSocketFamilyIP;
+  public VM_Address sysNetSocketLocalAddressIP;
+  public VM_Address sysNetSocketBindIP;
+  public VM_Address sysNetSocketConnectIP;
+  public VM_Address sysNetSocketListenIP;
+  public VM_Address sysNetSocketAcceptIP;
+  public VM_Address sysNetSocketLingerIP;
+  public VM_Address sysNetSocketNoDelayIP;
+  public VM_Address sysNetSocketNoBlockIP;
+  public VM_Address sysNetSocketCloseIP;
+  public VM_Address sysNetSocketShutdownIP;
+  public VM_Address sysNetSelectIP;
 
   // process management
-  public int sysWaitPidsIP;
+  public VM_Address sysWaitPidsIP;
 
-  public int sysSprintfIP;
+  public VM_Address sysSprintfIP;
 
-  //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-  //-#else
+  //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives
-  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  //-#else
-  public int sysCreateThreadSpecificDataKeysIP;
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  public VM_Address sysCreateThreadSpecificDataKeysIP;
   //-#endif
-  public int sysInitializeStartupLocksIP;
-  public int sysWaitForVirtualProcessorInitializationIP;
-  public int sysWaitForMultithreadingStartIP;
+  public VM_Address sysInitializeStartupLocksIP;
+  public VM_Address sysWaitForVirtualProcessorInitializationIP;
+  public VM_Address sysWaitForMultithreadingStartIP;
   //-#endif
-  public int traceClassLoading;
 
   //-#if RVM_WITH_HPM
   // sysCall entry points to HPM
-  public int sysHPMinitIP;
-  public int sysHPMsetEventIP;
-  public int sysHPMsetEventXIP;
-  public int sysHPMsetModeIP;
-  public int sysHPMsetSettingsIP;
-  public int sysHPMstartCountingIP;
-  public int sysHPMstopCountingIP;
-  public int sysHPMresetCountersIP;
-  public int sysHPMgetCountersIP;
-  public int sysHPMgetCounterIP;
-  public int sysHPMtestIP;
+  public VM_Address sysHPMinitIP;
+  public VM_Address sysHPMsetEventIP;
+  public VM_Address sysHPMsetEventXIP;
+  public VM_Address sysHPMsetModeIP;
+  public VM_Address sysHPMsetSettingsIP;
+  public VM_Address sysHPMstartCountingIP;
+  public VM_Address sysHPMstopCountingIP;
+  public VM_Address sysHPMresetCountersIP;
+  public VM_Address sysHPMgetCountersIP;
+  public VM_Address sysHPMgetCounterIP;
+  public VM_Address sysHPMtestIP;
   //-#endif
 }

@@ -96,7 +96,7 @@ class VM_NativeDaemonThread extends VM_Thread {
 
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
-      int TOC = 0;
+      VM_Address TOC = VM_Address.fromInt(0);
       //-#if RVM_FOR_POWERPC
       TOC = VM_BootRecord.the_boot_record.sysTOC;
       //-#endif
