@@ -234,7 +234,7 @@ public class VM_StackTrace implements VM_Constants {
         if (! out.isSysWrite()) {
           VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex,
                         "): Here's the copy to sysWrite:");
-          print(PrintContainer.readyPrinter, trigger, effect);
+          print(PrintContainer.readyPrinter, trigger, effect, depth);
           VM.sysWriteln("... END VM_StackTrace.print():"
                         + " sysWrote Stack Trace # ", traceIndex, "]");
         }
