@@ -395,7 +395,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseThreadLocalRelease(int order) {
     values.reset();
     remset.reset();
-    forwardPool.reset();
+    forwardedObjects.reset();
     rootLocations.reset();
     interiorRootLocations.reset();
     threadLocalRelease(order);
