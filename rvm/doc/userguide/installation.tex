@@ -11,8 +11,8 @@ running Eclipse on Jikes RVM.
 
 \subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.x, or SuSE Linux 8.x for~Intel~x86}
 
-Red Hat\TMboth{} Linux\Rboth{} for Intel\Rboth{} IA32 (Intel x86) has emerged as the 
-primary platform for Jikes RVM.  SuSE\Rboth{} Linux is also in daily use
+Red~Hat\TMboth{} Linux\Rboth{} for Intel\Rboth{} IA-32 and AMD\Rboth{} x86-32) has emerged as the 
+primary platform for Jikes\TMweb{} RVM.  SuSE\Rboth{} Linux is also in daily use
 by one of the Jikes RVM core team members.
 If you have either a developer or full install of Red~Hat
 Linux~7.3 or later, your system has almost everything you need
@@ -33,7 +33,7 @@ It is possible to use other 1.3 or 1.4 JVMs to build Jikes RVM,
 however building Jikes RVM is a good way to find bugs in a JVM.
 
 \index{IBM JVM on Linux}%
-JVMs that are known to fail on Linux/IA32 include the IBM\Rweb{}~1.3.1 and
+JVMs that are known to fail on Linux/x86-32 include the IBM\Rweb{}~1.3.1 and
 1.4.0.  People have reported some success with the IBM~1.4.1 (let us
 know if you have success/problems with IBM~1.4.1). Also, please note
 that Red Hat~8.x does have a {\tt java} command, but that does not invoke a
@@ -84,26 +84,26 @@ There are four of these that you must use; in addition,
 
 \begin{description}
 
-\item[RVM\_\-ROOT] is the location of the Jikes RVM distribution.  It
-must be {\bf RVM\_\-ROOT} as given above.
+\item[\varName{RVM\_\-ROOT}] is the location of the Jikes RVM distribution.  It
+must be \varName{{\bf RVM\_\-ROOT}} as given above.
 
-\item[RVM\_HOST\_CONFIG] is the configuration file of the machine
+\item[\varName{RVM\_HOST\_CONFIG}] is the configuration file of the machine
 building Jikes RVM.  It must be
 {\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu.mine}.
 
-\item[RVM\_TARGET\_CONFIG] is the configuration of the machine running
-Jikes RVM.  It must be {\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu.mine}.
+\item[\varName{RVM\_TARGET\_CONFIG}] is the configuration of the
+  machine running Jikes RVM.  It must be {\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu.mine}.
 
-\item[RVM\_BUILD] is the location where Jikes RVM is to be built.  It
+\item[\varName{RVM\_BUILD}] is the location where Jikes RVM is to be built.  It
 can be anywhere.
 
 \end{description}
 
 \item Setup a build directory with ``{\tt jconfigure prototype}'', \link{or
-use some other configuration if you prefer.}[  See Section~\Ref{}
+use some other configuration if you prefer.}[  See Section~\Ref{} on page~\Pageref{}
 for information about the various configurations.]{configs}
 
-\item Build Jikes RVM: go to RVM\_BUILD and type ``{\tt ./jbuild}''
+\item Build Jikes RVM: go to \varName{RVM\_BUILD} and type ``{\tt ./jbuild}''
 
 \end{enumerate}
 
@@ -123,7 +123,7 @@ for information about the various configurations.]{configs}
 \subsection{The Hard Way}
 
  For any platform that is not SuSE\Rweb{} Linux\Rweb{} 8.2 or newer, or Red Hat\TMweb{} Linux 7.3 or newer for Intel\Rweb{}
-IA32, installation can be more complicated.  We present a list of system
+IA-32/AMD\Rweb{} x86-32, installation can be more complicated.  We present a list of system
 prerequisites, and then a series of install steps that assumes you
 have those.
 
@@ -164,7 +164,7 @@ Yacc or Bison &	{\it any} & \xlink{\tt \bisonURL}{\bisonURL} \\
 {\tt automake}       & 1.6.3+ \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \automakeURL}{\automakeURL} \\
 {\tt cvs}            & {\it any}    \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \cvsURL}{\cvsURL} \\
 {\tt autoconf}       & 2.53+  \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \autoconfURL}{\autoconfURL} \\
-\hline \hline \multicolumn{3}{|c|}{\em Linux/IA32}                      \\ \hline
+\hline \hline \multicolumn{3}{|c|}{\em Linux/x86-32}                      \\ \hline
 kernel         & 2.4+ \SeeBelow{} & \xlink{\tt \linuxKernelURL}{\linuxKernelURL} \\
 JDK            & Blackdown 1.3.1 or 1.4.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
 glibc          & 2.2+ \SeeBelow & \xlink{\tt \glibcURL}{\glibcURL} \\ 
@@ -221,7 +221,7 @@ to work, then the Jikes RVM build process won't require {\tt
   automake}, \texttt{autoconf}, or \texttt{cvs}.
 \end{Label}
 
-\item \texttt{glibc} for Linux/IA32 must use the GS register for
+\item \texttt{glibc} for Linux/x86 must use the GS register for
 thread-local state.  See the build instructions for \texttt{glibc} for details;
 if that scares you, use a recent Red Hat or SuSE Linux distribution.
 
@@ -273,7 +273,7 @@ library sources; and the tools needed to build Jikes RVM.
 \index{configurations}%
 Jikes RVM can be configured in various ways.  Multiple versions of the system,
 corresponding to \link{different configurations}{configs}, can be generated from 
-one working directory.   \texonly{See Section~\ref{configs} for information about the various configurations.}
+one working directory.   \texonly{See Section~\ref{configs} (page~\pageref{configs}) for information about the various configurations.}
 
 The Jikes RVM {\em boot image\index{boot image}} and other files generated during the 
 configuration process
@@ -295,6 +295,7 @@ The remainder of this section describes the process in greater detail.
 
 \subsubsection{Installation Steps}
 \label{sec:manual-classpath-root}
+\label{single-virtual-processor-subsubsection}
 
 \begin{enumerate}
 \item {\bf Set up a working directory.}
@@ -363,8 +364,9 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 These two variables point to the same file when the type of system  
 doing the build is the same as where you are going 
 the execute Jikes RVM.  To cross build a system
-(e.g., build on Linux/IA32 for an AIX\TMweb/PowerPC\TMweb
-platform, see \link{\SectionName{Cross Platform Building}}[ (sub-section~\Ref)]{cross-platform-building}.
+(e.g., build on Linux/x86 for an AIX\TMweb/PowerPC\TMweb
+platform, see \link{\SectionName{Cross Platform Building}}[
+  (sub-section~\Ref, page~\Pageref)]{cross-platform-building}.
 
 \item {\bf Edit configuration scripts.}
 
@@ -378,25 +380,28 @@ environments in the \texttt{\$RVM\_\-ROOT/rvm/config} directory.
 You do not need to {\em source} these variables in your working shell; 
 variables in this file will be picked up by the installation scripts.  
 
+\begin{Label}{single-virtual-processor-item}
 The host and target configuration files have two sections.  In the
 first section, you specify the operating system, architecture, and
 whether or not the platform will support SMP-builds of Jikes RVM. 
-For operating system, define one of RVM\_\-FOR\_\-LI\-NUX, RVM\_\-FOR\_\-OSX,
-or RVM\_\-FOR\_\-AIX 
+For operating system, define one of \varName{RVM\_\-FOR\_\-LI\-NUX}, 
+\varName{RVM\_\-FOR\_\-OSX},
+or \varName{RVM\_\-FOR\_\-AIX} 
 to be 1.  For architecture define either
-RVM\_FOR\_IA32 or RVM\_\-FOR\_\-POWER\-PC to be 1.  For SMP status, set
-RVM\_\-FOR\_\-SIN\-GLE\_VIR\-TU\-AL\_PRO\-CES\-SOR to 0 (SMP supported) or 1 (SMP not
+\varName{RVM\_FOR\_IA32} or \varName{RVM\_\-FOR\_\-POWER\-PC} to be 1.  For SMP status, set
+\varName{RVM\_\-FOR\_\-SIN\-GLE\_VIR\-TU\-AL\_PRO\-CES\-SOR} to 0 (SMP supported) or 1 (SMP not
 supported).  The following are the typical settings for
-RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR:
+\varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR}:
 
 \begin{description}
 \item[AIX/PowerPC] \texttt{0 }
 \item[Linux/PowerPC] \texttt{1}
 \item[OS~X/PowerPC] \texttt{1}
-\item[Linux/IA32] \texttt{0}\footnote{You must use 1 here if you do not
+\item[Linux/x86-32] \texttt{0}\footnote{You must use 1 here if you do not
 have a 2.4 kernel and \texttt{glibc} compiled to use the GS segment register to
 access pthread-specific state.  We do not recommend such a setup.}
 \end{description}                
+\end{Label}
 
 The second section in the configuration file is used to define how to
 find tools that Jikes RVM needs. You must set the following variables:
@@ -483,7 +488,7 @@ but generates a Jikes RVM image with reasonable runtime performance.
 We recommend either the \texttt{development} or \texttt{production} images,
 depending on whether or not you want VM assertion checking enabled.  (A
 \link{discussion of Jikes RVM configurations appears \texorhtml{in
-Section~\Ref}{elsewhere}}{configs}.) 
+Section~\Ref, on page~\Pageref}{elsewhere}}{configs}.) 
 
 Depending on your purposes, you may want to \link{choose another
 configuration that uses a different memory manager}[ (See
@@ -530,7 +535,7 @@ save for future reference by redirecting standard out and err.
 
 
 After the \texttt{jbuild} script has completed successfully \link{you should be able 
-to run Jikes RVM.}[  (See Section~\Ref{}.)]{section:running}
+to run Jikes RVM.}[  (See Section~\Ref{}, page~\Pageref{}.)]{section:running}
 
 Note: The jbuild process may produce warning messages; these should not
 affect system viability.
@@ -583,8 +588,8 @@ information.
 \index{build configurations}
 
 This section describes Jikes\TMweb{} RVM's build configurations.
-The various build configurations are defined by files in {\tt
-\$RVM\_\-ROOT/rvm/config/build}.
+The various build configurations are defined by files in ``{\tt
+\$RVM\-\_\-ROOT\-/\-rvm\-/\-con\-fig\-/\-build}''.
 
 \subsubsection{Logical Configurations}%
 \index{logical configurations}
@@ -687,7 +692,7 @@ Adaptive in their name), methods are initially compiled by one
 compiler (by default the baseline compiler) and then online profiling
 is used to automatically select hot methods for recompilation by the
 opt compiler at an appropriate optimization level.  \link{Further details are
-provided in the \SectionName{Adaptive Optimization System} section}[ ,Section~\Ref, page~\Pageref]{section:aosdetails}.
+provided in the \SectionName{Adaptive Optimization System} section}[, Section~\Ref, page~\Pageref]{section:aosdetails}.
 
 For example, to configure a build directory for an adaptive
 configuration, where the optimizing compiler is used to compile the
@@ -698,8 +703,8 @@ following command:
 % jconfigure OptAdaptiveSemiSpace
 \end{verbatim}
 
-To view a list of configurations see 
-\texttt{\$RVM\_\-ROOT/rvm/config/build}.  Follow the examples in this
+To view a list of configurations see the directory
+``\texttt{\$RVM\_\-ROOT\-/\-rvm\-/\-con\-fig\-/\-build}''.  Follow the examples in this
 directory to define your own configurations with different options.  See
 the \texttt{jconfigure} file for a list of all options the builder
 understands, or type:
@@ -707,6 +712,74 @@ understands, or type:
 \begin{verbatim}
 % jconfigure --help
 \end{verbatim}
+
+\subsubsection{Configurations in Painful Depth}
+
+To go into agonizing depth, except for the special configurations
+(\texttt{development}, 
+\texttt{prototype}, \texttt{production}, \texttt{prototype-opt}), and
+for a couple of historical ones, standard Jikes RVM configuration
+files follow the following naming scheme:
+\begin{verse}
+       \MZeroOrOne{\Mlitch{ExtremeAssertions}} \MZeroOrOne{\Mlitch{Fast} \MZeroOrOne{\Mlitch{Opt} \MZeroOrOne{\Mlitch{0}\Mor\Mlitch{1}}} \Mor{} \Mlitch{Full}} \Mmeta{boot image compiler} 
+       \Mlbr{} \Mlitch{Base} \Mor{} \Mlitch{Adaptive} \Mrbr{}
+       \MZeroOrOne{\Mlitch{OTH}} \Mmeta{garbage collector} \MZeroOrOne{\Mlitch{UP}}
+\end{verse}
+
+\begin{itemize}
+\item \Mlitch{OTH} means that a configuration uses the
+        uses the \link{\IndexTexttt{OptTestHarness}}{opttestharness}.  
+        \link{\IndexTexttt{OptTestHarness}}{opttestharness}.  
+
+\item The \Mlitch{ExtremeAssertions} configurations have the
+          \IndexTexttt{RVM\-\_\-WITH\-\_\-EXTREME\-\_\-ASSERTIONS} flag
+          enabled.  This turns on a number of expensive assertions.
+
+\item \Mlitch{UP} means that a configuration has the
+          \IndexTexttt{RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR} flag set.
+
+
+\end{itemize}
+
+You can specify additional configuration variables by:
+\begin{enumerate}
+\item writing your own
+configuration files
+\item giving command-line options to
+\IndexTexttt{jconfigure} of the form
+``\texttt{-D}\Mmeta{config-variable}\texttt{=1}'', or
+\item adding the variable assignments to your \varName{RVM\_TARGET\_CONFIG} file.
+\end{enumerate}
+The more useful ones include:
+\begin{description}
+\item[\IndexTexttt{RVM\_WITH\_DETERMINISTIC\_THREAD\_SWITCHING}]
+Thread switch after $n$ method calls; do not use interrupts to drive
+preemption.
+
+\item[\IndexTexttt{RVM\_WITHOUT\_PREEMPTIVE\_THREAD\_SWITCHING}]
+  Thread switch only at explicit yield and wait calls.
+
+\item[\IndexTexttt{RVM\_WITH\_ALL\_CLASSES}]  Include all VM classes
+  in bootimage, not just those needed for startup.  
+  The \Mlitch{Fast} and \Mlitch{Full} set this flag.
+
+\item[\IndexTexttt{RVM\_WITHOUT\_ASSERTIONS}]
+ Exclude runtime assertion checks.  This is what the \Mlitch{Fast}
+ configurations set.
+
+\item[\IndexTexttt{RVM\_WITHOUT\_AOS\_LOG}] Turn off \link{AOS
+  logging}[ (discussed in Section~\Ref, on page~\Pageref]{aos-logging}.
+
+\item[\IndexTexttt{RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR}]
+Discussed: \link{above}[
+  (SubSubSection~\ref{single-virtual-processor-subsubsection},
+  item~\Ref, on page~\Pageref)]{single-virtual-processor-item}; in the
+\link{\SectionName{Threads} section}[ (Section~\Ref, page~\Pageref)]{threads:single-virtual-processor};
+and \link{in a \SectionName{FAQ} question}[ (Section~\Ref, page~\Pageref)]{singleProcessorQuestion}.
+
+\end{description}
+
+
 
 \subsection{Cross Platform Building}\label{cross-platform-building}
 
@@ -721,11 +794,11 @@ Because building the boot image can be time-consuming,
 you may prefer to build the boot image
 on a faster machine than the target platform.  To cross build, simply
 set your 
-RVM\_HOST\_CONFIG and RVM\_TARGET\_CONFIG environment variables to
+\varName{RVM\_HOST\_CONFIG} and \varName{RVM\_TARGET\_CONFIG} environment variables to
 be different files.
 
-For example, to build the prototype configuration for AIX\TMweb\ 
-{\em on a Linux host}:
+For example, to build the prototype configuration for AIX\TMweb{} 
+{\em on a Linux host:}
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
 % setenv RVM_BUILD $HOME/rvmBuild
@@ -764,7 +837,7 @@ been set in your \texttt{.cshrc}, \texttt{.bashrc}, or other shell startup file.
 More advanced users can experiment with the \texttt{RVM\_BUILD\_COPY}
 environment variable.  If this is set, then the 
 \texttt{jbuild.linkBooter} phase of the build process is replaced by the
-execution of \texttt{`\$RVM\_BUILD\_COPY`}.  This opens up a lot of
+execution of ``\texttt{\$RVM\_BUILD\_COPY}''.  This opens up a lot of
 possibilities, such as copying the build directory to a target
 machine and executing \texttt{jbuild.linkBooter} remotely on the target
 via \texttt{rsh} or \texttt{ssh}.  By setting \texttt{RVM\_BUILD\_COPY}
