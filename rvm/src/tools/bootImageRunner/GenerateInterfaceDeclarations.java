@@ -46,7 +46,7 @@ class GenerateInterfaceDeclarations {
       if (args[i].equals("-ia")) {              // image address
         if (++i == args.length) {
           System.err.println("Error: The -ia flag requires an argument");
-          System.exit(-1);
+          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         bootImageAddress = Integer.decode(args[i]).intValue();
         continue;
@@ -54,18 +54,18 @@ class GenerateInterfaceDeclarations {
       if (args[i].equals("-out")) {              // output file
         if (++i == args.length) {
           System.err.println("Error: The -out flag requires an argument");
-          System.exit(-1);
+          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         outFileName = args[i];
         continue;
       }
       System.err.println("Error: unrecognized command line argument: " + args[i]);
-      System.exit(-1);
+      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
 
     if (bootImageAddress == 0) {
       System.err.println("Error: Must specify boot image load address.");
-      System.exit(-1);
+      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (outFileName == null) {
       out = System.out;
@@ -73,8 +73,6 @@ class GenerateInterfaceDeclarations {
       try {
         // We'll let an unhandled exception throw an I/O error for us.
         out = new PrintStream(new FileOutputStream(outFileName));
-        //      System.err.println("We don't support the -out argument yet");
-        //      System.exit(-1);
       } catch (IOException e) {
         reportTrouble("Caught an exception while opening" + outFileName +" for writing: " + e.toString());
       }
@@ -257,7 +255,7 @@ class GenerateInterfaceDeclarations {
       bootRecord = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor).resolve().asClass();
     } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
-      System.exit(-1);
+      System.exit(1);
     }
     emitCDeclarationsForJavaType("VM_BootRecord", bootRecord);
   }
@@ -275,7 +273,7 @@ class GenerateInterfaceDeclarations {
       bootRecord = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor).resolve().asClass();
     } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
-      System.exit(-1);
+      System.exit(1);
     }
     VM_Field[] fields = bootRecord.getDeclaredFields();
 
@@ -687,7 +685,13 @@ class GenerateInterfaceDeclarations {
 
   // Codes for exit(3).
   static void emitExitStatusCodes () {
-    pln("/* Automatically generated from the exitStatus declarations in VM.java */");
+    pln("/* Automatically generated from the exitStatus declarations in VM_ExitStatus.java */");
+    pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = "
+        + VM.EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
+    pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = "
+        + VM.EXIT_STATUS_COULD_NOT_EXECUTE + ";");
+    pln("const int EXIT_STATUS_MISC_TROUBLE                         = "
+        + VM.EXIT_STATUS_MISC_TROUBLE + ";");
     pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = "
         + VM.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
     pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = "
@@ -698,14 +702,14 @@ class GenerateInterfaceDeclarations {
         + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
     pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = "
         + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
+    pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = "
+        + VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
     pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = "
         + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
     pln("const int EXIT_STATUS_JNI_TROUBLE                          = "
         + VM.EXIT_STATUS_JNI_TROUBLE + ";");
     pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = "
         + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");
-    pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = "
-        + VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
   }
 
   // Emit assembler constants.
