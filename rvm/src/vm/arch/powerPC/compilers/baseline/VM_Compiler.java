@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
  *
@@ -12,8 +14,6 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
 public class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,
 	     VM_AssemblerConstants {

@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+
 /**
  * Iterator for stack frame  built by the Baseline compiler
  * An Instance of this class will iterate through a particular 
@@ -14,8 +16,6 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
-
 public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
 	     VM_Uninterruptible {

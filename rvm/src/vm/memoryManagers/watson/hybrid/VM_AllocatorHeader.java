@@ -3,15 +3,6 @@
  */
 //$Id$
 
-/**
- * Defines header words used by memory manager.not used for 
- *
- * @see VM_ObjectModel
- * 
- * @author David Bacon
- * @author Steve Fink
- * @author Dave Grove
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import BootImageInterface;
@@ -38,6 +29,15 @@ import VM_Reflection;
 import VM_Synchronization;
 import VM_EventLogger;
 
+/**
+ * Defines header words used by memory manager.not used for 
+ *
+ * @see VM_ObjectModel
+ * 
+ * @author David Bacon
+ * @author Steve Fink
+ * @author Dave Grove
+ */
 public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader {
 
   /**

@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+
 /**
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
@@ -33,8 +35,6 @@
  * @author Dave Grove
  * @author Mike Hind
  */
-import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
-
 class VM_RuntimeCompilerInfrastructure
   implements VM_Constants, VM_Callbacks.ExitMonitor
 {

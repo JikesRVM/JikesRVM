@@ -3,6 +3,10 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_BlockControl;
+import com.ibm.JikesRVM.memoryManagers.VM_SizeControl;
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+
 /**
  * Magic methods for accessing raw machine memory, registers, and 
  * operating system calls.
@@ -15,10 +19,6 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_BlockControl;
-import com.ibm.JikesRVM.memoryManagers.VM_SizeControl;
-import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
-
 public class VM_Magic {
 
   //---------------------------------------//

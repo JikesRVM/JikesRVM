@@ -3,12 +3,6 @@
  */
 //$Id$
 
-/**
- * Dynamically allocate objects that live forever, using a simple pointer-bumping technique.
- *
- * @author David F. Bacon
- * @author Perry Cheng
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
@@ -22,6 +16,12 @@ import VM_Array;
 import VM_JavaHeader;
 import VM_PragmaUninterruptible;
 
+/**
+ * Dynamically allocate objects that live forever, using a simple pointer-bumping technique.
+ *
+ * @author David F. Bacon
+ * @author Perry Cheng
+ */
 public final class VM_ImmortalHeap extends VM_Heap
   implements VM_Constants, VM_GCConstants, VM_AllocatorHeaderConstants {
 

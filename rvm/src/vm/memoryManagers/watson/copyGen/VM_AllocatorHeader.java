@@ -3,6 +3,14 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import BootImageInterface;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaLogicallyUninterruptible;
+import VM_PragmaUninterruptible;
+
 /**
  * Defines header words used by memory manager.not used for 
  *
@@ -12,14 +20,6 @@
  * @author Steve Fink
  * @author Dave Grove
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import BootImageInterface;
-import VM_PragmaInline;
-import VM_PragmaNoInline;
-import VM_PragmaLogicallyUninterruptible;
-import VM_PragmaUninterruptible;
-
 public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader {
 
   /**

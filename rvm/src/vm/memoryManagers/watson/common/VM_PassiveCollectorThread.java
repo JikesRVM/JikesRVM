@@ -3,6 +3,8 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
 /**
  * A collector thread which does not participate in GC, useful for
  * <code>VM_Processor</code>s which should not participate in GC.
@@ -11,8 +13,6 @@
  * @author Tony Cocchi
  * @author Stephen Smith
  */
-package com.ibm.JikesRVM.memoryManagers;
-
 class VM_PassiveCollectorThread extends VM_Thread {
   
   private final static boolean trace = false; // emit trace messages?

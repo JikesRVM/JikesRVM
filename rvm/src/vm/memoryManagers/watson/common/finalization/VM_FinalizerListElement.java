@@ -3,9 +3,6 @@
  */
 //$Id$
 
-/**
- * @author Dick Attanasio
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -35,6 +32,9 @@ import VM_Synchronization;
 import VM_Synchronizer;
 import VM_EventLogger;
 
+/**
+ * @author Dick Attanasio
+ */
 class VM_FinalizerListElement {
 
   VM_Address value;

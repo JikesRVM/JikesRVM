@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
+
 /**
  * Dummy class containing enough references to force java compiler
  * to find every class comprising the vm, so everything gets recompiled
@@ -12,7 +14,6 @@
  *
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
 class Dummy {
   static VM                         a;
   static VM_TableBasedDynamicLinker b;

@@ -2,6 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
+
 /**
  * This class contains its architecture-independent code for iteration
  * across the references represented by a frame built by the OPT compiler.
@@ -10,9 +14,6 @@
  *
  * @author Michael Hind
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
-import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
-
 abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
   implements VM_OptGCMapIteratorConstants,
 	     VM_Uninterruptible {

@@ -3,13 +3,6 @@
  */
 //$Id$
 
-/**
- *  A mark-sweep area to hold "large" objects (typically at least 2K).
- *  The large space code is obtained by factoring out the code in various
- *  collectors.
- *
- *  @author Perry Cheng
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
@@ -22,6 +15,13 @@ import VM_Magic;
 import VM_Array;
 import VM_PragmaUninterruptible;
 
+/**
+ *  A mark-sweep area to hold "large" objects (typically at least 2K).
+ *  The large space code is obtained by factoring out the code in various
+ *  collectors.
+ *
+ *  @author Perry Cheng
+ */
 public class VM_LargeHeap extends VM_Heap 
   implements VM_Constants, VM_GCConstants {
 

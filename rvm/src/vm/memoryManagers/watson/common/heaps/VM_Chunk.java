@@ -3,19 +3,6 @@
  */
 //$Id$
 
-/**
- * Fast path allocation using pointer bumping. 
- * This class contains static methods that 
- * manipulated the Chunk1 and Chunk2 "objects"
- * of VM_Processor.  We hand inline the chunk objects
- * into the VM_Processor object to avoid an extra dependent 
- * load instruction on the fast path allocation sequence.
- * In an ideal world, object inlining would do this for us.
- * 
- * @author Perry Cheng
- * @author Dave Grove
- * @author Stephen Smith
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -30,6 +17,19 @@ import VM_Scheduler;
 import VM_Thread;
 import VM_PragmaUninterruptible;
 
+/**
+ * Fast path allocation using pointer bumping. 
+ * This class contains static methods that 
+ * manipulated the Chunk1 and Chunk2 "objects"
+ * of VM_Processor.  We hand inline the chunk objects
+ * into the VM_Processor object to avoid an extra dependent 
+ * load instruction on the fast path allocation sequence.
+ * In an ideal world, object inlining would do this for us.
+ * 
+ * @author Perry Cheng
+ * @author Dave Grove
+ * @author Stephen Smith
+ */
 final class VM_Chunk implements VM_GCConstants {
   
   /**

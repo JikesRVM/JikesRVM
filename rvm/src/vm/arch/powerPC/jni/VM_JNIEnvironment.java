@@ -3,6 +3,9 @@
  */
 //$Id$
 
+import java.lang.reflect.*;
+import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
+
 /**
  *   This class implements the JNI environment, it includes:
  * -The array of JNI function pointers accessible from C
@@ -11,9 +14,6 @@
  * @author Ton Ngo 
  * @author Steve Smith
  */
-import java.lang.reflect.*;
-import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
-
 public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants
 {
   private static boolean initialized = false;

@@ -3,6 +3,22 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM_Class;
+import VM_Array;
+import VM_Constants;
+import VM_ProcessorLock;
+import VM_Address;
+import VM_Memory;
+import VM_ObjectModel;
+import VM;
+import VM_Magic;
+import VM_Type;
+import VM_BootRecord;
+import VM_Processor;
+import VM_PragmaUninterruptible;
+
 /**
  * An area representing space manipulated by malloc-free.
  * The main functionality is to provide the refInHeap/addrInHeap functionality.
@@ -20,22 +36,6 @@
  *  @author Perry Cheng
  *  @author David Grove
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM_Class;
-import VM_Array;
-import VM_Constants;
-import VM_ProcessorLock;
-import VM_Address;
-import VM_Memory;
-import VM_ObjectModel;
-import VM;
-import VM_Magic;
-import VM_Type;
-import VM_BootRecord;
-import VM_Processor;
-import VM_PragmaUninterruptible;
-
 public class VM_MallocHeap extends VM_Heap 
   implements VM_Constants, VM_GCConstants {
 

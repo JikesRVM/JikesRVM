@@ -3,6 +3,8 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
 /**
  * Define the constants manipulated by VM_CommonAllocatorHeader. <p>
  * 
@@ -24,8 +26,6 @@
  * @author Steve Fink
  * @author Dave Grove
  */
-package com.ibm.JikesRVM.memoryManagers;
-
 public interface VM_AllocatorHeaderConstants {
   
   /**

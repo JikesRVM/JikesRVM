@@ -3,16 +3,6 @@
  */
 //$Id$
 
-/**
- * This class provides a generic interface to collector calls.  All
- * calls by the VM runtime and compilers to the collector should be
- * through this interface or VM_Allocator.
- *
- * @author Steve Blackburn
- * @modified Steve Smith
- * 
- * @see VM_Allocator
- */
 
 package com.ibm.JikesRVM.memoryManagers;
 
@@ -43,6 +33,16 @@ import VM_Reflection;
 import VM_Synchronization;
 import VM_EventLogger;
 
+/**
+ * This class provides a generic interface to collector calls.  All
+ * calls by the VM runtime and compilers to the collector should be
+ * through this interface or VM_Allocator.
+ *
+ * @author Steve Blackburn
+ * @modified Steve Smith
+ * 
+ * @see VM_Allocator
+ */
 public class VM_Collector implements VM_Constants {
 
   /**

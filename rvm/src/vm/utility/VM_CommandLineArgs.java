@@ -3,6 +3,9 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_GCWorkQueue;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+
 /**
  * Command line option processing.
  *
@@ -10,9 +13,6 @@
  * @modified Igor Pechtchanski
  *      Arbitrary prefix support
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCWorkQueue;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
 class VM_CommandLineArgs { 
   private static final boolean DEBUG = false;
 

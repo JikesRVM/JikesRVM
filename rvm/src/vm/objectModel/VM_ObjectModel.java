@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
+
 /**
  * The interface to the object model definition accessible to the 
  * virtual machine. <p>
@@ -100,8 +102,6 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
-
 public final class VM_ObjectModel implements VM_Uninterruptible, 
 					     VM_JavaHeaderConstants {
 

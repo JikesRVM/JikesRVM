@@ -3,6 +3,16 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM_Constants;
+import VM_PragmaUninterruptible;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_Processor;
+import VM_Magic;
+import VM_Address;
+
 /**
  * This class contains the Java code that the opt compiler will
  * inline at every ref_astore and putfield of reference type to
@@ -16,16 +26,6 @@
  * 
  * @see OPT_ExpandRuntimeServices (logic to inline this code)
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM_Constants;
-import VM_PragmaUninterruptible;
-import VM_PragmaInline;
-import VM_PragmaNoInline;
-import VM_Processor;
-import VM_Magic;
-import VM_Address;
-
 public class VM_WriteBarrier implements VM_Constants {
 
   /**

@@ -2,6 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+
 /**
  * Use baseline compiler to build virtual machine boot image.
  * 
@@ -9,8 +12,6 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
-
 public class VM_BootImageCompiler {
   /** Identity. */
   public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;

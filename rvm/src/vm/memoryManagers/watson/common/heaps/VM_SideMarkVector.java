@@ -3,12 +3,6 @@
  */
 //$Id$
 
-/**
- * Provide a side-array of mark bits for the garbage collector, for cases
- * when it is not possible or desirable to store them directly in the objects.
- *
- * @author David Bacon
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
@@ -20,6 +14,12 @@ import VM_Address;
 import VM_Array;
 import VM_PragmaUninterruptible;
 
+/**
+ * Provide a side-array of mark bits for the garbage collector, for cases
+ * when it is not possible or desirable to store them directly in the objects.
+ *
+ * @author David Bacon
+ */
 final class VM_SideMarkVector implements VM_Constants {
 
   private VM_Address baseAddress;

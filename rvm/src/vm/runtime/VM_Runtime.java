@@ -3,6 +3,11 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
+import com.ibm.JikesRVM.memoryManagers.VM_Finalizer;
+import com.ibm.JikesRVM.memoryManagers.VM_Heap;
+
 /**
  * Entrypoints into the runtime of the virtual machine.
  *
@@ -41,11 +46,6 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
-import com.ibm.JikesRVM.memoryManagers.VM_Finalizer;
-import com.ibm.JikesRVM.memoryManagers.VM_Heap;
-
 public class VM_Runtime implements VM_Constants {
    
   // Trap codes for communication with C trap handler.

@@ -3,13 +3,6 @@
  */
 //$Id$
 
-/**
- * Contains common statistic, profiling, and debugging code
- * for the watson memory managers.
- *
- * @author Dave Grove
- * @author Perry Cheng
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -45,6 +38,13 @@ import VM_Statistic;
 import VM_TimeStatistic;
 import VM_TypeDictionary;
 
+/**
+ * Contains common statistic, profiling, and debugging code
+ * for the watson memory managers.
+ *
+ * @author Dave Grove
+ * @author Perry Cheng
+ */
 class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
 
 

@@ -3,12 +3,6 @@
  */
 //$Id$
 
-/**
- * A Heap Abstraction.
- * 
- * @author Perry Cheng
- * @modified Dave Grove
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -41,6 +35,12 @@ import VM_Synchronization;
 import VM_Synchronizer;
 import VM_EventLogger;
 
+/**
+ * A Heap Abstraction.
+ * 
+ * @author Perry Cheng
+ * @modified Dave Grove
+ */
 public abstract class VM_Heap 
   implements VM_Constants, VM_GCConstants {
 

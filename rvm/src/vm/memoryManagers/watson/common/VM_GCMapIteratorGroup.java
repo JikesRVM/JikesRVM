@@ -3,6 +3,24 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM_Constants;
+import VM_CompiledMethod;
+import VM_BaselineGCMapIterator;
+//-#if RVM_WITH_OPT_COMPILER
+import VM_OptGCMapIterator;
+//-#endif
+import VM_JNIGCMapIterator;
+import VM_HardwareTrapGCMapIterator;
+import VM_Thread;
+import VM;
+import VM_Address;
+import VM_RuntimeCompiler;
+import VM_BootImageCompiler;
+import VM_Magic;
+import VM_PragmaUninterruptible;
+
 /**
  * Maintains a collection of compiler specific VM_GCMapIterators that are used 
  * by collection threads when scanning thread stacks to locate object references
@@ -24,24 +42,6 @@
  * @modified by Stephen Smith
  * @modified by anyone adding a new iterator
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM_Constants;
-import VM_CompiledMethod;
-import VM_BaselineGCMapIterator;
-//-#if RVM_WITH_OPT_COMPILER
-import VM_OptGCMapIterator;
-//-#endif
-import VM_JNIGCMapIterator;
-import VM_HardwareTrapGCMapIterator;
-import VM_Thread;
-import VM;
-import VM_Address;
-import VM_RuntimeCompiler;
-import VM_BootImageCompiler;
-import VM_Magic;
-import VM_PragmaUninterruptible;
-
 final class VM_GCMapIteratorGroup {
   
   /** current location (memory address) of each gpr register */

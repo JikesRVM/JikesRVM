@@ -3,36 +3,6 @@
  */
 //$Id$
 
-/**
- * System thread used to preform garbage collections.
- *
- * These threads are created by VM.boot() at runtime startup.  One is created
- * for each VM_Processor that will (potentially) participate in garbage collection.
- * <pre>
- * Its "run" method does the following:
- *    1. wait for a collection request
- *    2. synchronize with other collector threads (stop mutation)
- *    3. reclaim space
- *    4. synchronize with other collector threads (resume mutation)
- *    5. goto 1
- * </pre>
- * Between collections, the collector threads reside on the VM_Scheduler
- * collectorQueue.  A collection in initiated by a call to the static collect()
- * method, which calls VM_Handshake requestAndAwaitCompletion() to dequeue
- * the collector threads and schedule them for execution.  The collection 
- * commences when all scheduled collector threads arrive at the first
- * "rendezvous" in the run methods run loop.
- *
- * An instance of VM_Handshake contains state information for the "current"
- * collection.  When a collection is finished, a new VM_Handshake is allocated
- * for the next garbage collection.
- *
- * @see VM_Handshake
- *
- * @author Derek Lieber
- * @author Bowen Alpern 
- * @author Stephen Smith
- */ 
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -65,6 +35,36 @@ import VM_Synchronization;
 import VM_EventLogger;
 import VM_RuntimeStructures;
 
+/**
+ * System thread used to preform garbage collections.
+ *
+ * These threads are created by VM.boot() at runtime startup.  One is created
+ * for each VM_Processor that will (potentially) participate in garbage collection.
+ * <pre>
+ * Its "run" method does the following:
+ *    1. wait for a collection request
+ *    2. synchronize with other collector threads (stop mutation)
+ *    3. reclaim space
+ *    4. synchronize with other collector threads (resume mutation)
+ *    5. goto 1
+ * </pre>
+ * Between collections, the collector threads reside on the VM_Scheduler
+ * collectorQueue.  A collection in initiated by a call to the static collect()
+ * method, which calls VM_Handshake requestAndAwaitCompletion() to dequeue
+ * the collector threads and schedule them for execution.  The collection 
+ * commences when all scheduled collector threads arrive at the first
+ * "rendezvous" in the run methods run loop.
+ *
+ * An instance of VM_Handshake contains state information for the "current"
+ * collection.  When a collection is finished, a new VM_Handshake is allocated
+ * for the next garbage collection.
+ *
+ * @see VM_Handshake
+ *
+ * @author Derek Lieber
+ * @author Bowen Alpern 
+ * @author Stephen Smith
+ */ 
 public class VM_CollectorThread extends VM_Thread
   implements VM_GCConstants {
 

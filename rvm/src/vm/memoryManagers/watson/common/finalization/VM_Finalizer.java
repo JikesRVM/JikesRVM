@@ -3,26 +3,6 @@
  */
 //$Id$
 
-/**
- * This class manages finalization.  When an object is created
- * if its class has a finalize() method, addElement below is 
- * called, and a VM_FinalizerListElement (see VM_FinalizerListElement)
- * is created for it.  While the object is old, the integer field of 
- * the list element holds its value (this does not keep the object 
- * live during gc.  At the end of gc, the list of VM_FinalizerListElements
- * is scanned for objects which have become garbage.  Those which have
- * are made live again, by setting the ref field of the VM_FLE to the
- * object's address, and the VM_FLE is moved from the live objects list
- * to the to-be-finalized objects list.  A distinguished thread, the
- * Finalizer thread (see FinalizerThread.java) enqueues itself on 
- * the VM_Scheduler finalizerQueue.  At the end of gc, if VM_FLEs have 
- * been added to the to-be-finalized list, and if the VM_Scheduler
- * finalizerQueue is not empty, the finalizer thread is scheduled to be
- * run when gc is completed.
- *
- * @author Dick Attanasio
- * @author Stephen Smith
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -51,6 +31,26 @@ import VM_Synchronization;
 import VM_Synchronizer;
 import VM_EventLogger;
 
+/**
+ * This class manages finalization.  When an object is created
+ * if its class has a finalize() method, addElement below is 
+ * called, and a VM_FinalizerListElement (see VM_FinalizerListElement)
+ * is created for it.  While the object is old, the integer field of 
+ * the list element holds its value (this does not keep the object 
+ * live during gc.  At the end of gc, the list of VM_FinalizerListElements
+ * is scanned for objects which have become garbage.  Those which have
+ * are made live again, by setting the ref field of the VM_FLE to the
+ * object's address, and the VM_FLE is moved from the live objects list
+ * to the to-be-finalized objects list.  A distinguished thread, the
+ * Finalizer thread (see FinalizerThread.java) enqueues itself on 
+ * the VM_Scheduler finalizerQueue.  At the end of gc, if VM_FLEs have 
+ * been added to the to-be-finalized list, and if the VM_Scheduler
+ * finalizerQueue is not empty, the finalizer thread is scheduled to be
+ * run when gc is completed.
+ *
+ * @author Dick Attanasio
+ * @author Stephen Smith
+ */
 public class VM_Finalizer {
 
   //----------------//

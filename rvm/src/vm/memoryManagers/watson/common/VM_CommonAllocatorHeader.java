@@ -3,18 +3,6 @@
  */
 //$Id$
 
-/**
- * Defines utility routines for manipulating the various GC header bits.  
- * NOTE: Not all of these routines are meaningful for every collector!
- * 
- * @see VM_ObjectModel
- * @see VM_AllocatorHeader
- * @see VM_AllocatorHeaderConstants
- * 
- * @author David Bacon
- * @author Steve Fink
- * @author Dave Grove
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -42,6 +30,18 @@ import VM_Synchronization;
 import VM_Synchronizer;
 import VM_EventLogger;
 
+/**
+ * Defines utility routines for manipulating the various GC header bits.  
+ * NOTE: Not all of these routines are meaningful for every collector!
+ * 
+ * @see VM_ObjectModel
+ * @see VM_AllocatorHeader
+ * @see VM_AllocatorHeaderConstants
+ * 
+ * @author David Bacon
+ * @author Steve Fink
+ * @author Dave Grove
+ */
 public class VM_CommonAllocatorHeader 
   implements VM_AllocatorHeaderConstants {
   

@@ -3,6 +3,13 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM_Address;
+import VM;
+import VM_Memory;
+import VM_PragmaUninterruptible;
+
 /**
  * A container heap with 3 contiguous heaps next to each other
  *   and are adjusted in an Appel-style generational collector.
@@ -13,13 +20,6 @@
  * @see VM_Chunk
  * @see VM_Processor
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM_Address;
-import VM;
-import VM_Memory;
-import VM_PragmaUninterruptible;
-
 final class VM_AppelHeap extends VM_Heap
   implements VM_GCConstants {
 

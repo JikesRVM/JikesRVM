@@ -3,18 +3,19 @@
  */
 //$Id$
 
-/**
- * Multiplex execution of large number of VM_Threads on small 
- * number of o/s kernel threads.
- * @author Bowen Alpern 
- * @author Derek Lieber
- */
 import com.ibm.JikesRVM.memoryManagers.VM_GCConstants;
 import com.ibm.JikesRVM.memoryManagers.VM_Collector;
 import com.ibm.JikesRVM.memoryManagers.VM_ContiguousHeap;
 import com.ibm.JikesRVM.memoryManagers.VM_SizeControl;
 import com.ibm.JikesRVM.memoryManagers.VM_SegregatedListHeap;
 
+/**
+ * Multiplex execution of large number of VM_Threads on small 
+ * number of o/s kernel threads.
+ *
+ * @author Bowen Alpern 
+ * @author Derek Lieber
+ */
 public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCConstants {
 
   // Processor modes

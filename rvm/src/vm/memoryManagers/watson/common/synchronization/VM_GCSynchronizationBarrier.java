@@ -3,13 +3,6 @@
  */
 //$Id$
 
-/**
- * A synchronization barrier used to synchronize collector threads,
- * and the VM_Processors they are running on, during parallel collections.
- *
- * @author   Derek Lieber
- * @modified Steve Smith
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Scheduler;
@@ -22,6 +15,13 @@ import VM_BootRecord;
 import VM_Thread;
 import VM_PragmaUninterruptible;
 
+/**
+ * A synchronization barrier used to synchronize collector threads,
+ * and the VM_Processors they are running on, during parallel collections.
+ *
+ * @author   Derek Lieber
+ * @modified Steve Smith
+ */
 final class VM_GCSynchronizationBarrier {
 
   private static final boolean trace = false;  // emit trace messages? (all rendezvous)

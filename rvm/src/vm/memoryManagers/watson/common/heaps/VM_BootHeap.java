@@ -3,9 +3,6 @@
  */
 //$Id$
 
-/**
- * @author Dave Grove
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Constants;
@@ -17,6 +14,9 @@ import VM;
 import VM_Magic;
 import VM_PragmaUninterruptible;
 
+/**
+ * @author Dave Grove
+ */
 final class VM_BootHeap extends VM_Heap
   implements VM_AllocatorHeaderConstants {
 

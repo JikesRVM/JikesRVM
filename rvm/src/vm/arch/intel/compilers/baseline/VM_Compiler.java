@@ -3,14 +3,14 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+
 /**
  * 
  * @author Bowen Alpern
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
 public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
   private final int parameterWords;

@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
+
 /**
  * Abstraction for runtime structures that are simple arrays.  Funneling all 
  * allocation through these routines allows the necessary special handling
@@ -10,8 +12,6 @@
  *
  * @author David F. Bacon
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
-
 public class VM_RuntimeStructures implements VM_Constants {
 
   /**

@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+
 /**
  *   VM_LockNursery provides RVM support for synchronization on objects that
  *   do not have their own thin lock inlined in the object.  This code is only
@@ -15,8 +17,6 @@
  *  @author Stephen Fink
  *  @author Dave Grove
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
 public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
 
   private static final class VM_LockBucket {

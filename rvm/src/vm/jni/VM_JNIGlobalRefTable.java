@@ -3,12 +3,12 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
+
 /**
  * @author Julian Dolby
  * @date May 20, 2002
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
-
 class VM_JNIGlobalRefTable {
 
     static Object[] refs = new Object[ 100 ];

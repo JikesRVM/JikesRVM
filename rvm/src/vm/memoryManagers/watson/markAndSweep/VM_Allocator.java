@@ -3,30 +3,6 @@
  */
 //$Id$
 
-/**
- *    Noncopying nongenerational memory manager.  The heap
- *    is divided into chunks of size GC_BLOCKSIZE bytes (see
- *    VM_GCConstants.java) for objects <= 2048 bytes.  Each
- *    chunk is divided into slots of one of a set of fixed 
- *    sizes (see GC_SIZEVALUES in VM_GCConstants), and an
- *    allocation is satisfied from a chunk whose size is the smallest
- *    that accommodates the request.  See also VM_BlockControl.java
- *    and VM_SizeControl.java.  Each virtual processor allocates from
- *    a private set of chunks to avoid locking on allocations, which
- *    occur only when a new chunk is required.
- *    Collection is stop-the-world mark/sweep; after all live objects
- *    have been marked, allocation begins in the first chunk of each 
- *    size for each virtual processor: the free slots in each chunk
- *    are singly-listed, being identified by the result of the mark phase.
- * <p> 
- *
- * @author Dick Attanasio
- * @modified by Stephen Smith
- * @modified by David F. Bacon
- * 
- * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
- * @modified by Dave Grove Created VM_SegregatedListHeap to factor out common code
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -62,6 +38,30 @@ import VM_Synchronizer;
 import VM_EventLogger;
 import VM_Callbacks;
 
+/**
+ *    Noncopying nongenerational memory manager.  The heap
+ *    is divided into chunks of size GC_BLOCKSIZE bytes (see
+ *    VM_GCConstants.java) for objects <= 2048 bytes.  Each
+ *    chunk is divided into slots of one of a set of fixed 
+ *    sizes (see GC_SIZEVALUES in VM_GCConstants), and an
+ *    allocation is satisfied from a chunk whose size is the smallest
+ *    that accommodates the request.  See also VM_BlockControl.java
+ *    and VM_SizeControl.java.  Each virtual processor allocates from
+ *    a private set of chunks to avoid locking on allocations, which
+ *    occur only when a new chunk is required.
+ *    Collection is stop-the-world mark/sweep; after all live objects
+ *    have been marked, allocation begins in the first chunk of each 
+ *    size for each virtual processor: the free slots in each chunk
+ *    are singly-listed, being identified by the result of the mark phase.
+ * <p> 
+ *
+ * @author Dick Attanasio
+ * @modified by Stephen Smith
+ * @modified by David F. Bacon
+ * 
+ * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
+ * @modified by Dave Grove Created VM_SegregatedListHeap to factor out common code
+ */
 public class VM_Allocator extends VM_GCStatistics 
   implements VM_Constants, 
 	     VM_GCConstants {

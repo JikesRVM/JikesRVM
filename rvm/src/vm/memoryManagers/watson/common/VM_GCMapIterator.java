@@ -3,6 +3,14 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM_Address;
+import VM_Thread;
+import VM_CompiledMethod;
+import VM_CompiledMethods;
+import VM_PragmaUninterruptible;
+
 /**
  * Base class for iterators that identify object references and JSR return addresses
  * held in stackframes produced by each of our compilers (baseline, opt, etc.).
@@ -14,14 +22,6 @@
  *
  * @author Janice Shepherd
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM_Address;
-import VM_Thread;
-import VM_CompiledMethod;
-import VM_CompiledMethods;
-import VM_PragmaUninterruptible;
-
 public abstract class VM_GCMapIterator {
   
   /** thread whose stack is currently being scanned */

@@ -3,11 +3,6 @@
  */
 //$Id$
 
-/**
- * Common utility functions used by various garbage collectors
- *
- * @author Stephen Smith
- */  
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -39,6 +34,11 @@ import VM_Reflection;
 import VM_Synchronization;
 import VM_EventLogger;
 
+/**
+ * Common utility functions used by various garbage collectors
+ *
+ * @author Stephen Smith
+ */  
 public class VM_GCUtil
   implements VM_Constants, VM_GCConstants {
 

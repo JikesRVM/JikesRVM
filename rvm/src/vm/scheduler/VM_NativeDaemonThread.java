@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Handshake;
+
 /**
  * This thread executes in a distinct daemon thread: its
  * functions are as follows:
@@ -42,8 +44,6 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */ 
-import com.ibm.JikesRVM.memoryManagers.VM_Handshake;
-
 class VM_NativeDaemonThread extends VM_Thread {
 
   static final boolean DEBUG = false;

@@ -3,6 +3,18 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM_Constants;
+import VM_ProcessorLock;
+import VM_Address;
+import VM_Memory;
+import VM_ObjectModel;
+import VM;
+import VM_Entrypoints;
+import VM_Synchronization;
+import VM_PragmaUninterruptible;
+
 /**
  * A heap that allocates in contiguous free
  * memory by bumping a pointer on each allocation.
@@ -22,18 +34,6 @@
  * @see VM_Chunk
  * @see VM_Processor
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM_Constants;
-import VM_ProcessorLock;
-import VM_Address;
-import VM_Memory;
-import VM_ObjectModel;
-import VM;
-import VM_Entrypoints;
-import VM_Synchronization;
-import VM_PragmaUninterruptible;
-
 public final class VM_ContiguousHeap extends VM_Heap
   implements VM_GCConstants {
 

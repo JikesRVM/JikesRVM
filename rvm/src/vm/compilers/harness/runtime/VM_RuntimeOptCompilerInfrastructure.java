@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+
 /**
  * A place to put code common to all runtime compilers that use the OPT
  * compiler, such as the adaptive and optimizing-only runtime compilers.
@@ -10,8 +12,6 @@
  * @author Michael Hind
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
-
 class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructure {
   
   // is the opt compiler usable?

@@ -3,6 +3,9 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
+
 /**
  * Global variables used to implement virtual machine thread scheduler.
  *    - virtual cpus
@@ -13,9 +16,6 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
-import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
-
 public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   /** Index of initial processor in which "VM.boot()" runs. */

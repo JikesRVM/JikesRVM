@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+
 /**
  * Iterator for stack frames inserted at the transition from Java to
  * JNI Native C.  It will report JREFs associated with the executing
@@ -19,8 +21,6 @@
  *
  * @author Steve Smith
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
-
 public final class VM_JNIGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
 	     VM_Uninterruptible {

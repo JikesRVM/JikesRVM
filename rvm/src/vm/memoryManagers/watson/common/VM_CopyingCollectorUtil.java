@@ -3,14 +3,6 @@
  */
 //$Id$
 
-/**
- * Shared utility code for copying collectors.
- * Code originally written by Steve Smith;
- * refactored and moved here by Dave Grove so
- * it could be shared by all copying collectors.
- * 
- * @author Steve Smith
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Thread;
@@ -26,6 +18,14 @@ import VM_Class;
 import VM_Constants;
 import VM_PragmaUninterruptible;
 
+/**
+ * Shared utility code for copying collectors.
+ * Code originally written by Steve Smith;
+ * refactored and moved here by Dave Grove so
+ * it could be shared by all copying collectors.
+ * 
+ * @author Steve Smith
+ */
 class VM_CopyingCollectorUtil implements VM_Constants, 
 					 VM_GCConstants {
 

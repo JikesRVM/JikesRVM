@@ -3,13 +3,6 @@
  */
 //$Id$
 
-/**
- * Class that supports scanning thread stacks for references during
- * collections. References are located using GCMapIterators and are
- * processed by invoking the processPtrField method of VM_Allocator.
- *
- * @author Stephen Smith
- */  
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -25,6 +18,13 @@ import VM_Magic;
 import VM_Thread;
 import VM_PragmaUninterruptible;
 
+/**
+ * Class that supports scanning thread stacks for references during
+ * collections. References are located using GCMapIterators and are
+ * processed by invoking the processPtrField method of VM_Allocator.
+ *
+ * @author Stephen Smith
+ */  
 public class VM_ScanStack implements VM_Constants, VM_GCConstants {
 
   // quietly validates each ref reported by map iterators

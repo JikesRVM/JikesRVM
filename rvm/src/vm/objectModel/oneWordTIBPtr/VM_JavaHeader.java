@@ -3,6 +3,7 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import instructionFormats.*;
 //-#endif
@@ -21,8 +22,6 @@ import instructionFormats.*;
  * @author Steve Fink
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
-
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   implements VM_Uninterruptible
 	     //-#if RVM_WITH_OPT_COMPILER

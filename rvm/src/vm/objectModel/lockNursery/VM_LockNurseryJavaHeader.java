@@ -3,6 +3,9 @@
  */
 // $Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+
 /**
  * Defines shared support for one-word headers in the JikesRVM object
  * model. <p> 
@@ -20,9 +23,6 @@
  * @author Steve Fink
  * @author Dave Grove 
  */
-import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
 public class VM_LockNurseryJavaHeader implements VM_Uninterruptible, 
 						 VM_JavaHeaderConstants,
 						 VM_Constants {

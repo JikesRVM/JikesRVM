@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+
 /**
  * Iterator for stack frames inserted by hardware trap handler.
  * Such frames are purely used as markers.
@@ -11,8 +13,6 @@
  * @author Derek Lieber
  * @date 02 Jun 1999 
  */
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
-
 public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_Uninterruptible {
 
   public VM_HardwareTrapGCMapIterator(int[] registerLocations) {

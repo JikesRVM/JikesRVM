@@ -3,12 +3,6 @@
  */
 //$Id$
 
-/**
- * Class that supports scanning Objects or Arrays for references
- * during Collection and processing those references
- *
- * @author Stephen Smith
- */  
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -35,6 +29,12 @@ import VM_Reflection;
 import VM_Synchronization;
 import VM_EventLogger;
 
+/**
+ * Class that supports scanning Objects or Arrays for references
+ * during Collection and processing those references
+ *
+ * @author Stephen Smith
+ */  
 public class VM_ScanObject implements VM_Constants, VM_GCConstants {
 
   /**

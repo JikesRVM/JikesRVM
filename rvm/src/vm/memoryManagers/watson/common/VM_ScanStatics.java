@@ -3,12 +3,6 @@
  */
 //$Id$
 
-/**
- * Class that supports scanning statics (the JTOC) for references
- * and processing those references
- *
- * @author Stephen Smith
- */  
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM_Magic;
@@ -19,6 +13,12 @@ import VM_Constants;
 import VM_Thread;
 import VM_PragmaUninterruptible;
 
+/**
+ * Class that supports scanning statics (the JTOC) for references
+ * and processing those references
+ *
+ * @author Stephen Smith
+ */  
 public class VM_ScanStatics
   implements VM_Constants, VM_GCConstants {
 

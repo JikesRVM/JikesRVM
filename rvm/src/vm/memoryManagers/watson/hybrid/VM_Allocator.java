@@ -3,6 +3,41 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM;
+import VM_BootRecord;
+import VM_Constants;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_JavaHeader;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaInterruptible;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Processor;
+import VM_ProcessorLocalState;
+import VM_Scheduler;
+import VM_Registers;
+import VM_Thread;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_Synchronizer;
+import VM_EventLogger;
+import VM_Callbacks;
+
 /**
  * Hybrid Generational Collector/Allocator with Fixed Size Nursery
  * <p>
@@ -44,41 +79,6 @@
  * 
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */  
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM;
-import VM_BootRecord;
-import VM_Constants;
-import VM_Address;
-import VM_Magic;
-import VM_ObjectModel;
-import VM_JavaHeader;
-import VM_ClassLoader;
-import VM_SystemClassLoader;
-import VM_Atom;
-import VM_Type;
-import VM_Class;
-import VM_Array;
-import VM_Method;
-import VM_PragmaInline;
-import VM_PragmaNoInline;
-import VM_PragmaInterruptible;
-import VM_PragmaUninterruptible;
-import VM_PragmaLogicallyUninterruptible;
-import VM_Processor;
-import VM_ProcessorLocalState;
-import VM_Scheduler;
-import VM_Registers;
-import VM_Thread;
-import VM_Memory;
-import VM_Time;
-import VM_Entrypoints;
-import VM_Reflection;
-import VM_Synchronization;
-import VM_Synchronizer;
-import VM_EventLogger;
-import VM_Callbacks;
-
 public class VM_Allocator extends VM_GCStatistics
   implements VM_Constants {
 

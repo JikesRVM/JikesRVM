@@ -3,30 +3,6 @@
  */
 //$Id$
 
-/**
- * Class that manages work buffers of references to objects that need to
- * be scanned during a collection.  Each GC thread (a VM_CollectorThread)
- * keeps a thread local "getBuffer" of references that it will process.
- * References it finds for objects that need to be scanned, such as
- * objects it marks during the scan phase, it inserts into its thread
- * local "putBuffer".  When a putBuffer becomes full, it is added to the
- * shared queue of buffers to be processed.  When a threads getBuffer is
- * empty, it first attempts to swap it with its own putBuffer, if it has
- * entries.  If it is also empty, it attempts to get a buffer from the
- * shared queue.
- * <p>
- * All GC threads waiting for getBuffers from the shared queue identifies
- * the end of a scan phase during collection.
- * <p>
- * The default size of each buffer is specified by <b>WORK_BUFFER_SIZE</b>,
- * which can be overridden by the command line argument -wbnnn
- *
- * @see VM_Allocator
- * @see VM_CollectorThread
- *
- * @author Tony Cocchi
- * @author Stephen Smith
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -54,6 +30,30 @@ import VM_EventLogger;
 import VM_BootRecord;
 import VM_Thread;
 
+/**
+ * Class that manages work buffers of references to objects that need to
+ * be scanned during a collection.  Each GC thread (a VM_CollectorThread)
+ * keeps a thread local "getBuffer" of references that it will process.
+ * References it finds for objects that need to be scanned, such as
+ * objects it marks during the scan phase, it inserts into its thread
+ * local "putBuffer".  When a putBuffer becomes full, it is added to the
+ * shared queue of buffers to be processed.  When a threads getBuffer is
+ * empty, it first attempts to swap it with its own putBuffer, if it has
+ * entries.  If it is also empty, it attempts to get a buffer from the
+ * shared queue.
+ * <p>
+ * All GC threads waiting for getBuffers from the shared queue identifies
+ * the end of a scan phase during collection.
+ * <p>
+ * The default size of each buffer is specified by <b>WORK_BUFFER_SIZE</b>,
+ * which can be overridden by the command line argument -wbnnn
+ *
+ * @see VM_Allocator
+ * @see VM_CollectorThread
+ *
+ * @author Tony Cocchi
+ * @author Stephen Smith
+ */
 public class VM_GCWorkQueue {
    
   //-----------------------

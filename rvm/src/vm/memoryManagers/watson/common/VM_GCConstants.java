@@ -3,10 +3,6 @@
  */
 //$Id$
 
-/**
- * @author Dick Attanasio
- * @author Stephen Smith
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -14,6 +10,10 @@ import VM_Constants;
 import VM_Address;
 import VM_JavaHeader;
 
+/**
+ * @author Dick Attanasio
+ * @author Stephen Smith
+ */
 public interface VM_GCConstants {
 
   static final int WORDSIZE = 4;

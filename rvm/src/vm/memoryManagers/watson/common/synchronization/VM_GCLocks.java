@@ -3,6 +3,15 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM_Magic;
+import VM_Scheduler;
+import VM_Constants;
+import VM_Synchronization;
+import VM_Memory;
+import VM_PragmaUninterruptible;
+
 /**
  * Manages a set of lockwords used by the collection threads during 
  * collection to gain exclusive access to objects or critical sections
@@ -14,15 +23,6 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM_Magic;
-import VM_Scheduler;
-import VM_Constants;
-import VM_Synchronization;
-import VM_Memory;
-import VM_PragmaUninterruptible;
-
 public class VM_GCLocks {
   
   private final static int NUM_LOCKS = 10;

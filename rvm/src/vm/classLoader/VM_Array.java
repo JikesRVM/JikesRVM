@@ -3,6 +3,9 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
+
 /**
  * Description of a java "array" type. <p>
  * 
@@ -15,9 +18,6 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
-
 public final class VM_Array extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants  {
 

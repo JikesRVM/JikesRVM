@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+
 /**
  * Primitive accumulating timer that detects if a gc
  * occurs during the timing interval and doesn't count it.
@@ -12,8 +14,6 @@
  *
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
-
 class VM_Stopwatch {
   int count;
   double elapsedTime;

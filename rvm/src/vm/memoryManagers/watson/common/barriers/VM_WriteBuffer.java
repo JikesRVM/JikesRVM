@@ -3,6 +3,22 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import VM;
+import VM_Magic;
+import VM_Constants;
+import VM_BootRecord;
+import VM_Processor;
+import VM_Scheduler;
+import VM_Time;
+import VM_Processor;
+import VM_PragmaInterruptible;
+import VM_PragmaUninterruptible;
+import VM_ObjectModel;
+import VM_Address;
+import VM_Thread;
+
 /**
  * Write buffers used by the initial set of RVM generational collectors.
  * <p>
@@ -36,22 +52,6 @@
  *
  * @author Stephen Smith
  */ 
-package com.ibm.JikesRVM.memoryManagers;
-
-import VM;
-import VM_Magic;
-import VM_Constants;
-import VM_BootRecord;
-import VM_Processor;
-import VM_Scheduler;
-import VM_Time;
-import VM_Processor;
-import VM_PragmaInterruptible;
-import VM_PragmaUninterruptible;
-import VM_ObjectModel;
-import VM_Address;
-import VM_Thread;
-
 public class VM_WriteBuffer implements VM_Constants, 
 				       VM_GCConstants {
 

@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
+
 /**
  * Defines other header words not used for 
  * core Java language support of memory allocation.
@@ -15,8 +17,6 @@
  * @author Steve Fink
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
-
 public final class VM_MiscHeader implements VM_Uninterruptible {
 
   ///////////////////////

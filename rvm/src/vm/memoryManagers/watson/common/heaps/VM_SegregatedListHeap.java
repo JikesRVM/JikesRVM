@@ -3,25 +3,6 @@
  */
 //$Id$
 
-/**
- * The heap is divided into chunks of size GC_BLOCKSIZE bytes 
- * for objects <= 2048 bytes.  Each chunk is divided into slots 
- * of one of a set of fixed sizes (see GC_SIZEVALUES in VM_GCConstants), 
- * and an allocation is satisfied from a chunk whose size is the smallest
- * that accommodates the request.  Each virtual processor allocates from
- * a private set of chunks to avoid locking on allocations, which
- * occur only when a new chunk is required. <p> 
- * 
- * @author Dick Attanasio
- * @author David F. Bacon
- * @author Perry Cheng
- * @author Dave Grove
- * @author Stephen Smith
- * 
- * @see VM_BlockControl
- * @see VM_SizeControl
- * @see VM_Processor
- */
 package com.ibm.JikesRVM.memoryManagers;
 
 import VM;
@@ -41,6 +22,25 @@ import VM_SystemClassLoader;
 import VM_ObjectModel;
 import VM_ClassLoader;
 
+/**
+ * The heap is divided into chunks of size GC_BLOCKSIZE bytes 
+ * for objects <= 2048 bytes.  Each chunk is divided into slots 
+ * of one of a set of fixed sizes (see GC_SIZEVALUES in VM_GCConstants), 
+ * and an allocation is satisfied from a chunk whose size is the smallest
+ * that accommodates the request.  Each virtual processor allocates from
+ * a private set of chunks to avoid locking on allocations, which
+ * occur only when a new chunk is required. <p> 
+ * 
+ * @author Dick Attanasio
+ * @author David F. Bacon
+ * @author Perry Cheng
+ * @author Dave Grove
+ * @author Stephen Smith
+ * 
+ * @see VM_BlockControl
+ * @see VM_SizeControl
+ * @see VM_Processor
+ */
 public final class VM_SegregatedListHeap extends VM_Heap
   implements VM_GCConstants {
 

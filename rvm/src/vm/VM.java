@@ -3,6 +3,8 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+
 /**
  * A virtual machine.
  * Implements VM_Uninterruptible to suppress thread switching in boot() and
@@ -11,10 +13,8 @@
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
-public class VM extends VM_Properties implements VM_Constants, 
-VM_Uninterruptible { 
+public class VM extends VM_Properties 
+    implements VM_Constants, VM_Uninterruptible { 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//

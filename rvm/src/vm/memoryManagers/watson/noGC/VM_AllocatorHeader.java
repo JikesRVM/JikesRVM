@@ -3,6 +3,29 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers;
+
+import BootImageInterface;
+import VM;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Synchronization;
+
 /**
  * Defines header words used by memory manager.not used for 
  *

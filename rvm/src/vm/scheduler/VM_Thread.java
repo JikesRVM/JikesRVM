@@ -3,13 +3,13 @@
  */
 //$Id$
 
+import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+
 /**
  * A java thread's execution context.
  *  
  * @author Derek Lieber
  */
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
 public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
