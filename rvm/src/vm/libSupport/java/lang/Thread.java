@@ -236,10 +236,12 @@ public class Thread implements Runnable {
     return group;
   }
 
-  public synchronized void interrupt() {
-    checkAccess();
-    isInterrupted = true;
-    vmdata.kill(new InterruptedException("operation interrupted"), false);
+  public void interrupt() {
+    synchronized (vmdata) {
+      checkAccess();
+      isInterrupted = true;
+      vmdata.kill(new InterruptedException("operation interrupted"), false);
+    }
   }
   
   public static boolean interrupted () {
@@ -252,13 +254,17 @@ public class Thread implements Runnable {
   }
     
     
-  public final synchronized boolean isAlive() {
-    return vmdata.isAlive();
+  public final boolean isAlive() {
+    synchronized (vmdata) {
+      return vmdata.isAlive();
+    }
   }
     
-  private synchronized boolean isDead() {
+  private boolean isDead() {
     // Has already started, is not alive anymore, and has been removed from the ThreadGroup
-    return started && !isAlive();
+    synchronized (vmdata) {
+      return started && !isAlive();
+    }
   }
 
   public final boolean isDaemon() {
@@ -269,46 +275,53 @@ public class Thread implements Runnable {
     return isInterrupted;
   }
 
-  public final synchronized void join() throws InterruptedException {
-    if (started)
-      while (!isDead())
-        wait(0);
+  public final void join() throws InterruptedException {
+    synchronized (vmdata) {
+      if (started)
+        while (!isDead())
+          vmdata.wait(0);
+    }
   }
 
-  public final synchronized void join(long timeoutInMilliseconds) throws InterruptedException {
+  public final void join(long timeoutInMilliseconds) 
+    throws InterruptedException 
+  {
     join(timeoutInMilliseconds, 0);
   }
     
-  public final synchronized void join(long timeoutInMilliseconds, int nanos) throws InterruptedException {
+  public final void join(long timeoutInMilliseconds, int nanos) 
+    throws InterruptedException 
+  {
     if (timeoutInMilliseconds < 0 || nanos < 0)
       throw new IllegalArgumentException();
         
-    if (!started || isDead()) return;
+    synchronized (vmdata) {
+      if (!started || isDead()) return;
         
-    // No nanosecond precision for now, we would need something like 'currentTimenanos'
+      // No nanosecond precision for now, we would need something like 'currentTimenanos'
         
-    long totalWaited = 0;
-    long toWait = timeoutInMilliseconds;
-    boolean timedOut = false;
+      long totalWaited = 0;
+      long toWait = timeoutInMilliseconds;
+      boolean timedOut = false;
 
-    if (timeoutInMilliseconds == 0 & nanos > 0) {
-      // We either round up (1 millisecond) or down (no need to wait, just return)
-      if (nanos < 500000)
-        timedOut = true;
-      else
-        toWait = 1;
+      if (timeoutInMilliseconds == 0 & nanos > 0) {
+        // We either round up (1 millisecond) or down (no need to wait, just return)
+        if (nanos < 500000)
+          timedOut = true;
+        else
+          toWait = 1;
+      }
+      while (!timedOut && isAlive()) {
+        long start = System.currentTimeMillis();
+        vmdata.wait(toWait);
+        long waited = System.currentTimeMillis() - start;
+        totalWaited+= waited;
+        toWait -= waited;
+        // Anyone could do a synchronized/notify on this thread, so if we wait
+        // less than the timeout, we must check if the thread really died
+        timedOut = (totalWaited >= timeoutInMilliseconds);
+      }
     }
-    while (!timedOut && isAlive()) {
-      long start = System.currentTimeMillis();
-      wait(toWait);
-      long waited = System.currentTimeMillis() - start;
-      totalWaited+= waited;
-      toWait -= waited;
-      // Anyone could do a synchronized/notify on this thread, so if we wait
-      // less than the timeout, we must check if the thread really died
-      timedOut = (totalWaited >= timeoutInMilliseconds);
-    }
-
   }
     
   /** The JDK 1.4.2 API says:
@@ -319,14 +332,18 @@ public class Thread implements Runnable {
     return "Thread-" + createCount++;
   }
 
-  public final synchronized void suspend () {
+  public final void suspend () {
     checkAccess();
-    vmdata.suspend();
+    synchronized (vmdata) {
+      vmdata.suspend();
+    }
   }
 
   public final synchronized void resume() {
     checkAccess();
-    vmdata.resume();
+    synchronized (vmdata) {
+      vmdata.resume();
+    }
   }
 
   /** Either someone subclasses Thread and overrides the  runnable() method or
@@ -343,8 +360,12 @@ public class Thread implements Runnable {
 
   public final void setDaemon(boolean isDaemon) {
     checkAccess();
-    if (!this.started) vmdata.makeDaemon(isDaemon);
-    else throw new IllegalThreadStateException();
+    synchronized (vmdata) {
+      if (!started) 
+        vmdata.makeDaemon(isDaemon);
+      else 
+        throw new IllegalThreadStateException();
+    }
   }
 
   public final void setName(String threadName) {
@@ -353,14 +374,16 @@ public class Thread implements Runnable {
     else throw new NullPointerException();
   }
 
-  public final synchronized void setPriority(int newPriority){
+  public final void setPriority(int newPriority){
     checkAccess();
     if (newPriority < MIN_PRIORITY || newPriority > MAX_PRIORITY) {
       throw new IllegalArgumentException();
     }
     int tgmax = getThreadGroup().getMaxPriority();
     if (newPriority > tgmax) newPriority = tgmax;
-    vmdata.priority = newPriority;
+    synchronized (vmdata) {
+      vmdata.priority = newPriority;
+    }
   }
     
   public static void sleep (long time) throws InterruptedException {
@@ -374,19 +397,23 @@ public class Thread implements Runnable {
       throw new IllegalArgumentException();
   }
     
-  public synchronized void start()  {
-    vmdata.start();
-    started = true;
+  public void start()  {
+    synchronized (vmdata) {
+      vmdata.start();
+      started = true;
+    }
   }
     
   public final void stop() {
     stop(new ThreadDeath());
   }
     
-  public final synchronized void stop(Throwable throwable) {
+  public final void stop(Throwable throwable) {
     checkAccess();
-    if (throwable != null) vmdata.kill(throwable, true);
-    else throw new NullPointerException();
+    synchronized (vmdata) {
+      if (throwable != null) vmdata.kill(throwable, true);
+      else throw new NullPointerException();
+    }
   }
 
   /** jdk 1.4.2 documents toString() as returning name, priority, and group. */
