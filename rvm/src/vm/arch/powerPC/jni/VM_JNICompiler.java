@@ -620,7 +620,11 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	asmArg.emitSTWU(srcreg, 4, KLUDGE_TI_REG);
 	
 	if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+          //-#if RVM_FOR_LINUX
 	  asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+          //-#else
+	  asmArg.emitSUBFC(nextOSArgReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+          //-#endif
 	} else {
 	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
 	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS, FP);
@@ -636,7 +640,11 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	// For all other types: int, short, char, byte, boolean
 	// (1a) fit in AIX register, move the register
 	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+          //-#if RVM_FOR_LINUX
 	  asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
+          //-#else
+	  asmArg.emitMR(nextOSArgReg, nextVMArgReg++);
+          //-#endif
 	}
 	// (1b) spill OS register, but still fit in VM register
 	else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
