@@ -3,16 +3,30 @@ JDK1.1
 JDK1.2
 JDK1.3
 JDK1.4
-!java.applet
-!java.awt
-!javax.naming
+JLS1.0
+JLS1.1
+JLS1.2
+JDBC1.0
+JDBC2.0
+
+# This test sets the socket factory to a bogus implementation
+# that causes all subsequent tests to fail
+!java.net.Socket.setSocketImplFactory # avoid bashing our sockets
+
+# Tests are not useful and give rise to spurious failures.
 !java.lang.Character.unicode
 
+# Tests are not useful...can't be this precise in how JVM deals with references
+!java.lang.ref.
+
+# Silly tests that cause problems in automated testing script
+!java.io.File.security
+
 # exclusions due to defects in Jikes RVM
-!java.net.Socket.setSocketImplFactory # avoid bashing our sockets
 !java.net.DatagramSocket     # hangs Jikes RVM
 !java.net.DatagramPacket     # hangs Jikes RVM
 !java.net.MulticastSocket    # hangs Jikes RVM
 !java.net.ServerSocket       # hangs Jikes RVM
 !java.net.URLClassLoader.getResourceRemote # hangs Jikes RVM
 
+!java.awt.image.PixelGrabber # problem with gtkpeer?
