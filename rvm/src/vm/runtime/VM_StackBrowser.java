@@ -10,7 +10,8 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Julian Dolby
  * @date May 20, 2002
  */
-public class VM_StackBrowser implements VM_Constants {
+
+public final class VM_StackBrowser implements VM_Constants {
 
     private VM_Method currentMethod;
     private int currentBytecodeIndex;
@@ -75,7 +76,9 @@ public class VM_StackBrowser implements VM_Constants {
     }
     
     public void up() {
-	if (! currentCompiledMethod.up(this)) upOneFrame();
+	if (! currentCompiledMethod.up(this)) {
+	    upOneFrame();
+	}
     }
 
     public void setBytecodeIndex(int bytecodeIndex) {
@@ -92,6 +95,10 @@ public class VM_StackBrowser implements VM_Constants {
 
     public VM_Method getMethod() {
 	return currentMethod;
+    }
+
+    public VM_CompiledMethod getCompiledMethod() {
+	return currentCompiledMethod;
     }
 
     public void setCompiledMethod(VM_CompiledMethod cm) {
