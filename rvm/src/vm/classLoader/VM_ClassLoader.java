@@ -353,12 +353,6 @@ public class VM_ClassLoader
     syntheticAttributeName              = VM_Atom.findOrCreateAsciiAtom("Synthetic");
     arrayNullCheckAttributeName		= VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
 
-    VM_TypeDictionary.init();
-    VM_FieldDictionary.init();
-    VM_MethodDictionary.init();
-    if (VM.BuildForIMTInterfaceInvocation)
-      VM_InterfaceMethodSignatureDictionary.init();
-
     dynamicLibraries = new VM_DynamicLibrary[0];
 
     VM_Type.init();

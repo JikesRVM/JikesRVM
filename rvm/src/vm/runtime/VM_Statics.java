@@ -373,18 +373,6 @@
       slots        = new int[INITIAL_SLOTS];
       descriptions = new byte[INITIAL_SLOTS];
       nextSlot     = 1; // slot 0 unused
-
-      // The following dictionaries map a literal value to a slot in the jtoc.
-      // We do this to ensure that literals appear only once in the vm image.
-      // In particular, this ensures that identity of string literals is 
-      // preserved across constant pools (ie. so that "abc" == "abc" 
-      // always yields "true").
-      VM_IntLiteralDictionary.init();
-      VM_FloatLiteralDictionary.init();
-      VM_LongLiteralDictionary.init();
-      VM_DoubleLiteralDictionary.init();
-      VM_StringLiteralDictionary.init();
-
     }
 
     /**

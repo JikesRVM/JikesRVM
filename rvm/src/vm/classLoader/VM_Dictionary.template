@@ -211,20 +211,13 @@ class CCC {
   // implementation //
   //----------------//
 
-  private static KKK[]   keys;    // dictionary keys
-  private static VVV[]   values;  // dictionary values
-  private static int     nextId;  // index of next free slot in keys[]/values[]
-  private static int[][] chains;  // hash table for quickly determining presence of key in dictionary
+  private static KKK[]   keys   = new KKK[20];    // dictionary keys
+  private static VVV[]   values = new VVV[20];    // dictionary values
+  private static int     nextId = 1;              // index of next free slot in keys[]/values[]
+  private static int[][] chains = new int[201][]; // hash table for quickly determining presence of key in dictionary
   // - chains[i] is initial hash probe
   // - chains[][j] is index into keys[]/values[]
-  static void init()      {
-    int space = 20; // !!TODO: pick a reasonable estimate for initial space
-    keys   = new KKK[space];
-    values = new VVV[space];
-    nextId = 1;              // id 0 corresponds to key of null/zero
-    chains = new int[201][]; // a prime number is best
-  }
-   
+
   private static void growDictionary()    {
     int n = keys.length;
     int space = n << 1; // double size of dictionary

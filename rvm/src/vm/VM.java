@@ -822,7 +822,6 @@ public class VM extends VM_Properties implements VM_Constants,
     // method calls are compiled.
     //
     VM_Statics.init();
-    VM_AtomDictionary.init();
     VM_MagicNames.init();
     VM_ClassLoader.init(vmClassPath);
     VM_Class object       = VM_Type.JavaLangObjectType.asClass();
