@@ -242,38 +242,46 @@ class registerExternal extends register implements VM_BaselineConstants, registe
   	  for (j=0; j<4; j++) {
   	    k = j*8+i;
   	    if (k<10)    // just to line things up
-	      result += "  R" + k + "  = " + VM.intAsHexString(regs[k]) + " " + regGetName(k);
+	      result += "   R" + k + ":" + VM.intAsHexString(regs[k]);
+	    // + " " + regGetName(k);
   	    else
-	      result += "  R" + k + " = " + VM.intAsHexString(regs[k]) + " " + regGetName(k);
+	      result += "  R" + k + ":" + VM.intAsHexString(regs[k]);
   	  }
   	  result += "\n";
   	}
 	result += "\n";
 
 	// the floating point regs: 32 regs starting with FPR0 
-	fregs = getVMThreadFPR(contextThread);
-  	for (i=0; i<8; i++) {   
-  	  for (j=0; j<4; j++ ) {
-  	    k = j*8 + i;
-	    if (Debugger.fprPreference=='f') {
-	      result += "  FR" + k + " = " + fregs[k] + " " + regGetName(k+FPR0);
-	    } else {
-	      result += "  FR" + k + " = ";
-	      result += Long.toHexString(Double.doubleToLongBits(fregs[k]));
-	      result += " " + regGetName(k+FPR0);
+	if (Debugger.showFPRsPreference) {
+	  fregs = getVMThreadFPR(contextThread);
+	  for (i=0; i<8; i++) {   
+	    for (j=0; j<4; j++ ) {
+	      k = j*8 + i;
+	      if (Debugger.fprPreference=='f') {
+		result += "  FR" + k + " = " + fregs[k];
+	      } else {
+		result += "  FR" + k + " = ";
+		result += Long.toHexString(Double.doubleToLongBits(fregs[k]));
+	      }
 	    }
-  	  }
-	  result += "\n";
-  	}
+	    result += "\n";
+	  }
+	}
 
 	// the special purpose reg: just IP, LR and CR for now
 	regs = getVMThreadSPR(contextThread);
-	result += "\n  IP = " + VM.intAsHexString(regs[0]) + 
+	result += "  IP = " + VM.intAsHexString(regs[0]) + 
 	  "   LR = " + VM.intAsHexString(regs[1]);
 	if (regs.length==3)
 	  result += "   CR = " + VM.intAsHexString(regs[2]) + "\n";
 	else
 	  result += "   CR = (not available) \n";
+
+	if (!Debugger.showFPRsPreference)
+	  result += "To see FPRs specify 'pref showFPRs true'\n";
+	else
+	  result += "To hide FPRs specify 'pref showFPRs false'\n";
+	result += "To see register names eg FP, PR and JT use command 'regnames'\n";
 
       } 
   
@@ -282,13 +290,13 @@ class registerExternal extends register implements VM_BaselineConstants, registe
 	     || (regnum==CR) ) {
 	  try {
 	    regdata = getContextRegister(regname);
-	    result += " R" + regnum + " = " + VM.intAsHexString(regdata) + "  " + regGetName(regnum);
+	    result += " R" + regnum + ":" + VM.intAsHexString(regdata) + "  " + regGetName(regnum);
 	  } catch (Exception e) {
-	    result += " R" + regnum + " = (not available) " + regGetName(regnum);
+	    result += " R" + regnum + ": (not available) " + regGetName(regnum);
 	  }
    	} else if ((regnum>=FPR0) && (regnum<=FPR31)) {
 	  fregs = getVMThreadFPR(contextThread);
-	  result += " FR" + (regnum-FPR0) + " = " + fregs[regnum] + "  " + regGetName(regnum);
+	  result += " FR" + (regnum-FPR0) + ":" + fregs[regnum] + "  " + regGetName(regnum);
   	} 	
       }  
   
@@ -297,11 +305,12 @@ class registerExternal extends register implements VM_BaselineConstants, registe
 	fregs = getVMThreadFPR(contextThread);	
   	for (i=regnum; i<=regnum+count; i++) {
   	  if (i<FPR0) {
-	    result += " R" + i + " = " + VM.intAsHexString(regs[i]) + "  " + regGetName(i);
+	    result += " R" + i + ":" + VM.intAsHexString(regs[i]);
   	  } else if ((i>=FPR0) && (i<=FPR31)) {
-	    result += " FR" + (i-FPR0) + " = " + fregs[i] + "  " + regGetName(i);
+	    result += " FR" + (i-FPR0) + ":" + fregs[i];
   	  }	
   	}
+	result += "\n To see register names eg PR, FP etc use command regnames \n";
       }
   
     }
@@ -311,6 +320,41 @@ class registerExternal extends register implements VM_BaselineConstants, registe
   }
 
 
+  /** 
+   * Show the register symbolic names
+   *
+   */
+  public String getNames() throws Exception {
+    int regnum, regs[], i, j, k;    
+    int systemThreadID[];
+    int regdata;    
+    double fregs[];
+    String result="";
+        
+    regnum = 0;  // start with first register
+    for (i=0; i<8; i++) {   /* the general purpose reg */
+      for (j=0; j<4; j++) {
+	k = j*8+i;
+	if (k<10)    // just to line things up
+	  result += "   R" + k + " = " + regGetName(k);
+	else
+	  result += "  R" + k + " = " + regGetName(k);
+      }
+      result += "\n";
+    }
+    result += "\n";
+
+    // the floating point regs: 32 regs starting with FPR0 
+    for (i=0; i<8; i++) {   
+      for (j=0; j<4; j++ ) {
+	k = j*8 + i;
+	result += "  FR" + k + " = " + regGetName(k+FPR0);
+      }
+      result += "\n";
+    }
+
+    return result;
+  }
 
 
 }
