@@ -11,6 +11,7 @@ import java.util.Enumeration;
 
 /**
  * A basic block that marks the start of an exception handler.
+ * Exception Handler Basic Block; acronym EHBB.
  * 
  * @author Dave Grove
  * @author John Whaley
@@ -18,7 +19,7 @@ import java.util.Enumeration;
 public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
   
   /**
-   * the VM_Type(s) of the exception(s) caught by this block.
+   * The VM_Type(s) of the exception(s) caught by this block.
    */
   private OPT_TypeOperand[] exceptionTypes;
 
@@ -138,11 +139,12 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
 
 
   /**
-   * How many table entires does this ehbb need?
+   * Get how many table entires this EHBB needs.
    * Really only of interest during final assembly.
-   * 
+   *
    * @see VM_OptExceptionTable
-   * @return the number of table entries for this basic block
+   *
+  * @return the number of table entries for this basic block
    */
   public int getNumberOfExceptionTableEntries() {
     return exceptionTypes.length;
