@@ -172,7 +172,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.
    */
-  public final VM_Method resolve() throws ClassNotFoundException {
+  public final VM_Method resolve() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
@@ -225,7 +225,6 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public final VM_Method resolveInterfaceMethod()
     throws IncompatibleClassChangeError, 
-	   ClassNotFoundException, 
 	   NoSuchMethodError {
     if (resolvedMember != null) return resolvedMember;
     

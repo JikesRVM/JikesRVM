@@ -20,7 +20,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (method dispatch table is updated and method is executed)
    */
-  static void lazyMethodInvoker() throws ClassNotFoundException {
+  static void lazyMethodInvoker() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     DL_Helper.compileMethod(dl, targMethod);
@@ -35,7 +35,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (throws UnsatisfiedLinkError)
    */
-  static void unimplementedNativeMethod() throws ClassNotFoundException {
+  static void unimplementedNativeMethod() {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     throw new UnsatisfiedLinkError(targMethod.toString());
@@ -82,7 +82,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Returned:    VM_Method that should be invoked.
      */
     static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) 
-      throws ClassNotFoundException, VM_PragmaNoInline {
+      throws VM_PragmaNoInline {
       // resolve symbolic method reference into actual method
       //
       VM_MethodReference methodRef = dynamicLink.methodRef();

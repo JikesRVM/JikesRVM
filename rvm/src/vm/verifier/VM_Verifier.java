@@ -114,22 +114,13 @@ public class VM_Verifier
       return null;		// this will never be executed.
     }
   }
+
   private VM_Field resolve(VM_FieldReference fr) {
-    //    try {
-      return fr.resolve();
-      //    } catch (ClassNotFoundException e) {
-      //      verificationFailure("Unable to resolve a VM_FieldReference named " + fr, e);
-      //      return null;		// this will never be executed.
-      //    }
+    return fr.resolve();
   }
 
   private VM_Method resolve(VM_MethodReference mr) {
-    try {
-      return mr.resolve();
-    } catch (ClassNotFoundException e) {
-      verificationFailure("Unable to resolve a VM_MethodReference named " + mr, e);
-      return null;		// this will never be executed.
-    }
+    return mr.resolve();
   }
 
   /**

@@ -508,7 +508,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
 	 
-  static void init() throws ClassNotFoundException {
+  static void init() {
     VoidType    = VM_TypeReference.Void.resolve();
     BooleanType = VM_TypeReference.Boolean.resolve();
     ByteType    = VM_TypeReference.Byte.resolve();

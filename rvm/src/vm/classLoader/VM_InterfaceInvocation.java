@@ -43,7 +43,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @return machine code corresponding to desired interface method
    */
   public static VM_CodeArray invokeInterface(Object target, int mid) 
-    throws IncompatibleClassChangeError, ClassNotFoundException {
+    throws IncompatibleClassChangeError {
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
     VM_Method sought = mref.resolveInterfaceMethod();
@@ -145,7 +145,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * invoke the interface method
    */
   public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object[] RHStib) 
-    throws IncompatibleClassChangeError, ClassNotFoundException {
+    throws IncompatibleClassChangeError {
     VM_Method sought = VM_MemberReference.getMemberRef(mid).asMethodReference().resolveInterfaceMethod();
     invokeinterfaceImplementsTest(sought.getDeclaringClass(), RHStib);
   }

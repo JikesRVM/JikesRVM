@@ -50,7 +50,7 @@ public abstract class VM_Method extends VM_Member {
    * @param input the DataInputStream to read the method's attributes from
    */
   static VM_Method readMethod(VM_Class declaringClass, VM_MemberReference memRef,
-			      int modifiers, DataInputStream input) throws IOException, ClassNotFoundException {
+			      int modifiers, DataInputStream input) throws IOException {
     ClassLoader cl = declaringClass.getClassLoader();
 
     int tmp_localWords = 0;

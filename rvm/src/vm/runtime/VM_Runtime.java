@@ -73,7 +73,7 @@ public class VM_Runtime implements VM_Constants {
    * @return true iff is object instance of target type?
    */ 
   static boolean instanceOf(Object object, int targetID)
-    throws ClassNotFoundException {
+    throws NoClassDefFoundError {
 
     /*  Here, LHS and RHS refer to the way we would treat these if they were
 	arguments to an assignment operator and we were testing for
@@ -146,7 +146,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static void checkcast(Object object, int id) 
     throws ClassCastException,
-	   ClassNotFoundException {
+	   NoClassDefFoundError {
     if (object == null)
       return; // null may be cast to any type
 
@@ -264,7 +264,7 @@ public class VM_Runtime implements VM_Constants {
    * See also: bytecode 0xbb ("new")
    */ 
   static Object unresolvedNewScalar(int id) 
-    throws ClassNotFoundException, 
+    throws NoClassDefFoundError, 
 	   OutOfMemoryError { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
@@ -322,7 +322,7 @@ public class VM_Runtime implements VM_Constants {
    * See also: bytecode 0xbc ("anewarray")
    */ 
   static Object unresolvedNewArray(int numElements, int id) 
-    throws ClassNotFoundException, OutOfMemoryError, NegativeArraySizeException { 
+    throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
     if (t == null) {

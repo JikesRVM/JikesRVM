@@ -66,7 +66,7 @@ public class VM_ExceptionHandlerMap {
 
   VM_ExceptionHandlerMap(DataInputStream input, 
 			 VM_Class declaringClass, 
-			 int n) throws IOException, ClassNotFoundException {
+			 int n) throws IOException {
     startPCs       = new int[n];
     endPCs         = new int[n];
     handlerPCs     = new int[n];

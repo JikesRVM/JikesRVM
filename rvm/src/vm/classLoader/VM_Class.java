@@ -667,8 +667,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   VM_Class(VM_TypeReference typeRef, DataInputStream input) 
     throws ClassFormatError, 
-	   IOException,
-	   ClassNotFoundException {
+	   IOException {
     super(typeRef);
     subClasses = emptyVMClass;
 

@@ -59,9 +59,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
    * As of this writing, it is not used by any other classes. 
    * @throws NoClassDefFoundError
    */
-  synchronized VM_Type loadVMClass(String className) 
-    throws NoClassDefFoundError	// does not need to be declared.
-  {
+  synchronized VM_Type loadVMClass(String className) throws NoClassDefFoundError {
     try {	    
       InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
       if (is == null) throw new NoClassDefFoundError(className);
@@ -90,9 +88,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   }
 
   public synchronized Class loadClass(String className, boolean resolveClass)
-    throws ClassNotFoundException 
-  {
-
+    throws ClassNotFoundException {
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length()-2);
     }

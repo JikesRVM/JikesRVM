@@ -33,7 +33,7 @@ public class VM extends VM_Properties implements VM_Constants,
    */ 
   public static void initForBootImageWriter(String classPath, 
 					    String[] bootCompilerArgs) 
-    throws VM_PragmaInterruptible, ClassNotFoundException {
+    throws VM_PragmaInterruptible {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -42,7 +42,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Prepare vm classes for use by tools.
    */
   public static void initForTool() 
-    throws VM_PragmaInterruptible, ClassNotFoundException   {
+    throws VM_PragmaInterruptible {
     runningTool = true;
     init(System.getProperty("java.class.path"), null);
   }
@@ -52,7 +52,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param classpath class path to be used by VM_ClassLoader
    */
   public static void initForTool(String classpath) 
-    throws VM_PragmaInterruptible, ClassNotFoundException {
+    throws VM_PragmaInterruptible {
     runningTool = true;
     init(classpath, null);
   }
@@ -1106,7 +1106,7 @@ public class VM extends VM_Properties implements VM_Constants,
    *                         boot compiler's init routine.
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
-    throws VM_PragmaInterruptible, ClassNotFoundException {
+    throws VM_PragmaInterruptible {
     // create dummy boot record
     //
     VM_BootRecord.the_boot_record = new VM_BootRecord();

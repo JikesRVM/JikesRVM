@@ -30,7 +30,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
    */
   public static void resolveDynamicLink (VM_OptCompiledMethod cm, int offset) 
-    throws ClassNotFoundException {
+    throws NoClassDefFoundError {
     VM_OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
     VM_NormalMethod realMethod = map.getMethodForMCOffset(offset);
@@ -57,7 +57,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
   }
 
   public static Object newArrayArray (int methodId, int[] dimensions, int typeId)
-    throws ClassNotFoundException,
+    throws NoClassDefFoundError,
 	   NegativeArraySizeException, 
 	   OutOfMemoryError {
     // validate arguments

@@ -166,7 +166,7 @@ public class VM_ClassLoader implements VM_Constants,
   /**
    * Initialize for bootimage.
    */
-  public static void init(String vmClassPath) throws ClassNotFoundException {
+  public static void init(String vmClassPath) {
     // specify place where vm classes and resources live
     //
     setVmRepositories(vmClassPath);
@@ -256,13 +256,13 @@ public class VM_ClassLoader implements VM_Constants,
 						  byte[] classRep, 
 						  int offset, 
 						  int length, 
-						  ClassLoader classloader) throws ClassFormatError, ClassNotFoundException {
+						  ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
   public static final VM_Type defineClassInternal(String className, 
 						  InputStream is, 
-						  ClassLoader classloader) throws ClassFormatError, ClassNotFoundException {
+						  ClassLoader classloader) throws ClassFormatError {
     VM_TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed
