@@ -124,8 +124,6 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 
   protected boolean viableCandidate(VM_Method caller, VM_Method callee, 
 				    OPT_CompilationState state) {
-    if (!legalToInline(caller, callee)) return false;
-
     // TODO: for now, don't inline recursively
     OPT_InlineSequence seq = state.getSequence();
     if (seq.containsMethod(callee)) return false;

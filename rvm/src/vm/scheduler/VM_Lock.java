@@ -326,7 +326,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (t != null) t.scheduleHighPriority();
     else if (entering.isEmpty() && waiting.isEmpty()) { // heavy lock can be deflated
       // Possible project: decide on a heuristic to control when lock should be deflated
-      int lockOffset = VM_Magic.getObjectType(o).thinLockOffset;
+      int lockOffset = VM_Magic.getObjectType(o).getThinLockOffset();
       if (lockOffset != -1) { // deflate heavy lock
 	deflate(o, lockOffset);
 	deflated = true;
@@ -624,7 +624,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    */
   static boolean owns(Object o, int tid) {
     com.ibm.JikesRVM.classloader.VM_Type t = VM_Magic.getObjectType(o);
-    int thinLockOffset = t.thinLockOffset;
+    int thinLockOffset = t.getThinLockOffset();
     if (thinLockOffset == -1) {
       VM_Lock l = VM_LockNursery.findOrCreate(o, false);
       return l != null && l.ownerId == tid;

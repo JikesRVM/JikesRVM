@@ -550,10 +550,10 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * Total bytes used by arrays of primitives to encode the machine code map
    */
   int size() {
-    int size = TYPE.getInstanceSize();
-    if (MCInformation != null) size += VM_Array.arrayOfLongType.getInstanceSize(MCInformation.length);
-    if (inlineEncoding != null) size += VM_Array.arrayOfIntType.getInstanceSize(inlineEncoding.length);
-    if (gcMaps != null) size += VM_Array.arrayOfIntType.getInstanceSize(gcMaps.length);
+    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    if (MCInformation != null) size += VM_Array.LongArray.getInstanceSize(MCInformation.length);
+    if (inlineEncoding != null) size += VM_Array.IntArray.getInstanceSize(inlineEncoding.length);
+    if (gcMaps != null) size += VM_Array.IntArray.getInstanceSize(gcMaps.length);
     return size;
   }
 
@@ -654,5 +654,6 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   private static int totalMCSize = 0;
   private static int totalMapSize = 0;
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptMachineCodeMap;"));
 }

@@ -29,25 +29,14 @@ import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 
 
-/*
+/**
  * @author Perry Cheng  
  */  
-
 public class VM_Interface implements VM_Constants {
 
   public static void logGarbageCollection() throws VM_PragmaUninterruptible {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
       VM_EventLogger.logGarbageCollectionEvent();
-  }
-
-  public static VM_Class createScalarType(String descriptor) {
-    VM_Atom atom = VM_Atom.findOrCreateAsciiAtom(descriptor);
-    return VM_ClassLoader.findOrCreateType(atom, VM_SystemClassLoader.getVMClassLoader()).asClass();
-  }
-
-  public static VM_Array createArrayType(String descriptor) {
-    VM_Atom atom = VM_Atom.findOrCreateAsciiAtom(descriptor);
-    return VM_ClassLoader.findOrCreateType(atom, VM_SystemClassLoader.getVMClassLoader()).asArray();
   }
 
   public static VM_Address malloc(int size) throws VM_PragmaUninterruptible {
@@ -325,7 +314,7 @@ public class VM_Interface implements VM_Constants {
   public static int[] newImmortalStack (int n) {
 
     if (VM.runningVM) {
-      int[] stack = (int[]) VM_Allocator.immortalHeap.allocateAlignedArray(VM_Array.arrayOfIntType, n, 4096);
+      int[] stack = (int[]) VM_Allocator.immortalHeap.allocateAlignedArray(VM_Array.IntArray, n, 4096);
       return stack;
     }
 

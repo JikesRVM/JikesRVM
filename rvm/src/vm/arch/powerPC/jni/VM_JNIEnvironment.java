@@ -110,46 +110,43 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     //-#endif
 
     // fill in the IP entries for each AIX linkage triplet
-    try {
-      VM_Class cls = VM_Class.forName("com.ibm.JikesRVM.VM_JNIFunctions");
-      VM_Method[] mths = cls.getDeclaredMethods();
-      // VM.sysWrite("VM_JNIEnvironment:  scanning " + mths.length + " methods\n");
-      for (int i=0; i<mths.length; i++) {
-	String methodName = mths[i].getName().toString();
-	int jniIndex = indexOf(methodName);
-	if (jniIndex!=-1) {
-	  //-#if RVM_FOR_AIX
-	  JNIFunctions[jniIndex][IP] = mths[i].getCurrentInstructions();
-	  //-#endif
-	  //-#if RVM_FOR_LINUX
-	  JNIFunctions[jniIndex]     = mths[i].getCurrentInstructions();
-	  //-#endif
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
+							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JNIFunctions;"));
+    VM_Class cls = (VM_Class)tRef.peekResolvedType();
+    VM_Method[] mths = cls.getDeclaredMethods();
+    // VM.sysWrite("VM_JNIEnvironment:  scanning " + mths.length + " methods\n");
+    for (int i=0; i<mths.length; i++) {
+      String methodName = mths[i].getName().toString();
+      int jniIndex = indexOf(methodName);
+      if (jniIndex!=-1) {
+	//-#if RVM_FOR_AIX
+	JNIFunctions[jniIndex][IP] = mths[i].getCurrentInstructions();
+	//-#endif
+	//-#if RVM_FOR_LINUX
+	JNIFunctions[jniIndex]     = mths[i].getCurrentInstructions();
+	//-#endif
 
-	  // VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex][IP]));
-	} 
-	// else {
-	//   VM.sysWrite("   " + methodName + " skipped\n");
-	// }
-      }
-
-      //-#if RVM_FOR_AIX
-      VM_Address functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][IP]);
-      // VM.sysWrite("   NewIntArray is at " + VM.intAsHexString(functionAddress) + "\n");
-      functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][TOC]);
-      // VM.sysWrite("   TOC is stored at " + VM.intAsHexString(functionAddress) + "\n");
-      //-#endif
-
-      //-#if RVM_FOR_LINUX
-      // set JTOC content, how about GC ? will it move JTOC ?
-      VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
-				VM_Magic.getTocPointer());
-      //-#endif
-    } catch (VM_ResolutionException e) {
-      throw new InternalError("VM_JNIEnvironment fails to initialize, has the class been renamed\n");
+	// VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex][IP]));
+      } 
+      // else {
+      //   VM.sysWrite("   " + methodName + " skipped\n");
+      // }
     }
 
-    initialized = true;
+    //-#if RVM_FOR_AIX
+    VM_Address functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][IP]);
+    // VM.sysWrite("   NewIntArray is at " + VM.intAsHexString(functionAddress) + "\n");
+    functionAddress = VM_Magic.objectAsAddress(JNIFunctions[NEWINTARRAY][TOC]);
+    // VM.sysWrite("   TOC is stored at " + VM.intAsHexString(functionAddress) + "\n");
+    //-#endif
 
+    //-#if RVM_FOR_LINUX
+    // set JTOC content, how about GC ? will it move JTOC ?
+    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
+			      VM_Magic.getTocPointer());
+    //-#endif
+    
+    initialized = true;
   }
 
   // Instance:  create a thread specific JNI environment.  threadSlot = creating threads
@@ -558,7 +555,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     VM_TypeReference[] argTypes = mth.getParameterTypes();
     Class[]   argClasses = new Class[argTypes.length];
     for (int i=0; i<argClasses.length; i++) {
-      argClasses[i] = argTypes[i].resolve(true).getClassForType();
+      argClasses[i] = argTypes[i].resolve().getClassForType();
     }
 
     Constructor constMethod = cls.getConstructor(argClasses);
@@ -755,7 +752,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
-  private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) {
+  private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception {
 
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 

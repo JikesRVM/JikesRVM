@@ -72,12 +72,12 @@ public class VM_Runtime implements VM_Constants {
    * @param id type reference id corresponding to target class/array/interface
    * @return true iff is object instance of target type?
    */ 
-  static boolean instanceOf(Object object, int id) throws VM_ResolutionException {
+  static boolean instanceOf(Object object, int id) throws ClassNotFoundException {
     if (object == null)
       return false; // null is not an instance of any type
 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.resolve(true);
+    VM_Type lhsType = tRef.resolve();
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
 
     if (lhsType == rhsType)
@@ -106,13 +106,14 @@ public class VM_Runtime implements VM_Constants {
    * @param object object to be tested
    * @param id of type reference corresponding to target class/array/interface
    */ 
-  static void checkcast(Object object, int id)
-    throws VM_ResolutionException, ClassCastException {
+  static void checkcast(Object object, int id) 
+    throws ClassCastException,
+	   ClassNotFoundException {
     if (object == null)
       return; // null may be cast to any type
 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.resolve(true);
+    VM_Type lhsType = tRef.resolve();
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
     if (lhsType == rhsType)
       return; // exact match
@@ -148,8 +149,7 @@ public class VM_Runtime implements VM_Constants {
   /**
    * Throw exception iff array assignment is illegal.
    */
-  static void checkstore(Object array, Object arrayElement)
-    throws VM_ResolutionException, ArrayStoreException {
+  static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
     if (arrayElement == null)
       return; // null may be assigned to any type
 
@@ -184,8 +184,7 @@ public class VM_Runtime implements VM_Constants {
    * (exact type match)
    *             so we need not repeat it here
    */ 
-  public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) 
-    throws VM_ResolutionException {
+  public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) {
     return VM_DynamicTypeCheck.instanceOf(lhs, rhs);
   }
 
@@ -205,9 +204,10 @@ public class VM_Runtime implements VM_Constants {
    * See also: bytecode 0xbb ("new")
    */ 
   static Object unresolvedNewScalar(int id) 
-    throws VM_ResolutionException, OutOfMemoryError { 
+    throws ClassNotFoundException, 
+	   OutOfMemoryError { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Class cls = tRef.resolve(true).asClass();
+    VM_Class cls = tRef.resolve().asClass();
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
 
@@ -262,11 +262,10 @@ public class VM_Runtime implements VM_Constants {
    * See also: bytecode 0xbc ("anewarray")
    */ 
   static Object unresolvedNewArray(int numElements, int id) 
-    throws VM_ResolutionException, OutOfMemoryError, NegativeArraySizeException { 
+    throws ClassNotFoundException, OutOfMemoryError, NegativeArraySizeException { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Array array = tRef.resolve(true).asArray();
+    VM_Array array = tRef.resolve().asArray();
     if (!array.isInitialized()) {
-      array.load();
       array.resolve();
       array.instantiate();
     }
@@ -428,24 +427,16 @@ public class VM_Runtime implements VM_Constants {
    * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_MemberReference#needsDynamicLink
    */ 
-  public static void initializeClassForDynamicLink(VM_Class cls) 
-    throws VM_ResolutionException {
-      if (VM.TraceClassLoading) 
-      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " 
-                  + cls + "\n");
+  public static void initializeClassForDynamicLink(VM_Class cls) {
+    if (VM.TraceClassLoading) 
+      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
 
-    try {
-      cls.getClassLoader().loadClass(cls.getDescriptor().classNameFromDescriptor());
-      cls.resolve();
-      cls.instantiate();
-      cls.initialize();
-    } catch (ClassNotFoundException e) {
-      throw new VM_ResolutionException(cls.getDescriptor(), e, cls.getClassLoader());
-    }
+    cls.resolve();
+    cls.instantiate();
+    cls.initialize();
 
     if (VM.TraceClassLoading) 
-      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " 
-                  + cls + "\n");
+      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " + cls + "\n");
   }
 
   //---------------------------------------------------------------//
@@ -682,9 +673,8 @@ public class VM_Runtime implements VM_Constants {
    */ 
   public static Object buildMultiDimensionalArray(int[] numElements, 
 						  int dimIndex, 
-						  VM_Array arrayType) throws VM_ResolutionException {
+						  VM_Array arrayType) {
     if (!arrayType.isInstantiated()) {
-      arrayType.load();
       arrayType.resolve();
       arrayType.instantiate();
     }
@@ -700,9 +690,9 @@ public class VM_Runtime implements VM_Constants {
     Object[] newArray     = (Object[]) newObject;
     VM_Array newArrayType = arrayType.getElementType().asArray();
    
-    for (int i = 0; i < nelts; ++i)
-      newArray[i] = buildMultiDimensionalArray(numElements, dimIndex, 
-                                               newArrayType);
+    for (int i = 0; i < nelts; ++i) {
+      newArray[i] = buildMultiDimensionalArray(numElements, dimIndex, newArrayType);
+    }
 
     return newArray;
   }

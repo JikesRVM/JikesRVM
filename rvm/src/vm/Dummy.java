@@ -28,6 +28,7 @@ class Dummy {
   //-#if RVM_WITH_JMTK
   static com.ibm.JikesRVM.memoryManagers.JMTk.Plan h;
   //-#endif
+  static VM_SaveVolatile            i;
   static VM_Interface               l;
   static VM_JNIFunctions            m;
   static VM_JNIStartUp              n;

@@ -64,13 +64,16 @@ class GenerateInterfaceDeclarations {
 
   // Emit declarations for VM_BootRecord object.
   //
-  static void emitBootRecordDeclarations () throws VM_ResolutionException {
+  static void emitBootRecordDeclarations () {
     VM_Atom className = VM_Atom.findOrCreateAsciiAtom("com/ibm/JikesRVM/VM_BootRecord");
     VM_Atom classDescriptor = className.descriptorFromClassName();
-    VM_Class bootRecord = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
-
-    bootRecord.load();
-
+    VM_Class bootRecord = null;
+    try {
+      bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
+    } catch (ClassNotFoundException e) {
+      System.err.println("Failed to load VM_BootRecord!");
+      System.exit(-1);
+    }
     VM_Field[] fields = bootRecord.getDeclaredFields();
 
     // emit function declarations

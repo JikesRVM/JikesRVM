@@ -100,20 +100,17 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     setNames();
 
     // fill in the IP entries for each AIX linkage triplet
-    try {
-      VM_Class cls = VM_Class.forName("com.ibm.JikesRVM.VM_JNIFunctions");
-      VM_Method[] mths = cls.getDeclaredMethods();
-      for (int i=0; i<mths.length; i++) {
-	String methodName = mths[i].getName().toString();
-	int jniIndex = indexOf(methodName);
-	if (jniIndex!=-1) {
-	  JNIFunctions[jniIndex] = mths[i].getCurrentCompiledMethod().getInstructions();
-	  // VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex]));
-	} 
-      }
-
-    } catch (VM_ResolutionException e) {
-      throw new InternalError("VM_JNIEnvironment fails to initialize, has the class been renamed\n");
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
+							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JNIFunctions;"));
+    VM_Class cls = (VM_Class)tRef.peekResolvedType();
+    VM_Method[] mths = cls.getDeclaredMethods();
+    for (int i=0; i<mths.length; i++) {
+      String methodName = mths[i].getName().toString();
+      int jniIndex = indexOf(methodName);
+      if (jniIndex!=-1) {
+	JNIFunctions[jniIndex] = mths[i].getCurrentCompiledMethod().getInstructions();
+	// VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex]));
+      } 
     }
 
     // store RVM JTOC address in last (extra) entry in JNIFunctions array
@@ -527,7 +524,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
     VM_TypeReference[] argTypes = mth.getParameterTypes();
     Class[]   argClasses = new Class[argTypes.length];
     for (int i=0; i<argClasses.length; i++) {
-      argClasses[i] = argTypes[i].resolve(true).getClassForType();
+      argClasses[i] = argTypes[i].resolve().getClassForType();
     }
 
     Constructor constMethod = cls.getConstructor(argClasses);

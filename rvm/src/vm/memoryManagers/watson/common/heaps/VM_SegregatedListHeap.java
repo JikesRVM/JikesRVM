@@ -63,8 +63,6 @@ public final class VM_SegregatedListHeap extends VM_Heap
 
   private int total_blocks_in_use;
 
-  private static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
-
   // value below is a tuning parameter: for single threaded appl, on multiple processors
   private static final int         numBlocksToKeep = 10;     // GSC 
 
@@ -162,7 +160,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     // Now allocate the blocks array - which will be used to allocate blocks to sizes
     
     num_blocks = size / GC_BLOCKSIZE;
-    blocks = (VM_BlockControl[]) immortalHeap.allocateArray(VM_BlockControl.ARRAY_TYPE, num_blocks);
+    blocks = (VM_BlockControl[]) immortalHeap.allocateArray(VM_BlockControl.ARRAY_TYPE.peekResolvedType().asArray(), num_blocks);
 
     // index for highest page in heap
     highest_block = num_blocks -1;
@@ -186,7 +184,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 
     // Now allocate the rest of the VM_BlockControls
     for (int i = GC_SIZES; i < num_blocks; i++) {
-      VM_BlockControl bc = (VM_BlockControl) immortalHeap.allocateScalar(VM_BlockControl.TYPE);
+      VM_BlockControl bc = (VM_BlockControl) immortalHeap.allocateScalar(VM_BlockControl.TYPE.peekResolvedType().asClass());
       blocks[i] = bc;
       bc.baseAddr = start.add(i * GC_BLOCKSIZE); 
       bc.nextblock = (i == num_blocks - 1) ? OUT_OF_BLOCKS : i + 1;
@@ -618,7 +616,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       }
     }
     // allocate a mark array from the malloc heap.
-    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(byteArrayType, size));
+    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(VM_Array.ByteArray, size));
     return theblock;
   }
 
@@ -705,7 +703,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       }
     }
 
-    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(byteArrayType, size));
+    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(VM_Array.ByteArray, size));
     return 0;
   }
 
@@ -871,9 +869,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	
 
   void setupProcessor (VM_Processor st) throws VM_PragmaInterruptible {
-    VM_Array scArrayType = VM_SizeControl.TYPE.getArrayTypeForElementType();
+    VM_Array scArrayType = VM_SizeControl.TYPE.peekResolvedType().getArrayTypeForElementType();
     int scArraySize = scArrayType.getInstanceSize(GC_SIZES);
-    int scSize = VM_SizeControl.TYPE.getInstanceSize();
+    int scSize = VM_SizeControl.TYPE.peekResolvedType().asClass().getInstanceSize();
     int regionSize = scArraySize + scSize * GC_SIZES;
 
     // Allocate objects for processor-local meta data from backing malloc heap.
@@ -887,7 +885,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     for (int i = 0; i < GC_SIZES; i++) {
       st.sizes[i] = 
 	(VM_SizeControl)VM_ObjectModel.initializeScalar(region, 
-							VM_SizeControl.TYPE.getTypeInformationBlock(), 
+							VM_SizeControl.TYPE.peekResolvedType().getTypeInformationBlock(), 
 							scSize);
       region = region.add(scSize);
     }

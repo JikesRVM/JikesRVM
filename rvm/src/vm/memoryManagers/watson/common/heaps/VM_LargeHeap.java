@@ -63,8 +63,8 @@ public class VM_LargeHeap extends VM_Heap
     largeSpacePages = size / VM_Memory.getPagesize();
     
     // Get the (full sized) arrays that control large object space
-    largeSpaceAlloc = (short[])immortal.allocateArray(VM_Array.arrayOfShortType, largeSpacePages + 1);
-    largeSpaceMark  = (short[])immortal.allocateArray(VM_Array.arrayOfShortType, largeSpacePages + 1);
+    largeSpaceAlloc = (short[])immortal.allocateArray(VM_Array.ShortArray, largeSpacePages + 1);
+    largeSpaceMark  = (short[])immortal.allocateArray(VM_Array.ShortArray, largeSpacePages + 1);
   }
 
   /**

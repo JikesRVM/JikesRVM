@@ -100,7 +100,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     short[] tsi = new short[size];
     VM_Type p;                          
     if (depth == 0) {        // t is Object (or eventually some interfaces TODO!!)
-      int id = t.getDictionaryId();
+      int id = t.getId();
       if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
       tsi[0] = (short) id;
       return tsi;
@@ -117,7 +117,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     for (int i=0; i<depth; i++) {
       tsi[i] = psi[i];
     }
-    int id = t.getDictionaryId();
+    int id = t.getId();
     if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
     tsi[depth] = (short) id;
     return tsi;
@@ -206,8 +206,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfResolved(VM_Class LHSclass, Object[] rhsTIB) 
-    throws VM_ResolutionException {
+  public static boolean instanceOfResolved(VM_Class LHSclass, Object[] rhsTIB) {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
     } else {
@@ -229,7 +228,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
-    int LHSId = LHSclass.getDictionaryId();
+    int LHSId = LHSclass.getId();
     return superclassIds[LHSDepth] == LHSId;
   }    
 
@@ -243,7 +242,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) throws VM_ResolutionException {
+  public static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) {
     int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[TIB_DOES_IMPLEMENT_INDEX]);
     int idx = LHSclass.getDoesImplementIndex();
     int mask = LHSclass.getDoesImplementBitMask();
@@ -284,8 +283,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         or <code>false</code> if it is not
    */
   public static boolean instanceOfArray(VM_Class LHSInnermostElementClass, 
-					int LHSDimension,  VM_Type RHSType) 
-    throws VM_ResolutionException {
+					int LHSDimension,  VM_Type RHSType) {
     int RHSDimension = RHSType.getDimensionality();
     if (RHSDimension != LHSDimension) return false;
     VM_Type RHSInnermostElementType = RHSType.asArray().
@@ -304,15 +302,12 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         RHSType into a variable of type LSType
    *         or <code>false</code> if we cannot.
    */
-  public static boolean instanceOf(VM_Type LHSType, VM_Type RHSType) 
-    throws VM_ResolutionException {
+  public static boolean instanceOf(VM_Type LHSType, VM_Type RHSType) {
     if (LHSType == RHSType) return true;
     if (!LHSType.isResolved()) {
-      LHSType.load();
       LHSType.resolve();
     }
     if (!RHSType.isResolved()) {
-      RHSType.load();
       RHSType.resolve();
     }
     int LHSDimension = LHSType.getDimensionality();

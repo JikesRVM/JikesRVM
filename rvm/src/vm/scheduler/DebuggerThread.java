@@ -33,7 +33,7 @@ class DebuggerThread extends VM_Thread {
   }
       
   public void run() {
-    for (;;) {
+    while(true) {
       try {
 	VM.sysWrite("debug> ");
 	String [] tokens = readTokens();
@@ -50,10 +50,11 @@ class DebuggerThread extends VM_Thread {
   // Evaluate an expression.
   //
   private static void eval(String[] tokens) throws Exception {
-
     char command = tokens        == null ? EOF  // end of file
       : tokens.length == 0    ? ' '  // empty line
       : tokens[0].charAt(0);         // first letter of first token
+
+    VM.sysWriteln("COMMAND IS '"+command+"'");
     switch (command)      {
     case ' ': // repeat previous command once
       if (previousTokens != null)
@@ -62,17 +63,17 @@ class DebuggerThread extends VM_Thread {
          
     case '*': // repeat previous command once per second, until SIGQUIT is received
 	if (previousTokens != null)
-            for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; )
-		{
-		    VM.sysWrite("\033[H\033[2J");
-		    eval(previousTokens);
-		    VM_Wait.sleep(1000);
-		}
+	  for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; ) {
+	    VM.sysWrite("\033[H\033[2J");
+	    eval(previousTokens);
+	    VM_Wait.sleep(1000);
+	  }
 	return;
     }
          
     previousTokens = tokens;
       
+    VM.sysWriteln("COMMAND IS '"+command+"'");
     switch (command) {
     case 't': // display thread(s)
       if (tokens.length == 1) { //
@@ -154,26 +155,6 @@ class DebuggerThread extends VM_Thread {
     case 'q': // terminate execution of virtual machine
       VM.sysWrite("terminating execution\n");
       VM.sysExit(0);
-      return;
-
-    case EOF: // dump thread stacks and vm state and resume execution
-      VM_Scheduler.writeString("\n-- Stacks --\n");
-      for (int i = 1; i < VM_Scheduler.threads.length; ++i) {
-	VM_Thread t = VM_Scheduler.threads[i];
-	if (t != null) {
-	  VM_Scheduler.writeString("\n Thread: ");
-	  t.dump();
-	  VM_Processor.getCurrentProcessor().disableThreadSwitching();
-	  VM_Scheduler.dumpStack(t.contextRegisters.getInnermostFramePointer());
-	  VM_Processor.getCurrentProcessor().enableThreadSwitching();
-	}
-      }
-      VM_Scheduler.writeString("\n");
-         
-      VM_Scheduler.dumpVirtualMachine();
-      VM_Scheduler.debugRequested = false;
-      VM_Scheduler.debuggerMutex.lock();
-      yield(VM_Scheduler.debuggerQueue, VM_Scheduler.debuggerMutex);
       return;
 
     default:
@@ -266,7 +247,6 @@ class DebuggerThread extends VM_Thread {
   //
   private static String[] readTokens() {
     String line = new String();
-VM.sysWriteln("newed string in DebuggerThread.readTokens");
     int    bb = VM_FileSystem.readByte(STDIN);
 
     if (bb < 0)

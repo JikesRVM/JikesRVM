@@ -370,8 +370,8 @@ public class VM_TypeReference {
   public final boolean definitelyDifferent(VM_TypeReference that) {
     if (this == that) return false;
     if (name != that.name) return true;
-    VM_Type mine = resolve(false);
-    VM_Type theirs = that.resolve(false);
+    VM_Type mine = peekResolvedType();
+    VM_Type theirs = that.peekResolvedType();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
@@ -383,8 +383,8 @@ public class VM_TypeReference {
   public final boolean definitelySame(VM_TypeReference that) {
     if (this == that) return true;
     if (name != that.name) return false;
-    VM_Type mine = resolve(false);
-    VM_Type theirs = that.resolve(false);
+    VM_Type mine = peekResolvedType();
+    VM_Type theirs = that.peekResolvedType();
     if (mine == null || theirs == null) return false;
     return mine == theirs;
   }
@@ -397,19 +397,54 @@ public class VM_TypeReference {
   }
 
   /**
-   * For use by VM_Type constructor
+   * @return the current value of resolvedType -- null if not yet resolved.
    */
-  final void setResolvedType(VM_Type it) {
-    if (VM.VerifyAssertions) VM._assert(resolvedType == null);
-    resolvedType = it;
+  public final VM_Type peekResolvedType() throws VM_PragmaUninterruptible {
+    return resolvedType;
+  }
+
+  /*
+   * for use by VM_ClassLoader.defineClassInternal
+   */
+  void setResolvedType(VM_Type rt) {
+    resolvedType = rt;
   }
 
   /** 
+   * Force the resolution of the type reference. May cause class loading
+   * if a required class file hasn't been loaded before.
+   *
    * @return the VM_Type instance that this references resolves to.
    */
-  public final VM_Type resolve(boolean canLoad) {
+  public final synchronized VM_Type resolve() throws ClassNotFoundException {
     if (resolvedType != null) return resolvedType;
-    resolvedType = VM_ClassLoader.findOrCreateType(name, classloader);
+    if (isClassType()) {
+      VM_Type ans; 
+      if (VM.runningVM) {
+	Class klass = classloader.loadClass(name.classNameFromDescriptor());
+	ans = java.lang.JikesRVMSupport.getTypeForClass(klass);
+      } else {
+	// Use a special purpose backdoor to avoid creating java.lang.Class 
+	// objects when not running the VM (we get host JDK Class objects and 
+	// that just doesn't work).
+	ans = ((VM_SystemClassLoader)classloader).loadVMClass(name.classNameFromDescriptor());
+      }
+      if (VM.VerifyAssertions) VM._assert(resolvedType == null || resolvedType == ans);
+      resolvedType = ans;
+    } else if (isArrayType()) {
+      VM_Type elementType = getArrayElementType().resolve();
+      if (elementType.getClassLoader() != classloader) {
+	// We aren't the cannonical type reference because the element type
+	// was loaded using a different classloader. 
+	// Find the cannonical type reference and ask it to resolve itself.
+	VM_TypeReference cannonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
+	resolvedType = cannonical.resolve();
+      } else {
+	resolvedType = new VM_Array(this, elementType);
+      }
+    } else {
+      resolvedType = new VM_Primitive(this);
+    }
     return resolvedType;
   }
 

@@ -96,7 +96,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       browser.setInlineEncodingIndex(iei);
       browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
       browser.setCompiledMethod(this);
-      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().resolve());
+      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
 	  VM.sysWrite("setting stack to frame (opt): ");
@@ -123,7 +123,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
       browser.setInlineEncodingIndex( next );
       browser.setBytecodeIndex( bci );
-      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().resolve());
+      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
 	  VM.sysWrite("up within frame stack (opt): ");
@@ -154,7 +154,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
+        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci);
         out.println("\tat " 
 		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
@@ -192,7 +192,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
+        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci);
         out.println("\tat " 
 		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
@@ -214,12 +214,13 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
   public final int size() throws VM_PragmaInterruptible {
-    int size = TYPE.getInstanceSize();
+    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     size += _mcMap.size();
-    if (eTable != null) size += VM_Array.arrayOfIntType.getInstanceSize(eTable.length);
-    if (patchMap != null) size += VM_Array.arrayOfIntType.getInstanceSize(patchMap.length);
+    if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
+    if (patchMap != null) size += VM_Array.IntArray.getInstanceSize(patchMap.length);
     return size;
   }
 

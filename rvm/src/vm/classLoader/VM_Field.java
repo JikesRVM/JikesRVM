@@ -238,12 +238,11 @@ public final class VM_Field extends VM_Member {
     if (ref != null ) {
       VM_Type actualType = VM_Magic.getObjectType(ref);
       boolean ok = false;
-      try {
-	VM_Type type = getType().resolve(true);
-	ok = ((type == actualType) ||
-	      (type == VM_Type.JavaLangObjectType) ||
-	      VM_Runtime.isAssignableWith(type, actualType));
-      } catch (VM_ResolutionException e) {}
+      VM_Type type = getType().peekResolvedType();
+      if (type == null) throw new IllegalArgumentException();
+      ok = ((type == actualType) ||
+	    (type == VM_Type.JavaLangObjectType) ||
+	    VM_Runtime.isAssignableWith(type, actualType));
       if (!ok) throw new IllegalArgumentException();
     }
 

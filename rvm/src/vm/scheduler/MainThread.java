@@ -118,10 +118,6 @@ class MainThread extends Thread {
       // no such class
       VM.sysWrite(e+"\n");
       return;
-    } catch (VM_ResolutionException e) { 
-      // no such class
-      VM.sysWrite(e+"\n");
-      return;
     }
 
     // find "main" method

@@ -44,9 +44,8 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * </ul>
    */
   private static boolean isCandidate (VM_TypeReference tref) {
-    VM_Type t = tref.resolve(false);
+    VM_Type t = tref.peekResolvedType();
     if (t == null) return false;
-    if (!t.isLoaded()) return false;
     if (t.isPrimitiveType())
       return false;
     if (t.isClassType() && t.asClass().isFinal())
@@ -93,7 +92,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
       OPT_Instruction s = e.next();
       if (PutField.conforms(s)) {
         OPT_LocationOperand l = PutField.getLocation(s);
-	VM_Field f = l.getFieldRef().resolve(false);
+	VM_Field f = l.getFieldRef().peekResolvedField();
 	if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
@@ -112,7 +111,7 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         }
       } else if (PutStatic.conforms(s)) {
         OPT_LocationOperand l = PutStatic.getLocation(s);
-	VM_Field f = l.getFieldRef().resolve(false);
+	VM_Field f = l.getFieldRef().peekResolvedField();
 	if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined

@@ -75,8 +75,8 @@ public final class VM_MethodReference extends VM_MemberReference {
   public final boolean definitelyDifferent(VM_MethodReference that) {
     if (this == that) return false;
     if (name != that.name || descriptor != that.descriptor) return true;
-    VM_Method mine = resolve(false);
-    VM_Method theirs = that.resolve(false);
+    VM_Method mine = peekResolvedMethod();
+    VM_Method theirs = that.peekResolvedMethod();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
@@ -88,8 +88,8 @@ public final class VM_MethodReference extends VM_MemberReference {
   public final boolean definitelySame(VM_MethodReference that) {
     if (this == that) return true;
     if (name != that.name || descriptor != that.descriptor) return false;
-    VM_Method mine = resolve(false);
-    VM_Method theirs = that.resolve(false);
+    VM_Method mine = peekResolvedMethod();
+    VM_Method theirs = that.peekResolvedMethod();
     if (mine == null || theirs == null) return false;
     return mine == theirs;
   }
@@ -122,9 +122,9 @@ public final class VM_MethodReference extends VM_MemberReference {
    * method, return null if the method cannot be resolved without classloading.
    */
   public final VM_Method resolveInvokeSpecial() {
-    VM_Class thisClass = (VM_Class)type.resolve(false);
-    if (thisClass == null || !thisClass.isResolved()) return null; // can't be found now.
-    VM_Method sought = resolve();
+    VM_Class thisClass = (VM_Class)type.peekResolvedType();
+    if (thisClass == null) return null; // can't be found now.
+    VM_Method sought = resolveInternal(thisClass);
 
     if (sought.isObjectInitializer())
       return sought;   // <init>
@@ -143,15 +143,41 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
+   * Find the VM_Method that this method reference refers to using
+   * the search order specified in JVM spec 5.4.3.3.
+   * @return the VM_Method that this method ref resolved to or null if it cannot be resolved.
+   */
+  public final VM_Method peekResolvedMethod() {
+    if (resolvedMember != null) return resolvedMember;
+    
+    // Hasn't been resolved yet. Try to do it now without triggering class loading.
+    VM_Class declaringClass = (VM_Class)type.peekResolvedType();
+    if (declaringClass == null) return null;
+    return resolveInternal(declaringClass);
+  }
+
+  /**
+   * Find the VM_Field that this field reference refers to using
+   * the search order specified in JVM spec 5.4.3.3.
+   * @return the VM_Method that this method ref resolved to.
+   */
+  public final VM_Method resolve() throws ClassNotFoundException {
+    if (resolvedMember != null) return resolvedMember;
+    
+    // Hasn't been resolved yet. Do it now triggering class loading if necessary.
+    return resolveInternal((VM_Class)type.resolve());
+  }
+
+
+  /**
    * Find the VM_Method that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.
    */
-  public final VM_Method resolve() {
-    if (resolvedMember != null) return resolvedMember;
-    // Hasn't been resolved yet. Do it now.
-    VM_Class declaringClass = (VM_Class)type.resolve(true);
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+  private final VM_Method resolveInternal(VM_Class declaringClass) {
+    if (!declaringClass.isResolved()) {
+      declaringClass.resolve();
+    }
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
       VM_Method it = c.findDeclaredMethod(name, descriptor);
       if (it != null) {
@@ -164,49 +190,55 @@ public final class VM_MethodReference extends VM_MemberReference {
 
   /**
    * Find the VM_Method that this member reference refers to using
-   * the search order specified in JVM spec 5.4.3.3.
-   * @param canLoad are we allowed to load classes to resolve the method reference?
-   * @return the VM_Method that this method ref resolved to or <code>null</code> if it cannot be resolved.
+   * the search order specified in JVM spec 5.4.3.4.
+   * @return the VM_Method that this method ref resolved to or null if it cannot be resolved without trigering class loading
    */
-  public final VM_Method resolve(boolean canLoad) {
+  public final VM_Method peekInterfaceMethod() {
     if (resolvedMember != null) return resolvedMember;
-    VM_Class declaringClass = (VM_Class)type.resolve(canLoad);
+    
+    // Hasn't been resolved yet. Try to do it now.
+    VM_Class declaringClass = (VM_Class)type.peekResolvedType();
     if (declaringClass == null) return null;
     if (!declaringClass.isResolved()) {
-      if (canLoad) {
-	try {
-	  declaringClass.load();
-	  declaringClass.resolve();
-	} catch (VM_ResolutionException e) {
-	  return null;
-	}
-      } else {
-	return null;
-      }
+      declaringClass.resolve();
     }
-    return resolve();
+    if (!declaringClass.isInterface()) return null;
+    return resolveInterfaceMethodInternal(declaringClass);
   }
+
 
   /**
    * Find the VM_Method that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
-   * @param canLoad are we allowed to load classes to resolve the method reference?
-   * @return the VM_Method that this method ref resolved to.
+   * @return the VM_Method that this method ref resolved to 
    */
-  public final VM_Method resolveInterfaceMethod(boolean canLoad) throws VM_ResolutionException {
+  public final VM_Method resolveInterfaceMethod()
+    throws IncompatibleClassChangeError, 
+	   ClassNotFoundException, 
+	   NoSuchMethodError {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now.
-    VM_Class declaringClass = (VM_Class)type.resolve(canLoad);
-    if (declaringClass == null) return null;
+    VM_Class declaringClass = (VM_Class)type.resolve();
     if (!declaringClass.isResolved()) {
-      if (!canLoad) return null;
-      VM_Runtime.initializeClassForDynamicLink(declaringClass);
+      declaringClass.resolve();
     }
     if (!declaringClass.isInterface()) {
-      if (!canLoad) return null;
       throw new IncompatibleClassChangeError();
     }
+    VM_Method ans = resolveInterfaceMethodInternal(declaringClass);
+    if (ans == null) {
+      throw new NoSuchMethodError(this.toString());
+    }
+    return ans;
+  }  
+
+  /**
+   * Find the VM_Method that this member reference refers to using
+   * the search order specified in JVM spec 5.4.3.4.
+   * @return the VM_Method that this method ref resolved to or null for error
+   */
+  private final VM_Method resolveInterfaceMethodInternal(VM_Class declaringClass) {
     VM_Method it = declaringClass.findDeclaredMethod(name, descriptor);
     if (it != null) {
       resolvedMember = it; 
@@ -214,23 +246,22 @@ public final class VM_MethodReference extends VM_MemberReference {
     }
     VM_Class[] interfaces = declaringClass.getDeclaredInterfaces();
     for (int i=0; i<interfaces.length; i++) {
-      it = searchInterfaceMethods(interfaces[i], canLoad);
+      it = searchInterfaceMethods(interfaces[i]);
       if (it != null) {
 	resolvedMember = it;
 	return resolvedMember;
       }
     }
-    if (!canLoad) return null;
-    throw new NoSuchMethodError(this.toString());
+    return null;
   }
     
-  private final VM_Method searchInterfaceMethods(VM_Class c, boolean canLoad) {
-    if (!canLoad && !c.isResolved()) return null;
+  private final VM_Method searchInterfaceMethods(VM_Class c) {
+    if (!c.isResolved()) c.resolve();
     VM_Method it = c.findDeclaredMethod(name, descriptor);
     if (it != null) return it;
     VM_Class[] interfaces = c.getDeclaredInterfaces();
     for (int i=0; i<interfaces.length; i++) {
-      it = searchInterfaceMethods(interfaces[i], canLoad);
+      it = searchInterfaceMethods(interfaces[i]);
       if (it != null) return it;
     }
     return null;

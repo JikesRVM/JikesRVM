@@ -432,7 +432,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
               {
                 OPT_Operand ref = GetField.getRef(s);
                 VM_FieldReference fr = GetField.getLocation(s).getFieldRef();
-		VM_Field f = fr.resolve(false);
+		VM_Field f = fr.peekResolvedField();
 		if (f == null) {
 		  forbidden.add(fr);
 		} else {
@@ -452,7 +452,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
               {
                 OPT_Operand ref = PutField.getRef(s);
                 VM_FieldReference fr = PutField.getLocation(s).getFieldRef();
-		VM_Field f = fr.resolve(false);
+		VM_Field f = fr.peekResolvedField();
 		if (f == null) {
 		  forbidden.add(fr);
 		} else {
@@ -472,7 +472,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
             case GETSTATIC_opcode:
               {
                 VM_FieldReference fr = GetStatic.getLocation(s).getFieldRef();
-		VM_Field f = fr.resolve(false);
+		VM_Field f = fr.peekResolvedField();
 		if (f == null) {
 		  forbidden.add(fr);
 		} else {
@@ -486,7 +486,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
             case PUTSTATIC_opcode:
               {
                 VM_FieldReference fr = PutStatic.getLocation(s).getFieldRef();
-		VM_Field f = fr.resolve(false);
+		VM_Field f = fr.peekResolvedField();
 		if (f == null) {
 		  forbidden.add(fr);
 		} else {

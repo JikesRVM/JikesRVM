@@ -122,7 +122,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       }
 
       // got a unique target in the current hierarchy. Attempt to inline it.
-      if (!legalToInline(caller,singleImpl) || !hasBody(singleImpl))
+      if (!hasBody(singleImpl))
         return OPT_InlineDecision.NO("Illegal interface inline");
       
       int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)singleImpl, state);
@@ -161,7 +161,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     if (subClasses.length != 1) return OPT_InlineDecision.NO("abstract class doesn't have exactly one subclass");
     VM_Method singleImpl = 
       subClasses[0].findDeclaredMethod(callee.getName(), callee.getDescriptor());
-    if (singleImpl == null || !legalToInline(caller, singleImpl) || !hasBody(singleImpl)) {
+    if (singleImpl == null || !hasBody(singleImpl)) {
       return OPT_InlineDecision.NO("Implementation of abstract method is illegal candidate");
     }
     if (hasNoInlinePragma(singleImpl, state))

@@ -173,7 +173,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    */
   public final boolean mayBeVolatile() {
     if (!isFieldAccess()) return false;
-    VM_Field f = fieldRef.resolve(false);
+    VM_Field f = fieldRef.peekResolvedField();
     return f == null || f.isVolatile();
   }
 

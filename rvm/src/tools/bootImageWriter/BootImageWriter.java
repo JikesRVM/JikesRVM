@@ -399,8 +399,8 @@ implements BootImageWriterConstants {
     if (verbose >= 1) say("starting up");
     try {
       VM.initForBootImageWriter(bootImageRepositoriesAtBuildTime,
-                                bootImageCompilerArgs);
-    } catch (VM_ResolutionException e) {
+				bootImageCompilerArgs);
+    } catch (Exception e) {
       fail("unable to initialize VM: "+e);
     }
 
@@ -411,9 +411,8 @@ implements BootImageWriterConstants {
     //
     try {
       createBootImageObjects(bootImageTypeNames);
-    } catch (VM_ResolutionException e) {
-      fail("unable to create objects: "+e);
-    } catch (IllegalAccessException e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       fail("unable to create objects: "+e);
     }
 
@@ -568,13 +567,10 @@ implements BootImageWriterConstants {
     // remainder of the virtual machine at run time!
     //
     if (false) {
-      VM_Type[] types = VM_ClassLoader.getTypes();
+      VM_Type[] types = VM_Type.getTypes();
       for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
         VM_Type type = types[i];
-        if (!type.isLoaded()) {
-          say("type referenced but not loaded: ", type.toString());
-          continue;
-        }
+	if (type == null) continue;
         if (!type.isResolved()) {
           say("type referenced but not resolved: ", type.toString());
           continue;
@@ -607,7 +603,7 @@ implements BootImageWriterConstants {
    * Print a report of space usage in the boot image.
    */
   public static void spaceReport() {
-    VM_Type[] types = VM_ClassLoader.getTypes();
+    VM_Type[] types = VM_Type.getTypes();
     VM_Type[] tempTypes = new VM_Type[types.length - FIRST_TYPE_DICTIONARY_INDEX];
     for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) 
       tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = types[i];
@@ -615,6 +611,7 @@ implements BootImageWriterConstants {
     int totalCount = 0, totalBytes = 0;
     for (int i = 0; i < tempTypes.length; i++) {
       VM_Type type = tempTypes[i];
+      if (type == null) continue;
       totalCount += type.bootCount;
       totalBytes += type.bootBytes;
     }
@@ -628,9 +625,6 @@ implements BootImageWriterConstants {
     VM.sysWriteln("\nCompiled methods space report:");
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     VM_CompiledMethods.spaceReport();
-    VM.sysWriteln("\nClass Loader Space Report:");
-    VM.sysWriteln("------------------------------------------------------------------------------------------");
-    VM_ClassLoader.spaceReport();
 
     VM.sysWriteln("------------------------------------------------------------------------------------------");
     VM.sysWriteln("\nBoot image space usage by types:");
@@ -642,6 +636,7 @@ implements BootImageWriterConstants {
     VM.sysWriteln();
     for (int i = 0; i < tempTypes.length; i++) {
       VM_Type type = tempTypes[i];
+      if (type == null) continue;
       if (type.bootCount > 0) {
         VM.sysWriteField(60, type.toString());
         VM.sysWriteField(15, type.bootCount);
@@ -687,15 +682,13 @@ implements BootImageWriterConstants {
    * @param typeNames names of rvm classes whose static fields will contain
    *                  the objects comprising the virtual machine bootimage
    */
-  public static void createBootImageObjects(Vector typeNames)
-    throws VM_ResolutionException, IllegalAccessException
-    {
+  public static void createBootImageObjects(Vector typeNames) throws IllegalAccessException, ClassNotFoundException {
       VM_Callbacks.notifyBootImage(typeNames.elements());
 
       //
       // Create types.
       //
-      if (verbose >= 1) say("creating");
+      if (verbose >= 1) say("loading");
       for (Enumeration e = typeNames.elements(); e.hasMoreElements(); ) {
         //
         // get type name
@@ -706,7 +699,8 @@ implements BootImageWriterConstants {
         // create corresponding rvm type
         //
         VM_Atom name = VM_Atom.findOrCreateAsciiAtom(typeName);
-        VM_Type type = VM_ClassLoader.findOrCreateType(name, VM_SystemClassLoader.getVMClassLoader());
+	VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), name);
+	VM_Type type = tRef.resolve();
         type.markAsBootImageClass();
 
         //
@@ -727,16 +721,6 @@ implements BootImageWriterConstants {
       }
 
       if (verbose >= 1) say(String.valueOf(bootImageTypes.size()), " types");
-
-      //
-      // Load class files.
-      //
-      if (verbose >= 1) say("loading");
-      for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
-        VM_Type type = (VM_Type) e.nextElement();
-        // if (verbose >= 1) say("loading ", type);
-        type.load();
-      }
 
       //
       // Lay out fields and method tables.
@@ -1663,12 +1647,13 @@ implements BootImageWriterConstants {
    * @return field name
    */
   private static String getRvmStaticFieldName(int jtocSlot) {
-    VM_Type[] types = VM_ClassLoader.getTypes();
+    VM_Type[] types = VM_Type.getTypes();
     for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
       VM_Type type = types[i];
+      if (type == null) continue;
       if (type.isPrimitiveType())
         continue;
-      if (!type.isLoaded())
+      if (!type.isResolved())
         continue;
       VM_Field rvmFields[] = types[i].getStaticFields();
       for (int j = 0; j < rvmFields.length; ++j) {
@@ -1826,12 +1811,14 @@ implements BootImageWriterConstants {
           contents = VM.intAsHexString(rawslot1) + pad;
           details = "<?>";
           // search for a type that this is the TIB for
-          VM_Type[] types = VM_ClassLoader.getTypes();
-          for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i)
+          VM_Type[] types = VM_Type.getTypes();
+          for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
+	    if (types[i] == null) continue;
             if (types[i].getTibSlot() == jtocSlot) {
               details = types[i].toString();
               break;
             }
+	  }
           break;
 
         default:

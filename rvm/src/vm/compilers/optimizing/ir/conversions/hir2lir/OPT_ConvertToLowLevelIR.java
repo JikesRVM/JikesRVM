@@ -731,11 +731,9 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	if (VM.BuildForITableInterfaceInvocation && methOp.hasTarget()) {
 	  VM_Class I = methOp.getTarget().getDeclaringClass();
 	  // search ITable variant
-	  if (I.isLoaded()) {
-	    itableIndex = VM_InterfaceInvocation.getITableIndex(I, 
-								methOp.getMemberRef().getName(),
-								methOp.getMemberRef().getDescriptor());
-	  }
+	  itableIndex = VM_InterfaceInvocation.getITableIndex(I, 
+							      methOp.getMemberRef().getName(),
+							      methOp.getMemberRef().getDescriptor());
 	}
 	if (itableIndex == -1) {
 	  // itable index is not known at compile-time.

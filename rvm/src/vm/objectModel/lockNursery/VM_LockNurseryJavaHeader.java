@@ -359,7 +359,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    */
   public static int getThinLockOffset(Object o) {
       VM_Type cls = VM_Magic.getObjectType(o);
-      return cls.thinLockOffset;
+      return cls.getThinLockOffset();
   }
 
   /**
@@ -374,11 +374,11 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * (if they already have one, then has no effect).
    */
   public static void allocateThinLock(VM_Type t) {
-    if (t.thinLockOffset == -1) {
+    if (t.getThinLockOffset() == -1) {
       if (VM.VerifyAssertions) VM._assert(t.isClassType());
       VM_Class klass = t.asClass();
       int fieldOffset = objectEndOffset(klass) - 4; // layout field backwards!
-      klass.thinLockOffset = fieldOffset;
+      klass.setThinLockOffset(fieldOffset);
       klass.increaseInstanceSize(4);
     }
   }

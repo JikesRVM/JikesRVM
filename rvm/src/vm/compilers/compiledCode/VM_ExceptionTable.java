@@ -44,7 +44,7 @@ public abstract class VM_ExceptionTable {
       if (instructionOffset > eTable[i + TRY_START] &&
 	  instructionOffset <= eTable[i + TRY_END]) {
 	VM_TypeReference eRef = VM_TypeReference.getTypeRef(eTable[i + EX_TYPE]);
-	VM_Type lhs = eRef.resolve(false);
+	VM_Type lhs = eRef.peekResolvedType();
 	if (lhs == exceptionType) {
 	  return eTable[i + CATCH_START];
 	} else if (lhs != null && lhs.isInitialized()) {

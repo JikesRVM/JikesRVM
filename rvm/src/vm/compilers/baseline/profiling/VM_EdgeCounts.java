@@ -61,7 +61,6 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
   }
 
   public static VM_BranchProfiles getBranchProfiles(VM_NormalMethod m) {
-    if (!m.getDeclaringClass().isLoaded()) return null;
     int id = m.getId();
     if (data == null || id >= data.length) return null;
     if (data[id] == null) return null;
@@ -90,7 +89,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     if (data == null) return;
     for (int i=0; i<data.length; i++) {
       if (data[i] != null) {
-	VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(i).asMethodReference().resolve();
+	VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
 	new VM_BranchProfiles(m, data[i]).print(f);
       }
     }

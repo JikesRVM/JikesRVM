@@ -70,16 +70,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM_EventLogger.logGarbageCollectionEvent();
   }
 
-  public static VM_Class createScalarType(String descriptor) throws VM_PragmaInterruptible {
-    VM_Atom atom = VM_Atom.findOrCreateAsciiAtom(descriptor);
-    return VM_ClassLoader.findOrCreateType(atom, VM_SystemClassLoader.getVMClassLoader()).asClass();
-  }
-
-  public static VM_Array createArrayType(String descriptor) throws VM_PragmaInterruptible {
-    VM_Atom atom = VM_Atom.findOrCreateAsciiAtom(descriptor);
-    return VM_ClassLoader.findOrCreateType(atom, VM_SystemClassLoader.getVMClassLoader()).asArray();
-  }
-
   public static VM_Address malloc(int size) throws VM_PragmaUninterruptible {
     return VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, size));
   }
@@ -578,7 +568,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static short[] newImmortalShortArray (int n) throws VM_PragmaInterruptible {
 
     if (VM.runningVM) {
-      VM_Array shortArrayType = VM_Array.arrayOfShortType;
+      VM_Array shortArrayType = VM_Array.ShortArray;
       Object [] shortArrayTib = shortArrayType.getTypeInformationBlock();
       int offset = VM_JavaHeader.computeArrayHeaderSize(shortArrayType);
       int arraySize = shortArrayType.getInstanceSize(n);
@@ -600,7 +590,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (VM.runningVM) {
       int logAlignment = 12;
       int alignment = 1 << logAlignment; // 4096
-      VM_Array stackType = VM_Array.arrayOfIntType;
+      VM_Array stackType = VM_Array.IntArray;
       Object [] stackTib = stackType.getTypeInformationBlock();
       int offset = VM_JavaHeader.computeArrayHeaderSize(stackType);
       int arraySize = stackType.getInstanceSize(n);

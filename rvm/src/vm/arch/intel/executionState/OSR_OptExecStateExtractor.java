@@ -23,9 +23,9 @@ public final class OSR_OptExecStateExtractor
              OPT_PhysicalRegisterConstants {
   
   public OSR_ExecutionState extractState(VM_Thread thread,
-				  int osrFPoff,
-				  int methFPoff,
-				  int cmid) {
+					 int osrFPoff,
+					 int methFPoff,
+					 int cmid) {
 
   /* perform machine and compiler dependent operations here
    * osrFPoff is the fp offset of 
@@ -273,7 +273,7 @@ public final class OSR_OptExecStateExtractor
 						      iterator.getBcIndex(),
 						      tsFPOffset);
     VM_MethodReference mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
-    state.setMethod((VM_NormalMethod)mref.resolve());
+    state.setMethod((VM_NormalMethod)mref.peekResolvedMethod());
     // this is not caller, but the callee, reverse it when outside
     // of this function.
     state.callerState = null;
@@ -291,7 +291,7 @@ public final class OSR_OptExecStateExtractor
 							     iterator.getBcIndex(),
 							     tsFPOffset);
 	mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
-	newstate.setMethod((VM_NormalMethod)mref.resolve());
+	newstate.setMethod((VM_NormalMethod)mref.peekResolvedMethod());
 	// this is not caller, but the callee, reverse it when outside
 	// of this function.
 	newstate.callerState = state;

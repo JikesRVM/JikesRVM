@@ -213,9 +213,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	  Empty.mutate(s, NOP);
 	  return REDUCED;
 	} else if (ans == OPT_Constants.NO) {
-	  VM_Type rType = rhsType.resolve(false);
-	  if (rType != null && rType.isResolved() && 
-	      rType.isClassType() && rType.asClass().isFinal()) {
+	  VM_Type rType = rhsType.peekResolvedType();
+	  if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
 	    // only final (or precise) rhs types can be optimized since rhsType may be conservative
 	    Trap.mutate(s, TRAP, null, OPT_TrapCodeOperand.CheckCast());
 	    return TRAP_REDUCED;
@@ -238,9 +237,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	byte ans = OPT_ClassLoaderProxy.includesType(lhsType, rhsType);
 	// NOTE: OPT_Constants.YES doesn't help because ref may be null and null instanceof T is false
 	if (ans == OPT_Constants.NO) {
-	  VM_Type rType = rhsType.resolve(false);
-	  if (rType != null && rType.isResolved() && 
-	      rType.isClassType() && rType.asClass().isFinal()) {
+	  VM_Type rType = rhsType.peekResolvedType();
+	  if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
 	    // only final (or precise) rhs types can be optimized since rhsType may be conservative
 	    Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
 	    return MOVE_FOLDED;
@@ -258,9 +256,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
 	  Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(1));
 	  return MOVE_FOLDED;
 	} else if (ans == OPT_Constants.NO) {
-	  VM_Type rType = rhsType.resolve(false);
-	  if (rType != null && rType.isResolved() && 
-	      rType.isClassType() && rType.asClass().isFinal()) {
+	  VM_Type rType = rhsType.peekResolvedType();
+	  if (rType != null && rType.isClassType() && rType.asClass().isFinal()) {
 	    // only final (or precise) rhs types can be optimized since rhsType may be conservative
 	    Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), I(0));
 	    return MOVE_FOLDED;

@@ -63,106 +63,6 @@ public class VM_ClassLoader implements VM_Constants,
     }
     return appCL;
   }
-  /**
-   * Find a type description, or create one if this is a type we haven't 
-   * seen before.
-   * @param descriptor descriptor for desired type - 
-   * something like "Ljava/lang/String;" or "[I" or "I"
-   * @return type description
-   */ 
-  public static VM_Type findOrCreateType(VM_Atom descriptor, ClassLoader cl) {
-    switch (descriptor.parseForTypeCode()) {
-    case ClassTypeCode: 
-    case ArrayTypeCode: 
-      return VM_TypeDictionary.getValue(findOrCreateTypeId(descriptor, cl));
-    case BooleanTypeCode:
-      return VM_Type.BooleanType;
-    case ByteTypeCode:
-      return VM_Type.ByteType;
-    case ShortTypeCode:
-      return VM_Type.ShortType;
-    case IntTypeCode:
-      return VM_Type.IntType;
-    case LongTypeCode:
-      return VM_Type.LongType;
-    case FloatTypeCode:
-      return VM_Type.FloatType;
-    case DoubleTypeCode:
-      return VM_Type.DoubleType;
-    case CharTypeCode:
-      return VM_Type.CharType;
-    case VoidTypeCode:
-      return VM_Type.VoidType;
-    default:
-      VM._assert(NOT_REACHED);
-      return null;
-    }
-  }
-
-  /**
-   * Find a type dictionary id, or create one if this is a type we haven't 
-   * seen before.
-   * @param descriptor descriptor for desired type - 
-   * something like "Ljava/lang/String;" or "[I" or "I"
-   * @return type dictionary id
-   */ 
-  static int findOrCreateTypeId(VM_Atom descriptor, ClassLoader classloader) {
-    int     typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
-    VM_Type type   = VM_TypeDictionary.getValue(typeId);
-    if (type != null) {
-	if (VM.runningVM && ! type.isLoaded()) type.setClassLoader(classloader);
-	return typeId;
-    } else if (descriptor.isArrayDescriptor()) { // new array type
-      VM_Array ary = new VM_Array(descriptor, typeId, classloader);
-      VM_TypeDictionary.setValue(typeId, ary);
-      return typeId;
-    } else { 
-      // new class type
-      VM_Class cls = new VM_Class(descriptor, typeId, classloader);
-      VM_TypeDictionary.setValue(typeId, cls);
-      return typeId;
-    }
-  }
-
-  /**
-   * Find a primitive type description, 
-   * or create one if this is a type we haven't seen before.
-   * @param name name for desired type       - something like "void"
-   * @param descriptor descriptor for desired type - something like "V"
-   * @return type description
-   */
-  public static VM_Type findOrCreatePrimitiveType(VM_Atom name, VM_Atom descriptor) {
-    int typeId = VM_TypeDictionary.findOrCreateId(descriptor, null);
-    VM_Type type = VM_TypeDictionary.getValue(typeId);
-    if (type == null)
-      VM_TypeDictionary.setValue(typeId, type = new VM_Primitive(name, descriptor, typeId));
-    return type;
-  }
-
-  /**
-   * Short term migration aid as we phase out the global name space
-   * @param dictId the dictionaryId of a type
-   * @return the corresponding VM_Type object
-   */
-  public static VM_Type getTypeFromId(int id) throws VM_PragmaUninterruptible {
-    return VM_TypeDictionary.getValue(id);
-  }
-  public static int numTypes() throws VM_PragmaUninterruptible {
-    return VM_TypeDictionary.getNumValues();
-  }
-  public static VM_Type[] getTypes() {
-    return VM_TypeDictionary.getValues();
-  }
-
-  public static void spaceReport() {
-    VM_Atom.spaceReport();
-    VM.sysWriteln("Backing stores for dictionaries");
-    int total = 0;
-    int size = VM_TypeDictionary.size();
-    total += size;
-    VM.sysWriteln("\tVM_TypeDictionary\t\t\t", size);
-    VM.sysWriteln("\tTotal backing store for dictionaries\t", total);
-  }
 
   /**
    * Load a dynamic library
@@ -280,7 +180,7 @@ public class VM_ClassLoader implements VM_Constants,
   /**
    * Initialize for bootimage.
    */
-  public static void init(String vmClassPath) {
+  public static void init(String vmClassPath) throws ClassNotFoundException {
     // specify place where vm classes and resources live
     //
     setVmRepositories(vmClassPath);
@@ -375,60 +275,124 @@ public class VM_ClassLoader implements VM_Constants,
     return newarray;
   }
 
-  public static final void resolveClassInternal(Class clazz) {
-    VM_Type cls = java.lang.JikesRVMSupport.getTypeForClass(clazz);
-    try {
-      cls.resolve();
-    } catch (VM_ResolutionException e) { 
-      VM.sysWrite("ERROR: DROPPING EXCEPTION: "+e+" ON THE FLOOR\n");
-    }
-    cls.instantiate();
-    cls.initialize();
-  }
-
-  public static final Class defineClassInternal(String className, 
-                                                byte[] classRep, 
-                                                int offset, 
-                                                int length, 
-                                                ClassLoader classloader, 
-                                                ProtectionDomain pd) throws ClassFormatError {
-    Class c = defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
-    java.lang.JikesRVMSupport.setClassProtectionDomain(c, pd);
-    return c;
-  }
-
-  public static final Class defineClassInternal(String className, 
-                                                byte[] classRep, 
-                                                int offset, 
-                                                int length, 
-                                                ClassLoader classloader) throws ClassFormatError {
+  public static final VM_Type defineClassInternal(String className, 
+						  byte[] classRep, 
+						  int offset, 
+						  int length, 
+						  ClassLoader classloader) throws ClassFormatError, ClassNotFoundException {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
-  public static final Class defineClassInternal(String className, 
-                                                InputStream is, 
-                                                ClassLoader classloader, 
-                                                ProtectionDomain pd) throws ClassFormatError {
-    Class c = defineClassInternal(className, is, classloader);
-    java.lang.JikesRVMSupport.setClassProtectionDomain(c, pd);
-    return c;
-  }
+  public static final VM_Type defineClassInternal(String className, 
+						  InputStream is, 
+						  ClassLoader classloader) throws ClassFormatError, ClassNotFoundException {
+    VM_TypeReference tRef;
+    if (className == null) {
+      // NUTS: Our caller hasn't bothered to tell us what this class is supposed
+      //       to be called, so we must read the input stream and discover it overselves
+      //       before we actually can create the VM_Class instance.
+      try {
+	is.mark(is.available());
+	tRef = getClassTypeRef(new DataInputStream(is), classloader);
+	is.reset();
+      } catch (IOException e) {
+	throw new ClassFormatError(e.getMessage());
+      }
+    } else {
+      VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+      tRef = VM_TypeReference.findOrCreate(classloader, classDescriptor);
+    }
 
-  public static final Class defineClassInternal(String className, 
-                                                InputStream is, 
-                                                ClassLoader classloader) throws ClassFormatError {
-
-    VM_Atom classDescriptor = null;
-    if (className != null)
-      classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-
-    if (VM.TraceClassLoading  && VM.runningVM)
-      VM.sysWrite("loading " + classDescriptor + " with " + classloader);
-      
     try {
-      return VM_Class.load(new DataInputStream(is), classloader, classDescriptor).getClassForType();
+      if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
+      if (VM.TraceClassLoading  && VM.runningVM)
+	VM.sysWrite("loading " + tRef.getName() + " with " + classloader);
+      VM_Class ans = new VM_Class(tRef, new DataInputStream(is));
+      tRef.setResolvedType(ans);
+      return ans;
     } catch (IOException e) {
+      e.printStackTrace();
       throw new ClassFormatError(e.getMessage());
     }
   }
+
+  // Shamelessly cloned & owned from VM_Class constructor....
+  private static VM_TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl) throws IOException, ClassFormatError {
+    int magic = input.readInt();
+    if (magic != 0xCAFEBABE) {
+      throw new ClassFormatError("bad magic number " + Integer.toHexString(magic));
+    }
+
+    // Drop class file version number on floor. VM_Class constructor will do the check later.
+    int minor = input.readUnsignedShort();
+    int major = input.readUnsignedShort();
+    
+    //
+    // pass 1: read constant pool
+    //
+    int[] constantPool = new int[input.readUnsignedShort()];
+    byte tmpTags[] = new byte[constantPool.length];
+
+    // note: slot 0 is unused
+    for (int i = 1; i <constantPool.length; i++) {
+      switch (tmpTags[i] = input.readByte()) {
+      case TAG_UTF:  {
+	byte utf[] = new byte[input.readUnsignedShort()];
+	input.readFully(utf);
+	constantPool[i] = VM_Atom.findOrCreateUtf8Atom(utf).getId();
+	break;  
+      }
+
+      case TAG_UNUSED: break;
+      
+      case TAG_INT: case TAG_FLOAT:
+      case TAG_FIELDREF:
+      case TAG_METHODREF:
+      case TAG_INTERFACE_METHODREF: 
+      case TAG_MEMBERNAME_AND_DESCRIPTOR: 
+	input.readInt(); // drop on floor
+	break;
+
+      case TAG_LONG: case TAG_DOUBLE:
+	i++; input.readLong(); // drop on floor
+	break;
+
+      case TAG_TYPEREF:
+	constantPool[i] = input.readUnsignedShort();
+	break;
+
+      case TAG_STRING:
+	input.readUnsignedShort(); // drop on floor
+	break;
+
+      default:
+	throw new ClassFormatError("bad constant pool");
+      }
+    }
+    
+    //
+    // pass 2: post-process type constant pool entries 
+    // (we must do this in a second pass because of forward references)
+    //
+    for (int i = 1; i<constantPool.length; i++) {
+      switch (tmpTags[i]) {
+      case TAG_LONG:
+      case TAG_DOUBLE: 
+	++i;
+	break; 
+
+      case TAG_TYPEREF: { // in: utf index
+	VM_Atom typeName = VM_Atom.getAtom(constantPool[constantPool[i]]);
+	constantPool[i] = VM_TypeReference.findOrCreate(cl, typeName.descriptorFromClassName()).getId();
+	break; 
+      } // out: type reference id
+      }
+    }
+
+    // drop modifiers on floor.
+    input.readUnsignedShort();
+
+    int myTypeIndex = input.readUnsignedShort();
+    return VM_TypeReference.getTypeRef(constantPool[myTypeIndex]);
+  }    
 }

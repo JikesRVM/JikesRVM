@@ -1076,7 +1076,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void registerUse (OPT_Instruction s, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
-    VM_Field f = fr.resolve(false);
+    VM_Field f = fr.peekResolvedField();
     OPT_HeapVariable H;
     if (f == null) {
       // can't resolve field at compile time.
@@ -1110,7 +1110,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
-    VM_Field f = fr.resolve(false);
+    VM_Field f = fr.peekResolvedField();
     OPT_HeapVariable H;
     if (f == null) {
       // can't resolve field at compile time.

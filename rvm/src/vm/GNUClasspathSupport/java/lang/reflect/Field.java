@@ -88,19 +88,23 @@ public final class Field extends AccessibleObject implements Member {
     }
 
     public String getName() {
-	return field.getName().toString();
+      return field.getName().toString();
     }
     
     public short getShort(Object object) throws IllegalAccessException, IllegalArgumentException {
-	return field.getShortValue( object );
+      return field.getShortValue( object );
     }
 
     public String getSignature() {
-	return field.getDescriptor().toString();
+      return field.getDescriptor().toString();
     }
 
     public Class getType() {
-	return field.getType().resolve(true).getClassForType();
+      try {
+	return field.getType().resolve().getClassForType();
+      } catch (ClassNotFoundException e) {
+	throw new InternalError("How can this happen??");
+      }
     }
 
     public int hashCode() {

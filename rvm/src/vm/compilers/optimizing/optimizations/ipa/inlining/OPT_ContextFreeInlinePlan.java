@@ -114,11 +114,13 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
 	VM_TypeReference tref = VM_TypeReference.findOrCreate(classloader, calleeClass);
         calleeRef = VM_MemberReference.findOrCreate(tref, calleeName, calleeDescriptor).asMethodReference();
       }
-      VM_Method caller = callerRef.resolve(true);
-      VM_Method callee = calleeRef.resolve(true);
-      if (caller != null && callee != null) {
-	addRule(caller, bytecodeOffset, callee);
-      }
+      try {
+	VM_Method caller = callerRef.resolve();
+	VM_Method callee = calleeRef.resolve();
+	if (caller != null && callee != null) {
+	  addRule(caller, bytecodeOffset, callee);
+	}
+      } catch (ClassNotFoundException e) {}
       s = in.readLine();
     }
   }

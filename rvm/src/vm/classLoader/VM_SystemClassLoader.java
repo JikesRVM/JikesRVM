@@ -27,6 +27,9 @@ import com.ibm.JikesRVM.librarySupport.FileSupport;
  */
 public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
+  private HashMap loaded = new HashMap(); // Map Strings to VM_Types.
+
+
   public static void boot() {
     zipFileCache = new HashMap();
     //-#if RVM_WITH_GNU_CLASSPATH
@@ -53,87 +56,50 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     return vmClassLoader;
   }
   
-  private static final class Timer {
-    private double startTime; 
-    private double endTime;   
 
-    public double elapsedTime() { return endTime - startTime; }
-    
-    public void start() {
-      startTime = VM_Time.now();
-    }
-
-    public void finish() {
-      endTime = VM_Time.now();
+  /**
+   * Backdoor for use by VM_TypeReference.resolve when !VM.runningVM.
+   */
+  synchronized VM_Type loadVMClass(String className) throws ClassNotFoundException {
+    try {	    
+      InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
+      DataInputStream dataInputStream = new DataInputStream(is);
+      VM_Type type = null;
+      try {
+	type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
+	loaded.put(className, type);
+      } finally {
+	try {
+	  // Make sure the input stream is closed.
+	  dataInputStream.close();
+	} catch (IOException e) { }
+      }
+      return type;
+    } catch (Throwable e) {
+      // We didn't find the class, or it wasn't valid, etc.
+      e.printStackTrace();
+      throw new ClassNotFoundException(className);
     }
   }
-
 
   public synchronized Class loadClass(String className, boolean resolveClass)
     throws ClassNotFoundException {
-    Timer timer = null;
-    if (VM.MeasureClassLoading()) {
-      timer = new Timer();
-      timer.start();
+
+    if (className.startsWith("L") && className.endsWith(";")) {
+      className = className.substring(1, className.length()-2);
     }
-
-    Class loadedClass = null;
-
-    // Ask the VM to look in its cache.
-    loadedClass = findLoadedClassInternal(className);
-
-    if (loadedClass == null) loadedClass = findClass(className);
-
-    // resolve if required
-    if (resolveClass) resolveClass(loadedClass);
-
-    if (VM.MeasureClassLoading()) {
-      timer.finish();
-      record(className, loadedClass, timer);
+    VM_Type loadedType = (VM_Type)loaded.get(className);
+    Class loadedClass;
+    if (loadedType == null) {
+      loadedClass = findClass(className);
+    } else {
+      loadedClass = loadedType.getClassForType();
     }
-
+    if (resolveClass) {
+      resolveClass(loadedClass);
+    }
     return loadedClass;
   }
-
-  private static final class Report {
-    final String name;
-    final Class klass;
-    final double time;
-    Report next;
-    Report(String name, Class klass, double time) {
-      this.name = name;
-      this.klass = klass;
-      this.time = time;
-    }
-  }
-
-  /** The head of the reports. */
-  private Report firstReport;
-
-  /** The current report. */
-  private Report currentReport;
-
-  /**
-   * Records the time spent loading a class.
-   *
-   * @param className   Name of the class.
-   * @param loadedClass Class that was loaded.
-   * @param timer       Timer used to time loading.
-   */
-  private void record(String className, Class loadedClass, Timer timer) {
-    if (VM.MeasureClassLoading == 1) {
-      final Report report = new Report(className, loadedClass, timer.elapsedTime());
-      if (firstReport == null) {
-	firstReport = currentReport = report;
-      } else {
-	currentReport = currentReport.next = report;
-      }
-    } else {
-      VM.sysWrite("[Loaded " + className + " in " + 
-		  timer.elapsedTime() + " ms.]\n");
-    }
-  }
-
 
   /**
    * Search the system class loader's classpath for given class.
@@ -142,47 +108,33 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
    * @return the class object, if it was found
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
-  protected Class findClass (String className) throws ClassNotFoundException {
+  public Class findClass (String className) throws ClassNotFoundException {
     if (className.startsWith("[")) {
-      // array types: recursively load element type
-      Class eltClass = loadClass( className.substring(1), false );
-      VM_Type eltType = java.lang.JikesRVMSupport.getTypeForClass(eltClass);
-      VM_Atom descr = eltType.getDescriptor().arrayDescriptorFromElementDescriptor();
-      VM_Array type = (VM_Array)VM_ClassLoader.findOrCreateType(descr, this);
-      try {
-	type.load();
-      } catch (VM_ResolutionException e) {
-	throw new ClassNotFoundException( className );
-      }
-      return type.getClassForType();
+      VM_TypeReference typeRef = VM_TypeReference.findOrCreate(this, 
+							       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')));
+      VM_Type ans = typeRef.resolve();
+      loaded.put(className, ans);
+      return ans.getClassForType();
     } else {	
       // class types: try to find the class file
       try {	    
-	Class cls = null;
-
-	if (className.startsWith("L")&&className.endsWith(";")) {
+	if (className.startsWith("L") && className.endsWith(";")) {
 	  className = className.substring(1, className.length()-2);
 	}
-
-	// See if we can open a stream on the bytes which supposedly
-	// represent this class.
 	InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
-	
-	// Try to load the class.
 	DataInputStream dataInputStream = new DataInputStream(is);
+	Class cls = null;
 	try {
-	  cls = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
+	  VM_Type type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
+	  loaded.put(className, type);
+	  cls = type.getClassForType();
 	} finally {
-	  // Make sure the input stream is closed.
 	  try {
+	    // Make sure the input stream is closed.
 	    dataInputStream.close();
-	  }
-	  catch (IOException e) {
-	  }
+	  } catch (IOException e) { }
 	}
-	
 	return cls;
-
       } catch (Throwable e) {
 	// We didn't find the class, or it wasn't valid, etc.
 	throw new ClassNotFoundException(className);
@@ -190,70 +142,8 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     }
   }
   
-  /**
-   * Attempts to find and return a class which has already
-   * been loaded by the virtual machine. Note that the class
-   * may not have been linked and the caller should call
-   * resolveClass() on the result if necessary.
-   *
-   * @return              java.lang.Class
-   *                                      the class or null.
-   * @param               className String
-   *                                      the name of the class to search for.
-   */
-  public final Class findLoadedClassInternal (String className) {
-    if (VM.VerifyAssertions) VM._assert(className != null);
-
-    // make a descriptor from the class name string
-    VM_Atom classDescriptor;
-    if (className.startsWith("[")||(className.startsWith("L")&&className.endsWith(";"))) {
-      classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
-    } else {
-      classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    }
-
-    // check if the type dictionary has a loaded class
-    int typeId = VM_TypeDictionary.findId(classDescriptor); 
-    if (typeId == -1) return null;
-    VM_Type t = VM_TypeDictionary.getValue(typeId);
-    if (t == null) return null;
-    if (!t.isLoaded()) return null;
-    
-    // make sure it was loaded by the system class loader (this one)
-    ClassLoader cl = t.getClassLoader();
-    if (! (cl == null || cl == this || t.isInBootImage())) return null;
-
-    // found it. return the class
-    return t.getClassForType();
-  }
-
   public String toString() { return "SystemCL"; }
 
-  /**
-   * Initialize for measuring class loading.
-   */
-  public static void initializeMeasureClassLoading() {
-    if (VM.MeasureClassLoading == 1) {
-      VM_Callbacks.addExitMonitor(new Reporter(getVMClassLoader()));
-    }
-  }
-
-  /**
-   * Used for timing the class loading.
-   */
-  private final static class Reporter implements VM_Callbacks.ExitMonitor {
-    private final VM_SystemClassLoader cl;
-    Reporter(VM_SystemClassLoader cl) { this.cl = cl; }
-    public void notifyExit(int value) {
-      VM.sysWrite("Class Loader Report (" + value + ")");
-      for (Report p = cl.firstReport; p != null; p = p.next) {
-	VM.sysWrite("\t" + p.name + 
-		    "\t" + p.time +
-		    "\n");
-      }
-    }
-  }
-    
   private static HashMap zipFileCache;
     
   private interface Handler {
@@ -277,7 +167,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	}
       };
 
-    return (InputStream) getResourceInternal(name, findStream, false);
+    return (InputStream)getResourceInternal(name, findStream, false);
   }
 
   public URL findResource(final String name) {
@@ -295,7 +185,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	}
       };
 
-      return (URL) getResourceInternal(name, findURL, false);
+      return (URL)getResourceInternal(name, findURL, false);
   }
 
   public Enumeration findResources(final String name) {
@@ -313,7 +203,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	}
       };
 
-    return (Enumeration) getResourceInternal(name, findURL, true);
+    return (Enumeration)getResourceInternal(name, findURL, true);
   }
 
   private Object getResourceInternal(String name, Handler h, boolean multiple) {
@@ -367,16 +257,10 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     return (multiple)? h.getResult() : null;
   }
 
-    protected String findLibrary(String libName) {
-	String platformLibName = System.mapLibraryName( libName );
-	
-	String path = VM_ClassLoader.getSystemNativePath();
-
-	String lib = path + File.separator + platformLibName;
-
-	if (VM_FileSystem.access(lib, FileSupport.ACCESS_R_OK) == 0)
-	    return lib;
-	else
-	    return null;
-    }
+  protected String findLibrary(String libName) {
+    String platformLibName = System.mapLibraryName(libName);
+    String path = VM_ClassLoader.getSystemNativePath();
+    String lib = path + File.separator + platformLibName;
+    return VM_FileSystem.access(lib, FileSupport.ACCESS_R_OK) == 0 ? lib : null;
+  }
 }

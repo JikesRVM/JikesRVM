@@ -29,9 +29,9 @@ public class VM_MultianewarrayHelper {
    * See also: bytecode 0xc5 ("multianewarray") in VM_Compiler
    */
   static Object newArrayArray(int numDimensions, int id, int argOffset)
-    throws VM_ResolutionException, 
-	   NegativeArraySizeException, 
-	   OutOfMemoryError {
+    throws NegativeArraySizeException, 
+	   OutOfMemoryError,
+	   ClassNotFoundException {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];
@@ -51,7 +51,7 @@ public class VM_MultianewarrayHelper {
     // create array
     //
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Array array = tRef.resolve(true).asArray();
+    VM_Array array = tRef.resolve().asArray();
     return VM_Runtime.buildMultiDimensionalArray(numElements, 0, array);
   }
 }

@@ -169,14 +169,14 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  inst.remove();
 	} else {
 	  OPT_Operand ref = MonitorOp.getClearRef(inst);
-	  VM_Type refType = ref.getType().resolve(false);
-	  if (refType != null && refType.thinLockOffset != -1) {
+	  VM_Type refType = ref.getType().peekResolvedType();
+	  if (refType != null && refType.getThinLockOffset() != -1) {
 	    VM_Method target = VM_Entrypoints.inlineLockMethod;
 	    Call.mutate2(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()),
 			 OPT_MethodOperand.STATIC(target),
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
-			 new OPT_IntConstantOperand(refType.thinLockOffset));
+			 new OPT_IntConstantOperand(refType.getThinLockOffset()));
 	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
 	    container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -198,14 +198,14 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  inst.remove();
 	} else {
 	  OPT_Operand ref = MonitorOp.getClearRef(inst);
-	  VM_Type refType = ref.getType().resolve(false);
-	  if (refType != null && refType.thinLockOffset != -1) {
+	  VM_Type refType = ref.getType().peekResolvedType();
+	  if (refType != null && refType.getThinLockOffset() != -1) {
 	    VM_Method target = VM_Entrypoints.inlineUnlockMethod;
 	    Call.mutate2(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
 			 OPT_MethodOperand.STATIC(target),
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
-			 new OPT_IntConstantOperand(refType.thinLockOffset));
+			 new OPT_IntConstantOperand(refType.getThinLockOffset()));
 	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
 	    container.counter2++;
 	    if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {

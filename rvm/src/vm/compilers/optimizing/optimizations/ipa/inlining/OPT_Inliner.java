@@ -216,7 +216,7 @@ public class OPT_Inliner implements OPT_Operators,
 	    (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
 	  VM_Type interfaceType = mo.getTarget().getDeclaringClass();
 	  VM_TypeReference recTypeRef = receiver.type;
-	  VM_Class recType = (VM_Class)recTypeRef.resolve(false);
+	  VM_Class recType = (VM_Class)recTypeRef.peekResolvedType();
 	  // Attempt to avoid inserting the check by seeing if the 
 	  // known static type of the receiver implements the interface.
 	  boolean requiresImplementsTest = true;

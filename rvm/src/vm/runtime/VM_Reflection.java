@@ -25,13 +25,12 @@ public class VM_Reflection implements VM_Constants {
    * @return return value (wrapped if primitive)
    * See also: java/lang/reflect/Method.invoke()
    */ 
-  public static Object invoke(VM_Method method, Object thisArg, 
-                              Object[] otherArgs) throws VM_ResolutionException {
+  public static Object invoke(VM_Method method, Object thisArg, Object[] otherArgs) {
     return invoke(method, thisArg, otherArgs, false);
   }
 
   public static Object invoke(VM_Method method, Object thisArg, 
-                              Object[] otherArgs, boolean isNonvirtual) throws VM_ResolutionException {
+                              Object[] otherArgs, boolean isNonvirtual) {
 
     // the class must be initialized before we can invoke a method
     //

@@ -27,17 +27,17 @@ public class VM extends VM_Properties
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */ 
   public static void initForBootImageWriter(String classPath, 
-                                     String[] bootCompilerArgs) 
-    throws VM_ResolutionException, VM_PragmaInterruptible {
+					    String[] bootCompilerArgs) 
+    throws VM_PragmaInterruptible, ClassNotFoundException {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
 
   /**
    * Prepare vm classes for use by tools.
-   * @exception VM_ResolutionException
    */
-  public static void initForTool() throws VM_ResolutionException, VM_PragmaInterruptible  {
+  public static void initForTool() 
+    throws VM_PragmaInterruptible, ClassNotFoundException   {
     runningTool = true;
     init(System.getProperty("java.class.path"), null);
   }
@@ -45,9 +45,9 @@ public class VM extends VM_Properties
   /**
    * Prepare vm classes for use by tools.
    * @param classpath class path to be used by VM_ClassLoader
-   * @exception VM_ResolutionException
    */
-  public static void initForTool(String classpath) throws VM_ResolutionException, VM_PragmaInterruptible {
+  public static void initForTool(String classpath) 
+    throws VM_PragmaInterruptible, ClassNotFoundException {
     runningTool = true;
     init(classpath, null);
   }
@@ -181,7 +181,6 @@ public class VM extends VM_Properties
     runClassInitializer("java.security.Policy");
     //-#endif
     runClassInitializer("java.lang.ClassLoader");
-    runClassInitializer("com.ibm.JikesRVM.librarySupport.ReflectionSupport");
     runClassInitializer("java.lang.Math");
     //-#if !RVM_WITH_GNU_CLASSPATH
     runClassInitializer("java.lang.RuntimePermission");
@@ -321,7 +320,7 @@ public class VM extends VM_Properties
   private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
       if (verbose >= 2) {
-	VM.sysWrite(classObjects[i]); 
+	VM.sysWrite(classObjects[i].toString()); 
 	VM.sysWriteln();
       }
       classObjects[i].getClassForType();
@@ -341,8 +340,9 @@ public class VM extends VM_Properties
 
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
-    if (cls.isInBootImage()) {
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
+    VM_Class cls = (VM_Class)tRef.peekResolvedType();
+    if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
       clinit.compile();
       if (verbose >= 10) VM.sysWriteln("invoking method " + clinit);
@@ -426,14 +426,6 @@ public class VM extends VM_Properties
    */
   public static void sysWrite(VM_Member value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     sysWrite(value.getMemberRef());
-  }
-
-  /**
-   * Low level print to console.
-   * @param value  what is printed
-   */
-  public static void sysWrite(VM_Type value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    sysWrite(value.toString());
   }
 
   /**
@@ -955,52 +947,27 @@ public class VM extends VM_Properties
    *                         boot compiler's init routine.
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
-    throws VM_ResolutionException, VM_PragmaInterruptible {
-      // create dummy boot record
-      //
-      VM_BootRecord.the_boot_record = new VM_BootRecord();
+    throws VM_PragmaInterruptible, ClassNotFoundException {
+    // create dummy boot record
+    //
+    VM_BootRecord.the_boot_record = new VM_BootRecord();
 
-      // initialize type subsystem - create type descriptions for java.lang.Object 
-      // and the classes whose methods it calls. we do this in an order chosen to 
-      // ensure that offset and size information needed by the compiler to 
-      // perform "direct" (non-dynamically linked) calls is ready before any 
-      // method calls are compiled.
-      //
-      VM_ClassLoader.init(vmClassPath);
-      VM_Class object       = VM_Type.JavaLangObjectType.asClass();
-      VM_Class string       = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-      VM_Class stringBuffer = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Ljava/lang/StringBuffer;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-      VM_Class vm           = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-      VM_Class runtime      = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Runtime;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+    // initialize type subsystem and classloader
+    VM_ClassLoader.init(vmClassPath);
 
-      // initialize JNI environment
-      VM_JNIEnvironment.init();
+    // initialize JNI environment
+    VM_JNIEnvironment.init();
 
-      // load class descriptions
-      //
-      object.load();
-      string.load();
-      stringBuffer.load();
-      vm.load();
-      runtime.load();
-
-      // generate size and offset information needed for compiling methods of java.lang.Object
-      //
-      object.resolve();
-      string.resolve();
-      stringBuffer.resolve();
-      vm.resolve();
-      runtime.resolve();
-      // initialize remaining subsystems needed for compilation
-      //
-      VM_Entrypoints.init();
-      VM_OutOfLineMachineCode.init();
-      if (writingBootImage) // initialize compiler that builds boot image
-        VM_BootImageCompiler.init(bootCompilerArgs);
-      VM_Runtime.init();
-      VM_Scheduler.init();
-      VM_Interface.init();
-    }
+    // initialize remaining subsystems needed for compilation
+    //
+    VM_Entrypoints.init();
+    VM_OutOfLineMachineCode.init();
+    if (writingBootImage) // initialize compiler that builds boot image
+      VM_BootImageCompiler.init(bootCompilerArgs);
+    VM_Runtime.init();
+    VM_Scheduler.init();
+    VM_Interface.init();
+  }
 
   /**
    * The following two methods are for use as guards to protect code that 

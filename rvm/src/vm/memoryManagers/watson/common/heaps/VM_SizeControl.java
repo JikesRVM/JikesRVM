@@ -24,10 +24,10 @@ import com.ibm.JikesRVM.VM_ObjectModel;
  *
  * @see VM_Allocator
  * @author Dick Attanasio
- *
  */
 public final class VM_SizeControl implements VM_Constants {
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+								     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;"));
 
   int first_block;
   int current_block;
@@ -36,5 +36,4 @@ public final class VM_SizeControl implements VM_Constants {
   int ndx;
   VM_Address next_slot;
   int lastBlockToKeep;        // GSC
-
 }

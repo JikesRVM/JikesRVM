@@ -1863,7 +1863,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getstatic(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.resolve().getOffset();
+    int fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPUSH_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
@@ -1898,7 +1898,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.resolve().getOffset();
+    int fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
     }
@@ -1936,7 +1936,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.resolve().getOffset();
+    int fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
@@ -1984,7 +1984,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
-    int fieldOffset = fieldRef.resolve().getOffset();
+    int fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
     }
@@ -2032,7 +2032,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_invokevirtual(VM_MethodReference methodRef) {
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
-    int methodRefOffset = methodRef.resolve().getOffset();
+    int methodRefOffset = methodRef.peekResolvedMethod().getOffset();
     int objectOffset = (methodRefparameterWords << 2) - WORDSIZE; // object offset into stack
     asm.emitMOV_Reg_RegDisp (T1, SP, objectOffset);
     VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
@@ -2091,7 +2091,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param methodRef the referenced method
    */
   protected final void emit_resolved_invokestatic(VM_MethodReference methodRef) {
-    int methodOffset = methodRef.resolve().getOffset();
+    int methodOffset = methodRef.peekResolvedMethod().getOffset();
     genParameterRegisterLoad(methodRef, false);
     asm.emitCALL_RegDisp(JTOC, methodOffset);
     genResultRegisterUnload(methodRef);
@@ -2107,11 +2107,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
 
     VM_Method resolvedMethod = null;
-    try {
-      resolvedMethod = methodRef.resolveInterfaceMethod(false);
-    } catch (VM_ResolutionException e) {
-      // actually can't be thrown when we pass false for canLoad.
-    }
+    resolvedMethod = methodRef.peekInterfaceMethod();
 
     // (1) Emit dynamic type checking sequence if required to do so inline.
     if (VM.BuildForIMTInterfaceInvocation || 

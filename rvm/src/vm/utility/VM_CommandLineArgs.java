@@ -648,7 +648,7 @@ public class VM_CommandLineArgs {
           } catch (Throwable t) {} // don't worry
           if (VM.MeasureClassLoading == 1 |
               VM.MeasureClassLoading == 2) {
-            VM_SystemClassLoader.initializeMeasureClassLoading();
+	    VM.sysWrite("Currently not supported...ignoring -X:measureClassLoading");
           } else if (VM.MeasureClassLoading != 0) {
             VM.sysWrite("vm: -X:measureClassLoading=<option>, " +
                         "where option is 1 or 2\n");

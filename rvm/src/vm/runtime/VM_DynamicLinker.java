@@ -20,7 +20,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (method dispatch table is updated and method is executed)
    */
-  static void lazyMethodInvoker() throws VM_ResolutionException {
+  static void lazyMethodInvoker() throws ClassNotFoundException {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     DL_Helper.compileMethod(dl, targMethod);
@@ -35,7 +35,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (throws UnsatisfiedLinkError)
    */
-  static void unimplementedNativeMethod() throws VM_ResolutionException {
+  static void unimplementedNativeMethod() throws ClassNotFoundException {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     throw new UnsatisfiedLinkError(targMethod.toString());
@@ -54,7 +54,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Taken:       nothing (call stack is examined to find invocation site)
      * Returned:    VM_DynamicLink that describes call site.
      */
-    static VM_DynamicLink resolveDynamicInvocation() throws VM_ResolutionException, VM_PragmaNoInline {
+    static VM_DynamicLink resolveDynamicInvocation() throws VM_PragmaNoInline {
 
       // find call site 
       //
@@ -81,7 +81,8 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Taken:       VM_DynamicLink that describes call site.
      * Returned:    VM_Method that should be invoked.
      */
-    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) throws VM_ResolutionException, VM_PragmaNoInline {
+    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) 
+      throws ClassNotFoundException, VM_PragmaNoInline {
       // resolve symbolic method reference into actual method
       //
       VM_MethodReference methodRef = dynamicLink.methodRef();
@@ -97,8 +98,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
 	VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
 	if (targetMethod == null) {
-	  throw new VM_ResolutionException(targetClass.getDescriptor(), 
-					   new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor()));
+	  throw new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor());
 	}
 	return targetMethod;
       }
@@ -109,7 +109,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Compile (if necessary) targetMethod and patch the appropriate disaptch tables
      * @param targetMethod the VM_Method to compile (if not already compiled)
      */
-    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) throws VM_ResolutionException, VM_PragmaNoInline {
+    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) throws VM_PragmaNoInline {
 
       VM_Class targetClass = targetMethod.getDeclaringClass();
 

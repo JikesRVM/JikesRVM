@@ -336,7 +336,7 @@ class OptTestHarness {
     }
   }
 
-  private static void compileMethodsInVector() throws VM_ResolutionException {
+  private static void compileMethodsInVector() {
     // Compile all baseline methods first
     int size = baselineMethodVector.size() ;
     VM.sysWrite("Compiling " + size + " methods baseline\n");
@@ -377,8 +377,9 @@ class OptTestHarness {
   }
 
   private static void executeCommand() 
-   throws InvocationTargetException, IOException,
-     IllegalAccessException, VM_ResolutionException {
+   throws InvocationTargetException, 
+	  IOException,
+	  IllegalAccessException {
     compileMethodsInVector();
 
     if(EXECUTE_WITH_REFLECTION == true) {
@@ -408,8 +409,7 @@ class OptTestHarness {
   public static void main(String args[]) 
     throws InvocationTargetException, 
 	   IOException,
-	   IllegalAccessException, 
-	   VM_ResolutionException {
+	   IllegalAccessException {
     cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector(50);
     optOptionsVector = new Vector(50);

@@ -57,8 +57,8 @@ public final class VM_FieldReference extends VM_MemberReference {
     if (this == that) return false;
     if (getName() != that.getName() ||
 	getDescriptor() != that.getDescriptor()) return true;
-    VM_Field mine = resolve(false);
-    VM_Field theirs = that.resolve(false);
+    VM_Field mine = peekResolvedField();
+    VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
     return mine != theirs;
   }
@@ -71,8 +71,8 @@ public final class VM_FieldReference extends VM_MemberReference {
     if (this == that) return true;
     if (getName() != that.getName() ||
 	getDescriptor() != that.getDescriptor()) return false;
-    VM_Field mine = resolve(false);
-    VM_Field theirs = that.resolve(false);
+    VM_Field mine = peekResolvedField();
+    VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
     return mine == theirs;
   }
@@ -97,25 +97,13 @@ public final class VM_FieldReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.2.
    * @return the VM_Field that this method ref resolved to or null if it cannot be resolved.
    */
-  public final VM_Field resolve(boolean canLoad) {
+  public final VM_Field peekResolvedField() {
     if (resolvedMember != null) return resolvedMember;
     
-    // Hasn't been resolved yet. Try to do it now.
-    VM_Class declaringClass = (VM_Class)type.resolve(canLoad);
+    // Hasn't been resolved yet. Try to do it now without triggering class loading.
+    VM_Class declaringClass = (VM_Class)type.peekResolvedType();
     if (declaringClass == null) return null;
-    if (!declaringClass.isResolved()) {
-      if (canLoad) {
-	try {
-	  declaringClass.load();
-	  declaringClass.resolve();
-	} catch (VM_ResolutionException e) {
-	  return null;
-	}
-      } else {
-	return null;
-      }
-    }
-    return resolve();
+    return resolveInternal(declaringClass);
   }
 
   /**
@@ -123,12 +111,17 @@ public final class VM_FieldReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.2.
    * @return the VM_Field that this method ref resolved to.
    */
-  public final VM_Field resolve() {
+  public final VM_Field resolve() throws ClassNotFoundException {
     if (resolvedMember != null) return resolvedMember;
     
-    // Hasn't been resolved yet. Do it now.
-    VM_Class declaringClass = (VM_Class)type.resolve(true);
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+    // Hasn't been resolved yet. Do it now triggering class loading if necessary.
+    return resolveInternal((VM_Class)type.resolve());
+  }
+
+  private final VM_Field resolveInternal(VM_Class declaringClass) {
+    if (!declaringClass.isResolved()) {
+      declaringClass.resolve();
+    }
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
       // Look in this class
       VM_Field it = c.findDeclaredField(name, descriptor);

@@ -1549,7 +1549,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
 	} else {
-	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.resolve());
+	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
 	  emit_resolved_invokevirtual(methodRef);
 	}
 
@@ -1617,7 +1617,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic "+methodRef);
 	  emit_unresolved_invokestatic(methodRef);
 	} else {
-	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.resolve());
+	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
 	  emit_resolved_invokestatic(methodRef);
 	}
 
@@ -1669,8 +1669,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	VM_TypeReference typeRef = bcodes.getTypeReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "new " + typeRef);
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+typeRef);
-	VM_Type type = typeRef.resolve(false);
-	if (type != null && type.isInitialized() || type.isInBootImage()) { 
+	VM_Type type = typeRef.peekResolvedType();
+	if (type != null && (type.isInitialized() || type.isInBootImage())) { 
 	  emit_resolved_new(type.asClass());
 	} else { 
 	  emit_unresolved_new(typeRef);
@@ -1697,18 +1697,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	
 	// We can do early resolution of the array type if the element type 
 	// is already initialized.
-	VM_Array array = arrayRef.resolve(false).asArray();
+	VM_Array array = (VM_Array)arrayRef.peekResolvedType();
 	if (array != null && !(array.isInitialized() || array.isInBootImage())) {
-	  VM_Type elementType = elementTypeRef.resolve(false);
+	  VM_Type elementType = elementTypeRef.peekResolvedType();
 	  if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
-	    try {
-	      array.load();
-	      array.resolve();
-	      array.instantiate();
-	    } catch (VM_ResolutionException e) {
-	      // can't raise any errors if the element type is already initialized/or in boot image
-	      if (VM.VerifyAssertions) VM._assert(false); 
-	    }
+	    array.resolve();
+	    array.instantiate();
 	  }
 	  if (array.isInitialized() || array.isInBootImage()) {
 	    emit_resolved_newarray(array);
@@ -1736,15 +1730,15 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       case JBC_checkcast: {
 	VM_TypeReference typeRef = bcodes.getTypeReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "checkcast " + typeRef);
-	VM_Type type = typeRef.resolve(false);
+	VM_Type type = typeRef.peekResolvedType();
 	if (type != null) {
-	  if (type.isClassType() && type.isLoaded() && type.asClass().isFinal()) {
+	  if (type.isClassType() && type.asClass().isFinal()) {
 	    emit_checkcast_final(type);
 	    break;
 	  } else if (type.isArrayType()) {
 	    VM_Type elemType = type.asArray().getElementType();
 	    if (elemType.isPrimitiveType() || 
-		(elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
+		(elemType.isClassType() && elemType.asClass().isFinal())) {
 	      emit_checkcast_final(type);
 	      break;
 	    }
@@ -1758,15 +1752,15 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       case JBC_instanceof: {
 	VM_TypeReference typeRef = bcodes.getTypeReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "instanceof " + typeRef);
-	VM_Type type = typeRef.resolve(false);
+	VM_Type type = typeRef.peekResolvedType();
 	if (type != null) {
-	  if (type.isClassType() && type.isLoaded() && type.asClass().isFinal()) {
+	  if (type.isClassType() && type.asClass().isFinal()) {
 	    emit_instanceof_final(type);
 	    break;
 	  } else if (type.isArrayType()) {
 	    VM_Type elemType = type.asArray().getElementType();
 	    if (elemType.isPrimitiveType() || 
-		(elemType.isClassType() && elemType.isLoaded() && elemType.asClass().isFinal())) {
+		(elemType.isClassType() && elemType.asClass().isFinal())) {
 	      emit_instanceof_final(type);
 	      break;
 	    }

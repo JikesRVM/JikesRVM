@@ -28,7 +28,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * then calling VM_TableBasedDynamicLinker to do the actually work.
    */
   public static void resolveDynamicLink (VM_OptCompiledMethod cm, int offset) 
-    throws VM_ResolutionException {
+    throws ClassNotFoundException {
     VM_OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
     VM_NormalMethod realMethod = map.getMethodForMCOffset(offset);
@@ -55,7 +55,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
   }
 
   public static Object newArrayArray (int[] dimensions, int id) 
-    throws VM_ResolutionException, 
+    throws ClassNotFoundException,
 	   NegativeArraySizeException, 
 	   OutOfMemoryError {
     // validate arguments
@@ -64,7 +64,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
     // create array
     //
-    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(id).resolve(true);
+    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(id).resolve();
     return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
   }
 }

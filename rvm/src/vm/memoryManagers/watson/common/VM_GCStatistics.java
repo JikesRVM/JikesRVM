@@ -329,9 +329,9 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
     int  allocCount = 0, allocBytes = 0;
     int  copyCount = 0, copyBytes = 0;
     int  scanCount = 0, scanBytes = 0;
-    int  maxId = VM_ClassLoader.numTypes();
+    int  maxId = VM_Type.numTypes();
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_ClassLoader.getTypeFromId(i);
+      VM_Type type = VM_Type.getType(i);
       allocCount += type.allocCount;
       allocBytes += type.allocBytes;
       copyCount += type.copyCount;
@@ -340,7 +340,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
       scanBytes += type.scanBytes;
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_ClassLoader.getTypeFromId(i);
+      VM_Type type = VM_Type.getType(i);
       if (type.allocBytes >= 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -348,7 +348,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_ClassLoader.getTypeFromId(i);
+      VM_Type type = VM_Type.getType(i);
       if (type.allocBytes >= 10 * 1024 && type.allocBytes < 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -356,7 +356,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_ClassLoader.getTypeFromId(i);
+      VM_Type type = VM_Type.getType(i);
       if (type.allocBytes < 1024 && type.allocBytes > 0)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -405,7 +405,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
       st.totalBytesAllocated += size;
       st.totalObjectsAllocated++;
       VM_Type t = VM_Magic.objectAsType(tib[0]);
-      if (t.thinLockOffset != -1) {
+      if (t.getThinLockOffset() != -1) {
         st.synchronizedObjectsAllocated++;
       }
     }

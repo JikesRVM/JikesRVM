@@ -38,7 +38,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * @param memberId the dynamicLinkingId of the method to link.
    * @return returns the offset of the member.
    */
-  public static int resolveMember(int memberId) throws VM_ResolutionException {
+  public static int resolveMember(int memberId) throws ClassNotFoundException {
     VM_MemberReference ref = VM_MemberReference.getMemberRef(memberId);
     return resolveMember(ref);
   }
@@ -48,9 +48,9 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * @param ref reference to the member to link
    * @return returns the offset of the member.
    */
-  public static int resolveMember(VM_MemberReference ref) throws VM_ResolutionException {
+  public static int resolveMember(VM_MemberReference ref) throws ClassNotFoundException {
     VM_TypeReference type = ref.getType();
-    VM_Class declaringClass = (VM_Class)type.resolve(true); // TODO: TYPE REF
+    VM_Class declaringClass = (VM_Class)type.resolve(); 
     VM_Runtime.initializeClassForDynamicLink(declaringClass);
     int offset;
     if (ref.isFieldReference()) {

@@ -68,7 +68,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       VM.sysWrite("VM_ReferenceMaps constructor. Method name is:");
       VM.sysWrite(method.getName());
       VM.sysWrite(" -Class name is :");
-      VM.sysWrite(method.getDeclaringClass());
+      VM.sysWrite(method.getDeclaringClass().getDescriptor());
       VM.sysWrite("\n");
       VM.sysWrite(" bytesPerMap = ");
       VM.sysWrite(bytesPerMap);
@@ -370,12 +370,13 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     return bytesPerMap;
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-  int size() {
-    int size = TYPE.getInstanceSize();
-    if (MCSites != null) size += VM_Array.arrayOfIntType.getInstanceSize(MCSites.length);
-    if (referenceMaps != null) size += VM_Array.arrayOfByteType.getInstanceSize(referenceMaps.length);
-    if (unusualReferenceMaps != null) size += VM_Type.JavaLangObjectArrayType.getInstanceSize(unusualReferenceMaps.length);
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"));
+  int size() throws VM_PragmaInterruptible {
+    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
+    if (referenceMaps != null) size += VM_Array.ByteArray.getInstanceSize(referenceMaps.length);
+    if (unusualReferenceMaps != null) size += VM_Array.JavaLangObjectArray.getInstanceSize(unusualReferenceMaps.length);
     return size;
   }
 
@@ -1589,7 +1590,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     int count;
 
     VM.sysWrite("-- Number of refs for method =  ");
-    VM.sysWrite(method.getDeclaringClass());
+    VM.sysWrite(method.getDeclaringClass().getDescriptor());
     VM.sysWrite(".");
     VM.sysWrite(method.getName());
     VM.sysWrite("---------------------------\n");

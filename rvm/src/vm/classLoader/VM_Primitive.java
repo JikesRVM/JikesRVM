@@ -21,17 +21,30 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
  *   or in fields/elements of class/array instances.
  * </ul>
  *
+ * @see VM_Type
  * @see VM_Class
  * @see VM_Array
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_Primitive extends VM_Type
-  implements VM_Constants, VM_ClassLoaderConstants, VM_SynchronizedObject {
-  //-----------//
-  // Interface //
-  //-----------//
+public final class VM_Primitive extends VM_Type implements VM_Constants, 
+							   VM_ClassLoaderConstants,
+							   VM_SynchronizedObject {
+
+  /**
+   * The pretty (external) name for this primitive.
+   * For example, for a long the name is 'long' 
+   * and the descriptor is 'J'
+   */
+  private final VM_Atom name;
+
+  /**
+   * How many slots in the Java Expression Stack does it take
+   * to hold a value of this primitive type?
+   */
+  private final int stackWords;
    
   /**
    * Name - something like "int".
@@ -47,12 +60,7 @@ public final class VM_Primitive extends VM_Type
     return stackWords;
   }
       
-  public final void load() {}
-  public final void resolve() {}
-  public final void instantiate() {}
-  public final void initialize() {}
-      
-  /**
+  /*
    * Primitives are not first class objects - 
    * but the implementation of reflection is cleaner if
    * we pretend that they are and provide dummy implementations of 
@@ -74,7 +82,6 @@ public final class VM_Primitive extends VM_Type
     return new VM_Method[0];
   }
 
-  // these should never be called.
   public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return false;
@@ -85,52 +92,62 @@ public final class VM_Primitive extends VM_Type
     return null;
   }
 
-  public final ClassLoader getClassLoader() {
-      return VM_SystemClassLoader.getVMClassLoader();
+  /**
+   * Create an instance of a VM_Primitive
+   * @param typeRef the cannonical type reference for this primitive
+   */
+  VM_Primitive(VM_TypeReference tr) {
+    super(tr);
+    depth = 0;
+    acyclic = true;	// All primitives are inherently acyclic
+
+    switch (getDescriptor().parseForTypeCode()) {
+    case VoidTypeCode:
+      stackWords = 0;
+      name = VM_Atom.findOrCreateAsciiAtom("void");
+      break;
+    case BooleanTypeCode:
+      stackWords = 1;
+      name = VM_Atom.findOrCreateAsciiAtom("boolean");
+      break;
+    case ByteTypeCode:
+      stackWords = 1;
+      name = VM_Atom.findOrCreateAsciiAtom("byte");
+      break;
+    case CharTypeCode:
+      stackWords = 1;
+      name = VM_Atom.findOrCreateAsciiAtom("char");
+      break;
+    case ShortTypeCode:
+      stackWords = 1;
+      name = VM_Atom.findOrCreateAsciiAtom("short");
+      break;
+    case IntTypeCode:
+      stackWords = 1;
+      name = VM_Atom.findOrCreateAsciiAtom("int");
+      break;
+    case LongTypeCode:
+      stackWords = 2;
+      name = VM_Atom.findOrCreateAsciiAtom("long");
+      break;
+    case FloatTypeCode:
+      stackWords = 1;
+      name = VM_Atom.findOrCreateAsciiAtom("float");
+      break;
+    case DoubleTypeCode:
+      stackWords = 2;
+      name = VM_Atom.findOrCreateAsciiAtom("double");
+      break;
+    default:
+      if (VM.VerifyAssertions) VM._assert(false);
+      stackWords = -1;
+      name = null;
+    }
+
+    state = CLASS_INITIALIZED; // primitives have no-op "resolve, instantiate, initialize" phases
   }
 
-  public final void setClassLoader(ClassLoader cl) {
-    throw new InternalError("Cannot set a primitive's ClassLoader!");
-  }
-
-  //----------------//
-  // implementation //
-  //----------------//
-   
-  private VM_Atom name;
-  private int     stackWords;
-   
-  VM_Primitive(VM_Atom name, VM_Atom descriptor, int dictionaryId) {
-    this.name         = name;
-    this.descriptor   = descriptor;
-    this.dictionaryId = dictionaryId;
-    this.tibSlot      = VM_Statics.allocateSlot(VM_Statics.TIB);
-    this.dimension    = -1;
-    this.depth        = 0;
-    if (VM_Interface.RC_CYCLE_DETECTION)
-      this.acyclic  = true;	// RCGC: All primitives are inherently acyclic
-
-    // install type information block (no method dispatch table) 
-    // for use in type checking.
-    //
-    Object[] tib = new Object[1];
-    tib[0] = this;
-    VM_Statics.setSlotContents(tibSlot, tib);
-
-    switch (descriptor.parseForTypeCode())
-      {
-      case VoidTypeCode:    this.stackWords = 0; break;
-      case BooleanTypeCode: this.stackWords = 1; break;
-      case ByteTypeCode:    this.stackWords = 1; break;
-      case ShortTypeCode:   this.stackWords = 1; break;
-      case IntTypeCode:     this.stackWords = 1; break;
-      case LongTypeCode:    this.stackWords = 2; break;
-      case FloatTypeCode:   this.stackWords = 1; break;
-      case DoubleTypeCode:  this.stackWords = 2; break;
-      case CharTypeCode:    this.stackWords = 1; break;
-      default:              if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-      }
-
-    state = CLASS_INITIALIZED; // primitives have no "load, resolve, instantiate, initialize" phases
-  }
+  public final void resolve() {}
+  public final void instantiate() {}
+  public final void initialize() {}
 }

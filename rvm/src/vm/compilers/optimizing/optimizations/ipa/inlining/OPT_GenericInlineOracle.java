@@ -33,19 +33,16 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 
     VM_Method caller = state.getMethod();
     VM_Method callee = state.obtainTarget();
-
+    
     if (state.isInvokeInterface()) {
-      if (!callee.getDeclaringClass().isLoaded()) {
-	return OPT_InlineDecision.NO("Cannot inline interface before it is loaded");
-      } 
       return shouldInlineInterfaceInternal(caller, callee, state);
     } else {
       // invokestatic, invokevirtual, invokespecial
       // perform generic checks to test common inlining cases.
       
       // Is inlining forbidden?
-      if (!legalToInline(caller, callee) || callee.isNative())
-        return OPT_InlineDecision.NO("illegal inlining");
+      if (callee.isNative())
+        return OPT_InlineDecision.NO("native method");
       if (hasNoInlinePragma(callee, state))
         return OPT_InlineDecision.NO("pragmaNoInline");
 

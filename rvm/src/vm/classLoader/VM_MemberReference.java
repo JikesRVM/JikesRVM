@@ -178,7 +178,7 @@ public abstract class VM_MemberReference {
       return false;
     }
 
-    VM_Class thisClass = (VM_Class)type.resolve(false);
+    VM_Class thisClass = (VM_Class)type.peekResolvedType();
     if (thisClass == null) return true; // thisClass isn't loaded yet.
     
     if (thisClass.isInitialized()) {

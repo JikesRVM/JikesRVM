@@ -312,8 +312,10 @@ public class VM_RuntimeOptCompilerInfrastructure
     // If/when the baseline compiler gets these, invoke them here.
 
     // Get the opt's report
-    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
-    if (theType.asClass().isInitialized()) {
+    VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+								VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"));
+    VM_Type theType = theTypeRef.peekResolvedType();
+    if (theType != null && theType.asClass().isInitialized()) {
       OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
     } else {
       VM.sysWrite("\n\tNot generating Optimizing Compiler SubSystem Report because \n");

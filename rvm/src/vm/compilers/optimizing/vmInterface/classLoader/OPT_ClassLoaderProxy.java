@@ -84,9 +84,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     // they both must be class types.
     // technique: push heritage of each type on a separate stack,
     // then find the highest point in the stack where they differ.
-    VM_Class c1 = (VM_Class)t1.resolve(false);
-    VM_Class c2 = (VM_Class)t2.resolve(false);
-    if (c1 != null && c2 != null && c1.isLoaded() && c2.isLoaded()) {
+    VM_Class c1 = (VM_Class)t1.peekResolvedType();
+    VM_Class c2 = (VM_Class)t2.peekResolvedType();
+    if (c1 != null && c2 != null) {
       // The ancestor hierarchy is available, so do this exactly
       OPT_Stack s1 = new OPT_Stack();
       do {
@@ -116,9 +116,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         best = best.getArrayTypeForElementType();
       return best;
     } else {
-      if (OPT_IRGenOptions.DBG_TYPE && !c1.isLoaded())
+      if (OPT_IRGenOptions.DBG_TYPE && c1 == null)
         VM.sysWrite(c1 + " is not loaded, using Object as common supertype");
-      if (OPT_IRGenOptions.DBG_TYPE && !c2.isLoaded())
+      if (OPT_IRGenOptions.DBG_TYPE && c2 == null)
         VM.sysWrite(c2 + " is not loaded, using Object as common supertype");
       VM_TypeReference common = VM_TypeReference.JavaLangObject;
       while (arrayDimensions-- > 0)
@@ -194,8 +194,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
 	  // parentType is known to not be java.lang.Object.
 	  return NO;
 	}
-	VM_Class childClass = (VM_Class)childType.resolve(false);
-	VM_Class parentClass = (VM_Class)parentType.resolve(false);
+	VM_Class childClass = (VM_Class)childType.peekResolvedType();
+	VM_Class parentClass = (VM_Class)parentType.peekResolvedType();
 	if (childClass != null && parentClass != null) {
 	  if (parentClass.isInitialized() && childClass.isInitialized() ||
 	      (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
@@ -241,36 +241,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     }
   }
 
-  /**
-   * Return an instance of a VM_Type
-   * @param des VM_Atom descriptor of the type
-   * @return the VM_Type corresponding to the descriptor
-   */
-  public static VM_Type findOrCreateType (VM_Atom des, ClassLoader cl) {
-    return VM_ClassLoader.findOrCreateType(des, cl);
-  }
-
-  /**
-   * Return an instance of a VM_Type
-   * @param des String descriptor of the type
-   * @return the VM_Type corresponding to the descriptor
-   */
-  public static VM_Type findOrCreateType (String str, ClassLoader cl) {
-    return findOrCreateType(VM_Atom.findOrCreateAsciiAtom(str), cl);
-  }
-
   // --------------------------------------------------------------------------
   // Querry classloader data structures
   // --------------------------------------------------------------------------
-
-  /**
-   * Get description of specified primitive array.
-   * @param atype array type number (see "newarray" bytecode description in Java VM Specification)
-   * @return array description
-   */
-  public static VM_Array getPrimitiveArrayType(int atype) {
-    return VM_Array.getPrimitiveArrayType(atype);
-  }
 
   /**
    * Find the method of the given class that matches the given descriptor.

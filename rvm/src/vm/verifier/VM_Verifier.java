@@ -91,15 +91,6 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       return;
     }
 
-    if(!cls.isLoaded())
-      try{
-        cls.load();
-      }catch(Exception e){
-        e.printStackTrace();
-        verificationFailure(" class can't be loaded. \n");
-        return;
-      }
-
     boolean success = true;
     VM_Method methods[] = cls.getDeclaredMethods();
     for(int i =0; success && i< methods.length; i++){
@@ -174,7 +165,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     VM_TypeReference[] parameterTypes = method.getParameterTypes();
     int paramStart;
     if(!method.isStatic()){
-      currBBMap[0] = declaringClass.getDictionaryId();
+      currBBMap[0] = declaringClass.getTypeRef().getId();
       paramStart =1;
     }
     else
@@ -1255,8 +1246,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 	  //check whether fromType is assignable to the totype
 	  //Note: if toType is subclass of fromType, it should be passed by verifier
 	  if(currBBMap[currBBStkTop]!=V_NULL && 
-	     !VM_Runtime.isAssignableWith(VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve(true), toType.resolve(true))&&
-	     !VM_Runtime.isAssignableWith(toType.resolve(true), VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve(true))){
+	     !VM_Runtime.isAssignableWith(VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve(), toType.resolve())&&
+	     !VM_Runtime.isAssignableWith(toType.resolve(), VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve())){
 	    VM.sysWrite("Vefity error: checkcast from type isn't assignable to toType in method " + 
 			currMethodName + "\n");
 	    VM.sysWrite("======toType: " + toType + " id:" + toType.getId()
@@ -1346,7 +1337,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 	      VM.sysWrite("Vefity error: invalid atype for newarray in method " + currMethodName + "\n");
 	      return false;
 	    }
-	    currBBMap[++currBBStkTop] = VM_Array.getPrimitiveArrayType(atype).getDictionaryId();
+	    currBBMap[++currBBStkTop] = VM_Array.getPrimitiveArrayType(atype).getTypeRef().getId();
 	    break;
 	  }
 
@@ -1423,7 +1414,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
 	    //check whether stack top is an array reference
 	    if(currBBMap[currBBStkTop]<=0 || 
-	       !VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]).isArrayType()){
+	       !VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).isArrayType()) {
 	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
 				  +" in method " + currMethodName+ " \n");
 	      return false;
@@ -1448,7 +1439,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 	      processNextBlock = false;
 	      break;
 	    }
-	    VM_Class cls = VM_ClassLoader.getTypeFromId(typeId).asClass();
+	    VM_Class cls = (VM_Class)VM_TypeReference.getTypeRef(typeId).resolve();
 
 	    if(!cls.isClassType()){   // not a object reference
 	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
@@ -1456,16 +1447,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 	      return false;
 	    }
 
-	    //resolve class
-	    if(!cls.isLoaded())
-	      cls.load();
+	    VM_Type throwType = VM_Type.JavaLangThrowableType;
 
-	    VM_Atom d = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;");
-	    VM_Class throwType = VM_ClassLoader.findOrCreateType(d, VM_SystemClassLoader.getVMClassLoader()).asClass(); 
-	    //resolve class
-	    if(!throwType.isLoaded())
-	      throwType.load();
-	    
 	    while(cls!= null && cls!= throwType)
 	      cls = cls.getSuperClass();
 
@@ -1727,7 +1710,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           currBBMap[currBBStkTop]= V_FLOAT;
           break;
         case VM_Statics.STRING_LITERAL:
-          currBBMap[currBBStkTop]= VM_Type.JavaLangStringType.getDictionaryId();
+          currBBMap[currBBStkTop]= VM_Type.JavaLangStringType.getTypeRef().getId();
           break;
         case VM_Statics.LONG_LITERAL:
           currBBMap[currBBStkTop]= currBBMap[currBBStkTop-1] = V_LONG;
@@ -1987,7 +1970,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           if(currBBMap[currBBStkTop]==V_NULL)
             correct = returnType.isReferenceType();
           else
-            correct = VM_Runtime.isAssignableWith(returnType.resolve(true), VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]));
+            correct = VM_Runtime.isAssignableWith(returnType.resolve(), VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve());
           break;
         default:
           verificationFailure(" invalid return type when " + JBC_name[opcode]
@@ -2033,15 +2016,15 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     }	
 
     //check whether the second top of stack is an arrayType
-    VM_Type arrayType = VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop-1]);
-    if( !arrayType.isArrayType()){
+    VM_TypeReference arrayType = VM_TypeReference.getTypeRef(currBBMap[currBBStkTop-1]);
+    if(!arrayType.isArrayType()){
       verificationFailure(" not arrayRef when " + JBC_name[opcode] +
-                  " in method " + currMethodName+ " \n");
+			  " in method " + currMethodName+ " \n");
       throw new Exception();
     }
 
     //check the compatibility of the expectType and the element type of array
-    VM_Type eleType = ((VM_Array)arrayType).getElementType();
+    VM_TypeReference eleType = arrayType.getArrayElementType();
     if((eleType.isIntLikeType() && expectType != V_INT) ||
        (eleType.isLongType() && expectType != V_LONG) ||
        (eleType.isFloatType() && expectType != V_FLOAT) ||
@@ -2056,7 +2039,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     currBBStkTop -= 2;
     for(int i = 0; i< numOfWord; i++)
       if(expectType ==V_REF)
-        currBBMap[++currBBStkTop] = eleType.getDictionaryId();
+        currBBMap[++currBBStkTop] = eleType.getId();
       else
         currBBMap[++currBBStkTop] = expectType;
 
@@ -2105,21 +2088,21 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       }	
 
       //check whether the third top of stack is an arrayType
-      VM_Type arrayType = VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop- numOfWord - 1]);
-      if( !arrayType.isArrayType()){
+      VM_TypeReference arrayType = VM_TypeReference.getTypeRef(currBBMap[currBBStkTop- numOfWord - 1]);
+      if(!arrayType.isArrayType()){
         verificationFailure(" not arrayRef when " + JBC_name[opcode] +
                     " in method " + currMethodName+ " \n");
         throw new Exception();
       }
 
       //check the compatibility of the expectType and the element type of array
-      VM_Type eleType = ((VM_Array)arrayType).getElementType();
+      VM_TypeReference eleType = arrayType.getArrayElementType();
       if((eleType.isIntLikeType() && expectType != V_INT) ||
          (eleType.isLongType() && expectType != V_LONG) ||
          (eleType.isFloatType() && expectType != V_FLOAT) ||
          (eleType.isDoubleType() && expectType != V_DOUBLE) ||
          (eleType.isReferenceType() && (expectType!=V_REF || (currBBMap[currBBStkTop]!=V_NULL 
-                                                              && !VM_Runtime.isAssignableWith(eleType, VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop])))))){
+                                                              && !VM_Runtime.isAssignableWith(eleType.resolve(), VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve()))))){
         verificationFailure(" incompatible element type when " + JBC_name[opcode]
                     + " in method " + currMethodName+ " \n");
         throw new Exception();
@@ -2197,7 +2180,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         //check the compatibility
         if(currBBMap[currBBStkTop]<0 || currBBMap[currBBStkTop]!=V_NULL
            && !VM_Runtime.isAssignableWith(field.resolve().getDeclaringClass(),
-					   VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
+					   VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve())){
           verificationFailure(" incompatible object reference when " + JBC_name[opcode]
 			      + " in method " + currMethodName+ " \n");
           throw new Exception();
@@ -2212,7 +2195,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         currBBStkTop --;
       }
 
-      VM_Type fieldType = field.getFieldContentsType().resolve(true);
+      VM_Type fieldType = field.getFieldContentsType().resolve();
       //check stack overflow
       currBBStkTop += fieldType.getStackWords();
       if(currBBStkTop >= currBBMap.length){
@@ -2230,7 +2213,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       else if(fieldType.isDoubleType())
         currBBMap[currBBStkTop] = currBBMap[currBBStkTop-1] = V_DOUBLE ;
       else if(fieldType.isReferenceType())
-        currBBMap[currBBStkTop] = fieldType.getDictionaryId(); 
+        currBBMap[currBBStkTop] = fieldType.getTypeRef().getId(); 
 
     }
 
@@ -2249,7 +2232,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
   private void put_like(VM_FieldReference field, boolean isStatic)
     throws Exception {
 
-      VM_Type fieldType = field.getFieldContentsType().resolve(true);
+      VM_Type fieldType = field.getFieldContentsType().resolve();
       //check stack underflow
       if(currBBStkTop-fieldType.getStackWords() < currBBStkEmpty){
         verificationFailure(" stack underflow when "+ JBC_name[opcode] +
@@ -2270,7 +2253,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       else if(fieldType.isReferenceType())
         correct = !newObjectInfo[currBBStkTop-currBBStkEmpty -1] && 
           ((currBBMap[currBBStkTop] == V_NULL || 
-            VM_Runtime.isAssignableWith(fieldType, VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))));
+            VM_Runtime.isAssignableWith(fieldType, VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve())));
       if(correct == false){
         verificationFailure(" incompatible field type when " + JBC_name[opcode]
                     + " in method " + currMethodName+ " \n");
@@ -2287,7 +2270,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         }
         //check the compatibility
         if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(field.resolve().getDeclaringClass(), 
-								     VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
+								     VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve())){
           verificationFailure(" incompatible object reference when " + JBC_name[opcode]
                       + " in method " + currMethodName+ " \n");
           throw new Exception();
@@ -2556,13 +2539,10 @@ public class VM_Verifier  implements VM_BytecodeConstants {
    * @param id2 the type dictionary id for the second class
    *
    * @return the common super class's dictionary id for the input classes
-   *
-   * @exception VM_ResolutionException  if any class can't be loaded or resolved
    */
-  private int findCommonSuperClassId(int id1, int id2) 
-    throws VM_ResolutionException {
-      VM_Type t1 = VM_ClassLoader.getTypeFromId(id1);
-      VM_Type t2 = VM_ClassLoader.getTypeFromId(id2);
+  private int findCommonSuperClassId(int id1, int id2) throws Exception {
+    VM_Type t1 = VM_TypeReference.getTypeRef(id1).resolve();
+    VM_Type t2 = VM_TypeReference.getTypeRef(id2).resolve();
 
       // Strip off all array junk.
       int arrayDimensions = 0;
@@ -2580,7 +2560,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         --arrayDimensions;
         while (arrayDimensions-- > 0)
           type = type.getArrayTypeForElementType();
-        return  type.getDictionaryId();
+        return  type.getTypeRef().getId();
       }
 
       // neither is a primitive, and they are not both array types.
@@ -2589,7 +2569,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         VM_Type type = VM_Type.JavaLangObjectType;
         while (arrayDimensions-- > 0)
           type = type.getArrayTypeForElementType();
-        return  type.getDictionaryId();
+        return  type.getTypeRef().getId();
       }
 
       // they both must be class types.
@@ -2597,11 +2577,6 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       // then find the highest point in the stack where they differ.
       VM_Class c1 = (VM_Class)t1;
       VM_Class c2 = (VM_Class)t2;
-
-      if(!c1.isLoaded())
-        c1.load();
-      if(!c2.isLoaded())
-        c2.load();
 
       Stack s1 = new Stack();
       do {
@@ -2625,7 +2600,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       }
       while (arrayDimensions-- > 0)
         best = best.getArrayTypeForElementType();
-      return  best.getDictionaryId();
+      return  best.getTypeRef().getId();
     }
 
   /**
@@ -2667,7 +2642,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[currBBStkTop] == V_DOUBLE && currBBMap[currBBStkTop-1] == V_DOUBLE) ;
         else if(parameterTypes[i].isReferenceType())
           correct = (currBBMap[currBBStkTop] == V_NULL || 
-                     VM_Runtime.isAssignableWith(parameterTypes[i].resolve(true), VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop])));
+                     VM_Runtime.isAssignableWith(parameterTypes[i].resolve(), VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve()));
         if(correct == false){
           verificationFailure(" incompatible parameter when call " + calledMethod.getName() +
 			      " in method " + currMethodName+ " \n");
@@ -2689,7 +2664,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 	
         //this isn't a reference type or isn't a compatible reference type
         if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(calledMethod.resolve().getDeclaringClass(),
-								     VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
+								     VM_TypeReference.getTypeRef(currBBMap[currBBStkTop]).resolve())){
           verificationFailure(" incompatible this reference when call " + calledMethod +
                       " in method " + currMethodName+ " \n");
           throw new Exception();

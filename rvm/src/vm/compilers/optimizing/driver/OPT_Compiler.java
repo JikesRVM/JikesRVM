@@ -143,15 +143,11 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * Load a class which must be compiled by the opt compiler in a special way
    * @param klassName the class to load
    * @param options compiler options for compiling the class
-   * @exception VM_ResolutionException if the class cannot be resolved
    */
-  private static void loadSpecialClass (String klassName, OPT_Options options) 
-    throws VM_ResolutionException {
-    VM_Class klass = (VM_Class)OPT_ClassLoaderProxy.findOrCreateType(klassName, VM_SystemClassLoader.getVMClassLoader());
-    klass.load();
-    klass.resolve();
-    klass.instantiate();
-    klass.initialize();
+  private static void loadSpecialClass (String klassName, OPT_Options options) {
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
+							  VM_Atom.findOrCreateAsciiAtom(klassName));
+    VM_Class klass = (VM_Class)tRef.peekResolvedType();
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int j = 0; j < methods.length; j++) {
       VM_Method meth = methods[j];
@@ -168,7 +164,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
     }
   }
 
-  public static void preloadSpecialClass( OPT_Options options ) {
+  public static void preloadSpecialClass(OPT_Options options) {
     String klassName = "L"+options.PRELOAD_CLASS+";";
 
     if (options.PRELOAD_AS_BOOT ) {

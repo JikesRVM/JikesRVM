@@ -1412,12 +1412,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    offsetOp = offsetrop;
 	    rectifyStateWithErrorHandler();
 	  } else {
-	    VM_Field field = ref.resolve();
+	    VM_Field field = ref.peekResolvedField();
 	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
 	  
 	    // use results of field analysis to refine type of result
-	    VM_Type ft = fieldType.resolve(false);
-	    if (ft != null && ft.isClassType() && ft.isLoaded()) {
+	    VM_Type ft = fieldType.peekResolvedType();
+	    if (ft != null && ft.isClassType()) {
 	      VM_TypeReference concreteType = OPT_FieldAnalysis.getConcreteType(field);
 	      if (concreteType != null) {
 		t.setPreciseType();
@@ -1494,7 +1494,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    offsetOp = offsetrop;
 	    rectifyStateWithErrorHandler();
 	  } else {
-	    VM_Field field = ref.resolve();
+	    VM_Field field = ref.peekResolvedField();
 	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
 	  }
 
@@ -1519,12 +1519,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    offsetOp = offsetrop;
 	    rectifyStateWithErrorHandler();
 	  } else {
-	    VM_Field field = ref.resolve();
+	    VM_Field field = ref.peekResolvedField();
 	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
 
 	    // use results of field analysis to refine type.
-	    VM_Type ft = fieldType.resolve(false);
-	    if (ft != null && ft.isClassType() && ft.isLoaded()) {
+	    VM_Type ft = fieldType.peekResolvedType();
+	    if (ft != null && ft.isClassType()) {
 	      VM_TypeReference concreteType = OPT_FieldAnalysis.getConcreteType(field);
 	      if (concreteType != null) {
 		t.setPreciseType();
@@ -1562,7 +1562,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    offsetOp = offsetrop;
 	    rectifyStateWithErrorHandler();
 	  } else {
-	    VM_Field field = ref.resolve();
+	    VM_Field field = ref.peekResolvedField();
 	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
 	  }
 	  
@@ -1589,7 +1589,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  // A non-magical invokevirtual.  Create call instruction.
 	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
-	  VM_Method target = ref.resolve(false);
+	  VM_Method target = ref.peekResolvedMethod();
 	  OPT_MethodOperand methOp = OPT_MethodOperand.VIRTUAL(ref, target);
 
 	  //-#if RVM_WITH_OSR
@@ -1641,7 +1641,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  } else if (VM.VerifyAssertions) {
 	    VM._assert(false, "unexpected receiver");
 	  }
-	  VM_Type type = tr.resolve(false);
+	  VM_Type type = tr.peekResolvedType();
 	  if (type != null && type.isResolved() && type.isClassType() && target != null && type != target.getDeclaringClass()) {
 	    VM_Method vmeth = OPT_ClassLoaderProxy.lookupMethod(type.asClass(), ref);
 	    if (vmeth != null && vmeth != target) {
@@ -1718,7 +1718,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  
 	  // A non-magical invokestatic.  Create call instruction.
 	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
-	  VM_Method target = ref.resolve(false);
+	  VM_Method target = ref.peekResolvedMethod();
 	  
 	  //-#if RVM_WITH_OSR
 	  /* just create an osr barrier right before _callHelper
@@ -1755,12 +1755,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  VM_MethodReference ref = bcodes.getMethodReference();
 	  bcodes.alignInvokeInterface();
 	  VM_Method resolvedMethod = null;
-	  try {
-	    resolvedMethod = ref.resolveInterfaceMethod(false);
-	  } catch (VM_ResolutionException e) {
-	    // bogus catch of VM_ResolutionException to keep java happy
-	    // actually can't be thrown when we pass false for canLoad.
-	  }
+	  resolvedMethod = ref.peekInterfaceMethod();
 
 	  //-#if RVM_WITH_OSR
 	  /* just create an osr barrier right before _callHelper
@@ -1772,7 +1767,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, resolvedMethod));
 	  OPT_RegisterOperand receiver = Call.getParam(s, 0).asRegister();
-	  VM_Class receiverType = (VM_Class)receiver.type.resolve(false);
+	  VM_Class receiverType = (VM_Class)receiver.type.peekResolvedType();
 	  // null check on this parameter of call
 	  // TODO: Strictly speaking we need to do dynamic linking of the interface
 	  //       type BEFORE we do the null check. FIXME.
@@ -1909,7 +1904,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  markGuardlessNonNull(t);
 	  OPT_Operator operator;
 	  OPT_TypeOperand klassOp;
-	  VM_Class klassType = (VM_Class)klass.resolve(false);
+	  VM_Class klassType = (VM_Class)klass.peekResolvedType();
 	  if (klassType != null && (klassType.isInitialized() || klassType.isInBootImage())) {
 	    klassOp = makeTypeOperand(klassType);
 	    operator = NEW;
@@ -1945,22 +1940,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  markGuardlessNonNull(t);
 	  // We can do early resolution of the array type if the element type 
 	  // is already initialized.
-	  VM_Type arrayType = array.resolve(false);
+	  VM_Type arrayType = array.peekResolvedType();
 	  OPT_Operator op = NEWARRAY_UNRESOLVED;
 	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
 	  if (arrayType != null) {
 	    if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
-	      VM_Type elementType = elementTypeRef.resolve(false);
+	      VM_Type elementType = elementTypeRef.peekResolvedType();
 	      if (elementType != null) {
 		if (elementType.isInitialized() || elementType.isInBootImage()) {
-		  try {
-		    arrayType.load();
-		    arrayType.resolve();
-		    arrayType.instantiate();
-		  } catch (VM_ResolutionException e) {
-		    // can't raise any errors if the element type is already initialized/or in boot image
-		    if (VM.VerifyAssertions) VM._assert(false); 
-		  }
+		  arrayType.resolve();
+		  arrayType.instantiate();
 		}
 	      }
 	    }
@@ -2045,7 +2034,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    if (classLoading) {
 	      s = TypeCheck.create(CHECKCAST_UNRESOLVED, op2, makeTypeOperand(typeRef));
 	    } else {
-	      OPT_TypeOperand typeOp = makeTypeOperand(typeRef.resolve(false));
+	      OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekResolvedType());
 	      if (isNonNull(op2)) {
 		s = TypeCheck.create(CHECKCAST_NOTNULL, op2, typeOp, getGuard(op2));
 	      } else {
@@ -2095,7 +2084,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (classLoading) {
 	    s = InstanceOf.create(INSTANCEOF_UNRESOLVED, t, makeTypeOperand(typeRef), op2);
 	  } else {
-	    OPT_TypeOperand typeOp = makeTypeOperand(typeRef.resolve(false));
+	    OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekResolvedType());
 	    if (isNonNull(op2)) {
 	      s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, getGuard(op2));
 	    } else {
@@ -2205,7 +2194,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  int dimensions = bcodes.getArrayDimension();
 
 	  // Step 1: Create an int array to hold the dimensions.
-	  OPT_TypeOperand dimArrayType = makeTypeOperand(VM_Array.arrayOfIntType);
+	  OPT_TypeOperand dimArrayType = makeTypeOperand(VM_Array.IntArray);
 	  OPT_RegisterOperand dimArray = gc.temps.makeTemp(VM_TypeReference.IntArray);
 	  markGuardlessNonNull(dimArray);
 	  dimArray.setPreciseType();
@@ -2716,7 +2705,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   }
 
   private boolean couldCauseClassLoading(VM_TypeReference typeRef) {
-    VM_Type type = typeRef.resolve(false);
+    VM_Type type = typeRef.peekResolvedType();
     if (type == null) return true;
     if (type.isInitialized()) return false;
     if (type.isArrayType()) return !type.isResolved();
@@ -3521,10 +3510,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         do {
           elemType2 = elemType2.getArrayElementType();
         } while (elemType2.isArrayType());
-	VM_Type et2 = elemType2.resolve(false);
+	VM_Type et2 = elemType2.peekResolvedType();
         if (et2 != null) {
-	  if (et2.isPrimitiveType() || 
-	      (et2.isLoaded() && ((VM_Class)et2).isFinal())) {
+	  if (et2.isPrimitiveType() || ((VM_Class)et2).isFinal()) {
 	    VM_TypeReference myElemType = getRefTypeOf(elem);
 	    if (myElemType == elemType) {
 	      if (DBG_TYPE)
@@ -3538,8 +3526,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	}
       } else {
         // elemType is class
-	VM_Type et = elemType.resolve(false);
-        if (et != null && et.isLoaded() && ((VM_Class)et).isFinal()) {
+	VM_Type et = elemType.peekResolvedType();
+        if (et != null && ((VM_Class)et).isFinal()) {
           if (getRefTypeOf(elem) == elemType) {
             if (DBG_TYPE)
               db("eliminating checkstore to an array with a final element type "
@@ -4250,6 +4238,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_InlineDecision shouldInline(OPT_Instruction call, 
 					  boolean isExtant) {
+    if (Call.getMethod(call).getTarget() == null) {
+      return OPT_InlineDecision.NO("Target method is null");
+    }
     OPT_CompilationState state = 
       new OPT_CompilationState(call, 
 			       gc.localMCSizeEstimate+gc.parentMCSizeEstimate,

@@ -122,7 +122,7 @@ public class OPT_ObjectReplacer
         {
           VM_FieldReference fr = PutField.getLocation(inst).getFieldRef();
 	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
-	  VM_Field f = fr.resolve(false);
+	  VM_Field f = fr.peekResolvedField();
           int index = fields.indexOf(f);
           VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
@@ -137,7 +137,7 @@ public class OPT_ObjectReplacer
         {
           VM_FieldReference fr = GetField.getLocation(inst).getFieldRef();
 	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
-	  VM_Field f = fr.resolve(false);
+	  VM_Field f = fr.peekResolvedField();
           int index = fields.indexOf(f);
           VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);

@@ -43,10 +43,10 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    * @return machine code corresponding to desired interface method
    */
   public static INSTRUCTION[] invokeInterface(Object target, int mid) 
-    throws IncompatibleClassChangeError, VM_ResolutionException {
+    throws IncompatibleClassChangeError, ClassNotFoundException {
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
-    VM_Method sought = mref.resolveInterfaceMethod(true);
+    VM_Method sought = mref.resolveInterfaceMethod();
     VM_Class I = sought.getDeclaringClass();
     VM_Class C = VM_Magic.getObjectType(target).asClass(); 
     if (VM.BuildForITableInterfaceInvocation) {
@@ -71,8 +71,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    * @param id interface id of the interface sought (NOT dictionary id!!)
    * @return iTable for desired interface
    */
-  public static Object[] findITable(Object[] tib, int id) 
-    throws IncompatibleClassChangeError, VM_ResolutionException {
+  public static Object[] findITable(Object[] tib, int id) throws IncompatibleClassChangeError {
     Object[] iTables = 
       (Object[])tib[TIB_ITABLES_TIB_INDEX];
     if (VM.DirectlyIndexedITables) {
@@ -118,15 +117,14 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
   
   /**
    * LHSclass is an interface that RHS class must implement.
-   * Raises a VM_ResolutionException if RHStib does not implement LHSclass
+   * Raises an IncompatibaleClassChangeError if RHStib does not implement LHSclass
    * 
    * @param LHSclass an class (should be an interface)
    * @param RHStib the TIB of an object that must implement LHSclass
    */
-  public static void invokeinterfaceImplementsTest (VM_Class LHSclass, Object[] RHStib) 
-    throws VM_ResolutionException, IncompatibleClassChangeError {
+  public static void invokeinterfaceImplementsTest(VM_Class LHSclass, Object[] RHStib) 
+    throws IncompatibleClassChangeError {
     if (!LHSclass.isResolved()) {
-      LHSclass.load();
       LHSclass.resolve();
     }
     if (LHSclass.isInterface() && VM_DynamicTypeCheck.instanceOfInterface(LHSclass, RHStib)) return;
@@ -146,9 +144,9 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    * @param RHStib, the TIB of the object on which we are attempting to 
    * invoke the interface method
    */
-  public static void unresolvedInvokeinterfaceImplementsTest (int mid, Object[] RHStib) 
-    throws VM_ResolutionException, IncompatibleClassChangeError {
-    VM_Method sought = VM_MemberReference.getMemberRef(mid).asMethodReference().resolveInterfaceMethod(true);
+  public static void unresolvedInvokeinterfaceImplementsTest(int mid, Object[] RHStib) 
+    throws IncompatibleClassChangeError, ClassNotFoundException {
+    VM_Method sought = VM_MemberReference.getMemberRef(mid).asMethodReference().resolveInterfaceMethod();
     invokeinterfaceImplementsTest(sought.getDeclaringClass(), RHStib);
   }
 
@@ -360,7 +358,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
    */
   public static int getITableIndex(VM_Class klass, VM_Atom mname, VM_Atom mdesc) {
     if (VM.VerifyAssertions) VM._assert(VM.BuildForITableInterfaceInvocation);
-    if (VM.VerifyAssertions) VM._assert(klass.isLoaded() && klass.isInterface());
+    if (VM.VerifyAssertions) VM._assert(klass.isInterface());
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int i=0; i<methods.length; i++) {
       if (methods[i].getName() == mname && methods[i].getDescriptor() == mdesc) {

@@ -30,15 +30,10 @@ public abstract class OPT_InlineTools implements OPT_Constants {
   }
 
   /**
-   * Is it possible to inline the callee into the caller?
-   * @param caller the caller method
+   * Does the callee method have a body?
    * @param callee the callee method
-   * @return true if legal, false otherwise
+   * @return true if it has bytecodes, false otherwise.
    */
-  public static boolean legalToInline(VM_Method caller, VM_Method callee) {
-    return (callee != null) && callee.getDeclaringClass().isLoaded();
-  }
-
   public static boolean hasBody(VM_Method callee) {
     return !(callee.isNative() || callee.isAbstract());
   }

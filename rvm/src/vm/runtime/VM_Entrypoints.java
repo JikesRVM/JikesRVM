@@ -190,7 +190,7 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field classForTypeField              = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "classForType", "Ljava/lang/Class;");
   public static final VM_Field depthField                     = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "depth", "I");
-  public static final VM_Field idField                        = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "dictionaryId", "I");
+  public static final VM_Field idField                        = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "id", "I");
   public static final VM_Field dimensionField                 = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "dimension", "I");
 
   public static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/classloader/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/classloader/VM_Type;");
@@ -307,10 +307,10 @@ public class VM_Entrypoints implements VM_Constants {
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
     try {
-      VM_Class cls = VM_ClassLoader.findOrCreateType(clsDescriptor, VM_SystemClassLoader.getVMClassLoader()).asClass();
-      cls.load();
+      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), clsDescriptor);
+      VM_Class cls = (VM_Class)tRef.resolve();
       cls.resolve();
-         
+
       VM_Member member;
       if ((member = cls.findDeclaredField(memName, memDescriptor)) != null)
         return member;
@@ -323,7 +323,8 @@ public class VM_Entrypoints implements VM_Constants {
       //
       VM.sysWrite("VM_Entrypoints.getMember: can't find class="+classDescriptor+" member="+memberName+" desc="+memberDescriptor+"\n");
       VM._assert(NOT_REACHED);
-    } catch (VM_ResolutionException e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" + classDescriptor+
 		  " member=" + memberName + " desc=" + memberDescriptor + "\n");
       VM._assert(NOT_REACHED);

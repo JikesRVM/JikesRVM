@@ -33,7 +33,6 @@ import com.ibm.JikesRVM.VM_ObjectModel;
  *
  * @author Dick Attanasio
  */
-
 public final class VM_BlockControl {
   VM_Address baseAddr;
   int slotsize;	  // slotsize
@@ -46,6 +45,7 @@ public final class VM_BlockControl {
   boolean sticky;
   int alloc_size; // allocated length of mark and alloc arrays
   
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-  static final VM_Array ARRAY_TYPE = TYPE.getArrayTypeForElementType();
+  static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+								     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/memoryManagers/watson/VM_BlockControl;"));
+  static final VM_TypeReference ARRAY_TYPE = TYPE.getArrayTypeForElementType();
 }

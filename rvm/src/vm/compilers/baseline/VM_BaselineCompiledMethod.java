@@ -240,12 +240,12 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"));
   public int size() {
-    VM_Array intArray = VM_Array.arrayOfIntType;
-    int size = TYPE.getInstanceSize();
-    if (_bytecodeMap != null) size += intArray.getInstanceSize(_bytecodeMap.length);
-    if (eTable != null) size += intArray.getInstanceSize(eTable.length);
+    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    if (_bytecodeMap != null) size += VM_Array.IntArray.getInstanceSize(_bytecodeMap.length);
+    if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
     if (referenceMaps != null) size += referenceMaps.size();
     return size;
   }

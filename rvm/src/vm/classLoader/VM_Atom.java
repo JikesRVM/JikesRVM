@@ -371,6 +371,10 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
 
   private static final byte[][] systemClasses = { "Ljava/".getBytes(), "Lcom/ibm/JikesRVM/".getBytes()};
 
+  /**
+   * @return true if this is a class descriptor of a system class
+   * (ie a class that must be loaded by the system class loader
+   */
   public final boolean isSystemClassDescriptor() {
   outer:
     for (int i=0; i<systemClasses.length; i++) {
@@ -426,48 +430,4 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       return false;
     }
   }
-
-  static void spaceReport() {
-    int atomBytes = 0;
-    for (int i=1; i<atoms.length; i++) {
-      VM_Atom val = atoms[i];
-      if (val != null) atomBytes += val.length();
-    }
-    VM.sysWriteln("\n[B that are backing store for VM_Atom instances ", atomBytes);
-  }
-
-
-  /**
-   * Hash VM_Dictionary keys.
-   * TODO: delete me as soon as the string literal and type dictionaries die.
-   * @deprecated 
-   */ 
-  public static int dictionaryHash(VM_Atom atom) {
-    return atom.hash;
-  }
-
-  /**
-   * Compare VM_Dictionary keys.
-   * TODO: delete me as soon as the string literal and type dictionaries die.
-   * @return 0 iff "leftKey" is null
-   *           1 iff "leftKey" is to be considered a duplicate of "rightKey"
-   *          -1 otherwise
-   * @deprecated 
-   */
-  public static int dictionaryCompare(VM_Atom left, VM_Atom right) {
-    if (left == null)
-      return 0;
-         
-    if (left.val.length != right.val.length)
-      return -1;
-
-    byte[] leftVal  = left.val;
-    byte[] rightVal = right.val;
-    for (int i = leftVal.length; --i >= 0; )
-      if (leftVal[i] != rightVal[i])
-	return -1;
-
-    return 1;
-  }  
-
 }
