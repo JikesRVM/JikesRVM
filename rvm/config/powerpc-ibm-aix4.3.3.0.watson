@@ -34,7 +34,7 @@ export HOST_TOOLS="/share/power/Java/aix/J1.3.0/java130/lib/tools.jar"
 export GNU_MAKE="/homes/fury5/jalapeno/bin/jmake"
 
 # path for jikes.
-export JIKES="/homes/fury5/jalapeno/bin/jikes-1.11"
+export JIKES="/homes/fury5/jalapeno/bin/jikes-1.13"
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
