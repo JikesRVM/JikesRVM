@@ -81,9 +81,19 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
-  public static Address forwardObject(Address object) 
-    throws InlinePragma {
+  public static Address forwardObject(Address object) throws InlinePragma {
     return forwardObject(object, false);
+  }
+
+  /**
+   * Forward an object and enqueue it for scanning
+   *
+   * @param object The object to be forwarded.
+   * @return The forwarded object.
+   */
+  public static Address forwardAndScanObject(Address object) 
+    throws InlinePragma {
+    return forwardObject(object, true);
   }
 
   /**

@@ -397,6 +397,7 @@ public abstract class Generational extends StopTheWorldGC
 
       // we can throw away the remsets for a full heap GC
       remsetPool.clearDeque(1);
+      arrayRemsetPool.clearDeque(2);
     }
   }
 
@@ -415,7 +416,9 @@ public abstract class Generational extends StopTheWorldGC
     if (fullHeapGC || IGNORE_REMSET) {
       threadLocalMaturePrepare(count);
       los.prepare();
-      remset.resetLocal();  // we can throw away remsets for a full heap GC
+      // we can throw away remsets for a full heap GC
+      remset.resetLocal();  
+      arrayRemset.resetLocal();
     } else if (count == NON_PARTICIPANT)
       flushRememberedSets();
   }
