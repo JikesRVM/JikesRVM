@@ -631,6 +631,11 @@ public final class VM_Class extends VM_Type
   private VM_Atom      sourceName;
   private VM_Method    classInitializerMethod;
 
+  // Cannonical empty arrays
+  private static final VM_Class[] emptyVMClass = new VM_Class[0];
+  private static final VM_Field[] emptyVMField = new VM_Field[0];
+  private static final VM_Method[] emptyVMMethod = new VM_Method[0];
+
   //
   // The following are valid only when "state >= CLASS_RESOLVED".
   //
@@ -693,7 +698,7 @@ public final class VM_Class extends VM_Type
     this.descriptor   = descriptor;
     this.dictionaryId = dictionaryId;
     this.tibSlot      = VM_Statics.allocateSlot(VM_Statics.TIB);
-    this.subClasses   = new VM_Class[0];
+    this.subClasses   = emptyVMClass;
     this.classloader  = classloader;
 
     // install partial type information block 
@@ -917,32 +922,47 @@ public final class VM_Class extends VM_Type
       superClass.addSubClass(this);
     }
 
-    declaredInterfaces = new VM_Class[input.readUnsignedShort()];
-    for (int i = 0, n = declaredInterfaces.length; i < n; ++i)
-      declaredInterfaces[i] = getTypeRef(input.readUnsignedShort()).asClass();
-
-    declaredFields = new VM_Field[input.readUnsignedShort()];
-    for (int i = 0, n = declaredFields.length; i < n; ++i) {
-      int      modifiers       = input.readUnsignedShort();
-      VM_Atom  fieldName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Atom  fieldDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Field field           = VM_ClassLoader.findOrCreateField(getDescriptor(), fieldName, fieldDescriptor, classloader);
-      
-      field.load(input, modifiers);
-      declaredFields[i] = field;
+    int numInterfaces = input.readUnsignedShort();
+    if (numInterfaces == 0) {
+      declaredInterfaces = emptyVMClass;
+    } else {
+      declaredInterfaces = new VM_Class[numInterfaces];
+      for (int i = 0, n = declaredInterfaces.length; i < n; ++i)
+	declaredInterfaces[i] = getTypeRef(input.readUnsignedShort()).asClass();
     }
 
-    declaredMethods = new VM_Method[input.readUnsignedShort()];
-    for (int i = 0, n = declaredMethods.length; i < n; ++i) {
-      int       modifiers        = input.readUnsignedShort();
-      VM_Atom   methodName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Atom   methodDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
-      VM_Method method           = VM_ClassLoader.findOrCreateMethod(getDescriptor(), methodName, methodDescriptor, classloader);
+    int numFields = input.readUnsignedShort();
+    if (numFields == 0) {
+      declaredFields = emptyVMField;
+    } else {
+      declaredFields = new VM_Field[numFields];
+      for (int i = 0, n = declaredFields.length; i < n; ++i) {
+	int      modifiers       = input.readUnsignedShort();
+	VM_Atom  fieldName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Atom  fieldDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Field field           = VM_ClassLoader.findOrCreateField(getDescriptor(), fieldName, fieldDescriptor, classloader);
+	
+	field.load(input, modifiers);
+	declaredFields[i] = field;
+      }
+    }
 
-      method.load(input, modifiers);
-      declaredMethods[i] = method;
-      if (method.isClassInitializer())
-	classInitializerMethod = method;
+    int numMethods = input.readUnsignedShort();
+    if (numMethods == 0) {
+      declaredMethods = emptyVMMethod;
+    } else {
+      declaredMethods = new VM_Method[numMethods];
+      for (int i = 0, n = declaredMethods.length; i < n; ++i) {
+	int       modifiers        = input.readUnsignedShort();
+	VM_Atom   methodName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Atom   methodDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
+	VM_Method method           = VM_ClassLoader.findOrCreateMethod(getDescriptor(), methodName, methodDescriptor, classloader);
+	
+	method.load(input, modifiers);
+	declaredMethods[i] = method;
+	if (method.isClassInitializer())
+	  classInitializerMethod = method;
+      }
     }
 
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
