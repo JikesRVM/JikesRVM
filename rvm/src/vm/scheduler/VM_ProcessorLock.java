@@ -52,7 +52,7 @@
  *
  */
 
-final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible {
+public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible {
 
   /**
    * The state of the processor lock:
@@ -69,7 +69,7 @@ final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible {
   /**
    * Aquire a processor lock.
    */
-  void lock () {
+  public void lock () {
     if (VM.BuildForSingleVirtualProcessor) return;
     VM_Processor i = VM_Processor.getCurrentProcessor();
     if (VM.VerifyAssertions) i.lockCount += 1;
@@ -127,7 +127,7 @@ final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible {
   /**
    * Release a processor lock.
    */
-  void unlock () {
+  public void unlock () {
     if (VM.BuildForSingleVirtualProcessor) return;
     VM_Magic.sync(); // commit changes while lock was held so they are visiable to the next processor that aquires the lock
     VM_Processor i = VM_Processor.getCurrentProcessor();
