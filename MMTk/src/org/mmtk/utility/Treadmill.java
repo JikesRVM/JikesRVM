@@ -69,12 +69,16 @@ final class Treadmill
     return DoublyLinkedList.headerSize();
   }
 
-  static public final VM_Address nodeToPayload(VM_Address node) throws VM_PragmaInline {
-    return DoublyLinkedList.nodeToPayload(node);
+  static public final VM_Address nodeToPayload(VM_Address payload) throws VM_PragmaInline {
+    return DoublyLinkedList.nodeToPayload(payload);
   }
 
   static public final VM_Address payloadToNode(VM_Address payload) throws VM_PragmaInline {
     return DoublyLinkedList.payloadToNode(payload);
+  }
+
+  static public final VM_Address midPayloadToNode(VM_Address payload) throws VM_PragmaInline {
+    return DoublyLinkedList.midPayloadToNode(payload);
   }
 
   public final void addToFromSpace (VM_Address node) throws VM_PragmaInline {

@@ -8,7 +8,6 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
-import java.util.Date;
 import java.lang.ref.Reference;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
@@ -67,7 +66,7 @@ import com.ibm.JikesRVM.VM_Word;
  * @date $Date$
  */  
 
-public class VM_Interface implements VM_Constants, VM_Uninterruptible {
+public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible {
 
   /***********************************************************************
    *
@@ -835,10 +834,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
       int align = VM_ObjectModel.getAlignment(classType, fromObj);
       int offset = VM_ObjectModel.getOffsetForAlignment(classType, fromObj);
-      int rawSize = (align != BYTES_IN_ADDRESS) ? (numBytes + align) : numBytes;
+      int rawSize = (align > BYTES_IN_INT) ? (numBytes + align) : numBytes;
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
       VM_Address region = plan.allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, true);
-      if (align != BYTES_IN_ADDRESS) {
+      if (align > BYTES_IN_INT) {
         // This code is based on some fancy modulo artihmetic.
         // It ensures the property (region + offset) % alignment == 0
         VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
@@ -856,10 +855,10 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
       int align = VM_ObjectModel.getAlignment(arrayType, fromObj);
       int offset = VM_ObjectModel.getOffsetForAlignment(arrayType, fromObj);
-      int rawSize = (align != BYTES_IN_ADDRESS) ? (numBytes + align) : numBytes;
+      int rawSize = (align > BYTES_IN_INT) ? (numBytes + align) : numBytes;
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
       VM_Address region = getPlan().allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, false);
-      if (align != BYTES_IN_ADDRESS) {
+      if (align > BYTES_IN_INT) {
         // This code is based on some fancy modulo artihmetic.
         // It ensures the property (region + offset) % alignment == 0
         VM_Word mask  = VM_Word.fromIntSignExtend(align-1);

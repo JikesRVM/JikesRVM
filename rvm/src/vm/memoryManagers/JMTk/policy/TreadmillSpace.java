@@ -192,7 +192,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!MarkSweepHeader.isSmallObject(object));
         
     VM_Address cell = VM_Interface.objectStartRef(object);
-    VM_Address node = Treadmill.payloadToNode(cell);
+    VM_Address node = Treadmill.midPayloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
     tm.copy(node);
   }

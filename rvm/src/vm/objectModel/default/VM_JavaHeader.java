@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
@@ -51,7 +52,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_JavaHeader implements VM_JavaHeaderConstants, 
+public final class VM_JavaHeader implements VM_JavaHeaderConstants,
                                             VM_Uninterruptible 
                                             //-#if RVM_WITH_OPT_COMPILER
                                             ,OPT_Operators
@@ -148,11 +149,11 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
         size += HASHCODE_BYTES;
       }
     }
-    // JMTK requires sizes to be multiples of BYTES_IN_ADDRESS
+    // JMTK requires sizes to be multiples of BYTES_IN_PARTICLE
     // Jikes RVM currently forces scalars to be multiples of
-    // BYTES_IN_INT. So in 64 bit mode have to do something extra here.
-    if (BYTES_IN_INT != BYTES_IN_ADDRESS) {
-      size = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
+    // BYTES_IN_INT. Round up if BYTES_IN_PARTICLES is bigger.
+    if (Constants.BYTES_IN_PARTICLE > BYTES_IN_INT) {
+      size = VM_Memory.alignUp(size, Constants.BYTES_IN_PARTICLE);
     }
     return size;
   }
@@ -161,15 +162,15 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * how many bytes are needed when the array object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Array type, int numElements) {
-    // JMTk requires all sizes to be multiples of BYTES_IN_ADDRESS
-    int size = VM_Memory.alignUp(type.getInstanceSize(numElements), BYTES_IN_ADDRESS);
+    int size = type.getInstanceSize(numElements);
     if (ADDRESS_BASED_HASHING) {
       VM_Word hashState = VM_Magic.getWordAtOffset(fromObj, STATUS_OFFSET).and(HASH_STATE_MASK);
-      if (hashState.NE( HASH_STATE_UNHASHED)) {
+      if (hashState.NE(HASH_STATE_UNHASHED)) {
         size += HASHCODE_BYTES;
       }
     }
-    return size;
+    // JMTk requires all allocation requests to be multiples of BYTES_IN_PARTICLE
+    return VM_Memory.alignUp(size, Constants.BYTES_IN_PARTICLE);
   }
 
   /**

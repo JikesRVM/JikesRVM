@@ -50,7 +50,7 @@ final class DoublyLinkedList
   private final Lock lock;
   private final Object owner;
   private final int granularity;  // Each node on the treadmill is guaranteed to be a multiple of this.
-
+  
   /****************************************************************************
    *
    * Instance Methods
@@ -63,7 +63,11 @@ final class DoublyLinkedList
     owner = owner_;
     head = VM_Address.zero();   
     lock = shared ? new Lock("DoublyLinkedList") : null;
-    granularity = granularity_; 
+    granularity = granularity_;
+
+    // ensure that granularity is big enough for midPayloadToNode to work
+    VM_Word tmp = VM_Word.fromIntZeroExtend(granularity);
+    VM_Interface._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
   // Offsets are relative to the node (not the payload)
@@ -72,6 +76,13 @@ final class DoublyLinkedList
   private static int NEXT_OFFSET = 1 * BYTES_IN_ADDRESS;
   private static int LIST_OFFSET = 2 * BYTES_IN_ADDRESS;
   private static int HEADER_SIZE = 3 * BYTES_IN_ADDRESS;
+
+  private static final VM_Word nodeMask;
+  static {
+    int mask = 1;
+    while (mask < HEADER_SIZE+MAX_BYTES_PADDING) mask <<= 1;
+    nodeMask = VM_Word.fromIntZeroExtend(mask-1).not();
+  }
 
   public final Object getOwner() {
     return owner;
@@ -98,6 +109,11 @@ final class DoublyLinkedList
 
   static public final VM_Address payloadToNode(VM_Address payload) throws VM_PragmaInline {
     return payload.sub(HEADER_SIZE);
+  }
+
+  static public final VM_Address midPayloadToNode(VM_Address payload) throws VM_PragmaInline {
+    // This method words as long as you are less than MAX_BYTES_PADDING into the payload.
+    return payload.toWord().and(nodeMask).toAddress();
   }
 
   public final void add (VM_Address node) throws VM_PragmaInline {

@@ -10,8 +10,6 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
 import com.ibm.JikesRVM.memoryManagers.JMTk.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Barrier;
 import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
@@ -516,17 +514,18 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
     Plan plan = VM_Interface.getPlan();
-    // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
-    // Jikes RVM currently forces scalars to be multiples of
-    // BYTES_IN_INT. So in 64 bit mode have to do something extra here.
-    int alignedSize = size; // Still need original size !
-    if (BYTES_IN_ADDRESS != BYTES_IN_INT)
-      alignedSize = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
-    int rawSize = (align != BYTES_IN_ADDRESS) ? (alignedSize + align) : alignedSize;
+    // JMTk requires sizes to be multiples of BYTES_IN_PARTICLE.
+    // Jikes RVM currently already forces scalar sizes to be multiples
+    // of BYTES_IN_INT. But, if BYTES_IN_PARTICLE > BYTES_IN_INT
+    // then we have to do round up the allocation request.
+    int alignedSize = size;
+    if (BYTES_IN_PARTICLE > BYTES_IN_INT)
+      alignedSize = VM_Memory.alignUp(size, BYTES_IN_PARTICLE);
+    int rawSize = (align > BYTES_IN_INT) ? (alignedSize + align) : alignedSize;
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align != BYTES_IN_ADDRESS) {
+    if (align > BYTES_IN_INT) {
       // This code is based on some fancy modulo artihmetic.
       // It ensures the property (region + offset) % alignment == 0
       VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
@@ -565,15 +564,15 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       // asked to allocate more than Integer.MAX_VALUE bytes
       VM_Interface.failWithOutOfMemoryError();
     }
-    // JMTk requires sizes to be multiples of BYTES_IN_ADDRESS.
+    // JMTk requires sizes to be multiples of BYTES_IN_PARTICLES.
     // Jikes RVM does not ensure this for arrays, so we must round up here.
-    int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_ADDRESS);
-    int rawSize = (align != BYTES_IN_ADDRESS) ? (size + align) : size;
+    int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_PARTICLE);
+    int rawSize = (align > BYTES_IN_INT) ? (size + align) : size;
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align != BYTES_IN_ADDRESS) {
+    if (align > BYTES_IN_INT) {
       // This code is based on some fancy modulo artihmetic.
       // It ensures the property (region + offset) % alignment == 0
       VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
@@ -640,7 +639,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     VM_Array stackType = VM_Array.ByteArray;
     Object [] stackTib = stackType.getTypeInformationBlock();
     int offset = VM_JavaHeader.computeArrayHeaderSize(stackType);
-    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), BYTES_IN_ADDRESS);
+    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), BYTES_IN_PARTICLE);
     int fullSize = arraySize + alignment;  // somewhat wasteful
     if (VM.VerifyAssertions) VM._assert(alignment > offset);
     AllocAdvice advice = VM_Interface.getPlan().getAllocAdvice(null, fullSize, null, null);
