@@ -164,11 +164,6 @@ public class VM_Entrypoints implements VM_Constants {
   //-#endif
 
   static final VM_Field outputLockField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "outputLock", "I");
-  //-#if RVM_WITH_STRONG_VOLATILE_SEMANTICS
-  static final VM_Field doublewordVolatileMutexField   = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "doublewordVolatileMutex", "Lcom/ibm/JikesRVM/VM_ProcessorLock;");
-  //-#else
-  static final VM_Field doublewordVolatileMutexField   = null; // GACK!
-  //-#endif
   public static final VM_Field processorsField                = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "processors", "[Lcom/ibm/JikesRVM/VM_Processor;");
   public static final VM_Field threadsField                   = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "threads", "[Lcom/ibm/JikesRVM/VM_Thread;");
   public static final VM_Field debugRequestedField            = getField("Lcom/ibm/JikesRVM/VM_Scheduler;", "debugRequested", "Z");
@@ -185,13 +180,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field dimensionField                 = getField("Lcom/ibm/JikesRVM/VM_Type;", "dimension", "I");
 
   public static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/VM_Type;");
-
-
-  //-#if RVM_WITH_PREMATURE_CLASS_RESOLUTION
-  static final VM_Method initializeClassIfNecessaryMethod = getMethod("Lcom/ibm/JikesRVM/VM_Class;", "initializeClassIfNecessary", "(I)V");
-  //-#else
-  public static final VM_Method initializeClassIfNecessaryMethod = null; // GACK
-  //-#endif
 
   public static final VM_Field JNIEnvAddressField         = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIEnvAddress", "Lcom/ibm/JikesRVM/VM_Address;");
   static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "savedTIreg", "I");
