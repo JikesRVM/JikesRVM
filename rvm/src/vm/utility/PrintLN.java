@@ -84,11 +84,19 @@ public abstract class PrintLN {
   }
 
   public abstract void print(char c);
-  /* Code related to VM_Atom.classNameFromDescriptor() */
-  public void print(VM_Class class_) {
 
-    // getDescriptor() does no allocation.
-    VM_Atom descriptor = class_.getDescriptor(); 
+//   /** Print the name of the class to which the argument belongs.
+//    * 
+//    * @param o Print the name of the class to which o belongs. */
+//   public void printClassName(Object o) {
+    
+//   }
+
+  /** Print the name of the class represented by the class descriptor.
+   * 
+   * @param d The class descriptor whose name we'll print. */
+  public void printClassName(VM_Atom descriptor) {
+    // toByteArray does not allocate; just returns an existing descriptor.
     byte[] val = descriptor.toByteArray();
 
     if (VM.VerifyAssertions) 
@@ -102,6 +110,13 @@ public abstract class PrintLN {
     }
     // We could do this in an emergency.  But we don't need to.
     // print(descriptor);
+  }
+
+  /* Code related to VM_Atom.classNameFromDescriptor() */
+  public void print(VM_Class class_) {
+    // getDescriptor() does no allocation.
+    VM_Atom descriptor = class_.getDescriptor(); 
+    printClassName(descriptor);
   }
 
     // A kludgy alternative:
