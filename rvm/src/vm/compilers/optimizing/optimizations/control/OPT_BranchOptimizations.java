@@ -994,7 +994,8 @@ public final class OPT_BranchOptimizations
 					  OPT_BasicBlock bb, 
 					  OPT_Instruction cb, 
 					  OPT_BasicBlock tb) {
-    if (cb.operator() != INT_IFCMP)
+    
+    if ((cb.operator() != INT_IFCMP) && (cb.operator() != REF_IFCMP))
       return false;
     // make sure this is the last branch in the block
     if (cb.getNext().operator() != BBEND)
