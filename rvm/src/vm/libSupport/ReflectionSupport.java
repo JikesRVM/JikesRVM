@@ -1385,6 +1385,7 @@ public class ReflectionSupport {
       return false;
 
     for (int i = 0, n = lhs.length; i < n; ++i) {
+      if (rhs[i] == null) return false;
       try {
 	if (lhs[i].resolve() != java.lang.JikesRVMSupport.getTypeForClass(rhs[i])) {
 	  return false;
