@@ -2,6 +2,15 @@ README for the Jikes RVM Eclipse Plug-in
 
 Created: 2002.06.20
 By: Jeffrey Palm
+
+Modified: 2003.08.18
+By: Steven Augart
 ======================================================================
 
-TODO...
+To understand this plugin, you need to understand that Eclipse uses
+two Java Virtual Machines (JVMs): one to run Eclipse itself, and
+another that Eclipse uses to run your user programs under Eclipse.
+
+This plugin lets you use the Jikes RVM as your subsidiary VM for
+running your user programs. 
+
