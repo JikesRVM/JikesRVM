@@ -8,10 +8,9 @@ scheduled and synchronized by the Jikes\trademark RVM.
 All Java threads (application threads, garbage collector threads, {\em
 etc.})  derive from 
 \xlink{{\tt VM\_Thread}}{\VMThreadURL}.  
-These threads are multiplexed by
+These threads are multiplexed onto
 one or more virtual processors (see 
-\xlink{{\tt VM\_Processor}}{\VMProcessorURL}
-).  Normally, the
+\xlink{{\tt VM\_Processor}}{\VMProcessorURL}).  Normally, the
 number of Jikes RVM virtual processors to use is a command line argument
 (e.g. {\tt -X:processors=4}) Generally, there should be one Jikes RVM
 virtual processor for each CPU on an SMP.  Additional virtual
@@ -86,7 +85,7 @@ Currently, this mechanism does not work on Linux and is disabled there.
 Jikes RVM uses a light-weight locking scheme to implement Java monitors (see
 \xlink{{\tt VM\_Lock}}{\VMLockURL} and 
 \xlink{{\tt VM\_ThinLock}}{\VMThinLockURL}). The exact details of the
-locking scheme are dependent on the which variant of 
+locking scheme are dependent on which variant of 
 \xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL} is selected at
 system build time.  If an object instance has a light weight lock,
 then some bits in the object header are used for locking.  
