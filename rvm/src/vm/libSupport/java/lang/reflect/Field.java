@@ -27,13 +27,14 @@ import com.ibm.JikesRVM.VM_Runtime;
  */
 public final class Field extends AccessibleObject implements Member {
 
-  VM_Field field;
+  final VM_Field field;
 
-  /**
-   * Prevent this class from being instantiated.
-   */
-  private Field() {}
+  // Prevent this class from being instantiated.
+  private Field() {
+    field = null;
+  }
     
+  // For use by JikesRVMSupport
   Field(VM_Field f) {
     field = f;
   }
