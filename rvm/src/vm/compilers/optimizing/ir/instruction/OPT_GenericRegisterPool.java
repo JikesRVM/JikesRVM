@@ -266,7 +266,6 @@ abstract class OPT_GenericRegisterPool {
       otherHalf = getReg(reg);
       _regPairs.put(reg, otherHalf);
       if (reg.isLocal()) otherHalf.setLocal();
-      if (reg.isLocalInCatch()) otherHalf.setLocalInCatch();
       if (reg.spansBasicBlock()) otherHalf.setSpansBasicBlock();
       if (reg.isSSA()) otherHalf.setSSA();
     }

@@ -392,10 +392,7 @@ final class OPT_DefUse implements OPT_Operators {
     for (OPT_Register reg = ir.regpool.getFirstRegister(); 
         reg != null; reg = reg.getNext()) {
       reg.scratch = -1;
-      // localInCatch is needed until the DepGraph removes some edges
-      //  otherwise cycles may happen
-      if (!reg.isLocalInCatch())
-        reg.clearSpansBasicBlock();
+      reg.clearSpansBasicBlock();
     }
     // iterate over the basic blocks
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; 

@@ -30,11 +30,10 @@ final class OPT_Register {
   int flags;
 
   static private final int LOCAL            = 0x00001;  /* local variable */
-  static private final int LOCAL_IN_CATCH   = 0x00002;  /* local variable accessed in a catch block */
-  static private final int SPAN_BASIC_BLOCK = 0x00004;  /* live on a basic block boundary */
-  static private final int SSA              = 0x00008;  /* only one assignment to this register */
-  static private final int SEEN_USE         = 0x00010;  /* seen use */
-  static private final int PHYSICAL         = 0x00020;  /* physical (real) register - not symbolic */
+  static private final int SPAN_BASIC_BLOCK = 0x00002;  /* live on a basic block boundary */
+  static private final int SSA              = 0x00004;  /* only one assignment to this register */
+  static private final int SEEN_USE         = 0x00008;  /* seen use */
+  static private final int PHYSICAL         = 0x00010;  /* physical (real) register - not symbolic */
 
   /*  register type  for both physical and symbolic */
   static private final int TYPE_SHIFT       = 7;        /* # bits to shift */
@@ -69,7 +68,6 @@ final class OPT_Register {
 
   boolean isTemp()          { return (flags & LOCAL           ) == 0; }
   boolean isLocal()         { return (flags & LOCAL           ) != 0; }
-  boolean isLocalInCatch()  { return (flags & LOCAL_IN_CATCH  ) != 0; }
   boolean spansBasicBlock() { return (flags & SPAN_BASIC_BLOCK) != 0; }
   boolean isSSA()           { return (flags & SSA             ) != 0; }
   boolean seenUse()         { return (flags & SEEN_USE        ) != 0; }
@@ -90,7 +88,6 @@ final class OPT_Register {
   boolean isNonVolatile()   { return (flags & NON_VOLATILE    ) != 0; }
 
   void setLocal()           { flags |= LOCAL;            }
-  void setLocalInCatch()    { flags |= LOCAL_IN_CATCH;   }
   void setSpansBasicBlock() { flags |= SPAN_BASIC_BLOCK; }
   void setSSA()             { flags |= SSA;              }
   void setSeenUse()         { flags |= SEEN_USE;         }
@@ -110,7 +107,6 @@ final class OPT_Register {
   void putSpansBasicBlock(boolean a) { if (a) setSpansBasicBlock(); else clearSpansBasicBlock(); }
 
   void clearLocal()           { flags &= ~LOCAL;            }
-  void clearLocalInCatch()    { flags &= ~LOCAL_IN_CATCH;   }
   void clearSpansBasicBlock() { flags &= ~SPAN_BASIC_BLOCK; }
   void clearSSA()             { flags &= ~SSA;              }
   void clearSeenUse()         { flags &= ~SEEN_USE;         }
@@ -196,17 +192,7 @@ final class OPT_Register {
       return OPT_PhysicalRegisterSet.getName(number);
 
     // Set s to descriptive letter for register type
-    String s;
-    if (isLocal()) {
-      if (isLocalInCatch()) {
-	s = "c"; // Local that appears in catch block
-      } else {
-	s = "l"; // Local that does not appear in catch block
-      } 
-    } else {
-      s = "t"; // Temporary
-    }
-
+    String s = isLocal() ? "l" : "t";
     s = s + getNumber() + (spansBasicBlock()?"p":"") + (isSSA()?"s":"") +typeName();
     return s;
   }
