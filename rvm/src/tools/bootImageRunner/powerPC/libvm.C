@@ -71,9 +71,6 @@ typedef unsigned long ulong_t;
 extern "C" char *sys_siglist[];
 #endif
 
-void internalSyncCache(int, int);
-
-
 #if (defined RVM_FOR_OSX)
 #define GET_GPR(info, r) (*getRegAddress(info, r))
 #define SET_GPR(info, r, value) *getRegAddress(info, r)=(value)
