@@ -2630,17 +2630,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
      * pointer, contains the return address.
      */
 
-    /*
-     * TEMP DEBUG CODE --dave 
-     * To determine who is not playing by the rules that PR.framepointer should
-     * hold the caller's FP at all PEI's / GC points.
-     *
-     * asm.emitCMP_Reg_RegDisp(FP, PR, VM_Entrypoints.framePointerOffset);
-     * VM_ForwardReference fr2 = asm.forwardJcc(asm.EQ);	// Jmp around trap if OK
-     * asm.emitINT_Imm ( 0xFF);	// trap
-     * fr2.resolve(asm);
-     */
-
     /* establish a new frame:
      * push the caller's frame pointer in the stack, and
      * reset the frame pointer to the current stack top,
