@@ -66,7 +66,7 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   protected static final EXTENT      IMMORTAL_SIZE = BOOT_SIZE + 16 * 1024 * 1024;
   protected static final VM_Address   IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
   protected static final VM_Address META_DATA_START = IMMORTAL_END;
-  protected static final EXTENT     META_DATA_SIZE  = 16 * 1024 * 1024;
+  protected static final EXTENT     META_DATA_SIZE  = 64 * 1024 * 1024;
   protected static final VM_Address   META_DATA_END   = META_DATA_START.add(META_DATA_SIZE);  
   protected static final VM_Address   PLAN_START  = META_DATA_END;
 
