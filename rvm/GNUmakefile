@@ -44,7 +44,7 @@ append_java_templates=find src ${find_match_junk_names}  -o -name examples -prun
 # Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
 # in a clean checkout, but might possibly do so if there were old 
 # files left over whose names start with "#" or with ".#". 
-FIND:=find $(GENSRC) src ${find_match_junk_names} -o -name examples -prune -o -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c \)
+FIND:=find $(GENSRC) src ${find_match_junk_names} -o -name examples -prune -o -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
 FINDALL:=find $(GENSRC) . ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
 
 EFLAGS:=--members --declarations --defines --globals
