@@ -361,12 +361,13 @@ function doRun
      # gather performance data, if appropriate
      if [ x$PERFORMANCE != x ]; then
 	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
-	LIMIT=`expr 2700 '*' $NUM_PROCS`
+	LIMIT_RAW=`cat TimeLimit.performance`
 	echo "Performance mode: results to $PERFORMANCE"
      else
-	LIMIT=`expr 1800 '*' $NUM_PROCS`
+	LIMIT_RAW=`cat TimeLimit.sanity`
 	PERFORMANCE_STR=
-    fi
+     fi
+     LIMIT=`expr $LIMIT_RAW '*' $NUM_PROCS`
 
     # pass on opt. level information, if given
     if [ x$OPT_LEVEL != x ]; then
