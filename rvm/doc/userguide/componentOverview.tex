@@ -33,7 +33,7 @@ The 2.2.0 release introduced packages into the system.  Prior releases
 did not use packages explicitly, which resulted in all classes being in
 the unnamed package.  
 
-There are currently seven packages in \jrvm. All classes are in
+There are currently nine packages in \jrvm. All classes are in
 one of these packages.
 \begin{description}
 \item [com.ibm.JikesRVM] Classes for the core runtime, except for library
@@ -41,7 +41,12 @@ support.  This package also contains other classes that are not
 included in one of the other packages, such as the baseline and JNI
 compilers. 
 
+\item [com.ibm.JikesRVm.classloader] Implementation of classloaders
+and associated data structures including VM representation of classes,
+methods, etc. 
+
 \item [com.ibm.JikesRVM.librarySupport] Classes for library support
+
 \item [com.ibm.JikesRVM.adaptive] Classes for the adaptive optimization system
 
 \item [com.ibm.JikesRVM.memoryManagers.vmInterface] Classes related to
@@ -58,6 +63,9 @@ compiler, except for IR-related classes
 
 \item [com.ibm.JikesRVM.opt.ir] Classes related to the IR
 (intermediate representation) of the optimizing compiler
+
+\item [com.ibm.JikesRVM.OSR] Classes related to On-Stack-Replacement. 
+
 \end{description}
 
 The distributed directory structure
