@@ -45,10 +45,6 @@ V MAX_DEADSTORE_SYSTEM_SIZE int 100
 Maximum number of dataflow equations for dead store elimination
 
 
-E REGALLOC_ALGORITHM byte LINEAR_SCAN_REGALLOC
-Selection of register allocation algorithm
-"LINEAR_SCAN_REGALLOC useLinearScanRegAlloc ls" 
-
 E INLINING_GUARD byte VM.BuildForIA32?IG_CODE_PATCH:IG_METHOD_TEST
 Selection of guard mechanism for inlined virtual calls that cannot be statically bound
 "IG_METHOD_TEST guardWithMethodTest ig_method_test" \

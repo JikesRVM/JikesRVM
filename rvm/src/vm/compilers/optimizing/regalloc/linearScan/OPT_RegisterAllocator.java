@@ -42,15 +42,7 @@ final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
      * create the stack manager
      */
     final public void perform (OPT_IR ir) {
-
       ir.stackManager.prepare(ir);
-
-      // This code assumes that we are running linear scan, if not 
-      // we better know now
-      if (VM.VerifyAssertions) {
-	VM.assert(ir.options.useLinearScanRegAlloc());
-      }
-	
     }
 
   }
