@@ -71,6 +71,11 @@ HTTPClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 JGF_HOME=/u/sfink/tmp/jgf_v2.0
 
 #
+# Soot v1.2.3
+#
+Soot_HOME=/homes/fury5/jalapeno/contrib/benchmarks/soot-1.2.3
+
+#
 # Xerces 2.0.2
 #
 Xerces_HOME=/homes/fury5/jalapeno/contrib/benchmarks/xerces-2_0_2
