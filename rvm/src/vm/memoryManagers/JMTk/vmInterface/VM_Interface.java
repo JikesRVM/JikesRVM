@@ -286,9 +286,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static final void triggerCollection(String why) throws VM_PragmaInterruptible {
     // VM_Scheduler.dumpStack();
-    if (Plan.verbose > 0) VM.sysWriteln("Collection triggered due to ");
+    if (Plan.verbose > 0) VM.sysWriteln("Collection triggered due to ", why);
     long start = System.currentTimeMillis();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
+    if (Plan.verbose > 0) VM.sysWriteln("Collection finished (ms): ", 
+					System.currentTimeMillis() - start);
   }
 
   /**
