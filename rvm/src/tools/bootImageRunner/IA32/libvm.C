@@ -323,7 +323,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                  isRecoverable? "" : " UNRECOVERABLE", 
                  signo, strsignal(signo));
 
-        writeErr("handler stack 0x%08x\n", (unsigned) &localInstructionAddress);
+        writeErr("handler stack 0x%08x\n", 
+                 (unsigned) &localInstructionAddress);
         if (signo == SIGSEGV)
             writeErr("si->si_addr   0x%08x\n", (unsigned) si->si_addr);
         writeErr("gs            0x%08x\n", gregs[REG_GS]);
