@@ -53,12 +53,14 @@ public final class HPM_counters
   }
   /*
    * Accumulate this object's counters with sum's and store in sum.
-   * @param sum   where accumulated values go
-   * @param info  HPM information; e.g. number of counters
+   * Method is uninterruptible because called from VM_Processor.dispatch() at
+   * thread switch time.
+   * @param sum        where accumulated values go
+   * @param n_counters number of counters
    */
-  public void accumulate(HPM_counters sum, HPM_info info) {
-    // System.out.println("HPM_counters.dump() # of counters "+info.numberOfCounters);
-    for (int i=0; i<=info.numberOfCounters; i++) {
+  public void accumulate(HPM_counters sum, int n_counters) throws VM_PragmaUninterruptible
+  {
+    for (int i=0; i<=n_counters; i++) {
       sum.counters[i] += counters[i];
     }
   }
