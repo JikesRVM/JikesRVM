@@ -49,7 +49,8 @@ ${CONFIG_H}:
 	@> ${LOG}		# zero out the log file.
 	@> $@			# zero out config.h
 	@${RUN} have_cxx_strtold.sh		>> $@ ${SILENCE}
-	@${RUN} printf_handles_percent_z.sh	>> $@ ${SILENCE}
+## Disabled because we do not use this feature test right now.
+#	@${RUN} printf_handles_percent_z.sh	>> $@ ${SILENCE}
 
 # ${CONFIG_MAKE}: prep
 # 	@> $@
@@ -60,6 +61,9 @@ ${CONFIG_H}:
 ${CONFIG_SH}: 
 	$(MAKE) prep
 	@> $@
+## If you apply the newer GCspy patch, you won't need to invoke
+## g++ with -Wno-endif-labels.  Otherwise, it can be useful to do
+## so if warnings are enabled.
 ifeq (${RVM_WITH_GCSPY},1)
 	@${RUN} cxx_with_W_no_endif_labels.sh --sh >> $@ ${SILENCE}
 endif
