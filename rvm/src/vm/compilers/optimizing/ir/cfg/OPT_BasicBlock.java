@@ -73,7 +73,9 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   /** Bitfield used in flag encoding */
   static final int INFREQUENT           = 0x20;
   /** Bitfield used in flag encoding */
-  static final int SCRATCH            = 0x40;
+  static final int SCRATCH              = 0x40;
+  /** Bitfield used in flag encoding */
+  static final int LANDING_PAD          = 0x80;
 
 
   /**
@@ -423,6 +425,16 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   }
 
   /**
+   * Has the block been marked as landing pad?
+   * 
+   * @return <code>true</code> if the block is marked as landing pad
+   *         or <code>false</code> if it is not
+   */
+  final boolean getLandingPad() {
+    return (flags & LANDING_PAD) != 0; 
+  }
+
+  /**
    * Mark the block as possibly raising an exception.
    */
   final void setCanThrowExceptions() {  
@@ -469,6 +481,13 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   final void setScratchFlag() {  
     flags |= SCRATCH;
+  }
+
+  /**
+   * Mark the block as a landing pad for loop invariant code motion.
+   */
+  final void setLandingPad() { 
+    flags |= LANDING_PAD;
   }
 
   /**
@@ -520,6 +539,13 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   final void clearScratchFlag() {
     flags &= ~SCRATCH;                   
+  }    
+
+  /**
+   * Clear the landing pad property of the block
+   */
+  final void clearLandingPad() { 
+    flags &= ~LANDING_PAD;
   }    
 
   private final void setCanThrowExceptions(boolean v) {

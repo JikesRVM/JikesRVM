@@ -111,6 +111,10 @@ public final class OPT_BranchOptimizations
   private boolean processGoto(OPT_IR ir, OPT_Instruction g, 
 			      OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = g.getBranchTarget();
+
+    // don't optimize jumps to a code motion landing pad 
+    if (targetBlock.getLandingPad()) return false;
+    
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the g target
     // NOTE: this instruction is not necessarily in targetBlock,
@@ -239,6 +243,10 @@ public final class OPT_BranchOptimizations
 					   OPT_Instruction cb, 
 					   OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
+
+    // don't optimize jumps to a code motion landing pad 
+    if (targetBlock.getLandingPad()) return false;
+    
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the branch target
     // NOTE: this instruction is not necessarily in targetBlock,
