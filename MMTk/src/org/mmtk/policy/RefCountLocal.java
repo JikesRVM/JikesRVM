@@ -164,7 +164,7 @@ final class RefCountLocal extends SegregatedFreeList
     if (time) Statistics.rcIncTime.start();
     if (Options.verbose > 2) processIncBufsAndCount(); else processIncBufs();
     if (time) Statistics.rcIncTime.stop();
-    VM_Interface.rendezvous();
+    VM_Interface.rendezvous(4400);
     if (time) Statistics.rcDecTime.start();
     processDecBufs();
     if (time) Statistics.rcDecTime.stop();
