@@ -137,7 +137,7 @@ class breakpointList extends Vector implements jdpConstants {
 
     // if jumping over method invocation, don't worry about the branch target
     current_I = owner.mem.read(address);
-    boolean is_brl = PPC_Disassembler.isBranchAndLink(current_I);
+    boolean is_brl = com.ibm.JikesRVM.PPC_Disassembler.isBranchAndLink(current_I);
     if (over_brl && is_brl) {      
       // System.out.println("setStepBreakpoint: next " + Integer.toHexString(bp.next_addr));
       Platform.setbp(bp.next_addr);
@@ -146,7 +146,7 @@ class breakpointList extends Vector implements jdpConstants {
     // if branch for a yieldpoint, don't want to follow branch set step
     // for next instruction
     if (is_brl) {
-      boolean is_yld = PPC_Disassembler.isBranchForYieldpoint(current_I);
+      boolean is_yld = com.ibm.JikesRVM.PPC_Disassembler.isBranchForYieldpoint(current_I);
       if (is_yld) {
 	Platform.setbp(bp.next_addr);
         return;

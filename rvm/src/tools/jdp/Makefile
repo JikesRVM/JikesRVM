@@ -109,7 +109,6 @@ copy_powerPC:
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/powerPC/*.java $(TOOLS_DIR)/.
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/powerPC/*.c $(TOOLS_DIR)/.
 	@cp -f $(RVM_ROOT)/rvm/src/tools/jdp/interpreter/*.java $(TOOLS_DIR)/.
-	@cp -f $(RVM_ROOT)/rvm/src/vm/arch/powerPC/disassembler/*.java $(TOOLS_DIR)/.
 # mapVM needs preprocessing for arch-dependency and was placed in scratch dir
 	@rm -f $(TOOLS_DIR)/mapVM.java
 	@cp -f $(RVM_BUILD)/RVM.scratch/mapVM.java $(TOOLS_DIR)/mapVM.java

@@ -101,7 +101,7 @@ package com.ibm.JikesRVM;
  *  mtibatu		
  */
 
-class PPC_Disassembler implements VM_Constants {
+public class PPC_Disassembler implements VM_Constants {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;
   static final int MSR = 129;
@@ -796,7 +796,7 @@ class PPC_Disassembler implements VM_Constants {
    *  readable.
    */
   
-  static String disasm(int inst, int addr)
+  public static String disasm(int inst, int addr)
   {
     int opcode;
     int form;
@@ -1456,7 +1456,7 @@ class PPC_Disassembler implements VM_Constants {
    * Simply return whether an instruction is a branch_with_link
    */
   /* static int branch_link(inst) */
-  static boolean isBranchAndLink(int inst)
+  public static boolean isBranchAndLink(int inst)
   {
     int opcode, ext_op;
     int link;
@@ -1488,7 +1488,7 @@ class PPC_Disassembler implements VM_Constants {
    *  used by OPT compiler
    */
   /* static int branch_for_yieldpoint(inst) */
-  static boolean isBranchForYieldpoint(int inst)
+  public static boolean isBranchForYieldpoint(int inst)
   {
     int opcode, ext_op;
     int link;
