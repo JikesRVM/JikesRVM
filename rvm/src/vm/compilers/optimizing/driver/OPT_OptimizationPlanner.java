@@ -289,10 +289,12 @@ class OPT_OptimizationPlanner {
 	    // Compute dominators
 	    new OPT_DominatorsPhase(true), 
 	    // compute dominance frontier
-	    new OPT_DominanceFrontier(), 
-	    // Global Code Placement,
-	    new OPT_GCP(), 
-	    // Leave SSA 
+            new OPT_DominanceFrontier(), 
+            // Global Code Placement,
+            new OPT_GCP(), 
+            // Live range splitting 
+            new OPT_LiveRangeSplitting(),
+            // Leave SSA 
 	    new OPT_LeaveSSA()  
 	      }
 	  ) {
@@ -300,8 +302,8 @@ class OPT_OptimizationPlanner {
 	     return options.getOptLevel() >= 2;
 	   }
 	 },
-            // Coalesce moves
-            new OPT_CoalesceMoves(), 
+        // Coalesce moves
+        new OPT_CoalesceMoves(), 
 
       // SSA reveals new opportunites for the following
       new OPT_OptimizationPlanCompositeElement
@@ -405,6 +407,8 @@ class OPT_OptimizationPlanner {
       }, 
       // Convert from 3-operand to 2-operand ALU ops.
       new OPT_ConvertALUOperators(), 
+      // Change operations that split live ranges to moves
+      new OPT_MutateSplits(),
       // Instruction Selection
       new OPT_ConvertLIRtoMIR(), 
       // For now, always print the Initial MIR
@@ -428,7 +432,7 @@ class OPT_OptimizationPlanner {
 
     // Register Allocation
     composeComponents(p, "Register Mapping", new Object[] {
-      new OPT_SplitLiveRanges(),
+      new OPT_MIRSplitRanges(),
       // MANDATORY: Expand calling convention
       new OPT_ExpandCallingConvention(),
       // MANDATORY: Insert defs/uses due to floating-point stack
@@ -476,6 +480,8 @@ class OPT_OptimizationPlanner {
       }, 
       // Split very large basic blocks into smaller ones.
       new OPT_SplitBasicBlock(), 
+      // Change operations that split live ranges to moves
+      new OPT_MutateSplits(),
       // Instruction selection
       new OPT_ConvertLIRtoMIR(), 
       // Optional printing of initial MIR

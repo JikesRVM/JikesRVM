@@ -69,8 +69,7 @@ import instructionFormats.*;
  * @author Stephen Fink
  * @modified Julian Dolby
  */
-class OPT_SSA
-    implements OPT_Operators, OPT_Constants {
+class OPT_SSA implements OPT_Operators, OPT_Constants {
 
   /**
    * Add a move instruction at the end of a basic block, renaming
@@ -236,6 +235,30 @@ class OPT_SSA
       for (int i=dst; i<numPairs; i++) {
 	Phi.setValue(s, i, null);
 	Phi.setValue(s, i, null);
+      }
+    }
+  }
+  /**
+   * Update PHI instructions in the target block so that any PHIs that
+   * come from basic block B1, now come from basic block B2.
+   * 
+   * @param target the target block that may contain PHIs to update.
+   * @param B1 the block to replace in the phi instructions
+   * @param B2 the replacement block for B1
+   */
+  static void replaceBlockInPhis(OPT_BasicBlock target,
+				 OPT_BasicBlock B1, OPT_BasicBlock B2) {
+    for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
+	 e.hasMoreElements();) {
+      OPT_Instruction s = e.next();
+      if (s.operator() != PHI) return; // all done (assume PHIs are first!)
+      int numPairs = Phi.getNumberOfPreds(s);
+      int dst = 0;
+      for (int src=0; src<numPairs; src++) {
+	OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
+	if (bbop.block == B1) {
+	  Phi.setPred(s, src, new OPT_BasicBlockOperand(B2));
+	}
       }
     }
   }

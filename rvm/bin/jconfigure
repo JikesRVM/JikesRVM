@@ -625,6 +625,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/liveRangeSplitting
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA/escape
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/abcd

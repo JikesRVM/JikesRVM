@@ -88,6 +88,9 @@ Should we coalesce move instructions after leaving SSA?
 EXPRESSION_FOLDING 2 false
 Should we try to fold expressions with constants in SSA form?
 
+LIVE_RANGE_SPLITTING -1 false
+Split live ranges using LIR SSA pass?
+
 ## (SJF): The following optimization is not on by default because
 ## it is usually expensive and ineffective.
 ## 9/15/2001: This optimization is causing stability problems on IA32.

@@ -465,6 +465,13 @@ none
 
 
 
+# introduce a new name to force live range splitting
+SPLIT
+Unary
+none
+
+
+
 # PI node for ABCD: introduce a new name for analysis
 PI
 GuardedUnary

@@ -8,6 +8,7 @@ import  java.util.Enumeration;
 import instructionFormats.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashSet;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis. 
@@ -983,6 +984,44 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     return  bbLiveInfo[bb.getNumber()];
   }
 
+  /**
+   * Return the set of registers that are live on the control-flow edge 
+   * basic block bb1 to basic block bb2
+   */
+  HashSet getLiveRegistersOnEdge(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
+    HashSet s1 = getLiveRegistersOnExit(bb1);
+    HashSet s2 = getLiveRegistersOnEntry(bb2);
+    s1.retainAll(s2);
+    return s1;
+  }
+
+  /**
+   * Return the set of registers that are live across a basic block, and who 
+   * are live after the basic block exit.
+   */	
+  HashSet getLiveRegistersOnExit(OPT_BasicBlock bb) {
+    HashSet result = new HashSet(10);
+    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
+      OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
+      OPT_Instruction end = lie.getEnd(); 
+      if (end == null) result.add(lie.getRegister());
+    }
+    return result;
+  }
+  /**
+   * Return the set of registers that are live across a basic block, and who 
+   * are live before the basic block entry.
+   */	
+  HashSet getLiveRegistersOnEntry(OPT_BasicBlock bb) {
+    HashSet result = new HashSet(10);
+    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
+      OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
+      OPT_Instruction begin = lie.getBegin(); 
+      if (begin == null) result.add(lie.getRegister());
+    }
+    return result;
+  }
+
   // A simple class used to store live info
   static final class BBLiveElement {
     private OPT_LiveSet gen;
@@ -1081,6 +1120,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       buf.append(" In: " + in + "\n");
       return  buf.toString();
     }
+
   }
 
   /**
