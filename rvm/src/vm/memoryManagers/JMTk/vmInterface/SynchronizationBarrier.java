@@ -35,13 +35,14 @@ public final class SynchronizationBarrier {
   private int   numRealProcessors;
 
   /** number of times i-th processor has entered barrier */
-  private int[] entryCounts;
+  private int[] entryCounts;  // records number of arrivals of processors indexed by procID
 
   /** measure rendezvous times - outer index is processor id - inner index is which rendezvous point */
   public static double rendezvousStartTime;
   public static int rendezvousIn[][] = null;   
   public static int rendezvousOut[][] = null;
-  public static int rendezvousCount[] = null;  // indicates which rendezvous a processor is at
+  public static int rendezvousCount[] = null;   // indicates which rendezvous a processor is at
+  private static final int MAX_RENDEZVOUS = 15; // No one will probably do more than 15 rendezvous without a reset
 
   /**
    * Constructor
@@ -51,9 +52,8 @@ public final class SynchronizationBarrier {
     // Using without resetting will cause waitABit() to yield instead of spinning
     numRealProcessors = 1;
     entryCounts     =  new int[1 + VM_Scheduler.MAX_PROCESSORS]; // 0-th slot unused
-    // No one will probably do more than 15 rendezvous without a reset
-    rendezvousIn    =  new int[1 + VM_Scheduler.MAX_PROCESSORS][15];
-    rendezvousOut   =  new int[1 + VM_Scheduler.MAX_PROCESSORS][15];
+    rendezvousIn    =  new int[1 + VM_Scheduler.MAX_PROCESSORS][MAX_RENDEZVOUS];
+    rendezvousOut   =  new int[1 + VM_Scheduler.MAX_PROCESSORS][MAX_RENDEZVOUS];
     rendezvousCount =  new int[1 + VM_Scheduler.MAX_PROCESSORS];
   }
 
@@ -84,17 +84,8 @@ public final class SynchronizationBarrier {
 	continue;               // skip non participating VP
       if (i == myProcessorId)
 	continue;
-      while (entryCounts[i] < myCount) {
-	// yield virtual processor's time slice (more polite to o/s than spinning)
-	//
-	// VM_Interface.lowYield();
-	//
-	// ...put original spinning code back in, in place of above, since this
-	// is only being used by parallel GC threads, running on fewer that all
-	// available processors.
-	//
-	waitABit(1);
-      }
+      while (entryCounts[i] < myCount) 
+	waitABit(1);  // either busy-wait or yield
     }
 
     VM_Magic.isync(); // so subsequent instructions won't see stale values
@@ -121,10 +112,10 @@ public final class SynchronizationBarrier {
 
     VM.sysWriteln("**** Rendezvous entrance & exit times (microsecs) **** ");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-	VM.sysWrite("  Thread ", i, ": ");
+      VM.sysWrite("  Thread ", i, ": ");
       for (int j = 0; j < rendezvousCount[i]; j++) {
-	  VM.sysWrite("   R", j, " in ", rendezvousIn[i][j]);
-	  VM.sysWrite(" out ", rendezvousOut[i][j]);
+	VM.sysWrite("   R", j, " in ", rendezvousIn[i][j]);
+	VM.sysWrite(" out ", rendezvousOut[i][j]);
       }
       VM.sysWriteln();
     }
@@ -176,20 +167,17 @@ public final class SynchronizationBarrier {
       //
       for (int i = 1; i <= VM_Scheduler.numProcessors; ++i) {
 	while (entryCounts[i] == 0) {
-	  if (trace_startup) {
-	    VM.sysWrite("Proc ", myProcessorId);
-	    VM.sysWrite(" waiting for ", i);
-	  }
+	  if (trace_startup) 
+	    VM.sysWrite("Proc ", myProcessorId, " waiting for ", i);
 	  waitABit(1);
 	}
       }
 
-      // now also wait for native daemon processor to be excluded (done so by
+      // Wait for native daemon processor to be excluded (done so by
       // ordinal=1 thread in code below) or to arrive.
       while (entryCounts[VM_Scheduler.nativeDPndx] == 0) {
 	  if (trace_startup) {
-	    VM.sysWrite("Proc ", myProcessorId);
-	    VM.sysWrite(" ordinal ", myNumber);
+	    VM.sysWrite("Proc ", myProcessorId, " ordinal ", myNumber);
 	    VM.sysWriteln(" waiting for NDP to arrive or be excluded");
 	  }
 	  waitABit(1);
@@ -197,7 +185,7 @@ public final class SynchronizationBarrier {
 
       VM_Magic.isync();   // so subsequent instructions won't see stale values
       if (trace_startup) VM_Scheduler.trace("startupRendezvous:", "leaving - my count =",
-				    entryCounts[myProcessorId]);
+					    entryCounts[myProcessorId]);
       return;             // leave barrier
     }
 
@@ -219,10 +207,8 @@ public final class SynchronizationBarrier {
 	}
       }
       if (trace_startup) {
-	if (entryCounts[i] == 1)
-	  VM_Scheduler.trace("startupRendezvous:","processor INCLUDED - id =",i);
-	else
-	  VM_Scheduler.trace("startupRendezvous:","processor EXCLUDED - id =",i);
+	  String temp = (entryCounts[i] == 1) ? "processor INCLUDED - id =" : "processor EXCLUDED - id =";
+	  VM_Scheduler.trace("startupRendezvous:", temp, i);
       }
     }
 
@@ -284,7 +270,7 @@ public final class SynchronizationBarrier {
     VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
     VM_Magic.isync();  // so subsequent instructions won't see stale values
     if (trace_startup) VM_Scheduler.trace("startupRendezvous:", "leaving - my count =",
-				  entryCounts[myProcessorId]);
+					  entryCounts[myProcessorId]);
     return;            // leave barrier
   }  // startupRendezvous
 
