@@ -25,9 +25,9 @@ public final class OSR_BaselineExecStateExtractor
    * Implements OSR_ExecStateExtractor.extractState.
    */
   public OSR_ExecutionState extractState(VM_Thread thread,
-				  int tsFromFPoff,
-				  int methFPoff, 
-				  int cmid) {
+					 int tsFromFPoff,
+					 int methFPoff, 
+					 int cmid) {
 
   /* performs architecture and compiler dependent operations here
    * 
@@ -67,7 +67,7 @@ public final class OSR_BaselineExecStateExtractor
     VM_BaselineCompiledMethod fooCM = 
       (VM_BaselineCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
 
-    VM_Method fooM = fooCM.getMethod();
+    VM_NormalMethod fooM = (VM_NormalMethod)fooCM.getMethod();
 
     // get the next bc index 
     INSTRUCTION[] instructions = fooCM.getInstructions();

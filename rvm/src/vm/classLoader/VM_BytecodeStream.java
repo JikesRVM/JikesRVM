@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.VM_Statics;
  * @author Igor Pechtchanski
  */
 public class VM_BytecodeStream implements VM_BytecodeConstants {
-  private final VM_Method method;
+  private final VM_NormalMethod method;
   private final VM_Class declaringClass;
   private final int bcLength;
   private final byte[] bcodes;
@@ -26,11 +26,11 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * @param m the method containing the bytecodes
    * @param bc the array of bytecodes
    */
-  public VM_BytecodeStream(VM_Method m, byte[] bc) {
+  public VM_BytecodeStream(VM_NormalMethod m, byte[] bc) {
     method = m;
     declaringClass = m.getDeclaringClass();
     bcodes = bc;
-    bcLength = bc == null ? 0 : bc.length;
+    bcLength = bc.length;
     bcIndex = 0;
   }
 
@@ -38,7 +38,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    * Returns the method that this bytecode stream is from
    * @return method
    */
-  public final VM_Method method() {
+  public final VM_NormalMethod method() {
     return method;
   }
 

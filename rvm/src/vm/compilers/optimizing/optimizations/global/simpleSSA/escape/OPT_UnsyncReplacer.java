@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -25,7 +26,7 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
    * @return the object, or null if illegal 
    */
   public static OPT_UnsyncReplacer getReplacer (OPT_Instruction inst, 
-      OPT_IR ir) {
+						OPT_IR ir) {
     OPT_Register r = New.getResult(inst).register;
     return  new OPT_UnsyncReplacer(r, ir.options);
   }
@@ -71,7 +72,7 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
           // unsynchronized type
           OPT_MethodOperand mop = Call.getMethod(inst);
           if (mop.getTarget().isSynchronized()) {
-            mop.spMethod = context.findOrCreateSpecializedVersion(mop.getTarget());
+            mop.spMethod = context.findOrCreateSpecializedVersion((VM_NormalMethod)mop.getTarget());
             if (DEBUG)
               VM.sysWrite("Identified call " + inst + " for unsynchronization\n");
           }

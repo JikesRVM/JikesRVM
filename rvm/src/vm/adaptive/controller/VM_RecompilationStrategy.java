@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.adaptive;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
 
@@ -73,29 +74,27 @@ abstract class VM_RecompilationStrategy {
    *                 by executing this plan.
    * @return the compilation plan to be used 
    */
-
-   VM_ControllerPlan createControllerPlan(VM_Method method, 
-					  int optLevel,
-					  OPT_InstrumentationPlan instPlan,
-					  int prevCMID,
-					  double expectedSpeedup,
-					  double priority) {
+  VM_ControllerPlan createControllerPlan(VM_Method method, 
+					 int optLevel,
+					 OPT_InstrumentationPlan instPlan,
+					 int prevCMID,
+					 double expectedSpeedup,
+					 double priority) {
 
      // Construct the compilation plan (varies depending on strategy)
-     OPT_CompilationPlan compPlan = createCompilationPlan(method,
-							optLevel,
-							instPlan);
+     OPT_CompilationPlan compPlan = 
+       createCompilationPlan((VM_NormalMethod)method, optLevel, instPlan);
 
-    if (VM_Controller.options.ADAPTIVE_INLINING) {
-      OPT_InlineOracle inlineOracle = 
-	VM_AdaptiveInlining.getInlineOracle(method);
-      compPlan.setInlineOracle(inlineOracle);
-    }
+     if (VM_Controller.options.ADAPTIVE_INLINING) {
+       OPT_InlineOracle inlineOracle = 
+	 VM_AdaptiveInlining.getInlineOracle(method);
+       compPlan.setInlineOracle(inlineOracle);
+     }
 
-    // Create the controller plan
-    return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
-				 prevCMID, expectedSpeedup, priority);
-   }
+     // Create the controller plan
+     return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
+				  prevCMID, expectedSpeedup, priority);
+  }
 
 
   /**
@@ -106,7 +105,7 @@ abstract class VM_RecompilationStrategy {
    * @param optLevel The opt-level to recompile at 
    * @param instPlan The instrumentation plan
    */
-  OPT_CompilationPlan createCompilationPlan(VM_Method method, 
+  OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, 
 					    int optLevel,
 					    OPT_InstrumentationPlan instPlan) {
 

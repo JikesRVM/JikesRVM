@@ -19,11 +19,11 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   public void deliverException(VM_CompiledMethod compiledMethod,
-			VM_Address        catchBlockInstructionAddress,
-			Throwable         exceptionObject,
-			VM_Registers      registers) {
+			       VM_Address        catchBlockInstructionAddress,
+			       Throwable         exceptionObject,
+			       VM_Registers      registers) {
     VM_Address fp    = registers.getInnermostFramePointer();
-    VM_Method method = compiledMethod.getMethod();
+    VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
 
     // reset sp to "empty expression stack" state
     //
@@ -53,7 +53,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    * Unwind a stackframe.
    */
   public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
-    VM_Method method = compiledMethod.getMethod();
+    VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
     if (method.isSynchronized()) { 
       VM_Address ip = registers.getInnermostInstructionAddress();
       VM_Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());

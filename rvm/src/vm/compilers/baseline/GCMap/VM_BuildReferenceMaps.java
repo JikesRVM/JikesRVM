@@ -44,7 +44,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    * determine the reference maps for the gc points. Record the maps with 
    * referenceMaps.
    */
-  public void buildReferenceMaps(VM_Method method, 
+  public void buildReferenceMaps(VM_NormalMethod method, 
 				 int[] stackHeights,
 				 VM_ReferenceMaps referenceMaps, 
 				 VM_BuildBB buildBB) {

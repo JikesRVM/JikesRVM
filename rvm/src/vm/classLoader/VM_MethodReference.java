@@ -33,11 +33,6 @@ public final class VM_MethodReference extends VM_MemberReference {
   private final VM_Type[] parameterTypes;      
 
   /**
-   * words needed for parameters (not including "this", if virtual)
-   */
-  private final int parameterWords;      
-
-  /**
    * @param cl the classloader
    * @param cn the class name
    * @param mn the field or method name
@@ -47,10 +42,6 @@ public final class VM_MethodReference extends VM_MemberReference {
     super(cl, cn, mn, d);
     returnType = d.parseForReturnType(cl);
     parameterTypes = d.parseForParameterTypes(cl);
-    int pw = 0;
-    for (int i = 0, n = parameterTypes.length; i < n; ++i)
-      pw += parameterTypes[i].getStackWords();
-    parameterWords = pw;
   }
 
   /**
@@ -72,7 +63,10 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Note: does *not* include implicit "this" parameter, if any.
    */
   public final int getParameterWords() throws VM_PragmaUninterruptible {
-    return parameterWords;
+    int pw = 0;
+    for (int i = 0; i<parameterTypes.length; i++)
+      pw += parameterTypes[i].getStackWords();
+    return pw;
   }
 
   // TEMPORARY KLUDGE UNTIL WE INTRRODUCE TYPE REFERENCES

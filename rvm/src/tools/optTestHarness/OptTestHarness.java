@@ -294,7 +294,7 @@ class OptTestHarness {
 	  VM_Class  klass      = loadClass(args[++i]);
 	  String    name = args[++i];
 	  String    desc = args[++i];
-	  VM_Method method = findDeclaredOrFirstMethod(klass, name, desc);
+	  VM_NormalMethod method = (VM_NormalMethod)findDeclaredOrFirstMethod(klass, name, desc);
 	  VM_CompiledMethod cm = null;
 	  if (BASELINE) 
 	    cm = VM_Compiler.compile(method);
@@ -342,7 +342,7 @@ class OptTestHarness {
     VM.sysWrite("Compiling " + size + " methods baseline\n");
     // Compile all methods in baseline vector
     for(int i = 0; i < size ; i++) {
-      VM_Method method = (VM_Method) baselineMethodVector.elementAt(i);
+      VM_NormalMethod method = (VM_NormalMethod) baselineMethodVector.elementAt(i);
       VM_CompiledMethod cm = null;
       cm = VM_BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
@@ -352,7 +352,7 @@ class OptTestHarness {
     size = optMethodVector.size() ;
     VM.sysWrite("Compiling " + size + " methods opt\n");
     for(int i = 0; i < size ; i++) {
-      VM_Method method = (VM_Method) optMethodVector.elementAt(i) ;
+      VM_NormalMethod method = (VM_NormalMethod) optMethodVector.elementAt(i) ;
       OPT_Options opts = (OPT_Options) optOptionsVector.elementAt(i) ;
       try {
 	VM_CompiledMethod cm = null;

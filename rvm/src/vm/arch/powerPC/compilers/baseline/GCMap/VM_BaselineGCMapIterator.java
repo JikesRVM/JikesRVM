@@ -33,7 +33,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private VM_Method      currentMethod;                  // method for the frame
+  private VM_NormalMethod currentMethod;                  // method for the frame
   private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeRegistersLocationUpdated; // have the register location been updated
@@ -68,7 +68,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
   public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
-    currentMethod = compiledMethod.getMethod();
+    currentMethod = (VM_NormalMethod)compiledMethod.getMethod();
 
     // setup superclass
     //

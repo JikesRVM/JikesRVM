@@ -57,7 +57,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
       // dynamically this call site is never executed.  If the 
       // callee is sufficiently small and can be inlined without a guard
       // then we save compile time and code space by inlining it.
-      int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
+      int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)callee, state);
       boolean guardless = state.getHasPreciseTarget() || !needsGuard(callee);
       if (inlinedSizeEstimate < state.getOptions().IC_MAX_ALWAYS_INLINE_TARGET_SIZE && 
 	  guardless &&

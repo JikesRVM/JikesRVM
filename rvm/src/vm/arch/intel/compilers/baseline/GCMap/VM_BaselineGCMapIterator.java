@@ -311,7 +311,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
-  private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
+  private VM_Method bridgeTarget;                        // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
   private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)

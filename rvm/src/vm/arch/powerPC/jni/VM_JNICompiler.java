@@ -93,7 +93,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   |       	  |
    * </pre>
    */
-  public static synchronized VM_CompiledMethod compile (VM_Method method) {
+  public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
     VM_Assembler asm	= new VM_Assembler(0);

@@ -45,7 +45,7 @@ public final class OSR_OnStackReplacementEvent
     
     VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(CMID);
     
-    VM_Method todoMethod = compiledMethod.getMethod();
+    VM_NormalMethod todoMethod = (VM_NormalMethod)compiledMethod.getMethod();
 
     double priority;
     OPT_Options options;

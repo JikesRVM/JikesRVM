@@ -134,7 +134,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     if (hasInlinePragma(callee, state)) return true;
     if (hasNoInlinePragma(callee, state)) return false;
 
-    int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
+    int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)callee, state);
     
     // Callees above a certain size are too big to be considered 
     // even if the call arc is hot.

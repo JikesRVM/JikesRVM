@@ -4,7 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_NativeMethod;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
+
 /**
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
@@ -66,23 +68,33 @@ public class VM_RuntimeCompilerInfrastructure
    * @param compiledMethod the resulting compiled method
    * @param timer the timer hold the time used for compilation
    */
-  public static void record(byte compiler, VM_Method method, 
+  public static void record(byte compiler, VM_NormalMethod method, 
 			    VM_CompiledMethod compiledMethod) {
     
-    if (method.isNative()) {
-      total_methods[compiler]++;
-      total_bcodeLen[compiler] += 1; // lie!
-      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
-      if (VM.MeasureCompilation) {
-	total_time[compiler] += compiledMethod.getCompilationTime();
-      }
-    } else {
-      total_methods[compiler]++;
-      total_bcodeLen[compiler] += method.getBytecodeLength();
-      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
-      if (VM.MeasureCompilation) {
-	total_time[compiler] += compiledMethod.getCompilationTime();
-      }
+    total_methods[compiler]++;
+    total_bcodeLen[compiler] += method.getBytecodeLength();
+    total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+    if (VM.MeasureCompilation) {
+      total_time[compiler] += compiledMethod.getCompilationTime();
+    }
+  }
+
+  /**
+   * This method records the time and sizes (bytecode and machine code) for
+   * a compilation
+   * @param compiler the compiler used
+   * @param method the resulting VM_Method
+   * @param compiledMethod the resulting compiled method
+   * @param timer the timer hold the time used for compilation
+   */
+  public static void record(byte compiler, VM_NativeMethod method, 
+			    VM_CompiledMethod compiledMethod) {
+    
+    total_methods[compiler]++;
+    total_bcodeLen[compiler] += 1; // lie!
+    total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+    if (VM.MeasureCompilation) {
+      total_time[compiler] += compiledMethod.getCompilationTime();
     }
   }
 
@@ -175,7 +187,7 @@ public class VM_RuntimeCompilerInfrastructure
    * This method will compile the passed method using the baseline compiler.
    * @param method the method to compile
    */
-  public static VM_CompiledMethod baselineCompile(VM_Method method) {
+  public static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     double start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
@@ -200,7 +212,7 @@ public class VM_RuntimeCompilerInfrastructure
    * This method will compile the passed method using the baseline compiler.
    * @param method the method to compile
    */
-  public static VM_CompiledMethod jniCompile(VM_Method method) {
+  public static VM_CompiledMethod jniCompile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     double start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {

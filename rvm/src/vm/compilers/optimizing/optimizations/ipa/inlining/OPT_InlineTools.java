@@ -106,7 +106,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
-  public static int inlinedSizeEstimate(VM_Method callee, 
+  public static int inlinedSizeEstimate(VM_NormalMethod callee, 
 					OPT_CompilationState state) {
     int sizeEstimate = VM_OptMethodSummary.inlinedSizeEstimate(callee);
     // Adjust size estimate downward to account for optimizations enabled 

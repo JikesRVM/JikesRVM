@@ -49,6 +49,15 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   protected INSTRUCTION[] instructions; 
 
   //-#if RVM_WITH_OSR
+  /**
+   * Has the method sample data for this compiled method been reset?
+   */
+  private boolean samplesReset = false;
+ 
+  public void setSamplesReset() { samplesReset = true; }
+  public boolean getSamplesReset() { return samplesReset; }
+
+  
   /* the offset of instructions in JTOC, for osr-special compiled method
    * only. all osr-ed method is treated like static.
    */
@@ -73,15 +82,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   }
   //-#endif
 
-  /**
-   * Has the method sample data for this compiled method been reset?
-   */
-  private boolean samplesReset = false;
- 
-  public void setSamplesReset() { samplesReset = true; }
-  public boolean getSamplesReset() { return samplesReset; }
-
-  
   /**
    * The time in milliseconds taken to compile the method.
    */
@@ -156,8 +156,8 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * the flag is set in VM_AnalyticModel
    */
   public final void setOutdated() throws VM_PragmaUninterruptible {
-	if (VM.VerifyAssertions) VM._assert(this.getCompilerType() == BASELINE);
-	bitField1 |= OUTDATED;
+    if (VM.VerifyAssertions) VM._assert(this.getCompilerType() == BASELINE);
+    bitField1 |= OUTDATED;
   }
   
   /**
@@ -165,7 +165,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * called by VM_Thread
    */
   public final boolean isOutdated() throws VM_PragmaUninterruptible {
-	return (bitField1 & OUTDATED) != 0;
+    return (bitField1 & OUTDATED) != 0;
   }
   //-#endif
   

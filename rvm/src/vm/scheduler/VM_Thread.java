@@ -1021,8 +1021,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
           VM_CompiledMethod compiledMethod = 
             VM_CompiledMethods.getCompiledMethod(compiledMethodId);
           if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
-            int spOffset = VM_Compiler.getSPSaveAreaOffset
-              (compiledMethod.getMethod());
+            int spOffset = VM_Compiler.getSPSaveAreaOffset((VM_NormalMethod)compiledMethod.getMethod());
             VM_Magic.setMemoryWord(fp.add(spOffset), 
                                    VM_Magic.getMemoryWord(fp.add(spOffset)) + delta);
             if (traceAdjustments) 

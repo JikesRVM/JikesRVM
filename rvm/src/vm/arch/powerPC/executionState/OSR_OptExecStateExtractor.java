@@ -288,7 +288,7 @@ public final class OSR_OptExecStateExtractor
 						      tsFPOffset);
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
-    state.setMethod(mref.resolve());
+    state.setMethod((VM_NormalMethod)mref.resolve());
     state.callerState = null;
       
     while (iterator.hasMore()) {
@@ -300,7 +300,7 @@ public final class OSR_OptExecStateExtractor
 	      					     iterator.getBcIndex(),
 							     tsFPOffset);
 	mref = VM_MemberReference.getMemberRef(iterator.getMethodId()).asMethodReference();
-	newstate.setMethod(mref.resolve());
+	newstate.setMethod((VM_NormalMethod)mref.resolve());
 	// this is not caller, but the callee, reverse it when outside
 	// of this function.
 	newstate.callerState = state;

@@ -160,7 +160,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
       if (!meth.isCompiled() || 
 	  meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
         OPT_CompilationPlan cp = 
-	  new OPT_CompilationPlan(meth, 
+	  new OPT_CompilationPlan((VM_NormalMethod)meth, 
 				  OPT_OptimizationPlanner.createOptimizationPlan(options), 
 				  null, options);
         meth.replaceCompiledMethod(compile(cp));
@@ -231,7 +231,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * @return the VM_CompiledMethod object that is the result of compilation
    */
   public static VM_CompiledMethod compile (OPT_CompilationPlan cp) {
-    VM_Method method = cp.method;
+    VM_NormalMethod method = cp.method;
     OPT_Options options = cp.options;
     checkSupported(method, options);
     try {
@@ -281,7 +281,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void header (String what, VM_Method method) {
+  public static void header (String what, VM_NormalMethod method) {
     System.out.println("********* START OF:  " + what + "   FOR " + method);
   }
 
@@ -290,7 +290,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void bottom (String what, VM_Method method) {
+  public static void bottom (String what, VM_NormalMethod method) {
     System.out.println("*********   END OF:  " + what + "   FOR " + method);
   }
 
@@ -310,7 +310,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * @param method
    * @param options
    */
-  private static void printMethodMessage (VM_Method method, 
+  private static void printMethodMessage (VM_NormalMethod method, 
                                           OPT_Options options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT)
       VM.sysWrite("-methodOpt "+ method.getDeclaringClass() + ' ' 
@@ -323,7 +323,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * @param e The exception thrown by a compiler phase
    * @param method The method being compiled
    */
-  private static void fail (Throwable e, VM_Method method) {
+  private static void fail (Throwable e, VM_NormalMethod method) {
     VM.sysWrite("OPT_Compiler failure during compilation of " 
               + method.toString() + "\n");
     e.printStackTrace();
@@ -335,7 +335,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    * Check whether opt compilation of a particular method is supported.
    * If not, throw a non-fatal run-time exception.
    */
-  private static void checkSupported (VM_Method method, OPT_Options options) {
+  private static void checkSupported (VM_NormalMethod method, OPT_Options options) {
     if (method.getDeclaringClass().isDynamicBridge()) {
       String msg = "Dynamic Bridge register save protocol not implemented";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
@@ -347,10 +347,6 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
     if (method.hasNoOptCompilePragma()) {
       String msg = "Method throws VM_PragmaNoOptCompile";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
-    }
-    if (method.isNative()) {
-      String msg = "OPT compiler is not to be used for JNI stub generation";
-      throw new OPT_OperationNotImplementedException(msg);
     }
     if (options.hasEXCLUDE()) {
       String name = method.getDeclaringClass().toString() + "." + method.getName();

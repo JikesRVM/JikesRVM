@@ -52,7 +52,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   //----------------//
   
   // position of spill area within method's stackframe.
-  public static int getMaxSpillOffset (VM_Method m) throws VM_PragmaUninterruptible {
+  public static int getMaxSpillOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
     int params = m.getOperandWords()<<2; // maximum parameter area
     int spill  = params - (MIN_PARAM_REGISTERS << 2);
     if (spill < 0) spill = 0;
@@ -60,51 +60,48 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
   
   // position of operand stack within method's stackframe.
-  public static int getEmptyStackOffset (VM_Method m) throws VM_PragmaUninterruptible {
+  public static int getEmptyStackOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
     int stack = m.getOperandWords()<<2; // maximum stack size
     return getMaxSpillOffset(m) + stack + 4; // last local
   }
   
   // position of locals within method's stackframe.
-  public static int getFirstLocalOffset (VM_Method m) throws VM_PragmaUninterruptible {
+  public static int getFirstLocalOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
     int locals = m.getLocalWords()<<2;       // input param words + pure locals
     return getEmptyStackOffset(m) - 4 + locals; // bottom-most local
   }
   
   // position of SP save area within method's stackframe.
-  static int getSPSaveAreaOffset (VM_Method m) throws VM_PragmaUninterruptible {
+  static int getSPSaveAreaOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
      return getFirstLocalOffset(m) + 4;
   }
   
   // size of method's stackframe.
-  public static int getFrameSize (VM_Method m) throws VM_PragmaUninterruptible {
-    int size;
-    if (!m.isNative()) {
-      size = getSPSaveAreaOffset(m) + 4;
-      if (m.getDeclaringClass().isDynamicBridge()) {
-	size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * 8;
-	size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * 4;
-      }
-      size = (size + STACKFRAME_ALIGNMENT_MASK) & 
-              ~STACKFRAME_ALIGNMENT_MASK; // round up
-      return size;
-    } else {
-      // space for:
-      //   -AIX header (6 words)
-      //   -parameters and 2 new JNI parameters (jnienv + obj), minimum 8 words
-      //   -JNI_SAVE_AREA_OFFSET = savedSP + savedJTOC  + Processor_Register
-      //                           nonvolatile registers + GC flag + 
-      //                           affinity (20 words) +
-      //                           saved volatile registers
-      int argSpace = 4 * (m.getParameterWords()+ 2);
-      if (argSpace<32)
-	argSpace = 32;
-      size = AIX_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;     
+  public static int getFrameSize (VM_NormalMethod m) throws VM_PragmaUninterruptible {
+    int size = getSPSaveAreaOffset(m) + 4;
+    if (m.getDeclaringClass().isDynamicBridge()) {
+      size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * 8;
+      size += (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * 4;
     }
+    size = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK; // round up
+    return size;
+  }
+
+  public static int getFrameSize (VM_NativeMethod m) throws VM_PragmaUninterruptible {
+    // space for:
+    //   -AIX header (6 words)
+    //   -parameters and 2 new JNI parameters (jnienv + obj), minimum 8 words
+    //   -JNI_SAVE_AREA_OFFSET = savedSP + savedJTOC  + Processor_Register
+    //                           nonvolatile registers + GC flag + 
+    //                           affinity (20 words) +
+    //                           saved volatile registers
+    int argSpace = 4 * (m.getParameterWords()+ 2);
+    if (argSpace<32)
+      argSpace = 32;
+    int size = AIX_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;     
 
     size = (size + STACKFRAME_ALIGNMENT_MASK) & ~STACKFRAME_ALIGNMENT_MASK; // round up
     return size;
-
   }
 
   /*
@@ -2358,10 +2355,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     if (logSize >= 0)
 	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
-    if (VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
-	!method.queryAnnotationForBytecode(biStart, VM_Method.annotationBoundsCheck)) {
-      asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
-    }
+    asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
   }
 
   private void astoreSetup (int logSize) {
@@ -2371,11 +2365,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T3,  0, SP);                    // T3 is value to store
     if (logSize >= 0)
 	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
-    if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
-	 !method.queryAnnotationForBytecode(biStart,
-					VM_Method.annotationBoundsCheck)) {
-      asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
-    }
+    asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
   }
 
   private void astoreLong () {
@@ -2384,11 +2374,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL    (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
     asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
     emitSegmentedArrayAccess(asm, T1, T0, T2, 3);
-    if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
-	 !method.queryAnnotationForBytecode(biStart,
-					VM_Method.annotationBoundsCheck)) {
-      asm.emitTLLE(T2, T0);     // trap if index < 0 or index >= length
-    }
+    asm.emitTLLE(T2, T0);     // trap if index < 0 or index >= length
     asm.emitSLI  (T0, T0,  3);  // convert double index to byte index
     asm.emitSTFDX(F0, T0, T1);  // store double value in array
     asm.emitCAL  (SP, 16, SP);  // complete 3 pops (1st is 2 words)

@@ -56,8 +56,9 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
-    this.firstLocalOffset = VM_Compiler.getFirstLocalOffset(method);
-    this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(method);
+    VM_NormalMethod nm = (VM_NormalMethod)m;
+    this.firstLocalOffset = VM_Compiler.getFirstLocalOffset(nm);
+    this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(nm);
   }
   //-#else
   public VM_BaselineCompiledMethod(int id, VM_Method m) {
@@ -91,14 +92,14 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
         break;                  // next bytecode
       bytecodeIndex = i;
     }
-    method.getDynamicLink(dynamicLink, bytecodeIndex);
+    ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
 
   public final int findLineNumberForInstruction (int instructionOffset) throws VM_PragmaUninterruptible {
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
     int bci = findBytecodeIndexForInstruction(instructionIndex);
     if (bci == -1) return 0;
-    return method.getLineNumberMap().getLineNumberForBCIndex(bci);
+    return ((VM_NormalMethod)method).getLineNumberMap().getLineNumberForBCIndex(bci);
   }
 
   /** 
@@ -233,7 +234,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     _bytecodeMap = bytecodeMap;
     referenceMaps.translateByte2Machine(bytecodeMap);
     this.referenceMaps = referenceMaps;
-    VM_ExceptionHandlerMap emap = method.getExceptionHandlerMap();
+    VM_ExceptionHandlerMap emap = ((VM_NormalMethod)method).getExceptionHandlerMap();
     if (emap != null) {
       eTable = VM_BaselineExceptionTable.encode(emap, bytecodeMap);
     }

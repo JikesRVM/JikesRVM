@@ -48,7 +48,6 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
 
     public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
-      VM_Method method = ir.method;
 
       if (OPT_IR.SANITY_CHECK) {
         ir.verify("right before Final MIR Expansion", true);
@@ -80,8 +79,6 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
   
     public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
-      VM_Method method = ir.method;
-  
       boolean shouldPrint =
         (options.PRINT_MACHINECODE) &&
         (!ir.options.hasMETHOD_TO_PRINT() ||
@@ -120,9 +117,9 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       if (shouldPrint) {
         // print exception tables (if any)
 	ir.compiledMethod.printExceptionTable();
-        OPT_Compiler.bottom("Final machine code", method);
+        OPT_Compiler.bottom("Final machine code", ir.method);
       }
-  
+      
       if (VM.runningVM)
         VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode), 
   		     codeLength << LG_INSTRUCTION_WIDTH);

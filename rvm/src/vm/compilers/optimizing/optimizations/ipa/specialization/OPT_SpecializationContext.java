@@ -4,16 +4,14 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
+import com.ibm.JikesRVM.VM_CompiledMethod;
 
-/*
- * OPT_SpecializationContext.java
- *
+/**
  * @author Rajesh Bordawekar
  * @author Manish Gupta
  * @author Stephen Fink
- **/
+ */
 public interface OPT_SpecializationContext {
 
   /** 
@@ -21,14 +19,13 @@ public interface OPT_SpecializationContext {
    * context.  Do NOT compile it immediately.  However, DO
    * allocate an spmd if needed
    */
-  public OPT_SpecializedMethod findOrCreateSpecializedVersion 
-      (VM_Method source);
+  public OPT_SpecializedMethod findOrCreateSpecializedVersion(VM_NormalMethod source);
 
   /**
    * Generate code for a specialized version of source in this
    * context.
    */
-  public VM_CompiledMethod specialCompile (VM_Method source);
+  public VM_CompiledMethod specialCompile (VM_NormalMethod source);
 }
 
 

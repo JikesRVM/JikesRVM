@@ -30,7 +30,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * The last true local
    */
-  public static int getEmptyStackOffset (VM_Method m) {
+  public static int getEmptyStackOffset (VM_NormalMethod m) {
     return getFirstLocalOffset(m) - (m.getLocalWords()<<LG_WORDSIZE) + WORDSIZE;
   }
 
@@ -39,7 +39,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * It will not work as a base to access true locals.
    * TODO!! make sure it is not being used incorrectly
    */
-  public static int getFirstLocalOffset (VM_Method method) {
+  public static int getFirstLocalOffset (VM_NormalMethod method) {
     if (method.getDeclaringClass().isBridgeFromNative())
       return STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
     else
@@ -2532,11 +2532,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
   
   private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
-    if (!VM.runningTool && 
-	options.ANNOTATIONS &&
-	method.queryAnnotationForBytecode(biStart, VM_Method.annotationBoundsCheck)) {
-      return;
-    }
     asm.emitCMP_RegDisp_Reg(arrayRefReg,
                             VM_ObjectModel.getArrayLengthOffset(), indexReg);  // compare index to array length
     VM_ForwardReference fr = asm.forwardJcc(asm.LGT);                     // Jmp around trap if index is OK

@@ -95,7 +95,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
-  public final VM_Method getMethodForMCOffset(int MCOffset) {
+  public final VM_NormalMethod getMethodForMCOffset(int MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  null;
@@ -103,7 +103,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
     if (iei == -1)
       return  null;
     int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-    return VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+    return (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
   }
 
   /**

@@ -68,7 +68,7 @@ public class OSR_SpecialCompiler{
    *    work to change both compilers.  
    */
   public static VM_CompiledMethod baselineCompile(OSR_ExecutionState state) {    
-    VM_Method method = state.getMethod();
+    VM_NormalMethod method = state.getMethod();
     
     if (VM.TraceOnStackReplacement) {VM.sysWriteln("BASE : starts compiling "+method); }
 
@@ -117,7 +117,7 @@ public class OSR_SpecialCompiler{
    */
   public static VM_CompiledMethod optCompile(OSR_ExecutionState state) {
 
-    VM_Method method = state.getMethod();
+    VM_NormalMethod method = state.getMethod();
     if (VM.TraceOnStackReplacement) { VM.sysWriteln("OPT : starts compiling "+method); }
 
     VM_ControllerPlan latestPlan = VM_ControllerMemory.findLatestPlan(method);

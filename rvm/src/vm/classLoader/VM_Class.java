@@ -957,7 +957,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	VM_Atom   methodName       = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
 	VM_Atom   methodDescriptor = VM_AtomDictionary.getValue(constantPool[input.readUnsignedShort()]);
 	VM_MemberReference memRef  = VM_MemberReference.findOrCreate(classLoader, myType.getDescriptor(), methodName, methodDescriptor);
-	VM_Method method           = new VM_Method(myType, memRef, mmodifiers, input);
+	VM_Method method           = VM_Method.readMethod(myType, memRef, mmodifiers, input);
 	myType.declaredMethods[i] = method;
 	if (method.isClassInitializer())
 	  myType.classInitializerMethod = method;

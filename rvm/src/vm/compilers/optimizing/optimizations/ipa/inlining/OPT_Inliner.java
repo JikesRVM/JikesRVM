@@ -108,7 +108,7 @@ public class OPT_Inliner implements OPT_Operators,
       OPT_GenerationContext[] children = 
 	new OPT_GenerationContext[targets.length];
       for (int i = 0; i < targets.length; i++) {
-	VM_Method callee = targets[i];
+	VM_NormalMethod callee = (VM_NormalMethod)targets[i];
 	// (a)
 	if (parent.options.PRINT_INLINE_REPORT) {
 	  String guard = guards[i] == 
@@ -361,7 +361,7 @@ public class OPT_Inliner implements OPT_Operators,
       return  container;
     } else {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
-      VM_Method callee = inlDec.getTargets()[0];
+      VM_NormalMethod callee = (VM_NormalMethod)inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " + callee 
 		    + " into " + callSite.position.getMethod()

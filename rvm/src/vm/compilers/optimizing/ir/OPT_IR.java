@@ -76,20 +76,20 @@ public final class OPT_IR implements OPT_Operators {
 
 
   /**
-   * The {@link VM_Method} object corresponding to the 
+   * The {@link VM_NormalMethod} object corresponding to the 
    * method being compiled. Other methods may have been inlined into
    * the IR during compilation, so method really only represents the 
    * primary or outermost method being compiled.
    */
-  public VM_Method method;
+  public VM_NormalMethod method;
 
   /**
-   * @return The {@link VM_Method} object corresponding to the 
+   * @return The {@link VM_NormalMethod} object corresponding to the 
    * method being compiled. Other methods may have been inlined into
    * the IR during compilation, so method really only represents the 
    * primary or outermost method being compiled.
    */
-  public VM_Method getMethod() { 
+  public VM_NormalMethod getMethod() { 
     return method;
   }
 
@@ -206,7 +206,7 @@ public final class OPT_IR implements OPT_Operators {
    * @param ip   the inlining oracle to use for the compilation
    * @param opts the options to use for the compilation
    */
-  public OPT_IR(VM_Method m, OPT_InlineOracle ip, OPT_Options opts) {
+  public OPT_IR(VM_NormalMethod m, OPT_InlineOracle ip, OPT_Options opts) {
     method = m;
     options = opts;
     inlinePlan = ip;
@@ -216,7 +216,7 @@ public final class OPT_IR implements OPT_Operators {
    * @param meth the method to compile
    * @param cp   the compilation plan to execute
    */
-  public OPT_IR(VM_Method m, OPT_CompilationPlan cp) {
+  public OPT_IR(VM_NormalMethod m, OPT_CompilationPlan cp) {
     method = m;
     options = cp.options;
     inlinePlan = cp.inlinePlan;

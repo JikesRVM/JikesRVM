@@ -78,15 +78,12 @@ public class VM_BootImageCompiler {
 
 
   /** 
-   * Compile a method.
+   * Compile a method with bytecodes.
    * @param method the method to compile
    * @return the compiled method
    */
-  public static VM_CompiledMethod compile(VM_Method method) {
-    if (method.isNative()) {
-      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-      return VM_JNICompiler.compile(method);
-    } else if (method.hasNoOptCompilePragma()) {
+  public static VM_CompiledMethod compile(VM_NormalMethod method) {
+    if (method.hasNoOptCompilePragma()) {
       return baselineCompile(method);
     } else {
       VM_CompiledMethod cm = null;
@@ -94,9 +91,6 @@ public class VM_BootImageCompiler {
       try {
 	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
 	boolean include = match(method);
-	// VM.sysWrite("Method ", method.getDeclaringClass().getName());
-	// VM.sysWrite(".", method.getName().toString());
-	// VM.sysWriteln(include ? " Opt-Compiled" : " Base-Compiled");
 	if (!include)
 	  throw escape;
 	long start = System.currentTimeMillis();
@@ -122,8 +116,7 @@ public class VM_BootImageCompiler {
 	    if (e.toString().indexOf("method excluded") >= 0) {
 	      String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n"; 
 	      VM.sysWrite(msg);
-	    }
-	    else {
+	    } else {
 	      String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
 	      VM.sysWrite(msg);
 	    }
@@ -134,8 +127,17 @@ public class VM_BootImageCompiler {
     }
   }
 
+  /** 
+   * Compile a native method.
+   * @param method the method to compile
+   * @return the compiled method
+   */
+  public static VM_CompiledMethod compile(VM_NativeMethod method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+    return VM_JNICompiler.compile(method);
+  }
 
-  private static VM_CompiledMethod baselineCompile(VM_Method method) {
+  private static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
     //-#if RVM_WITH_ADAPTIVE_SYSTEM

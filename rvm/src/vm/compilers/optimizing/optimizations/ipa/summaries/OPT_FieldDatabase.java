@@ -101,10 +101,11 @@ final class OPT_FieldDatabase extends java.util.HashMap {
          VM_Method[] declaredMethods = klass.getDeclaredMethods();
 	 for (int i=0; i<declaredMethods.length; i++) {
 	    VM_Method m = declaredMethods[i];
-	    if (VM_OptMethodSummary.mayWrite(m,f))  {
-	       FieldWriterInfo info = new FieldWriterInfo();
-	       if (DEBUG) debug("New summary METHOD " + m + " FIELD " + f + " INFO " + info);
-	       summaries.put(m,info);
+	    if (m.isNative() || m.isAbstract() ||
+		VM_OptMethodSummary.mayWrite((VM_NormalMethod)m,f))  {
+	      FieldWriterInfo info = new FieldWriterInfo();
+	      if (DEBUG) debug("New summary METHOD " + m + " FIELD " + f + " INFO " + info);
+	      summaries.put(m,info);
 	    }
 	 }
       }

@@ -103,14 +103,14 @@ public final class OPT_CompilationState {
   /** 
    * Return the root method of the compilation 
    */
-  public VM_Method getRootMethod() {
+  public VM_NormalMethod getRootMethod() {
     return call.position.getRootMethod();
   }
 
   /** 
    * Return the method being compiled
    */
-  public VM_Method getMethod() {
+  public VM_NormalMethod getMethod() {
     return call.position.getMethod();
   }
 

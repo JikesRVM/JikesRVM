@@ -31,31 +31,34 @@ public class VM_BootImageCompiler {
   }
 
   /** 
-   * Compile a method.
+   * Compile a method with bytecodes.
    * @param method the method to compile
    * @return the compiled method
    */
-  public static VM_CompiledMethod compile(VM_Method method) {
+  public static VM_CompiledMethod compile(VM_NormalMethod method) {
     VM_CompiledMethod cm;
-    if (method.isNative()) {
-      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-      cm = VM_JNICompiler.compile(method);
-    } else { 
-      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
-      cm = VM_BaselineCompiler.compile(method);
-    }
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
+    cm = VM_BaselineCompiler.compile(method);
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // Must estimate compilation time by using offline ratios.
     // It is tempting to time via System.currentTimeMillis()
     // but 1 millisecond granularity isn't good enough because the 
     // the baseline compiler is just too fast.
-    if (!method.isNative()) {
-      double compileTime = method.getBytecodeLength() / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
-      cm.setCompilationTime(compileTime);
-    }
+    double compileTime = method.getBytecodeLength() / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+    cm.setCompilationTime(compileTime);
     //-#endif
     return cm;
+  }
+  
+  /** 
+   * Compile a native method.
+   * @param method the method to compile
+   * @return the compiled method
+   */
+  public static VM_CompiledMethod compile(VM_NativeMethod method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+    return VM_JNICompiler.compile(method);
   }
   
   /**

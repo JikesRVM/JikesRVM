@@ -28,8 +28,7 @@ public class OPT_InvokeeThreadLocalContext
    * Find or create a specialized method in this context.
    * @param source
    */
-  public OPT_SpecializedMethod findOrCreateSpecializedVersion 
-      (VM_Method source) {
+  public OPT_SpecializedMethod findOrCreateSpecializedVersion(VM_NormalMethod source) {
     // first check if the specialization database contains
     // a specialized version from this context.
     java.util.Iterator versions = 
@@ -55,7 +54,7 @@ public class OPT_InvokeeThreadLocalContext
    * Create specialized method in this context.
    * @param method
    */
-  private OPT_SpecializedMethod createSpecializedMethod (VM_Method method) {
+  private OPT_SpecializedMethod createSpecializedMethod (VM_NormalMethod method) {
     return  (new OPT_SpecializedMethod(method, this));
   }
 
@@ -64,7 +63,7 @@ public class OPT_InvokeeThreadLocalContext
    * the opt compiler with the INVOKEE_THREAD_LOCAL option.
    * @param source
    */
-  public VM_CompiledMethod specialCompile (VM_Method source) {
+  public VM_CompiledMethod specialCompile (VM_NormalMethod source) {
     OPT_CompilationPlan plan = new OPT_CompilationPlan(source, 
                                                        optimizationPlan, 
                                                        null, 

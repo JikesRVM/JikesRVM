@@ -25,7 +25,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
   public int callee_cmid = -1;
 
   /* the method of which the execution state belongs to */
-  public VM_Method meth;
+  public VM_NormalMethod meth;
 
   /* the program pointer (bytecode index) */
   public int  bcIndex; 
@@ -65,7 +65,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     this.tsFPOffset = tsFPOffset;
 
     this.varElms  = new LinkedList();
-    this.meth     = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
+    this.meth     = (VM_NormalMethod)VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
   }
 
   /////////////////////////////
@@ -91,11 +91,11 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     return this.fpOffset;
   }
 
-  public void setMethod(VM_Method m) {
+  public void setMethod(VM_NormalMethod m) {
     this.meth = m;
   }
 
-  public VM_Method getMethod() {
+  public VM_NormalMethod getMethod() {
     return this.meth;
   }
 

@@ -517,7 +517,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
    * Perform the simple escape analysis for a method.
    */
   private static void performSimpleEscapeAnalysis (VM_Method m, 
-      OPT_Options options) {
+						   OPT_Options options) {
     if (!options.SIMPLE_ESCAPE_IPA)
       return;
     // do not perform for unloaded methods
@@ -531,7 +531,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         return;
     }
     OPT_CompilationPlan plan = 
-      new OPT_CompilationPlan(m, escapePlan, 
+      new OPT_CompilationPlan((VM_NormalMethod)m, escapePlan, 
 			      null, options);
     plan.analyzeOnly = true;
     try {

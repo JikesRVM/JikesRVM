@@ -125,7 +125,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       if (!legalToInline(caller,singleImpl) || !hasBody(singleImpl))
         return OPT_InlineDecision.NO("Illegal interface inline");
       
-      int inlinedSizeEstimate = inlinedSizeEstimate(singleImpl, state);
+      int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)singleImpl, state);
       int cost = inliningActionCost(inlinedSizeEstimate, true, false, opts);
 
       OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
@@ -179,7 +179,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     boolean preEx = state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(singleImpl, true);
     
     // See if inlining action passes simple size heuristics
-    int inlinedSizeEstimate = inlinedSizeEstimate(singleImpl, state);
+    int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)singleImpl, state);
     int cost = inliningActionCost(inlinedSizeEstimate, true, preEx, opts);
     OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
     if (sizeCheck != null) return sizeCheck;

@@ -58,7 +58,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
    * Analyze the bytecodes and build the basic blocks with their predecessors.
    * The results will be used by VM_BuildReferenceMaps
    */
-  void determineTheBasicBlocks(VM_Method method) {
+  void determineTheBasicBlocks(VM_NormalMethod method) {
     VM_ExceptionHandlerMap    exceptions;   // Used to get a hold of the try Start, End and Handler lists
     int                       retList[];    // List of basic block numbers that end with a "ret" instruction.
     VM_BytecodeStream         bcodes;       // The bytecodes being analyzed.

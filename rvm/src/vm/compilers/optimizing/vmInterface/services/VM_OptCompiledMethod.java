@@ -66,7 +66,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    */ 
   public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
-    VM_Method realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+    VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null)
       VM.sysFail( "Mapping to source code location not available at Dynamic Linking point\n");
     realMethod.getDynamicLink(dynamicLink, bci);
@@ -80,7 +80,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0)
       return 0;
-    VM_LineNumberMap lmap = method.getLineNumberMap();
+    VM_LineNumberMap lmap = ((VM_NormalMethod)method).getLineNumberMap();
     if (lmap == null)
       return 0;
     return lmap.getLineNumberForBCIndex(bci);
@@ -157,7 +157,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_Method m = VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
+        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
         VM_LineNumberMap lmap = m.getLineNumberMap();
         int lineNumber = 0;
         if (lmap != null) {
@@ -199,7 +199,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_Method m = VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
+        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
         VM_LineNumberMap lmap = m.getLineNumberMap();
         int lineNumber = 0;
         if (lmap != null) {

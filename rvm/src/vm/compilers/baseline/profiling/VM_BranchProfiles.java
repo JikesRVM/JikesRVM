@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Dave Grove
  */
 public final class VM_BranchProfiles implements VM_BytecodeConstants {
-  private VM_Method method;
+  private VM_NormalMethod method;
   private int numCounters;
   private VM_BranchProfile[] data;
 
@@ -50,7 +50,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
     }
   }
 
-  VM_BranchProfiles(VM_Method m, int[] cs) {
+  VM_BranchProfiles(VM_NormalMethod m, int[] cs) {
     method = m;
     numCounters = cs.length;
     data = new VM_BranchProfile[cs.length/2];

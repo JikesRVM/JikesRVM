@@ -6,7 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.*;
-import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_NativeMethod;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 
 /**
  * The adaptive version of the runtime compiler.
@@ -53,13 +54,8 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
     }
   }
   
-  // This will be called by the classLoader when we need to compile a method
-  // for the first time.
-  public static VM_CompiledMethod compile(VM_Method method) {
-    if (method.isNative()) {
-      return jniCompile(method);
-    } 
-    
+  // This will be called when we need to compile a method for the first time.
+  public static VM_CompiledMethod compile(VM_NormalMethod method) {
     VM_CompiledMethod cm;
     if (!VM_Controller.enabled) {
       // System still early in boot process; compile with baseline compiler
@@ -114,5 +110,10 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
       }
     }
     return cm;
+  }
+
+  // This will be called when we need to compile a method for the first time.
+  public static VM_CompiledMethod compile(VM_NativeMethod method) {
+    return jniCompile(method);
   }
 }

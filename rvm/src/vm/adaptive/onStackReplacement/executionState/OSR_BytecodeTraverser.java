@@ -9,7 +9,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import java.util.*;
 
-/*
+/**
  * OSR_BytecodeTraverser does depth first search on a bytecode
  * array, determines the type information of locals and stacks at
  * insteresting point.
@@ -39,7 +39,6 @@ import java.util.*;
  * 
  * @author Feng Qian    
  */
-
 public class OSR_BytecodeTraverser implements VM_BytecodeConstants, 
 					      OSR_Constants {
 
@@ -79,7 +78,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
    *               at the mean time, we only support one PC.
    * @return whether the pc is a valid program point of the method
    */
-  public boolean computeLocalStackTypes(VM_Method method, int bcpoint) {
+  public boolean computeLocalStackTypes(VM_NormalMethod method, int bcpoint) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("computing local and stack types of "+method+"\n");
     }
@@ -186,7 +185,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
   //////////////////////////
   // COMPUTE STACK HEIGHTS
   //////////////////////////
-  public void computeStackHeights(VM_Method method,
+  public void computeStackHeights(VM_NormalMethod method,
 				  VM_BytecodeStream bcodes,
 				  int[] stackHeights,
 				  boolean adjustExptable) {
@@ -243,7 +242,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
   /**
    * Compute stack heights of bytecode stream (used for osr prologue)
    */
-  public void prologueStackHeights(VM_Method method, VM_BytecodeStream bcodes, int[] stackHeights) {
+  public void prologueStackHeights(VM_NormalMethod method, VM_BytecodeStream bcodes, int[] stackHeights) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("computing stack heights of method "+method.toString());
     }
@@ -290,7 +289,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
   ///////////////////////////
 
   /* return true --> hit the bytecode pointed by PC */
-  private boolean scanBlocks (VM_Method method,    // which method
+  private boolean scanBlocks (VM_NormalMethod method,    // which method
 			      VM_BytecodeStream bytecodes,         // the bytecodes
 			      boolean doDFS,       // do a DFS or one-pass scan
 			      int pcs,             // the target pcs, if doDFS

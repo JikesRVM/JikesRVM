@@ -23,9 +23,9 @@ public final class OPT_CompilationPlan {
   /**
    * The method to be compiled.
    */
-  public VM_Method method;
+  public VM_NormalMethod method;
 
-  public VM_Method getMethod () {
+  public VM_NormalMethod getMethod () {
     return method;
   }
   /**
@@ -55,13 +55,13 @@ public final class OPT_CompilationPlan {
   /**
    * Construct a compilation plan
    *
-   * @param m    The VM_Method representing the source method to be compiled
+   * @param m    The VM_NormalMethod representing the source method to be compiled
    * @param op   The optimization plan to be executed on m
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The OPT_Options to be used for compiling m
    */
-  public OPT_CompilationPlan (VM_Method m, OPT_OptimizationPlanElement[] op, 
-      OPT_InstrumentationPlan mp, OPT_Options opts) {
+  public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement[] op, 
+			      OPT_InstrumentationPlan mp, OPT_Options opts) {
     method = m;
     optimizationPlan = op;
     instrumentationPlan = mp;
@@ -71,13 +71,13 @@ public final class OPT_CompilationPlan {
 
   /**
    * Construct a compilation plan
-   * @param m    The VM_Method representing the source method to be compiled
+   * @param m    The VM_NormalMethod representing the source method to be compiled
    * @param op   A single optimization pass to execute on m
    * @param mp   The instrumentation plan to be executed on m
    * @param opts The OPT_Options to be used for compiling m
    */
-  public OPT_CompilationPlan (VM_Method m, OPT_OptimizationPlanElement op, 
-      OPT_InstrumentationPlan mp, OPT_Options opts) {
+  public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement op, 
+			      OPT_InstrumentationPlan mp, OPT_Options opts) {
     method = m;
     optimizationPlan = new OPT_OptimizationPlanElement[] {
       op

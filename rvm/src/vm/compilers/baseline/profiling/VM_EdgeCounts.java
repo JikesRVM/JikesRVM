@@ -33,7 +33,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     }
   }
 
-  static synchronized void allocateCounters(VM_Method m, int numEntries) {
+  static synchronized void allocateCounters(VM_NormalMethod m, int numEntries) {
     if (numEntries == 0) return;
     if (!VM.BuildForAdaptiveSystem && !registered) {
       // Assumption: If edge counters were enabled in a non-adaptive system
@@ -57,8 +57,8 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     data[id] = new int[numEntries];
   }
 
-  public static VM_BranchProfiles getBranchProfiles(VM_Method m) {
-    if (!m.getDeclaringClass().isLoaded() || m.getBytecodes() == null) return null;
+  public static VM_BranchProfiles getBranchProfiles(VM_NormalMethod m) {
+    if (!m.getDeclaringClass().isLoaded()) return null;
     int id = m.getId();
     if (data == null || id >= data.length) return null;
     if (data[id] == null) return null;
@@ -87,7 +87,7 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     if (data == null) return;
     for (int i=0; i<data.length; i++) {
       if (data[i] != null) {
-	VM_Method m = VM_MemberReference.getMemberRef(i).asMethodReference().resolve();
+	VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(i).asMethodReference().resolve();
 	new VM_BranchProfiles(m, data[i]).print(f);
       }
     }

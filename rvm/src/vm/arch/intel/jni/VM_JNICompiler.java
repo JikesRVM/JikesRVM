@@ -40,7 +40,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    * Handle the Java to C transition:  native methods
    *
    */
-  public static synchronized VM_CompiledMethod compile (VM_Method method) {
+  public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
     VM_Assembler asm	 = new VM_Assembler(100);   // some size for the instruction array
@@ -97,7 +97,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffset());
 
     // return here from VM_OutOfLineMachineCode upon return from native code
-
     // PR and RVM JTOC restored, T0,T1 contain return from native call
 
     //If the return type is reference, look up the real value in the JNIref array 
@@ -652,7 +651,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    *
    */
 
-  static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_Method method, int methodID) {
+  static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_NormalMethod method, int methodID) {
     VM_Address bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
 
     // set 2nd word of header = return address already pushed by CALL

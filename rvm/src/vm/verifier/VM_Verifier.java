@@ -105,8 +105,10 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     for(int i =0; success && i< methods.length; i++){
       VM_Method method = methods[i];
       try{
-        success = verifyMethod(method);
-      }catch(Exception e){
+	if (!method.isNative() && !method.isAbstract()) {
+	  success = verifyMethod((VM_NormalMethod)method);
+	}
+      } catch(Exception e){
         //for debug
         //e.printStackTrace();
         success = false;
@@ -139,7 +141,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
    *            If the verifier catch any error during verification or it meets any
    *            loading/resolving problem, it will throw out an intance of Exception
    */
-  public boolean verifyMethod(VM_Method method) throws Exception{
+  public boolean verifyMethod(VM_NormalMethod method) throws Exception{
     currMethodName = method.toString();
 
     //VM.sysWrite("Start to verify method " + currMethodName + "\n");

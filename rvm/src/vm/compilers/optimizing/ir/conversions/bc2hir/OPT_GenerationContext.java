@@ -27,7 +27,7 @@ public final class OPT_GenerationContext
   /**
    * The original method (root of the calling context tree)
    */
-  VM_Method original_method;
+  VM_NormalMethod original_method;
 
   /**
    * The compiled method assigned for this compilation of original_method
@@ -37,7 +37,7 @@ public final class OPT_GenerationContext
   /**
    * The method to be generated
    */
-  VM_Method method;
+  VM_NormalMethod method;
 
   /**
    * The BranchProfile data for method, if available
@@ -183,13 +183,13 @@ public final class OPT_GenerationContext
    * Use this constructor to create an outermost (non-inlined) 
    * OPT_GenerationContext.
    * 
-   * @param meth the VM_Method whose IR will be generated
+   * @param meth the VM_NormalMethod whose IR will be generated
    * @param cmid the compiled method id to be used for this compilation
    * @param opts the OPT_Options to be used for the generation
    * @param ip the OPT_InlineOracle to be used for the generation
    * @param context the specialization context (null if none)
    */
-  OPT_GenerationContext(VM_Method meth, 
+  OPT_GenerationContext(VM_NormalMethod meth, 
 			VM_CompiledMethod cm, 
 			OPT_Options opts, 
 			OPT_InlineOracle ip) {
@@ -283,7 +283,7 @@ public final class OPT_GenerationContext
    */
   static OPT_GenerationContext createChildContext(OPT_GenerationContext parent,
 						  OPT_ExceptionHandlerBasicBlockBag ebag,
-						  VM_Method callee,
+						  VM_NormalMethod callee,
 						  OPT_Instruction callSite) {
     OPT_GenerationContext child = new OPT_GenerationContext();
     child.method = callee;

@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.classloader.*;
 public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible  {
 
   VM_ReferenceMaps(VM_BaselineCompiledMethod cm, int[] stackHeights) {
-    VM_Method method = cm.getMethod();
+    VM_NormalMethod method = (VM_NormalMethod)cm.getMethod();
     // save input information and compute related data
     this.bitsPerMap   = (method.getLocalWords() + method.getOperandWords()+1); // +1 for jsr bit
     this.bytesPerMap  = ((this.bitsPerMap + 7)/8)+1 ; // calc size of individul maps

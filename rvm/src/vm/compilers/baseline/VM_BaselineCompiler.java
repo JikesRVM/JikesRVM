@@ -41,7 +41,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
   /**
    * The method being compiled
    */
-  protected final VM_Method method;
+  protected final VM_NormalMethod method;
 
   /** 
    * The declaring class of the method being compiled
@@ -110,7 +110,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
    */
   protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
     compiledMethod = cm;
-    method = cm.getMethod();
+    method = (VM_NormalMethod)cm.getMethod();
     shouldPrint  = (!VM.runningTool &&
 		    (options.PRINT_MACHINECODE) &&
 		    (!options.hasMETHOD_TO_PRINT() ||
@@ -183,10 +183,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
   /**
    * Compile the given method with the baseline compiler.
    * 
-   * @param method the VM_Method to compile.
-   * @return the generated VM_CompiledMethod for said VM_Method.
+   * @param method the VM_NormalMethod to compile.
+   * @return the generated VM_CompiledMethod for said VM_NormalMethod.
    */
-  public static synchronized VM_CompiledMethod compile (VM_Method method) {
+  public static synchronized VM_CompiledMethod compile (VM_NormalMethod method) {
     VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
     new VM_Compiler(cm).compile();
     return cm;
