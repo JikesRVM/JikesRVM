@@ -315,17 +315,31 @@ public class VM_StackTrace implements VM_Constants {
     int foundTriggerAt = -1;    // -1 is a sentinel value; important in code
                                 // below. 
     int lastFrame = compiledMethods.length - 1;
-    // The last two stack frames are always:
-    // --> at com.ibm.JikesRVM.MainThread.run (MainThread.java:117)
-    // --> at com.ibm.JikesRVM.VM_Thread.startoff (VM_Thread.java:710)
-    // so we can skip them, right?  If this was not the right thing to do,
-    // please tell me. --Steve Augart
-    // True for main thread, but if the program spawns other threads than
-    // this isn't the case. We can always cut the VM_Thread.startoff frame
-    // every thread (I think), but for threads other than the main thread, 
-    // the second frame is actually interesting. --dave
-    lastFrame -= 1;
-    
+
+    // The Main Thread's last three stack frames are always:
+    //   Lcom/ibm/JikesRVM/MainThread; run()V at line 119
+    //   Lcom/ibm/JikesRVM/VM_Thread; run()V at line 158
+    //   Lcom/ibm/JikesRVM/VM_Thread; startoff()V at line 815
+    // so we can skip them.
+    //
+    // Other Threads, except for the boot thread, have VM_Thread.startoff as
+    // the last stack frame, and VM_Thread.run() as the penultimate stack
+    // frame. 
+    for ( ; lastFrame > 0 ; --lastFrame) {
+      VM_Method m = compiledMethods[lastFrame].getMethod();
+      if (m == VM_Entrypoints.threadStartoffMethod)
+        continue;             /* com.ibm.JikesRVM.VM_Thread.startoff() is OK
+                                 to elide. */
+      if (m == VM_Entrypoints.threadRunMethod)
+        continue;             /* com.ibm.JikesRVM.VM_Thread.run() is OK
+                                 to elide. */
+      if (m == VM_Entrypoints.mainThreadRunMethod)
+        continue;             /* com.ibm.JikesRVM.MainThread.run() is OK to
+                               * elide */
+      /* No match.  Abort. */
+      break;
+    }    
+
     if (trigger != null) {
       Class triggerClass = trigger.getClass();
       /* So, elide up to the triggeringMethod.  If we never find the
