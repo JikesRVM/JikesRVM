@@ -3509,7 +3509,6 @@ public class VM_JNIFunctions implements VM_NativeBridge,
   private static int GetStaticObjectField(int envJREF, int classJREF, int fieldOffset) {
     if (traceJNI) VM.sysWrite("JNI called: GetStaticObjectField  \n");
 
-
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
       int slot = fieldOffset>>LOG_BYTES_IN_INT;
@@ -4207,11 +4206,11 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * @param bufAddress address of buffer to release
    * @return void
    */
-  private static void ReleaseStringUTFChars(int envJREF, int objJREF, int bufAddress) {
+  private static void ReleaseStringUTFChars(int envJREF, int objJREF, VM_Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
 
     try {
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress);
+      VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -4249,7 +4248,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    * @return the new Object array initialized
    * @exception OutOfMemoryError if the system runs out of memory
    */
-  private static int NewObjectArray(int envJREF, int length, int classJREF, int initElementJREF ) {
+  private static int NewObjectArray(int envJREF, int length, int classJREF, int initElementJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
 
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -5862,7 +5861,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
    *             so this flag has no effect.
    */
   private static void ReleasePrimitiveArrayCritical(int envHandler, int arrayJREF, 
-                                                    int arrayCopyAddress, int mode) {
+                                                    VM_Address arrayCopyAddress, int mode) {
     if (traceJNI) VM.sysWrite("JNI called: ReleasePrimitiveArrayCritical \n");   
 
     try {
