@@ -99,4 +99,33 @@ public class JikesRVMSupport {
   public static VM_Method getMethodOf(Constructor f) {
     return f.constructor;
   }
+
+
+  /**
+   * Check to see if a method declared by the accessingClass 
+   * should be allowed to access the argument VM_Member.
+   * Assumption: member is not public.  This trivial case should
+   * be approved by the caller without needing to call this method.
+   */
+  static void checkAccess(VM_Member member, VM_Class accessingClass) throws IllegalAccessException {
+    VM_Class declaringClass = member.getDeclaringClass();
+    if (member.isPrivate()) {
+      // access from the declaringClass is allowed
+      if (accessingClass == declaringClass) return;
+    } else if (member.isProtected()) {
+      // access within the package is allowed.
+      if (declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
+
+      // access by subclasses is allowed.
+      for (VM_Class cls = accessingClass; cls != null; cls = cls.getSuperClass()) {
+	if (accessingClass == declaringClass) return;
+      }
+    } else {
+      // default: access within package is allowed
+      if (declaringClass.getPackageName().equals(accessingClass.getPackageName())) return;
+    }      
+    
+    throw new IllegalAccessException();
+  }
+
 }

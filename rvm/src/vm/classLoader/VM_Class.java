@@ -573,7 +573,24 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     VM.enableGC();
     return browser.getClassLoader();
   }
-
+  
+  /**
+   * Used for accessibility checks in reflection code.
+   * Find the class of the method that corresponds to the requested frame.
+   * 
+   * @param frames specifies the number of frames back from the 
+   * caller to the method whose class is required
+   */
+  public static VM_Class getClassFromStackFrame(int skip) {
+    skip++; // account for stack frame of this function
+    VM_StackBrowser browser = new VM_StackBrowser();
+    VM.disableGC();
+    browser.init();
+    while (skip-- > 0) browser.up();
+    VM.enableGC();
+    return browser.getCurrentClass();
+  }
+  
   //--------------------------------------------------------------------//
   //      Load, Resolve, Instantiate, and Initialize                    //
   //--------------------------------------------------------------------//

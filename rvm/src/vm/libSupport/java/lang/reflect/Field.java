@@ -4,9 +4,14 @@
 //$Id$
 package java.lang.reflect;
 
+import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_Field;
 import com.ibm.JikesRVM.classloader.VM_TypeReference;
+import com.ibm.JikesRVM.classloader.VM_Type;
+
+import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Runtime;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
@@ -210,35 +215,54 @@ public final class Field extends AccessibleObject implements Member {
 
   private void checkReadAccess(Object obj) 
     throws IllegalAccessException, IllegalArgumentException  {
-    if (!field.isStatic()) {
-      if (obj == null)
-	throw new NullPointerException();
 
-      if (!field.getDeclaringClass().getClassForType().isInstance(obj))
+    VM_Class declaringClass = field.getDeclaringClass();
+    if (!field.isStatic()) {
+      if (obj == null) {
+	throw new NullPointerException();
+      }
+
+      VM_Type objType = VM_ObjectModel.getObjectType(obj);
+      if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
 	throw new IllegalArgumentException();
+      }
     }
 
-    // TODO: enforce accessibility
+    if (!field.isPublic() && !isAccessible()) {
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
+      JikesRVMSupport.checkAccess(field, accessingClass);
+    }
 
-    // TODO: if field is static, must initialize declaring class
+    if (field.isStatic() && !declaringClass.isInitialized()) {
+      VM_Runtime.initializeClassForDynamicLink(declaringClass);
+    }
   }
 
   private void checkWriteAccess(Object obj) 
     throws IllegalAccessException, IllegalArgumentException  {
-    if (!field.isStatic()) {
-      if (obj == null)
-	throw new NullPointerException();
 
-      if (!field.getDeclaringClass().getClassForType().isInstance(obj))
+    VM_Class declaringClass = field.getDeclaringClass();
+    if (!field.isStatic()) {
+      if (obj == null) {
+	throw new NullPointerException();
+      }
+
+      VM_Type objType = VM_ObjectModel.getObjectType(obj);
+      if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
 	throw new IllegalArgumentException();
+      }
     }
 
-    // TODO: enforce accessibility
-
-    // TODO: if field is static, must initialize declaring class
+    if (!field.isPublic() && !isAccessible()) {
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(2);
+      JikesRVMSupport.checkAccess(field, accessingClass);
+    }
 
     if (field.isFinal())
       throw new IllegalAccessException();
-  }
 
+    if (field.isStatic() && !declaringClass.isInitialized()) {
+      VM_Runtime.initializeClassForDynamicLink(declaringClass);
+    }
+  }
 }
