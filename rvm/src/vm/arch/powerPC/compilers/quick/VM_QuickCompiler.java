@@ -7551,10 +7551,11 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     // sri0 -- value
     // sri1 -- object
 
-    int fieldOffset = fieldRef.peekResolvedField().getOffsetAsInt();
+    Offset fieldOff = fieldRef.peekResolvedField().getOffset();
+    int fieldOffset = fieldOff.toInt();
     if (MM_Interface.NEEDS_WRITE_BARRIER &&
         !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_QuickBarriers.compilePutfieldBarrierImm(asm, fieldOffset,
+      VM_QuickBarriers.compilePutfieldBarrierImm(asm, fieldOff,
                                                  sri1, sri0,
                                                  fieldRef.getId(),
                                                  S0);
