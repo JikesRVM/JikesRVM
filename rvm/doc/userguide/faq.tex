@@ -250,6 +250,17 @@ A GC safe point is any instruction where the compiler must generate a GC map,
 including every thread switch point.  In particular, every 
 PEI is a GC point.
 
+\subsubsection{How do I find the def of a register in SSA form?}
+
+Use OPT\_Register.getFirstDef().
+
+If this returns {\tt null}, then either a) the register is dead and it's definition has been eliminated, or b) the def-use chains are not up-to-date.
+
+The def-use chains are not normally kept up-to-date incrementally.  To
+recompute the def-use chains, call OPT\_DefUse.computeDU(ir). 
+Most optimization passes over SSA form call this method at 
+the beginning of the compiler phase.
+
 \subsubsection{What is the OptTestHarness?}
 
 The OptTestHarness is a driver program to run the optimizing compiler even
