@@ -639,12 +639,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return a forward enumeration of the block's real instructons.
    */
   public final OPT_InstructionEnumeration forwardRealInstrEnumerator() {
-    if (isEmpty()) {
-      return OPT_InstructionEnumeration.Empty;
-    } else {
-      return OPT_IREnumeration.forwardIntraBlockIE(firstRealInstruction(), 
-						   lastRealInstruction());
-    }
+    return OPT_IREnumeration.forwardIntraBlockIE(firstRealInstruction(), 
+						 lastRealInstruction());
   }
 
   /**
@@ -652,12 +648,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return a reverse enumeration of the block's real instructons.
    */
   public final OPT_InstructionEnumeration reverseRealInstrEnumerator() {
-    if (isEmpty()) {
-      return OPT_InstructionEnumeration.Empty;
-    } else {
-      return OPT_IREnumeration.reverseIntraBlockIE(lastRealInstruction(), 
-						   firstRealInstruction());
-    }
+    return OPT_IREnumeration.reverseIntraBlockIE(lastRealInstruction(), 
+						 firstRealInstruction());
   }
 
   /**
@@ -860,16 +852,9 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    * @return an forward enumeration of this blocks branch instruction
    */
   public final OPT_InstructionEnumeration enumerateBranchInstructions() {
-    OPT_Instruction end = lastRealInstruction();
-    if (end == null) return OPT_InstructionEnumeration.Empty;
-    if (!end.operator().isBranch()) return OPT_InstructionEnumeration.Empty;
-     
-    OPT_Instruction start = end ;
-    while (start.getPrev().isBranch()) {
-      start = start.getPrev();
-    }
-    
-    return OPT_IREnumeration.forwardIntraBlockIE(start,end); 
+    OPT_Instruction start = firstBranchInstruction();
+    OPT_Instruction end = (start == null) ? null : lastRealInstruction();
+    return OPT_IREnumeration.forwardIntraBlockIE(start, end); 
   }
 
   /**
@@ -1757,13 +1742,16 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     public final boolean hasMoreElements() { return current != null; }
     public final Object nextElement() { return next(); }
     public final OPT_BasicBlock next() {
-      if (current == null) 
-	throw new java.util.NoSuchElementException("Basic Block Enumeration");
+      if (current == null) fail();
       OPT_BasicBlock value = current;
       current = advance();
       return value;
     }      
     protected abstract OPT_BasicBlock advance();
+    protected static void fail() throws java.util.NoSuchElementException {
+      VM_Magic.pragmaNoInline();
+      throw new java.util.NoSuchElementException("Basic Block Enumeration");
+    }
   }
   // Arbitrary constructed enumeration of some set of basic blocks
   static final class ComputedBBEnum implements OPT_BasicBlockEnumeration {
@@ -1786,11 +1774,12 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     public boolean hasMoreElements() { return current < numBlocks; }
     public Object nextElement() { return next(); }
     public OPT_BasicBlock next() {
-      if (current < numBlocks) {
-	return blocks[current++];
-      } else {
-	throw new java.util.NoSuchElementException("OPT_BasicBlock.Computed Enumeration");
-      }
+      if (current >=  numBlocks) fail();
+      return blocks[current++];
+    }
+    protected static void fail() throws java.util.NoSuchElementException {
+      VM_Magic.pragmaNoInline();
+      throw new java.util.NoSuchElementException("Basic Block Enumeration");
     }
   }
 

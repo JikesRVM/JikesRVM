@@ -1,8 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//OPT_IREnumeration.java
 //$Id$
+
 /**
  * This class is not meant to be instantiated.
  * It simply serves as a place to collect the implementation of
@@ -14,7 +14,6 @@
  *
  * @author Dave Grove
  */
-
 public abstract class OPT_IREnumeration {
 
   /**
@@ -46,7 +45,7 @@ public abstract class OPT_IREnumeration {
 	  try {
 	    current = current.getNext();
 	  } catch (NullPointerException e) {
-	    throw new java.util.NoSuchElementException("forwardIntraBlockIE");
+	    fail("forwardIntraBlockIE");
 	  }
 	}
 	return res;
@@ -83,7 +82,7 @@ public abstract class OPT_IREnumeration {
 	  try {
 	    current = current.getPrev();
 	  } catch (NullPointerException e) {
-	    throw new java.util.NoSuchElementException("reverseIntraBlockIE");
+	    fail("reverseIntraBlockIE");
 	  }
 	}
 	return res;
@@ -108,7 +107,8 @@ public abstract class OPT_IREnumeration {
 	  current = current.nextInstructionInCodeOrder();
 	  return res;
 	} catch (NullPointerException e) {
-	  throw new java.util.NoSuchElementException("forwardGlobalIR");
+	  fail("forwardGlobalIR");
+	  return null; // placate jikes
 	}
       }
     };
@@ -131,7 +131,8 @@ public abstract class OPT_IREnumeration {
 	  current = current.prevInstructionInCodeOrder();
 	  return res;
 	} catch (NullPointerException e) {
-	  throw new java.util.NoSuchElementException("forwardGlobalIR");
+	  fail("forwardGlobalIR");
+	  return null; // placate jikes
 	}
       }
     };
@@ -154,7 +155,8 @@ public abstract class OPT_IREnumeration {
 	  current = current.nextBasicBlockInCodeOrder();
 	  return res;
 	} catch (NullPointerException e) {
-	  throw new java.util.NoSuchElementException("forwardBE");
+	  fail("forwardBE");
+	  return null; // placate jikes
 	}
       }
     };
@@ -177,10 +179,16 @@ public abstract class OPT_IREnumeration {
 	  current = current.prevBasicBlockInCodeOrder();
 	  return res;
 	} catch (NullPointerException e) {
-	  throw new java.util.NoSuchElementException("forwardBE");
+	  fail("forwardBE");
+	  return null; // placate jikes
 	}
       }
     };
+  }
+  
+  private static final void fail(String msg) throws java.util.NoSuchElementException {
+    VM_Magic.pragmaNoInline();
+    throw new java.util.NoSuchElementException(msg);
   }
 }
 
