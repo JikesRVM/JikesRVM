@@ -39,8 +39,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
       }
     }
 
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    libHandler = VM_SysCall.sysDlopen(VM_Magic.objectAsAddress(asciiName));
+    libHandler = VM_SysCall.sysDlopen(asciiName);
 
     if (libHandler==0) {
       VM.sysWrite("error loading library: " + libraryName);
@@ -73,9 +72,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
     //
     byte[] asciiName = new byte[symbolName.length() + 1]; // +1 for null terminator
     symbolName.getBytes(0, symbolName.length(), asciiName, 0);
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM_SysCall.sysDlsym(libHandler, 
-			       VM_Magic.objectAsAddress(asciiName));
+    return VM_SysCall.sysDlsym(libHandler, asciiName);
   }
 
   /**

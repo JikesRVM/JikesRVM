@@ -85,7 +85,7 @@ public class VM_FileSystem {
     // (assume file name is ascii, for now)
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
-    int rc = VM_SysCall.sysStat(VM_Magic.objectAsAddress(asciiName), kind);
+    int rc = VM_SysCall.sysStat(asciiName, kind);
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
   }
@@ -102,7 +102,7 @@ public class VM_FileSystem {
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
-    int rc = VM_SysCall.sysAccess(VM_Magic.objectAsAddress(asciiName), kind);
+    int rc = VM_SysCall.sysAccess(asciiName, kind);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.access: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
@@ -115,10 +115,8 @@ public class VM_FileSystem {
     byte[] asciiName = new byte[fileName.length() + 1];
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
-    int rc = VM_SysCall.sysUtime(VM_Magic.objectAsAddress(asciiName),
-				 (int) (time / 1000)	// convert milliseconds to seconds
-				 );
-
+    // convert milliseconds to seconds
+    int rc = VM_SysCall.sysUtime(asciiName, (int) (time / 1000));
     return (rc == 0);
   }
 
@@ -133,7 +131,7 @@ public class VM_FileSystem {
     // (assume file name is ascii, for now)
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
-    int fd = VM_SysCall.sysOpen(VM_Magic.objectAsAddress(asciiName), how);
+    int fd = VM_SysCall.sysOpen(asciiName, how);
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
     return fd;
   }
@@ -465,8 +463,7 @@ public class VM_FileSystem {
     int    len;
     for (int max = 1024;;) {
       asciiList = new byte[max];
-      len = VM_SysCall.sysList(VM_Magic.objectAsAddress(asciiName), 
-			       VM_Magic.objectAsAddress(asciiList), max);
+      len = VM_SysCall.sysList(asciiName, asciiList, max);
       if (len < max)
         break;
 
@@ -509,7 +506,7 @@ public class VM_FileSystem {
     //
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
-    int rc = VM_SysCall.sysDelete(VM_Magic.objectAsAddress(asciiName));
+    int rc = VM_SysCall.sysDelete(asciiName);
     if (rc == 0) return true;
     else return false;
   } 
@@ -530,8 +527,7 @@ public class VM_FileSystem {
     byte[] toCharStar = new byte[ toName.length() + 1];
     toName.getBytes(0, toName.length(), toCharStar, 0);
 
-    int rc = VM_SysCall.sysRename(VM_Magic.objectAsAddress(fromCharStar),
-				  VM_Magic.objectAsAddress(toCharStar));
+    int rc = VM_SysCall.sysRename(fromCharStar, toCharStar);
 
     if (rc == 0) return true;
     else return false;
@@ -549,7 +545,7 @@ public class VM_FileSystem {
     //
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);      
-    int rc = VM_SysCall.sysMkDir(VM_Magic.objectAsAddress(asciiName));
+    int rc = VM_SysCall.sysMkDir(asciiName);
     return (rc == 0);
   } 
 

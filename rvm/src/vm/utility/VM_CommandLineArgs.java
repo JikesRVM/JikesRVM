@@ -779,7 +779,7 @@ public class VM_CommandLineArgs {
    *         for argument to fit)
    */
   private static int sysArg(int argno, byte buf[]) {
-    return VM_SysCall.sysArg(argno, VM_Magic.objectAsAddress(buf), buf.length);
+    return VM_SysCall.sysArg(argno, buf, buf.length);
   }
 }
 

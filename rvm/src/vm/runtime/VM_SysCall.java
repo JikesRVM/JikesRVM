@@ -17,13 +17,15 @@ package com.ibm.JikesRVM;
  * and generates code to invoke it passing the rest of the arguments 
  * using the native OS calling convention.  The result of the call is assumed
  * to be returned using the native OS calling convention.
- *
+ * <p>
  * NOTE: From the standpoint of the rest of the VM, an invocation 
  * to a method of VM_SysCall is uninterruptible.
+ * <p>
+ * NOTE: There must be a matching field NAMEIP in VM_BootRecord.java
+ *       for each method declared here.
  * 
  * @author Dave Grove
  * @author Derek Lieber
- * @author Kris Venstermans
  */
 public class VM_SysCall implements VM_Uninterruptible { 
 
@@ -32,7 +34,7 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static void sysWrite(int value, int hexToo) {}
   public static void sysWriteLong(long value, int hexToo) {}
   public static void sysExit(int value) {}
-  public static int sysArg(int argno, VM_Address buf, int buflen) { return 0; }
+  public static int sysArg(int argno, byte[] buf, int buflen) { return 0; }
 
   // memory
   public static void sysCopy(VM_Address dst, VM_Address src, int cnt) {}
@@ -44,12 +46,12 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static void sysSyncCache(VM_Address address, int size) {}
 
   // files
-  public static int sysStat(VM_Address name, int kind) { return 0; }
-  public static int sysList(VM_Address name, VM_Address buf, int limit) { 
+  public static int sysStat(byte[] name, int kind) { return 0; }
+  public static int sysList(byte[] name, byte[] buf, int limit) { 
     return 0; 
   }
-  public static int sysOpen(VM_Address name, int how) { return 0; }
-  public static int sysUtime(VM_Address fileName, int modTimeSec) {
+  public static int sysOpen(byte[] name, int how) { return 0; }
+  public static int sysUtime(byte[] fileName, int modTimeSec) {
     return 0;
   }
   public static int sysReadByte(int fd) { return 0; }
@@ -58,9 +60,9 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int sysWriteBytes(int fd, VM_Address buf, int cnt) { return 0; }
   public static int sysSeek(int fd, int offset, int whence) { return 0; }
   public static int sysClose(int fd) { return 0; }
-  public static int sysDelete(VM_Address name) { return 0; }
-  public static int sysRename(VM_Address fromName, VM_Address toName) { return 0; }
-  public static int sysMkDir(VM_Address name) { return 0; }
+  public static int sysDelete(byte[] name) { return 0; }
+  public static int sysRename(byte[] fromName, byte[] toName) { return 0; }
+  public static int sysMkDir(byte[] name) { return 0; }
   public static int sysBytesAvailable(int fd) { return 0; }
   public static int sysIsValidFD(int fd) { return 0; }
   public static int sysLength(int fd) { return 0; }
@@ -68,7 +70,7 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int sysSyncFile(int fd) { return 0; }
   public static int sysIsTTY(int fd) { return 0; }
   public static int sysSetFdCloseOnExec(int fd) { return 0; }
-  public static int sysAccess(VM_Address name, int kind) { return 0; }
+  public static int sysAccess(byte[] name, int kind) { return 0; }
 
   // shm* - memory mapping
   public static int sysShmget(int key, int size, int flags) { return 0; }
@@ -149,10 +151,9 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static long sysGetTimeOfDay() { return 0; }
 
   // shared libraries
-  public static int sysDlopen(VM_Address libname) { return 0; }
+  public static int sysDlopen(byte[] libname) { return 0; }
   public static void sysDlclose() {}
-  public static VM_Address sysDlsym(int libHandler, 
-				    VM_Address symbolName) { return null; }
+  public static VM_Address sysDlsym(int libHandler, byte[] symbolName) { return null; }
   public static void sysSlibclean() {}
 
   // network
@@ -181,7 +182,7 @@ public class VM_SysCall implements VM_Uninterruptible {
     return 0;
   }
   public static int sysNetSocketListen(int fd, int backlog) { return 0; }
-  public static int sysNetSocketAccept(int fd, VM_Address connectionObject) {
+  public static int sysNetSocketAccept(int fd, java.net.SocketImpl connectionObject) {
     return 0;
   }
   public static int sysNetSocketLinger(int fd, int enable, int timeout) {
@@ -199,15 +200,13 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int sysNetSocketShutdown(int fd, int how) {
     return 0;
   }
-  public static int sysNetSelect(VM_Address allFds, int rc, int wc, int ec) {
+  public static int sysNetSelect(int[] allFds, int rc, int wc, int ec) {
     return 0;
   }
 
   // process management
   public static void sysWaitPids(VM_Address pidArray, VM_Address exitStatusArray,
 				 int numPids) {}
-
-  public static int sysSprintf(VM_Address buffer, double d) { return 0; }
 
   //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives

@@ -47,8 +47,7 @@ class VM_StartupThread extends VM_Thread
       // code/stack and are now running vm code/stack
       //
       VM_Processor.getCurrentProcessor().isInitialized = true;
-      //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-      //-#else
+      //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
       VM.sysWaitForVirtualProcessorInitialization();
       //-#endif
 
@@ -58,13 +57,11 @@ class VM_StartupThread extends VM_Thread
 
       // wait for all other processors to do likewise
       //
-      //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-      //-#else
+      //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
       VM.sysWaitForMultithreadingStart();
       //-#endif
 
-      //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-      //-#else
+      //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
       // Store VM_Processor in pthread
       VM_Processor.getCurrentProcessor().stashProcessorInPthread();
       //-#endif
