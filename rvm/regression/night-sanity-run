@@ -50,6 +50,8 @@ cd $RVM_ROOT
 # sanity runs
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs 2 -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
+. $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
+
 # performance runs
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs 2 -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
@@ -59,12 +61,7 @@ chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
-
-if [ `uname` = "Linux" ]; then
-  (cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs tar cvjf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.bz2) >> $RUN_LOG 2>> $RUN_LOG
-else
-  (cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs tar cvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar) >> $RUN_LOG 2>> $RUN_LOG
-fi
+(cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs $GNU_TAR czvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 
 # determine how many ran, failed, and passed, then build a summary line
 numran=`grep "sane" $RUN_LOG | wc -l`
@@ -91,7 +88,7 @@ echo "     performance details: $PERF_LOG" >> $MSG
 echo >> $MSG
 echo >> $MSG
 echo Performance Summary >> $MSG
-awk -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
 
 # Finally!  Send the mail message to those who care.
 echo "mailing status to jvm-coders@watson.ibm.com"
