@@ -2630,6 +2630,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
      * pointer, contains the return address.
      */
 
+    /*
+     * TEMP DEBUG CODE --dave 
+     * To determine who is not playing by the rules that PR.framepointer should
+     * hold the caller's FP at all PEI's / GC points.
+     * 
+    asm.emitCMP_Reg_RegDisp(FP, PR, VM_Entrypoints.framePointerOffset);
+    VM_ForwardReference fr2 = asm.forwardJcc(asm.EQ);	// Jmp around trap if OK
+    asm.emitINT_Imm ( 0xFF);	// trap
+    fr2.resolve(asm);
+    */
+
     /* establish a new frame:
      * push the caller's frame pointer in the stack, and
      * reset the frame pointer to the current stack top,
@@ -3316,14 +3327,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int fpOffset   = VM.getMember("LVM_Registers;", "fp",  "I").getOffset();
       int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
 
-      asm.emitMOV_Reg_RegInd(T0, SP);	// T0 <- context register obj @
-      asm.emitMOV_RegDisp_Reg(T0, fpOffset, FP);	// store fp in context
+      asm.emitMOV_Reg_RegInd(T0, SP);	                // T0 <- context register obj @
+      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));  // compute FP
+      asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);	// store fp in context
       asm.emitCALL_Imm (asm.getMachineCodeIndex() + 5);
       asm.emitPOP_Reg(T1);				// T1 <- IP
       asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);	// store ip in context
       asm.emitMOV_Reg_RegDisp(T0, T0, gprsOffset);	// T0 <- grps array @
-      asm.emitMOV_Reg_Imm(T1, (int) FP );		// T1 <- the index for fp
-      asm.emitMOV_RegIdx_Reg(T0, T1, asm.WORD, 0, FP);	// store fp in the gpr array too
       asm.emitMOV_Reg_RegDisp(T1, SP, WORDSIZE);	// second arg
       asm.emitMOV_Reg_RegDisp(S0, SP, 2*WORDSIZE);	// first arg
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- [sysPthreadSigWait @]

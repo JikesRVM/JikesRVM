@@ -326,19 +326,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
     int fprsOffset = VM.getMember("LVM_Registers;", "fprs", "[D").getOffset(); //TODO!
 
-    // Restore the floating point registers and/or fp state
-    /* TODO: We need to get the C signal handler to store the floating point state
-       in the VM_Registers object before we can restore it here.
-       Think about whether we want to store just the FPRs, or if it makes more sense to
-       store the entire floating point state and then do a bulk restore of it here.
-    asm.emitMOV_Reg_RegDisp (S0, T0, fprsOffset);
-    asm.emitFNINIT(); // clear fp state
-    // Reload FP stack from registers.fprs by pushing them onto the stack
-    for (int i= NUM_FPRS; i >0; i--) {
-      asm.emitFLD_Reg_RegDisp_Quad(FP0, S0, (i-1) << (LG_WORDSIZE+1));
-    }
-    */
-
     // Set PR.framePointer to be registers.fp
     asm.emitMOV_Reg_RegDisp(S0, T0, fpOffset); 
     VM_ProcessorLocalState.emitMoveRegToField(asm,
@@ -387,11 +374,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     VM_Assembler asm = new VM_Assembler(0);
 
     // save PR in glue frame - to be relocated by GC
-    VM_ProcessorLocalState.emitStoreProcessor(asm, FP, 
+    VM_ProcessorLocalState.emitStoreProcessor(asm, EBP, 
                                               VM_JNICompiler.JNI_PR_OFFSET);
 
     // save callers ret addr in glue frame
-    asm.emitPOP_RegDisp (FP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
+    asm.emitPOP_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
     // change processor status to IN_NATIVE
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0, 
@@ -412,7 +399,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     int retryLabel = asm.getMachineCodeIndex();     // backward branch label
 
     // reload PR ref from glue frame
-    VM_ProcessorLocalState.emitLoadProcessor(asm, FP,
+    VM_ProcessorLocalState.emitLoadProcessor(asm, EBP,
                                              VM_JNICompiler.JNI_PR_OFFSET);
 
     // reload JTOC from processor NOTE: JTOC saved in glue frame may not be
@@ -475,7 +462,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitPOP_Reg(T0);
 
     // push callers return address onto stack, prevoiusly saved in glue frame
-    asm.emitPUSH_RegDisp (FP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
+    asm.emitPUSH_RegDisp (EBP, VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
 
     asm.emitRET();
 
