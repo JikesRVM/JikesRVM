@@ -4,12 +4,12 @@
 //$Id$
 
 /**
- * Reshuffled GC files.
+ * Contains common statistic, profiling, and debugging code
+ * for the watson memory managers.
  *
  * @author Dave Grove
- * @date May 30, 2002
+ * @author Perry Cheng
  */
-
 class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
 
 
@@ -19,20 +19,20 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
   static int gcMajorCount = 0;      // number of major collections
 
   // accumulated times & counts for sysExit callback printout
-  static VM_Statistic bytesCopied = new VM_Statistic();
-  static VM_Statistic minorBytesCopied = new VM_Statistic();     
-  static VM_Statistic majorBytesCopied = bytesCopied;
+  static final VM_Statistic bytesCopied = new VM_Statistic();
+  static final VM_Statistic minorBytesCopied = new VM_Statistic();     
+  static final VM_Statistic majorBytesCopied = bytesCopied;
 
   // time spend in various phases
-  static VM_TimeStatistic startTime = new VM_TimeStatistic();
-  static VM_TimeStatistic initTime = new VM_TimeStatistic();
-  static VM_TimeStatistic rootTime = new VM_TimeStatistic();
-  static VM_TimeStatistic scanTime = new VM_TimeStatistic();
-  static VM_TimeStatistic finalizeTime = new VM_TimeStatistic();
-  static VM_TimeStatistic finishTime = new VM_TimeStatistic();
-  static VM_TimeStatistic GCTime = new VM_TimeStatistic();
-  static VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
-  static VM_TimeStatistic majorGCTime = GCTime;
+  static final VM_TimeStatistic startTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic initTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic rootTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic scanTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic finalizeTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic finishTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic GCTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
+  static final VM_TimeStatistic majorGCTime = GCTime;
 
   // collisions in obtaining object ownership to copy
   static final boolean COUNT_COLLISIONS = false;
