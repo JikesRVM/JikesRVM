@@ -111,7 +111,8 @@ input.ramp_up_seconds=0
 #DS# warehouses, we should set the # of transactions to 70000.
 #DS# In addition, there is an overhead for building data of about 
 #DS# (1.3*(#warehouses) + 3) seconds.
-input.measurement_seconds=100
+input.ramp_up_seconds=30
+input.measurement_seconds=12000
 
 
 
