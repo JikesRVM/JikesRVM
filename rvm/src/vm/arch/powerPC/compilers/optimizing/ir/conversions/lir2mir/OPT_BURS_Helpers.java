@@ -576,14 +576,11 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
   void BOOLEAN_CMP_IMM(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand Def, 
-		       OPT_RegisterOperand Left, 
-		       OPT_IntConstantOperand Right) {
-    OPT_Register def = Def.register;
-    OPT_Register one = Left.register;
-    int two = Right.value;
+		       OPT_RegisterOperand def, 
+		       OPT_RegisterOperand one, 
+		       OPT_IntConstantOperand two) {
     OPT_ConditionOperand cmp = BooleanCmp.getCond(s);
-    if (!boolean_cmp_imm(burs, def, one, two, cmp))
+    if (!boolean_cmp_imm(burs, def, one, two.value, cmp))
       burs.append(s);
   }
 
@@ -713,8 +710,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   /**
    * taken from: The PowerPC Compiler Writer's Guide, pp. 199 
    */
-  boolean boolean_cmp_imm(OPT_BURS burs, OPT_Register def, 
-			  OPT_Register one, 
+  boolean boolean_cmp_imm(OPT_BURS burs, OPT_RegisterOperand def, 
+			  OPT_RegisterOperand one, 
 			  int value, OPT_ConditionOperand cmp) {
     OPT_Register t1, t = burs.ir.regpool.getInteger(false);
     OPT_Register zero = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
@@ -722,99 +719,99 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
       if (value == 0) {
-	burs.append(MIR_Unary.create(PPC_CNTLZW, R(t), R(one))); 
+	burs.append(MIR_Unary.create(PPC_CNTLZW, R(t), one)); 
       } else {
-	burs.append(MIR_Binary.create(PPC_SUBFIC, R(t), R(one), I(value)));
+	burs.append(MIR_Binary.create(PPC_SUBFIC, R(t), one, I(value)));
 	burs.append(MIR_Unary.create(PPC_CNTLZW, R(t), R(t)));
       }
-      burs.append(MIR_Binary.create(PPC_SRWI, R(def), R(t), I(5)));
+      burs.append(MIR_Binary.create(PPC_SRWI, def, R(t), I(5)));
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       if (value == 0) {
-	burs.append(MIR_Binary.create(PPC_ADDIC, R(t), R(one), I(-1)));
-	burs.append(MIR_Binary.create(PPC_SUBFE, R(def), R(t), R(one)));
+	burs.append(MIR_Binary.create(PPC_ADDIC, R(t), one, I(-1)));
+	burs.append(MIR_Binary.create(PPC_SUBFE, def, R(t), one.copyRO()));
       } else {
 	t1 = burs.ir.regpool.getInteger(false);
-	burs.append(MIR_Binary.create(PPC_SUBFIC, R(t1), R(one), I(value)));
+	burs.append(MIR_Binary.create(PPC_SUBFIC, R(t1), one, I(value)));
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(t), R(t1), I(-1)));
-	burs.append(MIR_Binary.create(PPC_SUBFE, R(def), R(t), R(t1)));
+	burs.append(MIR_Binary.create(PPC_SUBFE, def, R(t), R(t1)));
       }
       break;
     case OPT_ConditionOperand.LESS:
       if (value == 0) {
-	burs.append(MIR_Binary.create(PPC_SRWI, R(def), R(one), I(31)));
+	burs.append(MIR_Binary.create(PPC_SRWI, def, one, I(31)));
       } else if (value > 0) {
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), R(one), 
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), one, 
 				      I(value - 1)));
-	burs.append(MIR_Unary.create(PPC_ADDZE, R(def), R(t)));
+	burs.append(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else if (value != 0xFFFF8000) {
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), R(one), 
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), 
 				      I(value - 1)));
-	burs.append(MIR_Unary.create(PPC_ADDME, R(def), R(t)));
+	burs.append(MIR_Unary.create(PPC_ADDME, def, R(t)));
       } else {                  // value = 0xFFFF8000
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(one), I(31)));
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
 	burs.append(MIR_Unary.create(PPC_LDIS, R(zero), I(1)));
-	burs.append(MIR_Binary.create(PPC_SUBFC, R(zero), R(one), R(zero)));
-	burs.append(MIR_Unary.create(PPC_ADDME, R(def), R(t)));
+	burs.append(MIR_Binary.create(PPC_SUBFC, R(zero), one.copyRO(), R(zero)));
+	burs.append(MIR_Unary.create(PPC_ADDME, def, R(t)));
       }
       break;
     case OPT_ConditionOperand.GREATER:
       if (value == 0) {
-	burs.append(MIR_Unary.create(PPC_NEG, R(t), R(one)));
-	burs.append(MIR_Binary.create(PPC_ANDC, R(t), R(t), R(one)));
-	burs.append(MIR_Binary.create(PPC_SRWI, R(def), R(t), I(31)));
+	burs.append(MIR_Unary.create(PPC_NEG, R(t), one));
+	burs.append(MIR_Binary.create(PPC_ANDC, R(t), R(t), one.copyRO()));
+	burs.append(MIR_Binary.create(PPC_SRWI, def, R(t), I(31)));
       } else if (value >= 0) {
-	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), R(one), 
+	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), 
 				      I(-value - 1)));
-	burs.append(MIR_Unary.create(PPC_ADDZE, R(def), R(t)));
+	burs.append(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else {
 	t1 = burs.ir.regpool.getInteger(false);
 	burs.append(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
-	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), R(one), 
+	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), 
 				      I(-value - 1)));
-	burs.append(MIR_Binary.create(PPC_ADDE, R(def), R(t), R(t1)));
+	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       }
       break;
     case OPT_ConditionOperand.LESS_EQUAL:
       if (value == 0) {
-	burs.append(MIR_Binary.create(PPC_ADDI, R(t), R(one), I(-1)));
-	burs.append(MIR_Binary.create(PPC_OR, R(t), R(t), R(one)));
-	burs.append(MIR_Binary.create(PPC_SRWI, R(def), R(t), I(31)));
+	burs.append(MIR_Binary.create(PPC_ADDI, R(t), one, I(-1)));
+	burs.append(MIR_Binary.create(PPC_OR, R(t), R(t), one.copyRO()));
+	burs.append(MIR_Binary.create(PPC_SRWI, def, R(t), I(31)));
       } else if (value >= 0) {
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), R(one), I(value)));
-	burs.append(MIR_Unary.create(PPC_ADDZE, R(def), R(t)));
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), I(value)));
+	burs.append(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else {
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), R(one), I(value)));
-	burs.append(MIR_Unary.create(PPC_ADDME, R(def), R(t)));
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), one.copyRO(), I(value)));
+	burs.append(MIR_Unary.create(PPC_ADDME, def, R(t)));
       }
       break;
     case OPT_ConditionOperand.GREATER_EQUAL:
       if (value == 0) {
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_XORI, R(def), R(t), I(1)));
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_XORI, def, R(t), I(1)));
       } else if (value >= 0) {
-	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), R(one), I(-value)));
-	burs.append(MIR_Unary.create(PPC_ADDZE, R(def), R(t)));
+	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
+	burs.append(MIR_Unary.create(PPC_ADDZE, def, R(t)));
       } else if (value != 0xFFFF8000) {
 	t1 = burs.ir.regpool.getInteger(false);
 	burs.append(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
-	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), R(one), I(-value)));
-	burs.append(MIR_Binary.create(PPC_ADDE, R(def), R(t), R(t1)));
+	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
+	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       } else {
 	t1 = burs.ir.regpool.getInteger(false);
 	burs.append(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
-	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), R(one), I(31)));
+	burs.append(MIR_Binary.create(PPC_SRAWI, R(t), one, I(31)));
 	burs.append(MIR_Unary.create(PPC_LDIS, R(zero), I(1)));
-	burs.append(MIR_Binary.create(PPC_ADDC, R(zero), R(one), R(zero)));
-	burs.append(MIR_Binary.create(PPC_ADDE, R(def), R(t), R(t1)));
+	burs.append(MIR_Binary.create(PPC_ADDC, R(zero), one.copyRO(), R(zero)));
+	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       }
       break;
     case OPT_ConditionOperand.HIGHER:
@@ -825,8 +822,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       return false; // todo
     case OPT_ConditionOperand.LOWER_EQUAL:
       burs.append(MIR_Unary.create(PPC_LDI, R(t), I(-1)));
-      burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), R(one), I(value)));
-      burs.append(MIR_Unary.create(PPC_SUBFZE, R(def), R(t)));
+      burs.append(MIR_Binary.create(PPC_SUBFIC, R(zero), one, I(value)));
+      burs.append(MIR_Unary.create(PPC_SUBFZE, def, R(t)));
       break;
 
     default:
@@ -836,56 +833,53 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   }
 
   void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s, 
-		   OPT_RegisterOperand Def, 
-		   OPT_RegisterOperand Left,
-		   OPT_RegisterOperand Right) {
-    OPT_Register def = Def.register;
-    OPT_Register one = Left.register;
-    OPT_Register two = Right.register;
+		   OPT_RegisterOperand def, 
+		   OPT_RegisterOperand one,
+		   OPT_RegisterOperand two) {
     OPT_ConditionOperand cmp = BooleanCmp.getCond(s);
     if (!boolean_cmp(burs, def, one, two, cmp, s))
       burs.append(s);
   }
 
-  boolean boolean_cmp (OPT_BURS burs, OPT_Register def, 
-		       OPT_Register one, 
-		       OPT_Register two, OPT_ConditionOperand cmp,
+  boolean boolean_cmp (OPT_BURS burs, OPT_RegisterOperand def, 
+		       OPT_RegisterOperand one, 
+		       OPT_RegisterOperand two, OPT_ConditionOperand cmp,
 		       OPT_Instruction inst) {
     OPT_Register t1, zero, t = burs.ir.regpool.getInteger(false);
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
       {
-	burs.append(MIR_Binary.create(PPC_SUBF, R(t), R(one), R(two)));
+	burs.append(MIR_Binary.create(PPC_SUBF, R(t), one, two));
 	burs.append(MIR_Unary.create(PPC_CNTLZW, R(t), R(t)));
-	burs.append(MIR_Binary.create(PPC_SRWI, R(def), R(t), I(5)));
+	burs.append(MIR_Binary.create(PPC_SRWI, def, R(t), I(5)));
       }
       break;
     case OPT_ConditionOperand.NOT_EQUAL:
       {
 	t1 = burs.ir.regpool.getInteger(false);
-	burs.append(MIR_Binary.create(PPC_SUBF, R(t), R(one), R(two)));
+	burs.append(MIR_Binary.create(PPC_SUBF, R(t), one, two));
 	burs.append(MIR_Binary.create(PPC_ADDIC, R(t1), R(t), I(-1)));
-	burs.append(MIR_Binary.create(PPC_SUBFE, R(def), R(t1), R(t)));
+	burs.append(MIR_Binary.create(PPC_SUBFE, def, R(t1), R(t)));
       }
       break;
     case OPT_ConditionOperand.LESS_EQUAL:
       {
 	t1 = burs.ir.regpool.getInteger(false);
 	zero = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_SRAWI, R(t1), R(two), I(31)));
-	burs.append(MIR_Binary.create(PPC_SUBFC, R(zero), R(one), R(two)));
-	burs.append(MIR_Binary.create(PPC_ADDE, R(def), R(t1), R(t)));
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_SRAWI, R(t1), two, I(31)));
+	burs.append(MIR_Binary.create(PPC_SUBFC, R(zero), one.copyRO(), two.copyRO()));
+	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t1), R(t)));
       }
       break;
     case OPT_ConditionOperand.GREATER_EQUAL:
       {
 	t1 = burs.ir.regpool.getInteger(false);
 	zero = burs.ir.regpool.getPhysicalRegisterSet().getTemp();
-	burs.append(MIR_Binary.create(PPC_SRWI, R(t), R(two), I(31)));
-	burs.append(MIR_Binary.create(PPC_SRAWI, R(t1), R(one), I(31)));
-	burs.append(MIR_Binary.create(PPC_SUBFC, R(zero), R(two), R(one)));
-	burs.append(MIR_Binary.create(PPC_ADDE, R(def), R(t1), R(t)));
+	burs.append(MIR_Binary.create(PPC_SRWI, R(t), two, I(31)));
+	burs.append(MIR_Binary.create(PPC_SRAWI, R(t1), one, I(31)));
+	burs.append(MIR_Binary.create(PPC_SUBFC, R(zero), two.copyRO(), one.copyRO()));
+	burs.append(MIR_Binary.create(PPC_ADDE, def, R(t1), R(t)));
       }
       break;
     default:
