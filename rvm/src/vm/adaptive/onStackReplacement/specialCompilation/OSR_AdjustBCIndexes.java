@@ -24,7 +24,7 @@ public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
   public final String getName() { return "AdjustBytecodeIndexes"; }
 
   public final void perform(OPT_IR ir) {
-    if (!ir.method.isForSpecialization()) return;    
+    if (!ir.method.isForOsrSpecialization()) return;    
     int offset = ir.method.getOsrPrologueLength();
 
     for (OPT_InstructionEnumeration ie = ir.forwardInstrEnumerator(); 

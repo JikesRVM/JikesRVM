@@ -229,8 +229,8 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
    */
   private void adjustBCIndex(OPT_Instruction barrier) {
     VM_Method source = barrier.position.method;
-    if (source.isForSpecialization()) {
-      barrier.bcIndex -= source.realBCOffset;
+    if (source.isForOsrSpecialization()) {
+      barrier.bcIndex -= source.getOsrPrologueLength();
     }
   }
 
