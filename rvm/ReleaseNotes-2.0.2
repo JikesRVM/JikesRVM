@@ -1,0 +1,24 @@
+This is release 2.0.2 of the Jikes RVM. The main purposes
+of this release are bug fixes, performance improvements for 
+IA32, and minor improvements to the build process.  
+
+Important:
+  Starting in the 2.0.2 release, jconfigure now requires that 
+  your RVM_TARGET_CONFIG file defines preprocessor directives 
+  that specify the target architecture, operating system, and 
+  whether or not your pthread library can support JikesRVM.  
+  See the sample files in $RVM_ROOT/rvm/config. 
+  Set RVM_FOR_SINGLE_VIRTUAL_PROCESSOR as follows:
+    -- AIX/PowerPC:    0 (SMP is supported)
+    -- Linux/PowerPC:  1 (SMP is not supported)
+    -- Linux/IA32:     0 with a 2.2 kernel (SMP is not supported)
+                       1 with a 2.4 kernel and glibc compiled to 
+                         use the GS segment register to access
+                         pthread-specific state. 
+                
+Highlights include:
+
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool.  
+The following bugs in version 2.0.1 are fixed in 2.0.2:
