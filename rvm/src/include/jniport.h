@@ -10,15 +10,17 @@
 #ifndef jniport_h
 #define jniport_h
 
+#include <inttypes.h>
+
 #define JNIEXPORT 
 
 #define JNICALL
 
-typedef signed char jbyte;
+typedef uint8_t jbyte;
 
-typedef long jint;
+typedef int32_t jint;
 
-typedef long long jlong;
+typedef int64_t jlong;
 
 
 #endif     /* jniport_h */
