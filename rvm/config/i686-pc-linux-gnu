@@ -56,7 +56,7 @@ export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
 export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
 
 # the JDK jar executable
-export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
+export JAR="$HOST_JAVA_HOME/bin/jar"
 
 # the JDK standard library jar files
 export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
