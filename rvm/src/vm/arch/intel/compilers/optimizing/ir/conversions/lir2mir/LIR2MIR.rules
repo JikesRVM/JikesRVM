@@ -569,22 +569,16 @@ BOOLEAN_CMP(burs, P(p), MO_AS(P(p), B_S, B), BooleanCmp.getCond(PL(p)));
 r:	INT_COND_MOVE(riv,arg)
 65
 EMIT_INSTRUCTION
-INT_COND_MOVE(burs, P(p));
+CMOV_CMP(burs, P(p), CondMove.getVal1(P(p)), CondMove.getVal2(P(p))); \
+CMOV_MOV(burs, P(p), IA32_MOV, IA32_CMOV, CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r:	REF_COND_MOVE(riv,arg)
+r:	FP_COND_MOVE(riv,arg)
 65
 EMIT_INSTRUCTION
-INT_COND_MOVE(burs, P(p));
-
-r:	DOUBLE_COND_MOVE(riv,arg)
-65
-EMIT_INSTRUCTION
-FPR_COND_MOVE(burs, P(p));
-
-r:	FLOAT_COND_MOVE(riv,arg)
-65
-EMIT_INSTRUCTION
-FPR_COND_MOVE(burs, P(p));
+CMOV_CMP(burs, P(p), CondMove.getVal1(P(p)), CondMove.getVal2(P(p))); \
+CMOV_MOV(burs, P(p), IA32_FMOV, IA32_FCMOV, CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
 ##################################
 # Basic Integer ALU operations 

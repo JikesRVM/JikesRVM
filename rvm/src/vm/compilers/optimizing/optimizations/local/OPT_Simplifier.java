@@ -205,7 +205,171 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	}
       }
       return UNCHANGED;
-
+      ////////////////////
+      // Conditional moves
+      ////////////////////
+    case INT_COND_MOVE_opcode:
+      {
+	OPT_Operand val1 = CondMove.getVal1(s);
+	if (val1.isConstant()) {
+	  OPT_Operand val2 = CondMove.getVal2(s);
+	  if (val2.isConstant()) {
+	    // BOTH CONSTANTS: FOLD
+	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
+	    OPT_Operand val = 
+	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
+	    Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
+	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	  } else {	      
+	    // Cannonicalize by switching operands and fliping code.
+	    OPT_Operand tmp = CondMove.getClearVal1(s);
+	    CondMove.setVal1(s, CondMove.getClearVal2(s));
+	    CondMove.setVal2(s, tmp);
+	    CondMove.getCond(s).flipOperands();
+	  }
+	}
+	if (CondMove.getTrueValue(s).similar(CondMove.getFalseValue(s))) {
+	  OPT_Operand val = CondMove.getClearTrueValue(s);
+	  Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), val);
+	  return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	}
+      }
+      return UNCHANGED;
+    case LONG_COND_MOVE_opcode:
+      {
+	OPT_Operand val1 = CondMove.getVal1(s);
+	if (val1.isConstant()) {
+	  OPT_Operand val2 = CondMove.getVal2(s);
+	  if (val2.isConstant()) {
+	    // BOTH CONSTANTS: FOLD
+	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
+	    OPT_Operand val = 
+	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
+	    Move.mutate(s, LONG_MOVE, CondMove.getClearResult(s), val);
+	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	  } else {	      
+	    // Cannonicalize by switching operands and fliping code.
+	    OPT_Operand tmp = CondMove.getClearVal1(s);
+	    CondMove.setVal1(s, CondMove.getClearVal2(s));
+	    CondMove.setVal2(s, tmp);
+	    CondMove.getCond(s).flipOperands();
+	  }
+	}
+	if (CondMove.getTrueValue(s).similar(CondMove.getFalseValue(s))) {
+	  OPT_Operand val = CondMove.getClearTrueValue(s);
+	  Move.mutate(s, LONG_MOVE, CondMove.getClearResult(s), val);
+	  return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	}
+      }
+      return UNCHANGED;
+    case FLOAT_COND_MOVE_opcode:
+      {
+	OPT_Operand val1 = CondMove.getVal1(s);
+	if (val1.isConstant()) {
+	  OPT_Operand val2 = CondMove.getVal2(s);
+	  if (val2.isConstant()) {
+	    // BOTH CONSTANTS: FOLD
+	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
+	    OPT_Operand val = 
+	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
+	    Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
+	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	  } else {	      
+	    // Cannonicalize by switching operands and fliping code.
+	    OPT_Operand tmp = CondMove.getClearVal1(s);
+	    CondMove.setVal1(s, CondMove.getClearVal2(s));
+	    CondMove.setVal2(s, tmp);
+	    CondMove.getCond(s).flipOperands();
+	  }
+	}
+	if (CondMove.getTrueValue(s).similar(CondMove.getFalseValue(s))) {
+	  OPT_Operand val = CondMove.getClearTrueValue(s);
+	  Move.mutate(s, FLOAT_MOVE, CondMove.getClearResult(s), val);
+	  return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	}
+      }
+      return UNCHANGED;
+    case DOUBLE_COND_MOVE_opcode:
+      {
+	OPT_Operand val1 = CondMove.getVal1(s);
+	if (val1.isConstant()) {
+	  OPT_Operand val2 = CondMove.getVal2(s);
+	  if (val2.isConstant()) {
+	    // BOTH CONSTANTS: FOLD
+	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
+	    OPT_Operand val = 
+	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
+	    Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
+	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	  } else {	      
+	    // Cannonicalize by switching operands and fliping code.
+	    OPT_Operand tmp = CondMove.getClearVal1(s);
+	    CondMove.setVal1(s, CondMove.getClearVal2(s));
+	    CondMove.setVal2(s, tmp);
+	    CondMove.getCond(s).flipOperands();
+	  }
+	}
+	if (CondMove.getTrueValue(s).similar(CondMove.getFalseValue(s))) {
+	  OPT_Operand val = CondMove.getClearTrueValue(s);
+	  Move.mutate(s, DOUBLE_MOVE, CondMove.getClearResult(s), val);
+	  return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	}
+      }
+      return UNCHANGED;
+    case REF_COND_MOVE_opcode:
+      {
+	OPT_Operand val1 = CondMove.getVal1(s);
+	if (val1.isConstant()) {
+	  OPT_Operand val2 = CondMove.getVal2(s);
+	  if (val2.isConstant()) {
+	    // BOTH CONSTANTS: FOLD
+	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
+	    OPT_Operand val = 
+	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
+	    Move.mutate(s, REF_MOVE, CondMove.getClearResult(s), val);
+	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	  } else {	      
+	    // Cannonicalize by switching operands and fliping code.
+	    OPT_Operand tmp = CondMove.getClearVal1(s);
+	    CondMove.setVal1(s, CondMove.getClearVal2(s));
+	    CondMove.setVal2(s, tmp);
+	    CondMove.getCond(s).flipOperands();
+	  }
+	}
+	if (CondMove.getTrueValue(s).similar(CondMove.getFalseValue(s))) {
+	  OPT_Operand val = CondMove.getClearTrueValue(s);
+	  Move.mutate(s, REF_MOVE, CondMove.getClearResult(s), val);
+	  return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	}
+      }
+      return UNCHANGED;
+    case GUARD_COND_MOVE_opcode:
+      {
+	OPT_Operand val1 = CondMove.getVal1(s);
+	if (val1.isConstant()) {
+	  OPT_Operand val2 = CondMove.getVal2(s);
+	  if (val2.isConstant()) {
+	    // BOTH CONSTANTS: FOLD
+	    boolean cond = CondMove.getCond(s).evaluate(val1, val2);
+	    OPT_Operand val = 
+	      cond ? CondMove.getClearTrueValue(s) : CondMove.getClearFalseValue(s);
+	    Move.mutate(s, GUARD_MOVE, CondMove.getClearResult(s), val);
+	    return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	  } else {	      
+	    // Cannonicalize by switching operands and fliping code.
+	    OPT_Operand tmp = CondMove.getClearVal1(s);
+	    CondMove.setVal1(s, CondMove.getClearVal2(s));
+	    CondMove.setVal2(s, tmp);
+	    CondMove.getCond(s).flipOperands();
+	  }
+	}
+	if (CondMove.getTrueValue(s).similar(CondMove.getFalseValue(s))) {
+	  OPT_Operand val = CondMove.getClearTrueValue(s);
+	  Move.mutate(s, GUARD_MOVE, CondMove.getClearResult(s), val);
+	  return val.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
+	}
+      }
+      return UNCHANGED;
       ////////////////////
       // INT ALU operations
       ////////////////////

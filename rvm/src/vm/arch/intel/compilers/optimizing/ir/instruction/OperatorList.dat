@@ -314,6 +314,14 @@ none
 
 
 
+# Move a float/double value from one (register/constant) operand 
+# to a register operand.  Value is unchanged.
+FP_COND_MOVE
+CondMove
+compare
+
+
+
 ####################
 # A call whose target is in a class that implements 
 # the VM_SaveVolatile interface.  Therefore, this

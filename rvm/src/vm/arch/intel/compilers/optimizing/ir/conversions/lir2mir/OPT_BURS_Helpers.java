@@ -1422,64 +1422,17 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 				      IfCmp.getBranchProfile(s)));
   }
 
-  /**
-   * Generate code for a conditional move that can be folded at
-   * compile-time.
-   * 
-   * @param burs and OPT_BURS object
-   * @param s the conditional move instruction 
-   */
-  final void foldIntCondMove(OPT_BURS burs, OPT_Instruction s) {
-    OPT_Operand val1 = CondMove.getVal1(s);
-    OPT_Operand val2 = CondMove.getVal2(s);
-    OPT_ConditionOperand cond = CondMove.getCond(s);
-    OPT_RegisterOperand result = CondMove.getResult(s);
-    OPT_Operand trueValue = CondMove.getTrueValue(s);
-    OPT_Operand falseValue = CondMove.getFalseValue(s);
-
-    if (VM.VerifyAssertions) {
-      VM.assert(val1.isConstant());
-      VM.assert(val2.isConstant());
-    }
-
-    if (cond.evaluate(val1,val2)) {
-      // branch is taken.
-      burs.append(MIR_Move.mutate(s, IA32_MOV, result, trueValue));
-    } else {
-      // branch is not taken.
-      burs.append(MIR_Move.mutate(s, IA32_MOV, result, falseValue));
-    }
-  }
 
   /**
-   * Generate a conditional move sequence.
+   * Generate the compare portion of a conditional move.
    * 
-   * @param burs and OPT_BURS object
-   * @param s the conditional move instruction 
+   * @param burs an OPT_BURS object
+   * @param s the instruction to copy position info from
+   * @param val1 the first value to compare
+   * @param val2 the second value to compare
    */
-  final void INT_COND_MOVE(OPT_BURS burs, OPT_Instruction s) {
-    OPT_Operand val1 = CondMove.getVal1(s);
-    OPT_Operand val2 = CondMove.getVal2(s);
-    OPT_ConditionOperand cond = CondMove.getCond(s);
-    OPT_RegisterOperand result = CondMove.getResult(s);
-    OPT_Operand trueValue = CondMove.getTrueValue(s);
-    OPT_Operand falseValue = CondMove.getFalseValue(s);
-
-    // first try to constant fold
-    if (val1.isConstant() && val2.isConstant()) {
-      foldIntCondMove(burs,s);
-      return;
-    }
-
-    // normalize for the IA32_CMP code
-    if (val1.isConstant()) {
-      OPT_Operand temp = val2;
-      val2 = val1;
-      val1 = temp;
-      cond = cond.flipCode();
-    }
-    
-    // generate the condition codes.
+  final void CMOV_CMP(OPT_BURS burs, OPT_Instruction s,
+		      OPT_Operand val1, OPT_Operand val2) {
     if (val1.isRegister() && val1.asRegister().register.isFloatingPoint()) {
       if (VM.VerifyAssertions) {
         VM.assert(val2.isRegister());
@@ -1490,120 +1443,58 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     } else {
       burs.append(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
     }
-    
-    // If either value is not in a register, move it there.
-    if (!trueValue.isRegister()) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTempInt();
-      burs.append(CPOS(s,MIR_Move.create(IA32_MOV, temp, trueValue)));
-      trueValue = temp;
-    }
-    if (!falseValue.isRegister()) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTempInt();
-      burs.append(CPOS(s,MIR_Move.create(IA32_MOV, temp, falseValue)));
-      falseValue = temp;
-    }
-
-    if (result.similar(trueValue)) {
-      // in this case, only need a conditional move for the false branch.
-      if (!result.similar(falseValue)) {
-        OPT_ConditionOperand flip = cond.flipCode();
-        burs.append(MIR_CondMove.mutate(s, IA32_CMOV, result,
-                                        falseValue.copy(), 
-                                        COND(flip)));
-      }
-    } else {
-      if (result.similar(falseValue)) {
-        // in this case, only need a conditional move for the true branch.
-        burs.append(MIR_CondMove.mutate(s, IA32_CMOV, result, 
-                                        trueValue.copy(), 
-                                        COND(cond)));
-      } else {
-        // need to handle both possible assignments. Unconditionally
-        // assign trueValue, then conditionally assign falseValue.
-        burs.append(CPOS(s,MIR_Move.create(IA32_MOV, result,
-                                           trueValue.copy())));
-        OPT_ConditionOperand flip = cond.flipCode();
-        burs.append(MIR_CondMove.mutate(s, IA32_CMOV, result.copy(), 
-                                        falseValue.copy(), 
-                                        COND(flip)));
-      }
-    }
   }
 
   /**
-   * Generate a conditional move sequence.
-   * 
-   * @param burs and OPT_BURS object
-   * @param s the conditional move instruction 
+   * Generate the move portion of a conditional move.
+   *
+   * @param burs an OPT_BURS object
+   * @param s the instruction to copy position info from
+   * @param movop the operator to use for moves
+   * @param cmovop the operator to use for conditional moves
+   * @param result the result of the conditional move
+   * @param cond the condition operand
+   * @param trueVal the value to move to result if cond is true
+   * @param falseVal the value to move to result if cond is not true
    */
-  final void FPR_COND_MOVE(OPT_BURS burs, OPT_Instruction s) {
-    OPT_Operand val1 = CondMove.getVal1(s);
-    OPT_Operand val2 = CondMove.getVal2(s);
-    OPT_ConditionOperand cond = CondMove.getCond(s);
-    OPT_RegisterOperand result = CondMove.getResult(s);
-    OPT_Operand trueValue = CondMove.getTrueValue(s);
-    OPT_Operand falseValue = CondMove.getFalseValue(s);
-
-    // generate the condition codes.
-    if (val1.isRegister() && val1.asRegister().register.isFloatingPoint()) {
-      if (VM.VerifyAssertions) {
-        VM.assert(val2.isRegister());
-        VM.assert(val2.asRegister().register.isFloatingPoint());
-      }
-      burs.append(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), val1)));
-      burs.append(CPOS(s, MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), val2)));
-    } else {
-      burs.append(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
-    }
-    
-    // If either value is not in a register, move it there.
-    if (!trueValue.isRegister()) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTempDouble();
-      burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, temp, trueValue)));
-      trueValue = temp;
-    }
-    if (!falseValue.isRegister()) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTempDouble();
-      burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, temp, falseValue)));
-      falseValue = temp;
-    }
-
+  final void CMOV_MOV(OPT_BURS burs, OPT_Instruction s,
+		      OPT_Operator movop,
+		      OPT_Operator cmovop,
+		      OPT_RegisterOperand result,
+		      OPT_ConditionOperand cond,
+		      OPT_Operand trueValue,
+		      OPT_Operand falseValue) {
     if (result.similar(trueValue)) {
       // in this case, only need a conditional move for the false branch.
-      if (!result.similar(falseValue)) {
-        OPT_ConditionOperand flip = cond.flipCode();
-        burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, D(getFPR(0)),
-                                           result.copy())));
-        burs.append(MIR_CondMove.mutate(s, IA32_FCMOV, D(getFPR(0)),
-                                        falseValue.copy(), 
-                                        COND(flip)));
-        burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, result.copy(), 
-                                           D(getFPR(0)))));
-      }
+      burs.append(MIR_CondMove.mutate(s, cmovop, result,
+				      asReg(burs, s, movop, falseValue),
+				      COND(cond.flipCode())));
+
+    } else if (result.similar(falseValue)) {
+      // in this case, only need a conditional move for the true branch.
+      burs.append(MIR_CondMove.mutate(s, cmovop, result, 
+				      asReg(burs, s, movop, trueValue),
+				      COND(cond)));
     } else {
-      if (result.similar(falseValue)) {
-        // in this case, only need a conditional move for the true branch.
-        burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, D(getFPR(0)),
-                                           result.copy())));
-        burs.append(MIR_CondMove.mutate(s, IA32_FCMOV, D(getFPR(0)),
-                                        trueValue.copy(), 
-                                        COND(cond)));
-        burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, result.copy(), 
-                                           D(getFPR(0)))));
-      } else {
-        // need to handle both possible assignments. Unconditionally
-        // assign trueValue, then conditionally assign falseValue.
-        burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, D(getFPR(0)),
-                                           trueValue.copy())));
-        OPT_ConditionOperand flip = cond.flipCode();
-        burs.append(MIR_CondMove.mutate(s, IA32_FCMOV, D(getFPR(0)), 
-                                        falseValue.copy(), 
-                                        COND(flip)));
-        burs.append(CPOS(s,MIR_Move.create(IA32_FMOV, result.copy(), 
-                                           D(getFPR(0)))));
-      }
+      // need to handle both possible assignments. Unconditionally
+      // assign trueValue, then conditionally assign falseValue.
+      burs.append(CPOS(s,MIR_Move.create(movop, result,
+					 asReg(burs, s, movop, trueValue))));
+      burs.append(MIR_CondMove.mutate(s, cmovop, result.copy(), 
+				      asReg(burs, s, movop, falseValue),
+				      COND(cond.flipCode())));
     }
   }
+
+  // move op into a register operand if it isn't one already.
+  private OPT_Operand asReg(OPT_BURS burs, OPT_Instruction s, 
+			    OPT_Operator movop, OPT_Operand op) {
+    if (op.isRegister()) return op;
+    OPT_RegisterOperand tmp = burs.ir.regpool.makeTemp(op);
+    burs.append(CPOS(s, MIR_Move.create(movop, tmp, op)));
+    return tmp.copy();
+  }
+
 
   /**
    * Expand a prologue by expanding out longs into pairs of ints
