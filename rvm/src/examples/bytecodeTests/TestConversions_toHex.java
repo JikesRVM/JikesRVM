@@ -133,8 +133,7 @@ class TestConversions_toHex
       {
       float  f = -2.6F;
       double d = f;
-      //SystemOut.print("\nwant: -2.5999999046325684\n got: ");
-      SystemOut.print("\nwant: -4610334938753925120\n got: ");
+      SystemOut.print("\nwant: c004ccccc0000000\n got: ");
       SystemOut.println(Long.toHexString(Double.doubleToLongBits(d)));
       }
 
