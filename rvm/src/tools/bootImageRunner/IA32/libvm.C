@@ -393,7 +393,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         {
             writeErr("invalid vp address (not an address - high nibble %d)\n", 
                      vp_hn);
-            exit(-1);
+            exit(1);
         }
     }
 
@@ -411,7 +411,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
             writeErr("invalid frame address %x"
             " (not an address - high nibble %d)\n", 
                                  localFrameAddress, fp_hn);
-            exit(-1);
+            exit(1);
         }
     }
 
@@ -638,7 +638,7 @@ softwareSignalHandler(int signo,
         // Presumably we received this signal because someone wants us
         // to shut down.  Exit directly (unless the lib_verbose flag is set).
         if (!lib_verbose)
-            _exit(-1);
+            _exit(1);
 
         DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 

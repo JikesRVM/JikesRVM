@@ -473,7 +473,7 @@ main(int argc, char **argv)
     
   
     fprintf(SysErrorFile, "%s: Could not create the Java Virtual Machine; goodbye\n", Me);
-    exit(-1);
+    exit(1);
 }
 
 

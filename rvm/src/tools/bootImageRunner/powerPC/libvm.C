@@ -413,7 +413,7 @@ getLinuxSavedRegisters(int signum, void* arg3)
        fprintf(stderr, "%12p %p arg3[%d]\n", (void *) ((void**) arg3)[i], ((void**) arg3) + i, i);
      }
      fprintf(stderr, "trap: %d link: %p nip: %p\n", context->regs->trap, context->regs->link, context->regs->nip);
-     exit(-1);
+     exit(1);
    }
 
    return context->regs;
@@ -578,7 +578,7 @@ getFaultingAddress(mstsave *save)
             faultingAddressLocation = 0;
         else {
             fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
-            exit(-1);
+            exit(1);
         }
     }
     return save->except[0];
@@ -589,7 +589,7 @@ getFaultingAddress(mstsave *save)
         } else {
             fprintf(SysTraceFile, "Could not figure out where"
                     " faulting address is stored - exiting\n");
-            exit(-1);
+            exit(1);
         }
     }
     return save->o_vaddr;
@@ -716,7 +716,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
        } else {
            fprintf(SysErrorFile, "%s: internal error trap\n", Me);
            if (--remainingFatalErrors <= 0)
-               exit(-1); 
+               exit(1); 
        }
     }
     
@@ -894,7 +894,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
             //!!TODO: someday use logic similar to stack guard page to force a gc
             if (lib_verbose) fprintf(SysTraceFile, "%s: write buffer overflow trap\n", Me);
             fprintf(SysErrorFile,"%s: write buffer overflow trap\n", Me);
-            exit(-1);
+            exit(1);
         } else if (((instruction & VM_Constants_STACK_OVERFLOW_MASK) 
                     == VM_Constants_STACK_OVERFLOW_TRAP) 
                  || ((instruction & VM_Constants_STACK_OVERFLOW_MASK) 
@@ -1372,7 +1372,7 @@ createJVM(int vmInSeparateThread)
 
 #if (defined RVM_FOR_LINUX) && defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: Unsupported operation (no linux pthreads)\n", Me);
-        exit(-1);
+        exit(1);
 #else
 
         pthread_create(&vm_pthreadid, NULL, bootThreadCaller, NULL);
