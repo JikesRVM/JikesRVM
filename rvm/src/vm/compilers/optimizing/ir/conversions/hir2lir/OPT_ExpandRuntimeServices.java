@@ -280,7 +280,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		     AStore.getClearValue(inst));
 	inline(inst, ir);
 	//-#else
-	if (VM_Collector.USES_WRITE_BARRIER) {
+	if (VM_Collector.NEEDS_WRITE_BARRIER) {
 	  OPT_Instruction wb =
 	    Call.create3(CALL, null, null, 
 			 OPT_MethodOperand.STATIC(VM_Entrypoints.arrayStoreWriteBarrierMethod), 
@@ -316,7 +316,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		inline(inst, ir);
 	      }
 	      //-#else
-	      if (VM_Collector.USES_WRITE_BARRIER) {
+	      if (VM_Collector.NEEDS_WRITE_BARRIER) {
                 OPT_Instruction wb = 
 		  Call.create3(CALL, null, null, 
 			       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedPutfieldWriteBarrierMethod), 
@@ -347,7 +347,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			 PutField.getClearValue(inst));
 	    inline(inst, ir);
 	    //-#else
-	    if (VM_Collector.USES_WRITE_BARRIER) {
+	    if (VM_Collector.NEEDS_WRITE_BARRIER) {
 	      OPT_Instruction wb = 
 		Call.create3(CALL, null, null, 
 			     OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedPutfieldWriteBarrierMethod), 

@@ -556,7 +556,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  s = AStore.create(REF_ASTORE, val, ref, index,
 			    new OPT_LocationOperand(type),
 			    getCurrentGuard());
-	  if (VM_Collector.USES_WRITE_BARRIER)
+	  if (VM_Collector.NEEDS_WRITE_BARRIER)
 	    rectifyStateWithErrorHandler();
 	}
 	break;
@@ -1424,7 +1424,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean unresolved = field.needsDynamicLink(gc.method);
 	  if (!unresolved) field = field.resolve();
 	  boolean willHaveWB = 
-	    VM_Collector.USES_WRITE_BARRIER && !field.getType().isPrimitiveType();
+	    VM_Collector.NEEDS_WRITE_BARRIER && !field.getType().isPrimitiveType();
 	  OPT_Operator operator = unresolved?PUTFIELD_UNRESOLVED:PUTFIELD;
 	  s = PutField.create(operator, val, obj, makeInstanceFieldRef(field), 
 			      getCurrentGuard());

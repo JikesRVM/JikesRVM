@@ -844,7 +844,7 @@ public class VM_Compiler implements VM_BaselineConstants {
           asm.emitL   (T0,  8, SP);  //  T0 := arrayref
           asm.emitL   (T1,  0, SP);  //  T1 := value
 	  asm.emitCall(spSaveAreaOffset);   // checkstore(arrayref, value)
-          if (VM_Collector.USES_WRITE_BARRIER) 
+          if (VM_Collector.NEEDS_WRITE_BARRIER) 
 	    VM_Barriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
           asm.emitL   (T1,  8, SP);                    // T1 is array ref
           asm.emitL   (T0,  4, SP);                    // T0 is array index
@@ -2132,7 +2132,7 @@ public class VM_Compiler implements VM_BaselineConstants {
           int fieldId = klass.getFieldRefId(constantPoolIndex);
           VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
           if (VM.TraceAssembler) asm.noteBytecode("putstatic " + constantPoolIndex + " (" + fieldRef + ")");
-          if (VM_Collector.USES_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+          if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
 	    if (fieldRef.needsDynamicLink(method))
 	      VM_Barriers.compileUnresolvedPutstaticBarrier(asm, spSaveAreaOffset, fieldId);
 	    else
@@ -2302,7 +2302,7 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
           int fieldId = klass.getFieldRefId(constantPoolIndex);
 	  VM_Field fieldRef = VM_FieldDictionary.getValue(fieldId);
 	  if (VM.TraceAssembler) asm.noteBytecode("putfield " + constantPoolIndex + " (" + fieldRef + ")");
-          if (VM_Collector.USES_WRITE_BARRIER &&  !fieldRef.getType().isPrimitiveType()) {
+          if (VM_Collector.NEEDS_WRITE_BARRIER &&  !fieldRef.getType().isPrimitiveType()) {
 	    if (fieldRef.needsDynamicLink(method))
 	      VM_Barriers.compileUnresolvedPutfieldBarrier(asm, spSaveAreaOffset, fieldId);
 	    else

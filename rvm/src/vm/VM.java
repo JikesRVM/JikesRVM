@@ -85,7 +85,7 @@ public class VM extends VM_Properties implements VM_Constants,
     //    This must happen before any putfield or arraystore of object refs
     //    because the buffer is accessed by compiler-generated write barrier code.
     //
-    if (VM_Collector.USES_WRITE_BARRIER) {
+    if (VM_Collector.NEEDS_WRITE_BARRIER) {
       VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
     }
      
@@ -93,7 +93,7 @@ public class VM extends VM_Properties implements VM_Constants,
     // call setupProcessor to initialize increment/decrement buffer
     // and set localEpoch to -1
     //
-    // if reference counting set USES_WRITE_BARRIER this call to
+    // if reference counting set NEEDS_WRITE_BARRIER this call to
     // setupProcessor would occur above...ie remove this ifdef
     //
     VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );

@@ -79,7 +79,7 @@ public class VM_WriteBuffer
   static void
   setupProcessor ( VM_Processor p ) {
 
-    if (VM.VerifyAssertions) VM.assert(VM_Collector.USES_WRITE_BARRIER == true);
+    if (VM.VerifyAssertions) VM.assert(VM_Collector.NEEDS_WRITE_BARRIER == true);
 
     // setupProcessor will be called twice for the PRIMORDIAL processor.
     // Once while building the bootImage (VM.runningVM=false) and again when

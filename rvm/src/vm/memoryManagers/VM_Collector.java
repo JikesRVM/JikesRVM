@@ -110,6 +110,4 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
   static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
   static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
 
-  // remove following after all occurrences changed to NEEDS_WRITE_BARRIER
-  static final boolean USES_WRITE_BARRIER = VM_Allocator.writeBarrier;
 }
