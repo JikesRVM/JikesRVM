@@ -474,13 +474,14 @@ SPECjbb2000
 \end{verbatim}
 \item[nightly-tests-short] file
 \begin{verbatim}
+gctest
 bytecodeTests
 opttests
 reflect
 threads
 CaffeineMark
 jBYTEmark
-javalex
+javalex 
 \end{verbatim}
 \end{description}
 
@@ -495,17 +496,19 @@ compiler, we chose one optimizing configuration (FullOptMarkSweep) on
 which to run with all the different optimization levels.
 
 \begin{verbatim}
-BaseBaseSemiSpace -test-list nightly-tests
-BaseBaseMarkSweep -test-list nightly-tests
-BaseBaseGenCopy -test-list nightly-tests 
-BaseAdaptiveSemiSpace -test-list nightly-tests-short
-FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
-FullOptGenCopy -test-list nightly-tests
-FullAdaptiveSemiSpace -test-list nightly-tests
-FastSemiSpace -test-list nightly-tests
-FastMarkSweep -test-list nightly-tests
-FastAdaptiveSemiSpace -test-list nightly-tests
+BaseBaseSemiSpace                -test-list nightly-tests
+BaseAdaptiveSemiSpace            -test-list nightly-tests-short
+FullAdaptiveSemiSpace            -test-list nightly-tests
+BaseBaseMarkSweep                -test-list nightly-tests
+BaseBaseCopyMS                   -test-list nightly-tests
+BaseBaseGenCopy                  -test-list nightly-tests
+BaseBaseGenMS                    -test-list nightly-tests
 ExtremeAssertionsOptOptSemiSpace -test-list nightly-tests-short
+FullOptSemiSpace -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
+FastAdaptiveSemiSpace            -test-list nightly-tests-short
+FastSemiSpace                    -test-list nightly-tests-short
+FastMarkSweep                    -test-list nightly-tests-short
+FastWatsonMarkSweep              -test-list nightly-tests-short
 \end{verbatim}
 
  To make all of this run every night, it is necessary merely to put a
@@ -513,6 +516,12 @@ NightSanityDriver invocation in a crontab; we actually use a more
 involved setup, which we distribute in the night-sanity-build and
 night-sanity-run scripts.  These are somewhat specific to what we want
 to test, but they will hopefully make a good model.
+
+\subsection{Mauve tests}
+Mauve is an open source test suite for class libraries.  The directory 
+{\tt{\$RVM\_ROOT/rvm/regression/tests/mauve}} contains a file
+mauve-jikesrvm that contains the current KEYS used to run mauve tests
+on Jikes RVM. 
 
 \JikesTMFooter
 
