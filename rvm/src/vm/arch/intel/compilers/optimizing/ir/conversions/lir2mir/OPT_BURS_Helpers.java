@@ -1403,6 +1403,62 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
 
   /**
+   * Generate a conditional move sequence.
+   * 
+   * @param burs and OPT_BURS object
+   * @param s the conditional move instruction 
+   */
+  final void INT_COND_MOVE(OPT_BURS burs, OPT_Instruction s) {
+    OPT_Operand val1 = CondMove.getVal1(s);
+    OPT_Operand val2 = CondMove.getVal2(s);
+    OPT_ConditionOperand cond = CondMove.getCond(s);
+    OPT_RegisterOperand result = CondMove.getResult(s);
+    OPT_Operand trueValue = CondMove.getTrueValue(s);
+    OPT_Operand falseValue = CondMove.getFalseValue(s);
+
+    // generate the condition codes.
+    burs.append(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
+    
+    // If either value is not in a register, move it there.
+    if (!trueValue.isRegister()) {
+      OPT_RegisterOperand temp = burs.ir.regpool.makeTempInt();
+      burs.append(CPOS(s,MIR_Move.create(IA32_MOV, temp, trueValue)));
+      trueValue = temp;
+    }
+    if (!falseValue.isRegister()) {
+      OPT_RegisterOperand temp = burs.ir.regpool.makeTempInt();
+      burs.append(CPOS(s,MIR_Move.create(IA32_MOV, temp, falseValue)));
+      falseValue = temp;
+    }
+
+    if (result.similar(trueValue)) {
+      // in this case, only need a conditional move for the false branch.
+      if (!result.similar(falseValue)) {
+        OPT_ConditionOperand flip = cond.flipCode();
+        burs.append(MIR_CondMove.mutate(s, IA32_CMOV, result,
+                                        falseValue.copy(), 
+                                        COND(flip)));
+      }
+    } else {
+      if (result.similar(falseValue)) {
+        // in this case, only need a conditional move for the true branch.
+        burs.append(MIR_CondMove.mutate(s, IA32_CMOV, result, 
+                                        trueValue.copy(), 
+                                        COND(cond)));
+      } else {
+        // need to handle both possible assignments. Unconditionally
+        // assign trueValue, then conditionally assign falseValue.
+        burs.append(CPOS(s,MIR_Move.create(IA32_MOV, result,
+                                           trueValue.copy())));
+        OPT_ConditionOperand flip = cond.flipCode();
+        burs.append(MIR_CondMove.mutate(s, IA32_CMOV, result.copy(), 
+                                        falseValue.copy(), 
+                                        COND(flip)));
+      }
+    }
+  }
+
+  /**
    * Expand a prologue by expanding out longs into pairs of ints
    */
   void PROLOGUE(OPT_BURS burs, OPT_Instruction s) {

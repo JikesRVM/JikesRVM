@@ -145,6 +145,13 @@ BooleanCmp
 "U Cond OPT_ConditionOperand" "U BranchProfile OPT_BranchProfileOperand"
 
 
+CondMove
+1 0 5
+"D Result OPT_RegisterOperand" "U Val1 OPT_Operand" "U Val2 OPT_Operand" \
+"U Cond OPT_ConditionOperand" "U TrueValue OPT_Operand" \
+"U FalseValue OPT_Operand"
+
+
 Goto
 0 0 1
 "U Target OPT_BranchOperand"

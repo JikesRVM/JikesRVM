@@ -217,6 +217,26 @@ abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
 
 
   /**
+   * Returns the correct operator for a conditional move with the given data 
+   * type.
+   *
+   * @param type desired type to move
+   * @param isLIR do we want a LIR operator?
+   * @return the OPT_Operator to use for moving a value of the given type
+   */
+  static final OPT_Operator getCondMoveOp(VM_Type type, boolean isLIR) {
+    if (type.isLongType())    return LONG_COND_MOVE;
+    if (type.isFloatType())   return FLOAT_COND_MOVE;
+    if (type.isDoubleType())  return DOUBLE_COND_MOVE;
+    if (type == OPT_ClassLoaderProxy.VALIDATION_TYPE) return GUARD_COND_MOVE;
+    if (!isLIR && type.isReferenceType()) {
+      return REF_COND_MOVE;
+    }
+    return INT_COND_MOVE;
+  }
+
+
+  /**
    * Returns the correct operator for loading from the given field
    *
    * @param field field to load from

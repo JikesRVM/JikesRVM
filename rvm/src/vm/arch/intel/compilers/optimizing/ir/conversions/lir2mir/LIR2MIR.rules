@@ -586,6 +586,14 @@ EMIT_INSTRUCTION
 BOOLEAN_CMP(burs, P(p), MO_AS(P(p), B_S, B), BooleanCmp.getCond(PL(p)));
 
 ##################################
+# Conditional moves
+##################################
+r:	INT_COND_MOVE(riv,arg)
+65
+EMIT_INSTRUCTION
+INT_COND_MOVE(burs, P(p));
+
+##################################
 # Basic Integer ALU operations 
 ##################################
 #####
