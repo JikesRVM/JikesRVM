@@ -610,7 +610,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
-      if ( !VM_Interface.addrInVM(ip) ) {
+      if (!VM_Interface.addrInVM(ip)) {
         writeString("   <native frame>\n");
         ip = VM_Magic.getReturnAddress(fp);
         fp = VM_Magic.getCallerFramePointer(fp);
