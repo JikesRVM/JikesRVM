@@ -47,7 +47,8 @@ class MainThread extends Thread {
 
     // Set up application class loader
     VM_ApplicationClassLoader.setPathProperty();
-    ClassLoader cl = new VM_ApplicationClassLoader( VM_SystemClassLoader.getVMClassLoader() );
+    ClassLoader cl = new VM_ApplicationClassLoader(VM_SystemClassLoader.getVMClassLoader());
+    privateSetContextClassLoader(cl); 
 
     // find method to run
     String[]      mainArgs = null;
