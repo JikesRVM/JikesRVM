@@ -36,7 +36,7 @@ done
 # make build directory
 mkdir -p $DEST_DIR
 export RVM_BUILD=$DEST_DIR/tmp_build
-$RVM_ROOT/rvm/bin/jconfigure FullAdaptiveSemispace < /dev/null
+$RVM_ROOT/rvm/bin/jconfigure JMTkFullAdaptiveSemispace < /dev/null
 cd $RVM_BUILD
 ./jbuild -nolink -nobooter
 
@@ -57,13 +57,14 @@ if [ `uname -m`==i686 ]; then
 else
   INSTRUCTION_TYPE=int
 fi
+ADDRESS_TYPE=int
 
 for f in `$FIND . -name \*.java`; do
   # Preprocess and preserve only files compiled for this build
   if [ -e `dirname $f`/`basename $f java`class ]; then
     # strip INSTRUCTION typedef (someday, maybe we'll write in Java :)
     $SED s/\\\<INSTRUCTION\\\>/$INSTRUCTION_TYPE/g $f > $f.tmp
-    mv $f.tmp $f
+    $SED s/\\\<EXTENT\\\>/$ADDRESS_TYPE/g $f.tmp > $f
   else
     rm $f
   fi
