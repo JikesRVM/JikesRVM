@@ -78,19 +78,11 @@ public class OSR_SpecialCompiler{
 
     if (VM.TraceOnStackReplacement) {VM.sysWriteln("prologue length "+prosize);}
 
-    /* replace byte code temporarily */
-    byte[] oldBCodes = method.getBytecodeArray();
-    byte[] newBCodes = new byte[oldBCodes.length + prosize];
- 
-    System.arraycopy(prologue, 0, newBCodes, 0, prosize);
-    System.arraycopy(oldBCodes, 0, newBCodes, 
-		     prosize, oldBCodes.length); 
-
-    // the compiler will call setForSpecialization after generating the reference map
+    // the compiler will call setForOsrSpecialization after generating the reference map
     /* set a flag for specialization, compiler will see it, and
      * know how to do it properly.
      */
-    method.setForSpecialization(newBCodes, prologue.length, state.getMaxStackHeight());
+    method.setForOsrSpecialization(prologue, state.getMaxStackHeight());
 	
     /* for baseline compilation, we donot adjust the exception table and line table
      * because the compiler will generate maps after compilation. 
@@ -101,7 +93,7 @@ public class OSR_SpecialCompiler{
 
     // compiled method was already set by VM_Compiler.compile
     // the call here does nothing
-    method.finalizeSpecialization();
+//    method.finalizeOsrSpecialization();
 
     // mark the method is a specialized one
     newCompiledMethod.setSpecialForOSR();
@@ -153,15 +145,7 @@ public class OSR_SpecialCompiler{
     byte[] prologue = state.generatePrologue();
     int prosize = prologue.length;
 
-    // replace bytecode temporarily
-    byte[] oldBCodes = method.getBytecodeArray();
-    byte[] newBCodes = new byte[oldBCodes.length + prosize];
- 
-    System.arraycopy(prologue, 0, newBCodes, 0, prosize);
-    System.arraycopy(oldBCodes, 0, newBCodes, 
-		     prosize, oldBCodes.length); 
-
-    method.setForSpecialization(newBCodes, prologue.length, state.getMaxStackHeight());
+    method.setForOsrSpecialization(prologue, state.getMaxStackHeight());
 	
     int[] oldStartPCs = null;
     int[] oldEndPCs = null;
@@ -226,7 +210,7 @@ public class OSR_SpecialCompiler{
 	VM_RuntimeOptCompilerInfrastructure.recompileWithOptOnStackSpecialization(compPlan);
 
     // restore original bytecode, exception table, and line number table
-    method.finalizeSpecialization();
+    method.finalizeOsrSpecialization();
  
     {
       VM_ExceptionHandlerMap exceptionHandlerMap = method.getExceptionHandlerMap();

@@ -2424,7 +2424,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       /* defer generating code which may cause GC until 
        * locals were initialized. see emit_deferred_prologue
        */
-      if (method.isForSpecialization()) {
+      if (method.isForOsrSpecialization()) {
 	return;
       }
       //-#endif
@@ -2455,7 +2455,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   //-#if RVM_WITH_OSR
   protected final void emit_deferred_prologue() {
 
-    if (VM.VerifyAssertions) VM._assert(method.isForSpecialization());
+    if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
         
     if (isInterruptible) {
       // S0<-limit

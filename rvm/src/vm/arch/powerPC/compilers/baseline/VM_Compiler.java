@@ -2510,7 +2510,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     // Perform a thread switch if so requested.
 	//-#if RVM_WITH_OSR
 	/* defer generating prologues which may trigger GC, see emit_deferred_prologue*/
-    if (method.isForSpecialization()) {
+    if (method.isForOsrSpecialization()) {
 	  return;
 	}
 	//-#endif
@@ -2524,7 +2524,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   //-#if RVM_WITH_OSR
   protected final void emit_deferred_prologue() {
-	if (VM.VerifyAssertions) VM._assert(method.isForSpecialization());
+	if (VM.VerifyAssertions) VM._assert(method.isForOsrSpecialization());
 	
 	genThreadSwitchTest(VM_Thread.PROLOGUE);
 
