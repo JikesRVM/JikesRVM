@@ -234,7 +234,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Get the offset for the end of the prologue
    */
-  final int getEndPrologueOffset() {
+  public final int getEndPrologueOffset() {
     return bitField1 & AVAIL_BITS;
   }
 
