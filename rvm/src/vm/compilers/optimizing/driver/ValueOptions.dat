@@ -89,7 +89,7 @@ Selection of mechanism to clean IA32 FP stack at procedure boundaries
 "FSTP fclearWithFSTP fstp" \
 "FFREE fclearWithFFREE ffree"
 
-E F2INT byte VM_MATH
+E F2INT byte FIST
 Selection of mechanism to convert double to int on IA32
 "VM_MATH f2intVM_Math VM_Math" \
 "FIST f2intFist fist"
