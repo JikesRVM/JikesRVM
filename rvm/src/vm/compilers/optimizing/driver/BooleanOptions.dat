@@ -181,6 +181,15 @@ CW_STACK -1 true
 Process Stack to eliminate Loads/Stores
 
 ##########
+# Options for feedback-directed optimizations
+#
+FREQ_FOCUS_EFFORT -1 false focusEffort
+Focus compilation effort based on frequency profile data
+
+FREQ_OPT -1 false freqOpt
+Attempt to improve code quality based on frequency profile data
+
+##########
 # Next, declare all the printing options
 # MUST start with PRINT_ or VCG_ prefix
 #

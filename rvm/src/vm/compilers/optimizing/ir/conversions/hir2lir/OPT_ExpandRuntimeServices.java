@@ -136,7 +136,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	  //-#endif
 	  if (ir.options.INLINE_NEW) {
-            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
+            }
 	  }
 	}
 	break;
@@ -224,7 +226,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  }
 	  //-#endif
 	  if (ir.options.INLINE_NEW) {
-            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
+            }
 	  } 
 	}
 	break;
@@ -288,7 +292,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
 			 new OPT_IntConstantOperand(refType.thinLockOffset));
-            if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
+            }
 	  } else {
 	    Call.mutate1(inst, CALL, null, null, 
 			 OPT_MethodOperand.STATIC(VM_Entrypoints.lockMethod),
@@ -310,7 +316,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			     MonitorOp.getClearGuard(inst), 
 			     ref,
 			     new OPT_IntConstantOperand(refType.thinLockOffset));
-                if (!inst.getBasicBlock().getInfrequent()) inline(inst, ir);
+                if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+                  inline(inst, ir);
+                }
 	    } else {
 		Call.mutate1(inst, CALL, null, null, 
 			     OPT_MethodOperand.STATIC(VM_Entrypoints.unlockMethod),

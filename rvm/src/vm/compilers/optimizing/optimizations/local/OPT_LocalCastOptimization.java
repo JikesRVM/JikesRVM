@@ -47,8 +47,8 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
         e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
-      if (bb.isEmpty())
-        continue;
+      if (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent()) continue;
+      if (bb.isEmpty()) continue;
       // visit each instruction in the basic block
       for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); 
           ie.hasMoreElements();) {

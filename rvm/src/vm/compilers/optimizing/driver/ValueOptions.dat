@@ -77,6 +77,11 @@ V ALLOC_ADVICE_SITES String null
 Read allocation advice attributes for all classes from this file
  
  
+E FREQUENCY_QUALITY byte SHADES_OF_GREY
+How to interpret block and edge frequencies?
+"BLACK_AND_WHITE bw bw" \
+"SHADES_OF_GREY grey grey"
+
 E SPILL_COST_ESTIMATE byte SIMPLE_SPILL_COST
 Selection of spilling heuristic
 "SIMPLE_SPILL_COST simpleSpillCost simple" \

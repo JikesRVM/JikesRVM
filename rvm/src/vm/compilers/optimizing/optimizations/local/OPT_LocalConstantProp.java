@@ -38,6 +38,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	 bb != null; 
 	 bb = bb.nextBasicBlockInCodeOrder()) {
+      if (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent()) continue;
       if (!bb.isEmpty()) {
 	// iterate over all instructions in the basic block
 	for (OPT_Instruction s = bb.firstRealInstruction(), 

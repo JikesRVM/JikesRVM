@@ -54,11 +54,10 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     // iterate over each basic block
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; 
         bb = bb.nextBasicBlockInCodeOrder()) {
-      if (!bb.isEmpty())
-        optimizeBasicBlock(ir, bb, ir.options);
+      if (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent()) continue;
+      if (!bb.isEmpty()) optimizeBasicBlock(ir, bb, ir.options);
     }
-    if (debug)
-      OPT_Compiler.printInstructions(ir, "CSE");
+    if (debug) OPT_Compiler.printInstructions(ir, "CSE");
   }
 
   /**
