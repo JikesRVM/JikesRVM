@@ -1778,7 +1778,7 @@ tib));
 
       int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
       if ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || 
-				(vpStatus == VM_Processor.IN_SIGWAIT))
+				(vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT))
       {
        vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4;
 		   // at this point we do _not_ attempt to reclaim free blocks - an
