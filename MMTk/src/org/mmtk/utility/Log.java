@@ -309,6 +309,15 @@ public class Log implements Constants, Uninterruptible {
   }
 
   /**
+   * writes an extent, in hexademical.  It is zero-padded.
+   *
+   * @param e the extent to be logged
+   */
+  public static void write(Extent e) {
+    writeHex(e.toWord(), BYTES_IN_ADDRESS);
+  }
+
+  /**
    * write a new-line and flushes the buffer
    */
   public static void writeln() {
@@ -606,24 +615,6 @@ public class Log implements Constants, Uninterruptible {
   public static void writeln(Offset o, boolean flush) {
     write(o);
     writelnWithFlush(flush);
-  }
-
-  /**
-   * writes a string followed by a Address
-   * @see #write(String)
-   * @see #write(Address)
-   *
-   * @param s the string to be logged
-   * @param a the Address to be logged
-   */
-  public static void write (String s, Address a) {
-    write(s);
-    write(a);
-  }
-
-  public static void write (String s, long l) {
-    write(s);
-    write(l);
   }
 
   /**
