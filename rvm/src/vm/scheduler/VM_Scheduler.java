@@ -184,6 +184,16 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     VM_Lock.init();
   }
 
+  /** This is run from VM.boot() */
+  static void giveBootVM_ThreadAJavaLangThread() 
+    throws InterruptiblePragma
+  {
+    VM_Thread vt = threads[PRIMORDIAL_THREAD_INDEX];
+    
+    vt.thread
+      = java.lang.JikesRVMSupport.createThread(vt, "Jikes_RVM_Boot_Thread");
+  }
+
   /**
    * Begin multi-threaded vm operation.
    */
