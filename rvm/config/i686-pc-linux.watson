@@ -32,7 +32,7 @@ export BOOTIMAGE_LOAD_ADDRESS="0x41000000"
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/homes/munchkin.1/jalapeno/contrib/j2sdk1.3.1"
+export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.3.1"
 
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
@@ -56,7 +56,7 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 export GNU_MAKE="/usr/bin/make"
 
 # path for jikes.
-export JIKES="/homes/fury5/jalapeno/bin/jc-lintel"
+export JIKES="/homes/meriadoc/jalapeno/bin/i686/jikes-1.13"
 # for exprimenting with jikes 1.16
 #export JIKES="/usr/local/bin/jikes -target 1.3"
 
@@ -94,7 +94,3 @@ export UNZIP="/usr/bin/unzip"
 
 # The following is optional; only needed for fancy CVS scripts
 export CVS="/usr/bin/cvs"
-
-# where to find Jazzlib
-export JAZZLIBJAR="/homes/munchkin.1/jalapeno/contrib/jazzlib.jar"
-

@@ -52,7 +52,7 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # path for jikes.
-export JIKES="/homes/fury5/jalapeno/bin/jikes-1.13"
+export JIKES="/homes/meriadoc/jalapeno/bin/power/jikes-1.13"
 
 # what C/C++ compilers should be used?
 export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc"
@@ -79,12 +79,10 @@ export GREP="/usr/gnu/bin/grep"
 export MD5SUM="/usr/gnu/bin/md5sum"
 export PS="/usr/bin/ps"
 export SED="/usr/gnu/bin/sed"
-export WGET="/homes/fury5/jalapeno/bin/wget-aix"
+export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export XARGS="/usr/gnu/bin/xargs"
 export UNZIP="/usr/contrib/bin/unzip"
 
 # The following is optional; only needed for fancy CVS scripts
-export CVS="/homes/fury5/jalapeno/bin/cvs"
+export CVS="/homes/meriadoc/jalapeno/bin/power/cvs"
 
-# where to find Jazzlib
-export JAZZLIBJAR="/homes/munchkin.1/jalapeno/contrib/jazzlib.jar"
