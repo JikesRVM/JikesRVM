@@ -33,15 +33,15 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
   final boolean shouldPerform (OPT_Options options) {
     // only perform when the following options are set.
-    return  options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT;
+    return options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT;
   }
 
   final String getName () {
-    return  "Local CSE";
+    return "Local CSE";
   }
 
   final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
   static final boolean debug = false;
 
@@ -90,7 +90,7 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
         }
       }
       if (options.LOCAL_CSE) {
-        if (isUnaryOrBinary(inst)) {
+        if (isExpression(inst)) {
           expressionHelper(ir, cache, inst);
 	}
       }
@@ -120,26 +120,26 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * Is a given instruction a "load" for scalar replacement purposes ?
    */
   public static boolean isLoadInstruction (OPT_Instruction s) {
-    return  GetField.conforms(s) || GetStatic.conforms(s);
+    return GetField.conforms(s) || GetStatic.conforms(s);
   }
 
   /**
    * Is a given instruction a "store" for scalar replacement purposes ?
    */
   public static boolean isStoreInstruction (OPT_Instruction s) {
-    return  PutField.conforms(s) || PutStatic.conforms(s);
+    return PutField.conforms(s) || PutStatic.conforms(s);
   }
 
   /** 
-   * Does the instruction compute a unary or binary expression?
+   * Does the instruction compute some expression?
    *
    * @param inst the instruction in question
    * @return true or false, as appropriate
    */
-  private boolean isUnaryOrBinary (OPT_Instruction inst) {
-    return  Unary.conforms(inst) || GuardedUnary.conforms(inst) || 
-        Binary.conforms(inst)
-        || GuardedBinary.conforms(inst);
+  private boolean isExpression (OPT_Instruction inst) {
+    return Unary.conforms(inst) || GuardedUnary.conforms(inst) || 
+      Binary.conforms(inst) || GuardedBinary.conforms(inst) ||
+      InstanceOf.conforms(inst);
   }
 
   /** 
@@ -152,12 +152,12 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     switch (inst.getOpcode()) {
       case NULL_CHECK_opcode:case BOUNDS_CHECK_opcode:
       case INT_ZERO_CHECK_opcode:case LONG_ZERO_CHECK_opcode:
-        return  true;
+        return true;
       case TRAP_IF_opcode:
         OPT_TrapCodeOperand tc = TrapIf.getTCode(inst);
-        return  tc.isNullPtr() || tc.isArrayBounds() || tc.isDivByZero();
+        return tc.isNullPtr() || tc.isArrayBounds() || tc.isDivByZero();
       default:
-        return  false;
+        return false;
     }
   }
 
@@ -342,9 +342,9 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     switch (inst.getOpcode()) {
       case MONITORENTER_opcode:case MONITOREXIT_opcode:
       case READ_CEILING_opcode:case WRITE_FLOOR_opcode:
-        return  true;
+        return true;
       default:
-        return  false;
+        return false;
     }
   }
 
@@ -410,6 +410,9 @@ class OPT_AvExCache
     } else if (TypeCheck.conforms(inst)) {
       op1 = TypeCheck.getRef(inst);
       op2 = TypeCheck.getType(inst);
+    } else if (InstanceOf.conforms(inst)) {
+      op1 = InstanceOf.getRef(inst);
+      op2 = InstanceOf.getType(inst);
     } else 
       throw  new OPT_OptimizingCompilerException("Unsupported type " + 
 						 inst);
@@ -417,8 +420,8 @@ class OPT_AvExCache
       new OPT_AvailableExpression(inst, opr, op1, op2, op3, location, null);
     int index = cache.indexOf(ae);
     if (index == -1)
-      return  null;
-    return  ((OPT_AvailableExpression)cache.elementAt(index));
+      return null;
+    return ((OPT_AvailableExpression)cache.elementAt(index));
   }
 
   /**
@@ -468,7 +471,10 @@ class OPT_AvExCache
     } else if (TypeCheck.conforms(inst)) {
       op1 = TypeCheck.getRef(inst);
       op2 = TypeCheck.getType(inst);
-    }else 
+    } else if (InstanceOf.conforms(inst)) {
+      op1 = InstanceOf.getRef(inst);
+      op2 = InstanceOf.getType(inst);
+    } else 
       throw  new OPT_OptimizingCompilerException("Unsupported type " + 
 						 inst);
     OPT_AvailableExpression ae = 
@@ -646,52 +652,52 @@ class OPT_AvailableExpression
    */
   public boolean equals (Object o) {
     if (!(o instanceof OPT_AvailableExpression))
-      return  false;
+      return false;
     OPT_AvailableExpression ae = (OPT_AvailableExpression)o;
     if (isLoadOrStore()) {
       if (!ae.isLoadOrStore())
-        return  false;
+        return false;
       boolean result = OPT_LocationOperand.mayBeAliased(location, ae.location);
       if (op1 != null) {
         result = result && op1.similar(ae.op1);
       } else {
 	/* op1 is null, so ae.op1 must also be null */
         if (ae.op1 != null)
-          return  false;
+          return false;
       }
       if (op2 != null) {
         result = result && op2.similar(ae.op2);
       } else {
 	/* op2 is null, so ae.op2 must also be null */
         if (ae.op2 != null)
-          return  false;
+          return false;
       }
-      return  result;
+      return result;
     } else if (isBoundsCheck()) {
       // Augment equality with BC(ref,C1) ==> BC(ref,C2) 
       // when C1>0, C2>=0, and C1>C2
       if (!opr.equals(ae.opr))
-        return  false;
+        return false;
       if (!op1.similar(ae.op1))
-        return  false;
+        return false;
       if (op2.similar(ae.op2))
-        return  true;
+        return true;
       if (op2 instanceof OPT_IntConstantOperand && 
           ae.op2 instanceof OPT_IntConstantOperand) {
         int C1 = ((OPT_IntConstantOperand)op2).value;
         int C2 = ((OPT_IntConstantOperand)ae.op2).value;
-        return  C1 > 0 && C2 >= 0 && C1 > C2;
+        return C1 > 0 && C2 >= 0 && C1 > C2;
       } else {
-        return  false;
+        return false;
       }
     } else {
       if (!opr.equals(ae.opr))
-        return  false;
+        return false;
       if (isTernary() && !op3.similar(ae.op3))
-        return  false;
+        return false;
       if (isBinary() && !op2.similar(ae.op2))
-        return  false;
-      return  op1.similar(ae.op1);
+        return false;
+      return op1.similar(ae.op1);
     }
   }
 
@@ -699,45 +705,44 @@ class OPT_AvailableExpression
    * Does this expression use three operands?
    */
   public final boolean isTernary () {
-    return  op3 != null;
+    return op3 != null;
   }
 
   /**
    * Does this expression use two or more operands?
    */
   public final boolean isBinary () {
-    return  op2 != null;
+    return op2 != null;
   }
 
   /**
    * Does this expression represent the result of a load or store?
    */
   public final boolean isLoadOrStore () {
-    return  GetField.conforms(opr) || GetStatic.conforms(opr) || 
-        PutField.conforms(opr)
-        || PutStatic.conforms(opr);
+    return GetField.conforms(opr) || GetStatic.conforms(opr) || 
+      PutField.conforms(opr) || PutStatic.conforms(opr);
   }
 
   /**
    * Does this expression represent the result of a load?
    */
   public final boolean isLoad () {
-    return  GetField.conforms(opr) || GetStatic.conforms(opr);
+    return GetField.conforms(opr) || GetStatic.conforms(opr);
   }
 
   /**
    * Does this expression represent the result of a store?
    */
   public final boolean isStore () {
-    return  PutField.conforms(opr) || PutStatic.conforms(opr);
+    return PutField.conforms(opr) || PutStatic.conforms(opr);
   }
 
   /**
    * Does this expression represent the result of a bounds check?
    */
   public final boolean isBoundsCheck () {
-    return  BoundsCheck.conforms(opr) 
-    || (TrapIf.conforms(opr) && ((OPT_TrapCodeOperand)op3).isArrayBounds());
+    return BoundsCheck.conforms(opr) 
+      || (TrapIf.conforms(opr) && ((OPT_TrapCodeOperand)op3).isArrayBounds());
   }
 }
 
