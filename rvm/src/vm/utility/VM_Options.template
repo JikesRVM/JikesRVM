@@ -174,8 +174,8 @@ $$$$ END LOOP
   public static void printHelp() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
 
     VM.sysWrite("Commands\n");
-    VM.sysWrite("-X:vm[:help]\t\t\tPrint brief description of JMTk's command-line arguments\n");
-    VM.sysWrite("-X:vm:printOptions\t\tPrint the current values of JMTk's options\n");
+    VM.sysWrite("-X:vm[:help]\t\t\tPrint brief description of the core VM's command-line arguments\n");
+    VM.sysWrite("-X:vm:printOptions\t\tPrint the current values of the core VM's options\n");
     VM.sysWrite("\n");
 
     //Begin generated help messages

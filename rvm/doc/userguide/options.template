@@ -22,32 +22,22 @@ OPTPREFIX:O1			Select optimization level 1, modest optimizations
 OPTPREFIX:O2			Select optimization level 2
 OPTPREFIX:O3			Select optimization level 3
 $$$$ END IF
-
 $$$$ IF OPTION_TYPE == "ADAPTIVE"
 OPTPREFIX[:help]        Print a brief description of AOS command-line options
 OPTPREFIX:printOptions  Print the current option values of AOS
-OPTPREFIX:o=v           Pass the option-value pair, o=v, to AOS
-OPTPREFIX:irc[:help]    Print a brief description of intial runtime compiler's command-line options that initially compiles a method
-OPTPREFIX:base[:help]   Print a brief description of baseline compiler's command-line options that initially compiles a method
-OPTPREFIX:opt[:help]    Print a brief description of optimizing compiler's command-line options that recompiles a method
-OPTPREFIX:share[?]:o=v  Pass the option-value pair, o=v, to AOS and to the optimizing compiler.  If the optimization level is specified, then only that optimization level is affected when recompiling a method
 $$$$ END IF
-
 $$$$ IF OPTION_TYPE == "BASELINE"
--X:base[:help]			Print brief description of baseline compiler's command-line arguments
--X:base:printOptions		Print the current values of the active baseline compiler options
+OPTPREFIX[:help]		Print brief description of baseline compiler's command-line arguments
+OPTPREFIX:printOptions		Print the current values of the active baseline compiler options
 $$$$ END IF
-
 $$$$ IF OPTION_TYPE == "JMTK"
--X:gc[:help]			Print brief description of JMTk's command-line arguments
--X:gc:printOptions		Print the current values of JTMk's options
+OPTPREFIX[:help]		Print brief description of JMTk's command-line arguments
+OPTPREFIX:printOptions		Print the current values of JTMk's options
 $$$$ END IF
-
 $$$$ IF OPTION_TYPE == "VM"
--X:vm[:help]			Print brief description of the core VM's command-line arguments
--X:vm:printOptions		Print the current values of the core VM's options
+OPTPREFIX[:help]		Print brief description of the core VM's command-line arguments
+OPTPREFIX:printOptions		Print the current values of the core VM's options
 $$$$ END IF
-
 
 $$$$ IF OPTION_TYPE == "JMTK" 
 Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
