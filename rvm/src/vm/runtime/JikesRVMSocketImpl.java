@@ -122,10 +122,9 @@ final class JikesRVMSocketImpl extends SocketImpl {
 	// Note that sysNetSocketAccept fills in the InetAddress
 	// in the new socket (family, and integer address); and
 	// the port field.  In the unlikely event that someone
-	// has already resolved the interger address and cached
+	// has already resolved the integer address and cached
 	// this value in the object (see InetAddress.getHostName() )
 	// reset the host value.
-  
 	java.net.JikesRVMSupport.setHostName(newSocket.getInetAddress(), null);
 	
 	// Success!
@@ -204,13 +203,12 @@ final class JikesRVMSocketImpl extends SocketImpl {
      */
     protected void bind(InetAddress anAddr, int aPort) throws IOException {
 	this.address = anAddr;
+	this.localport = aPort;
 
 	bindInternal();
 
-	if (0 != aPort) {
-		localport = aPort;
-	} else {
-		localport = getLocalPortInternal();
+	if (0 == aPort) {
+	    localport = getLocalPortInternal();
 	};
     }
 
@@ -349,7 +347,7 @@ final class JikesRVMSocketImpl extends SocketImpl {
     protected void connect(InetAddress anAddr, int aPort) throws IOException {
 	this.address = anAddr;
 	this.port = aPort;
-
+    
 	if (streaming) connectInternal();
     }
     
