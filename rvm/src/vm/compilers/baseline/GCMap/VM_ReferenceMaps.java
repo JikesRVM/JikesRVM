@@ -16,7 +16,8 @@ package com.ibm.JikesRVM;
  */
 final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible  {
 
-  VM_ReferenceMaps(VM_Method method, int[] stackHeights) {
+  VM_ReferenceMaps(VM_BaselineCompiledMethod cm, int[] stackHeights) {
+    VM_Method method = cm.getMethod();
     // save input information and compute related data
     this.bitsPerMap   = (method.getLocalWords() + method.getOperandWords()+1); // +1 for jsr bit
     this.bytesPerMap  = ((this.bitsPerMap + 7)/8)+1 ; // calc size of individul maps
@@ -40,6 +41,13 @@ final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible
     // define the basic blocks
     VM_BuildBB buildBB = new VM_BuildBB();
     buildBB.determineTheBasicBlocks(method);
+
+    // determine if we are going to insert edge counters for this method
+    if (buildBB.basicBlocks.length > 2 &&
+	VM_BaselineCompiler.options.EDGE_COUNTERS && 
+	!method.getDeclaringClass().isBridgeFromNative()) {
+      cm.setHasCounterArray(); // yes, we will inject counters for this method.
+    }
     VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
     buildRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
 

@@ -81,8 +81,9 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
       }
     }
     // Restore nonvolatile registers used by the baseline compiler.
-    if (VM.VerifyAssertions) VM._assert(VM_Compiler.SAVED_GPRS == 1);
+    if (VM.VerifyAssertions) VM._assert(VM_Compiler.SAVED_GPRS == 2);
     registers.gprs[JTOC] = VM_Magic.getMemoryWord(fp.add(VM_Compiler.JTOC_SAVE_OFFSET));
+    registers.gprs[EBX] = VM_Magic.getMemoryWord(fp.add(VM_Compiler.EBX_SAVE_OFFSET));
     
     registers.unwindStackFrame();
   }

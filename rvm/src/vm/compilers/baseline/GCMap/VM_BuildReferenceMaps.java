@@ -55,8 +55,10 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
  //-#endif
 
  public void
- buildReferenceMaps(VM_Method method, int[] stackHeights,
-		    VM_ReferenceMaps referenceMaps, VM_BuildBB buildBB) {
+ buildReferenceMaps(VM_Method method, 
+		    int[] stackHeights,
+		    VM_ReferenceMaps referenceMaps, 
+		    VM_BuildBB buildBB) {
 
   //****************************************************************//
   //                                                                //

@@ -15,6 +15,9 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map!!!
   // This is wasting a lot of space!
   private static final boolean saveBytecodeMap = true;
+  
+  private static final int HAS_COUNTERS = 0x08000000;
+  private static final int LOCK_OFFSET  = 0x00000fff;
 
   /**
    * Baseline exception deliverer object
@@ -269,11 +272,20 @@ final class VM_BaselineCompiledMethod extends VM_CompiledMethod implements VM_Ba
   // needs to be released.  Note: for this scheme to work, VM_Lock must not
   // allow a yield after it has been obtained.
   public void setLockAcquisitionOffset(int off) {
-    bitField1 |= (off & AVAIL_BITS);
+    if (VM.VerifyAssertions) VM._assert((off & LOCK_OFFSET) == off);
+    bitField1 |= (off & LOCK_OFFSET);
   }
 
   public int getLockAcquisitionOffset() {
-    return bitField1 & AVAIL_BITS;
+    return bitField1 & LOCK_OFFSET;
+  }
+
+  void setHasCounterArray() {
+    bitField1 |= HAS_COUNTERS;
+  }
+
+  boolean hasCounterArray() {
+    return (bitField1 & HAS_COUNTERS) != 0;
   }
 
   // Taken: method that was compiled

@@ -201,7 +201,7 @@ public abstract class VM_BaselineCompiler {
   protected void compile() {
     if (options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
-    VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, stackHeights);
+    VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(compiledMethod, stackHeights);
     VM_MachineCode  machineCode  = genCode();
 
     INSTRUCTION[]   instructions = machineCode.getInstructions();

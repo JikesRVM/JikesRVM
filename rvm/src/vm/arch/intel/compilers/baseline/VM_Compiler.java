@@ -1718,21 +1718,19 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPOP_Reg (T0);                          // T0 is index of desired case
     asm.emitSUB_Reg_Imm(T0, low);                     // relativize T0
     asm.emitCMP_Reg_Imm(T0, n);                       // 0 <= relative index < n
-    if (options.EDGE_COUNTERS) {
-      // Load counter array for this method
-      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitMOV_Reg_RegDisp(T1, T1, getEdgeCounterOffset());
+
+    if (compiledMethod.hasCounterArray()) {
       int firstCounter = edgeCounterIdx;
       edgeCounterIdx += (n + 1);
 
       // Jump around code for default case
       VM_ForwardReference fr = asm.forwardJcc(asm.LLT);
-      incEdgeCounter(T1, S0, firstCounter + n);
+      incEdgeCounter(S0, firstCounter + n);
       asm.emitJMP_ImmOrLabel(mTarget, bTarget);
       fr.resolve(asm);
 
       // Increment counter for the appropriate case
-      incEdgeCounterIdx(T1, S0, T0, firstCounter);
+      incEdgeCounterIdx(S0, T0, firstCounter);
     } else {
       asm.emitJCC_Cond_ImmOrLabel (asm.LGE, mTarget, bTarget);   // if not, goto default case
     }
@@ -1760,12 +1758,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param npairs number of pairs in the lookup switch
    */
   protected final void emit_lookupswitch(int defaultval, int npairs) {
-    if (options.EDGE_COUNTERS) {
-      // Load counter array for this method
-      asm.emitMOV_Reg_RegDisp(T1, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitMOV_Reg_RegDisp(T1, T1, getEdgeCounterOffset());
-    }
-
     asm.emitPOP_Reg(T0);
     for (int i=0; i<npairs; i++) {
       int match   = fetch4BytesSigned();
@@ -1773,12 +1765,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int offset  = fetch4BytesSigned();
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
-      if (options.EDGE_COUNTERS) {
+      if (compiledMethod.hasCounterArray()) {
 	// Flip conditions so we can jump over the increment of the taken counter.
 	VM_ForwardReference fr = asm.forwardJcc(asm.NE);
-
-	// Increment counter & jump to target
-	incEdgeCounter(T1, S0, edgeCounterIdx++);
+	incEdgeCounter(S0, edgeCounterIdx++);
 	asm.emitJMP_ImmOrLabel(mTarget, bTarget);
 	fr.resolve(asm);
       } else {
@@ -1787,8 +1777,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
-    if (options.EDGE_COUNTERS) {
-      incEdgeCounter(T1, S0, edgeCounterIdx++);
+    if (compiledMethod.hasCounterArray()) {
+      incEdgeCounter(S0, edgeCounterIdx++); // increment default counter
     }
     asm.emitJMP_ImmOrLabel(mTarget, bTarget);
   }
@@ -2434,21 +2424,27 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
        * save registers
        */
       asm.emitMOV_RegDisp_Reg (SP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
+      asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX);            // save nonvolatile EBX register
     
       // establish the JTOC register
       VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
 
+      if (compiledMethod.hasCounterArray()) {
+	// use (nonvolatile) EBX to hold base of this methods counter array
+	asm.emitMOV_Reg_RegDisp(EBX, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
+	asm.emitMOV_Reg_RegDisp(EBX, EBX, getEdgeCounterOffset());
+      }
+
       int savedRegistersSize   = SAVED_GPRS<<LG_WORDSIZE;	// default
       /* handle "dynamic brige" methods:
        * save all registers except FP, SP, PR, S0 (scratch), and
-       * JTOC saved above.
+       * JTOC and EBX saved above.
        */
       // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
       if (klass.isDynamicBridge()) {
-	savedRegistersSize += 3 << LG_WORDSIZE;
+	savedRegistersSize += 2 << LG_WORDSIZE;
 	asm.emitMOV_RegDisp_Reg (SP, T0_SAVE_OFFSET,  T0); 
 	asm.emitMOV_RegDisp_Reg (SP, T1_SAVE_OFFSET,  T1); 
-	asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX); 
 	asm.emitFNSAVE_RegDisp  (SP, FPU_SAVE_OFFSET);
 	savedRegistersSize += FPU_STATE_SIZE;
       } 
@@ -2495,8 +2491,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitINT_Imm(0xFF);
     } else {
       // normal method
-      asm.emitADD_Reg_Imm     (SP, fp2spOffset(0) - bytesPopped);      // SP becomes frame pointer
-      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);            // restore nonvolatile JTOC register
+      asm.emitADD_Reg_Imm     (SP, fp2spOffset(0) - bytesPopped);     // SP becomes frame pointer
+      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);           // restore nonvolatile JTOC register
+      asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);             // restore nonvolatile EBX register
       asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerField.getOffset()); // discard frame
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
     }
@@ -2558,43 +2555,41 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   private final void genCondBranch(byte cond, int bTarget) {
     int mTarget = bytecodeMap[bTarget];
-    if (options.EDGE_COUNTERS) {
-      // Allocate 2 counters, taken and not taken
+    if (compiledMethod.hasCounterArray()) {
+      // Allocate two counters: taken and not taken
       int entry = edgeCounterIdx;
       edgeCounterIdx += 2;
-
-      // Load counter array for this method
-      asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitMOV_Reg_RegDisp(T0, T0, getEdgeCounterOffset());
 
       // Flip conditions so we can jump over the increment of the taken counter.
       VM_ForwardReference notTaken = asm.forwardJcc(asm.flipCode(cond));
 
       // Increment taken counter & jump to target
-      incEdgeCounter(T0, T1, entry + VM_EdgeCounts.TAKEN);
+      incEdgeCounter(T1, entry + VM_EdgeCounts.TAKEN);
       asm.emitJMP_ImmOrLabel(mTarget, bTarget);
 
       // Increment not taken counter
       notTaken.resolve(asm);
-      incEdgeCounter(T0, T1, entry + VM_EdgeCounts.NOT_TAKEN);
+      incEdgeCounter(T1, entry + VM_EdgeCounts.NOT_TAKEN);
     } else {
       asm.emitJCC_Cond_ImmOrLabel(cond, mTarget, bTarget);
     }
   }
 
 
-  private final void incEdgeCounter(byte counters, byte scratch, int counterIdx) {
-    asm.emitMOV_Reg_RegDisp(scratch, counters, counterIdx<<2);
+  private final void incEdgeCounter(byte scratch, int counterIdx) {
+    if (VM.VerifyAssertions) VM._assert(compiledMethod.hasCounterArray());
+    asm.emitMOV_Reg_RegDisp(scratch, EBX, counterIdx<<2);
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
-    asm.emitMOV_RegDisp_Reg(counters, counterIdx<<2, scratch);
+    asm.emitMOV_RegDisp_Reg(EBX, counterIdx<<2, scratch);
   }
 
-  private final void incEdgeCounterIdx(byte counters, byte scratch, byte idx, int counterIdx) {
-    asm.emitMOV_Reg_RegIdx(scratch, counters, idx, asm.WORD, counterIdx<<2);
+  private final void incEdgeCounterIdx(byte scratch, byte idx, int counterIdx) {
+    if (VM.VerifyAssertions) VM._assert(compiledMethod.hasCounterArray());
+    asm.emitMOV_Reg_RegIdx(scratch, EBX, idx, asm.WORD, counterIdx<<2);
     asm.emitINC_Reg(scratch);
     asm.emitAND_Reg_Imm(scratch, 0x7fffffff); // saturate at max int;
-    asm.emitMOV_RegIdx_Reg(counters, idx, asm.WORD, counterIdx<<2, scratch);
+    asm.emitMOV_RegIdx_Reg(EBX, idx, asm.WORD, counterIdx<<2, scratch);
   }
 
 
@@ -2947,7 +2942,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.sysCall0) {
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-       asm.emitPUSH_Reg(ESI);	
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
@@ -3460,8 +3455,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // SP gets frame pointer for new stack
       asm.emitPOP_Reg (SP);	
 
-      // restore nonvolatile JTOC register
+      // restore nonvolatile registers
       asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);
+      asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET);
 
       // discard current stack frame
       asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerField.getOffset());

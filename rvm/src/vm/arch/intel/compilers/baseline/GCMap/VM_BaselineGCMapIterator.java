@@ -57,7 +57,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
   public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
-    currentMethod = compiledMethod.getMethod();
+    currentMethod = (VM_BaselineCompiledMethod)compiledMethod;
       
     // setup superclass
     //
@@ -66,7 +66,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     // setup stackframe mapping
     //
     maps      = ((VM_BaselineCompiledMethod)compiledMethod).referenceMaps;
-    mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
+    mapId     = maps.locateGCPoint(instructionOffset, currentMethod.getMethod());
     mapOffset = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
@@ -90,7 +90,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     bridgeRegisterLocation         = VM_Address.zero();
     bridgeSpilledParamLocation     = VM_Address.zero();
     
-    if (currentMethod.getDeclaringClass().isDynamicBridge()) {
+    if (currentMethod.getMethod().getDeclaringClass().isDynamicBridge()) {
       VM_Address        ip                       = VM_Magic.getReturnAddress(fp);
                         fp                       = VM_Magic.getCallerFramePointer(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
@@ -124,6 +124,9 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   public void reset() {
     mapOffset = 0;
 
+    // setup map to report EBX if this method is holding the base of counter array in it.
+    counterArrayBase                 = currentMethod.hasCounterArray();
+
     if (bridgeTarget != null) {
       bridgeParameterMappingRequired = true;
       bridgeParameterIndex           = bridgeParameterInitialIndex;
@@ -137,6 +140,10 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // A zero return indicates that no more references exist.
   //
   public VM_Address getNextReferenceAddress() {
+    if (counterArrayBase) {
+      counterArrayBase = false;
+      return VM_Address.fromInt(registerLocations[EBX]);
+    }
     if (mapId < 0) {
       mapOffset = maps.getNextJSRRef(mapOffset);
     } else {
@@ -240,6 +247,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       // point registerLocations[] to our callers stackframe
       //
       registerLocations[JTOC] = framePtr.add(JTOC_SAVE_OFFSET).toInt();
+      registerLocations[EBX] = framePtr.add(EBX_SAVE_OFFSET).toInt();
     }
     
     return VM_Address.zero();
@@ -293,15 +301,16 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
 
   // Iterator state for mapping any stackframe.
   //
-  private   int              mapOffset; // current offset in current map
-  private   int              mapId;     // id of current map out of all maps
-  private   VM_ReferenceMaps maps;      // set of maps for this method
+  private VM_BaselineCompiledMethod  currentMethod;      // compiled method for the frame
+  private int              mapOffset; // current offset in current map
+  private int              mapId;     // id of current map out of all maps
+  private VM_ReferenceMaps maps;      // set of maps for this method
+  private boolean counterArrayBase;   // have we reported the base ptr of the edge counter array?
 
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private VM_Method      currentMethod;                  // method for the frame
   private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)
