@@ -19,7 +19,7 @@ endif
 
 include		$(RVM_BUILD)/Make.rules.host
 
-CFLAGS+="-Wno-unused -Wno-strict-prototypes"
+CFLAGS+=-Wno-unused -Wno-strict-prototypes
 
 YFLAGS=
 
@@ -51,6 +51,6 @@ gram.c: gram.y
 	chmod -w $@
 
 clean:
-	$(RM) gram.c *.o jburg
+	$(RM) gram.c *.o jburg OPT_BURS_*.java BURS_State.template
 
 .PHONY:	tool clean
