@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 
 /**
  * Construct a RVM virtual machine bootimage.
+ * <pre>
  * Invocation args:
  *    -n  <filename>           list of typenames to be written to bootimage
  *    -X:bc:<bcarg>            pass bcarg to bootimage compiler as command
@@ -27,7 +28,7 @@ import java.lang.reflect.Field;
  *    -m <filename>            place to put bootimage map
  *    -sf <filename>           OBSOLETE compatibility aid
  *    -xclasspath <path>       OBSOLETE compatibility aid
- *
+ * </pre>
  * @author Derek Lieber
  * @version 03 Jan 2000
  * (complete rewrite of John Barton's original, this time using java2
@@ -339,7 +340,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int bootRecordImageOffset = 0;
     try {
-      bootRecordImageOffset = copyToBootImage(bootRecord);
+      bootRecordImageOffset = copyToBootImage(bootRecord, false);
       if (bootRecordImageOffset == OBJECT_NOT_PRESENT)
         fail("can't copy boot record");
     } catch (IllegalAccessException e) {
@@ -353,12 +354,15 @@ public class BootImageWriter2 extends BootImageWriterMessages
     int[] jtoc = VM_Statics.getSlots();
     int jtocImageOffset = 0;
     try {
-      jtocImageOffset = copyToBootImage(jtoc);
+      jtocImageOffset = copyToBootImage(jtoc, true);
       if (jtocImageOffset == OBJECT_NOT_PRESENT)
         fail("can't copy jtoc");
     } catch (IllegalAccessException e) {
       fail("can't copy jtoc: "+e);
     }
+
+    if ((jtocImageOffset + bootImageAddress) != bootRecord.tocRegister) 
+      fail("mismatch in JTOC placement"+(jtocImageOffset + bootImageAddress)+","+bootRecord.tocRegister);
 
     //
     // Now, copy all objects reachable from jtoc, replacing each object id
@@ -379,7 +383,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
 
         if (trace) traceContext.push(jdkObject.getClass().getName(),
                                      getRvmStaticFieldName(i));
-        int imageOffset = copyToBootImage(jdkObject);
+        int imageOffset = copyToBootImage(jdkObject, true);
         if (imageOffset == OBJECT_NOT_PRESENT) {
           // object not part of bootimage: install null reference
           if (trace) traceContext.traceObjectNotInBootImage();
@@ -397,6 +401,19 @@ public class BootImageWriter2 extends BootImageWriterMessages
     // Record startup context in boot record.
     //
     if (trace) say("updating boot record");
+    try {
+      VM_Type rvmType = getRvmType(bootRecord.getClass());
+      if (trace) traceContext.push("", "VM_BootRecord", "tib");
+      int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), true);
+      if (trace) traceContext.pop();
+      if (tibImageOffset == OBJECT_NOT_ALLOCATED)
+	fail("can't copy tib for " + bootRecord);
+      BootImage.setAddressWord(bootRecordImageOffset + OBJECT_TIB_OFFSET,
+			       bootImageAddress + tibImageOffset);
+    } catch (IllegalAccessException e) {
+      fail("unable to copy bootRecord TIB: "+e);
+    }
+      
     int initProc = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID;
     VM_Thread startupThread = VM_Scheduler.processors[initProc].activeThread;
     int[] startupStack = startupThread.stack;
@@ -409,8 +426,6 @@ public class BootImageWriter2 extends BootImageWriterMessages
                              (startupStack.length << 2);
     bootRecord.ipRegister  = bootImageAddress +
                              BootImageMap.getImageOffset(startupCode);
-    bootRecord.tocRegister = bootImageAddress +
-                             BootImageMap.getImageOffset(jtoc);
 
     VM_Member VMS_processors = VM.getMember("LVM_Scheduler;", "processors",
                                             "[LVM_Processor;");
@@ -626,6 +641,12 @@ public class BootImageWriter2 extends BootImageWriterMessages
       type.resolve();
     }
 
+    // Set tocRegister early so opt compiler can access it to
+    // perform fixed_jtoc optimization (compile static addresses into code).
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
+    bootRecord.tocRegister = bootImageAddress + rvmBRType.getInstanceSize() + ARRAY_HEADER_SIZE;
+
     //
     // Compile methods and populate jtoc with literals, TIBs, and machine code.
     //
@@ -760,7 +781,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
    *         (OBJECT_NOT_PRESENT --> object not copied:
    *            it's not part of bootimage)
    */
-  private static int copyToBootImage(Object jdkObject)
+  private static int copyToBootImage(Object jdkObject, boolean copyTIB)
     throws IllegalAccessException
   {
     //
@@ -866,7 +887,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
           if (values[i] != null) {
             if (trace) traceContext.push(values[i].getClass().getName(),
                                          jdkClass.getName(), i);
-            int imageOffset = copyToBootImage(values[i]);
+            int imageOffset = copyToBootImage(values[i], copyTIB);
             if (imageOffset == OBJECT_NOT_PRESENT) {
               // object not part of bootimage: install null reference
               if (trace) traceContext.traceObjectNotInBootImage();
@@ -959,7 +980,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
             if (trace) traceContext.push(value.getClass().getName(),
                                          jdkClass.getName(),
                                          jdkFieldAcc.getName());
-            int imageOffset = copyToBootImage(value);
+            int imageOffset = copyToBootImage(value, copyTIB);
             if (imageOffset == OBJECT_NOT_PRESENT) {
               // object not part of bootimage: install null reference
               if (trace) traceContext.traceObjectNotInBootImage();
@@ -977,17 +998,19 @@ public class BootImageWriter2 extends BootImageWriterMessages
     // copy object's type information block into image, if it's not there
     // already
     //
-    if (trace) traceContext.push("", jdkObject.getClass().getName(), "tib");
-    int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock());
-    if (trace) traceContext.pop();
-    if (tibImageOffset == OBJECT_NOT_ALLOCATED)
-      fail("can't copy tib for " + jdkObject);
-
-    //
-    // set object's .tib field
-    //
-    BootImage.setAddressWord(mapEntry.imageOffset + OBJECT_TIB_OFFSET,
-                             bootImageAddress + tibImageOffset);
+    if (copyTIB) {
+      if (trace) traceContext.push("", jdkObject.getClass().getName(), "tib");
+      int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), copyTIB);
+      if (trace) traceContext.pop();
+      if (tibImageOffset == OBJECT_NOT_ALLOCATED)
+	fail("can't copy tib for " + jdkObject);
+      
+      //
+      // set object's .tib field
+      //
+      BootImage.setAddressWord(mapEntry.imageOffset + OBJECT_TIB_OFFSET,
+			       bootImageAddress + tibImageOffset);
+    }
 
     if (detailed_trace) depth--;
     return mapEntry.imageOffset;
