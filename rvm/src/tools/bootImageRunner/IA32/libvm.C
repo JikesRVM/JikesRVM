@@ -23,6 +23,7 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <string.h>
+#include <stdarg.h>		// va_list, va_start(), va_end()
 #ifndef __USE_GNU         // Deal with current ucontext ugliness.  The current
 #define __USE_GNU         // mess of asm/ucontext.h & sys/ucontext.h and their
 #include <sys/ucontext.h> // mutual exclusion on more recent versions of gcc
@@ -79,6 +80,14 @@ char *Me;
 
 static VM_BootRecord *bootRecord;
 
+static void vwriteFmt(int fd, const char fmt[], va_list ap)
+    __attribute__((nonnull (2), format (printf, 2, 0)));
+static void vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
+    __attribute__((nonnull(3), format (printf, 3, 0)));
+static void writeTrace(const char fmt[], ...)
+    __attribute__((nonnull(1), format (printf, 1, 2)));
+static void writeErr(const char fmt[], ...)
+    __attribute__((nonnull(1), format (printf, 1, 2)));
 
 
 static int 
@@ -158,6 +167,81 @@ isVmSignal(unsigned int ip, unsigned int jtoc)
     return inRVMAddressSpace(ip) && inRVMAddressSpace(jtoc);
 }
 
+#if 0				// this isn't needed right now, but may be in
+				// the future.
+static void
+writeTrace(const char fmt[], ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vwriteFmt(SysTraceFd, fmt, ap);
+    va_end(ap);
+}
+#endif
+
+
+static void
+writeErr(const char fmt[], ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vwriteFmt(SysErrorFd, fmt, ap);
+    va_end(ap);
+}
+
+static void
+vwriteFmt(int fd, const char fmt[], va_list ap)
+{
+    vwriteFmt(fd, 100, fmt, ap);
+}
+
+
+/* Does the real work. */
+static void
+vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
+{
+    char buf[bufsz];
+    int nchars
+	= vsnprintf(buf, bufsz, fmt, ap);
+    size_t count;
+    if (nchars < 0) {
+	const char badmsg[] = "vsnprintf() returned a negative number;  impossible (or very old C library version)\n";
+	write(fd, badmsg, sizeof badmsg - 1);
+	nchars = sizeof buf - 1;
+    }
+    if ((unsigned) nchars >= bufsz) {
+	vwriteFmt(fd, bufsz + 100, fmt, ap);
+	return;
+    }
+    count = nchars;
+    char *bp = buf;
+    ssize_t nwrote = 0;
+    bool num_rerun = 0;
+
+    while (nchars > 0) {
+	nwrote = write(fd, buf, nchars);
+	if (nwrote < 0) {
+	    /* XXX We should handle this in some intelligent fashion.   But
+	     * how?  Do we have any means of complaining left? */
+	    if (errno == EINTR)
+		continue;
+	    // Any other way to handle the rest?
+	    break;
+	}
+	if (nwrote == 0) {
+	    if (++num_rerun > 20) {
+		break;		// too many reruns.  Any other error indicator?
+	    }
+	    continue;
+	}
+	num_rerun = 0;		// we made progress.
+	bp += nwrote;
+	nchars -= nwrote;
+    }	
+}
+
+
+
 
 void
 hardwareTrapHandler(int signo, siginfo_t *si, void *context)
@@ -174,7 +258,6 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     int isRecoverable;
 
     unsigned int instructionFollowing;
-    char buf[100];
 
     ucontext_t *uc = (ucontext_t *) context;  // user context
     mcontext_t *mc = &(uc->uc_mcontext);      // machine context
@@ -197,7 +280,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     //  3. SIGTRAP - stack overflow trap
     //
     // Anything else indicates some sort of unrecoverable vm error.
-    //                                                                                        
+    //
     isRecoverable = 0;
 
     if (isVmSignal(localInstructionAddress, localVirtualProcessorAddress))
@@ -210,40 +293,53 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
    
 	else if (signo == SIGTRAP)
 	    isRecoverable = 0;
+	else
+	    writeErr("%s: WHOOPS.  Got a signal (%s; #%d) that the hardware signal handler wasn't prepared for.\n", Me,  strsignal(signo), signo);
+    } else {
+	writeErr("%s: TROUBLE.  Got a signal (%s; #%d) from outside the VM's address space.\n", Me,  strsignal(signo), signo);
     }
+    
+
 
 
     if (lib_verbose || !isRecoverable)
     {
-	write (SysErrorFd, buf, 
-	       sprintf(buf, "%s: trap %d (%s)\n", Me, signo, 
-			signo < _NSIG ? sys_siglist[signo] : "Unrecognized signal"));
+	writeErr("%s:%s trapped signal %d (%s)\n", Me, 
+		 isRecoverable? "" : " UNRECOVERABLE", 
+		 signo, strsignal(signo));
 
-	write (SysErrorFd, buf, sprintf(buf, "handler stack 0x%x\n", (unsigned) &buf));
+ 	writeErr("handler stack 0x%x\n", (unsigned) &exceptionLock);
 	if (signo == SIGSEGV)
-	    write (SysErrorFd, buf, sprintf(buf, "si->si_addr   0x%08x\n", (unsigned) si->si_addr));
-	write (SysErrorFd, buf, sprintf(buf, "gs            0x%08x\n", gregs[REG_GS]));
-	write (SysErrorFd, buf, sprintf(buf, "fs            0x%08x\n", gregs[REG_FS]));
-	write (SysErrorFd, buf, sprintf(buf, "es            0x%08x\n", gregs[REG_ES]));
-	write (SysErrorFd, buf, sprintf(buf, "ds            0x%08x\n", gregs[REG_DS]));
-	write (SysErrorFd, buf, sprintf(buf, "edi -- JTOC?  0x%08x\n", gregs[REG_EDI]));
-	write (SysErrorFd, buf, sprintf(buf, "esi -- PR/VP  0x%08x\n", gregs[REG_ESI]));
-	write (SysErrorFd, buf, sprintf(buf, "ebp -- FP?    0x%08x\n", gregs[REG_EBP]));
-	write (SysErrorFd, buf, sprintf(buf, "esp -- SP     0x%08x\n", gregs[REG_ESP]));
-	write (SysErrorFd, buf, sprintf(buf, "ebx           0x%08x\n", gregs[REG_EBX]));
-	write (SysErrorFd, buf, sprintf(buf, "edx -- T1?    0x%08x\n", gregs[REG_EDX]));
-	write (SysErrorFd, buf, sprintf(buf, "ecx -- S0?    0x%08x\n", gregs[REG_ECX]));
-	write (SysErrorFd, buf, sprintf(buf, "eax -- T0?    0x%08x\n", gregs[REG_EAX]));
-	write (SysErrorFd, buf, sprintf(buf, "trapno        0x%08x\n", gregs[REG_TRAPNO]));
-	write (SysErrorFd, buf, sprintf(buf, "err           0x%08x\n", gregs[REG_ERR]));
-	write (SysErrorFd, buf, sprintf(buf, "eip           0x%08x\n", gregs[REG_EIP]));
-	write (SysErrorFd, buf, sprintf(buf, "cs            0x%08x\n", gregs[REG_CS]));
-	write (SysErrorFd, buf, sprintf(buf, "eflags        0x%08x\n", gregs[REG_EFL]));
-	write (SysErrorFd, buf, sprintf(buf, "esp_at_signal 0x%08x\n", gregs[REG_UESP]));
-	write (SysErrorFd, buf, sprintf(buf, "ss            0x%08x\n", gregs[REG_SS]));
-	write (SysErrorFd, buf, sprintf(buf, "fpstate       0x%08x\n", (unsigned) mc->fpregs));	/* null if fp registers haven't been used yet */
-	write (SysErrorFd, buf, sprintf(buf, "oldmask       0x%08lx\n", (unsigned long) mc->oldmask));
-	write (SysErrorFd, buf, sprintf(buf, "cr2           0x%08lx\n", (unsigned long) mc->cr2));	/* seems to contain mem address that faulting instruction was trying to access */
+	    writeErr("si->si_addr   0x%08x\n", (unsigned) si->si_addr);
+	writeErr("gs            0x%08x\n", gregs[REG_GS]);
+	writeErr("fs            0x%08x\n", gregs[REG_FS]);
+	writeErr("es            0x%08x\n", gregs[REG_ES]);
+	writeErr("ds            0x%08x\n", gregs[REG_DS]);
+	writeErr("edi -- JTOC?  0x%08x\n", gregs[REG_EDI]);
+	writeErr("esi -- PR/VP  0x%08x\n", gregs[REG_ESI]);
+	writeErr("ebp -- FP?    0x%08x\n", gregs[REG_EBP]);
+	writeErr("esp -- SP     0x%08x\n", gregs[REG_ESP]);
+	writeErr("ebx           0x%08x\n", gregs[REG_EBX]);
+	writeErr("edx -- T1?    0x%08x\n", gregs[REG_EDX]);
+	writeErr("ecx -- S0?    0x%08x\n", gregs[REG_ECX]);
+	writeErr("eax -- T0?    0x%08x\n", gregs[REG_EAX]);
+	writeErr("trapno        0x%08x\n", gregs[REG_TRAPNO]);
+	writeErr("err           0x%08x\n", gregs[REG_ERR]);
+	writeErr("eip           0x%08x\n", gregs[REG_EIP]);
+	writeErr("cs            0x%08x\n", gregs[REG_CS]);
+	writeErr("eflags        0x%08x\n", gregs[REG_EFL]);
+	writeErr("esp_at_signal 0x%08x\n", gregs[REG_UESP]);
+	writeErr("ss            0x%08x\n", gregs[REG_SS]);
+/* null if fp registers haven't been used yet */
+	writeErr("fpstate       0x%08x\n",
+					(unsigned) mc->fpregs);
+	writeErr("oldmask       0x%08lx\n",
+					(unsigned long) mc->oldmask);
+	writeErr("cr2           0x%08lx\n", 
+					/* seems to contain mem address that
+					 * faulting instruction was trying to
+					 * access */  
+					(unsigned long) mc->cr2);	
 
 	/*
 	 * There are 8 floating point registers, each 10 bytes wide.
@@ -253,14 +349,13 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 	    struct _libc_fpreg *fpreg = mc->fpregs->_st;
 
 	    for (int i = 0; i < 8; ++i) {
-		int n = sprintf(buf, "fp%d 0x%04x%04x%04x%04x%04x\n",
+		writeErr("fp%d 0x%04x%04x%04x%04x%04x\n",
 				i,
 				fpreg[i].significand[0] & 0xffff,
 				fpreg[i].significand[1] & 0xffff,
 				fpreg[i].significand[2] & 0xffff,
 				fpreg[i].significand[3] & 0xffff,
 				fpreg[i].exponent & 0xffff);
-		write (SysErrorFd, buf, n);
 	    }
 	}
 
@@ -277,9 +372,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 	vp_hn = localVirtualProcessorAddress >> 28;  
 	if (vp_hn < 3 || !inRVMAddressSpace(localVirtualProcessorAddress)) 
 	{
-	    write (SysErrorFd, buf,
-		   sprintf(buf,
-			    "invalid vp address (not an address - high nibble %d)\n", vp_hn) );
+	    writeErr("invalid vp address (not an address - high nibble %d)\n", 
+		     vp_hn);
 	    exit(-1);
 	}
     }
@@ -295,10 +389,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 	fp_hn = localFrameAddress >> 28;  
 	if (fp_hn < 3 || !inRVMAddressSpace(localFrameAddress)) 
 	{
-	    int msglen = sprintf(buf, "invalid frame address %x"
-				 " (not an address - high nibble %d)\n", 
+	    writeErr("invalid frame address %x"
+	    " (not an address - high nibble %d)\n", 
 				 localFrameAddress, fp_hn);
-	    write(SysErrorFd, buf, msglen);
 	    exit(-1);
 	}
     }
@@ -393,17 +486,19 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 
 
     /* 
-     * advance ESP to the guard region of the stack. 
-     * enables opt compiler to have ESP point to somewhere 
+     * Advance ESP to the guard region of the stack. 
+     * Enables opt compiler to have ESP point to somewhere 
      * other than the bottom of the frame at a PEI (see bug 2570).
-     * We'll execute the entire code sequence for VM_Runtime.deliverHardwareException et al
-     * in the guard region of the stack to avoid bashing stuff in the bottom opt-frame.
+     *
+     * We'll execute the entire code sequence for
+     * VM_Runtime.deliverHardwareException et al. in the guard region of the
+     * stack to avoid bashing stuff in the bottom opt-frame. 
      */
     sp = (long unsigned int *) gregs[REG_ESP];
-    unsigned stackLimit = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
+    unsigned stackLimit
+	= *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
     if ((long unsigned)sp <= stackLimit - 384) {
-	write (SysErrorFd, buf,
-	       sprintf(buf, "sp too far below stackLimit to recover\n"));
+	writeErr("sp too far below stackLimit to recover\n");
 	exit (2);
     }
     sp = (long unsigned int *)stackLimit - 384;
@@ -417,9 +512,12 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     fp = (long unsigned int *) ((char *) sp - 4 - VM_Constants_STACKFRAME_BODY_OFFSET);	/*  4 = wordsize  */
 
     /* fill in artificial stack frame */
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = localFrameAddress;
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = HardwareTrapMethodId;
-    *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = instructionFollowing;
+    *(int *) ((char *) fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET)
+	= localFrameAddress;
+    *(int *) ((char *) fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) 
+	= HardwareTrapMethodId;
+    *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) 
+	= instructionFollowing;
 
     /* fill in call to "deliverHardwareException" */
     sp = (long unsigned int *) ((char *) sp - 4);	/* first parameter is type of trap */
@@ -427,8 +525,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     if (signo == SIGSEGV) {
 	*(int *) sp = VM_Runtime_TRAP_NULL_POINTER;
 
-	/* an int immediate instruction produces a SIGSEGV signal.  An int 3 instruction a
-	   trap fault */
+	/* an int immediate instruction produces a SIGSEGV signal.  
+	   An int 3 instruction a trap fault */
 	if (*(unsigned char *)(localInstructionAddress) == 0xCD) {
 	    // is INT imm instruction
 	    unsigned char code = *(unsigned char*)(localInstructionAddress+1);
@@ -472,17 +570,16 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     if (lib_verbose)
 	fprintf(SysTraceFile, "Set vmr_fp to 0x%x\n", localFrameAddress);
   
-    /* set up context block to look like the artificial stack frame is returning  */
+    /* set up context block to look like the artificial stack frame is
+     * returning  */ 
     gregs[REG_ESP] = (int) sp;
     gregs[REG_EBP] = (int) fp;
-    *(unsigned int *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset) = (int) fp;
+    *(unsigned int *) 
+	(localVirtualProcessorAddress + VM_Processor_framePointer_offset) 
+	= (int) fp;
 
     /* setup to return to deliver hardware exception routine */
     gregs[REG_EIP] = javaExceptionHandlerAddress;
-
-#ifdef DEBUG_TRAP_HANDLER
-    debug_in_use = 0;
-#endif
 
     pthread_mutex_unlock( &exceptionLock );
 
@@ -518,11 +615,10 @@ processTimerTick(void)
 
     // line added here - ndp is now the last processor - and cnt includes it
     cnt = cnt - 1;
-    // In fact, we have not yet (8/2003) gotten around to do this (creating
-    // the native daemon processor) on Linux :(  So this will always be zero.
-//#ifdef __linuxsmp__
+    /* As of 8/2003, we haven't yet gotten around to creating
+       the native daemon processor) on Linux :(  So processors[ndp_index] is
+       always zero. */
     unsigned ndp_index = cnt;
-//#endif
     
     // check for gc in progress: if so, return
     //
@@ -546,23 +642,17 @@ processTimerTick(void)
 	}
     }
     if (sendit != 0) {
-	// some processor is "stuck in native"
-	// If we have a NativeDaemon Processor, (the last one) then we can
-	// use it to recover
-//#ifdef __linuxsmp__
+	// Some processor is "stuck in native"
 	if (processors[ndp_index]) {  
-	    // have a NativeDaemon Processor (the last one) and can use it to recover
+	    // We have a NativeDaemon Processor (the last one),
+	    // and can use it to recover
 	    int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset) ;
 	    pthread_t thread = (pthread_t)pthread_id;
-//	    int i_thread = (int)thread;
 	    pthread_kill(thread, SIGCONT);
-	} else 
-//#endif
-	{
-	    // After 500 timer intervals (often == 5 seconds), print a message
-	    // every 50 timer intervals (often == 1/2 second), so we don't
-	    // just appear to be hung.  (The messages probably appear faster
-	    // and faster as more processors get stuck, but so what?)
+	} else {
+	    /* After 500 timer intervals (often == 5 seconds), print a message
+	       every 50 timer intervals (often == 1/2 second), so we don't
+	       just appear to be hung. */
 	    if (longest_stuck_ticks >= 500 
 		&& (longest_stuck_ticks % 50) == 0) 
 	    {
@@ -654,6 +744,8 @@ softwareSignalHandler(int signo,
 }
 
 
+/* Returns 1 upon any errors; the only time it can return is if there's an
+   error. */
 int
 createJVM(int __attribute__((unused)) vmInSeparateThread)
 {
@@ -666,14 +758,12 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
     setbuf (SysErrorFile, 0);
     setbuf (SysTraceFile, 0);
 
-    if (lib_verbose)
-    {
-	fprintf(SysTraceFile, "IA32 linux build");
-#if (defined __linuxsmp__)
-	fprintf(SysTraceFile, " for SMP\n");
-#else
-	fprintf(SysTraceFile, "\n");
+    if (lib_verbose) {
+	fprintf(SysTraceFile, "IA32 Linux build"
+#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+		" for SMP"
 #endif
+		"\n");
     }
 
     /* open and mmap the image file. 
@@ -898,7 +988,7 @@ createJVM(int __attribute__((unused)) vmInSeparateThread)
     // fprintf(SysTraceFile, "%s: here goes...\n", Me);
     int rc = boot (ip, jtoc, pr, (int) sp);
 
-    fprintf(SysTraceFile, "%s: we're back! rc=%d. bye.\n", Me, rc);
+    fprintf(SysErrorFile, "%s: CreateJVM(): boot() returned; failed to create a VM.  rc=%d.  Bye.\n", Me, rc);
     return 1;
 }
 
