@@ -74,7 +74,7 @@ fass_dir="$RVM_ROOT/images/FullAdaptiveCopyMS"
 if [[ ! -d $fass_dir ]]; then
     echo "$ME: It looks as if you didn't make a FullAdaptiveCopyMS build.  We'll skip jdoc.sh."
 else
-    je="$fass_dir/jbuild.environment"
+    je="$fass_dir/environment.host"
     . $je || croak "Unable to load $je"
     "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
     if [[ -d $RVM_ROOT/pushAPI ]]; then
