@@ -583,6 +583,42 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Scheduler.writeString("\n");
   }
 
+
+  /**
+   * Does the currently executing thread own the lock on obj?
+   * @param obj the object to check
+   * @return true if the currently executing thread owns obj, false otherwise
+   */
+  static boolean owns(Object o) {
+    return owns(o, VM_Magic.getThreadId());
+  }
+
+  /**
+   * Does the given thread own the lock on obj?
+   * @param obj the object to check
+   * @param tid shifted thread id (result of VM_Magic.getThreadId())
+   * @return true if the currently executing thread owns obj, false otherwise
+   */
+  static boolean owns(Object o, int tid) {
+    VM_Type t = VM_Magic.getObjectType(o);
+    int thinLockOffset = t.thinLockOffset;
+    if (thinLockOffset == -1) {
+      VM_Lock l = VM_LockNursery.findOrCreate(o, false);
+      return l != null && l.ownerId == tid;
+    } else {
+      int bits = VM_Magic.getIntAtOffset(o, thinLockOffset);
+      if ((bits & VM_ThinLockConstants.TL_FAT_LOCK_MASK) == 0) {
+	// if locked, then locked with a thin lock
+	return (bits & VM_ThinLockConstants.TL_THREAD_ID_MASK) == tid;
+      } else {
+	// if locked, then locked with a fat lock
+	int index = (bits & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
+	VM_Lock l = VM_Scheduler.locks[index];
+	return l != null && l.ownerId == tid;
+      }
+    }
+  }
+
     //////////////////////////////////////////////
     //             Statistics                   //
     //////////////////////////////////////////////
