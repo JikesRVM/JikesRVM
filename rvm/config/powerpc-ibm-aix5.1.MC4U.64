@@ -20,8 +20,8 @@ export RVM_FOR_64_ADDR=1
 # target OS is AIX
 export RVM_FOR_AIX=1
 
-# SMP support is always ok on AIX.
-export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+# KLUDGE: disable SMP for now in 64 bit mode as it seems to destablize things.
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 
 export BOOTIMAGE_LOAD_ADDRESS=0x30000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000L
@@ -65,8 +65,8 @@ export GNU_MAKE="/usr/gnu/bin/make"
 export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.18
 
 # what C/C++ compilers should be used?
-export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -Wa,-a64 -maix64"
-export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc -Wa,-a64 -maix64"
+export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"
+export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"
 
 # how to link a shared C++ library
 export LDSHARED="/usr/gnu/bin/g++ -shared -maix64"
