@@ -1,9 +1,9 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp 2001,2002, 2003
  */
 //$Id$
 
-/*
+/**
  * C runtime support for virtual machine.
  *
  * This file deals with loading of the vm boot image into a memory segment and
@@ -61,30 +61,36 @@ extern "C" char *sys_siglist[];
 #endif
 
 
-
-// Interface to VM data structures.
-//
+/* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include <InterfaceDeclarations.h>
-extern "C" void setLinkage(struct VM_BootRecord *);
+extern "C" void setLinkage(VM_BootRecord *);
 
 VM_BootRecord *theBootRecord;
 #define VM_NULL 0
 #define MAXHEAPS 20  // update to auto-generate from (VM_BootRecord.heapRange.length / 2)
 
 #include "../bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
-// Local Declarations
-//
-FILE *SysErrorFile = stderr;   // Sink for messages relating to serious errors detected by C runtime.
-FILE *SysTraceFile = stderr;   // Sink for trace messages produced by VM.sysWrite().
-int SysTraceFd = 2;
-int lib_verbose = 0;           // Emit trace information?
+
+// These are definitions of items declared in bootImageRunner.h
+/* Sink for messages relating to serious errors detected by C runtime. */
+FILE *SysErrorFile;
+ 
+/* Sink for trace messages produced by VM.sysWrite(). */
+FILE *SysTraceFile;
+int SysTraceFd;
+
+/* Command line arguments to be passed to virtual machine. */
+char **JavaArgs;
+int JavaArgc;
+
+/* Emit trace information? */
+int lib_verbose = 0;
+
 int remainingFatalErrors = 3;  // Terminate execution of vm if 3 or more fatal errors occur,
                                //   preventing infinitely (recursive) fatal errors.
 
-char **	JavaArgs;              // Command line arguments to be passed to boot image.
-int	JavaArgc;
 static ulong_t startupRegs[4];        // used to pass jtoc, pr, tid, fp to bootThread.s
 static ulong_t VmToc;                 // Location of VM's JTOC
 int     HardwareTrapMethodId;  // Method id for inserting stackframes at sites of hardware traps.
