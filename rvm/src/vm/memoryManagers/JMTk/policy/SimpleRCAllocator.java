@@ -76,8 +76,7 @@ final class SimpleRCAllocator extends BaseFreeList implements Constants, VM_Unin
     return getCellSize(getSizeClass(sp));
   }
   private static int getCellSize(int sizeClass) {
-    if (VM.VerifyAssertions) 
-      VM._assert(!isLarge(sizeClass));
+    if (VM.VerifyAssertions) VM._assert(!isLarge(sizeClass));
 
     return cellSize[sizeClass];
   }
@@ -126,8 +125,7 @@ final class SimpleRCAllocator extends BaseFreeList implements Constants, VM_Unin
    */
   protected final int pagesForClassSize(int sizeClass) 
     throws VM_PragmaInline {
-    if (VM.VerifyAssertions) 
-      VM._assert(!isLarge(sizeClass));
+    if (VM.VerifyAssertions) VM._assert(!isLarge(sizeClass));
 
     return sizeClassPages[sizeClass];
   }
@@ -279,7 +277,7 @@ final class SimpleRCAllocator extends BaseFreeList implements Constants, VM_Unin
 						      BASE_SP_HEADER_SIZE);
       }
       if (sc == MAX_SMALL_SIZE_CLASS)
-	VM._assert(size == MAX_SMALL_SIZE);
+	if (VM.VerifyAssertions) VM._assert(size == MAX_SMALL_SIZE);
     }
   }
 
