@@ -31,7 +31,7 @@ work.  Do not try to use Eclipse 1.x versions.
 \item The Eclipse debugging support for Java programs --- which relies
 on talking \xlink{JDWP}{\JDWPURL} to the VM --- will not work because
 Jikes RVM has yet to implement this protocol.  (\link{It's on our TODO
-  list, though}[--- see section~\Ref, page~\Pageref{}]{JDWP}.)
+  list, though}[ --- see section~\Ref, page~\Pageref{}]{JDWP}.)
 
 \item Running Eclipse requires that you build Jikes RVM with
 \varName{RVM\_\-FOR\_\-SIN\-GLE\_\-VIR\-TU\-AL\_\-PRO\-CES\-SOR} equal to 0. \xlink{The
@@ -43,7 +43,7 @@ Jikes RVM) does not work if this variable is set to 1 }[(see defect \#
 \xlink{Jikes RVM defect \#
   2046}{http://www-124.ibm.com/developerworks/bugs/?func=detailbug\&bug\_id=2046\&group\_id=95} is still outstanding:
 Jikes RVM's {\tt VM\_IdleThread} chews up CPU time when waiting for
-something to happen.  This idle thread ends up competing for CPU time
+something to happen.  This idle thread competes for CPU time
 with any activities you're engaged in outside of the Jikes RVM process
 running Eclipse.  We plan to have this fixed soon.
 

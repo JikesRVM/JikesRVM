@@ -8,11 +8,11 @@ from the previous section.
 
 \Indextt{jikes}
 \cindex[rvm script]{\texttt{rvm} script}
-Jikes\TMweb RVM executes bytecodes from {\tt .class} files. It does {\em
-not} compile 
-Java\TMweb source code. Therefore, you must compile all Java source
-files into bytecode using your favorite Java compiler.
-Our favorite Java compiler is the IBM Jikes compiler. 
+Jikes\TMweb{} RVM executes Java virtual machine byte code instructions from {\tt .class} files.  
+It does {\em not} compile 
+Java\TMweb{} source code. Therefore, you must compile all Java source
+files into byte code using your favorite Java compiler.
+Our favorite Java compiler is the IBM\Rweb{} Jikes compiler. 
 
 For example, to run class {\tt foo} with source code in file {\tt foo.java}:
 \begin{verbatim}
@@ -140,7 +140,7 @@ file names of one or more {\tt .jar} files.  File names in
 \Mmeta{path} are separated by colons (\Mlitch{:}).
 
 \item[{\tt -X:cpuAffinity=\Mmeta{int}}]
-\Mmeta{int} is the number of the physical cpu to which the first virtual processor will be bound.
+\Mmeta{int} is the number of the physical CPU to which the first virtual processor will be bound.
 
 \item[{\tt -X:processors=\Mlsq{} \Mmeta{int} \Mor{} \Mlitch{all} \Mrsq{}}]
 number of processors to use on a multiprocessor
@@ -154,3 +154,6 @@ compiler, optimizing compiler, and adaptive optimization system.
 \subsection{Regression Tests}
 \label{sec:regression}
 \input{regression}
+
+% LocalWords:  args JDK cp gc jni VM showversion fullversion verboseBoot Xms vm
+% LocalWords:  Xmx sysLogfile RVM's aos irc recomp vmClasses cpuAffinity

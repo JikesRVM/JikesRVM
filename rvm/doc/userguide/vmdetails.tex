@@ -132,8 +132,8 @@ A compiled method body is an array of machine instructions (stored as
 The {\em Jikes RVM Table of Contents} (JTOC),
 stores pointers to static fields and methods.  However, 
 pointers for instance fields and virtual methods are stored in the receiver 
-class's \link{TIB}{TIB}.  Consequently the dispatch mechanism differs for static and virtual 
-methods.
+class's \link{TIB}{TIB}.  Consequently, the dispatch mechanism differs
+between static methods and instance methods.
 \end{Label}
 
 \paragraph{The JTOC}
@@ -152,7 +152,7 @@ methods.
 \index{dynamic type checking}
 The JTOC holds pointers to 
 each of Jikes\TMweb{} RVM's global data structures, as well as
-literals, numeric constants and references to String constants.
+literals, numeric constants and references to \texttt{String} constants.
 The JTOC also
 contains references to the \link{TIB}{TIB} for each class in the system.  
 Since these 
@@ -271,11 +271,11 @@ categorized into four types:
 \end{description}
 
 \item[Volatile ("caller save", or "parameter")]
-     Like scratch registers these can be used by the compiler as
-     temporaries, but they are not preserved across calls.  (Volatile
+     Like scratch registers, these can be used by the compiler as
+     temporaries, but they are not preserved across calls.  Volatile
      registers differ from scratch registers in that volatiles
      can be used to pass parameters and result(s) to and from
-     methods.)
+     methods.
 
 \item[Nonvolatile ("callee save", or "preserved")]
      These can be used (and are preserved across calls), but they must be
@@ -443,18 +443,21 @@ The first two areas of the callee's stackframe (see above) have been
 
 \newcommand{\OSXCallingConventionsURL}{http:\-//\-de\-vel\-op\-er.ap\-ple.com/\-do\-cu\-men\-ta\-tion\-/\-De\-ve\-lo\-per\-Tools\-/\-Con\-cep\-tu\-al\-/\-Mach\-O\-Run\-time\-/\-Mach\-O\-Run\-time\-.pdf}
 The calling conventions we use for OS~X are the same as those listed
-at \xlink{\texttt{\OSXCallingConventionsURL}}{\OSXCallingConventionsURL}.
-They're fairly similar to the Linux PowerPC calling conventions.  One
+at:
+\begin{example}
+\xlink{\texttt{\OSXCallingConventionsURL}}{\OSXCallingConventionsURL}
+\end{example}
+They're similar to the Linux PowerPC calling conventions.  One
 major difference is how the two operating systems handle the case of
-a long parameter when you only have a single parameter register left.
+a \texttt{long} parameter when you only have a single parameter register left.
 
 
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
 
 Jikes\TMweb{} RVM implements the Java\TMweb{} programming
-language's dynamic class loading. While a class is being loaded it can
-be in one of six states. These are
+language's dynamic class loading.  While a class is being loaded it can
+be in one of six states. These are:
 \begin{description}
 \item[vacant] The class is in the process of being loaded.
 \item[loaded] the class's bytecode file has been read and parsed successfully.
@@ -510,7 +513,7 @@ initializer is being run.
 
 \paragraph{Initialized} 
 \index{class initializer}
-In this state the superclass has been initialized. The class initializer has 
+In this state the superclass has been initialized.  The class initializer has 
 been run. 
 
 \subsection{Thread System}\label{sec:threads}

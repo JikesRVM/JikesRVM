@@ -28,7 +28,7 @@ The top-level driver for running sanity tests is called
 and requires {\tt{bash}} and {{\tt make}} to run.  When it
 is invoked, it will, by default, build a variety of boot images and
 run several test programs with each boot image.  The behavior of
-RunSanityTests is highly customizable: most of its behavior can be
+\texttt{RunSanityTests} is highly customizable: most of its behavior can be
 controlled via command-line options, including what tests and boot
 images to run, whether to do sanity or performance tests, and what to
 do with test results. These options are described in more detail
@@ -42,7 +42,7 @@ distribution.  You will need to set an environment variable
 other resources; {\tt Local.rules} contains URLs for finding many of
 the regression tests that are not distributed with Jikes RVM.
 You can also customize your regression testing by making control files
-for RunSanityTests to ease running your preferred selection of boot
+for \texttt{RunSanityTests} to ease running your preferred selection of boot
 images, test programs, and options. 
 
 \paragraph{{\tt{RunSanityTests}} Command-Line Options}
@@ -75,14 +75,14 @@ individual tests).
 \item{\tt{-configurations}} ``{\em{configuration names}}''
 \item{\tt{-configuration-list}} {\em{file name}}
 
- These command line options control what selection of boot images to
-test.  The {\tt{-configuration}} option expects the next command
+These command line options control what selection of boot images to
+test.  The \texttt{-con\-fi\-gu\-ra\-tion} option expects the next command
 line word to be a list of boot image configurations understood by
-jconfigure (a list of multiple tests must be guarded by quotation
-marks in most Unix shells); the {\tt{-configuration-file}} option
+\texttt{jconfigure} (a list of multiple tests must be guarded by quotation
+marks in most Unix\Rweb{} shells); the {\tt{-configuration-file}} option
 expects that the next command line word be a filename, and that the
 named file contain a list of boot image configuration names understood
-by jconfigure.  If the filename is an absolute path, that file is
+by \texttt{jconfigure}.  If the filename is an absolute path, that file is
 read, if it is a relative path, it is assumed to be relative to
 {\tt \$RVM\_\-ROOT/rvm/regression/config}.
 
@@ -95,8 +95,8 @@ results.  To avoid cluttering up the directories containing the actual
 tests, one can specify that the results be put elsewhere with this
 option.  The directory specified is actually the root of a tree that
 will be created to contain the results of the different tests and
-configurations desired; the structure under the specified root
-directory will mimic the structure of the regression/tests directory. 
+configurations desired; the structure under {\em root
+directory} will mimic the structure of the \texttt{regression/tests} directory. 
 
 \item{\tt{-images}} {\em directory}
 
@@ -133,17 +133,17 @@ virtual processors.
 
 \item{\tt{-nobuild}}
 
- This command line option instructs RunSanityTests not to build the
+ This command line option instructs \texttt{RunSanityTests} not to build the
 boot images to be tested; in this case, the boot images must have been
-built already, and be somewhere where RunSanityTests can find them.
-See the {\tt -images} option for how to tell RunSanityTests where to
+built already, and be somewhere where \texttt{RunSanityTests} can find them.
+See the {\tt -images} option for how to tell \texttt{RunSanityTests} where to
 find prebuilt images.
 
 \item{\tt{-norun}}
 
- This command line option instructs RunSanityTests not to actually run
+ This command line option instructs \texttt{RunSanityTests} not to run
 any tests.  This makes sense mostly when used to build boot images
-that another invocation of RunSanityTests will use.
+that another invocation of \texttt{RunSanityTests} will use.
 
 \item{\tt{-noclean}}
 
@@ -152,7 +152,7 @@ each test is run.  Giving this option means a clean is not performed.
 
 \item{\tt{-wait}} {\em filename}
 
- This options is used to synchronize parallel RunSanityTests invocation
+ This options is used to synchronize parallel \texttt{RunSanityTests} invocation
 that are building and running the same set of boot images.  When this
 option is given, the filename specified is created in a boot image
 directory when the process of building the image completes.  And any
@@ -161,7 +161,7 @@ the boot image it will use.
 
 \item{\tt{-performance}} {\em filename}
 
- This option tells RunSanityTests to run performance tests rather than
+ This option tells \texttt{RunSanityTests} to run performance tests rather than
 the default sanity tests.  This invokes each desired test in
 performance mode and collects the performance results into the file
 specified with this option.  In addition, {\tt{RunSanityTests}} also
@@ -177,10 +177,10 @@ be enclosed in quotations.
 
 \item{\tt{-config-args}} ``{\em rvm arguments}''
 
- This option specifies a set of arguments to jconfigure that are to be
-passed to jconfigure for each creation of a boot image.  This option
+ This option specifies a set of arguments that are to be
+passed to \texttt{jconfigure} for each creation of a boot image.  This option
 expects the next command line word to be the list of options, so
-multiple options must be enclosed in quotations.
+multiple options must be enclosed in quotation marks.
 
 \end{itemize}
 
@@ -209,18 +209,18 @@ classpath of compiles and runs of this benchmark.
 
 \paragraph{Customized Control Files}
 
- {\tt{RunSanityTests}} can be given two kinds of control files to make
+\texttt{RunSanityTests} can be given two kinds of control files to make
 governing its behavior easier: lists of boot images and lists of
 tests.  With the {\tt -con\-fi\-gu\-ra\-tion-list} option, you can provide a
 file that lists the set of boot images to build.  This file is a plain
 text file, with one boot image name per line; each boot image name
-must be one that is understood by jconfigure.  With the {\tt
+must be one that is understood by \texttt{jconfigure}.  With the {\tt
 -test-list} options, you can provide a filename that the set of tests
 to run.  Similar to the configuration list file, this file is plain
 text, and has one test name per line.  Both types of file should be
 placed in the {\tt \$RVM\_\-ROOT/rvm/regression/config} directory; when placed
 there, you can refer to them with an unqualified file name on the
-RunSanityTests command line.  You can use files from other places as
+\texttt{RunSanityTests} command line.  You can use files from other places as
 control files, but those require an absolute path (i.e. one beginning
 with a ``{\tt /}'') on the command line.
 
