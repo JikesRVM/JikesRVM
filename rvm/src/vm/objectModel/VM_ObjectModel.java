@@ -9,13 +9,13 @@
  * 
  * Conceptually each Java object is composed of the following pieces:
  * <ul>
- * <li> The JavaHeader defined by @link{VM_JavaHeader}. This portion of the
+ * <li> The JavaHeader defined by @see{VM_JavaHeader}. This portion of the
  *      object supports language-level functions such as locking, hashcodes,
  *      dynamic type checking, virtual function invocation, and array length.
- * <li> The GCHeader defined by @link{VM_AllocatorHeader}. This portion
+ * <li> The GCHeader defined by @see{VM_AllocatorHeader}. This portion
  *      of the object supports allocator-specific requirements such as 
  *      mark/barrier bits, reference counts, etc.
- * <li> The MiscHeader defined by @link{VM_MiscHeader}. This portion supports 
+ * <li> The MiscHeader defined by @see{VM_MiscHeader}. This portion supports 
  *      various other clients that want to add bits/words to all objects. 
  *      Typical uses are profiling and instrumentation (basically this is a 
  *      way to add an instance field to java.lang.Object).
