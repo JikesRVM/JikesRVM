@@ -249,7 +249,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param start The time that this GC started
    */
   private final void baseGlobalPrepare(long start) {
-    gcInProgress = true;
+    setGcInProgress(true);
     Statistics.gcCount++;
     gcStartTime = start;
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
@@ -345,7 +345,7 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void baseGlobalRelease() {
     globalRelease();
-    gcInProgress = false;    // GC is in progress until after release!
+    setGcInProgress(false);    // GC is in progress until after release!
     valuePool.reset();
     locationPool.reset();
     rootValuePool.reset();
