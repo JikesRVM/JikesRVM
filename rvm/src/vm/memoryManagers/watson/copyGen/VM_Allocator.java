@@ -77,30 +77,14 @@ public class VM_Allocator
    */
   static final boolean ZERO_BLOCKS_ON_ALLOCATION = true;
   
-  /** When true, print heap configuration when starting */
-  static final boolean DISPLAY_OPTIONS_AT_BOOT = VM_CollectorThread.DISPLAY_OPTIONS_AT_BOOT;
-  
   /**
    * When true, causes time spent in each phase of collection to be measured.
    * Forces summary statistics to be generated. See VM_CollectorThread.TIME_GC_PHASES.
    */
   static final boolean TIME_GC_PHASES  = VM_CollectorThread.TIME_GC_PHASES;
 
-  /**
-   * When true, causes each gc thread to measure accumulated wait times
-   * during collection. Forces summary statistics to be generated.
-   * See VM_CollectorThread.MEASURE_WAIT_TIMES.
-   */
-  static final boolean RENDEZVOUS_WAIT_TIME = VM_CollectorThread.MEASURE_WAIT_TIMES;
-
-  /**
-   * When true, measure rendezvous times and show them
-   */
-  static final boolean RENDEZVOUS_TIMES = false;
-
   /** count times parallel GC threads attempt to mark the same object */
   private static final boolean COUNT_COLLISIONS = true;
-
 
   static final int LOCAL_MATURE_EXHAUSTED = -1;
   static final int MATURE_EXHAUSTED = -2;
@@ -631,18 +615,8 @@ public class VM_Allocator
    */
   static void collect () {
 
-    int       i,temp,bytes;
-    boolean   selectedGCThread = false;  // indicates 1 thread to generate output
-    
-    // ASSUMPTIONS:
-    // initGCDone flag is false before first GC thread enter collect
-    // InitLock is reset before first GC thread enter collect
-    //
-    
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
       VM_EventLogger.logGarbageCollectionEvent();
-    
-    int mypid = VM_Processor.getCurrentProcessorId();  // id of processor running on
     
     // set running threads context regs so that a scan of its stack
     // will start at the caller of collect (ie. VM_CollectorThread.run)
@@ -652,6 +626,13 @@ public class VM_Allocator
     VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
     VM_Thread.getCurrentThread().contextRegisters.setInnermost( caller_ip, caller_fp );
 
+    // ASSUMPTIONS:
+    // initGCDone flag is false before first GC thread enter collect
+    // InitLock is reset before first GC thread enter collect
+    //
+    int       i,temp,bytes;
+    boolean   selectedGCThread = false;  // indicates 1 thread to generate output
+    
     if (verbose >= 1) VM_Scheduler.trace("VM_Allocator","starting minor GC");
     
     // BEGIN SINGLE GC THREAD SECTION - GC INITIALIZATION
@@ -722,10 +703,10 @@ public class VM_Allocator
       //
       // It is NOT required that all GC threads reach here before any can proceed
       //
-      tempStart = RENDEZVOUS_WAIT_TIME ? VM_Time.now() : 0.0;
+      tempStart = VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
       while( initGCDone == false ); // spin until initialization finished
       VM_Magic.isync();             // prevent following inst. from moving infront of waitloop
-      tempEnd = RENDEZVOUS_WAIT_TIME ? VM_Time.now() : 0.0;
+      tempEnd = VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
 
       // each gc thread copies own VM_Processor, resets processor register & processor
       // local allocation pointers & resets GC threads work queue buffers
@@ -743,14 +724,13 @@ public class VM_Allocator
     VM_CollectorThread mylocal = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
     // add in initialization spin wait time to accumulated collection rendezvous time
-    if (RENDEZVOUS_WAIT_TIME) 
-	mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvousRecord(tempStart, tempEnd);
+    mylocal.rendezvousRecord(tempStart, tempEnd);
 
     // following rendezvous seems to be necessary, we are not sure why. Without it,
     // some processors proceed into finding roots, before all gc threads have
     // executed the above gc_initProcessor, and this seems related to the failure/
     // 
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
          
     // Begin finding roots for this collection.
     // Roots are object refs in static variables (JTOC) or on thread stacks 
@@ -776,7 +756,7 @@ public class VM_Allocator
     //
     //    REQUIRED SYNCHRONIZATION - WAIT FOR ALL GC THREADS TO REACH HERE
 
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
     
     // have processor 1 record timestame for end of scanning stacks & statics
     
@@ -834,7 +814,7 @@ public class VM_Allocator
       }
       
       // ALL threads have to wait to see if any finalizable objects are found
-      mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+      mylocal.rendezvous();
      
       if (VM_Finalizer.foundFinalizableObject) {
 
@@ -1015,7 +995,7 @@ public class VM_Allocator
     // some processors proceed into finding roots, before all gc threads have
     // executed the above gc_initProcessor, and this seems related to the failure/
     // 
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
          
     if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "starting major collection", gcMajorCount);
     gc_scanProcessor();  // each gc threads scans its own processor object
@@ -1033,7 +1013,7 @@ public class VM_Allocator
     //
     //    REQUIRED SYNCHRONIZATION - WAIT FOR ALL GC THREADS TO REACH HERE
 
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
     
     // have processor 1 record timestame for end of scanning stacks & statics
     if (mylocal.gcOrdinal == 1) scanTime.start(rootTime);
@@ -1080,7 +1060,7 @@ public class VM_Allocator
       }
       
       // ALL threads have to wait to see if any finalizable objects are found
-      mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+      mylocal.rendezvous();
      
       if (VM_Finalizer.foundFinalizableObject) {
 

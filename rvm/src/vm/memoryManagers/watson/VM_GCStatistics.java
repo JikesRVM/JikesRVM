@@ -107,7 +107,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
         VM_GCWorkQueue.resetAllCounters();
       }
 
-      if (VM_Allocator.RENDEZVOUS_TIMES) 
+      if (VM_CollectorThread.SHOW_RENDEZVOUS_TIMES) 
         VM_CollectorThread.gcBarrier.printRendezvousTimes();
     }
   }

@@ -57,7 +57,8 @@ class VM_CollectorThread extends VM_Thread
   final static boolean MEASURE_WAIT_TIMES = false;
   
   /** Measure & print entry & exit times for rendezvous */
-  final static boolean RENDEZVOUS_TIMES = false;
+  final static boolean MEASURE_RENDEZVOUS_TIMES = false;
+  final static boolean SHOW_RENDEZVOUS_TIMES = false;
   
   static int[]  participantCount;    // array of size 1 to count arriving collector threads
 
@@ -255,7 +256,7 @@ class VM_CollectorThread extends VM_Thread
       if (trace) VM_Scheduler.trace("VM_CollectorThread", "finished collection");
       
       // wait for other collector threads to arrive here
-      rendezvousWaitTime += gcBarrier.rendezvous(RENDEZVOUS_TIMES);  
+      rendezvousWaitTime += gcBarrier.rendezvous(MEASURE_RENDEZVOUS_TIMES);  
       
       // Wake up mutators waiting for this gc cycle and create new collection
       // handshake object to be used for next gc cycle.
@@ -282,8 +283,8 @@ class VM_CollectorThread extends VM_Thread
       } 
       
       // wait for other collector threads to arrive here
-      rendezvousWaitTime += gcBarrier.rendezvous(RENDEZVOUS_TIMES);  
-      if (RENDEZVOUS_TIMES) {
+      rendezvousWaitTime += gcBarrier.rendezvous(MEASURE_RENDEZVOUS_TIMES);  
+      if (MEASURE_RENDEZVOUS_TIMES) {
 	  gcBarrier.rendezvous(false);  	  // need extra barrier call to let all processors set prev rendezvouz time
 	  if (VM_Processor.getCurrentProcessorId() == 1)
 	      gcBarrier.printRendezvousTimes();
@@ -478,7 +479,21 @@ class VM_CollectorThread extends VM_Thread
     createPassiveCollectorThread(int[] stack, VM_Processor processorAffinity) {
     return new VM_CollectorThread(stack, false,  processorAffinity);
   }
+
+  void rendezvous() {
+      rendezvousWaitTime += gcBarrier.rendezvous(MEASURE_WAIT_TIMES);
+  }
   
+  void rendezvousRecord(double start, double end) {
+      if (MEASURE_RENDEZVOUS_TIMES)
+	  rendezvousWaitTime += gcBarrier.rendezvousRecord(start, end);
+  }
+
+  static void printRendezvousTime() {
+      if (SHOW_RENDEZVOUS_TIMES)
+	  gcBarrier.printRendezvousTimes();
+  }
+
   //-----------------//
   // Instance fields //
   //-----------------//

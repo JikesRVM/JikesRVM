@@ -89,18 +89,6 @@ public class VM_Allocator extends VM_GCStatistics
   static int verbose = 0;
 
   /**
-   * When true, causes each gc thread to measure accumulated wait times
-   * during collection. Forces summary statistics to be generated.
-   * See VM_CollectorThread.MEASURE_WAIT_TIMES.
-   */
-  static final boolean RENDEZVOUS_WAIT_TIME = VM_CollectorThread.MEASURE_WAIT_TIMES;
-
-  /**
-   * When true, measure rendezvous times and show them
-   */
-  static final boolean RENDEZVOUS_TIMES = false;
-
-  /**
    * Initialize for boot image.
    */
   static void init () {
@@ -566,10 +554,10 @@ public class VM_Allocator extends VM_GCStatistics
       //
       // It is NOT required that all GC threads reach here before any can proceed
       //
-      tempStart = RENDEZVOUS_WAIT_TIME ? VM_Time.now() : 0.0;
+      tempStart = VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
       while( initGCDone == false ); // spin until initialization finished
       VM_Magic.isync();             // prevent following inst. from moving infront of waitloop
-      tempEnd = RENDEZVOUS_WAIT_TIME ? VM_Time.now() : 0.0;
+      tempEnd = VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
 
       // each gc thread copies own VM_Processor, resets processor register & processor
       // local allocation pointers, copies activeThread (itself) and resets workqueue buffers
@@ -585,14 +573,13 @@ public class VM_Allocator extends VM_GCStatistics
     // of those fields to get "currentThread" get the copied thread object.
     //
     VM_CollectorThread mylocal = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-    if (RENDEZVOUS_WAIT_TIME) 
-	mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvousRecord(tempStart, tempEnd);
+    mylocal.rendezvousRecord(tempStart, tempEnd);
 
     // following rendezvous seems to be necessary, we are not sure why. Without it,
     // some processors proceed into finding roots, before all gc threads have
     // executed the above gc_initProcessor, and this seems related to the failure.
     // 
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
          
     // Begin finding roots for this collection.
     // Root refs are updated and the copied object is enqueued for later scanning.
@@ -606,7 +593,7 @@ public class VM_Allocator extends VM_GCStatistics
     // we can no longer compute old ip offsets for updating saved ip values
     //
     //    REQUIRED SYNCHRONIZATION - WAIT FOR ALL GC THREADS TO REACH HERE
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
     if (mylocal.gcOrdinal == 1)	scanTime.start(rootTime);
 
     // each GC thread processes its own work queue until empty
@@ -644,7 +631,7 @@ public class VM_Allocator extends VM_GCStatistics
 	VM_Finalizer.moveToFinalizable();
       }
       // ALL threads have to wait to see if any finalizable objects are found
-      mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+      mylocal.rendezvous();
       if (VM_Finalizer.foundFinalizableObject) 
 	gc_emptyWorkQueue();
     }  //  end of Finalization Processing
@@ -710,11 +697,11 @@ public class VM_Allocator extends VM_GCStatistics
     }  // END OF SINGLE THREAD SECTION
     else {
       // other GC threads spin wait until finishing thread completes
-      double start = RENDEZVOUS_WAIT_TIME ? VM_Time.now() : 0.0;
-      while(!gcDone);
+      double start = VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES ? VM_Time.now() : 0.0;
+      while(!gcDone) ;
       VM_Magic.isync();           // prevent from moving infront of waitloop
-      if (RENDEZVOUS_WAIT_TIME) 
-	  mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvousRecord(start, VM_Time.now());
+      if (VM_CollectorThread.MEASURE_RENDEZVOUS_TIMES) 
+	  mylocal.rendezvousRecord(start, VM_Time.now());
     }
 
     // ALL GC THREADS IN PARALLEL - AFTER COLLECTION
@@ -732,7 +719,7 @@ public class VM_Allocator extends VM_GCStatistics
 
     if (ZERO_NURSERY_IN_PARALLEL) {
       fromHeap.zeroFreeSpaceParallel();
-      mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+      mylocal.rendezvous();
     }
 
     // Each GC thread increments adds its wait times for this collection

@@ -48,10 +48,6 @@ public class VM_Allocator extends VM_GCStatistics
 
   static final int GC_RETRY_COUNT = 3;             // number of times to GC before giving up
 
-  static final boolean RENDEZVOUS_TIMES          = false;
-  static final boolean RENDEZVOUS_WAIT_TIME     = VM_CollectorThread.MEASURE_WAIT_TIMES;
-
-
   static final boolean  Debug = false;  
   static final boolean  Debug_torture = false;  
   static final boolean  DebugInterest = false;  
@@ -316,7 +312,7 @@ public class VM_Allocator extends VM_GCStatistics
     }
     //   END OF SYNCHRONIZED INITIALIZATION BLOCK
 
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
 
     // ALL GC THREADS IN PARALLEL
 
@@ -326,7 +322,7 @@ public class VM_Allocator extends VM_GCStatistics
     // Each participating processor clears the mark array for the blocks it owns
     smallHeap.zeromarks(VM_Processor.getCurrentProcessor());
     
-    mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
 
     VM_ScanStatics.scanStatics();     // all threads scan JTOC in parallel
 
@@ -350,7 +346,7 @@ public class VM_Allocator extends VM_GCStatistics
     // skip finalization phases
     //
     if (VM_Finalizer.existObjectsWithFinalizers()) {
-      VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+      mylocal.rendezvous();
 
       // Now handle finalization 
       if (mylocal.gcOrdinal == 1) {
@@ -359,13 +355,13 @@ public class VM_Allocator extends VM_GCStatistics
 	VM_Finalizer.moveToFinalizable();
       }
 
-      VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+      mylocal.rendezvous();
       
       // Now test if following stanza is needed - iff
       // garbage objects were moved to the finalizer queue
       if (VM_Finalizer.foundFinalizableObject) {
 	gc_emptyWorkQueue();
-	VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+	mylocal.rendezvous();
       }	
     }	// if existObjectsWithFinalizers
       
@@ -383,7 +379,7 @@ public class VM_Allocator extends VM_GCStatistics
     // Sweep small heap
     smallHeap.sweep(mylocal);
 
-    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    mylocal.rendezvous();
 
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output
@@ -406,11 +402,9 @@ public class VM_Allocator extends VM_GCStatistics
       updateGCStats(DEFAULT, 0);
       printGCStats(DEFAULT);
 
-      if (RENDEZVOUS_TIMES) VM_CollectorThread.gcBarrier.printRendezvousTimes();
+      mylocal.printRendezvousTime();
       
-      if (verbose >= 2) {
-	VM.sysWrite(gcCount, "  collections ");
-      }    
+      if (verbose >= 2) VM.sysWrite(gcCount, "  collections ");
     
       smallHeap.postCollectionReport();
       if (flag2nd) {
