@@ -101,6 +101,11 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     // nothing to do (TIB is not a pointer)
   }
 
+
+  public static void gcProcessTIB(VM_Address ref, boolean root) {
+    // nothing to do (TIB is not a pointer)
+  }
+
   /**
    * Get a reference to the TIB for an object.
    *

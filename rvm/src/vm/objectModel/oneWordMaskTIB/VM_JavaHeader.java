@@ -105,6 +105,10 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     VM_Magic.setMemoryWord(tibAddress, tibNew | savedBits);
   }
 
+  public static void gcProcessTIB(VM_Address ref, boolean root) {
+    VM._assert(false);  // hard to match default model - fix this later
+  }
+
   /**
    * Get a reference to the TIB for an object.
    *

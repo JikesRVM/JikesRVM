@@ -80,6 +80,10 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     VM._assert(NOT_REACHED);
   }
 
+  public static void gcProcessTIB(VM_Address ref, boolean root) {
+    VM._assert(NOT_REACHED);
+  }
+
   /**
    * Get a reference to the TIB for an object.
    *
