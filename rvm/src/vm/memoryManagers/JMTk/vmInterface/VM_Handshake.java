@@ -186,15 +186,44 @@ public class VM_Handshake {
 
     
   }   // initiateCollection
+
   
+  /**
+   * Called by mutators to request a garbage collection.
+   * If the completionFlag is already set, return false.
+   * Else, if the requestFlag is not yet set (ie this is the
+   * first mutator to request this collection) then initiate
+   * the collection sequence
+   *
+   * @return true if the completion flag is nto already set.
+   */
+  private boolean request() throws VM_PragmaUninterruptible {
+    lock.acquire();
+    if (completionFlag) {
+      if (verbose >= 1)
+	VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
+      lock.release();
+      return false;
+    }
+    if (requestFlag) {
+      if (verbose >= 1)
+	VM_Scheduler.trace("VM_Handshake", "mutator: already in progress");
+    } else {
+      // first mutator initiates collection by making all gc threads
+      // runnable at high priority
+      if (verbose >= 1)
+	VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
+      VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
+      requestFlag = true;
+      initiateCollection();
+    }
+    lock.release();  
+    return true;
+  }
+
   /**
    * Called by mutators to request a garbage collection and wait
    * for it to complete.
-   * If the completionFlag is already set, return immediately.
-   * Else, if the requestFlag is not yet set (ie this is the
-   * first mutator to request this collection) then initiate
-   * the collection sequence & then wait for it to complete.
-   * Else (it has already started) just wait for it to complete.
    *
    * Waiting is actually just yielding the processor to schedule
    * the collector thread, which will disable further thread
@@ -202,30 +231,32 @@ public class VM_Handshake {
    * collection.
    */
   public void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
-
-    lock.acquire();
-    if (completionFlag) {
-      if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
-      lock.release();
-      return;
+    if (request()) {
+      if (verbose >= 1) 
+	VM_Scheduler.trace("VM_Handshake", "mutator: yielding to GC");
+      // allow a gc thread to run
+      VM_Thread.getCurrentThread().yield();
+      if (verbose >= 1)
+	VM_Scheduler.trace("VM_Handshake", "mutator: running");
     }
-    if (requestFlag) {
-      if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: already in progress");
-    } else {
-      // first mutator initiates collection by making all gc threads runnable at high priority
-      if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
-      VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
-      requestFlag = true;
-      initiateCollection();
-    }
-    lock.release();  
-    
-    if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: yielding to GC");
+  }
+  
 
-    // allow a gc thread to run
-    VM_Thread.getCurrentThread().yield();
-    
-    if (verbose >= 1) VM_Scheduler.trace("VM_Handshake", "mutator: running");
+  /**
+   * Called by mutators to request an asynchronous garbage collection.
+   * After initiating a GC (if one is not already initiated), the
+   * caller continues until it yields to the GC.  It may thus make
+   * this call at an otherwise unsafe point.
+   */
+  public void requestAndContinue() throws VM_PragmaUninterruptible {
+    if (request()) {
+      if (verbose >= 1) 
+	VM_Scheduler.trace("VM_Handshake", "mutator: yielding to GC");
+      // allow a gc thread to run
+      VM_Thread.getCurrentThread().yield();
+      if (verbose >= 1)
+	VM_Scheduler.trace("VM_Handshake", "mutator: running");
+    }
   }
   
   /**

@@ -130,6 +130,19 @@ public class VM_CollectorThread extends VM_Thread {
     handshake.requestAndAwaitCompletion();
   }
   
+  /**
+   * Initiate a garbage collection at next GC safe point.  Called by a
+   * mutator thread at any time.  The caller should pass the
+   * VM_Handshake that was referenced by the static variable "collect".
+   *
+   * @param handshake VM_Handshake for the requested collection
+   */
+  public static void asyncCollect(VM_Handshake handshake) 
+    throws VM_PragmaUninterruptible  {
+    handshake.requestAndContinue();
+  }
+
+
   // FOLLOWING NO LONGER TRUE... we now scan the stack frame for the run method,
   // so references will get updated, and "getThis" should not be necessary.
   // 
