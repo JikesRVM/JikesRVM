@@ -492,11 +492,14 @@ public class VM extends VM_Properties
     throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline 
     /* don't waste code space inlining these --dave */ {
     if (runningVM) {
+      boolean negative = (value < 0.0);
+      value = (value < 0.0) ? (-value) : value;
       int ones = (int) value;
       int multiplier = 1;
       while (postDecimalDigits-- > 0)
 	multiplier *= 10;
       int remainder = (int) (multiplier * (value - ones));
+      if (negative) write("-");
       write(ones, false); 
       write(".");
       while (multiplier > 1) {
