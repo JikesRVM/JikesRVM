@@ -334,18 +334,10 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
         // record the renaming so that dominator blocks get the
         // new name.
         if (out.contains(r) && ! shouldSplitBlock) {
-
-	  VM.sysWrite("found " + r + " to be live on exit of " + bb + "\n");
-
 	  if (! globalRenamePhis.contains( r )) {
-
 	      OPT_Register t = ir.regpool.getReg(r);
-	      
-	      VM.sysWrite("will use " + t + " to rename " + r + "\n");
-
 	      OPT_Instruction save = OPT_SSA.makeMoveInstruction(ir, t, r, tt);
 	      c.phi.insertFront(save);
-	 
 	      globalRenamePhis.add( r );
 	      globalRenameTable.add( save );
 	  }
