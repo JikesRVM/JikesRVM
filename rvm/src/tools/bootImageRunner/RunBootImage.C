@@ -536,7 +536,10 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
            prototypes strtold() if we're using the 96 or 128 bit "long double"
            type.  Which is an option to the IBM Visual Age C compiler, but
            apparently not (yet) available for GCC.  */
-        heapsz = strtold(subtoken, &endp);
+    // heapsz = strtold(subtoken, &endp);
+    // Doesn't work and I don't have time to figure out why. --dave
+       heapsz = strtod(subtoken, &endp);
+
 #else
         heapsz = strtod(subtoken, &endp);
 #endif
