@@ -383,8 +383,7 @@ public class VM_CommandLineArgs {
 	break;
       case PROCESSORS_ARG: // "-X:processors=<n>" or "-X:processors=all"
 	if (arg.equals("all")) {
-	  VM_Scheduler.numProcessors =
-	    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
+	  VM_Scheduler.numProcessors = VM_SysCall.sysNumProcessors();
 	} else {
 	  try { VM_Scheduler.numProcessors = Integer.parseInt(arg);
 	  } catch (NumberFormatException e) {
@@ -780,8 +779,7 @@ public class VM_CommandLineArgs {
    *         for argument to fit)
    */
   private static int sysArg(int argno, byte buf[]) {
-    return VM_SysCall.call_I_I_A_I(VM_BootRecord.the_boot_record.sysArgIP, 
-				   argno, VM_Magic.objectAsAddress(buf), buf.length);
+    return VM_SysCall.sysArg(argno, VM_Magic.objectAsAddress(buf), buf.length);
   }
 }
 

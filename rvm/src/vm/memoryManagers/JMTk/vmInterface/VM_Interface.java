@@ -45,7 +45,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_SysCall;
 import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Uninterruptible;

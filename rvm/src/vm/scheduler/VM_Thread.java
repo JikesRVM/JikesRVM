@@ -637,7 +637,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // ship the thread to the native processor
     p.transferMutex.lock();
     
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP, p.pthread_id);
+    VM_SysCall.sysPthreadSignal(p.pthread_id);
 
     yield(p.transferQueue, p.transferMutex); // morph to native processor
 

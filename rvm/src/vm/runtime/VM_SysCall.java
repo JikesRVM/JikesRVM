@@ -9,303 +9,234 @@ package com.ibm.JikesRVM;
  * 
  * All methods of this class have the following signature:
  * <pre>
- * static <TYPE> callNAME(VM_Address code, <var args to pass via native calling convention>)
+ * public static <TYPE> NAME(<args to pass to sysNAME via native calling convention>)
  * </pre>
  * When one of Jikes RVM's compilers encounters an invokestatic that invokes
  * a method of this class, instead of generating code that calls the method
- * it generates code to invoke the function pointer that is the method's 
- * first argument, passing the rest of the arguments using the native OS 
- * calling convention.  The result of the call is assumed to
- * be returned using the native OS calling convention.
+ * it looks up offset of the matching function pointer in VM_BootRecord.java 
+ * and generates code to invoke it passing the rest of the arguments 
+ * using the native OS calling convention.  The result of the call is assumed
+ * to be returned using the native OS calling convention.
  *
  * NOTE: From the standpoint of the rest of the VM, an invocation 
- * to VM_SysCall is uninterruptible
-
+ * to a method of VM_SysCall is uninterruptible.
+ * 
  * @author Dave Grove
  * @author Derek Lieber
  * @author Kris Venstermans
  */
 public class VM_SysCall implements VM_Uninterruptible { 
 
-  /**
-   * call0
-   * @param ip  address of a function in sys.C 
-   * @return integer value returned by function in sys.C
-   */
-  public static int call0(VM_Address ip) { return 0; }
-  
-  /**
-   * call1
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return integer value returned by function in sys.C
-   */
-  public static int call1(VM_Address ip, int p1) { return 0; }
+  // startup/shutdown
+  public static void sysWriteChar(char v) {} 
+  public static void sysWrite(int value, int hexToo) {}
+  public static void sysWriteLong(long value, int hexToo) {}
+  public static void sysExit(int value) {}
+  public static int sysArg(int argno, VM_Address buf, int buflen) { return 0; }
 
-  /**
-   * call_I_A
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return integer value returned by function in sys.C
-   */
-  public static int call_I_A(VM_Address ip, VM_Address p1)  {
+  // memory
+  public static void sysCopy(VM_Address dst, VM_Address src, int cnt) {}
+  public static void sysFill(VM_Address dst, int pattern, int cnt) {}
+  public static VM_Address sysMalloc(int length) { return null; }
+  public static void sysFree(VM_Address location) {} 
+  public static void sysZero(VM_Address dst, int cnt) {}
+  public static void sysZeroPages(VM_Address dst, int cnt) {}
+  public static void sysSyncCache(VM_Address address, int size) {}
+
+  // files
+  public static int sysStat(VM_Address name, int kind) { return 0; }
+  public static int sysList(VM_Address name, VM_Address buf, int limit) { 
+    return 0; 
+  }
+  public static int sysOpen(VM_Address name, int how) { return 0; }
+  public static int sysUtime(VM_Address fileName, int modTimeSec) {
     return 0;
   }
+  public static int sysReadByte(int fd) { return 0; }
+  public static int sysWriteByte(int fd, int data) { return 0; }
+  public static int sysReadBytes(int fd, VM_Address buf, int cnt) { return 0; }
+  public static int sysWriteBytes(int fd, VM_Address buf, int cnt) { return 0; }
+  public static int sysSeek(int fd, int offset, int whence) { return 0; }
+  public static int sysClose(int fd) { return 0; }
+  public static int sysDelete(VM_Address name) { return 0; }
+  public static int sysRename(VM_Address fromName, VM_Address toName) { return 0; }
+  public static int sysMkDir(VM_Address name) { return 0; }
+  public static int sysBytesAvailable(int fd) { return 0; }
+  public static int sysIsValidFD(int fd) { return 0; }
+  public static int sysLength(int fd) { return 0; }
+  public static int sysSetLength(int fd, int len) { return 0; }
+  public static int sysSyncFile(int fd) { return 0; }
+  public static int sysIsTTY(int fd) { return 0; }
+  public static int sysSetFdCloseOnExec(int fd) { return 0; }
+  public static int sysAccess(VM_Address name, int kind) { return 0; }
 
-  /**
-   * call_A_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return address value returned by function in sys.C
-   */
-  public static VM_Address call_A_I(VM_Address ip, int p1)  {
+  // shm* - memory mapping
+  public static int sysShmget(int key, int size, int flags) { return 0; }
+  public static int sysShmctl(int shmid, int command) { return 0; }
+  public static VM_Address sysShmat(int shmid, VM_Address addr, int flags) { 
+    return null; 
+  }
+  public static int sysShmdt(VM_Address addr) { return 0; }
+
+  // mmap - memory mapping
+  public static VM_Address sysMMap(VM_Address start, VM_Extent length, int protection,
+				   int flags, int fd, long offset) { 
+    return null; 
+  }
+  public static VM_Address sysMMapNonFile(VM_Address start, VM_Extent length,
+					  int protection, int flags) {
     return null;
   }
-
-  /**
-   * call2
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return integer value returned by function in sys.C
-   */
-  public static int call2(VM_Address ip, int p1, int p2)  {
-    return 0;
-  }
-  
-  /**
-   * call_I_I_A
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return integer value returned by function in sys.C
-   */
-  public static int call_I_I_A(VM_Address ip, int p1, VM_Address p2)  {
-    return 0;
-  }
-
-  /**
-   * call_I_A_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return integer value returned by function in sys.C
-   */
-  public static int call_I_A_I(VM_Address ip, VM_Address p1, int p2)  {
-    return 0;
-  }
-
-  /**
-   * call_I_A_A
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return integer value returned by function in sys.C
-   */
-  public static int call_I_A_A(VM_Address ip, VM_Address p1, VM_Address p2)  {
-    return 0;
-  }
-
-  /**
-   * call_A_I_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return address value returned by function in sys.C
-   */
-  public static VM_Address call_A_I_I(VM_Address ip, int p1, int p2)  {
+  public static VM_Address sysMMapGeneralFile(VM_Address start, VM_Extent length,
+					      int fd, int prot) {
     return null;
   }
-
-  /**
-   * call_A_I_A
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return address value returned by function in sys.C
-   */
-  public static VM_Address call_A_I_A(VM_Address ip, int p1, VM_Address p2)  {
+  public static VM_Address sysMMapDemandZeroFixed(VM_Address start, VM_Extent length) {
     return null;
   }
-
-  /**
-   * call_A_A_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return address value returned by function in sys.C
-   */
-  public static VM_Address call_A_A_I(VM_Address ip, VM_Address p1, int p2)  {
-    return null;
+  public static VM_Address sysMMapDemandZeroAny(VM_Extent length) { return null; }
+  public static int sysMUnmap(VM_Address start, VM_Extent length) {
+    return 0;
   }
+  public static int sysMProtect(VM_Address start, VM_Extent length, int prot) {
+    return 0;
+  }
+  public static int sysMSync(VM_Address start, VM_Extent length, int flags) {
+    return 0;
+  }
+  public static int sysMAdvise(VM_Address start, VM_Extent length, int advice) {
+    return 0;
+  }
+  public static int sysGetPageSize() { return 0; }
 
-  /**
-   * call3
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @return integer value returned by function in sys.C
-   */
-  public static int call3(VM_Address ip, int p1, int p2, int p3)  {
+  // threads
+  public static int sysNumProcessors() { return 0; }
+  public static int sysVirtualProcessorCreate(VM_Address jtoc, 
+					      VM_Address pr, 
+					      VM_Address ti_or_ip,
+					      VM_Address fp) { 
+    return 0;
+  }
+  public static void sysVirtualProcessorBind(int cpuid) {}
+  public static void sysVirtualProcessorYield() {}
+  public static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {}
+  public static int sysPthreadSelf() { return 0; }
+  public static int sysPthreadSigWait(VM_Address lockwordAddress,
+				      int lockReleaseValue) {
+    return 0;
+  }
+  public static int sysPthreadSignal(int pthread) { return 0; }
+  public static void sysPthreadExit() {}
+  public static int sysPthreadJoin(int pthread) { return 0; }
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  public static int sysStashVmProcessorIdInPthread(int vmProcessorId) { return 0; }
+  //-#endif
+
+  // arithmetic 
+  public static long sysLongDivide(long x, long y) { return 0; }
+  public static long sysLongRemainder(long x, long y) { return 0; }
+  public static float sysLongToFloat(long x) { return 0f; }
+  public static double sysLongToDouble(long x) { return 0; }
+  public static int sysFloatToInt(float x) { return 0; }
+  public static int sysDoubleToInt(double x) { return 0; }
+  public static long sysFloatToLong(float x) { return 0; }
+  public static long sysDoubleToLong(double x) { return 0; }
+  //-#if RVM_FOR_POWERPC
+  public static double sysDoubleRemainder(double x, double y) { return 0; }
+  //-#endif
+
+  // time
+  public static long sysGetTimeOfDay() { return 0; }
+
+  // shared libraries
+  public static int sysDlopen(VM_Address libname) { return 0; }
+  public static void sysDlclose() {}
+  public static VM_Address sysDlsym(int libHandler, 
+				    VM_Address symbolName) { return null; }
+  public static void sysSlibclean() {}
+
+  // network
+  public static int sysNetLocalHostName(VM_Address buf, int limit) {
+    return 0;
+  }
+  public static int sysNetRemoteHostName(int internetAddress, 
+					 VM_Address buf,
+					 int limit) {
+    return 0;
+  }
+  public static int sysNetHostAddresses(VM_Address hostname, VM_Address buf, 
+					int limit) {
+    return 0;
+  }
+  public static int sysNetSocketCreate(int isStream) { return 0; }
+  public static int sysNetSocketPort(int fd) { return 0; }
+  public static int sysNetSocketFamily(int fd) { return 0; }
+  public static int sysNetSocketLocalAddress(int fd) { return 0; }
+  public static int sysNetSocketBind(int fd, int family, int localAddress,
+				     int localPort) { 
+    return 0;
+  }
+  public static int sysNetSocketConnect(int fd, int family, int remoteAddress,
+					int remotePort) {
+    return 0;
+  }
+  public static int sysNetSocketListen(int fd, int backlog) { return 0; }
+  public static int sysNetSocketAccept(int fd, VM_Address connectionObject) {
+    return 0;
+  }
+  public static int sysNetSocketLinger(int fd, int enable, int timeout) {
+    return 0;
+  }
+  public static int sysNetSocketNoDelay(int fd, int enable) {
+    return 0;
+  }
+  public static int sysNetSocketNoBlock(int fd, int enable) {
+    return 0;
+  }
+  public static int sysNetSocketClose(int fd) {
+    return 0;
+  }
+  public static int sysNetSocketShutdown(int fd, int how) {
+    return 0;
+  }
+  public static int sysNetSelect(VM_Address allFds, int rc, int wc, int ec) {
     return 0;
   }
 
-  /**
-   * call_I_A_I_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @return integer value returned by function in sys.C
-   */
-  public static int call_I_A_I_I(VM_Address ip, VM_Address p1, int p2, int p3)  {
-    return 0;
-  }
-  
-  /**
-   * call_I_I_A_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @return integer value returned by function in sys.C
-   */
-  public static int call_I_I_A_I(VM_Address ip, int p1, VM_Address p2, int p3)  {
-    return 0;
-  }
+  // process management
+  public static void sysWaitPids(VM_Address pidArray, VM_Address exitStatusArray,
+				 int numPids) {}
 
-  public static long call_L_L_L(VM_Address ip, long v1, long v2) {
-    return 0L;
-  }
+  public static int sysSprintf(VM_Address buffer, double d) { return 0; }
 
-  public static int call_I_D(VM_Address ip, double v2) {
-    return 20;
-  }
-  public static double call_D_L(VM_Address ip, long v2) {
-    return 20;
-  }
-  public static float call_F_L(VM_Address ip, long v2) {
-    return 20f;
-  }
-  public static float call_F_I(VM_Address ip, int v2) {
-    return 20f;
-  }
+  //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  // system startup pthread sync. primitives
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  public static void sysCreateThreadSpecificDataKeys() {}
+  //-#endif
+  public static void sysInitializeStartupLocks(int howMany) {}
+  public static void sysWaitForVirtualProcessorInitialization() {} 
+  public static void sysWaitForMultithreadingStart() {} 
+  //-#endif
 
-  /**
-   * call_I_A_A_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @return integer value returned by function in sys.C
-   */
-  public static int call_I_A_A_I(VM_Address ip, VM_Address p1, VM_Address p2, int p3)  {
-    return 0;
-  }
-
-  /**
-   * call_A_I_A_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @return address value returned by function in sys.C
-   */
-  public static VM_Address call_A_I_A_I(VM_Address ip, int p1, VM_Address p2, int p3)  {
-    return null;
-  }
-
-  /**
-   * call4
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @return integer value returned by function in sys.C
-   */
-  public static int call4(VM_Address ip, int p1, int p2, int p3, int p4)  {
-    return 0;
-  }
-
-  /**
-   * call_I_A_I_I_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @return address value returned by function in sys.C
-   */
-  public static int call_I_A_I_I_I(VM_Address ip, VM_Address p1, int p2, int p3, int p4)  {
-    return 0;
-  }
-
-  /**
-   * call_I_A_A_A_A
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @return address value returned by function in sys.C
-   */
-  public static int call_I_A_A_A_A(VM_Address ip, VM_Address p1, VM_Address p2, VM_Address p3, VM_Address p4)  {
-    return 0;
-  }
-
-  /**
-   * call_A_A_I_I_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @param p3
-   * @param p4
-   * @return address value returned by function in sys.C
-   */
-  public static VM_Address call_A_A_I_I_I(VM_Address ip, VM_Address p1, int p2, int p3, int p4)  {
-    return null;
-  }
-
-  /**
-   * call_L_0
-   * @param ip  address of a function in sys.C 
-   * @return long value returned by function in sys.C
-   */
-  public static long call_L_0(VM_Address ip)  {
-    return 0;
-  }
-
-  /**
-   * call_L_I
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @return long value returned by function in sys.C
-   */
-  public static long call_L_I(VM_Address ip, int p1)  {
-    return 0;
-  }
-
-  /**
-   * call_I_L_I
-   * @param ip  address of a function in sys.C 
-   * @param p1  long value
-   * @param p2
-   * @return int value returned by function in sys.C
-   */
-  public static int call_I_L_I(VM_Address ip, long p1, int p2)  {
-    return 0; // TODO
-  }
-
-  /**
-   * callAD
-   * @param ip  address of a function in sys.C 
-   * @param p1
-   * @param p2
-   * @return integer value returned by function in sys.C
-   */
-  public static int callAD(VM_Address ip, VM_Address p1, double p2)  {
-    return 0;
-  }
+  //-#if RVM_WITH_HPM
+  // sysCall entry points to HPM
+  public static int sysHPMinit() { return 0; }
+  public static int sysHPMsetEvent(int e1, int e2, int e3, int e4) { return 0; }
+  public static int sysHPMsetEventX(int e5, int e6, int e7, int e8) {return 0; } 
+  public static int sysHPMsetMode(int mode) { return 0; }
+  public static int sysHPMgetNumberOfCounters() { return 0; }
+  public static int sysHPMtest() { return 0; }
+  public static int sysHPMsetProgramMyThread() { return 0; }
+  public static int sysHPMstartMyThread() { return 0; }
+  public static int sysHPMstopMyThread() { return 0; }
+  public static int sysHPMresetMyThread() { return 0; }
+  public static int sysHPMgetCounterMyThread(int counter) { return 0; }
+  public static int sysHPMsetProgramMyGroup() { return 0; }
+  public static int sysHPMstartMyGroup() { return 0; }
+  public static int sysHPMstopMyGroup() { return 0; }
+  public static int sysHPMresetMyGroup() { return 0; }
+  public static int sysHPMgetCounterMyGroup(int counter) { return 0; }
+  public static int sysHPMprintMyGroup() { return 0; }
+  //-#endif
 }

@@ -62,11 +62,11 @@ public final class SynchronizationBarrier {
   /* Utility routines - access to various VM features */
 
   private static void lowYield() throws VM_PragmaUninterruptible {
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+    VM_SysCall.sysVirtualProcessorYield();
   }
 
   private static int numProcessors() throws VM_PragmaUninterruptible {
-    return VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
+    return VM_SysCall.sysNumProcessors();
   }
 
   /**

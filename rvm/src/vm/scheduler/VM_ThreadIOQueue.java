@@ -230,14 +230,12 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
 
     // Do the select()
     VM_Processor.getCurrentProcessor().isInSelect = true;
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     selectInProgressMutex.lock();
-    int ret = VM_SysCall.call_I_A_I_I_I(
-      bootRecord.sysNetSelectIP,
-      VM_Magic.objectAsAddress(allFds),
-      readCount,
-      writeCount,
-      exceptCount);
+    int ret = VM_SysCall.sysNetSelect(
+				      VM_Magic.objectAsAddress(allFds),
+				      readCount,
+				      writeCount,
+				      exceptCount);
     selectInProgressMutex.unlock();
     VM_Processor.getCurrentProcessor().isInSelect = false;
 

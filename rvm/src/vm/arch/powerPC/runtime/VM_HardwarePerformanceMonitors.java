@@ -314,31 +314,29 @@ public class VM_HardwarePerformanceMonitors
 	VM.sysWrite("\n");
       }
       if(verbose>=2)VM.sysWrite("VM_HPMs.boot() call hpmInit()\n");
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMinitIP);
+      VM_SysCall.sysHPMinit();
       // get number of counters
-      hpm_info.numberOfCounters = VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMgetNumberOfCountersIP);
+      hpm_info.numberOfCounters = VM_SysCall.sysHPMgetNumberOfCounters();
 
       if(verbose>=2) {
 	VM.sysWrite("VM_HPMs.boot() call hpmSetEvent(");
 	VM.sysWrite(events[1]);VM.sysWrite(",");VM.sysWrite(events[2]);VM.sysWrite(",");
 	VM.sysWrite(events[3]);VM.sysWrite(",");VM.sysWrite(events[4]);VM.sysWrite(")\n");
       }
-      VM_SysCall.call4(VM_BootRecord.the_boot_record.sysHPMsetEventIP,
-	       events[1],events[2],events[3],events[4]);
+      VM_SysCall.sysHPMsetEvent(events[1],events[2],events[3],events[4]);
       if(verbose>=2){
 	VM.sysWrite("VM_HPMs.boot() call hpmSetEventX(");
 	VM.sysWrite(events[5]);VM.sysWrite(",");VM.sysWrite(events[6]);VM.sysWrite(",");
 	VM.sysWrite(events[7]);VM.sysWrite(",");VM.sysWrite(events[8]);VM.sysWrite(")\n");
       }
-      VM_SysCall.call4(VM_BootRecord.the_boot_record.sysHPMsetEventXIP,
-	       events[5],events[6],events[7],events[8]);
+      VM_SysCall.sysHPMsetEventX(events[5],events[6],events[7],events[8]);
       if(verbose>=2){
 	VM.sysWrite("VM_HPMs.boot() call hpmSetMode(",hpm_info.mode,")\n");
       }
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysHPMsetModeIP, hpm_info.mode);
+      VM_SysCall.sysHPMsetMode(hpm_info.mode);
       if (hpm_thread_group) {
-	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMsetProgramMyGroupIP);
-	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyGroupIP);
+	VM_SysCall.sysHPMsetProgramMyGroup();
+	VM_SysCall.sysHPMstartMyGroup();
       }
       //-#endif
     }
@@ -976,7 +974,7 @@ public class VM_HardwarePerformanceMonitors
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.report_MyGroup()\n");
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMprintMyGroupIP);
+      VM_SysCall.sysHPMprintMyGroup();
       //-#endif
     }
   }
@@ -991,8 +989,8 @@ public class VM_HardwarePerformanceMonitors
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stopAndReport_MyGroup()\n");
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstopMyGroupIP);
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMprintMyGroupIP);
+      VM_SysCall.sysHPMstopMyGroup();
+      VM_SysCall.sysHPMprintMyGroup();
       //-#endif
     }
   }
@@ -1005,7 +1003,7 @@ public class VM_HardwarePerformanceMonitors
   static private void start() 
   {
     //-#if RVM_WITH_HPM
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+    VM_SysCall.sysHPMstartMyThread();
     //-#endif
   }
   /*
@@ -1016,7 +1014,7 @@ public class VM_HardwarePerformanceMonitors
   static private void stop() 
   {
     //-#if RVM_WITH_HPM
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstopMyThreadIP);
+    VM_SysCall.sysHPMstopMyThread();
     //-#endif
   }
   /*
@@ -1027,7 +1025,7 @@ public class VM_HardwarePerformanceMonitors
   static private void reset() 
   {
     //-#if RVM_WITH_HPM
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
+    VM_SysCall.sysHPMresetMyThread();
     //-#endif
   }
 

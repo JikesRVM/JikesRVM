@@ -1998,7 +1998,7 @@ extern "C" int sysShmctl(int shmid, int command)
 
 // mmap - general case
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 //        desired protection (Java int)
 //        flags (Java int)
 //        file descriptor (Java int)
@@ -2006,7 +2006,7 @@ extern "C" int sysShmctl(int shmid, int command)
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 //
 extern "C" void *
-sysMMap(char *start, char *length, int protection, int flags, int fd, long long offset)
+sysMMap(char *start, size_t length, int protection, int flags, int fd, long long offset)
    {
    fprintf(SysErrorFile, "vm: sysMMap called, but it's unimplemented\n");
    sysExit(1);
@@ -2016,7 +2016,7 @@ sysMMap(char *start, char *length, int protection, int flags, int fd, long long 
 
 // mmap - non-file general case
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 //        desired protection (Java int)
 //        flags (Java int)
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
@@ -2037,87 +2037,87 @@ sysMMapNonFile(char *start, char *length, int protection, int flags)
 
 // mmap - demand zero fixed address case
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 //
 extern "C" char *
-sysMMapGeneralFile(char *start, char *length, int fd, int prot)
+sysMMapGeneralFile(char *start, size_t length, int fd, int prot)
    {
    int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
-   char *foo = (char *) mmap(start, (size_t)(length), prot, flag, fd, 0);
+   char *foo = (char *) mmap(start, length, prot, flag, fd, 0);
 
    return foo;
    }
 
 // mmap - demand zero fixed address case
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 //
 extern "C" char *
-sysMMapDemandZeroFixed(char *start, char *length)
+sysMMapDemandZeroFixed(char *start, size_t length)
    {
    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
    int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
-   return (char *) mmap(start, (size_t)(length), prot, flag, -1, 0);
+   return (char *) mmap(start, length, prot, flag, -1, 0);
    }
 
 // mmap - demand zero any address case
-// Taken: length of region (Java ADDRESS)
+// Taken: length of region (Java EXTENT)
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 //
 extern "C" char *
-sysMMapDemandZeroAny(char *length)
+sysMMapDemandZeroAny(size_t length)
    {
    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
    int flag = MAP_ANONYMOUS | MAP_PRIVATE;
-   return (char *) mmap(0, (size_t)(length), prot, flag, -1, 0);
+   return (char *) mmap(0, length, prot, flag, -1, 0);
    }
 
 // munmap
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 // Returned: 0 (success) or -1 (failure) (Java int)
 extern "C" int
-sysMUnmap(char *start, char *length)
+sysMUnmap(char *start, size_t length)
    {
-   return munmap(start, (size_t)(length));
+   return munmap(start, length);
    }
 
 // mprotect
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 //        new protection (Java int)
 // Returned: 0 (success) or -1 (failure) (Java int)
 extern "C" int
-sysMProtect(char *start, char *length, int prot)
+sysMProtect(char *start, size_t length, int prot)
    {
-   return mprotect(start, (size_t)(length), prot);
+   return mprotect(start, length, prot);
    }
 
 // msync
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 //        flags (Java int)
 // Returned: 0 (success) or -1 (failure) (Java int)
 extern "C" int
-sysMSync(char *start, char *length, int flags)
+sysMSync(char *start, size_t length, int flags)
    {
-   return msync(start, (size_t)(length), flags);
+   return msync(start, length, flags);
    }
 
 // madvise
 // Taken: start address (Java ADDRESS)
-//        length of region (Java ADDRESS)
+//        length of region (Java EXTENT)
 //        advice (Java int)
 // Returned: 0 (success) or -1 (failure) (Java int)
 extern "C" int
-sysMAdvise(char *start, char *length, int advice)
+sysMAdvise(char *start, size_t length, int advice)
    {
 #ifdef RVM_FOR_LINUX
    return -1; // unimplemented in Linux
 #else
-   return madvise(start, (size_t)(length), advice);
+   return madvise(start, length, advice);
 #endif
    }
 
@@ -2184,11 +2184,10 @@ sysDlopen(char *libname)
 // Taken:
 // Returned:
 //
-extern "C" int
+extern "C" void*
 sysDlsym(int libHandler, char *symbolName)
    {
-   void *symbolAddress = dlsym((void *) libHandler, symbolName);
-   return (int)symbolAddress;
+   return dlsym((void *) libHandler, symbolName);
    }
 
 // Unload dynamic library.

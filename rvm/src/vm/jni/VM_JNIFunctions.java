@@ -3869,7 +3869,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       char[] contents = str.toCharArray();
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, len*2);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(len*2);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -3905,7 +3905,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
 
     try {
-      VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress);
+      VM_SysCall.sysFree(bufAddress);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -3992,7 +3992,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
       // alloc non moving buffer in C heap for string contents as utf8 array
       // alloc extra byte for C null terminator
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, copyBufferLen);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(copyBufferLen);
 
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
@@ -4032,7 +4032,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
 
     try {
-      VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, bufAddress);
+      VM_SysCall.sysFree(bufAddress);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
@@ -4352,7 +4352,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4396,7 +4396,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4441,7 +4441,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP,  size*BYTES_IN_CHAR);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_CHAR);
       if (copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4485,7 +4485,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP,  size*BYTES_IN_SHORT);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size*BYTES_IN_SHORT);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4529,7 +4529,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of array contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size << LOG_BYTES_IN_INT);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_INT);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4572,7 +4572,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size << LOG_BYTES_IN_LONG);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_LONG);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4615,7 +4615,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size << LOG_BYTES_IN_FLOAT);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_FLOAT);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4659,7 +4659,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       int size = sourceArray.length;
 
       // alloc non moving buffer in C heap for a copy of string contents
-      VM_Address copyBuffer = VM_SysCall.call_A_I(VM_BootRecord.the_boot_record.sysMallocIP, size << LOG_BYTES_IN_DOUBLE);
+      VM_Address copyBuffer = VM_SysCall.sysMalloc(size << LOG_BYTES_IN_DOUBLE);
       if(copyBuffer.isZero()) {
         env.recordException(new OutOfMemoryError());
         return VM_Address.zero();
@@ -4735,7 +4735,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4773,7 +4773,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4811,7 +4811,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4849,7 +4849,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4887,7 +4887,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4926,7 +4926,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -4964,7 +4964,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {
@@ -5002,7 +5002,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 
 	// mode 0 and mode 2:  free the buffer
 	if (releaseMode== 0 || releaseMode== 2) {
-	  VM_SysCall.call_I_A(VM_BootRecord.the_boot_record.sysFreeIP, copyBufferAddress);
+	  VM_SysCall.sysFree(copyBufferAddress);
 	}
       }
     } catch (Throwable unexpected) {

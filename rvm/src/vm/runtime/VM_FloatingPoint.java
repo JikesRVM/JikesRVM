@@ -18,11 +18,9 @@ public class VM_FloatingPoint {
 
     String str = null;
 
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     byte [] buffer = new byte[256];
-    int rc = VM_SysCall.callAD(bootRecord.sysSprintfIP,
-                          VM_Magic.objectAsAddress(buffer),		
-                          value);
+    int rc = VM_SysCall.sysSprintf(VM_Magic.objectAsAddress(buffer),
+				   value);
     str =  new String(buffer, 0, rc);
 
     if (str == null) return null;

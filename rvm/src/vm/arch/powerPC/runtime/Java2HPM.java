@@ -141,15 +141,15 @@ public class Java2HPM
       Java2HPM.resetMyThread();
       Java2HPM.startMyThread();
     } else {
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+      VM_SysCall.sysHPMresetMyThread();
+      VM_SysCall.sysHPMstartMyThread();
     }
 
     for (int i = 0; i < iterations; i++) {	
       if (jni == JNI) {
 	Java2HPM.test();
       } else {
-	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMtestIP);
+	VM_SysCall.sysHPMtest();
       }
     }
 
@@ -157,7 +157,7 @@ public class Java2HPM
     if (jni == JNI) {
       cycles = Java2HPM.getCounterMyThread(cycle_counter);
     } else {
-      cycles = VM_SysCall.call_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,cycle_counter);
+      cycles = VM_SysCall.sysHPMgetCounterMyThread(cycle_counter);
     }
 
     double endTime = VM_Time.now();
@@ -198,8 +198,8 @@ public class Java2HPM
       Java2HPM.resetMyThread();
       Java2HPM.startMyThread();
     } else {
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+      VM_SysCall.sysHPMresetMyThread();
+      VM_SysCall.sysHPMstartMyThread();
     }
 
     long count;
@@ -207,7 +207,7 @@ public class Java2HPM
       if (jni == JNI) {
 	count = Java2HPM.getCounterMyThread(counter);
       } else {
-	count = VM_SysCall.call_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,counter);
+	count = VM_SysCall.sysHPMgetCounterMyThread(counter);
       }
     }
 
@@ -215,7 +215,7 @@ public class Java2HPM
     if (jni == JNI) {
       cycles = Java2HPM.getCounterMyThread(cycle_counter);
     } else {
-      cycles = VM_SysCall.call_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,cycle_counter);
+      cycles = VM_SysCall.sysHPMgetCounterMyThread(cycle_counter);
     }
 
     double endTime       = VM_Time.now();

@@ -545,8 +545,7 @@ implements VM_Uninterruptible, VM_Constants {
     VM.sysWrite("stashProcessorInPthread: my address = " +
       Integer.toHexString(VM_Magic.objectAsAddress(this).toInt()) + "\n");
 */
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysStashVmProcessorIdInPthreadIP,
-      this.id);
+    VM_SysCall.sysStashVmProcessorIdInPthread(this.id);
   }
   //-#endif
 

@@ -227,7 +227,7 @@ class VM_NativeDaemonThread extends VM_Thread {
       VM_Scheduler.trace("NDT","signalling NIT on processor",stuckProcessor.id);
       VM_Scheduler.trace("NDT","with pthread_id =",stuckProcessor.pthread_id);
      }
-     VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP, stuckProcessor.pthread_id);
+     VM_SysCall.sysPthreadSignal(stuckProcessor.pthread_id);
 
      // wait for the native processor status to become UNBLOCKED before returning.
      // if we return with it blocked, and GC immediately initiates, GC will find

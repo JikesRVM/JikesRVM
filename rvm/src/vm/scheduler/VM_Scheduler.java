@@ -435,12 +435,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // each join with the expected pthread 
     if (VPtoWaitFor!=null) {
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadJoinIP,
-                  VPtoWaitFor.pthread_id);
+      VM_SysCall.sysPthreadJoin(VPtoWaitFor.pthread_id);
     }
 
     // then exit myself with pthread_exit
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysPthreadExitIP);	
+    VM_SysCall.sysPthreadExit();
 
     // does not return
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -732,7 +731,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     } else {
       // Another failure occured while attempting to exit cleanly.  
       // Get out quick and dirty to avoid hanging.
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, 9999);
+      VM_SysCall.sysExit(9999);
     }
   }
 

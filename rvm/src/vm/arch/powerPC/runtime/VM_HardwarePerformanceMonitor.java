@@ -127,7 +127,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
 				boolean timerInterrupted)
   {
     //-#if RVM_WITH_HPM
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstopMyThreadIP);
+    VM_SysCall.sysHPMstopMyThread();
     long endOfWallTime   = VM_Magic.getTimeBase();
     long startOfWallTime = 0;
     long wallTime        = 0;
@@ -148,7 +148,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     tmp_counters.counters[0] = wallTime;	// need relative time for aggregate values
     // read counters
     for (int i=1; i<=n_counters; i++) {
-      long value = VM_SysCall.call_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,i);
+      long value = VM_SysCall.sysHPMgetCounterMyThread(i);
       tmp_counters.counters[i] = value;
     }
     if (VM_HardwarePerformanceMonitors.hpm_trace) {     // tracing on ?
@@ -170,8 +170,8 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       if(VM_HardwarePerformanceMonitors.verbose>=3)
 	VM.sysWriteln("***VM_HPM.updateHPMcounters() current_thread == null!***");
     }
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+    VM_SysCall.sysHPMresetMyThread();
+    VM_SysCall.sysHPMstartMyThread();
     //-#endif
   }
 

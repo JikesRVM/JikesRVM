@@ -210,13 +210,13 @@ class OPT_GenerateMagic implements OPT_Operators,
       // All methods of VM_SysCall have the following signature:
       // callNAME(VM_Address code, <var args to pass via native calling convention>)
       VM_TypeReference[] args = meth.getParameterTypes();
-      int numArgs = args.length - 1;
-      OPT_Instruction call = Call.create(SYSCALL, null, null, null, null,  numArgs);
-      for (int i = numArgs; i > 0; i--) {
-	Call.setParam(call, i-1, bc2ir.pop(args[i]));
+      int numArgs = args.length;
+      VM_Field ip = VM_Entrypoints.getSysCallField(meth.getName().toString());
+      OPT_MethodOperand mo = OPT_MethodOperand.STATIC(ip);
+      OPT_Instruction call = Call.create(SYSCALL, null, null, mo, null,  args.length);
+      for (int i = args.length-1; i >= 0; i--) {
+	Call.setParam(call, i, bc2ir.pop(args[i]));
       }
-      OPT_Operand code = bc2ir.popRef();
-      Call.setAddress(call, code);
       VM_TypeReference rtype = meth.getReturnType();
       if (!rtype.isVoidType()) {
 	OPT_RegisterOperand op0 = gc.temps.makeTemp(rtype);

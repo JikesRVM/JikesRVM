@@ -332,4 +332,11 @@ public class VM_Entrypoints implements VM_Constants {
   private static VM_Field getField(String klass, String member, String descriptor) {
     return (VM_Field)getMember(klass, member, descriptor);
   }
+
+  public static VM_Field getSysCallField(String name) {
+    return (VM_Field)getMember("Lcom/ibm/JikesRVM/VM_BootRecord;", 
+			       name+"IP", 
+			       "Lcom/ibm/JikesRVM/VM_Address;");
+  }
+
 }

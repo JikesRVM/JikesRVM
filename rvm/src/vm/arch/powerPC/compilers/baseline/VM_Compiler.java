@@ -3357,14 +3357,14 @@ public class VM_Compiler extends VM_BaselineCompiler
       // (1) Set up arguments according to OS calling convention
       int paramWords = methodToBeCalled.getParameterWords();
       if (VM.VerifyAssertions) {
-	// Be lazy for now.  We don't support sysCalls with so 
+	// Laziness.  We don't support sysCalls with so 
 	// many arguments that we would have to spill some to the stack.
-	VM._assert(paramWords - 1 <= (LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1));
+	VM._assert(paramWords <= (LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1));
       }
       int gp = FIRST_OS_PARAMETER_GPR;
       int fp = FIRST_OS_PARAMETER_FPR;
-      int stackIndex = paramWords -1;
-      for (int i=1; i<args.length; i++) {
+      int stackIndex = paramWords;
+      for (int i=0; i<args.length; i++) {
 	VM_TypeReference t = args[i];
 	if (t.isLongType()) {
 	  stackIndex -= 2;
@@ -3390,8 +3390,10 @@ public class VM_Compiler extends VM_BaselineCompiler
 	}
       }
       if (VM.VerifyAssertions) VM._assert(stackIndex == 0);
-      int paramBytes = (paramWords - 1) * BYTES_IN_STACKSLOT;
-      generateSysCall1(paramBytes);
+
+      int paramBytes = paramWords * BYTES_IN_STACKSLOT;
+      VM_Field ip = VM_Entrypoints.getSysCallField(methodName.toString());
+      generateSysCall(paramBytes, ip);
       if (rtype.isVoidType()) {
 	generateSysCallRet_V(paramBytes);
       } else if (rtype.isDoubleType()) {
@@ -4053,7 +4055,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
   /** 
-   * generate call and return sequence to invoke a C arithmetic helper function through the boot record
+   * generate call and return sequence to invoke a C function through the boot record
    * field specificed by target,  See comments above in sysCall1 about AIX linkage conventions.
    * Caller deals with expression stack (setting up args, pushing return, adjusting stack height)
    */
@@ -4083,36 +4085,36 @@ public class VM_Compiler extends VM_BaselineCompiler
 
 
   private void generateSysCallRet_V(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    int parameterAreaSize = rawParametersSize;
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);      // pop args
   }
 
   private void generateSysCallRet_A(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    int parameterAreaSize = rawParametersSize;
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
     pushAddr(T0);                         // deposit C return value (R3) on stacktop
   }
 
   private void generateSysCallRet_I(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    int parameterAreaSize = rawParametersSize;
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
     pushInt(T0);                         // deposit C return value (R3) on stacktop
   }
 
   private void generateSysCallRet_L(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT; // IP was a param at the Java level
+    int parameterAreaSize = rawParametersSize;
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
     pushLong(T0, VM.BuildFor64Addr?T0:T1);                        // deposit C return value (R3, R4) on stacktop
   }
 
   private void generateSysCallRet_F(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT;// IP was a param at the Java level
+    int parameterAreaSize = rawParametersSize;
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);     // pop args
     pushFloat(FIRST_OS_PARAMETER_FPR);                             // deposit C return value on stacktop
   }
 
   private void generateSysCallRet_D(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize + BYTES_IN_STACKSLOT;// IP was a param at the Java level
+    int parameterAreaSize = rawParametersSize;
     discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);     // pop args
     pushDouble(FIRST_OS_PARAMETER_FPR);                            // deposit C return value on stacktop
   }

@@ -59,8 +59,7 @@ private static void checkIoWaitWrite(VM_ThreadIOWaitData waitData)
  */
 
 public static InetAddress getSocketLocalAddressImpl(FileDescriptor aFD) {
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int localaddr = VM_SysCall.call1(bootRecord.sysNetSocketLocalAddressIP, java.io.JikesRVMSupport.getFd(aFD));
+    int localaddr = VM_SysCall.sysNetSocketLocalAddress(java.io.JikesRVMSupport.getFd(aFD));
 
     if (localaddr == -1) VM.sysFail("Socket has no local address!");
 
@@ -79,13 +78,8 @@ public static InetAddress getSocketLocalAddressImpl(FileDescriptor aFD) {
  */
 
 public static int getSocketLocalPortImpl(FileDescriptor aFD) {
-
-	int localPort;
-
-	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-        localPort = VM_SysCall.call1(bootRecord.sysNetSocketPortIP,
-				   java.io.JikesRVMSupport.getFd(aFD));
-	return localPort;
+  int localPort = VM_SysCall.sysNetSocketPort(java.io.JikesRVMSupport.getFd(aFD));
+  return localPort;
 
 }  // end method getSocketLocalPortImpl
 
@@ -136,8 +130,6 @@ public static Object getSocketOptionImpl(FileDescriptor aFD, int opt)
 public static void setSocketOptionImpl(FileDescriptor aFD, int option, Object optVal)
 	throws SocketException {
 
-       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-
        int fd = java.io.JikesRVMSupport.getFd(aFD);
        
        switch (option)
@@ -147,13 +139,13 @@ public static void setSocketOptionImpl(FileDescriptor aFD, int option, Object op
 	      { // when socket is closed on this end, wait until unsent data has been received
 		  // by other end or timeout expires
 		  //
-		  int rc = VM_SysCall.call3(bootRecord.sysNetSocketLingerIP, fd, 1, ((Integer)optVal).intValue());
+		  int rc = VM_SysCall.sysNetSocketLinger(fd, 1, ((Integer)optVal).intValue());
 		  if (rc == -1) throw new SocketException("SO_LINGER"); // !!TODO: what additional details should be supplied with exception?
 	      }
 	  else
 	      { // when socket is closed on this end, discard any unsent data
 		  //
-		  int rc = VM_SysCall.call3(bootRecord.sysNetSocketLingerIP, fd, 0, 0);
+		  int rc = VM_SysCall.sysNetSocketLinger(fd, 0, 0);
 		  if (rc == -1) throw new SocketException("SO_LINGER"); // !!TODO: what additional details should be supplied with exception?
 	      }
 	  } break;
@@ -168,9 +160,8 @@ public static void setSocketOptionImpl(FileDescriptor aFD, int option, Object op
           case SocketOptions.TCP_NODELAY:
           { // true:  send data immediately when socket is written to
             // false: delay sending, in order to coalesce packets
-          int rc = VM_SysCall.call2(bootRecord.sysNetSocketNoDelayIP,
-				     fd,
-				     ((Boolean)optVal).booleanValue() ? 1 : 0);
+	    int rc = VM_SysCall.sysNetSocketNoDelay(fd,
+						    ((Boolean)optVal).booleanValue() ? 1 : 0);
           if (rc == -1) throw new SocketException("setTcpNoDelay");
           break;
           }
@@ -214,12 +205,10 @@ public static void socketBindImpl(FileDescriptor aFD, int localPort,
 	  
        int family = JikesRVMSupport.getFamily(localAddress);
 
-       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-       int rc = VM_SysCall.call4(bootRecord.sysNetSocketBindIP,
-				  java.io.JikesRVMSupport.getFd(aFD),
-				  family,
-				  address,
-				  localPort);
+       int rc = VM_SysCall.sysNetSocketBind(java.io.JikesRVMSupport.getFd(aFD),
+					    family,
+					    address,
+					    localPort);
 
        if (rc != 0)
           throw new BindException();
@@ -243,9 +232,7 @@ public static void socketCloseImpl(FileDescriptor aFD) {
 
        if (trace) VM_Scheduler.trace("VM_SocketImpl.socketCloseImpl",
 				     "socketClose", fd);
-       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-
-       int rc = VM_SysCall.call1(bootRecord.sysNetSocketCloseIP, fd);
+       int rc = VM_SysCall.sysNetSocketClose(fd);
     
 }  // end method socketCloseImpl
 
@@ -259,8 +246,7 @@ private static final int CLOSE_OUTPUT = 1;
  * @param		aFD		the socket descriptor
  */
 public static void socketCloseInputImpl(FileDescriptor aFD) throws IOException {
-  VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-  if (VM_SysCall.call2(bootRecord.sysNetSocketShutdownIP, java.io.JikesRVMSupport.getFd(aFD), CLOSE_INPUT) != 0)
+  if (VM_SysCall.sysNetSocketShutdown(java.io.JikesRVMSupport.getFd(aFD), CLOSE_INPUT) != 0)
     throw new IOException("could not close input side of socket");
 }
 
@@ -271,8 +257,7 @@ public static void socketCloseInputImpl(FileDescriptor aFD) throws IOException {
  * @param		aFD		the socket descriptor
  */
 public static void socketCloseOutputImpl(FileDescriptor aFD) throws IOException {
-  VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-  if (VM_SysCall.call2(bootRecord.sysNetSocketShutdownIP, java.io.JikesRVMSupport.getFd(aFD), CLOSE_OUTPUT) != 0)
+  if (VM_SysCall.sysNetSocketShutdown(java.io.JikesRVMSupport.getFd(aFD), CLOSE_OUTPUT) != 0)
     throw new IOException("could not close input side of socket");
 }
 
@@ -325,11 +310,9 @@ public static FileDescriptor acceptStreamSocketImpl(
   // the timeout (if any) is reached, or an error occurs.
   for (;;) {
     // Try to accept a connection
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM_ThreadIOQueue.selectInProgressMutex.lock();
-    connectionFd = VM_SysCall.call_I_I_A(bootRecord.sysNetSocketAcceptIP,
-				   fd,
-				   VM_Magic.objectAsAddress(newSocket));
+    connectionFd = VM_SysCall.sysNetSocketAccept(fd,
+						 VM_Magic.objectAsAddress(newSocket));
     VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
     if (connectionFd >= 0)
@@ -435,8 +418,6 @@ public static void connectStreamSocketImpl(FileDescriptor aFD,
 				    InetAddress remoteAddress)
 	throws IOException {
 
-       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-
        int fd = java.io.JikesRVMSupport.getFd(aFD);
        
        if (trace) VM_Scheduler.trace("VM_SocketImpl.connectStreamSocketImpl", 
@@ -460,11 +441,10 @@ public static void connectStreamSocketImpl(FileDescriptor aFD,
        
        while (rc < 0) {
 	   VM_ThreadIOQueue.selectInProgressMutex.lock();
-          rc = VM_SysCall.call4(bootRecord.sysNetSocketConnectIP,
-				     fd, 
-				     family,
-				     address,
-				     remotePort);
+	   rc = VM_SysCall.sysNetSocketConnect(fd, 
+					       family,
+					       address,
+					       remotePort);
 	  VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
           switch (rc) {
@@ -533,8 +513,6 @@ public static FileDescriptor createStreamSocketImpl() throws SocketException {
     int fd;
     boolean isStream = true;
     
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    
     /*
      * The field fd of FileDescription is is the integer UNIX file
      * descriptor.  This filed is not documented since it is normally
@@ -542,7 +520,7 @@ public static FileDescriptor createStreamSocketImpl() throws SocketException {
      * of FileDescriptor that we use has modified the field fd to
      * be public
      */
-    fd = VM_SysCall.call1(bootRecord.sysNetSocketCreateIP, isStream ? 1 : 0);
+    fd = VM_SysCall.sysNetSocketCreate(isStream ? 1 : 0);
 
     if (fd < 0)
 	// !!TODO: what additional details should be supplied with exception?
@@ -578,9 +556,7 @@ public static FileDescriptor createStreamSocketImpl() throws SocketException {
 public static void listenStreamSocketImpl(FileDescriptor aFD, int backlog)
 	throws SocketException {
 
-       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-       int rc = VM_SysCall.call2(bootRecord.sysNetSocketListenIP,
-				  java.io.JikesRVMSupport.getFd(aFD), backlog);
+       int rc = VM_SysCall.sysNetSocketListen(java.io.JikesRVMSupport.getFd(aFD), backlog);
 
        if (rc == -1)
           throw new SocketException(); // !!TODO: what additional details should be supplied with exception?

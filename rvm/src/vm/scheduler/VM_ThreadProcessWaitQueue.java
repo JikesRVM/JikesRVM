@@ -160,13 +160,9 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     waitPidLock.lock();
 
     // Call sysWaitPids() to see which (if any) have finished
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    VM_SysCall.call_I_A_A_I(
-      bootRecord.sysWaitPidsIP,
-      VM_Magic.objectAsAddress(pidArray),
-      VM_Magic.objectAsAddress(exitStatusArray),
-      numPids
-    );
+    VM_SysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray),
+			   VM_Magic.objectAsAddress(exitStatusArray),
+			   numPids);
 
     waitPidLock.unlock();
 

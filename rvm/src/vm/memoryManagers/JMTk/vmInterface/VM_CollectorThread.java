@@ -477,7 +477,7 @@ public class VM_CollectorThread extends VM_Thread {
 	// first unblock the processor
 	vp.vpStatus[vp.vpStatusIndex] = VM_Processor.IN_SIGWAIT;
 	// then send signal
-	VM_SysCall.call1(VM_BootRecord.the_boot_record.sysPthreadSignalIP,vp.pthread_id);
+	VM_SysCall.sysPthreadSignal(vp.pthread_id);
 	continue;
       }
 

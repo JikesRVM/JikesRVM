@@ -37,7 +37,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	this.streaming = streaming;
 	if (streaming) {
     	    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	    int ifd = VM_SysCall.call1(bootRecord.sysNetSocketCreateIP, 1);
+	    int ifd = VM_SysCall.sysNetSocketCreate(1);
 
 	    if (ifd < 0)
 		throw new SocketException(); 
@@ -111,11 +111,10 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	address |= ((ip[0] << (3*BITS_IN_BYTE)) & 0xff000000); 
 	
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	int rc = VM_SysCall.call4(bootRecord.sysNetSocketBindIP,
-			     native_fd,
-			     family,
-			     address,
-			     localPort);
+	int rc = VM_SysCall.sysNetSocketBind(native_fd,
+					     family,
+					     address,
+					     localPort);
 	
 	if (rc != 0) throw new IOException();
 
@@ -134,9 +133,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
      */
     protected synchronized void listen(int backlog) throws java.io.IOException {
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	int rc = VM_SysCall.call2(bootRecord.sysNetSocketListenIP,
-			     native_fd,
-			     backlog);
+	int rc = VM_SysCall.sysNetSocketListen(native_fd, backlog);
 	
 	if (rc == -1)
 	    throw new SocketException();
@@ -172,9 +169,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	    VM_ThreadIOQueue.selectInProgressMutex.lock();
 	    
 	    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	    connectionFd = VM_SysCall.call_I_I_A(bootRecord.sysNetSocketAcceptIP,
-				       native_fd,
-				       VM_Magic.objectAsAddress(newSocket));
+	    connectionFd = VM_SysCall.sysNetSocketAccept(native_fd,
+							 VM_Magic.objectAsAddress(newSocket));
 	    VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
 	    if (connectionFd >= 0)
@@ -331,7 +327,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	    int close_fd = native_fd;
 	    this.native_fd = -1;
 	    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	    int rc = VM_SysCall.call1(bootRecord.sysNetSocketCloseIP, close_fd);
+	    int rc = VM_SysCall.sysNetSocketClose(close_fd);
 	}
     }
 
@@ -343,7 +339,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	if (native_fd == -1) throw new IOException("socket already closed");
 
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	if (VM_SysCall.call2(bootRecord.sysNetSocketShutdownIP, native_fd, CLOSE_INPUT) != 0)
+	if (VM_SysCall.sysNetSocketShutdown(native_fd, CLOSE_INPUT) != 0)
 	    throw new IOException("could not close input side of socket");
     }
     
@@ -354,7 +350,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
     protected synchronized void shutdownOutput() throws IOException {
 	if (native_fd == -1) throw new IOException("socket already closed");
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	if (VM_SysCall.call2(bootRecord.sysNetSocketShutdownIP, native_fd, CLOSE_OUTPUT) != 0)
+	if (VM_SysCall.sysNetSocketShutdown(native_fd, CLOSE_OUTPUT) != 0)
 	    throw new IOException("could not close input side of socket");
     }
 
@@ -400,12 +396,12 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 		// when socket is closed on this end, wait until unsent 
 		// data has been received by other end or timeout expires
 		//
-		int rc = VM_SysCall.call3(bootRecord.sysNetSocketLingerIP, native_fd, 1, ((Integer)val).intValue());
+		int rc = VM_SysCall.sysNetSocketLinger(native_fd, 1, ((Integer)val).intValue());
 		if (rc == -1) throw new SocketException("SO_LINGER");
 	    } else {
 		// when socket is closed on this end, discard any unsent data
 		//
-		int rc = VM_SysCall.call3(bootRecord.sysNetSocketLingerIP, native_fd, 0, 0);
+		int rc = VM_SysCall.sysNetSocketLinger(native_fd, 0, 0);
 		if (rc == -1) throw new SocketException("SO_LINGER");
 	    }
 	} break;
@@ -419,9 +415,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	case SocketOptions.TCP_NODELAY: { 
 	    // true:  send data immediately when socket is written to
             // false: delay sending, in order to coalesce packets
-	    int rc = VM_SysCall.call2(bootRecord.sysNetSocketNoDelayIP,
-				 native_fd,
-				 ((Boolean)val).booleanValue() ? 1 : 0);
+	  int rc = VM_SysCall.sysNetSocketNoDelay(native_fd,
+						  ((Boolean)val).booleanValue() ? 1 : 0);
 
 	    if (rc == -1) throw new SocketException("setTcpNoDelay");
 	} break;
@@ -512,7 +507,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
      */
     private int getLocalPortInternal() {
 	VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-	localport = VM_SysCall.call1(bootRecord.sysNetSocketPortIP, native_fd);
+	localport = VM_SysCall.sysNetSocketPort(native_fd);
 	return localport;
     }
 
@@ -548,11 +543,10 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants{
 	
 	while (rc < 0) {
 	    VM_ThreadIOQueue.selectInProgressMutex.lock();
-	    rc = VM_SysCall.call4(bootRecord.sysNetSocketConnectIP,
-			     native_fd, 
-			     family,
-			     address,
-			     remotePort);
+	    rc = VM_SysCall.sysNetSocketConnect(native_fd, 
+						family,
+						address,
+						remotePort);
 	    VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
 	    switch (rc) {

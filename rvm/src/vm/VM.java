@@ -94,8 +94,7 @@ public class VM extends VM_Properties
     // get pthread_id from OS and store into vm_processor field
     // 
     if (!BuildForSingleVirtualProcessor)
-      VM_Processor.getCurrentProcessor().pthread_id = 
-        VM_SysCall.call0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
+      VM_Processor.getCurrentProcessor().pthread_id = VM_SysCall.sysPthreadSelf();
 
     VM.TraceClassLoading = (VM_BootRecord.the_boot_record.traceClassLoading == 1);   
 
@@ -104,7 +103,7 @@ public class VM extends VM_Properties
     // because the buffer is accessed by compiler-generated write barrier code.
     //
     if (verbose >= 1) VM.sysWriteln("Setting up write barrier");
-    MM_Interface.setupProcessor( VM_Processor.getCurrentProcessor() );
+    MM_Interface.setupProcessor(VM_Processor.getCurrentProcessor());
 
     // Initialize memory manager.
     //    This must happen before any uses of "new".
@@ -214,8 +213,8 @@ public class VM extends VM_Properties
 	if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
 	  if(VM_HardwarePerformanceMonitors.verbose>=1)
 	    VM.sysWriteln("VM.boot()","call to sysHPMsetSettings() and sysHPMstartMyThread()\n");
-	  VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMsetProgramMyThreadIP);
-	  VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+	  VM_SysCall.sysHPMsetProgramMyThread();
+	  VM_SysCall.sysHPMstartMyThread();
 	}
 	// start tracing
       }
@@ -308,7 +307,7 @@ public class VM extends VM_Properties
       if (!VM_HardwarePerformanceMonitors.hpm_thread_group) {
 	if(VM_HardwarePerformanceMonitors.verbose>=1)
 	  VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
-	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
+	VM_SysCall.sysHPMresetMyThread();
       }
     }
     //-#endif
@@ -526,7 +525,7 @@ public class VM extends VM_Properties
    */
   public static void write(char value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysWriteCharIP, value);
+      VM_SysCall.sysWriteChar(value);
     else
       System.err.print(value);
   }
@@ -569,7 +568,7 @@ public class VM extends VM_Properties
   public static void write(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
+      VM_SysCall.sysWrite(value, mode);
     } else {
       System.err.print(value);
     }
@@ -581,7 +580,7 @@ public class VM extends VM_Properties
    */
   public static void writeHex(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 2 /*just hex*/);
+      VM_SysCall.sysWrite(value, 2 /*just hex*/);
     else {
       System.err.print(Integer.toHexString(value));
     }
@@ -593,9 +592,7 @@ public class VM extends VM_Properties
    */
   public static void writeHex(long value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM){
-      int val1 = (int)(value>>32);
-      int val2 = (int)(value & 0xFFFFFFFF);
-      VM_SysCall.call3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, 2);
+      VM_SysCall.sysWriteLong(value, 2);
     } else {
       System.err.print(Long.toHexString(value));
     }
@@ -627,7 +624,7 @@ public class VM extends VM_Properties
    */
   public static void writeInt(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0 /*just decimal*/);
+      VM_SysCall.sysWrite(value, 0 /*just decimal*/);
     else {
       System.err.print(value);
     }
@@ -641,7 +638,7 @@ public class VM extends VM_Properties
    */
   public static void write(int value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, hexToo?1:0);
+      VM_SysCall.sysWrite(value, hexToo?1:0);
     else
       System.err.print(value);
   }
@@ -662,10 +659,7 @@ public class VM extends VM_Properties
    */
   public static void write(long value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM) {
-      int val1, val2;
-      val1 = (int)(value>>32);
-      val2 = (int)(value & 0xFFFFFFFF);
-      VM_SysCall.call3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, hexToo?1:0);
+      VM_SysCall.sysWriteLong(value, hexToo?1:0);
     } else
       System.err.print(value);
   }
@@ -687,7 +681,7 @@ public class VM extends VM_Properties
     while (temp >= 10) { len++; temp /= 10; }
     while (fieldWidth > len++) write(" ");
     if (runningVM) 
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+      VM_SysCall.sysWrite(value, 0);
     else 
       System.err.print(value);
   }
@@ -869,7 +863,7 @@ public class VM extends VM_Properties
   private static void die(int value) {
     if (VM.VerifyAssertions) 
       VM._assert(VM.alreadyShuttingDown());
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, value);
+    VM_SysCall.sysExit(value);
   }
 
   private static int inSysExit = 0;
@@ -927,8 +921,7 @@ public class VM extends VM_Properties
    */
   static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
                                        VM_Address ti, VM_Address fp) {
-    return VM_SysCall.call_I_A_A_A_A(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
-                    jtoc, pr, ti, fp);
+    return VM_SysCall.sysVirtualProcessorCreate(jtoc, pr, ti, fp);
   }
 
   /**
@@ -936,17 +929,15 @@ public class VM extends VM_Properties
    * @param cpuId  physical cpu id (0, 1, 2, ...)
    */
   static void sysVirtualProcessorBind(int cpuId) {
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysVirtualProcessorBindIP, cpuId);
+    VM_SysCall.sysVirtualProcessorBind(cpuId);
   }
 
   /**
    * Yield execution of current virtual processor back to o/s.
    */
   public static void sysVirtualProcessorYield() {
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    return;
-    //-#else
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    VM_SysCall.sysVirtualProcessorYield();
     //-#endif
   }
 
@@ -956,29 +947,26 @@ public class VM extends VM_Properties
    * to be running when the timer expires.
    */
   static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP, timeSlice);
+    VM_SysCall.sysVirtualProcessorEnableTimeSlicing(timeSlice);
   }
 
-  //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-  //-#else
-
-  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  //-#else
+  //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   static void sysCreateThreadSpecificDataKeys() {
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysCreateThreadSpecificDataKeysIP);
+    VM_SysCall.sysCreateThreadSpecificDataKeys();
   }
   //-#endif
 
   static void sysWaitForVirtualProcessorInitialization() {
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
+    VM_SysCall.sysWaitForVirtualProcessorInitialization();
   }
 
   static void sysWaitForMultithreadingStart() {
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
+    VM_SysCall.sysWaitForMultithreadingStart();
   }
 
   static void sysInitializeStartupLocks(int howMany) {
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
+    VM_SysCall.sysInitializeStartupLocks(howMany);
   }
   //-#endif
 
