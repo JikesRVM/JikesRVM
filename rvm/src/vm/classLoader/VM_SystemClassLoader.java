@@ -199,13 +199,18 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     Handler findURL = new Handler() {
         Vector urls;
 
-        public Object getResult() { return urls.elements(); }
+        public Object getResult() { 
+          if (urls == null) urls = new Vector();
+          return urls.elements(); 
+        }
         
         public void process(ZipFile zf, ZipEntry ze) throws Exception {
+          if (urls == null) urls = new Vector();
           urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name));
         }
 
         public void process(File file) throws Exception {
+          if (urls == null) urls = new Vector();
           urls.addElement(new URL("file", null, -1, file.getName()));
         }
       };
