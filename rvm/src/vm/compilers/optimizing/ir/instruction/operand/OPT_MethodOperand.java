@@ -108,11 +108,10 @@ public final class OPT_MethodOperand extends OPT_Operand {
   //-#if RVM_WITH_OSR
   /**
    * Returns a method operand representing a compiled method with designated
-   * JTOC offset.
+   * JTOC offset. (used by OPT_ConvertToLowLevelIR)
    * @param callee, the callee method
    * @param offset, designated jtop offset of compiled method of callee
    * @return the method operand
-   * @see OPT_ConvertToLowLevelIR which uses jtocOffset
    */
   public static OPT_MethodOperand COMPILED(VM_Method callee, int offset) {
     byte type = callee.isStatic()?STATIC:VIRTUAL;
