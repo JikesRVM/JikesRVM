@@ -185,6 +185,10 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
             expandFmov(p,phys);
           }
           break;
+        case DUMMY_DEF_opcode:
+        case DUMMY_USE_opcode:
+          p.remove();
+          break;
         case IA32_FMOV_opcode:
           expandFmov(p,phys);
           break;
