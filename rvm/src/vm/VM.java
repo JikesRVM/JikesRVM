@@ -163,6 +163,7 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
+    runClassInitializer("java.lang.Void");
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
     runClassInitializer("java.lang.Short");
@@ -233,6 +234,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
+    runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");

@@ -813,8 +813,6 @@ declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via Op
 # Include support for hardware performance monitors (HPM)
 declare -i RVM_WITH_HPM=0
 
-declare -x -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
-
 ## Memory Allocators and Garbage Collector options (JMTk)
 declare -i RVM_WITH_SEMI_SPACE=0
 declare -i RVM_WITH_MARK_SWEEP=0
@@ -2605,6 +2603,7 @@ java/lang/Integer
 java/lang/Long
 java/lang/Number
 java/lang/Short
+java/lang/Void
 
     # class loading errors
     #
@@ -2661,11 +2660,8 @@ java/io/FilterInputStream
 java/io/InputStream
 java/io/FileInputStream
 java/io/FileDescriptor
+gnu/java/nio/channels/FileChannelImpl
 EOF
-
-    if (( RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH )); then
-	echo "java/io/VMFileDescriptor"
-    fi
 
 	cat <<EOF
     # class loading from zip files

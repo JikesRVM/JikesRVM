@@ -28,22 +28,22 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return a new object created by the specified constructor
    */
   static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
-                                         boolean isJvalue, boolean isDotDotStyle) 
-    throws Exception  {
+                                  boolean isJvalue, boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
+
     VM_TypeReference[] argTypes = mth.getParameterTypes();
     Class[]   argClasses = new Class[argTypes.length];
     for (int i=0; i<argClasses.length; i++) {
       argClasses[i] = argTypes[i].resolve().getClassForType();
     }
 
-    Constructor constMethod = cls.getConstructor(argClasses);
-    if (constMethod==null)
-      throw new Exception("Constructor not found");
-
-
+    Constructor constMethod = java.lang.reflect.JikesRVMSupport.createConstructor(mth);
+    if (!mth.isPublic()) {
+      constMethod.setAccessible(true);
+    }
+    
     // Package the parameters for the constructor
     VM_Address varargAddress;
     if (isDotDotStyle) 
