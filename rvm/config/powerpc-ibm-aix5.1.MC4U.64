@@ -20,8 +20,8 @@ export RVM_FOR_64_ADDR=1
 # target OS is AIX
 export RVM_FOR_AIX=1
 
-# KLUDGE: disable SMP for now in 64 bit mode as it seems to destablize things.
-export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
+# SMP support is always ok on AIX.
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
 export BOOTIMAGE_LOAD_ADDRESS=0x30000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000L
