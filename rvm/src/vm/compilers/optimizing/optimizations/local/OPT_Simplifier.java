@@ -186,8 +186,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	} else {
 	  VM_Type rType = ref.getType();
 	  OPT_TypeOperand op1 = TypeCheck.getType(s);
-	  if (OPT_ClassLoaderProxy.proxy.isAssignableWith(op1.type, 
-							  rType) == OPT_Constants.YES) {
+	  if (OPT_ClassLoaderProxy.proxy.includesType(op1.type, rType) == OPT_Constants.YES) {
 	    Empty.mutate(s, NOP);
 	    return REDUCED;
 	  }
@@ -198,8 +197,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       { 
 	VM_Type rType = TypeCheck.getRef(s).getType();
 	OPT_TypeOperand op1 = TypeCheck.getType(s);
-	if (OPT_ClassLoaderProxy.proxy.isAssignableWith(op1.type, 
-							rType) == OPT_Constants.YES) {
+	if (OPT_ClassLoaderProxy.proxy.includesType(op1.type, rType) == OPT_Constants.YES) {
 	  Empty.mutate(s, NOP);
 	  return REDUCED;
 	}

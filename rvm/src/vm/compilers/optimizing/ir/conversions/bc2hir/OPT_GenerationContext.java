@@ -328,11 +328,8 @@ final class OPT_GenerationContext implements OPT_Constants,
       OPT_RegisterOperand local = null;
       if (receiver.isRegister()) {
 	OPT_RegisterOperand objPtr = receiver.asRegister();
-	if (OPT_ClassLoaderProxy.proxy.isAssignableWith(
-							child.method.getDeclaringClass(), objPtr.type) != YES) {
+	if (OPT_ClassLoaderProxy.proxy.includesType(child.method.getDeclaringClass(), objPtr.type) != YES) {
 	  // narrow type of actual to match formal static type implied by method
-	  // VM.sysWrite("Narrowing reciever from "+objPtr+" to "
-          // +child.method.getDeclaringClass());
 	  objPtr.type = child.method.getDeclaringClass();
 	  objPtr.clearPreciseType(); // Can be precise but not assignable 
 	  // if enough classes aren't loaded
@@ -364,10 +361,8 @@ final class OPT_GenerationContext implements OPT_Constants,
       OPT_Operand actual = child.arguments[argIdx];
       if (actual.isRegister()) {
 	OPT_RegisterOperand rActual = actual.asRegister();
-	if (OPT_ClassLoaderProxy.proxy.isAssignableWith(argType, rActual.type) 
-            != YES) {
+	if (OPT_ClassLoaderProxy.proxy.includesType(argType, rActual.type) != YES) {
 	  // narrow type of actual to match formal static type implied by method
-	  // VM.sysWrite("Narrowing argument from "+objPtr+" to "+argType);
 	  rActual.type = argType;
 	  rActual.clearPreciseType(); // Can be precise but not 
 	  // assignable if enough classes aren't loaded

@@ -78,19 +78,14 @@ final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     boolean seenMaybe = false;
     byte t;
     for (int i=0; i<exceptionTypes.length; i++) {
-      t = OPT_ClassLoaderProxy.proxy.isAssignableWith(exceptionTypes[i].type,
-						      cand);
+      t = OPT_ClassLoaderProxy.proxy.includesType(exceptionTypes[i].type, cand);
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
-      t = OPT_ClassLoaderProxy.proxy.isAssignableWith(cand, 
-						      exceptionTypes[i].type);
+      t = OPT_ClassLoaderProxy.proxy.includesType(cand, exceptionTypes[i].type);
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
     }
-    if (seenMaybe)
-      return MAYBE;
-    else
-      return NO;
+    return seenMaybe ? MAYBE : NO;
   }
 
 
@@ -105,8 +100,7 @@ final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     boolean seenMaybe = false;
     byte t;
     for (int i=0; i<exceptionTypes.length; i++) {
-      t = OPT_ClassLoaderProxy.proxy.isAssignableWith(exceptionTypes[i].type, 
-						      cand);
+      t = OPT_ClassLoaderProxy.proxy.includesType(exceptionTypes[i].type, cand);
       if (t == YES) return YES;
       seenMaybe |= (t == MAYBE);
     }

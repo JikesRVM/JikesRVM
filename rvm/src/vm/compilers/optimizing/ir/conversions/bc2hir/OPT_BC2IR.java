@@ -1735,8 +1735,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	    // known static type of the receiver implements the interface.
 	    if (refType.isResolved() && !refType.isInterface()) {
 	      byte doesImplement = 
-		OPT_ClassLoaderProxy.proxy.isAssignableWith(interfaceType, 
-							    refType);
+		OPT_ClassLoaderProxy.proxy.includesType(interfaceType, refType);
 	      requiresImplementsTest = doesImplement != YES;
 	    }
 	  }
@@ -1911,7 +1910,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	      break;
 	    }
 	    VM_Type type = getRefTypeOf(op2);  // non-null, null case above
-	    if (OPT_ClassLoaderProxy.proxy.isAssignableWith(typeRef,type)==YES){
+	    if (OPT_ClassLoaderProxy.proxy.includesType(typeRef,type)==YES){
 	      push(op2);
 	      if (DBG_CF)
 		db("skipped gen of checkcast of " + op2 + " from "
@@ -1959,7 +1958,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	    VM_Type type = getRefTypeOf(op2);                 // non-null
 	    int answer = 
-	      OPT_ClassLoaderProxy.proxy.isAssignableWith(typeRef, type);
+	      OPT_ClassLoaderProxy.proxy.includesType(typeRef, type);
 	    if (answer == YES) {
 	      if (isNonNull(op2)) {
 		push(new OPT_IntConstantOperand(1));
@@ -2918,8 +2917,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
         VM.assert(type.isIntLikeType());
       } else {
         VM_Type type1 = op.getType();
-        VM.assert(OPT_ClassLoaderProxy.proxy.isAssignableWith(type, type1)
-		  != NO);
+        VM.assert(OPT_ClassLoaderProxy.proxy.includesType(type, type1) != NO);
       }
     }
   }
@@ -2932,8 +2930,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private void assertIsAssignable(VM_Type parentType, VM_Type childType) {
     if (VM.VerifyAssertions)
-      VM.assert(OPT_ClassLoaderProxy.proxy.isAssignableWith(parentType, 
-							    childType) != NO);
+      VM.assert(OPT_ClassLoaderProxy.proxy.includesType(parentType, childType) != NO);
   }
 
   //// DEBUGGING.
