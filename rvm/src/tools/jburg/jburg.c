@@ -1141,9 +1141,13 @@ verify_chars(int ret, size_t bufsz)
     size_t nwrote;
     assert(ret >= 0);
     nwrote = ret;
-    // The %z modifier appears in ANSI C '99, for "size_t".
+    /* The %z modifier appears in ANSI C '99, for "size_t".
+       We still have platforms (AIX 5.1, to be precise) which don't appear to
+       support %z.  How ugly; we have to work around this. */
     if (nwrote >= bufsz) {
-	fprintf(stderr, "Needed %d chars of space; had only %zu\n", ret + 1, nwrote);
+//	fprintf(stderr, "Needed %d chars of space; had only %zu\n", 
+	fprintf(stderr, "Needed %d chars of space; had only %lu\n", 
+                ret + 1, (unsigned long) nwrote);
 	/* skip on */
     }
 }
