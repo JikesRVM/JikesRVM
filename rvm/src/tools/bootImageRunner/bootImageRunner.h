@@ -52,6 +52,13 @@ extern uint64_t initialStackSize;
 extern uint64_t stackGrowIncrement;
 extern uint64_t maximumStackSize;
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+
+/* Defined in RunBootImage.C */
+unsigned int parse_memory_size(
+    const char *sizeName, const char *sizeFlag, 
+    const char *defaultFactor, unsigned roundTo,
+    const char *token, const char *subtoken, bool *fastExit);
+
 extern int verboseBoot;
 
 /* Defined in libvm.C; used in RunBootImage.C */
