@@ -197,18 +197,30 @@ public class VM_HardwarePerformanceMonitors {
    */
   static void setSettings()     
   {
+    //-#if RVM_WITH_HPM
+    // TODO: get rid of this preprcessor glop and the duplicatation of code in sys.C 
+    // by switching to a JNI interface instead of a syscall interface.
     VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMsetSettingsIP);
+    //-#endif
   }
   /**
    * Assumes that setSettings was called.
    */
   static void deleteSettings()     
   {
+    //-#if RVM_WITH_HPM
+    // TODO: get rid of this preprcessor glop and the duplicatation of code in sys.C 
+    // by switching to a JNI interface instead of a syscall interface.
     VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMdeleteSettingsIP);
+    //-#endif
   }
   static void startCounting()     
   {
+    //-#if RVM_WITH_HPM
+    // TODO: get rid of this preprcessor glop and the duplicatation of code in sys.C 
+    // by switching to a JNI interface instead of a syscall interface.
     VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMstartCountingIP);
+    //-#endif
   }
 
 }
