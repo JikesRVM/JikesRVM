@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-# (C) Copyright IBM Corp. 2001, 2002, 2003
+# (C) Copyright IBM Corp. 2001, 2002, 2003, 2004
 #
 #$Id$
 #
@@ -3087,39 +3087,39 @@ EOF
 #
 # echo >&2  "HERE I AM! emitToolCompiler" # DBG
 function emitToolCompiler () {
-    cat <<EOF
+    cat <<- EOF
 	#! ${HOST_BASH}
 	# Generate class files for vm tools that are not part of the build.
 	# This runs the host's Java compiler with the
 	# classpath and command-line flags set up so that we can just
 	# make .class files for Jikes RVM to run.
 $(emitBoilerplate)
+	if [[ \${RVM_BUILD-} = "" ]]; then
+	    show_mesg >&2 "Please set your RVM_BUILD environment variable (for example, to \${HOME}/rvmBuild)"
+	    trap "" EXIT
+	    exit $Exit_Status_Bad_Args
+	fi
+
 	. \${RVM_BUILD}/environment.target
 
+	declare -r usage_msg="Usage: \${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ]\n     [ -- ] java-file [ java-file... ]"
 	function usage () {
-	    echo -e 2>&1 "usage: ${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ]\n     [ -- ] java-file [ java-file... ]"
+	    echo -e >&2 \$usage_msg
 	    trap "" EXIT
 	    exit $Exit_Status_Bad_Args
 	}
 
-	if [[ ${BUILD_DIRECTORY_STR} = "" ]]; then
-	    show_mesg >&2 "please set your ${BUILD_DIRECTORY_STR1} environment variable (eg. \${HOME}/rvmBuild)"
-	    trap "" EXIT
-	    exit $Exit_Status_Bad_Args
-	fi
-
-	if [[ ${HOST_JAVAC_STR} = "" ]]; then
-	    show_mesg >&2 "please set your ${HOST_JAVAC_STR1} environment variable"
-	    trap "" EXIT
-	    exit $Exit_Status_Bad_Args
-	fi
-
 	EXTRA_CPATH=""
+	(( \$# > 0 )) || usage;
 	while :; do
 	    arg="\$1"
 	    [[ \$arg != -- ]] || { shift ; break; }
 	    [[ \$arg != --?* ]] || arg="\${arg#-}"
-	    if [[ \$arg = -classpath ]]; then
+	    if [[ \$arg = -help ]]; then
+	        echo -e >&2 \$usage_msg
+	        trap "" EXIT
+	        exit 0
+	    elif [[ \$arg = -classpath ]]; then
 	        (( \$# > 1 )) || usage
 	        EXTRA_CPATH=\$2\${EXTRA_CPATH+:}\${EXTRA_CPATH}
 	        shift
