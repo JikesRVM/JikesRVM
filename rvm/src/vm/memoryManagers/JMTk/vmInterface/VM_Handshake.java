@@ -223,7 +223,7 @@ public class VM_Handshake {
 	VM.sysWriteln("GC Warning: WAITED LONG TIME FOR PRECEEDING GC TO FINISH");
 	VM.sysWriteln("GC Warning:          len = ", len);
 	VM.sysWriteln("GC Warning:    maxCollTh = ", maxCollectorThreads);
-	VM_Scheduler.collectorQueue.dump();
+	// VM_Scheduler.collectorQueue.dump();
       }
       VM_Scheduler.collectorMutex.unlock();
       if (len < maxCollectorThreads) {
