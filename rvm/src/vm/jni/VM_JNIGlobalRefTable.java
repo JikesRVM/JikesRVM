@@ -18,7 +18,7 @@ class VM_JNIGlobalRefTable {
 
   static int newGlobalRef(Object referent) {
     if (VM.VerifyAssertions) VM._assert(MM_Interface.validRef( VM_Magic.objectAsAddress(referent) ) );
-	
+        
     if (free >= refs.length) {
       Object[] newrefs = new Object[ refs.length * 2 ];
       com.ibm.JikesRVM.classloader.VM_Array.arraycopy(refs, 0, newrefs, 0, refs.length);

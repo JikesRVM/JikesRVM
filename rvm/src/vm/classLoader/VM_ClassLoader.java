@@ -22,7 +22,7 @@ import java.security.ProtectionDomain;
  * @author Derek Lieber
  */
 public class VM_ClassLoader implements VM_Constants, 
-				       VM_ClassLoaderConstants {
+                                       VM_ClassLoaderConstants {
 
   private static ClassLoader appCL;
 
@@ -73,11 +73,11 @@ public class VM_ClassLoader implements VM_Constants,
 
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1)) {
       dynamicLibraries = 
-	growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
+        growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
     }
     
     if (VM.VerifyAssertions)
-	VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
+        VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
     
     dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(libname);
   }
@@ -90,7 +90,7 @@ public class VM_ClassLoader implements VM_Constants,
     currentDynamicLibraryId++;
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1)) {
       dynamicLibraries = 
-	growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
+        growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
     }
 
     if (VM.VerifyAssertions)
@@ -103,10 +103,10 @@ public class VM_ClassLoader implements VM_Constants,
     while (javaLibDirs.hasMoreElements()) {
       String javaLibDir = javaLibDirs.nextToken();
       File javaLib = new File(javaLibDir, platformLibName);
-	
+        
       if (javaLib.exists()) {
-	dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(javaLib.getPath());
-	return;
+        dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(javaLib.getPath());
+        return;
       }
     }
 
@@ -196,7 +196,7 @@ public class VM_ClassLoader implements VM_Constants,
     deprecatedAttributeName             = VM_Atom.findOrCreateAsciiAtom("Deprecated");
     innerClassesAttributeName           = VM_Atom.findOrCreateAsciiAtom("InnerClasses");
     syntheticAttributeName              = VM_Atom.findOrCreateAsciiAtom("Synthetic");
-    arrayNullCheckAttributeName		= VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
+    arrayNullCheckAttributeName         = VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
 
     dynamicLibraries = new VM_DynamicLibrary[0];
 
@@ -256,29 +256,29 @@ public class VM_ClassLoader implements VM_Constants,
   }
 
   public static final VM_Type defineClassInternal(String className, 
-						  byte[] classRep, 
-						  int offset, 
-						  int length, 
-						  ClassLoader classloader) throws ClassFormatError {
+                                                  byte[] classRep, 
+                                                  int offset, 
+                                                  int length, 
+                                                  ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
   public static final VM_Type defineClassInternal(String className, 
-						  InputStream is, 
-						  ClassLoader classloader) throws ClassFormatError {
+                                                  InputStream is, 
+                                                  ClassLoader classloader) throws ClassFormatError {
     VM_TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed
       //       to be called, so we must read the input stream and discover it overselves
       //       before we actually can create the VM_Class instance.
       try {
-	is.mark(is.available());
-	tRef = getClassTypeRef(new DataInputStream(is), classloader);
-	is.reset();
+        is.mark(is.available());
+        tRef = getClassTypeRef(new DataInputStream(is), classloader);
+        is.reset();
       } catch (IOException e) {
-	ClassFormatError cfe = new ClassFormatError(e.getMessage());
-	cfe.initCause(e);
-	throw cfe;
+        ClassFormatError cfe = new ClassFormatError(e.getMessage());
+        cfe.initCause(e);
+        throw cfe;
       }
     } else {
       VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
@@ -288,7 +288,7 @@ public class VM_ClassLoader implements VM_Constants,
     try {
       if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
       if (VM.TraceClassLoading  && VM.runningVM)
-	VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
+        VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
       VM_Class ans = new VM_Class(tRef, new DataInputStream(is));
       tRef.setResolvedType(ans);
       return ans;
@@ -321,10 +321,10 @@ public class VM_ClassLoader implements VM_Constants,
       tmpTags[i] = input.readByte();
       switch (tmpTags[i]) {
       case TAG_UTF:  {
-	byte utf[] = new byte[input.readUnsignedShort()];
-	input.readFully(utf);
-	constantPool[i] = VM_Atom.findOrCreateUtf8Atom(utf).getId();
-	break;  
+        byte utf[] = new byte[input.readUnsignedShort()];
+        input.readFully(utf);
+        constantPool[i] = VM_Atom.findOrCreateUtf8Atom(utf).getId();
+        break;  
       }
 
       case TAG_UNUSED: break;
@@ -334,23 +334,23 @@ public class VM_ClassLoader implements VM_Constants,
       case TAG_METHODREF:
       case TAG_INTERFACE_METHODREF: 
       case TAG_MEMBERNAME_AND_DESCRIPTOR: 
-	input.readInt(); // drop on floor
-	break;
+        input.readInt(); // drop on floor
+        break;
 
       case TAG_LONG: case TAG_DOUBLE:
-	i++; input.readLong(); // drop on floor
-	break;
+        i++; input.readLong(); // drop on floor
+        break;
 
       case TAG_TYPEREF:
-	constantPool[i] = input.readUnsignedShort();
-	break;
+        constantPool[i] = input.readUnsignedShort();
+        break;
 
       case TAG_STRING:
-	input.readUnsignedShort(); // drop on floor
-	break;
+        input.readUnsignedShort(); // drop on floor
+        break;
 
       default:
-	throw new ClassFormatError("bad constant pool entry: " + tmpTags[i]);
+        throw new ClassFormatError("bad constant pool entry: " + tmpTags[i]);
       }
     }
     
@@ -362,13 +362,13 @@ public class VM_ClassLoader implements VM_Constants,
       switch (tmpTags[i]) {
       case TAG_LONG:
       case TAG_DOUBLE: 
-	++i;
-	break; 
+        ++i;
+        break; 
 
       case TAG_TYPEREF: { // in: utf index
-	VM_Atom typeName = VM_Atom.getAtom(constantPool[constantPool[i]]);
-	constantPool[i] = VM_TypeReference.findOrCreate(cl, typeName.descriptorFromClassName()).getId();
-	break; 
+        VM_Atom typeName = VM_Atom.getAtom(constantPool[constantPool[i]]);
+        constantPool[i] = VM_TypeReference.findOrCreate(cl, typeName.descriptorFromClassName()).getId();
+        break; 
       } // out: type reference id
       }
     }

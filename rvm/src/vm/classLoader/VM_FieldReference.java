@@ -64,7 +64,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   public final boolean definitelyDifferent(VM_FieldReference that) {
     if (this == that) return false;
     if (getName() != that.getName() ||
-	getDescriptor() != that.getDescriptor()) return true;
+        getDescriptor() != that.getDescriptor()) return true;
     VM_Field mine = peekResolvedField();
     VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
@@ -78,7 +78,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   public final boolean definitelySame(VM_FieldReference that) {
     if (this == that) return true;
     if (getName() != that.getName() ||
-	getDescriptor() != that.getDescriptor()) return false;
+        getDescriptor() != that.getDescriptor()) return false;
     VM_Field mine = peekResolvedField();
     VM_Field theirs = that.peekResolvedField();
     if (mine == null || theirs == null) return false;
@@ -134,17 +134,17 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
       // Look in this class
       VM_Field it = c.findDeclaredField(name, descriptor);
       if (it != null) {
-	resolvedMember = it; 
-	return resolvedMember;
+        resolvedMember = it; 
+        return resolvedMember;
       }
       // Look at all interfaces directly and indirectly implemented by this class.
       VM_Class[] interfaces = c.getDeclaredInterfaces();
       for (int i=0; i<interfaces.length; i++) {
-	it = searchInterfaceFields(interfaces[i]);
-	if (it != null) {
-	  resolvedMember = it;
-	  return resolvedMember;
-	}
+        it = searchInterfaceFields(interfaces[i]);
+        if (it != null) {
+          resolvedMember = it;
+          return resolvedMember;
+        }
       }
     }
     throw new NoSuchFieldError(this.toString());

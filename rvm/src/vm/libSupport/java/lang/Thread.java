@@ -106,23 +106,23 @@ public class Thread extends VM_Thread implements Runnable {
       SecurityManager currentManager = System.getSecurityManager();
       // if there is a security manager...
       if (currentManager != null) {
-	// Ask SecurityManager for ThreadGroup...
-	group = currentManager.getThreadGroup();
-		
-	// ...but use the creator's group otherwise
-	if (group == null) {
-	  group = currentThread.getThreadGroup();
-	}
+        // Ask SecurityManager for ThreadGroup...
+        group = currentManager.getThreadGroup();
+                
+        // ...but use the creator's group otherwise
+        if (group == null) {
+          group = currentThread.getThreadGroup();
+        }
       } else {
-	// Same group as Thread that created us
-	group = currentThread.getThreadGroup();
+        // Same group as Thread that created us
+        group = currentThread.getThreadGroup();
       }
     }
     
     group.checkAccess();
     group.addThread(this);
     this.group = group;
-	
+        
     if (currentThread != null) { // Non-main thread
       contextClassLoader = currentThread.contextClassLoader;
     } else { 
@@ -217,7 +217,7 @@ public class Thread extends VM_Thread implements Runnable {
   public final synchronized void join() throws InterruptedException {
     if (started)
       while (!isDead())
-	wait(0);
+        wait(0);
   }
 
   public final synchronized void join(long timeoutInMilliseconds) throws InterruptedException {
@@ -227,11 +227,11 @@ public class Thread extends VM_Thread implements Runnable {
   public final synchronized void join(long timeoutInMilliseconds, int nanos) throws InterruptedException {
     if (timeoutInMilliseconds < 0 || nanos < 0)
       throw new IllegalArgumentException();
-	
+        
     if (!started || isDead()) return;
-	
+        
     // No nanosecond precision for now, we would need something like 'currentTimenanos'
-	
+        
     long totalWaited = 0;
     long toWait = timeoutInMilliseconds;
     boolean timedOut = false;
@@ -239,9 +239,9 @@ public class Thread extends VM_Thread implements Runnable {
     if (timeoutInMilliseconds == 0 & nanos > 0) {
       // We either round up (1 millisecond) or down (no need to wait, just return)
       if (nanos < 500000)
-	timedOut = true;
+        timedOut = true;
       else
-	toWait = 1;
+        toWait = 1;
     }
     while (!timedOut && isAlive()) {
       long start = System.currentTimeMillis();

@@ -29,7 +29,7 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_InvokeCompiledMethod);
     int2bytes(codes, 2, cmid);
-	int2bytes(codes, 6, origIdx);
+        int2bytes(codes, 6, origIdx);
     return codes;
   }
 
@@ -56,8 +56,8 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
       // do nothing
     } else {
       if ( (tcode == LongTypeCode) ||
-	   (tcode == DoubleTypeCode) ) {
-	schanges ++;
+           (tcode == DoubleTypeCode) ) {
+        schanges ++;
       }
       schanges ++;
     }

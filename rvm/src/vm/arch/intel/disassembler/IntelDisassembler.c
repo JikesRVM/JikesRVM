@@ -95,16 +95,16 @@ JNIEXPORT jstring JNICALL Java_IntelDisassembler_disasm
 
   while (!Illegal && Index < size && InstrCount < StopCount)   {
     p = Disassemble(HexBuffer,
-		    MnemonicBuffer,
-		    OperandBuffer,
-		    (char *) (&buf[Index]),
-		    &Illegal,
-		    WordSize);
+                    MnemonicBuffer,
+                    OperandBuffer,
+                    (char *) (&buf[Index]),
+                    &Illegal,
+                    WordSize);
     InstructionLength = p->retleng;
     
     /* 
     printf("TANGO: InstrCount=%d, Index=%d, InstructionLength=%d, StopCount=%d\n", 
-	   InstrCount, Index, InstructionLength, StopCount);
+           InstrCount, Index, InstructionLength, StopCount);
     */
 
     if (!Illegal) {
@@ -177,11 +177,11 @@ JNIEXPORT jbyteArray JNICALL Java_IntelDisassembler_instructionLength
   InstrCount = 0;
   while (!Illegal && Index < size)   {
     p = Disassemble(HexBuffer,
-		    MnemonicBuffer,
-		    OperandBuffer,
-		    (char *) (&buf[Index]),
-		    &Illegal,
-		    WordSize);
+                    MnemonicBuffer,
+                    OperandBuffer,
+                    (char *) (&buf[Index]),
+                    &Illegal,
+                    WordSize);
     InstructionLength = p->retleng;
     if (!Illegal) {
       /* printf("instructionLength: %d = %d\n", InstrCount, InstructionLength); */
@@ -237,11 +237,11 @@ JNIEXPORT jint JNICALL Java_IntelDisassembler_getBranchTarget
    * branch target
    */
   p = Disassemble(HexBuffer,
-		  MnemonicBuffer,
-		  OperandBuffer,
-		  buf,
-		  &Illegal,
-		  WordSize);
+                  MnemonicBuffer,
+                  OperandBuffer,
+                  buf,
+                  &Illegal,
+                  WordSize);
 
   /*
   printf("branchTarget: %s, ", MnemonicBuffer);

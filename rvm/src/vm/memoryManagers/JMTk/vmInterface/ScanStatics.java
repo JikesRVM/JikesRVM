@@ -41,16 +41,16 @@ public class ScanStatics
     while ( start < numSlots ) {
       end = start + chunkSize;
       if (end > numSlots)
-	end = numSlots;  // doing last segment of JTOC
+        end = numSlots;  // doing last segment of JTOC
 
       for ( slot=start; slot<end; slot++ ) {
 
-	if ( ! VM_Statics.isReference(slot) ) continue;
+        if ( ! VM_Statics.isReference(slot) ) continue;
 
-	// slot contains a ref of some kind.  call collector specific
-	// processPointerField, passing address of reference
-	//
-	rootLocations.push(slots.add(slot << LOG_BYTES_IN_INT));
+        // slot contains a ref of some kind.  call collector specific
+        // processPointerField, passing address of reference
+        //
+        rootLocations.push(slots.add(slot << LOG_BYTES_IN_INT));
 
       }  // end of for loop
 
@@ -69,10 +69,10 @@ public class ScanStatics
       if ( ! VM_Statics.isReference(slot) ) continue;
       VM_Address ref = VM_Magic.getMemoryAddress(slots.add(slot << LOG_BYTES_IN_ADDRESS));
       if ( (!ref.isZero()) && !VM_GCUtil.validRef(ref) ) {
-	VM.sysWrite("\nScanStatics.validateRefs:bad ref in slot "); VM.sysWrite(slot,false); VM.sysWrite("\n");
-	VM.sysWriteHex(slot); VM.sysWrite(" ");
-	VM_GCUtil.dumpRef(ref);
-	result = false;
+        VM.sysWrite("\nScanStatics.validateRefs:bad ref in slot "); VM.sysWrite(slot,false); VM.sysWrite("\n");
+        VM.sysWriteHex(slot); VM.sysWrite(" ");
+        VM_GCUtil.dumpRef(ref);
+        result = false;
       }
     }  // end of for loop
     return result;
@@ -87,10 +87,10 @@ public class ScanStatics
       if ( ! VM_Statics.isReference(slot) ) continue;
       VM_Address ref = VM_Magic.getMemoryAddress(slots.add(slot << LOG_BYTES_IN_ADDRESS));
       if ( ! VM_ScanObject.validateRefs( ref, depth ) ) {
-	VM.sysWrite("ScanStatics.validateRefs: Bad Ref reached from JTOC slot ");
-	VM.sysWrite(slot,false);
-	VM.sysWrite("\n");
-	result = false;
+        VM.sysWrite("ScanStatics.validateRefs: Bad Ref reached from JTOC slot ");
+        VM.sysWrite(slot,false);
+        VM.sysWrite("\n");
+        result = false;
       }
     }
     return result;
@@ -103,11 +103,11 @@ public class ScanStatics
     if (last > numSlots) last = numSlots;
     VM.sysWrite("Dumping Static References...\n");
       for ( int slot=start; slot<last; slot++ ) {
-	if ( ! VM_Statics.isReference(slot) ) continue;
-	VM_Address ref = VM_Magic.getMemoryAddress(slots.add(slot << LOG_BYTES_IN_ADDRESS));
-	if (!ref.isZero()) {
-	  VM.sysWrite(slot,false); VM.sysWrite(" "); VM_GCUtil.dumpRef(ref);
-	}
+        if ( ! VM_Statics.isReference(slot) ) continue;
+        VM_Address ref = VM_Magic.getMemoryAddress(slots.add(slot << LOG_BYTES_IN_ADDRESS));
+        if (!ref.isZero()) {
+          VM.sysWrite(slot,false); VM.sysWrite(" "); VM_GCUtil.dumpRef(ref);
+        }
       }  // end of for loop
     VM.sysWrite("Done\n");
   }  // dumpRefs

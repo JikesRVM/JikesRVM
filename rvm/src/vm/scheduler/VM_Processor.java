@@ -103,7 +103,7 @@ implements VM_Uninterruptible, VM_Constants {
     if (VM.VerifyAssertions) {
       VM._assert(threadSwitchingEnabledCount <= 1);
       if (MM_Interface.gcInProgress()) 
-	  VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
+          VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
     }
     if (threadSwitchingEnabled() && threadSwitchPending) { 
       // re-enable a deferred thread switch
@@ -226,13 +226,13 @@ implements VM_Uninterruptible, VM_Constants {
 
       processWaitQueueLock.lock();
       if (processWaitQueue.isReady()) {
-	VM_Thread t = processWaitQueue.dequeue();
-	if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
-	result = t;
+        VM_Thread t = processWaitQueue.dequeue();
+        if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+        result = t;
       }
       processWaitQueueLock.unlock();
       if (result != null)
-	return result;
+        return result;
     }
 
     if (!readyQueue.isEmpty()) {
@@ -291,7 +291,7 @@ implements VM_Uninterruptible, VM_Constants {
     // if thread wants to stay on specified processor, put it there
     if (t.processorAffinity != null) {
       if (VM.TraceThreadScheduling > 0) {
-	VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
+        VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
       }
       t.processorAffinity.transferThread(t);
       return;
@@ -457,9 +457,9 @@ implements VM_Uninterruptible, VM_Constants {
 
   // More GC fields
   //
-  public int    large_live;		// count live objects during gc
-  public int    small_live;		// count live objects during gc
-  public long   totalBytesAllocated;	// used for instrumentation in allocators
+  public int    large_live;             // count live objects during gc
+  public int    small_live;             // count live objects during gc
+  public long   totalBytesAllocated;    // used for instrumentation in allocators
   public long   totalObjectsAllocated; // used for instrumentation in allocators
   public long   synchronizedObjectsAllocated; // used for instrumentation in allocators
 
@@ -585,7 +585,7 @@ implements VM_Uninterruptible, VM_Constants {
    * 
    * CRA, Maria
    */
-  public int  	  pthread_id;
+  public int      pthread_id;
 
   // manage thick locks 
   int     firstLockIndex;

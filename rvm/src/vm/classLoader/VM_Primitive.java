@@ -30,8 +30,8 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  * @author Derek Lieber
  */
 public final class VM_Primitive extends VM_Type implements VM_Constants, 
-							   VM_ClassLoaderConstants,
-							   VM_SynchronizedObject {
+                                                           VM_ClassLoaderConstants,
+                                                           VM_SynchronizedObject {
 
   /**
    * The pretty (external) name for this primitive.
@@ -99,7 +99,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   VM_Primitive(VM_TypeReference tr) {
     super(tr);
     depth = 0;
-    acyclic = true;	// All primitives are inherently acyclic
+    acyclic = true;     // All primitives are inherently acyclic
 
     switch (getDescriptor().parseForTypeCode()) {
     case VoidTypeCode:
@@ -140,16 +140,16 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
       break;
     default:
       if (tr == VM_TypeReference.Address ||
-	  tr == VM_TypeReference.Word ||
-	  tr == VM_TypeReference.Offset ||
-	  tr == VM_TypeReference.Extent ||
-	  tr == VM_TypeReference.Code) {
-	stackWords = 1; //Kris Venstermans: dependant of Magic or not ?
-	name = tr.getName();
+          tr == VM_TypeReference.Word ||
+          tr == VM_TypeReference.Offset ||
+          tr == VM_TypeReference.Extent ||
+          tr == VM_TypeReference.Code) {
+        stackWords = 1; //Kris Venstermans: dependant of Magic or not ?
+        name = tr.getName();
       } else {
-	if (VM.VerifyAssertions) VM._assert(false);
-	stackWords = -1;
-	name = null;
+        if (VM.VerifyAssertions) VM._assert(false);
+        stackWords = -1;
+        name = null;
       }
     }
 

@@ -34,25 +34,25 @@ final class VMString {
     synchronized (internedStrings) {
       WeakReference ref = (WeakReference)internedStrings.get(str);
       if (ref != null) {
-	String s = (String)ref.get();
-	if (s != null) {
-	  return s;
-	}
+        String s = (String)ref.get();
+        if (s != null) {
+          return s;
+        }
       }
       
       // Check to see if this is a StringLiteral:
       try {
-	VM_Atom atom = VM_Atom.findUnicodeAtom(str);
-	if (atom != null) {
-	  String literal = VM_Statics.findStringLiteral(atom);
-	  if (literal != null) {
-	    // Should we put it in this map too?
-	    // Would be faster to find the next time we went looking for it,
-	    // but will waste space and uselessly increase the number of weak refs
-	    // in the system because it will _always be reachable from the JTOC.
-	    return literal; 
-	  }
-	}
+        VM_Atom atom = VM_Atom.findUnicodeAtom(str);
+        if (atom != null) {
+          String literal = VM_Statics.findStringLiteral(atom);
+          if (literal != null) {
+            // Should we put it in this map too?
+            // Would be faster to find the next time we went looking for it,
+            // but will waste space and uselessly increase the number of weak refs
+            // in the system because it will _always be reachable from the JTOC.
+            return literal; 
+          }
+        }
       } catch (java.io.UTFDataFormatException e) { }
 
       // If we get to here, then there is no interned version of the String.

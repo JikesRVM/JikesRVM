@@ -33,27 +33,27 @@ abstract class VM_JNIGenericHelpers {
       int word = VM_Magic.getMemoryInt(addr);
       int byte0, byte1, byte2, byte3;
       if (VM.LittleEndian) {
-	byte3 = ((word >> 24) & 0xFF);
-	byte2 = ((word >> 16) & 0xFF);
-	byte1 = ((word >> 8) & 0xFF);
-	byte0 = (word & 0xFF);
+        byte3 = ((word >> 24) & 0xFF);
+        byte2 = ((word >> 16) & 0xFF);
+        byte1 = ((word >> 8) & 0xFF);
+        byte0 = (word & 0xFF);
       } else {
-	byte0 = ((word >> 24) & 0xFF);
-	byte1 = ((word >> 16) & 0xFF);
-	byte2 = ((word >> 8) & 0xFF);
-	byte3 = (word & 0xFF);
+        byte0 = ((word >> 24) & 0xFF);
+        byte1 = ((word >> 16) & 0xFF);
+        byte2 = ((word >> 8) & 0xFF);
+        byte3 = (word & 0xFF);
       }
       if (byte0==0)
-	break;
+        break;
       length++;
       if (byte1==0) 
-	break;
+        break;
       length++;
       if (byte2==0)
-	break;
+        break;
       length++;
       if (byte3==0)
-	break;
+        break;
       length++;
     }
 

@@ -33,7 +33,7 @@ public class RCHybridHeader extends RCBaseHeader {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-				      boolean isScalar)
+                                      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // nothing here because this is for default allocation, which is
     // to the nursery, which requires nothing to be done.
@@ -52,7 +52,7 @@ public class RCHybridHeader extends RCBaseHeader {
    * initial increment?
    */
   public static void initializeRCHeader(VM_Address ref, Object[] tib, int size,
-					boolean isScalar, boolean initialInc)
+                                        boolean isScalar, boolean initialInc)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int initialValue = (initialInc) ? INCREMENT : 0;
     if (Plan.REF_COUNT_CYCLE_DETECTION && VM_Interface.isAcyclic(tib))

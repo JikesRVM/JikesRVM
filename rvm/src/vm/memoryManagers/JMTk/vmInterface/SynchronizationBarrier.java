@@ -95,11 +95,11 @@ public final class SynchronizationBarrier {
     int numParticipating = 0;
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       if ( VM_Scheduler.processors[i].lockInCIfInC() ) { // can't be true for self
-	  if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
-	  removeProcessor(i);
+          if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
+          removeProcessor(i);
       }
       else
-	numParticipating++;
+        numParticipating++;
     }
 
     maxProcessorId = VM_Scheduler.numProcessors;
@@ -111,7 +111,7 @@ public final class SynchronizationBarrier {
     VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
     VM_Magic.isync();  // so subsequent instructions won't see stale values
     if (verbose > 0) 
-	VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
+        VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
 
   }  // startupRendezvous
 
@@ -144,11 +144,11 @@ public final class SynchronizationBarrier {
     if (VM_Scheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
       for ( int i = 0; i < (x*100); i++)
-	sum = sum + i;
+        sum = sum + i;
       return sum;
     } else {
       if (!VM.BuildForSingleVirtualProcessor) {
-	VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
+        VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
       }
       return 0;
     }

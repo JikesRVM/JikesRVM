@@ -111,8 +111,8 @@ import java.util.Enumeration;
  */
 public final class OPT_Instruction 
   implements VM_Constants, 
-	     OPT_Operators, 
-	     OPT_Constants {
+             OPT_Operators, 
+             OPT_Constants {
 
 
   /** 
@@ -292,10 +292,10 @@ public final class OPT_Instruction
     for (int i = 0; i < numDefs; i++) {
       op = getOperand(i);
       if (op != null) {
-	if (defsPrinted > 0) result.append(", ");
-	if (defsPrinted % 10 == 9) result.append('\n');
-	result.append(op);
-	defsPrinted++;
+        if (defsPrinted > 0) result.append(", ");
+        if (defsPrinted % 10 == 9) result.append('\n');
+        result.append(op);
+        defsPrinted++;
       }
     }
   
@@ -306,9 +306,9 @@ public final class OPT_Instruction
     // print separator
     if (defsPrinted > 0)
       if (operator.getNumberOfDefUses() == 0) 
-	result.append(" = ");
+        result.append(" = ");
       else
-	result.append(" <-- ");
+        result.append(" <-- ");
     
     // print explicit uses
     int usesPrinted = 0;
@@ -318,9 +318,9 @@ public final class OPT_Instruction
       if ((defsPrinted + usesPrinted) % 10 == 9) result.append('\n');
       usesPrinted++;
       if (op != null) {
-	result.append(op);
+        result.append(op);
       } else {
-	result.append("<unused>");
+        result.append("<unused>");
       }
     }
 
@@ -342,11 +342,11 @@ public final class OPT_Instruction
   public OPT_Instruction nextInstructionInCodeOrder() {
     if (next == null) {
       OPT_BasicBlock nBlock = 
-	BBend.getBlock(this).block.nextBasicBlockInCodeOrder();
+        BBend.getBlock(this).block.nextBasicBlockInCodeOrder();
       if (nBlock == null) {
-	return null;
+        return null;
       } else {
-	return nBlock.firstInstruction();
+        return nBlock.firstInstruction();
       }
     } else {
       return next;
@@ -364,11 +364,11 @@ public final class OPT_Instruction
   public OPT_Instruction prevInstructionInCodeOrder() {
     if (prev == null) {
       OPT_BasicBlock nBlock = 
-	Label.getBlock(this).block.prevBasicBlockInCodeOrder();
+        Label.getBlock(this).block.prevBasicBlockInCodeOrder();
       if (nBlock == null) {
-	return null;
+        return null;
       } else {
-	return nBlock.lastInstruction();
+        return nBlock.lastInstruction();
       }
     } else {
       return prev;
@@ -530,7 +530,7 @@ public final class OPT_Instruction
     if (operator.hasVarDefs()) {
       int numOps = operator.getNumberOfFixedPureDefs();
       for (; numOps < ops.length; numOps++) {
-	if (ops[numOps] == null) break;
+        if (ops[numOps] == null) break;
       }
       return numOps;
     } else {
@@ -550,11 +550,11 @@ public final class OPT_Instruction
   public int getNumberOfPureDefs() {
     if (operator.hasVarDefs()) {
       if (VM.VerifyAssertions) {
-	VM._assert(operator.getNumberOfDefUses() == 0);
+        VM._assert(operator.getNumberOfDefUses() == 0);
       }
       int numOps = operator.getNumberOfFixedPureDefs();
       for (; numOps < ops.length; numOps++) {
-	if (ops[numOps] == null) break;
+        if (ops[numOps] == null) break;
       }
       return numOps;
     } else {
@@ -572,12 +572,12 @@ public final class OPT_Instruction
   public int getNumberOfPureUses() {
     if (operator.hasVarDefs()) {
       if (VM.VerifyAssertions) {
-	VM._assert(operator.getNumberOfDefUses() == 0);
+        VM._assert(operator.getNumberOfDefUses() == 0);
       }
       int numOps = operator.getNumberOfFixedPureUses();
       int i = getNumberOfDefs() + numOps;
       for (; i < ops.length; i++) {
-	if (ops[i] == null) break;
+        if (ops[i] == null) break;
         numOps++;
       }
       return numOps;
@@ -614,7 +614,7 @@ public final class OPT_Instruction
   public void replaceOperand(OPT_Operand oldOp, OPT_Operand newOp) {
     for (int i = 0; i < ops.length; i++) {
       if (getOperand(i) == oldOp) {
-	putOperand(i, newOp);
+        putOperand(i, newOp);
       }
     }
   }
@@ -629,7 +629,7 @@ public final class OPT_Instruction
   public void replaceSimilarOperands(OPT_Operand oldOp, OPT_Operand newOp) {
     for (int i = 0; i < ops.length; i++) {
       if (oldOp.similar(getOperand(i))) {
-	putOperand(i, newOp.copy());
+        putOperand(i, newOp.copy());
       }
     }
   }
@@ -666,7 +666,7 @@ public final class OPT_Instruction
     for (int i = 0; i<ops.length; i++) {
       OPT_Operand op = getOperand(i);
       if (op instanceof OPT_MemoryOperand ||
-	  op instanceof OPT_StackLocationOperand) {
+          op instanceof OPT_StackLocationOperand) {
         return true;
       }
     }
@@ -761,7 +761,7 @@ public final class OPT_Instruction
    */
   public final OPT_OperandEnumeration getRootUses() {
     return new ROE(this, getNumberOfPureDefs(), 
-		   getNumberOfOperands() - 1);
+                   getNumberOfOperands() - 1);
   }
 
 
@@ -822,9 +822,9 @@ public final class OPT_Instruction
   public boolean isTwoWayBranch() { 
     // Is there a cleaner way to answer this question?
     return (isConditionalBranch() &&
-	    !IfCmp2.conforms(this) 
-	    && !MIR_CondBranch2.conforms(this)
-	    );
+            !IfCmp2.conforms(this) 
+            && !MIR_CondBranch2.conforms(this)
+            );
   }
 
   /**
@@ -1278,14 +1278,14 @@ public final class OPT_Instruction
       
     default:
       if (MIR_Branch.conforms(this)) {
-	return MIR_Branch.getTarget(this).target.getBasicBlock();
+        return MIR_Branch.getTarget(this).target.getBasicBlock();
       } else if (MIR_CondBranch.conforms(this)) {
-	return MIR_CondBranch.getTarget(this).target.getBasicBlock();
+        return MIR_CondBranch.getTarget(this).target.getBasicBlock();
       } else
 
       throw new OPT_OptimizingCompilerException("getBranchTarget()",
-						"operator not implemented",
-						operator.toString());
+                                                "operator not implemented",
+                                                operator.toString());
       
     }
   }
@@ -1303,8 +1303,8 @@ public final class OPT_Instruction
     switch (getOpcode()) {
     case GOTO_opcode:
       {
-	OPT_BranchOperand tgt = Goto.getTarget(this);
-	e.addElement(tgt.target.getBasicBlock());
+        OPT_BranchOperand tgt = Goto.getTarget(this);
+        e.addElement(tgt.target.getBasicBlock());
       }
       break;
 
@@ -1332,45 +1332,45 @@ public final class OPT_Instruction
     case TABLESWITCH_opcode:
       e.addElement(TableSwitch.getDefault(this).target.getBasicBlock());
       for(int i = 0; i < TableSwitch.getNumberOfTargets(this); i++) 
-	e.addPossiblyDuplicateElement(TableSwitch.getTarget(this, i).target.getBasicBlock());
+        e.addPossiblyDuplicateElement(TableSwitch.getTarget(this, i).target.getBasicBlock());
       break;
 
     case LOWTABLESWITCH_opcode:
       for(int i = 0; i < LowTableSwitch.getNumberOfTargets(this); i++) 
-	e.addPossiblyDuplicateElement(LowTableSwitch.getTarget(this, i).target.getBasicBlock());
+        e.addPossiblyDuplicateElement(LowTableSwitch.getTarget(this, i).target.getBasicBlock());
       break;
       
     case LOOKUPSWITCH_opcode:
       e.addElement(LookupSwitch.getDefault(this).target.getBasicBlock());
       for(int i = 0; i < LookupSwitch.getNumberOfTargets(this); i++) 
-	e.addPossiblyDuplicateElement(LookupSwitch.getTarget(this, i).target.getBasicBlock());
+        e.addPossiblyDuplicateElement(LookupSwitch.getTarget(this, i).target.getBasicBlock());
       break;
 
     default:
       if (MIR_Branch.conforms(this)) {
-	e.addElement(MIR_Branch.getTarget(this).target.getBasicBlock());
+        e.addElement(MIR_Branch.getTarget(this).target.getBasicBlock());
       } else if (MIR_CondBranch.conforms(this)) {
-	e.addElement(MIR_CondBranch.getTarget(this).target.getBasicBlock());
+        e.addElement(MIR_CondBranch.getTarget(this).target.getBasicBlock());
       } else if (MIR_CondBranch2.conforms(this)) {
-	e.addElement(MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
-	e.addPossiblyDuplicateElement(MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
+        e.addElement(MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
+        e.addPossiblyDuplicateElement(MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
       //-#if RVM_FOR_IA32
       // TODO: should factor the MIR-specific stuff into an arch-specific
       // file.  Too lazy to do it today (SJF).
       } else if (MIR_LowTableSwitch.conforms(this)) {
           for(int i = 0; i < MIR_LowTableSwitch.getNumberOfTargets(this); i++) 
-    	    e.addPossiblyDuplicateElement(MIR_LowTableSwitch.getTarget(this,i).
+            e.addPossiblyDuplicateElement(MIR_LowTableSwitch.getTarget(this,i).
                                           target.getBasicBlock());
       //-#endif
       } else if (MIR_CondBranch2.conforms(this)) {
-	throw new OPT_OptimizingCompilerException("getBranchTargets()",
-						  "operator not implemented",
-						  operator().toString());
+        throw new OPT_OptimizingCompilerException("getBranchTargets()",
+                                                  "operator not implemented",
+                                                  operator().toString());
       } else
 
       throw new OPT_OptimizingCompilerException("getBranchTargets()",
-						"operator not implemented",
-						operator().toString());
+                                                "operator not implemented",
+                                                operator().toString());
     }
 
     return e;
@@ -1462,8 +1462,8 @@ public final class OPT_Instruction
 
     // set position unless someone else has
     if (newInstr.position == null) {
-	newInstr.position = position;
-	newInstr.bcIndex = bcIndex;
+        newInstr.position = position;
+        newInstr.bcIndex = bcIndex;
     }
 
     // Splice newInstr into the doubly linked list of instructions
@@ -1506,8 +1506,8 @@ public final class OPT_Instruction
 
     // set position unless someone else has
     if (newInstr.position == null) {
-	newInstr.position = position;
-	newInstr.bcIndex = bcIndex;
+        newInstr.position = position;
+        newInstr.bcIndex = bcIndex;
     }
 
     // Splice newInstr into the doubly linked list of instructions
@@ -1567,7 +1567,7 @@ public final class OPT_Instruction
     if (OPT_IR.PARANOID) {
       isLinked();
       VM._assert(!isBbFirst() && !isBbLast(), 
-		"Removal of first/last instructions in block not supported");
+                "Removal of first/last instructions in block not supported");
     }
 
     // Splice this out of instr list
@@ -1592,12 +1592,12 @@ public final class OPT_Instruction
     VM._assert(prev.next == this, "is_backward_linked: failure (1)");
     // OK if next is null (IR under construction)
     VM._assert(next == null || next.prev == this, 
-	      "is_backward_linked: failure (2)");
+              "is_backward_linked: failure (2)");
   }
   private void isForwardLinked() {
     // OK if prev is null (IR under construction)
     VM._assert(prev == null || prev.next == this, 
-	      "is_forward_linked: failure (1)");
+              "is_forward_linked: failure (1)");
     VM._assert(next.prev == this, "is_forward_linked (2)");
   }
   private void isNotLinked() {
@@ -1645,42 +1645,42 @@ public final class OPT_Instruction
       super(instr, start, end);
       this.defEnd = defEnd;
       if (DEBUG) {
-	System.out.println(" --> OE called with inst\n"+ instr
-			   +"\n start: "+ start +", end: "+ end
-			   +", defEnd: "+ defEnd);
+        System.out.println(" --> OE called with inst\n"+ instr
+                           +"\n start: "+ start +", end: "+ end
+                           +", defEnd: "+ defEnd);
       }
       advance();
     }
     protected final void advance() {
       if (deferredMOReg != null) {
-	nextElem = deferredMOReg;
-	deferredMOReg = null;
+        nextElem = deferredMOReg;
+        deferredMOReg = null;
       } else {
-	OPT_Operand temp;
-	do {
-	  i++; 
-	  if (i > end) { 
-	    temp = null; 
-	    break;
-	  }
-	  temp = instr.getOperand(i);
-	  if (temp instanceof OPT_MemoryOperand) {
-	    OPT_MemoryOperand mo = (OPT_MemoryOperand)temp;
-	    if (mo.base != null) {
-	      temp = mo.base;
-	      deferredMOReg = mo.index;
-	      break;
-	    } else {
-	      temp = mo.index;
-	    }
-	  } else {
-	    if (i <= defEnd) {
-	      // if i is in the defs, ignore non memory operands
-	      temp = null;
-	    }
-	  }
-	} while (temp == null);
-	nextElem = temp;
+        OPT_Operand temp;
+        do {
+          i++; 
+          if (i > end) { 
+            temp = null; 
+            break;
+          }
+          temp = instr.getOperand(i);
+          if (temp instanceof OPT_MemoryOperand) {
+            OPT_MemoryOperand mo = (OPT_MemoryOperand)temp;
+            if (mo.base != null) {
+              temp = mo.base;
+              deferredMOReg = mo.index;
+              break;
+            } else {
+              temp = mo.index;
+            }
+          } else {
+            if (i <= defEnd) {
+              // if i is in the defs, ignore non memory operands
+              temp = null;
+            }
+          }
+        } while (temp == null);
+        nextElem = temp;
       }
     }
   }
@@ -1691,20 +1691,20 @@ public final class OPT_Instruction
     public OEDefsOnly(OPT_Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
-	System.out.println(" --> OEDefsOnly called with inst\n"+ instr
-			   +"\n start: "+ start +", end: "+ end);
+        System.out.println(" --> OEDefsOnly called with inst\n"+ instr
+                           +"\n start: "+ start +", end: "+ end);
       }
       advance();
     }
     protected final void advance() {
       OPT_Operand temp;
       do {
-	i++;
-	if (i > end) {
-	  temp = null;
-	  break;
-	}
-	temp = instr.getOperand(i);
+        i++;
+        if (i > end) {
+          temp = null;
+          break;
+        }
+        temp = instr.getOperand(i);
       } while (temp == null || temp instanceof OPT_MemoryOperand);
       nextElem = temp;
       // (i>end and nextElem == null) or nextElem is neither memory nor null
@@ -1717,20 +1717,20 @@ public final class OPT_Instruction
     public MOE(OPT_Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
-	System.out.println(" --> MOE called with inst\n"+ instr
-			   +"\n start: "+ start +", end: "+ end);
+        System.out.println(" --> MOE called with inst\n"+ instr
+                           +"\n start: "+ start +", end: "+ end);
       }
       advance();
     }
     protected final void advance() {
       OPT_Operand temp;
       do {
-	i++;
-	if (i > end) {
-	  temp = null;
-	  break;
-	}
-	temp = instr.getOperand(i);
+        i++;
+        if (i > end) {
+          temp = null;
+          break;
+        }
+        temp = instr.getOperand(i);
       } while (!(temp instanceof OPT_MemoryOperand));
       nextElem = temp;
       // (i>end and nextElem == null) or nextElem is memory
@@ -1742,20 +1742,20 @@ public final class OPT_Instruction
     public ROE(OPT_Instruction instr, int start, int end) {
       super(instr, start, end);
       if (DEBUG) {
-	System.out.println(" --> ROE called with inst\n"+ instr
-			   +"\n start: "+ start +", end: "+ end);
+        System.out.println(" --> ROE called with inst\n"+ instr
+                           +"\n start: "+ start +", end: "+ end);
       }
       advance();
     }
     protected final void advance() {
       OPT_Operand temp;
       do {
-	i++;
-	if (i > end) {
-	  temp = null;
-	  break;
-	}
-	temp = instr.getOperand(i);
+        i++;
+        if (i > end) {
+          temp = null;
+          break;
+        }
+        temp = instr.getOperand(i);
       } while (temp == null);
       nextElem = temp;
       // (i>end and nextElem == null) or nextElem != null
@@ -1816,7 +1816,7 @@ public final class OPT_Instruction
       //       are not shared between instructions and force people to be
       //       more careful!
       if (op.instruction != null) {
-	op = outOfLineCopy(op);
+        op = outOfLineCopy(op);
       }
       op.instruction = this;
       ops[i] = op;
@@ -1838,10 +1838,10 @@ public final class OPT_Instruction
       OPT_Operand newOps[] = new OPT_Operand[newSize];
       int min = oldSize;
       if (newSize < oldSize) {
-	min = newSize;
+        min = newSize;
       }
       for (int i = 0; i < min; i ++) {
-	newOps[i] = ops[i];
+        newOps[i] = ops[i];
       }
       ops = newOps;
     }

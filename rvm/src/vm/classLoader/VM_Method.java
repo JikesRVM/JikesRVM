@@ -34,7 +34,7 @@ public abstract class VM_Method extends VM_Member {
    * @param exceptionTypes exceptions thrown by this method.
    */
   protected VM_Method(VM_Class declaringClass, VM_MemberReference memRef, 
-		      int modifiers, VM_TypeReference[] exceptionTypes) {
+                      int modifiers, VM_TypeReference[] exceptionTypes) {
     super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS);
     memRef.asMethodReference().setResolvedMember(this);
     this.exceptionTypes = exceptionTypes;
@@ -50,7 +50,7 @@ public abstract class VM_Method extends VM_Member {
    * @param input the DataInputStream to read the method's attributes from
    */
   static VM_Method readMethod(VM_Class declaringClass, VM_MemberReference memRef,
-			      int modifiers, DataInputStream input) throws IOException {
+                              int modifiers, DataInputStream input) throws IOException {
     ClassLoader cl = declaringClass.getClassLoader();
 
     int tmp_localWords = 0;
@@ -74,37 +74,37 @@ public abstract class VM_Method extends VM_Member {
         int cnt = input.readUnsignedShort();
         if (cnt != 0) {
           tmp_exceptionHandlerMap = new VM_ExceptionHandlerMap(input, declaringClass, cnt);
-	}
-	// Read the attributes portion of the code attribute
-	for (int j = 0, n2 = input.readUnsignedShort(); j<n2; j++) {
-	  attName   = declaringClass.getUtf(input.readUnsignedShort());
-	  attLength = input.readInt();
+        }
+        // Read the attributes portion of the code attribute
+        for (int j = 0, n2 = input.readUnsignedShort(); j<n2; j++) {
+          attName   = declaringClass.getUtf(input.readUnsignedShort());
+          attLength = input.readInt();
 
-	  if (attName == VM_ClassLoader.lineNumberTableAttributeName) {
-	    cnt = input.readUnsignedShort();
-	    if (cnt != 0) {
-	      tmp_lineNumberMap = new int[cnt];
-	      for (int k = 0; k<cnt; k++) {
-		int startPC = input.readUnsignedShort();
-		int lineNumber = input.readUnsignedShort();
-		tmp_lineNumberMap[k] = (lineNumber << BITS_IN_SHORT) | startPC;
-	      }
-	    }
-	  } else {
-	    // All other entries in the attribute portion of the code attribute are boring.
-	    input.skipBytes(attLength);
-	  }
-	}
+          if (attName == VM_ClassLoader.lineNumberTableAttributeName) {
+            cnt = input.readUnsignedShort();
+            if (cnt != 0) {
+              tmp_lineNumberMap = new int[cnt];
+              for (int k = 0; k<cnt; k++) {
+                int startPC = input.readUnsignedShort();
+                int lineNumber = input.readUnsignedShort();
+                tmp_lineNumberMap[k] = (lineNumber << BITS_IN_SHORT) | startPC;
+              }
+            }
+          } else {
+            // All other entries in the attribute portion of the code attribute are boring.
+            input.skipBytes(attLength);
+          }
+        }
       } else if (attName == VM_ClassLoader.exceptionsAttributeName) {
         int cnt = input.readUnsignedShort();
         if (cnt != 0) {
           tmp_exceptionTypes = new VM_TypeReference[cnt];
           for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
             tmp_exceptionTypes[j] = declaringClass.getTypeRef(input.readUnsignedShort());
-	  }
+          }
         }
       } else {
-	// all other method attributes are boring
+        // all other method attributes are boring
         input.skipBytes(attLength);
       }
     }
@@ -115,8 +115,8 @@ public abstract class VM_Method extends VM_Member {
       return new VM_AbstractMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes);
     } else {
       return new VM_NormalMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes,
-				 tmp_localWords, tmp_operandWords, tmp_bytecodes, 
-				 tmp_exceptionHandlerMap, tmp_lineNumberMap);
+                                 tmp_localWords, tmp_operandWords, tmp_bytecodes, 
+                                 tmp_exceptionHandlerMap, tmp_lineNumberMap);
     }
   }
 
@@ -325,9 +325,9 @@ public abstract class VM_Method extends VM_Member {
     // Ensure that cm wasn't invalidated while it was being compiled.
     synchronized(cm) {
       if (cm.isInvalid()) {
-	VM_CompiledMethods.setCompiledMethodObsolete(cm);
+        VM_CompiledMethods.setCompiledMethodObsolete(cm);
       } else {
-	currentCompiledMethod = cm;
+        currentCompiledMethod = cm;
       }
     }
 
@@ -355,7 +355,7 @@ public abstract class VM_Method extends VM_Member {
     // If we're replacing with a non-null compiledMethod, ensure that is still valid!
     if (compiledMethod != null) {
       synchronized(compiledMethod) {
-	if (compiledMethod.isInvalid()) return;
+        if (compiledMethod.isInvalid()) return;
       }
     }
       

@@ -13,7 +13,7 @@ class TestDeadVPQueue
       throws Exception
       {
 
-	TestDeadVPQueueWorker w = null;
+        TestDeadVPQueueWorker w = null;
 
       System.out.println("TestDeadVPQueue");
 
@@ -67,7 +67,7 @@ class TestDeadVPQueue
        try {Thread.currentThread().sleep(10); } catch (InterruptedException e) {}
       }
       while (w.state != TestDeadVPQueueWorker.ending) {
-	try {Thread.currentThread().sleep(500); } catch (InterruptedException e) {}
+        try {Thread.currentThread().sleep(500); } catch (InterruptedException e) {}
       }
 
      

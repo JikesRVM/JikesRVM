@@ -74,7 +74,7 @@ final class CopySpace extends BasePolicy
     //
     if (CopyingHeader.stateIsForwardedOrBeingForwarded(forwardingPtr)) {
       while (CopyingHeader.stateIsBeingForwarded(forwardingPtr)) 
-	forwardingPtr = CopyingHeader.getForwardingWord(object);
+        forwardingPtr = CopyingHeader.getForwardingWord(object);
       // prevent following instructions from being moved in front of waitloop
       VM_Magic.isync();  
       VM_Address newObject = VM_Address.fromInt(forwardingPtr & ~CopyingHeader.GC_FORWARDING_MASK);

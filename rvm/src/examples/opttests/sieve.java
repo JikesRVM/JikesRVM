@@ -25,16 +25,16 @@ class sieve {
     int i, prime, k, count = 0, iter;
     //    System.out.print("3000 iterations --> ");
     for (iter = 1; iter <= 100; iter++) { /* do program 100 times*/
-      count = 0;		          /* prime counter */
+      count = 0;                          /* prime counter */
       for (i = 0; i <= size; i++)         /* set all flags true */
-	flags[i] = true;
+        flags[i] = true;
       for (i = 0; i <= size; i++) {
-	if (flags[i]) {                   /* found a prime */
-	  prime = i + i + 3;	          /* twice index + 3 */
-	  for (k = i + prime; k <= size; k += prime)
-	    flags[k] = false;             /* kill all multiple */
-	  count++;
-	}
+        if (flags[i]) {                   /* found a prime */
+          prime = i + i + 3;              /* twice index + 3 */
+          for (k = i + prime; k <= size; k += prime)
+            flags[k] = false;             /* kill all multiple */
+          count++;
+        }
       }
     }
     // System.out.println(count + " primes."); /* primes found on 100th pass */

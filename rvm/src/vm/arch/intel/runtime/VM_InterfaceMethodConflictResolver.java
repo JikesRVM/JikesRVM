@@ -33,7 +33,7 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
     // (2) signatures must be in ascending order (to build binary search tree).
     if (VM.VerifyAssertions) {
       for (int i=1; i<sigIds.length; i++) {
-	VM._assert(sigIds[i-1] < sigIds[i]);
+        VM._assert(sigIds[i-1] < sigIds[i]);
       }
     }
 
@@ -60,10 +60,10 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
     } else {
       // Recurse.
       if (low < middle) {
-	bcIndex = assignBytecodeIndices(bcIndex, bcIndices, low, middle-1);
+        bcIndex = assignBytecodeIndices(bcIndex, bcIndices, low, middle-1);
       } 
       if (middle < high) {
-	bcIndex = assignBytecodeIndices(bcIndex, bcIndices, middle+1, high);
+        bcIndex = assignBytecodeIndices(bcIndex, bcIndices, middle+1, high);
       }
       return bcIndex;
     }
@@ -78,38 +78,38 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
 
   // Generate a subtree covering from low to high inclusive.
   private static void insertStubCase(VM_Assembler asm,  
-				     int[] sigIds, VM_Method[] targets,
-				     int[] bcIndices, int low, int high) {
+                                     int[] sigIds, VM_Method[] targets,
+                                     int[] bcIndices, int low, int high) {
     int middle = (high + low)/2;
     asm.resolveForwardReferences(bcIndices[middle]);
     if (low == middle && middle == high) {
       // a leaf case; can simply invoke the method directly.
       VM_Method target = targets[middle];
       if (target.isStatic()) { // an error case...
-	VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffset());
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffset());
       }
       asm.emitJMP_RegDisp(ECX, target.getOffset());
     } else {
       int disp = VM_Entrypoints.hiddenSignatureIdField.getOffset();
       VM_ProcessorLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
       if (low < middle) {
-	asm.emitJCC_Cond_Label(asm.LT, bcIndices[(low+middle-1)/2]);
+        asm.emitJCC_Cond_Label(asm.LT, bcIndices[(low+middle-1)/2]);
       }
       if (middle < high) {
-	asm.emitJCC_Cond_Label(asm.GT, bcIndices[(middle+1+high)/2]);
+        asm.emitJCC_Cond_Label(asm.GT, bcIndices[(middle+1+high)/2]);
       }
       // invoke the method for middle.
       VM_Method target = targets[middle];
       if (target.isStatic()) { // an error case...
-	VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffset());
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX, VM_Entrypoints.jtocField.getOffset());
       }
       asm.emitJMP_RegDisp(ECX, target.getOffset());
       // Recurse.
       if (low < middle) {
-	insertStubCase(asm, sigIds, targets, bcIndices, low, middle-1);
+        insertStubCase(asm, sigIds, targets, bcIndices, low, middle-1);
       } 
       if (middle < high) {
-	insertStubCase(asm, sigIds, targets, bcIndices, middle+1, high);
+        insertStubCase(asm, sigIds, targets, bcIndices, middle+1, high);
       }
     }
   }

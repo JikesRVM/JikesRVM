@@ -63,9 +63,9 @@ getRealSymbol(const char *symbolName, void **pPtr)
 
     // FIXME: should handle errors
     if (*pPtr == 0) {
-	if (libcHandle == 0)
-	    libcHandle = dlopen(C_LIBRARY_NAME, RTLD_LAZY);
-	*pPtr = dlsym(libcHandle, symbolName);
+        if (libcHandle == 0)
+            libcHandle = dlopen(C_LIBRARY_NAME, RTLD_LAZY);
+        *pPtr = dlsym(libcHandle, symbolName);
     }
 }
 
@@ -82,14 +82,14 @@ JNIEnv *
 getJniEnvFromVmProcessor(void *vmProcessorPtr)
 {
     if (vmProcessorPtr == 0)
-	return 0; // oops
+        return 0; // oops
 
     // Follow chain of pointers:
     // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
     void *vmThreadPtr =
-	getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
+        getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
     void *jniEnvironment =
-	getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
+        getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
     // Convert VM_JNIEnvironment to JNIEnv* expected by native code
     // by creating the appropriate interior pointer.
     void *jniEnv = ((char*)jniEnvironment + VM_JNIEnvironment_JNIExternalFunctions_offset);
@@ -117,8 +117,8 @@ countFileDescriptors(fd_set *fdSet, int maxFd)
 {
     int count = 0;
     for (int i = 0; i < maxFd; ++i) {
-	if (FD_ISSET(i, fdSet))
-	    ++count;
+        if (FD_ISSET(i, fdSet))
+            ++count;
     }
     return count;
 }
@@ -129,8 +129,8 @@ addFileDescriptors(jint *elements, fd_set *fdSet, int maxFd)
 {
     int count = 0;
     for (int i = 0; i < maxFd; ++i) {
-	if (FD_ISSET(i, fdSet))
-	    elements[count++] = i;
+        if (FD_ISSET(i, fdSet))
+            elements[count++] = i;
     }
 }
 
@@ -141,11 +141,11 @@ fdSetToIntArray(JNIEnv *env, fd_set *fdSet, int maxFd)
 {
     jintArray arr = 0;
     if (fdSet != 0) {
-	int count = countFileDescriptors(fdSet, maxFd);
-	arr = env->NewIntArray(count);
-	jint *elements = env->GetIntArrayElements(arr, 0);
-	addFileDescriptors(elements, fdSet, maxFd);
-	env->ReleaseIntArrayElements(arr, elements, 0);
+        int count = countFileDescriptors(fdSet, maxFd);
+        arr = env->NewIntArray(count);
+        jint *elements = env->GetIntArrayElements(arr, 0);
+        addFileDescriptors(elements, fdSet, maxFd);
+        env->ReleaseIntArrayElements(arr, elements, 0);
     }
     return arr;
 }
@@ -162,21 +162,21 @@ updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
 {
     int readyCount = 0;
     if (fdSet != 0) {
-	// Clear the fd_set.
-	FD_ZERO(fdSet);
+        // Clear the fd_set.
+        FD_ZERO(fdSet);
 
-	// Scan through the elements of the array
-	jsize length = env->GetArrayLength(fdArray);
-	jint *elements = env->GetIntArrayElements(fdArray, 0);
-	for (jsize i = 0; i < length; ++i) {
-	    int fd = elements[i];
-	    if ((fd & VM_ThreadIOConstants_FD_READY_BIT) != 0) {
-		fd &= VM_ThreadIOConstants_FD_MASK;
-		FD_SET(fd, fdSet);
-		++readyCount;
-	    }
-	}
-	env->ReleaseIntArrayElements(fdArray, elements, 0);
+        // Scan through the elements of the array
+        jsize length = env->GetArrayLength(fdArray);
+        jint *elements = env->GetIntArrayElements(fdArray, 0);
+        for (jsize i = 0; i < length; ++i) {
+            int fd = elements[i];
+            if ((fd & VM_ThreadIOConstants_FD_READY_BIT) != 0) {
+                fd &= VM_ThreadIOConstants_FD_MASK;
+                FD_SET(fd, fdSet);
+                ++readyCount;
+            }
+        }
+        env->ReleaseIntArrayElements(fdArray, elements, 0);
     }
     return readyCount;
 }
@@ -224,7 +224,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 
     // If timeout is short, just call real select().
     if (!isLongWait(timeout)) {
-	return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
+        return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
     }
 
     // Get the JNIEnv from the VM_Processor object
@@ -239,18 +239,18 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
     // Figure out how many seconds to wait
     double totalWaitTime;
     if (timeout == 0)
-	totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
+        totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
     else {
-	totalWaitTime = ((double) timeout->tv_sec);
-	totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
+        totalWaitTime = ((double) timeout->tv_sec);
+        totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
     }
 
     // Call VM_Thread.ioWaitSelect()
     jclass vmWaitClass = env->FindClass("com/ibm/JikesRVM/VM_Wait");
     jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
-							  "ioWaitSelect", "([I[I[IDZ)V");
+                                                          "ioWaitSelect", "([I[I[IDZ)V");
     env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,
-			      readArr, writeArr, exceptArr, totalWaitTime, (jboolean) 1);
+                              readArr, writeArr, exceptArr, totalWaitTime, (jboolean) 1);
 
     // TODO: should have return value from ioWaitSelect(), for returning errors
 
@@ -289,7 +289,7 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 
     // If timeout is short, just call real poll().
     if (timeout == 0 || timeout == 1) {
-	return libcPoll(ufds, nfds, timeout);
+        return libcPoll(ufds, nfds, timeout);
     }
 
     FD_ZERO( &readfds );
@@ -297,42 +297,42 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
     FD_ZERO( &exceptfds );
 
     if (timeout < 0) 
-	tv_ptr = NULL;
+        tv_ptr = NULL;
     else {
-	tv.tv_sec = timeout / 1000;
-	tv.tv_usec = (timeout - (tv.tv_sec*1000)) * 1000;
-	tv_ptr = &tv;
+        tv.tv_sec = timeout / 1000;
+        tv.tv_usec = (timeout - (tv.tv_sec*1000)) * 1000;
+        tv_ptr = &tv;
     }
 
     max_fd = 0;
 
     for (unsigned i = 0; i < nfds; i++) {
 
-	if (ufds[i].fd+1 > max_fd)
-	    max_fd = ufds[i].fd+1;
+        if (ufds[i].fd+1 > max_fd)
+            max_fd = ufds[i].fd+1;
 
-	if (ufds[i].events&POLLIN)
-	    FD_SET( ufds[i].fd, &readfds );
+        if (ufds[i].events&POLLIN)
+            FD_SET( ufds[i].fd, &readfds );
 
-	if (ufds[i].events&POLLOUT)
-	    FD_SET( ufds[i].fd, &writefds );
+        if (ufds[i].events&POLLOUT)
+            FD_SET( ufds[i].fd, &writefds );
 
-	if (ufds[i].events&POLLPRI)
-	    FD_SET( ufds[i].fd, &exceptfds );
+        if (ufds[i].events&POLLPRI)
+            FD_SET( ufds[i].fd, &exceptfds );
     }
 
     ready = select(max_fd, &readfds, &writefds, &exceptfds, &tv);
     
     for (unsigned i = 0; i < nfds; i++) {
 
-	if (ufds[i].events&POLLIN && FD_ISSET( ufds[i].fd, &readfds ))
-	    ufds[i].revents |= POLLIN;
+        if (ufds[i].events&POLLIN && FD_ISSET( ufds[i].fd, &readfds ))
+            ufds[i].revents |= POLLIN;
 
-	if (ufds[i].events&POLLOUT && FD_ISSET( ufds[i].fd, &writefds ))
-	    ufds[i].revents |= POLLOUT;
+        if (ufds[i].events&POLLOUT && FD_ISSET( ufds[i].fd, &writefds ))
+            ufds[i].revents |= POLLOUT;
 
-	if (ufds[i].events&POLLPRI && FD_ISSET( ufds[i].fd, &exceptfds ))
-	    ufds[i].revents |= POLLPRI;
+        if (ufds[i].events&POLLPRI && FD_ISSET( ufds[i].fd, &exceptfds ))
+            ufds[i].revents |= POLLPRI;
     }
 
     return ready;
@@ -369,13 +369,13 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 
     // Java 1.2 is not supported yet
     if (version == JNI_VERSION_1_2)
-	return JNI_EVERSION;
+        return JNI_EVERSION;
 
 #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     // Return NULL if we are not on a VM pthread
     if (pthread_getspecific(IsVmProcessorKey) == NULL) {
-	*penv = NULL;
-	return -1;
+        *penv = NULL;
+        return -1;
     }
 #endif
 

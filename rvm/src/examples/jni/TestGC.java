@@ -37,45 +37,45 @@ class TestGC {
     System.loadLibrary("TestGC");
 
     if (args.length!=0) {
-	for (int i=0; i<args.length; i++) {
-	    if (args[i].equals("-quiet")) {
-		verbose = false;	
-		setVerboseOff();
-	    } 	
-	    if (args[i].equals("-jdk")) {
-		runningUnderJDK = true;	
-	    } 	
-	}
+        for (int i=0; i<args.length; i++) {
+            if (args[i].equals("-quiet")) {
+                verbose = false;        
+                setVerboseOff();
+            }   
+            if (args[i].equals("-jdk")) {
+                runningUnderJDK = true; 
+            }   
+        }
     }
 
     Object returnobj;
 
     if ( ! runningUnderJDK ) {
 
-	VM_Address oldAddress1 = VM_Magic.objectAsAddress(str1);
-	VM_Address oldAddress2 = VM_Magic.objectAsAddress(str2);
-	printVerbose("  str1 address = " + VM.addressAsHexString(oldAddress1));
-	printVerbose("  str2 address = " + VM.addressAsHexString(oldAddress2));
+        VM_Address oldAddress1 = VM_Magic.objectAsAddress(str1);
+        VM_Address oldAddress2 = VM_Magic.objectAsAddress(str2);
+        printVerbose("  str1 address = " + VM.addressAsHexString(oldAddress1));
+        printVerbose("  str2 address = " + VM.addressAsHexString(oldAddress2));
 
-	returnobj = testgc( str1, str2 );
-	printVerbose("TestGC After native call:");
-	
-	VM_Address newAddress1 = VM_Magic.objectAsAddress(str1);
-	VM_Address newAddress2 = VM_Magic.objectAsAddress(str2);
-	if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
-	    copyingGC = true;
-	    printVerbose("Objects have been moved by GC:");
-	} else {
-	    copyingGC = false;
-	    printVerbose("Objects have NOT been moved by GC:");
-	}
-	printVerbose("  str1 address = " + VM.addressAsHexString(newAddress1));
-	printVerbose("  str2 address = " + VM.addressAsHexString(newAddress2));
-	printVerbose("  returnobj address = " + VM.addressAsHexString(VM_Magic.objectAsAddress(returnobj)));
+        returnobj = testgc( str1, str2 );
+        printVerbose("TestGC After native call:");
+        
+        VM_Address newAddress1 = VM_Magic.objectAsAddress(str1);
+        VM_Address newAddress2 = VM_Magic.objectAsAddress(str2);
+        if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
+            copyingGC = true;
+            printVerbose("Objects have been moved by GC:");
+        } else {
+            copyingGC = false;
+            printVerbose("Objects have NOT been moved by GC:");
+        }
+        printVerbose("  str1 address = " + VM.addressAsHexString(newAddress1));
+        printVerbose("  str2 address = " + VM.addressAsHexString(newAddress2));
+        printVerbose("  returnobj address = " + VM.addressAsHexString(VM_Magic.objectAsAddress(returnobj)));
     }
     else {
-	returnobj = testgc( str1, str2 );
-	printVerbose("TestGC After native call:");
+        returnobj = testgc( str1, str2 );
+        printVerbose("TestGC After native call:");
     }
 
     // if (copyingGC)

@@ -59,10 +59,10 @@ final class VMSystem {
   static void setIn(InputStream in) {
     try {
       VM_Field inField = 
-	((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-	.findDeclaredField( 
-			   VM_Atom.findOrCreateUnicodeAtom("in"), 
-			   VM_Atom.findOrCreateUnicodeAtom("Ljava/io/InputStream;"));
+        ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
+        .findDeclaredField( 
+                           VM_Atom.findOrCreateUnicodeAtom("in"), 
+                           VM_Atom.findOrCreateUnicodeAtom("Ljava/io/InputStream;"));
 
       inField.setObjectValueUnchecked(null, in);
     } catch (Exception e) {
@@ -73,10 +73,10 @@ final class VMSystem {
   static void setOut(PrintStream out) {
     try {
       VM_Field outField = 
-	((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-	.findDeclaredField( 
-			   VM_Atom.findOrCreateUnicodeAtom("out"), 
-			   VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
+        ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
+        .findDeclaredField( 
+                           VM_Atom.findOrCreateUnicodeAtom("out"), 
+                           VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
       outField.setObjectValueUnchecked(null, out);
     } catch (Exception e) {
@@ -87,10 +87,10 @@ final class VMSystem {
   static void setErr(PrintStream err) {
     try {
       VM_Field errField = 
-	((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
-	.findDeclaredField( 
-			   VM_Atom.findOrCreateUnicodeAtom("err"), 
-			   VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
+        ((VM_Class)JikesRVMSupport.getTypeForClass(System.class))
+        .findDeclaredField( 
+                           VM_Atom.findOrCreateUnicodeAtom("err"), 
+                           VM_Atom.findOrCreateUnicodeAtom("Ljava/io/PrintStream;"));
 
       errField.setObjectValueUnchecked(null, err);
     } catch (Exception e) {
@@ -107,9 +107,9 @@ final class VMSystem {
   static String internString(String string) {
     try {
       return (String)
-	VM_Statics.getSlotContentsAsObject( 
-					   VM_Statics.findOrCreateStringLiteral( 
-										VM_Atom.findOrCreateUnicodeAtom( string ) ) );
+        VM_Statics.getSlotContentsAsObject( 
+                                           VM_Statics.findOrCreateStringLiteral( 
+                                                                                VM_Atom.findOrCreateUnicodeAtom( string ) ) );
     } catch (UTFDataFormatException ex) {
       throw new InternalError( ex.toString() );
     }

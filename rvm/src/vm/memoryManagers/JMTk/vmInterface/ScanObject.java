@@ -98,8 +98,8 @@ public class ScanObject implements VM_Constants {
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {
       if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
-	VM.sysWriteln("ScanObject: objRef = ", objRef, "   tib = ", VM_Magic.objectAsAddress(tib));
-	VM.sysWriteln("            tib's type is not Object[]");
+        VM.sysWriteln("ScanObject: objRef = ", objRef, "   tib = ", VM_Magic.objectAsAddress(tib));
+        VM.sysWriteln("            tib's type is not Object[]");
         VM._assert(false);
       }
     }
@@ -113,11 +113,11 @@ public class ScanObject implements VM_Constants {
     if (type.isClassType()) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n = referenceOffsets.length; i < n; i++) {
-	VM_Address location = objRef.add(referenceOffsets[i]);
-	if (enum != null)
-	  enum.enumeratePointerLocation(location);
-	else
-	  MM_Interface.processPtrLocation(location);
+        VM_Address location = objRef.add(referenceOffsets[i]);
+        if (enum != null)
+          enum.enumeratePointerLocation(location);
+        else
+          MM_Interface.processPtrLocation(location);
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     } else {
@@ -129,10 +129,10 @@ public class ScanObject implements VM_Constants {
         VM_Address location = objRef;    // for arrays = address of [0] entry
         VM_Address end      = objRef.add(numBytes);
         while (location.LT(end)) {
-	  if (enum != null)
-	    enum.enumeratePointerLocation(location);
-	  else
-	    MM_Interface.processPtrLocation(location);
+          if (enum != null)
+            enum.enumeratePointerLocation(location);
+          else
+            MM_Interface.processPtrLocation(location);
           location = location.add(BYTES_IN_ADDRESS);
         }
         Statistics.profileScan(obj, numBytes, tib);

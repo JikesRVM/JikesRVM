@@ -36,11 +36,11 @@ public abstract class OPT_AbstractRegisterPool {
   private void registerListremove(OPT_Register e) {
     if (e == start) {
       if (e == end) {
-	start = end = null;
+        start = end = null;
       } else {
-	OPT_Register next = e.next;
-	start = next;
-	next.prev = null;
+        OPT_Register next = e.next;
+        start = next;
+        next.prev = null;
       }
     } else if (e == end) {
       OPT_Register prev = e.prev;

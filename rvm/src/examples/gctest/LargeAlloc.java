@@ -19,7 +19,7 @@ class LargeAlloc {
     if (args.length == 0)
       System.out.println("No argument.  Assuming base");
     if (args[0].compareTo("opt") == 0 ||
-	args[0].compareTo("perf") == 0)
+        args[0].compareTo("perf") == 0)
       base = true;
     allocSize = base ? 500 : 3000;
     runTest();
@@ -44,20 +44,20 @@ class LargeAlloc {
     while (used < limit) {
       int curSize = itemSize;
       for (int i=0; i<sizeCount; i++) {
-	junk = new byte[curSize];
-	used += itemSize;
-	curSize = (int) (curSize * sizeRatio);
+        junk = new byte[curSize];
+        used += itemSize;
+        curSize = (int) (curSize * sizeRatio);
       }
       if (used - lastUsed > 100 * 1024 * 1024) {
-	long cur = System.currentTimeMillis();
-	System.out.println("Allocated " + (used >> 20) + " Mb at time " + ((cur - start) / 1000.0) + " sec");
-	lastUsed = used;
+        long cur = System.currentTimeMillis();
+        System.out.println("Allocated " + (used >> 20) + " Mb at time " + ((cur - start) / 1000.0) + " sec");
+        lastUsed = used;
       }
       long cur = System.currentTimeMillis();
       double elapsed = (cur - start) / 1000.0;
       if (elapsed > timeLimit) {
-	System.out.println("Exitting because exceeded time limit of " + timeLimit + " seconds");
-	break;
+        System.out.println("Exitting because exceeded time limit of " + timeLimit + " seconds");
+        break;
       }
     }
     System.gc();

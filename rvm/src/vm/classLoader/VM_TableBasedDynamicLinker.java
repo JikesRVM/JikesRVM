@@ -83,7 +83,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
       int[] tmp1 = MM_Interface.newContiguousIntArray(oldLen*2);
       System.arraycopy(memberOffsets, 0, tmp1, 0, oldLen);
       if (NEEDS_DYNAMIC_LINK != 0) {
-	java.util.Arrays.fill(tmp1, oldLen, tmp1.length, NEEDS_DYNAMIC_LINK);
+        java.util.Arrays.fill(tmp1, oldLen, tmp1.length, NEEDS_DYNAMIC_LINK);
       }
       VM_Magic.sync(); // be sure array initialization is visible before we publish the reference!
       memberOffsets = tmp1;

@@ -29,29 +29,29 @@ interface VM_ClassLoaderConstants {
   static final int ACC_STRICT       = 0x00000800;  //   -      -      X
 
   static final int APPLICABLE_TO_FIELDS = (ACC_PUBLIC | 
-					   ACC_PRIVATE |
-					   ACC_PROTECTED |
-					   ACC_STATIC | 
-					   ACC_FINAL |
-					   ACC_VOLATILE |
-					   ACC_TRANSIENT);
+                                           ACC_PRIVATE |
+                                           ACC_PROTECTED |
+                                           ACC_STATIC | 
+                                           ACC_FINAL |
+                                           ACC_VOLATILE |
+                                           ACC_TRANSIENT);
 
   static final int APPLICABLE_TO_METHODS = (ACC_PUBLIC | 
-					    ACC_PRIVATE | 
-					    ACC_PROTECTED | 
-					    ACC_STATIC | 
-					    ACC_FINAL | 
-					    ACC_SYNCHRONIZED | 
-					    ACC_NATIVE | 
-					    ACC_ABSTRACT | 
-					    ACC_STRICT);
+                                            ACC_PRIVATE | 
+                                            ACC_PROTECTED | 
+                                            ACC_STATIC | 
+                                            ACC_FINAL | 
+                                            ACC_SYNCHRONIZED | 
+                                            ACC_NATIVE | 
+                                            ACC_ABSTRACT | 
+                                            ACC_STRICT);
 
   static final int APPLICABLE_TO_CLASSES = (ACC_PUBLIC | 
-					    ACC_PRIVATE | 
-					    ACC_FINAL | 
-					    ACC_SUPER | 
-					    ACC_INTERFACE | 
-					    ACC_ABSTRACT);
+                                            ACC_PRIVATE | 
+                                            ACC_FINAL | 
+                                            ACC_SUPER | 
+                                            ACC_INTERFACE | 
+                                            ACC_ABSTRACT);
 
   // Possible states of a class description.
   //

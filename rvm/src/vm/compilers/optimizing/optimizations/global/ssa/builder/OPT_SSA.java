@@ -24,35 +24,35 @@ import java.util.*;
  *  <li> Scalar registers are explicitly renamed in the IR.
  *  <li> Heap variables are represented implicitly. Each instruction
  *       that reads or writes from the heap implicitly uses a Heap variable.
- *	 The particular heap variable for each instruction is cached
- *	 in {@link OPT_SSADictionary <code> ir.HIRInfo.SSADictionary </code>}.
+ *       The particular heap variable for each instruction is cached
+ *       in {@link OPT_SSADictionary <code> ir.HIRInfo.SSADictionary </code>}.
  *       dphi functions do <em> not </em> 
  *       explicitly appear in the IR.
  *  <p> 
  *  For example, consider the code:
  *  <p>
  *  <pre>
- *		a.x = z;
- *		b[100] = 5;
- *		y = a.x;
+ *              a.x = z;
+ *              b[100] = 5;
+ *              y = a.x;
  *  </pre>
  *
  *  <p>Logically, we translate to Array SSA form (before renumbering) as:
  *  <pre>
- *		HEAP_x[a] = z
- *		HEAP_x = dphi(HEAP_x,HEAP_x)
- *		HEAP_I[] = { < b,100,5 > }
- *		HEAP_I[] = dphi(HEAP_I[], HEAP_I[])
- *		y = HEAP_x[a]
+ *              HEAP_x[a] = z
+ *              HEAP_x = dphi(HEAP_x,HEAP_x)
+ *              HEAP_I[] = { < b,100,5 > }
+ *              HEAP_I[] = dphi(HEAP_I[], HEAP_I[])
+ *              y = HEAP_x[a]
  *  </pre>
  *
  *  <p> However, the implementation does not actually modify the instruction
  *      stream. Instead, we keep track of the following information with
  *  <code> ir.HIRInfo.SSADictionary </code>:
  *  <pre>
- *		a.x = z  (implicit: reads HEAP_x, writes HEAP_x)
- *		b[100] =5 (implicit: reads HEAP_I[], writes HEAP_I[])
- *		y = a.x   (implicit: reads HEAP_x)
+ *              a.x = z  (implicit: reads HEAP_x, writes HEAP_x)
+ *              b[100] =5 (implicit: reads HEAP_I[], writes HEAP_I[])
+ *              y = a.x   (implicit: reads HEAP_x)
  *  </pre>
  *
  *  <p>Similarly, phi functions for the implicit heap 
@@ -160,8 +160,8 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
    * @param t the type of r1 and r2.
    */
   static OPT_Instruction makeMoveInstruction (OPT_IR ir, OPT_Register r1, 
-					      OPT_Register r2, 
-					      VM_TypeReference t) {
+                                              OPT_Register r2, 
+                                              VM_TypeReference t) {
     OPT_Operator mv = OPT_IRTools.getMoveOp(t);
     OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, t);
     OPT_RegisterOperand o2 = new OPT_RegisterOperand(r2, t);
@@ -181,7 +181,7 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
    * @param c the source
    */
   static OPT_Instruction makeMoveInstruction (OPT_IR ir, OPT_Register r1, 
-					      OPT_ConstantOperand c) {
+                                              OPT_ConstantOperand c) {
     OPT_Operator mv = OPT_IRTools.getMoveOp(c.getType());
     OPT_RegisterOperand o1 = new OPT_RegisterOperand(r1, c.getType());
     OPT_Operand o2 = c.copy();
@@ -202,29 +202,29 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
    * @param target the target block that may contain PHIs to update.
    */
   static void purgeBlockFromPHIs(OPT_BasicBlock source,
-				 OPT_BasicBlock target) {
+                                 OPT_BasicBlock target) {
     for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
       int dst = 0;
       for (int src=0; src<numPairs; src++) {
-	OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
-	if (bbop.block == source) {
-	  Phi.setValue(s, src, null);
-	  Phi.setPred(s, src, null);
-	} else {
-	  if (src != dst) {
-	    Phi.setValue(s, dst, Phi.getClearValue(s, src));
-	    Phi.setPred(s, dst, Phi.getClearPred(s, src));
-	  } 
-	  dst++;
-	}
+        OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
+        if (bbop.block == source) {
+          Phi.setValue(s, src, null);
+          Phi.setPred(s, src, null);
+        } else {
+          if (src != dst) {
+            Phi.setValue(s, dst, Phi.getClearValue(s, src));
+            Phi.setPred(s, dst, Phi.getClearPred(s, src));
+          } 
+          dst++;
+        }
       }
       for (int i=dst; i<numPairs; i++) {
-	Phi.setValue(s, i, null);
-	Phi.setPred(s, i, null);
+        Phi.setValue(s, i, null);
+        Phi.setPred(s, i, null);
       }
     }
   }
@@ -237,18 +237,18 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
    * @param B2 the replacement block for B1
    */
   static void replaceBlockInPhis(OPT_BasicBlock target,
-				 OPT_BasicBlock B1, OPT_BasicBlock B2) {
+                                 OPT_BasicBlock B1, OPT_BasicBlock B2) {
     for (OPT_InstructionEnumeration e = target.forwardRealInstrEnumerator();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
       int dst = 0;
       for (int src=0; src<numPairs; src++) {
-	OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
-	if (bbop.block == B1) {
-	  Phi.setPred(s, src, new OPT_BasicBlockOperand(B2));
-	}
+        OPT_BasicBlockOperand bbop = Phi.getPred(s, src);
+        if (bbop.block == B1) {
+          Phi.setPred(s, src, new OPT_BasicBlockOperand(B2));
+        }
       }
     }
   }

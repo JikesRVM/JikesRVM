@@ -62,12 +62,12 @@ public final class OPT_MemoryOperand extends OPT_Operand {
   public byte size;
 
   public OPT_MemoryOperand(OPT_RegisterOperand base, 
-		    OPT_RegisterOperand index,
-		    byte scale,
-		    int disp,
-		    byte size,
-		    OPT_LocationOperand loc,
-		    OPT_Operand guard) {
+                    OPT_RegisterOperand index,
+                    byte scale,
+                    int disp,
+                    byte size,
+                    OPT_LocationOperand loc,
+                    OPT_Operand guard) {
     this.loc = loc;
     this.guard = guard;
     this.base = base;
@@ -83,51 +83,51 @@ public final class OPT_MemoryOperand extends OPT_Operand {
 
   // Shortcuts for some common addressing modes
   public static OPT_MemoryOperand B(OPT_RegisterOperand base, 
-				    byte size, 
-				    OPT_LocationOperand loc,
-				    OPT_Operand guard) {
+                                    byte size, 
+                                    OPT_LocationOperand loc,
+                                    OPT_Operand guard) {
     return new OPT_MemoryOperand(base, null, (byte)0, 0, size, loc, guard);
   }
   public static OPT_MemoryOperand BI(OPT_RegisterOperand base,
-				     OPT_RegisterOperand index, 
-				     byte size, 
-				     OPT_LocationOperand loc,
-				     OPT_Operand guard) {   
+                                     OPT_RegisterOperand index, 
+                                     byte size, 
+                                     OPT_LocationOperand loc,
+                                     OPT_Operand guard) {   
     return new OPT_MemoryOperand(base, index, (byte)0, 0, size, loc, guard);
   }
   public static OPT_MemoryOperand BD(OPT_RegisterOperand base, 
-				     int disp, 
-				     byte size,
-				     OPT_LocationOperand loc,
-				     OPT_Operand guard) {
+                                     int disp, 
+                                     byte size,
+                                     OPT_LocationOperand loc,
+                                     OPT_Operand guard) {
     return new OPT_MemoryOperand(base, null, (byte)0, disp, size, loc, guard);
   }
   public static OPT_MemoryOperand BID(OPT_RegisterOperand base, 
-				      OPT_RegisterOperand index,
-				      int disp, 
-				      byte size,
-				      OPT_LocationOperand loc,
-				      OPT_Operand guard) {
+                                      OPT_RegisterOperand index,
+                                      int disp, 
+                                      byte size,
+                                      OPT_LocationOperand loc,
+                                      OPT_Operand guard) {
     return new OPT_MemoryOperand(base, index, (byte)0, disp, size, loc, guard);
   }
   public static OPT_MemoryOperand BIS(OPT_RegisterOperand base,
-				      OPT_RegisterOperand index,
-				      byte scale,
-				      byte size,
-				      OPT_LocationOperand loc,
-				      OPT_Operand guard) {
+                                      OPT_RegisterOperand index,
+                                      byte scale,
+                                      byte size,
+                                      OPT_LocationOperand loc,
+                                      OPT_Operand guard) {
     return new OPT_MemoryOperand(base, index, scale, 0, size, loc, guard);
   }
   public static OPT_MemoryOperand D(int disp, 
-				    byte size,
-				    OPT_LocationOperand loc,
-				    OPT_Operand guard) {
+                                    byte size,
+                                    OPT_LocationOperand loc,
+                                    OPT_Operand guard) {
     return new OPT_MemoryOperand(null, null, (byte)0, disp, size, loc, guard);
   }
   public static OPT_MemoryOperand I(OPT_RegisterOperand base,
-				    byte size,
-				    OPT_LocationOperand loc,
-				    OPT_Operand guard) {
+                                    byte size,
+                                    OPT_LocationOperand loc,
+                                    OPT_Operand guard) {
     return new OPT_MemoryOperand(base, null, (byte)0, 0, size, loc, guard);
   }
 
@@ -144,7 +144,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
       (loc != null) ? (OPT_LocationOperand)loc.copy() : null;
     OPT_Operand newGuard = (guard != null) ? guard.copy() : null;
     return new OPT_MemoryOperand(newBase, newIndex, scale, disp, size, 
-				 newLoc, newGuard);
+                                 newLoc, newGuard);
   }
 
 
@@ -157,16 +157,16 @@ public final class OPT_MemoryOperand extends OPT_Operand {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
       if (base == null) {
-	if (mop.base != null) return false;
+        if (mop.base != null) return false;
       } else {
-	if (mop.base == null) return false;
-	if (!base.similar(mop.base)) return false;
+        if (mop.base == null) return false;
+        if (!base.similar(mop.base)) return false;
       }
       if (index == null) {
-	if (mop.index != null) return false;
+        if (mop.index != null) return false;
       } else {
-	if (mop.index == null) return false;
-	if (!index.similar(mop.index)) return false;
+        if (mop.index == null) return false;
+        if (!index.similar(mop.index)) return false;
       }
       return (mop.scale == scale) && (mop.disp == disp) && (mop.size == size);
     } else {
@@ -188,7 +188,7 @@ public final class OPT_MemoryOperand extends OPT_Operand {
       case 2: addr += "*4]"; break;
       case 3: addr += "*8]"; break;
       default:
-	OPT_OptimizingCompilerException.UNREACHABLE();
+        OPT_OptimizingCompilerException.UNREACHABLE();
       }
     }
     if (disp != 0) {

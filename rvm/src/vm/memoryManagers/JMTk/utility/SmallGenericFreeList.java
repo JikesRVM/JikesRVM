@@ -173,11 +173,11 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
     if (isFree) {
       setEntry(unit, getEntry(unit) | FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setEntry(unit + size - 1, getEntry(unit + size - 1) | FREE_MASK);
+        setEntry(unit + size - 1, getEntry(unit + size - 1) | FREE_MASK);
     } else {
       setEntry(unit, getEntry(unit) & ~FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setEntry(unit + size - 1, getEntry(unit + size - 1) & ~FREE_MASK);
+        setEntry(unit + size - 1, getEntry(unit + size - 1) & ~FREE_MASK);
     }
   }
   

@@ -51,9 +51,9 @@ public abstract class VM_ExceptionDeliverer {
    * catch block
    */
   public abstract void deliverException(VM_CompiledMethod compiledMethod,
-				 VM_Address        catchBlockInstructionAddress,
-				 Throwable         exceptionObject,
-				 VM_Registers      registers);
+                                 VM_Address        catchBlockInstructionAddress,
+                                 Throwable         exceptionObject,
+                                 VM_Registers      registers);
 
   /**
    * Stackframe's method has no "catch" block for exception being thrown
@@ -76,5 +76,5 @@ public abstract class VM_ExceptionDeliverer {
    *                  and unwinding the stackframe
    */
   public abstract void unwindStackFrame(VM_CompiledMethod compiledMethod, 
-				 VM_Registers      registers);
+                                 VM_Registers      registers);
 }

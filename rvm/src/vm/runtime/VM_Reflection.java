@@ -101,7 +101,7 @@ public class VM_Reflection implements VM_Constants {
 
     VM_CodeArray code = cm.getInstructions();
     VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, 
-					   FPRs, Spills);
+                                           FPRs, Spills);
     
     // critical: no threadswitch/GCpoints between here and the invoke of code!
     //           We may have references hidden in the GPRs and Spills arrays!!!

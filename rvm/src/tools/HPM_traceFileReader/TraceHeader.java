@@ -43,7 +43,7 @@ public final class TraceHeader
   /*
    * Possible HPM counters
    */
-  private String processor_name = null;		// processor name
+  private String processor_name = null;         // processor name
   public  boolean isPower4() {
     if (processor_name == null) return false;
     return processor_name.compareTo("POWER4") == 0;
@@ -145,46 +145,46 @@ public final class TraceHeader
       thresholdable[i] = false;
     }
     // read records from trace file
-    HashMap map     = new HashMap();	// Global TID (Integer) X thread name(String)
-    HashMap mapg2l  = new HashMap();	// Global TID (Integer) X TID (Integer)
+    HashMap map     = new HashMap();    // Global TID (Integer) X thread name(String)
+    HashMap mapg2l  = new HashMap();    // Global TID (Integer) X TID (Integer)
     while(true) {
       int record_type = Utilities.getIntFromDataInputStream(input_file);
 
       if (record_type == Utilities.EOF_int) {
-	break;
+        break;
       } else if (record_type == MACHINE_TYPE_FORMAT) {
-	processor_name = Utilities.getStringFromDataInputStream(input_file);
-	if (debug>=3) System.out.println("TraceHeader() MACHINE_TYPE_RECORD "+processor_name);
+        processor_name = Utilities.getStringFromDataInputStream(input_file);
+        if (debug>=3) System.out.println("TraceHeader() MACHINE_TYPE_RECORD "+processor_name);
       } else if (record_type == EVENT_FORMAT) {
-	int counter_number = Utilities.getIntFromDataInputStream(input_file);
-	if (counter_number >= n_elements) {
-	  System.out.println("TraceHeader("+trace_filename+") counter number "+
-			     counter_number+" > n_elements "+n_elements);
-	  System.exit(-1);
-	}
-	ids[counter_number] =  Utilities.getIntFromDataInputStream(input_file);
-	short_event_names[counter_number] = Utilities.getStringFromDataInputStream(input_file);
-	if (debug>=3) System.out.println("TraceHeader() EVENT_RECORD "+counter_number+" = "+
-					 ids[counter_number]+" : "+short_event_names[counter_number]);
+        int counter_number = Utilities.getIntFromDataInputStream(input_file);
+        if (counter_number >= n_elements) {
+          System.out.println("TraceHeader("+trace_filename+") counter number "+
+                             counter_number+" > n_elements "+n_elements);
+          System.exit(-1);
+        }
+        ids[counter_number] =  Utilities.getIntFromDataInputStream(input_file);
+        short_event_names[counter_number] = Utilities.getStringFromDataInputStream(input_file);
+        if (debug>=3) System.out.println("TraceHeader() EVENT_RECORD "+counter_number+" = "+
+                                         ids[counter_number]+" : "+short_event_names[counter_number]);
       } else if (record_type == THREAD_FORMAT) {
-	int tid       = Utilities.getIntFromDataInputStream(input_file);
-	int local_tid = Utilities.getIntFromDataInputStream(input_file);
-	if (n_threads < tid) n_threads = tid;
-	String thread_name = Utilities.getStringFromDataInputStream(input_file);
-	Integer TID = new Integer(tid);
-	map.put(TID, thread_name);
-	if (debug>=3) System.out.println("TraceHeader() THREAD_RECORD global tid "+tid+" : "+
-					 local_tid+" : "+thread_name);
-	Integer LOCAL_TID = new Integer(local_tid);
-	mapg2l.put(TID,LOCAL_TID);
+        int tid       = Utilities.getIntFromDataInputStream(input_file);
+        int local_tid = Utilities.getIntFromDataInputStream(input_file);
+        if (n_threads < tid) n_threads = tid;
+        String thread_name = Utilities.getStringFromDataInputStream(input_file);
+        Integer TID = new Integer(tid);
+        map.put(TID, thread_name);
+        if (debug>=3) System.out.println("TraceHeader() THREAD_RECORD global tid "+tid+" : "+
+                                         local_tid+" : "+thread_name);
+        Integer LOCAL_TID = new Integer(local_tid);
+        mapg2l.put(TID,LOCAL_TID);
       } else if (record_type == METHOD_FORMAT) {
-	int    mid               = Utilities.getIntFromDataInputStream(input_file);
-	String  class_name       = Utilities.getStringFromDataInputStream(input_file);
-	String method_name       = Utilities.getStringFromDataInputStream(input_file);
-	String method_descriptor = Utilities.getStringFromDataInputStream(input_file);
-	String full_name = class_name+"."+method_name+method_descriptor;
-	if (debug>=3) System.out.println("TraceHeader() METHOD_RECORD mid "+mid+" : "+full_name);
-	MID_map.put(new Integer(mid), full_name);
+        int    mid               = Utilities.getIntFromDataInputStream(input_file);
+        String  class_name       = Utilities.getStringFromDataInputStream(input_file);
+        String method_name       = Utilities.getStringFromDataInputStream(input_file);
+        String method_descriptor = Utilities.getStringFromDataInputStream(input_file);
+        String full_name = class_name+"."+method_name+method_descriptor;
+        if (debug>=3) System.out.println("TraceHeader() METHOD_RECORD mid "+mid+" : "+full_name);
+        MID_map.put(new Integer(mid), full_name);
       }
     }
     // allocate thread array.
@@ -200,10 +200,10 @@ public final class TraceHeader
       String  thread_name = (String)map.get(Key);
       int key = Key.intValue();
       if (key >=0) {
-	threads[key] = thread_name;
-	if(debug>=3)System.out.println(" threads["+key+"] = "+thread_name);
+        threads[key] = thread_name;
+        if(debug>=3)System.out.println(" threads["+key+"] = "+thread_name);
       } else {
-	if(debug>=3)System.out.println(" threads["+key+"] = "+thread_name+" discarded!" );
+        if(debug>=3)System.out.println(" threads["+key+"] = "+thread_name+" discarded!" );
       }
     }
     // allocate thread array.
@@ -216,10 +216,10 @@ public final class TraceHeader
       Integer Local_Tid = (Integer)mapg2l.get(Key);
       int tid = Key.intValue();
       if (tid >= 0) {
-	globalToLocalTIDs[tid] = Local_Tid.intValue();
-	if(debug>=3)System.out.println(" globalToLocalTIDs["+tid+"] = "+Local_Tid);
+        globalToLocalTIDs[tid] = Local_Tid.intValue();
+        if(debug>=3)System.out.println(" globalToLocalTIDs["+tid+"] = "+Local_Tid);
       } else {
-	if(debug>=3)System.out.println(" globalToLocalTIDs["+tid+"] = "+Local_Tid+" discarded!");
+        if(debug>=3)System.out.println(" globalToLocalTIDs["+tid+"] = "+Local_Tid+" discarded!");
       }
     }
 
@@ -278,7 +278,7 @@ public final class TraceHeader
   public String short_event_name(int i){
     if (i>n_counters) {
       System.err.println("***TraceHeader.short_event_name("+i+") "+i+" > number of counters "+
-			 n_counters+"!***");
+                         n_counters+"!***");
       System.exit(-1);
     }
     return short_event_names[i];
@@ -301,9 +301,9 @@ public final class TraceHeader
     System.out.println("Threads:");
     for (int i=0; i<=n_threads; i++) {
       if (threads[i] == null) {
-	//	System.out.println(i+" (0): null");
+        //      System.out.println(i+" (0): null");
       } else {
-	System.out.println(i+" ("+globalToLocalTIDs[i]+"): "+threads[i]);
+        System.out.println(i+" ("+globalToLocalTIDs[i]+"): "+threads[i]);
       }
     }
   }
@@ -319,8 +319,8 @@ public final class TraceHeader
     Integer MID = null;
     for ( ; iterator.hasNext(); MID = (Integer)iterator.next()) {
       if (MID != null) {
-	String full_name = (String)MID_map.get(MID);
-	System.out.println(MID+": \""+full_name+"\"");
+        String full_name = (String)MID_map.get(MID);
+        System.out.println(MID+": \""+full_name+"\"");
       }
     }
   }
@@ -351,25 +351,25 @@ public final class TraceHeader
       n_threads = current.n_threads;
     } else {
       if (processor_name.compareTo(current.processor_name) != 0) {
-	System.out.println("***TraceHeader.combine() processor name mismatch \""+processor_name+
-			   "\" != \""+current.processor_name+"\"!***");
-	System.exit(-1);
+        System.out.println("***TraceHeader.combine() processor name mismatch \""+processor_name+
+                           "\" != \""+current.processor_name+"\"!***");
+        System.exit(-1);
       }
       if (mode != current.mode) {
-	System.out.println("***TraceHeader.combine() mode mismatch "+mode+" != "+current.mode+"!***");
-	System.exit(-1);
+        System.out.println("***TraceHeader.combine() mode mismatch "+mode+" != "+current.mode+"!***");
+        System.exit(-1);
       }
       if (n_counters != current.n_counters) {
-	System.out.println("***TraceHeader.combine() number of counters mismatch "+n_counters+
-			   " != "+current.n_counters+"!***");
-	System.exit(-1);
+        System.out.println("***TraceHeader.combine() number of counters mismatch "+n_counters+
+                           " != "+current.n_counters+"!***");
+        System.exit(-1);
       }
       for (int i=1; i<=n_counters; i++) {
-	if (short_event_names[i].compareTo(current.short_event_names[i]) != 0) {
-	  System.out.println("***TraceHeader.combine() "+i+"th event name mismatch \""+
-			     short_event_names[i]+"\" != \""+current.short_event_names[i]+"\"!***");
-	  System.exit(-1);
-	}
+        if (short_event_names[i].compareTo(current.short_event_names[i]) != 0) {
+          System.out.println("***TraceHeader.combine() "+i+"th event name mismatch \""+
+                             short_event_names[i]+"\" != \""+current.short_event_names[i]+"\"!***");
+          System.exit(-1);
+        }
       }
       combineTraceThreads(current);
     }
@@ -391,9 +391,9 @@ public final class TraceHeader
     int min_threads = java.lang.Math.min(n_threads, current.n_threads);
     for (int i=0; i<min_threads; i++) {
       if (threads[i].compareTo(current.threads[i]) != 0) {
-	System.out.println("***TraceHeader.combine() "+i+"th thread name mismatch \""+
-			   threads[i]+"\" != \""+current.threads[i]+"\"!***");
-	System.exit(-1);
+        System.out.println("***TraceHeader.combine() "+i+"th thread name mismatch \""+
+                           threads[i]+"\" != \""+current.threads[i]+"\"!***");
+        System.exit(-1);
       }
     }
     if (current.n_threads > n_threads) {

@@ -23,7 +23,7 @@ import com.ibm.JikesRVM.classloader.VM_Type;
 final class VMClassLoader {
 
   static final Class defineClass(ClassLoader cl, String name, 
-				 byte[] data, int offset, int len) 
+                                 byte[] data, int offset, int len) 
     throws ClassFormatError {
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
     return vmType.getClassForType();

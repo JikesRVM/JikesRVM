@@ -183,10 +183,10 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
       int i = CR_NUMS[idx];
       reg[FIRST_CONDITION + i].setVolatile();
       if (prevCR != -1)
-	reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);
+        reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);
       prevCR = i;
       if (firstCR == -1)
-	firstCR = i;
+        firstCR = i;
     }
 
     // 11. cache the volatiles for efficiency
@@ -647,13 +647,13 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    */
   public Enumeration enumerateVolatileConditionRegisters() {
     return new Enumeration() {
-	private int idx = 0;
-	public Object nextElement() {
-	  return reg[FIRST_CONDITION + CR_NUMS[idx++]];
-	}
-	public boolean hasMoreElements() {
-	  return idx < CR_NUMS.length;
-	}
+        private int idx = 0;
+        public Object nextElement() {
+          return reg[FIRST_CONDITION + CR_NUMS[idx++]];
+        }
+        public boolean hasMoreElements() {
+          return idx < CR_NUMS.length;
+        }
       };
   }
 

@@ -80,7 +80,7 @@ public class IntelDisassembler {
   // for testing 
   public static void main(String args[]) {
     System.out.println("Disassemble Intel: " + testInstructions.length +
-		       " bytes");
+                       " bytes");
     System.out.println("return mnemonic: " + disasm(testInstructions));
   }
 }

@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * Simple flow-insensitive escape analysis
  *
  * <p> TODO: This would be more effective if formulated as a data-flow
- *	 problem, and solved with iteration
+ *       problem, and solved with iteration
  *
  * @author Stephen Fink
  *
@@ -45,7 +45,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
    * object holding the result of the analysis
    *
    * <p> Side effect: updates method summary database to hold
-   *		    escape analysis result for parameters
+   *                escape analysis result for parameters
    * 
    * @param ir IR for the target method
    */
@@ -94,8 +94,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     // parameters may escape
     int numParam = 0;
     for (OPT_OperandEnumeration e = ir.getParameters();
-	 e.hasMoreElements();
-	 numParam++) {
+         e.hasMoreElements();
+         numParam++) {
       OPT_Register p = ((OPT_RegisterOperand)e.next()).register;
       if (result.isThreadLocal(p)) {
         summ.setParameterMayEscapeThread(numParam, false);
@@ -151,8 +151,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         use = (OPT_RegisterOperand)use.getNext()) {
 
       if (VM.VerifyAssertions && use.type == null) {
-	  ir.printInstructions();
-	  VM._assert(false, "type of " + use + " is null");
+          ir.printInstructions();
+          VM._assert(false, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -173,8 +173,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         def = (OPT_RegisterOperand)def.getNext()) {
 
       if (VM.VerifyAssertions && def.type == null) {
-	  ir.printInstructions();
-	  VM._assert(false, "type of " + def + " is null");
+          ir.printInstructions();
+          VM._assert(false, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -300,10 +300,10 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         OPT_MethodOperand mop = Call.getMethod(inst);
         if (mop == null)
           return  true;
-	if (!mop.hasPreciseTarget()) {
-	  // if we're not sure of the dynamic target, give up
-	  return true;
-	}
+        if (!mop.hasPreciseTarget()) {
+          // if we're not sure of the dynamic target, give up
+          return true;
+        }
         // try to get a method summary for the called method
         OPT_MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);
         if (summ == null) {
@@ -498,7 +498,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
    * If a method summary exists for a method, get it.
    * Else, iff SIMPLE_ESCAPE_IPA, 
    *   perform escape analysis, which will create the method
-   * 	summary as a side effect, and return the summary
+   *    summary as a side effect, and return the summary
    */
   private static OPT_MethodSummary findOrCreateMethodSummary (VM_Method m, 
       OPT_Options options) {
@@ -519,7 +519,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
    * Perform the simple escape analysis for a method.
    */
   private static void performSimpleEscapeAnalysis (VM_Method m, 
-						   OPT_Options options) {
+                                                   OPT_Options options) {
     if (!options.SIMPLE_ESCAPE_IPA)
       return;
     // do not perform for unloaded methods
@@ -532,7 +532,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     }
     OPT_CompilationPlan plan = 
       new OPT_CompilationPlan((VM_NormalMethod)m, escapePlan, 
-			      null, options);
+                              null, options);
     plan.analyzeOnly = true;
     try {
       OPT_Compiler.compile(plan);

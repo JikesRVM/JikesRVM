@@ -69,13 +69,13 @@ public class tClass
       Class c = Class.forName("tClass");
       System.out.println(c);
       try
-	 {
-	 Class c_not_found = Class.forName("NotAClassSoThrowAnExceptionPlease");
-	 }
+         {
+         Class c_not_found = Class.forName("NotAClassSoThrowAnExceptionPlease");
+         }
       catch (ClassNotFoundException e)
-	 {
-	 System.out.println("caught ClassNotFoundException");
-	 }
+         {
+         System.out.println("caught ClassNotFoundException");
+         }
       
       // -----------------------------  Class.isArray()
       //
@@ -86,25 +86,25 @@ public class tClass
       //
       Constructor ctors[] = c.getConstructors();
       Arrays.sort(ctors, new Comparator() {
-	      public int compare(Object x, Object y) {
-		  return x.toString().compareTo( y.toString() );
-	      }
-	  });
+              public int compare(Object x, Object y) {
+                  return x.toString().compareTo( y.toString() );
+              }
+          });
 
       System.out.println(c+" has "+ctors.length+" visible constructors");
       for (int i = 0; i < ctors.length; ++i)
-	 System.out.println("   " + i + ": " + ctors[i]);
+         System.out.println("   " + i + ": " + ctors[i]);
 
       Constructor declaredCtors[] = c.getDeclaredConstructors();
       Arrays.sort(declaredCtors, new Comparator() {
-	      public int compare(Object x, Object y) {
-		  return x.toString().compareTo( y.toString() );
-	      }
-	  });
+              public int compare(Object x, Object y) {
+                  return x.toString().compareTo( y.toString() );
+              }
+          });
 
       System.out.println(c+" has "+declaredCtors.length+" declared constructors");
       for (int i = 0; i < declaredCtors.length; ++i)
-	 System.out.println("   " + i + ": " + declaredCtors[i]);
+         System.out.println("   " + i + ": " + declaredCtors[i]);
 
       // Class.getMethods  Method.getName
       //
@@ -117,10 +117,10 @@ public class tClass
 
       Method declaredMethods[] = c.getDeclaredMethods();
       Arrays.sort(declaredMethods, new Comparator() {
-	      public int compare(Object x, Object y) {
-		  return x.toString().compareTo( y.toString() );
-	      }
-	  });
+              public int compare(Object x, Object y) {
+                  return x.toString().compareTo( y.toString() );
+              }
+          });
 
       System.out.println(c + " has a total number of methods: "
                          + methods.length );
@@ -144,91 +144,91 @@ public class tClass
       // ------------------------------  invoke methods taking String, returning ref (String)
       //
       if (hello==null) 
-	 {
-	 System.out.println("tClass.hello not found!");
-	 System.exit(-1);
-	 }
+         {
+         System.out.println("tClass.hello not found!");
+         System.exit(-1);
+         }
       else
-	 {
-	 System.out.println("================= READY TO CALL: "+hello);
-	 }
+         {
+         System.out.println("================= READY TO CALL: "+hello);
+         }
 
       // Method.invoke
       //
       int n_calls = 3;  // loop to see if we can crash gc
       while(n_calls-- > 0)
-	 {
-	 String hello_args[] = {"I Say Hello to You!"};
-	 String result = (String)hello.invoke(null, hello_args);
-	 System.out.println(result);
-	 }
+         {
+         String hello_args[] = {"I Say Hello to You!"};
+         String result = (String)hello.invoke(null, hello_args);
+         System.out.println(result);
+         }
 
       // ------------------------------  invoke methods taking String,int; returning int
       //
       if (iello==null) 
-	 {
-	 System.out.println("tClass.iello not found!");
-	 System.exit(-1);
-	 }
+         {
+         System.out.println("tClass.iello not found!");
+         System.exit(-1);
+         }
       else
-	 {
-	 System.out.println("================= READY TO CALL: "+iello);
-	 }
+         {
+         System.out.println("================= READY TO CALL: "+iello);
+         }
 
       // Method.invoke
       //
       n_calls = 3;  // loop to see if we can crash gc
       while(n_calls-- > 0)
-	 {
-	 Object iello_args[] = {"I Say Iello to You!", new Integer(99)};
-	 Integer result = (Integer)iello.invoke(null, iello_args);
-	 System.out.println("Does this>"+result+"< look like 99?");
-	 }
+         {
+         Object iello_args[] = {"I Say Iello to You!", new Integer(99)};
+         Integer result = (Integer)iello.invoke(null, iello_args);
+         System.out.println("Does this>"+result+"< look like 99?");
+         }
 
       // ------------------------------  invoke methods taking String,long; returning long
       //
       if (lello==null) 
-	 {
-	 System.out.println("tClass.lello not found!");
-	 System.exit(-1);
-	 }
+         {
+         System.out.println("tClass.lello not found!");
+         System.exit(-1);
+         }
       else
-	 {
-	 System.out.println("================= READY TO CALL: "+lello);
-	 }
+         {
+         System.out.println("================= READY TO CALL: "+lello);
+         }
 
       // Method.invoke
       //
       n_calls = 3;  // loop to see if we can crash gc
       while(n_calls-- > 0)
-	 {
-	 Object lello_args[] = {"I Say Lello to You!", new Long(99)};
-	 Long result = (Long)lello.invoke(null, lello_args);
-	 System.out.println("Does this>"+result+"< look like 99?");
-	 }
+         {
+         Object lello_args[] = {"I Say Lello to You!", new Long(99)};
+         Long result = (Long)lello.invoke(null, lello_args);
+         System.out.println("Does this>"+result+"< look like 99?");
+         }
 
 
       // ------------------------------  invoke methods taking String,int; returning int
       //
       if (jello==null) 
-	 {
-	 System.out.println("tClass.jello not found!");
-	 System.exit(-1);
-	 }
+         {
+         System.out.println("tClass.jello not found!");
+         System.exit(-1);
+         }
       else
-	 {
-	 System.out.println("================= READY TO CALL: "+jello);
-	 }
+         {
+         System.out.println("================= READY TO CALL: "+jello);
+         }
 
       // Method.invoke
       //
       n_calls = 3;  // loop to see if we can crash gc
       while(n_calls-- > 0)
-	 {
-	 Object jello_args[] = { new Integer(99), "I Say Jello to You!", new Integer(95), new Integer(94)};
-	 Integer result = (Integer)jello.invoke(null, jello_args);
-	 System.out.println("Does this>"+result+"< look like 99?");
-	 }
+         {
+         Object jello_args[] = { new Integer(99), "I Say Jello to You!", new Integer(95), new Integer(94)};
+         Integer result = (Integer)jello.invoke(null, jello_args);
+         System.out.println("Does this>"+result+"< look like 99?");
+         }
 
        // ------------------------------  newInstance
       tClass tc = new tClass("Hi!");
@@ -238,24 +238,24 @@ public class tClass
       // ------------------------------  invoke methods taking String, returning String, but now virtual
       //
       if (vello==null) 
-	 {
-	 System.out.println("tClass.vello not found!");
-	 System.exit(-1);
-	 }
+         {
+         System.out.println("tClass.vello not found!");
+         System.exit(-1);
+         }
       else
-	 {
-	 System.out.println("================= READY TO CALL: "+vello);
-	 }
+         {
+         System.out.println("================= READY TO CALL: "+vello);
+         }
 
       // Method.invoke
       //
       n_calls = 3;  // loop to see if we can crash gc
       while(n_calls-- > 0)
-	 {
-	 String vello_args[] = {"I Say Vello to You!"};
-	 String result = (String)vello.invoke(tc_dyn, vello_args);
-	 System.out.println(result);
-	 }
+         {
+         String vello_args[] = {"I Say Vello to You!"};
+         String result = (String)vello.invoke(tc_dyn, vello_args);
+         System.out.println(result);
+         }
   
 
       }

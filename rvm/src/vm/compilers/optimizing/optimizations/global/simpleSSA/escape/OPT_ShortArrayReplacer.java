@@ -111,7 +111,7 @@ public class OPT_ShortArrayReplacer
    *
    * @param use the use to replace
    * @param scalars an array of scalar register operands to replace
-   *		      the array with
+   *                  the array with
    */
   private void scalarReplace (OPT_RegisterOperand use, 
       OPT_RegisterOperand[] scalars) {

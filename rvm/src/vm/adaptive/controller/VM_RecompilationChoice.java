@@ -35,7 +35,7 @@ abstract class VM_RecompilationChoice {
    * @return The expected future execution time if this choice were selected 
    */
   abstract double getFutureExecutionTime(int prevCompiler, 
-					 double futureExecutionTime);
+                                         double futureExecutionTime);
 
   /**
    * Return a controller plan that will start this recompilation choice 
@@ -49,10 +49,10 @@ abstract class VM_RecompilationChoice {
    * @return The controller plan implementing this recompilation choice
    */
   abstract VM_ControllerPlan makeControllerPlan(VM_CompiledMethod cmpMethod,
-						int prevCompiler,
-						double prevTimeFormethod,
-						double bestActionTime,
-						double bestCost);
+                                                int prevCompiler,
+                                                double prevTimeFormethod,
+                                                double bestActionTime,
+                                                double bestCost);
 
 }
 

@@ -61,10 +61,10 @@ public class VM_FileSystem {
   public static final int STAT_LENGTH        = 6;
 
   // options for access()
-  public static final int ACCESS_F_OK	= 00;
-  public static final int ACCESS_R_OK	= 04;
-  public static final int ACCESS_W_OK	= 02;
-  public static final int ACCESS_X_OK	= 01;
+  public static final int ACCESS_F_OK   = 00;
+  public static final int ACCESS_R_OK   = 04;
+  public static final int ACCESS_W_OK   = 02;
+  public static final int ACCESS_X_OK   = 01;
   
   /** 
    * Keep track of whether or not we were able to make
@@ -202,22 +202,22 @@ public class VM_FileSystem {
     for (;;) {
       int b = VM_SysCall.sysReadByte(fd);
       if (b >= -1)
-	// Either a valid read, or we reached EOF
-	return b;
+        // Either a valid read, or we reached EOF
+        return b;
       else if (b == -2) {
-	// Operation would have blocked
-	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
-	if (!isFdReady(waitData.readFds[0]))
-	  // Hmm, the wait returned, but the fd is not ready.
-	  // Assume an error was detected (such as the fd becoming invalid).
-	  return -2;
-	else
-	  // Fd seems to be ready now, so retry the read
-	  continue;
+        // Operation would have blocked
+        VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
+        if (!isFdReady(waitData.readFds[0]))
+          // Hmm, the wait returned, but the fd is not ready.
+          // Assume an error was detected (such as the fd becoming invalid).
+          return -2;
+        else
+          // Fd seems to be ready now, so retry the read
+          continue;
       }
       else
-	// Read returned with a genuine error
-	return -2;
+        // Read returned with a genuine error
+        return -2;
     }
   }
 
@@ -238,20 +238,20 @@ public class VM_FileSystem {
     for (;;) {
       int rc = VM_SysCall.sysWriteByte(fd, b);
       if (rc == 0)
-	return 0; // success
+        return 0; // success
       else if (rc == -2) {
-	// Write would have blocked.
-	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
-	if (!isFdReady(waitData.writeFds[0]))
-	  // Looks like an error occurred.
-	  return -1;
-	else
-	  // Fd looks like it's ready, so retry the write
-	  continue;
+        // Write would have blocked.
+        VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
+        if (!isFdReady(waitData.writeFds[0]))
+          // Looks like an error occurred.
+          return -1;
+        else
+          // Fd looks like it's ready, so retry the write
+          continue;
       }
       else
-	// The write returned with an error.
-	return -1;
+        // The write returned with an error.
+        return -1;
     }
   }
 
@@ -312,58 +312,58 @@ public class VM_FileSystem {
     int read = 0;
     for (;;) {
       int rc = VM_SysCall.sysReadBytes(fd,
-				       VM_Magic.objectAsAddress(buf).add(off),
-				       cnt);
+                                       VM_Magic.objectAsAddress(buf).add(off),
+                                       cnt);
 
       if (rc == 0) {
-	  // EOF
-	  return read;
+          // EOF
+          return read;
       } else if (rc > 0) {
-	  // Read succeeded, perhaps partially
-	  read += rc;
-	  off += rc;
-	  cnt -= rc;
-	  if (cnt == 0)
-	      return read;
-	  else 
-	      // did not get everything, let's try again
-	      continue;
+          // Read succeeded, perhaps partially
+          read += rc;
+          off += rc;
+          cnt -= rc;
+          if (cnt == 0)
+              return read;
+          else 
+              // did not get everything, let's try again
+              continue;
       }
       else if (rc == -1) {
-	// last read would have blocked
+        // last read would have blocked
 
-	// perhaps we have read some stuff already, if so, return just that
-	if (read != 0)
-	    return read;
+        // perhaps we have read some stuff already, if so, return just that
+        if (read != 0)
+            return read;
 
-	// Put thread on IO wait queue
-	if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
-	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
+        // Put thread on IO wait queue
+        if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
+        VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
 
-	// Did the wait time out?
-	if (waitData.timedOut())
-	  throw new VM_TimeoutException("read timed out");
+        // Did the wait time out?
+        if (waitData.timedOut())
+          throw new VM_TimeoutException("read timed out");
 
-	// Did the file descriptor become ready?
-	if (!isFdReady(waitData.readFds[0]))
-	  // Fd not ready; presumably an error was detected while on the IO queue
-	  return -2;
-	else {
-	  // Fd appears to be ready, so update the wait time (if necessary)
-	  // and try the read again.
-	  if (hasTimeout) {
-	    double now = now();
-	    totalWaitTime -= (now - lastWaitTime);
-	    if (totalWaitTime < 0.0)
-	      throw new VM_TimeoutException("read timed out");
-	    lastWaitTime = now;
-	  }
-	  continue;
-	}
+        // Did the file descriptor become ready?
+        if (!isFdReady(waitData.readFds[0]))
+          // Fd not ready; presumably an error was detected while on the IO queue
+          return -2;
+        else {
+          // Fd appears to be ready, so update the wait time (if necessary)
+          // and try the read again.
+          if (hasTimeout) {
+            double now = now();
+            totalWaitTime -= (now - lastWaitTime);
+            if (totalWaitTime < 0.0)
+              throw new VM_TimeoutException("read timed out");
+            lastWaitTime = now;
+          }
+          continue;
+        }
       }
       else
-	// Read returned an error
-	return -2;
+        // Read returned an error
+        return -2;
     }
   }
 
@@ -408,30 +408,30 @@ public class VM_FileSystem {
     int written = 0;
     for (;;) {
       int rc = VM_SysCall.sysWriteBytes(fd, 
-					VM_Magic.objectAsAddress(buf).add(off),
-					cnt);
+                                        VM_Magic.objectAsAddress(buf).add(off),
+                                        cnt);
       if (rc >= 0) {
-	// Write succeeded, perhaps partially
-	written += rc;
-	off += rc;
-	cnt -= rc;
-	if (cnt == 0)
-	  return written;
-	else 
-	  continue;
+        // Write succeeded, perhaps partially
+        written += rc;
+        off += rc;
+        cnt -= rc;
+        if (cnt == 0)
+          return written;
+        else 
+          continue;
       } else if (rc == -1) {
-	// Write would have blocked
-	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
-	if (!isFdReady(waitData.writeFds[0]))
-	  // Fd is not ready, so presumably an error occurred while on IO queue
-	  return -2;
-	else
-	  // Fd apprears to be ready, so try write again
-	  continue;
+        // Write would have blocked
+        VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
+        if (!isFdReady(waitData.writeFds[0]))
+          // Fd is not ready, so presumably an error occurred while on IO queue
+          return -2;
+        else
+          // Fd apprears to be ready, so try write again
+          continue;
       }
       else
-	// Write returned with an error
-	return -2;
+        // Write returned with an error
+        return -2;
     }
   }
 
@@ -572,19 +572,19 @@ public class VM_FileSystem {
 
   public static int bytesAvailable(int fd) {
     return VM_SysCall.sysBytesAvailable(fd);
-  }	   
+  }        
 
   public static boolean isValidFD(int fd) {
     return VM_SysCall.sysIsValidFD(fd) == 0;
-  }	   
+  }        
 
   public static int length(int fd) {
     return VM_SysCall.sysLength(fd);
-  }	   
+  }        
 
   public static int setLength(int fd, int len) {
     return VM_SysCall.sysSetLength(fd, len);
-  }	   
+  }        
 
   /**
    * File descriptor registration hook.
@@ -631,8 +631,8 @@ public class VM_FileSystem {
     if (!shared) {
       rc = VM_SysCall.sysSetFdCloseOnExec(fd);
       if (rc < 0) {
-	VM.sysWrite("VM: warning: could not set close-on-exec flag " +
-	  "for fd " + fd);
+        VM.sysWrite("VM: warning: could not set close-on-exec flag " +
+          "for fd " + fd);
       }
     }
   }
@@ -656,10 +656,10 @@ public class VM_FileSystem {
       // processes.)
       int rc = VM_SysCall.sysNetSocketNoBlock(fd, 1);
       if (rc == 0) {
-	// Groovy
-	standardFdIsNonblocking[fd] = true;
+        // Groovy
+        standardFdIsNonblocking[fd] = true;
       } else {
-	VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
+        VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
       }
     }
   }
@@ -681,14 +681,14 @@ public class VM_FileSystem {
     System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
     System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
     VM_Callbacks.addExitMonitor( new VM_Callbacks.ExitMonitor() {
-	public void notifyExit(int value) {
-	  try {
-	    System.err.flush();
-	    System.out.flush();
-	  } catch (Throwable e) {
-	    VM.sysWriteln("vm: error flushing stdout, stderr");
-	  }
-	}
+        public void notifyExit(int value) {
+          try {
+            System.err.flush();
+            System.out.flush();
+          } catch (Throwable e) {
+            VM.sysWriteln("vm: error flushing stdout, stderr");
+          }
+        }
       });
   }
 }

@@ -107,11 +107,11 @@ public class VM_ManagedCounterData {
     }
     if (counterNumber >= getNumCounters()) {
       if (automaticallyGrowCounters) {
-	while (counterNumber >= getNumCounters()) 
-	  resizeCounters(getNumCounters()*2);
+        while (counterNumber >= getNumCounters()) 
+          resizeCounters(getNumCounters()*2);
       }
       else {
-	VM._assert(false);
+        VM._assert(false);
       }
     }
 
@@ -171,7 +171,7 @@ public class VM_ManagedCounterData {
    * @return The instruction that will update the given counter
    */
   OPT_Instruction createEventCounterInstruction(int counterNumber,
-						double incrementValue) {
+                                                double incrementValue) {
     // Confirm that counters have been initialized 
     if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
@@ -180,16 +180,16 @@ public class VM_ManagedCounterData {
     // If we automatically growing counters, see if we need to.
     if (counterNumber >= numCounters) {
       if (automaticallyGrowCounters) {
-	while (counterNumber >= numCounters)
-	  resizeCounters(getNumCounters()*2);
+        while (counterNumber >= numCounters)
+          resizeCounters(getNumCounters()*2);
       }
       else{
-	// Should we put a warning here?? Not sure.  
+        // Should we put a warning here?? Not sure.  
       }
     }
     return getCounterManager().createEventCounterInstruction(getHandle(),
-							     counterNumber,
-							     incrementValue);
+                                                             counterNumber,
+                                                             incrementValue);
   }
 
    /**
@@ -207,9 +207,9 @@ public class VM_ManagedCounterData {
     for (int i=0; i < getNumCounters(); i++) {
       double count = getCounter(i);
       if (count > 0.0) {
-	sum += count;
-	String s = f.getName(i);
-	vec.addElement(new Counter(s,count));
+        sum += count;
+        String s = f.getName(i);
+        vec.addElement(new Counter(s,count));
       }
     }
 
@@ -237,11 +237,11 @@ public class VM_ManagedCounterData {
      for (int gap = n/2; gap > 0; gap /= 2) {
        for (int i = gap; i<n; ++i) {
           for (int j = i-gap; j >=0; j-=gap) {
-	     double a = ((Counter)v.elementAt(j)).count;
-	     double b = ((Counter)v.elementAt(j+gap)).count;
-	     if (a>=b) break;
-	     swap(v,j,j+gap);
-	  }
+             double a = ((Counter)v.elementAt(j)).count;
+             double b = ((Counter)v.elementAt(j+gap)).count;
+             if (a>=b) break;
+             swap(v,j,j+gap);
+          }
        }
      }
   }

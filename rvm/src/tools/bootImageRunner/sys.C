@@ -92,7 +92,7 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #include <sys/shm.h>
 #include <errno.h>
 #include <dlfcn.h>
-#include <inttypes.h>		// uintptr_t
+#include <inttypes.h>           // uintptr_t
 
 // These exit status codes are defined here and in VM.java.
 // If you change one of them here, or add any, add it there too.
@@ -105,7 +105,7 @@ const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 120;
 
 // see VM.exitStatusUnexpectedCallToSys:
 const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS
-	    = EXIT_STATUS_UNSUPPORTED_INTERNAL_OP;
+            = EXIT_STATUS_UNSUPPORTED_INTERNAL_OP;
 
 
 #ifdef _AIX
@@ -116,7 +116,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include "InterfaceDeclarations.h"
-#include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner.
+#include "bootImageRunner.h"    // In rvm/src/tools/bootImageRunner.
 
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 #include <pthread.h>
@@ -185,11 +185,11 @@ extern "C" void
 sysWrite(int value, int hexToo)
 {
     if (hexToo==0 /*false*/)
-	fprintf(SysTraceFile, "%d", value);
+        fprintf(SysTraceFile, "%d", value);
     else if (hexToo==1 /*true - also print in hex*/)
-	fprintf(SysTraceFile, "%d (0x%08x)", value, value);
+        fprintf(SysTraceFile, "%d (0x%08x)", value, value);
     else    /* hexToo==2 for only in hex */
-	fprintf(SysTraceFile, "0x%08x", value);
+        fprintf(SysTraceFile, "0x%08x", value);
 }
 
 // Console write (java long).
@@ -198,15 +198,15 @@ extern "C" void
 sysWriteLong(long long value, int hexToo)
 {
     if (hexToo==0 /*false*/)
-	fprintf(SysTraceFile, "%lld", value);
+        fprintf(SysTraceFile, "%lld", value);
     else if (hexToo==1 /*true - also print in hex*/) {
-	int value1 = (value >> 32) & 0xFFFFFFFF;
-	int value2 = value & 0xFFFFFFFF;
-	fprintf(SysTraceFile, "%lld (0x%08x%08x)", value, value1, value2);
+        int value1 = (value >> 32) & 0xFFFFFFFF;
+        int value2 = value & 0xFFFFFFFF;
+        fprintf(SysTraceFile, "%lld (0x%08x%08x)", value, value1, value2);
     } else { /* hexToo==2 for only in hex */
-	int value1 = (value >> 32) & 0xFFFFFFFF;
-	int value2 = value & 0xFFFFFFFF;
-	fprintf(SysTraceFile, "0x%08x%08x", value1, value2);
+        int value1 = (value >> 32) & 0xFFFFFFFF;
+        int value2 = value & 0xFFFFFFFF;
+        fprintf(SysTraceFile, "0x%08x%08x", value1, value2);
     }
 }
 
@@ -222,7 +222,7 @@ extern "C" void
 sysExit(int value)
 {
     if (value != 0)
-	fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
+        fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
 
     fflush(SysErrorFile);
     fflush(SysTraceFile);
@@ -251,22 +251,22 @@ extern "C" int
 sysArg(int argno, char *buf, int buflen)
 {
     if (argno == -1) { // return arg count
-	return JavaArgc;
-	/***********
+        return JavaArgc;
+        /***********
       for (int i = 0;;++i)
          if (JavaArgs[i] == 0)
             return i;
-	**************/
+        **************/
     } else { // return i-th arg
-	char *src = JavaArgs[argno];
-	for (int i = 0;; ++i)
-	{
-	    if (*src == 0)
-		return i;
-	    if (i == buflen)
-		return -1;
-	    *buf++ = *src++;
-	}
+        char *src = JavaArgs[argno];
+        for (int i = 0;; ++i)
+        {
+            if (*src == 0)
+                return i;
+            if (i == buflen)
+                return -1;
+            *buf++ = *src++;
+        }
     }
     /* NOTREACHED */
 }
@@ -295,33 +295,33 @@ sysList(char *dirName, char *buf, int limit)
     int  cnt = 0;
     DIR *dir = opendir(dirName);
     for (dirent *dp = readdir(dir); dp; dp = readdir(dir)) {
-	// POSIX says that d_name is NULL-terminated
-	char *name = dp->d_name;
-	int len = strlen( name );
+        // POSIX says that d_name is NULL-terminated
+        char *name = dp->d_name;
+        int len = strlen( name );
 
 #ifdef DEBUG_SYS
-	fprintf(SysTraceFile, "%s: found %s\n", Me, name);
+        fprintf(SysTraceFile, "%s: found %s\n", Me, name);
 #endif
 
 
-	if (len == 2 && name[0] == '.' && name[1] == '.') 
-	    continue; // skip ".."
-	if (len == 1 && name[0] == '.'                  ) 
-	    continue;  // skip "."
+        if (len == 2 && name[0] == '.' && name[1] == '.') 
+            continue; // skip ".."
+        if (len == 1 && name[0] == '.'                  ) 
+            continue;  // skip "."
 
-	while (len--) {
-	    if (cnt == limit) 
-		break;
-	    *buf++ = *name++;
-	    cnt +=1;
-	}
+        while (len--) {
+            if (cnt == limit) 
+                break;
+            *buf++ = *name++;
+            cnt +=1;
+        }
 
-	if (cnt == limit) 
-	    break;
-	*buf++ = DELIMITER;
-	cnt += 1;
-	if (cnt == limit) 
-	    break;
+        if (cnt == limit) 
+            break;
+        *buf++ = DELIMITER;
+        cnt += 1;
+        if (cnt == limit) 
+            break;
     }
     closedir(dir);
     return cnt;
@@ -343,23 +343,23 @@ sysStat(char *name, int kind)
     struct stat info;
 
     if (stat(name, &info))
-	return -1; // does not exist, or other trouble
+        return -1; // does not exist, or other trouble
 
     switch (kind) {
     case VM_FileSystem_STAT_EXISTS:        
-	return 1;                              // exists
+        return 1;                              // exists
     case VM_FileSystem_STAT_IS_FILE:       
-	return S_ISREG(info.st_mode) != 0; // is file
+        return S_ISREG(info.st_mode) != 0; // is file
     case VM_FileSystem_STAT_IS_DIRECTORY:  
-	return S_ISDIR(info.st_mode) != 0; // is directory
+        return S_ISDIR(info.st_mode) != 0; // is directory
     case VM_FileSystem_STAT_IS_READABLE:   
-	return (info.st_mode & S_IREAD) != 0; // is readable by owner
+        return (info.st_mode & S_IREAD) != 0; // is readable by owner
     case VM_FileSystem_STAT_IS_WRITABLE:
-	return (info.st_mode & S_IWRITE) != 0; // is writable by owner
+        return (info.st_mode & S_IWRITE) != 0; // is writable by owner
     case VM_FileSystem_STAT_LAST_MODIFIED: 
-	return info.st_mtime;	// time of last modification
+        return info.st_mtime;   // time of last modification
     case VM_FileSystem_STAT_LENGTH:        
-	return info.st_size;	// length
+        return info.st_size;    // length
     }
     return -1; // unrecognized request
 }
@@ -402,19 +402,19 @@ sysOpen(char *name, int how)
 
     switch (how) {
     case VM_FileSystem_OPEN_READ:   
-	fd = open(name, O_RDONLY                         ); // "read"
-	break;
+        fd = open(name, O_RDONLY                         ); // "read"
+        break;
     case VM_FileSystem_OPEN_WRITE:  
-	fd = open(name, O_RDWR | O_CREAT | O_TRUNC,  0666); // "write"
-	break;
+        fd = open(name, O_RDWR | O_CREAT | O_TRUNC,  0666); // "write"
+        break;
     case VM_FileSystem_OPEN_MODIFY: 
-	fd = open(name, O_RDWR | O_CREAT,            0666); // "modify"
-	break;
+        fd = open(name, O_RDWR | O_CREAT,            0666); // "modify"
+        break;
     case VM_FileSystem_OPEN_APPEND: 
-	fd = open(name, O_RDWR | O_CREAT | O_APPEND, 0666); // "append"
-	break;
+        fd = open(name, O_RDWR | O_CREAT | O_APPEND, 0666); // "append"
+        break;
     default: 
-	return -1;
+        return -1;
     }
 
 #ifdef DEBUG_SYS
@@ -479,9 +479,9 @@ sysBytesAvailable(int fd)
     int count = 0;
     if (ioctl(fd, FIONREAD, &count) == -1)
     {
-	bool badFD = (errno == EBADF);
-	fprintf(SysErrorFile, "%s: FIONREAD ioctl on %d failed: %s (errno=%d)\n", Me, fd, strerror( errno ), errno);
-	return badFD ? VM_ThreadIOConstants_FD_INVALID : -1;
+        bool badFD = (errno == EBADF);
+        fprintf(SysErrorFile, "%s: FIONREAD ioctl on %d failed: %s (errno=%d)\n", Me, fd, strerror( errno ), errno);
+        return badFD ? VM_ThreadIOConstants_FD_INVALID : -1;
     }
 // fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
@@ -495,9 +495,9 @@ sysIsValidFD(int fd)
 
     rc = fstat(fd, &sb);
     if (rc == -1)
-	return -1;
+        return -1;
     else
-	return 0;
+        return 0;
 }
 
 extern "C" int
@@ -508,9 +508,9 @@ sysLength(int fd)
 
     rc = fstat(fd, &sb);
     if (rc == -1)
-	return -1;
+        return -1;
     else
-	return sb.st_size;
+        return sb.st_size;
 }
 
 extern "C" int
@@ -518,9 +518,9 @@ sysSetLength(int fd, int len)
 {
     int rc = ftruncate(fd, len);
     if (rc == -1)
-	return -1;
+        return -1;
     else
-	return 0;
+        return 0;
 }
 
 
@@ -528,9 +528,9 @@ extern "C" int
 sysSyncFile(int fd)
 {
     if (fsync(fd) != 0) {
-	// some kinds of files cannot be sync'ed, so don't print error message
-	// however, do return error code in case some application cares
-	return -1;
+        // some kinds of files cannot be sync'ed, so don't print error message
+        // however, do return error code in case some application cares
+        return -1;
     }
 
     return 0;
@@ -551,18 +551,18 @@ again:
     {
     case  1:
         /*fprintf(SysTraceFile, "%s: read (byte) ch is %d\n", Me, (int) ch);*/
-	return (int) ch;
+        return (int) ch;
     case  0:
         /*fprintf(SysTraceFile, "%s: read (byte) rc is 0\n", Me);*/
         return -1;
     default:
         /*fprintf(SysTraceFile, "%s: read (byte) rc is %d\n", Me, rc);*/
-	if (errno == EAGAIN)
-	    return -2;	// Read would have blocked
-	else if (errno == EINTR)
-	    goto again;	// Read was interrupted; try again
-	else
-	    return -3;	// Some other error
+        if (errno == EAGAIN)
+            return -2;  // Read would have blocked
+        else if (errno == EINTR)
+            goto again; // Read was interrupted; try again
+        else
+            return -3;  // Some other error
     }
 }
 
@@ -578,15 +578,15 @@ sysWriteByte(int fd, int data)
 again:
     int rc = write(fd, &ch, 1);
     if (rc == 1)
-	return 0; // success
+        return 0; // success
     else if (errno == EAGAIN)
-	return -2; // operation would block
+        return -2; // operation would block
     else if (errno == EINTR)
-	goto again; // interrupted by signal; try again
+        goto again; // interrupted by signal; try again
     else {
-	fprintf(SysErrorFile, "%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
-		fd, errno, strerror(errno));
-	return -1; // some kind of error
+        fprintf(SysErrorFile, "%s: writeByte, fd=%d, write returned error %d (%s)\n", Me,
+                fd, errno, strerror(errno));
+        return -1; // some kind of error
     }
 }
 
@@ -603,17 +603,17 @@ sysReadBytes(int fd, char *buf, int cnt)
 again:
     int rc = read(fd, buf, cnt);
     if (rc >= 0)
-	return rc;
+        return rc;
     int err = errno;
     if (err == EAGAIN)
     {
-	// fprintf(SysTraceFile, "%s: read on %d would have blocked: needs retry\n", Me, fd);
-	return -1;
+        // fprintf(SysTraceFile, "%s: read on %d would have blocked: needs retry\n", Me, fd);
+        return -1;
     }
     else if (err == EINTR)
-	goto again; // interrupted by signal; try again
+        goto again; // interrupted by signal; try again
     fprintf(SysTraceFile, "%s: read error %d (%s) on %d\n", Me, 
-	    err, strerror(err), fd);
+            err, strerror(err), fd);
     return -2;
 }
 
@@ -622,7 +622,7 @@ again:
 //           buffer to be written
 //           number of bytes to write
 // Returned: number of bytes written (-2: error, -1: socket would have blocked,
-//	     -3 EPIPE error)
+//           -3 EPIPE error)
 //
 extern "C" int
 sysWriteBytes(int fd, char *buf, int cnt)
@@ -631,22 +631,22 @@ sysWriteBytes(int fd, char *buf, int cnt)
 again:
     int rc = write(fd, buf, cnt);
     if (rc >= 0)
-	return rc;
+        return rc;
     int err = errno;
     if (err == EAGAIN)
     {
-	// fprintf(SysTraceFile, "%s: write on %d would have blocked: needs retry\n", Me, fd);
-	return -1;
+        // fprintf(SysTraceFile, "%s: write on %d would have blocked: needs retry\n", Me, fd);
+        return -1;
     }
     if (err == EINTR)
-	goto again; // interrupted by signal; try again
+        goto again; // interrupted by signal; try again
     if (err == EPIPE)
     {
-	//fprintf(SysTraceFile, "%s: write on %d with nobody to read it\n", Me, fd);
-	return -3;
+        //fprintf(SysTraceFile, "%s: write on %d with nobody to read it\n", Me, fd);
+        return -3;
     }
     fprintf(SysTraceFile, "%s: write error %d (%s) on %d\n", Me,
-	    err, strerror( err ), fd);
+            err, strerror( err ), fd);
     return -2;
 }
 
@@ -662,13 +662,13 @@ sysSeek(int fd, int offset, int whence)
     // fprintf(SysTraceFile, "%s: seek %d %d %d\n", Me, fd, offset, whence);
     switch (whence) {
     case VM_FileSystem_SEEK_SET: 
-	return lseek(fd, offset, SEEK_SET);
+        return lseek(fd, offset, SEEK_SET);
     case VM_FileSystem_SEEK_CUR: 
-	return lseek(fd, offset, SEEK_CUR);
+        return lseek(fd, offset, SEEK_CUR);
     case VM_FileSystem_SEEK_END: 
-	return lseek(fd, offset, SEEK_END);
+        return lseek(fd, offset, SEEK_END);
     default:                     
-	return -1;
+        return -1;
     }
 }
 
@@ -690,13 +690,13 @@ sysClose(int fd)
     int rc = close(fd);
 
     if (rc == 0)
-	return 0; // success
+        return 0; // success
 
     if (errno == EBADF)
-	return -1; // not currently open
+        return -1; // not currently open
 
     fprintf(SysErrorFile, "%s: close on %d failed: %s (errno=%d)\n", Me,
-	    fd, strerror(errno), errno);
+            fd, strerror(errno), errno);
     return -2; // some other error
 }
 
@@ -744,34 +744,34 @@ timeSlicerThreadMain(void *arg)
     fprintf(SysErrorFile, "time slice interval %dns\n", ns);
 #endif
     for (;;) {
-	struct timespec howLong;
-	struct timespec remaining;
+        struct timespec howLong;
+        struct timespec remaining;
 
-	howLong.tv_sec = 0;
-	howLong.tv_nsec = ns;
-	errno = 0;
-	int errorCode = nanosleep( &howLong, &remaining );
-	if (errorCode) {
-	    if (errno == EINTR) {
-		// We were blocked by a signal; might as well go on.
-		// XXX I believe processTimerTick() calls things that do
-		// polling, but I haven't strictly verified this.  --augart
-		;
-	    } else if (errno == EINVAL) {
-		fprintf(SysErrorFile, "%s: nanosleep failed: %s (errno=%d): ",
-			Me, strerror(errno), errno);
-		// XXX As of this writing (August 2003), SysErrorFile is
-		// always identical to stderr.  Unlike SysTraceFile,
-		// SysErrorFile is never reset.  (So why does it exist?)
-		perror(NULL);	// use perror() since strerror() is not
-				// thread-safe, and GNU strerror() is
-				// incompatible with SUSv3.
-		sysExit(EXIT_STATUS_TIMER_TROUBLE);
-	    }
-	}
-	if (systemExiting)
-	    pthread_exit(0);
-	processTimerTick();
+        howLong.tv_sec = 0;
+        howLong.tv_nsec = ns;
+        errno = 0;
+        int errorCode = nanosleep( &howLong, &remaining );
+        if (errorCode) {
+            if (errno == EINTR) {
+                // We were blocked by a signal; might as well go on.
+                // XXX I believe processTimerTick() calls things that do
+                // polling, but I haven't strictly verified this.  --augart
+                ;
+            } else if (errno == EINVAL) {
+                fprintf(SysErrorFile, "%s: nanosleep failed: %s (errno=%d): ",
+                        Me, strerror(errno), errno);
+                // XXX As of this writing (August 2003), SysErrorFile is
+                // always identical to stderr.  Unlike SysTraceFile,
+                // SysErrorFile is never reset.  (So why does it exist?)
+                perror(NULL);   // use perror() since strerror() is not
+                                // thread-safe, and GNU strerror() is
+                                // incompatible with SUSv3.
+                sysExit(EXIT_STATUS_TIMER_TROUBLE);
+            }
+        }
+        if (systemExiting)
+            pthread_exit(0);
+        processTimerTick();
     }
     // NOTREACHED
 }
@@ -802,16 +802,16 @@ extern "C" void processTimerTick(void) {
      * jtoc address (== VmToc) instead. 
      */
     VM_Address *processors 
-	= *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
+        = *(VM_Address **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
     for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
-	// During how many ticks has this VM_Processor ignored 
-	// a thread switch request? 
-	int val = (*(int *)((char *)processors[i] + 
-			    VM_Processor_threadSwitchRequested_offset))--;
-	if (longest_stuck_ticks < (unsigned) -val)
-	    longest_stuck_ticks = -val;
+        // During how many ticks has this VM_Processor ignored 
+        // a thread switch request? 
+        int val = (*(int *)((char *)processors[i] + 
+                            VM_Processor_threadSwitchRequested_offset))--;
+        if (longest_stuck_ticks < (unsigned) -val)
+            longest_stuck_ticks = -val;
     }
     
     /* 
@@ -820,11 +820,11 @@ extern "C" void processTimerTick(void) {
      * just appear to be hung. 
      */
     if (longest_stuck_ticks >= 500 && (longest_stuck_ticks % 50) == 0) {
-	fprintf(stderr, "%s: WARNING: Virtual processor has ignored"
-		" timer interrupt for %d ms.\n", 
-		Me, getTimeSlice_msec() * longest_stuck_ticks);
-	fprintf(stderr, "This may indicate that a blocking system call"
-		" has occured and the JVM is deadlocked\n");
+        fprintf(stderr, "%s: WARNING: Virtual processor has ignored"
+                " timer interrupt for %d ms.\n", 
+                Me, getTimeSlice_msec() * longest_stuck_ticks);
+        fprintf(stderr, "This may indicate that a blocking system call"
+                " has occured and the JVM is deadlocked\n");
     }
 }
 
@@ -840,16 +840,16 @@ static void
 setTimeSlicer(int msTimerDelay)
 {
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    pthread_t timeSlicerThread;	// timeSlicerThread is a write-only dummy
-				// variable.
+    pthread_t timeSlicerThread; // timeSlicerThread is a write-only dummy
+                                // variable.
     int nsTimerDelay = msTimerDelay * 1000 * 1000;
     int errorCode = pthread_create(&timeSlicerThread, NULL,
-				   timeSlicerThreadMain, (void*)nsTimerDelay);
+                                   timeSlicerThreadMain, (void*)nsTimerDelay);
     if (errorCode) {
-	fprintf(SysErrorFile,
-		"%s: Unable to create the Time Slicer thread: %s\n",
-		Me, strerror(errorCode));
-	sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        fprintf(SysErrorFile,
+                "%s: Unable to create the Time Slicer thread: %s\n",
+                Me, strerror(errorCode));
+        sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
 #elif (defined RVM_FOR_LINUX)  || (defined __MACH__)// && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // NOTE: This code is ONLY called if we have defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.
@@ -865,10 +865,10 @@ setTimeSlicer(int msTimerDelay)
 
     if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer))
     {
-	fprintf(SysErrorFile, "%s: setitimer failed (errno=%d, %s): ", 
-		Me, errno, strerror(errno));
-	perror(NULL);
-	sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        fprintf(SysErrorFile, "%s: setitimer failed (errno=%d, %s): ", 
+                Me, errno, strerror(errno));
+        perror(NULL);
+        sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
 #else  // RMV_FOR_SINGLE_VIRTUAL_PROCESSOR, ! RVM_FOR_LINUX
     // fetch system timer
@@ -876,10 +876,10 @@ setTimeSlicer(int msTimerDelay)
     timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
     if (timerId == -1)
     {
-	fprintf(SysErrorFile, "%s: gettimerid failed (errno=%d, %s): ", 
-		Me, errno, strerror(errno));
-	perror(NULL);
-	sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        fprintf(SysErrorFile, "%s: gettimerid failed (errno=%d, %s): ", 
+                Me, errno, strerror(errno));
+        perror(NULL);
+        sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
 
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
@@ -891,10 +891,10 @@ setTimeSlicer(int msTimerDelay)
     timerInfo.it_interval.tv_nsec = timerInfo.it_value.tv_nsec;
     if (incinterval(timerId, &timerInfo, &oldtimer))
     {
-	fprintf(SysErrorFile, "%s: incinterval failed (errno=%d, %s): ", 
-		Me, errno, strerror(errno));
-	perror(NULL);
-	sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        fprintf(SysErrorFile, "%s: incinterval failed (errno=%d, %s): ", 
+                Me, errno, strerror(errno));
+        perror(NULL);
+        sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
 #endif
     // fprintf(SysTraceFile, "%s: timeslice is %dms\n", Me, msTimerDelay);
@@ -906,12 +906,12 @@ extern "C" void
 sysVirtualProcessorEnableTimeSlicing(int timeSlice)
 {
     if (lib_verbose)
-	fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
+        fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
     // timeSlice could be less than 1!
     if (timeSlice < 1 || timeSlice > 999) {
-	fprintf(SysErrorFile, "%s: timeslice of %d is outside range 1..999\n",
-		Me, timeSlice);
-	sysExit(EXIT_STATUS_TIMER_TROUBLE);
+        fprintf(SysErrorFile, "%s: timeslice of %d is outside range 1..999\n",
+                Me, timeSlice);
+        sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
     timeSlice_msec = timeSlice;
     setTimeSlicer(timeSlice);
@@ -964,10 +964,10 @@ sysGetTimeOfDay()
 
     rc = gettimeofday(&tv, &tz);
     if (rc != 0) {
-	returnValue = rc;
+        returnValue = rc;
     } else {
-	returnValue = (long long) tv.tv_sec * 1000000;
-	returnValue += tv.tv_usec;
+        returnValue = (long long) tv.tv_sec * 1000000;
+        returnValue += tv.tv_usec;
     }
 
     return returnValue;
@@ -1084,21 +1084,21 @@ sysHPMsetEvent(int e1, int e2, int e3, int e4)
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, 
-	    "%s: sysHPMsetEvent(%d,%d,%d,%d) called: no support for Linux\n", 
-	    Me, e1,e2,e3,e4);
+            "%s: sysHPMsetEvent(%d,%d,%d,%d) called: no support for Linux\n", 
+            Me, e1,e2,e3,e4);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
     fprintf(SysErrorFile, "%s: sysHPMsetEvent(%d,%d,%d,%d) called\n",
-	    Me, e1,e2,e3,e4);
+            Me, e1,e2,e3,e4);
 #  endif
     rc = hpm_set_event(e1, e2, e3, e4);
     return rc;
 #else
     fprintf(SysErrorFile, 
-	    "%s: sysHPMsetEvent(%d,%d,%d,%d) called: not compiled for HPM\n",
-	    Me, e1,e2,e3,e4);
+            "%s: sysHPMsetEvent(%d,%d,%d,%d) called: not compiled for HPM\n",
+            Me, e1,e2,e3,e4);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
@@ -1114,21 +1114,21 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, 
-	    "%s: sysHPMsetEventX(%d,%d,%d,%d) called: no support for Linux\n", 
-	    Me, e5,e6,e7,e8);
+            "%s: sysHPMsetEventX(%d,%d,%d,%d) called: no support for Linux\n", 
+            Me, e5,e6,e7,e8);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
 #  ifdef DEBUG_SYS
     fprintf(SysErrorFile, "%s: sysHPMsetEventX(%d,%d,%d,%d) called\n", Me,
-	    e5,e6,e7,e8);
+            e5,e6,e7,e8);
 #  endif
     rc = hpm_set_event_X(e5, e6, e7, e8);
     return rc;
 #else
     fprintf(SysErrorFile,
-	    "%s: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
-	    Me, e5,e6,e7,e8);
+            "%s: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
+            Me, e5,e6,e7,e8);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
@@ -1138,15 +1138,15 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
  * Set mode(s) to be monitored.
  * Only returns if valid parameters.
  * Possible modes are:
- *   #define PM_USER		4	// turns user mode counting on
- *   #define PM_KERNEL		8	// turns kernel mode counting on
+ *   #define PM_USER            4       // turns user mode counting on
+ *   #define PM_KERNEL          8       // turns kernel mode counting on
  */
 extern "C" int
 sysHPMsetMode(int mode)
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMsetMode(%d) called: no support for Linux\n",
-	    Me, mode);
+            Me, mode);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
@@ -1157,8 +1157,8 @@ sysHPMsetMode(int mode)
     return rc;
 #else
     fprintf(SysErrorFile, 
-	    "%s: sysHPMsetMode(%d) called: not compiled for HPM\n",
-	    Me, mode);
+            "%s: sysHPMsetMode(%d) called: not compiled for HPM\n",
+            Me, mode);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
@@ -1177,8 +1177,8 @@ sysHPMsetProgramMyThread()
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, 
-	    "%s: sysHPMsetProgramMyThread() called: no support for Linux\n", 
-	    Me);
+            "%s: sysHPMsetProgramMyThread() called: no support for Linux\n", 
+            Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
@@ -1189,8 +1189,8 @@ sysHPMsetProgramMyThread()
     return rc;
 #else
     fprintf(SysTraceFile, 
-	    "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
-	    Me);
+            "%s: sysHPMsetProgramMyThread() called: not compiled for HPM\n", 
+            Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
@@ -1207,8 +1207,8 @@ sysHPMsetProgramMyGroup()
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, 
-	    "%s: sysHPMsetProgramMyGroup() called: no support for Linux\n", 
-	    Me);
+            "%s: sysHPMsetProgramMyGroup() called: no support for Linux\n", 
+            Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
@@ -1243,7 +1243,7 @@ sysHPMstartMyThread()
     return rc;
 #else
     fprintf(SysTraceFile, 
-	    "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
+            "%s: sysHPMstartMyThread() called: not compiled for HPM\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
 }
@@ -1259,7 +1259,7 @@ sysHPMstartMyGroup()
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, 
-	    "%s: sysHPMstartMyGroup() called: no support for Linux\n", Me);
+            "%s: sysHPMstartMyGroup() called: no support for Linux\n", Me);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     int rc;
@@ -1377,7 +1377,7 @@ sysHPMgetCounterMyThread(int counter)
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMgetCounterMyThread(%d) called: no support for Linux\n", Me,
-	    counter);
+            counter);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     return hpm_get_counter_mythread(counter);
@@ -1401,7 +1401,7 @@ sysHPMgetCounterMyGroup(int counter)
 {
 #ifdef RVM_FOR_LINUX
     fprintf(stderr, "%s: sysHPMgetCounterMyGroup(%d) called: no support for Linux\n", Me,
-	    counter);
+            counter);
     exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #elif defined RVM_WITH_HPM
     return hpm_get_counter_mygroup(counter);
@@ -1416,8 +1416,8 @@ sysHPMgetCounterMyGroup(int counter)
  * Set mode(s) to be monitored.
  * Only returns if valid parameters.
  * Possible modes are:
- *   #define PM_USER		4	// turns user mode counting on
- *   #define PM_KERNEL		8	// turns kernel mode counting on
+ *   #define PM_USER            4       // turns user mode counting on
+ *   #define PM_KERNEL          8       // turns kernel mode counting on
  */
 extern "C" int
 sysHPMgetNumberOfCounters()
@@ -1507,8 +1507,8 @@ sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP
     //
     if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes)))
     {
-	fprintf(SysErrorFile, "%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
@@ -1518,16 +1518,16 @@ sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP
     // create virtual processor
     //
     if ((rc = pthread_create(&sysVirtualProcessorHandle,
-			     &sysVirtualProcessorAttributes,
-			     sysVirtualProcessorStartup,
-			     sysVirtualProcessorArguments)))
+                             &sysVirtualProcessorAttributes,
+                             sysVirtualProcessorStartup,
+                             sysVirtualProcessorArguments)))
     {
-	fprintf(SysErrorFile, "%s: pthread_create failed (rc=%d)\n", Me, rc);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: pthread_create failed (rc=%d)\n", Me, rc);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     if (VERBOSE_PTHREAD)
-	fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (unsigned) sysVirtualProcessorHandle);
+        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (unsigned) sysVirtualProcessorHandle);
 
     return (int)sysVirtualProcessorHandle;
 #endif
@@ -1537,24 +1537,24 @@ sysVirtualProcessorCreate(int UNUSED_SVP jtoc, int UNUSED_SVP pr, int UNUSED_SVP
 static void *
 sysVirtualProcessorStartup(void *args)
 {
-    VM_Address jtoc	= ((VM_Address *)args)[0];
-    VM_Address pr	= ((VM_Address *)args)[1];
-    VM_Address ip	= ((VM_Address *)args)[2];
-    VM_Address fp	= ((VM_Address *)args)[3];
+    VM_Address jtoc     = ((VM_Address *)args)[0];
+    VM_Address pr       = ((VM_Address *)args)[1];
+    VM_Address ip       = ((VM_Address *)args)[2];
+    VM_Address fp       = ((VM_Address *)args)[3];
 
     if (VERBOSE_PTHREAD)
 #ifdef RVM_FOR_64_ADDR
-	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ip, fp);
+        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%016llx pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, jtoc, pr, ip, fp);
 #else
-	fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ip, fp);
+        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: jtoc=0x%08x pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, jtoc, pr, ip, fp);
 #endif
     // branch to vm code
     //
 #ifdef RVM_FOR_IA32
     {
-	*(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
-	VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
-	bootThread(ip, jtoc, pr, sp);
+        *(VM_Address *) (pr + VM_Processor_framePointer_offset) = fp;
+        VM_Address sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
+        bootThread(ip, jtoc, pr, sp);
     }
 #else
     bootThread(jtoc, pr, ip, fp);
@@ -1585,9 +1585,9 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
     // bindprocessor() seems to only be on AIX
 #if defined RVM_FOR_AIX
     if (numCpus == -1) {
-	fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
-	perror(NULL);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     cpuId = cpuId % numCpus;
@@ -1596,9 +1596,9 @@ sysVirtualProcessorBind(int POSSIBLY_UNUSED cpuId)
     fprintf(SysTraceFile, "%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
 
     if (rc) {
-	fprintf(SysErrorFile, "%s: bindprocessor failed (errno=%d): ", Me, errno);
-	perror(NULL);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: bindprocessor failed (errno=%d): ", Me, errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #endif // ! defined RVM_FOR_LINUX or defined RVM_FOR_OSX
 #endif // !defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
@@ -1632,13 +1632,13 @@ sysCreateThreadSpecificDataKeys(void)
     // is running on.
     rc1 = pthread_key_create(&VmProcessorKey, 0);
     if (rc1 != 0) {
-	fprintf(SysErrorFile, "%s: pthread_key_create(&VMProcessorKey,0) failed (err=%d)\n", Me, rc1);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: pthread_key_create(&VMProcessorKey,0) failed (err=%d)\n", Me, rc1);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     rc2 = pthread_key_create(&IsVmProcessorKey, 0);
     if (rc2 != 0) {
-	fprintf(SysErrorFile, "%s: pthread_key_create(&IsVMProcessorKey,0) failed (err=%d)\n", Me, rc2);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: pthread_key_create(&IsVMProcessorKey,0) failed (err=%d)\n", Me, rc2);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     // Let the syscall wrapper library know what the key is,
@@ -1664,9 +1664,9 @@ sysWaitForVirtualProcessorInitialization()
 {
     pthread_mutex_lock( &VirtualProcessorStartupLock );
     if (--VirtualProcessorsLeftToStart == 0)
-	pthread_cond_broadcast( &VirtualProcessorStartup );
+        pthread_cond_broadcast( &VirtualProcessorStartup );
     else
-	pthread_cond_wait(&VirtualProcessorStartup, &VirtualProcessorStartupLock);
+        pthread_cond_wait(&VirtualProcessorStartup, &VirtualProcessorStartupLock);
     pthread_mutex_unlock( &VirtualProcessorStartupLock );
 }
 
@@ -1675,9 +1675,9 @@ sysWaitForMultithreadingStart()
 {
     pthread_mutex_lock( &MultithreadingStartupLock );
     if (--VirtualProcessorsLeftToWait == 0)
-	pthread_cond_broadcast( &MultithreadingStartup );
+        pthread_cond_broadcast( &MultithreadingStartup );
     else
-	pthread_cond_wait(&MultithreadingStartup, &MultithreadingStartupLock);
+        pthread_cond_wait(&MultithreadingStartup, &MultithreadingStartupLock);
     pthread_mutex_unlock( &MultithreadingStartupLock );
 }
 #endif
@@ -1700,7 +1700,7 @@ sysPthreadSelf()
     thread = (int)pthread_self();
 
     if (VERBOSE_PTHREAD)
-	fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
+        fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
 
     /*
      * block the CONT signal.  This makes the signal reach this
@@ -1723,9 +1723,9 @@ sysPthreadSelf()
 
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
-	fprintf (SysErrorFile, "sigaltstack failed (errno=%d): ", errno);
-	perror(NULL);
-	return 1;
+        fprintf (SysErrorFile, "sigaltstack failed (errno=%d): ", errno);
+        perror(NULL);
+        return 1;
     }
 #endif
 
@@ -1807,7 +1807,7 @@ sysVirtualProcessorYield()
 // and wait for a signal.
 extern "C" int
 sysPthreadSigWait( int UNUSED_SVP * lockwordAddress, 
-		   int UNUSED_SVP  lockReleaseValue )
+                   int UNUSED_SVP  lockReleaseValue )
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "%s: sysPthreadSigWait: Unsupported operation with single virtual processor\n", Me);
@@ -1831,7 +1831,7 @@ sysPthreadSigWait( int UNUSED_SVP * lockwordAddress,
     // sysYield until unblocked
     //
     while ( *lockwordAddress == 5 /*VM_Processor.BLOCKED_IN_SIGWAIT*/ )
-	sysVirtualProcessorYield();
+        sysVirtualProcessorYield();
 
     return 0;
 #endif
@@ -1857,8 +1857,8 @@ sysStashVmProcessorInPthread(VM_Address vmProcessor)
     int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
     int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
     if (rc != 0 || rc2 != 0) {
-	fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     return 0;
@@ -1937,25 +1937,25 @@ sysDoubleRemainder(double a, double b)
 {
     double tmp = remainder(a, b);
     if (a > 0.0) {
-	if (b > 0.0) {
-	    if (tmp < 0.0) {
-		tmp += b;
-	    }
-	} else if (b < 0.0) {
-	    if (tmp < 0.0) {
-		tmp -= b;
-	    }
-	}
+        if (b > 0.0) {
+            if (tmp < 0.0) {
+                tmp += b;
+            }
+        } else if (b < 0.0) {
+            if (tmp < 0.0) {
+                tmp -= b;
+            }
+        }
     } else {
-	if (b > 0.0) {
-	    if (tmp > 0.0) {
-		tmp -= b;
-	    }
-	} else {
-	    if (tmp > 0.0) {
-		tmp += b;
-	    }
-	}
+        if (b > 0.0) {
+            if (tmp > 0.0) {
+                tmp -= b;
+            }
+        } else {
+            if (tmp > 0.0) {
+                tmp += b;
+            }
+        }
     }
     return tmp;
 }
@@ -1969,8 +1969,8 @@ sysPrimitiveParseFloat(char * buf)
 {
     float a;
     if (sscanf(buf, "%f", &a) != 1) {
-	fprintf(SysErrorFile, "%s: invalid float/double value %s\n", Me, buf);
-	exit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: invalid float/double value %s\n", Me, buf);
+        exit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     return a;
 }
@@ -1983,8 +1983,8 @@ sysPrimitiveParseInt(char * buf)
 {
     int a;
     if (sscanf(buf, "%d", &a) != 1) {
-	fprintf(SysErrorFile, "%s: invalid byte/int value %s\n", Me, buf);
-	exit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: invalid byte/int value %s\n", Me, buf);
+        exit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     return a;
 }
@@ -2066,17 +2066,17 @@ sysZeroPages(void *dst, int cnt)
     int rc = munmap(dst, cnt);
     if (rc != 0)
     {
-	fprintf(SysErrorFile, "%s: munmap failed (errno=%d): ", Me, errno);
-	perror(NULL);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: munmap failed (errno=%d): ", Me, errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     void *addr = mmap(dst, cnt, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
     if (addr == (void *)-1)
     {
-	fprintf(SysErrorFile, "%s: mmap failed (errno=%d): ", Me, errno);
-	perror(NULL);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): ", Me, errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #endif
 
@@ -2091,9 +2091,9 @@ sysZeroPages(void *dst, int cnt)
     int rc = disclaim((char *)dst, cnt, ZERO_MEM);
     if (rc != 0)
     {
-	fprintf(SysErrorFile, "%s: disclaim failed (errno=%d): ", Me, errno);
-	perror(NULL);
-	sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        fprintf(SysErrorFile, "%s: disclaim failed (errno=%d): ", Me, errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #endif
 
@@ -2119,31 +2119,31 @@ sysSyncCache(void POSSIBLY_UNUSED *address, size_t POSSIBLY_UNUSED  size)
     _sync_cache_range((caddr_t) address, size);
 #elif (defined RVM_FOR_LINUX || defined RVM_FOR_OSX) && defined RVM_FOR_POWERPC
     {
-	if (size < 0) {
-	    fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
-	    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-	}
+        if (size < 0) {
+            fprintf(SysErrorFile, "%s: tried to sync a region of negative size!\n", Me);
+            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        }
 
-	/* See section 3.2.1 of PowerPC Virtual Environment Architecture */
-	uintptr_t start = (uintptr_t)address;
-	uintptr_t end = start + size;
-	uintptr_t addr;
+        /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
+        uintptr_t start = (uintptr_t)address;
+        uintptr_t end = start + size;
+        uintptr_t addr;
 
-	/* update storage */
-	/* Note: if one knew the cache line size, one could write a better loop */
-	for (addr=start; addr < end; ++addr)
-	    asm("dcbst 0,%0" : : "r" (addr) );
+        /* update storage */
+        /* Note: if one knew the cache line size, one could write a better loop */
+        for (addr=start; addr < end; ++addr)
+            asm("dcbst 0,%0" : : "r" (addr) );
 
-	/* wait for update to commit */
-	asm("sync");
+        /* wait for update to commit */
+        asm("sync");
 
-	/* invalidate icache */
-	/* Note: if one knew the cache line size, one could write a better loop */
-	for (addr=start; addr<end; ++addr)
-	    asm("icbi 0,%0" : : "r" (addr) );
+        /* invalidate icache */
+        /* Note: if one knew the cache line size, one could write a better loop */
+        for (addr=start; addr<end; ++addr)
+            asm("icbi 0,%0" : : "r" (addr) );
 
-	/* context synchronization */
-	asm("isync");
+        /* context synchronization */
+        asm("isync");
     }
 #else  // only needed on PowerPC platforms; skip here
     ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(void *address, size_t size)\n");
@@ -2169,7 +2169,7 @@ extern "C" int
 sysShmdt(char * addr)
 {
     if (shmdt(addr) == 1)
-	return errno;
+        return errno;
     return 0;
 }
 
@@ -2194,14 +2194,14 @@ sysShmctl(int shmid, int command)
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 
 extern "C" void *sysMMap(char *start, size_t length, int protection, 
-			 int flags, int fd, long long offset) 
+                         int flags, int fd, long long offset) 
     __attribute__((noreturn));
 
 
 extern "C" void *
 sysMMap(char UNUSED *start , size_t UNUSED length ,
-	int UNUSED protection , int UNUSED flags ,
-	int UNUSED fd , long long UNUSED offset )
+        int UNUSED protection , int UNUSED flags ,
+        int UNUSED fd , long long UNUSED offset )
 {
     fprintf(SysErrorFile, "%s: sysMMap called, but it's unimplemented\n", Me);
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
@@ -2221,14 +2221,14 @@ sysMMapNonFile(char *start, char *length, int protection, int flags)
     void *res = mmap(start, (size_t)(length), protection, flags, -1, 0);
     if (res == (void *) -1) {
 #if RVM_FOR_32_ADDR
-	fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
-		(VM_Address) start, (unsigned) length, protection, flags, errno);
+        fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
+                (VM_Address) start, (unsigned) length, protection, flags, errno);
 #else
-	fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
-		(VM_Address) start, (unsigned) length, protection, flags, errno);
-#endif		
-	perror(NULL);
-	return (void *) errno;
+        fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
+                (VM_Address) start, (unsigned) length, protection, flags, errno);
+#endif          
+        perror(NULL);
+        return (void *) errno;
     }
 #ifdef DEBUG_SYS
     printf("mmap worked - region = [0x%x ... 0x%x]    size = %d\n", res, ((int)res) + length, length);
@@ -2313,9 +2313,9 @@ sysMSync(char *start, size_t length, int flags)
 //        advice (Java int)
 // Returned: 0 (success) or -1 (failure) (Java int)
 extern "C" int
-sysMAdvise(char POSSIBLY_UNUSED	     *start,
-	   size_t POSSIBLY_UNUSED   length,
-	   int POSSIBLY_UNUSED	    advice)
+sysMAdvise(char POSSIBLY_UNUSED      *start,
+           size_t POSSIBLY_UNUSED   length,
+           int POSSIBLY_UNUSED      advice)
 {
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     return -1; // unimplemented in Linux
@@ -2343,22 +2343,22 @@ findMappable()
     int max = (1 << 30) / (granularity >> 2);
     int pageSize = getpagesize();
     for (int i=0; i<max; i++) {
-	char *start = (char *) (i * granularity);
-	int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-	int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
-	void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
-	int fail = (result == (void *) -1);
+        char *start = (char *) (i * granularity);
+        int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+        int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
+        void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
+        int fail = (result == (void *) -1);
 #if RVM_FOR_32_ADDR
-	printf("0x%x: ", (VM_Address) start);
-#else	
-	printf("0x%llx: ", (VM_Address) start);
-#endif	
-	if (fail) {
-	    printf("FAILED with errno %d: %s\n", errno, strerror(errno));
-	} else {
-	    printf("SUCCESS\n");
-	    munmap(start, (size_t) pageSize);
-	}
+        printf("0x%x: ", (VM_Address) start);
+#else   
+        printf("0x%llx: ", (VM_Address) start);
+#endif  
+        if (fail) {
+            printf("FAILED with errno %d: %s\n", errno, strerror(errno));
+        } else {
+            printf("SUCCESS\n");
+            munmap(start, (size_t) pageSize);
+        }
     }
 }
 
@@ -2380,14 +2380,14 @@ sysDlopen(char *libname)
 #else
     void * libHandler;
     do {
-	libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
+        libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
     }
     while( (libHandler == 0 /*null*/) && (errno == EINTR) );
     if (libHandler == 0) {
-	fprintf(SysErrorFile,
-		"%s: error loading library %s: %s\n", Me,
-		libname, dlerror());
-//	return 0;
+        fprintf(SysErrorFile,
+                "%s: error loading library %s: %s\n", Me,
+                libname, dlerror());
+//      return 0;
     }
 
     return libHandler;
@@ -2474,17 +2474,17 @@ sysNetLocalHostName(char *buf, int limit)
     rc = gethostname(buf, limit);
     if (rc != 0)
     {
-	fprintf(SysErrorFile, "%s: gethostname failed (rc=%d)\n", Me, rc);
-	return 0;
+        fprintf(SysErrorFile, "%s: gethostname failed (rc=%d)\n", Me, rc);
+        return 0;
     }
 
     for (int i = 0; i < limit; ++i)
-	if (buf[i] == 0) {
+        if (buf[i] == 0) {
 #ifdef DEBUG_NET
-	    fprintf(SysErrorFile, "got hostname %s\n", buf);
+            fprintf(SysErrorFile, "got hostname %s\n", buf);
 #endif
-	    return i;
-	}
+            return i;
+        }
 
     return -1;
 }
@@ -2505,17 +2505,17 @@ sysNetRemoteHostName(int internetAddress, char *buf, int limit)
 
     fprintf(SysTraceFile, "untested system call sysNetRemoteHostName()\n");
     resultAddress = gethostbyaddr((char *)&internetAddress,
-				  sizeof internetAddress,
-				  AF_INET);
+                                  sizeof internetAddress,
+                                  AF_INET);
 
     if ( ! resultAddress )
-	return 0;
+        return 0;
 
     char *name = resultAddress->h_name;
     for (int i = 0; i < limit; ++i) {
-	if (name[i] == 0)
-	    return i;
-	buf[i] = name[i];
+        if (name[i] == 0)
+            return i;
+        buf[i] = name[i];
     }
     return -1;
 #else
@@ -2523,18 +2523,18 @@ sysNetRemoteHostName(int internetAddress, char *buf, int limit)
     hostent_data data;    memset(&data, 0, sizeof data);
 
     int rc = gethostbyaddr_r((char *)&internetAddress,
-		             sizeof internetAddress, AF_INET,
-			     &results, &data);
+                             sizeof internetAddress, AF_INET,
+                             &results, &data);
     if (rc != 0) {
-	// fprintf(SysErrorFile, "%s: gethostbyaddr_r failed (errno=%d)\n", Me, h_errno);
-	return 0;
+        // fprintf(SysErrorFile, "%s: gethostbyaddr_r failed (errno=%d)\n", Me, h_errno);
+        return 0;
     }
 
     char *name = results.h_name;
     for (int i = 0; i < limit; ++i) {
-	if (name[i] == 0)
-	    return i;
-	buf[i] = name[i];
+        if (name[i] == 0)
+            return i;
+        buf[i] = name[i];
     }
     return -1;
 #endif
@@ -2559,31 +2559,31 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
     int rc = gethostbyname_r(hostname, &results, &data);
     if (rc != 0) {
 #ifdef __GLIBC__
-	fprintf(SysErrorFile, "%s: gethostbyname_r failed: %s (h_errno=%d)\n",
-		Me, hstrerror(h_errno), h_errno);
+        fprintf(SysErrorFile, "%s: gethostbyname_r failed: %s (h_errno=%d)\n",
+                Me, hstrerror(h_errno), h_errno);
 #else
-	fprintf(SysErrorFile, "%s: gethostbyname_r failed (h_errno=%d)\n",
-		Me, h_errno);
+        fprintf(SysErrorFile, "%s: gethostbyname_r failed (h_errno=%d)\n",
+                Me, h_errno);
 #endif
-	return -2;
+        return -2;
     }
 
     // verify 4-byte-address assumption
     //
     if (results.h_addrtype != AF_INET || results.h_length != 4 
-	|| sizeof (in_addr_t) != 4) {
-	fprintf(SysErrorFile, "%s: gethostbyname_r failed (unexpected address type or length)\n", Me);
-	return -2;
+        || sizeof (in_addr_t) != 4) {
+        fprintf(SysErrorFile, "%s: gethostbyname_r failed (unexpected address type or length)\n", Me);
+        return -2;
     }
 
     in_addr **addresses = (in_addr **)results.h_addr_list;
     for (i = 0; addresses[i] != 0; ++i) {
-	if (i == limit)
-	    return -1;
+        if (i == limit)
+            return -1;
 
-	printf("host address %x\n", addresses[i]->s_addr);
+        printf("host address %x\n", addresses[i]->s_addr);
 
-	*buf[i] = addresses[i]->s_addr;
+        *buf[i] = addresses[i]->s_addr;
     }
     return i;
 }
@@ -2598,13 +2598,13 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
     hostent * result = gethostbyname(hostname);
 
     if ( !result || result->h_addrtype != AF_INET || result->h_length != 4 )
-	return -2;
+        return -2;
 
     uint32_t **address = (uint32_t ** )result->h_addr_list;
     for (i=0; address[i]; i++ ) {
-	if (i == limit)
-	    return -1;
-	*buf[i] = *(address[i]);
+        if (i == limit)
+            return -1;
+        *buf[i] = *(address[i]);
     }
     return i;
 }
@@ -2621,9 +2621,9 @@ sysNetSocketCreate(int isStream)
 
     fd = socket(AF_INET, isStream ? SOCK_STREAM : SOCK_DGRAM, 0);
     if (fd == -1) {
-	fprintf(SysErrorFile, "%s: socket create failed: %s (errno=%d)\n", 
-		Me, strerror(errno), errno);
-	return -1;
+        fprintf(SysErrorFile, "%s: socket create failed: %s (errno=%d)\n", 
+                Me, strerror(errno), errno);
+        return -1;
     }
 
 #ifdef DEBUG_NET
@@ -2651,9 +2651,9 @@ sysNetSocketPort(int fd)
     len = sizeof info;
     if (getsockname(fd, (sockaddr *)&info, &len) == -1)
     {
-	fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n", 
-		Me, fd, strerror(errno), errno);
-	return -1;
+        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n", 
+                Me, fd, strerror(errno), errno);
+        return -1;
     }
 
 #ifdef DEBUG_NET
@@ -2681,9 +2681,9 @@ sysNetSocketLocalAddress(int fd)
     len = sizeof info;
     if (getsockname(fd, (sockaddr *)&info, &len) == -1)
     {
-	fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
-		Me, fd, strerror( errno ), errno);
-	return -1;
+        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
+                Me, fd, strerror( errno ), errno);
+        return -1;
     }
 
 #ifdef DEBUG_NET
@@ -2710,9 +2710,9 @@ sysNetSocketFamily(int fd)
 
     len = sizeof info;
     if (getsockname(fd, (sockaddr *)&info, &len) == -1) {
-	fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
-		Me, fd, strerror( errno ), errno);
-	return -1;
+        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
+                Me, fd, strerror( errno ), errno);
+        return -1;
     }
 
 #ifdef DEBUG_NET
@@ -2731,8 +2731,8 @@ extern "C" int
 sysNetSocketListen(int fd, int backlog)
 {
     if (listen(fd, backlog) == -1) {
-	fprintf(SysErrorFile, "%s: socket listen on %d failed: %s (errno=%d)\n", Me, fd, strerror(errno), errno);
-	return -1;
+        fprintf(SysErrorFile, "%s: socket listen on %d failed: %s (errno=%d)\n", Me, fd, strerror(errno), errno);
+        return -1;
     }
 
 #ifdef DEBUG_NET
@@ -2752,9 +2752,9 @@ sysNetSocketListen(int fd, int backlog)
 //
 extern "C" int
 sysNetSocketBind(int fd,
-		 int family,
-		 unsigned int localAddress,
-		 unsigned int localPort)
+                 int family,
+                 unsigned int localAddress,
+                 unsigned int localPort)
 {
     sockaddr_in address;
 
@@ -2764,17 +2764,17 @@ sysNetSocketBind(int fd,
     address.sin_port        = MANGLE16(localPort);
 
     if (bind(fd, (sockaddr *)&address, sizeof address) == -1) {
-	fprintf(SysErrorFile, 
-		"%s: socket bind on %d for port %d failed: %s (errno=%d)\n", 
-		Me, fd, localPort, strerror( errno ), errno);
-	return -1;
+        fprintf(SysErrorFile, 
+                "%s: socket bind on %d for port %d failed: %s (errno=%d)\n", 
+                Me, fd, localPort, strerror( errno ), errno);
+        return -1;
     }
 
 #ifdef DEBUG_NET
     fprintf(SysTraceFile, "%s: bind %d to %d.%d.%d.%d:%d\n", Me, fd, 
-	    (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, 
-	    (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, 
-	    localPort & 0x0000ffff);
+            (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, 
+            (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, 
+            localPort & 0x0000ffff);
 #endif
 
     return 0;
@@ -2797,64 +2797,64 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
 {
     int interruptsThisTime = 0;
     for (;;) {
-	sockaddr_in address;
+        sockaddr_in address;
 
-	memset(&address, 0, sizeof address);
-	address.sin_family      = family;
-	address.sin_addr.s_addr = MANGLE32(remoteAddress);
-	address.sin_port        = MANGLE16(remotePort);
+        memset(&address, 0, sizeof address);
+        address.sin_family      = family;
+        address.sin_addr.s_addr = MANGLE32(remoteAddress);
+        address.sin_port        = MANGLE16(remotePort);
 
-	if (connect(fd, (sockaddr *)&address, sizeof address) == -1) {
-	    if (errno == EINTR) {
-		fprintf(SysTraceFile, 
-			"%s: connect on %d interrupted, retrying\n", Me, fd);
-		connectInterrupts++;
-		interruptsThisTime++;
-		continue;
-	    } else if (errno == EINPROGRESS) {
+        if (connect(fd, (sockaddr *)&address, sizeof address) == -1) {
+            if (errno == EINTR) {
+                fprintf(SysTraceFile, 
+                        "%s: connect on %d interrupted, retrying\n", Me, fd);
+                connectInterrupts++;
+                interruptsThisTime++;
+                continue;
+            } else if (errno == EINPROGRESS) {
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
-			Me, fd, strerror(errno ));
+                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+                        Me, fd, strerror(errno ));
 #endif
-		return -2;
-	    } else if (errno == EISCONN) {
-		// connection was "in progress" due to previous call.
-		// This (retry) call has succeeded.
+                return -2;
+            } else if (errno == EISCONN) {
+                // connection was "in progress" due to previous call.
+                // This (retry) call has succeeded.
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile, "%s: connect on %d: %s\n", 
-			Me, fd, strerror( errno ));
+                fprintf(SysTraceFile, "%s: connect on %d: %s\n", 
+                        Me, fd, strerror( errno ));
 #endif
-		goto ok;
-	    } else if (errno == ECONNREFUSED) {
-		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
-			Me, fd, strerror( errno ));
-		return -4;
-	    } else if (errno == EHOSTUNREACH) {
-		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
-			Me, fd, strerror( errno ));
-		return -5;
-	    } else {
-		fprintf(SysErrorFile, 
-			"%s: socket connect on %d failed: %s (errno=%d)\n", 
-			Me, fd, strerror(errno), errno);
-		return -3;
-	    }
-	}
+                goto ok;
+            } else if (errno == ECONNREFUSED) {
+                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+                        Me, fd, strerror( errno ));
+                return -4;
+            } else if (errno == EHOSTUNREACH) {
+                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+                        Me, fd, strerror( errno ));
+                return -5;
+            } else {
+                fprintf(SysErrorFile, 
+                        "%s: socket connect on %d failed: %s (errno=%d)\n", 
+                        Me, fd, strerror(errno), errno);
+                return -3;
+            }
+        }
 
     ok:
-	if (interruptsThisTime > maxConnectInterrupts) {
-	    maxConnectInterrupts = interruptsThisTime;
-	    fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
-		    interruptsThisTime);
-	}
+        if (interruptsThisTime > maxConnectInterrupts) {
+            maxConnectInterrupts = interruptsThisTime;
+            fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
+                    interruptsThisTime);
+        }
 
 #ifdef DEBUG_NET
-	fprintf(SysTraceFile, "%s: connect %d to %d.%d.%d.%d:%d\n", 
-		Me, fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
-		(remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
-		remotePort & 0x0000ffff);
+        fprintf(SysTraceFile, "%s: connect %d to %d.%d.%d.%d:%d\n", 
+                Me, fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
+                (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
+                remotePort & 0x0000ffff);
 #endif
-	return 0;
+        return 0;
     }
 }
 
@@ -2885,38 +2885,38 @@ sysNetSocketAccept(int fd, void *connectionObject)
 
     len = sizeof info;
     for (;;) {
-	connectionFd = accept(fd, (sockaddr *)&info, &len);
+        connectionFd = accept(fd, (sockaddr *)&info, &len);
 
-	if (connectionFd > 0) {
-	    break;
-	} else if (connectionFd == -1) {
+        if (connectionFd > 0) {
+            break;
+        } else if (connectionFd == -1) {
 
-	    if (errno == EINTR) {
-		fprintf(SysTraceFile, "%s: accept on %d interrupted\n", Me, fd);
-		interruptsThisTime++;
-		acceptInterrupts++;
-		continue;
-	    } else if (errno == EAGAIN) {
+            if (errno == EINTR) {
+                fprintf(SysTraceFile, "%s: accept on %d interrupted\n", Me, fd);
+                interruptsThisTime++;
+                acceptInterrupts++;
+                continue;
+            } else if (errno == EAGAIN) {
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile,
-			"%s: accept on %d would have blocked: needs retry\n", 
-			Me, fd);
+                fprintf(SysTraceFile,
+                        "%s: accept on %d would have blocked: needs retry\n", 
+                        Me, fd);
 #endif
-		return -2;
-	    } else {
+                return -2;
+            } else {
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile, 
-			"%s: socket accept on %d failed: %s (errno=%d)\n", 
-			Me, fd, strerror( errno ), errno);
+                fprintf(SysTraceFile, 
+                        "%s: socket accept on %d failed: %s (errno=%d)\n", 
+                        Me, fd, strerror( errno ), errno);
 #endif
-		return -3;
-	    }
-	}
+                return -3;
+            }
+        }
     }
 
 #ifdef DEBUG_NET
     fprintf(SysTraceFile, "accepted %d for socket %d, 0x%x\n", 
-	    connectionFd, fd, connectionObject);
+            connectionFd, fd, connectionObject);
 #endif
 
     int remoteFamily  = info.sin_family;
@@ -2925,10 +2925,10 @@ sysNetSocketAccept(int fd, void *connectionObject)
 
 #ifdef DEBUG_NET
     fprintf(SysTraceFile, "%s: %d accept %d from %d.%d.%d.%d:%d\n", 
-	    Me, fd, connectionFd, 
-	    (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
-	    (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
-	    remotePort & 0x0000ffff);
+            Me, fd, connectionFd, 
+            (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
+            (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
+            remotePort & 0x0000ffff);
 #endif
 
     void *addressObject = *(void **)((char *)connectionObject + java_net_SocketImpl_address_offset);
@@ -2941,9 +2941,9 @@ sysNetSocketAccept(int fd, void *connectionObject)
     *portField    = remotePort;
 
     if (interruptsThisTime > maxAcceptInterrupts) {
-	maxAcceptInterrupts = interruptsThisTime;
-	fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
-		interruptsThisTime);
+        maxAcceptInterrupts = interruptsThisTime;
+        fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
+                interruptsThisTime);
     }
 
     return connectionFd;
@@ -2966,7 +2966,7 @@ sysNetSocketLinger(int fd, int enable, int timeout)
 
 #ifdef DEBUG_NET
     fprintf(SysTraceFile, "%s: linger socket=%d enable=%d timeout=%d\n", 
-	    Me, fd, enable, timeout);
+            Me, fd, enable, timeout);
 #endif
 
     linger info;
@@ -2975,8 +2975,8 @@ sysNetSocketLinger(int fd, int enable, int timeout)
 
     int rc = setsockopt(fd, SOL_SOCKET, SO_LINGER, &info, sizeof info);
     if (rc == -1) fprintf(SysErrorFile, 
-			  "%s: socket linger on %d failed: %s (errno=%d)\n", 
-			  Me, fd, strerror(errno), errno);
+                          "%s: socket linger on %d failed: %s (errno=%d)\n", 
+                          Me, fd, strerror(errno), errno);
     return rc;
 }
 
@@ -2999,8 +2999,8 @@ sysNetSocketNoDelay(int fd, int enable)
 
     int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof value);
     if (rc == -1)
-	fprintf(SysErrorFile, "%s: TCP_NODELAY on %d failed: %s (errno=%d)\n", 
-		Me, fd, strerror(errno), errno);
+        fprintf(SysErrorFile, "%s: TCP_NODELAY on %d failed: %s (errno=%d)\n", 
+                Me, fd, strerror(errno), errno);
 
     return rc;
 }
@@ -3024,9 +3024,9 @@ sysNetSocketNoBlock(int fd, int enable)
 
     int rc = ioctl(fd, FIONBIO, &value);
     if (rc == -1) {
-	fprintf(SysErrorFile, "%s: FIONBIO on %d failed: %s (errno=%d)\n", 
-		Me, fd, strerror(errno), errno);
-	return -1;
+        fprintf(SysErrorFile, "%s: FIONBIO on %d failed: %s (errno=%d)\n", 
+                Me, fd, strerror(errno), errno);
+        return -1;
     }
 
     return rc;
@@ -3050,17 +3050,17 @@ sysNetSocketClose(int fd)
     int rc = shutdown(fd, 2);
 
     if (rc == 0) { 
-	// shutdown succeeded
-	return sysClose(fd);
+        // shutdown succeeded
+        return sysClose(fd);
     }
 
     if (errno == ENOTCONN) { 
-	// socket wasn't connected so shutdown error is meaningless
-	return sysClose(fd);
+        // socket wasn't connected so shutdown error is meaningless
+        return sysClose(fd);
     }
 
     fprintf(SysErrorFile, "%s: socket shutdown on %d failed: %s (errno=%d)\n",
-	    Me, fd, strerror(errno), errno);
+            Me, fd, strerror(errno), errno);
 
     sysClose(fd);
     return -2; // shutdown (and possibly close) error
@@ -3078,8 +3078,8 @@ sysNetSocketShutdown(int fd, int how)
 {
 #ifdef DEBUG_NET
     fprintf(SysTraceFile, "%s: shutdown socket %d for %s\n", Me,
-	    fd,
-	    (how==0)? "input": "output");
+            fd,
+            (how==0)? "input": "output");
 #endif
 
     return shutdown(fd, how);
@@ -3111,20 +3111,20 @@ addFileDescriptors(
 {
     //fprintf ( SysTraceFile, "%d descriptors in set\n", count );
     for (int i = 0; i < count; ++i) {
-	int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
+        int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
 #ifdef DEBUG_SYS
-	fprintf ( SysTraceFile, "select on fd %d\n", fd );
+        fprintf ( SysTraceFile, "select on fd %d\n", fd );
 #endif
-	if (fd > FD_SETSIZE) {
-	    fprintf(SysErrorFile, "%s: select: fd(%d) exceeds system limit(%d)\n", Me,
-		    fd, FD_SETSIZE);
-	    return false;
-	}
-	if (fd > *maxFd)
-	    *maxFd = fd;
-	FD_SET(fd, fdSet);
-	if (exceptFdSet != 0)
-	    FD_SET(fd, exceptFdSet);
+        if (fd > FD_SETSIZE) {
+            fprintf(SysErrorFile, "%s: select: fd(%d) exceeds system limit(%d)\n", Me,
+                    fd, FD_SETSIZE);
+            return false;
+        }
+        if (fd > *maxFd)
+            *maxFd = fd;
+        FD_SET(fd, fdSet);
+        if (exceptFdSet != 0)
+            FD_SET(fd, exceptFdSet);
     }
 
     return true;
@@ -3140,9 +3140,9 @@ static void
 updateStatus(int *fdArray, int count, fd_set *ready)
 {
     for (int i = 0; i < count; ++i) {
-	int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
-	if (FD_ISSET(fd, ready))
-	    fdArray[i] = VM_ThreadIOConstants_FD_READY;
+        int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
+        if (FD_ISSET(fd, ready))
+            fdArray[i] = VM_ThreadIOConstants_FD_READY;
     }
 }
 
@@ -3162,12 +3162,12 @@ checkInvalid(int *fdArray, int count, fd_set *exceptFdSet)
 {
     int numInvalid = 0;
     for (int i = 0; i < count; ++i) {
-	int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
-	if (FD_ISSET(fd, exceptFdSet)) {
-	    //fprintf(SysErrorFile, "%s: fd %d in sysNetSelect() is invalid\n", Me, fd);
-	    fdArray[i] = VM_ThreadIOConstants_FD_INVALID;
-	    ++numInvalid;
-	}
+        int fd = fdArray[i] & VM_ThreadIOConstants_FD_MASK;
+        if (FD_ISSET(fd, exceptFdSet)) {
+            //fprintf(SysErrorFile, "%s: fd %d in sysNetSelect() is invalid\n", Me, fd);
+            fdArray[i] = VM_ThreadIOConstants_FD_INVALID;
+            ++numInvalid;
+        }
     }
 
     return numInvalid;
@@ -3182,91 +3182,91 @@ checkInvalid(int *fdArray, int count, fd_set *exceptFdSet)
 // Side effect: readFds[i] is set to "VM_ThreadIOConstants.FD_READY" iff i/o can proceed on that socket
 extern "C" int
 sysNetSelect(
-    int *allFds,	   // all fds being polled: read, write, and exception
-    int rc,			// number of read file descriptors
-    int wc,			// number of write file descriptors
-    int ec)			// number of exception file descriptors
+    int *allFds,           // all fds being polled: read, write, and exception
+    int rc,                     // number of read file descriptors
+    int wc,                     // number of write file descriptors
+    int ec)                     // number of exception file descriptors
 {
     // JTD 8/2/01 moved for loop up here because select man page says it can
     // corrupt all its inputs, including the fdsets, when it returns an error
     int interruptsThisTime = 0;
     for (;;) {
-	int maxfd   = -1;         // largest fd currently in use
+        int maxfd   = -1;         // largest fd currently in use
 
-	// build bitstrings representing fd's to be interrogated
-	//
-	fd_set readReady; FD_ZERO(&readReady);
-	fd_set writeReady; FD_ZERO(&writeReady);
-	fd_set exceptReady; FD_ZERO(&exceptReady);
+        // build bitstrings representing fd's to be interrogated
+        //
+        fd_set readReady; FD_ZERO(&readReady);
+        fd_set writeReady; FD_ZERO(&writeReady);
+        fd_set exceptReady; FD_ZERO(&exceptReady);
 
-	if (!addFileDescriptors(&readReady, allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &maxfd, &exceptReady)
-	    || !addFileDescriptors(&writeReady, allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &maxfd, &exceptReady)
-	    || !addFileDescriptors(&exceptReady, allFds + VM_ThreadIOQueue_EXCEPT_OFFSET, ec, &maxfd))
-	    return -1;
+        if (!addFileDescriptors(&readReady, allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &maxfd, &exceptReady)
+            || !addFileDescriptors(&writeReady, allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &maxfd, &exceptReady)
+            || !addFileDescriptors(&exceptReady, allFds + VM_ThreadIOQueue_EXCEPT_OFFSET, ec, &maxfd))
+            return -1;
 
-	// Ensure that select() call below
-	// calls the real C library version, not our hijacked version
+        // Ensure that select() call below
+        // calls the real C library version, not our hijacked version
 #if defined(RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS)
-	SelectFunc realSelect = getLibcSelect();
-	if (realSelect == 0) {
-	    fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
-	    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-	}
+        SelectFunc realSelect = getLibcSelect();
+        if (realSelect == 0) {
+            fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
+            sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+        }
 #else
 # define realSelect(n, read, write, except, timeout) \
     select(n, read, write, except, timeout)
 #endif
 
-	// interrogate
-	//
-	// timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = SelectDelay * 1000;
-	timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = 0;
-	int ret = realSelect(maxfd + 1, &readReady, &writeReady, &exceptReady, &timeout);
-	int err = errno;
+        // interrogate
+        //
+        // timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = SelectDelay * 1000;
+        timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = 0;
+        int ret = realSelect(maxfd + 1, &readReady, &writeReady, &exceptReady, &timeout);
+        int err = errno;
 
-	if (ret == 0) {
-	    // none ready
-	    if (interruptsThisTime > maxSelectInterrupts) {
-		maxSelectInterrupts = interruptsThisTime;
-		fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", interruptsThisTime);
-	    }
+        if (ret == 0) {
+            // none ready
+            if (interruptsThisTime > maxSelectInterrupts) {
+                maxSelectInterrupts = interruptsThisTime;
+                fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", interruptsThisTime);
+            }
 
-	    return 0;
-	}
+            return 0;
+        }
 
-	if (ret > 0)
-	{ // some ready
-	    updateStatus(allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &readReady);
-	    updateStatus(allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &writeReady);
-	    updateStatus(allFds + VM_ThreadIOQueue_EXCEPT_OFFSET, ec, &exceptReady);
+        if (ret > 0)
+        { // some ready
+            updateStatus(allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &readReady);
+            updateStatus(allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &writeReady);
+            updateStatus(allFds + VM_ThreadIOQueue_EXCEPT_OFFSET, ec, &exceptReady);
 
-	    if (interruptsThisTime > maxSelectInterrupts)
-		maxSelectInterrupts = interruptsThisTime;
+            if (interruptsThisTime > maxSelectInterrupts)
+                maxSelectInterrupts = interruptsThisTime;
 
-	    return 1;
-	}
+            return 1;
+        }
 
-	if (err == EINTR) { // interrupted by timer tick: retry
-	    return 0;
-	} else if (err == EBADF) {
-	    // This can happen if somebody passes us an invalid file descriptor.
-	    // Check the read and write file descriptors against the exception
-	    // fd set, so we can find the culprit(s).
-	    int numInvalid = 0;
-	    numInvalid += checkInvalid(allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &exceptReady);
-	    numInvalid += checkInvalid(allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &exceptReady);
-	    if (numInvalid == 0) {
-		// This is bad.
-		fprintf(SysErrorFile,
-			"%s: select returned with EBADF, but no file descriptors found in exception set\n", Me);
-		return -1;
-	    } else {
-		return 1;
-	    }
-	}
+        if (err == EINTR) { // interrupted by timer tick: retry
+            return 0;
+        } else if (err == EBADF) {
+            // This can happen if somebody passes us an invalid file descriptor.
+            // Check the read and write file descriptors against the exception
+            // fd set, so we can find the culprit(s).
+            int numInvalid = 0;
+            numInvalid += checkInvalid(allFds + VM_ThreadIOQueue_READ_OFFSET, rc, &exceptReady);
+            numInvalid += checkInvalid(allFds + VM_ThreadIOQueue_WRITE_OFFSET, wc, &exceptReady);
+            if (numInvalid == 0) {
+                // This is bad.
+                fprintf(SysErrorFile,
+                        "%s: select returned with EBADF, but no file descriptors found in exception set\n", Me);
+                return -1;
+            } else {
+                return 1;
+            }
+        }
 
-	// fprintf(SysErrorFile, "%s: socket select failed (err=%d (%s))\n", Me, err, strerror( err ));
-	return -1;
+        // fprintf(SysErrorFile, "%s: socket select failed (err=%d (%s))\n", Me, err, strerror( err ));
+        return -1;
     }
 
     return -1; // not reached (but xlC isn't smart enough to realize it)
@@ -3284,20 +3284,20 @@ extern "C" void
 sysWaitPids(int pidArray[], int exitStatusArray[], int numPids)
 {
     for (int i = 0; i < numPids; ++i) {
-	int status;
-	pid_t pid = (pid_t) pidArray[i];
-	if (pid == waitpid(pid, &status, WNOHANG)) {
-	    // Process has finished
-	    int exitStatus;
-	    if (WIFSIGNALED(status))
-		exitStatus = -1;
-	    else
-		exitStatus = WEXITSTATUS(status);
+        int status;
+        pid_t pid = (pid_t) pidArray[i];
+        if (pid == waitpid(pid, &status, WNOHANG)) {
+            // Process has finished
+            int exitStatus;
+            if (WIFSIGNALED(status))
+                exitStatus = -1;
+            else
+                exitStatus = WEXITSTATUS(status);
 
-	    // Mark process as finished, and record its exit status
-	    pidArray[i] = VM_ThreadProcessWaitQueue_PROCESS_FINISHED;
-	    exitStatusArray[i] = exitStatus;
-	}
+            // Mark process as finished, and record its exit status
+            pidArray[i] = VM_ThreadProcessWaitQueue_PROCESS_FINISHED;
+            exitStatusArray[i] = exitStatus;
+        }
     }
 }
 

@@ -34,10 +34,10 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     // the following idiot reflection hack is because the field is final :(
     if (VM.runningVM) {
       try {
-	VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(vmClassLoader, new HashMap());
+        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(vmClassLoader, new HashMap());
       } catch (Exception e) {
-	VM.sysWriteln("failed to setup system class loader");
-	VM.sysExit(-1);
+        VM.sysWriteln("failed to setup system class loader");
+        VM.sysExit(-1);
       }
     }
   }
@@ -60,21 +60,21 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
    * @throws NoClassDefFoundError
    */
   synchronized VM_Type loadVMClass(String className) throws NoClassDefFoundError {
-    try {	    
+    try {           
       InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
       if (is == null) throw new NoClassDefFoundError(className);
       DataInputStream dataInputStream = new DataInputStream(is);
       VM_Type type = null;
       try {
-	// Debugging:
-	// VM.sysWriteln("loadVMClass: trying to resolve className " + className);
-	type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
-	loaded.put(className, type);
+        // Debugging:
+        // VM.sysWriteln("loadVMClass: trying to resolve className " + className);
+        type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
+        loaded.put(className, type);
       } finally {
-	try {
-	  // Make sure the input stream is closed.
-	  dataInputStream.close();
-	} catch (IOException e) { }
+        try {
+          // Make sure the input stream is closed.
+          dataInputStream.close();
+        } catch (IOException e) { }
       }
       return type;
     } catch (NoClassDefFoundError e) {
@@ -115,36 +115,36 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   public Class findClass (String className) throws ClassNotFoundException {
     if (className.startsWith("[")) {
       VM_TypeReference typeRef = VM_TypeReference.findOrCreate(this, 
-							       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')));
+                                                               VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')));
       VM_Type ans = typeRef.resolve();
       loaded.put(className, ans);
       return ans.getClassForType();
-    } else {	
+    } else {    
       // class types: try to find the class file
-      try {	    
-	if (className.startsWith("L") && className.endsWith(";")) {
-	  className = className.substring(1, className.length()-2);
-	}
-	InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
-	if (is == null) throw new ClassNotFoundException(className);
-	DataInputStream dataInputStream = new DataInputStream(is);
-	Class cls = null;
-	try {
-	  VM_Type type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
-	  loaded.put(className, type);
-	  cls = type.getClassForType();
-	} finally {
-	  try {
-	    // Make sure the input stream is closed.
-	    dataInputStream.close();
-	  } catch (IOException e) { }
-	}
-	return cls;
+      try {         
+        if (className.startsWith("L") && className.endsWith(";")) {
+          className = className.substring(1, className.length()-2);
+        }
+        InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
+        if (is == null) throw new ClassNotFoundException(className);
+        DataInputStream dataInputStream = new DataInputStream(is);
+        Class cls = null;
+        try {
+          VM_Type type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
+          loaded.put(className, type);
+          cls = type.getClassForType();
+        } finally {
+          try {
+            // Make sure the input stream is closed.
+            dataInputStream.close();
+          } catch (IOException e) { }
+        }
+        return cls;
       } catch (ClassNotFoundException e) {
-	throw e;
+        throw e;
       } catch (Throwable e) {
-	// We didn't find the class, or it wasn't valid, etc.
-	throw new ClassNotFoundException(className);
+        // We didn't find the class, or it wasn't valid, etc.
+        throw new ClassNotFoundException(className);
       }
     }
   }
@@ -161,17 +161,17 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
   public InputStream getResourceAsStream(final String name) {
     Handler findStream = new Handler() {
-	InputStream stream;
+        InputStream stream;
 
-	public Object getResult() { return stream; }
+        public Object getResult() { return stream; }
 
-	public void process(ZipFile zf, ZipEntry ze) throws Exception {
-	  stream = zf.getInputStream(ze);
-	}
+        public void process(ZipFile zf, ZipEntry ze) throws Exception {
+          stream = zf.getInputStream(ze);
+        }
 
-	public void process(File file) throws Exception {
-	  stream = new FileInputStream(file);
-	}
+        public void process(File file) throws Exception {
+          stream = new FileInputStream(file);
+        }
       };
 
     return (InputStream)getResourceInternal(name, findStream, false);
@@ -179,17 +179,17 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
   public URL findResource(final String name) {
     Handler findURL = new Handler() {
-	URL url;
+        URL url;
 
-	public Object getResult() { return url; }
+        public Object getResult() { return url; }
 
-	public void process(ZipFile zf, ZipEntry ze) throws Exception {
-	  url = new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name);
-	}
+        public void process(ZipFile zf, ZipEntry ze) throws Exception {
+          url = new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name);
+        }
 
-	public void process(File file) throws Exception {
-	  url = new URL("file", null, -1, file.getName());
-	}
+        public void process(File file) throws Exception {
+          url = new URL("file", null, -1, file.getName());
+        }
       };
 
       return (URL)getResourceInternal(name, findURL, false);
@@ -197,17 +197,17 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
   public Enumeration findResources(final String name) {
     Handler findURL = new Handler() {
-	Vector urls;
+        Vector urls;
 
-	public Object getResult() { return urls.elements(); }
-	
-	public void process(ZipFile zf, ZipEntry ze) throws Exception {
-	  urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name));
-	}
+        public Object getResult() { return urls.elements(); }
+        
+        public void process(ZipFile zf, ZipEntry ze) throws Exception {
+          urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "/!" +name));
+        }
 
-	public void process(File file) throws Exception {
-	  urls.addElement(new URL("file", null, -1, file.getName()));
-	}
+        public void process(File file) throws Exception {
+          urls.addElement(new URL("file", null, -1, file.getName()));
+        }
       };
 
     return (Enumeration)getResourceInternal(name, findURL, true);
@@ -222,42 +222,42 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
     while (tok.hasMoreElements()) {
       try {
-	String path = tok.nextToken();
-	if (path.endsWith(".jar") || path.endsWith(".zip")) {
-	  ZipFile zf = (ZipFile) zipFileCache.get(path);
-	  if (zf == null) {
-	    zf = new ZipFile(path);
-	    if (zf == null) {
-	      continue;
-	    } else {
-	      zipFileCache.put(path, zf);
-	    }
-	  }
+        String path = tok.nextToken();
+        if (path.endsWith(".jar") || path.endsWith(".zip")) {
+          ZipFile zf = (ZipFile) zipFileCache.get(path);
+          if (zf == null) {
+            zf = new ZipFile(path);
+            if (zf == null) {
+              continue;
+            } else {
+              zipFileCache.put(path, zf);
+            }
+          }
 
-	  ZipEntry ze = zf.getEntry(name);
-	  if (ze == null) continue;
-	  
-	  h.process(zf, ze);
-	  if (!multiple) return h.getResult();
-	} else if (path.endsWith(File.separator)) {
-	  File file = new File(path + name);
-	  if (file.exists()) {
-	    h.process(file);
-	    if (!multiple) return h.getResult();
-	  } else {
-	    continue;
-	  }
-	} else {
-	  File file = new File(path + File.separator + name);
-	  if (file.exists()) {
-	    h.process(file);
-	    if (!multiple) return h.getResult();
-	  } else {
-	    continue;
-	  }
-	}
+          ZipEntry ze = zf.getEntry(name);
+          if (ze == null) continue;
+          
+          h.process(zf, ze);
+          if (!multiple) return h.getResult();
+        } else if (path.endsWith(File.separator)) {
+          File file = new File(path + name);
+          if (file.exists()) {
+            h.process(file);
+            if (!multiple) return h.getResult();
+          } else {
+            continue;
+          }
+        } else {
+          File file = new File(path + File.separator + name);
+          if (file.exists()) {
+            h.process(file);
+            if (!multiple) return h.getResult();
+          } else {
+            continue;
+          }
+        }
       } catch (Exception e) {
-	continue;
+        continue;
       }
     }
 

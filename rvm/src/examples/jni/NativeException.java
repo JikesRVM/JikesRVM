@@ -45,9 +45,9 @@ class NativeException {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
     
     /****************************************************
@@ -58,7 +58,7 @@ class NativeException {
       returnFlag = false;
     } catch (RuntimeException e) {
       printVerbose("Caught exception:  expected ArrayIndexOutOfBoundsException, got " +
-		   e.toString());
+                   e.toString());
       returnFlag = true;
     }
     checkTest(0, returnFlag, "Exception pass through");
@@ -94,9 +94,9 @@ class NativeException {
       // disable when 'quiet' due to differences in jdk & RVM
       // printing in stack traces.  Causes spurious test failure.
       try {
-	returnFlag = testExceptionDescribe(intArray);  
+        returnFlag = testExceptionDescribe(intArray);  
       } catch (RuntimeException e) {
-	returnFlag = false;  // shouldn't be here      
+        returnFlag = false;  // shouldn't be here      
       }
       checkTest(0, returnFlag, "ExceptionDescribe");
     }

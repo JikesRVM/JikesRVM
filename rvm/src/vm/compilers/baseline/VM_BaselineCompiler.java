@@ -23,10 +23,10 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Janice Shepherd
  */
 public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, 
-						     VM_SizeConstants
-						     //-#if RVM_WITH_OSR
-						     , OSR_Constants
-						     //-#endif
+                                                     VM_SizeConstants
+                                                     //-#if RVM_WITH_OSR
+                                                     , OSR_Constants
+                                                     //-#endif
 {
 
   private static long gcMapCycles;
@@ -113,15 +113,15 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
     compiledMethod = cm;
     method = (VM_NormalMethod)cm.getMethod();
     shouldPrint  = (!VM.runningTool &&
-		    (options.PRINT_MACHINECODE) &&
-		    (!options.hasMETHOD_TO_PRINT() ||
-		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
+                    (options.PRINT_MACHINECODE) &&
+                    (!options.hasMETHOD_TO_PRINT() ||
+                     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint && VM.runningVM && !fullyBootedVM) {
       shouldPrint = false;
       if (options.PRINT_METHOD) {
-	VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
+        VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
       }
     }
 
@@ -260,8 +260,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       options.EDGE_COUNTERS = false;
       // we already allocated enough space for stackHeights, shift it back first
       System.arraycopy(stackHeights, 0, stackHeights, 
-		       method.getOsrPrologueLength(), 
-		       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
+                       method.getOsrPrologueLength(), 
+                       method.getBytecodeLength());   // NB: getBytecodeLength returns back the length of original bytecodes
       
       // compute stack height for prologue
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
@@ -291,10 +291,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
     if (method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap,
-		       method.getOsrPrologueLength(),
-		       newmap,
-		       0,
-		       newmap.length);
+                       method.getOsrPrologueLength(),
+                       newmap,
+                       0,
+                       newmap.length);
       machineCode.setBytecodeMap(newmap);
       bcMap = newmap;
       // switch back to original state
@@ -307,7 +307,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       osrSetupCycles += end - start;
     }
     //-#endif
-	
+        
     // Phase 5: Encode machine code maps
     if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isSynchronized()) {
@@ -384,8 +384,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
   protected final VM_MachineCode genCode () {
     // determine if we are going to insert edge counters for this method
     if (options.EDGE_COUNTERS && 
-	!method.getDeclaringClass().isBridgeFromNative() &&
-	(method.hasCondBranch() || method.hasSwitch())) {
+        !method.getDeclaringClass().isBridgeFromNative() &&
+        (method.hasCondBranch() || method.hasSwitch())) {
       compiledMethod.setHasCounterArray(); // yes, we will inject counters for this method.
     }
 
@@ -401,1598 +401,1598 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       int code = bcodes.nextInstruction();
       switch (code) {
       case JBC_nop: {
-	if (shouldPrint) asm.noteBytecode(biStart, "nop");
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "nop");
+        break;
       }
 
       case JBC_aconst_null: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aconst_null");
-	emit_aconst_null();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "aconst_null");
+        emit_aconst_null();
+        break;
       }
 
       case JBC_iconst_m1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_m1");
-	emit_iconst(-1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iconst_m1");
+        emit_iconst(-1);
+        break;
       }
 
       case JBC_iconst_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_0");
-	emit_iconst(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iconst_0");
+        emit_iconst(0);
+        break;
       }
 
       case JBC_iconst_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_1");
-	emit_iconst(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iconst_1");
+        emit_iconst(1);
+        break;
       }
 
       case JBC_iconst_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_2");
-	emit_iconst(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iconst_2");
+        emit_iconst(2);
+        break;
       }
 
       case JBC_iconst_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_3");
-	emit_iconst(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iconst_3");
+        emit_iconst(3);
+        break;
       }
 
       case JBC_iconst_4: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_4");
-	emit_iconst(4);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iconst_4");
+        emit_iconst(4);
+        break;
       }
 
       case JBC_iconst_5: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iconst_5");
-	emit_iconst(5);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iconst_5");
+        emit_iconst(5);
+        break;
       }
 
       case JBC_lconst_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lconst_0");  // floating-point 0 is long 0
-	emit_lconst(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lconst_0");  // floating-point 0 is long 0
+        emit_lconst(0);
+        break;
       }
 
       case JBC_lconst_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lconst_1");
-	emit_lconst(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lconst_1");
+        emit_lconst(1);
+        break;
       }
 
       case JBC_fconst_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fconst_0");
-	emit_fconst_0();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fconst_0");
+        emit_fconst_0();
+        break;
       }
 
       case JBC_fconst_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fconst_1");
-	emit_fconst_1();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fconst_1");
+        emit_fconst_1();
+        break;
       }
 
       case JBC_fconst_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fconst_2");
-	emit_fconst_2();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fconst_2");
+        emit_fconst_2();
+        break;
       }
 
       case JBC_dconst_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dconst_0");
-	emit_dconst_0();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dconst_0");
+        emit_dconst_0();
+        break;
       }
 
       case JBC_dconst_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dconst_1");
-	emit_dconst_1();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dconst_1");
+        emit_dconst_1();
+        break;
       }
 
       case JBC_bipush: {
-	int val = bcodes.getByteValue();
-	if (shouldPrint) asm.noteBytecode(biStart, "bipush", val);
-	emit_iconst(val);
-	break;
+        int val = bcodes.getByteValue();
+        if (shouldPrint) asm.noteBytecode(biStart, "bipush", val);
+        emit_iconst(val);
+        break;
       }
 
       case JBC_sipush: {
-	int val = bcodes.getShortValue();
-	if (shouldPrint) asm.noteBytecode(biStart, "sipush", val);
-	emit_iconst(val);
-	break;
+        int val = bcodes.getShortValue();
+        if (shouldPrint) asm.noteBytecode(biStart, "sipush", val);
+        emit_iconst(val);
+        break;
       }
 
       case JBC_ldc: {
-	int index = bcodes.getConstantIndex();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc", index);
-	int offset = klass.getLiteralOffset(index);
-	emit_ldc(offset);
-	break;
+        int index = bcodes.getConstantIndex();
+        if (shouldPrint) asm.noteBytecode(biStart, "ldc", index);
+        int offset = klass.getLiteralOffset(index);
+        emit_ldc(offset);
+        break;
       }
 
       case JBC_ldc_w: {
-	int index = bcodes.getWideConstantIndex();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc_w", index);
-	int offset = klass.getLiteralOffset(index);
-	emit_ldc(offset);
-	break;
+        int index = bcodes.getWideConstantIndex();
+        if (shouldPrint) asm.noteBytecode(biStart, "ldc_w", index);
+        int offset = klass.getLiteralOffset(index);
+        emit_ldc(offset);
+        break;
       }
 
       case JBC_ldc2_w: {
-	int index = bcodes.getWideConstantIndex();
-	if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w", index);
-	int offset = klass.getLiteralOffset(index);
-	emit_ldc2(offset);
-	break;
+        int index = bcodes.getWideConstantIndex();
+        if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w", index);
+        int offset = klass.getLiteralOffset(index);
+        emit_ldc2(offset);
+        break;
       }
 
       case JBC_iload: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "iload" , index);
-	emit_iload(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "iload" , index);
+        emit_iload(index);
+        break;
       }
 
       case JBC_lload: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "lload", index);
-	emit_lload(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "lload", index);
+        emit_lload(index);
+        break;
       }
 
       case JBC_fload: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "fload", index);
-	emit_fload(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "fload", index);
+        emit_fload(index);
+        break;
       }
 
       case JBC_dload: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "dload", index);
-	emit_dload(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "dload", index);
+        emit_dload(index);
+        break;
       }
 
       case JBC_aload: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "aload", index);
-	emit_aload(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "aload", index);
+        emit_aload(index);
+        break;
       }
 
       case JBC_iload_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_0");
-	emit_iload(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iload_0");
+        emit_iload(0);
+        break;
       }
 
       case JBC_iload_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_1");
-	emit_iload(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iload_1");
+        emit_iload(1);
+        break;
       }
 
       case JBC_iload_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_2");
-	emit_iload(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iload_2");
+        emit_iload(2);
+        break;
       }
 
       case JBC_iload_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iload_3");
-	emit_iload(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iload_3");
+        emit_iload(3);
+        break;
       }
 
       case JBC_lload_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_0");
-	emit_lload(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lload_0");
+        emit_lload(0);
+        break;
       }
 
       case JBC_lload_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_1");
-	emit_lload(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lload_1");
+        emit_lload(1);
+        break;
       }
 
       case JBC_lload_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_2");
-	emit_lload(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lload_2");
+        emit_lload(2);
+        break;
       }
 
       case JBC_lload_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lload_3");
-	emit_lload(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lload_3");
+        emit_lload(3);
+        break;
       }
 
       case JBC_fload_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_0");
-	emit_fload(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fload_0");
+        emit_fload(0);
+        break;
       }
 
       case JBC_fload_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_1");
-	emit_fload(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fload_1");
+        emit_fload(1);
+        break;
       }
 
       case JBC_fload_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_2");
-	emit_fload(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fload_2");
+        emit_fload(2);
+        break;
       }
 
       case JBC_fload_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fload_3");
-	emit_fload(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fload_3");
+        emit_fload(3);
+        break;
       }
 
       case JBC_dload_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_0");
-	emit_dload(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dload_0");
+        emit_dload(0);
+        break;
       }
 
       case JBC_dload_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_1");
-	emit_dload(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dload_1");
+        emit_dload(1);
+        break;
       }
 
       case JBC_dload_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_2");
-	emit_dload(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dload_2");
+        emit_dload(2);
+        break;
       }
 
       case JBC_dload_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dload_3");
-	emit_dload(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dload_3");
+        emit_dload(3);
+        break;
       }
 
       case JBC_aload_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_0");
-	emit_aload(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "aload_0");
+        emit_aload(0);
+        break;
       }
 
       case JBC_aload_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_1");
-	emit_aload(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "aload_1");
+        emit_aload(1);
+        break;
       }           
 
       case JBC_aload_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_2");
-	emit_aload(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "aload_2");
+        emit_aload(2);
+        break;
       }
 
       case JBC_aload_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aload_3");
-	emit_aload(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "aload_3");
+        emit_aload(3);
+        break;
       } 
 
       case JBC_iaload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iaload");
-	emit_iaload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iaload");
+        emit_iaload();
+        break;
       }
 
       case JBC_laload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "laload");
-	emit_laload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "laload");
+        emit_laload();
+        break;
       }
 
       case JBC_faload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "faload");
-	emit_faload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "faload");
+        emit_faload();
+        break;
       }
 
       case JBC_daload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "daload");
-	emit_daload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "daload");
+        emit_daload();
+        break;
       }
 
       case JBC_aaload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aaload");
-	emit_aaload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "aaload");
+        emit_aaload();
+        break;
       }
 
       case JBC_baload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "baload");
-	emit_baload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "baload");
+        emit_baload();
+        break;
       }
 
       case JBC_caload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "caload");
-	emit_caload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "caload");
+        emit_caload();
+        break;
       }
 
       case JBC_saload: {
-	if (shouldPrint) asm.noteBytecode(biStart, "saload");
-	emit_saload();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "saload");
+        emit_saload();
+        break;
       }
 
       case JBC_istore: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "istore", index);
-	emit_istore(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "istore", index);
+        emit_istore(index);
+        break;
       }
 
       case JBC_lstore: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore", index);
-	emit_lstore(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "lstore", index);
+        emit_lstore(index);
+        break;
       }
 
       case JBC_fstore: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore", index);
-	emit_fstore(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "fstore", index);
+        emit_fstore(index);
+        break;
       }
 
       case JBC_dstore: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore", index);
-	emit_dstore(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "dstore", index);
+        emit_dstore(index);
+        break;
       }
 
       case JBC_astore: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "astore", index);
-	emit_astore(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "astore", index);
+        emit_astore(index);
+        break;
       }
 
       case JBC_istore_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_0");
-	emit_istore(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "istore_0");
+        emit_istore(0);
+        break;
       }
 
       case JBC_istore_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_1");
-	emit_istore(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "istore_1");
+        emit_istore(1);
+        break;
       }
 
       case JBC_istore_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_2");
-	emit_istore(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "istore_2");
+        emit_istore(2);
+        break;
       }
 
       case JBC_istore_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "istore_3");
-	emit_istore(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "istore_3");
+        emit_istore(3);
+        break;
       }
 
       case JBC_lstore_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_0");
-	emit_lstore(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lstore_0");
+        emit_lstore(0);
+        break;
       }
 
       case JBC_lstore_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_1");
-	emit_lstore(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lstore_1");
+        emit_lstore(1);
+        break;
       }
 
       case JBC_lstore_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_2");
-	emit_lstore(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lstore_2");
+        emit_lstore(2);
+        break;
       } 
 
       case JBC_lstore_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lstore_3");
-	emit_lstore(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lstore_3");
+        emit_lstore(3);
+        break;
       }
 
       case JBC_fstore_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_0");
-	emit_fstore(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fstore_0");
+        emit_fstore(0);
+        break;
       }
 
       case JBC_fstore_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_1");
-	emit_fstore(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fstore_1");
+        emit_fstore(1);
+        break;
       }
 
       case JBC_fstore_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_2");
-	emit_fstore(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fstore_2");
+        emit_fstore(2);
+        break;
       }
 
       case JBC_fstore_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fstore_3");
-	emit_fstore(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fstore_3");
+        emit_fstore(3);
+        break;
       }
 
       case JBC_dstore_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_0");
-	emit_dstore(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dstore_0");
+        emit_dstore(0);
+        break;
       }
 
       case JBC_dstore_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_1");
-	emit_dstore(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dstore_1");
+        emit_dstore(1);
+        break;
       }
 
       case JBC_dstore_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_2");
-	emit_dstore(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dstore_2");
+        emit_dstore(2);
+        break;
       }
 
       case JBC_dstore_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dstore_3");
-	emit_dstore(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dstore_3");
+        emit_dstore(3);
+        break;
       }
 
       case JBC_astore_0: {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_0");
-	emit_astore(0);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "astore_0");
+        emit_astore(0);
+        break;
       }
 
       case JBC_astore_1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_1");
-	emit_astore(1);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "astore_1");
+        emit_astore(1);
+        break;
       }
 
       case JBC_astore_2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_2");
-	emit_astore(2);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "astore_2");
+        emit_astore(2);
+        break;
       }
 
       case JBC_astore_3: {
-	if (shouldPrint) asm.noteBytecode(biStart, "astore_3");
-	emit_astore(3);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "astore_3");
+        emit_astore(3);
+        break;
       }
 
       case JBC_iastore: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iastore");
-	emit_iastore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iastore");
+        emit_iastore();
+        break;
       }
 
       case JBC_lastore: { 
-	if (shouldPrint) asm.noteBytecode(biStart, "lastore"); 
-	emit_lastore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lastore"); 
+        emit_lastore();
+        break;
       }
 
       case JBC_fastore: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fastore");
-	emit_fastore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fastore");
+        emit_fastore();
+        break;
       }
 
       case JBC_dastore: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dastore");
-	emit_dastore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dastore");
+        emit_dastore();
+        break;
       }
 
       case JBC_aastore: {
-	if (shouldPrint) asm.noteBytecode(biStart, "aastore");
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("aastore");
-	emit_aastore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "aastore");
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("aastore");
+        emit_aastore();
+        break;
       }
 
       case JBC_bastore: {
-	if (shouldPrint) asm.noteBytecode(biStart, "bastore");
-	emit_bastore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "bastore");
+        emit_bastore();
+        break;
       }
 
       case JBC_castore: {
-	if (shouldPrint) asm.noteBytecode(biStart, "castore");
-	emit_castore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "castore");
+        emit_castore();
+        break;
       }
 
       case JBC_sastore: {
-	if (shouldPrint) asm.noteBytecode(biStart, "sastore");
-	emit_sastore();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "sastore");
+        emit_sastore();
+        break;
       }
 
       case JBC_pop: {
-	if (shouldPrint) asm.noteBytecode(biStart, "pop");
-	emit_pop();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "pop");
+        emit_pop();
+        break;
       }
 
       case JBC_pop2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "pop2");
-	emit_pop2();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "pop2");
+        emit_pop2();
+        break;
       }
 
       case JBC_dup: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup");
-	emit_dup();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dup");
+        emit_dup();
+        break;
       } 
 
       case JBC_dup_x1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup_x1");
-	emit_dup_x1();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dup_x1");
+        emit_dup_x1();
+        break;
       }
 
       case JBC_dup_x2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup_x2");
-	emit_dup_x2();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dup_x2");
+        emit_dup_x2();
+        break;
       }
 
       case JBC_dup2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup2");
-	emit_dup2();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dup2");
+        emit_dup2();
+        break;
       }
 
       case JBC_dup2_x1: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup2_x1");
-	emit_dup2_x1();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dup2_x1");
+        emit_dup2_x1();
+        break;
       }
 
       case JBC_dup2_x2: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dup2_x2");
-	emit_dup2_x2();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dup2_x2");
+        emit_dup2_x2();
+        break;
       }
 
       case JBC_swap: {
-	if (shouldPrint) asm.noteBytecode(biStart, "swap");
-	emit_swap();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "swap");
+        emit_swap();
+        break;
       }
 
       case JBC_iadd: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iadd");
-	emit_iadd();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iadd");
+        emit_iadd();
+        break;
       }
 
       case JBC_ladd: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ladd");
-	emit_ladd();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ladd");
+        emit_ladd();
+        break;
       }
 
       case JBC_fadd: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fadd");
-	emit_fadd();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fadd");
+        emit_fadd();
+        break;
       }
 
       case JBC_dadd: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dadd");
-	emit_dadd();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dadd");
+        emit_dadd();
+        break;
       }
 
       case JBC_isub: {
-	if (shouldPrint) asm.noteBytecode(biStart, "isub");
-	emit_isub();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "isub");
+        emit_isub();
+        break;
       }
 
       case JBC_lsub: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lsub");
-	emit_lsub();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lsub");
+        emit_lsub();
+        break;
       }
 
       case JBC_fsub: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fsub");
-	emit_fsub();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fsub");
+        emit_fsub();
+        break;
       }
 
       case JBC_dsub: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dsub");
-	emit_dsub();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dsub");
+        emit_dsub();
+        break;
       }
 
       case JBC_imul: {
-	if (shouldPrint) asm.noteBytecode(biStart, "imul");
-	emit_imul();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "imul");
+        emit_imul();
+        break;
       }
 
       case JBC_lmul: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lmul");
-	emit_lmul();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lmul");
+        emit_lmul();
+        break;
       }
 
       case JBC_fmul: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fmul");
-	emit_fmul();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fmul");
+        emit_fmul();
+        break;
       }
 
       case JBC_dmul: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dmul");
-	emit_dmul();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dmul");
+        emit_dmul();
+        break;
       }
 
       case JBC_idiv: {
-	if (shouldPrint) asm.noteBytecode(biStart, "idiv");
-	emit_idiv();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "idiv");
+        emit_idiv();
+        break;
       }
 
       case JBC_ldiv: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ldiv");
-	emit_ldiv();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ldiv");
+        emit_ldiv();
+        break;
       }
 
       case JBC_fdiv: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fdiv");
-	emit_fdiv();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fdiv");
+        emit_fdiv();
+        break;
       }
 
       case JBC_ddiv: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ddiv");
-	emit_ddiv();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ddiv");
+        emit_ddiv();
+        break;
       }
 
       case JBC_irem: {
-	if (shouldPrint) asm.noteBytecode(biStart, "irem");
-	emit_irem();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "irem");
+        emit_irem();
+        break;
       }
 
       case JBC_lrem: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lrem");
-	emit_lrem();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lrem");
+        emit_lrem();
+        break;
       }
 
       case JBC_frem: {
-	if (shouldPrint) asm.noteBytecode(biStart, "frem"); 
-	emit_frem();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "frem"); 
+        emit_frem();
+        break;
       }
 
       case JBC_drem: {
-	if (shouldPrint) asm.noteBytecode(biStart, "drem");
-	emit_drem();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "drem");
+        emit_drem();
+        break;
       }
 
       case JBC_ineg: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ineg");
-	emit_ineg();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ineg");
+        emit_ineg();
+        break;
       }
 
       case JBC_lneg: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lneg");
-	emit_lneg();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lneg");
+        emit_lneg();
+        break;
       }
 
       case JBC_fneg: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fneg");
-	emit_fneg();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fneg");
+        emit_fneg();
+        break;
       }
 
       case JBC_dneg: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dneg");
-	emit_dneg();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dneg");
+        emit_dneg();
+        break;
       }
 
       case JBC_ishl: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ishl");
-	emit_ishl();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ishl");
+        emit_ishl();
+        break;
       }
 
       case JBC_lshl: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lshl");    // l >> n
-	emit_lshl();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lshl");    // l >> n
+        emit_lshl();
+        break;
       }
 
       case JBC_ishr: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ishr");
-	emit_ishr();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ishr");
+        emit_ishr();
+        break;
       }
 
       case JBC_lshr: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lshr");
-	emit_lshr();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lshr");
+        emit_lshr();
+        break;
       }
 
       case JBC_iushr: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iushr");
-	emit_iushr();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iushr");
+        emit_iushr();
+        break;
       }
 
       case JBC_lushr: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lushr");
-	emit_lushr();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lushr");
+        emit_lushr();
+        break;
       }
 
       case JBC_iand: {
-	if (shouldPrint) asm.noteBytecode(biStart, "iand");
-	emit_iand();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "iand");
+        emit_iand();
+        break;
       }
 
       case JBC_land: {
-	if (shouldPrint) asm.noteBytecode(biStart, "land");
-	emit_land();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "land");
+        emit_land();
+        break;
       }
 
       case JBC_ior: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ior");
-	emit_ior();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ior");
+        emit_ior();
+        break;
       }
 
       case JBC_lor: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lor");
-	emit_lor();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lor");
+        emit_lor();
+        break;
       }
 
       case JBC_ixor: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ixor");
-	emit_ixor();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ixor");
+        emit_ixor();
+        break;
       }
 
       case JBC_lxor: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lxor");
-	emit_lxor();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lxor");
+        emit_lxor();
+        break;
       }
 
       case JBC_iinc: {
-	int index = bcodes.getLocalNumber();
-	int val = bcodes.getIncrement();
-	if (shouldPrint) asm.noteBytecode(biStart, "iinc",index, val);
-	emit_iinc(index, val);
-	break;
+        int index = bcodes.getLocalNumber();
+        int val = bcodes.getIncrement();
+        if (shouldPrint) asm.noteBytecode(biStart, "iinc",index, val);
+        emit_iinc(index, val);
+        break;
       }
 
       case JBC_i2l: {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2l");
-	emit_i2l();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "i2l");
+        emit_i2l();
+        break;
       }
 
       case JBC_i2f: {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2f");
-	emit_i2f();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "i2f");
+        emit_i2f();
+        break;
       }
 
       case JBC_i2d: {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2d");
-	emit_i2d();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "i2d");
+        emit_i2d();
+        break;
       }
 
       case JBC_l2i: {
-	if (shouldPrint) asm.noteBytecode(biStart, "l2i");
-	emit_l2i();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "l2i");
+        emit_l2i();
+        break;
       }
 
       case JBC_l2f: {
-	if (shouldPrint) asm.noteBytecode(biStart, "l2f");
-	emit_l2f();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "l2f");
+        emit_l2f();
+        break;
       }
 
       case JBC_l2d: {
-	if (shouldPrint) asm.noteBytecode(biStart, "l2d");
-	emit_l2d();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "l2d");
+        emit_l2d();
+        break;
       }
 
       case JBC_f2i: {
-	if (shouldPrint) asm.noteBytecode(biStart, "f2i");
-	emit_f2i();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "f2i");
+        emit_f2i();
+        break;
       }
 
       case JBC_f2l: {
-	if (shouldPrint) asm.noteBytecode(biStart, "f2l");
-	emit_f2l();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "f2l");
+        emit_f2l();
+        break;
       }
 
       case JBC_f2d: {
-	if (shouldPrint) asm.noteBytecode(biStart, "f2d");
-	emit_f2d();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "f2d");
+        emit_f2d();
+        break;
       }
 
       case JBC_d2i: {
-	if (shouldPrint) asm.noteBytecode(biStart, "d2i");
-	emit_d2i();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "d2i");
+        emit_d2i();
+        break;
       }
 
       case JBC_d2l: {
-	if (shouldPrint) asm.noteBytecode(biStart, "d2l");
-	emit_d2l();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "d2l");
+        emit_d2l();
+        break;
       }
 
       case JBC_d2f: {
-	if (shouldPrint) asm.noteBytecode(biStart, "d2f");
-	emit_d2f();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "d2f");
+        emit_d2f();
+        break;
       }
 
       case JBC_int2byte: {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2b");
-	emit_i2b();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "i2b");
+        emit_i2b();
+        break;
       }
 
       case JBC_int2char: {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2c");
-	emit_i2c();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "i2c");
+        emit_i2c();
+        break;
       }
 
       case JBC_int2short: {
-	if (shouldPrint) asm.noteBytecode(biStart, "i2s");
-	emit_i2s();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "i2s");
+        emit_i2s();
+        break;
       }
 
       case JBC_lcmp: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lcmp");  // a ? b
-	emit_lcmp();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lcmp");  // a ? b
+        emit_lcmp();
+        break;
       }
 
       case JBC_fcmpl: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fcmpl");
-	emit_fcmpl();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fcmpl");
+        emit_fcmpl();
+        break;
       }
 
       case JBC_fcmpg: {
-	if (shouldPrint) asm.noteBytecode(biStart, "fcmpg");
-	emit_fcmpg();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "fcmpg");
+        emit_fcmpg();
+        break;
       }
 
       case JBC_dcmpl: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dcmpl");
-	emit_dcmpl();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dcmpl");
+        emit_dcmpl();
+        break;
       }
 
       case JBC_dcmpg: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dcmpg");
-	emit_dcmpg();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dcmpg");
+        emit_dcmpg();
+        break;
       }
 
       case JBC_ifeq: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifeq", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_ifeq(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "ifeq", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_ifeq(bTarget);
+        break;
       }
 
       case JBC_ifne: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifne", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_ifne(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "ifne", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_ifne(bTarget);
+        break;
       }
 
       case JBC_iflt: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "iflt", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_iflt(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "iflt", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_iflt(bTarget);
+        break;
       }
 
       case JBC_ifge: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifge", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_ifge(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "ifge", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_ifge(bTarget);
+        break;
       }
 
       case JBC_ifgt: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifgt", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_ifgt(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "ifgt", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_ifgt(bTarget);
+        break;
       }
 
       case JBC_ifle: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifle", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_ifle(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "ifle", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_ifle(bTarget);
+        break;
       }
 
       case JBC_if_icmpeq: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpeq", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_icmpeq(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpeq", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_icmpeq(bTarget);
+        break;
       }
 
       case JBC_if_icmpne: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpne", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_icmpne(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpne", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_icmpne(bTarget);
+        break;
       }
 
       case JBC_if_icmplt: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmplt", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_icmplt(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmplt", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_icmplt(bTarget);
+        break;
       }
 
       case JBC_if_icmpge: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpge", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_icmpge(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpge", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_icmpge(bTarget);
+        break;
       }
 
       case JBC_if_icmpgt: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpgt", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_icmpgt(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmpgt", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_icmpgt(bTarget);
+        break;
       }
 
       case JBC_if_icmple: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmple", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_icmple(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_icmple", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_icmple(bTarget);
+        break;
       }
 
       case JBC_if_acmpeq: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpeq", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_acmpeq(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpeq", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_acmpeq(bTarget);
+        break;
       }
 
       case JBC_if_acmpne: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpne", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_if_acmpne(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "if_acmpne", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_if_acmpne(bTarget);
+        break;
       }
 
       case JBC_goto: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset; // bi has been bumped by 3 already
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "goto", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_goto(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset; // bi has been bumped by 3 already
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "goto", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_goto(bTarget);
+        break;
       }
 
       case JBC_jsr: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr", offset, bTarget);
-	emit_jsr(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr", offset, bTarget);
+        emit_jsr(bTarget);
+        break;
       }
 
       case JBC_ret: {
-	int index = bcodes.getLocalNumber();
-	if (shouldPrint) asm.noteBytecode(biStart, "ret ", index);
-	emit_ret(index);
-	break;
+        int index = bcodes.getLocalNumber();
+        if (shouldPrint) asm.noteBytecode(biStart, "ret ", index);
+        emit_ret(index);
+        break;
       }
 
       case JBC_tableswitch: {
-	bcodes.alignSwitch();
-	int defaultval = bcodes.getDefaultSwitchOffset();
-	int low = bcodes.getLowSwitchValue();
-	int high = bcodes.getHighSwitchValue();
-	if (shouldPrint) asm.noteTableswitchBytecode(biStart, low, high, defaultval);
-	emit_tableswitch(defaultval, low, high);
-	break;
+        bcodes.alignSwitch();
+        int defaultval = bcodes.getDefaultSwitchOffset();
+        int low = bcodes.getLowSwitchValue();
+        int high = bcodes.getHighSwitchValue();
+        if (shouldPrint) asm.noteTableswitchBytecode(biStart, low, high, defaultval);
+        emit_tableswitch(defaultval, low, high);
+        break;
       }
 
       case JBC_lookupswitch: {
-	bcodes.alignSwitch();
-	int defaultval = bcodes.getDefaultSwitchOffset();
-	int npairs = bcodes.getSwitchLength();
-	if (shouldPrint) asm.noteLookupswitchBytecode(biStart, npairs, defaultval);
-	emit_lookupswitch(defaultval, npairs);
-	break;
+        bcodes.alignSwitch();
+        int defaultval = bcodes.getDefaultSwitchOffset();
+        int npairs = bcodes.getSwitchLength();
+        if (shouldPrint) asm.noteLookupswitchBytecode(biStart, npairs, defaultval);
+        emit_lookupswitch(defaultval, npairs);
+        break;
       }
 
       case JBC_ireturn: {
-	if (shouldPrint) asm.noteBytecode(biStart, "ireturn");
- 	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-	emit_ireturn();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "ireturn");
+        if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+        emit_ireturn();
+        break;
       }
 
       case JBC_lreturn: {
-	if (shouldPrint) asm.noteBytecode(biStart, "lreturn");
- 	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-	emit_lreturn();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "lreturn");
+        if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+        emit_lreturn();
+        break;
       }
 
       case JBC_freturn: {
-	if (shouldPrint) asm.noteBytecode(biStart, "freturn");
- 	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-	emit_freturn();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "freturn");
+        if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+        emit_freturn();
+        break;
       }
 
       case JBC_dreturn: {
-	if (shouldPrint) asm.noteBytecode(biStart, "dreturn");
- 	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-	emit_dreturn();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "dreturn");
+        if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+        emit_dreturn();
+        break;
       }
 
       case JBC_areturn: {
-	if (shouldPrint) asm.noteBytecode(biStart, "areturn");
- 	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-	emit_areturn();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "areturn");
+        if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+        emit_areturn();
+        break;
       }
 
       case JBC_return: {
-	if (shouldPrint) asm.noteBytecode(biStart, "return");
- 	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-	emit_return();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "return");
+        if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+        emit_return();
+        break;
       }
 
       case JBC_getstatic: {
-	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "getstatic", fieldRef);
-	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic ", fieldRef);
-	  emit_unresolved_getstatic(fieldRef);
-	} else {
-	  emit_resolved_getstatic(fieldRef);
-	}
-	break;
+        VM_FieldReference fieldRef = bcodes.getFieldReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "getstatic", fieldRef);
+        if (fieldRef.needsDynamicLink(method)) {
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getstatic ", fieldRef);
+          emit_unresolved_getstatic(fieldRef);
+        } else {
+          emit_resolved_getstatic(fieldRef);
+        }
+        break;
       }
       
       case JBC_putstatic: {
-	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "putstatic", fieldRef);
-	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic ", fieldRef);
-	  emit_unresolved_putstatic(fieldRef);
-	} else {
-	  emit_resolved_putstatic(fieldRef);
-	}
-	break;
+        VM_FieldReference fieldRef = bcodes.getFieldReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "putstatic", fieldRef);
+        if (fieldRef.needsDynamicLink(method)) {
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putstatic ", fieldRef);
+          emit_unresolved_putstatic(fieldRef);
+        } else {
+          emit_resolved_putstatic(fieldRef);
+        }
+        break;
       }
 
       case JBC_getfield: {
-	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "getfield", fieldRef);
-	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield ", fieldRef);
-	  emit_unresolved_getfield(fieldRef);
-	} else {
-	  emit_resolved_getfield(fieldRef);
-	}
-	break;
+        VM_FieldReference fieldRef = bcodes.getFieldReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "getfield", fieldRef);
+        if (fieldRef.needsDynamicLink(method)) {
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield ", fieldRef);
+          emit_unresolved_getfield(fieldRef);
+        } else {
+          emit_resolved_getfield(fieldRef);
+        }
+        break;
       }
 
       case JBC_putfield: {
-	VM_FieldReference fieldRef = bcodes.getFieldReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "putfield", fieldRef);
-	if (fieldRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield ", fieldRef);
-	  emit_unresolved_putfield(fieldRef);
-	} else {
-	  emit_resolved_putfield(fieldRef);
-	}
-	break;
+        VM_FieldReference fieldRef = bcodes.getFieldReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "putfield", fieldRef);
+        if (fieldRef.needsDynamicLink(method)) {
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved putfield ", fieldRef);
+          emit_unresolved_putfield(fieldRef);
+        } else {
+          emit_resolved_putfield(fieldRef);
+        }
+        break;
       }  
 
       case JBC_invokevirtual: {
-	//-#if RVM_WITH_OSR
-	VM_ForwardReference xx = null;
-	if (biStart == this.pendingIdx) {
-	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
-	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
-	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
-	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
-	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
-	  xx = emit_pending_goto(0);                     // goto XX
-	  x.resolve(asm);                       //  X:
-	}
-	//-#endif
+        //-#if RVM_WITH_OSR
+        VM_ForwardReference xx = null;
+        if (biStart == this.pendingIdx) {
+          VM_ForwardReference x = emit_pending_goto(0);  // goto X
+          this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+          VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+          if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());      
+          emit_invoke_compiledmethod(cm);  //  invoke_cmid
+          xx = emit_pending_goto(0);                     // goto XX
+          x.resolve(asm);                       //  X:
+        }
+        //-#endif
 
-	VM_MethodReference methodRef = bcodes.getMethodReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual", methodRef);
-	if (methodRef.getType().isMagicType()) {
-	  if (emit_Magic(methodRef)) {
-	    break;
-	  }
-	} 
+        VM_MethodReference methodRef = bcodes.getMethodReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual", methodRef);
+        if (methodRef.getType().isMagicType()) {
+          if (emit_Magic(methodRef)) {
+            break;
+          }
+        } 
 
-	if (methodRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef);
-	  emit_unresolved_invokevirtual(methodRef);
-	} else {
-	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
-	  emit_resolved_invokevirtual(methodRef);
-	}
+        if (methodRef.needsDynamicLink(method)) {
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef);
+          emit_unresolved_invokevirtual(methodRef);
+        } else {
+          if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
+          emit_resolved_invokevirtual(methodRef);
+        }
 
-	//-#if RVM_WITH_OSR
-	if (xx != null) {
-	  xx.resolve(asm);                     // XX:
-	}
-	//-#endif
-	break;
+        //-#if RVM_WITH_OSR
+        if (xx != null) {
+          xx.resolve(asm);                     // XX:
+        }
+        //-#endif
+        break;
       }
 
       case JBC_invokespecial: {
-	//-#if RVM_WITH_OSR
-	VM_ForwardReference xx = null;
-	if (biStart == this.pendingIdx) {
-	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
-	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
-	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
-	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
-	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
-	  xx = emit_pending_goto(0);                     // goto XX
-	  x.resolve(asm);                       //  X:
-	}
-	//-#endif
-	VM_MethodReference methodRef = bcodes.getMethodReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial", methodRef);
-	VM_Method target = methodRef.resolveInvokeSpecial();
-	if (target != null) {
-	  if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
-	  emit_resolved_invokespecial(methodRef, target);
-	} else {
-	  emit_unresolved_invokespecial(methodRef);
-	}     
+        //-#if RVM_WITH_OSR
+        VM_ForwardReference xx = null;
+        if (biStart == this.pendingIdx) {
+          VM_ForwardReference x = emit_pending_goto(0);  // goto X
+          this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+          VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+          if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());      
+          emit_invoke_compiledmethod(cm);  //  invoke_cmid
+          xx = emit_pending_goto(0);                     // goto XX
+          x.resolve(asm);                       //  X:
+        }
+        //-#endif
+        VM_MethodReference methodRef = bcodes.getMethodReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "invokespecial", methodRef);
+        VM_Method target = methodRef.resolveInvokeSpecial();
+        if (target != null) {
+          if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
+          emit_resolved_invokespecial(methodRef, target);
+        } else {
+          emit_unresolved_invokespecial(methodRef);
+        }     
 
-	//-#if RVM_WITH_OSR
-	if (xx != null) {
-	  xx.resolve(asm);                     // XX:
-	}
-	//-#endif
+        //-#if RVM_WITH_OSR
+        if (xx != null) {
+          xx.resolve(asm);                     // XX:
+        }
+        //-#endif
 
-	break;
+        break;
       }
 
       case JBC_invokestatic: {
-	//-#if RVM_WITH_OSR
-	VM_ForwardReference xx = null;
-	if (biStart == this.pendingIdx) {
-	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
-	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
-	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
-	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
-	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
-	  xx = emit_pending_goto(0);                     // goto XX
-	  x.resolve(asm);                       //  X:
-	}
-	//-#endif
+        //-#if RVM_WITH_OSR
+        VM_ForwardReference xx = null;
+        if (biStart == this.pendingIdx) {
+          VM_ForwardReference x = emit_pending_goto(0);  // goto X
+          this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+          VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+          if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());      
+          emit_invoke_compiledmethod(cm);  //  invoke_cmid
+          xx = emit_pending_goto(0);                     // goto XX
+          x.resolve(asm);                       //  X:
+        }
+        //-#endif
 
-	VM_MethodReference methodRef = bcodes.getMethodReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic", methodRef);
-	if (methodRef.getType().isMagicType()) {
-	  if (emit_Magic(methodRef))
-	    break;
-	}
-	if (methodRef.needsDynamicLink(method)) {
-	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic ", methodRef);
-	  emit_unresolved_invokestatic(methodRef);
-	} else {
-	  if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
-	  emit_resolved_invokestatic(methodRef);
-	}
+        VM_MethodReference methodRef = bcodes.getMethodReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "invokestatic", methodRef);
+        if (methodRef.getType().isMagicType()) {
+          if (emit_Magic(methodRef))
+            break;
+        }
+        if (methodRef.needsDynamicLink(method)) {
+          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic ", methodRef);
+          emit_unresolved_invokestatic(methodRef);
+        } else {
+          if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
+          emit_resolved_invokestatic(methodRef);
+        }
 
-	//-#if RVM_WITH_OSR
-	if (xx != null) {
-	  xx.resolve(asm);                     // XX:
-	}
-	//-#endif
+        //-#if RVM_WITH_OSR
+        if (xx != null) {
+          xx.resolve(asm);                     // XX:
+        }
+        //-#endif
 
-	break;
+        break;
       }
 
       case JBC_invokeinterface: {
-	//-#if RVM_WITH_OSR
-	VM_ForwardReference xx = null;
-	if (biStart == this.pendingIdx) {
-	  VM_ForwardReference x = emit_pending_goto(0);  // goto X
-	  this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
-	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
-	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
-	  emit_invoke_compiledmethod(cm);  //  invoke_cmid
-	  xx = emit_pending_goto(0);                     // goto XX
-	  x.resolve(asm);                       //  X:
-	}
-	//-#endif
+        //-#if RVM_WITH_OSR
+        VM_ForwardReference xx = null;
+        if (biStart == this.pendingIdx) {
+          VM_ForwardReference x = emit_pending_goto(0);  // goto X
+          this.pendingRef.resolve(asm);          // pendingIdx:     (target of pending goto in prologue)
+          VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(this.pendingCMID);
+          if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());      
+          emit_invoke_compiledmethod(cm);  //  invoke_cmid
+          xx = emit_pending_goto(0);                     // goto XX
+          x.resolve(asm);                       //  X:
+        }
+        //-#endif
 
-	VM_MethodReference methodRef = bcodes.getMethodReference();
-	bcodes.alignInvokeInterface();
-	if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
-	emit_invokeinterface(methodRef); 
+        VM_MethodReference methodRef = bcodes.getMethodReference();
+        bcodes.alignInvokeInterface();
+        if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
+        emit_invokeinterface(methodRef); 
 
-	//-#if RVM_WITH_OSR
-	if (xx != null) {
-	  xx.resolve(asm);                     // XX:
-	}
-	//-#endif
+        //-#if RVM_WITH_OSR
+        if (xx != null) {
+          xx.resolve(asm);                     // XX:
+        }
+        //-#endif
 
-	break;
+        break;
       }
 
       case JBC_xxxunusedxxx: {
-	if (shouldPrint) asm.noteBytecode(biStart, "unused");
-	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "unused");
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        break;
       }
 
       case JBC_new: {
-	VM_TypeReference typeRef = bcodes.getTypeReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef);
-	VM_Type type = typeRef.peekResolvedType();
-	if (type != null && (type.isInitialized() || type.isInBootImage())) { 
-	  emit_resolved_new(type.asClass());
-	} else { 
-	  emit_unresolved_new(typeRef);
-	}
-	break;
+        VM_TypeReference typeRef = bcodes.getTypeReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "new", typeRef);
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", typeRef);
+        VM_Type type = typeRef.peekResolvedType();
+        if (type != null && (type.isInitialized() || type.isInBootImage())) { 
+          emit_resolved_new(type.asClass());
+        } else { 
+          emit_unresolved_new(typeRef);
+        }
+        break;
       }
 
       case JBC_newarray: {
-	int atype = bcodes.getArrayElementType();
-	VM_Array array = VM_Array.getPrimitiveArrayType(atype);
-	if (VM.VerifyAssertions) VM._assert(array.isResolved());
-	if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", array);
-	emit_resolved_newarray(array);
-	break;
+        int atype = bcodes.getArrayElementType();
+        VM_Array array = VM_Array.getPrimitiveArrayType(atype);
+        if (VM.VerifyAssertions) VM._assert(array.isResolved());
+        if (shouldPrint) asm.noteBytecode(biStart, "newarray", array.getTypeRef());
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", array);
+        emit_resolved_newarray(array);
+        break;
       }
 
       case JBC_anewarray: {
-	VM_TypeReference elementTypeRef = bcodes.getTypeReference();
-	VM_TypeReference arrayRef = elementTypeRef.getArrayTypeForElementType();
+        VM_TypeReference elementTypeRef = bcodes.getTypeReference();
+        VM_TypeReference arrayRef = elementTypeRef.getArrayTypeForElementType();
 
-	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef);
-	
-	if (VM.VerifyAssertions && elementTypeRef.isWordType()) {
-	  VM._assert(false, "During compilation of " + method 
-		    + " found an anewarray of "+ elementTypeRef + "\n"
-		    + "You must use the 'create' function to create an array of this type");
-	}
+        if (shouldPrint) asm.noteBytecode(biStart, "anewarray new", arrayRef);
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new ", arrayRef);
+        
+        if (VM.VerifyAssertions && elementTypeRef.isWordType()) {
+          VM._assert(false, "During compilation of " + method 
+                    + " found an anewarray of "+ elementTypeRef + "\n"
+                    + "You must use the 'create' function to create an array of this type");
+        }
 
-	// We can do early resolution of the array type if the element type 
-	// is already initialized.
-	VM_Array array = (VM_Array)arrayRef.peekResolvedType();
-	if (array != null && !(array.isInitialized() || array.isInBootImage()) &&
+        // We can do early resolution of the array type if the element type 
+        // is already initialized.
+        VM_Array array = (VM_Array)arrayRef.peekResolvedType();
+        if (array != null && !(array.isInitialized() || array.isInBootImage()) &&
             VM_Type.JavaLangObjectType.isInstantiated()) {
-	  VM_Type elementType = elementTypeRef.peekResolvedType();
-	  if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
-	    array.resolve();
-	    array.instantiate();
-	  }
-	  if (array.isInitialized() || array.isInBootImage()) {
-	    emit_resolved_newarray(array);
-	    break;
-	  }
-	}
-	emit_unresolved_newarray(arrayRef);
-	break;
+          VM_Type elementType = elementTypeRef.peekResolvedType();
+          if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
+            array.resolve();
+            array.instantiate();
+          }
+          if (array.isInitialized() || array.isInBootImage()) {
+            emit_resolved_newarray(array);
+            break;
+          }
+        }
+        emit_unresolved_newarray(arrayRef);
+        break;
       }
 
       case JBC_arraylength: { 
-	if (shouldPrint) asm.noteBytecode(biStart, "arraylength");
-	emit_arraylength();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "arraylength");
+        emit_arraylength();
+        break;
       }
 
       case JBC_athrow: {
-	if (shouldPrint) asm.noteBytecode(biStart, "athrow");  
- 	if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("athrow");
-	emit_athrow();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "athrow");  
+        if (VM.UseEpilogueYieldPoints) emit_threadSwitchTest(VM_Thread.EPILOGUE);
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("athrow");
+        emit_athrow();
+        break;
       }
 
       case JBC_checkcast: {
-	VM_TypeReference typeRef = bcodes.getTypeReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "checkcast", typeRef);
-	VM_Type type = typeRef.peekResolvedType();
-	if (type != null) {
-	  if (type.isClassType()) {
-	    if (type.asClass().isFinal()) {
-	      emit_checkcast_final(type);
-	      break;
-	    } else if (type.isResolved() && !type.asClass().isInterface()) {
-	      emit_checkcast_resolvedClass(type);
-	      break;
-	    } // else fall through to emit_checkcast
-	  } else if (type.isArrayType()) {
-	    VM_Type elemType = type.asArray().getElementType();
-	    if (elemType.isPrimitiveType() || 
-		(elemType.isClassType() && elemType.asClass().isFinal())) {
-	      emit_checkcast_final(type);
-	      break;
-	    } // else fall through to emit_checkcast
-	  } else {
-	    // checkcast to a primitive. Must be a word type.
-	    if (VM.VerifyAssertions) VM._assert(type.isWordType());
-	    break;
-	  }
-	}
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast ", typeRef);
-	emit_checkcast(typeRef);
-	break;
+        VM_TypeReference typeRef = bcodes.getTypeReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "checkcast", typeRef);
+        VM_Type type = typeRef.peekResolvedType();
+        if (type != null) {
+          if (type.isClassType()) {
+            if (type.asClass().isFinal()) {
+              emit_checkcast_final(type);
+              break;
+            } else if (type.isResolved() && !type.asClass().isInterface()) {
+              emit_checkcast_resolvedClass(type);
+              break;
+            } // else fall through to emit_checkcast
+          } else if (type.isArrayType()) {
+            VM_Type elemType = type.asArray().getElementType();
+            if (elemType.isPrimitiveType() || 
+                (elemType.isClassType() && elemType.asClass().isFinal())) {
+              emit_checkcast_final(type);
+              break;
+            } // else fall through to emit_checkcast
+          } else {
+            // checkcast to a primitive. Must be a word type.
+            if (VM.VerifyAssertions) VM._assert(type.isWordType());
+            break;
+          }
+        }
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast ", typeRef);
+        emit_checkcast(typeRef);
+        break;
       }
 
       case JBC_instanceof: {
-	VM_TypeReference typeRef = bcodes.getTypeReference();
-	if (shouldPrint) asm.noteBytecode(biStart, "instanceof", typeRef);
-	VM_Type type = typeRef.peekResolvedType();
-	if (type != null) {
-	  if (type.isClassType()) {
-	    if (type.asClass().isFinal()) {
-	      emit_instanceof_final(type);
-	      break;
-	    } else if (type.isResolved() && !type.asClass().isInterface()) {
-	      emit_instanceof_resolvedClass(type);
-	      break;
-	    }
-	  } else if (type.isArrayType()) {
-	    VM_Type elemType = type.asArray().getElementType();
-	    if (elemType.isPrimitiveType() || 
-		(elemType.isClassType() && elemType.asClass().isFinal())) {
-	      emit_instanceof_final(type);
-	      break;
-	    }
-	  }
-	}
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof ", typeRef);
-	emit_instanceof(typeRef);
-	break;
+        VM_TypeReference typeRef = bcodes.getTypeReference();
+        if (shouldPrint) asm.noteBytecode(biStart, "instanceof", typeRef);
+        VM_Type type = typeRef.peekResolvedType();
+        if (type != null) {
+          if (type.isClassType()) {
+            if (type.asClass().isFinal()) {
+              emit_instanceof_final(type);
+              break;
+            } else if (type.isResolved() && !type.asClass().isInterface()) {
+              emit_instanceof_resolvedClass(type);
+              break;
+            }
+          } else if (type.isArrayType()) {
+            VM_Type elemType = type.asArray().getElementType();
+            if (elemType.isPrimitiveType() || 
+                (elemType.isClassType() && elemType.asClass().isFinal())) {
+              emit_instanceof_final(type);
+              break;
+            }
+          }
+        }
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("instanceof ", typeRef);
+        emit_instanceof(typeRef);
+        break;
       }
 
       case JBC_monitorenter: {
-	if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");  
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorenter");
-	emit_monitorenter();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "monitorenter");  
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorenter");
+        emit_monitorenter();
+        break;
       }
 
       case JBC_monitorexit: {
-	if (shouldPrint) asm.noteBytecode(biStart, "monitorexit"); 
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorexit");
-	emit_monitorexit();
-	break;
+        if (shouldPrint) asm.noteBytecode(biStart, "monitorexit"); 
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("monitorexit");
+        emit_monitorexit();
+        break;
       }
 
       case JBC_wide: {
-	int widecode = bcodes.getWideOpcode();
-	int index = bcodes.getWideLocalNumber();
-	switch (widecode) {
-	case JBC_iload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide iload", index);
-	  emit_iload(index);
-	  break;
-	}
-	case JBC_lload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide lload", index);
-	  emit_lload(index);
-	  break;
-	}
-	case JBC_fload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide fload", index);
-	  emit_fload(index);
-	  break;
-	}
-	case JBC_dload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide dload", index);
-	  emit_dload(index);
-	  break;
-	}
-	case JBC_aload: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide aload", index);
-	  emit_aload(index);
-	  break;
-	}
-	case JBC_istore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide istore", index);
-	  emit_istore(index);
-	  break;
-	}
-	case JBC_lstore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide lstore", index);
-	  emit_lstore(index);
-	  break;
-	}
-	case JBC_fstore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide fstore", index);
-	  emit_fstore(index);
-	  break;
-	}
-	case JBC_dstore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide dstore", index);
-	  emit_dstore(index);
-	  break;
-	}
-	case JBC_astore: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide astore", index);
-	  emit_astore(index);
-	  break;
-	}
-	case JBC_iinc: {
-	  int val = bcodes.getWideIncrement();
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide inc", index, val);
-	  emit_iinc(index, val);
-	  break;
-	}
-	case JBC_ret: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "wide ret", index);
-	  emit_ret(index);
-	  break;
-	}
-	default:
-	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	}
-	break;
+        int widecode = bcodes.getWideOpcode();
+        int index = bcodes.getWideLocalNumber();
+        switch (widecode) {
+        case JBC_iload: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide iload", index);
+          emit_iload(index);
+          break;
+        }
+        case JBC_lload: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide lload", index);
+          emit_lload(index);
+          break;
+        }
+        case JBC_fload: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide fload", index);
+          emit_fload(index);
+          break;
+        }
+        case JBC_dload: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide dload", index);
+          emit_dload(index);
+          break;
+        }
+        case JBC_aload: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide aload", index);
+          emit_aload(index);
+          break;
+        }
+        case JBC_istore: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide istore", index);
+          emit_istore(index);
+          break;
+        }
+        case JBC_lstore: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide lstore", index);
+          emit_lstore(index);
+          break;
+        }
+        case JBC_fstore: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide fstore", index);
+          emit_fstore(index);
+          break;
+        }
+        case JBC_dstore: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide dstore", index);
+          emit_dstore(index);
+          break;
+        }
+        case JBC_astore: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide astore", index);
+          emit_astore(index);
+          break;
+        }
+        case JBC_iinc: {
+          int val = bcodes.getWideIncrement();
+          if (shouldPrint) asm.noteBytecode(biStart, "wide inc", index, val);
+          emit_iinc(index, val);
+          break;
+        }
+        case JBC_ret: {
+          if (shouldPrint) asm.noteBytecode(biStart, "wide ret", index);
+          emit_ret(index);
+          break;
+        }
+        default:
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        }
+        break;
       }
 
       case JBC_multianewarray: {
-	VM_TypeReference typeRef = bcodes.getTypeReference();
-	int dimensions        = bcodes.getArrayDimension();
-	if (shouldPrint) asm.noteBytecode(biStart, "multianewarray", typeRef);
-	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray");
-	emit_multianewarray(typeRef, dimensions);
-	break;
+        VM_TypeReference typeRef = bcodes.getTypeReference();
+        int dimensions        = bcodes.getArrayDimension();
+        if (shouldPrint) asm.noteBytecode(biStart, "multianewarray", typeRef);
+        if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("multianewarray");
+        emit_multianewarray(typeRef, dimensions);
+        break;
       }
 
       case JBC_ifnull: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnull", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_ifnull(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnull", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_ifnull(bTarget);
+        break;
       }
 
       case JBC_ifnonnull: {
-	int offset = bcodes.getBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnonnull", offset, bTarget);
-	if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_ifnonnull(bTarget);
-	break;
+        int offset = bcodes.getBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "ifnonnull", offset, bTarget);
+        if (offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_ifnonnull(bTarget);
+        break;
       }
 
       case JBC_goto_w: {
-	int offset = bcodes.getWideBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "goto_w", offset, bTarget);
-	if(offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
-	emit_goto(bTarget);
-	break;
+        int offset = bcodes.getWideBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "goto_w", offset, bTarget);
+        if(offset < 0) emit_threadSwitchTest(VM_Thread.BACKEDGE);
+        emit_goto(bTarget);
+        break;
       }
 
       case JBC_jsr_w: {
-	int offset = bcodes.getWideBranchOffset();
-	int bTarget = biStart + offset;
-	if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr_w", offset, bTarget);
-	emit_jsr(bTarget);
-	break;
+        int offset = bcodes.getWideBranchOffset();
+        int bTarget = biStart + offset;
+        if (shouldPrint) asm.noteBranchBytecode(biStart, "jsr_w", offset, bTarget);
+        emit_jsr(bTarget);
+        break;
       }
 
       //-#if RVM_WITH_OSR
@@ -2000,134 +2000,134 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
        * this is not consistant with OPT compiler.
        */
       case JBC_impdep1: /* --- pseudo bytecode --- */ {
-	int pseudo_opcode = bcodes.nextPseudoInstruction(); 
-	// pseudo instruction
-	switch (pseudo_opcode) {
-	case PSEUDO_LoadIntConst: {
-	  int value = bcodes.readIntConst();
+        int pseudo_opcode = bcodes.nextPseudoInstruction(); 
+        // pseudo instruction
+        switch (pseudo_opcode) {
+        case PSEUDO_LoadIntConst: {
+          int value = bcodes.readIntConst();
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
-	  
-	  int slot = VM_Statics.findOrCreateIntLiteral(value);
-	  int offset = slot << LOG_BYTES_IN_INT;
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
+          
+          int slot = VM_Statics.findOrCreateIntLiteral(value);
+          int offset = slot << LOG_BYTES_IN_INT;
 
-	  emit_ldc(offset);
-	    
-	  break;
-	}
-	case PSEUDO_LoadLongConst: {
-	  long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
+          emit_ldc(offset);
+            
+          break;
+        }
+        case PSEUDO_LoadLongConst: {
+          long value = bcodes.readLongConst();  // fetch8BytesUnsigned();
  
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
-	  
-	  int slot = VM_Statics.findOrCreateLongLiteral(value);
-	  int offset = slot << LOG_BYTES_IN_INT;
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
+          
+          int slot = VM_Statics.findOrCreateLongLiteral(value);
+          int offset = slot << LOG_BYTES_IN_INT;
 
-	  emit_ldc2(offset);
+          emit_ldc2(offset);
 
-	  break;
-	}
-	case PSEUDO_LoadFloatConst: {
-	  int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
-	  
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
-	  
-	  int slot = VM_Statics.findOrCreateFloatLiteral(ibits);
-	  int offset = slot << LOG_BYTES_IN_INT;
+          break;
+        }
+        case PSEUDO_LoadFloatConst: {
+          int ibits = bcodes.readIntConst(); // fetch4BytesSigned();
+          
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
+          
+          int slot = VM_Statics.findOrCreateFloatLiteral(ibits);
+          int offset = slot << LOG_BYTES_IN_INT;
 
-	  emit_ldc(offset);
+          emit_ldc(offset);
 
-	  break;
-	}
-	case PSEUDO_LoadDoubleConst: {
-	  long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
+          break;
+        }
+        case PSEUDO_LoadDoubleConst: {
+          long lbits = bcodes.readLongConst(); // fetch8BytesUnsigned();
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
-	  
-	  int slot = VM_Statics.findOrCreateDoubleLiteral(lbits);
-	  int offset = slot << LOG_BYTES_IN_INT;
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
+          
+          int slot = VM_Statics.findOrCreateDoubleLiteral(lbits);
+          int offset = slot << LOG_BYTES_IN_INT;
 
-	  emit_ldc2(offset);
+          emit_ldc2(offset);
 
-	  break;
-	}
-	case PSEUDO_LoadAddrConst: {
-	  int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
+          break;
+        }
+        case PSEUDO_LoadAddrConst: {
+          int bcIndex = bcodes.readIntConst(); // fetch4BytesSigned();
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_addr", bcIndex);
-	  // for bytecode to get future bytecode's address
-	  // we register it and patch it later.
-	  emit_loadaddrconst(bcIndex);
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_addr", bcIndex);
+          // for bytecode to get future bytecode's address
+          // we register it and patch it later.
+          emit_loadaddrconst(bcIndex);
 
-	  break;
-	}
-	case PSEUDO_InvokeStatic: {
-	  VM_Method methodRef = null;
-	  int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
-	  switch (targetidx) {
-	  case GETREFAT:
-	    methodRef = VM_Entrypoints.osrGetRefAtMethod;
-	    break;
-	  case CLEANREFS:
-	    methodRef = VM_Entrypoints.osrCleanRefsMethod;
-	    break;
-	  default:
-	    if (VM.TraceOnStackReplacement) VM.sysWriteln("pseudo_invokstatic with unknown target index "+targetidx);
-	    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	    break;
-	  }
+          break;
+        }
+        case PSEUDO_InvokeStatic: {
+          VM_Method methodRef = null;
+          int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
+          switch (targetidx) {
+          case GETREFAT:
+            methodRef = VM_Entrypoints.osrGetRefAtMethod;
+            break;
+          case CLEANREFS:
+            methodRef = VM_Entrypoints.osrCleanRefsMethod;
+            break;
+          default:
+            if (VM.TraceOnStackReplacement) VM.sysWriteln("pseudo_invokstatic with unknown target index "+targetidx);
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+            break;
+          }
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
-	  emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
-	  break;
-	}
-	  /*
-	case PSEUDO_CheckCast: {
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
+          emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
+          break;
+        }
+          /*
+        case PSEUDO_CheckCast: {
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
-	  
-	  // fetch 4 byte type id
-	  int tid = bcodes.readIntConst(); // fetch4BytesSigned();
-	  // do nothing now
-	  break;
-	}
-	  */
-	case PSEUDO_InvokeCompiledMethod: {
-	  int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
-	  int origIdx = bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_checkcast");
+          
+          // fetch 4 byte type id
+          int tid = bcodes.readIntConst(); // fetch4BytesSigned();
+          // do nothing now
+          break;
+        }
+          */
+        case PSEUDO_InvokeCompiledMethod: {
+          int cmid = bcodes.readIntConst(); // fetch4BytesSigned();    // callee's cmid
+          int origIdx = bcodes.readIntConst(); // fetch4BytesSigned(); // orginal bytecode index of this call (for build gc map)
 
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid", cmid);
-	  
-	  this.pendingCMID = cmid;
-	  this.pendingIdx = origIdx+this.method.getOsrPrologueLength();
-	  this.pendingRef = emit_pending_goto(this.pendingIdx);
-	  /*
-	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	  if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());	  
-	  emit_invoke_compiledmethod(cm);
-	  */
-	  break;
-	}
-	case PSEUDO_ParamInitEnd: {
-	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_paraminitend");
-	  // now we can inserted stack overflow check, 
-	  emit_deferred_prologue();
-	  break;
-	}
-	default:
-	  if (VM.TraceOnStackReplacement) VM.sysWrite("Unexpected PSEUDO code "
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invoke_cmid", cmid);
+          
+          this.pendingCMID = cmid;
+          this.pendingIdx = origIdx+this.method.getOsrPrologueLength();
+          this.pendingRef = emit_pending_goto(this.pendingIdx);
+          /*
+          VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+          if (VM.VerifyAssertions) VM._assert(cm.isSpecialForOSR());      
+          emit_invoke_compiledmethod(cm);
+          */
+          break;
+        }
+        case PSEUDO_ParamInitEnd: {
+          if (shouldPrint) asm.noteBytecode(biStart, "pseudo_paraminitend");
+          // now we can inserted stack overflow check, 
+          emit_deferred_prologue();
+          break;
+        }
+        default:
+          if (VM.TraceOnStackReplacement) VM.sysWrite("Unexpected PSEUDO code "
                                                       +VM.intAsHexString(pseudo_opcode)+"\n");
-	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	  break;
-	}
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          break;
+        }
 
-	break;
+        break;
       }
       //-#endif
 
       default:
-	VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString((int)code, false) + "\n");
-	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        VM.sysWrite("VM_Compiler: unexpected bytecode: " + VM_Services.getHexString((int)code, false) + "\n");
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       }
     }
     bytecodeMap[bcodes.length()] = asm.getMachineCodeIndex();

@@ -46,7 +46,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
         return OPT_InlineDecision.NO("pragmaNoInline");
 
       if (callee.isAbstract()) {
-	return shouldInlineAbstractMethodInternal(caller, callee, state);
+        return shouldInlineAbstractMethodInternal(caller, callee, state);
       }
       
       // Some callee methods should always be inlined, even if 
@@ -56,14 +56,14 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
       int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)callee, state);
       boolean guardless = state.getHasPreciseTarget() || !needsGuard(callee);
       if (inlinedSizeEstimate < state.getOptions().IC_MAX_ALWAYS_INLINE_TARGET_SIZE && 
-	  guardless &&
-	  !state.getSequence().containsMethod(callee)) { 
-	return OPT_InlineDecision.YES(callee, "trivial inline");
+          guardless &&
+          !state.getSequence().containsMethod(callee)) { 
+        return OPT_InlineDecision.YES(callee, "trivial inline");
       }
-	
+        
       if (state.getOptions().getOptLevel() == 0) {
-	// at opt level 0, trivial inlines are the only kind we consider
-	return OPT_InlineDecision.NO(callee, "Only do trivial inlines at O0");
+        // at opt level 0, trivial inlines are the only kind we consider
+        return OPT_InlineDecision.NO(callee, "Only do trivial inlines at O0");
       }
 
       if (guardless && hasInlinePragma(callee, state))
@@ -82,9 +82,9 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * <b>invokevirtual</b>, <b>invokespecial</b>, and <b>invokestatic</b>.
    */
   protected abstract OPT_InlineDecision shouldInlineInternal(VM_Method caller, 
-							     VM_Method callee, 
-							     OPT_CompilationState state, 
-							     int inlinedSizeEstimate);
+                                                             VM_Method callee, 
+                                                             OPT_CompilationState state, 
+                                                             int inlinedSizeEstimate);
 
   /**
    * Children must implement this method.
@@ -92,16 +92,16 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * <b>invokeinterface</b>. 
    */
   protected abstract OPT_InlineDecision shouldInlineInterfaceInternal(VM_Method caller, 
-								      VM_Method callee, 
-								      OPT_CompilationState state);
+                                                                      VM_Method callee, 
+                                                                      OPT_CompilationState state);
   
   /**
    * Children must implement this method.
    * It contains the non-generic decision making portion of the oracle for invokeinterface.
    */
   protected abstract OPT_InlineDecision shouldInlineAbstractMethodInternal(VM_Method caller, 
-									   VM_Method callee, 
-									   OPT_CompilationState state);
+                                                                           VM_Method callee, 
+                                                                           OPT_CompilationState state);
   
   /**
    * Logic to select the appropriate guarding mechanism for the edge
@@ -116,30 +116,30 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * @param codePatchSupported can we use code patching at this call site?
    */
   protected byte chooseGuard(VM_Method caller,
-			     VM_Method singleImpl,
-			     VM_Method callee,
-			     OPT_CompilationState state,
-			     boolean codePatchSupported) {
+                             VM_Method singleImpl,
+                             VM_Method callee,
+                             OPT_CompilationState state,
+                             boolean codePatchSupported) {
     byte guard = state.getOptions().INLINING_GUARD;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
         VM._assert(VM_Lock.owns(VM_Class.OptCLDepManager));
       }
       if (guard == OPT_Options.IG_CODE_PATCH) {
-	if (OPT_ClassLoadingDependencyManager.TRACE || 
-	    OPT_ClassLoadingDependencyManager.DEBUG) {
-	  VM_Class.OptCLDepManager.report("CODE PATCH: Inlined "
-					  + singleImpl + " into " + caller + "\n");
-	}
-	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
-							    state.getCompiledMethod());
+        if (OPT_ClassLoadingDependencyManager.TRACE || 
+            OPT_ClassLoadingDependencyManager.DEBUG) {
+          VM_Class.OptCLDepManager.report("CODE PATCH: Inlined "
+                                          + singleImpl + " into " + caller + "\n");
+        }
+        VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
+                                                            state.getCompiledMethod());
       }
     } else if (guard == OPT_Options.IG_CODE_PATCH) {
       guard = OPT_Options.IG_METHOD_TEST;
     }
 
     if (guard == OPT_Options.IG_METHOD_TEST && 
-	singleImpl.getDeclaringClass().isFinal()) {
+        singleImpl.getDeclaringClass().isFinal()) {
       // class test is more efficient and just as effective
       guard = OPT_Options.IG_CLASS_TEST;
     }
@@ -157,18 +157,18 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * @return the estimated cost of the inlining action
    */
   protected int inliningActionCost(int inlinedBodyEstimate, 
-				   boolean needsGuard, 
-				   boolean preEx, 
-				   OPT_Options opts) {
+                                   boolean needsGuard, 
+                                   boolean preEx, 
+                                   OPT_Options opts) {
     int guardCost = 0;
     if (needsGuard & !preEx) {
       guardCost += VM_NormalMethod.CALL_COST;
       if (opts.guardWithMethodTest()) {
-	guardCost += 3*VM_NormalMethod.SIMPLE_OPERATION_COST;
+        guardCost += 3*VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else if (opts.guardWithCodePatch()) {
-	guardCost += VM_NormalMethod.SIMPLE_OPERATION_COST;
+        guardCost += VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else { // opts.guardWithClassTest()
-	guardCost += 2*VM_NormalMethod.SIMPLE_OPERATION_COST;
+        guardCost += 2*VM_NormalMethod.SIMPLE_OPERATION_COST;
       }
     }
     return guardCost + inlinedBodyEstimate;

@@ -18,10 +18,10 @@ public class TestInterruptAndSpin {
 
       // Ensure that there is another thread to run
       Thread t = new Thread() {
-	public void run() {
-	  while (true)
-	    Thread.yield();
-	}
+        public void run() {
+          while (true)
+            Thread.yield();
+        }
       };
       t.setDaemon(true);
       t.start();
@@ -31,11 +31,11 @@ public class TestInterruptAndSpin {
       // Long running loop, should yield at some point
       int count = 0;
       for (int i = 0; i < 10000000; ++i)
-	count += i;
+        count += i;
       System.out.println("count is " + count);
 
       if (count == 17)
-	throw new InterruptedException("Dummy"); // placate compiler
+        throw new InterruptedException("Dummy"); // placate compiler
 
       System.out.println("TestInterruptAndSpin SUCCESS");
 

@@ -387,7 +387,7 @@ class VM_Lister implements VM_Constants {
     else             s = "F";
     j = (byte) (i%0x10);
     String t;
-	 if (j==0x0) t = "0";
+         if (j==0x0) t = "0";
     else if (j==0x1) t = "1";
     else if (j==0x2) t = "2";
     else if (j==0x3) t = "3";

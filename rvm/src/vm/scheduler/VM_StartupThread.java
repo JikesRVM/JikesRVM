@@ -32,15 +32,15 @@ class VM_StartupThread extends VM_Thread
       // bind our execution to a physical cpu
       //
       if (VM_Scheduler.cpuAffinity != VM_Scheduler.NO_CPU_AFFINITY)
-	VM_SysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + VM_Processor.getCurrentProcessorId() - 1);
+        VM_SysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + VM_Processor.getCurrentProcessorId() - 1);
      
       // get pthread_id from AIX and store into vm_processor field
       // 
       VM_Processor.getCurrentProcessor().pthread_id = 
-	VM_SysCall.sysPthreadSelf();
+        VM_SysCall.sysPthreadSelf();
 
       if (VM.TraceThreads) VM_Scheduler.trace("VM_StartupThread", "pthread_id =",
-					      VM_Processor.getCurrentProcessor().pthread_id);
+                                              VM_Processor.getCurrentProcessor().pthread_id);
 
       //
       // tell VM_Scheduler.boot() that we've left the C startup

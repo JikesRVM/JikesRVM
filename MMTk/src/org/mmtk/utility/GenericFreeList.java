@@ -176,11 +176,11 @@ final class GenericFreeList extends BaseGenericFreeList implements Constants, VM
     if (isFree) {
       setLoEntry(unit, getLoEntry(unit) | FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) | FREE_MASK);
+        setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) | FREE_MASK);
     } else {
       setLoEntry(unit, getLoEntry(unit) & ~FREE_MASK);
       if ((size = getSize(unit)) > 1)
-	setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) & ~FREE_MASK);
+        setLoEntry(unit + size - 1, getLoEntry(unit + size - 1) & ~FREE_MASK);
     }
   }
   

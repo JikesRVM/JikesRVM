@@ -31,9 +31,9 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
    * @return an inlining decisions
    */
   protected OPT_InlineDecision shouldInlineInternal(VM_Method caller, 
-						    VM_Method callee, 
-						    OPT_CompilationState state, 
-						    int inlinedSizeEstimate) {
+                                                    VM_Method callee, 
+                                                    OPT_CompilationState state, 
+                                                    int inlinedSizeEstimate) {
     // Don't allow the static inline oracle to inline recursive calls.
     // It isn't smart enough to do this effectively.
     OPT_InlineSequence seq = state.getSequence();
@@ -103,8 +103,8 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
    * @return an inlining decisions
    */
   protected OPT_InlineDecision shouldInlineInterfaceInternal(VM_Method caller,
-							     VM_Method callee,
-							     OPT_CompilationState state) {
+                                                             VM_Method callee,
+                                                             OPT_CompilationState state) {
     OPT_Options opts = state.getOptions();
     if (!opts.GUARDED_INLINE_INTERFACE)
       return OPT_InlineDecision.NO("invokeinterface");
@@ -120,7 +120,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       // It isn't smart enough to do this effectively.
       OPT_InlineSequence seq = state.getSequence();
       if (seq.containsMethod(callee)) {
-	return OPT_InlineDecision.NO("recursive call");
+        return OPT_InlineDecision.NO("recursive call");
       }
 
       // got a unique target in the current hierarchy. Attempt to inline it.
@@ -135,9 +135,9 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
       // passed size heuristics. Do it.
       OPT_InlineDecision d = 
-	OPT_InlineDecision.guardedYES(singleImpl,
-				      chooseGuard(caller, singleImpl, callee, state, false), 
-				      "static GUARDED interface inline passsed size checks");
+        OPT_InlineDecision.guardedYES(singleImpl,
+                                      chooseGuard(caller, singleImpl, callee, state, false), 
+                                      "static GUARDED interface inline passsed size checks");
       return d;
     } else {
       return OPT_InlineDecision.NO(callee, "non-final interface method");
@@ -155,8 +155,8 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
    * @return an inlining decisions
    */
   protected OPT_InlineDecision shouldInlineAbstractMethodInternal(VM_Method caller,
-								  VM_Method callee,
-								  OPT_CompilationState state) {
+                                                                  VM_Method callee,
+                                                                  OPT_CompilationState state) {
     // Critical section: must prevent class hierarchy from changing while
     // we are inspecting it to determine how/whether to do the inlining
     synchronized(VM_Class.OptCLDepManager) {
@@ -226,9 +226,9 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
    *         null if it passes
    */
   private OPT_InlineDecision sizeHeuristics(VM_Method caller, 
-					    VM_Method callee, 
-					    OPT_CompilationState state, 
-					    int cost) {
+                                            VM_Method callee, 
+                                            OPT_CompilationState state, 
+                                            int cost) {
     OPT_Options opts = state.getOptions();
     // Is the callee just too big to inline under any circumstance?
     if (cost > opts.IC_MAX_TARGET_SIZE)

@@ -29,7 +29,7 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   // FPR1-6  = 12 words
   public static final int JNI_OS_PARAMETER_REGISTER_SIZE   =  
     (LAST_OS_PARAMETER_GPR - (FIRST_OS_PARAMETER_GPR + 1) + 1)*BYTES_IN_ADDRESS
-	+ (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1)*BYTES_IN_DOUBLE ;   
+        + (LAST_OS_VARARG_PARAMETER_FPR - FIRST_OS_PARAMETER_FPR + 1)*BYTES_IN_DOUBLE ;   
   
   // offset into the Java to Native glue frame, relative to the Java caller frame
   // the definitions are chained to the first one, JNI_JTOC_OFFSET
@@ -81,7 +81,7 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   
   // offset to caller, where to store offset to previous java frame 
   public static final int JNI_GLUE_OFFSET_TO_PREV_JFRAME = - JNI_GLUE_FRAME_OTHERS;
-	
+        
   // offset into the vararg save area within the native to Java glue frame
   // to saved regs GPR 6-10 & FPR 1-6, the volatile regs containing vararg arguments
   //

@@ -44,7 +44,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    */
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
-    VM_Assembler asm	 = new VM_Assembler(100);   // some size for the instruction array
+    VM_Assembler asm     = new VM_Assembler(100);   // some size for the instruction array
     VM_Address nativeIP         = method.getNativeIP();
     // recompute some constants
     int parameterWords   = method.getParameterWords();
@@ -55,31 +55,31 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // Stack frame:
     //        on entry          after prolog
     //
-    //      high address	high address
-    //      |          |	|          | Caller frame
-    //      |          |	|          |
-    // +    |arg 0     |	|arg 0     |    -> firstParameterOffset
-    // +    |arg 1     |	|arg 1     |
-    // +    |...       |	|...       |
-    // +8   |arg n-1   |	|arg n-1   |    
-    // +4   |returnAddr|	|returnAddr|
-    //  0   +	       +	+saved FP  + <---- FP for glue frame
-    // -4   |	       |	|methodID  |
-    // -8   |	       |	|saved EDI |    -> STACKFRAME_BODY_OFFSET = -8
-    // -C   |	       |	|saved EBX |
-    // -10  |	       |	|saved EBP |
-    // -14  |	       |	|returnAddr|  (return from OutOfLine to generated epilog)    
-    // -18  |	       |	|saved ENV |  (VM_JNIEnvironment)
-    // -1C  |	       |	|arg n-1   |  reordered args to native method
-    // -20  |	       |	| ...      |  ...
-    // -24  |	       |	|arg 1     |  ...
-    // -28  |	       |	|arg 0     |  ...
-    // -2C  |	       |	|class/obj |  required second arg to native method
-    // -30  |	       |	|jniEnv    |  required first arg to native method
-    // -34  |	       |	|          |    
-    //      |	       |	|          |    
-    //      |	       |	|          |    
-    //       low address	 low address
+    //      high address        high address
+    //      |          |        |          | Caller frame
+    //      |          |        |          |
+    // +    |arg 0     |        |arg 0     |    -> firstParameterOffset
+    // +    |arg 1     |        |arg 1     |
+    // +    |...       |        |...       |
+    // +8   |arg n-1   |        |arg n-1   |    
+    // +4   |returnAddr|        |returnAddr|
+    //  0   +          +        +saved FP  + <---- FP for glue frame
+    // -4   |          |        |methodID  |
+    // -8   |          |        |saved EDI |    -> STACKFRAME_BODY_OFFSET = -8
+    // -C   |          |        |saved EBX |
+    // -10  |          |        |saved EBP |
+    // -14  |          |        |returnAddr|  (return from OutOfLine to generated epilog)    
+    // -18  |          |        |saved ENV |  (VM_JNIEnvironment)
+    // -1C  |          |        |arg n-1   |  reordered args to native method
+    // -20  |          |        | ...      |  ...
+    // -24  |          |        |arg 1     |  ...
+    // -28  |          |        |arg 0     |  ...
+    // -2C  |          |        |class/obj |  required second arg to native method
+    // -30  |          |        |jniEnv    |  required first arg to native method
+    // -34  |          |        |          |    
+    //      |          |        |          |    
+    //      |          |        |          |    
+    //       low address         low address
 
 
     // TODO:  check and resize stack once on the lowest Java to C transition
@@ -173,19 +173,19 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   /**************************************************************
    * Prepare the stack header for Java to C transition
    *         before               after
-   *	   high address		high address
-   *	   |          |		|          | Caller frame
-   *	   |          |		|          |
-   *  +    |arg 0     |		|arg 0     |    
-   *  +    |arg 1     |		|arg 1     |
-   *  +    |...       |		|...       |
-   *  +8   |arg n-1   |		|arg n-1   |    
-   *  +4   |returnAddr|		|returnAddr|
-   *   0   +	      +		+saved FP  + <---- FP for glue frame
-   *  -4   |	      |		|methodID  |
-   *  -8   |	      |		|saved EDI |  (EDI == JTOC - for baseline methods)  
-   *  -C   |	      |		|saved EBX |    
-   *  -10  |	      |	        |	   |	
+   *       high address         high address
+   *       |          |         |          | Caller frame
+   *       |          |         |          |
+   *  +    |arg 0     |         |arg 0     |    
+   *  +    |arg 1     |         |arg 1     |
+   *  +    |...       |         |...       |
+   *  +8   |arg n-1   |         |arg n-1   |    
+   *  +4   |returnAddr|         |returnAddr|
+   *   0   +          +         +saved FP  + <---- FP for glue frame
+   *  -4   |          |         |methodID  |
+   *  -8   |          |         |saved EDI |  (EDI == JTOC - for baseline methods)  
+   *  -C   |          |         |saved EBX |    
+   *  -10  |          |         |          |    
    *  
    *  
    *  
@@ -224,32 +224,32 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *
    *         before               after
    *
-   *	   high address		high address
-   *	   |          | 	|          | Caller frame
-   *	   |          |		|          | 
-   *  +    |arg 0     | 	|arg 0     | 	-> firstParameterOffset
-   *  +    |arg 1     |		|arg 1     | 
-   *  +    |...       |		|...       | 
-   *  +8   |arg n-1   | 	|arg n-1   | 	
-   *  +4   |returnAddr|		|returnAddr| 
-   *   0   +saved FP  + 	+saved FP  + <---- FP for glue frame
-   *  -4   |methodID  |		|methodID  | 
-   *  -8   |saved EDI | 	|saved EDI | 	-> STACKFRAME_BODY_OFFSET = -8
-   *  -C   |saved EBX | 	|saved EBX | 	
-   *  -10  |	      | 	|returnAddr|  (return from OutOfLine to generated epilog)    
-   *  -14  |	      |	        |saved PR  |
-   *  -18  |	      |	        |arg n-1   |  reordered args to native method (firstLocalOffset
-   *  -1C  |	      |	        | ...      |  ...
-   *  -20  |	      |  	|arg 1     |  ...
-   *  -24  |	      |	        |arg 0     |  ...
-   *  -28  |	      |	        |class/obj |  required second arg 
-   *  -2C  |	      |   SP -> |jniEnv    |  required first arg  (emptyStackOffset)
-   *  -30  |	      |	        |          |    
-   *	   |          |  	|          | 	
-   *	    low address		 low address
+   *       high address         high address
+   *       |          |         |          | Caller frame
+   *       |          |         |          | 
+   *  +    |arg 0     |         |arg 0     |    -> firstParameterOffset
+   *  +    |arg 1     |         |arg 1     | 
+   *  +    |...       |         |...       | 
+   *  +8   |arg n-1   |         |arg n-1   |    
+   *  +4   |returnAddr|         |returnAddr| 
+   *   0   +saved FP  +         +saved FP  + <---- FP for glue frame
+   *  -4   |methodID  |         |methodID  | 
+   *  -8   |saved EDI |         |saved EDI |    -> STACKFRAME_BODY_OFFSET = -8
+   *  -C   |saved EBX |         |saved EBX |    
+   *  -10  |          |         |returnAddr|  (return from OutOfLine to generated epilog)    
+   *  -14  |          |         |saved PR  |
+   *  -18  |          |         |arg n-1   |  reordered args to native method (firstLocalOffset
+   *  -1C  |          |         | ...      |  ...
+   *  -20  |          |         |arg 1     |  ...
+   *  -24  |          |         |arg 0     |  ...
+   *  -28  |          |         |class/obj |  required second arg 
+   *  -2C  |          |   SP -> |jniEnv    |  required first arg  (emptyStackOffset)
+   *  -30  |          |         |          |    
+   *       |          |         |          |    
+   *        low address          low address
    */
   static void storeParametersForLintel(VM_Assembler asm, VM_Method method) {
-    VM_Class klass	     = method.getDeclaringClass();
+    VM_Class klass           = method.getDeclaringClass();
     int parameterWords       = method.getParameterWords();
     int savedRegistersSize   = SAVED_GPRS<<LG_WORDSIZE;
     int firstLocalOffset     = STACKFRAME_BODY_OFFSET - savedRegistersSize ;
@@ -266,9 +266,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // quick count of number of references
     for (int i=0; i<numArguments; i++) {
       if (types[i].isReferenceType())
-	numRefArguments++;
+        numRefArguments++;
       if (types[i].isFloatType() || types[i].isDoubleType())
-	numFloats++;
+        numFloats++;
     }
 
 
@@ -290,28 +290,28 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     
     for (int i=0; i<numArguments && gpr<NUM_PARAMETER_GPRS; i++) {
       if (types[i].isDoubleType()) {
-	parameterOffset -= 2*WORDSIZE;
-	continue;
+        parameterOffset -= 2*WORDSIZE;
+        continue;
       } else if (types[i].isFloatType()) {
-	parameterOffset -= WORDSIZE;
-	continue;
+        parameterOffset -= WORDSIZE;
+        continue;
       } else if (types[i].isLongType()) {
-	if (gpr<NUM_PARAMETER_GPRS) {   // get the hi word
-	  asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
-	  gpr++;
-	  parameterOffset -= WORDSIZE;
-	}
-	if (gpr<NUM_PARAMETER_GPRS) {    // get the lo word
-	  asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
-	  gpr++;
-	  parameterOffset -= WORDSIZE;
-	}
+        if (gpr<NUM_PARAMETER_GPRS) {   // get the hi word
+          asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
+          gpr++;
+          parameterOffset -= WORDSIZE;
+        }
+        if (gpr<NUM_PARAMETER_GPRS) {    // get the lo word
+          asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
+          gpr++;
+          parameterOffset -= WORDSIZE;
+        }
       } else {
-	if (gpr<NUM_PARAMETER_GPRS) {   // all other types fit in one word
-	  asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
-	  gpr++;
-	  parameterOffset -= WORDSIZE;
-	}
+        if (gpr<NUM_PARAMETER_GPRS) {   // all other types fit in one word
+          asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
+          gpr++;
+          parameterOffset -= WORDSIZE;
+        }
       }
     }
 
@@ -389,52 +389,52 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
       // for reference, substitute with a jref index
       if (types[argIndex].isReferenceType()) {
-	asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-	asm.emitCMP_Reg_Imm(EBX, 0);
-	VM_ForwardReference beq = asm.forwardJcc(asm.EQ);
-	pushJNIref(asm);
-	beq.resolve(asm);
-	asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
-	i--;
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
+        asm.emitCMP_Reg_Imm(EBX, 0);
+        VM_ForwardReference beq = asm.forwardJcc(asm.EQ);
+        pushJNIref(asm);
+        beq.resolve(asm);
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
+        i--;
       
       // for float and double, the first NUM_PARAMETER_FPRS args have
       // been loaded in the FPU stack, need to pop them from there
       } else if (types[argIndex].isDoubleType()) {
-	if (fpr < NUM_PARAMETER_FPRS) {
-	  // pop this 2-word arg from the FPU stack
-	  asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset + (WORDSIZE*(2+ i - 1)), FP0);	
-	} else {
-	  // copy this 2-word arg from the caller frame
-	  asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-	  asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i -1)), EBX);
-	  asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - ((i-1)*WORDSIZE));
-	  asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i)), EBX);	  
-	}
-	i-=2;
-	fpr--;
+        if (fpr < NUM_PARAMETER_FPRS) {
+          // pop this 2-word arg from the FPU stack
+          asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset + (WORDSIZE*(2+ i - 1)), FP0);    
+        } else {
+          // copy this 2-word arg from the caller frame
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i -1)), EBX);
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - ((i-1)*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i)), EBX);      
+        }
+        i-=2;
+        fpr--;
       } else if (types[argIndex].isFloatType()) {
-	if (fpr < NUM_PARAMETER_FPRS) {
-	  // pop this 1-word arg from the FPU stack
-	  asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset + (WORDSIZE*(2+ i)), FP0);
-	} else {
-	  // copy this 1-word arg from the caller frame
-	  asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-	  asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
-	}
-	i--;
-	fpr--;
+        if (fpr < NUM_PARAMETER_FPRS) {
+          // pop this 1-word arg from the FPU stack
+          asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset + (WORDSIZE*(2+ i)), FP0);
+        } else {
+          // copy this 1-word arg from the caller frame
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
+        }
+        i--;
+        fpr--;
       } else if (types[argIndex].isLongType()) {
-	//  copy other 2-word parameters: observe the high/low order when moving
-	asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-	asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i - 1)), EBX);
-	asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - ((i-1)*WORDSIZE));
-	asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i)), EBX);
-	i-=2;
+        //  copy other 2-word parameters: observe the high/low order when moving
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i - 1)), EBX);
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - ((i-1)*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2 + i)), EBX);
+        i-=2;
       } else {
-	// copy other 1-word parameters
-	asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
-	asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
-	i--;
+        // copy other 1-word parameters
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset - (i*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset + (WORDSIZE*(2+ i)), EBX);
+        i--;
       }
     }
 
@@ -572,22 +572,22 @@ public class VM_JNICompiler implements VM_BaselineConstants {
    *    completely with the special prolog
    *
    *            Stack on entry            Stack at end of prolog after call
-   *             high memory 			   high memory
+   *             high memory                       high memory
    *            |            |                   |            |
-   *	EBP ->	|saved FP    | 			 |saved FP    |
+   *    EBP ->  |saved FP    |                   |saved FP    |
    *            |  ...       |                   |  ...       |
    *            |            |                   |            |
-   *		|arg n-1     | 			 |arg n-1     |
-   * native    	|  ...       | 			 |  ...       |       
-   * caller    	|arg 0       | 			 |arg 0       |
-   *	ESP -> 	|return addr |        		 |return addr |
+   *            |arg n-1     |                   |arg n-1     |
+   * native     |  ...       |                   |  ...       |       
+   * caller     |arg 0       |                   |arg 0       |
+   *    ESP ->  |return addr |                   |return addr |
    *            |            |           EBP ->  |saved FP    |
    *            |            |                   |methodID    | normal MethodID for JNI function
    *            |            |                   |saved JavaFP| offset to preceeding java frame
-   *            |            |                   |saved edi   |	to be used for JTOC
-   *            |            |                   |  "   ebx   |	to be used for nonvolatile
-   *            |            |                   |  "   ecx   |	to be used for scrach
-   *            |            |                   |  "   esi   |	to be used for PR
+   *            |            |                   |saved edi   | to be used for JTOC
+   *            |            |                   |  "   ebx   | to be used for nonvolatile
+   *            |            |                   |  "   ecx   | to be used for scrach
+   *            |            |                   |  "   esi   | to be used for PR
    *            |            |                   |arg 0       | copied in reverse order
    *            |            |                   |  ...       |
    *            |            |           ESP ->  |arg n-1     |

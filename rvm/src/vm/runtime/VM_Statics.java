@@ -268,7 +268,7 @@ public class VM_Statics implements VM_Constants {
       descriptions[slot] = description;
       nextSlot++;
     } 
-	 
+         
     if ((slot > 2000 && slot < 2100 && false) || VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
     return slot;
   }
@@ -361,7 +361,7 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch contents of a slot-pair, as a long integer.
    */ 
-  public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {	
+  public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {  
     //Kris Venstermans : future optimaliation
     //if (VM.runningVM)
     //  return VM_Magic.getLongAtOffset(slots, slot << LOG_BYTES_IN_INT); 

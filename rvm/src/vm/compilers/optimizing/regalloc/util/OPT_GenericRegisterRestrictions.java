@@ -133,10 +133,10 @@ abstract class OPT_GenericRegisterRestrictions implements OPT_Operators {
           OPT_LiveIntervalElement symb = (OPT_LiveIntervalElement) sym.next();
           if (symb.getRegister().isFloatingPoint()) {
             if (contains(symb,s.scratch)) {
-	      forbidAllVolatiles(symb.getRegister());
+              forbidAllVolatiles(symb.getRegister());
             }
           }
-        }	
+        }       
       }
       //-#endif
     }

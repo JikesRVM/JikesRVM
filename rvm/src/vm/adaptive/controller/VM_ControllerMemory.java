@@ -90,7 +90,7 @@ public final class VM_ControllerMemory implements VM_Constants {
       case 3:  numOpt3++; break;
       case 4:  numOpt4++; break; 
       default:
-	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level");
       }
     }
 
@@ -109,7 +109,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     } else {
       // add the current plan to the end of the list
       synchronized(planList) {
-	planList.addLast(plan);
+        planList.addLast(plan);
       }
     }
 
@@ -144,21 +144,21 @@ public final class VM_ControllerMemory implements VM_Constants {
       boolean found = false;
       VM_ControllerPlan curPlan = null;
       synchronized(planList) {
-	ListIterator iter = planList.listIterator();
-	while (iter.hasNext()) {
-	  curPlan = (VM_ControllerPlan) iter.next();
+        ListIterator iter = planList.listIterator();
+        while (iter.hasNext()) {
+          curPlan = (VM_ControllerPlan) iter.next();
 
-	  // exit when we find ourselves
-	  if (curPlan.getCMID() == cmpMethod.getId()) {
-	    found = true;
-	    break;
-	  }
-	} // more to process
+          // exit when we find ourselves
+          if (curPlan.getCMID() == cmpMethod.getId()) {
+            found = true;
+            break;
+          }
+        } // more to process
       }
 
       if (!found) {
-	// there was a plan for this method, but not for this compiled method
-	curPlan = null;
+        // there was a plan for this method, but not for this compiled method
+        curPlan = null;
       }
 
       return curPlan;
@@ -183,21 +183,21 @@ public final class VM_ControllerMemory implements VM_Constants {
       // iterate over the planList until we find a plan whose status is
       // inprogress, completed, 
       synchronized(planList) {
-	boolean found = false;
-	VM_ControllerPlan curPlan = null;
-	ListIterator iter = planList.listIterator();
-	while (iter.hasNext()) {
-	  curPlan = (VM_ControllerPlan) iter.next();
+        boolean found = false;
+        VM_ControllerPlan curPlan = null;
+        ListIterator iter = planList.listIterator();
+        while (iter.hasNext()) {
+          curPlan = (VM_ControllerPlan) iter.next();
 
-	  // exit when we find ourselves
-	  byte status = curPlan.getStatus();
-	  if (status == VM_ControllerPlan.COMPLETED || 
-	      status == VM_ControllerPlan.IN_PROGRESS || 
-	      status == VM_ControllerPlan.ABORTED_COMPILATION_ERROR || 
-	      status == VM_ControllerPlan.OUTDATED) {
-	    return false;
-	  }
-	}
+          // exit when we find ourselves
+          byte status = curPlan.getStatus();
+          if (status == VM_ControllerPlan.COMPLETED || 
+              status == VM_ControllerPlan.IN_PROGRESS || 
+              status == VM_ControllerPlan.ABORTED_COMPILATION_ERROR || 
+              status == VM_ControllerPlan.OUTDATED) {
+            return false;
+          }
+        }
       }
       return true;  // we didn't find any, so return true
     }
@@ -216,13 +216,13 @@ public final class VM_ControllerMemory implements VM_Constants {
     if (planList != null) {
       // iterate over the planList until we find a plan with status 'status'
       synchronized(planList) {
-	ListIterator iter = planList.listIterator();
-	while (iter.hasNext()) {
-	  VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
-	  if (curPlan.getStatus() == status) {
-	    return true;
-	  }
-	}
+        ListIterator iter = planList.listIterator();
+        while (iter.hasNext()) {
+          VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
+          if (curPlan.getStatus() == status) {
+            return true;
+          }
+        }
       }
     }
     return false;
@@ -261,14 +261,14 @@ public final class VM_ControllerMemory implements VM_Constants {
       // iterate over the planList until we find a completed plan with the
       // opt level passed
       synchronized(planList) {
-	ListIterator iter = planList.listIterator();
-	while (iter.hasNext()) {
-	  VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
-	  if (curPlan.getStatus() == VM_ControllerPlan.COMPLETED &&
-	      curPlan.getCompPlan().options.getOptLevel() == optLevel) {
-	    return true;
-	  }
-	}
+        ListIterator iter = planList.listIterator();
+        while (iter.hasNext()) {
+          VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
+          if (curPlan.getStatus() == VM_ControllerPlan.COMPLETED &&
+              curPlan.getCompPlan().options.getOptLevel() == optLevel) {
+            return true;
+          }
+        }
       }
     }
     return false;
@@ -323,31 +323,31 @@ public final class VM_ControllerMemory implements VM_Constants {
       int bitPattern = 0;
       int recompsAtLevel2 = 0;
       VM_ControllerPlan plan = null;
-	
+        
       ListIterator iter = planList.listIterator();
       while (iter.hasNext()) {
-	plan = (VM_ControllerPlan) iter.next();
+        plan = (VM_ControllerPlan) iter.next();
 
-	// only process plans that were completed or completed and outdated 
-	// by subsequent plans for this method
-	byte status = plan.getStatus();
-	if (status == VM_ControllerPlan.COMPLETED || 
-	    status == VM_ControllerPlan.OUTDATED) {
-	    int optLevel = plan.getCompPlan().options.getOptLevel();
+        // only process plans that were completed or completed and outdated 
+        // by subsequent plans for this method
+        byte status = plan.getStatus();
+        if (status == VM_ControllerPlan.COMPLETED || 
+            status == VM_ControllerPlan.OUTDATED) {
+            int optLevel = plan.getCompPlan().options.getOptLevel();
 
-	    // check for recomps at level 2
-	    if (optLevel == 2 && bitIsSet(bitPattern, 2)) {
-	      recompsAtLevel2++;
-	    }
+            // check for recomps at level 2
+            if (optLevel == 2 && bitIsSet(bitPattern, 2)) {
+              recompsAtLevel2++;
+            }
 
-	    bitPattern = setBitPattern(bitPattern, optLevel);
-	} // if
+            bitPattern = setBitPattern(bitPattern, optLevel);
+        } // if
       } // while
       
       if (VM_Controller.options.LOGGING_LEVEL >= 2) {
-	log.println("Method: "+ plan.getCompPlan().getMethod() 
-		    +", bitPattern: "+ bitPattern
-		    +", recompsAtLevel2: "+ recompsAtLevel2);
+        log.println("Method: "+ plan.getCompPlan().getMethod() 
+                    +", bitPattern: "+ bitPattern
+                    +", recompsAtLevel2: "+ recompsAtLevel2);
       }
 
       summaryArray[bitPattern]++;
@@ -359,9 +359,9 @@ public final class VM_ControllerMemory implements VM_Constants {
     for (int i=1; i<=MAX_BIT_PATTERN; i++) {
       log.print("    Base");
       for (int optLevel=0;  optLevel <=2; optLevel++) {
-	if (bitIsSet(i, optLevel)) {
-	  log.print(" -> "+ optLevel);
-	}
+        if (bitIsSet(i, optLevel)) {
+          log.print(" -> "+ optLevel);
+        }
       }
       log.println(": "+ summaryArray[i]);
       totalUniqueMethods = totalUniqueMethods + summaryArray[i];

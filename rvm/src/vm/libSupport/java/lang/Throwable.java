@@ -49,7 +49,7 @@ public class Throwable implements java.io.Serializable {
     
   public Throwable () {
     super();
-    fillInStackTrace();		// fillInStackTrace() catches its own errors.
+    fillInStackTrace();         // fillInStackTrace() catches its own errors.
   }
     
   public Throwable (String detailMessage) {
@@ -72,7 +72,7 @@ public class Throwable implements java.io.Serializable {
   public void tallyWeirdError() {
     if (++numWeirdErrors >= maxWeirdErrors) {
       /* We exit before printing, in case we're in some weird hell where
-	 everything is broken, even VM.sysWriteln().. */
+         everything is broken, even VM.sysWriteln().. */
       VM.sysExit(VM.exitStatusTooManyThrowableErrors);
     }
     if (numWeirdErrors > 1 ) {
@@ -82,11 +82,11 @@ public class Throwable implements java.io.Serializable {
   
   private int numOutOfMemoryErrors = 0;
   public int maxOutOfMemoryErrors = 5; /* again, a guess at a good value.
-					  Resettable if the user wants to. */
+                                          Resettable if the user wants to. */
   public void tallyOutOfMemoryError() {
     if (++numOutOfMemoryErrors >= maxOutOfMemoryErrors) {
       /* We exit before printing, in case we're in some weird hell where
-	 everything is broken, even VM.sysWriteln().. */
+         everything is broken, even VM.sysWriteln().. */
       VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
     }
     if (numOutOfMemoryErrors > 1 ) {
@@ -157,15 +157,15 @@ public class Throwable implements java.io.Serializable {
 
     if (!useSysWrite) {
       if (this instanceof OutOfMemoryError) {
-	tallyOutOfMemoryError();
-	VM.sysWriteln("Throwable.printStackTrace(): We are trying to dump the stack of an OutOfMemoryError.");
-	VM.sysWriteln("Throwable.printStackTrace():  We'll use the VM.sysWriteln() function,");
-	VM.sysWriteln("Throwable.printStackTrace():  instead of the System.err stream, to avoid trouble.");
-	useSysWrite = true;
+        tallyOutOfMemoryError();
+        VM.sysWriteln("Throwable.printStackTrace(): We are trying to dump the stack of an OutOfMemoryError.");
+        VM.sysWriteln("Throwable.printStackTrace():  We'll use the VM.sysWriteln() function,");
+        VM.sysWriteln("Throwable.printStackTrace():  instead of the System.err stream, to avoid trouble.");
+        useSysWrite = true;
       } else if (System.err == null) {
-	VM.sysWriteln("Throwable.printStackTrace(): Can't write to the uninitialized System.err stream;");
-	VM.sysWriteln("Throwable.printStackTrace():  it's early in booting.  Reverting to VM.sysWriteln().");
-	useSysWrite = true;
+        VM.sysWriteln("Throwable.printStackTrace(): Can't write to the uninitialized System.err stream;");
+        VM.sysWriteln("Throwable.printStackTrace():  it's early in booting.  Reverting to VM.sysWriteln().");
+        useSysWrite = true;
       }
     }
 
@@ -200,23 +200,23 @@ public class Throwable implements java.io.Serializable {
    * will give up if we go deeper than maxDepth.
    * @param err the output sink (stream) to write to.
    * @param effect <code>null</code> if this Throwable was not the
-   *	<code>cause</code> of another throwable.  Any non-<code>null</code>
-   *	value indicates that we have the opportunity (though not the
-   *	obligation) to do some elision, just as the Sun HotSpot JVM does. 
+   *    <code>cause</code> of another throwable.  Any non-<code>null</code>
+   *    value indicates that we have the opportunity (though not the
+   *    obligation) to do some elision, just as the Sun HotSpot JVM does. 
    */
   public void printStackTrace(PrintLN err, Throwable effect) {
     // So, we will not let multiple stack traces get printed at the same
     // time, just in case!
     synchronized (Throwable.class) {
       try {
-	if (++depth == maxDepth)
-	  VM.sysWriteln("We got ", depth, " deep in printing stack traces; trouble.  Aborting.");
-	if (depth >= maxDepth)
-	  VM.sysExit(VM.exitStatusTooManyThrowableErrors);
-	doPrintStackTrace(err, effect);
-	if (VM.VerifyAssertions) VM._assert(depth >= 1);
+        if (++depth == maxDepth)
+          VM.sysWriteln("We got ", depth, " deep in printing stack traces; trouble.  Aborting.");
+        if (depth >= maxDepth)
+          VM.sysExit(VM.exitStatusTooManyThrowableErrors);
+        doPrintStackTrace(err, effect);
+        if (VM.VerifyAssertions) VM._assert(depth >= 1);
       } finally {
-	--depth;			// clean up
+        --depth;                        // clean up
       }
     }
   }
@@ -226,29 +226,29 @@ public class Throwable implements java.io.Serializable {
    * 
    * @param err the output sink (stream) to write to.
    * @param effect <code>null</code> if this Throwable was not the
-   *	<code>cause</code> of another throwable.  Any non-<code>null</code>
-   *	value indicates that we have the opportunity (though not the
-   *	obligation) to do some elision, just as the Sun HotSpot JVM does. 
+   *    <code>cause</code> of another throwable.  Any non-<code>null</code>
+   *    value indicates that we have the opportunity (though not the
+   *    obligation) to do some elision, just as the Sun HotSpot JVM does. 
    */
   private void doPrintStackTrace(PrintLN err, Throwable effect) {
     //    err.println("This is a call to printStackTrace()"); // DEBUG
     int step = 0;
     try {
       /* A routine to avoid OutOfMemoryErrors, which I think we will never see
-	 anyway.  But let's encapsulate potentially memory-allocating
-	 operations. */ 
+         anyway.  But let's encapsulate potentially memory-allocating
+         operations. */ 
       printlnMyClassAndMessage(err);
       ++step;
       if (stackTrace == null) {
-	err.println("{ Throwable.printStackTrace(): No stack trace available to display; sorry! }");
+        err.println("{ Throwable.printStackTrace(): No stack trace available to display; sorry! }");
       } else {
-	stackTrace.print(err, this, effect);
+        stackTrace.print(err, this, effect);
       }
       ++step;
       if (cause != null) {
-	err.print("Caused by: ");
-	Throwable subEffect = this;
-	cause.doPrintStackTrace(err, subEffect);
+        err.print("Caused by: ");
+        Throwable subEffect = this;
+        cause.doPrintStackTrace(err, subEffect);
       }
       ++step;
     } catch (OutOfMemoryError dummy) {
@@ -264,10 +264,10 @@ public class Throwable implements java.io.Serializable {
     }
     if (step < 3) {
       if (err.isSysWrite()) {
-	VM.sysWriteln("Throwable.printStackTrace(PrintContainer.WithSysWriteln): Can't proceed any further.");
+        VM.sysWriteln("Throwable.printStackTrace(PrintContainer.WithSysWriteln): Can't proceed any further.");
       } else {
-	VM.sysWriteln("Throwable.printStackTrace(PrintContainer): Resorting to sysWrite() methods.");
-	this.sysWriteStackTrace();
+        VM.sysWriteln("Throwable.printStackTrace(PrintContainer): Resorting to sysWrite() methods.");
+        this.sysWriteStackTrace();
       }
     }
   }
@@ -285,9 +285,9 @@ public class Throwable implements java.io.Serializable {
       VM.sysWriteln("Throwable.printStackTrace(PrintWriter) caught an unexpected Throwable");
     } finally {
       if (pln == null) {
-	VM.sysWrite("\twhile allocating a simple 'PrintContainer(PrintWriter)' object to print a stack trace.");
-	VM.sysWriteln("\tDegrading to sysWrite.");	
-	pln = PrintContainer.readyPrinter;
+        VM.sysWrite("\twhile allocating a simple 'PrintContainer(PrintWriter)' object to print a stack trace.");
+        VM.sysWriteln("\tDegrading to sysWrite.");      
+        pln = PrintContainer.readyPrinter;
       }
     }
 
@@ -311,9 +311,9 @@ public class Throwable implements java.io.Serializable {
       pln = PrintContainer.readyPrinter;
     } finally {
       if (pln == null) {
-	VM.sysWriteln("\twhile trying to allocate a simple PrintContainer(PrintStream) object to print a stack trace.");
-	VM.sysWriteln("\tDegrading to sysWrite()");
-	pln = PrintContainer.readyPrinter;
+        VM.sysWriteln("\twhile trying to allocate a simple PrintContainer(PrintStream) object to print a stack trace.");
+        VM.sysWriteln("\tDegrading to sysWrite()");
+        pln = PrintContainer.readyPrinter;
       }
     }
     // Any errors are caught deeper down the call stack.
@@ -384,9 +384,9 @@ public class Throwable implements java.io.Serializable {
 //     } catch (OutOfMemoryError oom) {
 //       tallyOutOfMemoryError();
 //       /* We could certainly do more to recover from this, such as dumping the
-// 	 info via VM.sysWrite() or by getting the class's
-// 	 name via some means that does not involve memory allocation.   But we
-// 	 won't.  */
+//       info via VM.sysWrite() or by getting the class's
+//       name via some means that does not involve memory allocation.   But we
+//       won't.  */
 //       classname = classnameIfOutOfMemory;
 //     }
       
@@ -395,19 +395,19 @@ public class Throwable implements java.io.Serializable {
 //     } else {
 //       // msg, at least, must contain useful information.
 //       try {
-// 	return classname + ": " + msg;
+//      return classname + ": " + msg;
 //       } catch (OutOfMemoryError oom) {
-// 	tallyOutOfMemoryError();
-// 	/* We could be more clever about this recovery, but it seems like too
-// 	 * much hassle for too little gain. */
-// 	VM.sysWriteln("Throwable.toString(): No memory to concatenate two strings");
-// 	VM.sysWrite("Throwable.toString(): Will return just the message from this exception \"");
-// 	VM.sysWrite(msg);
-// 	VM.sysWriteln("\"");
-// 	VM.sysWrite("Throwable.toString(): without the associated classname \"");
-// 	VM.sysWrite(classname);
-// 	VM.sysWriteln("\".");
-// 	return msg;
+//      tallyOutOfMemoryError();
+//      /* We could be more clever about this recovery, but it seems like too
+//       * much hassle for too little gain. */
+//      VM.sysWriteln("Throwable.toString(): No memory to concatenate two strings");
+//      VM.sysWrite("Throwable.toString(): Will return just the message from this exception \"");
+//      VM.sysWrite(msg);
+//      VM.sysWriteln("\"");
+//      VM.sysWrite("Throwable.toString(): without the associated classname \"");
+//      VM.sysWrite(classname);
+//      VM.sysWriteln("\".");
+//      return msg;
 //       }
 //     }
 //   }

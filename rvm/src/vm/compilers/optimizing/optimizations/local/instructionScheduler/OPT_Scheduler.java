@@ -97,7 +97,7 @@ final class OPT_Scheduler {
             + ' ' + ir.method.getDescriptor());
 
     // Performing live analysis may reduce dependences between PEIs and stores
-    if (ir.options.HANDLER_LIVENESS) {	
+    if (ir.options.HANDLER_LIVENESS) {  
       new OPT_LiveAnalysis(false, false, true).perform(ir);
     }
 

@@ -69,17 +69,17 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
 
       }
       // want to be notified by app start event
-	  VM_Callbacks.addAppRunStartMonitor(new OPT_Compiler());
+          VM_Callbacks.addAppRunStartMonitor(new OPT_Compiler());
       isInitialized = true;
     } catch (OPT_OptimizingCompilerException e) {
       // failures during initialization can't be ignored
       e.isFatal = true;
       throw e;
     } catch (Throwable e) {
-	VM.sysWriteln( e.toString() );
-	throw new OPT_OptimizingCompilerException("OPT_Compiler", 
-						  "untrapped failure during init, "
-						  + " Converting to OPT_OptimizingCompilerException");
+        VM.sysWriteln( e.toString() );
+        throw new OPT_OptimizingCompilerException("OPT_Compiler", 
+                                                  "untrapped failure during init, "
+                                                  + " Converting to OPT_OptimizingCompilerException");
     }
   }
 
@@ -135,7 +135,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    */
   private static void loadSpecialClass (String klassName, OPT_Options options) {
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
-							  VM_Atom.findOrCreateAsciiAtom(klassName));
+                                                          VM_Atom.findOrCreateAsciiAtom(klassName));
     VM_Class klass = (VM_Class)tRef.peekResolvedType();
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int j = 0; j < methods.length; j++) {
@@ -143,11 +143,11 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
       if (meth.isClassInitializer())
         continue;
       if (!meth.isCompiled() || 
-	  meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
+          meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
         OPT_CompilationPlan cp = 
-	  new OPT_CompilationPlan((VM_NormalMethod)meth, 
-				  OPT_OptimizationPlanner.createOptimizationPlan(options), 
-				  null, options);
+          new OPT_CompilationPlan((VM_NormalMethod)meth, 
+                                  OPT_OptimizationPlanner.createOptimizationPlan(options), 
+                                  null, options);
         meth.replaceCompiledMethod(compile(cp));
       }
     }
@@ -222,7 +222,7 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
       OPT_IR ir = cp.execute();
       // if doing analysis only, don't try to return an object
       if (cp.analyzeOnly || cp.irGeneration)
-	return null;
+        return null;
       // now that we're done compiling, give the specialization
       // system a chance to eagerly compile any specialized version
       // that are pending.  TODO: use lazy compilation with specialization.
@@ -297,8 +297,8 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
                                           OPT_Options options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT)
       VM.sysWrite("-methodOpt "+ method.getDeclaringClass() + ' ' 
-		  + method.getName() + ' ' 
-		  + method.getDescriptor() + " \n");
+                  + method.getName() + ' ' 
+                  + method.getDescriptor() + " \n");
   }
 
   /**
@@ -308,16 +308,16 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
    */
   private static void fail (Throwable e, VM_NormalMethod method) {
     OPT_OptimizingCompilerException optExn = new OPT_OptimizingCompilerException("OPT_Compiler", 
-					      "failure during compilation of", method.toString());
+                                              "failure during compilation of", method.toString());
     if (e instanceof OutOfMemoryError) {
-	VM.sysWriteln("OPT_Compiler ran out of memory during compilation of ",
-		      method.toString());
-	optExn.isFatal = false;
+        VM.sysWriteln("OPT_Compiler ran out of memory during compilation of ",
+                      method.toString());
+        optExn.isFatal = false;
     }
     else {
-	VM.sysWriteln("OPT_Compiler failure during compilation of ",
-		      method.toString());
-	e.printStackTrace();
+        VM.sysWriteln("OPT_Compiler failure during compilation of ",
+                      method.toString());
+        e.printStackTrace();
     }
     throw optExn;
   }
@@ -342,9 +342,9 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
     if (options.hasEXCLUDE()) {
       String name = method.getDeclaringClass().toString() + "." + method.getName();
       if (options.fuzzyMatchEXCLUDE(name)) {
-	if (!method.getDeclaringClass().isSaveVolatile()) {
+        if (!method.getDeclaringClass().isSaveVolatile()) {
           throw new OPT_OptimizingCompilerException("method excluded", false);
-	}
+        }
       }
     }
   }

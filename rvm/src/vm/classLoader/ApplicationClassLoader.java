@@ -22,26 +22,26 @@ public class ApplicationClassLoader extends URLClassLoader {
 
     try {
       if (specifiedClassPath == null) {
-	addURL(new URL("file", null, -1, System.getProperty("user.dir") + File.separator));
+        addURL(new URL("file", null, -1, System.getProperty("user.dir") + File.separator));
       } else {
-	StringTokenizer tok = new StringTokenizer(specifiedClassPath, File.pathSeparator);
-	while (tok.hasMoreElements()) {
-	  String elt = tok.nextToken();
-	  
-	  if (!(elt.endsWith(".jar") || elt.endsWith(".zip"))) {
-	    if (! elt.endsWith( File.separator )) {
-	      elt += File.separator;
-	    }
-	  }
+        StringTokenizer tok = new StringTokenizer(specifiedClassPath, File.pathSeparator);
+        while (tok.hasMoreElements()) {
+          String elt = tok.nextToken();
+          
+          if (!(elt.endsWith(".jar") || elt.endsWith(".zip"))) {
+            if (! elt.endsWith( File.separator )) {
+              elt += File.separator;
+            }
+          }
 
-	  if (elt.indexOf(":") != -1) {
-	    addURL(new URL(elt));
-	  } else if (elt.startsWith(File.separator)) {
-	    addURL(new URL("file", null, -1, elt));
-	  } else {
-	    addURL(new URL("file", null, -1, System.getProperty("user.dir") + File.separator + elt));
-	  }
-	}
+          if (elt.indexOf(":") != -1) {
+            addURL(new URL(elt));
+          } else if (elt.startsWith(File.separator)) {
+            addURL(new URL("file", null, -1, elt));
+          } else {
+            addURL(new URL("file", null, -1, System.getProperty("user.dir") + File.separator + elt));
+          }
+        }
       }
     } catch (MalformedURLException e) {
       VM.sysWrite("error setting classpath " + e);
@@ -59,4 +59,4 @@ public class ApplicationClassLoader extends URLClassLoader {
   }
 }
 
-		    
+                    

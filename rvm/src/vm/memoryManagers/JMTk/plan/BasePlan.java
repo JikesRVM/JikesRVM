@@ -199,7 +199,7 @@ public abstract class BasePlan
     for (int i=0; i<plans.length; i++) {
       byte space = plans[i].getSpaceFromAllocator(a);
       if (space != UNUSED_SPACE)
-	return space;
+        return space;
     }
     return UNUSED_SPACE;
   }
@@ -288,17 +288,17 @@ public abstract class BasePlan
    * @return The possibly moved interior reference.
    */
   public static final VM_Address traceInteriorReference(VM_Address obj,
-							VM_Address interiorRef,
-							boolean root) {
+                                                        VM_Address interiorRef,
+                                                        boolean root) {
     VM_Offset offset = interiorRef.diff(obj);
     VM_Address newObj = Plan.traceObject(obj, root);
     if (VM_Interface.VerifyAssertions) {
       if (offset.sLT(VM_Offset.zero()) || offset.sGT(VM_Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
-	Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
-	Log.write("       object base = "); Log.writeln(obj);
-	Log.write("       interior reference = "); Log.writeln(interiorRef);
-	Log.write("       delta = "); Log.writeln(offset);
-	VM_Interface._assert(false);
+        Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
+        Log.write("       object base = "); Log.writeln(obj);
+        Log.write("       interior reference = "); Log.writeln(interiorRef);
+        Log.write("       delta = "); Log.writeln(offset);
+        VM_Interface._assert(false);
       }
     }
     return newObj.add(offset);
@@ -417,7 +417,7 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void putFieldWriteBarrier(VM_Address src, int offset,
-				   VM_Address tgt) {
+                                   VM_Address tgt) {
     // Either: barriers are used and this is overridden, or 
     //         barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
@@ -436,7 +436,7 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void arrayStoreWriteBarrier(VM_Address ref, int index, 
-				     VM_Address value) {
+                                     VM_Address value) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
@@ -766,7 +766,7 @@ public abstract class BasePlan
    * @param source Information about the source of the problem
    */
   protected static void spaceFailure(VM_Address obj, byte space, 
-				     String source) {
+                                     String source) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     Log.write(source);
     Log.write(": obj "); Log.write(obj);

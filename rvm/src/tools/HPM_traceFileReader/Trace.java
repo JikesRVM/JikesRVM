@@ -65,17 +65,17 @@ public final class Trace
     int index = 0; int index1 = 0; int index2 = 0;
     while (index1 < length1 && index2 < length2) {
       if        (! (records1[index1] instanceof TraceCounterRecord)) {
-	records[index++] = records1[index1++];
+        records[index++] = records1[index1++];
       } else if (! (records2[index2] instanceof TraceCounterRecord)) {
-	records[index++] = records2[index2++];
+        records[index++] = records2[index2++];
       } else {
-	TraceCounterRecord tcr1 = (TraceCounterRecord)records1[index1];
-	TraceCounterRecord tcr2 = (TraceCounterRecord)records2[index2];
-	if (tcr1.start_wall_time <= tcr2.start_wall_time) {
-	  records[index++] = records1[index1++];
-	} else {
-	  records[index++] = records2[index2++];
-	}
+        TraceCounterRecord tcr1 = (TraceCounterRecord)records1[index1];
+        TraceCounterRecord tcr2 = (TraceCounterRecord)records2[index2];
+        if (tcr1.start_wall_time <= tcr2.start_wall_time) {
+          records[index++] = records1[index1++];
+        } else {
+          records[index++] = records2[index2++];
+        }
       }
     }
     while (index1 < length1) {

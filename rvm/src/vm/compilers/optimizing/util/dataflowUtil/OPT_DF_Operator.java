@@ -18,7 +18,7 @@ abstract class OPT_DF_Operator {
    * left-hand side. 
    * 
    * @param operands The operands for this operator.  operands[0]
-   *		    is the left-hand side.
+   *                is the left-hand side.
    * @return true if the lhs value changes. false otherwise.
    */
   abstract boolean evaluate (OPT_DF_LatticeCell[] operands);

@@ -40,8 +40,8 @@ class OPT_InsertMethodInvocationCounter  extends OPT_CompilerPhase
     // Don't insert counters in uninterruptible or
     // save volatile methods, or when instrumentation is disabled
     if (!ir.method.isInterruptible() ||
-	!VM_Instrumentation.instrumentationEnabled() ||
-	ir.method.getDeclaringClass().isSaveVolatile())
+        !VM_Instrumentation.instrumentationEnabled() ||
+        ir.method.getDeclaringClass().isSaveVolatile())
       return;
     
     OPT_BasicBlock firstBB = ir.cfg.entry();

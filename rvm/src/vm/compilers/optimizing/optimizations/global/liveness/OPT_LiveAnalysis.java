@@ -35,7 +35,7 @@ import java.util.LinkedList;
 final class OPT_LiveAnalysis extends OPT_CompilerPhase 
   implements OPT_Operators 
 //-#if RVM_WITH_OSR
-	     , OSR_Constants
+             , OSR_Constants
 //-#endif
 {
   // Real Instance Variables
@@ -125,8 +125,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * top of each handler block?
    */
   OPT_LiveAnalysis(boolean createGCMaps, 
-		   boolean skipLocal, 
-		   boolean storeLiveAtHandlers) {
+                   boolean skipLocal, 
+                   boolean storeLiveAtHandlers) {
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = storeLiveAtHandlers;
@@ -195,24 +195,24 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
     currentSet = new OPT_LiveSet();
     boolean reuseCurrentSet = false;
 
-    // make sure reverse top sort order is built	    
+    // make sure reverse top sort order is built            
     // currentBlock is the first node in the list 
     OPT_BasicBlock currentBlock = (OPT_BasicBlock)ir.cfg.buildRevTopSort();
 
     // 2nd parm: true means forward analysis; false means backward analysis
     OPT_SortedGraphIterator bbIter = new OPT_SortedGraphIterator(currentBlock, 
-								 false);
+                                                                 false);
     while (currentBlock != null) {
       boolean changed = processBlock(currentBlock, reuseCurrentSet, ir);
 
       // mark this block as processed and get the next one
       OPT_BasicBlock nextBlock = 
-	(OPT_BasicBlock)bbIter.markAndGetNextTopSort(changed);
+        (OPT_BasicBlock)bbIter.markAndGetNextTopSort(changed);
 
       // check to see if nextBlock has only one successor, currentBlock.
       // If so, we can reuse the current set and avoid performing a meet.
       if (nextBlock != null && 
-	  bbIter.isSinglePredecessor(currentBlock, nextBlock)) {
+          bbIter.isSinglePredecessor(currentBlock, nextBlock)) {
         reuseCurrentSet = true;
       } else {
         reuseCurrentSet = false;
@@ -234,7 +234,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
           + " in class: " + ir.method.getDeclaringClass());
         ir.printInstructions();
         System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
-	
+        
         printFinalMaps(ir);
       }
       if (dumpFinalLiveIntervals) {
@@ -430,9 +430,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
         if (inst.isPEI() && 
             bblock.getApplicableExceptionalOut(inst).hasMoreElements()) {
           firstPEI = inst;
-	  // remember that this block has a PEI with a handler for use
-	  //  later in "processBlock"
-	  bbLiveInfo[bblock.getNumber()].setContainsPEIWithHandler(true);
+          // remember that this block has a PEI with a handler for use
+          //  later in "processBlock"
+          bbLiveInfo[bblock.getNumber()].setContainsPEIWithHandler(true);
           break;
         }
       }
@@ -444,7 +444,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
 
     // Traverse instructions in reverse order within the basic block.
     for (OPT_Instruction inst = bblock.lastInstruction(); inst != bblock.firstInstruction(); 
-	 inst = inst.prevInstructionInCodeOrder()) {
+         inst = inst.prevInstructionInCodeOrder()) {
 
       // traverse from defs to uses becauses uses happen after 
       // (in a backward sense) defs
@@ -586,7 +586,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
     // Used in processBlock as a summary of the IN sets of all
     // exception handlers for the block
     OPT_LiveSet exceptionBlockSummary = new OPT_LiveSet();
-	    
+            
     boolean blockHasHandlers = 
       bbLiveInfo[block.getNumber()].getContainsPEIWithHandler();
 
@@ -611,9 +611,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
           enum.hasMoreElements();) {
         OPT_BasicBlock succ = (OPT_BasicBlock)enum.next();
 
-	// sometimes we may have a CFG edge to a handler, but no longer a
-	//   PEI that can make the edge realizable.  Thus, we have two
-	//   conditions in the following test.
+        // sometimes we may have a CFG edge to a handler, but no longer a
+        //   PEI that can make the edge realizable.  Thus, we have two
+        //   conditions in the following test.
         if (blockHasHandlers && succ.isExceptionHandlerBasicBlock()) {
           exceptionBlockSummary.add(bbLiveInfo[succ.getNumber()].getIn());
         } else {
@@ -710,8 +710,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
       blockStack = new Stack();
     }
     for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); 
-	 block != null; 
-	 block = block.nextBasicBlockInCodeOrder()) {
+         block != null; 
+         block = block.nextBasicBlockInCodeOrder()) {
       if (verbose) {
         System.out.print(" ....   processing block # " + block.getNumber()
             + " ...");
@@ -788,7 +788,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
               local.remove(regOp);
               if (verbose) {
                 System.out.println("  Killing: " + regOp + "\n local: "
-				   + local);
+                                   + local);
               }
 
               // mark this instruction as the start of the live range for reg
@@ -809,28 +809,28 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
         // For a statement like "x = y", we are capturing the program point 
         // "in the middle", i.e., during the execution, after the y has been 
         // fetched, but before the x has been defined.
-		
-		//-#if RVM_WITH_OSR
-		// Above observation is not true for an OSR instruction. The current
-		// design of the OSR instruction requires the compiler build a GC map
-		// for variables used by the instruction.
-		// Otherwise, the compiler generates an empty gc map for the instruction.
-		// This results run away references if GC happens when a thread is being OSRed.
-		//
-		// TODO: better design of yieldpoint_osr instruction.
-		// -- Feng July 15, 2003
-		if (createGCMaps && !OsrPoint.conforms(inst) && inst.isGCPoint()) {		  
-		//-#else
+                
+                //-#if RVM_WITH_OSR
+                // Above observation is not true for an OSR instruction. The current
+                // design of the OSR instruction requires the compiler build a GC map
+                // for variables used by the instruction.
+                // Otherwise, the compiler generates an empty gc map for the instruction.
+                // This results run away references if GC happens when a thread is being OSRed.
+                //
+                // TODO: better design of yieldpoint_osr instruction.
+                // -- Feng July 15, 2003
+                if (createGCMaps && !OsrPoint.conforms(inst) && inst.isGCPoint()) {               
+                //-#else
         if (createGCMaps && inst.isGCPoint()) {
-		//-#endif
+                //-#endif
           // make deep copy (and translate to regList) because we reuse
           // local above.
-	  // NOTE: this translation does some screening, see OPT_GCIRMap.java
+          // NOTE: this translation does some screening, see OPT_GCIRMap.java
           OPT_LinkedList regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
           if (verbose) { System.out.println("SAVING GC Map"); }
         }       // is GC instruction, and map not already made
-		
+                
         // now process the uses
         for (OPT_OperandEnumeration uses = inst.getUses(); 
             uses.hasMoreElements();) {
@@ -859,12 +859,12 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
         //-#if RVM_WITH_OSR
         if (createGCMaps && OsrPoint.conforms(inst)) {
           
-		  // delayed gc map generation for Osr instruction, 
-		  // see comments before processing uses -- Feng, July 15, 2003
-		  OPT_LinkedList regList = map.createDU(local);
+                  // delayed gc map generation for Osr instruction, 
+                  // see comments before processing uses -- Feng, July 15, 2003
+                  OPT_LinkedList regList = map.createDU(local);
           blockStack.push(new MapElement(inst, regList));
 
-	      // collect osr info using live set
+              // collect osr info using live set
           collectOsrInfo(inst, local);
         }
         //-#endif
@@ -882,16 +882,16 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
       }
 
       if (storeLiveAtHandlers && block.isExceptionHandlerBasicBlock()) {
-	OPT_ExceptionHandlerBasicBlock handlerBlock =
-	  (OPT_ExceptionHandlerBasicBlock)block;
+        OPT_ExceptionHandlerBasicBlock handlerBlock =
+          (OPT_ExceptionHandlerBasicBlock)block;
 
-	// use local because we need to get a fresh one anyway.
-	handlerBlock.setLiveSet(local);
-	local = new OPT_LiveSet();
+        // use local because we need to get a fresh one anyway.
+        handlerBlock.setLiveSet(local);
+        local = new OPT_LiveSet();
       } else {
 
-	// clear the local set for the next block
-	local.clear();
+        // clear the local set for the next block
+        local.clear();
       }
     }           // end basic block for loop
     if (debug) {
@@ -913,7 +913,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
     // for the ones listed below.  Such regs are inserted in the IR
     // during call expansion. 
     if (regOp.register.isExcludedLiveA()
-	|| (regOp.register.isValidation() && skipGuards)) {
+        || (regOp.register.isValidation() && skipGuards)) {
       return  true;
     }
     return  false;
@@ -1010,7 +1010,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
   private void printFinalLiveIntervals(OPT_IR ir) {
     ir.printInstructions();
     System.out.println("\n  *+*+*+*+*+ Final Live Intervals for " 
-		       + ir.method.getDeclaringClass() + "." + ir.method.getName());
+                       + ir.method.getDeclaringClass() + "." + ir.method.getName());
     for (OPT_BasicBlock block = ir.firstBasicBlockInCodeOrder(); block
         != null; block = block.nextBasicBlockInCodeOrder()) {
       OPT_LiveInterval.printLiveIntervalList(block);
@@ -1042,7 +1042,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
   /**
    * Return the set of registers that are live across a basic block, and who 
    * are live after the basic block exit.
-   */	
+   */   
   HashSet getLiveRegistersOnExit(OPT_BasicBlock bb) {
     HashSet result = new HashSet(10);
     for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
@@ -1055,7 +1055,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
   /**
    * Return the set of registers that are live across a basic block, and who 
    * are live before the basic block entry.
-   */	
+   */   
   HashSet getLiveRegistersOnEntry(OPT_BasicBlock bb) {
     HashSet result = new HashSet(10);
     for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
@@ -1232,51 +1232,51 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
 
       /* record maps for local variables, skip dead ones */
       for (int i=0, n=ls.length; i<n; i++) {
-	if (ls[i] != VoidTypeCode) {
-	  // check liveness
-	  int cur_idx = elm_idx;
-	  OPT_Operand op = OsrPoint.getElement(inst, elm_idx++);
-	  OSR_LocalRegPair tuple =
-	    new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], op);
-	  // put it in the list
-	  tupleList.add(tuple);
+        if (ls[i] != VoidTypeCode) {
+          // check liveness
+          int cur_idx = elm_idx;
+          OPT_Operand op = OsrPoint.getElement(inst, elm_idx++);
+          OSR_LocalRegPair tuple =
+            new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], op);
+          // put it in the list
+          tupleList.add(tuple);
 
-	  // get another half of a long type operand
-	  if (ls[i] == LongTypeCode) {
-	    OPT_Operand other_op = OsrPoint.getElement(inst, snd_long_idx++);
-	    tuple._otherHalf = 
-	      new OSR_LocalRegPair(OSR_Constants.LOCAL,	i, ls[i], other_op);
+          // get another half of a long type operand
+          if (ls[i] == LongTypeCode) {
+            OPT_Operand other_op = OsrPoint.getElement(inst, snd_long_idx++);
+            tuple._otherHalf = 
+              new OSR_LocalRegPair(OSR_Constants.LOCAL, i, ls[i], other_op);
 
-	  }
-	}
+          }
+        }
       }
  
       /* record maps for stack slots */
       for (int i=0, n=ss.length; i<n; i++) {
-	if (ss[i] != VoidTypeCode) {
-	  OSR_LocalRegPair tuple =
-	    new OSR_LocalRegPair(OSR_Constants.STACK,
-				    i,
-				    ss[i],
-				    OsrPoint.getElement(inst, elm_idx++));
+        if (ss[i] != VoidTypeCode) {
+          OSR_LocalRegPair tuple =
+            new OSR_LocalRegPair(OSR_Constants.STACK,
+                                    i,
+                                    ss[i],
+                                    OsrPoint.getElement(inst, elm_idx++));
  
-	  tupleList.add(tuple);
+          tupleList.add(tuple);
 
-	  if (ss[i] == LongTypeCode) {
-	    tuple._otherHalf = 
-	      new OSR_LocalRegPair(OSR_Constants.STACK,
-				      i,
-				      ss[i],
-	       		      OsrPoint.getElement(inst, snd_long_idx++));
-	  }
-	}
+          if (ss[i] == LongTypeCode) {
+            tuple._otherHalf = 
+              new OSR_LocalRegPair(OSR_Constants.STACK,
+                                      i,
+                                      ss[i],
+                              OsrPoint.getElement(inst, snd_long_idx++));
+          }
+        }
       }
 
       // create OSR_MethodVariables    
       OSR_MethodVariables mvar =
-	new OSR_MethodVariables(typeInfo.methodids[midx],
-				   typeInfo.bcindexes[midx],
-				   tupleList);
+        new OSR_MethodVariables(typeInfo.methodids[midx],
+                                   typeInfo.bcindexes[midx],
+                                   tupleList);
       mvarList.add(mvar);
     }
 

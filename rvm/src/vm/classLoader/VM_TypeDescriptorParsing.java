@@ -48,11 +48,11 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
     <dd>Described in §12.3.3 of the JNI Guide.
      Examples: 
        <ul> 
-	<li>"Z" for boolean<br>
-	<li> "B" for byte
-	<li>"D" for double
-	<li>"Ljava/lang/String;" for java.lang.String
-	<li> "[I" for int[].
+        <li>"Z" for boolean<br>
+        <li> "B" for byte
+        <li>"D" for double
+        <li>"Ljava/lang/String;" for java.lang.String
+        <li> "[I" for int[].
        </ul>
     </dd>
     
@@ -86,14 +86,14 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 public abstract class VM_TypeDescriptorParsing 
   implements VM_ClassLoaderConstants // gets us constants that we use in
-				     // isJavaPrimitive 
+                                     // isJavaPrimitive 
 {
   /** Is the string <code>s</code> a legal name for a Java class or interface?
    * This will take either fully-qualified names or names that are not fully
    * qualified. 
    * <p>
    * @param s The string to check for whether it's a valid name for a Java
-   *	      class.  This is a string of the form, for example:
+   *          class.  This is a string of the form, for example:
    * "<code>java.lang.String</code>" 
    * @return <code>true</code> if <code>s</code> is valid, <code>false</code>
    * otherwise.
@@ -109,22 +109,22 @@ public abstract class VM_TypeDescriptorParsing
   public static boolean isJavaClassName(String s) 
     throws VM_PragmaInterruptible 
   {
-    boolean identStart = true;	// pretend we just saw a .
+    boolean identStart = true;  // pretend we just saw a .
     for (int i = 0; i < s.length(); ++i) {
       char c = s.charAt(i);
       if (identStart) {
-	if (! Character.isJavaIdentifierStart(c))
-	  return false;		// failure to match identifier start.
-	identStart = false;	// on to the next one.
-	continue;
+        if (! Character.isJavaIdentifierStart(c))
+          return false;         // failure to match identifier start.
+        identStart = false;     // on to the next one.
+        continue;
       }
       if (c == '.') {
-	identStart = true;
-	continue;
+        identStart = true;
+        continue;
       }
       /* We have a character that is not the first one of a Java identifier */
       if (!Character.isJavaIdentifierPart(c))
-	return false;
+        return false;
       /* And on we go around the loop */
     }
     // Must not finish by needing the start of another identifier.
@@ -136,7 +136,7 @@ public abstract class VM_TypeDescriptorParsing
    * Takes a character array (i.e., an exploded string) and the indices of the
    * first and last characters of the array that are to be checked. */
   public static boolean isJavaClassNameInternalForm(
-		char val[], int first, int last) 
+                char val[], int first, int last) 
   {
     if (val[first++] != ClassTypeCode) // the L
       return false;
@@ -144,22 +144,22 @@ public abstract class VM_TypeDescriptorParsing
       // malformed("a class ('L') must end in a ';'");
       return false;
 
-    boolean identStart = true;	// pretend we just saw a separator
+    boolean identStart = true;  // pretend we just saw a separator
     for (int i = first; i <= last; ++i) {
       char c = val[i];
       if (identStart) {
-	if (! Character.isJavaIdentifierStart(c))
-	  return false;		// failure to match identifier start.
-	identStart = false;	// on to the next one.
-	continue;
+        if (! Character.isJavaIdentifierStart(c))
+          return false;         // failure to match identifier start.
+        identStart = false;     // on to the next one.
+        continue;
       }
       if (c == '/') {
-	identStart = true;
-	continue;
+        identStart = true;
+        continue;
       }
       /* We have a character that is not the first one of a Java identifier */
       if (!Character.isJavaIdentifierPart(c))
-	return false;
+        return false;
       /* And on we go around the loop */
     }
     // Must not finish by needing the start of another identifier.
@@ -186,14 +186,14 @@ public abstract class VM_TypeDescriptorParsing
 
   public static void validateAsTypeDescriptor(VM_Atom a) 
     throws IllegalArgumentException,
-	   VM_PragmaInterruptible
+           VM_PragmaInterruptible
   {
     try {
       // Atoms are always utf-8.
       String s = a.toUnicodeString();
     } catch (java.io.UTFDataFormatException udfe) {
       IllegalArgumentException iae 
-	= new IllegalArgumentException("The atom in question does not represent a valid UTF8 string, so it's not a type descriptor.");
+        = new IllegalArgumentException("The atom in question does not represent a valid UTF8 string, so it's not a type descriptor.");
       iae.initCause(udfe);
       throw iae;
     }
@@ -204,7 +204,7 @@ public abstract class VM_TypeDescriptorParsing
   */
   public static void validateAsTypeDescriptor(String s) 
     throws IllegalArgumentException,
-	   VM_PragmaInterruptible
+           VM_PragmaInterruptible
   {
     char val[] = s.toCharArray();
     
@@ -215,7 +215,7 @@ public abstract class VM_TypeDescriptorParsing
     // array dimensions precede the rest.
     while (val[i] == '[') {
       if (++i >= val.length)
-	malformed("has just '[' chars", s);
+        malformed("has just '[' chars", s);
     }
     if (VM.VerifyAssertions)     // logically impossible:
       VM._assert(i < val.length);
@@ -223,13 +223,13 @@ public abstract class VM_TypeDescriptorParsing
     if (val[i] == VoidTypeCode && i != 0)
       malformed("can't have an array of void", s);
 
-    if (isJavaPrimitive(val[i]))	{
+    if (isJavaPrimitive(val[i]))        {
       // A primitive should be just 1 char long
       if ( i != val.length - 1)
-	// if this isn't the last character, scream.
-	malformed("nothing should follow the primitive typecode '" 
-		  + Character.toString(val[i]) + "'", s);
-      return;			// otherwise all is well.
+        // if this isn't the last character, scream.
+        malformed("nothing should follow the primitive typecode '" 
+                  + Character.toString(val[i]) + "'", s);
+      return;                   // otherwise all is well.
     }
 
     // logically impossible:
@@ -238,7 +238,7 @@ public abstract class VM_TypeDescriptorParsing
     // All that's left is ClassTypeCode
     if (val[i] != ClassTypeCode)
       malformed("unknown character '"
-		+ Character.toString(val[i]) + "'", s);
+                + Character.toString(val[i]) + "'", s);
     if (!isJavaClassNameInternalForm(val, i, val.length - 1))
       malformed("doesn't end with a valid class name in internal form", s);
   }
@@ -274,7 +274,7 @@ public abstract class VM_TypeDescriptorParsing
     throws IllegalArgumentException
   {
     throw new IllegalArgumentException("Malformed type name"
-		+ ((msg == null ) ? "" : ": " + msg) + ": \"" + typeName + "\"");
+                + ((msg == null ) ? "" : ": " + msg) + ": \"" + typeName + "\"");
   }
 
   // These are test routines you can use to do unit testing on the methods in
@@ -283,7 +283,7 @@ public abstract class VM_TypeDescriptorParsing
 //   public static void main(String[] args) {
 //     for (int i = 0; i < args.length; ++i) {
 //       System.out.println(args[i] + " is " 
-// 			 + (TypeDescriptorParsing.isJavaClassName(args[i]) ? "" : "NOT " ) + "a valid Java class name.");
+//                       + (TypeDescriptorParsing.isJavaClassName(args[i]) ? "" : "NOT " ) + "a valid Java class name.");
 //     }
 //   }
 

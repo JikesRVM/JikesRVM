@@ -48,7 +48,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_DefUse.computeDU(ir);
       GlobalCSE(ir.firstBasicBlockInCodeOrder());
       if (VM.VerifyAssertions)
-	VM._assert(avail.size() == 0, avail.toString());
+        VM._assert(avail.size() == 0, avail.toString());
     }
   }
   
@@ -68,42 +68,42 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     while (!BBend.conforms(inst)) {
       next = inst.nextInstructionInCodeOrder();
       if (!shouldCSE(inst)) {
-	inst = next;
-	continue;
+        inst = next;
+        continue;
       }
       OPT_RegisterOperand result = getResult(inst);
       if (result == null) {
-	inst = next;
-	continue;
+        inst = next;
+        continue;
       }
       int vn = valueNumbers.getValueNumber(result);
       if (vn < 0) {
-	inst = next;
-	continue;
+        inst = next;
+        continue;
       }
       Integer Vn = new Integer(vn);
       OPT_Instruction former = (OPT_Instruction)avail.get(Vn);
       if (former != null) {
-	// instead of trying to repair Heap SSA, we rebuild it after CSE 
-	
-	// relink scalar dependencies
-	OPT_RegisterOperand formerDef = getResult(former);
-	OPT_Register reg = result.register;
-	formerDef.register.setSpansBasicBlock();
-	OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(reg);
-	while (uses.hasMoreElements()) {
-	  OPT_RegisterOperand use = uses.next();
-	  OPT_DefUse.transferUse(use, formerDef);
-	}
-	if (verbose) {
-	  VM.sysWrite("using      " + former + "\n" + "instead of " + 
-		      inst + "\n");
-	}
-	inst.remove();
+        // instead of trying to repair Heap SSA, we rebuild it after CSE 
+        
+        // relink scalar dependencies
+        OPT_RegisterOperand formerDef = getResult(former);
+        OPT_Register reg = result.register;
+        formerDef.register.setSpansBasicBlock();
+        OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(reg);
+        while (uses.hasMoreElements()) {
+          OPT_RegisterOperand use = uses.next();
+          OPT_DefUse.transferUse(use, formerDef);
+        }
+        if (verbose) {
+          VM.sysWrite("using      " + former + "\n" + "instead of " + 
+                      inst + "\n");
+        }
+        inst.remove();
       } 
       else {
-	//if (verbose) VM.sysWrite ("adding ("+b+") ["+vn+"]"+inst+"\n");
-	avail.put(Vn, inst);
+        //if (verbose) VM.sysWrite ("adding ("+b+") ["+vn+"]"+inst+"\n");
+        avail.put(Vn, inst);
       }
       inst = next;
     }
@@ -118,24 +118,24 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     while (!BBend.conforms(inst)) {
       next = inst.nextInstructionInCodeOrder();
       if (!shouldCSE(inst)) {
-	inst = next;
-	continue;
+        inst = next;
+        continue;
       }
       OPT_RegisterOperand result = getResult(inst);
       if (result == null) {
-	inst = next;
-	continue;
+        inst = next;
+        continue;
       }
       int vn = valueNumbers.getValueNumber(result);
       if (vn < 0) {
-	inst = next;
-	continue;
+        inst = next;
+        continue;
       }
       Integer Vn = new Integer(vn);
       OPT_Instruction former = (OPT_Instruction)avail.get(Vn);
       if (former == inst) {
-	avail.remove(Vn);
-	//if (verbose) VM.sysWrite ("removing ("+b+"): "+inst+"\n");
+        avail.remove(Vn);
+        //if (verbose) VM.sysWrite ("removing ("+b+"): "+inst+"\n");
       }
       inst = next;
     }
@@ -162,10 +162,10 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
   boolean shouldCSE (OPT_Instruction inst) {
     
     if ((  inst.isAllocation())
-	|| inst.isDynamicLinkingPoint()
-	|| inst.isLoad()
-	|| inst.isStore()
-	|| inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode)
+        || inst.isDynamicLinkingPoint()
+        || inst.isLoad()
+        || inst.isStore()
+        || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode)
       return false;
     
     switch (inst.operator.opcode) {
@@ -173,7 +173,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case LONG_MOVE_opcode:
       //  OPT_Operand ival = Move.getVal(inst);
       //if (ival instanceof OPT_ConstantOperand)
-      //	return  false;
+      //        return  false;
       // fall through
     case GET_CLASS_OBJECT_opcode:
     case CHECKCAST_opcode:

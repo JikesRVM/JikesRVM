@@ -99,8 +99,8 @@ public final class OPT_StackLocationOperand extends OPT_Operand  {
     if (op instanceof OPT_StackLocationOperand) {
       OPT_StackLocationOperand o2 = (OPT_StackLocationOperand)op;
       return ((o2.isFromTop() == isFromTop()) &&
-	      (o2.getOffset() == getOffset()) && 
-	      (o2.getSize() == getSize()));
+              (o2.getOffset() == getOffset()) && 
+              (o2.getSize() == getSize()));
     } else {
       return false;
     }

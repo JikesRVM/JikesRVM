@@ -53,11 +53,11 @@ public class JikesRVMRunner implements IVMRunner {
   protected boolean askRetry(final String title, final String message) {
     final boolean[] result= new boolean[1];
     Display.getDefault().syncExec(new Runnable() {
-	public void run() {
-	  result[0] = (MessageDialog.openConfirm
-		       (JikesRVMLaunchingPlugin.getActiveWorkbenchShell(), 
-			title, message));
-	}
+        public void run() {
+          result[0] = (MessageDialog.openConfirm
+                       (JikesRVMLaunchingPlugin.getActiveWorkbenchShell(), 
+                        title, message));
+        }
       });
     return result[0];
   }
@@ -101,7 +101,7 @@ public class JikesRVMRunner implements IVMRunner {
 
   protected final static void showErrorDialog(String message, Throwable e) {
     showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.title"),
-		    message, e);
+                    message, e);
   }
 
   protected final static void showErrorDialog(String title, String message, Throwable e) {
@@ -111,32 +111,32 @@ public class JikesRVMRunner implements IVMRunner {
       System.err.println("<<<      DONE       >>>");
     }
     showErrorDialog(title, message, new Status(IStatus.ERROR, 
-					       JikesRVMLaunchingPlugin.getPluginId(), 
-					       0, message, e));
+                                               JikesRVMLaunchingPlugin.getPluginId(), 
+                                               0, message, e));
   }
 
   protected static void showErrorDialog(final String title, 
-					final String message, 
-					final IStatus error) {
+                                        final String message, 
+                                        final IStatus error) {
     Display d = Display.getDefault();
     if (d != null) {
       d.syncExec(new Runnable() {
-	  public void run() {
-	    JikesRVMLaunchingPlugin.errorDialog(JikesRVMLaunchingPlugin.getActiveWorkbenchShell(), 
-						title, message, error);
-	  }
-	});
+          public void run() {
+            JikesRVMLaunchingPlugin.errorDialog(JikesRVMLaunchingPlugin.getActiveWorkbenchShell(), 
+                                                title, message, error);
+          }
+        });
     } else {
       JikesRVMLaunchingPlugin.getDefault().getLog().log(error);
     }
   }
-	
+        
   protected String convertClassPath(String[] cp) {
     int pathCount= 0;
     StringBuffer buf= new StringBuffer();
     for (int i= 0; i < cp.length; i++) {
       if (pathCount > 0) {
-	buf.append(File.pathSeparator);
+        buf.append(File.pathSeparator);
       }
       buf.append(cp[i]);
       pathCount++;
@@ -149,8 +149,8 @@ public class JikesRVMRunner implements IVMRunner {
   }
 
   public void run(VMRunnerConfiguration config, 
-		  ILaunch launch, 
-		  IProgressMonitor monitor) 
+                  ILaunch launch, 
+                  IProgressMonitor monitor) 
     throws CoreException
   {
 
@@ -158,8 +158,8 @@ public class JikesRVMRunner implements IVMRunner {
     if ("".equals(location)) {
       String message= JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.noHome");
       showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.title"), 
-		      message, new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 
-					  0, message, null));
+                      message, new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 
+                                          0, message, null));
       return;
     }
 
@@ -170,7 +170,7 @@ public class JikesRVMRunner implements IVMRunner {
     File binDir = new File(rvmDir, "bin");
     File rvm    = new File(binDir, install().overridingEnv() ? "runrvm" : "rvm");
     String program = rvm.getAbsolutePath();
-		
+                
     Vector arguments = new Vector();
 
     arguments.addElement(program);
@@ -182,7 +182,7 @@ public class JikesRVMRunner implements IVMRunner {
       arguments.add(install().getRvmRoot());
       arguments.add(install().getRvmBuild());
     }
-				
+                                
     //TODO: Look at this crap!
 //      String[] bootCP= config.getBootClassPath();
 //      if (bootCP.length > 0) {
@@ -198,9 +198,9 @@ public class JikesRVMRunner implements IVMRunner {
     // Ensure that the crap we get from config.getVMArguments aren't crap
     String[] vmArgs = validateVMArguments(config.getVMArguments(), install);
     addArguments(vmArgs, arguments);
-		
+                
     arguments.addElement(config.getClassToLaunch());
-		
+                
     String[] programArgs = config.getProgramArguments();
     addArguments(programArgs, arguments);
 
@@ -218,9 +218,9 @@ public class JikesRVMRunner implements IVMRunner {
       String title= JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.title");
       String message= JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.startVM");
       showErrorDialog(title, message, 
-		      new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
-				 JikesRVMLauncherMessages.getString("JikesRVMLauncher.status.startVM"), 
-				 e));
+                      new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
+                                 JikesRVMLauncherMessages.getString("JikesRVMLauncher.status.startVM"), 
+                                 e));
     }
   }
 
@@ -260,44 +260,44 @@ public class JikesRVMRunner implements IVMRunner {
     File pwdir = new File(pwd);
     if (pwdir.isDirectory()) return pwdir;
     throw new CoreException(new Status(IStatus.ERROR, 
-				       JikesRVMLaunchingPlugin.getPluginId(), 
-				       IStatus.ERROR, 
-				       pwdir.getAbsolutePath() + " isn't a directory!", 
-				       null));
+                                       JikesRVMLaunchingPlugin.getPluginId(), 
+                                       IStatus.ERROR, 
+                                       pwdir.getAbsolutePath() + " isn't a directory!", 
+                                       null));
   }
 
   protected Process exec(String[] cmdLine, File workingDirectory) throws CoreException {
     Process p= null;
     try {
       if (workingDirectory == null) {
-	p= Runtime.getRuntime().exec(cmdLine, null);
+        p= Runtime.getRuntime().exec(cmdLine, null);
       } else {
-	p= Runtime.getRuntime().exec(cmdLine, null, workingDirectory);
+        p= Runtime.getRuntime().exec(cmdLine, null, workingDirectory);
       }
     } catch (IOException e) {
       if (p != null) {
-	p.destroy();
+        p.destroy();
       }
       showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMRunner.Exception_starting_process_1"), e);
     } catch (NoSuchMethodError e) {
       //attempting launches on 1.2.* - no ability to set working directory
       
       IStatus status = 
-	new Status(IStatus.ERROR, 
-		   JikesRVMLaunchingPlugin.getPluginId(), 
-		   IJavaLaunchConfigurationConstants.ERR_WORKING_DIRECTORY_NOT_SUPPORTED, 
-		   JikesRVMLauncherMessages.getString
-		   ("JikesRVMRunner.runtime_does_not_support_working_directory_2"), 
-		   e);
+        new Status(IStatus.ERROR, 
+                   JikesRVMLaunchingPlugin.getPluginId(), 
+                   IJavaLaunchConfigurationConstants.ERR_WORKING_DIRECTORY_NOT_SUPPORTED, 
+                   JikesRVMLauncherMessages.getString
+                   ("JikesRVMRunner.runtime_does_not_support_working_directory_2"), 
+                   e);
       IStatusHandler handler = DebugPlugin.getDefault().getStatusHandler(status);
       
       if (handler != null) {
-	Object result = handler.handleStatus(status, this);
-	if (result instanceof Boolean && ((Boolean)result).booleanValue()) {
-	  p= exec(cmdLine, null);
-	}
+        Object result = handler.handleStatus(status, this);
+        if (result instanceof Boolean && ((Boolean)result).booleanValue()) {
+          p= exec(cmdLine, null);
+        }
       }
     }
     return p;
-  }	
+  }     
 }

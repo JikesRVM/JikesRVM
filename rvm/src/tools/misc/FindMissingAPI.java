@@ -64,13 +64,13 @@ public class FindMissingAPI {
       Class newClass = (Class)it.next();
       Class oldClass = (Class)oldClasses.get(newClass.getName());
       try {
-	compare(missingFields, newClass.getFields(), oldClass.getFields(), Field.class);
+        compare(missingFields, newClass.getFields(), oldClass.getFields(), Field.class);
       } catch (Throwable t) {}
       try {
-	compare(missingMethods, newClass.getMethods(), oldClass.getMethods(), Method.class);
+        compare(missingMethods, newClass.getMethods(), oldClass.getMethods(), Method.class);
       } catch (Throwable t) {}
       try {
-	compare(missingConstructors, newClass.getConstructors(), newClass.getConstructors(), Constructor.class);
+        compare(missingConstructors, newClass.getConstructors(), newClass.getConstructors(), Constructor.class);
       } catch (Throwable t) {}
     }
     report(missingFields, "fields");
@@ -103,10 +103,10 @@ public class FindMissingAPI {
       boolean found = false;
       Member newMember = newMembers[i];
       for (int j = 0; j < oldMembers.length; j++) {
-	if (((Boolean)method.invoke(this, new Object[]{newMember, oldMembers[j]})).booleanValue()) {
-	  found = true;
-	  break;
-	}
+        if (((Boolean)method.invoke(this, new Object[]{newMember, oldMembers[j]})).booleanValue()) {
+          found = true;
+          break;
+        }
       }
       if (!found) missing.add(newMember);
     }
@@ -134,7 +134,7 @@ public class FindMissingAPI {
     }
     for (int i = 0; i < cs0.length; i++) {
       if (!equals(cs0[i], cs1[i])) {
-	return false;
+        return false;
       }
     }
     return true;
@@ -149,7 +149,7 @@ public class FindMissingAPI {
   private ClassFinder createClassFinder(String classpath) {
     List pathList = new ArrayList();
     for (StringTokenizer t = new StringTokenizer(classpath, File.pathSeparator, false);
-	 t.hasMoreTokens();) {
+         t.hasMoreTokens();) {
       String path = t.nextToken().trim();
       pathList.add(path);
     }
@@ -165,11 +165,11 @@ public class FindMissingAPI {
     for (int i = 0; i < args.length;) {
       String arg = args[i++];
       if (arg.equals("-old")) {
-	oldClasspath = args[i++];
+        oldClasspath = args[i++];
       } else if (arg.equals("-new")) {
-	newClasspath = args[i++];
+        newClasspath = args[i++];
       } else if (arg.equals("-verbose")) {
-	verbose = true;
+        verbose = true;
       }
     }
 
@@ -194,19 +194,19 @@ public class FindMissingAPI {
 
       // Add the user classpaths
       for (int i = 0; i < paths.length; i++) {
-	this.paths.addAll(separate(paths[i]));
+        this.paths.addAll(separate(paths[i]));
       }
 
       // Add all properties that could be classpaths
       if (useSystemPaths) {
-	Properties props = System.getProperties();
-	for (Enumeration e = props.keys(); e.hasMoreElements();) {
-	  String key = (String)e.nextElement();
-	  String val = props.getProperty(key);
-	  if (val != null && val.indexOf("class") != -1 && val.indexOf("path") != -1) {
-	    this.paths.addAll(separate(val));
-	  }
-	}
+        Properties props = System.getProperties();
+        for (Enumeration e = props.keys(); e.hasMoreElements();) {
+          String key = (String)e.nextElement();
+          String val = props.getProperty(key);
+          if (val != null && val.indexOf("class") != -1 && val.indexOf("path") != -1) {
+            this.paths.addAll(separate(val));
+          }
+        }
       }
       
       // Create the loader to which we delegate
@@ -215,10 +215,10 @@ public class FindMissingAPI {
 
     private Class klass(File path, String className) {
       if (className.indexOf("$") != -1) {
-	return null;
+        return null;
       }
       try {
-	return loader.loadClass(className);
+        return loader.loadClass(className);
       } catch (Throwable e) {} //who cares
       return null;
     }
@@ -228,17 +228,17 @@ public class FindMissingAPI {
       List q = new ArrayList();
       q.add(dir);
       while (!q.isEmpty()) {
-	File file = (File)q.remove(0);
-	if (file == null) {
-	  continue;
-	} else if (file.isDirectory()) {
-	  File[] list = file.listFiles();
-	  for (int i = 0; i < list.length; i++) {
-	    q.add(list[i]);
-	  }
-	} else if (file.getName().endsWith(".class")) {
-	  files.add(file);
-	}
+        File file = (File)q.remove(0);
+        if (file == null) {
+          continue;
+        } else if (file.isDirectory()) {
+          File[] list = file.listFiles();
+          for (int i = 0; i < list.length; i++) {
+            q.add(list[i]);
+          }
+        } else if (file.getName().endsWith(".class")) {
+          files.add(file);
+        }
       }
       return files;
     }
@@ -248,9 +248,9 @@ public class FindMissingAPI {
       // This can throw an IllegalAccess error if a superclass
       // is a punk
       try {
-	if (!Modifier.isPublic(c.getModifiers())) return;
+        if (!Modifier.isPublic(c.getModifiers())) return;
       } catch (Throwable t) {
-	return;
+        return;
       }
       classes.put(c.getName(), c);
     }
@@ -258,40 +258,40 @@ public class FindMissingAPI {
     public Map allClasses() throws Exception {
       Map classes = new HashMap();
       for (Iterator it = paths.iterator(); it.hasNext();) {
-	final File path = (File)it.next();
-	if (path.isDirectory()) {
-	  Collection classFiles = findClassFiles(path);
-	  for (Iterator jt = classFiles.iterator(); jt.hasNext();) {
-	    File classFile = (File)jt.next();
-	    String className = classFile.getName();
-	    int iclass = className.indexOf(".class");
-	    className = className.substring(0, iclass);
-	    for (File trav = classFile.getParentFile(); 
-		 trav != null && !trav.equals(path); 
-		 trav = trav.getParentFile()) {
-	      className = trav.getName() + "." + className;
-	    }
-	    Class c = klass(path, className);
-	    maybeAdd(c, classes);
-	  }
-	} else if (isJarFile(path)) {
-	  try {
-	    JarFile jarFile = new JarFile(path);
-	    for (Enumeration e = jarFile.entries(); e.hasMoreElements();) {
-	      JarEntry jarEntry = (JarEntry)e.nextElement();
-	      String jarEntryName = jarEntry.getName();
-	      if (jarEntryName.endsWith(".class")) {
-		String className = jarEntryName.replace('/', '.');
-		int iclass = className.indexOf(".class");
-		className = className.substring(0, iclass);
-		Class c = klass(path, className);
-		maybeAdd(c, classes);
-	      }
-	    }
-	  } catch (Exception e) {
-	    handle(e,"Trouble with jar " + path);
-	  }
-	}
+        final File path = (File)it.next();
+        if (path.isDirectory()) {
+          Collection classFiles = findClassFiles(path);
+          for (Iterator jt = classFiles.iterator(); jt.hasNext();) {
+            File classFile = (File)jt.next();
+            String className = classFile.getName();
+            int iclass = className.indexOf(".class");
+            className = className.substring(0, iclass);
+            for (File trav = classFile.getParentFile(); 
+                 trav != null && !trav.equals(path); 
+                 trav = trav.getParentFile()) {
+              className = trav.getName() + "." + className;
+            }
+            Class c = klass(path, className);
+            maybeAdd(c, classes);
+          }
+        } else if (isJarFile(path)) {
+          try {
+            JarFile jarFile = new JarFile(path);
+            for (Enumeration e = jarFile.entries(); e.hasMoreElements();) {
+              JarEntry jarEntry = (JarEntry)e.nextElement();
+              String jarEntryName = jarEntry.getName();
+              if (jarEntryName.endsWith(".class")) {
+                String className = jarEntryName.replace('/', '.');
+                int iclass = className.indexOf(".class");
+                className = className.substring(0, iclass);
+                Class c = klass(path, className);
+                maybeAdd(c, classes);
+              }
+            }
+          } catch (Exception e) {
+            handle(e,"Trouble with jar " + path);
+          }
+        }
       }
       return classes;
     }
@@ -305,12 +305,12 @@ public class FindMissingAPI {
     private final URL[] urls(List paths) {
       List urls = new ArrayList();
       for (Iterator it = paths.iterator(); it.hasNext();) {
-	try {
-	  File f = (File)it.next();
-	  urls.add(f.toURL());
-	} catch (Exception e) {
-	  handle(e);
-	}
+        try {
+          File f = (File)it.next();
+          urls.add(f.toURL());
+        } catch (Exception e) {
+          handle(e);
+        }
       }
       return (URL[])urls.toArray(new URL[]{});
     }
@@ -318,11 +318,11 @@ public class FindMissingAPI {
     private final List separate(String path) {
       final List list = new ArrayList();
       if (path == null) {
-	return list;
+        return list;
       }
       for (StringTokenizer t = new StringTokenizer(path, File.pathSeparator);
-	   t.hasMoreTokens();) {
-	list.add(new File(t.nextToken().trim()));
+           t.hasMoreTokens();) {
+        list.add(new File(t.nextToken().trim()));
       }
       return list;
     }
@@ -339,7 +339,7 @@ public class FindMissingAPI {
   
     private void maybeAdd(String className, List list) {
       if (className.indexOf("$") == -1) {
-	list.add(className);
+        list.add(className);
       }
     }
   
@@ -354,22 +354,22 @@ public class FindMissingAPI {
   
     private Class findClass(String className, boolean reportError) {
       try {
-	return findClassHelper(className);
+        return findClassHelper(className);
       } catch (Exception e) {
-	if (reportError) {
-	  handle(e, "");
-	}
+        if (reportError) {
+          handle(e, "");
+        }
       }
       return null;
     }
   
     private Class findClassHelper(String className) throws Exception {
       try {
-	return Class.forName(className);
+        return Class.forName(className);
       } catch (Exception _) {}
       Class klass = loader.loadClass(className);
       if (klass != null) {
-	return klass;
+        return klass;
       }
       return null;
     }

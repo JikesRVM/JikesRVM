@@ -28,7 +28,7 @@ package com.ibm.JikesRVM;
  * @modified Kris Venstermans
  */
 public final class VM_Assembler implements VM_BaselineConstants,
-				    VM_AssemblerConstants {
+                                    VM_AssemblerConstants {
 
   private VM_MachineCode mc;
   private int mIP; // current machine code instruction
@@ -1234,7 +1234,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int TWWItemplate = TWItemplate | 0x3EC<<16;	// RA == 12
+  static final int TWWItemplate = TWItemplate | 0x3EC<<16;      // RA == 12
 
   public final void emitTWWI (int imm) {
     int mi = TWWItemplate | imm;
@@ -1454,17 +1454,17 @@ public final class VM_Assembler implements VM_BaselineConstants,
       VM_CodeArray instructions = mc.getInstructions();
       boolean saved = VM_BaselineCompiler.options.PRINT_MACHINECODE;
       try {
-	VM_BaselineCompiler.options.PRINT_MACHINECODE = false;
-	for (int i = 0; i < instructions.length(); i++) {
-	  VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
-	  VM.sysWrite(" : ");
-	  VM.sysWrite(VM_Services.getHexString(instructions.get(i), false));
-	  VM.sysWrite("  ");
-	  VM.sysWrite(PPC_Disassembler.disasm(instructions.get(i), i << LG_INSTRUCTION_WIDTH));
-	  VM.sysWrite("\n");
-	}
+        VM_BaselineCompiler.options.PRINT_MACHINECODE = false;
+        for (int i = 0; i < instructions.length(); i++) {
+          VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
+          VM.sysWrite(" : ");
+          VM.sysWrite(VM_Services.getHexString(instructions.get(i), false));
+          VM.sysWrite("  ");
+          VM.sysWrite(PPC_Disassembler.disasm(instructions.get(i), i << LG_INSTRUCTION_WIDTH));
+          VM.sysWrite("\n");
+        }
       } finally {
-	VM_BaselineCompiler.options.PRINT_MACHINECODE = saved;
+        VM_BaselineCompiler.options.PRINT_MACHINECODE = saved;
       }
     }
     return mc;
@@ -1832,7 +1832,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int TDWItemplate = TDItemplate | 0x1F<<21 | 0xC<<16;	
+  static final int TDWItemplate = TDItemplate | 0x1F<<21 | 0xC<<16;     
 
   public final void emitTDWI (int SI) {
     if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
@@ -2028,9 +2028,9 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitLAddrOffset(int RT, int RA, int offset) {
       if (VM.BuildFor64Addr) 
-	emitLDoffset(RT, RA, offset);
+        emitLDoffset(RT, RA, offset);
       else 
-	emitLWZoffset(RT, RA, offset);
+        emitLWZoffset(RT, RA, offset);
   }
 
   // -----------------------------------------------------------//
@@ -2064,7 +2064,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     emitLAddr   (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
     emitLInt   ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
     emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
-    emitCMPI ( 0, 0);                                 	 // check if S0 == 0 -> first native frame on stack
+    emitCMPI ( 0, 0);                                    // check if S0 == 0 -> first native frame on stack
     VM_ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
     emitLAddr  ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
@@ -2095,7 +2095,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     public void resolve (VM_Assembler asm) {
       super.resolve(asm);
       if (asm.compiler != null) {
-	asm.compiler.spTopOffset = spTopOffset;
+        asm.compiler.spTopOffset = spTopOffset;
       }
     }
   }

@@ -104,8 +104,8 @@ public class Header extends RCHeader {
       oldValue = VM_Interface.prepareAvailableBits(object);
       if ((oldValue & LOGGING_MASK) == LOGGED) return false;
     } while (((oldValue & LOGGING_MASK) == BEING_LOGGED) ||
-	     !VM_Interface.attemptAvailableBits(object, oldValue, 
-						oldValue | BEING_LOGGED));
+             !VM_Interface.attemptAvailableBits(object, oldValue, 
+                                                oldValue | BEING_LOGGED));
     if (VM_Interface.VerifyAssertions) {
       int value = VM_Interface.readAvailableBitsWord(object);
       VM_Interface._assert((value & LOGGING_MASK) == BEING_LOGGED);
@@ -154,7 +154,7 @@ public class Header extends RCHeader {
    * (false) object?
    */
   public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-					     boolean isScalar, int status)
+                                             boolean isScalar, int status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.WITH_COALESCING_RC) status |= UNLOGGED;
     return status;

@@ -21,7 +21,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  */
 public class VM_Controller implements VM_Callbacks.ExitMonitor,
-			       VM_Callbacks.AppRunCompleteMonitor {
+                               VM_Callbacks.AppRunCompleteMonitor {
 
   /**
    * Signals when the options and (optional) logging mechanism are enabled
@@ -120,10 +120,10 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     // Initialize the controller input queue
     controllerInputQueue = 
       new VM_BlockingPriorityQueue(options.CONTROLLER_INPUT_QUEUE_SIZE,
-				   new VM_BlockingPriorityQueue.CallBack() {
-				       void aboutToWait() { controllerThread.aboutToWait(); }
-				       void doneWaiting() { controllerThread.doneWaiting(); }
-				     });
+                                   new VM_BlockingPriorityQueue.CallBack() {
+                                       void aboutToWait() { controllerThread.aboutToWait(); }
+                                       void doneWaiting() { controllerThread.doneWaiting(); }
+                                     });
 
     compilationQueue = new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
 
@@ -183,7 +183,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     // wait until controller threads are up and running.
     try {
       synchronized(sentinel) {
-	sentinel.wait();
+        sentinel.wait();
       }
     } catch (Exception e) {
       e.printStackTrace();

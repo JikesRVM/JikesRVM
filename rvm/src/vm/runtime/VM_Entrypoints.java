@@ -277,7 +277,7 @@ public class VM_Entrypoints implements VM_Constants {
    * @return corresponding VM_Member object
    */
   private static VM_Member getMember(String classDescriptor, String memberName, 
-				     String memberDescriptor) {
+                                     String memberDescriptor) {
     VM_Atom clsDescriptor = VM_Atom.findOrCreateAsciiAtom(classDescriptor);
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
@@ -301,7 +301,7 @@ public class VM_Entrypoints implements VM_Constants {
     } catch (Exception e) {
       e.printStackTrace();
       VM.sysWrite("VM_Entrypoints.getMember: can't resolve class=" + classDescriptor+
-		  " member=" + memberName + " desc=" + memberDescriptor + "\n");
+                  " member=" + memberName + " desc=" + memberDescriptor + "\n");
       VM._assert(NOT_REACHED);
     }
     return null; // placate jikes
@@ -317,8 +317,8 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static VM_Field getSysCallField(String name) {
     return (VM_Field)getMember("Lcom/ibm/JikesRVM/VM_BootRecord;", 
-			       name+"IP", 
-			       "Lcom/ibm/JikesRVM/VM_Address;");
+                               name+"IP", 
+                               "Lcom/ibm/JikesRVM/VM_Address;");
   }
 
 }

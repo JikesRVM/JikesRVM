@@ -108,8 +108,8 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Kris Venstermans
  */
 public final class VM_ObjectModel implements VM_Uninterruptible, 
-					     VM_JavaHeaderConstants,
-					     VM_SizeConstants {
+                                             VM_JavaHeaderConstants,
+                                             VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
@@ -129,8 +129,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     for (int i = 0, n = fields.length; i < n; ++i) {
       VM_Field field = fields[i];
       if (!field.isStatic()) {
-	int fieldSize = field.getType().getSize();
-	if (fieldSize == BYTES_IN_INT) {
+        int fieldSize = field.getType().getSize();
+        if (fieldSize == BYTES_IN_INT) {
           int emptySlot = klass.getEmptySlot();
           if (emptySlot != 0) {
             field.setOffset(emptySlot);
@@ -210,7 +210,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-			    VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+                            VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     VM_JavaHeader.setTIB(bootImage, refOffset, tibAddr, type);
   }
 
@@ -257,18 +257,18 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Copy a scalar object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-				  int numBytes, VM_Class type, 
-				  int availBitsWord) {
+                                  int numBytes, VM_Class type, 
+                                  int availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type,
-				    availBitsWord);
+                                    availBitsWord);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-				  int numBytes, VM_Array type,
-				  int availBitsWord) {
+                                  int numBytes, VM_Array type,
+                                  int availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
   }
 
@@ -614,8 +614,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @return the offset of object in bootimage (in bytes)
    */
   public static int allocateArray(BootImageInterface bootImage, 
-				  VM_Array array,
-				  int numElements) throws VM_PragmaInterruptible {
+                                  VM_Array array,
+                                  int numElements) throws VM_PragmaInterruptible {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
@@ -668,12 +668,12 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param object the number of the register holding the object reference
    */
   public static void baselineEmitLoadTIB(VM_Assembler asm, 
-					 //-#if RVM_FOR_POWERPC
-					 int dest, int object
-					 //-#elif RVM_FOR_IA32
-					 byte dest, byte object
-					 //-#endif
-					 ) throws VM_PragmaInterruptible {
+                                         //-#if RVM_FOR_POWERPC
+                                         int dest, int object
+                                         //-#elif RVM_FOR_IA32
+                                         byte dest, byte object
+                                         //-#endif
+                                         ) throws VM_PragmaInterruptible {
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 

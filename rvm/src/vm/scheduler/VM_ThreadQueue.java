@@ -94,7 +94,7 @@ public class VM_ThreadQueue
     if (currentThread.isGCThread) {
       head = nextThread;
       if (head == null)
-	tail = null;
+        tail = null;
       currentThread.next = null;
       if (qlock != null) qlock.unlock();
       return currentThread;
@@ -102,12 +102,12 @@ public class VM_ThreadQueue
     
     while (nextThread != null) {
       if (nextThread.isGCThread) {
-	currentThread.next = nextThread.next;
-	if (nextThread == tail)
-	  tail = currentThread;
-	nextThread.next = null;
-	if (qlock != null) qlock.unlock();
-	return nextThread;
+        currentThread.next = nextThread.next;
+        if (nextThread == tail)
+          tail = currentThread;
+        nextThread.next = null;
+        if (qlock != null) qlock.unlock();
+        return nextThread;
       }
       currentThread = nextThread;
       nextThread = nextThread.next;
@@ -139,7 +139,7 @@ public class VM_ThreadQueue
     boolean pastFirst = false;
     for (VM_Thread t = head; t != null; t = t.next) {
       if (pastFirst)
-	VM.sysWrite(" ");
+        VM.sysWrite(" ");
       t.dump();
       pastFirst = true;
     }

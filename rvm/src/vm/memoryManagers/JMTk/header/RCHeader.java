@@ -31,7 +31,7 @@ public class RCHeader extends RCBaseHeader {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-				      boolean isScalar)
+                                      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // all objects are birthed with an RC of INCREMENT
     int initialValue = INCREMENT;
@@ -52,7 +52,7 @@ public class RCHeader extends RCBaseHeader {
    * (false) object?
    */
   public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-					     boolean isScalar, int status)
+                                             boolean isScalar, int status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status;  // do nothing
   }

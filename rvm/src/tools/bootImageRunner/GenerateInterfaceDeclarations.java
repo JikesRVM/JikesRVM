@@ -44,18 +44,18 @@ class GenerateInterfaceDeclarations {
     //
     for (int i = 0, n = args.length; i < n; ++i) {
       if (args[i].equals("-ia")) {              // image address
-	if (++i == args.length) {
-	  System.err.println("Error: The -ia flag requires an argument");
-	  System.exit(-1);
-	}
+        if (++i == args.length) {
+          System.err.println("Error: The -ia flag requires an argument");
+          System.exit(-1);
+        }
         bootImageAddress = Integer.decode(args[i]).intValue();
         continue;
       }
       if (args[i].equals("-out")) {              // output file
-	if (++i == args.length) {
-	  System.err.println("Error: The -out flag requires an argument");
-	  System.exit(-1);
-	}
+        if (++i == args.length) {
+          System.err.println("Error: The -out flag requires an argument");
+          System.exit(-1);
+        }
         outFileName = args[i];
         continue;
       }
@@ -71,12 +71,12 @@ class GenerateInterfaceDeclarations {
       out = System.out;
     } else {
       try {
-	// We'll let an unhandled exception throw an I/O error for us.
-	out = new PrintStream(new FileOutputStream(outFileName));
-	//      System.err.println("We don't support the -out argument yet");
-	//      System.exit(-1);
+        // We'll let an unhandled exception throw an I/O error for us.
+        out = new PrintStream(new FileOutputStream(outFileName));
+        //      System.err.println("We don't support the -out argument yet");
+        //      System.exit(-1);
       } catch (IOException e) {
-	reportTrouble("Caught an exception while opening" + outFileName +" for writing: " + e.toString());
+        reportTrouble("Caught an exception while opening" + outFileName +" for writing: " + e.toString());
       }
     }
 
@@ -87,7 +87,7 @@ class GenerateInterfaceDeclarations {
       reportTrouble("an output error happened");
     }
     //    try {
-      out.close();		// exception thrown up.
+      out.close();              // exception thrown up.
       //    } catch (IOException e) {
       //      reportTrouble("An output error when closing the output: " + e.toString());
       //    }
@@ -139,7 +139,7 @@ class GenerateInterfaceDeclarations {
     pln("#ifdef NEED_GNU_CLASSPATH_VERSION");
     // version of the classpath library from gnu.classpath.configuration
     p("static const char*classpath_version                        = \""
-		     + gnu.classpath.Configuration.CLASSPATH_VERSION +"\";\n");
+                     + gnu.classpath.Configuration.CLASSPATH_VERSION +"\";\n");
     pln("#endif /* NEED_GNU_CLASSPATH_VERSION */");
     pln();
 
@@ -160,10 +160,10 @@ class GenerateInterfaceDeclarations {
     SortableField (VM_Field ff) { f = ff; offset = f.getOffset(); }
     public int compareTo (Object y) {
       if (y instanceof SortableField) {
-	int offset2 = ((SortableField) y).offset;
-	if (offset > offset2) return 1;
-	if (offset < offset2) return -1;
-	return 0;
+        int offset2 = ((SortableField) y).offset;
+        if (offset > offset2) return 1;
+        if (offset < offset2) return -1;
+        return 0;
       }
       return 1;
     }
@@ -177,14 +177,14 @@ class GenerateInterfaceDeclarations {
     int fieldCount = 0;
     for (int i=0; i<allFields.length; i++)
       if (!allFields[i].isStatic())
-	fieldCount++;
+        fieldCount++;
 
     // Sort them in ascending offset order
     //
     SortableField [] fields = new SortableField[fieldCount];
     for (int i=0, j=0; i<allFields.length; i++)
       if (!allFields[i].isStatic())
-	fields[j++] = new SortableField(allFields[i]);
+        fields[j++] = new SortableField(allFields[i]);
     Arrays.sort(fields);
 
     // Set up cursor - scalars will waste 4 bytes on 64-bit arch
@@ -193,9 +193,9 @@ class GenerateInterfaceDeclarations {
     int addrSize = VM.BuildFor32Addr ? 4 : 8;
     int current = fields[0].offset;
     if (needsAlign && ((current & 7) != 0))
-	current -= 4;
+        current -= 4;
     if (current >= 0) 
-	pln("Are scalars no longer backwards?  If so, check this code.");
+        pln("Are scalars no longer backwards?  If so, check this code.");
 
     // Emit field declarations
     //
@@ -207,32 +207,32 @@ class GenerateInterfaceDeclarations {
       String name = field.getName().toString();
       // Align by blowing 4 bytes if needed
       if (needsAlign && current + 4 == offset) {
-	  pln("  uint32_t    padding" + i + ";");
-	  current += 4;
+          pln("  uint32_t    padding" + i + ";");
+          current += 4;
       }
       if (current != offset) 
-	pln("current = " + current + " and offset = " + offset + " are neither identical not differ by 4");
+        pln("current = " + current + " and offset = " + offset + " are neither identical not differ by 4");
       if (t.isIntType()) {
-	current += 4;
-	p("   uint32_t " + name + ";\n");
+        current += 4;
+        p("   uint32_t " + name + ";\n");
       } else if (t.isLongType()) {
-	current += 8;
-	p("   uint64_t " + name + ";\n");
+        current += 8;
+        p("   uint64_t " + name + ";\n");
       } else if (t.isWordType()) {
-	p("   VM_Address " + name + ";\n");
-	current += addrSize;
+        p("   VM_Address " + name + ";\n");
+        current += addrSize;
       } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
-	p("   VM_Address * " + name + ";\n");
-	current += addrSize;
+        p("   VM_Address * " + name + ";\n");
+        current += addrSize;
       } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
-	p("   unsigned int * " + name + ";\n");
-	current += addrSize;
+        p("   unsigned int * " + name + ";\n");
+        current += addrSize;
       } else if (t.isReferenceType()) {
-	p("   JavaObject_t " + name + ";\n");
-	current += addrSize;
+        p("   JavaObject_t " + name + ";\n");
+        current += addrSize;
       } else {
-	System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
-	throw new RuntimeException("unexpected field type");
+        System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
+        throw new RuntimeException("unexpected field type");
       }
     }
 
@@ -304,11 +304,11 @@ class GenerateInterfaceDeclarations {
           // e. g.,
           // sysFOOIP = ((AixLinkageLayout *)&sysFOO)->ip;
           p("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->ip;\n"); 
-	} else {
+        } else {
           // e. g.,
           //sysFOOIP = (int) sysFOO; 
           p("  br->" + fieldName + " = (int) " + functionName + ";\n");
-	}
+        }
       }
 
       suffixIndex = fieldName.indexOf("TOC");
@@ -319,9 +319,9 @@ class GenerateInterfaceDeclarations {
           // e. g.,
           // sysTOC = ((AixLinkageLayout *)&sys)->toc;
           p("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->toc;\n"); 
-	} else {
+        } else {
           p("  br->" + fieldName + " = 0;\n");
-	}
+        }
       }
     }
 
@@ -404,8 +404,8 @@ class GenerateInterfaceDeclarations {
           + VM_Constants.JNI_STACK_TRAP + ";\n");
       p("static const int VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET = "
           + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET + ";\n");
-	  p("static const int VM_Constants_STACKFRAME_ALIGNMENT = "
-		  + VM_Constants.STACKFRAME_ALIGNMENT + " ;\n");
+          p("static const int VM_Constants_STACKFRAME_ALIGNMENT = "
+                  + VM_Constants.STACKFRAME_ALIGNMENT + " ;\n");
     }
     //-#endif
 
@@ -430,9 +430,9 @@ class GenerateInterfaceDeclarations {
       p("static const int VM_Constants_STACKFRAME_BODY_OFFSET             = "
           + VM_Constants.STACKFRAME_BODY_OFFSET + ";\n");
       p("static const int VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET   = "
-	  + VM_Constants.STACKFRAME_RETURN_ADDRESS_OFFSET   + ";\n");    
+          + VM_Constants.STACKFRAME_RETURN_ADDRESS_OFFSET   + ";\n");    
       p("static const int VM_Constants_RVM_TRAP_BASE  = "
-	  + VM_Constants.RVM_TRAP_BASE   + ";\n");    
+          + VM_Constants.RVM_TRAP_BASE   + ";\n");    
     }
     //-#endif
 
@@ -455,7 +455,7 @@ class GenerateInterfaceDeclarations {
     // values in VM_ObjectModel
     //
     pln("static const int VM_ObjectModel_ARRAY_LENGTH_OFFSET = " + 
-		       VM_ObjectModel.getArrayLengthOffset() + "\n;");
+                       VM_ObjectModel.getArrayLengthOffset() + "\n;");
 
     // values in VM_Scheduler
     //
@@ -468,7 +468,7 @@ class GenerateInterfaceDeclarations {
     // values in VM_ThreadEventConstants
     //
     p("static const double VM_ThreadEventConstants_WAIT_INFINITE = " +
-	VM_ThreadEventConstants.WAIT_INFINITE + ";\n");
+        VM_ThreadEventConstants.WAIT_INFINITE + ";\n");
 
     // values in VM_ThreadIOQueue
     //
@@ -483,21 +483,21 @@ class GenerateInterfaceDeclarations {
     // values in VM_ThreadIOConstants
     //
     p("static const int VM_ThreadIOConstants_FD_READY = " +
-	VM_ThreadIOConstants.FD_READY + ";\n");
+        VM_ThreadIOConstants.FD_READY + ";\n");
     p("static const int VM_ThreadIOConstants_FD_READY_BIT = " +
-	VM_ThreadIOConstants.FD_READY_BIT + ";\n");
+        VM_ThreadIOConstants.FD_READY_BIT + ";\n");
     p("static const int VM_ThreadIOConstants_FD_INVALID = " +
-	VM_ThreadIOConstants.FD_INVALID + ";\n");
+        VM_ThreadIOConstants.FD_INVALID + ";\n");
     p("static const int VM_ThreadIOConstants_FD_INVALID_BIT = " +
-	VM_ThreadIOConstants.FD_INVALID_BIT + ";\n");
+        VM_ThreadIOConstants.FD_INVALID_BIT + ";\n");
     p("static const int VM_ThreadIOConstants_FD_MASK = " +
-	VM_ThreadIOConstants.FD_MASK + ";\n");
+        VM_ThreadIOConstants.FD_MASK + ";\n");
     p("\n");
 
     // values in VM_ThreadProcessWaitQueue
     //
     p("static const int VM_ThreadProcessWaitQueue_PROCESS_FINISHED = " +
-	VM_ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
+        VM_ThreadProcessWaitQueue.PROCESS_FINISHED + ";\n");
 
     // values in VM_Runtime
     //
@@ -563,29 +563,29 @@ class GenerateInterfaceDeclarations {
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
     p("static const int VM_Processor_activeThreadStackLimit_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.pthreadIDField.getOffset();
     p("static const int VM_Processor_pthread_id_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.epochField.getOffset();
     p("static const int VM_Processor_epoch_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.activeThreadField.getOffset();
     p("static const int VM_Processor_activeThread_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.threadIdField.getOffset();
     p("static const int VM_Processor_threadId_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     //-#if RVM_FOR_IA32
     offset = VM_Entrypoints.framePointerField.getOffset();
     p("static const int VM_Processor_framePointer_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.jtocField.getOffset();
     p("static const int VM_Processor_jtoc_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
     p("static const int VM_Processor_arrayIndexTrapParam_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     //-#endif
 
     // fields in VM_Thread
@@ -596,10 +596,10 @@ class GenerateInterfaceDeclarations {
     p("static const int VM_Thread_stackLimit_offset = " + offset + ";\n");
     offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
     p("static const int VM_Thread_hardwareExceptionRegisters_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.jniEnvField.getOffset();
     p("static const int VM_Thread_jniEnv_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
 
     // fields in VM_Registers
     //
@@ -620,7 +620,7 @@ class GenerateInterfaceDeclarations {
 
     offset = VM_Entrypoints.registersInUseField.getOffset();
     p("static const int VM_Registers_inuse_offset = " + 
-		     offset + ";\n");
+                     offset + ";\n");
 
     // fields in VM_JNIEnvironment
     offset = VM_Entrypoints.JNIExternalFunctionsField.getOffset();
@@ -631,24 +631,24 @@ class GenerateInterfaceDeclarations {
     //
     offset = VM_Entrypoints.inetAddressAddressField.getOffset();
     p("static const int java_net_InetAddress_address_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
     p("static const int java_net_InetAddress_family_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
 
     // fields in java.net.SocketImpl
     //
     offset = VM_Entrypoints.socketImplAddressField.getOffset();
     p("static const int java_net_SocketImpl_address_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
     offset = VM_Entrypoints.socketImplPortField.getOffset();
     p("static const int java_net_SocketImpl_port_offset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
 
     // fields in com.ibm.JikesRVM.memoryManagers.JMTk.BasePlan
     offset = VM_Entrypoints.gcStatusField.getOffset();
     p("static const int com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = "
-		     + offset + ";\n");
+                     + offset + ";\n");
   }
 
 
@@ -674,14 +674,14 @@ class GenerateInterfaceDeclarations {
       pln(".set FP,"   + VM_BaselineConstants.FP);
       pln(".set JTOC," + VM_BaselineConstants.JTOC);
       pln(".set PROCESSOR_REGISTER,"    
-	  + VM_BaselineConstants.PROCESSOR_REGISTER);
+          + VM_BaselineConstants.PROCESSOR_REGISTER);
       pln(".set S0,"   + VM_BaselineConstants.S0);
       pln(".set T0,"   + VM_BaselineConstants.T0);
       pln(".set T1,"   + VM_BaselineConstants.T1);
       pln(".set T2,"   + VM_BaselineConstants.T2);
       pln(".set T3,"   + VM_BaselineConstants.T3);
       pln(".set STACKFRAME_NEXT_INSTRUCTION_OFFSET," 
-	  + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+          + VM_Constants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
 
       if (!VM.BuildForAix) 
         pln(".set T4,"   + (VM_BaselineConstants.T3 + 1));
@@ -692,10 +692,10 @@ class GenerateInterfaceDeclarations {
     //-#if RVM_FOR_IA32
     if (VM.BuildForIA32) {
       p("#define JTOC %" 
-	+ VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.JTOC]
+        + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.JTOC]
           + ";\n");
       p("#define PR %"   
-	+ VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.ESI]
+        + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.ESI]
           + ";\n");
     }
     //-#endif

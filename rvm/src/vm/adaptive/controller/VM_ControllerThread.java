@@ -95,8 +95,8 @@ class VM_ControllerThread extends VM_Thread {
     // Repeat forever.
     while (true) {
       if (VM_Controller.options.EARLY_EXIT &&
-	  VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
-	VM_Controller.stop();
+          VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
+        VM_Controller.stop();
       }
       Object event = VM_Controller.controllerInputQueue.deleteMin();
       ((VM_ControllerInputEvent)event).process();
@@ -107,14 +107,14 @@ class VM_ControllerThread extends VM_Thread {
   // and signal the sentinel object.
   private void controllerInitDone() {
     for (Enumeration e = VM_Controller.organizers.elements(); 
-	 e.hasMoreElements(); ) {
+         e.hasMoreElements(); ) {
       VM_Organizer o = (VM_Organizer)e.nextElement();
       o.start();
     }
 
     try {
       synchronized(sentinel) {
-	sentinel.notify();
+        sentinel.notify();
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -163,9 +163,9 @@ class VM_ControllerThread extends VM_Thread {
 
     if (opts.GATHER_PROFILE_DATA) {
       VM_MethodListener methodListener = 
-	new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
+        new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
       VM_Organizer methodOrganizer = 
-	new VM_AccumulatingMethodSampleOrganizer(methodListener);
+        new VM_AccumulatingMethodSampleOrganizer(methodListener);
       VM_Controller.organizers.addElement(methodOrganizer);
     }
   }
@@ -183,22 +183,22 @@ class VM_ControllerThread extends VM_Thread {
 
       // Instal organizer to drive method recompilation 
       VM_MethodListener methodListener = 
-	new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
+        new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
       VM_Organizer methodOrganizer = 
-	new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
+        new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
       VM_Controller.organizers.addElement(methodOrganizer);
 
       // Decay runtime measurement data 
       if (opts.ADAPTIVE_INLINING) {
-	VM_Organizer decayOrganizer = 
-	  new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
-	VM_Controller.organizers.addElement(decayOrganizer);
+        VM_Organizer decayOrganizer = 
+          new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
+        VM_Controller.organizers.addElement(decayOrganizer);
       }
     
       if (opts.ADAPTIVE_INLINING) {
-	VM_Organizer AIOrganizer = 
-	  new VM_AIByEdgeOrganizer(new VM_EdgeListener());
-	VM_Controller.organizers.addElement(AIOrganizer);
+        VM_Organizer AIOrganizer = 
+          new VM_AIByEdgeOrganizer(new VM_EdgeListener());
+        VM_Controller.organizers.addElement(AIOrganizer);
       }
     }    
 

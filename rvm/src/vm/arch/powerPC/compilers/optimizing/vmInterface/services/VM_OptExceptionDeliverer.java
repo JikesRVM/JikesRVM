@@ -21,9 +21,9 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   public void deliverException(VM_CompiledMethod cm, 
-			VM_Address catchBlockInstructionAddress, 
-			Throwable exceptionObject, 
-			VM_Registers registers) {
+                        VM_Address catchBlockInstructionAddress, 
+                        Throwable exceptionObject, 
+                        VM_Registers registers) {
 
     // store exception object for later retrieval by catch block
     VM_OptCompiledMethod compiledMethod = (VM_OptCompiledMethod)cm;
@@ -60,17 +60,17 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     int firstInteger = compiledMethod.getFirstNonVolatileGPR();
     if (firstInteger >= 0) {
       for (int i = firstInteger; i < 32; i++) {
-	registers.gprs.set(i, VM_Magic.getMemoryWord(fp.add(frameOffset)));
-	frameOffset += 4;
+        registers.gprs.set(i, VM_Magic.getMemoryWord(fp.add(frameOffset)));
+        frameOffset += 4;
       }
     }
     int firstFloat = compiledMethod.getFirstNonVolatileFPR();
     if (firstFloat >= 0) {
       frameOffset = (frameOffset + 7) & ~7;  // align pointer for doubles
       for (int i = firstFloat; i < 32; i++) {
-	long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
-	registers.fprs[i] = VM_Magic.longBitsAsDouble(temp);
-	frameOffset += 8;
+        long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
+        registers.fprs[i] = VM_Magic.longBitsAsDouble(temp);
+        frameOffset += 8;
       }
     }
 

@@ -28,8 +28,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * The deprecated datagram usage is not supported and will throw 
    * an exception.
    *
-   * @param		streaming	true, if the socket is type streaming
-   * @exception	SocketException	if error while creating the socket
+   * @param             streaming       true, if the socket is type streaming
+   * @exception SocketException if error while creating the socket
    */
   protected synchronized void create(boolean streaming) throws SocketException {
     this.streaming = streaming;
@@ -37,13 +37,13 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       int ifd = VM_SysCall.sysNetSocketCreate(1);
 
       if (ifd < 0) {
-	throw new SocketException(); 
+        throw new SocketException(); 
       } else {
-	// Note that the file descriptor creation hook 
-	// (in VM_FileSystem.java) will take care of setting 
-	// the socket fd to nonblocking mode.
-	VM_FileSystem.onCreateFileDescriptor(ifd, false);
-	native_fd = ifd;
+        // Note that the file descriptor creation hook 
+        // (in VM_FileSystem.java) will take care of setting 
+        // the socket fd to nonblocking mode.
+        VM_FileSystem.onCreateFileDescriptor(ifd, false);
+        native_fd = ifd;
       }
     } else {
       throw new VM_UnimplementedError("non-streaming sockets");
@@ -68,12 +68,12 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Connects this socket to the specified remote host address/port.
    *
-   * @author		OTI
-   * @version		initial
+   * @author            OTI
+   * @version           initial
    *
-   * @param		address		the remote host address to connect to
-   * @param		port		the remote port to connect to
-   * @exception	IOException	if an error occurs while connecting
+   * @param             address         the remote host address to connect to
+   * @param             port            the remote port to connect to
+   * @exception IOException     if an error occurs while connecting
    */
   protected synchronized void connect(InetAddress remoteAddr, int remotePort)
     throws IOException {
@@ -97,7 +97,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     address |= ((ip[2] << BITS_IN_BYTE) & 0xff00);
     address |= ((ip[1] << (2*BITS_IN_BYTE)) & 0xff0000);
     address |= ((ip[0] << (3*BITS_IN_BYTE)) & 0xff000000); 
-	
+        
     int rc = VM_SysCall.sysNetSocketBind(native_fd, family, address, localPort);
     if (rc != 0) throw new IOException();
 
@@ -110,8 +110,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * nominated by backlog.  Additional requests are rejected.
    * listen() may only be invoked on stream sockets.
    *
-   * @param		backlog		the max number of outstanding connection requests
-   * @exception	IOException	thrown if an error occurs while listening
+   * @param             backlog         the max number of outstanding connection requests
+   * @exception IOException     thrown if an error occurs while listening
    *
    */
   protected synchronized void listen(int backlog) throws java.io.IOException {
@@ -123,8 +123,8 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Accepts a connection on the provided socket, by calling the IP stack.
    *
-   * @param		newImpl	the socket to accept connections on
-   * @exception	SocketException	if an error occurs while accepting
+   * @param             newImpl the socket to accept connections on
+   * @exception SocketException if an error occurs while accepting
    */
   protected synchronized void accept(SocketImpl newImpl) throws IOException {
     JikesRVMSocketImpl newSocket = (JikesRVMSocketImpl)newImpl;
@@ -148,49 +148,49 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     while (true) {
       // Try to accept a connection
       VM_ThreadIOQueue.selectInProgressMutex.lock();
-	    
+            
       connectionFd = VM_SysCall.sysNetSocketAccept(native_fd, newSocket);
       VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
       if (connectionFd >= 0)
-	// Got a connection
-	break;
+        // Got a connection
+        break;
 
       switch (connectionFd) {
       case -1:
-	// accept() was interrupted; try again
-	continue;
+        // accept() was interrupted; try again
+        continue;
       case -2: {
-	// accept() would have blocked:
-	// Wait for the fd to become ready.
-	if (VM.VerifyAssertions)
-	  VM._assert(!hasTimeout || totalWaitTime >= 0.0);
+        // accept() would have blocked:
+        // Wait for the fd to become ready.
+        if (VM.VerifyAssertions)
+          VM._assert(!hasTimeout || totalWaitTime >= 0.0);
 
-	VM_ThreadIOWaitData waitData = 
-	  VM_Wait.ioWaitRead(native_fd, totalWaitTime);
-		
-	// Check for exceptions (including timeout)
-	checkIoWaitRead(waitData);
-		
-	// Update timeout, and make sure it hasn't become negative
-	// (which the IO queue treats as infinite).
-	if (hasTimeout) {
-	  double nextWaitStartTime = now();
-	  totalWaitTime -= (nextWaitStartTime - waitStartTime);
-	  if (totalWaitTime < 0.0)
-	    throw new SocketTimeoutException("socket operation timed out");
-	  waitStartTime = nextWaitStartTime;
-	}
-		
-	continue;
+        VM_ThreadIOWaitData waitData = 
+          VM_Wait.ioWaitRead(native_fd, totalWaitTime);
+                
+        // Check for exceptions (including timeout)
+        checkIoWaitRead(waitData);
+                
+        // Update timeout, and make sure it hasn't become negative
+        // (which the IO queue treats as infinite).
+        if (hasTimeout) {
+          double nextWaitStartTime = now();
+          totalWaitTime -= (nextWaitStartTime - waitStartTime);
+          if (totalWaitTime < 0.0)
+            throw new SocketTimeoutException("socket operation timed out");
+          waitStartTime = nextWaitStartTime;
+        }
+                
+        continue;
       }
 
       default:
-	// Some kind of error from accept()
-	throw new SocketException("accept failed");
+        // Some kind of error from accept()
+        throw new SocketException("accept failed");
       }
     }
-	
+        
     // Note that sysNetSocketAccept fills in the InetAddress
     // in the new socket (family, and integer address); and
     // the port field.  In the unlikely event that someone
@@ -198,7 +198,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     // this value in the object (see InetAddress.getHostName() )
     // reset the host value.
     java.net.JikesRVMSupport.setHostName(newSocket.getInetAddress(), null);
-	
+        
     // Success!
     // Note that the file descriptor creation hook (in VM_FileSystem.java)
     // will take care of setting the socket fd to nonblocking mode.
@@ -217,38 +217,38 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Answer the socket input stream.
    *
-   * @return		InputStream	an InputStream on the socket
-   * @exception	IOException	thrown if an error occurs while accessing the stream
+   * @return            InputStream     an InputStream on the socket
+   * @exception IOException     thrown if an error occurs while accessing the stream
    */
   protected synchronized InputStream getInputStream() throws IOException {
     return new InputStream() {
-	private boolean closed = false;
+        private boolean closed = false;
 
-	public int available() throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  return JikesRVMSocketImpl.this.available();
-	}
+        public int available() throws IOException {
+          if (closed) throw new IOException("stream closed");
+          return JikesRVMSocketImpl.this.available();
+        }
 
-	public void close() throws IOException {
-	  closed = true;
-	}
+        public void close() throws IOException {
+          closed = true;
+        }
 
-	public int read() throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  byte[] buffer = new byte[1];
-	  int result = JikesRVMSocketImpl.this.read(buffer, 0, 1);
-	  return (-1 == result)? result : ((int)buffer[0])&0xFF;
-	}
+        public int read() throws IOException {
+          if (closed) throw new IOException("stream closed");
+          byte[] buffer = new byte[1];
+          int result = JikesRVMSocketImpl.this.read(buffer, 0, 1);
+          return (-1 == result)? result : ((int)buffer[0])&0xFF;
+        }
 
-	public int read(byte[] buffer) throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  return JikesRVMSocketImpl.this.read(buffer, 0, buffer.length);
-	}
+        public int read(byte[] buffer) throws IOException {
+          if (closed) throw new IOException("stream closed");
+          return JikesRVMSocketImpl.this.read(buffer, 0, buffer.length);
+        }
 
-	public int read(byte[] buf, int off, int len) throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  return JikesRVMSocketImpl.this.read(buf, off, len);
-	}
+        public int read(byte[] buf, int off, int len) throws IOException {
+          if (closed) throw new IOException("stream closed");
+          return JikesRVMSocketImpl.this.read(buf, off, len);
+        }
 
       };
   }
@@ -256,47 +256,47 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Answer the socket output stream.
    *
-   * @return		OutputStream	an OutputStream on the socket
-   * @exception	IOException	thrown if an error occurs while accessing the stream
+   * @return            OutputStream    an OutputStream on the socket
+   * @exception IOException     thrown if an error occurs while accessing the stream
    */
   protected synchronized OutputStream getOutputStream() throws IOException {
     return new OutputStream() {
-	private boolean closed = false;
+        private boolean closed = false;
 
-	public void write (int b) throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  byte[] buffer = new byte[]{ (byte)b };
-	  JikesRVMSocketImpl.this.write(buffer, 0, 1);
-	}
+        public void write (int b) throws IOException {
+          if (closed) throw new IOException("stream closed");
+          byte[] buffer = new byte[]{ (byte)b };
+          JikesRVMSocketImpl.this.write(buffer, 0, 1);
+        }
 
-	public void write (byte[] b) throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  JikesRVMSocketImpl.this.write(b, 0, b.length);
-	}
+        public void write (byte[] b) throws IOException {
+          if (closed) throw new IOException("stream closed");
+          JikesRVMSocketImpl.this.write(b, 0, b.length);
+        }
 
-	public void write (byte[] b, int off, int len) throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  JikesRVMSocketImpl.this.write(b, off, len);
-	}
+        public void write (byte[] b, int off, int len) throws IOException {
+          if (closed) throw new IOException("stream closed");
+          JikesRVMSocketImpl.this.write(b, off, len);
+        }
 
-	public void flush () throws IOException {
-	  if (closed) throw new IOException("stream closed");
-	  VM_FileSystem.sync( native_fd );
-	}
+        public void flush () throws IOException {
+          if (closed) throw new IOException("stream closed");
+          VM_FileSystem.sync( native_fd );
+        }
 
-	public void close () throws IOException {
-	  closed = true;
-	}
+        public void close () throws IOException {
+          closed = true;
+        }
 
       };
-  }	   
+  }        
 
   /**
    * Answer the number of bytes that may be read from this
    * socket without blocking.  This call does not block.
    *
-   * @return		int		the number of bytes that may be read without blocking
-   * @exception	SocketException	if an error occurs while peeking
+   * @return            int             the number of bytes that may be read without blocking
+   * @exception SocketException if an error occurs while peeking
    */
   protected synchronized int available() throws IOException {
     return VM_FileSystem.bytesAvailable(native_fd);
@@ -305,7 +305,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Close the socket.  Usage thereafter is invalid.
    *
-   * @exception	IOException	if an error occurs while closing
+   * @exception IOException     if an error occurs while closing
    */
   protected synchronized void close() throws IOException {
     if (native_fd != -1) {
@@ -364,24 +364,24 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * Set the nominated socket option.  Receive timeouts are maintained
    * in Java, rather than in the JNI code.
    *
-   * @param		optID		the socket option to set
-   * @param		val			the option value
-   * @exception	SocketException	thrown if an error occurs while setting the option
+   * @param             optID           the socket option to set
+   * @param             val                     the option value
+   * @exception SocketException thrown if an error occurs while setting the option
    */
   public synchronized void setOption(int optID, Object val) throws SocketException {
     switch (optID) {
     case SocketOptions.SO_LINGER: {
       if (val instanceof Integer) {
-	// when socket is closed on this end, wait until unsent 
-	// data has been received by other end or timeout expires
-	//
-	int rc = VM_SysCall.sysNetSocketLinger(native_fd, 1, ((Integer)val).intValue());
-	if (rc == -1) throw new SocketException("SO_LINGER");
+        // when socket is closed on this end, wait until unsent 
+        // data has been received by other end or timeout expires
+        //
+        int rc = VM_SysCall.sysNetSocketLinger(native_fd, 1, ((Integer)val).intValue());
+        if (rc == -1) throw new SocketException("SO_LINGER");
       } else {
-	// when socket is closed on this end, discard any unsent data
-	//
-	int rc = VM_SysCall.sysNetSocketLinger(native_fd, 0, 0);
-	if (rc == -1) throw new SocketException("SO_LINGER");
+        // when socket is closed on this end, discard any unsent data
+        //
+        int rc = VM_SysCall.sysNetSocketLinger(native_fd, 0, 0);
+        if (rc == -1) throw new SocketException("SO_LINGER");
       }
     } break;
 
@@ -395,7 +395,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       // true:  send data immediately when socket is written to
       // false: delay sending, in order to coalesce packets
       int rc = VM_SysCall.sysNetSocketNoDelay(native_fd,
-					      ((Boolean)val).booleanValue() ? 1 : 0);
+                                              ((Boolean)val).booleanValue() ? 1 : 0);
 
       if (rc == -1) throw new SocketException("setTcpNoDelay");
     } break;
@@ -413,9 +413,9 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * Answer the nominated socket option.  Receive timeouts are maintained
    * in Java, rather than in the JNI code.
    *
-   * @param		optID		the socket option to retrieve
-   * @return		Object		the option value
-   * @exception	SocketException	thrown if an error occurs while accessing the option
+   * @param             optID           the socket option to retrieve
+   * @return            Object          the option value
+   * @exception SocketException thrown if an error occurs while accessing the option
    */
   public synchronized Object getOption(int optID) throws SocketException {
     if (optID == SocketOptions.SO_TIMEOUT) {
@@ -455,15 +455,15 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    */
   private static void checkIoWaitRead(VM_ThreadIOWaitData waitData)
     throws SocketException, SocketTimeoutException {
-	
+        
     // Did the wait return because it timed out?
     if (waitData.timedOut())
       throw new SocketTimeoutException("socket operation timed out");
-	
+        
     // Is file descriptor actually valid?
     if ((waitData.readFds[0] & VM_ThreadIOConstants.FD_INVALID_BIT) != 0)
       throw new SocketException("invalid socket file descriptor");
-	
+        
   }
     
   /**
@@ -472,15 +472,15 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    */
   private static void checkIoWaitWrite(VM_ThreadIOWaitData waitData)
     throws SocketException, SocketTimeoutException {
-	
+        
     // Did the wait return because it timed out?
     if (waitData.timedOut())
       throw new SocketTimeoutException("socket operation timed out");
-	
+        
     // Is file descriptor actually valid?
     if ((waitData.writeFds[0] & VM_ThreadIOConstants.FD_INVALID_BIT) != 0)
       throw new SocketException("invalid socket file descriptor");
-	
+        
   }
 
   /**
@@ -497,13 +497,13 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * This method assumes the sender has verified the host with
    * the security policy.
    *
-   * @param		host		the remote host to connect to
-   * @param		port		the remote port to connect to
+   * @param             host            the remote host to connect to
+   * @param             port            the remote port to connect to
    * @param           timeout         a timeout in milliseconds
-   * @exception	IOException	if an error occurs while connecting
+   * @exception IOException     if an error occurs while connecting
    */
   private void connectInternal(InetAddress remoteAddr, int remotePort, 
-			       int timeout) throws IOException {
+                               int timeout) throws IOException {
     int rc = -1;
 
     double totalWaitTime = (timeout > 0)
@@ -511,7 +511,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
       : VM_ThreadEventConstants.WAIT_INFINITE;
 
     byte[] ip = remoteAddr.getAddress();
-	
+        
     int family = java.net.JikesRVMSupport.getFamily(remoteAddr);
        
     int address;
@@ -519,41 +519,41 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     address |= ((ip[2] << BITS_IN_BYTE) & 0xff00);
     address |= ((ip[1] << (2*BITS_IN_BYTE)) & 0xff0000);
     address |= ((ip[0] << (3*BITS_IN_BYTE)) & 0xff000000); 
-	
+        
     while (rc < 0) {
       VM_ThreadIOQueue.selectInProgressMutex.lock();
       rc = VM_SysCall.sysNetSocketConnect(native_fd, 
-					  family,
-					  address,
-					  remotePort);
+                                          family,
+                                          address,
+                                          remotePort);
       VM_ThreadIOQueue.selectInProgressMutex.unlock();
 
       switch (rc) {
       case 0 : // success
-	this.address = remoteAddr;
-	this.port = remotePort;
-	break;
-		
+        this.address = remoteAddr;
+        this.port = remotePort;
+        break;
+                
       case -1 : // operation interrupted by timer tick - retry
-	Thread.currentThread().yield();
-	break;
+        Thread.currentThread().yield();
+        break;
              
       case -2 :  // operation would have blocked
-	VM_ThreadIOWaitData waitData = 
-	  VM_Wait.ioWaitWrite(native_fd, totalWaitTime);
+        VM_ThreadIOWaitData waitData = 
+          VM_Wait.ioWaitWrite(native_fd, totalWaitTime);
 
-	checkIoWaitWrite(waitData);
-	break;
+        checkIoWaitWrite(waitData);
+        break;
 
       case -4 : // errno was ECONNREFUSED
-	throw new ConnectException("Connection refused");
+        throw new ConnectException("Connection refused");
 
       case -5 : // errno was EHOSTUNREACH
-	throw new NoRouteToHostException();
-		
+        throw new NoRouteToHostException();
+                
       case -3 :
       default :
-	throw new IOException("rc="+rc);
+        throw new IOException("rc="+rc);
       }
     }
   } 
@@ -565,11 +565,11 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
    * If the timeout is zero, block indefinitely waiting
    * for data, otherwise wait the specified period (in milliseconds).
    *
-   * @param		buffer		the buffer to read into
-   * @param		offset		the offset into the buffer
-   * @param		count		the max number of bytes to read
-   * @return		int		the actual number of bytes read
-   * @exception	IOException	thrown if an error occurs while reading
+   * @param             buffer          the buffer to read into
+   * @param             offset          the offset into the buffer
+   * @param             count           the max number of bytes to read
+   * @return            int             the actual number of bytes read
+   * @exception IOException     thrown if an error occurs while reading
    */
   synchronized int read(byte[] buffer, int offset, int count) throws IOException {
     if (count == 0) return 0;
@@ -577,14 +577,14 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
     double totalWaitTime = (receiveTimeout > 0)
       ? ((double) receiveTimeout) / 1000.0
       : VM_ThreadEventConstants.WAIT_INFINITE;
-	
+        
     int rc;
     try {
       rc = VM_FileSystem.readBytes(native_fd, buffer, offset, count, totalWaitTime);
     } catch (VM_TimeoutException e) {
       throw new SocketTimeoutException("socket receive timed out");
     }
-	
+        
     return (rc == 0) ? -1 : rc;
   }
 
@@ -603,15 +603,15 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   static void boot() {
     try {
       Socket.setSocketImplFactory(new SocketImplFactory() {
-	  public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
-	});
+          public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
+        });
       ServerSocket.setSocketFactory(new SocketImplFactory() {
-	  public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
-	});
+          public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
+        });
       DatagramSocket.setDatagramSocketImplFactory(new DatagramSocketImplFactory() {
-	  public DatagramSocketImpl createDatagramSocketImpl() { 
-	    throw new VM_UnimplementedError ("Need to implement JikesRVMDatagramSocketImpl");
-	  }});
+          public DatagramSocketImpl createDatagramSocketImpl() { 
+            throw new VM_UnimplementedError ("Need to implement JikesRVMDatagramSocketImpl");
+          }});
     } catch (java.io.IOException e) {
       VM.sysFail("trouble setting socket impl factories");
     }

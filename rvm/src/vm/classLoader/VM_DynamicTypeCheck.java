@@ -105,13 +105,13 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       tsi = new short[size];
       VM_Type p;                          
       if (t.isArrayType() || t.asClass().isInterface()) {
-	p = VM_Type.JavaLangObjectType;
+        p = VM_Type.JavaLangObjectType;
       } else {
-	p = t.asClass().getSuperClass();
+        p = t.asClass().getSuperClass();
       }
       short[] psi = p.getSuperclassIds();
       for (int i=0; i<depth; i++) {
-	tsi[i] = psi[i];
+        tsi[i] = psi[i];
       }
     }
     int id = t.getId();
@@ -180,13 +180,13 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     } else {
       int[] parent = t.getSuperClass().getDoesImplement();
       for (int j=0; j<parent.length; j++) {
-	mine[j] |= parent[j];
+        mine[j] |= parent[j];
       }
     }
     for (int i=0; i<superInterfaces.length; i++) {
       int[] parent = superInterfaces[i].getDoesImplement();
       for (int j=0; j<parent.length; j++) {
-	mine[j] |= parent[j];
+        mine[j] |= parent[j];
       }
     }
     
@@ -272,7 +272,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
       VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
       if (RHSInnermostElementType.isPrimitiveType()) return false;
       return instanceOfNonArray(LHSInnermostElementType.asClass(), 
-				RHSInnermostElementType.getTypeInformationBlock());
+                                RHSInnermostElementType.getTypeInformationBlock());
     } else {
       return false;
     }

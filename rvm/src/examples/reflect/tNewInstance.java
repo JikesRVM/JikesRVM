@@ -16,7 +16,7 @@ class tNewInstance {
          Class klass = Class.forName("OnlyPrivateConstructor");
          Object o = klass.newInstance(); 
       } catch (IllegalAccessException e2) {
-	 e2.printStackTrace();
+         e2.printStackTrace();
          System.out.println("Test SUCCEEDED");
          return;
       } catch (Exception e) {

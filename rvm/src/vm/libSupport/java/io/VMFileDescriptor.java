@@ -43,21 +43,21 @@ final class VMFileDescriptor {
   static long nativeOpen(String path, String mode) throws IOException {
       int fd;
       if ("r".equals(mode))
-	  fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_READ);
+          fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_READ);
       else if ("w".equals(mode))
-	  fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_WRITE);
+          fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_WRITE);
       else if ("rw".equals(mode)||"rwd".equals(mode)||"rws".equals(mode))
-	  fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_MODIFY);
+          fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_MODIFY);
       else if ("ra".equals(mode)||"a".equals(mode))
-	  fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_APPEND);
+          fd = VM_FileSystem.open(path, VM_FileSystem.OPEN_APPEND);
       else
-	  fd = -1;
+          fd = -1;
 
       if (fd == -1)
-	  throw new IOException("Could not create/open file " + path);
+          throw new IOException("Could not create/open file " + path);
       else {
-	  VM_FileSystem.onCreateFileDescriptor(fd, false);
-	  return fd;
+          VM_FileSystem.onCreateFileDescriptor(fd, false);
+          return fd;
       }
   }
 
@@ -137,9 +137,9 @@ final class VMFileDescriptor {
   {
       int bytesRead = VM_FileSystem.readBytes((int)fd, buf, offset, len);
       if (bytesRead == 0 && len != 0)
-	  return -1; // EOF
+          return -1; // EOF
       else
-	  return bytesRead;
+          return bytesRead;
   }
 
   /**

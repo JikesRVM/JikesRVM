@@ -59,14 +59,14 @@ public class SharedDeque extends Deque
       // Add to the tail of the queue
       setNext(buf, VM_Address.zero());
       if (tail.isZero())
-	head = buf;
+        head = buf;
       else
-	setNext(tail, buf);
+        setNext(tail, buf);
       tail = buf;
     } else {
       // Add to the head of the queue
       if (head.isZero())
-	tail = buf;
+        tail = buf;
       setNext(buf, head);
       head = buf;
     } 
@@ -151,21 +151,21 @@ public class SharedDeque extends Deque
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(tail.isZero());
       // no buffers available
       if (waiting) {
-	setNumClientsWaiting(numClientsWaiting + 1);
-	if (numClientsWaiting == numClients)
-	  setCompletionFlag(1);
+        setNumClientsWaiting(numClientsWaiting + 1);
+        if (numClientsWaiting == numClients)
+          setCompletionFlag(1);
       }
     } else {
       // dequeue the head buffer
       rtn = head;
       setHead(getNext(head));
       if (tail.EQ(rtn)) {
-	setTail(VM_Address.zero());
-	if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero());
+        setTail(VM_Address.zero());
+        if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero());
       }
       bufsenqueued--;
       if (waiting)
-	setNumClientsWaiting(numClientsWaiting - 1);
+        setNumClientsWaiting(numClientsWaiting - 1);
     }
     unlock();
     return rtn;

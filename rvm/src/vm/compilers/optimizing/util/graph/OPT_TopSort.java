@@ -78,28 +78,28 @@ public class OPT_TopSort extends OPT_Stack {
       // saved the state of the enumeration in the loop below
       Enumeration enum = nodeEnum[node.getNumber()];
       if (enum == null) {
-	// mark node as visited
-	node.setSortMarker(sortMarker);
-	if (forward) {
-	  enum = node.getOutNodes();
-	} 
-	else {
-	  enum = node.getInNodes();
-	}
+        // mark node as visited
+        node.setSortMarker(sortMarker);
+        if (forward) {
+          enum = node.getOutNodes();
+        } 
+        else {
+          enum = node.getInNodes();
+        }
       }
 
       while (enum.hasMoreElements()) {
-	OPT_SortedGraphNode target = 
-	  (OPT_SortedGraphNode) enum.nextElement();
+        OPT_SortedGraphNode target = 
+          (OPT_SortedGraphNode) enum.nextElement();
 
-	// have we visited target?
-	if (target.getSortMarker() != sortMarker) {
-	  // simulate a recursive call
-	  // but first save the enumeration state for resumption later
-	  nodeEnum[node.getNumber()] = enum;
-	  push(target);
-	  continue recurse;  
-	}
+        // have we visited target?
+        if (target.getSortMarker() != sortMarker) {
+          // simulate a recursive call
+          // but first save the enumeration state for resumption later
+          nodeEnum[node.getNumber()] = enum;
+          push(target);
+          continue recurse;  
+        }
       }
 
       // give node the next smallest number

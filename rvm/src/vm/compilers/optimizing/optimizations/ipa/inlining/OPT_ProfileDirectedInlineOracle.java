@@ -46,15 +46,15 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
       // (2b) We have a single hot edge in the profile data for this call site
       VM_Method callee = targets[0];
       if (state.getHasPreciseTarget() && callee != originalCallee) {
-	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
-	return OPT_InlineDecision.NO("AI: mismatch between computed target and profile data");
+        recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
+        return OPT_InlineDecision.NO("AI: mismatch between computed target and profile data");
       }
       if (!viableCandidate(caller, callee, state)) {
-	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
-	return OPT_InlineDecision.NO("AI: candidate judged to be nonviable");
+        recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
+        return OPT_InlineDecision.NO("AI: candidate judged to be nonviable");
       }
       if (state.getHasPreciseTarget()) {
-	return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
+        return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
       } 
       VM_Method staticCallee = state.obtainTarget();
       // Critical section: must prevent class hierarchy from changing while
@@ -82,33 +82,33 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     } else {
       // (2c) We have multiple hot edges to consider.
       if (state.getHasPreciseTarget()) {
-	for (int i=0; i<targets.length; i++) {
-	  if (targets[i] == originalCallee) {
-	    if (viableCandidate(caller, targets[i], state)) {
-	      return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
-	    }
-	  }
-	}
-	for (int i=0; i<targets.length; i++) {
-	  recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, targets[i]);
-	}
-	return OPT_InlineDecision.NO("AI: multiple hot edges, but none match computed target");
+        for (int i=0; i<targets.length; i++) {
+          if (targets[i] == originalCallee) {
+            if (viableCandidate(caller, targets[i], state)) {
+              return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
+            }
+          }
+        }
+        for (int i=0; i<targets.length; i++) {
+          recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, targets[i]);
+        }
+        return OPT_InlineDecision.NO("AI: multiple hot edges, but none match computed target");
       } else {
-	if (!opts.GUARDED_INLINE) 
-	  return OPT_InlineDecision.NO("AI: guarded inlining disabled");
-	int viable = 0;
-	for (int i=0; i<targets.length; i++) {
-	  if (viableCandidate(caller, targets[i], state)) {
-	    viable++;
-	  } else {
-	    recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, targets[i]);
-	    targets[i] = null;
-	  }
-	}
-	if (viable > 0) {
-	  VM_Method[] viableTargets = new VM_Method[viable];
-	  byte[] guards = new byte[viable];
-	  viable = 0;
+        if (!opts.GUARDED_INLINE) 
+          return OPT_InlineDecision.NO("AI: guarded inlining disabled");
+        int viable = 0;
+        for (int i=0; i<targets.length; i++) {
+          if (viableCandidate(caller, targets[i], state)) {
+            viable++;
+          } else {
+            recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, targets[i]);
+            targets[i] = null;
+          }
+        }
+        if (viable > 0) {
+          VM_Method[] viableTargets = new VM_Method[viable];
+          byte[] guards = new byte[viable];
+          viable = 0;
           // Critical section: must prevent class hierarchy from changing while
           // we are inspecting it to determine how/whether to do the guard
           synchronized(VM_Class.OptCLDepManager) {
@@ -120,17 +120,17 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
             }
           }
           return OPT_InlineDecision.guardedYES(viableTargets, 
-					       guards,
-					       "AI: viable hot edge(s) found");
-	} else {
-	  return OPT_InlineDecision.NO("AI: all candidates judged to be nonviable");
-	}
+                                               guards,
+                                               "AI: viable hot edge(s) found");
+        } else {
+          return OPT_InlineDecision.NO("AI: all candidates judged to be nonviable");
+        }
       }
     }
   }
 
   protected boolean viableCandidate(VM_Method caller, VM_Method callee, 
-				    OPT_CompilationState state) {
+                                    OPT_CompilationState state) {
     // TODO: for now, don't inline recursively
     OPT_InlineSequence seq = state.getSequence();
     if (seq.containsMethod(callee)) return false;
@@ -178,26 +178,26 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     }
     return false;
   }
-	      
+              
   
   protected OPT_InlineDecision shouldInlineInternal(VM_Method caller, 
-						    VM_Method callee, 
-						    OPT_CompilationState state,
-						    int inlinedSizeEstimate)  {
+                                                    VM_Method callee, 
+                                                    OPT_CompilationState state,
+                                                    int inlinedSizeEstimate)  {
     OPT_OptimizingCompilerException.UNREACHABLE();
     return null; // placate jikes.
   }
 
   protected OPT_InlineDecision shouldInlineInterfaceInternal(VM_Method caller, 
-							     VM_Method callee, 
-							     OPT_CompilationState state) {
+                                                             VM_Method callee, 
+                                                             OPT_CompilationState state) {
     OPT_OptimizingCompilerException.UNREACHABLE();
     return null; // placate jikes.
   }
 
   protected OPT_InlineDecision shouldInlineAbstractMethodInternal(VM_Method caller, 
-								  VM_Method callee, 
-								  OPT_CompilationState state) {
+                                                                  VM_Method callee, 
+                                                                  OPT_CompilationState state) {
     OPT_OptimizingCompilerException.UNREACHABLE();
     return null; // placate jikes.
   }

@@ -89,12 +89,12 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_IntConstantOperand) &&
-	   (value == ((OPT_IntConstantOperand)op).value);
+           (value == ((OPT_IntConstantOperand)op).value);
   }
 
   public boolean equals(Object o) {
     return (o instanceof OPT_IntConstantOperand) &&
-	   (value == ((OPT_IntConstantOperand)o).value);
+           (value == ((OPT_IntConstantOperand)o).value);
   }
 
   public int hashCode() {

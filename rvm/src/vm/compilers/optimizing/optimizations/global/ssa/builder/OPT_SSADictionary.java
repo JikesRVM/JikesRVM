@@ -45,7 +45,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    *                             name for heap arrays)
    */
   OPT_SSADictionary (Set heapTypes, boolean uphi, boolean insertPEIDeps,
-		     OPT_IR ir) {
+                     OPT_IR ir) {
     this.heapTypes = heapTypes;
     this.uphi = uphi;
     this.insertPEIDeps = insertPEIDeps;
@@ -556,28 +556,28 @@ public final class OPT_SSADictionary implements OPT_Operators {
   public void registerInstruction (OPT_Instruction s, OPT_BasicBlock b) {
     if (!s.isImplicitLoad() && !s.isImplicitStore() && !s.isAllocation()
         && s.operator() != PHI
-	&& !(insertPEIDeps
-	     && (s.isPEI()
-		 || Label.conforms(s)
-		 || BBend.conforms(s)
-		 || s.operator.opcode == UNINT_BEGIN_opcode
-		 || s.operator.opcode == UNINT_END_opcode)))
+        && !(insertPEIDeps
+             && (s.isPEI()
+                 || Label.conforms(s)
+                 || BBend.conforms(s)
+                 || s.operator.opcode == UNINT_BEGIN_opcode
+                 || s.operator.opcode == UNINT_END_opcode)))
       return;
     // handled by registerUnknown
     if (s.isDynamicLinkingPoint()) 
       return;
     switch (s.getOpcode()) {
       case LABEL_opcode: // only reached if insertPEIDeps
-	labelHelper (s, b);
-	break;
+        labelHelper (s, b);
+        break;
       case BBEND_opcode: // only reached if insertPEIDeps
-	bbendHelper (s, b);
-	break;
+        bbendHelper (s, b);
+        break;
       case UNINT_BEGIN_opcode: // only reached if insertPEIDeps
       case UNINT_END_opcode: // only reached if insertPEIDeps
-	registerUse (s, exceptionState);
-	registerDef (s, b, exceptionState);
-	break;
+        registerUse (s, exceptionState);
+        registerDef (s, b, exceptionState);
+        break;
       case GETFIELD_opcode:
         getFieldHelper(s, b);
         break;
@@ -645,7 +645,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
           System.out.println("SSA dictionary failed on " + s.toString());
           throw  new OPT_OperationNotImplementedException(
                                                           "OPT_SSADictionary: Unsupported opcode " + s);
-	}
+        }
     }           // switch
     if (insertPEIDeps) {
       if (s.isImplicitStore()) addExceptionStateToUses(s);
@@ -885,10 +885,10 @@ public final class OPT_SSADictionary implements OPT_Operators {
     // filter out it now  -- Feng
     if (type.isArrayType()) { 
       if (!type.getArrayElementType().isPrimitiveType())
-	type = VM_TypeReference.JavaLangObjectArray;
+        type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
       if (uphi)
-	registerDef(s, b, type);
+        registerDef(s, b, type);
     }
   }
 
@@ -908,7 +908,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
     // filter out it now  -- Feng
     if (type.isArrayType()) {
       if (!type.getArrayElementType().isPrimitiveType())
-	type = VM_TypeReference.JavaLangObjectArray;
+        type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
       registerDef(s, b, type);
     }
@@ -929,7 +929,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
     // filter out it now  -- Feng
     if (type.isArrayType()) {
       if (!type.getArrayElementType().isPrimitiveType())
-	type = VM_TypeReference.JavaLangObjectArray;
+        type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
     }
   }
@@ -1048,8 +1048,8 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param t the type of the heap variable the instruction modifies
    */
   private void registerDef (OPT_Instruction s, 
-			    OPT_BasicBlock b, 
-			    VM_TypeReference t) {
+                            OPT_BasicBlock b, 
+                            VM_TypeReference t) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
@@ -1088,9 +1088,9 @@ public final class OPT_SSADictionary implements OPT_Operators {
       // SSA for these types.  So, ignore uses of types that are
       // not included in the set
       if (heapTypes != null) {
-	if (!heapTypes.contains(f)) {
-	  return;
-	}
+        if (!heapTypes.contains(f)) {
+          return;
+        }
       }
       H = findOrCreateHeapVariable(f);
     }
@@ -1122,9 +1122,9 @@ public final class OPT_SSADictionary implements OPT_Operators {
       // SSA for these types.  So, ignore uses of types that are
       // not included in the set
       if (heapTypes != null) {
-	if (!heapTypes.contains(f)) {
-	  return;
-	}
+        if (!heapTypes.contains(f)) {
+          return;
+        }
       }
       H = findOrCreateHeapVariable(f);
     }

@@ -95,7 +95,7 @@ public class VM_Synchronization implements VM_Uninterruptible {
   }
 
   public static final VM_Address fetchAndAddAddressWithBound(Object base, int offset, 
-							     int increment, VM_Address bound) throws VM_PragmaInline {
+                                                             int increment, VM_Address bound) throws VM_PragmaInline {
     VM_Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
@@ -107,7 +107,7 @@ public class VM_Synchronization implements VM_Uninterruptible {
   }
 
   public static final VM_Address fetchAndSubAddressWithBound(Object base, int offset, 
-							     int decrement, VM_Address bound) throws VM_PragmaInline {
+                                                             int decrement, VM_Address bound) throws VM_PragmaInline {
     VM_Address oldValue, newValue;
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {

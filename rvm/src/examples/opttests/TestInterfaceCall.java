@@ -107,8 +107,8 @@ class TestInterfaceCall
     
     TestInterfaceD tid = new TestInterfaceD();
     if (!((tid instanceof InterfaceBaz) && 
-	  (tid instanceof InterfaceFoo) && 
-	  (!(tid instanceof InterfaceBar)))) {
+          (tid instanceof InterfaceFoo) && 
+          (!(tid instanceof InterfaceBar)))) {
       testSuccess = false;
       System.out.print("\n Expected value: true, true, false;  Returned value: ");
       System.out.print((new TestInterfaceD() instanceof InterfaceBaz) + ", "); // true
@@ -118,8 +118,8 @@ class TestInterfaceCall
     
     TestInterfaceE tie = new TestInterfaceE();
     if (!((tie instanceof InterfaceBaz) && 
-	  (tie instanceof InterfaceFoo) && 
-	  (!(tie instanceof InterfaceBar)))) {
+          (tie instanceof InterfaceFoo) && 
+          (!(tie instanceof InterfaceBar)))) {
       testSuccess = false;
       System.out.print("\n Expected value: true, true, false;  Returned value: ");
       System.out.print((new TestInterfaceE() instanceof InterfaceBaz) + ", "); // true

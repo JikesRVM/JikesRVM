@@ -41,8 +41,8 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
      // Don't insert counters in uninterruptible methods, 
      // the boot image, or when instrumentation is disabled
      if (!ir.method.isInterruptible() ||
-	 ir.method.getDeclaringClass().isInBootImage() ||
-	 !VM_Instrumentation.instrumentationEnabled())
+         ir.method.getDeclaringClass().isInBootImage() ||
+         !VM_Instrumentation.instrumentationEnabled())
        return;
 
      // Get the data object that handles the counters
@@ -53,14 +53,14 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
      // are modified as we iterate below.
      Vector bbList = new Vector();
      for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
-	  bbe.hasMoreElements(); ) {
+          bbe.hasMoreElements(); ) {
        OPT_BasicBlock bb = bbe.next();
        bbList.add(bb);
      }
      
      // Iterate through the basic blocks
      for (Enumeration e = bbList.elements();
-	  e.hasMoreElements(); ) {
+          e.hasMoreElements(); ) {
        OPT_BasicBlock bb = (OPT_BasicBlock) e.nextElement();
        
        // Add instructions to vector so enumeration doesn't mess
@@ -69,52 +69,52 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
        Vector iList = new Vector();
        OPT_Instruction i = bb.firstInstruction();
        while (i!=null && i!=bb.lastInstruction()) {
-	 iList.add(i);
-	 i = i.nextInstructionInCodeOrder();
+         iList.add(i);
+         i = i.nextInstructionInCodeOrder();
        }
        
        // Iterate through all the instructions in this block.
        for (Enumeration instructions = iList.elements();
-	    instructions.hasMoreElements();) {
-	 i = (OPT_Instruction) instructions.nextElement();
+            instructions.hasMoreElements();) {
+         i = (OPT_Instruction) instructions.nextElement();
 
-	 // Skip dangerous instructions
-	 if (i.operator() == LABEL ||
-	     Prologue.conforms(i))
-	   continue;
-	 
-	 if (i.isBranch() || 
-	     i.operator() == RETURN) {
-	   
-	   // It's a branch, so you need to be careful how you insert the 
-	   // counter.
-	   OPT_Instruction prev = i.prevInstructionInCodeOrder();
-	   
-	   // If the instruction above this branch is also a branch,
-	   // then we can't instrument as-is because a basic block
-	   // must end with branches only.  Solve by splitting block.
-	   if (prev.isBranch()) {
-	     OPT_BasicBlock newBlock = bb.splitNodeWithLinksAt(prev,ir);
-	     bb.recomputeNormalOut(ir);
-	   }
-	   
-	   // Use the name of the operator as the name of the event
-	   OPT_Instruction counterInst = data.
-	     getCounterInstructionForEvent(i.operator().toString());
-	   
-	   // Insert the new instruction into the code order
-	   i.insertBefore(counterInst);      
-	 }
-	 else {
-	   // It's a non-branching instruction.  Insert counter before
-	   // the instruction.
-	   
-	   // Use the name of the operator as the name of the event
-	   OPT_Instruction counterInst = data.
-	     getCounterInstructionForEvent(i.operator().toString());
+         // Skip dangerous instructions
+         if (i.operator() == LABEL ||
+             Prologue.conforms(i))
+           continue;
+         
+         if (i.isBranch() || 
+             i.operator() == RETURN) {
+           
+           // It's a branch, so you need to be careful how you insert the 
+           // counter.
+           OPT_Instruction prev = i.prevInstructionInCodeOrder();
+           
+           // If the instruction above this branch is also a branch,
+           // then we can't instrument as-is because a basic block
+           // must end with branches only.  Solve by splitting block.
+           if (prev.isBranch()) {
+             OPT_BasicBlock newBlock = bb.splitNodeWithLinksAt(prev,ir);
+             bb.recomputeNormalOut(ir);
+           }
+           
+           // Use the name of the operator as the name of the event
+           OPT_Instruction counterInst = data.
+             getCounterInstructionForEvent(i.operator().toString());
+           
+           // Insert the new instruction into the code order
+           i.insertBefore(counterInst);      
+         }
+         else {
+           // It's a non-branching instruction.  Insert counter before
+           // the instruction.
+           
+           // Use the name of the operator as the name of the event
+           OPT_Instruction counterInst = data.
+             getCounterInstructionForEvent(i.operator().toString());
 
-	     i.insertBefore(counterInst);
-	 }
+             i.insertBefore(counterInst);
+         }
        }
      }
    }

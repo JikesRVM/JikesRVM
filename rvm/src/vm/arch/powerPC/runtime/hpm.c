@@ -34,18 +34,18 @@
 #include <sys/processor.h>
 #include "hpm.h"
 
-pm_info_t Myinfo;	/* machine specific services */
+pm_info_t Myinfo;       /* machine specific services */
 
 pm_groups_info_t My_group_info;
-pm_prog_t getprog;	/* storage to get events and mode */
-pm_prog_t setprog;	/* storage to set events and mode */
+pm_prog_t getprog;      /* storage to get events and mode */
+pm_prog_t setprog;      /* storage to set events and mode */
 pm_data_t mydata;
 
 int threadapi = 0;
 
-int init_enabled      = 0;	/* 1 after hpm_init is called and MyInfo initialized */
-int get_data_enabled  = 0;	/* 1 after call to get_data */
-int set_event_enabled = 0;	/* 1 after hpm_set_program_mythread is called, 0 after hpm_delete_program_mythread is called */
+int init_enabled      = 0;      /* 1 after hpm_init is called and MyInfo initialized */
+int get_data_enabled  = 0;      /* 1 after call to get_data */
+int set_event_enabled = 0;      /* 1 after hpm_set_program_mythread is called, 0 after hpm_delete_program_mythread is called */
 
 
 int debug = 0;
@@ -55,7 +55,7 @@ int debug = 0;
  * This routine initializes the Performance Monitor APIs, and 
  * must be called before any other API calls can be made.
  * If filter == PM_UNVERIFIED, accept anything.  Other alternatives are:
- *	PM_VERIFIED, PM_CAVEAT
+ *      PM_VERIFIED, PM_CAVEAT
  * This routine sets the Myinfo data structure, which can then be referenced later.
  * Called once per machine.
  * Sets fields of setprog to default values
@@ -252,11 +252,11 @@ hpm_set_event(int e1, int e2, int e3, int e4)
     evp += Myinfo.maxevents[i] - 1;
     
     if ((setprog.events[i] < COUNT_NOTHING) || 
-	(setprog.events[i] > evp->event_id)) {
+        (setprog.events[i] > evp->event_id)) {
       fprintf(stderr,"Event %d is invalid in counter %d\n", 
-	      setprog.events[i], i+1);
+              setprog.events[i], i+1);
       exit(ERROR_CODE);
-    }		
+    }           
   }
 
   set_event_enabled = 1;
@@ -316,11 +316,11 @@ hpm_set_event_X(int e5, int e6, int e7, int e8)
     evp += Myinfo.maxevents[i] - 1;
     
     if ((setprog.events[i] < COUNT_NOTHING) || 
-	(setprog.events[i] > evp->event_id)) {
+        (setprog.events[i] > evp->event_id)) {
       fprintf(stderr,"Event %d is invalid in counter %d\n", 
-	      setprog.events[i], i+1);
+              setprog.events[i], i+1);
       exit(ERROR_CODE);
-    }		
+    }           
   }
 
   set_event_enabled = 1;
@@ -369,7 +369,7 @@ hpm_set_mode(int mode)
   }
   if(debug>=1){
     fprintf(stdout,"hpm_set_mode(%d) translate to %d(0X%x)\n",
-	    mode,setprog.mode.b,setprog.mode.b);
+            mode,setprog.mode.b,setprog.mode.b);
     fflush(stdout);
   }  
   return (OK_CODE);
@@ -438,7 +438,7 @@ hpm_get_event_id(int counter)
   */
   if (Myinfo.maxpmcs <= counter) {
     fprintf(stderr,"***hpm.hpm_get_event_id(%d) called with counter value %d > max counters %d!***",
-	    counter, counter, Myinfo.maxpmcs);
+            counter, counter, Myinfo.maxpmcs);
     exit(-1);
   }
   evid = setprog.events[counter];  // event number
@@ -459,7 +459,7 @@ hpm_get_event_short_name(int counter)
 
   if (Myinfo.maxpmcs <= counter) {
     fprintf(stderr,"***hpm.hpm_get_event_short_name(%d) called with counter value %d > max counters %d!***",
-	    counter, counter, Myinfo.maxpmcs);
+            counter, counter, Myinfo.maxpmcs);
     exit(-1);
   }
   if(debug>=1)fprintf(stdout,"hpm_get_event_short_name(%d)\n",counter);
@@ -480,7 +480,7 @@ hpm_get_event_short_name(int counter)
     for (i = 0; i < Myinfo.maxevents[counter]; i++) {
       evp = Myinfo.list_events[counter]+i;
       if (evid == evp->event_id) {
-	break;
+        break;
       }
     }
     if(debug>=1){
@@ -609,7 +609,7 @@ hpm_stop_mythread()
   }
   /* counters disabled */
   get_data_enabled = 0;
-  return(OK_CODE);	
+  return(OK_CODE);      
 }
 /*
  * Stops hpm counting for mygroup.
@@ -628,7 +628,7 @@ hpm_stop_mygroup()
   }
   /* counters disabled */
   get_data_enabled = 0;
-  return(OK_CODE);	
+  return(OK_CODE);      
 }
 
 /*
@@ -777,7 +777,7 @@ hpm_list_all_events()
 
   n_counters = Myinfo.maxpmcs;
   fprintf(stdout,"hpm.hpm_list_all_events() list events associated with %d counter\n",
-	  n_counters);
+          n_counters);
   for (i=0; i< n_counters; i++) {
     events = Myinfo.list_events[i];
     n_events = Myinfo.maxevents[i];
@@ -797,11 +797,11 @@ hpm_list_all_events()
 int
 print_data(pm_data_t *data)
 {
-	int j;
+        int j;
 
-	for (j=0; j<Myinfo.maxpmcs; j++) 
-		fprintf(stdout, "%-8lld  ", data->accu[j]); 
-	fprintf(stdout, "\n");
+        for (j=0; j<Myinfo.maxpmcs; j++) 
+                fprintf(stdout, "%-8lld  ", data->accu[j]); 
+        fprintf(stdout, "\n");
 }
 
 
@@ -825,7 +825,7 @@ hpm_print_mythread()
   hpm_print_events();
   print_data(&mydata);
   
-  return(OK_CODE);	
+  return(OK_CODE);      
 }
 /*
  * Print hardware performance monitors values for mygroup.
@@ -847,51 +847,51 @@ hpm_print_mygroup()
   hpm_print_events();
   print_data(&mydata);
   
-  return(OK_CODE);	
+  return(OK_CODE);      
 }
 
 int
 print_header(pm_mode_t mode, int threadapi)
 {
-	char mode_str[20];
-	int thresh_value;
+        char mode_str[20];
+        int thresh_value;
 
-	fprintf(stdout,"*** Configuration :\n");
-	if ( mode.b.user && mode.b.kernel )
-		sprintf(mode_str, "%s", "kernel and user");
-	else if (mode.b.user)
-		sprintf(mode_str, "%s", "user only");
-	else if (mode.b.kernel)
-		sprintf(mode_str, "%s", "kernel only");
+        fprintf(stdout,"*** Configuration :\n");
+        if ( mode.b.user && mode.b.kernel )
+                sprintf(mode_str, "%s", "kernel and user");
+        else if (mode.b.user)
+                sprintf(mode_str, "%s", "user only");
+        else if (mode.b.kernel)
+                sprintf(mode_str, "%s", "kernel only");
 
-	fprintf(stdout, "Mode = %s; ", mode_str);
+        fprintf(stdout, "Mode = %s; ", mode_str);
 
-	if (!threadapi) {
-		fprintf(stdout,"Process tree = ");
-		if (mode.b.proctree)
-			fprintf(stdout,"on; ");
-		else
-			fprintf(stdout,"off; ");
-	}
-	else {
-		fprintf(stdout,"Process group = ");
-		if (mode.b.process)
-			fprintf(stdout,"on; ");
-		else
-			fprintf(stdout,"off; ");
-	}
-	fprintf(stderr,"Group events = ");
-	if (mode.b.is_group)
-	  fprintf(stderr,"on; ");
-	else
-	  fprintf(stderr,"off; ");
+        if (!threadapi) {
+                fprintf(stdout,"Process tree = ");
+                if (mode.b.proctree)
+                        fprintf(stdout,"on; ");
+                else
+                        fprintf(stdout,"off; ");
+        }
+        else {
+                fprintf(stdout,"Process group = ");
+                if (mode.b.process)
+                        fprintf(stdout,"on; ");
+                else
+                        fprintf(stdout,"off; ");
+        }
+        fprintf(stderr,"Group events = ");
+        if (mode.b.is_group)
+          fprintf(stderr,"on; ");
+        else
+          fprintf(stderr,"off; ");
 
-	fprintf(stdout,"Thresholding = ");
-	if (mode.b.threshold > 0) 
-		fprintf(stdout,"%d cycles (adjusted)\n", 
-			mode.b.threshold * Myinfo.thresholdmult);
-	else
-		fprintf(stdout,"off \n"); 
+        fprintf(stdout,"Thresholding = ");
+        if (mode.b.threshold > 0) 
+                fprintf(stdout,"%d cycles (adjusted)\n", 
+                        mode.b.threshold * Myinfo.thresholdmult);
+        else
+                fprintf(stdout,"off \n"); 
 }
 
 /*
@@ -946,10 +946,10 @@ hpm_list_selected_events()
     else {
       /* find pointer to the event */
       for (j = 0; j < Myinfo.maxevents[i]; j++) {
-	evp = Myinfo.list_events[i]+j;
-	if (event_id == evp->event_id) {
-	  break;
-	}
+        evp = Myinfo.list_events[i]+j;
+        if (event_id == evp->event_id) {
+          break;
+        }
       }
       fprintf(stdout,"  %d: event %2d: %c %s\n",i+1, event_id, evp->status, evp->short_name);
     }
@@ -975,44 +975,44 @@ hpm_print_group_events(int group_num)
 int
 print_events(int *ev_list)
 {
-	/* for each event (pmc), print short name, accu */
-	int	pmcid;		/* which pmc */
-	int	evid;		/* event id */
-	pm_events_t *evp;
-	char	str[100];
-	int	len;
-	int	i;
+        /* for each event (pmc), print short name, accu */
+        int     pmcid;          /* which pmc */
+        int     evid;           /* event id */
+        pm_events_t *evp;
+        char    str[100];
+        int     len;
+        int     i;
 
-	/* go through evs, get sname from table of events, print it */	
-	for (pmcid = 0; pmcid < Myinfo.maxpmcs; pmcid++) {
-		fprintf(stdout,"Counter %2d, ", pmcid+1); 
-		/* get the event id from the list */
-		evid = ev_list[pmcid];
-		if ( (evid == COUNT_NOTHING) || (Myinfo.maxevents[pmcid] == 0))
-			fprintf(stdout,"event %2d: No event\n", evid);
-		else {
-			/* find pointer to the event */
-			for (i = 0; i < Myinfo.maxevents[pmcid]; i++) {
-				evp = Myinfo.list_events[pmcid]+i;
-				if (evid == evp->event_id) {
-					break;
-				}
-			}
-			
-			fprintf(stdout,"event %2d: %s\n", evid, evp->short_name);
-		}
-	}
+        /* go through evs, get sname from table of events, print it */  
+        for (pmcid = 0; pmcid < Myinfo.maxpmcs; pmcid++) {
+                fprintf(stdout,"Counter %2d, ", pmcid+1); 
+                /* get the event id from the list */
+                evid = ev_list[pmcid];
+                if ( (evid == COUNT_NOTHING) || (Myinfo.maxevents[pmcid] == 0))
+                        fprintf(stdout,"event %2d: No event\n", evid);
+                else {
+                        /* find pointer to the event */
+                        for (i = 0; i < Myinfo.maxevents[pmcid]; i++) {
+                                evp = Myinfo.list_events[pmcid]+i;
+                                if (evid == evp->event_id) {
+                                        break;
+                                }
+                        }
+                        
+                        fprintf(stdout,"event %2d: %s\n", evid, evp->short_name);
+                }
+        }
 
-	fprintf(stdout,"\n*** Results :\n");
+        fprintf(stdout,"\n*** Results :\n");
 
-	str[0] = '\0';
-	for (pmcid=0; pmcid<Myinfo.maxpmcs; pmcid++) {
-		fprintf(stdout,"PMC%2d     ", pmcid+1);
-		len = strlen(str);
-		str[len] = ' ';
-		sprintf(str+len,"%s","=====     ");
-	}
-	fprintf(stdout,"\n%s\n", str);	
+        str[0] = '\0';
+        for (pmcid=0; pmcid<Myinfo.maxpmcs; pmcid++) {
+                fprintf(stdout,"PMC%2d     ", pmcid+1);
+                len = strlen(str);
+                str[len] = ' ';
+                sprintf(str+len,"%s","=====     ");
+        }
+        fprintf(stdout,"\n%s\n", str);  
 }
 
 /*

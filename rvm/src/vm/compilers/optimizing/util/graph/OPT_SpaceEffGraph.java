@@ -20,8 +20,8 @@ import java.io.IOException;
  * @author Igor Pechtchanski
  */
 public class OPT_SpaceEffGraph implements OPT_Graph, 
-					  OPT_VCGGraph, 
-					  OPT_TopSortInterface {
+                                          OPT_VCGGraph, 
+                                          OPT_TopSortInterface {
   /**
    * First node
    */
@@ -342,7 +342,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
 
   /**
    * WARNING: this enumerator does not get nodes that are not
-   * 	      reachable from _firstNode.  Use with caution.
+   *          reachable from _firstNode.  Use with caution.
    */
   OPT_BreadthFirstEnumerator getNodesBreadthFirst() {
     if (_firstNode == null) return OPT_BreadthFirstEnumerator.EMPTY;
@@ -352,7 +352,7 @@ public class OPT_SpaceEffGraph implements OPT_Graph,
 
   /**
    * WARNING: this enumerator does not get nodes that are not
-   * 	      reachable from _firstNode.  Use with caution.
+   *          reachable from _firstNode.  Use with caution.
    *
    * Return a depth-first enumeration of the nodes
    */

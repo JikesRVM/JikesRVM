@@ -28,9 +28,9 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   implements VM_Uninterruptible
-	     //-#if RVM_WITH_OPT_COMPILER
-	     ,OPT_Operators
-	     //-#endif
+             //-#if RVM_WITH_OPT_COMPILER
+             ,OPT_Operators
+             //-#endif
 {
 
   /**
@@ -67,8 +67,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     if (VM_Collector.MOVES_OBJECTS) {
       int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;
       if (fmask != 0 && fmask == VM_AllocatorHeader.GC_FORWARDED) {
-	int forwardPtr = tibWord & ~VM_AllocatorHeader.GC_FORWARDING_MASK;
-	tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(VM_Address.fromInt(forwardPtr)), TIB_OFFSET);
+        int forwardPtr = tibWord & ~VM_AllocatorHeader.GC_FORWARDING_MASK;
+        tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(VM_Address.fromInt(forwardPtr)), TIB_OFFSET);
       }
     }      
     tibWord &= TIB_MASK;
@@ -137,8 +137,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     int ME = 31 - LOG_TIB_ALIGNMENT;
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
-	VM._assert(dest != 0);
-	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+        VM._assert(dest != 0);
+        VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
       asm.emitLAddr  (dest, TIB_OFFSET, object);
       asm.emitANDI(0, dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
@@ -161,8 +161,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
                                          byte object) {
     if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
       if (VM.VerifyAssertions) {
-	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
-	VM._assert(dest != object);
+        VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+        VM._assert(dest != object);
       }
       asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
       asm.emitTEST_Reg_Imm(dest, VM_AllocatorHeader.GC_FORWARDING_MASK);
@@ -197,14 +197,14 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     OPT_Operand guard = GuardedUnary.getClearGuard(s);
     OPT_RegisterOperand headerWord = OPT_ConvertToLowLevelIR.InsertLoadOffset(s, ir, INT_LOAD, 
                                                                               VM_Type.IntType, 
-									      GuardedUnary.getClearVal(s),
-									      TIB_OFFSET, guard);
+                                                                              GuardedUnary.getClearVal(s),
+                                                                              TIB_OFFSET, guard);
     if (VM_Collector.MOVES_OBJECTS && !ir.compiledMethod.getMethod().isInterruptible()) {
       // Uninterruptible code may be part of the GC subsytem so it needs to robustly handle
       // the TIB word holding a forwarding pointer.  If the method is interruptible, then
       // it can't be executing during GC time and therefore does not need these extra instructions
       if (VM.VerifyAssertions) {
-	VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
+        VM._assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
 
       OPT_BasicBlock prevBlock = s.getBasicBlock();
@@ -218,15 +218,15 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
 
       OPT_RegisterOperand fs = ir.regpool.makeTempInt();
       prevBlock.appendInstruction(Binary.create(INT_AND, fs, headerWord.copyRO(),
-						new OPT_IntConstantOperand(VM_AllocatorHeader.GC_FORWARDING_MASK)));
+                                                new OPT_IntConstantOperand(VM_AllocatorHeader.GC_FORWARDING_MASK)));
       prevBlock.appendInstruction(IfCmp.create(INT_IFCMP, null, fs.copyRO(), new OPT_IntConstantOperand(VM_AllocatorHeader.GC_FORWARDED),
-					       OPT_ConditionOperand.NOT_EQUAL(), doneBlock.makeJumpTarget(),
-					       OPT_BranchProfileOperand.likely()));
+                                               OPT_ConditionOperand.NOT_EQUAL(), doneBlock.makeJumpTarget(),
+                                               OPT_BranchProfileOperand.likely()));
       OPT_RegisterOperand fp = ir.regpool.makeTempInt();
       middleBlock.appendInstruction(Binary.create(INT_AND, fp, headerWord.copyRO(), 
-						  new OPT_IntConstantOperand(~VM_AllocatorHeader.GC_FORWARDING_MASK)));
+                                                  new OPT_IntConstantOperand(~VM_AllocatorHeader.GC_FORWARDING_MASK)));
       middleBlock.appendInstruction(Load.create(INT_LOAD, headerWord.copyRO(), fp.copyRO(), 
-						new OPT_IntConstantOperand(TIB_OFFSET), null, guard));
+                                                new OPT_IntConstantOperand(TIB_OFFSET), null, guard));
     }
     Binary.mutate(s, INT_AND, result, headerWord.copyRO(), new OPT_IntConstantOperand(TIB_MASK));
   }

@@ -108,7 +108,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
   private static boolean isKilled(VM_Thread thread) {
     return (thread.waitData.waitFlags & WAIT_NATIVE) != 0
         && thread.externalInterrupt != null
-	&& thread.throwInterruptWhenScheduled;
+        && thread.throwInterruptWhenScheduled;
   }
 
   /**
@@ -137,17 +137,17 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
       int fd = selectFds[selectIndex++];
       switch (fd) {
       case FD_READY:
-	waitDataFds[i] |= FD_READY_BIT;
-	++numReady;
-	break;
+        waitDataFds[i] |= FD_READY_BIT;
+        ++numReady;
+        break;
 
       case FD_INVALID:
-	waitDataFds[i] |= FD_INVALID_BIT;
-	++numReady;
-	break;
+        waitDataFds[i] |= FD_INVALID_BIT;
+        ++numReady;
+        break;
 
       default:
-	waitDataFds[i] &= FD_MASK;
+        waitDataFds[i] &= FD_MASK;
       }
     }
 
@@ -179,36 +179,36 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
       // Was the thread killed while in Java code (i.e., not native?)
       // If so, it's ready.
       if (isKilled(thread)) {
-	thread.throwInterruptWhenScheduled = true;
-	++numKilledInJava;
+        thread.throwInterruptWhenScheduled = true;
+        ++numKilledInJava;
       }
 
       // Add to set of file descriptors to poll using select().
       // But don't bother if there are threads killed while in Java,
       // since we won't actually do the select() in that case.
       if (numKilledInJava == 0) {
-	// Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
-	thread.waitData.accept(myDowncaster);
-	VM_ThreadIOWaitData waitData = myDowncaster.waitData;
-	if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
+        // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
+        thread.waitData.accept(myDowncaster);
+        VM_ThreadIOWaitData waitData = myDowncaster.waitData;
+        if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
-	// Add file descriptors from wait data to the array of
-	// fds that we pass to select().
-	if (waitData.readFds != null) {
-	  waitData.readOffset = readCount;
-	  readCount += addFileDescriptors(
-	    allFds, READ_OFFSET + readCount, waitData.readFds);
-	}
-	if (waitData.writeFds != null) {
-	  waitData.writeOffset = writeCount;
-	  writeCount += addFileDescriptors(
-	    allFds, WRITE_OFFSET + writeCount, waitData.writeFds);
-	}
-	if (waitData.exceptFds != null) {
-	  waitData.exceptOffset = exceptCount;
-	  exceptCount += addFileDescriptors(
-	    allFds, EXCEPT_OFFSET + exceptCount, waitData.exceptFds);
-	}
+        // Add file descriptors from wait data to the array of
+        // fds that we pass to select().
+        if (waitData.readFds != null) {
+          waitData.readOffset = readCount;
+          readCount += addFileDescriptors(
+            allFds, READ_OFFSET + readCount, waitData.readFds);
+        }
+        if (waitData.writeFds != null) {
+          waitData.writeOffset = writeCount;
+          writeCount += addFileDescriptors(
+            allFds, WRITE_OFFSET + writeCount, waitData.writeFds);
+        }
+        if (waitData.exceptFds != null) {
+          waitData.exceptOffset = exceptCount;
+          exceptCount += addFileDescriptors(
+            allFds, EXCEPT_OFFSET + exceptCount, waitData.exceptFds);
+        }
       }
 
       thread = thread.next;
@@ -223,9 +223,9 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     VM_Processor.getCurrentProcessor().isInSelect = true;
     selectInProgressMutex.lock();
     int ret = VM_SysCall.sysNetSelect(allFds,
-				      readCount,
-				      writeCount,
-				      exceptCount);
+                                      readCount,
+                                      writeCount,
+                                      exceptCount);
     selectInProgressMutex.unlock();
     VM_Processor.getCurrentProcessor().isInSelect = false;
 
@@ -283,11 +283,11 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     for (int i = 0; i < fds.length; ++i) {
       VM.sysWrite(fds[i] & FD_MASK);
       if ((fds[i] & FD_READY_BIT) != 0)
-	VM.sysWrite('+');
+        VM.sysWrite('+');
       if ((fds[i] & FD_INVALID_BIT) != 0)
-	VM.sysWrite('X');
+        VM.sysWrite('X');
       if (i != fds.length - 1)
-	VM.sysWrite(',');
+        VM.sysWrite(',');
     }
   }
 
@@ -321,11 +321,11 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     for (int i = 0; i < fds.length; ++i) {
       buffer.append(fds[i] & FD_MASK);
       if ((fds[i] & FD_READY_BIT) != 0)
-	buffer.append('+');
+        buffer.append('+');
       if ((fds[i] & FD_INVALID_BIT) != 0)
-	buffer.append('X');
+        buffer.append('X');
       if (i != fds.length - 1)
-	buffer.append(',');
+        buffer.append(',');
     }
   }
 

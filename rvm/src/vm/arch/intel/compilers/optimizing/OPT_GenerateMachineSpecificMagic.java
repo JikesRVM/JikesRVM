@@ -28,8 +28,8 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
    * @param meth the VM_Method that is the magic method
    */
   static boolean generateMagic(OPT_BC2IR bc2ir, 
-			       OPT_GenerationContext gc, 
-			       VM_MethodReference meth) 
+                               OPT_GenerationContext gc, 
+                               VM_MethodReference meth) 
     throws OPT_MagicNotImplementedException {
 
     VM_Atom methodName = meth.getName();
@@ -42,12 +42,12 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     } else if (methodName == VM_MagicNames.setESIAsProcessor) {
       OPT_Operand val = bc2ir.popRef();
       if (val instanceof OPT_RegisterOperand) {
-	bc2ir.appendInstruction(Move.create(REF_MOVE, 
-					    gc.temps.makePROp(), 
-					    val));
+        bc2ir.appendInstruction(Move.create(REF_MOVE, 
+                                            gc.temps.makePROp(), 
+                                            val));
       } else {
-	String msg = " Unexpected operand VM_Magic.setProcessorRegister";
-	throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
+        String msg = " Unexpected operand VM_Magic.setProcessorRegister";
+        throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
       }
     }else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
@@ -61,25 +61,25 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
         bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
       }
       bc2ir.appendInstruction(GetField.create(GETFIELD, val, pr.copy(),
-					      new OPT_IntConstantOperand(f.getOffset()),
-					      new OPT_LocationOperand(f), 
-					      new OPT_TrueGuardOperand()));
+                                              new OPT_IntConstantOperand(f.getOffset()),
+                                              new OPT_LocationOperand(f), 
+                                              new OPT_TrueGuardOperand()));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getJTOC || 
-	       methodName == VM_MagicNames.getTocPointer) {
+               methodName == VM_MagicNames.getTocPointer) {
       VM_TypeReference t = (methodName == VM_MagicNames.getJTOC ? VM_TypeReference.IntArray : VM_TypeReference.Address);
       OPT_RegisterOperand val = gc.temps.makeTemp(t);
       if (gc.options.FIXED_JTOC) {
-	OPT_AddressConstantOperand addr = new OPT_AddressConstantOperand(VM_Magic.getTocPointer());
+        OPT_AddressConstantOperand addr = new OPT_AddressConstantOperand(VM_Magic.getTocPointer());
         bc2ir.appendInstruction(Move.create(REF_MOVE, val, addr));
       } else {
-	OPT_RegisterOperand pr = null;
-	if (VM.dedicatedESI) {
-	  pr = OPT_IRTools.R(phys.getESI());
-	} else {
-	  pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
-	  bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
-	}
+        OPT_RegisterOperand pr = null;
+        if (VM.dedicatedESI) {
+          pr = OPT_IRTools.R(phys.getESI());
+        } else {
+          pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
+          bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
+        }
         bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr.copy()));
       }
       bc2ir.push(val.copyD2U());
@@ -91,38 +91,38 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD, val, 
-					  fp,
-					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
-					  null));
+                                          fp,
+                                          new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
+                                          null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setCallerFramePointer) {
       OPT_Operand val = bc2ir.popAddress();
       OPT_Operand fp = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(REF_STORE, val, 
-					   fp, 
-					   new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
-					   null));
+                                           fp, 
+                                           new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
+                                           null));
     } else if (methodName == VM_MagicNames.getCompiledMethodID) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
-					  fp,
-					  new OPT_IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
-					  null));
+                                          fp,
+                                          new OPT_IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
+                                          null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {
       OPT_Operand val = bc2ir.popInt();
       OPT_Operand fp = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, 
-					   fp, 
-					   new OPT_IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
-					   null));
+                                           fp, 
+                                           new OPT_IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
+                                           null));
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
-					    fp,
-					    new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
+                                            fp,
+                                            new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.roundToZero) {
       bc2ir.appendInstruction(Empty.create(ROUND_TO_ZERO));
@@ -134,10 +134,10 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       // that we want to be warned that we don't implement.
       String msg = " Magic method not implemented: " + meth;
       if (methodName == VM_MagicNames.returnToNewStack) {
-	throw OPT_MagicNotImplementedException.EXPECTED(msg);
+        throw OPT_MagicNotImplementedException.EXPECTED(msg);
       } else {
-	return false;
-	// throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
+        return false;
+        // throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
       }
     }
     return true;

@@ -195,18 +195,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator, 
-				AllocAdvice advice)
+                                AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       return los.alloc(isScalar, bytes);
     } else {
       if (STEAL_NURSERY_SCALAR_GC_HEADER && isScalar 
-	  && allocator == NURSERY_SPACE) {
-	// steal the GC header word for scalar nursery objects
-	if (VM_Interface.VerifyAssertions) 
-	  VM_Interface._assert(Header.RC_HEADER_OFFSET == -Header.NUM_BYTES_HEADER);
-	bytes -= Header.NUM_BYTES_HEADER;
+          && allocator == NURSERY_SPACE) {
+        // steal the GC header word for scalar nursery objects
+        if (VM_Interface.VerifyAssertions) 
+          VM_Interface._assert(Header.RC_HEADER_OFFSET == -Header.NUM_BYTES_HEADER);
+        bytes -= Header.NUM_BYTES_HEADER;
       }
       switch (allocator) {
       case  NURSERY_SPACE: return nursery.alloc(isScalar, bytes);
@@ -214,9 +214,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
       case      LOS_SPACE: return los.alloc(isScalar, bytes);
       default:
-	if (VM_Interface.VerifyAssertions) 
-	  VM_Interface.sysFail("No such allocator");
-	return VM_Address.zero();
+        if (VM_Interface.VerifyAssertions) 
+          VM_Interface.sysFail("No such allocator");
+        return VM_Address.zero();
       }
     }
   }
@@ -232,14 +232,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-			      boolean isScalar, int allocator)
+                              boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       modBuffer.pushOOL(ref);
       Header.initializeRCHeader(ref, tib, bytes, isScalar, true);
       decBuffer.pushOOL(ref);
       if (RefCountSpace.RC_SANITY_CHECK) {
-	RefCountLocal.sanityAllocCount(ref); 
+        RefCountLocal.sanityAllocCount(ref); 
       }
       return;
     }
@@ -251,7 +251,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       Header.initializeRCHeader(ref, tib, bytes, isScalar, true);
       decBuffer.push(ref);
       if (RefCountSpace.RC_SANITY_CHECK) {
-	RefCountLocal.sanityAllocCount(ref); 
+        RefCountLocal.sanityAllocCount(ref); 
       }
       return;
     case IMMORTAL_SPACE: 
@@ -260,7 +260,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       return;
     default:
       if (VM_Interface.VerifyAssertions)
-	VM_Interface.sysFail("No such allocator");
+        VM_Interface.sysFail("No such allocator");
       return;
     } 
   }
@@ -274,7 +274,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes,
-				    boolean isScalar) throws VM_PragmaInline {
+                                    boolean isScalar) throws VM_PragmaInline {
     return rc.alloc(isScalar, bytes, false);  // FIXME is this right???
   }
   /**  
@@ -286,7 +286,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-			     boolean isScalar) {
+                             boolean isScalar) {
     Header.initializeRCHeader(ref, tib, bytes, isScalar, false);
     Header.makeUnlogged(ref);
     if (RefCountSpace.RC_SANITY_CHECK) {
@@ -308,7 +308,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The allocator number to be used for this allocation.
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite,
-				AllocAdvice hint) {
+                                AllocAdvice hint) {
     return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : NURSERY_SPACE;
   }
 
@@ -340,8 +340,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * at runtime
    */
   public final AllocAdvice getAllocAdvice(Type type, int bytes,
-					  CallSite callsite,
-					  AllocAdvice hint) {
+                                          CallSite callsite,
+                                          AllocAdvice hint) {
     return null;
   }
 
@@ -386,9 +386,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
     int newMetaDataPages = metaDataMR.committedPages() - previousMetaDataPages;
     if (mustCollect || heapFull || nurseryFull ||
-	(progress && (newMetaDataPages > Options.metaDataPages))) {
+        (progress && (newMetaDataPages > Options.metaDataPages))) {
       if (mr == metaDataMR) {
-	awaitingCollection = true;
+        awaitingCollection = true;
         return false;
       }
       required = mr.reservedPages() - mr.committedPages();
@@ -524,26 +524,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (RefCountSpace.RC_SANITY_CHECK && root) 
-	VM_Interface.getPlan().rc.incSanityTraceRoot(object);
+        VM_Interface.getPlan().rc.incSanityTraceRoot(object);
       if (addr.GE(NURSERY_START)) {
-	VM_Address rtn = CopySpace.traceObject(object);
-	// every incoming reference to the from-space object must inc the
-	// ref count of forwarded (to-space) object...
-	if (root) {
-	  if (RefCountSpace.INC_DEC_ROOT) {
-	    RCBaseHeader.incRC(rtn);
-	    VM_Interface.getPlan().addToRootSet(rtn);
-	  } else if (RCBaseHeader.setRoot(rtn)) {
-	    VM_Interface.getPlan().addToRootSet(rtn);
-	  }
-	} else
-	  RCBaseHeader.incRC(rtn);
-	return rtn;
+        VM_Address rtn = CopySpace.traceObject(object);
+        // every incoming reference to the from-space object must inc the
+        // ref count of forwarded (to-space) object...
+        if (root) {
+          if (RefCountSpace.INC_DEC_ROOT) {
+            RCBaseHeader.incRC(rtn);
+            VM_Interface.getPlan().addToRootSet(rtn);
+          } else if (RCBaseHeader.setRoot(rtn)) {
+            VM_Interface.getPlan().addToRootSet(rtn);
+          }
+        } else
+          RCBaseHeader.incRC(rtn);
+        return rtn;
       } else if (addr.GE(RC_START)) {
-	if (root)
-	  return rcSpace.traceObject(object);
-	else
-	  RCBaseHeader.incRC(object);
+        if (root)
+          return rcSpace.traceObject(object);
+        else
+          RCBaseHeader.incRC(object);
       }
     }
     // else this is not a rc heap pointer
@@ -563,23 +563,23 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * directly from a root.
    */
   final void incSanityTrace(VM_Address object, VM_Address location,
-			    boolean root) {
+                            boolean root) {
     VM_Address addr = VM_Interface.refToAddress(object);
     VM_Address oldObject = object;
 
     // if nursery, then get forwarded RC object
     if (addr.GE(NURSERY_START)) {
       if (VM_Interface.VerifyAssertions) 
- 	VM_Interface._assert(CopyingHeader.isForwarded(object));	
+        VM_Interface._assert(CopyingHeader.isForwarded(object));        
       object = CopyingHeader.getForwardingPtr(object);
       addr = VM_Interface.refToAddress(object);
     }
 
     if (addr.GE(RC_START)) {
       if (RCBaseHeader.incSanityRC(object, root)) {
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface._assert(addr.LT(NURSERY_START));
-	ScanObject.enumeratePointers(object, sanityEnum);
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface._assert(addr.LT(NURSERY_START));
+        ScanObject.enumeratePointers(object, sanityEnum);
       }
     } else if (RCBaseHeader.markSanityRC(object)) {
       ScanObject.enumeratePointers(object, sanityEnum);
@@ -608,7 +608,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // if nursery, then get forwarded RC object
     if (addr.GE(NURSERY_START)) {
       if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(CopyingHeader.isForwarded(object));	
+        VM_Interface._assert(CopyingHeader.isForwarded(object));        
       object = CopyingHeader.getForwardingPtr(object);
       addr = VM_Interface.refToAddress(object);
     }
@@ -639,7 +639,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
       if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(!object.isZero());
+        VM_Interface._assert(!object.isZero());
       VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(object));
     }
   }
@@ -672,7 +672,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
       if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(CopyingHeader.isForwarded(object));
+        VM_Interface._assert(CopyingHeader.isForwarded(object));
       return CopyingHeader.getForwardingPointer(object);
     } else
       return object;
@@ -688,11 +688,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
-	return CopySpace.isLive(object);
+        return CopySpace.isLive(object);
       else if (addr.GE(RC_START))
- 	return RCBaseHeader.isLiveRC(object);
+        return RCBaseHeader.isLiveRC(object);
       else if (addr.GE(BOOT_START))
- 	return true;
+        return true;
     }
     return false;
   }
@@ -709,11 +709,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
-	return !CopySpace.isLive(object);
+        return !CopySpace.isLive(object);
       else if (addr.GE(RC_START))
-	return RCBaseHeader.isFinalizable(object);
+        return RCBaseHeader.isFinalizable(object);
       else if (addr.GE(BOOT_START))
- 	return false;
+        return false;
     }
     return false;
   }
@@ -732,9 +732,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
-	return CopySpace.traceObject(object);
+        return CopySpace.traceObject(object);
       else if (addr.GE(RC_START))
-	RCBaseHeader.clearFinalizer(object);
+        RCBaseHeader.clearFinalizer(object);
     }
     return object;
   }
@@ -753,7 +753,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingWord, int bytes) {
+                                             int forwardingWord, int bytes) {
     return (forwardingWord & ~RCHybridHeader.GC_BITS_MASK) | rcSpace.getInitialHeaderValue(bytes);
   }
 
@@ -761,7 +761,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
-	return nurseryVM.inRange(addr);
+        return nurseryVM.inRange(addr);
     }
     return true;
   }
@@ -784,7 +784,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param tgt The target of the new reference
    */
   public final void putFieldWriteBarrier(VM_Address src, int offset,
-					 VM_Address tgt)
+                                         VM_Address tgt)
     throws VM_PragmaInline {
     writeBarrier(src, src.add(offset), tgt);
   }
@@ -801,7 +801,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param tgt The target of the new reference
    */
   public final void arrayStoreWriteBarrier(VM_Address src, int index,
-					   VM_Address tgt)
+                                           VM_Address tgt)
     throws VM_PragmaInline {
     writeBarrier(src, src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
   }
@@ -820,15 +820,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * contents of src).
    */
   private final void writeBarrier(VM_Address srcObj,
-				  VM_Address src, VM_Address tgt) 
+                                  VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
       if (Header.needsToBeLogged(srcObj))
- 	writeBarrierSlow(srcObj, src, tgt);
+        writeBarrierSlow(srcObj, src, tgt);
       VM_Magic.setMemoryAddress(src, tgt);
   }
   private final void writeBarrierSlow(VM_Address srcObj,
-				      VM_Address src, VM_Address tgt) 
+                                      VM_Address src, VM_Address tgt) 
     throws VM_PragmaNoInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!isNurseryObject(srcObj));
@@ -944,11 +944,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (!object.isZero()) {
       VM_Address addr = VM_Interface.refToAddress(object);
       if (addr.GE(NURSERY_START)) {
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface._assert(addr.LE(NURSERY_END));
-	locations.push(objLoc);
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface._assert(addr.LE(NURSERY_END));
+        locations.push(objLoc);
       } else if (addr.GE(RC_START))
- 	RCBaseHeader.incRC(object);
+        RCBaseHeader.incRC(object);
     }
   }
 
@@ -1038,11 +1038,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     else {
       VM_Address addr = VM_Interface.refToAddress(object);
       if (addr.GE(NURSERY_START)) {
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface._assert(addr.LT(NURSERY_END));
-	return true;
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface._assert(addr.LT(NURSERY_END));
+        return true;
       } else
-	return false;
+        return false;
     }
   }
 }

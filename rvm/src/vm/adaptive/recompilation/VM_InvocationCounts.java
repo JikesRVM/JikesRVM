@@ -56,7 +56,7 @@ public final class VM_InvocationCounts {
     VM_NormalMethod m = (VM_NormalMethod)cm.getMethod();
     OPT_CompilationPlan compPlan = new OPT_CompilationPlan(m, _optPlan, null, _options);
     VM_ControllerPlan cp = new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
-						 id, 2.0, 2.0, 2.0); // 2.0 is a bogus number....
+                                                 id, 2.0, 2.0, 2.0); // 2.0 is a bogus number....
     cp.execute();
   }
 

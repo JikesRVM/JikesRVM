@@ -5,25 +5,25 @@
 /**
  * Test static and instance field access from native code
  * The following JNI calls are tested:
- *	GetStaticIntField          SetStaticIntField         
- *	GetStaticBooleanField	   SetStaticBooleanField     
- *	GetStaticByteField	   SetStaticByteField        
- *	GetStaticCharField	   SetStaticCharField        
- *	GetStaticShortField	   SetStaticShortField       
- *	GetStaticLongField	   SetStaticLongField        
- *	GetStaticFloatField	   SetStaticFloatField       
- *	GetStaticDoubleField	   SetStaticDoubleField      
- *	GetStaticObjectField	   SetStaticObjectField      
- *				   			     
- *	GetIntField		   SetIntField               
- *	GetBooleanField		   SetBooleanField           
- *	GetByteField		   SetByteField              
- *	GetCharField		   SetCharField              
- *	GetShortField		   SetShortField             
- *	GetLongField		   SetLongField              
- *	GetFloatField		   SetFloatField             
- *	GetDoubleField		   SetDoubleField            
- *	GetObjectField             SetObjectField            
+ *      GetStaticIntField          SetStaticIntField         
+ *      GetStaticBooleanField      SetStaticBooleanField     
+ *      GetStaticByteField         SetStaticByteField        
+ *      GetStaticCharField         SetStaticCharField        
+ *      GetStaticShortField        SetStaticShortField       
+ *      GetStaticLongField         SetStaticLongField        
+ *      GetStaticFloatField        SetStaticFloatField       
+ *      GetStaticDoubleField       SetStaticDoubleField      
+ *      GetStaticObjectField       SetStaticObjectField      
+ *                                                           
+ *      GetIntField                SetIntField               
+ *      GetBooleanField            SetBooleanField           
+ *      GetByteField               SetByteField              
+ *      GetCharField               SetCharField              
+ *      GetShortField              SetShortField             
+ *      GetLongField               SetLongField              
+ *      GetFloatField              SetFloatField             
+ *      GetDoubleField             SetDoubleField            
+ *      GetObjectField             SetObjectField            
  *
  *
  * @author Ton Ngo, Steve Smith 
@@ -97,7 +97,7 @@ class FieldAccess {
   static native int setStaticFloatField();
   static native int setStaticDoubleField();
   static native int setStaticObjectField(Object obj);
-		      
+                      
   static native int setIntField(Object obj);
   static native int setBooleanField(Object obj);
   static native int setByteField(Object obj);
@@ -132,9 +132,9 @@ class FieldAccess {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
     FieldAccess anObj = new FieldAccess();

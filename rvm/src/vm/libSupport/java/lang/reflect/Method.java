@@ -79,9 +79,9 @@ public final class Method extends AccessibleObject implements Member {
   }
 
   public Object invoke(Object receiver, Object args[]) throws IllegalAccessException, 
-							      IllegalArgumentException, 
-							      ExceptionInInitializerError,
-							      InvocationTargetException {
+                                                              IllegalArgumentException, 
+                                                              ExceptionInInitializerError,
+                                                              InvocationTargetException {
     VM_Method method = this.method;
     VM_Class declaringClass = method.getDeclaringClass();
     
@@ -95,7 +95,7 @@ public final class Method extends AccessibleObject implements Member {
     VM_TypeReference[] parameterTypes = method.getParameterTypes();
     if (args == null) {
       if (parameterTypes.length != 0) {
-	throw new IllegalArgumentException("argument count mismatch");
+        throw new IllegalArgumentException("argument count mismatch");
       }
     } else if (args.length != parameterTypes.length) {
       throw new IllegalArgumentException("argument count mismatch");
@@ -112,18 +112,18 @@ public final class Method extends AccessibleObject implements Member {
 
     // find the right method to call
     if (! method.isStatic()) {
-	VM_Class C = VM_Magic.getObjectType(receiver).asClass(); 
-	method = C.findVirtualMethod(method.getName(), method.getDescriptor());
+        VM_Class C = VM_Magic.getObjectType(receiver).asClass(); 
+        method = C.findVirtualMethod(method.getName(), method.getDescriptor());
     }
     
     // Forces initialization of declaring class
     if (method.isStatic() && !declaringClass.isInitialized()) {
       try {
-	VM_Runtime.initializeClassForDynamicLink(declaringClass);
+        VM_Runtime.initializeClassForDynamicLink(declaringClass);
       } catch (Throwable e) {
-	ExceptionInInitializerError ex = new ExceptionInInitializerError();
-	ex.initCause(e);
-	throw ex;
+        ExceptionInInitializerError ex = new ExceptionInInitializerError();
+        ex.initCause(e);
+        throw ex;
       }
     }
 
@@ -132,22 +132,22 @@ public final class Method extends AccessibleObject implements Member {
       return VM_Reflection.invoke(method, receiver, args);
     } catch (Throwable t) {
       throw new InvocationTargetException(t,
-		"While invoking the method:\n\t\"" + method + "\"\n"
-		+ " on the object:\n\t\"" + receiver + "\"\n"
-		+ " it threw the exception:\n\t\"" + t + "\"");
+                "While invoking the method:\n\t\"" + method + "\"\n"
+                + " on the object:\n\t\"" + receiver + "\"\n"
+                + " it threw the exception:\n\t\"" + t + "\"");
      }
   }
 
   public String toString() {
     Class current;
-	
+        
     StringBuffer buf = new StringBuffer();
     String mods = Modifier.toString(getModifiers());
     if(mods.length() != 0) {
       buf.append(mods);
       buf.append(" ");
     }
-	
+        
     current = getReturnType();
     int arity = 0;
     while(current.isArray()) {
@@ -156,7 +156,7 @@ public final class Method extends AccessibleObject implements Member {
     }
     buf.append(current.getName());
     for(;arity > 0; arity--) buf.append("[]");
-	
+        
     buf.append(" ");
     buf.append(getDeclaringClass().getName());
     buf.append(".");
@@ -167,23 +167,23 @@ public final class Method extends AccessibleObject implements Member {
       current = types[i];
       arity = 0;
       while(current.isArray()) {
-	current = current.getComponentType();
-	arity++;
+        current = current.getComponentType();
+        arity++;
       }
       buf.append(current.getName());
       for(;arity > 0; arity--) buf.append("[]");
       if(i != (types.length - 1))
-	buf.append(",");
+        buf.append(",");
     }
     buf.append(")");
     types = getExceptionTypes();
     if(types.length > 0) {
       buf.append(" throws ");
       for(int i = 0; i < types.length; i++) {
-	current = types[i];
-	buf.append(current.getName());
-	if(i != (types.length - 1))
-	  buf.append(",");
+        current = types[i];
+        buf.append(current.getName());
+        if(i != (types.length - 1))
+          buf.append(",");
       }
     }
 

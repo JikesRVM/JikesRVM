@@ -163,7 +163,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
     Enumeration childEnum = getChildren();
     while (childEnum.hasMoreElements()) {
       OPT_DominatorTreeNode 
-	child = (OPT_DominatorTreeNode) childEnum.nextElement();
+        child = (OPT_DominatorTreeNode) childEnum.nextElement();
       i = child.initializeRanges (i);
     }
     high = ++i;

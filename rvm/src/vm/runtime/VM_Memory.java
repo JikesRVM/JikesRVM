@@ -129,7 +129,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        }	  
+        }         
       } else {
         for (int i=0; i<len; i++) {
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
@@ -174,7 +174,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
         dstPos += wordLen;
         for (;endDiff > 0; endDiff -=BYTES_IN_SHORT) {
           dst[dstPos++] = src[srcPos++];
-        }	  
+        }         
       } else {
         for (int i=0; i<len; i++) {
           dst[dstPos+i] = src[srcPos+i];
@@ -219,7 +219,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
         dstPos += wordLen;
         for (;endDiff > 0; endDiff -= BYTES_IN_CHAR) {
           dst[dstPos++] = src[srcPos++];
-        }	  
+        }         
       } else {
         for (int i=0; i<len; i++) {
           dst[dstPos+i] = src[srcPos+i];
@@ -437,7 +437,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * Returned: VM_Address (of region)
    */
   public static VM_Address mmap(VM_Address address, int size, 
-				int prot, int flags, int fd, long offset) {
+                                int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
     return VM_Address.max();  // not implemented: requires new magic for 6 args, etc.
@@ -765,13 +765,13 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   * @deprecated use alignUp(..) instead
   */
   public static VM_Address align (VM_Address address, int alignment) throws VM_PragmaInline {
-	return alignUp(address, alignment); }
+        return alignUp(address, alignment); }
      
   /**
   * @deprecated use alignUp(..) instead
   */
   public static int align (int address, int alignment) throws VM_PragmaInline {
-	return alignUp(address, alignment); }
+        return alignUp(address, alignment); }
   
   public static VM_Address alignUp (VM_Address address, int alignment) throws VM_PragmaInline {
     return address.add(alignment-1).toWord().and(VM_Word.fromIntSignExtend(~(alignment - 1))).toAddress();

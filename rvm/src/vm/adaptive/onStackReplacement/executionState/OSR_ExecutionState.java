@@ -54,10 +54,10 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
   // initializer
   /////////////////////////////
   public OSR_ExecutionState(VM_Thread whichThread,
-			   int framePointerOffset,
-			   int compiledMethodID,
-			   int pc,
-			   int tsFPOffset) {
+                           int framePointerOffset,
+                           int compiledMethodID,
+                           int pc,
+                           int tsFPOffset) {
     this.thread   = whichThread;
     this.fpOffset = framePointerOffset;
     this.cmid     = compiledMethodID;
@@ -149,7 +149,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       elmcount++;
 
       if (VM.VerifyAssertions) {
-	VM._assert(var.isLocal() && (var.getNumber() == 0));
+        VM._assert(var.isLocal() && (var.getNumber() == 0));
       }
     }
     // restore other parameters, 
@@ -159,8 +159,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       tail = processElement(var, tail, elmcount);
       elmcount ++;
       if (VM.VerifyAssertions) {
-	VM._assert(var.isLocal()); 
-	// the number may not match because of long and double type
+        VM._assert(var.isLocal()); 
+        // the number may not match because of long and double type
       }
     }
     // ok, ready to indicate param initialized, thread swith
@@ -172,7 +172,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     // were sorted
     for (; elmcount < size; elmcount++) {
       OSR_VariableElement var = 
-	(OSR_VariableElement)varElms.get(elmcount);
+        (OSR_VariableElement)varElms.get(elmcount);
       tail = processElement(var, tail, elmcount);
     }// end of for loop
     
@@ -193,35 +193,35 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
      * we are using invokeCompiledMethod,
      */
     if (callee_cmid != -1) {
-	  // remember the callee's cmid, and the index of original index
+          // remember the callee's cmid, and the index of original index
       tail.next = new BC_InvokeCompiledMethod(callee_cmid, this.bcIndex);
       tail = tail.next;      
 
       // if this method needs a call, than we must jump to 
       // the instruction after the call.
       VM_BytecodeStream bcodes = this.meth.getBytecodes();
-	  bcodes.reset(this.bcIndex);
-	  
+          bcodes.reset(this.bcIndex);
+          
       int code = bcodes.nextInstruction();
 
       switch (code) {
       case JBC_invokeinterface: {
-	branchTarget = this.bcIndex + 5;
-	break;
+        branchTarget = this.bcIndex + 5;
+        break;
       }
       case JBC_invokespecial: 
       case JBC_invokestatic:
       case JBC_invokevirtual:  {
-	branchTarget = this.bcIndex + 3;
-	break;
+        branchTarget = this.bcIndex + 3;
+        break;
       }
       default: {
-	if (VM.VerifyAssertions) {
-	  VM._assert(VM.NOT_REACHED,
-		     "OSR_ExecutionState: unknown bytecode " + code
-			+ " at " + this.bcIndex + "@" + this.meth);
+        if (VM.VerifyAssertions) {
+          VM._assert(VM.NOT_REACHED,
+                     "OSR_ExecutionState: unknown bytecode " + code
+                        + " at " + this.bcIndex + "@" + this.meth);
         }
-	break;
+        break;
       }
       }
     }
@@ -236,7 +236,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       togo.patch(branchTarget + osize);
       int nsize = togo.getSize();
       if (nsize != osize) {
-	togo.patch(branchTarget + nsize);
+        togo.patch(branchTarget + nsize);
       }
  
       tail.next = togo;
@@ -257,16 +257,16 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
   }// end of method
 
   private OSR_PseudoBytecode processElement(OSR_VariableElement var,
-					    OSR_PseudoBytecode tail,
-					    int i) {
+                                            OSR_PseudoBytecode tail,
+                                            int i) {
     switch (var.getTypeCode()) {
     case INT: {
       tail.next = new BC_LoadIntConst(var.getIntBits());
       tail = tail.next;
       
       if (var.isLocal()) {
-	tail.next = new BC_IntStore(var.getNumber());
-	tail = tail.next;
+        tail.next = new BC_IntStore(var.getNumber());
+        tail = tail.next;
       }
       break;
     }
@@ -275,8 +275,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       tail = tail.next;
       
       if (var.isLocal()) {
-	tail.next = new BC_FloatStore(var.getNumber());
-	tail = tail.next;
+        tail.next = new BC_FloatStore(var.getNumber());
+        tail = tail.next;
       }
       break;
     }
@@ -285,8 +285,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       tail = tail.next;
       
       if (var.isLocal()) {
-	tail.next = new BC_LongStore(var.getNumber());
-	tail = tail.next;
+        tail.next = new BC_LongStore(var.getNumber());
+        tail = tail.next;
       }
       break;
     }
@@ -295,8 +295,8 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       tail = tail.next;
       
       if (var.isLocal()) {
-	tail.next = new BC_DoubleStore(var.getNumber());
-	tail = tail.next;
+        tail.next = new BC_DoubleStore(var.getNumber());
+        tail = tail.next;
       }
       break;
     }
@@ -305,36 +305,36 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
       tail = tail.next;
       
       if (var.isLocal()) {
-	tail.next = new BC_RefStore(var.getNumber());
-	tail = tail.next;
+        tail.next = new BC_RefStore(var.getNumber());
+        tail = tail.next;
       }
       break;
     }
     case REF: {
       this.objs[i] = var.getObject();
-	
+        
       if (this.objs[i] != null) {
-	
-	tail.next = new BC_LoadIntConst(this.rid);
-	tail = tail.next;
-	
-	tail.next = new BC_LoadIntConst(i);
-	tail = tail.next;
-	
-	// the opt compiler will adjust the type of
-	// return value to the real type of object
-	// when it sees the invoke target is GETREFAT
-	tail.next = new BC_InvokeStatic(GETREFAT);
-	tail = tail.next;
+        
+        tail.next = new BC_LoadIntConst(this.rid);
+        tail = tail.next;
+        
+        tail.next = new BC_LoadIntConst(i);
+        tail = tail.next;
+        
+        // the opt compiler will adjust the type of
+        // return value to the real type of object
+        // when it sees the invoke target is GETREFAT
+        tail.next = new BC_InvokeStatic(GETREFAT);
+        tail = tail.next;
       } else {
-	// just give an aconst_null
-	tail.next = new BC_AConstNull();
-	tail = tail.next;
+        // just give an aconst_null
+        tail.next = new BC_AConstNull();
+        tail = tail.next;
       }
       
       if (var.isLocal()) {
-	tail.next = new BC_RefStore(var.getNumber());
-	tail = tail.next;
+        tail.next = new BC_RefStore(var.getNumber());
+        tail = tail.next;
       }
       
       this.objnum++;
@@ -343,7 +343,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     }
     default:
       if (VM.VerifyAssertions) {
-	VM._assert(VM.NOT_REACHED);
+        VM._assert(VM.NOT_REACHED);
       }
       break;
     } // end of switch
@@ -353,7 +353,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
   
   private int maxStackHeight = 0;
   public int getMaxStackHeight() {
-	return this.maxStackHeight;
+        return this.maxStackHeight;
   }
   
   private int computeStackHeight(OSR_PseudoBytecode head) {
@@ -363,7 +363,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
     while (bcode != null) {
       height += bcode.stackChanges();
       if (height > this.maxStackHeight) {
-	this.maxStackHeight = height;
+        this.maxStackHeight = height;
       }
       bcode = bcode.next;
     }
@@ -432,7 +432,7 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
 
         /* CAUTION: path relative offset only. */
         laddr.patch(laddr.getOffset()+bsize);
-      } 	
+      }         
 
       if (VM.TraceOnStackReplacement) VM.sysWriteln(pos+" : "+bcode.toString());
 
@@ -447,11 +447,11 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
 
   public String toString() {
     StringBuffer buf = new StringBuffer("Execution state "
-					+this.bcIndex+"@"+this.meth
-					+" "+this.thread);
+                                        +this.bcIndex+"@"+this.meth
+                                        +" "+this.thread);
     for (int i=0, n=varElms.size(); i<n; i++) {
       OSR_VariableElement var = 
-	(OSR_VariableElement)varElms.get(i);
+        (OSR_VariableElement)varElms.get(i);
       buf.append("\n  "+var);
     }
 

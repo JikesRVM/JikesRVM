@@ -8,8 +8,8 @@ import com.ibm.JikesRVM.classloader.VM_Member;
 import com.ibm.JikesRVM.classloader.VM_Class;
 
 import com.ibm.JikesRVM.PrintLN;  /* This import statement isn't necessary,
-				     but is here for documentation purposes.
-				     --S. Augart */ 
+                                     but is here for documentation purposes.
+                                     --S. Augart */ 
 import java.io.PrintWriter;
 import java.io.PrintStream;
 import com.ibm.JikesRVM.VM;
@@ -26,7 +26,7 @@ import com.ibm.JikesRVM.VM;
  * @author Steven Augart (w/ brainstorming by David Grove)
  */
 public class PrintContainer {
-  private PrintContainer() {};	// Cannot create an instance of it.
+  private PrintContainer() {};  // Cannot create an instance of it.
   /** This (nested) class does printing via VM.sysWriteln() */
   private static class WithPrintWriter
     extends PrintLN
@@ -44,7 +44,7 @@ public class PrintContainer {
     }
     public void print(String s) {
       if (s == null)
-	s = "(*null String pointer*)";
+        s = "(*null String pointer*)";
       out.print(s);
     }
     public void print(char c) {
@@ -72,7 +72,7 @@ public class PrintContainer {
     }
     public void print(String s) {
       if (s == null)
-	s = "(*null String pointer*)";
+        s = "(*null String pointer*)";
       out.print(s);
     }
     public void print(char c) {
@@ -106,7 +106,7 @@ public class PrintContainer {
     }
     public void print(String s) {
       if (s == null)
-	s = "(*null String pointer*)";
+        s = "(*null String pointer*)";
       
       VM.sysWrite(s);
     }

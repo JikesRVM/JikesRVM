@@ -214,7 +214,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     VM_Interface.getPlan().putFieldWriteBarrier(
                                    VM_Magic.objectAsAddress(ref), offset,
-				   VM_Magic.objectAsAddress(value));
+                                   VM_Magic.objectAsAddress(value));
   }
   
   /**
@@ -243,11 +243,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param value the object that is the target of the new reference.
    */
   public static void arrayStoreWriteBarrier(Object ref, int index,
-					    Object value)
+                                            Object value)
     throws VM_PragmaInline {
     VM_Interface.getPlan().arrayStoreWriteBarrier(
-				     VM_Magic.objectAsAddress(ref), index,
-				     VM_Magic.objectAsAddress(value));
+                                     VM_Magic.objectAsAddress(ref), index,
+                                     VM_Magic.objectAsAddress(value));
   }
 
   /**
@@ -262,14 +262,14 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
        Such updates are dangerous because they can be lost.
      */
     if (Plan.gcInProgressProper()) {
-	VM_Address ref = VM_Magic.objectAsAddress(obj);
-	if (VMResource.refIsMovable(ref)) {
-	    VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
-	    VM.sysWriteln("  obj = ", ref);
-	    VM_Type t = VM_Magic.getObjectType(obj);
-	    VM.sysWrite(" type = "); VM.sysWriteln(t.getDescriptor());
-	    VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
-	}
+        VM_Address ref = VM_Magic.objectAsAddress(obj);
+        if (VMResource.refIsMovable(ref)) {
+            VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
+            VM.sysWriteln("  obj = ", ref);
+            VM_Type t = VM_Magic.getObjectType(obj);
+            VM.sysWrite(" type = "); VM.sysWriteln(t.getDescriptor());
+            VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
+        }
     }
   }
 
@@ -327,7 +327,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static final void gc() throws VM_PragmaInterruptible {
     Statistics.gcExternalCount++;
     if (!Options.ignoreSystemGC)
-	VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
+        VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
   }
 
   /****************************************************************************
@@ -421,7 +421,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       return false;
     for (int i = 0; i<aLen; i++) {
       if (a.charAt(i) != ((char) b[i]))
-	return false;
+        return false;
     }
     return true;
   }
@@ -447,8 +447,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
       if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA) ||
-	  isPrefix("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_GCMapIteratorGroup", clsBA)) {
-	return Plan.IMMORTAL_SPACE;
+          isPrefix("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_GCMapIteratorGroup", clsBA)) {
+        return Plan.IMMORTAL_SPACE;
       }
     }
     Type t = type.JMTKtype;
@@ -457,8 +457,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
-	isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
-	isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
+        isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
+        isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.IMMORTAL_SPACE;
     t.initialized = true;
     t.allocator = allocator;
@@ -507,7 +507,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     }
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, true,
-		   allocator);
+                   allocator);
     return result;
   }
 
@@ -526,8 +526,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
   public static Object allocateArray(int numElements, int logElementSize, 
-				     int headerSize, Object [] tib,
-				     int allocator,
+                                     int headerSize, Object [] tib,
+                                     int allocator,
                                      int align, int offset) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
@@ -553,9 +553,9 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       region = region.add(delta);
     }
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
-						   size);
+                                                   size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, false,
-		   allocator);
+                   allocator);
     return result;
   }
 
@@ -641,8 +641,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     int align = VM_ObjectModel.getAlignment(objectArrayType);
     int offset = VM_ObjectModel.getOffsetForAlignment(objectArrayType);
     Object result = allocateArray(n, objectArrayType.getLogElementSize(),
-				  VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
-				  objectArrayTib, Plan.IMMORTAL_SPACE, align, offset);
+                                  VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
+                                  objectArrayTib, Plan.IMMORTAL_SPACE, align, offset);
     return (Object []) result;
   }
 

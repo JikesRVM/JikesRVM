@@ -38,12 +38,12 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   private double compilationCPUTime;
 
   public OSR_OnStackReplacementPlan(VM_Thread thread,
-				    OPT_CompilationPlan cp,
-				    int cmid,
-				    int source,
-				    int tsoff,
-				    int ypoff,
-				    double priority) {
+                                    OPT_CompilationPlan cp,
+                                    int cmid,
+                                    int source,
+                                    int tsoff,
+                                    int ypoff,
+                                    double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;
     this.CMID = cmid;
@@ -89,24 +89,24 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
 
       boolean invalidate = true;
       if (cm.getCompilerType() == VM_CompiledMethod.BASELINE) {
-	extractor = new OSR_BaselineExecStateExtractor();
+        extractor = new OSR_BaselineExecStateExtractor();
         // don't need to invalidate when transitioning from baseline 
         invalidate = false;
       } else
       if (cm.getCompilerType() == VM_CompiledMethod.OPT) {
-	extractor = new OSR_OptExecStateExtractor();
+        extractor = new OSR_OptExecStateExtractor();
       } else {
-	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	return;
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        return;
       }
 
 
       ////////
       // states is a list of state: callee -> caller -> caller
       OSR_ExecutionState state = extractor.extractState(suspendedThread, 
-							this.tsFromFPoff,
-							this.ypTakenFPoff,
-							CMID);
+                                                        this.tsFromFPoff,
+                                                        this.ypTakenFPoff,
+                                                        CMID);
 
       if (invalidate) {
         VM_AOSLogging.debug("Invalidate cmid " + CMID);
@@ -122,16 +122,16 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
       setTimeCompleted(VM_Controller.controllerClock);
 
       if (newCM == null) {
-	setStatus(VM_ControllerPlan.ABORTED_COMPILATION_ERROR);
+        setStatus(VM_ControllerPlan.ABORTED_COMPILATION_ERROR);
         if (VM.LogAOSEvents) 
-	  VM_AOSLogging.logOsrEvent("OSR compilation failed!");
+          VM_AOSLogging.logOsrEvent("OSR compilation failed!");
       } else {
-	setStatus(VM_ControllerPlan.COMPLETED);
-	// now let OSR_CodeInstaller generate a code stub, 
-	// and OSR_PostThreadSwitch will install the stub to run.      
-      	OSR_CodeInstaller.install(state, newCM);
-	if (VM.LogAOSEvents) 
-	  VM_AOSLogging.logOsrEvent("OSR compilation succeded! " + compPlan.method);
+        setStatus(VM_ControllerPlan.COMPLETED);
+        // now let OSR_CodeInstaller generate a code stub, 
+        // and OSR_PostThreadSwitch will install the stub to run.      
+        OSR_CodeInstaller.install(state, newCM);
+        if (VM.LogAOSEvents) 
+          VM_AOSLogging.logOsrEvent("OSR compilation succeded! " + compPlan.method);
       }
     }
 

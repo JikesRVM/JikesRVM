@@ -159,7 +159,7 @@ public class VM_CollectorThread extends VM_Thread {
    * associated.
    */
   VM_CollectorThread(byte[] stack, boolean isActive, 
-		     VM_Processor processorAffinity)
+                     VM_Processor processorAffinity)
     throws VM_PragmaInterruptible {
     super(stack);
     makeDaemon(true); // this is redundant, but harmless
@@ -219,7 +219,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @return a new non-particpating collector thread
    */
   static VM_CollectorThread createPassiveCollectorThread(byte[] stack,
-							 VM_Processor processorAffinity) 
+                                                         VM_Processor processorAffinity) 
     throws VM_PragmaInterruptible {
     return new VM_CollectorThread(stack, false, processorAffinity);
   }
@@ -299,8 +299,8 @@ public class VM_CollectorThread extends VM_Thread {
    */
    public void run()
        throws VM_PragmaNoOptCompile, // refs stored in registers by opt compiler will not be relocated by GC 
-	      VM_PragmaLogicallyUninterruptible,  // due to call to snipObsoleteCompiledMethods
-	      VM_PragmaUninterruptible {
+              VM_PragmaLogicallyUninterruptible,  // due to call to snipObsoleteCompiledMethods
+              VM_PragmaUninterruptible {
 
     for (int count = 0; ; count++) {
       /* suspend this thread: it will resume when scheduled by
@@ -309,10 +309,10 @@ public class VM_CollectorThread extends VM_Thread {
       VM_Scheduler.collectorMutex.lock();
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_CT.run yielding");
       if (count > 0) { // resume normal scheduling
-	VM_Processor.getCurrentProcessor().enableThreadSwitching();
+        VM_Processor.getCurrentProcessor().enableThreadSwitching();
       }
       VM_Thread.getCurrentThread().yield(VM_Scheduler.collectorQueue,
-					 VM_Scheduler.collectorMutex);
+                                         VM_Scheduler.collectorMutex);
       
       /* block mutators from running on the current processor */
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
@@ -337,16 +337,16 @@ public class VM_CollectorThread extends VM_Thread {
       gcBarrier.rendezvous(5200);
 
       if (gcOrdinal == 1) {
-	long elapsedCycles = VM_Time.cycles() - startCycles;
-	HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
+        long elapsedCycles = VM_Time.cycles() - startCycles;
+        HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
       }
       if (gcOrdinal == 1 && Plan.isLastGCFull()) {
         boolean heapSizeChanged = false;
-	if (Options.variableSizeHeap && handshake.gcTrigger != VM_Interface.EXTERNAL_GC_TRIGGER) {
-	  // Don't consider changing the heap size if gc was forced by System.gc()
-	  heapSizeChanged = HeapGrowthManager.considerHeapSize();
-	}
-	HeapGrowthManager.reset();
+        if (Options.variableSizeHeap && handshake.gcTrigger != VM_Interface.EXTERNAL_GC_TRIGGER) {
+          // Don't consider changing the heap size if gc was forced by System.gc()
+          heapSizeChanged = HeapGrowthManager.considerHeapSize();
+        }
+        HeapGrowthManager.reset();
       } 
 
       /* Wake up mutators waiting for this gc cycle and reset
@@ -355,21 +355,21 @@ public class VM_CollectorThread extends VM_Thread {
        * is enabled, so no mutators can possibly arrive at old
        * handshake object: it's safe to replace it with a new one. */
       if (gcOrdinal == 1) {
-	/* Snip reference to any methods that are still marked
-	 * obsolete after we've done stack scans. This allows
-	 * reclaiming them on next GC. */
-	VM_CompiledMethods.snipObsoleteCompiledMethods();
+        /* Snip reference to any methods that are still marked
+         * obsolete after we've done stack scans. This allows
+         * reclaiming them on next GC. */
+        VM_CompiledMethods.snipObsoleteCompiledMethods();
 
-	collectionCount += 1;
+        collectionCount += 1;
 
-	/* notify mutators waiting on previous handshake object -
-	 * actually we don't notify anymore, mutators are simply in
-	 * processor ready queues waiting to be dispatched. */
-	handshake.notifyCompletion();
-	handshake.reset();
+        /* notify mutators waiting on previous handshake object -
+         * actually we don't notify anymore, mutators are simply in
+         * processor ready queues waiting to be dispatched. */
+        handshake.notifyCompletion();
+        handshake.reset();
 
-	/* schedule the FinalizerThread, if there is work to do & it is idle */
-	VM_Interface.scheduleFinalizerThread();
+        /* schedule the FinalizerThread, if there is work to do & it is idle */
+        VM_Interface.scheduleFinalizerThread();
       } 
       
       /* wait for other collector threads to arrive here */
@@ -378,22 +378,22 @@ public class VM_CollectorThread extends VM_Thread {
 
       /* final cleanup for initial collector thread */
       if (gcOrdinal == 1) {
-	/* It is VERY unlikely, but possible that some RVM processors
-	 * were found in C, and were BLOCKED_IN_NATIVE, during the
-	 * collection, and now need to be unblocked. */
-	if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run unblocking procs blocked in native during GC");
-	for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-	  VM_Processor vp = VM_Scheduler.processors[i];
-	  if (VM.VerifyAssertions) VM._assert(vp != null);
-	  if (vp.vpStatus == VM_Processor.BLOCKED_IN_NATIVE ) {
-	    vp.vpStatus = VM_Processor.IN_NATIVE;
-	    if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run unblocking RVM Processor", vp.id);
-	  }
-	}
-	
-	/* clear the GC flags */
-	Plan.collectionComplete();
-	gcThreadRunning = false;
+        /* It is VERY unlikely, but possible that some RVM processors
+         * were found in C, and were BLOCKED_IN_NATIVE, during the
+         * collection, and now need to be unblocked. */
+        if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run unblocking procs blocked in native during GC");
+        for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
+          VM_Processor vp = VM_Scheduler.processors[i];
+          if (VM.VerifyAssertions) VM._assert(vp != null);
+          if (vp.vpStatus == VM_Processor.BLOCKED_IN_NATIVE ) {
+            vp.vpStatus = VM_Processor.IN_NATIVE;
+            if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run unblocking RVM Processor", vp.id);
+          }
+        }
+        
+        /* clear the GC flags */
+        Plan.collectionComplete();
+        gcThreadRunning = false;
       }
     }  // end of while(true) loop
     
@@ -420,18 +420,18 @@ public class VM_CollectorThread extends VM_Thread {
       VM.sysWrite(i);
       VM.sysWrite(" SBW ");
       if (ct.bufferWaitCount1 > 0)
-	VM.sysWrite(ct.bufferWaitCount1-1);  // subtract finish wait
+        VM.sysWrite(ct.bufferWaitCount1-1);  // subtract finish wait
       else
-	VM.sysWrite(0);
+        VM.sysWrite(0);
       VM.sysWrite(" SBWT ");
       VM.sysWrite(ct.bufferWaitTime1*1000000.0);
       VM.sysWrite(" SFWT ");
       VM.sysWrite(ct.finishWaitTime1*1000000.0);
       VM.sysWrite(" FBW ");
       if (ct.bufferWaitCount > 0)
-	VM.sysWrite(ct.bufferWaitCount-1);  // subtract finish wait
+        VM.sysWrite(ct.bufferWaitCount-1);  // subtract finish wait
       else
-	VM.sysWrite(0);
+        VM.sysWrite(0);
       VM.sysWrite(" FBWT ");
       VM.sysWrite(ct.bufferWaitTime*1000000.0);
       VM.sysWrite(" FFWT ");

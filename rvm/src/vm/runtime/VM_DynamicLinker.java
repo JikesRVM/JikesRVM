@@ -87,20 +87,20 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
       //
       VM_MethodReference methodRef = dynamicLink.methodRef();
       if (dynamicLink.isInvokeSpecial()) {
-	return methodRef.resolveInvokeSpecial();
+        return methodRef.resolveInvokeSpecial();
       } else if (dynamicLink.isInvokeStatic()) {
-	return methodRef.resolve();
+        return methodRef.resolve();
       } else {
-	// invokevirtual or invokeinterface
-	VM.disableGC();
-	Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
-	VM.enableGC();
-	VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
-	VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
-	if (targetMethod == null) {
-	  throw new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor());
-	}
-	return targetMethod;
+        // invokevirtual or invokeinterface
+        VM.disableGC();
+        Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
+        VM.enableGC();
+        VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
+        VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
+        if (targetMethod == null) {
+          throw new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor());
+        }
+        return targetMethod;
       }
     }
 
@@ -116,27 +116,27 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
       // if necessary, compile method
       //
       if (!targetMethod.isCompiled()) {
-	targetMethod.compile();
+        targetMethod.compile();
 
-	// If targetMethod is a virtual method, then eagerly patch tib of declaring class.
-	// (we need to do this to get the method test used by opt to work with lazy compilation).
-	if (!(targetMethod.isObjectInitializer() || targetMethod.isStatic())) {
-	  targetClass.updateTIBEntry(targetMethod);
-	}
+        // If targetMethod is a virtual method, then eagerly patch tib of declaring class.
+        // (we need to do this to get the method test used by opt to work with lazy compilation).
+        if (!(targetMethod.isObjectInitializer() || targetMethod.isStatic())) {
+          targetClass.updateTIBEntry(targetMethod);
+        }
       }
       
       // patch appropriate dispatch table
       //
       if (targetMethod.isObjectInitializer() || targetMethod.isStatic()) { 
-	targetClass.updateJTOCEntry(targetMethod);
+        targetClass.updateJTOCEntry(targetMethod);
       } else if (dynamicLink.isInvokeSpecial()) { 
-	targetClass.updateTIBEntry(targetMethod);
+        targetClass.updateTIBEntry(targetMethod);
       } else {
-	VM.disableGC();
-	Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
-	VM.enableGC();
-	VM_Class recvClass = (VM_Class)VM_Magic.getObjectType(targetObject);
-	recvClass.updateTIBEntry(targetMethod);
+        VM.disableGC();
+        Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
+        VM.enableGC();
+        VM_Class recvClass = (VM_Class)VM_Magic.getObjectType(targetObject);
+        recvClass.updateTIBEntry(targetMethod);
       }
     }
   }

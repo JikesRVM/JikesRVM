@@ -108,18 +108,18 @@ public final class VM_MethodCountData implements VM_Reportable {
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmids[i]);
       VM.sysWrite(counts[i] + " ("+percent+"%) ");
       if (cm == null) {
-        VM.sysWrite("OBSOLETE");		// Compiled Method Obsolete
+        VM.sysWrite("OBSOLETE");                // Compiled Method Obsolete
       } else {
-	if (cm.getCompilerType() == VM_CompiledMethod.TRAP) {
-	  VM.sysWriteln("<Hardware Trap Frame>");
-	} else {
-	  VM_Method m = cm.getMethod();
-	  VM.sysWrite(m);
-	  if (m.getDeclaringClass().isInBootImage()) {
-	    VM.sysWrite("\tBOOT");
-	  }
-	}
-	VM.sysWrite("\n");
+        if (cm.getCompilerType() == VM_CompiledMethod.TRAP) {
+          VM.sysWriteln("<Hardware Trap Frame>");
+        } else {
+          VM_Method m = cm.getMethod();
+          VM.sysWrite(m);
+          if (m.getDeclaringClass().isInBootImage()) {
+            VM.sysWrite("\tBOOT");
+          }
+        }
+        VM.sysWrite("\n");
       }
     }    
   }
@@ -163,15 +163,15 @@ public final class VM_MethodCountData implements VM_Reportable {
       map[cmid] = 0;
       nextIndex--;
       if (index < nextIndex) {
-	double oldValue = counts[index];
-	counts[index] = counts[nextIndex];
-	cmids[index] = cmids[nextIndex];
-	map[cmids[index]] = index;
-	if (counts[index] > oldValue) {
-	  heapifyUp(index);
-	} else {
-	  heapifyDown(index);
-	}
+        double oldValue = counts[index];
+        counts[index] = counts[nextIndex];
+        cmids[index] = cmids[nextIndex];
+        map[cmids[index]] = index;
+        if (counts[index] > oldValue) {
+          heapifyUp(index);
+        } else {
+          heapifyDown(index);
+        }
       } 
     }
     if (DEBUG) validityCheck();
@@ -204,7 +204,7 @@ public final class VM_MethodCountData implements VM_Reportable {
    *                  to be hot. (0.0 to 1.0)
    */
   public final synchronized void insertHotMethods(int filterOptLevel, 
-						  double threshold) {
+                                                  double threshold) {
     if (DEBUG) validityCheck();
     insertHotMethodsInternal(1, filterOptLevel, hotnessToCounts(threshold));
   }
@@ -217,11 +217,11 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param threshold hotness value above which the method is considered to
    *                  be hot. (0.0 to 1.0)
    * @return a VM_MethodCountSet containing an
-   * 		array of compiled methods and an array of their counts.
+   *            array of compiled methods and an array of their counts.
    * 
    */
   public final synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
-								double threshold) {
+                                                                double threshold) {
     if (DEBUG) validityCheck();
     ArrayList collect = new ArrayList();
     collectHotOptMethodsInternal(1, collect, hotnessToCounts(threshold), optLevel);
@@ -271,39 +271,39 @@ public final class VM_MethodCountData implements VM_Reportable {
    *                  to be hot. (0.0 to 1.0)
    */
   private void insertHotMethodsInternal(int index, 
-					int filterOptLevel, 
-					double threshold) {
+                                        int filterOptLevel, 
+                                        double threshold) {
     if (index < nextIndex) {
       if (counts[index] > threshold) {
-	int cmid = cmids[index];
-	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	if (cm == null) {			// obsolete and deleted
-	  reset(cmid);				// free up this slot
-	  // Visit new one in the slot
-	  insertHotMethodsInternal(index, filterOptLevel, threshold);
-	} else {
-	  int compilerType = cm.getCompilerType();
-	  // Enqueue it unless it's either a trap method or already 
-	  // opt compiled at filterOptLevel or higher.
-	  if (!(compilerType == VM_CompiledMethod.TRAP ||
-		(compilerType == VM_CompiledMethod.OPT && 
-		 (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
-	    double ns = counts[index];
-	    VM_HotMethodRecompilationEvent event = 
-	      new VM_HotMethodRecompilationEvent(cm, ns);
-	    if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
-	      if (VM.LogAOSEvents) {
-		VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
-	      }
-	    } else {
-	      if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
-	    }
-	  }
-	
-	  // Since I was hot enough, also consider my children.
-	  insertHotMethodsInternal(index * 2, filterOptLevel, threshold);
-	  insertHotMethodsInternal(index * 2 + 1, filterOptLevel, threshold);
-	}
+        int cmid = cmids[index];
+        VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+        if (cm == null) {                       // obsolete and deleted
+          reset(cmid);                          // free up this slot
+          // Visit new one in the slot
+          insertHotMethodsInternal(index, filterOptLevel, threshold);
+        } else {
+          int compilerType = cm.getCompilerType();
+          // Enqueue it unless it's either a trap method or already 
+          // opt compiled at filterOptLevel or higher.
+          if (!(compilerType == VM_CompiledMethod.TRAP ||
+                (compilerType == VM_CompiledMethod.OPT && 
+                 (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
+            double ns = counts[index];
+            VM_HotMethodRecompilationEvent event = 
+              new VM_HotMethodRecompilationEvent(cm, ns);
+            if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
+              if (VM.LogAOSEvents) {
+                VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
+              }
+            } else {
+              if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
+            }
+          }
+        
+          // Since I was hot enough, also consider my children.
+          insertHotMethodsInternal(index * 2, filterOptLevel, threshold);
+          insertHotMethodsInternal(index * 2 + 1, filterOptLevel, threshold);
+        }
       }
     }
   }
@@ -320,29 +320,29 @@ public final class VM_MethodCountData implements VM_Reportable {
    * @param optLevel target opt level to look for.
    */
   private void collectHotOptMethodsInternal(int index, 
-					    ArrayList collect, 
-					    double threshold, 
-					    int optLevel) {
+                                            ArrayList collect, 
+                                            double threshold, 
+                                            int optLevel) {
     if (index < nextIndex) {
       if (counts[index] > threshold) {
-	int cmid = cmids[index];
-	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	if (cm == null) {			// obsolete and deleted
-	  reset(cmid);				// free up this slot
-	  // Visit new one in the slot
-	  collectHotOptMethodsInternal(index, collect, threshold, optLevel);
-	} else {
-	  int compilerType = cm.getCompilerType();
-	  if (compilerType == VM_CompiledMethod.OPT && 
-	      ((VM_OptCompiledMethod)cm).getOptLevel() == optLevel) {
-	    double ns = counts[index];
-	    collect.add(new VM_HotMethodRecompilationEvent(cm, ns));
-	  }
-	
-	  // Since I was hot enough, also consider my children.
-	  collectHotOptMethodsInternal(index * 2, collect, threshold, optLevel);
-	  collectHotOptMethodsInternal(index * 2 + 1, collect, threshold, optLevel);
-	}
+        int cmid = cmids[index];
+        VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+        if (cm == null) {                       // obsolete and deleted
+          reset(cmid);                          // free up this slot
+          // Visit new one in the slot
+          collectHotOptMethodsInternal(index, collect, threshold, optLevel);
+        } else {
+          int compilerType = cm.getCompilerType();
+          if (compilerType == VM_CompiledMethod.OPT && 
+              ((VM_OptCompiledMethod)cm).getOptLevel() == optLevel) {
+            double ns = counts[index];
+            collect.add(new VM_HotMethodRecompilationEvent(cm, ns));
+          }
+        
+          // Since I was hot enough, also consider my children.
+          collectHotOptMethodsInternal(index * 2, collect, threshold, optLevel);
+          collectHotOptMethodsInternal(index * 2 + 1, collect, threshold, optLevel);
+        }
       }
     }
   }
@@ -363,7 +363,7 @@ public final class VM_MethodCountData implements VM_Reportable {
       // A new cmid. Allocate a heap entry for it.
       index = nextIndex++;
       if (index >= counts.length) {
-	growHeap();
+        growHeap();
       }
       counts[index] = 0.0;
       cmids[index] = cmid;
@@ -444,7 +444,7 @@ public final class VM_MethodCountData implements VM_Reportable {
     while (child1<nextIndex) {
       int child2 = current * 2 + 1;
       int larger = 
-	(child2<nextIndex && counts[child2]>counts[child1]) ? child2 : child1;
+        (child2<nextIndex && counts[child2]>counts[child1]) ? child2 : child1;
       if (counts[current] >= counts[larger]) break; // done
       swap(current, larger);
       current = larger;
@@ -477,15 +477,15 @@ public final class VM_MethodCountData implements VM_Reportable {
     if (DEBUG && VM.VerifyAssertions) {
       // (1) Verify map and cmids are in synch
       for (int i=0; i<map.length; i++) {
-	VM._assert(map[i] == 0 || cmids[map[i]] == i);
+        VM._assert(map[i] == 0 || cmids[map[i]] == i);
       }
       for (int i=1; i<nextIndex; i++) {
-	VM._assert(map[cmids[i]] == i);
+        VM._assert(map[cmids[i]] == i);
       }
 
       // Verify that heap property holds on data.
       for (int i=2; i<nextIndex; i++) {
-	VM._assert(counts[i] <= counts[i/2]);
+        VM._assert(counts[i] <= counts[i/2]);
       }
     }
   }

@@ -52,14 +52,14 @@ public class VM_MachineReflection implements VM_Constants {
           }
         }
       } else if (t.isFloatType()) {
-	if (fp > LAST_VOLATILE_FPR) Spills++;
-	else {FPRs++; fp++;}
+        if (fp > LAST_VOLATILE_FPR) Spills++;
+        else {FPRs++; fp++;}
       } else if (t.isDoubleType()) {
-	if (fp > LAST_VOLATILE_FPR) Spills+= VM.BuildFor64Addr ? 1 : 2;
-	else {FPRs++; fp++;}
+        if (fp > LAST_VOLATILE_FPR) Spills+= VM.BuildFor64Addr ? 1 : 2;
+        else {FPRs++; fp++;}
       } else { // t is object, int, short, char, byte, or boolean
-	if (gp > LAST_VOLATILE_GPR) Spills++;
-	else {GPRs++; gp++;}
+        if (gp > LAST_VOLATILE_GPR) Spills++;
+        else {GPRs++; gp++;}
       }
     }
 
@@ -89,10 +89,10 @@ public class VM_MachineReflection implements VM_Constants {
     int fp = FIRST_VOLATILE_FPR;
     if (!method.isStatic()) {
       if (gp > LAST_VOLATILE_GPR)
-	Spills.set(--Spill, VM_Reflection.unwrapObject(thisArg).toWord());
+        Spills.set(--Spill, VM_Reflection.unwrapObject(thisArg).toWord());
       else {
-	gp++;
-	GPRs.set(--GPR, VM_Reflection.unwrapObject(thisArg).toWord());
+        gp++;
+        GPRs.set(--GPR, VM_Reflection.unwrapObject(thisArg).toWord());
       }
     }
     VM_TypeReference [] types = method.getParameterTypes();
@@ -130,16 +130,16 @@ public class VM_MachineReflection implements VM_Constants {
         }
       } else if (t.isFloatType()) {
         float f = VM_Reflection.unwrapFloat(otherArgs[i]);
-	if (fp > LAST_VOLATILE_FPR) {
-	  Spills.set(--Spill, VM_Word.fromIntZeroExtend(Float.floatToIntBits(f)));
-	} else {
-	  fp++;
-	  FPRs[--FPR] = f;
-	}
+        if (fp > LAST_VOLATILE_FPR) {
+          Spills.set(--Spill, VM_Word.fromIntZeroExtend(Float.floatToIntBits(f)));
+        } else {
+          fp++;
+          FPRs[--FPR] = f;
+        }
       } else if (t.isDoubleType()) {
-	if (fp > LAST_VOLATILE_FPR) {
-	  double d = VM_Reflection.unwrapDouble(otherArgs[i]);
-	  long l = Double.doubleToLongBits(d);
+        if (fp > LAST_VOLATILE_FPR) {
+          double d = VM_Reflection.unwrapDouble(otherArgs[i]);
+          long l = Double.doubleToLongBits(d);
           if (VM.BuildFor64Addr) {
             //-#if RVM_FOR_64_ADDR
             Spills.set(--Spill, VM_Word.fromLong(l));
@@ -148,60 +148,60 @@ public class VM_MachineReflection implements VM_Constants {
             Spills.set(--Spill, VM_Word.fromIntZeroExtend((int)(l>>>32)));
             Spills.set(--Spill, VM_Word.fromIntZeroExtend((int)l));
           }
-	} else {
-	  fp++;
-	  FPRs[--FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
-	}
+        } else {
+          fp++;
+          FPRs[--FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
+        }
       } else if (t.isBooleanType()) {
         VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapBooleanAsInt(otherArgs[i]));
         if (gp > LAST_VOLATILE_GPR) {
-	  Spills.set(--Spill, val);
+          Spills.set(--Spill, val);
         } else {
-	  gp++;
-	  GPRs.set(--GPR, val);
-	}
+          gp++;
+          GPRs.set(--GPR, val);
+        }
       } else if (t.isByteType()) {
         VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapByte(otherArgs[i]));
-	if (gp > LAST_VOLATILE_GPR) {
-	  Spills.set(--Spill, val);
+        if (gp > LAST_VOLATILE_GPR) {
+          Spills.set(--Spill, val);
         } else {
-	  gp++;
-	  GPRs.set(--GPR, val);
-	}
+          gp++;
+          GPRs.set(--GPR, val);
+        }
       } else if (t.isCharType()) {
         VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapChar(otherArgs[i]));
-	if (gp > LAST_VOLATILE_GPR) {
-	  Spills.set(--Spill, val);
+        if (gp > LAST_VOLATILE_GPR) {
+          Spills.set(--Spill, val);
         } else {
-	  gp++;
-	  GPRs.set(--GPR, val);
-	}
+          gp++;
+          GPRs.set(--GPR, val);
+        }
       } else if (t.isShortType()) {
         VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapShort(otherArgs[i]));
-	if (gp > LAST_VOLATILE_GPR) {
-	  Spills.set(--Spill, val);
+        if (gp > LAST_VOLATILE_GPR) {
+          Spills.set(--Spill, val);
         } else {
-	  gp++;
-	  GPRs.set(--GPR, val);
-	}
+          gp++;
+          GPRs.set(--GPR, val);
+        }
       } else if (t.isIntType()) {
         VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapInt(otherArgs[i]));
-	if (gp > LAST_VOLATILE_GPR) {
-	  Spills.set(--Spill, val);
+        if (gp > LAST_VOLATILE_GPR) {
+          Spills.set(--Spill, val);
         } else {
-	  gp++;
-	  GPRs.set(--GPR, val);
-	}
+          gp++;
+          GPRs.set(--GPR, val);
+        }
       } else if (!t.isPrimitiveType()) {
         VM_Word val = VM_Reflection.unwrapObject(otherArgs[i]).toWord();
-	if (gp > LAST_VOLATILE_GPR) {
-	  Spills.set(--Spill, val);
+        if (gp > LAST_VOLATILE_GPR) {
+          Spills.set(--Spill, val);
         } else {
-	  gp++;
-	  GPRs.set(--GPR, val);
-	}
+          gp++;
+          GPRs.set(--GPR, val);
+        }
       } else  {
-	if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
     }
   }

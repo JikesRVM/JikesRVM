@@ -29,7 +29,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
    *                or physical/spill location (after regalloc)
    */
   public OPT_GCIRMapElement(OPT_Instruction inst, 
-			   OPT_LinkedList regSpillList) {
+                           OPT_LinkedList regSpillList) {
     this.inst = inst;
     this.regSpillList = regSpillList;
   }
@@ -84,7 +84,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
     OPT_RegSpillListEnumerator enum = regSpillListEnumerator();
     while (enum.hasMoreElements()) {
       OPT_RegSpillListElement elem = 
-	(OPT_RegSpillListElement) enum.nextElement();
+        (OPT_RegSpillListElement) enum.nextElement();
       count++;
     }
     return count;
@@ -102,7 +102,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
     OPT_RegSpillListEnumerator enum = regSpillListEnumerator();
     while (enum.hasMoreElements()) {
       OPT_RegSpillListElement elem = 
-	(OPT_RegSpillListElement) enum.nextElement();
+        (OPT_RegSpillListElement) enum.nextElement();
       if (!elem.isSpill()) {
         count++;
       }
@@ -120,7 +120,7 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
     OPT_RegSpillListEnumerator enum = regSpillListEnumerator();
     while (enum.hasMoreElements()) {
       OPT_RegSpillListElement elem = 
-	(OPT_RegSpillListElement) enum.nextElement();
+        (OPT_RegSpillListElement) enum.nextElement();
       if (elem.isSpill()) {
         count++;
       }

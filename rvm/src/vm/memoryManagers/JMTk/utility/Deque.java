@@ -50,7 +50,7 @@ class Deque implements Constants, VM_Uninterruptible {
   }
   protected final VM_Offset bufferLastOffset(int arity) throws VM_PragmaInline {
     return VM_Offset.fromInt(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS 
-			     - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_ADDRESS)));
+                             - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_ADDRESS)));
   }
 
   /****************************************************************************

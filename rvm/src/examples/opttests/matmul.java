@@ -26,40 +26,40 @@ class matmul {
   // initialize
   static void initialize() {
 
-    int	i;
-    int	j;
+    int i;
+    int j;
     
     for (i=0;i<m;i++) {
       for (j=0;j<n;j++) {
-	A[i][j] = 1.0;
+        A[i][j] = 1.0;
       }
     }
 
     for (i=0;i<n;i++) {
       for (j=0;j<p;j++) {
-	B[i][j] = 1.0;
+        B[i][j] = 1.0;
       }
     }
 
     for (i=0;i<m;i++) {
       for (j=0;j<p;j++) {
-	C[i][j] = 0.0;
+        C[i][j] = 0.0;
       }
     }
-  }	
+  }     
 
   // matrix multiply
   static void multipl() {
 
-    int	i;
-    int	j;
-    int	k;
+    int i;
+    int j;
+    int k;
     
     for (i=0;i<m;i++) {
       for (j=0;j<p;j++) {
-	for (k=0;k<n;k++) {
-	  C[i][j] += A[i][k]*B[k][j];
-	}
+        for (k=0;k<n;k++) {
+          C[i][j] += A[i][k]*B[k][j];
+        }
       }
     }
   }
@@ -91,8 +91,8 @@ class matmul {
     double err = 0;
     for (int i=0; i<m; i++) {
       for (int j=0; j<p; j++) {
-	double delta = C[i][j] - (n*NSTEP);
-	err += delta*delta;
+        double delta = C[i][j] - (n*NSTEP);
+        err += delta*delta;
       }
     }
     System.out.println("  error          = " + err);

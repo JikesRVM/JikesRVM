@@ -49,7 +49,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
     // choice for that opt-level and record it indexed by opt-level
     for (int optLevel=0; optLevel <= maxOptLevel; optLevel++) {
       allOptLevelChoices[optLevel] = 
-	  new VM_RecompileOptChoice(optLevel);
+          new VM_RecompileOptChoice(optLevel);
     }
 
     // Given the above choices, create lookup table so that the
@@ -69,7 +69,7 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
    * @param cmpMethod The compiled method being considered
    */
   VM_RecompilationChoice[] getViableRecompilationChoices(int prevCompiler,
-							 VM_CompiledMethod cmpMethod) {
+                                                         VM_CompiledMethod cmpMethod) {
     // Return the precomputed set of choices given the previous compiler
     return viableChoices[prevCompiler];
   }
@@ -88,26 +88,26 @@ class VM_MultiLevelAdaptiveModel extends VM_AnalyticModel {
 
     // For each potential value of the previous compiler
     for (int prevCompiler=VM_CompilerDNA.BASELINE;
-	 prevCompiler < maxCompiler;
-	 prevCompiler++) {
+         prevCompiler < maxCompiler;
+         prevCompiler++) {
       
       // Consider each choice in the list of all choices.
       // If it is greater than cur compiler, add it.
       int curSlot=0;
       for (int i=0; i<allOptLevelChoices.length; i++) {
-	if (allOptLevelChoices[i].getCompiler() > prevCompiler) {
-	  // Add the current opt-level as a choice to consider when
-	  // the previous compiler is prevCompiler
-	  temp[curSlot++] = allOptLevelChoices[i];
-	}
+        if (allOptLevelChoices[i].getCompiler() > prevCompiler) {
+          // Add the current opt-level as a choice to consider when
+          // the previous compiler is prevCompiler
+          temp[curSlot++] = allOptLevelChoices[i];
+        }
       }
       
       // Now that you know how many choices there are, create an array
       // of them and copy the choices in.
       viableChoices[prevCompiler] = new VM_RecompilationChoice[curSlot];
       for (int i=0; i<curSlot; i++) {
-	viableChoices[prevCompiler][i] = temp[i];
-	temp[i]=null;
+        viableChoices[prevCompiler][i] = temp[i];
+        temp[i]=null;
       }
     }
   }

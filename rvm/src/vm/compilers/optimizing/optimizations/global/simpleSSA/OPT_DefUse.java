@@ -60,7 +60,7 @@ public final class OPT_DefUse implements OPT_Operators {
     clearDU(ir);
     // Create register defList and useList
     for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); 
-	 instr != null; instr = instr.nextInstructionInCodeOrder()) {
+         instr != null; instr = instr.nextInstructionInCodeOrder()) {
 
       OPT_OperandEnumeration defs = instr.getPureDefs(); 
       OPT_OperandEnumeration uses = instr.getUses(); 
@@ -69,7 +69,7 @@ public final class OPT_DefUse implements OPT_Operators {
         OPT_Operand op = defs.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
-	  recordDef(rop);
+          recordDef(rop);
         }
       }         // for ( defs = ... )
 
@@ -77,7 +77,7 @@ public final class OPT_DefUse implements OPT_Operators {
         OPT_Operand op = uses.next();
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
-	  recordUse(rop);
+          recordUse(rop);
         }
       }         // for ( uses = ... )
     }           // for ( instr = ... )
@@ -189,7 +189,7 @@ public final class OPT_DefUse implements OPT_Operators {
    *  @param newRegOp the register operand to use for the change
    */
   static void transferUse(OPT_RegisterOperand origRegOp, 
-			  OPT_RegisterOperand newRegOp) {
+                          OPT_RegisterOperand newRegOp) {
     if (VM.VerifyAssertions)
       VM._assert(origRegOp.register.getType() == newRegOp.register.getType());
     OPT_Instruction inst = origRegOp.instruction;
@@ -258,7 +258,7 @@ public final class OPT_DefUse implements OPT_Operators {
    * Replace an instruction and update register lists.
    */
   static void replaceInstructionAndUpdateDU(OPT_Instruction oldI,
-					    OPT_Instruction newI) {
+                                            OPT_Instruction newI) {
     oldI.insertBefore(newI);
     removeInstructionAndUpdateDU(oldI);
     updateDUForNewInstruction(newI);

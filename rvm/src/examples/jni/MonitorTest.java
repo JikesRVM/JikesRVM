@@ -5,7 +5,7 @@
 /**
  * Test monitor operation from native
  * The following JNI calls are tested:
- *	MonitorEnter         MonitorExit
+ *      MonitorEnter         MonitorExit
  *
  * @author Ton Ngo, Steve Smith 
  * @date 1/3/01
@@ -56,9 +56,9 @@ class MonitorTest {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
     // Create an object to lock on

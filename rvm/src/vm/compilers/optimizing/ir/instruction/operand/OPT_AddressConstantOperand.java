@@ -54,7 +54,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
 
   public boolean equals(Object o) {
     return (o instanceof OPT_AddressConstantOperand) &&
-	   (value.EQ(((OPT_AddressConstantOperand)o).value));
+           (value.EQ(((OPT_AddressConstantOperand)o).value));
   }
 
   public int hashCode() {

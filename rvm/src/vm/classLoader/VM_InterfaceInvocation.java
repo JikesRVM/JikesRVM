@@ -81,21 +81,21 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       // Search for the right ITable
       VM_Type I = VM_Class.getInterface(id);
       if (iTables != null) {
-	// check the cache at slot 0
-	Object[] iTable = (Object[])iTables[0];
-	if (iTable[0] == I) { 
-	  return iTable; // cache hit :)
-	}
-	  
-	// cache miss :(
-	// Have to search the 'real' entries for the iTable
-	for (int i=1; i<iTables.length; i++) {
-	  iTable = (Object[])iTables[i];
-	  if (iTable[0] == I) { 
-	    // found it; update cache
-	    iTables[0] = iTable;
-	    return iTable;
-	  }
+        // check the cache at slot 0
+        Object[] iTable = (Object[])iTables[0];
+        if (iTable[0] == I) { 
+          return iTable; // cache hit :)
+        }
+          
+        // cache miss :(
+        // Have to search the 'real' entries for the iTable
+        for (int i=1; i<iTables.length; i++) {
+          iTable = (Object[])iTables[i];
+          if (iTable[0] == I) { 
+            // found it; update cache
+            iTables[0] = iTable;
+            return iTable;
+          }
         }
       }
 
@@ -106,7 +106,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       VM_Class C = (VM_Class)tib[0];
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
       synchronized (C) {
-	installITable(C, (VM_Class)I);
+        installITable(C, (VM_Class)I);
       }
       Object[] iTable = findITable(tib, id);
       if (VM.VerifyAssertions) VM._assert(iTable != null);
@@ -175,14 +175,14 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     VM_Class[] interfaces = klass.getAllImplementedInterfaces();
     if (interfaces.length != 0) {
       if (VM.BuildForIMTInterfaceInvocation) {
-	IMTDict d = buildIMTDict(klass, interfaces);
-	if (VM.BuildForEmbeddedIMT) {
-	  populateEmbeddedIMT(klass, d);
-	} else {
-	  populateIndirectIMT(klass, d);
-	}
+        IMTDict d = buildIMTDict(klass, interfaces);
+        if (VM.BuildForEmbeddedIMT) {
+          populateEmbeddedIMT(klass, d);
+        } else {
+          populateIndirectIMT(klass, d);
+        }
       } else if (VM.DirectlyIndexedITables) {
-	populateITables(klass, interfaces);
+        populateITables(klass, interfaces);
       }
     }
   }
@@ -200,20 +200,20 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     for (int i=0; i<interfaces.length; i++) {
       VM_Method[] interfaceMethods = interfaces[i].getDeclaredMethods();
       for (int j=0; j<interfaceMethods.length; j++) {
-	VM_Method im = interfaceMethods[j];
-	if (im.isClassInitializer()) continue; 
-	if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
-	VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(im.getMemberRef());
-	VM_Method vm = klass.findVirtualMethod(im.getName(), im.getDescriptor());
-	// NOTE: if there is some error condition, then we are playing a dirty trick and
-	//       pretending that a static method of VM_Runtime is a virtual method.
-	//       Since the methods in question take no arguments, we can get away with this.
-	if (vm == null || vm.isAbstract()) {
-	  vm = VM_Entrypoints.raiseAbstractMethodError;
-	} else if (!vm.isPublic()) {
-	  vm = VM_Entrypoints.raiseIllegalAccessError;
-	}
-	d.addElement(sig, vm);
+        VM_Method im = interfaceMethods[j];
+        if (im.isClassInitializer()) continue; 
+        if (VM.VerifyAssertions) VM._assert(im.isPublic() && im.isAbstract()); 
+        VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(im.getMemberRef());
+        VM_Method vm = klass.findVirtualMethod(im.getName(), im.getDescriptor());
+        // NOTE: if there is some error condition, then we are playing a dirty trick and
+        //       pretending that a static method of VM_Runtime is a virtual method.
+        //       Since the methods in question take no arguments, we can get away with this.
+        if (vm == null || vm.isAbstract()) {
+          vm = VM_Entrypoints.raiseAbstractMethodError;
+        } else if (!vm.isPublic()) {
+          vm = VM_Entrypoints.raiseIllegalAccessError;
+        }
+        d.addElement(sig, vm);
       }
     }
     return d;
@@ -270,9 +270,9 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       tib[TIB_ITABLES_TIB_INDEX] = iTables;
     } else {
       for (int i=0; i<iTables.length; i++) {
-	if (((Object[])iTables[i])[0] == I) {
-	  return; // some other thread just built the iTable
-	}
+        if (((Object[])iTables[i])[0] == I) {
+          return; // some other thread just built the iTable
+        }
       }
       Object[] tmp = new Object[iTables.length+1];
       System.arraycopy(iTables, 0, tmp, 0, iTables.length);
@@ -305,15 +305,15 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       //       pretending that a static method of VM_Runtime is a virtual method.
       //       Since the methods in question take no arguments, we can get away with this.
       if (vm == null || vm.isAbstract()) {
-	vm = VM_Entrypoints.raiseAbstractMethodError;
+        vm = VM_Entrypoints.raiseAbstractMethodError;
       } else if (!vm.isPublic()) {
-	vm = VM_Entrypoints.raiseIllegalAccessError;
+        vm = VM_Entrypoints.raiseIllegalAccessError;
       }
       if (vm.isStatic()) {
-	vm.compile();
-	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
+        vm.compile();
+        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
       } else {
-	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (VM_CodeArray) tib[vm.getOffset()>>LOG_BYTES_IN_ADDRESS];
+        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (VM_CodeArray) tib[vm.getOffset()>>LOG_BYTES_IN_ADDRESS];
       }
     }
     return iTable;
@@ -333,7 +333,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int i=0; i<methods.length; i++) {
       if (methods[i].getName() == mname && methods[i].getDescriptor() == mdesc) {
-	return i+1;
+        return i+1;
       }
     }
     return -1;
@@ -353,30 +353,30 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     if (VM.BuildForIMTInterfaceInvocation) {
       VM_Method[] map = klass.noIMTConflictMap;
       if (map != null) {
-	for (int i = 0; i<IMT_METHOD_SLOTS; i++) {
-	  if (map[i] == m) {
-	    if (VM.BuildForIndirectIMT) {
-	      VM_CodeArray[] IMT = (VM_CodeArray[])tib[TIB_IMT_TIB_INDEX];
+        for (int i = 0; i<IMT_METHOD_SLOTS; i++) {
+          if (map[i] == m) {
+            if (VM.BuildForIndirectIMT) {
+              VM_CodeArray[] IMT = (VM_CodeArray[])tib[TIB_IMT_TIB_INDEX];
               IMT[i] = m.getCurrentInstructions();
             } else {
-	      tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentInstructions();
-	    }
-	    return; // all done -- a method is in at most 1 IMT slot
-	  }
-	}
+              tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentInstructions();
+            }
+            return; // all done -- a method is in at most 1 IMT slot
+          }
+        }
       }
     } else if (VM.BuildForITableInterfaceInvocation) {
       if (tib[TIB_ITABLES_TIB_INDEX] != null) {
         Object[] iTables = (Object[])tib[TIB_ITABLES_TIB_INDEX];
-	VM_Atom name = m.getName();
-	VM_Atom desc = m.getDescriptor();
+        VM_Atom name = m.getName();
+        VM_Atom desc = m.getDescriptor();
         for (int i=0; i<iTables.length; i++) {
           Object[] iTable = (Object[])iTables[i];
           if (iTable != null) {
             VM_Class I = (VM_Class)iTable[0];
             VM_Method [] interfaceMethods = I.getDeclaredMethods();
             for (int j=0; j<interfaceMethods.length; j++) {
-	      VM_Method im = interfaceMethods[i];
+              VM_Method im = interfaceMethods[i];
               if (im.getName() == name && im.getDescriptor() == desc) {
                 iTable[getITableIndex(I, name, desc)] = m.getCurrentInstructions();
               }
@@ -404,7 +404,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     private int getIndex(VM_InterfaceMethodSignature sig) {
       int idx = sig.getIMTOffset() >> LOG_BYTES_IN_ADDRESS;
       if (VM.BuildForEmbeddedIMT) {
-	idx -= TIB_FIRST_INTERFACE_METHOD_INDEX;
+        idx -= TIB_FIRST_INTERFACE_METHOD_INDEX;
       }
       return idx;
     }
@@ -414,8 +414,8 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       Link p = links[index];
       int count = 0;
       while (p != null) {
-	count++;
-	p = p.next;
+        count++;
+        p = p.next;
       }
       return count;
     }
@@ -430,15 +430,15 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       int index = getIndex(sig);
       Link p = links[index];
       if (p == null || p.signature.getId() > sig.getId()) {
-	links[index] = new Link(sig, m, p);
+        links[index] = new Link(sig, m, p);
       } else {
-	Link q = p;
-	while (p != null && p.signature.getId() <= sig.getId()) {
-	  if (p.signature.getId() == sig.getId()) return; // already there so nothing to do.
-	  q = p;
-	  p = p.next;
-	}
-	q.next = new Link(sig, m, p);
+        Link q = p;
+        while (p != null && p.signature.getId() <= sig.getId()) {
+          if (p.signature.getId() == sig.getId()) return; // already there so nothing to do.
+          q = p;
+          p = p.next;
+        }
+        q.next = new Link(sig, m, p);
       }
     }
 
@@ -446,33 +446,33 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     public void populateIMT(Object[] tib, Object[] IMT) {
       int adjust = VM.BuildForEmbeddedIMT ? TIB_FIRST_INTERFACE_METHOD_INDEX : 0;
       for (int slot = 0; slot<links.length; slot++) {
-	int extSlot = slot + adjust;
-	int count = populationCount(slot);
-	if (count == 0) {
-	  VM_Entrypoints.raiseAbstractMethodError.compile();
-	  IMT[extSlot] = VM_Entrypoints.raiseAbstractMethodError.getCurrentInstructions();
-	} else if (count == 1) {
-	  VM_Method target = getSoleTarget(slot);
-	  if (target.isStatic()) {
-	    target.compile();
-	    IMT[extSlot] = target.getCurrentInstructions();
-	  } else {
-	    IMT[extSlot] = (VM_CodeArray) tib[target.getOffset()>>LOG_BYTES_IN_ADDRESS];
-	    if (klass.noIMTConflictMap == null) {
-	      klass.noIMTConflictMap = new VM_Method[IMT_METHOD_SLOTS];
-	    }
-	    klass.noIMTConflictMap[slot] = target;
-	  }
-	} else {
-	  VM_Method[] targets = new VM_Method[count];
-	  int[] sigIds = new int[count];
-	  int idx = 0;
-	  for (Link p = links[slot]; p != null; idx++, p = p.next) {
-	    targets[idx] = p.method;
-	    sigIds[idx] = p.signature.getId();
-	  }
-	  IMT[extSlot] = VM_InterfaceMethodConflictResolver.createStub(sigIds, targets);
-	}
+        int extSlot = slot + adjust;
+        int count = populationCount(slot);
+        if (count == 0) {
+          VM_Entrypoints.raiseAbstractMethodError.compile();
+          IMT[extSlot] = VM_Entrypoints.raiseAbstractMethodError.getCurrentInstructions();
+        } else if (count == 1) {
+          VM_Method target = getSoleTarget(slot);
+          if (target.isStatic()) {
+            target.compile();
+            IMT[extSlot] = target.getCurrentInstructions();
+          } else {
+            IMT[extSlot] = (VM_CodeArray) tib[target.getOffset()>>LOG_BYTES_IN_ADDRESS];
+            if (klass.noIMTConflictMap == null) {
+              klass.noIMTConflictMap = new VM_Method[IMT_METHOD_SLOTS];
+            }
+            klass.noIMTConflictMap[slot] = target;
+          }
+        } else {
+          VM_Method[] targets = new VM_Method[count];
+          int[] sigIds = new int[count];
+          int idx = 0;
+          for (Link p = links[slot]; p != null; idx++, p = p.next) {
+            targets[idx] = p.method;
+            sigIds[idx] = p.signature.getId();
+          }
+          IMT[extSlot] = VM_InterfaceMethodConflictResolver.createStub(sigIds, targets);
+        }
       }
     }
 
@@ -481,9 +481,9 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       final VM_Method method;
       Link      next;
       Link (VM_InterfaceMethodSignature sig, VM_Method m, Link n) {
-	signature = sig;
-	method    = m;
-	next      = n;
+        signature = sig;
+        method    = m;
+        next      = n;
       }
     }
   }

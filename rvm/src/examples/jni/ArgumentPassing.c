@@ -43,7 +43,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitStatic
     if (verbose) {
       printf("> integerFitStatic in native: \n>   expect 1, 3, 5, 7, 9, 11 \n");
       printf(">   get %d, %d, %d, %d, %d, %d\n", 
-	     val1, val2, val3,  val4, val5, val6);        
+             val1, val2, val3,  val4, val5, val6);        
     }
     return -1;
   }
@@ -69,8 +69,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillAIXStatic
     if (verbose) {
       printf("> integerSpillAIXStatic in native: \n>   expect 1, 3, 5, 7, 9, 11, 13, 15, 17, 19 \n");
       printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", 
-	     val1, val2, val3,  val4, val5, 
-	     val6, val7, val8,  val9, val10);        
+             val1, val2, val3,  val4, val5, 
+             val6, val7, val8,  val9, val10);        
     }
     return -1;
   }
@@ -96,8 +96,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillBothStatic
     if (verbose) {
       printf("> integerSpillBothStatic in native: \n>   expect 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23 \n");
       printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", 
-	     val1, val2, val3,  val4, val5, 
-	     val6, val7, val8,  val9, val10, val11, val12);        
+             val1, val2, val3,  val4, val5, 
+             val6, val7, val8,  val9, val10, val11, val12);        
     }
     return -1;
   }
@@ -128,7 +128,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitStatic
       printf("> floatFitStatic in native: \n");
       printf(">   expect .10, .25, .50, .75, 1.0, 1.25 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6);        
+             fval1, fval2, fval3, fval4, fval5, fval6);        
     }
     return -1;
   }
@@ -154,7 +154,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitStaticSave
       printf("> floatFitStaticSave in native: \n");
       printf(">   expect .1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8);        
     }
     return -1;
   }
@@ -186,8 +186,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillAIXStatic
       printf("> floatSpillAIXStatic in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
     }
     return -1;
   }
@@ -221,8 +221,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillBothStatic
       printf("> floatSpillBothStatic in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50, 3.75, 4.0 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
     }
     return -1;
   }
@@ -287,7 +287,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitStaticSave
       printf("> doubleFitStaticSave in native: \n");
       printf(">   expect 0.1, 0.25, 0.50 , 0.75, 1.00\n");
       printf(">   get %3.2d, %3.2d, %3.2d, %3.2d, %3.2d \n", 
-	     fval1, fval2, fval3, fval4, fval5);        
+             fval1, fval2, fval3, fval4, fval5);        
     }
     return -1;
   }
@@ -318,8 +318,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillAIXStatic
       printf("> doubleSpillAIXStatic in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
     }
     return -1;
   }
@@ -353,8 +353,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillBothStatic
       printf("> doubleSpillBothStatic in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50, 3.75, 4.00 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
     }
     return -1;
   }
@@ -376,7 +376,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitStatic
     if (verbose) {
       printf("> longFitStatic in native: \n>   expect 1, 3, 5 \n");
       printf(">   get %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3);        
+             (int) val1, (int) val2, (int) val3);        
     }
     return -1;
   }
@@ -396,7 +396,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitStaticStraddle
     if (verbose) {
       printf("> longFitStaticStraddle in native: \n>   expect 1, 3, 5, 7 \n");
       printf(">   get %d, %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3, (int) val4);        
+             (int) val1, (int) val2, (int) val3, (int) val4);        
     }
     return -1;
   }
@@ -417,7 +417,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillAIXStatic
     if (verbose) {
       printf("> longSpillAIXStatic in native: \n>   expect 1, 3, 5, 7, 9 \n");
       printf(">   get %d, %d, %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3,  (int) val4, (int) val5);        
+             (int) val1, (int) val2, (int) val3,  (int) val4, (int) val5);        
     }
     return -1;
   }
@@ -440,8 +440,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillBothStatic
     if (verbose) {
       printf("> longSpillBothStatic in native: \n>   expect 1, 3, 5, 7, 9, 11, 13 \n");
       printf(">   get %d, %d, %d, %d, %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3, (int) val4, (int) val5, 
-	     (int) val6, (int) val7);        
+             (int) val1, (int) val2, (int) val3, (int) val4, (int) val5, 
+             (int) val6, (int) val7);        
     }
     return -1;
   }
@@ -467,7 +467,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatFitStatic
       printf("> integerFloatFitStatic in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7, 9, 11.11 \n");
       printf(">   get %d, %3.2f, %d, %3.2f, %d, %3.2f\n", 
-	     val1, fval2, val3, fval4, val5, fval6);        
+             val1, fval2, val3, fval4, val5, fval6);        
     }
     return -1;
   }
@@ -491,7 +491,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatSpillStatic
       printf("> integerFloatSpillStatic in native: \n");
       printf(">   expect 1.1f, 3, 5.5f, 7, 9.9f, 11, 13.13f, 15\n");
       printf(">   get %3.2f, %d, %3.2f, %d, %3.2f, %d\n", 
-	     fval1, val2, fval3, val4, fval5, val6);        
+             fval1, val2, fval3, val4, fval5, val6);        
     }
     return -1;
   }
@@ -514,7 +514,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitStatic
       printf("> integerDoubleFitStatic in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7 \n");
       printf(">   get %d, %3.2d, %d, %3.2d\n", 
-	     val1, fval2, val3, fval4);        
+             val1, fval2, val3, fval4);        
     }
     return -1;
   }
@@ -537,7 +537,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitStaticStraddle
       printf("> integerDoubleFitStaticStraddle in native: \n");
       printf(">   expect 1.1, 3, 5, 7, 9.9 \n");
       printf(">   get %3.2d, %d, %d, %d, %3.2d\n", 
-	     fval1, val2, val3,  val4, fval5);        
+             fval1, val2, val3,  val4, fval5);        
     }
     return -1;
   }
@@ -560,7 +560,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleSpillStatic
       printf("> integerDoubleSpillStatic in native: \n");
       printf(">   expect 1.1, 3, 5.5, 7, 9.9, 11 \n");
       printf(">   get %3.2d, %d, %3.2d, %d, %3.2d, %d\n", 
-	     fval1, val2, fval3,  val4, fval5, val6);        
+             fval1, val2, fval3,  val4, fval5, val6);        
     }
     return -1;
   }
@@ -583,7 +583,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitStatic
       printf(">  in native: \n");
       printf(">   expect 1, 3, 5, 7 \n");
       printf(">   get %d, %d, %d, %d\n", 
-	     val1, (int) val2, val3, (int) val4);        
+             val1, (int) val2, val3, (int) val4);        
     }
     return -1;
   }
@@ -606,7 +606,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitStaticStraddle
       printf("> integerLongFitStaticStraddle in native: \n");
       printf(">   expect 1, 3, 5, 7, 9 \n");
       printf(">   get %d, %d, %d, %d, %d, %d\n", 
-	     val1, (int) val2, val3,  val4, (int) val5);        
+             val1, (int) val2, val3,  val4, (int) val5);        
     }
     return -1;
   }
@@ -629,7 +629,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongSpillStatic
       printf("> integerLongSpillStatic in native: \n");
       printf(">   expect 1, 3, 5, 7, 9, 11 \n");
       printf(">   get %d, %d, %d, %d, %d, %d\n", 
-	     (int) val1, val2, (int) val3,  val4, (int) val5, val6);        
+             (int) val1, val2, (int) val3,  val4, (int) val5, val6);        
     }
     return -1;
   }
@@ -652,7 +652,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleFitStatic
       printf("> floatDoubleFitStatic in native: \n");
       printf(">   expect 1.1, 3.3, 5.5, 7.7 \n");
       printf(">   get %3.2f, %3.2d, %3.2f, %3.2d\n", 
-	     fval1, fval2, fval3, fval4);        
+             fval1, fval2, fval3, fval4);        
     }
     return -1;
   }
@@ -677,7 +677,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleSpillStatic
       printf("> floatDoubleSpillStatic in native: \n");
       printf(">   expect 1.1, 3.3, 5.5, 7.7, 9.9, 11.11 \n");
       printf(">   get %3.2d, %3.2f, %3.2d, %3.2f, %3.2d, %3.2f\n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6);        
+             fval1, fval2, fval3, fval4, fval5, fval6);        
     }
     return -1;
   }
@@ -700,7 +700,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongFitStatic
       printf("> floatLongFitStatic in native: \n");
       printf(">   expect 1.1, 3, 5.5, 7 \n");
       printf(">   get %3.2f, %d, %3.2f, %d\n", 
-	     fval1, (int) val2, fval3, (int) val4);        
+             fval1, (int) val2, fval3, (int) val4);        
     }
     return -1;
   }
@@ -725,7 +725,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongSpillStatic
       printf("> floatLongSpillStatic in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7, 9, 11.11 \n");
       printf(">   get %d, %3.2f, %d, %3.2f, %d, %3.2f\n", 
-	     (int) val1, fval2, (int) val3, fval4, (int) val5, fval6);        
+             (int) val1, fval2, (int) val3, fval4, (int) val5, fval6);        
     }
     return -1;
   }
@@ -770,7 +770,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillStatic
       printf("> doubleLongSpillStatic in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7, 9 \n");
       printf(">   get %d, %3.2d, %d, %3.2d, %d\n", 
-	     (int) val1, fval2, (int) val3, fval4, (int) val5);        
+             (int) val1, fval2, (int) val3, fval4, (int) val5);        
     }
     return -1;
   }
@@ -802,7 +802,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFitVirtual
     if (verbose) {
       printf("> integerFitVirtual in native: \n>   expect 2, 4, 6, 8, 10, 12 \n");
       printf(">   get %d, %d, %d, %d, %d, %d\n", 
-	     val1, val2, val3,  val4, val5, val6);        
+             val1, val2, val3,  val4, val5, val6);        
     }
     return -1;
   }
@@ -828,8 +828,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillAIXVirtual
     if (verbose) {
       printf("> integerSpillAIXVirtual in native: \n>   expect 2, 4, 6, 8, 10, 12, 14, 16, 18\n");
       printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d\n", 
-	     val1, val2, val3,  val4, val5, 
-	     val6, val7, val8,  val9);        
+             val1, val2, val3,  val4, val5, 
+             val6, val7, val8,  val9);        
     }
     return -1;
   }
@@ -853,8 +853,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerSpillBothVirtual
     if (verbose) {
       printf("> integerSpillBothVirtual in native: \n>   expect 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22\n");
       printf(">   get %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", 
-	     val1, val2, val3,  val4, val5, 
-	     val6, val7, val8,  val9, val10,  val11);        
+             val1, val2, val3,  val4, val5, 
+             val6, val7, val8,  val9, val10,  val11);        
     }
     return -1;  
 
@@ -887,7 +887,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitVirtual
       printf("> floatFitVirtual in native: \n");
       printf(">   expect .10, .25, .50, .75, 1.0, 1.25 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6);        
+             fval1, fval2, fval3, fval4, fval5, fval6);        
     }
     return -1;
   }
@@ -913,7 +913,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatFitVirtualSave
       printf("> floatFitVirtualSave in native: \n");
       printf(">   expect .1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8);        
     }
     return -1;
   }
@@ -945,8 +945,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillAIXVirtual
       printf("> floatSpillAIXVirtual in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
     }
     return -1;
   }
@@ -980,8 +980,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatSpillBothVirtual
       printf("> floatSpillBothVirtual in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50, 3.75, 4.0 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
     }
     return -1;
   }
@@ -1046,7 +1046,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleFitVirtualSave
       printf("> doubleFitVirtualSave in native: \n");
       printf(">   expect 0.1, 0.25, 0.50 , 0.75, 1.00\n");
       printf(">   get %3.2d, %3.2d, %3.2d, %3.2d, %3.2d \n", 
-	     fval1, fval2, fval3, fval4, fval5);        
+             fval1, fval2, fval3, fval4, fval5);        
     }
     return -1;
   }
@@ -1077,8 +1077,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillAIXVirtual
       printf("> doubleSpillAIXVirtual in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15);        
     }
     return -1;
   }
@@ -1112,8 +1112,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleSpillBothVirtual
       printf("> doubleSpillBothVirtual in native: \n");
       printf(">   expect 0.1, .25, .50, .75, 1.0, 1.25, 1.50, 1.75, 2.0, 2.25, 2.50, 2.75, 3.0, 3.25, 3.50, 3.75, 4.00 \n");
       printf(">   get %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f, %3.2f \n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
-	     fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
+             fval1, fval2, fval3, fval4, fval5, fval6, fval7, fval8,
+             fval9, fval10, fval11, fval12, fval13, fval14, fval15, fval16, fval17);        
     }
     return -1;
   }
@@ -1135,7 +1135,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitVirtual
     if (verbose) {
       printf("> longFitVirtual in native: \n>   expect 1, 3, 5 \n");
       printf(">   get %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3);        
+             (int) val1, (int) val2, (int) val3);        
     }
     return -1;
   }
@@ -1155,7 +1155,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longFitVirtualStraddle
     if (verbose) {
       printf("> longFitVirtualStraddle in native: \n>   expect 1, 3, 5, 7 \n");
       printf(">   get %d, %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3, (int) val4);        
+             (int) val1, (int) val2, (int) val3, (int) val4);        
     }
     return -1;
   }
@@ -1176,7 +1176,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillAIXVirtual
     if (verbose) {
       printf("> longSpillAIXVirtual in native: \n>   expect 1, 3, 5, 7, 9 \n");
       printf(">   get %d, %d, %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3,  (int) val4, (int) val5);        
+             (int) val1, (int) val2, (int) val3,  (int) val4, (int) val5);        
     }
     return -1;
   }
@@ -1199,8 +1199,8 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_longSpillBothVirtual
     if (verbose) {
       printf("> longSpillBothVirtual in native: \n>   expect 1, 3, 5, 7, 9, 11, 13 \n");
       printf(">   get %d, %d, %d, %d, %d, %d, %d\n", 
-	     (int) val1, (int) val2, (int) val3, (int) val4, (int) val5, 
-	     (int) val6, (int) val7);        
+             (int) val1, (int) val2, (int) val3, (int) val4, (int) val5, 
+             (int) val6, (int) val7);        
     }
     return -1;
   }
@@ -1227,7 +1227,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatFitVirtual
       printf("> integerFloatFitVirtual in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7, 9, 11.11 \n");
       printf(">   get %d, %3.2f, %d, %3.2f, %d, %3.2f\n", 
-	     val1, fval2, val3, fval4, val5, fval6);        
+             val1, fval2, val3, fval4, val5, fval6);        
     }
     return -1;
   }
@@ -1251,7 +1251,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerFloatSpillVirtual
       printf("> integerFloatSpillVirtual in native: \n");
       printf(">   expect 1.1f, 3, 5.5f, 7, 9.9f, 11, 13.13f, 15\n");
       printf(">   get %3.2f, %d, %3.2f, %d, %3.2f, %d\n", 
-	     fval1, val2, fval3, val4, fval5, val6);        
+             fval1, val2, fval3, val4, fval5, val6);        
     }
     return -1;
   }
@@ -1274,7 +1274,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitVirtual
       printf("> integerDoubleFitVirtual in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7 \n");
       printf(">   get %d, %3.2d, %d, %3.2d\n", 
-	     val1, fval2, val3, fval4);        
+             val1, fval2, val3, fval4);        
     }
     return -1;
   }
@@ -1297,7 +1297,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleFitVirtualStraddle
       printf("> integerDoubleFitVirtualStraddle in native: \n");
       printf(">   expect 1.1, 3, 5, 7, 9.9 \n");
       printf(">   get %3.2d, %d, %d, %d, %3.2d\n", 
-	     fval1, val2, val3,  val4, fval5);        
+             fval1, val2, val3,  val4, fval5);        
     }
     return -1;
   }
@@ -1320,7 +1320,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerDoubleSpillVirtual
       printf("> integerDoubleSpillVirtual in native: \n");
       printf(">   expect 1.1, 3, 5.5, 7, 9.9, 11 \n");
       printf(">   get %3.2d, %d, %3.2d, %d, %3.2d, %d\n", 
-	     fval1, val2, fval3,  val4, fval5, val6);        
+             fval1, val2, fval3,  val4, fval5, val6);        
     }
     return -1;
   }
@@ -1343,7 +1343,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitVirtual
       printf(">  in native: \n");
       printf(">   expect 1, 3, 5, 7 \n");
       printf(">   get %d, %d, %d, %d\n", 
-	     val1, (int) val2, val3, (int) val4);        
+             val1, (int) val2, val3, (int) val4);        
     }
     return -1;
   }
@@ -1366,7 +1366,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongFitVirtualStraddle
       printf("> integerLongFitVirtualStraddle in native: \n");
       printf(">   expect 1, 3, 5, 7, 9 \n");
       printf(">   get %d, %d, %d, %d, %d, %d\n", 
-	     val1, (int) val2, val3,  val4, (int) val5);        
+             val1, (int) val2, val3,  val4, (int) val5);        
     }
     return -1;
   }
@@ -1389,7 +1389,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_integerLongSpillVirtual
       printf("> integerLongSpillVirtual in native: \n");
       printf(">   expect 1, 3, 5, 7, 9, 11 \n");
       printf(">   get %d, %d, %d, %d, %d, %d\n", 
-	     (int) val1, val2, (int) val3,  val4, (int) val5, val6);        
+             (int) val1, val2, (int) val3,  val4, (int) val5, val6);        
     }
     return -1;
   }
@@ -1412,7 +1412,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleFitVirtual
       printf("> floatDoubleFitVirtual in native: \n");
       printf(">   expect 1.1, 3.3, 5.5, 7.7 \n");
       printf(">   get %3.2f, %3.2d, %3.2f, %3.2d\n", 
-	     fval1, fval2, fval3, fval4);        
+             fval1, fval2, fval3, fval4);        
     }
     return -1;
   }
@@ -1437,7 +1437,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatDoubleSpillVirtual
       printf("> floatDoubleSpillVirtual in native: \n");
       printf(">   expect 1.1, 3.3, 5.5, 7.7, 9.9, 11.11 \n");
       printf(">   get %3.2d, %3.2f, %3.2d, %3.2f, %3.2d, %3.2f\n", 
-	     fval1, fval2, fval3, fval4, fval5, fval6);        
+             fval1, fval2, fval3, fval4, fval5, fval6);        
     }
     return -1;
   }
@@ -1460,7 +1460,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongFitVirtual
       printf("> floatLongFitVirtual in native: \n");
       printf(">   expect 1.1, 3, 5.5, 7 \n");
       printf(">   get %3.2f, %d, %3.2f, %d\n", 
-	     fval1, (int) val2, fval3, (int) val4);        
+             fval1, (int) val2, fval3, (int) val4);        
     }
     return -1;
   }
@@ -1485,7 +1485,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_floatLongSpillVirtual
       printf("> floatLongSpillVirtual in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7, 9, 11.11 \n");
       printf(">   get %d, %3.2f, %d, %3.2f, %d, %3.2f\n", 
-	     (int) val1, fval2, (int) val3, fval4, (int) val5, fval6);        
+             (int) val1, fval2, (int) val3, fval4, (int) val5, fval6);        
     }
     return -1;
   }
@@ -1530,7 +1530,7 @@ JNIEXPORT jint JNICALL Java_ArgumentPassing_doubleLongSpillVirtual
       printf("> doubleLongSpillVirtual in native: \n");
       printf(">   expect 1, 3.3, 5, 7.7, 9 \n");
       printf(">   get %d, %3.2d, %d, %3.2d, %d\n", 
-	     (int) val1, fval2, (int) val3, fval4, (int) val5);        
+             (int) val1, fval2, (int) val3, fval4, (int) val5);        
     }
     return -1;
   }

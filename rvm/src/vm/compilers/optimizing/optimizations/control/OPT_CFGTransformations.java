@@ -149,7 +149,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     }
     OPT_BasicBlock newPred;
     newPred = n.header.createSubBlock (n.header.firstInstruction().bcIndex,
-				       ir, 1f);
+                                       ir, 1f);
     newPred.setLandingPad();
     newPred.setExecutionFrequency (frequency);
 
@@ -192,10 +192,10 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
       if (!exitsLoop (b, n.loop)) {
-	// header doesn't exit: nothing to do
-	if (b == n.header) return false;
+        // header doesn't exit: nothing to do
+        if (b == n.header) return false;
       } else {
-	exiters++;
+        exiters++;
       }
       i++;
     }
@@ -300,9 +300,9 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
       OPT_BasicBlock block = bs.next();
       OPT_BasicBlockEnumeration bi = block.getIn();
       while (bi.hasMoreElements()) {
-	OPT_BasicBlock in = bi.next();
-	if (inLoop (in, nloop)) continue;
-	in.killFallThrough();
+        OPT_BasicBlock in = bi.next();
+        if (inLoop (in, nloop)) continue;
+        in.killFallThrough();
       }
       block.killFallThrough();
     }
@@ -350,7 +350,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         OPT_BasicBlock a = ins[i];
         if (a.getNumberOfOut() <= 1)
           continue;
-	// insert pads only for moving code up to the start of the method
+        // insert pads only for moving code up to the start of the method
         //if (a.getExecutionFrequency() >= b.getExecutionFrequency()) continue;
 
         // create a new block as landing pad
@@ -358,9 +358,9 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         OPT_Instruction firstInB = b.firstInstruction();
         int bcIndex = firstInB != null ? firstInB.bcIndex : -1;
         landingPad = b.createSubBlock(bcIndex, ir);
-	landingPad.setLandingPad();
-	landingPad.setExecutionFrequency (edgeFrequency (a, b));
-	
+        landingPad.setLandingPad();
+        landingPad.setExecutionFrequency (edgeFrequency (a, b));
+        
         // make the landing pad jump to `b'
         OPT_Instruction g;
         g = Goto.create(GOTO, b.makeJumpTarget());
@@ -369,7 +369,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         // redirect a's outputs from b to the landing pad
         a.redirectOuts(b, landingPad,ir);
 
-	a.killFallThrough ();
+        a.killFallThrough ();
         OPT_BasicBlock aNext = a.nextBasicBlockInCodeOrder();
         if (aNext != null) {
           ir.cfg.breakCodeOrder(a, aNext);

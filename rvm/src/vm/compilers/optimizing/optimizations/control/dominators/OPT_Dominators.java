@@ -12,11 +12,11 @@ import java.util.*;
  * Calculate dominators for basic blocks.
  * <p> Uses the algorithm contained in Dragon book, pg. 670-1.
  * <pre>
- * 	 D(n0) := { n0 }
- *	 for n in N - { n0 } do D(n) := N;
- *	 while changes to any D(n) occur do
- *	   for n in N - {n0} do
- *	       D(n) := {n} U (intersect of D(p) over all predecessors p of n)
+ *       D(n0) := { n0 }
+ *       for n in N - { n0 } do D(n) := N;
+ *       while changes to any D(n) occur do
+ *         for n in N - {n0} do
+ *             D(n) := {n} U (intersect of D(p) over all predecessors p of n)
  * </pre>
  * <p> TODO: we do not support IRs with exception handlers!!
  *
@@ -185,11 +185,11 @@ class OPT_DominatorSystem extends OPT_DF_System {
    * to the system as required.
    * <p> Uses the algorithm contained in Dragon book, pg. 670-1.
    * <pre>
-   * 	 D(n0) := { n0 }
-   *	 for n in N - { n0 } do D(n) := N;
-   *	 while changes to any D(n) occur do
-   *	   for n in N - {n0} do
-   *	       D(n) := {n} U (intersect of D(p) over all predecessors p of n)
+   *     D(n0) := { n0 }
+   *     for n in N - { n0 } do D(n) := N;
+   *     while changes to any D(n) occur do
+   *       for n in N - {n0} do
+   *           D(n) := {n} U (intersect of D(p) over all predecessors p of n)
    * </pre>
    */
   void setupEquations () {
@@ -398,7 +398,7 @@ class OPT_DominatorOperator extends OPT_DF_Operator {
   /** 
    * Evaluate an equation with the MEET operation 
    * @param operands the lhs(operands[0]) and rhs(operands[1])
-   * 	   of the equation.
+   *       of the equation.
    * @return true if the value of the lhs changes. false otherwise
    */
   boolean evaluate (OPT_DF_LatticeCell[] operands) {

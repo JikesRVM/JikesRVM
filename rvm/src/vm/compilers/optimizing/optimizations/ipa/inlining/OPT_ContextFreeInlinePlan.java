@@ -70,11 +70,11 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
       for (Iterator j = targets.iterator(); j.hasNext();) {
         VM_Method callee = (VM_Method)j.next();
         tmp += "\t"+key.method.getDeclaringClass().getClassLoader() + 
-	  " "+ key.method.getDeclaringClass().getDescriptor()+" "+key.method.getName()+
-	  " "+key.method.getDescriptor()+ "," + key.bcIndex + "," + 
-	  callee.getDeclaringClass().getClassLoader()+ " "+ 
-	  callee.getDeclaringClass().getDescriptor()+" "+callee.getName()+
-	  " "+callee.getDescriptor() + "\n";
+          " "+ key.method.getDeclaringClass().getDescriptor()+" "+key.method.getName()+
+          " "+key.method.getDescriptor()+ "," + key.bcIndex + "," + 
+          callee.getDeclaringClass().getClassLoader()+ " "+ 
+          callee.getDeclaringClass().getDescriptor()+" "+callee.getName()+
+          " "+callee.getDescriptor() + "\n";
       }
     }
     return  tmp;
@@ -97,15 +97,15 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom callerClass = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
         VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken4);
-	VM_TypeReference tref;
-	if (nextToken1.equals("SystemCL")) {
-	  tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), callerClass);
-	} else if (nextToken1.equals("AppCL")) {
-	  tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), callerClass);
-	} else {
-	  VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");
-	  continue;
-	}
+        VM_TypeReference tref;
+        if (nextToken1.equals("SystemCL")) {
+          tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), callerClass);
+        } else if (nextToken1.equals("AppCL")) {
+          tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), callerClass);
+        } else {
+          VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");
+          continue;
+        }
         callerRef = VM_MemberReference.findOrCreate(tref, callerName, callerDescriptor).asMethodReference();
       }
       nextToken1 = parser.nextToken();
@@ -118,21 +118,21 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom calleeClass = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
         VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken4);
-	VM_TypeReference tref;
-	if (nextToken1.equals("SystemCL")) {
-	  tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), calleeClass);
-	} else if (nextToken1.equals("AppCL")) {
-	  tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), calleeClass);
-	} else {
-	  VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");
-	  continue;
-	}
+        VM_TypeReference tref;
+        if (nextToken1.equals("SystemCL")) {
+          tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), calleeClass);
+        } else if (nextToken1.equals("AppCL")) {
+          tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), calleeClass);
+        } else {
+          VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");
+          continue;
+        }
         calleeRef = VM_MemberReference.findOrCreate(tref, calleeName, calleeDescriptor).asMethodReference();
       }
       VM_Method caller = callerRef.resolve();
       VM_Method callee = calleeRef.resolve();
       if (caller != null && callee != null) {
-	addRule(caller, bytecodeOffset, callee);
+        addRule(caller, bytecodeOffset, callee);
       }
     }
   }

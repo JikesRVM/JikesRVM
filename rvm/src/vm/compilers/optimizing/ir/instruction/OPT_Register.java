@@ -123,7 +123,7 @@ public final class OPT_Register {
   public void clearDouble()          { flags &= ~DOUBLE;           }
   public void clearLong()            { flags &= ~LONG;             }
   public void clearCondition()       { flags &= ~CONDITION;        }
-  public void clearType() 	      { flags &= ~TYPE_MASK;	    }
+  public void clearType()             { flags &= ~TYPE_MASK;        }
   public void clearValidation()      { flags &= ~VALIDATION;       }
 
 

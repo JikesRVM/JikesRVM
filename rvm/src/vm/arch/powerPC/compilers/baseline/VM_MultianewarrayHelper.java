@@ -32,7 +32,7 @@ public class VM_MultianewarrayHelper implements VM_Constants {
    */
   static Object newArrayArray(int methodId, int numDimensions, int id, int argOffset)
     throws NegativeArraySizeException, 
-	   OutOfMemoryError {
+           OutOfMemoryError {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];

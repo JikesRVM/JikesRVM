@@ -94,9 +94,9 @@ class Flag {
       System.out.println(name + ": flag: already set");
     } else   {
       while (flag == false) {
-	try { wait(1000000); } catch (InterruptedException e) {}
-	if (flag == false)    
-	  System.out.println(name + ": flag: timed out");
+        try { wait(1000000); } catch (InterruptedException e) {}
+        if (flag == false)    
+          System.out.println(name + ": flag: timed out");
       }
       System.out.println(name + ": flag: notification received");
     }
@@ -138,7 +138,7 @@ class TestTimedWait {
     for (int i = 0; i < cnt; ++i) {
       System.out.println("main: joining " + tasks[i].getTaskName());
       try {
-	tasks[i].join();
+        tasks[i].join();
       } catch (InterruptedException e) {
       }
     }

@@ -41,14 +41,14 @@ public interface VM_BaselineConstants extends VM_Constants {
   // Constants describing baseline compiler conventions for
   // saving registers in stackframes.
   // 
-  static final int STACKFRAME_REG_SAVE_OFFSET	       = STACKFRAME_BODY_OFFSET;
+  static final int STACKFRAME_REG_SAVE_OFFSET          = STACKFRAME_BODY_OFFSET;
                                         // offset from FP of the saved registers.  
-					// Some registers are saved in all baseline
-					// frames, and most register as saved in the
-					// dynamic bridge frames.
+                                        // Some registers are saved in all baseline
+                                        // frames, and most register as saved in the
+                                        // dynamic bridge frames.
   static final int STACKFRAME_FIRST_PARAMETER_OFFSET  = STACKFRAME_REG_SAVE_OFFSET -8;
   // bridge frames save 3 additional GPRs
-  static final int BRIDGE_FRAME_EXTRA_SIZE	       = FPU_STATE_SIZE + 8;
+  static final int BRIDGE_FRAME_EXTRA_SIZE             = FPU_STATE_SIZE + 8;
 
   static final int SAVED_GPRS       = 2; // EDI(JTOC) and EBX are nonvolatile registers used by baseline compiler
   static final int JTOC_SAVE_OFFSET = STACKFRAME_REG_SAVE_OFFSET;

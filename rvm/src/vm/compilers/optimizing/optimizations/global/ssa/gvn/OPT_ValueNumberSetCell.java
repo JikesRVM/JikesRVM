@@ -11,7 +11,7 @@ package com.ibm.JikesRVM.opt;
  * set of value numbers, 
  *
  * TODO: use this implementaion for index propagation as well as
- * 	  dead store elimination
+ *        dead store elimination
  *
  * @author Stpehen Fink
  *

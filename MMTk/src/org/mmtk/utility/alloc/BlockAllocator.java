@@ -113,7 +113,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     // increment page charges
     if (blockSizeClass >= PAGE_BLOCK_SIZE_CLASS) {
       if (!incPageCharge(1<<(blockSizeClass-PAGE_BLOCK_SIZE_CLASS)))
-	return VM_Address.zero();  // need to GC & retry...
+        return VM_Address.zero();  // need to GC & retry...
     }
 
     // try to use satisfy from free list
@@ -122,11 +122,11 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       rtn = freeList.get(freeListID);
       freeList.set(freeListID, getNextFLBlock(rtn));
       if (!getNextFLBlock(rtn).isZero())
-	setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
+        setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
     } else {
       rtn = slowAlloc(blockSizeClass);
       if (rtn.isZero())
-	return VM_Address.zero(); // need to GC & retry...
+        return VM_Address.zero(); // need to GC & retry...
     }
     
     if (VM_Interface.VerifyAssertions) {
@@ -152,30 +152,30 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (requestedSC == MAX_BLOCK_SIZE_CLASS) {
       // coarsest grain request satisfied by VM resource request
       rtn = vmResource.acquire(1<<(MAX_BLOCK_LOG-LOG_BYTES_IN_PAGE), 
-			       memoryResource, originalSC, false);
+                               memoryResource, originalSC, false);
       if (rtn.isZero())
-	return VM_Address.zero(); // need to GC & retry...
+        return VM_Address.zero(); // need to GC & retry...
       rtn = rtn.add(BLOCK_HEADER_SIZE);
     } else {
       byte srcSC = getFreeListID(requestedSC, originalSC);
       if (!freeList.get(srcSC).isZero()) {  // available through free list
-	rtn = freeList.get(srcSC);
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
-	freeList.set(srcSC, getNextFLBlock(rtn));
-	if (!getNextFLBlock(rtn).isZero())
-	  setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
+        rtn = freeList.get(srcSC);
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
+        freeList.set(srcSC, getNextFLBlock(rtn));
+        if (!getNextFLBlock(rtn).isZero())
+          setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
       } else {                     // must split larger sizes
-	rtn = slowAlloc((byte) (requestedSC + 1), originalSC);
-	if (rtn.isZero())
-	  return VM_Address.zero(); // need to GC & retry...
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
-	rtn = split(rtn, (byte) (requestedSC + 1), originalSC, srcSC);
-	if (rtn.isZero())
-	  return VM_Address.zero(); // need to GC & retry...
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
+        rtn = slowAlloc((byte) (requestedSC + 1), originalSC);
+        if (rtn.isZero())
+          return VM_Address.zero(); // need to GC & retry...
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
+        rtn = split(rtn, (byte) (requestedSC + 1), originalSC, srcSC);
+        if (rtn.isZero())
+          return VM_Address.zero(); // need to GC & retry...
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface._assert(VMResource.getTag(rtn) == originalSC);
       }
     }
     if (!rtn.isZero())
@@ -184,12 +184,12 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
   
   private final VM_Address split(VM_Address parent, byte parentSC,
-				 byte originalSC, byte targetFL) {
+                                 byte originalSC, byte targetFL) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(VMResource.getTag(parent) == originalSC);
     if (parentSC == PAGE_BLOCK_SIZE_CLASS) {
       if (!incPageCharge(1))
-	return VM_Address.zero();
+        return VM_Address.zero();
     }
     VM_Address next = parent.add(rawBlockSize(parentSC - 1));
     
@@ -247,14 +247,14 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
        VM_Address block = freeList.get(fl);
        VM_Address prev = VM_Address.zero();
        while (!block.isZero()) {
-	 if (VM_Interface.VerifyAssertions) {
-	   VM_Interface._assert(isFree(block));
-	   VM_Interface._assert(fl == getFreeListID(block));
-	   VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
-	   VM_Interface._assert(freeListEntries(block) == 1);
-	 }
-	 prev = block;
-	 block = getNextFLBlock(block);
+         if (VM_Interface.VerifyAssertions) {
+           VM_Interface._assert(isFree(block));
+           VM_Interface._assert(fl == getFreeListID(block));
+           VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
+           VM_Interface._assert(freeListEntries(block) == 1);
+         }
+         prev = block;
+         block = getNextFLBlock(block);
        }
      }
   }
@@ -264,9 +264,9 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
       VM_Address blk = freeList.get(fl);
       while (!blk.isZero()) {
-	if (blk.EQ(block))
-	  entries++;
-	blk = getNextFLBlock(blk);
+        if (blk.EQ(block))
+          entries++;
+        blk = getNextFLBlock(blk);
       }
     }
     return entries;
@@ -282,13 +282,13 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
       VM_Address block = freeList.get(fl);
       while (!block.isZero()) {
-	int sc;
-	if ((fl & ((1<<FREE_LIST_BITS)-1)) != 0)
-	  sc = fl & ((1<<FREE_LIST_BITS)-1);
-	else 
-	  sc = fl>>>FREE_LIST_BITS;
-	minipgs += 1<<sc;
-	block = getNextFLBlock(block);
+        int sc;
+        if ((fl & ((1<<FREE_LIST_BITS)-1)) != 0)
+          sc = fl & ((1<<FREE_LIST_BITS)-1);
+        else 
+          sc = fl>>>FREE_LIST_BITS;
+        minipgs += 1<<sc;
+        block = getNextFLBlock(block);
       }
     }
     return (minipgs<<MIN_BLOCK_LOG);
@@ -302,15 +302,15 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       VM_Address buddy = child.toWord().xor(VM_Word.fromInt(buddyMask[childSC])).toAddress();
       byte flid = getFreeListID(childSC, originalSC);
       if (isFree(buddy) && (getFreeListID(buddy) == flid)) {
-	removeFromFreeList(buddy, flid);
-	if (child.GT(buddy))
-	  child = buddy;
-	childSC++;
-	if (childSC == PAGE_BLOCK_SIZE_CLASS)
-	  decPageCharge(1);
-	merge(child, childSC, originalSC);
+        removeFromFreeList(buddy, flid);
+        if (child.GT(buddy))
+          child = buddy;
+        childSC++;
+        if (childSC == PAGE_BLOCK_SIZE_CLASS)
+          decPageCharge(1);
+        merge(child, childSC, originalSC);
       } else
-	addToFreeList(child, flid);
+        addToFreeList(child, flid);
     }
   }
 
@@ -332,7 +332,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (freeList.get(freeListID).EQ(block)) {
       freeList.set(freeListID, getNextFLBlock(block));
       if (!getNextFLBlock(block).isZero())
-	setPrevFLBlock(getNextFLBlock(block), VM_Address.zero());
+        setPrevFLBlock(getNextFLBlock(block), VM_Address.zero());
     }
     else {
       VM_Address prev = getPrevFLBlock(block);
@@ -340,7 +340,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(!prev.isZero());
       setNextFLBlock(prev, next);
       if (!next.isZero())
-	setPrevFLBlock(next, prev);
+        setPrevFLBlock(next, prev);
     }
     //    Log.writeln("]");
   }
@@ -422,7 +422,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   private final void decPageCharge(int pages) {
     // releasing whole pages, so must dec page count
     int newPagesInUse = pagesInUse - pages;
-    if ((newPagesInUse == 0) ||	((newPagesInUse ^ pagesInUse) > MR_POLL_PAGES))
+    if ((newPagesInUse == 0) || ((newPagesInUse ^ pagesInUse) > MR_POLL_PAGES))
       memoryResource.release(MR_POLL_PAGES);
     pagesInUse = newPagesInUse;
   }
@@ -431,7 +431,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
    * Return the block for a given cell address.
    */
   public static final VM_Address getBlockStart(VM_Address cell,
-					       byte blockSizeClass) {
+                                               byte blockSizeClass) {
     VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
     return cell.toWord().and(mask).or(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress();
   }

@@ -37,10 +37,10 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
    * Is a type a candidate for type analysis?
    * <p> NO iff:
    * <ul>
-   *	<li> it's a primitive
-   *	<li> it's final
-   *	<li> it's an array of primitive
-   * 	<li> it's an array of final
+   *    <li> it's a primitive
+   *    <li> it's final
+   *    <li> it's an array of primitive
+   *    <li> it's an array of final
    * </ul>
    */
   private static boolean isCandidate (VM_TypeReference tref) {
@@ -92,8 +92,8 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
       OPT_Instruction s = e.next();
       if (PutField.conforms(s)) {
         OPT_LocationOperand l = PutField.getLocation(s);
-	VM_Field f = l.getFieldRef().peekResolvedField();
-	if (f == null) continue;
+        VM_Field f = l.getFieldRef().peekResolvedField();
+        if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information, 
@@ -111,8 +111,8 @@ public final class OPT_FieldAnalysis extends OPT_CompilerPhase {
         }
       } else if (PutStatic.conforms(s)) {
         OPT_LocationOperand l = PutStatic.getLocation(s);
-	VM_Field f = l.getFieldRef().peekResolvedField();
-	if (f == null) continue;
+        VM_Field f = l.getFieldRef().peekResolvedField();
+        if (f == null) continue;
         if (!isCandidate(f.getType())) continue;
         // a little tricky: we cannot draw any conclusions from inlined
         // method bodies, since we cannot assume what information, 

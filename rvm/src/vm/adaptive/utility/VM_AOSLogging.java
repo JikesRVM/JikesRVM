@@ -73,18 +73,18 @@ public class VM_AOSLogging {
   public static void boot() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       try {
-	log = new PrintStream(new FileOutputStream(VM_Controller.options.LOGFILE_NAME));
+        log = new PrintStream(new FileOutputStream(VM_Controller.options.LOGFILE_NAME));
 
-	// This statement will force the compilation of println, so it
-	// is needed regardless of the particular content of the message!
-	synchronized (log) {
-	  log.println(VM_Controller.controllerClock +" Logging enabled\n");
-	  log.println(VM_Controller.options);
-	}
+        // This statement will force the compilation of println, so it
+        // is needed regardless of the particular content of the message!
+        synchronized (log) {
+          log.println(VM_Controller.controllerClock +" Logging enabled\n");
+          log.println(VM_Controller.options);
+        }
       }
       catch (IOException e) {
-	VM.sysWrite("IOException caught in VM_AOSLogging.java while trying to create and start log file.\n");
-	VM.sysWrite("Please check for file permission problems\n");
+        VM.sysWrite("IOException caught in VM_AOSLogging.java while trying to create and start log file.\n");
+        VM.sysWrite("Please check for file permission problems\n");
       }
     }
     booted = true;
@@ -102,7 +102,7 @@ public class VM_AOSLogging {
     if (!booted) return; // fast exit
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock +" System Exiting\n");
+        log.println(VM_Controller.controllerClock +" System Exiting\n");
       }
     }
   }
@@ -116,21 +116,21 @@ public class VM_AOSLogging {
     if (!booted) return; // fast exit
     try {
       if (VM_Controller.options.LOGGING_LEVEL >= 1) {
-	synchronized (log) {
-	  log.println(VM_Controller.controllerClock +
-		      " ThreadIndex: " + t.getIndex() + " "
-		      + t.getClass().getName() + " "
-		      + " Time: " 
-		      + (t.getCPUTimeMillis() / 1000)
-		      + " status("
-		      + (  t.isIdleThread() ?     "i"         // idle daemon
-			   : t.isGCThread() ?     "g"       // gc daemon
-			   : t.isDaemonThread()  ?     "d"       // user daemon
-			   :                      "" )
-		      + (!t.isAlive()     ?     "!" : "")     // dead/alive
-		      + ")"
-		      );
-	}
+        synchronized (log) {
+          log.println(VM_Controller.controllerClock +
+                      " ThreadIndex: " + t.getIndex() + " "
+                      + t.getClass().getName() + " "
+                      + " Time: " 
+                      + (t.getCPUTimeMillis() / 1000)
+                      + " status("
+                      + (  t.isIdleThread() ?     "i"         // idle daemon
+                           : t.isGCThread() ?     "g"       // gc daemon
+                           : t.isDaemonThread()  ?     "d"       // user daemon
+                           :                      "" )
+                      + (!t.isAlive()     ?     "!" : "")     // dead/alive
+                      + ")"
+                      );
+        }
       }
     } catch (NullPointerException e) {
       // ignore.  A thread exited before the AOS Logging system was
@@ -144,8 +144,8 @@ public class VM_AOSLogging {
   public static void controllerStarted() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Controller thread started");
+        log.println(VM_Controller.controllerClock 
+                    +" Controller thread started");
       }
     }
   }
@@ -160,10 +160,10 @@ public class VM_AOSLogging {
     if (!booted) return; // fast exit
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Listeners called:"+
-		    "\n\t method "+method+"\n\t context "+context
-		    +"\n\t null "+nll);
+        log.println(VM_Controller.controllerClock 
+                    +" Listeners called:"+
+                    "\n\t method "+method+"\n\t context "+context
+                    +"\n\t null "+nll);
       }
     }
   }
@@ -176,10 +176,10 @@ public class VM_AOSLogging {
     if (!booted) return; // fast exit
     if (VM_Controller.options.LOGGING_LEVEL >=  1) {
       synchronized (log) {
-	log.print(VM_Controller.controllerClock 
-		  +" Decay Organizer Statistics: \n\t"+
-		  " Num of Decay events: "+
-		  decayCount+"\n");
+        log.print(VM_Controller.controllerClock 
+                  +" Decay Organizer Statistics: \n\t"+
+                  " Num of Decay events: "+
+                  decayCount+"\n");
       }
     }
   }
@@ -190,8 +190,8 @@ public class VM_AOSLogging {
   public static void appRunStart(String prog, int run) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Application "+prog+" starting run "+run);
+        log.println(VM_Controller.controllerClock 
+                    +" Application "+prog+" starting run "+run);
       }
     }
   }
@@ -202,8 +202,8 @@ public class VM_AOSLogging {
   public static void appRunComplete(String prog, int run) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Application "+prog+" completed run "+run);
+        log.println(VM_Controller.controllerClock 
+                    +" Application "+prog+" completed run "+run);
       }
     }
   }
@@ -230,38 +230,38 @@ public class VM_AOSLogging {
 
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.print(VM_Controller.controllerClock 
-		  +" Controller thread exiting ... "
-		  +"\n  Num times Controller thread is awoken: "+
-		  awoken
-		  +"\n  Num times did nothing: "+ didNothing +" ("+
-		  ((int)((float)didNothing/(float)awoken * 100))
-		  +"%)\n  Num methods baseline compiled: "+
-		  VM_ControllerMemory.getNumBase()
-		  +"\n  Num methods considered for recompilation: "+
-		  numMethodsConsidered
-		  +"\n  Num methods chosen to recompile: "+ 
-		  numMethodsScheduledForRecomp +" ("+
-		  ((int) ((float) numMethodsScheduledForRecomp
-		                         /  numMethodsConsidered * 100))
-		  +"%)\n  Opt Levels Chosen: "
-		  +"\n\t Opt Level 0: "+ numOpt0 +" ("+
-		  ((int) ((float) numOpt0/numMethodsScheduledForRecomp * 100))
+        log.print(VM_Controller.controllerClock 
+                  +" Controller thread exiting ... "
+                  +"\n  Num times Controller thread is awoken: "+
+                  awoken
+                  +"\n  Num times did nothing: "+ didNothing +" ("+
+                  ((int)((float)didNothing/(float)awoken * 100))
+                  +"%)\n  Num methods baseline compiled: "+
+                  VM_ControllerMemory.getNumBase()
+                  +"\n  Num methods considered for recompilation: "+
+                  numMethodsConsidered
+                  +"\n  Num methods chosen to recompile: "+ 
+                  numMethodsScheduledForRecomp +" ("+
+                  ((int) ((float) numMethodsScheduledForRecomp
+                                         /  numMethodsConsidered * 100))
+                  +"%)\n  Opt Levels Chosen: "
+                  +"\n\t Opt Level 0: "+ numOpt0 +" ("+
+                  ((int) ((float) numOpt0/numMethodsScheduledForRecomp * 100))
 
-		  +"%)\n\t Opt Level 1: "+ numOpt1 +" ("+
-		  ((int) ((float) numOpt1/numMethodsScheduledForRecomp * 100))
-		  +"%)\n"
+                  +"%)\n\t Opt Level 1: "+ numOpt1 +" ("+
+                  ((int) ((float) numOpt1/numMethodsScheduledForRecomp * 100))
+                  +"%)\n"
 
-		  +"\t Opt Level 2: "+ numOpt2 +" ("+
-		  ((int) ((float) numOpt2/numMethodsScheduledForRecomp * 100))
-		  +"%)\n"
+                  +"\t Opt Level 2: "+ numOpt2 +" ("+
+                  ((int) ((float) numOpt2/numMethodsScheduledForRecomp * 100))
+                  +"%)\n"
 
-		  +"\t Opt Level 3: "+ numOpt3 +" ("+
-		  ((int) ((float) numOpt3/numMethodsScheduledForRecomp * 100))
-		  +"%)\n\n");
+                  +"\t Opt Level 3: "+ numOpt3 +" ("+
+                  ((int) ((float) numOpt3/numMethodsScheduledForRecomp * 100))
+                  +"%)\n\n");
 
-	// Let the controller memory summarize itself to the log file
-	VM_ControllerMemory.printFinalMethodStats(log);
+        // Let the controller memory summarize itself to the log file
+        VM_ControllerMemory.printFinalMethodStats(log);
       }
     }
   }
@@ -273,8 +273,8 @@ public class VM_AOSLogging {
   public static void compilationThreadStarted() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Compilation thread started");
+        log.println(VM_Controller.controllerClock 
+                    +" Compilation thread started");
       }
     }
   }
@@ -285,8 +285,8 @@ public class VM_AOSLogging {
   public static void compilationThreadCompleted() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Compilation thread exiting");
+        log.println(VM_Controller.controllerClock 
+                    +" Compilation thread exiting");
       }
     }
   }
@@ -298,9 +298,9 @@ public class VM_AOSLogging {
   public static void methodSampleOrganizerThreadStarted(int filterOptLevel) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Method Sample Organizer thread started");
-	log.println("  filterOptLevel: "+ filterOptLevel);
+        log.println(VM_Controller.controllerClock 
+                    +" Method Sample Organizer thread started");
+        log.println("  filterOptLevel: "+ filterOptLevel);
       }
     }
   }
@@ -311,8 +311,8 @@ public class VM_AOSLogging {
   public static void AIByEdgeOrganizerThreadStarted() {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Adaptive Inlining (AI) by Edge Organizer thread started");
+        log.println(VM_Controller.controllerClock 
+                    +" Adaptive Inlining (AI) by Edge Organizer thread started");
       }
     }
   }
@@ -325,10 +325,10 @@ public class VM_AOSLogging {
   public static void reportSpeedupRate(int compiler, double rate) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" SpeedupRate for "+ 
-		    VM_CompilerDNA.getCompilerString(compiler)
-		    +" compiler: "+ rate);
+        log.println(VM_Controller.controllerClock 
+                    +" SpeedupRate for "+ 
+                    VM_CompilerDNA.getCompilerString(compiler)
+                    +" compiler: "+ rate);
       }
     }
   }
@@ -341,10 +341,10 @@ public class VM_AOSLogging {
   public static void reportCompilationRate(int compiler, double rate) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Compilation Rate (bytecode/msec) for "+ 
-		    VM_CompilerDNA.getCompilerString(compiler)
-		    +" compiler: "+ rate);
+        log.println(VM_Controller.controllerClock 
+                    +" Compilation Rate (bytecode/msec) for "+ 
+                    VM_CompilerDNA.getCompilerString(compiler)
+                    +" compiler: "+ rate);
       }
     }
   }
@@ -357,16 +357,16 @@ public class VM_AOSLogging {
    *                   to a compiler2-compiled method
    */
   public static void reportBenefitRatio(int compiler1, 
-					int compiler2, 
-					double rate) {
+                                        int compiler2, 
+                                        double rate) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Benefit Ratio from "+
-		    VM_CompilerDNA.getCompilerString(compiler1)
-		    +" compiler to "+
-		    VM_CompilerDNA.getCompilerString(compiler2)
-		    +" compiler: "+ rate);
+        log.println(VM_Controller.controllerClock 
+                    +" Benefit Ratio from "+
+                    VM_CompilerDNA.getCompilerString(compiler1)
+                    +" compiler to "+
+                    VM_CompilerDNA.getCompilerString(compiler2)
+                    +" compiler: "+ rate);
       }
     }
   }
@@ -380,16 +380,16 @@ public class VM_AOSLogging {
    *                compiler2 compilation rate
    */
   public static void reportCompileTimeRatio(int compiler1, 
-					    int compiler2, 
-					    double rate) {
+                                            int compiler2, 
+                                            double rate) {
     if (VM_Controller.options.LOGGING_LEVEL >= 1) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Compile Time Ratio of "+
-		    VM_CompilerDNA.getCompilerString(compiler1)
-		    +" compiler to "+
-		    VM_CompilerDNA.getCompilerString(compiler2)
-		    +" compiler: "+ rate);
+        log.println(VM_Controller.controllerClock 
+                    +" Compile Time Ratio of "+
+                    VM_CompilerDNA.getCompilerString(compiler1)
+                    +" compiler to "+
+                    VM_CompilerDNA.getCompilerString(compiler2)
+                    +" compiler: "+ rate);
       }
     }
   }
@@ -405,13 +405,13 @@ public class VM_AOSLogging {
    * @param priority a number from 0.0 to 1.0 encoding the plan's priority.
    */
   public static void recompilationScheduled(OPT_CompilationPlan plan, 
-					    double priority) {
+                                            double priority) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Scheduling level "+
-		    plan.options.getOptLevel() +" recompilation of "+
-		    plan.method+" (plan has priority "+priority+")");
+        log.println(VM_Controller.controllerClock 
+                    +" Scheduling level "+
+                    plan.options.getOptLevel() +" recompilation of "+
+                    plan.method+" (plan has priority "+priority+")");
       }
     }
   }
@@ -424,9 +424,9 @@ public class VM_AOSLogging {
   public static void recompilationQueueFull(OPT_CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Level "+ plan.options.getOptLevel()
-		    +" recompilation postponed of "+plan.method);
+        log.println(VM_Controller.controllerClock 
+                    +" Level "+ plan.options.getOptLevel()
+                    +" recompilation postponed of "+plan.method);
       }
     }
   }
@@ -439,8 +439,8 @@ public class VM_AOSLogging {
   public static void controllerInputQueueFull(Object event) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock + 
-		    " Unable to inform controller of "+event+ " due to full input queue");
+        log.println(VM_Controller.controllerClock + 
+                    " Unable to inform controller of "+event+ " due to full input queue");
       }
     }
   }
@@ -452,8 +452,8 @@ public class VM_AOSLogging {
   public static void recompilationStarted(OPT_CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock +" Recompiling (at level "+
-		    plan.options.getOptLevel() +") "+ plan.method);
+        log.println(VM_Controller.controllerClock +" Recompiling (at level "+
+                    plan.options.getOptLevel() +") "+ plan.method);
       }
     }
   }
@@ -466,8 +466,8 @@ public class VM_AOSLogging {
   public static void recompilationCompleted(OPT_CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock +"  Recompiled (at level "+
-		    plan.options.getOptLevel() +") " +plan.method);
+        log.println(VM_Controller.controllerClock +"  Recompiled (at level "+
+                    plan.options.getOptLevel() +") " +plan.method);
       }
     }
   }
@@ -479,9 +479,9 @@ public class VM_AOSLogging {
   public static void recompilationAborted(OPT_CompilationPlan plan) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Failed recompiling (at level "+ 
-		    plan.options.getOptLevel()+" "+ plan.method);
+        log.println(VM_Controller.controllerClock 
+                    +" Failed recompiling (at level "+ 
+                    plan.options.getOptLevel()+" "+ plan.method);
       }
     }
   }
@@ -494,13 +494,13 @@ public class VM_AOSLogging {
   public static void recordCompileTime(VM_CompiledMethod cm, double expectedCompilationTime) {
     if (log != null && VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	double compTime = cm.getCompilationTime();
-	log.println(VM_Controller.controllerClock 
-		    +" Compiled "+cm.getMethod() + " with "+ cm.getCompilerName()
-		    +" in "+ compTime+ " ms"+
-		    ", model estimated: "+ expectedCompilationTime +" ms"
-		    +", rate: "+ 
-		    (((VM_NormalMethod) cm.getMethod()).getBytecodeLength() / compTime));
+        double compTime = cm.getCompilationTime();
+        log.println(VM_Controller.controllerClock 
+                    +" Compiled "+cm.getMethod() + " with "+ cm.getCompilerName()
+                    +" in "+ compTime+ " ms"+
+                    ", model estimated: "+ expectedCompilationTime +" ms"
+                    +", rate: "+ 
+                    (((VM_NormalMethod) cm.getMethod()).getBytecodeLength() / compTime));
       }
     }
   }
@@ -513,8 +513,8 @@ public class VM_AOSLogging {
   public static void oldVersionStillHot(VM_HotMethodEvent hme) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Found a method with an old version still hot "+ hme);
+        log.println(VM_Controller.controllerClock 
+                    +" Found a method with an old version still hot "+ hme);
       }
     }
   }
@@ -525,8 +525,8 @@ public class VM_AOSLogging {
   public static void decayingCounters() {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" Decaying clock and decayable objects");
+        log.println(VM_Controller.controllerClock 
+                    +" Decaying clock and decayable objects");
       }
     }
   }
@@ -538,8 +538,8 @@ public class VM_AOSLogging {
   public static void organizerThresholdReached() {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" OrganizerThread reached sample size threshold\n");
+        log.println(VM_Controller.controllerClock 
+                    +" OrganizerThread reached sample size threshold\n");
       }
     }
   }
@@ -554,9 +554,9 @@ public class VM_AOSLogging {
   public static void AIorganizerFoundHotMethods(int numMethods) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" AI organizer found "+numMethods
-		    +" hot max-opt-level methods, will inspect their call edges.");
+        log.println(VM_Controller.controllerClock 
+                    +" AI organizer found "+numMethods
+                    +" hot max-opt-level methods, will inspect their call edges.");
       }
     }
   }
@@ -565,19 +565,19 @@ public class VM_AOSLogging {
    * This method logs that the a hot call edge from an max-opt-level
    * method has been identified.
    * 
-   * @param hotMethod	method to be recompiled,
+   * @param hotMethod   method to be recompiled,
    * @param numSamples  number of samples attributed to the method 
-   * @param boost 	expected boost factor
+   * @param boost       expected boost factor
    */
   public static void inliningOpportunityDetected(VM_CompiledMethod hotMethod,
-						 double numSamples, 
-						 VM_CallSiteTriple triple) {
+                                                 double numSamples, 
+                                                 VM_CallSiteTriple triple) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" AI organizer found method "+hotMethod.getMethod()+
-		    " with "+numSamples+" samples that has an edge "+
-		    triple+" that can be inlined");
+        log.println(VM_Controller.controllerClock 
+                    +" AI organizer found method "+hotMethod.getMethod()+
+                    " with "+numSamples+" samples that has an edge "+
+                    triple+" that can be inlined");
       }
     }
   }
@@ -586,19 +586,19 @@ public class VM_AOSLogging {
    * This method logs that the controller is notified of a 
    * candidate to be recompiled due to inlining opportunities;
    * i.e., the method has been inserted in the controller queue.
-   * @param hotMethod	method to be recompiled,
-   * @param numSamples	number of samples attributed to the method
-   * @param triple	edge that should be inlined.
+   * @param hotMethod   method to be recompiled,
+   * @param numSamples  number of samples attributed to the method
+   * @param triple      edge that should be inlined.
    */
   public static void controllerNotifiedForInlining(VM_CompiledMethod hotMethod,
-						   double numSamples, 
-						   double boost) {
+                                                   double numSamples, 
+                                                   double boost) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +" AI organizer notified controller that method "+
-		    hotMethod.getMethod()+" with "+numSamples+
-		    " samples could be recompiled with a boost of "+boost);
+        log.println(VM_Controller.controllerClock 
+                    +" AI organizer notified controller that method "+
+                    hotMethod.getMethod()+" with "+numSamples+
+                    " samples could be recompiled with a boost of "+boost);
       }
     }
   }
@@ -607,17 +607,17 @@ public class VM_AOSLogging {
    * This method logs that the controller is notified of a 
    * candidate to be recompiled due to hotness;
    * i.e., the method has been inserted in the controller queue.
-   * @param hotMethod	method to be recompiled, and
-   * @param numSamples	number of samples attributed to the method
+   * @param hotMethod   method to be recompiled, and
+   * @param numSamples  number of samples attributed to the method
    */
   public static void controllerNotifiedForHotness(VM_CompiledMethod hotMethod,
-				 double numSamples) {
+                                 double numSamples) {
     if (VM_Controller.options.LOGGING_LEVEL >= 2) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
+        log.println(VM_Controller.controllerClock 
                     +" Controller notified that method "+hotMethod.getMethod()
                     + "(" + hotMethod.getId() + ")" + 
-		    " has "+numSamples+" samples");
+                    " has "+numSamples+" samples");
       }
     }
   }
@@ -633,19 +633,19 @@ public class VM_AOSLogging {
    * @param cost  the computed cost for this method and level
    */
   public static void recordControllerEstimateCostDoNothing(VM_Method method, 
-							   int optLevel,
-							   double cost) {
+                                                           int optLevel,
+                                                           double cost) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
-	log.print(VM_Controller.controllerClock 
-		    +"  Estimated cost of doing nothing (leaving at ");
-	if (optLevel == -1) {
-	  log.print("baseline");
-	}
-	else {
-	  log.print("O"+ optLevel);
-	}
-	log.println(") to "+ method +" is "+ cost);
+        log.print(VM_Controller.controllerClock 
+                    +"  Estimated cost of doing nothing (leaving at ");
+        if (optLevel == -1) {
+          log.print("baseline");
+        }
+        else {
+          log.print("O"+ optLevel);
+        }
+        log.println(") to "+ method +" is "+ cost);
       }
     }
   }
@@ -658,16 +658,16 @@ public class VM_AOSLogging {
    * @param futureTime the computed future time, including cost and execution
    */
   public static void recordControllerEstimateCostOpt(VM_Method method, 
-						     String choiceDesc,
-						     double compilationTime,
-						     double futureTime) {
+                                                     String choiceDesc,
+                                                     double compilationTime,
+                                                     double futureTime) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
-	log.println(VM_Controller.controllerClock 
-		    +"  Estimated cost of OPT compiling "+
-		    method + " at " + choiceDesc +
-		    " is "+ compilationTime +
-		    ", total future time is "+ futureTime);
+        log.println(VM_Controller.controllerClock 
+                    +"  Estimated cost of OPT compiling "+
+                    method + " at " + choiceDesc +
+                    " is "+ compilationTime +
+                    ", total future time is "+ futureTime);
       }
     }
   }
@@ -687,34 +687,34 @@ public class VM_AOSLogging {
    * @param totalMethods total number of methods
    */
   public static void recordUpdatedCompilationRates(byte compiler,
-						   VM_Method method,
-						   int BCLength,
-						   int totalBCLength,
-						   int MCLength,
-						   int totalMCLength,
-						   double compTime,
-						   double totalCompTime,
-						   double totalLogOfRates,
-						   int totalLogValueMethods,
-						   int totalMethods) {
+                                                   VM_Method method,
+                                                   int BCLength,
+                                                   int totalBCLength,
+                                                   int MCLength,
+                                                   int totalMCLength,
+                                                   double compTime,
+                                                   double totalCompTime,
+                                                   double totalLogOfRates,
+                                                   int totalLogValueMethods,
+                                                   int totalMethods) {
 
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
-	boolean backBranch = false;
-	if (method instanceof VM_NormalMethod) {
-	  backBranch = ((VM_NormalMethod)method).hasBackwardsBranch();
-	}
-	log.println(VM_Controller.controllerClock 
-		    +"  Updated compilation rates for "+ VM_RuntimeCompiler.getCompilerName(compiler) +"compiler");
-	log.println("\tmethod compiled: "+ method);
-	log.println("\tbyte code length: "+ BCLength +", Total: "+ totalBCLength);
-	log.println("\tmachine code length: "+ MCLength +", Total: "+ totalMCLength);
-	log.println("\tbackwards branch: " + (backBranch ? "yes" : "no"));
-	log.println("\tcompilation time: "+ compTime +", Total: "+ totalCompTime);
-	log.println("\tRate for this method: "+ BCLength / compTime
-		    +", Total of Logs: "+ totalLogOfRates);
-	log.println("\tTotal Methods: "+ totalMethods);
-	log.println("\tNew Rate: "+ Math.exp(totalLogOfRates / totalLogValueMethods));
+        boolean backBranch = false;
+        if (method instanceof VM_NormalMethod) {
+          backBranch = ((VM_NormalMethod)method).hasBackwardsBranch();
+        }
+        log.println(VM_Controller.controllerClock 
+                    +"  Updated compilation rates for "+ VM_RuntimeCompiler.getCompilerName(compiler) +"compiler");
+        log.println("\tmethod compiled: "+ method);
+        log.println("\tbyte code length: "+ BCLength +", Total: "+ totalBCLength);
+        log.println("\tmachine code length: "+ MCLength +", Total: "+ totalMCLength);
+        log.println("\tbackwards branch: " + (backBranch ? "yes" : "no"));
+        log.println("\tcompilation time: "+ compTime +", Total: "+ totalCompTime);
+        log.println("\tRate for this method: "+ BCLength / compTime
+                    +", Total of Logs: "+ totalLogOfRates);
+        log.println("\tTotal Methods: "+ totalMethods);
+        log.println("\tNew Rate: "+ Math.exp(totalLogOfRates / totalLogValueMethods));
       }
     }
   }

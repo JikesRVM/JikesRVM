@@ -39,47 +39,47 @@ class NativeThreadsWorker extends Thread
          {
            if ( (name == "ping") ||( name == "ping2") ) {
              //  call a native function
-	     say(name, "calling nativeFoo");
-	     retval = tNativeThreads.nativeFoo(VM_Processor.getCurrentProcessor().id);
-	     //	     retval = tNativeThreads.nativeFoo(tid);
-	     ////             System.out.println(1.0f);
-	     say(name, "return from nativeFoo");
-	     //     VM.debugBreakpoint();
+             say(name, "calling nativeFoo");
+             retval = tNativeThreads.nativeFoo(VM_Processor.getCurrentProcessor().id);
+             //      retval = tNativeThreads.nativeFoo(tid);
+             ////             System.out.println(1.0f);
+             say(name, "return from nativeFoo");
+             //     VM.debugBreakpoint();
 
-	     // try to print a string
-	     //	     say(name, " before s created"); 
-	     //	     String s = java.lang.Float.toString(fp);
-	     //	     say(name, " after s created");
-	     //             String s2 = " return value = " + s;
-	     //             say(name, s2);
+             // try to print a string
+             //      say(name, " before s created"); 
+             //      String s = java.lang.Float.toString(fp);
+             //      say(name, " after s created");
+             //             String s2 = " return value = " + s;
+             //             say(name, s2);
 
-	     //try { 	     
-	     //  say(name, "sleeping");
-	     //  sleep(300);
-	     //} 
-	     //catch (InterruptedException e) {}
-	   } else {// pong story
-	     // others sleep for a while and then call java  function
-	     say(name, "about to sleep for 100 msec");
-	     try { 	     
-	       say(name, "sleeping");
-	       sleep(100);
-	     } 
-	     catch (InterruptedException e) {}
-	     say(name, "after sleep -calling javaFoo");
-	     retval = tNativeThreads.javaFoo(10);
-	     say(name, "return from javaFoo");
-	   }
+             //try {         
+             //  say(name, "sleeping");
+             //  sleep(300);
+             //} 
+             //catch (InterruptedException e) {}
+           } else {// pong story
+             // others sleep for a while and then call java  function
+             say(name, "about to sleep for 100 msec");
+             try {           
+               say(name, "sleeping");
+               sleep(100);
+             } 
+             catch (InterruptedException e) {}
+             say(name, "after sleep -calling javaFoo");
+             retval = tNativeThreads.javaFoo(10);
+             say(name, "return from javaFoo");
+           }
 
-	   if ( name == "pong") {
-	     // someone calls gc
-	     say(name, "about to call gc");
-	     //	     say(name, "first dump VM");
-	     //	     VM_Scheduler.dumpVirtualMachine();
-	     //	     say(name, "skipping gc");
-	     	     System.gc();
-	     say(name, "gc completed");
-	   }
+           if ( name == "pong") {
+             // someone calls gc
+             say(name, "about to call gc");
+             //      say(name, "first dump VM");
+             //      VM_Scheduler.dumpVirtualMachine();
+             //      say(name, "skipping gc");
+                     System.gc();
+             say(name, "gc completed");
+           }
          }
        //test complete
        ///     say(name, "dump before -bye");

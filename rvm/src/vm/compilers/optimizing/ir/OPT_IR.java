@@ -229,14 +229,14 @@ public final class OPT_IR implements OPT_Operators {
    */
   public void printInstructions() {
     for (OPT_InstructionEnumeration e = forwardInstrEnumerator(); 
-	 e.hasMoreElements(); ) {
+         e.hasMoreElements(); ) {
       OPT_Instruction i = e.next();
       System.out.print(i.bcIndex+"\t"+i);
 
       // Print block frequency with the label instruction
       if (i.operator() == LABEL) {
-	OPT_BasicBlock bb = i.getBasicBlock();
-	System.out.print("   Frequency:  " + bb.getExecutionFrequency());
+        OPT_BasicBlock bb = i.getBasicBlock();
+        System.out.print("   Frequency:  " + bb.getExecutionFrequency());
       }
 
       System.out.println();
@@ -353,12 +353,12 @@ public final class OPT_IR implements OPT_Operators {
    */
   public OPT_OperandEnumeration getParameters() {
     for (OPT_Instruction s = firstInstructionInCodeOrder(); 
-	 true; 
-	 s = s.nextInstructionInCodeOrder()) {
+         true; 
+         s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == IR_PROLOGUE) {
-	return s.getDefs();
+        return s.getDefs();
       }
-    }	 
+    }    
   }
 
 
@@ -424,7 +424,7 @@ public final class OPT_IR implements OPT_Operators {
    * the set of basic blocks in the IR. 
    * 
    * @param bits The BitSet that defines which basic blocks to
-   *		 enumerate.
+   *             enumerate.
    * @return an enumeration of said blocks.
    */
   public OPT_BasicBlockEnumeration getBasicBlocks(OPT_BitVector bits) {
@@ -441,9 +441,9 @@ public final class OPT_IR implements OPT_Operators {
       int size = bits.length();
       Enumeration enum = ir.getBasicBlocks();
       for ( ; enum.hasMoreElements(); ) {
-	OPT_BasicBlock block = (OPT_BasicBlock) enum.nextElement();
-	int number = block.getNumber();
-	if (number < size && bits.get(number)) stack.push(block);
+        OPT_BasicBlock block = (OPT_BasicBlock) enum.nextElement();
+        int number = block.getNumber();
+        if (number < size && bits.get(number)) stack.push(block);
       }
     }
     public final boolean hasMoreElements() { return !stack.empty(); }
@@ -462,7 +462,7 @@ public final class OPT_IR implements OPT_Operators {
    * <pre>
    *    passInfo = new passInfoObjects[ir.numberInstructions()];
    *    ...do analysis using passInfo as a look aside 
-   * 		array holding pass specific info...
+   *            array holding pass specific info...
    * </pre>
    * 
    * @return the number of instructions
@@ -470,8 +470,8 @@ public final class OPT_IR implements OPT_Operators {
   public int numberInstructions() {
     int num = 0;
     for (OPT_Instruction instr = firstInstructionInCodeOrder();
-	 instr != null;
-	 instr = instr.nextInstructionInCodeOrder(), num++) {
+         instr != null;
+         instr = instr.nextInstructionInCodeOrder(), num++) {
       instr.scratch = num;
     }
     return num;
@@ -486,8 +486,8 @@ public final class OPT_IR implements OPT_Operators {
    */
   public void setInstructionScratchWord(int value) {
     for (OPT_Instruction instr = firstInstructionInCodeOrder();
-	 instr != null;
-	 instr = instr.nextInstructionInCodeOrder()) {
+         instr != null;
+         instr = instr.nextInstructionInCodeOrder()) {
       instr.scratch = value;
     }
   }
@@ -506,8 +506,8 @@ public final class OPT_IR implements OPT_Operators {
    */
   public void clearInstructionScratchObject() {
     for (OPT_Instruction instr = firstInstructionInCodeOrder();
-	 instr != null;
-	 instr = instr.nextInstructionInCodeOrder()) {
+         instr != null;
+         instr = instr.nextInstructionInCodeOrder()) {
       instr.scratchObject = null;
     }
   }
@@ -644,96 +644,96 @@ public final class OPT_IR implements OPT_Operators {
       OPT_BasicBlock cur = cfg.firstInCodeOrder();
       OPT_BasicBlock prev = null;
       while (cur != null) {
-	if (cur.getPrev() != prev) {
-	  verror(where, 
-		 "Prev link of "+cur+" does not point to "+prev);
-	}
+        if (cur.getPrev() != prev) {
+          verror(where, 
+                 "Prev link of "+cur+" does not point to "+prev);
+        }
 
-	// Verify cur's start and end instructions
-	OPT_Instruction s = cur.start;
-	OPT_Instruction e = cur.end;
-	if (s == null) {
-	  verror(where, 
-		 "Bblock "+cur+" has null start instruction");
-	}
-	if (e == null) {
-	  verror(where, 
-		 "Bblock "+cur+" has null end instruction");
-	}
-	
-	// cur has start and end instructions, 
-	// make sure that they are locally ok.
-	if (!s.isBbFirst()) {
-	  verror(where, 
-		 "Instr "+s+" is first instr of "+cur+" but is not BB_FIRST");
-	}
-	if (s.getBasicBlock() != cur) {
-	  verror(where, 
-		 "Instr "+s+" is first instr of "+cur+
-		 " but points to BBlock "+s.getBasicBlock());
-	}
-	if (!e.isBbLast()) {
-	  verror(where, 
-		 "Instr "+e+" is last instr of "+cur+" but is not BB_LAST");
-	}
-	if (e.getBasicBlock() != cur) {
-	  verror(where, 
-		 "Instr "+e+" is last instr of "+cur+
-		 " but points to BBlock "+e.getBasicBlock());
-	}
-	
-	// Now check the integrity of the block's instruction list
-	if (s.getPrev() != null) {
-	  verror(where, "Instr "+s+
-		 " is the first instr of "+cur+" but has a predecessor "
-		 +s.getPrev());
-	}
-	if (e.getNext() != null) {
-	  verror(where, "Instr "+s+
-		 " is the last instr of "+cur+" but has a successor "
-		 +e.getNext());
-	}
-	OPT_Instruction pp = s;
-	OPT_Instruction p = s.getNext();
-	boolean foundBranch = false;
-	while (p != e) {
-	  if (p == null) {
-	    verror(where, "Fell off the instruction list in "
-		   +cur+" before finding "+e);
-	  }
-	  if (p.getPrev() != pp) {
-	    verror(where, "Instr "+pp+" has next "+p
-		   +" but "+p+" has prev "+p.getPrev());
-	  }
-	  if (!p.isBbInside()) {
-	    verror(where, "Instr "+p+
-		   " should be inside "+cur+" but is not BBInside");
-	  }
-	  if (foundBranch && !p.isBranch()) {
-	    printInstructions();
-	    verror(where, "Non branch "+p+" after branch "+pp+" in "+cur);
-	  }
-	  if (p.isBranch() && p.operator() != LOWTABLESWITCH) {
-	    foundBranch = true;
-	    if (p.isUnconditionalBranch() && p.getNext() != e) {
-	      printInstructions();
-	      verror(where, "Unconditional branch "+p+
-		     " does not end its basic block "+cur);
-	    }
-	  }
-	  pp = p;
-	  p = p.getNext();
-	}	
-	if (p.getPrev() != pp) {
-	  verror(where, "Instr "+pp+" has next "
-		 +p+" but "+p+" has prev "+p.getPrev());
-	}
+        // Verify cur's start and end instructions
+        OPT_Instruction s = cur.start;
+        OPT_Instruction e = cur.end;
+        if (s == null) {
+          verror(where, 
+                 "Bblock "+cur+" has null start instruction");
+        }
+        if (e == null) {
+          verror(where, 
+                 "Bblock "+cur+" has null end instruction");
+        }
+        
+        // cur has start and end instructions, 
+        // make sure that they are locally ok.
+        if (!s.isBbFirst()) {
+          verror(where, 
+                 "Instr "+s+" is first instr of "+cur+" but is not BB_FIRST");
+        }
+        if (s.getBasicBlock() != cur) {
+          verror(where, 
+                 "Instr "+s+" is first instr of "+cur+
+                 " but points to BBlock "+s.getBasicBlock());
+        }
+        if (!e.isBbLast()) {
+          verror(where, 
+                 "Instr "+e+" is last instr of "+cur+" but is not BB_LAST");
+        }
+        if (e.getBasicBlock() != cur) {
+          verror(where, 
+                 "Instr "+e+" is last instr of "+cur+
+                 " but points to BBlock "+e.getBasicBlock());
+        }
+        
+        // Now check the integrity of the block's instruction list
+        if (s.getPrev() != null) {
+          verror(where, "Instr "+s+
+                 " is the first instr of "+cur+" but has a predecessor "
+                 +s.getPrev());
+        }
+        if (e.getNext() != null) {
+          verror(where, "Instr "+s+
+                 " is the last instr of "+cur+" but has a successor "
+                 +e.getNext());
+        }
+        OPT_Instruction pp = s;
+        OPT_Instruction p = s.getNext();
+        boolean foundBranch = false;
+        while (p != e) {
+          if (p == null) {
+            verror(where, "Fell off the instruction list in "
+                   +cur+" before finding "+e);
+          }
+          if (p.getPrev() != pp) {
+            verror(where, "Instr "+pp+" has next "+p
+                   +" but "+p+" has prev "+p.getPrev());
+          }
+          if (!p.isBbInside()) {
+            verror(where, "Instr "+p+
+                   " should be inside "+cur+" but is not BBInside");
+          }
+          if (foundBranch && !p.isBranch()) {
+            printInstructions();
+            verror(where, "Non branch "+p+" after branch "+pp+" in "+cur);
+          }
+          if (p.isBranch() && p.operator() != LOWTABLESWITCH) {
+            foundBranch = true;
+            if (p.isUnconditionalBranch() && p.getNext() != e) {
+              printInstructions();
+              verror(where, "Unconditional branch "+p+
+                     " does not end its basic block "+cur);
+            }
+          }
+          pp = p;
+          p = p.getNext();
+        }       
+        if (p.getPrev() != pp) {
+          verror(where, "Instr "+pp+" has next "
+                 +p+" but "+p+" has prev "+p.getPrev());
+        }
 
-	// initialize the mark bit for the bblist test below
-	cur.scratch = 0;
+        // initialize the mark bit for the bblist test below
+        cur.scratch = 0;
 
-	prev = cur;
-	cur = (OPT_BasicBlock)cur.getNext();
+        prev = cur;
+        cur = (OPT_BasicBlock)cur.getNext();
       }
     }
 
@@ -745,100 +745,100 @@ public final class OPT_IR implements OPT_Operators {
       if (VERIFY_CFG_EDGES) origOutSet = new java.util.HashSet();
 
       for (OPT_BasicBlock cur = cfg.firstInCodeOrder();
-	   cur != null;
-	   cur = (OPT_BasicBlock)cur.getNext()) {
+           cur != null;
+           cur = (OPT_BasicBlock)cur.getNext()) {
 
-	// Check incoming edges
-	for (OPT_BasicBlockEnumeration e = cur.getIn(); 
-	     e.hasMoreElements(); ) {
-	  OPT_BasicBlock pred = e.next();
-	  if (!pred.pointsOut(cur)) {
-	    verror(where, pred+
-		   " is an inEdge of "+cur+" but "+cur+
-		   " is not an outEdge of "+pred);
-	  }
-	}
+        // Check incoming edges
+        for (OPT_BasicBlockEnumeration e = cur.getIn(); 
+             e.hasMoreElements(); ) {
+          OPT_BasicBlock pred = e.next();
+          if (!pred.pointsOut(cur)) {
+            verror(where, pred+
+                   " is an inEdge of "+cur+" but "+cur+
+                   " is not an outEdge of "+pred);
+          }
+        }
 
-	// Check outgoing edges
-	for (OPT_BasicBlockEnumeration e =cur.getOut();
-	     e.hasMoreElements(); ) {
-	  OPT_BasicBlock succ = e.next();
-	  if (!succ.pointsIn(cur)) {
-	    verror(where, succ+
-		   " is an outEdge of "+cur+" but "+cur+
-		   " is not an inEdge of "+succ);
-	  }
-	  // Remember the original out edges for CFG edge verification
-	  if (VERIFY_CFG_EDGES && IRStage<=LIR) origOutSet.add(succ);
-	}
+        // Check outgoing edges
+        for (OPT_BasicBlockEnumeration e =cur.getOut();
+             e.hasMoreElements(); ) {
+          OPT_BasicBlock succ = e.next();
+          if (!succ.pointsIn(cur)) {
+            verror(where, succ+
+                   " is an outEdge of "+cur+" but "+cur+
+                   " is not an inEdge of "+succ);
+          }
+          // Remember the original out edges for CFG edge verification
+          if (VERIFY_CFG_EDGES && IRStage<=LIR) origOutSet.add(succ);
+        }
 
 
-	if (VERIFY_CFG_EDGES && IRStage <= LIR) {
-	  // Next, check that the CFG links are semantically correct
-	  // (ie that the CFG links and branch instructions agree)
-	  // This done by calling recomputeNormalOut() and confirming
-	  // that nothing changes.
-	  cur.recomputeNormalOut(this);
-	  
-	  // Confirm outgoing edges didn't change
-	  for (OPT_BasicBlockEnumeration e =cur.getOut();
-	       e.hasMoreElements(); ) {
-	    OPT_BasicBlock succ = e.next();
-	    if (!origOutSet.contains(succ) &&
-		!succ.isExit() // Sometimes recomput is conservative in adding edge to exit
-		               // because it relies soley on the mayThrowUncaughtException
- 		               // flag.
-		) {
-	      cur.printExtended();
-	      verror(where, "An edge in the cfg was incorrect.  " + 
-		     succ+ " was not originally an out edge of " + cur + 
-		     " but it was after calling recomputeNormalOut()" );
-	    }
-	    origOutSet.remove(succ); // we saw it, so remove it
-	  }
-	  // See if there were any edges that we didn't see the second
-	  // time around
-	  if (!origOutSet.isEmpty()) {
-	    OPT_BasicBlock missing = 
-	      (OPT_BasicBlock) origOutSet.iterator().next();
+        if (VERIFY_CFG_EDGES && IRStage <= LIR) {
+          // Next, check that the CFG links are semantically correct
+          // (ie that the CFG links and branch instructions agree)
+          // This done by calling recomputeNormalOut() and confirming
+          // that nothing changes.
+          cur.recomputeNormalOut(this);
+          
+          // Confirm outgoing edges didn't change
+          for (OPT_BasicBlockEnumeration e =cur.getOut();
+               e.hasMoreElements(); ) {
+            OPT_BasicBlock succ = e.next();
+            if (!origOutSet.contains(succ) &&
+                !succ.isExit() // Sometimes recomput is conservative in adding edge to exit
+                               // because it relies soley on the mayThrowUncaughtException
+                               // flag.
+                ) {
+              cur.printExtended();
+              verror(where, "An edge in the cfg was incorrect.  " + 
+                     succ+ " was not originally an out edge of " + cur + 
+                     " but it was after calling recomputeNormalOut()" );
+            }
+            origOutSet.remove(succ); // we saw it, so remove it
+          }
+          // See if there were any edges that we didn't see the second
+          // time around
+          if (!origOutSet.isEmpty()) {
+            OPT_BasicBlock missing = 
+              (OPT_BasicBlock) origOutSet.iterator().next();
 
-	    cur.printExtended();
-	    verror(where, "An edge in the cfg was incorrect.  " +
-		   missing + " was originally an out edge of " + cur + 
-		   " but not after calling recomputeNormalOut()");
-	  }
-	}
+            cur.printExtended();
+            verror(where, "An edge in the cfg was incorrect.  " +
+                   missing + " was originally an out edge of " + cur + 
+                   " but not after calling recomputeNormalOut()");
+          }
+        }
 
-	// mark this block because it is the bblist
-	cur.scratch = inBBListMarker;
+        // mark this block because it is the bblist
+        cur.scratch = inBBListMarker;
       }
       
       // Check to make sure that all blocks connected 
       // (via a CFG edge) to a block
       // that is in the bblist are also in the bblist
       for (OPT_BasicBlock cur = cfg.firstInCodeOrder();
-	   cur != null;
-	   cur = (OPT_BasicBlock)cur.getNext()) {
-	for (OPT_BasicBlockEnumeration e = cur.getIn(); 
-	     e.hasMoreElements(); ) {
-	  OPT_BasicBlock pred = e.next();
-	  if (pred.scratch != inBBListMarker) {
-	    verror(where, "In Method "+ method.getName() +", "
-		   + pred+" is an inEdge of "+cur+
-		   " but it is not in the CFG!");
-	  }
-	}
-	for (OPT_BasicBlockEnumeration e = cur.getOut(); 
-	     e.hasMoreElements();) {
-	  OPT_BasicBlock succ = e.next();
-	  if (succ.scratch != inBBListMarker) {
-	    // the EXIT block is never in the BB list
-	    if (succ != cfg.exit()) { 
-	      verror(where, "In Method "+ method.getName() +", "+ succ+
-		     " is an outEdge of "+cur+" but it is not in the CFG!");
-	    }
-	  }
-	}
+           cur != null;
+           cur = (OPT_BasicBlock)cur.getNext()) {
+        for (OPT_BasicBlockEnumeration e = cur.getIn(); 
+             e.hasMoreElements(); ) {
+          OPT_BasicBlock pred = e.next();
+          if (pred.scratch != inBBListMarker) {
+            verror(where, "In Method "+ method.getName() +", "
+                   + pred+" is an inEdge of "+cur+
+                   " but it is not in the CFG!");
+          }
+        }
+        for (OPT_BasicBlockEnumeration e = cur.getOut(); 
+             e.hasMoreElements();) {
+          OPT_BasicBlock succ = e.next();
+          if (succ.scratch != inBBListMarker) {
+            // the EXIT block is never in the BB list
+            if (succ != cfg.exit()) { 
+              verror(where, "In Method "+ method.getName() +", "+ succ+
+                     " is an outEdge of "+cur+" but it is not in the CFG!");
+            }
+          }
+        }
       }
     } // end CFG sanity check
 
@@ -858,14 +858,14 @@ public final class OPT_IR implements OPT_Operators {
     OPT_DefUse.computeDU(this);
     //TODO: (SJF)I hate the register list interface.  Re-do it.
     for (OPT_Register r = regpool.getFirstSymbolicRegister(); 
-	 r != null; 
-	 r = r.getNext()) {
+         r != null; 
+         r = r.getNext()) {
       if (r.isPhysical()) continue;
       if (r.useList != null) {
-	if (r.defList == null) {
-	  printInstructions();
-	  verror(where, "verifyRegisterDefs: " + r + " has use but no defs");
-	}
+        if (r.defList == null) {
+          printInstructions();
+          verror(where, "verifyRegisterDefs: " + r + " has use but no defs");
+        }
       }
     }
   }
@@ -878,8 +878,8 @@ public final class OPT_IR implements OPT_Operators {
    */
   private void verifyRegisterTypes(String where) {
     for (OPT_Register r = regpool.getFirstSymbolicRegister(); 
-	 r != null;
-	 r = (OPT_Register)r.getNext()) {
+         r != null;
+         r = (OPT_Register)r.getNext()) {
       // don't worry about physical registers
       if (r.isPhysical()) continue;
 
@@ -889,7 +889,7 @@ public final class OPT_IR implements OPT_Operators {
       if (r.isInteger()) types++;
       if (r.isFloat()) types++;
       if (types > 1) {
-	verror(where, "Register " + r + " has incompatible types.");
+        verror(where, "Register " + r + " has incompatible types.");
       }
     }
   }

@@ -117,12 +117,12 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
       if (vm == null) continue;
       int startPage = Conversions.addressToPagesDown(vm.start);
       for (int p = startPage; p < (startPage + vm.pages); p++) {
-	if (resourceTable[p] != null) {
-	  Log.write("Conflicting VMResource: "); Log.write(vm.name);
-	  Log.write(" and "); Log.writeln(resourceTable[p].name);
-	  VM_Interface.sysFail("Conflicting VMResource");
-	}
-	resourceTable[p] = vm;
+        if (resourceTable[p] != null) {
+          Log.write("Conflicting VMResource: "); Log.write(vm.name);
+          Log.write(" and "); Log.writeln(resourceTable[p].name);
+          VM_Interface.sysFail("Conflicting VMResource");
+        }
+        resourceTable[p] = vm;
       }
     }
     int bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toInt();
@@ -144,12 +144,12 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   final public static byte getSpace(VM_Address addr) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) {
-	if (spaceTable == null)
-	  VM_Interface.sysFail("getSpace called when spaceTable is null");
-	return spaceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
+        if (spaceTable == null)
+          VM_Interface.sysFail("getSpace called when spaceTable is null");
+        return spaceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
     }
     return VM_Magic.getByteAtOffset(VM_Magic.objectAsAddress(spaceTable), 
-				    addr.toInt() >>> LOG_BYTES_IN_PAGE);
+                                    addr.toInt() >>> LOG_BYTES_IN_PAGE);
   }
 
   public static byte getTag (VM_Address addr) {
@@ -160,15 +160,15 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   public static void setTag (VM_Address addr, int pages, byte v) {
     int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     for (int i=0; i<pages; i++)
-	tagTable[start+i] = v;
+        tagTable[start+i] = v;
   }
 
   public static void clearTag (VM_Address addr, int pages, byte v) {
     int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     for (int i=0; i<pages; i++) {
-	if (tagTable[start+i] != v)
-	    VM_Interface.sysFail("VMResource.clearTag: current tag does not match expected value");
-	tagTable[start+i] = (byte) 0;
+        if (tagTable[start+i] != v)
+            VM_Interface.sysFail("VMResource.clearTag: current tag does not match expected value");
+        tagTable[start+i] = (byte) 0;
     }
   }
 
@@ -211,16 +211,16 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   protected void acquireHelp (VM_Address start, int pageRequest) {
     if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.acquireHelp called before VM is running");
     if (spaceTable == null) 
-	VM_Interface.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
+        VM_Interface.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
     int pageStart = Conversions.addressToPages(start);
     // Log.write("Acquiring pages "); Log.write(pageStart);
     // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
     // Log.write(" for space "); Log.writeln(space);
     for (int i=0; i<pageRequest; i++) {
       if (VM_Interface.VerifyAssertions) 
-	  VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE 
-			       // Suspect - FreeListVM
-			       || spaceTable[pageStart+i] == space); 
+          VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE 
+                               // Suspect - FreeListVM
+                               || spaceTable[pageStart+i] == space); 
       spaceTable[pageStart+i] = space;
     }
   }
@@ -233,8 +233,8 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     // Log.write(" for space "); Log.writeln(spac!e);
     for (int i=0; i<pageRequest; i++) {
       if (VM_Interface.VerifyAssertions) 
-	  VM_Interface._assert(spaceTable[pageStart+i] == space ||
-		     spaceTable[pageStart+i] == Plan.UNUSED_SPACE); // Suspect - FreeListVM
+          VM_Interface._assert(spaceTable[pageStart+i] == space ||
+                     spaceTable[pageStart+i] == Plan.UNUSED_SPACE); // Suspect - FreeListVM
       spaceTable[pageStart+i] = Plan.UNUSED_SPACE;
     }
   }

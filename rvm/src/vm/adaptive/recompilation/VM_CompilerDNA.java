@@ -135,43 +135,43 @@ public class VM_CompilerDNA implements VM_Constants {
 
     if (VM.LogAOSEvents) {
       for (int i=0; i < compilationRates.length; i++) {
-	VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
+        VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
       }
       for (int i=0; i < speedupRates.length; i++) {
-	VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
+        VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
       }
     }
 
     // fill in the upper triangular matrices
     for (int prevCompiler = 0; 
-	 prevCompiler < numCompilers; 
-	 prevCompiler++) {
+         prevCompiler < numCompilers; 
+         prevCompiler++) {
 
       benefitRatio[prevCompiler][prevCompiler] = 1.0;
       compileTimeRatio[prevCompiler][prevCompiler] = 1.0;
 
       for (int nextCompiler = prevCompiler+1; 
-	   nextCompiler < numCompilers; 
-	   nextCompiler++) {
+           nextCompiler < numCompilers; 
+           nextCompiler++) {
 
-	benefitRatio[prevCompiler][nextCompiler] = 
-	  speedupRates[nextCompiler] / speedupRates[prevCompiler];
+        benefitRatio[prevCompiler][nextCompiler] = 
+          speedupRates[nextCompiler] / speedupRates[prevCompiler];
 
-	// Since compilation rates are not relative to the 1st compiler
-	//  we invert the division.
-	compileTimeRatio[prevCompiler][nextCompiler] = 
-	  compilationRates[prevCompiler] / compilationRates[nextCompiler];  
+        // Since compilation rates are not relative to the 1st compiler
+        //  we invert the division.
+        compileTimeRatio[prevCompiler][nextCompiler] = 
+          compilationRates[prevCompiler] / compilationRates[nextCompiler];  
 
-	if (VM.LogAOSEvents) {
-	  VM_AOSLogging.reportBenefitRatio(
-			   prevCompiler, nextCompiler,
-			   benefitRatio[prevCompiler][nextCompiler]);
+        if (VM.LogAOSEvents) {
+          VM_AOSLogging.reportBenefitRatio(
+                           prevCompiler, nextCompiler,
+                           benefitRatio[prevCompiler][nextCompiler]);
 
-	  VM_AOSLogging.reportCompileTimeRatio(
-			   prevCompiler, nextCompiler,
-			   compileTimeRatio[prevCompiler][nextCompiler]);
-	}
-	
+          VM_AOSLogging.reportCompileTimeRatio(
+                           prevCompiler, nextCompiler,
+                           compileTimeRatio[prevCompiler][nextCompiler]);
+        }
+        
       }
     }
 
@@ -179,8 +179,8 @@ public class VM_CompilerDNA implements VM_Constants {
     int maxProfitableCompiler = 0;
     for (int compiler = 1; compiler < numCompilers; compiler++) {
       if (compilationRates[compiler] > compilationRates[compiler-1] ||
-	  speedupRates[compiler] > speedupRates[compiler-1]) {
-	maxProfitableCompiler = compiler;
+          speedupRates[compiler] > speedupRates[compiler-1]) {
+        maxProfitableCompiler = compiler;
       }
     }
     int maxOptLevel = getOptLevel(maxProfitableCompiler);
@@ -197,7 +197,7 @@ public class VM_CompilerDNA implements VM_Constants {
     try {
 
       LineNumberReader in =
-	new LineNumberReader(new FileReader(filename));
+        new LineNumberReader(new FileReader(filename));
 
       // Expected Format
       //   CompilationRates  aaa.a  bbbb.b cccc.c dddd.d ....
@@ -218,7 +218,7 @@ public class VM_CompilerDNA implements VM_Constants {
    *  @param valueHolder the array to hold the read values
    */
   static private void processOneLine(LineNumberReader in, String title,
-				     double[] valueHolder) throws IOException {
+                                     double[] valueHolder) throws IOException {
 
     String s = in.readLine();
     if (VM.VerifyAssertions) VM._assert(s != null);
@@ -232,8 +232,8 @@ public class VM_CompilerDNA implements VM_Constants {
     
     // walk through the array, making sure we still have tokens
     for (int i=0;
-	 parser.hasMoreTokens() && i < valueHolder.length;
-	 i++) {
+         parser.hasMoreTokens() && i < valueHolder.length;
+         i++) {
 
       // get the available token
       token = parser.nextToken();
@@ -264,8 +264,8 @@ public class VM_CompilerDNA implements VM_Constants {
       case OPT1: return 1;
       case OPT2: return 2;
       default:
-	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
-	return -99;
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
+        return -99;
     }
   }
 
@@ -289,8 +289,8 @@ public class VM_CompilerDNA implements VM_Constants {
       case 1: return OPT1;
       case 2: return OPT2;
       default:
-	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
-	return -99;
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
+        return -99;
     }
   }
 }

@@ -20,7 +20,7 @@ class inlineTest6
   static int sum(int i) {
     int j;
     if (i == 0)
-	j = i;
+        j = i;
     else
         j = sum(i-1) + i;
     return j;

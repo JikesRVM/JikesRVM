@@ -28,7 +28,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return a new object created by the specified constructor
    */
   static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
-					 boolean isJvalue, boolean isDotDotStyle) 
+                                         boolean isJvalue, boolean isDotDotStyle) 
     throws Exception  {
 
     // get the parameter list as Java class
@@ -71,7 +71,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    */
   static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
     throws Exception, 
-	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
+           VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
     VM_Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
   }
@@ -87,10 +87,10 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   static Object invokeWithDotDotVarArg(Object obj, int methodID, 
-					      VM_TypeReference expectReturnType, 
-					      boolean skip4Args)
+                                              VM_TypeReference expectReturnType, 
+                                              boolean skip4Args)
     throws Exception,
-	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
+           VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
 
     VM_Address varargAddress = getVarArgAddress(skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
@@ -197,7 +197,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
-					VM_TypeReference expectReturnType, boolean skip4Args) 
+                                        VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
   }
@@ -209,7 +209,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   static Object invokeWithJValue(int methodID, VM_Address argAddress, 
-					VM_TypeReference expectReturnType) 
+                                        VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
   }
@@ -224,7 +224,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
-					VM_TypeReference expectReturnType, boolean skip4Args) 
+                                        VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
   }
@@ -246,28 +246,28 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
   static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
-					VM_TypeReference expectReturnType, boolean skip4Args, 
-					boolean isVarArg) 
+                                        VM_TypeReference expectReturnType, boolean skip4Args, 
+                                        boolean isVarArg) 
     throws Exception,
-	   VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
+           VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
 
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_TypeReference returnType = targetMethod.getReturnType();
 
     if (VM_JNIFunctions.traceJNI) {
       VM.sysWrite("JNI CallXXXMethod:  (mid " + methodID + ") " +
-		  targetMethod.getDeclaringClass().toString() + 
-		  "." + 
-		  targetMethod.getName().toString() + "\n");
+                  targetMethod.getDeclaringClass().toString() + 
+                  "." + 
+                  targetMethod.getName().toString() + "\n");
     }
     
     if (expectReturnType==null) {   // for reference return type 
       if (!returnType.isReferenceType())
-	throw new Exception("Wrong return type for method: expect reference type instead of " + returnType);      
+        throw new Exception("Wrong return type for method: expect reference type instead of " + returnType);      
     } else {    // for primitive return type
       if (!returnType.definitelySame(expectReturnType))
-	throw new Exception("Wrong return type for method: expect " + expectReturnType + 
-			    " instead of " + returnType);
+        throw new Exception("Wrong return type for method: expect " + expectReturnType + 
+                            " instead of " + returnType);
     }  
 
     // Repackage the arguments into an array of objects based on the signature of this method
@@ -302,42 +302,42 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
 
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isFloatType()) {
-	// NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
-	// so we have to extract it as a double and convert it back to a float
-	int hiword = VM_Magic.getMemoryInt(addr);
-	addr = addr.add(4);                       
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
+        // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
+        // so we have to extract it as a double and convert it back to a float
+        int hiword = VM_Magic.getMemoryInt(addr);
+        addr = addr.add(4);                       
+        long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+        argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
       } else if (argTypes[i].isDoubleType()) {
-	int hiword = VM_Magic.getMemoryInt(addr);
-	addr = addr.add(4);
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
+        int hiword = VM_Magic.getMemoryInt(addr);
+        addr = addr.add(4);
+        long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+        argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
       } else if (argTypes[i].isLongType()) { 
-	int hiword = VM_Magic.getMemoryInt(addr);
-	addr = addr.add(4);
-	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
+        int hiword = VM_Magic.getMemoryInt(addr);
+        addr = addr.add(4);
+        long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+        argObjectArray[i] = VM_Reflection.wrapLong(longValue);
       } else if (argTypes[i].isBooleanType()) {
-	// the 0/1 bit is stored in the high byte		
-	argObjectArray[i] = VM_Reflection.wrapBoolean(loword);
+        // the 0/1 bit is stored in the high byte               
+        argObjectArray[i] = VM_Reflection.wrapBoolean(loword);
       } else if (argTypes[i].isByteType()) {
-	// the target byte is stored in the high byte
-	argObjectArray[i] = VM_Reflection.wrapByte((byte) loword);
+        // the target byte is stored in the high byte
+        argObjectArray[i] = VM_Reflection.wrapByte((byte) loword);
       } else if (argTypes[i].isCharType()) {
-	// char is stored in the high 2 bytes
-	argObjectArray[i] = VM_Reflection.wrapChar((char) loword);
+        // char is stored in the high 2 bytes
+        argObjectArray[i] = VM_Reflection.wrapChar((char) loword);
       } else if (argTypes[i].isShortType()) {
-	// short is stored in the high 2 bytes
-	argObjectArray[i] = VM_Reflection.wrapShort((short) loword);
+        // short is stored in the high 2 bytes
+        argObjectArray[i] = VM_Reflection.wrapShort((short) loword);
       } else if (argTypes[i].isReferenceType()) {
-	// for object, the arg is a JREF index, dereference to get the real object
-	VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
-	argObjectArray[i] =  env.getJNIRef(loword);   
+        // for object, the arg is a JREF index, dereference to get the real object
+        VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
+        argObjectArray[i] =  env.getJNIRef(loword);   
       } else if (argTypes[i].isIntType()) {
-	argObjectArray[i] = VM_Reflection.wrapInt(loword);
+        argObjectArray[i] = VM_Reflection.wrapInt(loword);
       } else {
-	return null;
+        return null;
       }
     }
 
@@ -366,34 +366,34 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
       int hiword;
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isFloatType()) {
-	argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
+        argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
       } else if (argTypes[i].isDoubleType()) {
-	hiword = VM_Magic.getMemoryInt(addr.add(4));
-	long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
+        hiword = VM_Magic.getMemoryInt(addr.add(4));
+        long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+        argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
       } else if (argTypes[i].isLongType()) { 
-	hiword = VM_Magic.getMemoryInt(addr.add(4));
-	long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
-	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
+        hiword = VM_Magic.getMemoryInt(addr.add(4));
+        long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
+        argObjectArray[i] = VM_Reflection.wrapLong(longValue);
       } else if (argTypes[i].isBooleanType()) {
-	// the 0/1 bit is stored in the high byte	
-	argObjectArray[i] = VM_Reflection.wrapBoolean(loword & 0x000000FF);
+        // the 0/1 bit is stored in the high byte       
+        argObjectArray[i] = VM_Reflection.wrapBoolean(loword & 0x000000FF);
       } else if (argTypes[i].isByteType()) {
-	// the target byte is stored in the high byte
-	argObjectArray[i] = VM_Reflection.wrapByte((byte) (loword & 0x000000FF));
+        // the target byte is stored in the high byte
+        argObjectArray[i] = VM_Reflection.wrapByte((byte) (loword & 0x000000FF));
       } else if (argTypes[i].isCharType()) {
-	// char is stored in the high 2 bytes
-	argObjectArray[i] = VM_Reflection.wrapChar((char) (loword & 0x0000FFFF));
+        // char is stored in the high 2 bytes
+        argObjectArray[i] = VM_Reflection.wrapChar((char) (loword & 0x0000FFFF));
       } else if (argTypes[i].isShortType()) {
-	// short is stored in the high 2 bytes
-	argObjectArray[i] = VM_Reflection.wrapShort((short) (loword & 0x0000FFFF));
+        // short is stored in the high 2 bytes
+        argObjectArray[i] = VM_Reflection.wrapShort((short) (loword & 0x0000FFFF));
       } else if (argTypes[i].isReferenceType()) {
-	// for object, the arg is a JREF index, dereference to get the real object
-	argObjectArray[i] =  env.getJNIRef(loword);   
+        // for object, the arg is a JREF index, dereference to get the real object
+        argObjectArray[i] =  env.getJNIRef(loword);   
       } else if (argTypes[i].isIntType()) {
-	argObjectArray[i] = VM_Reflection.wrapInt(loword);
+        argObjectArray[i] = VM_Reflection.wrapInt(loword);
       } else {
-	return null;
+        return null;
       }
     }
 

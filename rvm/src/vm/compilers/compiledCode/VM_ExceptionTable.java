@@ -33,8 +33,8 @@ public abstract class VM_ExceptionTable {
    * @return the machine code offset of the catch block.
    */
   public static final int findCatchBlockForInstruction(int[] eTable,
-						       int instructionOffset, 
-						       VM_Type exceptionType) {
+                                                       int instructionOffset, 
+                                                       VM_Type exceptionType) {
     for (int i = 0, n = eTable.length; i < n; i += 4) {
       // note that instructionOffset points to the instruction after the PEI
       // so the range check here must be "offset >  beg && offset <= end"
@@ -42,16 +42,16 @@ public abstract class VM_ExceptionTable {
       //
       // offset starts are sorted by starting point
       if (instructionOffset > eTable[i + TRY_START] &&
-	  instructionOffset <= eTable[i + TRY_END]) {
-	VM_Type lhs = VM_Type.getType(eTable[i + EX_TYPE]);
-	if (lhs == exceptionType) {
-	  return eTable[i + CATCH_START];
-	} else if (lhs.isInitialized()) {
-	  Object[] rhsTIB = exceptionType.getTypeInformationBlock();
-	  if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
-	    return eTable[i + CATCH_START];
-	  }
-	}
+          instructionOffset <= eTable[i + TRY_END]) {
+        VM_Type lhs = VM_Type.getType(eTable[i + EX_TYPE]);
+        if (lhs == exceptionType) {
+          return eTable[i + CATCH_START];
+        } else if (lhs.isInitialized()) {
+          Object[] rhsTIB = exceptionType.getTypeInformationBlock();
+          if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
+            return eTable[i + CATCH_START];
+          }
+        }
       }
     }
     return -1;
@@ -67,10 +67,10 @@ public abstract class VM_ExceptionTable {
     VM.sysWriteln("    trystart   tryend    catch    type");
     for (int i = 0; i<length; i+=4) {
       VM.sysWriteln("    " + 
-		    VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
-		    VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
-		    VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
-		    VM_Type.getType(eTable[i + EX_TYPE]));
+                    VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
+                    VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
+                    VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
+                    VM_Type.getType(eTable[i + EX_TYPE]));
     }
   }
 }

@@ -41,7 +41,7 @@ class OPT_RegisterAllocatorState {
    */
   /*
   static void putPhysicalRegResurrectList(OPT_Register r, 
-					  OPT_LinearScanLiveInterval li) {
+                                          OPT_LinearScanLiveInterval li) {
     if (VM.VerifyAssertions) VM._assert(r.isPhysical());
     r.scratchObject = li;
   }

@@ -115,13 +115,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address alloc (int bytes, boolean isScalar, int allocator,
-				AllocAdvice advice)
+                                AllocAdvice advice)
     throws VM_PragmaInline {
     switch (allocator) {
       case  DEFAULT_SPACE:  return def.alloc(isScalar, bytes);
       case IMMORTAL_SPACE:  return immortal.alloc(isScalar, bytes);
       default:              if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); 
-	                    return VM_Address.zero();
+                            return VM_Address.zero();
     }
   }
 
@@ -136,7 +136,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-			      boolean isScalar, int allocator)
+                              boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
       case  DEFAULT_SPACE: return;
@@ -155,7 +155,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes, 
-				    boolean isScalar) 
+                                    boolean isScalar) 
     throws VM_PragmaInline {
     VM_Interface.sysFail("no allocCopy in noGC");
     //    return VM_Address.zero();   // Trips some intel opt compiler bug...
@@ -171,7 +171,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-			     boolean isScalar) {
+                             boolean isScalar) {
     VM_Interface.sysFail("no postCopy in noGC");
   } 
 
@@ -189,7 +189,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The allocator number to be used for this allocation.
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite, 
-				AllocAdvice hint) {
+                                AllocAdvice hint) {
     return DEFAULT_SPACE;
   }
 
@@ -218,8 +218,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * at runtime
    */
   public final AllocAdvice getAllocAdvice(Type type, int bytes,
-					  CallSite callsite,
-					  AllocAdvice hint) {
+                                          CallSite callsite,
+                                          AllocAdvice hint) {
     return null;
   }
 
@@ -366,11 +366,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     switch (space) {
     case DEFAULT_SPACE:   return true;
     case IMMORTAL_SPACE:  return true;
-    case BOOT_SPACE:	  return true;
-    case META_SPACE:	  return true;
+    case BOOT_SPACE:      return true;
+    case META_SPACE:      return true;
     default:
       if (VM_Interface.VerifyAssertions)
-	spaceFailure(obj, space, "Plan.isLive()");
+        spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
   }
@@ -382,7 +382,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
 
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingWord, int bytes) {
+                                             int forwardingWord, int bytes) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     return forwardingWord;
   }
@@ -430,7 +430,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected static final int getPagesAvail() {
     return (getTotalPages() - defaultMR.reservedPages() 
-	    - immortalMR.reservedPages());
+            - immortalMR.reservedPages());
   }
 
 

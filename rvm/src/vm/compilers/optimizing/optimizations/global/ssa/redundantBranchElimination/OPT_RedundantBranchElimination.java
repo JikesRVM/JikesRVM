@@ -51,13 +51,13 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
     super("RedundantBranchElimination", new OPT_OptimizationPlanElement[] {
       // Stage 1: Require SSA form
       new OPT_OptimizationPlanAtomicElement(new OPT_CompilerPhase() {
-	  public String getName() { return "Ensure SSA"; }
-	  public boolean shouldPerform() { return true; }
-	  public void perform(OPT_IR ir) {
-	    ir.desiredSSAOptions = new OPT_SSAOptions();
-	    new OPT_EnterSSA().perform(ir);
-	  }
-	}),
+          public String getName() { return "Ensure SSA"; }
+          public boolean shouldPerform() { return true; }
+          public void perform(OPT_IR ir) {
+            ir.desiredSSAOptions = new OPT_SSAOptions();
+            new OPT_EnterSSA().perform(ir);
+          }
+        }),
       
       // Stage2: Require GVNs
       new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
@@ -86,55 +86,55 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
       OPT_GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;
       OPT_DominatorTree dt = ir.HIRInfo.dominatorTree;
       for (OPT_BasicBlockEnumeration bbs = ir.getBasicBlocks();
-	   bbs.hasMoreElements();) {
-	OPT_BasicBlock candBB = bbs.next();
-	OPT_Instruction candTest = candBB.firstBranchInstruction();
-	if (candTest == null) continue;
-	if (!(IfCmp.conforms(candTest) || InlineGuard.conforms(candTest))) continue;
-	OPT_GVCongruenceClass cc = gvns.congruenceClass(candTest);
-	if (cc.size() > 1) {
-	  for (Iterator e = cc.iterator(); e.hasNext();) {
-	    OPT_Instruction poss = (OPT_Instruction)((OPT_ValueGraphVertex)e.next()).name;
-	    if (poss != candTest) {
-	      OPT_BasicBlock notTaken = getNotTakenBlock(poss);
-	      OPT_BasicBlock taken = poss.getBranchTarget();
-	      if (taken == notTaken) continue; // both go to same block, so we don't know anything!
-	      if (notTaken.hasOneIn() && dt.dominates(notTaken, candBB)) {
-		if (DEBUG) VM.sysWrite(candTest + " is dominated by not-taken branch of "+poss+"\n");
-		removeCondBranch(candBB, candTest, ir);
-		cc.removeVertex(gvns.valueGraph.getVertex(candTest));
-		break;
-	      }
-	      if (taken.hasOneIn() && dt.dominates(taken, candBB)) {
-		if (DEBUG) VM.sysWrite(candTest + " is dominated by taken branch of "+poss+"\n");
-		takeCondBranch(candBB, candTest, ir);
-		cc.removeVertex(gvns.valueGraph.getVertex(candTest));
-		break;
-	      }
-	    }
-	  }
-	}
+           bbs.hasMoreElements();) {
+        OPT_BasicBlock candBB = bbs.next();
+        OPT_Instruction candTest = candBB.firstBranchInstruction();
+        if (candTest == null) continue;
+        if (!(IfCmp.conforms(candTest) || InlineGuard.conforms(candTest))) continue;
+        OPT_GVCongruenceClass cc = gvns.congruenceClass(candTest);
+        if (cc.size() > 1) {
+          for (Iterator e = cc.iterator(); e.hasNext();) {
+            OPT_Instruction poss = (OPT_Instruction)((OPT_ValueGraphVertex)e.next()).name;
+            if (poss != candTest) {
+              OPT_BasicBlock notTaken = getNotTakenBlock(poss);
+              OPT_BasicBlock taken = poss.getBranchTarget();
+              if (taken == notTaken) continue; // both go to same block, so we don't know anything!
+              if (notTaken.hasOneIn() && dt.dominates(notTaken, candBB)) {
+                if (DEBUG) VM.sysWrite(candTest + " is dominated by not-taken branch of "+poss+"\n");
+                removeCondBranch(candBB, candTest, ir);
+                cc.removeVertex(gvns.valueGraph.getVertex(candTest));
+                break;
+              }
+              if (taken.hasOneIn() && dt.dominates(taken, candBB)) {
+                if (DEBUG) VM.sysWrite(candTest + " is dominated by taken branch of "+poss+"\n");
+                takeCondBranch(candBB, candTest, ir);
+                cc.removeVertex(gvns.valueGraph.getVertex(candTest));
+                break;
+              }
+            }
+          }
+        }
       }
       // (2) We may have created some dead code; remove it
       while (haveBlock()) {
-	OPT_BasicBlock curr = popBlock();
-	if (curr.scratch != 0) continue; // set in push block; avoid processing block twice!
-	if (DEBUG) VM.sysWrite("Checking to see if block "+curr+" is dead\n");
-	if (curr.hasZeroIn() ||
-	    (curr.hasOneIn() && curr.pointsIn(curr))) {
-	  // block is dead.
-	  curr.scratch = 0xdeadbeef;
-	  if (DEBUG) VM.sysWrite("\tremoving dead block "+curr+"\n");
-	  for (OPT_BasicBlockEnumeration e = curr.getOut();
-	       e.hasMoreElements(); ) {
-	    OPT_BasicBlock target = e.next();
-	    if (target != curr && !target.isExit()) {
-	      OPT_SSA.purgeBlockFromPHIs(curr, target);
-	      pushBlock(target);
-	    }
-	  }
-	  ir.cfg.removeFromCFGAndCodeOrder(curr);
-	}
+        OPT_BasicBlock curr = popBlock();
+        if (curr.scratch != 0) continue; // set in push block; avoid processing block twice!
+        if (DEBUG) VM.sysWrite("Checking to see if block "+curr+" is dead\n");
+        if (curr.hasZeroIn() ||
+            (curr.hasOneIn() && curr.pointsIn(curr))) {
+          // block is dead.
+          curr.scratch = 0xdeadbeef;
+          if (DEBUG) VM.sysWrite("\tremoving dead block "+curr+"\n");
+          for (OPT_BasicBlockEnumeration e = curr.getOut();
+               e.hasMoreElements(); ) {
+            OPT_BasicBlock target = e.next();
+            if (target != curr && !target.isExit()) {
+              OPT_SSA.purgeBlockFromPHIs(curr, target);
+              pushBlock(target);
+            }
+          }
+          ir.cfg.removeFromCFGAndCodeOrder(curr);
+        }
       }
     }
 
@@ -152,17 +152,17 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * Remove cb from source, updating PHI nodes to maintain SSA form.
      */
     private void removeCondBranch(OPT_BasicBlock source,
-				  OPT_Instruction cb,
-				  OPT_IR ir) {
+                                  OPT_Instruction cb,
+                                  OPT_IR ir) {
       if (DEBUG) VM.sysWrite("Eliminating definitely not-taken branch "+cb+"\n");
       OPT_BasicBlock deadBB = cb.getBranchTarget();
       cb.remove();
       source.recomputeNormalOut(ir);
       if (!source.pointsOut(deadBB)) {
-	// there is no longer an edge from source to target;
-	// update any PHIs in target to reflect this.
-	OPT_SSA.purgeBlockFromPHIs(source, deadBB);
-	pushBlock(deadBB);
+        // there is no longer an edge from source to target;
+        // update any PHIs in target to reflect this.
+        OPT_SSA.purgeBlockFromPHIs(source, deadBB);
+        pushBlock(deadBB);
       }
     }
 
@@ -170,22 +170,22 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * Transform cb into a GOTO, updating PHI nodes to maintain SSA form.
      */
     private void takeCondBranch(OPT_BasicBlock source,
-				OPT_Instruction cb,
-				OPT_IR ir) {
+                                OPT_Instruction cb,
+                                OPT_IR ir) {
       if (DEBUG) VM.sysWrite("Eliminating definitely taken branch "+cb+"\n");
       OPT_BasicBlock  deadBB = source.nextBasicBlockInCodeOrder();
       OPT_Instruction next = cb.nextInstructionInCodeOrder();
       if (Goto.conforms(next)) {
-	deadBB = next.getBranchTarget();
-	next.remove();
+        deadBB = next.getBranchTarget();
+        next.remove();
       }
       Goto.mutate(cb, GOTO, cb.getBranchTarget().makeJumpTarget());
       source.recomputeNormalOut(ir);
       if (!source.pointsOut(deadBB)) {
-	// there is no longer an edge from source to target;
-	// update any PHIs in target to reflect this.
-	OPT_SSA.purgeBlockFromPHIs(source, deadBB);
-	pushBlock(deadBB);
+        // there is no longer an edge from source to target;
+        // update any PHIs in target to reflect this.
+        OPT_SSA.purgeBlockFromPHIs(source, deadBB);
+        pushBlock(deadBB);
       }
     }
 
@@ -197,8 +197,8 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
       OPT_BasicBlock block;
       BL next;
       BL(OPT_BasicBlock b, BL n) {
-	block = b;
-	next = n;
+        block = b;
+        next = n;
       }
     }
     private BL modBlocks;

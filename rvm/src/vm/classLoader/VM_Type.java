@@ -141,9 +141,9 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   // TODO: Think about moving these into JMTKtype?
   public int allocCount;
   public int allocBytes;
-  public int copyCount; 		
+  public int copyCount;                 
   public int copyBytes;                 
-  public int scanCount; 		
+  public int scanCount;                 
   public int scanBytes;
   public int bootCount;
   public int bootBytes; 
@@ -153,7 +153,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   /**
    * RCGC: is this type acyclic? 
    */
-  protected boolean acyclic;	   
+  protected boolean acyclic;       
 
 
   /**
@@ -434,12 +434,12 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
       // java.lang.Class object for it.  Doing it here frees us from having
       // to check it all over the reflection code. 
       if (!isResolved()) {
-	resolve();
+        resolve();
       }
       synchronized(this) {
-	if (classForType == null) {
-	  classForType = java.lang.JikesRVMSupport.createClass(this);
-	}
+        if (classForType == null) {
+          classForType = java.lang.JikesRVMSupport.createClass(this);
+        }
       }
     }
     return classForType;
@@ -464,16 +464,16 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
 
   public final boolean isWordType() throws VM_PragmaUninterruptible              { return (this == WordType) ||
                                                                                           (this == AddressType) ||
-										          (this == ExtentType) || 
-										          (this == OffsetType); }
+                                                                                          (this == ExtentType) || 
+                                                                                          (this == OffsetType); }
   final boolean isWordArrayType() throws VM_PragmaUninterruptible         { return (this == WordArrayType) ||
                                                                                           (this == AddressArrayType) ||
-										          (this == ExtentArrayType) || 
-										          (this == OffsetArrayType); }
+                                                                                          (this == ExtentArrayType) || 
+                                                                                          (this == OffsetArrayType); }
   final boolean isCodeType() throws VM_PragmaUninterruptible { return this == CodeType; }
   final boolean isCodeArrayType() throws VM_PragmaUninterruptible { return this == CodeArrayType; }
   public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() || isWordArrayType() ||
-										     this == MagicType || this == CodeArrayType; }
+                                                                                     this == MagicType || this == CodeArrayType; }
   public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
@@ -488,8 +488,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
       VM_TypeReference tr = typeRef.getArrayTypeForElementType();
       cachedElementType = tr.resolve().asArray();
       /*  Can't fail to resolve the type, because the element type already
-	  exists (it is 'this') and the VM creates array types itself without
-	  any possibility of error if the element type is already loaded. */
+          exists (it is 'this') and the VM creates array types itself without
+          any possibility of error if the element type is already loaded. */
     }
     return cachedElementType;
   }
@@ -507,7 +507,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public final int[] getDoesImplement () throws VM_PragmaUninterruptible {
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
-	 
+         
   static void init() {
     VoidType    = VM_TypeReference.Void.resolve();
     BooleanType = VM_TypeReference.Boolean.resolve();
@@ -531,15 +531,15 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     JavaIoSerializableType = (VM_Class)VM_TypeReference.JavaIoSerializable.resolve();
     MagicType = VM_TypeReference.Magic.resolve();
     UninterruptibleType   = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Uninterruptible;")).resolve();
+                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Uninterruptible;")).resolve();
     SynchronizedObjectType= VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-							   VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")).resolve();
+                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")).resolve();
     DynamicBridgeType     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;")).resolve();
+                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;")).resolve();
     SaveVolatileType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")).resolve();
+                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")).resolve();
     NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")).resolve();
+                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
     WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
     AddressType = VM_TypeReference.Address.resolve();
@@ -557,7 +557,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     if (ans == types.length) {
       VM_Type[] newTypes = new VM_Type[types.length+500];
       for (int i=0; i<types.length; i++) {
-	newTypes[i] = types[i];
+        newTypes[i] = types[i];
       }
       types = newTypes;
     }

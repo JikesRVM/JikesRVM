@@ -87,7 +87,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // BURS assumes that this has been done, so we must do it even if
     // OPTIMIZE is false.
     for (OPT_InstructionEnumeration instrs = ir.forwardInstrEnumerator();
-	 instrs.hasMoreElements();) {
+         instrs.hasMoreElements();) {
       OPT_Instruction s = instrs.next(); 
       OPT_Simplifier.simplify(s);
     }
@@ -99,16 +99,16 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.recomputeSSA(ir);
       OPT_DefUse.recomputeSpansBasicBlock(ir);
       for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
-	   reg != null; 
-	   reg = reg.getNext()) {
-	markDead(reg);
+           reg != null; 
+           reg = reg.getNext()) {
+        markDead(reg);
       }
     }
 
     // Reverse pass over instructions supports simple live analysis.
     for (OPT_Instruction next, s = ir.lastInstructionInCodeOrder(); 
-	 s != null; 
-	 s = next) {
+         s != null; 
+         s = next) {
       next = s.prevInstructionInCodeOrder();
       
       switch(s.getOpcode()) {
@@ -176,21 +176,21 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       }
 
       if (OPTIMIZE) {
-	// update liveness 
-	for (OPT_OperandEnumeration defs = s.getPureDefs();
-	     defs.hasMoreElements();) {
-	  OPT_Operand op = defs.next();
-	  if (op.isRegister()) {
-	    markDead(op.asRegister().register);
-	  }
-	}
-	for (OPT_OperandEnumeration uses = s.getUses(); // includes def/uses
-	     uses.hasMoreElements();) {
-	  OPT_Operand op = uses.next();
-	  if (op.isRegister()) {
-	    markLive(op.asRegister().register);
-	  }
-	}
+        // update liveness 
+        for (OPT_OperandEnumeration defs = s.getPureDefs();
+             defs.hasMoreElements();) {
+          OPT_Operand op = defs.next();
+          if (op.isRegister()) {
+            markDead(op.asRegister().register);
+          }
+        }
+        for (OPT_OperandEnumeration uses = s.getUses(); // includes def/uses
+             uses.hasMoreElements();) {
+          OPT_Operand op = uses.next();
+          if (op.isRegister()) {
+            markLive(op.asRegister().register);
+          }
+        }
       }
     }
   }
@@ -219,52 +219,52 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // attempt to detect additional cases using simple liveness and DU info
     if (OPTIMIZE) {
       if (op1.isRegister()) {
-	OPT_RegisterOperand rop1 = op1.asRegister();
-	if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-	  if (result.register.isSSA() && !result.register.spansBasicBlock()) {
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.removeUse(rop1);
-	    OPT_DefUse.recordDefUse(rop1);
-	    OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
-	    rop1.register.putSSA(false);
-	    BinaryAcc.mutate(s, opCode, rop1, op2);
-	    return;
-	  } else {
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.removeUse(rop1);
-	    OPT_DefUse.recordDefUse(rop1);
-	    BinaryAcc.mutate(s, opCode, rop1, op2);
-	    OPT_Instruction move =   
-	      Move.create(getMoveOp(result.type), result, rop1.copy());
-	    OPT_DefUse.updateDUForNewInstruction(move);
-	    s.insertAfter(move);
-	    return;
-	  }
-	}
+        OPT_RegisterOperand rop1 = op1.asRegister();
+        if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.removeUse(rop1);
+            OPT_DefUse.recordDefUse(rop1);
+            OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
+            rop1.register.putSSA(false);
+            BinaryAcc.mutate(s, opCode, rop1, op2);
+            return;
+          } else {
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.removeUse(rop1);
+            OPT_DefUse.recordDefUse(rop1);
+            BinaryAcc.mutate(s, opCode, rop1, op2);
+            OPT_Instruction move =   
+              Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_DefUse.updateDUForNewInstruction(move);
+            s.insertAfter(move);
+            return;
+          }
+        }
       }
       if (op2.isRegister()) {
-	OPT_RegisterOperand rop2 = op2.asRegister();
-	if (!rop2.register.spansBasicBlock() && isDead(rop2.register)) {
-	  if (result.register.isSSA() && !result.register.spansBasicBlock()) {
-	    OPT_DefUse.removeUse(rop2);
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.recordDefUse(rop2);
-	    OPT_DefUse.mergeRegisters(ir, rop2.register, result.register);
-	    rop2.register.putSSA(false);
-	    BinaryAcc.mutate(s, opCode, rop2, op1);
-	    return;
-	  } else {
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.removeUse(rop2);
-	    OPT_DefUse.recordDefUse(rop2);
-	    BinaryAcc.mutate(s, opCode, rop2, op1);
-	    OPT_Instruction move =   
-	      Move.create(getMoveOp(result.type), result, rop2.copy());
-	    OPT_DefUse.updateDUForNewInstruction(move);
-	    s.insertAfter(move);
-	    return;
-	  }
-	}
+        OPT_RegisterOperand rop2 = op2.asRegister();
+        if (!rop2.register.spansBasicBlock() && isDead(rop2.register)) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+            OPT_DefUse.removeUse(rop2);
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.recordDefUse(rop2);
+            OPT_DefUse.mergeRegisters(ir, rop2.register, result.register);
+            rop2.register.putSSA(false);
+            BinaryAcc.mutate(s, opCode, rop2, op1);
+            return;
+          } else {
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.removeUse(rop2);
+            OPT_DefUse.recordDefUse(rop2);
+            BinaryAcc.mutate(s, opCode, rop2, op1);
+            OPT_Instruction move =   
+              Move.create(getMoveOp(result.type), result, rop2.copy());
+            OPT_DefUse.updateDUForNewInstruction(move);
+            s.insertAfter(move);
+            return;
+          }
+        }
       }
     }
 
@@ -282,7 +282,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
   }    
 
   private void noncommutative(OPT_Instruction s, OPT_Operator opCode, 
-			      OPT_IR ir) {
+                              OPT_IR ir) {
     OPT_RegisterOperand result = Binary.getClearResult(s);
     OPT_Operand op1 = Binary.getClearVal1(s);
     OPT_Operand op2 = Binary.getClearVal2(s);
@@ -299,28 +299,28 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // attempt to detect additional cases using simple liveness and DU info
     if (OPTIMIZE) {
       if (op1.isRegister()) {
-	OPT_RegisterOperand rop1 = op1.asRegister();
-	if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-	  if (result.register.isSSA() && !result.register.spansBasicBlock()) {
-	    OPT_DefUse.removeUse(rop1);
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.recordDefUse(rop1);
-	    OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
-	    rop1.register.putSSA(false);
-	    BinaryAcc.mutate(s, opCode, rop1, op2);
-	    return;
-	  } else {
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.removeUse(rop1);
-	    OPT_DefUse.recordDefUse(rop1);
-	    BinaryAcc.mutate(s, opCode, rop1, op2);
-	    OPT_Instruction move =   
-	      Move.create(getMoveOp(result.type), result, rop1.copy());
-	    OPT_DefUse.updateDUForNewInstruction(move);
-	    s.insertAfter(move);
-	    return;
-	  }
-	}
+        OPT_RegisterOperand rop1 = op1.asRegister();
+        if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+            OPT_DefUse.removeUse(rop1);
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.recordDefUse(rop1);
+            OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
+            rop1.register.putSSA(false);
+            BinaryAcc.mutate(s, opCode, rop1, op2);
+            return;
+          } else {
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.removeUse(rop1);
+            OPT_DefUse.recordDefUse(rop1);
+            BinaryAcc.mutate(s, opCode, rop1, op2);
+            OPT_Instruction move =   
+              Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_DefUse.updateDUForNewInstruction(move);
+            s.insertAfter(move);
+            return;
+          }
+        }
       }
     }
 
@@ -328,13 +328,13 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     if (result.similar(op2)) {
       OPT_RegisterOperand tmp = ir.regpool.makeTemp(op1);
       OPT_Instruction move = 
-	Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
+        Move.create(getMoveOp(tmp.type), tmp.copyRO(), op1.copy());
       s.insertBefore(move);
       OPT_DefUse.updateDUForNewInstruction(move);
       OPT_DefUse.removeDef(result);
       OPT_DefUse.recordDefUse(tmp);
       if (op1.isRegister()) {
-	OPT_DefUse.removeUse(op1.asRegister());
+        OPT_DefUse.removeUse(op1.asRegister());
       }
       BinaryAcc.mutate(s, opCode, tmp, op2);
       move = Move.create(getMoveOp(tmp.type), result.copyRO(), tmp.copyRO());
@@ -342,13 +342,13 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.updateDUForNewInstruction(move);
     } else {
       OPT_Instruction move =   
-	Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
+        Move.create(getMoveOp(result.type), result.copyRO(), op1.copy());
       OPT_DefUse.updateDUForNewInstruction(move);
       s.insertBefore(move);
       OPT_DefUse.removeDef(result);
       OPT_DefUse.recordDefUse(result);
       if (op1.isRegister()) {
-	OPT_DefUse.removeUse(op1.asRegister());
+        OPT_DefUse.removeUse(op1.asRegister());
       }
       BinaryAcc.mutate(s, opCode, result, op2);
     }
@@ -370,28 +370,28 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     // attempt to detect additional cases using simple liveness and DU info
     if (OPTIMIZE) {
       if (op1.isRegister()) {
-	OPT_RegisterOperand rop1 = op1.asRegister();
-	if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
-	  if (result.register.isSSA() && !result.register.spansBasicBlock()) {
-	    OPT_DefUse.removeUse(rop1);
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.recordDefUse(rop1);
-	    OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
-	    rop1.register.putSSA(false);
-	    UnaryAcc.mutate(s, opCode, rop1);
-	    return;
-	  } else {
-	    OPT_DefUse.removeDef(result);
-	    OPT_DefUse.removeUse(rop1);
-	    OPT_DefUse.recordDefUse(rop1);
-	    UnaryAcc.mutate(s, opCode, rop1);
-	    OPT_Instruction move =   
-	      Move.create(getMoveOp(result.type), result, rop1.copy());
-	    OPT_DefUse.updateDUForNewInstruction(move);
-	    s.insertAfter(move);
-	    return;
-	  }
-	}
+        OPT_RegisterOperand rop1 = op1.asRegister();
+        if (!rop1.register.spansBasicBlock() && isDead(rop1.register)) {
+          if (result.register.isSSA() && !result.register.spansBasicBlock()) {
+            OPT_DefUse.removeUse(rop1);
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.recordDefUse(rop1);
+            OPT_DefUse.mergeRegisters(ir, rop1.register, result.register);
+            rop1.register.putSSA(false);
+            UnaryAcc.mutate(s, opCode, rop1);
+            return;
+          } else {
+            OPT_DefUse.removeDef(result);
+            OPT_DefUse.removeUse(rop1);
+            OPT_DefUse.recordDefUse(rop1);
+            UnaryAcc.mutate(s, opCode, rop1);
+            OPT_Instruction move =   
+              Move.create(getMoveOp(result.type), result, rop1.copy());
+            OPT_DefUse.updateDUForNewInstruction(move);
+            s.insertAfter(move);
+            return;
+          }
+        }
       }
     }
 

@@ -149,20 +149,20 @@ public class VM_TypeReference implements VM_SizeConstants {
     ClassLoader systemCL = VM_SystemClassLoader.getVMClassLoader();
     if (cl != systemCL) {
       if (tn.isClassDescriptor()) {
-	if (tn.isSystemClassDescriptor()) {
-	  cl = systemCL;
-	}
+        if (tn.isSystemClassDescriptor()) {
+          cl = systemCL;
+        }
       } else if (tn.isArrayDescriptor()) {
-	VM_Atom innermostElementType = tn.parseForInnermostArrayElementDescriptor();
-	if (innermostElementType.isClassDescriptor()) {
-	  if (innermostElementType.isSystemClassDescriptor()) {
-	    cl = systemCL;
-	  }
-	} else {
-	  cl = systemCL;
-	}
+        VM_Atom innermostElementType = tn.parseForInnermostArrayElementDescriptor();
+        if (innermostElementType.isClassDescriptor()) {
+          if (innermostElementType.isSystemClassDescriptor()) {
+            cl = systemCL;
+          }
+        } else {
+          cl = systemCL;
+        }
       } else {
-	cl = systemCL;
+        cl = systemCL;
       }
     }
     // Next actually findOrCreate the type reference using the proper classloader.
@@ -186,7 +186,7 @@ public class VM_TypeReference implements VM_SizeConstants {
    */
   public static VM_TypeReference findOrCreate(String tn) {
     return findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-			VM_Atom.findOrCreateAsciiAtom(tn));
+                        VM_Atom.findOrCreateAsciiAtom(tn));
   }
 
   public static VM_TypeReference getTypeRef(int id) throws VM_PragmaUninterruptible {
@@ -224,16 +224,16 @@ public class VM_TypeReference implements VM_SizeConstants {
     
     if (isWordArrayType()) {
       if (this == AddressArray) {
-	return Address;
+        return Address;
       } else if (this == WordArray) {
-	return Word;
+        return Word;
       } else if (this == OffsetArray) {
-	return Offset;
+        return Offset;
       } else if (this == ExtentArray) {
-	return Extent;
+        return Extent;
       } else {
-	if (VM.VerifyAssertions) VM._assert(false, "Unexpected case of Magic arrays!");
-	return null;
+        if (VM.VerifyAssertions) VM._assert(false, "Unexpected case of Magic arrays!");
+        return null;
       }
     } else if (isCodeArrayType()) {
       return Code;
@@ -259,12 +259,12 @@ public class VM_TypeReference implements VM_SizeConstants {
     if (isArrayType()) {
       VM_TypeReference elem = getArrayElementType();
       if (elem.isArrayType()) {
-	// NOTE: we must recur instead of attempting to parse
-	//       the array descriptor for ['s so we correctly handle
-	//       [VM_AddressArray etc. which actually has dimensionality 2!
-	return 1 + elem.getDimensionality();
+        // NOTE: we must recur instead of attempting to parse
+        //       the array descriptor for ['s so we correctly handle
+        //       [VM_AddressArray etc. which actually has dimensionality 2!
+        return 1 + elem.getDimensionality();
       } else {
-	return 1;
+        return 1;
       }
     } else if (isWordType() || isCodeType()) {
       return -1;
@@ -495,62 +495,62 @@ public class VM_TypeReference implements VM_SizeConstants {
    * @return the VM_Type instance that this references resolves to.
    *
    * @throws NoClassDefFoundError When it cannot resolve a class.  
-   *	    we go to the trouble of converting the class loader's
-   *	    <code>ClassNotFoundException</code> into this error, 
-   *	    since we need to be able to throw 
-   *	    <code>NoClassDefFoundError</code> for classes
-   *	    that we're loading whose existence was compile-time checked.
+   *        we go to the trouble of converting the class loader's
+   *        <code>ClassNotFoundException</code> into this error, 
+   *        since we need to be able to throw 
+   *        <code>NoClassDefFoundError</code> for classes
+   *        that we're loading whose existence was compile-time checked.
    *
    * @throws IllegalArgumentException In case of a malformed class name
-   *	    (should never happen, since the right thing to do is probably to
-   *	    validate them as soon as we insert them into a VM_TypeReference.
-   *	    This stinks. XXX)
+   *        (should never happen, since the right thing to do is probably to
+   *        validate them as soon as we insert them into a VM_TypeReference.
+   *        This stinks. XXX)
    */
   public final synchronized VM_Type resolve() throws NoClassDefFoundError, 
-						     IllegalArgumentException {
+                                                     IllegalArgumentException {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {
       VM_Type ans; 
       if (VM.runningVM) {
-	Class klass;
-	String myName = name.classNameFromDescriptor();
-	try {
-	  klass = classloader.loadClass(myName);
-	} catch (ClassNotFoundException cnf) {
-	  NoClassDefFoundError ncdfe 
-	    = new NoClassDefFoundError("Could not find the class " + myName + ":\n\t" + cnf.getMessage());
-	  ncdfe.initCause(cnf);	// in dubious taste, but helps us debug Jikes
-				// RVM 
-	  throw ncdfe;
-	}
+        Class klass;
+        String myName = name.classNameFromDescriptor();
+        try {
+          klass = classloader.loadClass(myName);
+        } catch (ClassNotFoundException cnf) {
+          NoClassDefFoundError ncdfe 
+            = new NoClassDefFoundError("Could not find the class " + myName + ":\n\t" + cnf.getMessage());
+          ncdfe.initCause(cnf); // in dubious taste, but helps us debug Jikes
+                                // RVM 
+          throw ncdfe;
+        }
 
-	ans = java.lang.JikesRVMSupport.getTypeForClass(klass);
+        ans = java.lang.JikesRVMSupport.getTypeForClass(klass);
       } else {
-	// Use a special purpose backdoor to avoid creating java.lang.Class
-	// objects when not running the VM (we get host JDK Class objects
-	// and that just doesn't work).
-	ans = ((VM_SystemClassLoader)classloader).loadVMClass(name.classNameFromDescriptor());
+        // Use a special purpose backdoor to avoid creating java.lang.Class
+        // objects when not running the VM (we get host JDK Class objects
+        // and that just doesn't work).
+        ans = ((VM_SystemClassLoader)classloader).loadVMClass(name.classNameFromDescriptor());
       }
       if (VM.VerifyAssertions) 
-	VM._assert(resolvedType == null || resolvedType == ans);
+        VM._assert(resolvedType == null || resolvedType == ans);
       resolvedType = ans;
     } else if (isArrayType()) {
       if (isWordArrayType() || isCodeArrayType()) {
-	// Ensure that we only create one VM_Array object for each pair of
-	// names for this type. 
-	// Do this by resolving VM_AddressArray to [VM_Address
-	resolvedType = getArrayElementType().getArrayTypeForElementType().resolve();
+        // Ensure that we only create one VM_Array object for each pair of
+        // names for this type. 
+        // Do this by resolving VM_AddressArray to [VM_Address
+        resolvedType = getArrayElementType().getArrayTypeForElementType().resolve();
       } else {
-	VM_Type elementType = getArrayElementType().resolve();
-	if (elementType.getClassLoader() != classloader) {
-	  // We aren't the canonical type reference because the element type
-	  // was loaded using a different classloader. 
-	  // Find the canonical type reference and ask it to resolve itself.
-	  VM_TypeReference canonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
-	  resolvedType = canonical.resolve();
-	} else {
-	  resolvedType = new VM_Array(this, elementType);
-	}
+        VM_Type elementType = getArrayElementType().resolve();
+        if (elementType.getClassLoader() != classloader) {
+          // We aren't the canonical type reference because the element type
+          // was loaded using a different classloader. 
+          // Find the canonical type reference and ask it to resolve itself.
+          VM_TypeReference canonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
+          resolvedType = canonical.resolve();
+        } else {
+          resolvedType = new VM_Array(this, elementType);
+        }
       }
     } else {
       resolvedType = new VM_Primitive(this);

@@ -74,7 +74,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
 
   // Debug flags
 
-  private static final boolean  TRACE		                 = false;
+  private static final boolean  TRACE                            = false;
   private static final boolean  TRACE_DETAIL            = false;
 
   //-----------//
@@ -99,7 +99,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     
     lock.acquire();
     VM_Interface.setNextReferenceAsAddress(VM_Magic.objectAsAddress(ref),
-					   waitingListHead);
+                                           waitingListHead);
     waitingListHead = VM_Magic.objectAsAddress(ref);
     countOnWaitingList += 1;    
     lock.release();
@@ -210,7 +210,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // linked list of waiting references.
             if (!prevReference.isZero()) {
               VM_Interface.setNextReferenceAsAddress(prevReference, 
-						     newReference);
+                                                     newReference);
             }
             
             waiting += 1;

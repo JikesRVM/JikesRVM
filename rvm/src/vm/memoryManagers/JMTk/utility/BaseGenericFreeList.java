@@ -118,7 +118,7 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
 
     if (s >= size) {
       if (s > size)
-	split(rtn, size);
+        split(rtn, size);
       removeFromFree(rtn);
       setFree(rtn, false);
     }
@@ -252,17 +252,17 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
       Log.write("FL[");
       int i = HEAD;
       while ((i = getNext(i)) != HEAD) {
-	boolean f = getFree(i);
-	int s = getSize(i);
-	if (!f)
-	  Log.write("->");
-	Log.write(i);
-	if (!f)
-	  Log.write("<-");
-	Log.write("[");
-	Log.write(s);
-	Log.write("]");
-	Log.write(" ");
+        boolean f = getFree(i);
+        int s = getSize(i);
+        if (!f)
+          Log.write("->");
+        Log.write(i);
+        if (!f)
+          Log.write("<-");
+        Log.write("[");
+        Log.write(s);
+        Log.write("]");
+        Log.write(" ");
       }
       Log.write("]FL\n");
     }

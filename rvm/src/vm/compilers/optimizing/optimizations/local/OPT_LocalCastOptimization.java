@@ -50,8 +50,8 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
       if (bb.isEmpty()) continue;
       container.counter2++;
       if (bb.getInfrequent()) {
-	container.counter1++;
-	if (ir.options.FREQ_FOCUS_EFFORT) continue;
+        container.counter1++;
+        if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // visit each instruction in the basic block
       for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); 
@@ -114,8 +114,8 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
         n = n.nextInstructionInCodeOrder();
       }
       if (n.operator() == REF_IFCMP && 
-	  IfCmp.getVal2(n) instanceof OPT_NullConstantOperand &&
-	  IfCmp.getVal1(n) instanceof OPT_RegisterOperand &&
+          IfCmp.getVal2(n) instanceof OPT_NullConstantOperand &&
+          IfCmp.getVal1(n) instanceof OPT_RegisterOperand &&
           r == IfCmp.getVal1(n).asRegister().register) {
         OPT_BasicBlock newBlock, patchBlock;
         OPT_BasicBlock myBlock = n.getBasicBlock();

@@ -60,11 +60,11 @@ public class Header extends RCHybridHeader {
     boolean rtn = ((old & BARRIER_BIT_MASK) == 0);
     if (rtn) {
       do {
-	old = VM_Interface.prepareAvailableBits(ref);
-	rtn = ((old & BARRIER_BIT_MASK) == 0);
+        old = VM_Interface.prepareAvailableBits(ref);
+        rtn = ((old & BARRIER_BIT_MASK) == 0);
       } while(!VM_Interface.attemptAvailableBits(ref, old, 
-						 old | BARRIER_BIT_MASK)
-	      && rtn);
+                                                 old | BARRIER_BIT_MASK)
+              && rtn);
     }
     return rtn;
   }
@@ -99,8 +99,8 @@ public class Header extends RCHybridHeader {
       oldValue = VM_Interface.prepareAvailableBits(object);
       if ((oldValue & LOGGING_MASK) == LOGGED) return false;
     } while (((oldValue & LOGGING_MASK) == BEING_LOGGED) ||
-	     !VM_Interface.attemptAvailableBits(object, oldValue, 
-						oldValue | BEING_LOGGED));
+             !VM_Interface.attemptAvailableBits(object, oldValue, 
+                                                oldValue | BEING_LOGGED));
     if (VM_Interface.VerifyAssertions) {
       int value = VM_Interface.readAvailableBitsWord(object);
       VM_Interface._assert((value & LOGGING_MASK) == BEING_LOGGED);
@@ -136,7 +136,7 @@ public class Header extends RCHybridHeader {
    * (false) object?
    */
   public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-					     boolean isScalar, int status)
+                                             boolean isScalar, int status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.WITH_COALESCING_RC) 
       status |= UNLOGGED;
@@ -156,7 +156,7 @@ public class Header extends RCHybridHeader {
    * initial increment?
    */
   public static void initializeRCHeader(VM_Address ref, Object[] tib, int size,
-					boolean isScalar, boolean initialInc)
+                                        boolean isScalar, boolean initialInc)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int initialValue = (initialInc) ? INCREMENT : 0;
     if (Plan.REF_COUNT_CYCLE_DETECTION && VM_Interface.isAcyclic(tib))

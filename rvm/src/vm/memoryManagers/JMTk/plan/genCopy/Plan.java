@@ -222,10 +222,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param space The space in which the referent object resides.
    */
   protected static final void forwardMatureObjectLocation(VM_Address location,
-							  VM_Address object,
-							  byte space) {
+                                                          VM_Address object,
+                                                          byte space) {
     if ((hi && space == LOW_MATURE_SPACE) || 
-	(!hi && space == HIGH_MATURE_SPACE))
+        (!hi && space == HIGH_MATURE_SPACE))
       VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(object));
   }
 
@@ -238,11 +238,11 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return The forwarded value for <code>object</code>.
    */
   static final VM_Address getForwardedMatureReference(VM_Address object,
-						      byte space) {
+                                                      byte space) {
     if ((hi && space == LOW_MATURE_SPACE) || 
-	(!hi && space == HIGH_MATURE_SPACE)) {
+        (!hi && space == HIGH_MATURE_SPACE)) {
       if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(CopyingHeader.isForwarded(object));
+        VM_Interface._assert(CopyingHeader.isForwarded(object));
       return CopyingHeader.getForwardingPointer(object);
     } else {
       return object;
@@ -260,13 +260,13 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return The possibly moved reference.
    */
   protected static final VM_Address traceMatureObject(byte space,
-						      VM_Address obj,
-						      VM_Address addr) {
+                                                      VM_Address obj,
+                                                      VM_Address addr) {
     if (VM_Interface.VerifyAssertions && space != LOW_MATURE_SPACE
-	&& space != HIGH_MATURE_SPACE)
+        && space != HIGH_MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
     if ((hi && addr.LT(MATURE_HI_START)) ||
-	(!hi && addr.GE(MATURE_HI_START)))
+        (!hi && addr.GE(MATURE_HI_START)))
       return CopySpace.traceObject(obj);
     else
       return obj;
@@ -300,11 +300,11 @@ public class Plan extends Generational implements VM_Uninterruptible {
     case HIGH_MATURE_SPACE:   return (!fullHeapGC) || CopySpace.isLive(obj);
     case LOS_SPACE:           return losSpace.isLive(obj);
     case IMMORTAL_SPACE:      return true;
-    case BOOT_SPACE:	      return true;
-    case META_SPACE:	      return true;
+    case BOOT_SPACE:          return true;
+    case META_SPACE:          return true;
     default:
       if (VM_Interface.VerifyAssertions) 
-	spaceFailure(obj, space, "Plan.isLive()");
+        spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
   }
@@ -330,7 +330,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingWord, int bytes) {
+                                             int forwardingWord, int bytes) {
     return forwardingWord; // a no-op for this collector
   }
 

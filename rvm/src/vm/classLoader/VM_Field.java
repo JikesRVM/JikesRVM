@@ -33,7 +33,7 @@ public final class VM_Field extends VM_Member {
    * @param input the DataInputStream to read the field's attributed from
    */
   VM_Field(VM_Class declaringClass, VM_MemberReference memRef,
-	   int modifiers, DataInputStream input) throws IOException {
+           int modifiers, DataInputStream input) throws IOException {
     super(declaringClass, memRef, modifiers & APPLICABLE_TO_FIELDS);
     memRef.asFieldReference().setResolvedMember(this);
     
@@ -43,10 +43,10 @@ public final class VM_Field extends VM_Member {
       VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
       int     attLength = input.readInt();
       if (attName == VM_ClassLoader.constantValueAttributeName) {
-	cvi = input.readUnsignedShort();
+        cvi = input.readUnsignedShort();
       } else {
-	// all other attributes are boring...
-	input.skipBytes(attLength);
+        // all other attributes are boring...
+        input.skipBytes(attLength);
       }
     }
     
@@ -213,14 +213,14 @@ public final class VM_Field extends VM_Member {
   public final void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
       if (MM_Interface.NEEDS_PUTSTATIC_WRITE_BARRIER)
-	MM_Interface.putstaticWriteBarrier(offset, ref);
+        MM_Interface.putstaticWriteBarrier(offset, ref);
       else
-	VM_Statics.setSlotContents(offset>>>LOG_BYTES_IN_INT, ref);
+        VM_Statics.setSlotContents(offset>>>LOG_BYTES_IN_INT, ref);
     } else {
       if (MM_Interface.NEEDS_WRITE_BARRIER)
-	MM_Interface.putfieldWriteBarrier(obj, offset, ref);
+        MM_Interface.putfieldWriteBarrier(obj, offset, ref);
       else
-	VM_Magic.setObjectAtOffset(obj, offset, ref);
+        VM_Magic.setObjectAtOffset(obj, offset, ref);
     }
   }
   

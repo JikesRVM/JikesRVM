@@ -59,7 +59,7 @@ final public class VM_WordArray implements VM_Uninterruptible {
 
   public Object getBacking() throws VM_PragmaInline {
     if (!VM.writingImage)
-	VM.sysFail("VM_WordArray.getBacking called when not writing boot image");
+        VM.sysFail("VM_WordArray.getBacking called when not writing boot image");
     return data;
   }
 }

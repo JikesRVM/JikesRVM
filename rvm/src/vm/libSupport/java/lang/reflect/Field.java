@@ -145,15 +145,15 @@ public final class Field extends AccessibleObject implements Member {
         VM_Type valueType = VM_ObjectModel.getObjectType(value);
         VM_Type fieldType;
         try {
-	  fieldType = type.resolve();
+          fieldType = type.resolve();
         } catch (NoClassDefFoundError e) {
-	  throw new IllegalArgumentException("field type mismatch");
+          throw new IllegalArgumentException("field type mismatch");
         }
-	if (fieldType != valueType 
-	    && !VM_Runtime.isAssignableWith(fieldType, valueType))
-	{
-	  throw new IllegalArgumentException("field type mismatch");
-	}
+        if (fieldType != valueType 
+            && !VM_Runtime.isAssignableWith(fieldType, valueType))
+        {
+          throw new IllegalArgumentException("field type mismatch");
+        }
       }
       field.setObjectValueUnchecked(object, value);
     } else if (value instanceof Character) {
@@ -248,18 +248,18 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   private void checkReadAccess(Object obj) throws IllegalAccessException, 
-						  IllegalArgumentException,
-						  ExceptionInInitializerError {
+                                                  IllegalArgumentException,
+                                                  ExceptionInInitializerError {
 
     VM_Class declaringClass = field.getDeclaringClass();
     if (!field.isStatic()) {
       if (obj == null) {
-	throw new NullPointerException();
+        throw new NullPointerException();
       }
 
       VM_Type objType = VM_ObjectModel.getObjectType(obj);
       if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
-	throw new IllegalArgumentException();
+        throw new IllegalArgumentException();
       }
     }
 
@@ -270,28 +270,28 @@ public final class Field extends AccessibleObject implements Member {
 
     if (field.isStatic() && !declaringClass.isInitialized()) {
       try {
-	VM_Runtime.initializeClassForDynamicLink(declaringClass);
+        VM_Runtime.initializeClassForDynamicLink(declaringClass);
       } catch (Throwable e) {
-	ExceptionInInitializerError ex = new ExceptionInInitializerError();
-	ex.initCause(e);
-	throw ex;
+        ExceptionInInitializerError ex = new ExceptionInInitializerError();
+        ex.initCause(e);
+        throw ex;
       }
     }
   }
 
   private void checkWriteAccess(Object obj) throws IllegalAccessException, 
-						   IllegalArgumentException,
-						   ExceptionInInitializerError {
+                                                   IllegalArgumentException,
+                                                   ExceptionInInitializerError {
 
     VM_Class declaringClass = field.getDeclaringClass();
     if (!field.isStatic()) {
       if (obj == null) {
-	throw new NullPointerException();
+        throw new NullPointerException();
       }
 
       VM_Type objType = VM_ObjectModel.getObjectType(obj);
       if (objType != declaringClass && !VM_Runtime.isAssignableWith(declaringClass, objType)) {
-	throw new IllegalArgumentException();
+        throw new IllegalArgumentException();
       }
     }
 
@@ -305,11 +305,11 @@ public final class Field extends AccessibleObject implements Member {
 
     if (field.isStatic() && !declaringClass.isInitialized()) {
       try {
-	VM_Runtime.initializeClassForDynamicLink(declaringClass);
+        VM_Runtime.initializeClassForDynamicLink(declaringClass);
       } catch (Throwable e) {
-	ExceptionInInitializerError ex = new ExceptionInInitializerError();
-	ex.initCause(e);
-	throw ex;
+        ExceptionInInitializerError ex = new ExceptionInInitializerError();
+        ex.initCause(e);
+        throw ex;
       }
     }
   }

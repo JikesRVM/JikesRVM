@@ -52,8 +52,8 @@ class VM_CallSiteTripleComparator implements java.util.Comparator {
    * @return -1 iff o1 < o2
    * @return +1 iff o1 > o2
    * @return 0 if o1 and o2 are the same callsites or 
-   *		if they only differ by their bytecode indices and 
-   *		one index is -1.
+   *            if they only differ by their bytecode indices and 
+   *            one index is -1.
    */
   private int compareByName(VM_CallSiteTriple t1, VM_CallSiteTriple t2) 
   {
@@ -83,16 +83,16 @@ class VM_CallSiteTripleComparator implements java.util.Comparator {
    * @return -1 iff o1 < o2
    * @return +1 iff o1 > o2
    * @return 0 if o1 and o2 are the same callsites or 
-   *		if they only differ by their bytecode indices and 
-   *		one index is -1.
+   *            if they only differ by their bytecode indices and 
+   *            one index is -1.
    */
   public int compare(Object o1, Object o2) 
   {
     // This should never happen!
     if (!(o1 instanceof VM_CallSiteTriple) || 
-	!(o2 instanceof VM_CallSiteTriple)) {
+        !(o2 instanceof VM_CallSiteTriple)) {
       VM.sysWrite("***VM_CallSiteTripleComparator.compare():"+
-		  " one object is not of type VM_CallSiteTriple\n");
+                  " one object is not of type VM_CallSiteTriple\n");
       VM.sysExit(-1);
     }
 

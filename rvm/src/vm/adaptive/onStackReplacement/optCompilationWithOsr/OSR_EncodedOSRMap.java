@@ -22,7 +22,7 @@ import java.util.*;
 
 public class OSR_EncodedOSRMap 
   implements VM_OptGCMapIteratorConstants,
-	     OSR_Constants {
+             OSR_Constants {
   
   /* osr info entries */
   private long[] mapEntries;
@@ -78,11 +78,11 @@ public class OSR_EncodedOSRMap
       resizeOsrMaps();
     }
 
-	/*
+        /*
     if (VM.TraceOnStackReplacement) {
       printMap();
     }
-	*/
+        */
   }
 
   /*
@@ -116,7 +116,7 @@ public class OSR_EncodedOSRMap
       OPT_Instruction instr = osrarray[i].osr;      
       // add lining element, move sanity later
       if (instr.position != null) { 
-	inliningTree.addLocation(instr.position);
+        inliningTree.addLocation(instr.position);
       }
     }
 
@@ -148,8 +148,8 @@ public class OSR_EncodedOSRMap
   // in the order, we will use the current instruction's mc offset
   // as the key.
   private static final void quickSort(OSR_VariableMapElement[] array,
-				      int start,
-				      int end) {
+                                      int start,
+                                      int end) {
     if ( start < end ) {
       int pivot = partition(array, start, end );
       quickSort( array, start, pivot );
@@ -158,8 +158,8 @@ public class OSR_EncodedOSRMap
   }
 
   private static final int partition(OSR_VariableMapElement[] array,
-				     int start,
-				     int end) {
+                                     int start,
+                                     int end) {
     int left = start;
     int right = end;
     int pivot = start;
@@ -174,12 +174,12 @@ public class OSR_EncodedOSRMap
       while( array[left].osr.getmcOffset() < pivot_offset ) left++;
 
       if ( left < right ) {
-	/* swap left and right */
-	OSR_VariableMapElement temp = array[left];
-	array[left] = array[right];
-	array[right] = temp;
+        /* swap left and right */
+        OSR_VariableMapElement temp = array[left];
+        array[left] = array[right];
+        array[right] = temp;
       } else {
-	return right;
+        return right;
       }
     }
   }
@@ -208,7 +208,7 @@ public class OSR_EncodedOSRMap
     // from inner to outer
     for (int i=0, m=mVarList.size(); i<m; i++) {
       OSR_MethodVariables mVar = 
-	(OSR_MethodVariables)mVarList.get(i);
+        (OSR_MethodVariables)mVarList.get(i);
       _generateMapForOneMethodVariable(mapIndex, mVar, (i==(m-1)));
     }
 
@@ -219,8 +219,8 @@ public class OSR_EncodedOSRMap
    * @param mVar, the method variables
    */
   private void _generateMapForOneMethodVariable(int regMapIndex,
-						OSR_MethodVariables mVar,
-						boolean lastMid) {
+                                                OSR_MethodVariables mVar,
+                                                boolean lastMid) {
     // Is this the last method in the inlined chain?
     int mid = lastMid ? mVar.methId : (mVar.methId | NEXT_BIT);
     addIntToOsrMap(mid);
@@ -235,22 +235,22 @@ public class OSR_EncodedOSRMap
     // append each element 
     for (int j=0; j<m; j++) {
       OSR_LocalRegPair tuple = 
-	(OSR_LocalRegPair)tupleList.get(j);
+        (OSR_LocalRegPair)tupleList.get(j);
 
       boolean isLast = (j == m-1);
-	
+        
       if (tuple.typeCode == LongTypeCode) {
-	processLongTuple(tuple, isLast);
+        processLongTuple(tuple, isLast);
       } else {
-	processTuple(tuple, isLast, false);
+        processTuple(tuple, isLast, false);
       }
       // mark the reg ref map
       if ( ((tuple.typeCode == ClassTypeCode) 
-	    ||(tuple.typeCode == ArrayTypeCode))
-	   &&(tuple.valueType == PHYREG)) {
-	osrMaps[regMapIndex] = 
-	  setRegister(osrMaps[regMapIndex], 
-		      tuple.value);
+            ||(tuple.typeCode == ArrayTypeCode))
+           &&(tuple.valueType == PHYREG)) {
+        osrMaps[regMapIndex] = 
+          setRegister(osrMaps[regMapIndex], 
+                      tuple.value);
       }
     }
   }
@@ -258,7 +258,7 @@ public class OSR_EncodedOSRMap
   /* long type local has another half for lower bits
    */
   private void processLongTuple(OSR_LocalRegPair tuple,
-				boolean isLast) {
+                                boolean isLast) {
     /* process the first half part, 
      * it is not the last, and it is the first half. */
     processTuple(tuple, false, true);
@@ -276,7 +276,7 @@ public class OSR_EncodedOSRMap
    */
   private void processTuple(OSR_LocalRegPair tuple, 
                             boolean isLast,
-			    boolean isFirstLong) {
+                            boolean isFirstLong) {
 
     int first = (tuple.num << NUM_SHIFT) & NUM_MASK;
 
@@ -304,9 +304,9 @@ public class OSR_EncodedOSRMap
       break;
     case LongTypeCode:
       if (isFirstLong) {
-	first |= (LONG1 << TCODE_SHIFT);
+        first |= (LONG1 << TCODE_SHIFT);
       } else {
-	first |= (LONG2 << TCODE_SHIFT);
+        first |= (LONG2 << TCODE_SHIFT);
       }
       break;
     case AddressTypeCode:
@@ -314,9 +314,9 @@ public class OSR_EncodedOSRMap
       //-#if RVM_WITH_DEBUG
       VM.sysWrite("address type for ");
       if (tuple.kind == LOCAL) {
-	VM.sysWrite("L"+tuple.num);
+        VM.sysWrite("L"+tuple.num);
       } else {
-	VM.sysWrite("S"+tuple.num);
+        VM.sysWrite("S"+tuple.num);
       } 
       VM.sysWrite("\n");
       //-#endif
@@ -360,10 +360,10 @@ public class OSR_EncodedOSRMap
     if (lastIndex < mapSize-1) {
       int[] newMaps = new int[lastIndex];
       System.arraycopy(osrMaps,
-		       0,
-		       newMaps,
-		       0,
-		       lastIndex);
+                       0,
+                       newMaps,
+                       0,
+                       lastIndex);
       osrMaps = newMaps;
       mapSize = lastIndex;
     }
@@ -436,11 +436,11 @@ public class OSR_EncodedOSRMap
       int m = (l+r) >> 1;
       int offset = getMCOffset(m);
       if (offset == mcOffset) {
-	return m;
+        return m;
       } else if (offset < mcOffset) {
-	l = m + 1;
+        l = m + 1;
       } else {
-	r = m - 1;
+        r = m - 1;
       }
     }
 
@@ -509,7 +509,7 @@ public class OSR_EncodedOSRMap
 
       /*
       for (int j=0; j<osrMaps.length; j++) {
-	VM.sysWriteHex(osrMaps[j]);VM.sysWrite(" ");
+        VM.sysWriteHex(osrMaps[j]);VM.sysWrite(" ");
       }
       VM.sysWrite("\n");
       */
@@ -519,11 +519,11 @@ public class OSR_EncodedOSRMap
       VM.sysWrite("regmap: "+Integer.toBinaryString(regmap));
 
       OSR_MapIterator iterator =
-	new OSR_MapIterator(osrMaps, mapIndex);
+        new OSR_MapIterator(osrMaps, mapIndex);
 
       while (iterator.hasMore()) {
-	VM.sysWrite("("+iterator.getValueType()+","+iterator.getValue()+")");
-	iterator.moveToNext();
+        VM.sysWrite("("+iterator.getValueType()+","+iterator.getValue()+")");
+        iterator.moveToNext();
       }
       VM.sysWrite("\n");
     }
@@ -534,7 +534,7 @@ public class OSR_EncodedOSRMap
     for (int i=0, n=mapEntries.length; i<n; i++) {
       indexes[i] = getMCOffset(i);
     }
-	
+        
     return indexes;
   }
 }

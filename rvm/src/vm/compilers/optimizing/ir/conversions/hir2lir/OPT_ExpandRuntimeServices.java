@@ -53,217 +53,217 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     
     OPT_Instruction next;
     for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
-	 inst != null; 
-	 inst = next) {
+         inst != null; 
+         inst = next) {
       next = inst.nextInstructionInCodeOrder();
       int opcode = inst.getOpcode();
 
       switch (opcode) {
-	
+        
       case NEW_opcode: { 
-	OPT_TypeOperand Type = New.getClearType(inst);
-	VM_Class cls = (VM_Class)Type.getVMType();
-	OPT_IntConstantOperand hasFinalizer = I(cls.hasFinalizer() ? 1 : 0);
-	VM_Method callSite = inst.position.getMethod();
-	OPT_IntConstantOperand allocator = I(MM_Interface.pickAllocator(cls, callSite));
+        OPT_TypeOperand Type = New.getClearType(inst);
+        VM_Class cls = (VM_Class)Type.getVMType();
+        OPT_IntConstantOperand hasFinalizer = I(cls.hasFinalizer() ? 1 : 0);
+        VM_Method callSite = inst.position.getMethod();
+        OPT_IntConstantOperand allocator = I(MM_Interface.pickAllocator(cls, callSite));
         OPT_IntConstantOperand align = I(VM_ObjectModel.getAlignment(cls));
         OPT_IntConstantOperand offset = I(VM_ObjectModel.getOffsetForAlignment(cls));
         VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
-	Call.mutate6(inst, CALL, New.getClearResult(inst), 
-		     I(target.getOffset()),
-		     OPT_MethodOperand.STATIC(target),
-		     I(cls.getInstanceSize()),
-		     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
-		     hasFinalizer,
-		     allocator,
+        Call.mutate6(inst, CALL, New.getClearResult(inst), 
+                     I(target.getOffset()),
+                     OPT_MethodOperand.STATIC(target),
+                     I(cls.getInstanceSize()),
+                     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
+                     hasFinalizer,
+                     allocator,
                      align,
                      offset);
-	if (ir.options.INLINE_NEW) {
-	  if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-	  container.counter2++;
-	  if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-	    inline(inst, ir);
-	  }
-	}
+        if (ir.options.INLINE_NEW) {
+          if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+          container.counter2++;
+          if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+            inline(inst, ir);
+          }
+        }
       }
       break;
 
       case NEW_UNRESOLVED_opcode: {
-	int typeRefId = New.getType(inst).getTypeRef().getId();
-	VM_Method target = VM_Entrypoints.unresolvedNewScalarMethod;
-	Call.mutate1(inst, CALL, New.getClearResult(inst), 
-		     I(target.getOffset()),
-		     OPT_MethodOperand.STATIC(target),
-		     I(typeRefId));
+        int typeRefId = New.getType(inst).getTypeRef().getId();
+        VM_Method target = VM_Entrypoints.unresolvedNewScalarMethod;
+        Call.mutate1(inst, CALL, New.getClearResult(inst), 
+                     I(target.getOffset()),
+                     OPT_MethodOperand.STATIC(target),
+                     I(typeRefId));
       }
       break;
 
       case NEWARRAY_opcode: {
-	OPT_TypeOperand Array = NewArray.getClearType(inst);
-	VM_Array array = (VM_Array)Array.getVMType();
-	OPT_Operand numberElements = NewArray.getClearSize(inst);
-	boolean inline = numberElements instanceof OPT_IntConstantOperand;
-	OPT_Operand width = I(array.getLogElementSize());
-	OPT_Operand headerSize = I(VM_ObjectModel.computeArrayHeaderSize(array));
-	VM_Method callSite = inst.position.getMethod();
-	OPT_IntConstantOperand allocator = I(MM_Interface.pickAllocator(array, callSite));
+        OPT_TypeOperand Array = NewArray.getClearType(inst);
+        VM_Array array = (VM_Array)Array.getVMType();
+        OPT_Operand numberElements = NewArray.getClearSize(inst);
+        boolean inline = numberElements instanceof OPT_IntConstantOperand;
+        OPT_Operand width = I(array.getLogElementSize());
+        OPT_Operand headerSize = I(VM_ObjectModel.computeArrayHeaderSize(array));
+        VM_Method callSite = inst.position.getMethod();
+        OPT_IntConstantOperand allocator = I(MM_Interface.pickAllocator(array, callSite));
         OPT_IntConstantOperand align = I(VM_ObjectModel.getAlignment(array));
         OPT_IntConstantOperand offset = I(VM_ObjectModel.getOffsetForAlignment(array));
-	VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
-	Call.mutate7(inst, CALL, NewArray.getClearResult(inst),  
-		     I(target.getOffset()),
-		     OPT_MethodOperand.STATIC(target),
-		     numberElements, 
-		     width,
-		     headerSize,
-		     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
-		     allocator,
+        VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
+        Call.mutate7(inst, CALL, NewArray.getClearResult(inst),  
+                     I(target.getOffset()),
+                     OPT_MethodOperand.STATIC(target),
+                     numberElements, 
+                     width,
+                     headerSize,
+                     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
+                     allocator,
                      align,
                      offset);
-	if (inline && ir.options.INLINE_NEW) {
-	  if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-	  container.counter2++;
-	  if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-	    inline(inst, ir);
-	  }
-	} 
+        if (inline && ir.options.INLINE_NEW) {
+          if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+          container.counter2++;
+          if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+            inline(inst, ir);
+          }
+        } 
       }
       break;
 
       case NEWARRAY_UNRESOLVED_opcode: {
-	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
-	OPT_Operand numberElements = NewArray.getClearSize(inst);
-	VM_Method target = VM_Entrypoints.unresolvedNewArrayMethod;
-	Call.mutate2(inst, CALL, NewArray.getClearResult(inst), 
-		     I(target.getOffset()),
-		     OPT_MethodOperand.STATIC(target),
-		     numberElements, 
-		     I(typeRefId));
+        int typeRefId = NewArray.getType(inst).getTypeRef().getId();
+        OPT_Operand numberElements = NewArray.getClearSize(inst);
+        VM_Method target = VM_Entrypoints.unresolvedNewArrayMethod;
+        Call.mutate2(inst, CALL, NewArray.getClearResult(inst), 
+                     I(target.getOffset()),
+                     OPT_MethodOperand.STATIC(target),
+                     numberElements, 
+                     I(typeRefId));
       }
       break;
 
       case NEWOBJMULTIARRAY_opcode: {
-	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
-	VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
-	VM_Method callSite = inst.position.getMethod();
-	Call.mutate3(inst, CALL, NewArray.getClearResult(inst),
-		     I(target.getOffset()),
-		     OPT_MethodOperand.STATIC(target),
-		     I(callSite.getId()),
-		     NewArray.getClearSize(inst),
-		     I(typeRefId));
+        int typeRefId = NewArray.getType(inst).getTypeRef().getId();
+        VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
+        VM_Method callSite = inst.position.getMethod();
+        Call.mutate3(inst, CALL, NewArray.getClearResult(inst),
+                     I(target.getOffset()),
+                     OPT_MethodOperand.STATIC(target),
+                     I(callSite.getId()),
+                     NewArray.getClearSize(inst),
+                     I(typeRefId));
       }
       break;
-	
+        
       case ATHROW_opcode: {
-	VM_Method target = VM_Entrypoints.athrowMethod;
-	OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
-	methodOp.setIsNonReturningCall(true); 	// Record the fact that this is a non-returning call.
-	Call.mutate1(inst, CALL, null, I(target.getOffset()),
-		     methodOp, Athrow.getClearValue(inst));
+        VM_Method target = VM_Entrypoints.athrowMethod;
+        OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
+        methodOp.setIsNonReturningCall(true);   // Record the fact that this is a non-returning call.
+        Call.mutate1(inst, CALL, null, I(target.getOffset()),
+                     methodOp, Athrow.getClearValue(inst));
       }
       break;
 
       case MONITORENTER_opcode: {
-	if (ir.options.NO_SYNCHRO) {
-	  inst.remove();
-	} else {
-	  OPT_Operand ref = MonitorOp.getClearRef(inst);
-	  VM_Type refType = ref.getType().peekResolvedType();
-	  if (refType != null && refType.getThinLockOffset() != -1) {
-	    VM_Method target = VM_Entrypoints.inlineLockMethod;
-	    Call.mutate2(inst, CALL, null, I(target.getOffset()),
-			 OPT_MethodOperand.STATIC(target),
-			 MonitorOp.getClearGuard(inst), 
-			 ref,
-			 I(refType.getThinLockOffset()));
-	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-	    container.counter2++;
+        if (ir.options.NO_SYNCHRO) {
+          inst.remove();
+        } else {
+          OPT_Operand ref = MonitorOp.getClearRef(inst);
+          VM_Type refType = ref.getType().peekResolvedType();
+          if (refType != null && refType.getThinLockOffset() != -1) {
+            VM_Method target = VM_Entrypoints.inlineLockMethod;
+            Call.mutate2(inst, CALL, null, I(target.getOffset()),
+                         OPT_MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst), 
+                         ref,
+                         I(refType.getThinLockOffset()));
+            if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+            container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
               inline(inst, ir);
             }
-	  } else {
-	    VM_Method target = VM_Entrypoints.lockMethod;
-	    Call.mutate1(inst, CALL, null, I(target.getOffset()), 
-			 OPT_MethodOperand.STATIC(target),
-			 MonitorOp.getClearGuard(inst), 
-			 ref);
-	  }
-	}
-	break;
+          } else {
+            VM_Method target = VM_Entrypoints.lockMethod;
+            Call.mutate1(inst, CALL, null, I(target.getOffset()), 
+                         OPT_MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst), 
+                         ref);
+          }
+        }
+        break;
       }
 
       case MONITOREXIT_opcode: {
-	if (ir.options.NO_SYNCHRO) {
-	  inst.remove();
-	} else {
-	  OPT_Operand ref = MonitorOp.getClearRef(inst);
-	  VM_Type refType = ref.getType().peekResolvedType();
-	  if (refType != null && refType.getThinLockOffset() != -1) {
-	    VM_Method target = VM_Entrypoints.inlineUnlockMethod;
-	    Call.mutate2(inst, CALL, null, I(target.getOffset()), 
-			 OPT_MethodOperand.STATIC(target),
-			 MonitorOp.getClearGuard(inst), 
-			 ref,
-			 I(refType.getThinLockOffset()));
-	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-	    container.counter2++;
-	    if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-	      inline(inst, ir);
-	    }
-	  } else {
-	    VM_Method target = VM_Entrypoints.unlockMethod;
-	    Call.mutate1(inst, CALL, null, I(target.getOffset()),
-			 OPT_MethodOperand.STATIC(target),
-			 MonitorOp.getClearGuard(inst), 
-			 ref);
-	  }
-	} 
+        if (ir.options.NO_SYNCHRO) {
+          inst.remove();
+        } else {
+          OPT_Operand ref = MonitorOp.getClearRef(inst);
+          VM_Type refType = ref.getType().peekResolvedType();
+          if (refType != null && refType.getThinLockOffset() != -1) {
+            VM_Method target = VM_Entrypoints.inlineUnlockMethod;
+            Call.mutate2(inst, CALL, null, I(target.getOffset()), 
+                         OPT_MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst), 
+                         ref,
+                         I(refType.getThinLockOffset()));
+            if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+            container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
+            }
+          } else {
+            VM_Method target = VM_Entrypoints.unlockMethod;
+            Call.mutate1(inst, CALL, null, I(target.getOffset()),
+                         OPT_MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst), 
+                         ref);
+          }
+        } 
       }
       break;
 
       case REF_ASTORE_opcode: {
-	if (MM_Interface.NEEDS_WRITE_BARRIER) {
-	  VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
-	  OPT_Instruction wb =
-	    Call.create3(CALL, null, I(target.getOffset()),
-			 OPT_MethodOperand.STATIC(target),
-			 AStore.getArray(inst).copy(), 
-			 AStore.getIndex(inst).copy(), 
-			 AStore.getValue(inst).copy());
-	  wb.bcIndex = RUNTIME_SERVICES_BCI;
-	  wb.position = inst.position;
-	  inst.replace(wb);
-	  next = wb.nextInstructionInCodeOrder(); 
-	  if (ir.options.INLINE_WRITE_BARRIER) 
-	    inline(wb, ir, true);
-	}
+        if (MM_Interface.NEEDS_WRITE_BARRIER) {
+          VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
+          OPT_Instruction wb =
+            Call.create3(CALL, null, I(target.getOffset()),
+                         OPT_MethodOperand.STATIC(target),
+                         AStore.getArray(inst).copy(), 
+                         AStore.getIndex(inst).copy(), 
+                         AStore.getValue(inst).copy());
+          wb.bcIndex = RUNTIME_SERVICES_BCI;
+          wb.position = inst.position;
+          inst.replace(wb);
+          next = wb.nextInstructionInCodeOrder(); 
+          if (ir.options.INLINE_WRITE_BARRIER) 
+            inline(wb, ir, true);
+        }
       }
       break;
 
       case PUTFIELD_opcode: {
-	if (MM_Interface.NEEDS_WRITE_BARRIER) {
-	  OPT_LocationOperand loc = PutField.getClearLocation(inst);
-	  VM_FieldReference field = loc.getFieldRef();
-	  if (!field.getFieldContentsType().isPrimitiveType()) {
-	    VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
-	    OPT_Instruction wb = 
-	      Call.create3(CALL, null, I(target.getOffset()), 
-			   OPT_MethodOperand.STATIC(target),
-			   PutField.getRef(inst).copy(), 
-			   PutField.getOffset(inst).copy(),
-			   PutField.getValue(inst).copy());
-	    wb.bcIndex = RUNTIME_SERVICES_BCI;
-	    wb.position = inst.position;
-	    inst.replace(wb);
-	    next = wb.nextInstructionInCodeOrder();
-	    if (ir.options.INLINE_WRITE_BARRIER) 
-	      inline(wb, ir);
-	  }
-	}
+        if (MM_Interface.NEEDS_WRITE_BARRIER) {
+          OPT_LocationOperand loc = PutField.getClearLocation(inst);
+          VM_FieldReference field = loc.getFieldRef();
+          if (!field.getFieldContentsType().isPrimitiveType()) {
+            VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
+            OPT_Instruction wb = 
+              Call.create3(CALL, null, I(target.getOffset()), 
+                           OPT_MethodOperand.STATIC(target),
+                           PutField.getRef(inst).copy(), 
+                           PutField.getOffset(inst).copy(),
+                           PutField.getValue(inst).copy());
+            wb.bcIndex = RUNTIME_SERVICES_BCI;
+            wb.position = inst.position;
+            inst.replace(wb);
+            next = wb.nextInstructionInCodeOrder();
+            if (ir.options.INLINE_WRITE_BARRIER) 
+              inline(wb, ir);
+          }
+        }
       }
       break;
-	  
+          
     default:
       break;
       }
@@ -304,8 +304,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     //-#endif
     try {
       OPT_InlineDecision inlDec = 
-	OPT_InlineDecision.YES(Call.getMethod(inst).getTarget(), 
-			       "Expansion of runtime service");
+        OPT_InlineDecision.YES(Call.getMethod(inst).getTarget(), 
+                               "Expansion of runtime service");
       OPT_Inliner.execute(inlDec, ir, inst);
     } finally {
       ir.options.INLINE = savedInliningOption;

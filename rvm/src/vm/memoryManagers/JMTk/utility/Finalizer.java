@@ -52,7 +52,7 @@ public class Finalizer implements VM_Uninterruptible {
 
   // Debug flags
 
-  private static final boolean  TRACE	                = false;
+  private static final boolean  TRACE                   = false;
   private static final boolean  TRACE_DETAIL            = false;
 
   //-----------//
@@ -70,7 +70,7 @@ public class Finalizer implements VM_Uninterruptible {
     if (candidateEnd >= origLength) {
       VM_AddressArray newCandidate = VM_AddressArray.create((int) (growthFactor * origLength));
       for (int i=0; i<origLength; i++)
-	newCandidate.set(i, candidate.get(i));
+        newCandidate.set(i, candidate.get(i));
       candidate = newCandidate;
     }
     candidate.set(candidateEnd++, VM_Magic.objectAsAddress(item));
@@ -84,14 +84,14 @@ public class Finalizer implements VM_Uninterruptible {
     while (true) {
       // Advance left cursor until it hits empty slot
       while (leftCursor < rightCursor && !candidate.get(leftCursor).isZero())
-	leftCursor++;
+        leftCursor++;
       // Back-advance right cursor until it hits non-empty slot
       while (rightCursor > leftCursor && candidate.get(rightCursor).isZero())
-	rightCursor--;
+        rightCursor--;
       if (leftCursor >= rightCursor) // can be greater on first iteration if totally empty
-	break;
+        break;
       if (VM_Interface.VerifyAssertions) 
-	VM_Interface._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
+        VM_Interface._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
       candidate.set(leftCursor, candidate.get(rightCursor));
       candidate.set(rightCursor, VM_Address.zero());
     }
@@ -109,11 +109,11 @@ public class Finalizer implements VM_Uninterruptible {
     if (liveEnd == live.length) {
       Object[] newLive = live;
       if (liveStart == 0) 
-	newLive = new Object[(int) (growthFactor * live.length)];
+        newLive = new Object[(int) (growthFactor * live.length)];
       for (int i=liveStart; i<liveEnd; i++)
-	newLive[i-liveStart] = live[i];
+        newLive[i-liveStart] = live[i];
       for (int i=liveEnd - liveStart; i<live.length; i++)
-	newLive[i] = null;
+        newLive[i] = null;
       liveEnd -= liveStart;
       liveStart = 0;
       live = newLive;
@@ -174,11 +174,11 @@ public class Finalizer implements VM_Uninterruptible {
       VM_Address cand = candidate.get(cursor);
       boolean isFinalizable = Plan.isFinalizable(cand);
       if (isFinalizable) { // object died, enqueue for finalization
-	candidate.set(cursor, VM_Address.zero());
-	addLive(VM_Magic.addressAsObject(Plan.retainFinalizable(cand)));
-	newFinalizeCount++;
+        candidate.set(cursor, VM_Address.zero());
+        addLive(VM_Magic.addressAsObject(Plan.retainFinalizable(cand)));
+        newFinalizeCount++;
       } else {             // live beforehand but possibly moved
-	candidate.set(cursor, Plan.getForwardedReference(cand));
+        candidate.set(cursor, Plan.getForwardedReference(cand));
       }
       cursor++;
     }

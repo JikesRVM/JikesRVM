@@ -29,7 +29,7 @@ final class VM_JSRSubroutineInfo {
   private boolean hasMismatch;
 
   public VM_JSRSubroutineInfo(int subroutineByteCodeStart, byte[] startReferenceMap,
-			      int localsTop) {
+                              int localsTop) {
     this.subroutineByteCodeStart = subroutineByteCodeStart;
     this.startReferenceMap = new byte[localsTop+1];
     for (int i=0; i<= localsTop; i++) 
@@ -44,14 +44,14 @@ final class VM_JSRSubroutineInfo {
   newStartMaps(byte[] startReferenceMap) {
     if (VM.ReferenceMapsStatistics) {
       for (int i=0; i<= localsTop; i++) {
-	if (this.startReferenceMap[i] != startReferenceMap[i]) {
-	  if (!hasMismatch) {
-	    hasMismatch = true;
-	    JSRRoutinesWithMismatch++;
-	  }
-	  JSRMismatchCount++;
-	  break;
-	}
+        if (this.startReferenceMap[i] != startReferenceMap[i]) {
+          if (!hasMismatch) {
+            hasMismatch = true;
+            JSRRoutinesWithMismatch++;
+          }
+          JSRMismatchCount++;
+          break;
+        }
       }
     }
 
@@ -81,10 +81,10 @@ final class VM_JSRSubroutineInfo {
     // When there is no starting non reference map, then the JSR instruction is 
     // not within another  JSR subroutine
     for (int i=0; i<=localsTop; i++) {
-	if (endReferenceMap[i] == VM_BuildReferenceMaps.NOT_SET)
-	  newReferenceMap[i] = startReferenceMap[i];
-	else {
-	  newReferenceMap[i] = endReferenceMap[i];
+        if (endReferenceMap[i] == VM_BuildReferenceMaps.NOT_SET)
+          newReferenceMap[i] = startReferenceMap[i];
+        else {
+          newReferenceMap[i] = endReferenceMap[i];
       }
     }
 

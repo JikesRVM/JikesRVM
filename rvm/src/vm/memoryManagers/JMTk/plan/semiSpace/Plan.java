@@ -159,7 +159,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
-				AllocAdvice advice)
+                                AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
@@ -170,9 +170,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
       case      LOS_SPACE: return los.alloc(isScalar, bytes);
       default: 
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface.sysFail("No such allocator");
-	return VM_Address.zero();
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface.sysFail("No such allocator");
+        return VM_Address.zero();
       }
     }
   }
@@ -188,7 +188,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-			      boolean isScalar, int allocator)
+                              boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       Header.initializeLOSHeader(ref, tib, bytes, isScalar);
@@ -198,8 +198,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); return;
       default:
-	if (VM_Interface.VerifyAssertions) 
-	  VM_Interface.sysFail("No such allocator");
+        if (VM_Interface.VerifyAssertions) 
+          VM_Interface.sysFail("No such allocator");
       }
     }
   }
@@ -214,7 +214,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes, 
-				    boolean isScalar) 
+                                    boolean isScalar) 
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
     VM_Address result = ss.alloc(isScalar, bytes);
@@ -230,7 +230,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-			     boolean isScalar) {} // do nothing
+                             boolean isScalar) {} // do nothing
 
   /**
    * Advise the compiler/runtime which allocator to use for a
@@ -246,7 +246,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The allocator number to be used for this allocation.
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite, 
-				AllocAdvice hint) {
+                                AllocAdvice hint) {
     return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
   }
 
@@ -277,8 +277,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * at runtime
    */
   public final AllocAdvice getAllocAdvice(Type type, int bytes,
-					  CallSite callsite,
-					  AllocAdvice hint) {
+                                          CallSite callsite,
+                                          AllocAdvice hint) {
     return null;
   }
 
@@ -437,7 +437,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     case META_SPACE:     return obj;
     default:  
       if (VM_Interface.VerifyAssertions) 
-	spaceFailure(obj, space, "Plan.traceObject()");
+        spaceFailure(obj, space, "Plan.traceObject()");
       return obj;
     }
   }
@@ -485,7 +485,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       VM_Address addr = VM_Interface.refToAddress(obj);
       byte space = VMResource.getSpace(addr);
       if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE))
-	VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
+        VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
     }
   }
 
@@ -501,9 +501,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       VM_Address addr = VM_Interface.refToAddress(object);
       byte space = VMResource.getSpace(addr);
       if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE)) {
-	if (VM_Interface.VerifyAssertions) 
-	  VM_Interface._assert(CopyingHeader.isForwarded(object));
-	return CopyingHeader.getForwardingPointer(object);
+        if (VM_Interface.VerifyAssertions) 
+          VM_Interface._assert(CopyingHeader.isForwarded(object));
+        return CopyingHeader.getForwardingPointer(object);
       }
     }
     return object;
@@ -537,11 +537,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     case HIGH_SS_SPACE:   return CopySpace.isLive(obj);
     case LOS_SPACE:       return losSpace.isLive(obj);
     case IMMORTAL_SPACE:  return true;
-    case BOOT_SPACE:	  return true;
-    case META_SPACE:	  return true;
+    case BOOT_SPACE:      return true;
+    case META_SPACE:      return true;
     default:
       if (VM_Interface.VerifyAssertions) 
-	spaceFailure(obj, space, "Plan.isLive()");
+        spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
   }
@@ -561,7 +561,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The updated GC word (in this case unchanged).
    */
   public static final int resetGCBitsForCopy(VM_Address fromObj,
-					     int forwardingWord, int bytes) {
+                                             int forwardingWord, int bytes) {
     return forwardingWord; // a no-op for this collector
   }
 

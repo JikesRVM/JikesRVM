@@ -92,7 +92,7 @@ public class OPT_OptimizationPlanner {
     Vector temp = new Vector(masterPlan.length);
     for (int i = 0; i < masterPlan.length; i++) {
       if (masterPlan[i].shouldPerform(options)) {
-	temp.addElement(masterPlan[i]);
+        temp.addElement(masterPlan[i]);
       }
     }
     if (VM.writingBootImage)
@@ -150,13 +150,13 @@ public class OPT_OptimizationPlanner {
                       // Generate HIR from bytecodes
                       new OPT_ConvertBCtoHIR(),
 
-		      //-#if RVM_WITH_OSR
-		      new OSR_AdjustBCIndexes(),
-		      new OSR_OsrPointConstructor(),
-		      //-#endif
+                      //-#if RVM_WITH_OSR
+                      new OSR_AdjustBCIndexes(),
+                      new OSR_OsrPointConstructor(),
+                      //-#endif
 
-		      // Always do initial wave of peephole branch optimizations
-		      new OPT_BranchOptimizations(0, true, false),  
+                      // Always do initial wave of peephole branch optimizations
+                      new OPT_BranchOptimizations(0, true, false),  
 
                       // Adjust static branch probabilites to account for infrequent blocks
                       new OPT_AdjustBranchProbabilities(),
@@ -189,12 +189,12 @@ public class OPT_OptimizationPlanner {
       // Assumption: none of these are active at O0.
       new OPT_OptimizationPlanCompositeElement
         ("Basic Block Frequency Estimation", new Object[] {
-	  new OPT_BuildLST(),
-	  new OPT_EstimateBlockFrequencies()
-	}) {
-	public boolean shouldPerform(OPT_Options options) {
-	  return options.getOptLevel() >= 1;
-	}},
+          new OPT_BuildLST(),
+          new OPT_EstimateBlockFrequencies()
+        }) {
+        public boolean shouldPerform(OPT_Options options) {
+          return options.getOptLevel() >= 1;
+        }},
       // CFG spliting
       new OPT_StaticSplitting(),
       // restructure loops

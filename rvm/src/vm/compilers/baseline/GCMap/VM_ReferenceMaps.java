@@ -196,14 +196,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       bitnum = convertOffsetToBitNum(offset);  // get the bit number
 
       if (VM.TraceStkMaps) {
-	VM.sysWriteln("VM_ReferenceMaps-getnextref- not initial- entry offset,bitnum  = ", offset, " ", bitnum);
+        VM.sysWriteln("VM_ReferenceMaps-getnextref- not initial- entry offset,bitnum  = ", offset, " ", bitnum);
       }
 
       // scan forward from current position to next ref
       bitnum = scanForNextRef(bitnum+1, mapindex,(bitsPerMap - (bitnum - 1)),referenceMaps);
 
       if (VM.TraceStkMaps) {
-	VM.sysWriteln("VM_ReferenceMaps-getnextref- not initial- scan returned bitnum = ", bitnum);
+        VM.sysWriteln("VM_ReferenceMaps-getnextref- not initial- scan returned bitnum = ", bitnum);
       }
     }      
 
@@ -254,10 +254,10 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
       // scan forward from current position to next ref
       if (VM.TraceStkMaps) {
-	VM.sysWrite("VM_ReferenceMaps.getJSRnextref - not initial- starting (offset,bitnum) = ");
-	VM.sysWrite(offset);
-	VM.sysWrite(", ");
-	VM.sysWrite(bitnum);
+        VM.sysWrite("VM_ReferenceMaps.getJSRnextref - not initial- starting (offset,bitnum) = ");
+        VM.sysWrite(offset);
+        VM.sysWrite(", ");
+        VM.sysWrite(bitnum);
       }
 
       bitnum = scanForNextRef(bitnum+1,mapword, (bitsPerMap - (bitnum -1)), jsrInfo.unusualReferenceMaps);
@@ -322,14 +322,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       // get bitnum and determine mapword to restart scan
       bitnum = convertJsrOffsetToBitNum(offset);  // get the bit number
       if (VM.TraceStkMaps) {
-	VM.sysWriteln("VM_ReferenceMaps-getJSRnextReturnAddr- not initial- starting offset, starting bitnum  = ", offset, " ", bitnum);
+        VM.sysWriteln("VM_ReferenceMaps-getJSRnextReturnAddr- not initial- starting offset, starting bitnum  = ", offset, " ", bitnum);
       }
 
       // scan forward from current position to next ref
       bitnum = scanForNextRef(bitnum+1, mapword, (bitsPerMap - (bitnum -1)), jsrInfo.unusualReferenceMaps);
       
       if (VM.TraceStkMaps) {
-	VM.sysWriteln("VM_ReferenceMaps-getJSRnextref- not initial- scan returned bitnum = ", bitnum);
+        VM.sysWriteln("VM_ReferenceMaps-getJSRnextref- not initial- scan returned bitnum = ", bitnum);
       }
     }
 
@@ -353,7 +353,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"));
   int size() throws VM_PragmaInterruptible {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
@@ -448,7 +448,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
           int start = mapNum * bytesPerMap();  // get starting byte in map
           for ( int i = start; i < start + bytesPerMap(); i++) {
             referenceMaps[i] = 0;
-	  }
+          }
           if (VM.TraceStkMaps) {
             VM.sysWrite(" VM_ReferenceMaps-recordStkMap replacing map number = ", mapNum);
             VM.sysWriteln("  for machinecode index = ", MCSites[mapNum]);
@@ -566,14 +566,14 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
             for (unusualMapIndex = JSR_INDEX_MASK; unusualMapIndex < jsrInfo.numberUnusualMaps; unusualMapIndex++) {
               if (jsrInfo.unusualMaps[unusualMapIndex].getReturnAddressOffset() == returnOffset) {
                 jsrSiteMap = jsrInfo.unusualMaps[unusualMapIndex];
-		break findJSRSiteMap;
-	      }
+                break findJSRSiteMap;
+              }
             }
             VM.sysFail(" can't find unusual map !!!!!!! - should never occur");
           } else {
             jsrSiteMap = jsrInfo.unusualMaps[unusualMapIndex];
             break findJSRSiteMap;
-	  }
+          }
         }
       }
     } else {
@@ -615,7 +615,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
         VM.sysWrite( referenceMaps[mapNum*bytesPerMap()]);
         VM.sysWrite( "\n");
       }
-    }	 // end else clause - add new map
+    }    // end else clause - add new map
 
     // for new maps, setup maps in UnusualMap, for existing map replace them
 
@@ -736,7 +736,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *     with the invoker map
    */
   public void setupJSRSubroutineMap(VM_Address frameAddress, int mapid, 
-				    VM_CompiledMethod compiledMethod)  {
+                                    VM_CompiledMethod compiledMethod)  {
 
     // first clear the  maps in the jsrInfo.extraUnusualMap
     int j = jsrInfo.extraUnusualMap.getReferenceMapIndex();
@@ -765,7 +765,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
     VM_UnusualMaps unusualMap = jsrInfo.unusualMaps[unusualMapid];
 //    unusualMapcopy(unusualMap, -mapid); // deep copy unusual map into the extra map
-    unusualMapcopy(unusualMap);	// deep copy unusual map into the extra map
+    unusualMapcopy(unusualMap); // deep copy unusual map into the extra map
 
 
     // from the unusual map and the frame - get the location of the jsr invoker
@@ -1324,8 +1324,8 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       byte res = (byte)((finalBase | newRef) & (~newNonRef));
       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap+i] = res;
       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
-	= (byte)(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
-		 | jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i]);
+        = (byte)(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
+                 | jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i]);
       /*
          VM.sysWrite("   **** base = "); VM.sysWrite(base);
          VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
@@ -1483,7 +1483,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     for (int i=0; i<mapCount; i++) {
       byte mapindex  = referenceMaps[i * bytesPerMap()];
       if (mapindex < 0) {
-	// check for non jsr map
+        // check for non jsr map
         VM.sysWrite("  -----skipping jsr map------- \n ");
         continue;
       }
@@ -1522,7 +1522,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   public boolean isLocalRefType(VM_Method method, int mcoff, int lidx) {
     int bytenum, bitnum;
     byte[] maps;
-	
+        
     if (bytesPerMap() == 0) return false;           // no map ie no refs
     int mapid = locateGCPoint(mcoff, method);
 

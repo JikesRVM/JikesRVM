@@ -834,12 +834,12 @@ public final class VM_Callbacks {
         VM.sysWrite("invoking application start monitors\n");
       }
       for (CallbackList l = appStartCallbacks; l != null; l = l.next) {
-	if (TRACE_APP_START) {
-	  VM.sysWrite("    ");
-	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
-	  VM.sysWrite("\n");
-	}
-	((AppStartMonitor) l.callback).notifyAppStart(app);
+        if (TRACE_APP_START) {
+          VM.sysWrite("    ");
+          VM.sysWrite(VM_Callbacks.getClass(l.callback));
+          VM.sysWrite("\n");
+        }
+        ((AppStartMonitor) l.callback).notifyAppStart(app);
       }
     }
   }
@@ -887,12 +887,12 @@ public final class VM_Callbacks {
         VM.sysWrite("invoking application complete monitors for application ");VM.sysWrite(app);VM.sysWrite("\n");
       }
       for (CallbackList l = appCompleteCallbacks; l != null; l = l.next) {
-	if (TRACE_APP_COMPLETE) {
-	  VM.sysWrite("    ");
-	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
-	  VM.sysWrite("\n");
-	}
-	((AppCompleteMonitor) l.callback).notifyAppComplete(app);
+        if (TRACE_APP_COMPLETE) {
+          VM.sysWrite("    ");
+          VM.sysWrite(VM_Callbacks.getClass(l.callback));
+          VM.sysWrite("\n");
+        }
+        ((AppCompleteMonitor) l.callback).notifyAppComplete(app);
       }
     }
   }
@@ -943,12 +943,12 @@ public final class VM_Callbacks {
         VM.sysWrite("invoking the start monitor for application ");VM.sysWrite(app);VM.sysWrite(" at run ");VM.sysWrite(run);VM.sysWrite("\n");
       }
       for (CallbackList l = appRunStartCallbacks; l != null; l = l.next) {
-	if (TRACE_APP_RUN_START) {
-	  VM.sysWrite("    ");
-	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
-	  VM.sysWrite("\n");
-	}
-	((AppRunStartMonitor) l.callback).notifyAppRunStart(app, run);
+        if (TRACE_APP_RUN_START) {
+          VM.sysWrite("    ");
+          VM.sysWrite(VM_Callbacks.getClass(l.callback));
+          VM.sysWrite("\n");
+        }
+        ((AppRunStartMonitor) l.callback).notifyAppRunStart(app, run);
       }
     }
   }
@@ -999,15 +999,15 @@ public final class VM_Callbacks {
         //VM.sysWrite(getThread(), false);
         //VM.sysWrite(": ");
         VM.sysWrite("invoking the complete monitor for application ", app);
-	VM.sysWriteln(" at run ", run);
+        VM.sysWriteln(" at run ", run);
       }
       for (CallbackList l = appRunCompleteCallbacks; l != null; l = l.next) {
-	if (TRACE_APP_RUN_COMPLETE) {
-	  VM.sysWrite("    ");
-	  VM.sysWrite(VM_Callbacks.getClass(l.callback));
-	  VM.sysWrite("\n");
-	}
-	((AppRunCompleteMonitor) l.callback).notifyAppRunComplete(app, run);
+        if (TRACE_APP_RUN_COMPLETE) {
+          VM.sysWrite("    ");
+          VM.sysWrite(VM_Callbacks.getClass(l.callback));
+          VM.sysWrite("\n");
+        }
+        ((AppRunCompleteMonitor) l.callback).notifyAppRunComplete(app, run);
       }
     }
   }
@@ -1059,9 +1059,9 @@ public final class VM_Callbacks {
    */
   private static VM_Atom getClass(Object o) {
     if (VM.runningVM)
-	return java.lang.JikesRVMSupport.getTypeForClass(o.getClass()).getDescriptor();
+        return java.lang.JikesRVMSupport.getTypeForClass(o.getClass()).getDescriptor();
     else
-	return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
+        return VM_Atom.findOrCreateAsciiAtom(o.getClass().getName());
   }
 
   /**

@@ -47,7 +47,7 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    * @param addr3 the third address to be inserted into the address queue
    */
   public final void insert(VM_Address addr1, VM_Address addr2, 
-			   VM_Address addr3) {
+                           VM_Address addr3) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr3.isZero());

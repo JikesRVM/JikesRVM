@@ -132,14 +132,14 @@ final class RefCountLocal extends SegregatedFreeList
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
       cellSize[sc] = getBaseCellSize(sc);
       for (byte blk = 0; blk < BlockAllocator.BLOCK_SIZE_CLASSES; blk++) {
-	int avail = BlockAllocator.blockSize(blk) - FREE_LIST_HEADER_BYTES - RC_BLOCK_HEADER;
-	int cells = avail/cellSize[sc];
-	blockSizeClass[sc] = blk;
-	cellsInBlock[sc] = cells;
-	blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES + RC_BLOCK_HEADER;
-	if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
-	    ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
-	  break;
+        int avail = BlockAllocator.blockSize(blk) - FREE_LIST_HEADER_BYTES - RC_BLOCK_HEADER;
+        int cells = avail/cellSize[sc];
+        blockSizeClass[sc] = blk;
+        cellsInBlock[sc] = cells;
+        blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES + RC_BLOCK_HEADER;
+        if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
+            ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
+          break;
       }
     }
   }
@@ -152,7 +152,7 @@ final class RefCountLocal extends SegregatedFreeList
    * @param plan The plan with which this local thread is associated.
    */
   RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
-		AddressDeque dec, AddressDeque root) {
+                AddressDeque dec, AddressDeque root) {
     super(space.getVMResource(), space.getMemoryResource(), plan_);
     rcSpace = space;
     plan = plan_;
@@ -183,7 +183,7 @@ final class RefCountLocal extends SegregatedFreeList
    * Allocation
    */
   public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-			      int bytes, boolean inGC) throws VM_PragmaInline{}
+                              int bytes, boolean inGC) throws VM_PragmaInline{}
   protected final void postExpandSizeClass(VM_Address block, int sizeClass) {
     VM_Magic.setMemoryAddress(block.add(RCL_TAG_OFFSET), VM_Magic.objectAsAddress(this));
   }
@@ -206,9 +206,9 @@ final class RefCountLocal extends SegregatedFreeList
     flushFreeLists();
     if (RefCountSpace.INC_DEC_ROOT) {
       if (Options.verbose > 2)
-	processRootBufsAndCount(); 
+        processRootBufsAndCount(); 
       else
-	processRootBufs();
+        processRootBufs();
     }
   }
 
@@ -228,7 +228,7 @@ final class RefCountLocal extends SegregatedFreeList
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
       if (time) Statistics.cdTime.start();
       if (cycleDetector.collectCycles(count, time)) 
-	processDecBufs();
+        processDecBufs();
       if (time) Statistics.cdTime.stop();
     }
     VM_Interface.rendezvous(4410);
@@ -237,9 +237,9 @@ final class RefCountLocal extends SegregatedFreeList
     if (RefCountSpace.RC_SANITY_CHECK) checkSanityTrace();
     if (!RefCountSpace.INC_DEC_ROOT) {
       if (Options.verbose > 2) 
-	processRootBufsAndCount(); 
+        processRootBufsAndCount(); 
       else 
-	processRootBufs();
+        processRootBufs();
     }
     restoreFreeLists();
   }
@@ -257,8 +257,8 @@ final class RefCountLocal extends SegregatedFreeList
     do {
       int count = 0;
       while (count < DEC_COUNT_QUANTA && !(tgt = decBuffer.pop()).isZero()) {
-	decrement(tgt);
-	count++;
+        decrement(tgt);
+        count++;
       } 
       decCounter += count;
     } while (!tgt.isZero() && (RefCountSpace.RC_SANITY_CHECK || VM_Interface.cycles() < limit));
@@ -273,7 +273,7 @@ final class RefCountLocal extends SegregatedFreeList
     VM_Address object;
     while (!(object = oldRootSet.pop()).isZero()) {
       if (!RCBaseHeader.isLiveRC(object))
-	release(object);
+        release(object);
     }
   }
 
@@ -285,10 +285,10 @@ final class RefCountLocal extends SegregatedFreeList
     VM_Address object;
     while (!(object = newRootSet.pop()).isZero()) {
       if (RefCountSpace.INC_DEC_ROOT)
-	decBuffer.push(object);
+        decBuffer.push(object);
       else {
-	RCBaseHeader.unsetRoot(object);
-	oldRootSet.push(object);
+        RCBaseHeader.unsetRoot(object);
+        oldRootSet.push(object);
       }
     }
   }
@@ -301,10 +301,10 @@ final class RefCountLocal extends SegregatedFreeList
     rootCounter = 0;
     while (!(object = newRootSet.pop()).isZero()) {
       if (RefCountSpace.INC_DEC_ROOT)
-	decBuffer.push(object);
+        decBuffer.push(object);
       else {
-	RCBaseHeader.unsetRoot(object);
-	oldRootSet.push(object);
+        RCBaseHeader.unsetRoot(object);
+        oldRootSet.push(object);
       }
       rootCounter++;
     }
@@ -319,7 +319,7 @@ final class RefCountLocal extends SegregatedFreeList
       VM_Address block = deferredFreeBuffer.pop2();
       int sizeClass = getBlockSizeClass(block);
       if (VM_Interface.VerifyAssertions) {
-	VM_Interface._assert(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET))));
+        VM_Interface._assert(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET))));
       }
       free(cell, block, sizeClass);
     }
@@ -392,9 +392,9 @@ final class RefCountLocal extends SegregatedFreeList
       VM_Address cell = block.add(blockHeaderSize[sizeClass]).add(index*cellSize[sizeClass]);
       VM_Address owner = VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET));
       if (owner.EQ(VM_Magic.objectAsAddress(this)))
-	free(cell, block, sizeClass);
+        free(cell, block, sizeClass);
       else {
-	((RefCountLocal) VM_Magic.addressAsObject(owner)).deferredFree(cell, block);
+        ((RefCountLocal) VM_Magic.addressAsObject(owner)).deferredFree(cell, block);
       }
     }
   }

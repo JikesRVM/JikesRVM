@@ -34,71 +34,71 @@ package com.ibm.JikesRVM;
  *    different names on the PowerPC to use the PowerPC mnemonic.
  *    (Applied changes from Appendix F of PPC Architecture book).
  *
- *  mnemonic   	opcode  extop   key    	form    format  Example  
- *  --------   	------  ---    	--- 	----    ------  --------
- *  dcbf	31	86	172	X	6	7C0218AC
- *  dcbi	31	470	940	X	6	7C021BAC
- *  dcbst	31	54	108	X	6	7C02186C
- *  dcbt	31	278	556	X	6	7C021A2C
- *  dcbtst	31	246	492	X	6	7C0219EC
- *  dcbz	31	1014	2028	X	6	7C021FEC
- *  divw	31	491	982	XO	1	7C221BD6
- *  divw.	31	491	983	XO	1	7C221BD7
- *  divwo	31	491	2006	XO	1	7C221FD6
- *  divwo.	31	491	2007	XO	1	7C221FD7
- *  divwu	31	459	918	XO	1	7C221B96
- *  divwu.	31	459	919	XO	1	7C221B97
- *  divwuo	31	459	1942	XO	1	7C221F96
- *  divwuo.	31	459	1943	XO	1	7C221F97
- *  eieio	31	854	1708	X	1	7C0006AC
- *  extsb	31	954	1908	X	0	7C220774
- *  extsb.	31	954	1909	X	0	7C220775
- *  icbi	31	982	1964	X	6	7C021FAC
- *  lwarx	31	20	40	X	7	7C221828
- *  mfsrin	31	659	1318	X	4	7C201526
- *  mulhw	31	75	150	XO	1	7C221896
- *  mulhw.	31	75	151	XO	1	7C221897
- *  mulhwu	31	11	22	XO	1	7C221816
- *  mulhwu.	31	11	23	XO	1	7C221817
- *  stwcx.	31	150	301	X	7	7C22192D
- *  subf	31	40	80	XO	1	7C221850
- *  subf.	31	40	81	XO	1	7C221851
- *  subfo	31	40	1104	XO	1	7C221C50
- *  subfo.	31	40	1105	XO	1	7C221C51
- *  							    
- *  fadds	59	21	42	A	0	EC22182A
- *  fadds.	59	21	43	A	0	EC22182B
- *  fdivs	59	18	36	A	0	EC221824
- *  fdivs.	59	18	37	A	0	EC221825
- *  fmadds	59	29	58	A	2	EC22193A
- *  fmadds.	59	29	59	A	2	EC22193B
- *  fmsubs	59	28	56	A	2	EC221938
- *  fmsubs.	59	28	57	A	2	EC221939
- *  fmuls	59	25	50	A	1	EC2200F2
- *  fmuls.	59	25	51	A	1	EC2200F3
- *  fnmadds	59	31	62	A	2	EC22193E
- *  fnmadds.	59	31	63	A	2	EC22193F
- *  fnmsubs	59	30	60	A	2	EC22193C
- *  fnmsubs.	59	30	61	A	2	EC22193D
- *  fsubs	59	20	40	A	0	EC221828
- *  fsubs.	59	20	41	A	0	EC221829
- *  mfear					
- *  mfpvw					
- *  mfsprg					
- *  mtear					
- *  mtsprg					
- *  mfdbatl		
- *  mfdbatu		
- *  mtdbatl		
- *  mtdbatu		
- *  mttb		
- *  mttbu		
- *  mftb		
- *  mftbu		
- *  mfibatl		
- *  mfibatu		
- *  mtibatl		
- *  mtibatu		
+ *  mnemonic    opcode  extop   key     form    format  Example  
+ *  --------    ------  ---     ---     ----    ------  --------
+ *  dcbf        31      86      172     X       6       7C0218AC
+ *  dcbi        31      470     940     X       6       7C021BAC
+ *  dcbst       31      54      108     X       6       7C02186C
+ *  dcbt        31      278     556     X       6       7C021A2C
+ *  dcbtst      31      246     492     X       6       7C0219EC
+ *  dcbz        31      1014    2028    X       6       7C021FEC
+ *  divw        31      491     982     XO      1       7C221BD6
+ *  divw.       31      491     983     XO      1       7C221BD7
+ *  divwo       31      491     2006    XO      1       7C221FD6
+ *  divwo.      31      491     2007    XO      1       7C221FD7
+ *  divwu       31      459     918     XO      1       7C221B96
+ *  divwu.      31      459     919     XO      1       7C221B97
+ *  divwuo      31      459     1942    XO      1       7C221F96
+ *  divwuo.     31      459     1943    XO      1       7C221F97
+ *  eieio       31      854     1708    X       1       7C0006AC
+ *  extsb       31      954     1908    X       0       7C220774
+ *  extsb.      31      954     1909    X       0       7C220775
+ *  icbi        31      982     1964    X       6       7C021FAC
+ *  lwarx       31      20      40      X       7       7C221828
+ *  mfsrin      31      659     1318    X       4       7C201526
+ *  mulhw       31      75      150     XO      1       7C221896
+ *  mulhw.      31      75      151     XO      1       7C221897
+ *  mulhwu      31      11      22      XO      1       7C221816
+ *  mulhwu.     31      11      23      XO      1       7C221817
+ *  stwcx.      31      150     301     X       7       7C22192D
+ *  subf        31      40      80      XO      1       7C221850
+ *  subf.       31      40      81      XO      1       7C221851
+ *  subfo       31      40      1104    XO      1       7C221C50
+ *  subfo.      31      40      1105    XO      1       7C221C51
+ *                                                          
+ *  fadds       59      21      42      A       0       EC22182A
+ *  fadds.      59      21      43      A       0       EC22182B
+ *  fdivs       59      18      36      A       0       EC221824
+ *  fdivs.      59      18      37      A       0       EC221825
+ *  fmadds      59      29      58      A       2       EC22193A
+ *  fmadds.     59      29      59      A       2       EC22193B
+ *  fmsubs      59      28      56      A       2       EC221938
+ *  fmsubs.     59      28      57      A       2       EC221939
+ *  fmuls       59      25      50      A       1       EC2200F2
+ *  fmuls.      59      25      51      A       1       EC2200F3
+ *  fnmadds     59      31      62      A       2       EC22193E
+ *  fnmadds.    59      31      63      A       2       EC22193F
+ *  fnmsubs     59      30      60      A       2       EC22193C
+ *  fnmsubs.    59      30      61      A       2       EC22193D
+ *  fsubs       59      20      40      A       0       EC221828
+ *  fsubs.      59      20      41      A       0       EC221829
+ *  mfear                                       
+ *  mfpvw                                       
+ *  mfsprg                                      
+ *  mtear                                       
+ *  mtsprg                                      
+ *  mfdbatl             
+ *  mfdbatu             
+ *  mtdbatl             
+ *  mtdbatu             
+ *  mttb                
+ *  mttbu               
+ *  mftb                
+ *  mftbu               
+ *  mfibatl             
+ *  mfibatu             
+ *  mtibatl             
+ *  mtibatu             
  *    
  * 23 Apr 2003 Kris Venstermans:
  *    Added instruction decoding for 64 bit architecture.
@@ -386,8 +386,8 @@ public class PPC_Disassembler implements VM_Constants {
     
     /* Table for the XL instruction format */
     
-    /*   OPCD      EO		                 format     mnemonic      */
-    /*   ----      --           		 ------     --------      */ 
+    /*   OPCD      EO                            format     mnemonic      */
+    /*   ----      --                            ------     --------      */ 
     /*    19,      0,      */  new opcode_tab(        2,        "mcrf"   ),
     /*    19,      16,     */  new opcode_tab(        1,        "bclr or bclrl"),
     /*    19,      33,     */  new opcode_tab(        3,        "crnor"   ),
@@ -442,18 +442,18 @@ public class PPC_Disassembler implements VM_Constants {
 
   static opcodeXX[] opcode30 = {
     
-    /* 	 	     key        form     format       mnemonic       */
-    /* 		     ---        ----     ------       --------       */
-    new opcodeXX(    0,  	MD_FORM,	0,	"rldicl"  ),
-    new opcodeXX(    1,   	MD_FORM,	0,	"rldicl"  ),
-    new opcodeXX(    2,   	MD_FORM,	1,	"rldicr"  ),
-    new opcodeXX(    3,   	MD_FORM,	1,	"rldicr"  ),
-    new opcodeXX(    4,   	MD_FORM,	0,	"rldic"   ),
-    new opcodeXX(    5,   	MD_FORM,	0,	"rldic"   ),
-    new opcodeXX(    6,   	MD_FORM,	0,	"rldimi"  ),
-    new opcodeXX(    7,   	MD_FORM,	0,	"rldimi"  ),
-    new opcodeXX(    8,   	MDS_FORM,	0,	"rldcl"   ),
-    new opcodeXX(    9,   	MDS_FORM,	1,	"rldcr"   )
+    /*               key        form     format       mnemonic       */
+    /*               ---        ----     ------       --------       */
+    new opcodeXX(    0,         MD_FORM,        0,      "rldicl"  ),
+    new opcodeXX(    1,         MD_FORM,        0,      "rldicl"  ),
+    new opcodeXX(    2,         MD_FORM,        1,      "rldicr"  ),
+    new opcodeXX(    3,         MD_FORM,        1,      "rldicr"  ),
+    new opcodeXX(    4,         MD_FORM,        0,      "rldic"   ),
+    new opcodeXX(    5,         MD_FORM,        0,      "rldic"   ),
+    new opcodeXX(    6,         MD_FORM,        0,      "rldimi"  ),
+    new opcodeXX(    7,         MD_FORM,        0,      "rldimi"  ),
+    new opcodeXX(    8,         MDS_FORM,       0,      "rldcl"   ),
+    new opcodeXX(    9,         MDS_FORM,       1,      "rldcr"   )
   };
 
   
@@ -587,33 +587,33 @@ public class PPC_Disassembler implements VM_Constants {
     new opcodeXX(     2028,       X_FORM,      6,         "dcbz"),
 
     // these are the addition for the PowerPC
-    new opcodeXX(	172,	 X_FORM, 	6,	 "dcbf"),    
-    new opcodeXX(	940,     X_FORM,	6,	 "dcbi"),    
-    new opcodeXX(	108,     X_FORM,	6,	 "dcbst"),   
-    new opcodeXX(	556,     X_FORM,	6,	 "dcbt"),    
-    new opcodeXX(	492,     X_FORM,	6,	 "dcbtst"),  
-    new opcodeXX(	982,	XO_FORM,	1,	 "divw"),   
-    new opcodeXX(	983,	XO_FORM,	1,	 "divw."),   
-    new opcodeXX(	2006,	XO_FORM,	1,	 "divwo"),   
-    new opcodeXX(	2007,	XO_FORM,	1,	 "divwo."),  
-    new opcodeXX(	918,	XO_FORM,	1,	 "divwu"),   
-    new opcodeXX(	919,	XO_FORM,	1,	 "divwu."),  
-    new opcodeXX(	1942,	XO_FORM,	1,	 "divwuo"),  
-    new opcodeXX(	1943,	XO_FORM,	1,	 "divwuo."), 
-    new opcodeXX(	1708,    X_FORM,	1,	 "eieio"),  
-    new opcodeXX(	1908,    X_FORM,	0,	 "extsb"),  
-    new opcodeXX(	1909,    X_FORM,	0,	 "extsb."),  
-    new opcodeXX(	1964,    X_FORM,	6,	 "icbi"),    
-    new opcodeXX(	40,      X_FORM,	7,	 "lwarx"),   
-    new opcodeXX(	150,	XO_FORM,	1,	 "mulhw"),   
-    new opcodeXX(	151,	XO_FORM,	1,	 "mulhw."),  
-    new opcodeXX(	22,	XO_FORM,	1,	 "mulhwu"),  
-    new opcodeXX(	23,	XO_FORM,	1,	 "mulhwu."), 
-    new opcodeXX(	301,     X_FORM,	7,	 "stwcx."), 
-    new opcodeXX(	80,	XO_FORM,	1,	 "subf"),  
-    new opcodeXX(	81,	XO_FORM,	1,	 "subf."),  
-    new opcodeXX(	1104,	XO_FORM,	1,	 "subfo"),   
-    new opcodeXX(	1105,	XO_FORM,	1,	 "subfo.")
+    new opcodeXX(       172,     X_FORM,        6,       "dcbf"),    
+    new opcodeXX(       940,     X_FORM,        6,       "dcbi"),    
+    new opcodeXX(       108,     X_FORM,        6,       "dcbst"),   
+    new opcodeXX(       556,     X_FORM,        6,       "dcbt"),    
+    new opcodeXX(       492,     X_FORM,        6,       "dcbtst"),  
+    new opcodeXX(       982,    XO_FORM,        1,       "divw"),   
+    new opcodeXX(       983,    XO_FORM,        1,       "divw."),   
+    new opcodeXX(       2006,   XO_FORM,        1,       "divwo"),   
+    new opcodeXX(       2007,   XO_FORM,        1,       "divwo."),  
+    new opcodeXX(       918,    XO_FORM,        1,       "divwu"),   
+    new opcodeXX(       919,    XO_FORM,        1,       "divwu."),  
+    new opcodeXX(       1942,   XO_FORM,        1,       "divwuo"),  
+    new opcodeXX(       1943,   XO_FORM,        1,       "divwuo."), 
+    new opcodeXX(       1708,    X_FORM,        1,       "eieio"),  
+    new opcodeXX(       1908,    X_FORM,        0,       "extsb"),  
+    new opcodeXX(       1909,    X_FORM,        0,       "extsb."),  
+    new opcodeXX(       1964,    X_FORM,        6,       "icbi"),    
+    new opcodeXX(       40,      X_FORM,        7,       "lwarx"),   
+    new opcodeXX(       150,    XO_FORM,        1,       "mulhw"),   
+    new opcodeXX(       151,    XO_FORM,        1,       "mulhw."),  
+    new opcodeXX(       22,     XO_FORM,        1,       "mulhwu"),  
+    new opcodeXX(       23,     XO_FORM,        1,       "mulhwu."), 
+    new opcodeXX(       301,     X_FORM,        7,       "stwcx."), 
+    new opcodeXX(       80,     XO_FORM,        1,       "subf"),  
+    new opcodeXX(       81,     XO_FORM,        1,       "subf."),  
+    new opcodeXX(       1104,   XO_FORM,        1,       "subfo"),   
+    new opcodeXX(       1105,   XO_FORM,        1,       "subfo.")
 
 //-#if RVM_FOR_32_ADDR
 // these are only valid for 32 bit architecture
@@ -636,12 +636,12 @@ public class PPC_Disassembler implements VM_Constants {
     new opcodeXX(      116,       X_FORM,      9,         "cntlzd"),
     new opcodeXX(      117,       X_FORM,      9,         "cntlzd."),
     new opcodeXX(      136,       X_FORM,     24,         "td"),
-    new opcodeXX(      146,	 XO_FORM,      1,  	  "mulhd"),   
-    new opcodeXX(      151,      XO_FORM,      1,	  "mulhd."),  
-    new opcodeXX(      168,	  X_FORM,      7,	  "ldarx"),   
+    new opcodeXX(      146,      XO_FORM,      1,         "mulhd"),   
+    new opcodeXX(      151,      XO_FORM,      1,         "mulhd."),  
+    new opcodeXX(      168,       X_FORM,      7,         "ldarx"),   
     new opcodeXX(      298,       X_FORM,      7,         "stdx"),
     new opcodeXX(      362,       X_FORM,      7,         "stdux"),
-    new opcodeXX(      429,       X_FORM,      7,	  "stdcx."), 
+    new opcodeXX(      429,       X_FORM,      7,         "stdcx."), 
     new opcodeXX(      466,      XO_FORM,      1,         "mulld"),
     new opcodeXX(      467,      XO_FORM,      1,         "mulld."),
     new opcodeXX(      682,       X_FORM,      7,         "lwax"),
@@ -651,8 +651,8 @@ public class PPC_Disassembler implements VM_Constants {
     new opcodeXX(     1654,      XS_FORM,      0,         "sradi"),
     new opcodeXX(     1655,      XS_FORM,      0,         "sradi."),
     new opcodeXX(      868,       X_FORM,      6,         "slbie"),
-    new opcodeXX(      914,	 XO_FORM,      1,	  "divdu"),   
-    new opcodeXX(      915,	 XO_FORM,      1,	  "divdu."),  
+    new opcodeXX(      914,      XO_FORM,      1,         "divdu"),   
+    new opcodeXX(      915,      XO_FORM,      1,         "divdu."),  
     new opcodeXX(      978,      XO_FORM,      1,         "divd"),
     new opcodeXX(      979,      XO_FORM,      1,         "divd."),
     new opcodeXX(      996,       X_FORM,      1,         "slbia"),
@@ -746,20 +746,20 @@ public class PPC_Disassembler implements VM_Constants {
     /*                  key        form     format       mnemonic       */
     new opcodeXX(       42,      A_FORM,        0,      "fadds"),
     new opcodeXX(       43,      A_FORM,        0,      "fadds."),
-    new opcodeXX(       36,	 A_FORM,	0,	"fdivs"),   
-    new opcodeXX(       37,	 A_FORM,	0,	"fdivs."),  
-    new opcodeXX(       58,	 A_FORM,	2,	"fmadds"),  
-    new opcodeXX(       59,	 A_FORM,	2,	"fmadds."), 
-    new opcodeXX(       56,	 A_FORM,	2,	"fmsubs"),  
-    new opcodeXX(       57,	 A_FORM,	2,	"fmsubs."), 
-    new opcodeXX(       50,	 A_FORM,	1,	"fmuls"),  
-    new opcodeXX(       51,	 A_FORM,	1,	"fmuls."),  
-    new opcodeXX(       62,	 A_FORM,	2,	"fnmadds"), 
-    new opcodeXX(       63,	 A_FORM,	2,	"fnmadds."),
-    new opcodeXX(       60,	 A_FORM,	2,	"fnmsubs"),
-    new opcodeXX(       61,	 A_FORM,	2,	"fnmsubs."),
-    new opcodeXX(       40,	 A_FORM,	0,	"fsubs"),  
-    new opcodeXX(       41,	 A_FORM,	0,	"fsubs.")  
+    new opcodeXX(       36,      A_FORM,        0,      "fdivs"),   
+    new opcodeXX(       37,      A_FORM,        0,      "fdivs."),  
+    new opcodeXX(       58,      A_FORM,        2,      "fmadds"),  
+    new opcodeXX(       59,      A_FORM,        2,      "fmadds."), 
+    new opcodeXX(       56,      A_FORM,        2,      "fmsubs"),  
+    new opcodeXX(       57,      A_FORM,        2,      "fmsubs."), 
+    new opcodeXX(       50,      A_FORM,        1,      "fmuls"),  
+    new opcodeXX(       51,      A_FORM,        1,      "fmuls."),  
+    new opcodeXX(       62,      A_FORM,        2,      "fnmadds"), 
+    new opcodeXX(       63,      A_FORM,        2,      "fnmadds."),
+    new opcodeXX(       60,      A_FORM,        2,      "fnmsubs"),
+    new opcodeXX(       61,      A_FORM,        2,      "fnmsubs."),
+    new opcodeXX(       40,      A_FORM,        0,      "fsubs"),  
+    new opcodeXX(       41,      A_FORM,        0,      "fsubs.")  
   };
 
   static opcodeXX[] Aform = {
@@ -850,36 +850,36 @@ public class PPC_Disassembler implements VM_Constants {
     switch(form)     /* decode known instruction format */
       {
       case D_FORM:
-	return decode_Dform(inst, opcode);
+        return decode_Dform(inst, opcode);
       case DS_FORM:
-	return decode_DSform(inst, opcode);
+        return decode_DSform(inst, opcode);
       case B_FORM:
-	return decode_Bform(addr, inst, opcode);
+        return decode_Bform(addr, inst, opcode);
       case I_FORM:
-	return decode_Iform(addr,inst, opcode);
+        return decode_Iform(addr,inst, opcode);
       case SC_FORM:
-	return decode_SCform(inst, opcode);
+        return decode_SCform(inst, opcode);
       case XL_FORM:
-	return decode_XLform(inst, opcode);
+        return decode_XLform(inst, opcode);
       case M_FORM:
-	return decode_Mform(inst, opcode);
+        return decode_Mform(inst, opcode);
       case A_FORM:
-	return decode_opcode59(inst);
+        return decode_opcode59(inst);
       case EXTENDED:      /* More work to do... */
-	switch(opcode)   /* Switch off of opcode and process from there */
-	  {
-	  case 30:
-	    return decode_opcode30(inst);
-	  case 31:
-	    return decode_opcode31(inst);
-	  case 63:
-	    return decode_opcode63(inst);
-	  default:
-	    return "    Invalid opcode";
-	  }
+        switch(opcode)   /* Switch off of opcode and process from there */
+          {
+          case 30:
+            return decode_opcode30(inst);
+          case 31:
+            return decode_opcode31(inst);
+          case 63:
+            return decode_opcode63(inst);
+          default:
+            return "    Invalid opcode";
+          }
       case INVALID_OP:      /* More work to do... */
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
   
@@ -908,53 +908,53 @@ public class PPC_Disassembler implements VM_Constants {
     switch(opcode_info.format)
       {
       case 0:
-	if (opcode != 15) {
-	  return "        ".substring(mnemonic.length()) + mnemonic +
-	    "   "+rname(rt)+","+rname(RA)+","+datafield;
-	} else {
-	  if (RA != 0) {
-	    return "        ".substring(mnemonic.length()) + mnemonic +
-	      "   "+rname(rt)+","+rname(RA)+","+intAsHexString(ufield);
-	  } else {
-	    return "     liu   "+
-	      rname(rt)+","+intAsHexString(ufield);
-	  }
-	}
+        if (opcode != 15) {
+          return "        ".substring(mnemonic.length()) + mnemonic +
+            "   "+rname(rt)+","+rname(RA)+","+datafield;
+        } else {
+          if (RA != 0) {
+            return "        ".substring(mnemonic.length()) + mnemonic +
+              "   "+rname(rt)+","+rname(RA)+","+intAsHexString(ufield);
+          } else {
+            return "     liu   "+
+              rname(rt)+","+intAsHexString(ufield);
+          }
+        }
       case 1:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(RA)+","+rname(rt)+","+intAsHexString(ufield);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(RA)+","+rname(rt)+","+intAsHexString(ufield);
       case 2:
-	if ((opcode == 14) && (RA == 0)) {
-	  return "     lil" +
-	    "   "+rname(rt)+","+datafield;
-	} else {
-	  return "        ".substring(mnemonic.length()) + mnemonic +
-	    "   "+rname(rt)+","+datafield+"("+rname(RA)+")";
-	}
+        if ((opcode == 14) && (RA == 0)) {
+          return "     lil" +
+            "   "+rname(rt)+","+datafield;
+        } else {
+          return "        ".substring(mnemonic.length()) + mnemonic +
+            "   "+rname(rt)+","+datafield+"("+rname(RA)+")";
+        }
       case 3: /* Trap immediate */
-	common_opt = TO_ext(TO);
-	asm_mnemonic = "t"+common_opt+"i";
-	if (common_opt!=null) {
-	  return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-	    "   "+rname(RA)+","+datafield;
-	} else {
-	  return "        ".substring(mnemonic.length()) + mnemonic +
-	    "   "+TO+","+rname(RA)+","+datafield;
-	}
+        common_opt = TO_ext(TO);
+        asm_mnemonic = "t"+common_opt+"i";
+        if (common_opt!=null) {
+          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
+            "   "+rname(RA)+","+datafield;
+        } else {
+          return "        ".substring(mnemonic.length()) + mnemonic +
+            "   "+TO+","+rname(RA)+","+datafield;
+        }
       case 4:
         int L = inst & 0x00200000;
-	if (opcode == 11) {
-	  return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
-	    "   cr"+BF+","+rname(RA)+","+datafield;
-	} else {
-	  return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
-	    "   cr"+BF+","+rname(RA)+","+ufield;
-	}
+        if (opcode == 11) {
+          return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
+            "   cr"+BF+","+rname(RA)+","+datafield;
+        } else {
+          return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
+            "   cr"+BF+","+rname(RA)+","+ufield;
+        }
       case 5:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   fr"+FRT+","+rname(RA)+","+datafield;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   fr"+FRT+","+rname(RA)+","+datafield;
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
   
@@ -970,20 +970,20 @@ public class PPC_Disassembler implements VM_Constants {
     RA = bits(inst,11,15);
     sfield = (((inst) & 0xfffc) << 16) >> 16;
     datafield = intAsHexString(sfield);
-	 
+         
     switch(opcode) {
       case 58:
-	mnemonic = opcode58[XO].mnemonic;
-	if (mnemonic == "RESERVED") return "    Invalid opcode";
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
+        mnemonic = opcode58[XO].mnemonic;
+        if (mnemonic == "RESERVED") return "    Invalid opcode";
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
       case 62:
-	mnemonic = opcode62[XO].mnemonic;
-	if (mnemonic == "RESERVED") return "    Invalid opcode";
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
+        mnemonic = opcode62[XO].mnemonic;
+        if (mnemonic == "RESERVED") return "    Invalid opcode";
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   " + rname(RT)+ ", "+ datafield + "(" + rname(RA) + ")";
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
     }
   } 
   
@@ -1009,10 +1009,10 @@ public class PPC_Disassembler implements VM_Constants {
     /* Build disassembly without target, added on later... */
     if (cr_field != 0) {/* Not CR 0 ? */
       return "        ".substring(mnemonic.length()) + mnemonic +
-	"   "+cr_field + " " + Integer.toHexString(destination);
+        "   "+cr_field + " " + Integer.toHexString(destination);
     } else {
       return "        ".substring(mnemonic.length()) + mnemonic +
-	"   " + Integer.toHexString(destination);
+        "   " + Integer.toHexString(destination);
     }
   }
   
@@ -1047,20 +1047,20 @@ public class PPC_Disassembler implements VM_Constants {
     LK = bits(inst,31,31);
     if (SA != 0)
       {
-	SV = bits(inst,16,29);
-	String mnemonic = (LK!=0) ? "svcla" : "svca";
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+intAsHexString(SV);
+        SV = bits(inst,16,29);
+        String mnemonic = (LK!=0) ? "svcla" : "svca";
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+intAsHexString(SV);
       }
     else
       {
-	LEV = bits(inst,20,26);
-	FL1 = bits(inst,16,19);
-	FL2 = bits(inst,27,29);
-	String mnemonic = (LK!=0) ? "svcl" : "svc";
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+intAsHexString(LEV)+","+intAsHexString(FL1)+","+
-	  intAsHexString(FL2);
+        LEV = bits(inst,20,26);
+        FL1 = bits(inst,16,19);
+        FL2 = bits(inst,27,29);
+        String mnemonic = (LK!=0) ? "svcl" : "svc";
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+intAsHexString(LEV)+","+intAsHexString(FL1)+","+
+          intAsHexString(FL2);
       }
   }
   
@@ -1082,33 +1082,33 @@ public class PPC_Disassembler implements VM_Constants {
     switch(opcode_info.format)
       {
       case 0:
-	return "        ".substring(mnemonic.length()) + mnemonic;
+        return "        ".substring(mnemonic.length()) + mnemonic;
       case 1:
-	BO = bits(inst,6,10);
-	BI = bits(inst,11,15);
-	LK = bits(inst,31,31);
-	cr_field = (byte) (BI>>2);
-	branch_name = build_branch_op(BO,1 << (3 - (BI&3)),LK,0,ext_opcode);
-	if (cr_field!=0) {/* Not CR 0 ? */
-	  return "        ".substring(branch_name.length()) + branch_name +
-	    "   "+cr_field;
-	} else {
-	  return "        ".substring(branch_name.length()) + branch_name;
-	}
+        BO = bits(inst,6,10);
+        BI = bits(inst,11,15);
+        LK = bits(inst,31,31);
+        cr_field = (byte) (BI>>2);
+        branch_name = build_branch_op(BO,1 << (3 - (BI&3)),LK,0,ext_opcode);
+        if (cr_field!=0) {/* Not CR 0 ? */
+          return "        ".substring(branch_name.length()) + branch_name +
+            "   "+cr_field;
+        } else {
+          return "        ".substring(branch_name.length()) + branch_name;
+        }
       case 2:
-	BF  = bits(inst,6,10);
-	BFA = bits(inst,11,13);
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   cr"+BF+","+intAsHexString(BFA);
+        BF  = bits(inst,6,10);
+        BFA = bits(inst,11,13);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   cr"+BF+","+intAsHexString(BFA);
       case 3:
-	BT = bits(inst,6,10);
-	BA = bits(inst,11,15);
-	BB = bits(inst,16,20);
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+intAsHexString(BT)+","+intAsHexString(BA)+","+
-	  intAsHexString(BB);
+        BT = bits(inst,6,10);
+        BA = bits(inst,11,15);
+        BB = bits(inst,16,20);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+intAsHexString(BT)+","+intAsHexString(BA)+","+
+          intAsHexString(BB);
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
   
@@ -1136,23 +1136,23 @@ public class PPC_Disassembler implements VM_Constants {
       return "    Invalid opcode";
     } else {
       if (opcode == 21) { /* sri and sli are special forms of rlmni */
-	if ((ME == 32) && (MB == (31-SH_RB))) {
-	  String mnemonic = (Rc!=0) ? "sri." : "sri";
-	  return "        ".substring(mnemonic.length()) + mnemonic +
-	    "   "+rname(RA)+","+rname(RS)+","+intAsHexString(MB);
-	} else if ((MB == 0) && (SH_RB == (31-ME))) {
-	  String mnemonic = (Rc!=0) ? "sli." : "sli";
-	  return "        ".substring(mnemonic.length()) + mnemonic +
-	    "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB);
-	} else {
-	  return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-	    "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB)+","+
-	    intAsHexString(MB)+","+intAsHexString(ME) ;
-	}
+        if ((ME == 32) && (MB == (31-SH_RB))) {
+          String mnemonic = (Rc!=0) ? "sri." : "sri";
+          return "        ".substring(mnemonic.length()) + mnemonic +
+            "   "+rname(RA)+","+rname(RS)+","+intAsHexString(MB);
+        } else if ((MB == 0) && (SH_RB == (31-ME))) {
+          String mnemonic = (Rc!=0) ? "sli." : "sli";
+          return "        ".substring(mnemonic.length()) + mnemonic +
+            "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB);
+        } else {
+          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
+            "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB)+","+
+            intAsHexString(MB)+","+intAsHexString(ME) ;
+        }
       } else {
-	return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-	  "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB)+","+
-	  intAsHexString(MB)+","+intAsHexString(ME) ;
+        return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
+          "   "+rname(RA)+","+rname(RS)+","+intAsHexString(SH_RB)+","+
+          intAsHexString(MB)+","+intAsHexString(ME) ;
       }
     }
   }
@@ -1189,14 +1189,14 @@ public class PPC_Disassembler implements VM_Constants {
     switch(search_results.form) 
       {
       case MDS_FORM:
-	return decode_MDSform(inst, mnemonic);
+        return decode_MDSform(inst, mnemonic);
       case MD_FORM:
-	return decode_MDform(inst, mnemonic);
+        return decode_MDform(inst, mnemonic);
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
- 	 
+         
   /* Decode the MD instruction format */
   static String decode_MDform(int inst, String mnemonic)
   {
@@ -1207,7 +1207,7 @@ public class PPC_Disassembler implements VM_Constants {
     SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
     MB  = (inst&0x20) | bits(inst,21,25);
     return "        ".substring(mnemonic.length()) + mnemonic +
-	rname(RA) + ", " + rname(RS) + ", " + SH + ", " + MB;
+        rname(RA) + ", " + rname(RS) + ", " + SH + ", " + MB;
   }
   
   /* Decode the MDS instruction format */
@@ -1220,7 +1220,7 @@ public class PPC_Disassembler implements VM_Constants {
     RB  = bits(inst,16,20);
     MB  = (inst&0x20) | bits(inst,21,25);
     return "        ".substring(mnemonic.length()) + mnemonic +
-	rname(RA) + ", " + rname(RS) + ", " + rname(RB) + ", " + MB;
+        rname(RA) + ", " + rname(RS) + ", " + rname(RB) + ", " + MB;
   }
   
   /* Decode the A instruction format */
@@ -1245,15 +1245,15 @@ public class PPC_Disassembler implements VM_Constants {
     switch(search_results.form) 
       {
       case X_FORM:
-	return decode_Xform(inst,mnemonic,format,testkey);
+        return decode_Xform(inst,mnemonic,format,testkey);
       case XFX_FORM:
-	return decode_XFXform(inst);
+        return decode_XFXform(inst);
       case XO_FORM:
-	return decode_XOform(inst,mnemonic,format);
+        return decode_XOform(inst,mnemonic,format);
       case XS_FORM:
-	return decode_XSform(inst,mnemonic,format);
+        return decode_XSform(inst,mnemonic,format);
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
   
@@ -1275,106 +1275,106 @@ public class PPC_Disassembler implements VM_Constants {
     switch(format) 
       {
       case 0:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(RA)+","+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(RA)+","+rname(rt);
       case 1:
-	return "        ".substring(mnemonic.length()) + mnemonic;
+        return "        ".substring(mnemonic.length()) + mnemonic;
       case 2:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt);
       case 3:
-	common_opt = SPR_name(SPR);
-	if (common_opt != null) {
-	  asm_mnemonic = mnemonic.substring(0, 2) + common_opt;
-	  return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-	    "   "+rname(rt);
-	} else {/* reserved register? */
-	  return "        ".substring(mnemonic.length()) + mnemonic +
-	    "   "+intAsHexString(SPR)+","+rname(rt);
-	}
+        common_opt = SPR_name(SPR);
+        if (common_opt != null) {
+          asm_mnemonic = mnemonic.substring(0, 2) + common_opt;
+          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
+            "   "+rname(rt);
+        } else {/* reserved register? */
+          return "        ".substring(mnemonic.length()) + mnemonic +
+            "   "+intAsHexString(SPR)+","+rname(rt);
+        }
       case 4:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+rname(RB);
       case 5:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+rname(RA);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+rname(RA);
       case 6:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(RA)+","+rname(RB);
       case 7:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+rname(RA)+","+rname(RB);
       case 8:
-	if ((ext_op == 888) || (ext_op == 889)) {
-	  if (rt == RB) {
-	    String mne = (ext_op == 889) ? "mr." : "mr";
-	    return "        ".substring(mne.length()) + mne +
-	      "   "+rname(RA)+","+rname(rt);
-	  }
-	}
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(RA)+","+rname(rt)+","+rname(RB);
+        if ((ext_op == 888) || (ext_op == 889)) {
+          if (rt == RB) {
+            String mne = (ext_op == 889) ? "mr." : "mr";
+            return "        ".substring(mne.length()) + mne +
+              "   "+rname(RA)+","+rname(rt);
+          }
+        }
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(RA)+","+rname(rt)+","+rname(RB);
       case 9:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(RA)+","+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(RA)+","+rname(rt);
       case 10:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+rname(RA)+","+intAsHexString(NB);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+rname(RA)+","+intAsHexString(NB);
       case 11:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(RA)+","+rname(rt)+","+intAsHexString(SH);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(RA)+","+rname(rt)+","+intAsHexString(SH);
       case 12:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   fr"+FRS+","+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   fr"+FRS+","+rname(RA)+","+rname(RB);
       case 13:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   fr"+FRT;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   fr"+FRT;
       case 14:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   cr"+BF+","+intAsHexString(BFA);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   cr"+BF+","+intAsHexString(BFA);
       case 15:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   cr"+BF+","+intAsHexString(I);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   cr"+BF+","+intAsHexString(I);
       case 16:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+intAsHexString(BT);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+intAsHexString(BT);
       case 17:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+intAsHexString(SR)+","+rname(rt);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+intAsHexString(SR)+","+rname(rt);
       case 18:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+intAsHexString(SR);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+intAsHexString(SR);
       case 19:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   cr"+BF+",fr"+FRA+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   cr"+BF+",fr"+FRA+",fr"+FRB;
       case 20:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   cr"+BF+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   cr"+BF+",fr"+FRB;
       case 21:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   fr"+FRT+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   fr"+FRT+",fr"+FRB;
       case 22:
         int L = inst & 0x00200000;
-	return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
-	  "   cr"+BF+","+rname(RA)+","+rname(RB);
+        return "       ".substring(mnemonic.length()) + mnemonic + ((L==0)?"W":"D") +
+          "   cr"+BF+","+rname(RA)+","+rname(RB);
       case 23:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   cr"+BF;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   cr"+BF;
       case 24:
-	common_opt = TO_ext(TO);
-	if (common_opt != null) {
-	  asm_mnemonic = "td" + common_opt;
-	  return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
-	    "   "+rname(RA)+","+rname(RB);
-	} else {
-	  return "        ".substring(mnemonic.length()) + mnemonic +
-	    "   "+TO+","+rname(RA)+","+rname(RB);
-	}
+        common_opt = TO_ext(TO);
+        if (common_opt != null) {
+          asm_mnemonic = "td" + common_opt;
+          return "        ".substring(asm_mnemonic.length()) + asm_mnemonic +
+            "   "+rname(RA)+","+rname(RB);
+        } else {
+          return "        ".substring(mnemonic.length()) + mnemonic +
+            "   "+TO+","+rname(RA)+","+rname(RB);
+        }
       case 25:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+rname(RA)+","+rname(RB);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+rname(RA)+","+rname(RB);
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
   
@@ -1404,18 +1404,18 @@ public class PPC_Disassembler implements VM_Constants {
     switch(format)
       {
       case 0:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+rname(RA);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+rname(RA);
       case 1:
       case 2:
-	RB = bits(inst,16,20);
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   "+rname(rt)+","+rname(RA)+","+rname(RB);
+        RB = bits(inst,16,20);
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   "+rname(rt)+","+rname(RA)+","+rname(RB);
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
- 	 
+         
   /* Decode the XS instruction format */
   static String decode_XSform(int inst, String mnemonic, int format)
   {
@@ -1425,7 +1425,7 @@ public class PPC_Disassembler implements VM_Constants {
     RA  = bits(inst,11,15);
     SH  = ((inst&0x2) >> 4) | bits(inst,16,20);
     return "        ".substring(mnemonic.length()) + mnemonic +
-	rname(RA) + ", " + rname(RS) + ", " + SH ;
+        rname(RA) + ", " + rname(RS) + ", " + SH ;
   }
 
   
@@ -1451,9 +1451,9 @@ public class PPC_Disassembler implements VM_Constants {
     switch(search_results.form) 
       {
       case A_FORM:
-	return decode_Aform(inst,mnemonic,format);
+        return decode_Aform(inst,mnemonic,format);
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
     }
 
@@ -1470,8 +1470,8 @@ public class PPC_Disassembler implements VM_Constants {
     
     if (search_results == null)
       {
-	testkey = bits(inst,26,31);
-	search_results = searchXX(testkey, Aform);
+        testkey = bits(inst,26,31);
+        search_results = searchXX(testkey, Aform);
       }
     
     if (search_results == null) {
@@ -1483,13 +1483,13 @@ public class PPC_Disassembler implements VM_Constants {
     switch(search_results.form) 
       {
       case X_FORM:
-	return decode_Xform(inst,mnemonic,format,testkey);
+        return decode_Xform(inst,mnemonic,format,testkey);
       case XFL_FORM:
-	return decode_XFLform(inst);
+        return decode_XFLform(inst);
       case A_FORM:
-	return decode_Aform(inst,mnemonic,format);
+        return decode_Aform(inst,mnemonic,format);
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
   
@@ -1505,11 +1505,11 @@ public class PPC_Disassembler implements VM_Constants {
     if (FLM == 0xff) {
       String mnemonic = (Rc!=0) ? "mtfs." : "mtfs";
       return "        ".substring(mnemonic.length()) + mnemonic +
-	"   fr"+FRB;
+        "   fr"+FRB;
     } else {
       String mnemonic = (Rc!=0) ? "mtfsf." : "mtfsf";
       return "        ".substring(mnemonic.length()) + mnemonic +
-	"   "+intAsHexString(FLM)+",fr"+FRB;
+        "   "+intAsHexString(FLM)+",fr"+FRB;
     }
   }
   
@@ -1527,16 +1527,16 @@ public class PPC_Disassembler implements VM_Constants {
       {
 
       case 0:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   fr"+FRT+",fr"+FRA+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   fr"+FRT+",fr"+FRA+",fr"+FRB;
       case 1:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   fr"+FRT+",fr"+FRA+",fr"+FRC;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   fr"+FRT+",fr"+FRA+",fr"+FRC;
       case 2:
-	return "        ".substring(mnemonic.length()) + mnemonic +
-	  "   fr"+FRT+",fr"+FRA+",fr"+FRC+",fr"+FRB;
+        return "        ".substring(mnemonic.length()) + mnemonic +
+          "   fr"+FRT+",fr"+FRA+",fr"+FRC+",fr"+FRB;
       default:
-	return "    Invalid opcode";
+        return "    Invalid opcode";
       }
   }
   
@@ -1553,16 +1553,16 @@ public class PPC_Disassembler implements VM_Constants {
     c = "b";
     if ((br_opt & 4) != 0) {/* Don't decrement count register */
       if ((br_opt & 16) != 0) {
-	uncond = 1;
+        uncond = 1;
       } else if ((br_opt & 8) != 0) {
-	pos_cond = 1;
+        pos_cond = 1;
       } 
     } else {/* Decrement count register */
       dec_ctr = 1;
       if ((br_opt & 2)!=0) {
-	ctr_zero = 1;
+        ctr_zero = 1;
       } else if ((br_opt & 8) != 0) {
-	pos_cond = 1;
+        pos_cond = 1;
       } 
     }
     if (dec_ctr!=0) {
@@ -1571,19 +1571,19 @@ public class PPC_Disassembler implements VM_Constants {
     }
     if (uncond==0) {
       if (pos_cond!=0) {
-	switch(cr_bit) {
-	case CR_LT:  c += "lt"; break;
-	case CR_GT:  c += "gt"; break;
-	case CR_EQ:  c += "eq"; break;
-	case CR_SO:  c += "so"; break;
-	}
+        switch(cr_bit) {
+        case CR_LT:  c += "lt"; break;
+        case CR_GT:  c += "gt"; break;
+        case CR_EQ:  c += "eq"; break;
+        case CR_SO:  c += "so"; break;
+        }
       } else {
-	switch(cr_bit) {
-	case CR_LT:  c += "ge"; break;
-	case CR_GT:  c += "le"; break;
-	case CR_EQ:  c += "ne"; break;
-	case CR_SO:  c += "ns"; break;
-	}
+        switch(cr_bit) {
+        case CR_LT:  c += "ge"; break;
+        case CR_GT:  c += "le"; break;
+        case CR_EQ:  c += "ne"; break;
+        case CR_SO:  c += "ns"; break;
+        }
       }
     }
     if (ext_op == 16) {
@@ -1591,7 +1591,7 @@ public class PPC_Disassembler implements VM_Constants {
     } else if (ext_op == 528)  {
       c += 'c';
       if (uncond!=0) {/* Can't confuse with br conditional */
-	c += "tr";
+        c += "tr";
       }
     }
     if (update_link!=0)
@@ -1620,7 +1620,7 @@ public class PPC_Disassembler implements VM_Constants {
     case 19: /* possibly branch register */
       ext_op = bits(inst,21,30);
       if ((ext_op != 16) && (ext_op != 528)) {
-	link = 0;
+        link = 0;
       } 
       break;
     default: /* definitely not a branch */
@@ -1648,9 +1648,9 @@ public class PPC_Disassembler implements VM_Constants {
     switch (opcode) {
     case 16: /* unconditional branch */
       if (link==1)
-	return true;
+        return true;
       else
-	return false;
+        return false;
     }
     
     return false;

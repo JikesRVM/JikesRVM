@@ -57,10 +57,10 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
     boolean success = super.insert(_priority, _data);
     if (success) {
       try {
-	notifyAll();
+        notifyAll();
       } catch (Exception e) {
-	// TODO: should we exit or something more dramatic?
-	VM.sysWrite("Exception occurred while notifying that element was inserted!\n");
+        // TODO: should we exit or something more dramatic?
+        VM.sysWrite("Exception occurred while notifying that element was inserted!\n");
       }
     }
     return success;
@@ -76,12 +76,12 @@ class VM_BlockingPriorityQueue extends VM_PriorityQueue {
     // While the queue is empty, sleep until notified that an object has been enqueued.
     while (isEmpty()) {
       try {
-	callback.aboutToWait();
-	wait();
-	callback.doneWaiting();
+        callback.aboutToWait();
+        wait();
+        callback.doneWaiting();
       } catch (InterruptedException e) {
-	// TODO: should we exit or something more dramatic?
-	VM.sysWrite("Interrupted Exception occurred!\n");
+        // TODO: should we exit or something more dramatic?
+        VM.sysWrite("Interrupted Exception occurred!\n");
       }
     }
 

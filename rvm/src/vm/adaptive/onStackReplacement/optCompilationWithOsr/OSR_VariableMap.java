@@ -61,7 +61,7 @@ public final class OSR_VariableMap {
       buf.append("empty"); 
     else {
       for (int i=0, n=list.size(); i<n; i++) {
-	OSR_VariableMapElement ptr = (OSR_VariableMapElement)list.get(i); 
+        OSR_VariableMapElement ptr = (OSR_VariableMapElement)list.get(i); 
         buf.append(ptr.toString());
       }
     }

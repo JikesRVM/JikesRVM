@@ -28,10 +28,10 @@ class ArrayFunctions {
   static byte    byteArray[]    = {2, 4, 6, 8, 10, 12, 14, 16, 18, 20};
   static char    charArray[]    = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'};
   static long    longArray[]    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
-				   0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
+                                   0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
   static double  doubleArray[]  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
   static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, 
-				   (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
+                                   (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
   
 
   public static native void setVerboseOff();
@@ -99,8 +99,8 @@ class ArrayFunctions {
       booleanArray[i] = false;
     boolean [] returnArray = testBooleanArrayElements(booleanArray, 0);      
     if (! (returnArray[0] && !returnArray[1] && returnArray[2] && !returnArray[3] &&
-	   returnArray[4] && !returnArray[5] && returnArray[6] && !returnArray[7] &&
-	   returnArray[8] && !returnArray[9]))
+           returnArray[4] && !returnArray[5] && returnArray[6] && !returnArray[7] &&
+           returnArray[8] && !returnArray[9]))
       arrayFlag = false;
 
     // second part: update and release the copy
@@ -108,8 +108,8 @@ class ArrayFunctions {
       booleanArray[i] = false;
     returnArray = testBooleanArrayElements(booleanArray, 1);
     if (! (!returnArray[0] && returnArray[1] && !returnArray[2] && returnArray[3] &&
-	   !returnArray[4] && returnArray[5] && !returnArray[6] && returnArray[7] &&
-	   !returnArray[8] && returnArray[9]))
+           !returnArray[4] && returnArray[5] && !returnArray[6] && returnArray[7] &&
+           !returnArray[8] && returnArray[9]))
       arrayFlag = false;
 
     // third part: release the copy with no update
@@ -117,8 +117,8 @@ class ArrayFunctions {
       booleanArray[i] = true;
     returnArray = testBooleanArrayElements(booleanArray, 2);      
     if (! (returnArray[0] && returnArray[1] && returnArray[2] && returnArray[3] &&
-	   returnArray[4] && returnArray[5] && returnArray[6] && returnArray[7] &&
-	   returnArray[8] && returnArray[9]))
+           returnArray[4] && returnArray[5] && returnArray[6] && returnArray[7] &&
+           returnArray[8] && returnArray[9]))
       arrayFlag = false;
 
     return arrayFlag;
@@ -136,7 +136,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((byte) (i+4))) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // second part: update and release the copy
@@ -146,7 +146,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((byte) (i+9)))
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // third part: release the copy with no update
@@ -156,7 +156,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=(byte) i ) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     return arrayFlag;
@@ -174,7 +174,7 @@ class ArrayFunctions {
     for (int i=0; i<returnIntArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnIntArray[i]);
       if (returnIntArray[i]!=i+1) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // second part: update and release the copy
@@ -184,7 +184,7 @@ class ArrayFunctions {
     for (int i=0; i<returnIntArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnIntArray[i]);
       if (returnIntArray[i]!=i+3) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // third part: release the copy with no update
@@ -194,7 +194,7 @@ class ArrayFunctions {
     for (int i=0; i<returnIntArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnIntArray[i]);
       if (returnIntArray[i]!=i) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     return arrayFlag;
@@ -212,7 +212,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=i+7) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // second part: update and release the copy
@@ -222,7 +222,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=i+15) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // third part: release the copy with no update
@@ -232,7 +232,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=i) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     return arrayFlag;
@@ -248,8 +248,8 @@ class ArrayFunctions {
       charArray[i] = 'a';
     char [] returnArray = testCharArrayElements(charArray, 0);      
     if (returnArray[0]!='a' || returnArray[1]!='b' || returnArray[2]!='c' || returnArray[3]!='d' ||
-	returnArray[4]!='e' || returnArray[5]!='f' || returnArray[6]!='g' || returnArray[7]!='h' ||
-	returnArray[8]!='i' || returnArray[9]!='j' )
+        returnArray[4]!='e' || returnArray[5]!='f' || returnArray[6]!='g' || returnArray[7]!='h' ||
+        returnArray[8]!='i' || returnArray[9]!='j' )
       arrayFlag = false;
 
     // second part: update and release the copy
@@ -257,8 +257,8 @@ class ArrayFunctions {
       charArray[i] = 'b';
     returnArray = testCharArrayElements(charArray, 1);
     if (returnArray[0]!='j' || returnArray[1]!='a' || returnArray[2]!='l' || returnArray[3]!='e' ||
-	returnArray[4]!='p' || returnArray[5]!='e' || returnArray[6]!='n' || returnArray[7]!='o' ||
-	returnArray[8]!='v' || returnArray[9]!='m' )
+        returnArray[4]!='p' || returnArray[5]!='e' || returnArray[6]!='n' || returnArray[7]!='o' ||
+        returnArray[8]!='v' || returnArray[9]!='m' )
       arrayFlag = false;
 
     // third part: release the copy with no update
@@ -268,7 +268,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!='c') 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     return arrayFlag;
@@ -286,7 +286,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((long) i + 10) )
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // second part: update and release the copy
@@ -296,7 +296,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((long) i + 21)) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // third part: release the copy with no update
@@ -306,7 +306,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((long) i) )
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     return arrayFlag;
@@ -324,7 +324,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((float)i + (float)16.0)) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // second part: update and release the copy
@@ -334,7 +334,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((float)i + (float)33.0)) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // third part: release the copy with no update
@@ -344,7 +344,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=(float) i )
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     return arrayFlag;
@@ -362,7 +362,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" first:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((double) i + 13.0)) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // second part: update and release the copy
@@ -372,7 +372,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" second:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!=((double) i + 27.0) )
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     // third part: release the copy with no update
@@ -382,7 +382,7 @@ class ArrayFunctions {
     for (int i=0; i<returnArray.length; i++) {
       // System.out.println(" third:  " + i + " = " + returnArray[i]);
       if (returnArray[i]!= (double) i ) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
 
     return arrayFlag;
@@ -406,9 +406,9 @@ class ArrayFunctions {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
     
     /**
@@ -424,50 +424,50 @@ class ArrayFunctions {
     returnObject = accessNewIntArray(31);
     // printVerbose("accessNewIntArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((int[]) returnObject).length==31) && returnObject.getClass().getName().equals("[I"), 
-	      "NewIntArray");
+              "NewIntArray");
     
     returnObject = accessNewBooleanArray(31);
     // printVerbose("accessNewBooleanArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((boolean[]) returnObject).length==31) && returnObject.getClass().getName().equals("[Z"),
-	      "NewBooleanArray");
+              "NewBooleanArray");
 
     returnObject = accessNewShortArray(31);
     // printVerbose("accessNewShortArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((short[]) returnObject).length==31) && returnObject.getClass().getName().equals("[S"), 
-	      "NewShortArray");
+              "NewShortArray");
     
     returnObject = accessNewByteArray(31);
     // printVerbose("accessNewByteArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((byte[]) returnObject).length==31) && returnObject.getClass().getName().equals("[B"), 
-	      "NewByteArray");
+              "NewByteArray");
     
     returnObject = accessNewCharArray(31);
     // printVerbose("accessNewCharArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((char[]) returnObject).length==31) && returnObject.getClass().getName().equals("[C"), 
-	      "NewCharArray");
+              "NewCharArray");
     
     returnObject = accessNewLongArray(31);
     // printVerbose("accessNewLongArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((long[]) returnObject).length==31) && returnObject.getClass().getName().equals("[J"), 
-	      "NewLongArray");
+              "NewLongArray");
     
     returnObject = accessNewFloatArray(31);
     // printVerbose("accessNewFloatArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((float[]) returnObject).length==31) && returnObject.getClass().getName().equals("[F"), 
-	      "NewFloatArray");
+              "NewFloatArray");
     
     returnObject = accessNewDoubleArray(31);
     // printVerbose("accessNewDoubleArray returns: " + returnObject.getClass().getName());
     checkTest(0, (((double[]) returnObject).length==31) && returnObject.getClass().getName().equals("[D"), 
-	      "NewDoubleArray");
+              "NewDoubleArray");
     
 
     try {
       returnObject = accessNewObjectArray(31, Class.forName("java.lang.String"), null);
       // printVerbose("accessNewObjectArray returns: " + returnObject.getClass().getName());
       checkTest(0, (((Object[]) returnObject).length==31) && 
-		returnObject.getClass().getName().equals("[Ljava.lang.String;"), 
-		"NewObjectArray");
+                returnObject.getClass().getName().equals("[Ljava.lang.String;"), 
+                "NewObjectArray");
     }
     catch (ClassNotFoundException e) {
       System.out.println("Cannot run accessNewObjectArray");
@@ -481,7 +481,7 @@ class ArrayFunctions {
     boolean arrayFlag = true;
     for (int i=0; i<returnIntArray.length; i++) {
       if (returnIntArray[i]!=i+2) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
     checkTest(0, arrayFlag, "Get/SetIntArrayRegion");
 
@@ -489,11 +489,11 @@ class ArrayFunctions {
     boolean [] returnBooleanArray = testBooleanArrayRegion(booleanArray);
     arrayFlag = true;
     if (returnBooleanArray[0] || returnBooleanArray[1] || 
-	returnBooleanArray[4] || returnBooleanArray[5] || 
-	returnBooleanArray[8] || returnBooleanArray[9])
+        returnBooleanArray[4] || returnBooleanArray[5] || 
+        returnBooleanArray[8] || returnBooleanArray[9])
       arrayFlag = false;
     if (!returnBooleanArray[2] || !returnBooleanArray[3] ||
-	!returnBooleanArray[6] || !returnBooleanArray[7])
+        !returnBooleanArray[6] || !returnBooleanArray[7])
       arrayFlag = false;
     checkTest(0, arrayFlag, "Get/SetBooleanArrayRegion");
 
@@ -502,7 +502,7 @@ class ArrayFunctions {
     arrayFlag = true;
     for (int i=0; i<returnShortArray.length; i++) {
       if (returnShortArray[i]!=((i+1)*2)) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
     checkTest(0, arrayFlag, "Get/SetShortArrayRegion");
 
@@ -511,7 +511,7 @@ class ArrayFunctions {
     arrayFlag = true;
     for (int i=0; i<returnByteArray.length; i++) {
       if (returnByteArray[i]!=(i*2+3)) 
-	arrayFlag = false;
+        arrayFlag = false;
     }
     checkTest(0, arrayFlag, "Get/SetByteArrayRegion");
 
@@ -519,15 +519,15 @@ class ArrayFunctions {
     char[]   returnCharArray = testCharArrayRegion(charArray);
     arrayFlag = true;
     if (returnCharArray[0]!='j' || 
-	returnCharArray[1]!='a' ||
-	returnCharArray[2]!='l' ||
-	returnCharArray[3]!='a' ||
-	returnCharArray[4]!='p' ||
-	returnCharArray[5]!='e' ||
-	returnCharArray[6]!='n' ||
-	returnCharArray[7]!='o' ||
-	returnCharArray[8]!='v' ||
-	returnCharArray[9]!='m' )
+        returnCharArray[1]!='a' ||
+        returnCharArray[2]!='l' ||
+        returnCharArray[3]!='a' ||
+        returnCharArray[4]!='p' ||
+        returnCharArray[5]!='e' ||
+        returnCharArray[6]!='n' ||
+        returnCharArray[7]!='o' ||
+        returnCharArray[8]!='v' ||
+        returnCharArray[9]!='m' )
       arrayFlag = false;
     checkTest(0, arrayFlag, "Get/SetCharArrayRegion");
 
@@ -536,10 +536,10 @@ class ArrayFunctions {
     arrayFlag = true;
     for (int i=0; i<returnLongArray.length; i++) {
       if (returnLongArray[i]!=0x80001000+i) {
-	printVerbose("Get/SetLongArrayRegion returns: " + i + " = " + 
-		     Integer.toHexString((int) returnLongArray[i]>>32) + "  " +
-		     Integer.toHexString((int) returnLongArray[i]));
-	arrayFlag = false;
+        printVerbose("Get/SetLongArrayRegion returns: " + i + " = " + 
+                     Integer.toHexString((int) returnLongArray[i]>>32) + "  " +
+                     Integer.toHexString((int) returnLongArray[i]));
+        arrayFlag = false;
       }
     }
     checkTest(0, arrayFlag, "Get/SetLongArrayRegion");
@@ -549,9 +549,9 @@ class ArrayFunctions {
     arrayFlag = true;
     for (int i=0; i<returnDoubleArray.length; i++) {
       if (returnDoubleArray[i]!=(115.1 + i)) {
-	printVerbose("Get/SetDoubleArrayRegion returns: " + i + " = " + 
-		     returnDoubleArray[i]);
-	arrayFlag = false;
+        printVerbose("Get/SetDoubleArrayRegion returns: " + i + " = " + 
+                     returnDoubleArray[i]);
+        arrayFlag = false;
       }
     }
     checkTest(0, arrayFlag, "Get/SetDoubleArrayRegion");
@@ -561,9 +561,9 @@ class ArrayFunctions {
     arrayFlag = true;
     for (int i=0; i<returnFloatArray.length; i++) {
       if (returnFloatArray[i]!=((float) 115.1 + (float) i)) {
-	printVerbose("Get/SetFloatArrayRegion returns: " + i + " = " + 
-		     returnFloatArray[i]);
-	arrayFlag = false;
+        printVerbose("Get/SetFloatArrayRegion returns: " + i + " = " + 
+                     returnFloatArray[i]);
+        arrayFlag = false;
       }
     }
     checkTest(0, arrayFlag, "Get/SetFloatArrayRegion");

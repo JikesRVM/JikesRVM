@@ -43,7 +43,7 @@ public final class VM_NativeMethod extends VM_Method {
    * @param exceptionTypes exceptions thrown by this method.
    */
   VM_NativeMethod(VM_Class declaringClass, VM_MemberReference memRef,
-		  int modifiers, VM_TypeReference[] exceptionTypes) {
+                  int modifiers, VM_TypeReference[] exceptionTypes) {
     super(declaringClass, memRef, modifiers, exceptionTypes);
   }
 
@@ -57,7 +57,7 @@ public final class VM_NativeMethod extends VM_Method {
       return VM_Entrypoints.unimplementedNativeMethodMethod.getCurrentCompiledMethod();
     } else {
       if (VM.writingBootImage) {
-	return VM_BootImageCompiler.compile(this);
+        return VM_BootImageCompiler.compile(this);
       } else {
         return VM_RuntimeCompiler.compile(this);
       }
@@ -153,19 +153,19 @@ public final class VM_NativeMethod extends VM_Method {
 
         if (lib!=null && symbolAddress==VM_Address.zero()) {
           symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
-	  if (symbolAddress != VM_Address.zero()) {
-	      nativeProcedureName = nativeProcedureNameWithSigniture;
-	      break;
-	  }
-	}
+          if (symbolAddress != VM_Address.zero()) {
+              nativeProcedureName = nativeProcedureNameWithSigniture;
+              break;
+          }
+        }
 
         if (lib != null && symbolAddress==VM_Address.zero()) {
           symbolAddress = lib.getSymbol(nativeProcedureName);
-	  if (symbolAddress != VM_Address.zero()) {
-	      nativeProcedureName = nativeProcedureName;
-	      break;
-	  }
-	}
+          if (symbolAddress != VM_Address.zero()) {
+              nativeProcedureName = nativeProcedureName;
+              break;
+          }
+        }
       }
     }
 
@@ -175,7 +175,7 @@ public final class VM_NativeMethod extends VM_Method {
     } else {
       //-#if RVM_FOR_LINUX || RVM_FOR_OSX
       // both intel and linux use direct address
-      nativeIP = symbolAddress;		// Intel use direct branch address
+      nativeIP = symbolAddress;         // Intel use direct branch address
       nativeTOC = VM_Address.zero();                    // not used
       //-#else
       nativeIP  = VM_Magic.getMemoryAddress(symbolAddress);     // AIX use a triplet linkage

@@ -21,7 +21,7 @@ public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator impleme
   }
 
   public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, 
-		     VM_Address framePtr) {
+                     VM_Address framePtr) {
     this.framePtr = framePtr;
   }
   

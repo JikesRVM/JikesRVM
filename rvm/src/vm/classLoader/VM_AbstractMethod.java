@@ -28,7 +28,7 @@ public final class VM_AbstractMethod extends VM_Method {
    * @param exceptionTypes exceptions thrown by this method.
    */
   VM_AbstractMethod(VM_Class declaringClass, VM_MemberReference memRef,
-		    int modifiers, VM_TypeReference[] exceptionTypes) {
+                    int modifiers, VM_TypeReference[] exceptionTypes) {
     super(declaringClass, memRef, modifiers, exceptionTypes);
   }
 

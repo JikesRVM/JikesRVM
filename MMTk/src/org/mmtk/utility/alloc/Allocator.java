@@ -51,7 +51,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
   }
 
   abstract protected VM_Address allocSlowOnce (boolean isScalar, int bytes,
-					       boolean inGC);
+                                               boolean inGC);
 
   public VM_Address allocSlow(boolean isScalar, int bytes) 
     throws VM_PragmaNoInline { 
@@ -69,7 +69,7 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
     for (int i=0; i<MAX_RETRY; i++) {
       VM_Address result = current.allocSlowOnce(isScalar, bytes, inGC);
       if (!result.isZero())
-	return result;
+        return result;
       current = BasePlan.getOwnAllocator(current);
     }
     Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");

@@ -20,7 +20,7 @@ class FixedLive {
     if (args.length == 0)
       System.out.println("No argument.  Assuming base");
     if (args[0].compareTo("opt") == 0 ||
-	args[0].compareTo("perf") == 0)
+        args[0].compareTo("perf") == 0)
       base = false;
     liveSize = base ? 30 : 100;
     exclude = base ? 0 : 2;
@@ -43,7 +43,7 @@ class FixedLive {
   static int sampleCount;
 
   public static void addSample(double traceElapsed, double allocElapsed,
-			       double traceRate, double allocRate) {
+                               double traceRate, double allocRate) {
     sampleCount++;
     System.out.print("GC occurred (" + traceElapsed + " s) after " + allocElapsed + "s : tracing rate = " + traceRate + " Mb/s");
     System.out.print("   allocation rate = " + allocRate + " Mb/s");
@@ -137,14 +137,14 @@ class FixedLive {
       double allocElapsed = (start - last) / 1000.0;
       double totalElapsed = traceElapsed + allocElapsed;
       if (traceElapsed > 0.1) {
-	double traceRate = chop(liveSize / traceElapsed); // Mb/s
-	double allocRate = chop((allocatedSize / 1e6) / allocElapsed); // Mb/s
-	addSample(traceElapsed, allocElapsed, traceRate, allocRate);
-	allocatedSize = 0;
-	last = end;
+        double traceRate = chop(liveSize / traceElapsed); // Mb/s
+        double allocRate = chop((allocatedSize / 1e6) / allocElapsed); // Mb/s
+        addSample(traceElapsed, allocElapsed, traceRate, allocRate);
+        allocatedSize = 0;
+        last = end;
       }
       if (0.001 * (end - firstStart) + totalElapsed > maxTime)
-	break;
+        break;
     }
     showResults();
   }

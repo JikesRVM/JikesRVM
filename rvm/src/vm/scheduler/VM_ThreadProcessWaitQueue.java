@@ -126,22 +126,22 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
       // that is still being dispatched on another virtual processor.
       if (!thread.beingDispatched) {
 
-	// Was the thread interrupted?
-	if (thread.externalInterrupt != null) {
-	  // Inform VM_Thread.morph() to throw the InterruptedException.
-	  thread.throwInterruptWhenScheduled = true;
-	  ++numInterrupted;
-	}
+        // Was the thread interrupted?
+        if (thread.externalInterrupt != null) {
+          // Inform VM_Thread.morph() to throw the InterruptedException.
+          thread.throwInterruptWhenScheduled = true;
+          ++numInterrupted;
+        }
 
-	if (numInterrupted == 0) {
-	  // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData
-	  thread.waitData.accept(myDowncaster);
-	  VM_ThreadProcessWaitData waitData = myDowncaster.waitData;
-	  if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
+        if (numInterrupted == 0) {
+          // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData
+          thread.waitData.accept(myDowncaster);
+          VM_ThreadProcessWaitData waitData = myDowncaster.waitData;
+          if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
-	  // Add pid to array of pids to query
-	  pidArray[numPids] = waitData.pid;
-	}
+          // Add pid to array of pids to query
+          pidArray[numPids] = waitData.pid;
+        }
 
       } // !thread.beingDispatched
 
@@ -158,8 +158,8 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
 
     // Call sysWaitPids() to see which (if any) have finished
     VM_SysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray),
-			   VM_Magic.objectAsAddress(exitStatusArray),
-			   numPids);
+                           VM_Magic.objectAsAddress(exitStatusArray),
+                           numPids);
 
     waitPidLock.unlock();
 
@@ -169,13 +169,13 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     thread = head;
     while (thread != null) {
       if (pidArray[numPids] == PROCESS_FINISHED) {
-	// Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData
-	thread.waitData.accept(myDowncaster);
-	VM_ThreadProcessWaitData waitData = myDowncaster.waitData;
-	if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
+        // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData
+        thread.waitData.accept(myDowncaster);
+        VM_ThreadProcessWaitData waitData = myDowncaster.waitData;
+        if (VM.VerifyAssertions) VM._assert(waitData == thread.waitData);
 
-	waitData.finished = true;
-	waitData.exitStatus = exitStatusArray[numPids];
+        waitData.finished = true;
+        waitData.exitStatus = exitStatusArray[numPids];
       }
 
       ++numPids;

@@ -97,15 +97,15 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       //VM.sysWrite("> " + ir.method + "\n");
       
       if (ir.hasReachableExceptionHandlers()) {
-	//VM.sysWrite("has exceptionhandlers\n");
-	dont = true;
+        //VM.sysWrite("has exceptionhandlers\n");
+        dont = true;
       }
       if (OPT_GCP.tooBig(ir)) {
-	dont = true;
+        dont = true;
       }
       if (dont) {
-	ir.options.SSA = false;
-	return;
+        ir.options.SSA = false;
+        return;
       }
       ir.desiredSSAOptions = new OPT_SSAOptions();
       // register in the IR the SSA properties we need for GCP
@@ -113,7 +113,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setScalarsOnly(true);
         ir.desiredSSAOptions.setBackwards(false);
         ir.desiredSSAOptions.setInsertUsePhis(false);
-	ir.desiredSSAOptions.setInsertPEIDeps(false);
+        ir.desiredSSAOptions.setInsertPEIDeps(false);
         ir.desiredSSAOptions.setHeapTypes(null);
       } 
       else {
@@ -121,7 +121,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
         ir.desiredSSAOptions.setInsertUsePhis(true);
-	ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.LICM_IGNORE_PEI);
+        ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.LICM_IGNORE_PEI);
         ir.desiredSSAOptions.setHeapTypes(null);
       }
     }
@@ -157,23 +157,23 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       //VM.sysWrite("< " + ir.method + "\n");
       // register in the IR the SSA properties GCP preserves
       if (ir != null && !OPT_GCP.tooBig(ir)
-	  && !ir.hasReachableExceptionHandlers()
-	  && ir.actualSSAOptions != null) {
-	if (ir.IRStage == ir.LIR) {
-	  ir.actualSSAOptions.setScalarsOnly(true);
-	  ir.actualSSAOptions.setBackwards(false);
-	  ir.actualSSAOptions.setInsertUsePhis(false);
-	  ir.actualSSAOptions.setInsertPEIDeps(false);
-	  ir.actualSSAOptions.setHeapTypes(null);
-	}
-	else {
-	  // HIR options 
-	  ir.actualSSAOptions.setScalarsOnly(false);
-	  ir.actualSSAOptions.setBackwards(true);
-	  ir.actualSSAOptions.setInsertUsePhis(true);
-	  ir.actualSSAOptions.setInsertPEIDeps(true);
-	  ir.actualSSAOptions.setHeapTypes(null);
-	}
+          && !ir.hasReachableExceptionHandlers()
+          && ir.actualSSAOptions != null) {
+        if (ir.IRStage == ir.LIR) {
+          ir.actualSSAOptions.setScalarsOnly(true);
+          ir.actualSSAOptions.setBackwards(false);
+          ir.actualSSAOptions.setInsertUsePhis(false);
+          ir.actualSSAOptions.setInsertPEIDeps(false);
+          ir.actualSSAOptions.setHeapTypes(null);
+        }
+        else {
+          // HIR options 
+          ir.actualSSAOptions.setScalarsOnly(false);
+          ir.actualSSAOptions.setBackwards(true);
+          ir.actualSSAOptions.setInsertUsePhis(true);
+          ir.actualSSAOptions.setInsertPEIDeps(true);
+          ir.actualSSAOptions.setHeapTypes(null);
+        }
       }
     }
   }
@@ -183,8 +183,8 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
     for (int i = inst.getNumberOfOperands() - 1; i >= 0;  --i) {
       OPT_Operand op = inst.getOperand(i);
       if (op instanceof OPT_RegisterOperand)
-	  if (op.asRegister().type.isWordType() ||
-	      op.asRegister().register.isPhysical()) return true;
+          if (op.asRegister().type.isWordType() ||
+              op.asRegister().register.isPhysical()) return true;
     }
     return false;
   }  

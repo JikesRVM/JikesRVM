@@ -74,8 +74,8 @@ public:
     // Free array and strings, if allocated
     if (array != 0) {
       for (int i = 0; i < numStrings; ++i) {
-	if (array[i] != 0)
-	  free(array[i]);
+        if (array[i] != 0)
+          free(array[i]);
       }
       free(array);
     }
@@ -255,9 +255,9 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
     if (dirPath.get() != 0) {
       if (chdir(dirPath.get()) != 0) {
 #ifdef DEBUG
-	fprintf(stderr, "chdir() failed: %s\n", strerror(errno));
+        fprintf(stderr, "chdir() failed: %s\n", strerror(errno));
 #endif
-	exit(EXIT_STATUS_BAD_WORKING_DIR);
+        exit(EXIT_STATUS_BAD_WORKING_DIR);
       }
     }
 
@@ -281,8 +281,8 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
       fprintf(stderr, "Current environment:\n");
       char **p = environ;
       while (*p != 0 ) {
-	fprintf(stderr, "\t%s\n", *p);
-	++p;
+        fprintf(stderr, "\t%s\n", *p);
+        ++p;
       }
     }
 #endif
@@ -314,8 +314,8 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
      *  but is not executable, the return status is 126.¨
      * We shall adopt those customs here. --Steve Augart*/
     if (errno == ENOENT || errno == ENOTDIR)
-	exit(127);
-    exit(126);			// couldn't be executed for some other reason.
+        exit(127);
+    exit(126);                  // couldn't be executed for some other reason.
   } else if (fid > 0) {
     // parent
 
@@ -327,9 +327,9 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 #endif
 
     // Close unused ends of pipes
-    close(inputPipe[INPUT]);	// input side of child's stdin
-    close(outputPipe[OUTPUT]);	// output side of child's stdout
-    close(errorPipe[OUTPUT]);	// output side of child's stderr
+    close(inputPipe[INPUT]);    // input side of child's stdin
+    close(outputPipe[OUTPUT]);  // output side of child's stdout
+    close(errorPipe[OUTPUT]);   // output side of child's stderr
 
     // Note: memory for programName, argv, and envp will be cleaned
     // up automatically

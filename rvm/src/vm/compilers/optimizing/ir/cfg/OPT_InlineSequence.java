@@ -85,8 +85,8 @@ public final class OPT_InlineSequence {
    * @param bcIndex bytecode index of call site
    */
   OPT_InlineSequence(VM_NormalMethod method,
-		     OPT_InlineSequence caller,
-		     int bcIndex) {
+                     OPT_InlineSequence caller,
+                     int bcIndex) {
     this.method = method;
     this.caller = caller;
     this.bcIndex = bcIndex;
@@ -101,8 +101,8 @@ public final class OPT_InlineSequence {
    * @param callsite the call site instruction of this callee
    */
   OPT_InlineSequence(VM_NormalMethod method,
-		     OPT_InlineSequence caller,
-		     OPT_Instruction callsite) {
+                     OPT_InlineSequence caller,
+                     OPT_Instruction callsite) {
     this.method = method;
     this.caller = caller;
     this.callSite = callsite;
@@ -121,9 +121,9 @@ public final class OPT_InlineSequence {
     StringBuffer sb = new StringBuffer(" ");
     for (OPT_InlineSequence is = this; is != null; is = is.caller)
       sb.append(is.method.getDeclaringClass().getDescriptor()).append(" ").
-	append(is.method.getName()).append(" ").
-	append(is.method.getDescriptor()).append(" ").
-	append(is.bcIndex).append(" ");
+        append(is.method.getName()).append(" ").
+        append(is.method.getDescriptor()).append(" ").
+        append(is.bcIndex).append(" ");
     return sb.toString();
   }
   
@@ -174,21 +174,21 @@ public final class OPT_InlineSequence {
 
   public java.util.Enumeration enumerateFromRoot()  {
     return new java.util.Enumeration() {
-	OPT_Stack stack;
-	{
-	  stack = new OPT_Stack();
-	  OPT_InlineSequence parent = OPT_InlineSequence.this;
-	  while (parent.caller != null) { 
-	    stack.push(parent);
-	    parent = parent.caller;
-	  }
-	}
-	public boolean hasMoreElements()  {
-	  return !stack.isEmpty();
-	}
-	public Object nextElement() {
-	  return stack.pop();
-	}
+        OPT_Stack stack;
+        {
+          stack = new OPT_Stack();
+          OPT_InlineSequence parent = OPT_InlineSequence.this;
+          while (parent.caller != null) { 
+            stack.push(parent);
+            parent = parent.caller;
+          }
+        }
+        public boolean hasMoreElements()  {
+          return !stack.isEmpty();
+        }
+        public Object nextElement() {
+          return stack.pop();
+        }
       };
   }
 }

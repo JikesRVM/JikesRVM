@@ -316,7 +316,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
 
     for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; ++i)
       if (i != T1)
-	asm.emitLAddr(i, i<<LOG_BYTES_IN_ADDRESS, T1);
+        asm.emitLAddr(i, i<<LOG_BYTES_IN_ADDRESS, T1);
 
     // restore specials
     //

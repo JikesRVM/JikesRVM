@@ -173,7 +173,7 @@ public abstract class VM_JNIGenericEnvironment implements VM_SizeConstants {
       JNIRefsMax *= 2;
       VM_AddressArray newrefs = VM_AddressArray.create((JNIRefsMax>>>LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH);
       for(int i = 0; i<JNIRefs.length(); i++) {
-	newrefs.set(i, JNIRefs.get(i));
+        newrefs.set(i, JNIRefs.get(i));
       }
       JNIRefs = newrefs;
     }

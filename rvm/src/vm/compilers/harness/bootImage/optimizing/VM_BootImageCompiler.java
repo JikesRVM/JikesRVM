@@ -40,7 +40,7 @@ public class VM_BootImageCompiler {
       VM_BaselineCompiler.initOptions();
       options = new OPT_Options();
       VM.sysWrite("VM_BootImageCompiler: init (opt compiler)\n");
-	 
+         
       // Writing a boot image is a little bit special.  We're not really 
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
@@ -51,13 +51,13 @@ public class VM_BootImageCompiler {
 
       // Allow further customization by the user.
       for (int i = 0, n = args.length; i < n; i++) {
-	String arg = args[i];
-	if (!options.processAsOption("-X:bc:", arg)) {
-	  if (arg.startsWith("exclude=")) 
-	    excludePattern = arg.substring(8);
-	  else
-	    VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
-	}
+        String arg = args[i];
+        if (!options.processAsOption("-X:bc:", arg)) {
+          if (arg.startsWith("exclude=")) 
+            excludePattern = arg.substring(8);
+          else
+            VM.sysWrite("VM_BootImageCompiler: Unrecognized argument "+arg+"; ignoring\n");
+        }
       }
 
       OPT_Compiler.init(options);
@@ -67,10 +67,10 @@ public class VM_BootImageCompiler {
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
-	e.printStackTrace();
-	System.exit(VM.exitStatusOptCompilerFailed);
+        e.printStackTrace();
+        System.exit(VM.exitStatusOptCompilerFailed);
       } else {
-	VM.sysWrite(msg);
+        VM.sysWrite(msg);
       }
     }
   }
@@ -88,40 +88,40 @@ public class VM_BootImageCompiler {
       VM_CompiledMethod cm = null;
       OPT_OptimizingCompilerException escape =  new OPT_OptimizingCompilerException(false);
       try {
-	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
-	boolean include = match(method);
-	if (!include)
-	  throw escape;
-	long start = System.currentTimeMillis();
-	OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
-	cm = OPT_Compiler.compile(cp);
-	if (VM.BuildForAdaptiveSystem) {
-	  long stop = System.currentTimeMillis();
-	  long compileTime = stop - start;
-	  cm.setCompilationTime((float)compileTime);
-	}
-	return cm;
+        VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
+        boolean include = match(method);
+        if (!include)
+          throw escape;
+        long start = System.currentTimeMillis();
+        OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
+        cm = OPT_Compiler.compile(cp);
+        if (VM.BuildForAdaptiveSystem) {
+          long stop = System.currentTimeMillis();
+          long compileTime = stop - start;
+          cm.setCompilationTime((float)compileTime);
+        }
+        return cm;
       } catch (OPT_OptimizingCompilerException e) {
-	if (e.isFatal && options.ERRORS_FATAL) {
-	  e.printStackTrace();
-	  System.exit(VM.exitStatusOptCompilerFailed);
-	} else {
-	  boolean printMsg = true;
-	  if (e instanceof OPT_MagicNotImplementedException) 
-	    printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
-	  if (e == escape) 
-	    printMsg = false;
-	  if (printMsg) {
-	    if (e.toString().indexOf("method excluded") >= 0) {
-	      String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n"; 
-	      VM.sysWrite(msg);
-	    } else {
-	      String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
-	      VM.sysWrite(msg);
-	    }
-	  }
-	}
-	return baselineCompile(method);
+        if (e.isFatal && options.ERRORS_FATAL) {
+          e.printStackTrace();
+          System.exit(VM.exitStatusOptCompilerFailed);
+        } else {
+          boolean printMsg = true;
+          if (e instanceof OPT_MagicNotImplementedException) 
+            printMsg = !((OPT_MagicNotImplementedException)e).isExpected;
+          if (e == escape) 
+            printMsg = false;
+          if (printMsg) {
+            if (e.toString().indexOf("method excluded") >= 0) {
+              String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n"; 
+              VM.sysWrite(msg);
+            } else {
+              String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
+              VM.sysWrite(msg);
+            }
+          }
+        }
+        return baselineCompile(method);
       }
     }
   }

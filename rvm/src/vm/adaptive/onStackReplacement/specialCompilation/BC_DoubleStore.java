@@ -36,7 +36,7 @@ public class BC_DoubleStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-	return -2;
+        return -2;
   }
 
   public String toString() {

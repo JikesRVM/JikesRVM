@@ -52,7 +52,7 @@ public abstract class RCBaseHeader implements Constants {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeaderBootTime(int ref, Object[] tib, 
-	                                      int size, boolean isScalar)
+                                              int size, boolean isScalar)
     throws VM_PragmaUninterruptible {
     // nothing to do for boot image objects
   }
@@ -120,7 +120,7 @@ public abstract class RCBaseHeader implements Constants {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
       if (VM_Interface.VerifyAssertions)
-	VM_Interface._assert(newValue <= INCREMENT_LIMIT);
+        VM_Interface._assert(newValue <= INCREMENT_LIMIT);
       if (Plan.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
   }
@@ -149,13 +149,13 @@ public abstract class RCBaseHeader implements Constants {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue - INCREMENT;
       if (newValue < LIVE_THRESHOLD)
-	rtn = DEC_KILL;
+        rtn = DEC_KILL;
       else if (Plan.REF_COUNT_CYCLE_DETECTION && 
-	       ((newValue & COLOR_MASK) < PURPLE)) { // if not purple or green
-	rtn = ((newValue & BUFFERED_MASK) == 0) ? DEC_BUFFER : DEC_PURPLE;
-	newValue = (newValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
+               ((newValue & COLOR_MASK) < PURPLE)) { // if not purple or green
+        rtn = ((newValue & BUFFERED_MASK) == 0) ? DEC_BUFFER : DEC_PURPLE;
+        newValue = (newValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
       } else
-	rtn = DEC_PURPLE;
+        rtn = DEC_PURPLE;
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
     return rtn;
   }
@@ -183,12 +183,12 @@ public abstract class RCBaseHeader implements Constants {
     do {
       oldValue = VM_Magic.prepareInt(object, RC_SANITY_HEADER_OFFSET);
       if (root) {
- 	newValue = (oldValue | ROOT_REACHABLE);
+        newValue = (oldValue | ROOT_REACHABLE);
       } else {
- 	newValue = oldValue + INCREMENT;
+        newValue = oldValue + INCREMENT;
       }
     } while (!VM_Magic.attemptInt(object, RC_SANITY_HEADER_OFFSET, oldValue,
-				  newValue));
+                                  newValue));
     return (oldValue == 0);
   }
 
@@ -229,17 +229,17 @@ public abstract class RCBaseHeader implements Constants {
       RefCountLocal.sanityLiveObjects++;
       int rc = value >>> INCREMENT_SHIFT;
       if (sanityRC != rc) {
-	Log.write("RC mismatch for object: ");
-	Log.write(object);
-	Log.write(" "); Log.write(rc);
-	Log.write(" (rc) != "); Log.write(sanityRC);
-	Log.write(" (sanityRC)");
-	if (root) Log.write(" r");
-	if (sanityRoot) Log.write(" sr");
-	Log.writeln("");
- 	if (((sanityRC == 0) && !sanityRoot) || ((rc == 0) && !root)) {
- 	  VM_Interface.sysFail("");
- 	}
+        Log.write("RC mismatch for object: ");
+        Log.write(object);
+        Log.write(" "); Log.write(rc);
+        Log.write(" (rc) != "); Log.write(sanityRC);
+        Log.write(" (sanityRC)");
+        if (root) Log.write(" r");
+        if (sanityRoot) Log.write(" sr");
+        Log.writeln("");
+        if (((sanityRC == 0) && !sanityRoot) || ((rc == 0) && !root)) {
+          VM_Interface.sysFail("");
+        }
       }
       VM_Magic.setIntAtOffset(object, RC_SANITY_HEADER_OFFSET, 0);
       return true;
@@ -308,7 +308,7 @@ public abstract class RCBaseHeader implements Constants {
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       if ((oldValue & ROOT_REACHABLE) == ROOT_REACHABLE)
-	return false;
+        return false;
       newValue = oldValue | ROOT_REACHABLE;
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
     return true;

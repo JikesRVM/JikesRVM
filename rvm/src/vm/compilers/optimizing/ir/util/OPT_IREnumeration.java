@@ -32,24 +32,24 @@ public abstract class OPT_IREnumeration {
    * @return an enumeration of the instructions from start to end
    */
   public static final OPT_InstructionEnumeration forwardIntraBlockIE(final OPT_Instruction start,
-								     final OPT_Instruction end) {
+                                                                     final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
       public final boolean hasMoreElements() { return current != null; }
       public final Object nextElement() { return next(); }
       public final OPT_Instruction next() {
-	OPT_Instruction res = current;
-	if (current == last) {
-	  current = null;
-	} else {
-	  try {
-	    current = current.getNext();
-	  } catch (NullPointerException e) {
-	    fail("forwardIntraBlockIE");
-	  }
-	}
-	return res;
+        OPT_Instruction res = current;
+        if (current == last) {
+          current = null;
+        } else {
+          try {
+            current = current.getNext();
+          } catch (NullPointerException e) {
+            fail("forwardIntraBlockIE");
+          }
+        }
+        return res;
       }
     };
   }
@@ -69,24 +69,24 @@ public abstract class OPT_IREnumeration {
    * @return an enumeration of the instructions from start to end
    */
   public static final OPT_InstructionEnumeration reverseIntraBlockIE(final OPT_Instruction start,
-								     final OPT_Instruction end) {
+                                                                     final OPT_Instruction end) {
     return new OPT_InstructionEnumeration() {
       private OPT_Instruction current = start;
       private OPT_Instruction last = end;
       public final boolean hasMoreElements() { return current != null; }
       public final Object nextElement() { return next(); }
       public final OPT_Instruction next() {
-	OPT_Instruction res = current;
-	if (current == last) {
-	  current = null;
-	} else {
-	  try {
-	    current = current.getPrev();
-	  } catch (NullPointerException e) {
-	    fail("reverseIntraBlockIE");
-	  }
-	}
-	return res;
+        OPT_Instruction res = current;
+        if (current == last) {
+          current = null;
+        } else {
+          try {
+            current = current.getPrev();
+          } catch (NullPointerException e) {
+            fail("reverseIntraBlockIE");
+          }
+        }
+        return res;
       }
     };
   }
@@ -103,14 +103,14 @@ public abstract class OPT_IREnumeration {
       public final boolean hasMoreElements() { return current != null; }
       public final Object nextElement() { return next(); }
       public final OPT_Instruction next() {
-	try {
-	  OPT_Instruction res = current;
-	  current = current.nextInstructionInCodeOrder();
-	  return res;
-	} catch (NullPointerException e) {
-	  fail("forwardGlobalIR");
-	  return null; // placate jikes
-	}
+        try {
+          OPT_Instruction res = current;
+          current = current.nextInstructionInCodeOrder();
+          return res;
+        } catch (NullPointerException e) {
+          fail("forwardGlobalIR");
+          return null; // placate jikes
+        }
       }
     };
   }
@@ -127,14 +127,14 @@ public abstract class OPT_IREnumeration {
       public final boolean hasMoreElements() { return current != null; }
       public final Object nextElement() { return next(); }
       public final OPT_Instruction next() {
-	try {
-	  OPT_Instruction res = current;
-	  current = current.prevInstructionInCodeOrder();
-	  return res;
-	} catch (NullPointerException e) {
-	  fail("forwardGlobalIR");
-	  return null; // placate jikes
-	}
+        try {
+          OPT_Instruction res = current;
+          current = current.prevInstructionInCodeOrder();
+          return res;
+        } catch (NullPointerException e) {
+          fail("forwardGlobalIR");
+          return null; // placate jikes
+        }
       }
     };
   }
@@ -151,14 +151,14 @@ public abstract class OPT_IREnumeration {
       public final boolean hasMoreElements() { return current != null; }
       public final Object nextElement() { return next(); }
       public final OPT_BasicBlock next() {
-	try {
-	  OPT_BasicBlock res = current;
-	  current = current.nextBasicBlockInCodeOrder();
-	  return res;
-	} catch (NullPointerException e) {
-	  fail("forwardBE");
-	  return null; // placate jikes
-	}
+        try {
+          OPT_BasicBlock res = current;
+          current = current.nextBasicBlockInCodeOrder();
+          return res;
+        } catch (NullPointerException e) {
+          fail("forwardBE");
+          return null; // placate jikes
+        }
       }
     };
   }
@@ -175,14 +175,14 @@ public abstract class OPT_IREnumeration {
       public final boolean hasMoreElements() { return current != null; }
       public final Object nextElement() { return next(); }
       public final OPT_BasicBlock next() {
-	try {
-	  OPT_BasicBlock res = current;
-	  current = current.prevBasicBlockInCodeOrder();
-	  return res;
-	} catch (NullPointerException e) {
-	  fail("forwardBE");
-	  return null; // placate jikes
-	}
+        try {
+          OPT_BasicBlock res = current;
+          current = current.prevBasicBlockInCodeOrder();
+          return res;
+        } catch (NullPointerException e) {
+          fail("forwardBE");
+          return null; // placate jikes
+        }
       }
     };
   }

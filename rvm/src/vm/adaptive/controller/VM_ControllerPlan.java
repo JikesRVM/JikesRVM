@@ -19,9 +19,9 @@ import java.util.ListIterator;
  *
  * Constraints:
  *   Given the plan list of a method:
- * 	Only one plan will have status COMPLETED
- * 	Multiple plans may have status OUTDATED
- *	Only one plan will have status IN_PROGRESS
+ *      Only one plan will have status COMPLETED
+ *      Multiple plans may have status OUTDATED
+ *      Only one plan will have status IN_PROGRESS
  *
  * status states:
  * UNINITIALIZED -> IN_PROGRESS -> COMPLETED -> OUTDATED
@@ -119,16 +119,16 @@ public final class VM_ControllerPlan {
    * @param compPlan     The compilation plan
    * @param timeCreated  The "time" this plan was created
    * @param prevCMID     The previous compiled method ID
-   * @param expectedSpeedup	Expected recompilation benefit
-   * @param expectedCompilationTime	Expected recompilation cost
+   * @param expectedSpeedup     Expected recompilation benefit
+   * @param expectedCompilationTime     Expected recompilation cost
    * @param priority     How important is executing this plan?
    */
   public VM_ControllerPlan(OPT_CompilationPlan compPlan, 
-			   int timeCreated, 
-			   int prevCMID, 
-			   double expectedSpeedup,
-			   double expectedCompilationTime,
-			   double priority) {
+                           int timeCreated, 
+                           int prevCMID, 
+                           double expectedSpeedup,
+                           double expectedCompilationTime,
+                           double priority) {
     this.compPlan = compPlan;
     this.timeCreated = timeCreated;
     this.prevCMID = prevCMID;
@@ -150,19 +150,19 @@ public final class VM_ControllerPlan {
     VM_ControllerMemory.insert(this);
       
     if (VM_Controller.options.BACKGROUND_RECOMPILATION ||
-	getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
+        getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
       // Attempt to add plan to compilation queue.
       boolean succeeded = 
-	VM_Controller.compilationQueue.insert(getPriority(), this);
+        VM_Controller.compilationQueue.insert(getPriority(), this);
 
       // Logging, and record failure in plan if necessary.
       if (succeeded) {
-	if (VM.LogAOSEvents) 
-	  VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
+        if (VM.LogAOSEvents) 
+          VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
       } else {
-	if (VM.LogAOSEvents) 
-	  VM_AOSLogging.recompilationQueueFull(getCompPlan()); 
-	setStatus(VM_ControllerPlan.ABORTED_QUEUE_FULL); 
+        if (VM.LogAOSEvents) 
+          VM_AOSLogging.recompilationQueueFull(getCompPlan()); 
+        setStatus(VM_ControllerPlan.ABORTED_QUEUE_FULL); 
       }
       return succeeded;
     } else {
@@ -205,7 +205,7 @@ public final class VM_ControllerPlan {
       double newNumSamples = oldNumSamples / expectedSpeedup;
       VM_Controller.methodSamples.reset(prevCMID);
       if (newCMID > -1) {
-	VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
+        VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
       }
     }
 
@@ -222,10 +222,10 @@ public final class VM_ControllerPlan {
     VM_CompiledMethod cm = newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
     if (VM.LogAOSEvents) {
       if (newCMID == -1) {
-	VM_AOSLogging.recompilationAborted(cp);
+        VM_AOSLogging.recompilationAborted(cp);
       } else {
-	VM_AOSLogging.recompilationCompleted(cp);
-	VM_AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
+        VM_AOSLogging.recompilationCompleted(cp);
+        VM_AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
       }
     }
     
@@ -301,17 +301,17 @@ public final class VM_ControllerPlan {
     if (newStatus == COMPLETED) {
       // iterate over the planList until we get to this item
       synchronized(planList) {
-	ListIterator iter = planList.listIterator();
-	while (iter.hasNext()) {
-	  VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
+        ListIterator iter = planList.listIterator();
+        while (iter.hasNext()) {
+          VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
 
-	  // exit when we find ourselves
-	  if (curPlan == this) break;
-	  
-	  if (curPlan.getStatus() == COMPLETED) {
-	    curPlan.status = OUTDATED;
-	  }
-	} // more to process
+          // exit when we find ourselves
+          if (curPlan == this) break;
+          
+          if (curPlan.getStatus() == COMPLETED) {
+            curPlan.status = OUTDATED;
+          }
+        } // more to process
       }
     }
   }
@@ -329,7 +329,7 @@ public final class VM_ControllerPlan {
     case ABORTED_QUEUE_FULL:        return "ABORTED_QUEUE_FULL";
     case IN_PROGRESS:               return "IN_PROGRESS";
     case OUTDATED:                  return "OUTDATED";
-	case OSR_BASE_2_OPT:			return "OSR_BASE_2_OPT";
+        case OSR_BASE_2_OPT:                    return "OSR_BASE_2_OPT";
     case UNKNOWN:                   return "UNKNOWN (not error)";
     default:                        return "**** ERROR, UNKNOWN STATUS ****";
     }
@@ -339,16 +339,16 @@ public final class VM_ControllerPlan {
     StringBuffer buf = new StringBuffer();
 
     buf.append("Method: "+ getCompPlan().method
-	       +"\n\tCompiled Method ID: " + CMID
-	       +"\n\tPrevious Compiled Method ID: " + prevCMID
-	       +"\n\tCreated at "+ timeCreated
-	       +"\n\tInitiated at "+ timeInitiated
-	       +"\n\tCompleted at "+ timeCompleted
-	       +"\n\tExpected Speedup: "+ expectedSpeedup
-	       +"\n\tExpected Compilation Time: "+ expectedCompilationTime
-	       +"\n\tPriority: "+ priority
-	       +"\n\tStatus: "+ getStatusString()
-	       +"\n\tComp. Plan Level: "+compPlan.options.getOptLevel() +"\n");
+               +"\n\tCompiled Method ID: " + CMID
+               +"\n\tPrevious Compiled Method ID: " + prevCMID
+               +"\n\tCreated at "+ timeCreated
+               +"\n\tInitiated at "+ timeInitiated
+               +"\n\tCompleted at "+ timeCompleted
+               +"\n\tExpected Speedup: "+ expectedSpeedup
+               +"\n\tExpected Compilation Time: "+ expectedCompilationTime
+               +"\n\tPriority: "+ priority
+               +"\n\tStatus: "+ getStatusString()
+               +"\n\tComp. Plan Level: "+compPlan.options.getOptLevel() +"\n");
     return buf.toString();
   }
 

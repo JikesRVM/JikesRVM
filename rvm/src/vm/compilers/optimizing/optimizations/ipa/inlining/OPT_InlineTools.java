@@ -60,7 +60,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * be overriden by future dynamically loaded classes.
    */
   public static boolean isCurrentlyFinal(VM_Method callee, 
-					 boolean searchSubclasses) {
+                                         boolean searchSubclasses) {
     VM_Class klass = callee.getDeclaringClass();
     if (klass.isInterface()) {
       // interface methods are not final.
@@ -102,7 +102,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @return an inlined size estimate (number of machine code instructions)
    */
   public static int inlinedSizeEstimate(VM_NormalMethod callee, 
-					OPT_CompilationState state) {
+                                        OPT_CompilationState state) {
     int sizeEstimate = callee.inlinedSizeEstimate();
     // Adjust size estimate downward to account for optimizations enabled 
     // by constant parameters.
@@ -142,7 +142,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    * @return whether or not the callee should be unconditionally inlined. 
    */
   public static boolean hasInlinePragma(VM_Method callee, 
-					OPT_CompilationState state) {
+                                        OPT_CompilationState state) {
     if (callee.hasInlinePragma()) return true;
     // If we know what kind of array "src" (argument 0) is
     // then we always want to inline java.lang.System.arraycopy.
@@ -157,7 +157,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     // (too big...kills other inlining), then inline it.
     if (callee.getDeclaringClass().getTypeRef() == VM_TypeReference.VM_Array &&
         callee.getName() == arraycopyName && 
-	callee.getDescriptor() != objectArrayCopyDescriptor) {
+        callee.getDescriptor() != objectArrayCopyDescriptor) {
       return Call.getParam(state.getCallInstruction(), 1).isConstant()
           && Call.getParam(state.getCallInstruction(), 3).isConstant();
     }
@@ -177,7 +177,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *         from being inlined.
    */
   public static boolean hasNoInlinePragma (VM_Method callee, 
-					   OPT_CompilationState state) {
+                                           OPT_CompilationState state) {
     return callee.hasNoInlinePragma();
   }
 

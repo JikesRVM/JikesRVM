@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  */
 abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
   implements VM_OptGCMapIteratorConstants,
-	     VM_Uninterruptible {
+             VM_Uninterruptible {
 
   /**
    * The compiled method
@@ -79,8 +79,8 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param framePtr the current frame pointer
    */
   public final void setupIterator(VM_CompiledMethod cm, 
-				  int instructionOffset, 
-				  VM_Address framePtr) {
+                                  int instructionOffset, 
+                                  VM_Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
       VM.sysWrite("Reference map request made");
@@ -101,20 +101,20 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     mapIndex = map.findGCMapIndex(instructionOffset);
     if (mapIndex == VM_OptGCMap.ERROR) {
       if (instructionOffset < 0) {
-	VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
+        VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
       } else {
-	int possibleLen = cm.getInstructions().length() << VM.LG_INSTRUCTION_WIDTH;
-	if (possibleLen < instructionOffset) {
-	  VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
-	  VM.sysWriteln("offset is", instructionOffset, " bytes of machine code for method ",possibleLen);
-	} else {
-	  VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
-	  VM.sysWrite("Method: ");
-	  VM.sysWrite(compiledMethod.getMethod());
-	  VM.sysWrite(", Machine Code (MC) Offset: ");
-	  VM.sysWriteln(instructionOffset);
-	  VM.sysFail("VM_OptGenericMapIterator: findGCMapIndex failed\n");
-	}
+        int possibleLen = cm.getInstructions().length() << VM.LG_INSTRUCTION_WIDTH;
+        if (possibleLen < instructionOffset) {
+          VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
+          VM.sysWriteln("offset is", instructionOffset, " bytes of machine code for method ",possibleLen);
+        } else {
+          VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
+          VM.sysWrite("Method: ");
+          VM.sysWrite(compiledMethod.getMethod());
+          VM.sysWrite(", Machine Code (MC) Offset: ");
+          VM.sysWriteln(instructionOffset);
+          VM.sysFail("VM_OptGenericMapIterator: findGCMapIndex failed\n");
+        }
       }
       VM.sysWrite("Supposed method: ");
       VM.sysWrite(compiledMethod.getMethod());
@@ -123,11 +123,11 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       VM.sysWriteln("Calculated actual return address is ", ra);
       VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
       if (realCM == null) {
-	VM.sysWriteln("Unable to find compiled method corresponding to this return address");
+        VM.sysWriteln("Unable to find compiled method corresponding to this return address");
       } else {
-	VM.sysWrite("Found compiled method ");
-	VM.sysWrite(realCM.getMethod());
-	VM.sysWriteln(" whose code contains this return address");
+        VM.sysWrite("Found compiled method ");
+        VM.sysWrite(realCM.getMethod());
+        VM.sysWriteln(" whose code contains this return address");
       }
       VM.sysFail("VM_OptGenericMapIterator: setupIterator failed\n");
     }
@@ -147,13 +147,13 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
 
       if (lookForMissedReferencesInSpills) {
-	VM.sysWrite("FramePtr: ");
-	VM.sysWrite(framePtr);
-	VM.sysWrite("\tFirst Spill: ");
-	VM.sysWrite(getFirstSpillLoc());
-	VM.sysWrite("\tLast Spill: ");
-	VM.sysWrite(getLastSpillLoc());
-	VM.sysWrite("\n");
+        VM.sysWrite("FramePtr: ");
+        VM.sysWrite(framePtr);
+        VM.sysWrite("\tFirst Spill: ");
+        VM.sysWrite(getFirstSpillLoc());
+        VM.sysWrite("\tLast Spill: ");
+        VM.sysWrite(getLastSpillLoc());
+        VM.sysWrite("\n");
       }
     }
   }
@@ -183,12 +183,12 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     if (currentRegisterIsValid()) {
       // See if there are any more
       while (currentRegisterIsValid() && 
-	     !map.registerIsSet(mapIndex, getCurrentRegister())) {
+             !map.registerIsSet(mapIndex, getCurrentRegister())) {
         if (lookForMissedReferencesInRegs) {
           // inspect the register we are skipping
-	  checkCurrentRegisterForMissedReferences();
+          checkCurrentRegisterForMissedReferences();
         }
-	updateCurrentRegister();
+        updateCurrentRegister();
       }
 
       // If we found a register, return the value
@@ -196,7 +196,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
         VM_Address regLocation;
         // currentRegister contains a reference, return that location
         regLocation = registerLocations.get(getCurrentRegister()).toAddress();
-	if (DEBUG) {
+        if (DEBUG) {
           VM.sysWrite(" *** Ref found in reg#");
           VM.sysWrite(getCurrentRegister());
           VM.sysWrite(", location ==>");
@@ -207,7 +207,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
         }
 
         // update for the next call to this routine
-	updateCurrentRegister();
+        updateCurrentRegister();
         return regLocation;
       }
     }
@@ -223,14 +223,14 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
 
       if (lookForMissedReferencesInSpills) {
-	if (spillLoc.isZero()) {
-	  // Didn't have any refs in spill locations, so we should
-	  // check for spills among the whole spill area
-	  checkForMissedSpills(VM_Address.zero(), VM_Address.zero());
-	} else {
-	  // check for spills after the last one we saw
-	  checkForMissedSpills(spillLoc, VM_Address.zero());
-	}
+        if (spillLoc.isZero()) {
+          // Didn't have any refs in spill locations, so we should
+          // check for spills among the whole spill area
+          checkForMissedSpills(VM_Address.zero(), VM_Address.zero());
+        } else {
+          // check for spills after the last one we saw
+          checkForMissedSpills(spillLoc, VM_Address.zero());
+        }
       }
 
       // OK, we are done returning references for this GC point/method/FP
@@ -242,20 +242,20 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       // Determine the spill location given the frame ptr and spill offset.
       // (The location of spills varies among architectures.)
       VM_Address newSpillLoc = getStackLocation(framePtr, 
-					 map.gcMapInformation(mapIndex));
+                                         map.gcMapInformation(mapIndex));
 
       if (DEBUG) {
         VM.sysWrite(" *** Ref found in Spill Loc: ");
         VM.sysWrite(newSpillLoc);
         VM.sysWrite(", offset: ");
         VM.sysWrite(map.gcMapInformation(mapIndex));
-	VM.sysWrite(", value ==>");
-	VM.sysWrite(VM_Magic.getMemoryWord(newSpillLoc));
+        VM.sysWrite(", value ==>");
+        VM.sysWrite(VM_Magic.getMemoryWord(newSpillLoc));
         VM.sysWrite("\n");
       }
 
       if (lookForMissedReferencesInSpills) {
-	checkForMissedSpills(spillLoc, newSpillLoc);
+        checkForMissedSpills(spillLoc, newSpillLoc);
       }
 
       spillLoc = newSpillLoc;
@@ -420,9 +420,9 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       // Search from start of spill area
       ref1 = getFirstSpillLoc();
       if (DEBUG) {
-	VM.sysWrite("Updated, ref1: ");
-	VM.sysWrite(ref1);
-	VM.sysWrite("\n");
+        VM.sysWrite("Updated, ref1: ");
+        VM.sysWrite(ref1);
+        VM.sysWrite("\n");
       }
     } 
 
@@ -430,9 +430,9 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       // Search up to end of spill area
       ref2 = getLastSpillLoc();
       if (DEBUG) {
-	VM.sysWrite("Updated, ref2: ");
-	VM.sysWrite(ref2);
-	VM.sysWrite("\n");
+        VM.sysWrite("Updated, ref2: ");
+        VM.sysWrite(ref2);
+        VM.sysWrite("\n");
       }
     }
 
@@ -447,26 +447,26 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     for (VM_Address i = ref1.add(4); i.LT(ref2); i = i.add(4)) {
       VM_Address ptr = VM_Magic.getMemoryAddress(i);
       if (DEBUG) {
-	VM.sysWrite(" Inspecting Spill: ");
-	VM.sysWrite(i);
-	VM.sysWrite(" with value ==>");
-	VM.sysWrite(ptr);
-	VM.sysWrite("\n");
+        VM.sysWrite(" Inspecting Spill: ");
+        VM.sysWrite(i);
+        VM.sysWrite(" with value ==>");
+        VM.sysWrite(ptr);
+        VM.sysWrite("\n");
       }
 
       if (MM_Interface.refInVM(ptr)) {
-	VM.sysWrite("  spill location:");
-	VM.sysWrite(i);
-	VM.sysWrite(" contains a suspicious value ==>");
-	VM.sysWrite(ptr);
-	VM.sysWrite("\n");
-	VM.sysWrite("FramePtr: ");
-	VM.sysWrite(framePtr);
-	VM.sysWrite("\tFirst Spill: ");
-	VM.sysWrite(getFirstSpillLoc());
-	VM.sysWrite("\tLast Spill: ");
-	VM.sysWrite(getLastSpillLoc());
-	VM.sysWrite("\n");
+        VM.sysWrite("  spill location:");
+        VM.sysWrite(i);
+        VM.sysWrite(" contains a suspicious value ==>");
+        VM.sysWrite(ptr);
+        VM.sysWrite("\n");
+        VM.sysWrite("FramePtr: ");
+        VM.sysWrite(framePtr);
+        VM.sysWrite("\tFirst Spill: ");
+        VM.sysWrite(getFirstSpillLoc());
+        VM.sysWrite("\tLast Spill: ");
+        VM.sysWrite(getLastSpillLoc());
+        VM.sysWrite("\n");
       }
     }
   }

@@ -55,7 +55,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
    */ 
   static final void lowerInstrumentation(OPT_IR ir) {
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
-	 bbe.hasMoreElements(); ) {
+         bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       //bb.printExtended();
     }
@@ -66,16 +66,16 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
     // We put them in a vector and expand them later because if we
     // expanded them on the fly we mess up the enumeration.
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
-	 bbe.hasMoreElements(); ) {
+         bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       
       OPT_Instruction i = bb.firstInstruction();
       while (i!=null && i!=bb.lastInstruction()) {
-	
-	if (i.operator() == INSTRUMENTED_EVENT_COUNTER) {
-	  vector.add(i);
-	}
-	i = i.nextInstructionInCodeOrder();
+        
+        if (i.operator() == INSTRUMENTED_EVENT_COUNTER) {
+          vector.add(i);
+        }
+        i = i.nextInstructionInCodeOrder();
       }
     }
     
@@ -91,13 +91,13 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
       // (to allow multiple counter managers.  It would also make this
       // code independant of the adaptive system..)
       OPT_InstrumentedEventCounterManager counterManager = 
-	VM_Instrumentation.eventCounterManager;
+        VM_Instrumentation.eventCounterManager;
       
       counterManager.mutateOptEventCounterInstruction(i,ir);
     }
     
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
-	 bbe.hasMoreElements(); ) {
+         bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       //       bb.printExtended();
     }

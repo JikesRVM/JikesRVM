@@ -77,11 +77,11 @@ public class VM_Runtime implements VM_Constants {
     throws NoClassDefFoundError {
 
     /*  Here, LHS and RHS refer to the way we would treat these if they were
-	arguments to an assignment operator and we were testing for
-	assignment-compatibility.  In Java, "rhs instanceof lhs" means that 
-	the operation "lhs = rhs" would succeed.   This of course is backwards
-	if one is looking at it from the point of view of the "instanceof"
-	operator.  */
+        arguments to an assignment operator and we were testing for
+        assignment-compatibility.  In Java, "rhs instanceof lhs" means that 
+        the operation "lhs = rhs" would succeed.   This of course is backwards
+        if one is looking at it from the point of view of the "instanceof"
+        operator.  */
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
     VM_Type lhsType = tRef.peekResolvedType();
     if (lhsType == null) {
@@ -147,7 +147,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static void checkcast(Object object, int id) 
     throws ClassCastException,
-	   NoClassDefFoundError {
+           NoClassDefFoundError {
     if (object == null)
       return; // null may be cast to any type
 
@@ -200,7 +200,7 @@ public class VM_Runtime implements VM_Constants {
 
   private static final void raiseCheckcastException(VM_Type lhsType, VM_Type rhsType) 
     throws VM_PragmaLogicallyUninterruptible,
-	   VM_PragmaUninterruptible {
+           VM_PragmaUninterruptible {
     throw new ClassCastException("Cannot cast a(n) " + rhsType + " to a(n) " + lhsType);
   }
 
@@ -266,7 +266,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static Object unresolvedNewScalar(int id) 
     throws NoClassDefFoundError, 
-	   OutOfMemoryError { 
+           OutOfMemoryError { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
     if (t == null) {
@@ -280,9 +280,9 @@ public class VM_Runtime implements VM_Constants {
     int align = VM_ObjectModel.getAlignment(cls);
     int offset = VM_ObjectModel.getOffsetForAlignment(cls);
     return resolvedNewScalar(cls.getInstanceSize(), 
-			     cls.getTypeInformationBlock(), 
-			     cls.hasFinalizer(),
-			     allocator,
+                             cls.getTypeInformationBlock(), 
+                             cls.hasFinalizer(),
+                             allocator,
                              align,
                              offset);
   }
@@ -300,9 +300,9 @@ public class VM_Runtime implements VM_Constants {
     int align = VM_ObjectModel.getAlignment(cls);
     int offset = VM_ObjectModel.getOffsetForAlignment(cls);
     return resolvedNewScalar(cls.getInstanceSize(), 
-			     cls.getTypeInformationBlock(), 
-			     cls.hasFinalizer(),
-			     allocator,
+                             cls.getTypeInformationBlock(), 
+                             cls.hasFinalizer(),
+                             allocator,
                              align,
                              offset);
   }
@@ -320,9 +320,9 @@ public class VM_Runtime implements VM_Constants {
    * See also: bytecode 0xbb ("new")
    */
   public static Object resolvedNewScalar(int size, 
-					 Object[] tib, 
-					 boolean hasFinalizer, 
-					 int allocator,
+                                         Object[] tib, 
+                                         boolean hasFinalizer, 
+                                         int allocator,
                                          int align,
                                          int offset) 
     throws OutOfMemoryError {
@@ -330,9 +330,9 @@ public class VM_Runtime implements VM_Constants {
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
-	VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
-	countDownToGC = GCInterval;
-	MM_Interface.gc();
+        VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
+        countDownToGC = GCInterval;
+        MM_Interface.gc();
       }
     }
 
@@ -379,10 +379,10 @@ public class VM_Runtime implements VM_Constants {
     throws OutOfMemoryError, NegativeArraySizeException { 
 
     return resolvedNewArray(numElements, 
-			    array.getLogElementSize(),
-			    VM_ObjectModel.computeArrayHeaderSize(array),
-			    array.getTypeInformationBlock(),
-			    MM_Interface.pickAllocator(array),
+                            array.getLogElementSize(),
+                            VM_ObjectModel.computeArrayHeaderSize(array),
+                            array.getTypeInformationBlock(),
+                            MM_Interface.pickAllocator(array),
                             VM_ObjectModel.getAlignment(array),
                             VM_ObjectModel.getOffsetForAlignment(array));
   }
@@ -401,10 +401,10 @@ public class VM_Runtime implements VM_Constants {
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
   public static Object resolvedNewArray(int numElements, 
-					int logElementSize,
-					int headerSize, 
-					Object[] tib,
-					int allocator,
+                                        int logElementSize,
+                                        int headerSize, 
+                                        Object[] tib,
+                                        int allocator,
                                         int align,
                                         int offset)
     throws OutOfMemoryError, NegativeArraySizeException {
@@ -414,15 +414,15 @@ public class VM_Runtime implements VM_Constants {
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       if (countDownToGC-- <= 0) {
-	VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
-	countDownToGC = GCInterval;
-	MM_Interface.gc();
+        VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
+        countDownToGC = GCInterval;
+        MM_Interface.gc();
       }
     }
 
     // Allocate the array and initialize its header
     return MM_Interface.allocateArray(numElements, logElementSize, 
-				      headerSize, tib, allocator, align, offset);
+                                      headerSize, tib, allocator, align, offset);
   }
 
 
@@ -452,29 +452,29 @@ public class VM_Runtime implements VM_Constants {
       return newObj;
     } else {
       if (!(obj instanceof Cloneable))
-	throw new CloneNotSupportedException();
+        throw new CloneNotSupportedException();
       VM_Class cls   = type.asClass();
       Object newObj  = resolvedNewScalar(cls);
       VM_Field[] instanceFields = cls.getInstanceFields();
       for (int i=0; i<instanceFields.length; i++) {
-	VM_Field f = instanceFields[i];
-	VM_TypeReference ft = f.getType();
-	if (ft.isReferenceType()) {
-	  // Do via slower "VM-internal reflection" to enable
-	  // collectors to do the right thing wrt reference counting
-	  // and write barriers.
-	  f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
-	} else if (ft.isLongType() || ft.isDoubleType()) {
-	  int offset = f.getOffset();
-	  long bits = VM_Magic.getLongAtOffset(obj, offset);
-	  VM_Magic.setLongAtOffset(newObj, offset, bits);
-	} else {
-	  // NOTE: assumes that all other types get 32 bits.
-	  //       This is currently true, but may change in the future.
-	  int offset = f.getOffset();
-	  int bits = VM_Magic.getIntAtOffset(obj, offset);
-	  VM_Magic.setIntAtOffset(newObj, offset, bits);
-	}
+        VM_Field f = instanceFields[i];
+        VM_TypeReference ft = f.getType();
+        if (ft.isReferenceType()) {
+          // Do via slower "VM-internal reflection" to enable
+          // collectors to do the right thing wrt reference counting
+          // and write barriers.
+          f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
+        } else if (ft.isLongType() || ft.isDoubleType()) {
+          int offset = f.getOffset();
+          long bits = VM_Magic.getLongAtOffset(obj, offset);
+          VM_Magic.setLongAtOffset(newObj, offset, bits);
+        } else {
+          // NOTE: assumes that all other types get 32 bits.
+          //       This is currently true, but may change in the future.
+          int offset = f.getOffset();
+          int bits = VM_Magic.getIntAtOffset(obj, offset);
+          VM_Magic.setIntAtOffset(newObj, offset, bits);
+        }
       }
       return newObj;
     }
@@ -552,8 +552,8 @@ public class VM_Runtime implements VM_Constants {
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
 
     cls.resolve();
-    cls.instantiate();	
-    cls.initialize();	// throws ExceptionInInitializerError
+    cls.instantiate();  
+    cls.initialize();   // throws ExceptionInInitializerError
 
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " + cls + "\n");
@@ -632,15 +632,15 @@ public class VM_Runtime implements VM_Constants {
     VM_Registers exceptionRegisters = myThread.hardwareExceptionRegisters;
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) && 
-	myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) && 
-	!myThread.hasNativeStackFrame()) { 
+        myThread.stack.length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) && 
+        !myThread.hasNativeStackFrame()) { 
       // expand stack by the size appropriate for normal or native frame 
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
+        VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_JNINATIVE_GROW, exceptionRegisters);
       } else {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GROW, exceptionRegisters);
+        VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GROW, exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM._assert(exceptionRegisters.inuse == true); 
       exceptionRegisters.inuse = false;
@@ -802,17 +802,17 @@ public class VM_Runtime implements VM_Constants {
    * @return array object
    */ 
   public static Object buildMultiDimensionalArray(int methodId,
-						  int[] numElements, 
-						  VM_Array arrayType) {
+                                                  int[] numElements, 
+                                                  VM_Array arrayType) {
     VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
     if (VM.VerifyAssertions) VM._assert(method != null);
     return buildMDAHelper(method, numElements, 0, arrayType);
   }
 
   public static Object buildMDAHelper (VM_Method method,
-				       int[] numElements, 
-				       int dimIndex, 
-				       VM_Array arrayType) {
+                                       int[] numElements, 
+                                       int dimIndex, 
+                                       VM_Array arrayType) {
 
     if (!arrayType.isInstantiated()) {
       arrayType.resolve();
@@ -853,7 +853,7 @@ public class VM_Runtime implements VM_Constants {
    * </ul>
    */
   private static void deliverException(Throwable exceptionObject, 
-				       VM_Registers exceptionRegisters) {
+                                       VM_Registers exceptionRegisters) {
     if (VM.debugOOM) {
       VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
     }
@@ -870,27 +870,27 @@ public class VM_Runtime implements VM_Constants {
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
-	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	  VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
-	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
-	  int ipOffset = compiledMethod.getInstructionOffset(ip);
-	  int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
+          VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+          VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
+          VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
+          int ipOffset = compiledMethod.getInstructionOffset(ip);
+          int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
 
-	  if (catchBlockOffset >= 0  ){ 
-	    // found an appropriate catch block
+          if (catchBlockOffset >= 0  ){ 
+            // found an appropriate catch block
             if (VM.debugOOM)
-	      VM.sysWriteln("found one; delivering.");
-	    VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	    exceptionDeliverer.deliverException(compiledMethod, 
-						methodStartAddress.add(catchBlockOffset), 
-						exceptionObject, 
-						exceptionRegisters);
-	    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-	  }
-	  
-	  exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
+              VM.sysWriteln("found one; delivering.");
+            VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+            exceptionDeliverer.deliverException(compiledMethod, 
+                                                methodStartAddress.add(catchBlockOffset), 
+                                                exceptionObject, 
+                                                exceptionRegisters);
+            if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+          }
+          
+          exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
       } else {
-	unwindInvisibleStackFrame(exceptionRegisters);
+        unwindInvisibleStackFrame(exceptionRegisters);
       }
       fp = exceptionRegisters.getInnermostFramePointer();
     }
@@ -922,12 +922,12 @@ public class VM_Runtime implements VM_Constants {
   private static void handlePossibleRecursiveException() {
     ++handlingUncaughtException;
     if (handlingUncaughtException > 1 
-	&& handlingUncaughtException <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+        && handlingUncaughtException <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       VM.sysWrite("We got an uncaught exception while (recursively) handling ");
       VM.sysWrite(handlingUncaughtException - 1);
       VM.sysWrite(" uncaught exception");
       if (handlingUncaughtException - 1 != 1)
-	VM.sysWrite("s");
+        VM.sysWrite("s");
       VM.sysWriteln(".");
     }
     if (handlingUncaughtException > VM.maxSystemTroubleRecursionDepth) {

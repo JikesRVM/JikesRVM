@@ -223,8 +223,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static int mmap(VM_Address start, int size) {
     VM_Address result = VM_Memory.mmap(start, VM_Extent.fromInt(size),
-				       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
-				       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
+                                       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
+                                       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
     if (result.EQ(start)) return 0;
     if (result.GT(VM_Address.fromIntZeroExtend(127))) {
       VM.sysWrite("mmap with MAP_FIXED on ", start);
@@ -244,7 +244,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static boolean mprotect(VM_Address start, int size) {
     return VM_Memory.mprotect(start, VM_Extent.fromInt(size),
-			      VM_Memory.PROT_NONE);
+                              VM_Memory.PROT_NONE);
   }
 
   /**
@@ -257,7 +257,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static boolean munprotect(VM_Address start, int size) {
     return VM_Memory.mprotect(start, VM_Extent.fromInt(size),
-			      VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
+                              VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
   }
 
   /**
@@ -291,7 +291,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * included
    */
   public static void dumpMemory(VM_Address start, int beforeBytes,
-				int afterBytes) {
+                                int afterBytes) {
     VM_Memory.dumpMemory(start,beforeBytes,afterBytes);
   }
 
@@ -340,7 +340,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * <code>false</code> otherwise
    */
   public static boolean attemptAvailableBits(VM_Address o,
-					     int oldVal, int newVal) {
+                                             int oldVal, int newVal) {
     return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o),
                                                // TODO: 64 bit broken
                                                VM_Word.fromInt(oldVal),
@@ -448,7 +448,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (why == EXTERNAL_GC_TRIGGER) {
       Plan.userTriggeredGC();
       if (Options.verbose == 1 || Options.verbose == 2) 
-	VM.sysWrite("[Forced GC]");
+        VM.sysWrite("[Forced GC]");
     }
     if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     int sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
@@ -459,7 +459,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
 
     if (Plan.isLastGCFull() && 
-	sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
+        sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
       checkForExhaustion(why, false);
     
     Plan.checkForAsyncCollection();
@@ -507,24 +507,24 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
     if (usage > OUT_OF_MEMORY_THRESHOLD) {
       if (why == INTERNAL_GC_TRIGGER) {
-	if (Options.verbose >= 2) {
-	  VM.sysWriteln("OutOfMemoryError: usage = ", usage);
-	  VM.sysWriteln("          reserved (kb) = ",(int)(Plan.reservedMemory() / 1024));
-	  VM.sysWriteln("          total    (Kb) = ",(int)(Plan.totalMemory() / 1024));
-	}
-	if (VM.debugOOM || Options.verbose >= 5)
-	  VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
-	MM_Interface.emergencyGrowHeap(512 * (1 << 10));  // 512K should be plenty to make an exn
-	OutOfMemoryError oome = new OutOfMemoryError();
-	MM_Interface.emergencyGrowHeap(- (512 * (1 << 10)));
-	if (VM.debugOOM || Options.verbose >= 5)
-	  VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
-	throw oome;
+        if (Options.verbose >= 2) {
+          VM.sysWriteln("OutOfMemoryError: usage = ", usage);
+          VM.sysWriteln("          reserved (kb) = ",(int)(Plan.reservedMemory() / 1024));
+          VM.sysWriteln("          total    (Kb) = ",(int)(Plan.totalMemory() / 1024));
+        }
+        if (VM.debugOOM || Options.verbose >= 5)
+          VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
+        MM_Interface.emergencyGrowHeap(512 * (1 << 10));  // 512K should be plenty to make an exn
+        OutOfMemoryError oome = new OutOfMemoryError();
+        MM_Interface.emergencyGrowHeap(- (512 * (1 << 10)));
+        if (VM.debugOOM || Options.verbose >= 5)
+          VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
+        throw oome;
       }
       /* clear all possible reference objects */
       ReferenceProcessor.setClearSoftReferences(true);
       if (!async)
-	triggerCollection(INTERNAL_GC_TRIGGER);
+        triggerCollection(INTERNAL_GC_TRIGGER);
     }
   }
    
@@ -609,15 +609,15 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM_Address caller_ip = VM_Magic.getReturnAddress(fp);
       VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
       if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
-	VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
+        VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
       VM_Method method = compiledMethod.getMethod();
       VM_Atom cls = method.getDeclaringClass().getDescriptor();
       VM_Atom name = method.getName();
       if (name == runAtom && cls == collectorThreadAtom) {
-	t.contextRegisters.setInnermost(caller_ip, caller_fp);
-	break;
+        t.contextRegisters.setInnermost(caller_ip, caller_fp);
+        break;
       }
       fp = caller_fp; 
     }
@@ -663,15 +663,15 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       if (threadIndex >= VM_Scheduler.threads.length) break;
       VM_Thread thread = VM_Scheduler.threads[threadIndex];
       if (thread != null) {
- 	ScanObject.enumeratePointers(thread, preCopyEnum);
- 	ScanObject.enumeratePointers(thread.contextRegisters, preCopyEnum);
- 	ScanObject.enumeratePointers(thread.hardwareExceptionRegisters, preCopyEnum);
- 	if (thread.jniEnv != null) {
-	  // Right now, jniEnv are Java-visible objects (not C-visible)
-	  // if (VM.VerifyAssertions)
-	  //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
- 	  ScanObject.enumeratePointers(thread.jniEnv, preCopyEnum);
- 	}
+        ScanObject.enumeratePointers(thread, preCopyEnum);
+        ScanObject.enumeratePointers(thread.contextRegisters, preCopyEnum);
+        ScanObject.enumeratePointers(thread.hardwareExceptionRegisters, preCopyEnum);
+        if (thread.jniEnv != null) {
+          // Right now, jniEnv are Java-visible objects (not C-visible)
+          // if (VM.VerifyAssertions)
+          //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
+          ScanObject.enumeratePointers(thread.jniEnv, preCopyEnum);
+        }
       }
     }    
     rendezvous(4203);
@@ -696,7 +696,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * return adddresses, or <code>null</code> if not required
    */
   public static void computeAllRoots(AddressDeque rootLocations,
-  				     AddressPairDeque interiorRootLocations) {
+                                     AddressPairDeque interiorRootLocations) {
     AddressPairDeque codeLocations = MM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
     
      /* scan statics */
@@ -787,9 +787,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, false);
       toRef = VM_Magic.objectAsAddress(toObj);
       if (arrayType == VM_Type.CodeArrayType) {
-	// sync all moved code arrays to get icache and dcache in sync immediately.
-	int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
-	VM_Memory.sync(toRef, dataSize);
+        // sync all moved code arrays to get icache and dcache in sync immediately.
+        int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
+        VM_Memory.sync(toRef, dataSize);
       }
       Statistics.profileCopy(fromObj, numBytes, tib);
     }
@@ -971,7 +971,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * @return the number of characters copied.
    */
   public static int copyStringToChars(String src, char [] dst,
-				      int dstBegin, int dstEnd)
+                                      int dstBegin, int dstEnd)
     throws VM_PragmaLogicallyUninterruptible {
     if (runningVM())
       VM_Processor.getCurrentProcessor().disableThreadSwitching();

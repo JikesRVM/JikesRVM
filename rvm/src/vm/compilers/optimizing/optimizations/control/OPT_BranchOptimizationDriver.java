@@ -96,18 +96,18 @@ public abstract class OPT_BranchOptimizationDriver
   protected boolean applyPeepholeBranchOpts(OPT_IR ir) {
     boolean didSomething = false;
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       if (!bb.isEmpty()) {
-	for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions(); 
-	     ie.hasMoreElements();) {
-	  OPT_Instruction s = ie.next();
-	  if (optimizeBranchInstruction(ir, s, bb)) {
-	    didSomething = true;
-	    // hack: we may have modified the instructions; start over
-	    ie = bb.enumerateBranchInstructions();
-	  }
-	}
+        for (OPT_InstructionEnumeration ie = bb.enumerateBranchInstructions(); 
+             ie.hasMoreElements();) {
+          OPT_Instruction s = ie.next();
+          if (optimizeBranchInstruction(ir, s, bb)) {
+            didSomething = true;
+            // hack: we may have modified the instructions; start over
+            ie = bb.enumerateBranchInstructions();
+          }
+        }
       }
     }
     return didSomething;
@@ -122,8 +122,8 @@ public abstract class OPT_BranchOptimizationDriver
    * @return true if an optimization was applied, false otherwise
    */
   protected abstract boolean optimizeBranchInstruction(OPT_IR ir,
-						       OPT_Instruction s,
-						       OPT_BasicBlock bb);
+                                                       OPT_Instruction s,
+                                                       OPT_BasicBlock bb);
 
   /**
    * Remove unreachable code
@@ -137,20 +137,20 @@ public abstract class OPT_BranchOptimizationDriver
     // (1) All code in a basic block after an unconditional 
     //     trap instruction is dead.
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); 
-	 s != null; 
-	 s = s.nextInstructionInCodeOrder()) {
+         s != null; 
+         s = s.nextInstructionInCodeOrder()) {
       if (Trap.conforms(s)) {
-	OPT_Instruction p = s.nextInstructionInCodeOrder();
-	if (p.operator() != BBEND) {
-	  OPT_BasicBlock bb = s.getBasicBlock();
-	  do {
-	    OPT_Instruction q = p;
-	    p = p.nextInstructionInCodeOrder();
-	    q.remove();
-	  } while (p.operator() != BBEND);
-	  bb.recomputeNormalOut(ir);
-	  result = true;
-	}
+        OPT_Instruction p = s.nextInstructionInCodeOrder();
+        if (p.operator() != BBEND) {
+          OPT_BasicBlock bb = s.getBasicBlock();
+          do {
+            OPT_Instruction q = p;
+            p = p.nextInstructionInCodeOrder();
+            q.remove();
+          } while (p.operator() != BBEND);
+          bb.recomputeNormalOut(ir);
+          result = true;
+        }
       }
     }
 
@@ -180,7 +180,7 @@ public abstract class OPT_BranchOptimizationDriver
   protected final void maximizeBasicBlocks(OPT_IR ir) {
     for (OPT_BasicBlock currBB = ir.cfg.firstInCodeOrder(); currBB != null;) {
       if (currBB.mergeFallThrough(ir)) {
-	// don't advance currBB; it may have a new trivial fallthrough to swallow
+        // don't advance currBB; it may have a new trivial fallthrough to swallow
       } else {
         currBB = currBB.nextBasicBlockInCodeOrder();
       }
@@ -196,7 +196,7 @@ public abstract class OPT_BranchOptimizationDriver
    */
   protected final OPT_Instruction firstLabelFollowing(OPT_Instruction s) {
     for (s = s.nextInstructionInCodeOrder(); s != null; 
-	 s = s.nextInstructionInCodeOrder()) {
+         s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == LABEL) {
         return  s;
       }
@@ -210,8 +210,8 @@ public abstract class OPT_BranchOptimizationDriver
    */
   protected final OPT_Instruction firstRealInstructionFollowing(OPT_Instruction s) {
     for (s = s.nextInstructionInCodeOrder(); 
-	 s != null; 
-	 s = s.nextInstructionInCodeOrder()) {
+         s != null; 
+         s = s.nextInstructionInCodeOrder()) {
       if (s.operator() != LABEL && s.operator() != BBEND) {
         return  s;
       }

@@ -27,8 +27,8 @@ final class VMSecurityManager
       b.up(); // skip the SecurityManager.getClassContext()
 
       while(b.hasMoreFrames()) {
-	  frames++;
-	  b.up();
+          frames++;
+          b.up();
       }
 
       VM.enableGC();
@@ -43,14 +43,14 @@ final class VMSecurityManager
       b.up(); // skip the SecurityManager.getClassContext()
 
       while(b.hasMoreFrames()) {
-	  iclasses[i++] = b.getCurrentClass();
-	  b.up();
+          iclasses[i++] = b.getCurrentClass();
+          b.up();
       }
 
       VM.enableGC();
       Class[] classes = new Class[ frames ];
       for(int j = 0; j < iclasses.length; j++) {
-	  classes[j] = iclasses[j].getClassForType();
+          classes[j] = iclasses[j].getClassForType();
       }
 
       return classes;
@@ -62,7 +62,7 @@ final class VMSecurityManager
       b.init();
 
       while(b.hasMoreFrames() && b.getClassLoader() == VM_SystemClassLoader.getVMClassLoader())
-	  b.up();
+          b.up();
 
       VM.enableGC();
       return b.hasMoreFrames()? b.getClassLoader(): null;

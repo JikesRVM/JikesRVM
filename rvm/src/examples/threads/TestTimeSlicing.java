@@ -16,10 +16,10 @@ class Task extends Thread
 
    Task(int me, int total, int[] countArray)
       {
-	//	System.out.println("Task.constructor- " + Thread.currentThread().getName() + ": inTask constructor ");      
-	this.me         = me;
-	this.total      = total;
-	this.countArray = countArray;
+        //      System.out.println("Task.constructor- " + Thread.currentThread().getName() + ": inTask constructor ");      
+        this.me         = me;
+        this.total      = total;
+        this.countArray = countArray;
       }
    
      //------------------------
@@ -29,36 +29,36 @@ class Task extends Thread
     {
       //     System.out.println("Task.run-" + Thread.currentThread().getName() + ": in run routine");            
       if ( me == 0)
-	{  // code for the zero thread
-	  while (countArray[me] <= TestTimeSlicing.endCount){
-	    //test if last thread has caught up
-	    if (countArray[total-1] == countArray[me])
-	      {
-		// other threads have caught up, start a new round
-		countArray[me]++;
-		System.out.println("Task.run-" + Thread.currentThread().getName() + ": incremented to count: " + countArray[me] + "\n");            
-	      }
-	    //  spin for a while
-	    int x = vspinner();  // virtual spin code
-	  }
-	  return;
-	}
+        {  // code for the zero thread
+          while (countArray[me] <= TestTimeSlicing.endCount){
+            //test if last thread has caught up
+            if (countArray[total-1] == countArray[me])
+              {
+                // other threads have caught up, start a new round
+                countArray[me]++;
+                System.out.println("Task.run-" + Thread.currentThread().getName() + ": incremented to count: " + countArray[me] + "\n");            
+              }
+            //  spin for a while
+            int x = vspinner();  // virtual spin code
+          }
+          return;
+        }
       else {
-	// all other threads
-	while (countArray[me] <= TestTimeSlicing.endCount){
-	  // is the previous thread ahead of me
-	  if (countArray[me - 1] == (countArray[me] + 1))
-	    {
-	      // yes - catch up
-	      countArray[me]++;
-	      System.out.println("Task.run-" + Thread.currentThread().getName() + ": incremented to count: " + countArray[me]+ "\n");            
-	    }
-	  else {
-	    // I'm caught up - spin a while
-	    int x = vspinner();  // virtual spin code
-	  }
-	}
-	return;
+        // all other threads
+        while (countArray[me] <= TestTimeSlicing.endCount){
+          // is the previous thread ahead of me
+          if (countArray[me - 1] == (countArray[me] + 1))
+            {
+              // yes - catch up
+              countArray[me]++;
+              System.out.println("Task.run-" + Thread.currentThread().getName() + ": incremented to count: " + countArray[me]+ "\n");            
+            }
+          else {
+            // I'm caught up - spin a while
+            int x = vspinner();  // virtual spin code
+          }
+        }
+        return;
       }
     }// end run
 
@@ -87,7 +87,7 @@ class TestTimeSlicing
    public static void 
    main(String args[])
       {
-	//      System.out.println("TestTimeSlicing- main entered for thread = " + Thread.currentThread().getName() );
+        //      System.out.println("TestTimeSlicing- main entered for thread = " + Thread.currentThread().getName() );
 
       int     cnt         =  3;    // 3 threads
       Task    tasks[]     = new Task[cnt];
@@ -135,13 +135,13 @@ class TestTimeSlicing
    run(Task[] tasks)
       {
 
-	//      System.out.println("TestTimeSlicing-run entered ");
+        //      System.out.println("TestTimeSlicing-run entered ");
       for (int i = 0; i < tasks.length; ++i)
-	{
-	  //	  System.out.println("TestTimeSlicing.run -about to start() a task -" +  Thread.currentThread().getName());
-	  tasks[i].start();
-	  //	  System.out.println("TestTimeSlicing.run- new thread started -" +  Thread.currentThread().getName());
-	}
-      //	  System.out.println("TestTimeSlicing-exiting run -" +  Thread.currentThread().getName());
+        {
+          //      System.out.println("TestTimeSlicing.run -about to start() a task -" +  Thread.currentThread().getName());
+          tasks[i].start();
+          //      System.out.println("TestTimeSlicing.run- new thread started -" +  Thread.currentThread().getName());
+        }
+      //          System.out.println("TestTimeSlicing-exiting run -" +  Thread.currentThread().getName());
       }
    }

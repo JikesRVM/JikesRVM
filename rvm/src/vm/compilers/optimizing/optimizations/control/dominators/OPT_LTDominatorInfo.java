@@ -84,7 +84,7 @@ class OPT_LTDominatorInfo {
    *   @return whether master dominates block
    */
   public static boolean isDominatedBy(OPT_BasicBlock block, 
-				      OPT_BasicBlock master) {
+                                      OPT_BasicBlock master) {
     if (block == master) {
       return  true;
     }

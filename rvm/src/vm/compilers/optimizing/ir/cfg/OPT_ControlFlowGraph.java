@@ -167,20 +167,20 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
       int sortMarker = firstNode.getSortMarker();
       int sortNumber = firstNode.getBackwardSortNumber() - 1;
       for (OPT_BasicBlock block = firstInCodeOrder();
-	   block != null;
-	   block = block.nextBasicBlockInCodeOrder()) {
+           block != null;
+           block = block.nextBasicBlockInCodeOrder()) {
 
-	if (block.getSortMarker() != sortMarker) {
-	  // found a block that wasn't on the Reverse Top List, add it.
-	  // It is not clear where it should go, so since it is convenient
-	  // to add at the front, we add it at the front!
-	  block.setSortMarker(sortMarker);
-	  block.setBackwardSortNumber(sortNumber--);
+        if (block.getSortMarker() != sortMarker) {
+          // found a block that wasn't on the Reverse Top List, add it.
+          // It is not clear where it should go, so since it is convenient
+          // to add at the front, we add it at the front!
+          block.setSortMarker(sortMarker);
+          block.setBackwardSortNumber(sortNumber--);
 
-	  // put block at the beginning of the list
-	  block.setSortedNext(firstNode, false);
-	  firstNode = block;
-	}
+          // put block at the beginning of the list
+          block.setSortedNext(firstNode, false);
+          firstNode = block;
+        }
       }
     }
     return firstNode;
@@ -377,7 +377,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
       OPT_SpaceEffGraphNode n = _node;
       _node = n.getNext();
       if ((n != _end) && (_node == null)) 
-	_node = _end;
+        _node = _end;
       return n;
     }
   }

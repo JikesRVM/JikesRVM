@@ -50,7 +50,7 @@ public class OSR_OrganizerThread extends VM_Thread {
   }
 
   public OSR_OrganizerThread() {
-	makeDaemon(true);
+        makeDaemon(true);
   }
   
   public boolean osr_flag = false;
@@ -58,8 +58,8 @@ public class OSR_OrganizerThread extends VM_Thread {
   public void run() {
     while (true) {
       while (this.osr_flag) {
-	this.osr_flag = false;
-	processOsrRequest();
+        this.osr_flag = false;
+        processOsrRequest();
       }
       // going to sleep, possible a osr request is set by producer
       passivate();
@@ -71,7 +71,7 @@ public class OSR_OrganizerThread extends VM_Thread {
   private VM_ThreadQueue tq = new VM_ThreadQueue();
   private void passivate() {
     boolean gainedLock = VM_Synchronization.testAndSet(this, 
-       		    VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+                    VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
 
       // we cannot release lock before enqueue the organizer.
@@ -102,14 +102,14 @@ public class OSR_OrganizerThread extends VM_Thread {
    */
   public void activate() throws VM_PragmaUninterruptible {
     boolean gainedLock = VM_Synchronization.testAndSet(this,
-	 VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
+         VM_Entrypoints.osrOrganizerQueueLockField.getOffset(), 1);
     if (gainedLock) {
       VM_Thread org = tq.dequeue();
       // release lock
       this.queueLock = 0;
 
       if (org != null) {
-	org.schedule();
+        org.schedule();
       }
     }
     // otherwise, donot bother
@@ -121,12 +121,12 @@ public class OSR_OrganizerThread extends VM_Thread {
     for (int i=0, n=VM_Scheduler.threads.length; i<n; i++) {
       VM_Thread thread = VM_Scheduler.threads[i];
       if (thread != null) {
-	if (thread.requesting_osr) {
-	  thread.requesting_osr = false;
-	  
-	  VM_Controller.controllerInputQueue.prioritizedInsert(5.0, 
-				   thread.onStackReplacementEvent);
-	}
+        if (thread.requesting_osr) {
+          thread.requesting_osr = false;
+          
+          VM_Controller.controllerInputQueue.prioritizedInsert(5.0, 
+                                   thread.onStackReplacementEvent);
+        }
       }
     }
   }

@@ -82,15 +82,15 @@ public class VM_SysCall implements VM_Uninterruptible {
 
   // mmap - memory mapping
   public static VM_Address sysMMap(VM_Address start, VM_Extent length, int protection,
-				   int flags, int fd, long offset) { 
+                                   int flags, int fd, long offset) { 
     return null; 
   }
   public static VM_Address sysMMapNonFile(VM_Address start, VM_Extent length,
-					  int protection, int flags) {
+                                          int protection, int flags) {
     return null;
   }
   public static VM_Address sysMMapGeneralFile(VM_Address start, VM_Extent length,
-					      int fd, int prot) {
+                                              int fd, int prot) {
     return null;
   }
   public static VM_Address sysMMapDemandZeroFixed(VM_Address start, VM_Extent length) {
@@ -122,9 +122,9 @@ public class VM_SysCall implements VM_Uninterruptible {
    * @return virtual processor's o/s handle
    */
   public static int sysVirtualProcessorCreate(VM_Address jtoc, 
-					      VM_Address pr, 
-					      VM_Address ip,
-					      VM_Address fp) { 
+                                              VM_Address pr, 
+                                              VM_Address ip,
+                                              VM_Address fp) { 
     return 0;
   }
   /**
@@ -197,12 +197,12 @@ public class VM_SysCall implements VM_Uninterruptible {
     return 0;
   }
   public static int sysNetRemoteHostName(int internetAddress, 
-					 VM_Address buf,
-					 int limit) {
+                                         VM_Address buf,
+                                         int limit) {
     return 0;
   }
   public static int sysNetHostAddresses(VM_Address hostname, VM_Address buf, 
-					int limit) {
+                                        int limit) {
     return 0;
   }
   public static int sysNetSocketCreate(int isStream) { return 0; }
@@ -210,11 +210,11 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int sysNetSocketFamily(int fd) { return 0; }
   public static int sysNetSocketLocalAddress(int fd) { return 0; }
   public static int sysNetSocketBind(int fd, int family, int localAddress,
-				     int localPort) { 
+                                     int localPort) { 
     return 0;
   }
   public static int sysNetSocketConnect(int fd, int family, int remoteAddress,
-					int remotePort) {
+                                        int remotePort) {
     return 0;
   }
   public static int sysNetSocketListen(int fd, int backlog) { return 0; }
@@ -242,7 +242,7 @@ public class VM_SysCall implements VM_Uninterruptible {
 
   // process management
   public static void sysWaitPids(VM_Address pidArray, VM_Address exitStatusArray,
-				 int numPids) {}
+                                 int numPids) {}
 
   //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives

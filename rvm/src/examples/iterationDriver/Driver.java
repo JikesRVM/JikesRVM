@@ -43,7 +43,7 @@ class Driver {
       for (int i=0 ; i<N; i++) {
         System.out.println ("Run " + i + " ... ");
         VM_Callbacks.notifyAppRunStart("Driver", i);
-    	long elapsedTime = -System.currentTimeMillis();
+        long elapsedTime = -System.currentTimeMillis();
         m.invoke(null,argv);
         elapsedTime += System.currentTimeMillis();
         System.out.println("ELAPSED TIME " + elapsedTime + " ms");

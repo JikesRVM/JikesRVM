@@ -66,18 +66,18 @@ public final class OSR_OnStackReplacementEvent
 
     OPT_CompilationPlan compPlan = 
       new OPT_CompilationPlan(todoMethod,
-			      optimizationPlan,
-			      null,
-			      options);
+                              optimizationPlan,
+                              null,
+                              options);
   
     OSR_OnStackReplacementPlan plan = 
       new OSR_OnStackReplacementPlan(this.suspendedThread,
-				     compPlan,
-				     this.CMID,
-				     this.whereFrom,
-				     this.tsFromFPoff,
-				     this.ypTakenFPoff,
-				     priority);
+                                     compPlan,
+                                     this.CMID,
+                                     this.whereFrom,
+                                     this.tsFromFPoff,
+                                     this.ypTakenFPoff,
+                                     priority);
 
     // take the high priority for on stack replacement event
     boolean succeeded = 
@@ -85,14 +85,14 @@ public final class OSR_OnStackReplacementEvent
 
     if (succeeded) {
       if (VM.LogAOSEvents) {
-	VM_AOSLogging.logOsrEvent("OSR inserts compilation plan successfully!");
+        VM_AOSLogging.logOsrEvent("OSR inserts compilation plan successfully!");
       }
     } else {
       if (VM.LogAOSEvents) {
-	VM_AOSLogging.logOsrEvent("OSR was unable to insert compilation plan");
+        VM_AOSLogging.logOsrEvent("OSR was unable to insert compilation plan");
       }
       if (VM.TraceOnStackReplacement) {
-	VM.sysWriteln("OSR was unable to insert compilation plan");
+        VM.sysWriteln("OSR was unable to insert compilation plan");
       }
       suspendedThread.resume();
     }

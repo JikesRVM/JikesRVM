@@ -31,7 +31,7 @@ public final class VM_MiscHeader implements VM_Uninterruptible {
   // offset from object ref to .link field, in bytes
   static final int OBJECT_LINK_OFFSET      = (VM.CompileForGCTracing ? MISC_HEADER_START - 8 : 0);
   // offset from object ref to OBJECT_DEATH field, in bytes
-  static final int OBJECT_DEATH_OFFSET	   = (VM.CompileForGCTracing ? MISC_HEADER_START - 12 : 0);
+  static final int OBJECT_DEATH_OFFSET     = (VM.CompileForGCTracing ? MISC_HEADER_START - 12 : 0);
   // amount by which tracing causes headers to grow
   static final int GC_TRACING_HEADER_BYTES = (VM.CompileForGCTracing ? 12 : 0);
 
@@ -72,7 +72,7 @@ public final class VM_MiscHeader implements VM_Uninterruptible {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(BootImageInterface bootImage, int ref, 
-				      Object[] tib, int size, boolean isScalar) {
+                                      Object[] tib, int size, boolean isScalar) {
     // by default, nothing to do
   }
 

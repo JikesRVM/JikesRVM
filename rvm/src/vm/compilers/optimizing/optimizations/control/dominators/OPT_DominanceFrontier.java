@@ -15,15 +15,15 @@ import java.util.*;
  * <pre>
  * for each X in a bottom-up traversal of the dominator tree do
  *
- * 	DF(X) < - null
- * 	for each Y in Succ(X) do
- * 	  if (idom(Y)!=X) then DF(X) <- DF(X) U Y
- *	end
- * 	for each Z in {idom(z) = X} do
- *	  for each Y in DF(Z) do
- * 	  	if (idom(Y)!=X) then DF(X) <- DF(X) U Y
- *	  end
- *	end
+ *      DF(X) < - null
+ *      for each Y in Succ(X) do
+ *        if (idom(Y)!=X) then DF(X) <- DF(X) U Y
+ *      end
+ *      for each Z in {idom(z) = X} do
+ *        for each Y in DF(Z) do
+ *              if (idom(Y)!=X) then DF(X) <- DF(X) U Y
+ *        end
+ *      end
  * </pre>
  *
  * <p> TODO: we do not support IRs with exception handlers!!
@@ -68,7 +68,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
    * IR.
    * 
    * <p> NOTE: The dominator tree MUST be calculated BEFORE calling this
-   *	  routine.
+   *      routine.
    *
    * @param ir the governing IR
    */
@@ -100,7 +100,7 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
       }
       if (DEBUG)
         System.out.println("After local " + DF);
-      //	for each Z in {idom(z) = X} do
+      //        for each Z in {idom(z) = X} do
       for (Enumeration z = tree.getChildren(X); z.hasMoreElements();) {
         OPT_DominatorTreeNode zVertex = (OPT_DominatorTreeNode)z.nextElement();
         OPT_BasicBlock Z = zVertex.getBlock();

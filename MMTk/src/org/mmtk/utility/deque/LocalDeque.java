@@ -111,7 +111,7 @@ public class LocalDeque extends LocalSSB
       return popOverflow(arity);
     } else {
       if (VM_Interface.VerifyAssertions)
-	VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS)));
+        VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS)));
       return true;
     }
   }
@@ -180,7 +180,7 @@ public class LocalDeque extends LocalSSB
     VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity));
     do {
       if (!isReset())
-	queue.free(bufferStart(head));
+        queue.free(bufferStart(head));
       VM_Address tmp = queue.dequeue(arity);
       head = tmp.isZero() ? sentinelAsAddress : tmp;
     } while (bufferOffset(head).isZero());
@@ -217,13 +217,13 @@ public class LocalDeque extends LocalSSB
     if (bufferOffset(tail).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS))) {
       // entries in tail, so consume tail
       if (isReset()) {
-	head = queue.alloc(); // no head, so alloc a new one
-	Plan.checkForAsyncCollection(); // possible side-effect of alloc()
+        head = queue.alloc(); // no head, so alloc a new one
+        Plan.checkForAsyncCollection(); // possible side-effect of alloc()
       }
       VM_Address tmp = head;
       head = normalizeTail(arity).add(BYTES_IN_ADDRESS);// account for pre-decrement
       if (VM_Interface.VerifyAssertions)
-	VM_Interface._assert(tmp.EQ(bufferStart(tmp)));
+        VM_Interface._assert(tmp.EQ(bufferStart(tmp)));
       tail = tmp.add(bufferLastOffset(arity)).add(BYTES_IN_ADDRESS);
     } else {
       VM_Address tmp = queue.dequeueAndWait(arity);

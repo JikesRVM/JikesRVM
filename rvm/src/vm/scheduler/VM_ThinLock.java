@@ -109,8 +109,8 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
             int index = old & TL_LOCK_ID_MASK;
             index >>>= TL_LOCK_ID_SHIFT;
-	    while (index >= VM_Scheduler.locks.length) 
-	      VM_Lock.growLocks();
+            while (index >= VM_Scheduler.locks.length) 
+              VM_Lock.growLocks();
             if (VM_Scheduler.locks[index].lockHeavy(o)) {
               break major; // lock succeeds (note that lockHeavy has issued an isync)
             }
@@ -122,7 +122,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           }
           // real contention: wait (hope other thread unlocks o), try again
           if (traceContention) { // for performance tuning only (see section 5)
-	    VM_Address fp = VM_Magic.getFramePointer();
+            VM_Address fp = VM_Magic.getFramePointer();
             fp = VM_Magic.getCallerFramePointer(fp);
             int mid = VM_Magic.getCompiledMethodID(fp);
             VM_Method m1 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
@@ -164,7 +164,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           return;
         } 
         VM_Scheduler.trace("VM_Lock", "unlock error: thin lock word = ", old);
-	VM_Lock.raiseIllegalMonitorStateException("thin unlocking", o);
+        VM_Lock.raiseIllegalMonitorStateException("thin unlocking", o);
       }
       int countbits = old & TL_LOCK_COUNT_MASK; // get count
       if (countbits == 0) { // this is the last lock

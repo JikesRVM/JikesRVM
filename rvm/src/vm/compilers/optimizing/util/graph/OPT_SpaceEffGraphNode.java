@@ -240,7 +240,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
   /* replaces an oldnode with a new node */
 
   public final void replaceOut(OPT_SpaceEffGraphNode oldOut,
-			       OPT_SpaceEffGraphNode newOut) {
+                               OPT_SpaceEffGraphNode newOut) {
     deleteOut(oldOut);
     insertOut(newOut);
   }

@@ -111,18 +111,18 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
 
       // 3c: Create code patching maps
       if (ir.options.guardWithCodePatch()) {
-	ir.compiledMethod.createCodePatchMaps(ir);
+        ir.compiledMethod.createCodePatchMaps(ir);
       }
 
       if (shouldPrint) {
         // print exception tables (if any)
-	ir.compiledMethod.printExceptionTable();
+        ir.compiledMethod.printExceptionTable();
         OPT_Compiler.bottom("Final machine code", ir.method);
       }
       
       if (VM.runningVM)
         VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode), 
-  		     codeLength << LG_INSTRUCTION_WIDTH);
+                     codeLength << LG_INSTRUCTION_WIDTH);
     }
   
     public void verify(OPT_IR ir) {

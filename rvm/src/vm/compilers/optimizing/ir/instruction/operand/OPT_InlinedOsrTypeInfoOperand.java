@@ -40,7 +40,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
    */
 
   public OPT_InlinedOsrTypeInfoOperand(int[] mids, int cpcs[],
-				       byte[][] ltypes, byte[][] stypes) {
+                                       byte[][] ltypes, byte[][] stypes) {
     this.methodids = mids;
     this.bcindexes = cpcs;
     this.localTypeCodes = ltypes;
@@ -54,9 +54,9 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
    */
   public OPT_Operand copy() {
     return new OPT_InlinedOsrTypeInfoOperand(methodids,
-					     bcindexes,
-					     localTypeCodes, 
-					     stackTypeCodes);
+                                             bcindexes,
+                                             localTypeCodes, 
+                                             stackTypeCodes);
   }
   
   /**
@@ -95,16 +95,16 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
       buf.append(bcindexes[i]+"@"+VM_MemberReference.getMemberRef(methodids[i]).getName() +" : ");
       
       for (int j=0, m=localTypeCodes[i].length; j<m; j++) {
-	buf.append((char)localTypeCodes[i][j]);
+        buf.append((char)localTypeCodes[i][j]);
       }
 
       buf.append(",");
       for (int j=0, m=stackTypeCodes[i].length; j<m; j++) {
-	buf.append((char)stackTypeCodes[i][j]);
+        buf.append((char)stackTypeCodes[i][j]);
       }
      
       if (i!=n-1) {
-	buf.append(" | ");
+        buf.append(" | ");
       }
     }      
     buf.append(")");

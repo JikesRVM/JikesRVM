@@ -99,39 +99,39 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
   private static void splitAllLiveRanges(OPT_Instruction s, 
                                          java.util.HashMap newMap,
                                          OPT_IR ir,
-					 boolean rootOnly) {
+                                         boolean rootOnly) {
     // walk over each USE
     for (OPT_OperandEnumeration u = rootOnly?s.getRootUses():s.getUses(); 
-	 u.hasMoreElements(); ) {
+         u.hasMoreElements(); ) {
       OPT_Operand use = u.next();
       if (use.isRegister()) {
-	OPT_RegisterOperand rUse = use.asRegister();
-	OPT_RegisterOperand temp = findOrCreateTemp(rUse, newMap, ir);
-	// move 'use' into 'temp' before s
-	insertMoveBefore(temp, rUse.copyRO(), s);
+        OPT_RegisterOperand rUse = use.asRegister();
+        OPT_RegisterOperand temp = findOrCreateTemp(rUse, newMap, ir);
+        // move 'use' into 'temp' before s
+        insertMoveBefore(temp, rUse.copyRO(), s);
       }
     }
     // walk over each DEF (by defintion defs == root defs)
     for (OPT_OperandEnumeration d = s.getDefs(); d.hasMoreElements(); ) {
       OPT_Operand def = d.next();
       if (def.isRegister()) {
-	OPT_RegisterOperand rDef = def.asRegister();
-	OPT_RegisterOperand temp = findOrCreateTemp(rDef ,newMap, ir);
-	// move 'temp' into 'r' after s
-	insertMoveAfter(rDef.copyRO(), temp, s);
+        OPT_RegisterOperand rDef = def.asRegister();
+        OPT_RegisterOperand temp = findOrCreateTemp(rDef ,newMap, ir);
+        // move 'temp' into 'r' after s
+        insertMoveAfter(rDef.copyRO(), temp, s);
       }
     }
     // Now go back and replace the registers.
     for (OPT_OperandEnumeration ops = rootOnly?s.getRootOperands():s.getOperands(); 
-	 ops.hasMoreElements(); ) {
+         ops.hasMoreElements(); ) {
       OPT_Operand op = ops.next();
       if (op.isRegister()) {
-	OPT_RegisterOperand rOp = op.asRegister();
-	OPT_Register r = rOp.register;
-	OPT_Register newR = (OPT_Register)newMap.get(r); 
-	if (newR != null) {
-	  rOp.register = newR;
-	}
+        OPT_RegisterOperand rOp = op.asRegister();
+        OPT_Register r = rOp.register;
+        OPT_Register newR = (OPT_Register)newMap.get(r); 
+        if (newR != null) {
+          rOp.register = newR;
+        }
       }
     }
   }
@@ -144,8 +144,8 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * @param ir the governing IR
    */
   private static OPT_RegisterOperand findOrCreateTemp(OPT_RegisterOperand rOp,
-						      java.util.HashMap map,
-						      OPT_IR ir) {
+                                                      java.util.HashMap map,
+                                                      OPT_IR ir) {
     OPT_Register tReg = (OPT_Register)map.get(rOp.register);
     if (tReg == null) {
       OPT_RegisterOperand tOp = ir.regpool.makeTemp(rOp.type);
@@ -160,7 +160,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * Insert an instruction to move r1 into r2 before instruction s
    */
   private static void insertMoveBefore(OPT_RegisterOperand r2, 
-				       OPT_RegisterOperand r1,
+                                       OPT_RegisterOperand r1,
                                        OPT_Instruction s) {
     OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2,r1);
     s.insertBefore(m);
@@ -169,8 +169,8 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
    * Insert an instruction to move r1 into r2 after instruction s
    */
   private static void insertMoveAfter(OPT_RegisterOperand r2, 
-				      OPT_RegisterOperand r1,
-				      OPT_Instruction s) {
+                                      OPT_RegisterOperand r1,
+                                      OPT_Instruction s) {
     OPT_Instruction m = OPT_PhysicalRegisterTools.makeMoveInstruction(r2,r1);
     s.insertAfter(m);
   }

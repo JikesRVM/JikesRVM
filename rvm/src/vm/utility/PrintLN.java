@@ -3,9 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.PrintContainer;	/* This import statement isn't
-				     necessary, but is here for documentation
-				     purposes. --S. Augart */ 
+import com.ibm.JikesRVM.PrintContainer; /* This import statement isn't
+                                     necessary, but is here for documentation
+                                     purposes. --S. Augart */ 
 import com.ibm.JikesRVM.classloader.VM_Member;
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Class;
@@ -60,7 +60,7 @@ public abstract class PrintLN {
       int digit = n / p;
       n -= digit * p;
       if (digit == 0 && suppress_leading_zero)
-	continue;
+        continue;
       suppress_leading_zero = false;
       char c = (char) ('0' + digit);
       print(c);
@@ -71,13 +71,13 @@ public abstract class PrintLN {
     print("0x");
     // print exactly 8 hexadec. digits.
     for (int i = 32 - 4; i >= 0; i -= 4) {
-      int digit = (n >>> i) & 0x0000000F;		// fill with 0 bits.
+      int digit = (n >>> i) & 0x0000000F;               // fill with 0 bits.
       char c;
 
       if (digit <= 9) {
-	c = (char) ('0' + digit);
+        c = (char) ('0' + digit);
       } else {
-	c = (char) ('A' + (digit - 10));
+        c = (char) ('A' + (digit - 10));
       }
       print(c);
     }
@@ -104,9 +104,9 @@ public abstract class PrintLN {
     for (int i = 1; i < val.length - 1; ++i) {
       char c = (char) val[i];
       if (c == '/')
-	print('.');
+        print('.');
       else
-	print(c);
+        print(c);
     }
     // We could do this in an emergency.  But we don't need to.
     // print(descriptor);
@@ -123,9 +123,9 @@ public abstract class PrintLN {
 //     public void print(VM_Class c) {
 //       VM_Atom descriptor = c.getDescriptor();
 //       try {
-// 	print(descriptor.classNameFromDescriptor());
+//      print(descriptor.classNameFromDescriptor());
 //       } catch(OutOfMemoryError e) {
-// 	print(descriptor);
+//      print(descriptor);
 //       }
 //     }
 

@@ -47,9 +47,9 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     //    new OPT_IRPrinter("after removing barriers").perform(ir);
 
     // 4. reconstruct CFG, cut off pieces after OsrPoint.
-	fixupCFGForOsr(osrs, ir);
+        fixupCFGForOsr(osrs, ir);
 /*
-	if (VM.TraceOnStackReplacement && (0 != osrs.size())) {
+        if (VM.TraceOnStackReplacement && (0 != osrs.size())) {
       new OPT_IRPrinter("After OsrPointConstructor").perform(ir);
     }
 */
@@ -69,7 +69,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
       OPT_Instruction inst = instenum.next();
       
       if (OsrPoint.conforms(inst)) {
-	osrs.add(inst);
+        osrs.add(inst);
       }
     }
 
@@ -89,47 +89,47 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
       // Step 1: collect barriers put before inlined method
       //         in the order of from inner to outer
       {
-	OPT_Instruction bar = (OPT_Instruction)osr.scratchObject;
+        OPT_Instruction bar = (OPT_Instruction)osr.scratchObject;
 
         if (osr.position == null) osr.position = bar.position;
 
-	adjustBCIndex(osr);
+        adjustBCIndex(osr);
 
-	while (bar != null) {
+        while (bar != null) {
 
-	  barriers.add(bar);
+          barriers.add(bar);
 
-	  // verify each barrier is clean
-	  if (VM.VerifyAssertions) {
-	    if (!isBarrierClean(bar)) {
-	      VM.sysWriteln("Barrier "+bar+" is not clean!");
-	    }
-	    VM._assert(isBarrierClean(bar));
-	  }
+          // verify each barrier is clean
+          if (VM.VerifyAssertions) {
+            if (!isBarrierClean(bar)) {
+              VM.sysWriteln("Barrier "+bar+" is not clean!");
+            }
+            VM._assert(isBarrierClean(bar));
+          }
 
-	  OPT_Instruction callsite = bar.position.getCallSite();
-	  if (callsite != null) {
-	    bar = (OPT_Instruction)callsite.scratchObject;
+          OPT_Instruction callsite = bar.position.getCallSite();
+          if (callsite != null) {
+            bar = (OPT_Instruction)callsite.scratchObject;
 
-		if (bar == null) {
-		  VM.sysWrite("call site :"+callsite);
-		  VM._assert(false);
-		}
-		
-	    adjustBCIndex(bar);
-	  } else {
-	    bar = null;
-	  } 
-	}
+                if (bar == null) {
+                  VM.sysWrite("call site :"+callsite);
+                  VM._assert(false);
+                }
+                
+            adjustBCIndex(bar);
+          } else {
+            bar = null;
+          } 
+        }
       }
 
       int inlineDepth = barriers.size();
 
       if (VM.VerifyAssertions) {
-	if (inlineDepth == 0) {
-	  VM.sysWriteln("Inlining depth for "+osr+" is 0!");
-	}
-	VM._assert(inlineDepth != 0); }
+        if (inlineDepth == 0) {
+          VM.sysWriteln("Inlining depth for "+osr+" is 0!");
+        }
+        VM._assert(inlineDepth != 0); }
 
       // Step 2: make a new InlinedOsrTypeOperand from barriers
       int methodids[] = new int[inlineDepth];
@@ -141,84 +141,84 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
       // first iteration, count the size of total locals and stack sizes
       for (int barIdx=0, barSize=barriers.size(); barIdx<barSize; barIdx++) {
 
-	OPT_Instruction bar = (OPT_Instruction)barriers.get(barIdx);
-	methodids[barIdx] = bar.position.method.getId();
-	bcindexes[barIdx] = bar.bcIndex;
+        OPT_Instruction bar = (OPT_Instruction)barriers.get(barIdx);
+        methodids[barIdx] = bar.position.method.getId();
+        bcindexes[barIdx] = bar.bcIndex;
 
-	OPT_OsrTypeInfoOperand typeInfo = OsrBarrier.getTypeInfo(bar);
-	localTypeCodes[barIdx] = typeInfo.localTypeCodes;
-	stackTypeCodes[barIdx] = typeInfo.stackTypeCodes;
+        OPT_OsrTypeInfoOperand typeInfo = OsrBarrier.getTypeInfo(bar);
+        localTypeCodes[barIdx] = typeInfo.localTypeCodes;
+        stackTypeCodes[barIdx] = typeInfo.stackTypeCodes;
 
-	// count the number of operand, but ignore VoidTypeCode
-	totalOperands += OsrBarrier.getNumberOfElements(bar);
+        // count the number of operand, but ignore VoidTypeCode
+        totalOperands += OsrBarrier.getNumberOfElements(bar);
 
-	/*
-	if (VM.TraceOnStackReplacement) {
-	  VM.sysWriteln("OsrBarrier : "+bar.bcIndex
-			+"@"+bar.position.method
-			+" "+typeInfo);
-	}
-	*/
+        /*
+        if (VM.TraceOnStackReplacement) {
+          VM.sysWriteln("OsrBarrier : "+bar.bcIndex
+                        +"@"+bar.position.method
+                        +" "+typeInfo);
+        }
+        */
       }
 
       // new make InlinedOsrTypeInfoOperand
       OPT_InlinedOsrTypeInfoOperand typeInfo =
-	new OPT_InlinedOsrTypeInfoOperand(methodids, bcindexes,
-					  localTypeCodes,
-					  stackTypeCodes);
+        new OPT_InlinedOsrTypeInfoOperand(methodids, bcindexes,
+                                          localTypeCodes,
+                                          stackTypeCodes);
       
       OsrPoint.mutate(osr, osr.operator(),
-		      typeInfo, 
-		      totalOperands);
+                      typeInfo, 
+                      totalOperands);
 
       // Step 3: second iteration, copy operands
       int opIndex = 0;
       for (int barIdx=0, barSize=barriers.size(); barIdx<barSize; barIdx++) {
 
-	OPT_Instruction bar = (OPT_Instruction)barriers.get(barIdx);
-	for (int elmIdx=0, elmSize=OsrBarrier.getNumberOfElements(bar); 
-	     elmIdx<elmSize; 
-	     elmIdx++) {
+        OPT_Instruction bar = (OPT_Instruction)barriers.get(barIdx);
+        for (int elmIdx=0, elmSize=OsrBarrier.getNumberOfElements(bar); 
+             elmIdx<elmSize; 
+             elmIdx++) {
 
-	  OPT_Operand op = OsrBarrier.getElement(bar, elmIdx);	  
+          OPT_Operand op = OsrBarrier.getElement(bar, elmIdx);    
 
-	  if (VM.VerifyAssertions) {
-	    if (op == null) {
-	      VM.sysWriteln(elmIdx+"th Operand of "+bar+" is null!");	
-	    }
-	    VM._assert(op != null);
-	  }
+          if (VM.VerifyAssertions) {
+            if (op == null) {
+              VM.sysWriteln(elmIdx+"th Operand of "+bar+" is null!");   
+            }
+            VM._assert(op != null);
+          }
  
-	  if (op instanceof OPT_RegisterOperand) {
-	    op = ((OPT_RegisterOperand)op).copyU2U();
-	  }
+          if (op instanceof OPT_RegisterOperand) {
+            op = ((OPT_RegisterOperand)op).copyU2U();
+          }
 
-	  OsrPoint.setElement(osr, opIndex, op);
-	  opIndex ++;
-	}
+          OsrPoint.setElement(osr, opIndex, op);
+          opIndex ++;
+        }
       }
 /*
       if (VM.TraceOnStackReplacement) {
-	VM.sysWriteln("renovated OsrPoint instruction "+osr);
-	VM.sysWriteln("  position "+osr.bcIndex+"@"+osr.position.method);
+        VM.sysWriteln("renovated OsrPoint instruction "+osr);
+        VM.sysWriteln("  position "+osr.bcIndex+"@"+osr.position.method);
       }
 */
       // the last OsrBarrier should in the current method
       if (VM.VerifyAssertions) {
-	OPT_Instruction lastBar = (OPT_Instruction)barriers.getLast();
-	if (ir.method != lastBar.position.method) {
-	  VM.sysWriteln("The last barrier is not in the same method as osr:");
-	  VM.sysWriteln(lastBar+"@"+lastBar.position.method);
-	  VM.sysWriteln("current method @"+ir.method);
-	}
-	VM._assert(ir.method == lastBar.position.method);
+        OPT_Instruction lastBar = (OPT_Instruction)barriers.getLast();
+        if (ir.method != lastBar.position.method) {
+          VM.sysWriteln("The last barrier is not in the same method as osr:");
+          VM.sysWriteln(lastBar+"@"+lastBar.position.method);
+          VM.sysWriteln("current method @"+ir.method);
+        }
+        VM._assert(ir.method == lastBar.position.method);
 
-	if (opIndex != totalOperands) {
-	  VM.sysWriteln("opIndex and totalOperands do not match:");
-	  VM.sysWriteln("opIndex = "+opIndex);
-	  VM.sysWriteln("totalOperands = "+totalOperands);
-	}
-	VM._assert(opIndex == totalOperands);
+        if (opIndex != totalOperands) {
+          VM.sysWriteln("opIndex and totalOperands do not match:");
+          VM.sysWriteln("opIndex = "+opIndex);
+          VM.sysWriteln("totalOperands = "+totalOperands);
+        }
+        VM._assert(opIndex == totalOperands);
       } // end of assertion
     } // end of for loop
   }
@@ -253,10 +253,10 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
     while (instenum.hasMoreElements()) {
       OPT_Instruction inst = instenum.next();
       if (inst.operator().opcode == OSR_BARRIER_opcode) {
-	VM.sysWriteln(" NOT SANE");
-	VM.sysWriteln(inst.toString());
-	if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	break;
+        VM.sysWriteln(" NOT SANE");
+        VM.sysWriteln(inst.toString());
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+        break;
       }
     }    
     VM.sysWriteln(" SANE");
@@ -273,9 +273,9 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
   private int countNonVoidTypes(byte[] typeCodes) {
     int count = 0;
     for (int idx=0, size=typeCodes.length;
-	 idx < size; idx++) {
+         idx < size; idx++) {
       if (typeCodes[idx] != com.ibm.JikesRVM.OSR.OSR_Constants.VoidTypeCode) {
-	count++;
+        count++;
       }
     }
     return count;

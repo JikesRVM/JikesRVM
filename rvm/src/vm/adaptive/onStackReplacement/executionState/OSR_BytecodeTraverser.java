@@ -40,7 +40,7 @@ import java.util.*;
  * @author Feng Qian    
  */
 public class OSR_BytecodeTraverser implements VM_BytecodeConstants, 
-					      OSR_Constants {
+                                              OSR_Constants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -119,15 +119,15 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       VM_TypeReference[] ptypes = method.getParameterTypes();
       int lidx = 0;
       if (!method.isStatic()) {
-	ltypes[lidx++] = ClassTypeCode;
+        ltypes[lidx++] = ClassTypeCode;
       }
       for (int i=0, n=ptypes.length; i<n; i++) {
-	byte tcode = ptypes[i].getName().parseForTypeCode();
-	ltypes[lidx++] = tcode;
-	if ( (tcode == LongTypeCode) 
-	     || (tcode == DoubleTypeCode) ) {
-	  ltypes[lidx++] = VoidTypeCode;
-	}
+        byte tcode = ptypes[i].getName().parseForTypeCode();
+        ltypes[lidx++] = tcode;
+        if ( (tcode == LongTypeCode) 
+             || (tcode == DoubleTypeCode) ) {
+          ltypes[lidx++] = VoidTypeCode;
+        }
       }
     }
     
@@ -142,17 +142,17 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
     if (!found) {
       VM_ExceptionHandlerMap ehmap = method.getExceptionHandlerMap();
       if (ehmap != null) {
-	int[] handlerPCs = ehmap.getHandlerPC();
-	for (int i=0, n=handlerPCs.length; i<n; i++) {
-	  simstacks.clear();
-	  simstacks.push(ClassTypeCode);
-	  int startpc = handlerPCs[i];
-	  found = scanBlocks(method, bytecodes, true, bcpoint, ltypes, stypes, 
-			     startpc, simstacks, null);
-	  if (found) {
-	    break;
-	  }
-	} 		    
+        int[] handlerPCs = ehmap.getHandlerPC();
+        for (int i=0, n=handlerPCs.length; i<n; i++) {
+          simstacks.clear();
+          simstacks.push(ClassTypeCode);
+          int startpc = handlerPCs[i];
+          found = scanBlocks(method, bytecodes, true, bcpoint, ltypes, stypes, 
+                             startpc, simstacks, null);
+          if (found) {
+            break;
+          }
+        }                   
       }
     }
     visitedpc = null;
@@ -186,13 +186,13 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
   // COMPUTE STACK HEIGHTS
   //////////////////////////
   public void computeStackHeights(VM_NormalMethod method,
-				  VM_BytecodeStream bcodes,
-				  int[] stackHeights,
-				  boolean adjustExptable) {
+                                  VM_BytecodeStream bcodes,
+                                  int[] stackHeights,
+                                  boolean adjustExptable) {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("computing stack heights of method "+method.toString());
     }
-	
+        
     /* set marks for each byte code. */
     // this may be the specialized method
     bytecodes = bcodes;
@@ -204,7 +204,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       retaddr[i] = -1;
     }
     addr = -1;
-	
+        
     int stacksize = method.getOperandWords();
     OSR_TypeStack simstacks = new OSR_TypeStack(stacksize, VoidTypeCode);
 
@@ -217,23 +217,23 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
     { 
       VM_ExceptionHandlerMap ehmap = method.getExceptionHandlerMap();
       if (ehmap != null) {
-	int[] handlerPCs = ehmap.getHandlerPC();
+        int[] handlerPCs = ehmap.getHandlerPC();
     
-	for (int i=0, n=handlerPCs.length; i<n; i++) {
-	  int startpc = handlerPCs[i];
+        for (int i=0, n=handlerPCs.length; i<n; i++) {
+          int startpc = handlerPCs[i];
 
-	  /* for baseline compilation, the OSR_SpecialCompiler 
-	   * didnot adjust exception table, we has to adjust it 
-	   * here.
-	   */
-	  if (adjustExptable && method.isForOsrSpecialization()) {
-	    startpc += method.getOsrPrologueLength();
-	  }
-	  
-	  simstacks.clear();
-	  simstacks.push(ClassTypeCode);
-	  scanBlocks(method, bytecodes, false, -1, null, null, startpc, simstacks, stackHeights);
-	}           
+          /* for baseline compilation, the OSR_SpecialCompiler 
+           * didnot adjust exception table, we has to adjust it 
+           * here.
+           */
+          if (adjustExptable && method.isForOsrSpecialization()) {
+            startpc += method.getOsrPrologueLength();
+          }
+          
+          simstacks.clear();
+          simstacks.push(ClassTypeCode);
+          scanBlocks(method, bytecodes, false, -1, null, null, startpc, simstacks, stackHeights);
+        }           
       }
     }
     visitedpc = null;   
@@ -246,7 +246,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("computing stack heights of method "+method.toString());
     }
-	
+        
     /* set marks for each byte code. */
     // this may be the specialized method
     bytecodes = bcodes;
@@ -260,7 +260,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       retaddr[i] = -1;
     }
     addr = -1;
-	
+        
     int stacksize = method.getOperandWords();
     OSR_TypeStack simstacks = new OSR_TypeStack(stacksize, VoidTypeCode);
 
@@ -270,7 +270,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       scanBlocks(method, bytecodes, false, -1, null, null, startpc, simstacks, stackHeights);
     }
     visitedpc = null;
-  }	
+  }     
   
   /* returns type code of the return type from the signature.
    * SEE also : VM_Atom.parseForReturnType
@@ -290,14 +290,14 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 
   /* return true --> hit the bytecode pointed by PC */
   private boolean scanBlocks (VM_NormalMethod method,    // which method
-			      VM_BytecodeStream bytecodes,         // the bytecodes
-			      boolean doDFS,       // do a DFS or one-pass scan
-			      int pcs,             // the target pcs, if doDFS
-			      byte[] ltypes,       // the local types if doDFS
-			      byte[] stypes,       // the stack types if doDFS
-			      int startpc,         // start pc
-			      OSR_TypeStack S,     // stack 
-			      int[] stackHeights) { // the stack height if not doDFS
+                              VM_BytecodeStream bytecodes,         // the bytecodes
+                              boolean doDFS,       // do a DFS or one-pass scan
+                              int pcs,             // the target pcs, if doDFS
+                              byte[] ltypes,       // the local types if doDFS
+                              byte[] stypes,       // the stack types if doDFS
+                              int startpc,         // start pc
+                              OSR_TypeStack S,     // stack 
+                              int[] stackHeights) { // the stack height if not doDFS
 
     int localsize = method.getLocalWords()-1;
     VM_Class declaringClass = method.getDeclaringClass();
@@ -309,39 +309,39 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
     while (bytecodes.hasMoreBytecodes()) {
       int pc = bytecodes.index(); // get current pc
       if (visitedpc[pc] == 1) {
-	return false;
+        return false;
       } else {
-	visitedpc[pc] = 1;
+        visitedpc[pc] = 1;
       }
 
       if (doDFS && (pc == pcs)) {
-	/* make a copy of stack frame and put into stypes. */
-	byte[] stack = S.snapshot();
-	System.arraycopy(stack, 0, stypes, 0, stack.length);
-	return true;
+        /* make a copy of stack frame and put into stypes. */
+        byte[] stack = S.snapshot();
+        System.arraycopy(stack, 0, stypes, 0, stack.length);
+        return true;
       } 
 
       if (!doDFS) {
-	// record stack heights
-	stackHeights[pc] = localsize + S.depth();
+        // record stack heights
+        stackHeights[pc] = localsize + S.depth();
       }
 
       /* let's continue */
       int bcode = bytecodes.nextInstruction();
  
       if (TRACE) {
-		if (bcode <= JBC_jsr_w)
-	      VM.sysWriteln(pc + " : " + S.depth() +" : "+JBC_name[bcode]);
-		else
-		  VM.sysWriteln(pc + " : " + S.depth() +" : impdep1");
+                if (bcode <= JBC_jsr_w)
+              VM.sysWriteln(pc + " : " + S.depth() +" : "+JBC_name[bcode]);
+                else
+                  VM.sysWriteln(pc + " : " + S.depth() +" : impdep1");
       }
 
       switch (bcode) {
       case JBC_nop:
-	break;
+        break;
       case JBC_aconst_null:
-	S.push(ClassTypeCode);
-	break;
+        S.push(ClassTypeCode);
+        break;
       case JBC_iconst_m1:
       case JBC_iconst_0:
       case JBC_iconst_1:
@@ -349,371 +349,371 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_iconst_3:
       case JBC_iconst_4:
       case JBC_iconst_5:
-	S.push(IntTypeCode);
-	break;
+        S.push(IntTypeCode);
+        break;
       case JBC_lconst_0:
       case JBC_lconst_1:
-	/* we should do the save order as opt compiler */
-	S.push(VoidTypeCode);
-	S.push(LongTypeCode);
-	break;
+        /* we should do the save order as opt compiler */
+        S.push(VoidTypeCode);
+        S.push(LongTypeCode);
+        break;
       case JBC_fconst_0:
       case JBC_fconst_1:
       case JBC_fconst_2:
-	S.push(FloatTypeCode);
-	break;
+        S.push(FloatTypeCode);
+        break;
       case JBC_dconst_0:
       case JBC_dconst_1:
-	S.push(VoidTypeCode);
-	S.push(DoubleTypeCode);
-	break;
+        S.push(VoidTypeCode);
+        S.push(DoubleTypeCode);
+        break;
       case JBC_bipush:
-	bytecodes.getByteValue();
-	S.push(IntTypeCode);
-	break;
+        bytecodes.getByteValue();
+        S.push(IntTypeCode);
+        break;
       case JBC_sipush:
-	bytecodes.getShortValue();
-	S.push(IntTypeCode);
-	break;
+        bytecodes.getShortValue();
+        S.push(IntTypeCode);
+        break;
       case JBC_ldc:
       case JBC_ldc_w: {
-	int cpoolidx = (bcode == JBC_ldc) ? 
-	  bytecodes.getConstantIndex():bytecodes.getWideConstantIndex();
-	byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
-	switch (tdesc) {
-	case VM_Statics.INT_LITERAL:
-	  S.push(IntTypeCode);
-	  break;
-	case VM_Statics.FLOAT_LITERAL:
-	  S.push(FloatTypeCode);
-	    break;
-	case VM_Statics.STRING_LITERAL:
-	  S.push(ClassTypeCode);
-	  break;
-	default:
-	  if (VM.TraceOnStackReplacement) VM.sysWriteln("ldc unknown type "+tdesc);
-	  if (VM.VerifyAssertions)  VM._assert(VM.NOT_REACHED);
-	  break;
-	}  // end of switch
+        int cpoolidx = (bcode == JBC_ldc) ? 
+          bytecodes.getConstantIndex():bytecodes.getWideConstantIndex();
+        byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
+        switch (tdesc) {
+        case VM_Statics.INT_LITERAL:
+          S.push(IntTypeCode);
+          break;
+        case VM_Statics.FLOAT_LITERAL:
+          S.push(FloatTypeCode);
+            break;
+        case VM_Statics.STRING_LITERAL:
+          S.push(ClassTypeCode);
+          break;
+        default:
+          if (VM.TraceOnStackReplacement) VM.sysWriteln("ldc unknown type "+tdesc);
+          if (VM.VerifyAssertions)  VM._assert(VM.NOT_REACHED);
+          break;
+        }  // end of switch
       }
-	break;
+        break;
       case JBC_ldc2_w: {
-	int cpoolidx = bytecodes.getWideConstantIndex();
-	byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
-	S.push(VoidTypeCode);
-	switch (tdesc) {
-	case VM_Statics.LONG_LITERAL:
-	  S.push(LongTypeCode);
-	  break;
-	case VM_Statics.DOUBLE_LITERAL:
-	  S.push(DoubleTypeCode);
-	  break;
-	default:
-	  if (VM.TraceOnStackReplacement) VM.sysWriteln("ldc2_w unknown type "+tdesc);
-	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	  break;		
-	}  // end of switch
+        int cpoolidx = bytecodes.getWideConstantIndex();
+        byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
+        S.push(VoidTypeCode);
+        switch (tdesc) {
+        case VM_Statics.LONG_LITERAL:
+          S.push(LongTypeCode);
+          break;
+        case VM_Statics.DOUBLE_LITERAL:
+          S.push(DoubleTypeCode);
+          break;
+        default:
+          if (VM.TraceOnStackReplacement) VM.sysWriteln("ldc2_w unknown type "+tdesc);
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          break;                
+        }  // end of switch
       }
-	break;
+        break;
       case JBC_iload:
-	bytecodes.getLocalNumber(); // skip local
-	S.push (IntTypeCode);
-	break;		    
+        bytecodes.getLocalNumber(); // skip local
+        S.push (IntTypeCode);
+        break;              
       case JBC_lload:
-	bytecodes.getLocalNumber(); // skip local
-	S.push(VoidTypeCode);
-	S.push(LongTypeCode);
-	break;
+        bytecodes.getLocalNumber(); // skip local
+        S.push(VoidTypeCode);
+        S.push(LongTypeCode);
+        break;
       case JBC_fload:
-	bytecodes.getLocalNumber(); // skip local
-	S.push (FloatTypeCode);
-	break;
+        bytecodes.getLocalNumber(); // skip local
+        S.push (FloatTypeCode);
+        break;
       case JBC_dload:
-	bytecodes.getLocalNumber();
-	S.push(VoidTypeCode);
-	S.push(DoubleTypeCode);
-	break;
+        bytecodes.getLocalNumber();
+        S.push(VoidTypeCode);
+        S.push(DoubleTypeCode);
+        break;
       case JBC_aload:
-	bytecodes.getLocalNumber();
-	S.push (ClassTypeCode);
-	break;
+        bytecodes.getLocalNumber();
+        S.push (ClassTypeCode);
+        break;
       case JBC_iload_0:
       case JBC_iload_1:
       case JBC_iload_2:
       case JBC_iload_3: 
-	S.push (IntTypeCode);
-	break;
+        S.push (IntTypeCode);
+        break;
       case JBC_lload_0:
       case JBC_lload_1:
       case JBC_lload_2:
       case JBC_lload_3:
-	S.push(VoidTypeCode);
-	S.push(LongTypeCode);
-	break;
+        S.push(VoidTypeCode);
+        S.push(LongTypeCode);
+        break;
       case JBC_fload_0:
       case JBC_fload_1:
       case JBC_fload_2:
       case JBC_fload_3:
-	S.push (FloatTypeCode);
-	break;
+        S.push (FloatTypeCode);
+        break;
       case JBC_dload_0:
       case JBC_dload_1:
       case JBC_dload_2:
       case JBC_dload_3:
-	S.push(VoidTypeCode);
-	S.push(DoubleTypeCode);
-	break;
+        S.push(VoidTypeCode);
+        S.push(DoubleTypeCode);
+        break;
       case JBC_aload_0:
       case JBC_aload_1:
       case JBC_aload_2:
       case JBC_aload_3:
-	S.push (ClassTypeCode);
-	break;
+        S.push (ClassTypeCode);
+        break;
       case JBC_iaload:
       case JBC_baload:
       case JBC_caload:
       case JBC_saload:
-	S.pop ();
-	S.pop ();
-	S.push (IntTypeCode);
-	break;
+        S.pop ();
+        S.pop ();
+        S.push (IntTypeCode);
+        break;
       case JBC_laload:
-	S.pop();
-	S.pop();
-	S.push(VoidTypeCode);
-	S.push(LongTypeCode);
-	break;
+        S.pop();
+        S.pop();
+        S.push(VoidTypeCode);
+        S.push(LongTypeCode);
+        break;
       case JBC_faload:
-	S.pop();
-	S.pop();
-	S.push (FloatTypeCode);
-	break;
+        S.pop();
+        S.pop();
+        S.push (FloatTypeCode);
+        break;
       case JBC_daload:
-	S.pop();
-	S.pop();
-	S.push(VoidTypeCode);
-	S.push(DoubleTypeCode);
-	break;
+        S.pop();
+        S.pop();
+        S.push(VoidTypeCode);
+        S.push(DoubleTypeCode);
+        break;
       case JBC_aaload:
-	S.pop();
-	S.pop();
-	S.push(ClassTypeCode);
-	break;
+        S.pop();
+        S.pop();
+        S.push(ClassTypeCode);
+        break;
       case JBC_istore: {
-	S.pop();
-	int index = bytecodes.getLocalNumber();
-	if (doDFS) ltypes[index] = IntTypeCode;
+        S.pop();
+        int index = bytecodes.getLocalNumber();
+        if (doDFS) ltypes[index] = IntTypeCode;
       }
-	break;
+        break;
       case JBC_istore_0:
       case JBC_istore_1:
       case JBC_istore_2:
       case JBC_istore_3: {
-	S.pop();
-	int index = bcode - JBC_istore_0;
-	if (doDFS)  ltypes[index] = IntTypeCode;
+        S.pop();
+        int index = bcode - JBC_istore_0;
+        if (doDFS)  ltypes[index] = IntTypeCode;
       }
-	break;
+        break;
       case JBC_lstore: {
-	S.pop();
-	S.pop();
-	int index = bytecodes.getLocalNumber();
-	if (doDFS) {
-	  ltypes[index] = LongTypeCode;
-	  ltypes[index+1] = VoidTypeCode;
-	}
+        S.pop();
+        S.pop();
+        int index = bytecodes.getLocalNumber();
+        if (doDFS) {
+          ltypes[index] = LongTypeCode;
+          ltypes[index+1] = VoidTypeCode;
+        }
       }
-	break;
+        break;
       case JBC_lstore_0:
       case JBC_lstore_1:
       case JBC_lstore_2:
       case JBC_lstore_3: {
-	S.pop();
-	S.pop();
-	  int index = bcode - JBC_lstore_0;
-	if (doDFS) {
-	  ltypes[index] = LongTypeCode;
-	  ltypes[index+1] = VoidTypeCode;
-	}
+        S.pop();
+        S.pop();
+          int index = bcode - JBC_lstore_0;
+        if (doDFS) {
+          ltypes[index] = LongTypeCode;
+          ltypes[index+1] = VoidTypeCode;
+        }
       }
-	break;
+        break;
       case JBC_fstore: {
- 	S.pop();
-	int index = bytecodes.getLocalNumber();
-	if (doDFS) ltypes[index] = FloatTypeCode;
+        S.pop();
+        int index = bytecodes.getLocalNumber();
+        if (doDFS) ltypes[index] = FloatTypeCode;
       }
-      break;	
+      break;    
       case JBC_fstore_0:
       case JBC_fstore_1:
       case JBC_fstore_2:
       case JBC_fstore_3: {
-	S.pop();
-	  int index = bcode - JBC_fstore_0;
-	if (doDFS)  ltypes[index] = FloatTypeCode;
+        S.pop();
+          int index = bcode - JBC_fstore_0;
+        if (doDFS)  ltypes[index] = FloatTypeCode;
       }
-	break;
+        break;
       case JBC_dstore: {
-	S.pop();
-	S.pop();
-	  int index = bytecodes.getLocalNumber();
-	if (doDFS) {
-	  ltypes[index] = DoubleTypeCode;
-	  ltypes[index+1] = VoidTypeCode;
-	}
+        S.pop();
+        S.pop();
+          int index = bytecodes.getLocalNumber();
+        if (doDFS) {
+          ltypes[index] = DoubleTypeCode;
+          ltypes[index+1] = VoidTypeCode;
+        }
       }
       break;
       case JBC_dstore_0:
       case JBC_dstore_1:
       case JBC_dstore_2:
       case JBC_dstore_3: {
-	S.pop();
-	S.pop();
-	  int index = bcode - JBC_dstore_0;
-	if (doDFS) {
-	  ltypes[index] = DoubleTypeCode;
-	  ltypes[index+1] = VoidTypeCode;
-	}
+        S.pop();
+        S.pop();
+          int index = bcode - JBC_dstore_0;
+        if (doDFS) {
+          ltypes[index] = DoubleTypeCode;
+          ltypes[index+1] = VoidTypeCode;
+        }
       }
-	break;
+        break;
       case JBC_astore: {
-	// caution: astore may save return address type
-	int index = bytecodes.getLocalNumber();
-	byte tcode = S.pop();
+        // caution: astore may save return address type
+        int index = bytecodes.getLocalNumber();
+        byte tcode = S.pop();
 
-	if (doDFS) ltypes[index] = tcode;
-	
-	// for ret address.
-	if (tcode == AddressTypeCode) {
-	  retaddr[index] = addr;
-	  addr = -1;
-	}
+        if (doDFS) ltypes[index] = tcode;
+        
+        // for ret address.
+        if (tcode == AddressTypeCode) {
+          retaddr[index] = addr;
+          addr = -1;
+        }
       }
-	break;
+        break;
       case JBC_astore_0:
       case JBC_astore_1:
       case JBC_astore_2:
       case JBC_astore_3: {
-	// caution: astore may save return address type
-	int index = bcode - JBC_astore_0;
-	byte tcode = S.pop();
+        // caution: astore may save return address type
+        int index = bcode - JBC_astore_0;
+        byte tcode = S.pop();
 
-	if (doDFS) ltypes[index] = tcode;
-	
-	// for ret address.
-	if (tcode == AddressTypeCode) {
-	  retaddr[index] = addr;
-	  addr = -1;
-	}
+        if (doDFS) ltypes[index] = tcode;
+        
+        // for ret address.
+        if (tcode == AddressTypeCode) {
+          retaddr[index] = addr;
+          addr = -1;
+        }
       }
-	break;
+        break;
       case JBC_iastore:
       case JBC_bastore:
       case JBC_castore:
       case JBC_sastore:
-	S.pop(3);
-	break;
+        S.pop(3);
+        break;
       case JBC_lastore:
-	S.pop(4);
-	break;
+        S.pop(4);
+        break;
       case JBC_fastore:
-	S.pop(3);
-	break;
+        S.pop(3);
+        break;
       case JBC_dastore:
-	S.pop(4);
-	break;
+        S.pop(4);
+        break;
       case JBC_aastore:
-	S.pop(3);
-	break;
+        S.pop(3);
+        break;
       case JBC_pop:
-	S.pop();
-	break;
+        S.pop();
+        break;
       case JBC_pop2:
-	S.pop(2);
-	break;
+        S.pop(2);
+        break;
       case JBC_dup:
-	{
-	  byte v1 = S.peek();
-	  S.push(v1);
-	}
-	break;
+        {
+          byte v1 = S.peek();
+          S.push(v1);
+        }
+        break;
       case JBC_dup_x1:
-	{
-	  byte v1 = S.peek();
-	  S.pop();
-	  byte v2 = S.peek();
-	  S.pop();
-	  S.push(v1);
-	  S.push(v2);
-	  S.push(v1);
-	}
-	break;
+        {
+          byte v1 = S.peek();
+          S.pop();
+          byte v2 = S.peek();
+          S.pop();
+          S.push(v1);
+          S.push(v2);
+          S.push(v1);
+        }
+        break;
       case JBC_dup_x2:
-	{
-	  byte v1 = S.peek();
-	  S.pop();
-	  byte v2 = S.peek();
-	  S.pop();
-	  byte v3 = S.peek();
-	  S.pop();
-	  S.push(v1);
-	  S.push(v3);
-	  S.push(v2);
-	  S.push(v1);
-	}
-	break;
+        {
+          byte v1 = S.peek();
+          S.pop();
+          byte v2 = S.peek();
+          S.pop();
+          byte v3 = S.peek();
+          S.pop();
+          S.push(v1);
+          S.push(v3);
+          S.push(v2);
+          S.push(v1);
+        }
+        break;
       case JBC_dup2:
-	{
-	  byte v1 = S.peek();
-	  S.pop();
-	  byte v2 = S.peek();
-	  S.push(v1);
-	  S.push(v2);
-	  S.push(v1);
-	}
-	break;
+        {
+          byte v1 = S.peek();
+          S.pop();
+          byte v2 = S.peek();
+          S.push(v1);
+          S.push(v2);
+          S.push(v1);
+        }
+        break;
       case JBC_dup2_x1:
-	{
-	  byte v1 = S.peek();
-	  S.pop();
-	  byte v2 = S.peek();
-	  S.pop();
-	  byte v3 = S.peek();
-	  S.pop();
-	  S.push(v2);
-	  S.push(v1);
-	  S.push(v3);
-	  S.push(v2);
-	  S.push(v1);
-	}
-	break;
+        {
+          byte v1 = S.peek();
+          S.pop();
+          byte v2 = S.peek();
+          S.pop();
+          byte v3 = S.peek();
+          S.pop();
+          S.push(v2);
+          S.push(v1);
+          S.push(v3);
+          S.push(v2);
+          S.push(v1);
+        }
+        break;
       case JBC_dup2_x2:
-	{
-	  byte v1 = S.peek();
-	  S.pop();
-	  byte v2 = S.peek();
-	  S.pop();
-	  byte v3 = S.peek();
-	  S.pop();
-	  byte v4 = S.peek();
-	  S.pop();
-	  S.push(v2);
-	  S.push(v1);
-	  S.push(v4);
-	  S.push(v3);
-	  S.push(v2);
-	  S.push(v1);
-	}
-	break;
+        {
+          byte v1 = S.peek();
+          S.pop();
+          byte v2 = S.peek();
+          S.pop();
+          byte v3 = S.peek();
+          S.pop();
+          byte v4 = S.peek();
+          S.pop();
+          S.push(v2);
+          S.push(v1);
+          S.push(v4);
+          S.push(v3);
+          S.push(v2);
+          S.push(v1);
+        }
+        break;
       case JBC_swap:
-	{
-	  byte v1 = S.peek();
-	  S.pop();
-	  byte v2 = S.peek();
-	  S.pop();
-	  S.push(v1);
-	  S.push(v2);
-	}
-	break;
+        {
+          byte v1 = S.peek();
+          S.pop();
+          byte v2 = S.peek();
+          S.pop();
+          S.push(v1);
+          S.push(v2);
+        }
+        break;
       case JBC_iadd:
       case JBC_isub:
       case JBC_imul:
@@ -725,8 +725,8 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_ishl:
       case JBC_ishr:
       case JBC_iushr:
-	S.pop();
-	break;
+        S.pop();
+        break;
       case JBC_ladd:
       case JBC_lsub:
       case JBC_lmul:
@@ -735,110 +735,110 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_land:
       case JBC_lor:
       case JBC_lxor:
-	S.pop(2);
-	break;
+        S.pop(2);
+        break;
       case JBC_lshl:
       case JBC_lshr:
       case JBC_lushr:
-	S.pop();
-	break;
+        S.pop();
+        break;
       case JBC_fadd:
       case JBC_fsub:
       case JBC_fmul:
       case JBC_fdiv:
       case JBC_frem:
-	S.pop();
-	break;
+        S.pop();
+        break;
       case JBC_dadd:
       case JBC_dsub:
       case JBC_dmul:
       case JBC_ddiv:
       case JBC_drem:
-	S.pop(2);
-	break;
+        S.pop(2);
+        break;
       case JBC_ineg:
       case JBC_lneg:
       case JBC_fneg:
       case JBC_dneg:
-	break;
+        break;
       case JBC_iinc:{
-	int index = bytecodes.getLocalNumber();
-	int value = bytecodes.getIncrement();
-	if (doDFS) ltypes[index] = IntTypeCode;
+        int index = bytecodes.getLocalNumber();
+        int value = bytecodes.getIncrement();
+        if (doDFS) ltypes[index] = IntTypeCode;
       }
-	break;
+        break;
       case JBC_i2l:
-	S.pop();
-	S.push(VoidTypeCode);
-	S.push(LongTypeCode);
-	break;
+        S.pop();
+        S.push(VoidTypeCode);
+        S.push(LongTypeCode);
+        break;
       case JBC_i2f:
-	S.pop();
-	S.push(FloatTypeCode);
-	break;
+        S.pop();
+        S.push(FloatTypeCode);
+        break;
       case JBC_i2d:
-	S.pop();
-	S.push(VoidTypeCode);
-	S.push(DoubleTypeCode);
-	break;
+        S.pop();
+        S.push(VoidTypeCode);
+        S.push(DoubleTypeCode);
+        break;
       case JBC_l2i:
-	S.pop(2);
-	S.push(IntTypeCode);
-	break;
+        S.pop(2);
+        S.push(IntTypeCode);
+        break;
       case JBC_l2f:
-	S.pop(2);
-	S.push(FloatTypeCode);
-	break;
+        S.pop(2);
+        S.push(FloatTypeCode);
+        break;
       case JBC_l2d:
-	S.pop(2);
-	S.push(VoidTypeCode);
-	S.push(DoubleTypeCode);
-	break;
+        S.pop(2);
+        S.push(VoidTypeCode);
+        S.push(DoubleTypeCode);
+        break;
       case JBC_f2i:
-	S.pop();
-	S.push(IntTypeCode);
-	break;
+        S.pop();
+        S.push(IntTypeCode);
+        break;
       case JBC_f2l:
-	S.pop();
-	S.push(VoidTypeCode);
-	S.push(LongTypeCode);
-	break;
+        S.pop();
+        S.push(VoidTypeCode);
+        S.push(LongTypeCode);
+        break;
       case JBC_f2d:
-	S.pop();
-	S.push(VoidTypeCode);
-	S.push(DoubleTypeCode);
-	break;
+        S.pop();
+        S.push(VoidTypeCode);
+        S.push(DoubleTypeCode);
+        break;
       case JBC_d2i:
-	S.pop(2);
-	S.push(IntTypeCode);
-	break;
+        S.pop(2);
+        S.push(IntTypeCode);
+        break;
       case JBC_d2l:
-	S.pop(2);
-	S.push(VoidTypeCode);
-	S.push(LongTypeCode);
-	break;
+        S.pop(2);
+        S.push(VoidTypeCode);
+        S.push(LongTypeCode);
+        break;
       case JBC_d2f:
-	S.pop(2);
-	S.push(FloatTypeCode);
-	break;
+        S.pop(2);
+        S.push(FloatTypeCode);
+        break;
       case JBC_int2byte:
       case JBC_int2char:
       case JBC_int2short:
-	break;
+        break;
       case JBC_lcmp:
-	S.pop(4);
-	S.push(IntTypeCode);
-	break;
+        S.pop(4);
+        S.push(IntTypeCode);
+        break;
       case JBC_fcmpl:
       case JBC_fcmpg:
-	S.pop(2);
-	S.push(IntTypeCode);
-	break;
+        S.pop(2);
+        S.push(IntTypeCode);
+        break;
       case JBC_dcmpl:
       case JBC_dcmpg:
-	S.pop(4);
-	S.push(IntTypeCode);
-	break;
+        S.pop(4);
+        S.push(IntTypeCode);
+        break;
       case JBC_ifeq:
       case JBC_ifne:
       case JBC_iflt:
@@ -847,32 +847,32 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_ifle:
       case JBC_ifnull:
       case JBC_ifnonnull: {
-	S.pop();
-	
-	// flowthrough first
-	int nextpc = pc + 3;
-	int target = pc + bytecodes.getBranchOffset();
-	if (doDFS) {
-	  // make a copy of ltypes, stypes to pass in
-	  byte[] newltypes = new byte[ltypes.length];
-	  byte[] newstypes = new byte[stypes.length];
-	  System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
-	  System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-	  found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-			     nextpc, new OSR_TypeStack(S), null);
-	  if (found) {
-	    // copy back the ltypes and stypes
-	    System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
-	    System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
-	    
-	    return true;
-	  }
-	} else {
-	  found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights);
-	}
-	bytecodes.reset(target);
+        S.pop();
+        
+        // flowthrough first
+        int nextpc = pc + 3;
+        int target = pc + bytecodes.getBranchOffset();
+        if (doDFS) {
+          // make a copy of ltypes, stypes to pass in
+          byte[] newltypes = new byte[ltypes.length];
+          byte[] newstypes = new byte[stypes.length];
+          System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
+          System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
+          found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
+                             nextpc, new OSR_TypeStack(S), null);
+          if (found) {
+            // copy back the ltypes and stypes
+            System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
+            System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
+            
+            return true;
+          }
+        } else {
+          found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights);
+        }
+        bytecodes.reset(target);
       }
-	break;		
+        break;          
       case JBC_if_icmpeq:
       case JBC_if_icmpne:
       case JBC_if_icmplt:
@@ -881,545 +881,545 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_if_icmple:
       case JBC_if_acmpeq:
       case JBC_if_acmpne: {
-	S.pop(2);
-	
-	// flowthrough first
-	int nextpc = pc + 3;
-	int target = pc + bytecodes.getBranchOffset();
-	
-	if (doDFS) {
-	  // make a copy of ltypes, stypes to pass in
-	  byte[] newltypes = new byte[ltypes.length];
-	  byte[] newstypes = new byte[stypes.length];
-	  System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
-	  System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-	  found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-			     nextpc, new OSR_TypeStack(S), null);
-	  if (found) {
-	    // copy back the ltypes and stypes
-	    System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
-	    System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
-	    
-	      return true;
-	  }
-	} else {
-	  found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights); 
-	}
-		
-	bytecodes.reset(target);
+        S.pop(2);
+        
+        // flowthrough first
+        int nextpc = pc + 3;
+        int target = pc + bytecodes.getBranchOffset();
+        
+        if (doDFS) {
+          // make a copy of ltypes, stypes to pass in
+          byte[] newltypes = new byte[ltypes.length];
+          byte[] newstypes = new byte[stypes.length];
+          System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
+          System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
+          found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
+                             nextpc, new OSR_TypeStack(S), null);
+          if (found) {
+            // copy back the ltypes and stypes
+            System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
+            System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
+            
+              return true;
+          }
+        } else {
+          found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights); 
+        }
+                
+        bytecodes.reset(target);
       }
-	break;
+        break;
       case JBC_goto: {
-	int offset = bytecodes.getBranchOffset();
-	if (!ignoreGotos) {
-	  bytecodes.reset(pc + offset);
-	}
+        int offset = bytecodes.getBranchOffset();
+        if (!ignoreGotos) {
+          bytecodes.reset(pc + offset);
+        }
       }
-	break;
+        break;
       case JBC_goto_w: {
-	int offset = bytecodes.getWideBranchOffset();
-	if (!ignoreGotos) {
-	  bytecodes.reset(pc + offset);
-	}
+        int offset = bytecodes.getWideBranchOffset();
+        if (!ignoreGotos) {
+          bytecodes.reset(pc + offset);
+        }
       }
-	break;
+        break;
       case JBC_jsr:
       case JBC_jsr_w: {
-	// flow through firs
-	int nextpc = pc + ((bcode == JBC_jsr)?3:5);
-	int target = pc + ((bcode == JBC_jsr)?bytecodes.getBranchOffset():
-			   bytecodes.getWideBranchOffset());
-	  
-	if (doDFS) {
-	  // make a copy of ltypes, stypes to pass in
-	  byte[] newltypes = new byte[ltypes.length];
-	  byte[] newstypes = new byte[stypes.length];
-	  System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
-	  System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
-	  found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-			     nextpc, new OSR_TypeStack(S), null);
-	  if (found) {
-	    // copy back the ltypes and stypes
-	    System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
-	    System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
-	    
-	    return true;
-	    }
-	} else {
-	  found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights);
-	}
-	
-	// branch to jsr subroutine
-	// remember return address for ret.
-	addr = pc + ((bcode == JBC_jsr)?3:5);     
-	S.push(AddressTypeCode);
-	bytecodes.reset(target);
+        // flow through firs
+        int nextpc = pc + ((bcode == JBC_jsr)?3:5);
+        int target = pc + ((bcode == JBC_jsr)?bytecodes.getBranchOffset():
+                           bytecodes.getWideBranchOffset());
+          
+        if (doDFS) {
+          // make a copy of ltypes, stypes to pass in
+          byte[] newltypes = new byte[ltypes.length];
+          byte[] newstypes = new byte[stypes.length];
+          System.arraycopy(ltypes, 0, newltypes, 0, ltypes.length);
+          System.arraycopy(stypes, 0, newstypes, 0, stypes.length);
+          found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
+                             nextpc, new OSR_TypeStack(S), null);
+          if (found) {
+            // copy back the ltypes and stypes
+            System.arraycopy(newltypes, 0, ltypes, 0, ltypes.length);
+            System.arraycopy(newstypes, 0, stypes, 0, stypes.length);
+            
+            return true;
+            }
+        } else {
+          found = scanBlocks(method, bytecodes, false, -1, null, null, nextpc, new OSR_TypeStack(S), stackHeights);
+        }
+        
+        // branch to jsr subroutine
+        // remember return address for ret.
+        addr = pc + ((bcode == JBC_jsr)?3:5);     
+        S.push(AddressTypeCode);
+        bytecodes.reset(target);
       }
-	break;	
+        break;  
       case JBC_ret: {
-	// the OPT compiler set local to null after _ret instruction,
-	// then we should clean it here also, otherwise it will
-	// throw a null pointer exception.
-	// HOWEVER, it is not part of JVM spec.
-	int index = bytecodes.getLocalNumber();
+        // the OPT compiler set local to null after _ret instruction,
+        // then we should clean it here also, otherwise it will
+        // throw a null pointer exception.
+        // HOWEVER, it is not part of JVM spec.
+        int index = bytecodes.getLocalNumber();
 
-	if (doDFS) ltypes[index] = VoidTypeCode;
-	
-	/* the ret address may be saved by a PSEUDO_LoadAddrConstant
-	 */
-	if (retaddr[index] != -1) {
-	  bytecodes.reset(retaddr[index]);
-	  retaddr[index] = -1;
-	} else {
-	  // now we hit ret, return out
-	  return false;
-	}
+        if (doDFS) ltypes[index] = VoidTypeCode;
+        
+        /* the ret address may be saved by a PSEUDO_LoadAddrConstant
+         */
+        if (retaddr[index] != -1) {
+          bytecodes.reset(retaddr[index]);
+          retaddr[index] = -1;
+        } else {
+          // now we hit ret, return out
+          return false;
+        }
       }
-	break;
+        break;
       case JBC_tableswitch: {
-	S.pop();
-	bytecodes.alignSwitch();
-	int defaultval = bytecodes.getDefaultSwitchOffset();
-	int low = bytecodes.getLowSwitchValue();
-	int high = bytecodes.getHighSwitchValue();
-	 
-	// write down a list of targets
-	int npairs = high-low+1;
-	int[] offsets = new int[npairs];
-	for (int i=0; i<npairs; i++) {
-	  offsets [i] = bytecodes.getTableSwitchOffset(i);
-	}
-	
-	for (int i=0; i<npairs; i++) {
-	  int tgtpc = pc + offsets[i];
-	  
-	  if (doDFS) {
-	    // make a copy of ltypes, stypes to pass in
-	    byte[] newltypes = new byte[ltypes.length];
-	    byte[] newstypes = new byte[stypes.length];
-	    
-	    System.arraycopy(ltypes, 0, newltypes, 0, 
-			     ltypes.length);
-	    System.arraycopy(stypes, 0, newstypes, 0, 
-			     stypes.length);
-	    found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-			       tgtpc, new OSR_TypeStack(S), null);
-	    if (found) {
-	      // copy back the ltypes and stypes
-	      System.arraycopy(newltypes, 0, ltypes, 0, 
-			       ltypes.length);
-	      System.arraycopy(newstypes, 0, stypes, 0, 
-			       stypes.length);
-	      
-	      return true;
-	    }
-	  } else {
-	    found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
-	  }
-	}
+        S.pop();
+        bytecodes.alignSwitch();
+        int defaultval = bytecodes.getDefaultSwitchOffset();
+        int low = bytecodes.getLowSwitchValue();
+        int high = bytecodes.getHighSwitchValue();
+         
+        // write down a list of targets
+        int npairs = high-low+1;
+        int[] offsets = new int[npairs];
+        for (int i=0; i<npairs; i++) {
+          offsets [i] = bytecodes.getTableSwitchOffset(i);
+        }
+        
+        for (int i=0; i<npairs; i++) {
+          int tgtpc = pc + offsets[i];
+          
+          if (doDFS) {
+            // make a copy of ltypes, stypes to pass in
+            byte[] newltypes = new byte[ltypes.length];
+            byte[] newstypes = new byte[stypes.length];
+            
+            System.arraycopy(ltypes, 0, newltypes, 0, 
+                             ltypes.length);
+            System.arraycopy(stypes, 0, newstypes, 0, 
+                             stypes.length);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
+                               tgtpc, new OSR_TypeStack(S), null);
+            if (found) {
+              // copy back the ltypes and stypes
+              System.arraycopy(newltypes, 0, ltypes, 0, 
+                               ltypes.length);
+              System.arraycopy(newstypes, 0, stypes, 0, 
+                               stypes.length);
+              
+              return true;
+            }
+          } else {
+            found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+          }
+        }
 
-	// default
-	{
-	  int tgtpc = pc + defaultval;
+        // default
+        {
+          int tgtpc = pc + defaultval;
 
-	  if (doDFS) {
-	    // make a copy of ltypes, stypes to pass in
-	    byte[] newltypes = new byte[ltypes.length];
-	    byte[] newstypes = new byte[stypes.length];
-	    System.arraycopy(ltypes, 0, newltypes, 0, 
-			     ltypes.length);
-	    System.arraycopy(stypes, 0, newstypes, 0, 
-			     stypes.length);
-	    found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-			       tgtpc, new OSR_TypeStack(S), null);
-	    if (found) {
-	      // copy back the ltypes and stypes
-	      System.arraycopy(newltypes, 0, ltypes, 0, 
-			       ltypes.length);
-	      System.arraycopy(newstypes, 0, stypes, 0, 
-			       stypes.length);
-	    }
-	  } else {
-	    found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
-	  }
-	  return found;
-	}
+          if (doDFS) {
+            // make a copy of ltypes, stypes to pass in
+            byte[] newltypes = new byte[ltypes.length];
+            byte[] newstypes = new byte[stypes.length];
+            System.arraycopy(ltypes, 0, newltypes, 0, 
+                             ltypes.length);
+            System.arraycopy(stypes, 0, newstypes, 0, 
+                             stypes.length);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
+                               tgtpc, new OSR_TypeStack(S), null);
+            if (found) {
+              // copy back the ltypes and stypes
+              System.arraycopy(newltypes, 0, ltypes, 0, 
+                               ltypes.length);
+              System.arraycopy(newstypes, 0, stypes, 0, 
+                               stypes.length);
+            }
+          } else {
+            found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+          }
+          return found;
+        }
       }
       case JBC_lookupswitch: {
-	S.pop(); // pop the key
-	bytecodes.alignSwitch();
-	int defaultval = bytecodes.getDefaultSwitchOffset();
-	int npairs = bytecodes.getSwitchLength();
+        S.pop(); // pop the key
+        bytecodes.alignSwitch();
+        int defaultval = bytecodes.getDefaultSwitchOffset();
+        int npairs = bytecodes.getSwitchLength();
 
-	int[] matches = new int[npairs];
-	int[] offsets = new int[npairs];
-	for (int i=0; i<npairs; i++) {
-	  matches[i] = bytecodes.getLookupSwitchValue(i);
-	  offsets[i] = bytecodes.getLookupSwitchOffset(i);
-	}
-	
-	for (int i=0; i<npairs; i++) {
-	  int match = matches[i];
-	  int offset = offsets[i];
+        int[] matches = new int[npairs];
+        int[] offsets = new int[npairs];
+        for (int i=0; i<npairs; i++) {
+          matches[i] = bytecodes.getLookupSwitchValue(i);
+          offsets[i] = bytecodes.getLookupSwitchOffset(i);
+        }
+        
+        for (int i=0; i<npairs; i++) {
+          int match = matches[i];
+          int offset = offsets[i];
 
-	  int tgtpc = pc + offset;
+          int tgtpc = pc + offset;
 
-	  if (doDFS) {
-	    // make a copy of ltypes, stypes to pass in
-	    byte[] newltypes = new byte[ltypes.length];
-	    byte[] newstypes = new byte[stypes.length];
+          if (doDFS) {
+            // make a copy of ltypes, stypes to pass in
+            byte[] newltypes = new byte[ltypes.length];
+            byte[] newstypes = new byte[stypes.length];
 
-	    System.arraycopy(ltypes, 0, newltypes, 0, 
-			     ltypes.length);
-	    System.arraycopy(stypes, 0, newstypes, 0, 
-			     stypes.length);
-	    found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-			       tgtpc, new OSR_TypeStack(S), null);
-	    if (found) {
-	      // copy back the ltypes and stypes
-	      System.arraycopy(newltypes, 0, ltypes, 0, 
-			       ltypes.length);
-	      System.arraycopy(newstypes, 0, stypes, 0, 
-			       stypes.length);
+            System.arraycopy(ltypes, 0, newltypes, 0, 
+                             ltypes.length);
+            System.arraycopy(stypes, 0, newstypes, 0, 
+                             stypes.length);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
+                               tgtpc, new OSR_TypeStack(S), null);
+            if (found) {
+              // copy back the ltypes and stypes
+              System.arraycopy(newltypes, 0, ltypes, 0, 
+                               ltypes.length);
+              System.arraycopy(newstypes, 0, stypes, 0, 
+                               stypes.length);
 
-	      return true;
-	    }
-	  } else {
-	    found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
-	  }
-	}
-	  
-	// default
-	{
-	  int tgtpc = pc + defaultval;
+              return true;
+            }
+          } else {
+            found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+          }
+        }
+          
+        // default
+        {
+          int tgtpc = pc + defaultval;
 
-	  if (doDFS) {
-	    // make a copy of ltypes, stypes to pass in
-	    byte[] newltypes = new byte[ltypes.length];
-	    byte[] newstypes = new byte[stypes.length];
-	    
-	    System.arraycopy(ltypes, 0, newltypes, 0, 
-			     ltypes.length);
-	    System.arraycopy(stypes, 0, newstypes, 0, 
-			     stypes.length);
-	    found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
-			     tgtpc, new OSR_TypeStack(S), null);
-	    if (found) {
-	      // copy back the ltypes and stypes
-	      System.arraycopy(newltypes, 0, ltypes, 0, 
-			       ltypes.length);
-	      System.arraycopy(newstypes, 0, stypes, 0, 
-			       stypes.length);
-	    }
-	  } else {
-	    found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
-	  }
-	}		
+          if (doDFS) {
+            // make a copy of ltypes, stypes to pass in
+            byte[] newltypes = new byte[ltypes.length];
+            byte[] newstypes = new byte[stypes.length];
+            
+            System.arraycopy(ltypes, 0, newltypes, 0, 
+                             ltypes.length);
+            System.arraycopy(stypes, 0, newstypes, 0, 
+                             stypes.length);
+            found = scanBlocks(method, bytecodes, true, pcs, newltypes, newstypes,
+                             tgtpc, new OSR_TypeStack(S), null);
+            if (found) {
+              // copy back the ltypes and stypes
+              System.arraycopy(newltypes, 0, ltypes, 0, 
+                               ltypes.length);
+              System.arraycopy(newstypes, 0, stypes, 0, 
+                               stypes.length);
+            }
+          } else {
+            found = scanBlocks(method, bytecodes, false, -1, null, null, tgtpc, new OSR_TypeStack(S), stackHeights);
+          }
+        }               
       }
-	return found;
+        return found;
       case JBC_ireturn:
-	S.pop();
-	return false;
+        S.pop();
+        return false;
       case JBC_lreturn:
-	S.pop(2);
-	return false;
+        S.pop(2);
+        return false;
       case JBC_freturn:
-	S.pop();
-	return false;
+        S.pop();
+        return false;
       case JBC_dreturn:
-	S.pop(2);
-	return false;
+        S.pop(2);
+        return false;
       case JBC_areturn:
-	S.pop();
-	return false;
+        S.pop();
+        return false;
       case JBC_return:
-	return false;
+        return false;
       case JBC_getfield:
-	S.pop();
+        S.pop();
       case JBC_getstatic:
-	{
-	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_TypeReference ftype = fieldRef.getFieldContentsType();
-	  byte tcode = ftype.getName().parseForTypeCode();
-	  if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode) ) {
-	    S.push(VoidTypeCode);
-	  }
-	  S.push(tcode);
-	}
-	break;
+        {
+          VM_FieldReference fieldRef = bytecodes.getFieldReference();
+          VM_TypeReference ftype = fieldRef.getFieldContentsType();
+          byte tcode = ftype.getName().parseForTypeCode();
+          if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode) ) {
+            S.push(VoidTypeCode);
+          }
+          S.push(tcode);
+        }
+        break;
       case JBC_putstatic:
-	{
-	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_TypeReference ftype = fieldRef.getFieldContentsType();
-	  byte tcode = ftype.getName().parseForTypeCode();
-	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
-	    S.pop(2);
-	  else
-	    S.pop();
-	}
-	break;
+        {
+          VM_FieldReference fieldRef = bytecodes.getFieldReference();
+          VM_TypeReference ftype = fieldRef.getFieldContentsType();
+          byte tcode = ftype.getName().parseForTypeCode();
+          if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
+            S.pop(2);
+          else
+            S.pop();
+        }
+        break;
       case JBC_putfield:
-	{
-	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_TypeReference ftype = fieldRef.getFieldContentsType();
-	  byte tcode = ftype.getName().parseForTypeCode();
-	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
-	    S.pop(2);
-	  else
-	    S.pop();
-	}
-	S.pop();
-	break;
+        {
+          VM_FieldReference fieldRef = bytecodes.getFieldReference();
+          VM_TypeReference ftype = fieldRef.getFieldContentsType();
+          byte tcode = ftype.getName().parseForTypeCode();
+          if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
+            S.pop(2);
+          else
+            S.pop();
+        }
+        S.pop();
+        break;
       case JBC_invokevirtual:
       case JBC_invokespecial:
       case JBC_invokestatic:
       case JBC_invokeinterface:
-	{ 
-	  VM_MethodReference callee = bytecodes.getMethodReference();
-	  
-	  int psize = callee.getParameterWords();
-		    
-	  S.pop(psize);
+        { 
+          VM_MethodReference callee = bytecodes.getMethodReference();
+          
+          int psize = callee.getParameterWords();
+                    
+          S.pop(psize);
 
-	  if (bcode != JBC_invokestatic) {
-	    S.pop();     // pop the object reference
-	  }
+          if (bcode != JBC_invokestatic) {
+            S.pop();     // pop the object reference
+          }
 
-	  VM_TypeReference rtype = callee.getReturnType();
-	  byte tcode = rtype.getName().parseForTypeCode();
+          VM_TypeReference rtype = callee.getReturnType();
+          byte tcode = rtype.getName().parseForTypeCode();
 
-	  if (tcode == VoidTypeCode) {
-	    // nothing to do with void return type
-	  } else {
-	    if ( (tcode == LongTypeCode) 
-		 || (tcode == DoubleTypeCode) ) {
-	      S.push(VoidTypeCode);
-	    }
-	    S.push(tcode);
-	  }
-	  
-	  if (bcode == JBC_invokeinterface) {
-	    bytecodes.alignInvokeInterface();
-	  } 
-	}
-	break;	
+          if (tcode == VoidTypeCode) {
+            // nothing to do with void return type
+          } else {
+            if ( (tcode == LongTypeCode) 
+                 || (tcode == DoubleTypeCode) ) {
+              S.push(VoidTypeCode);
+            }
+            S.push(tcode);
+          }
+          
+          if (bcode == JBC_invokeinterface) {
+            bytecodes.alignInvokeInterface();
+          } 
+        }
+        break;  
       case JBC_xxxunusedxxx:
-	break;
-	
+        break;
+        
       case JBC_new:
-	bytecodes.getTypeReference(); // skip cpi of type
-	S.push(ClassTypeCode);
-	break;
+        bytecodes.getTypeReference(); // skip cpi of type
+        S.push(ClassTypeCode);
+        break;
       case JBC_newarray:
-	S.pop();
-	S.push(ArrayTypeCode);
-	bytecodes.getArrayElementType(); // skip cpi of element type
-	break;
+        S.pop();
+        S.push(ArrayTypeCode);
+        bytecodes.getArrayElementType(); // skip cpi of element type
+        break;
       case JBC_anewarray:
-	S.pop();
-	S.push(ArrayTypeCode);
-	bytecodes.getTypeReference(); // skip cpi of reference type
-	break;
+        S.pop();
+        S.push(ArrayTypeCode);
+        bytecodes.getTypeReference(); // skip cpi of reference type
+        break;
       case JBC_arraylength:
-	S.pop();
-	S.push(IntTypeCode);
-	break;
+        S.pop();
+        S.push(IntTypeCode);
+        break;
       case JBC_athrow:
-	S.clear();
-	S.push(ClassTypeCode);
-	return false;
+        S.clear();
+        S.push(ClassTypeCode);
+        return false;
       case JBC_checkcast:
-	bytecodes.getTypeReference(); // skip cpi of reference type
-	break;
+        bytecodes.getTypeReference(); // skip cpi of reference type
+        break;
       case JBC_instanceof:
-	S.pop();
-	S.push(IntTypeCode);
-	bytecodes.getTypeReference(); // skip cpi of reference type
-	break;
+        S.pop();
+        S.push(IntTypeCode);
+        bytecodes.getTypeReference(); // skip cpi of reference type
+        break;
       case JBC_monitorenter:
       case JBC_monitorexit:
-	S.pop();
-	break;
+        S.pop();
+        break;
       case JBC_wide: {
-	int widecode = bytecodes.getWideOpcode();
-	int index = bytecodes.getWideLocalNumber();
-	switch (widecode) {
-	case JBC_iload: 
-	  S.push(IntTypeCode);
-	  break;
-	case JBC_lload:
-	  S.push(LongTypeCode);
-	  break;
-	case JBC_fload:
-	  S.push(FloatTypeCode);
-	  break;
-	case JBC_dload:
-	  S.push(DoubleTypeCode);
-	  break;
-	case JBC_aload:
-	  S.push(ClassTypeCode);
-	  break;
-	case JBC_istore:
-	  S.pop();
-	  if (doDFS) ltypes[index] = IntTypeCode;
-	  break;
-	case JBC_lstore:
-	  S.pop();
-	  if (doDFS) ltypes[index] = LongTypeCode;
-	  break;
-	case JBC_fstore:
-	  S.pop();
-	  if (doDFS) ltypes[index] = FloatTypeCode;
-	  break;
-	case JBC_dstore:
-	  S.pop();
-	  if (doDFS) ltypes[index] = DoubleTypeCode;
-	  break;
-	case JBC_astore: {
-	  byte tcode = S.pop();
-	  if (doDFS) ltypes[index] = tcode;
-	
-	  // for ret address.
-	  if (tcode == AddressTypeCode) {
-	    retaddr[index] = addr;
-	    addr = -1;
-	  }
-	}
-	  break;
-	case JBC_iinc: {
-	  int value = bytecodes.getWideIncrement(); // skip increment
-	  if (doDFS) ltypes[index] = IntTypeCode;
-	  }
-	  break;
-	case JBC_ret:
-	  if (doDFS) ltypes[index] = VoidTypeCode;
+        int widecode = bytecodes.getWideOpcode();
+        int index = bytecodes.getWideLocalNumber();
+        switch (widecode) {
+        case JBC_iload: 
+          S.push(IntTypeCode);
+          break;
+        case JBC_lload:
+          S.push(LongTypeCode);
+          break;
+        case JBC_fload:
+          S.push(FloatTypeCode);
+          break;
+        case JBC_dload:
+          S.push(DoubleTypeCode);
+          break;
+        case JBC_aload:
+          S.push(ClassTypeCode);
+          break;
+        case JBC_istore:
+          S.pop();
+          if (doDFS) ltypes[index] = IntTypeCode;
+          break;
+        case JBC_lstore:
+          S.pop();
+          if (doDFS) ltypes[index] = LongTypeCode;
+          break;
+        case JBC_fstore:
+          S.pop();
+          if (doDFS) ltypes[index] = FloatTypeCode;
+          break;
+        case JBC_dstore:
+          S.pop();
+          if (doDFS) ltypes[index] = DoubleTypeCode;
+          break;
+        case JBC_astore: {
+          byte tcode = S.pop();
+          if (doDFS) ltypes[index] = tcode;
+        
+          // for ret address.
+          if (tcode == AddressTypeCode) {
+            retaddr[index] = addr;
+            addr = -1;
+          }
+        }
+          break;
+        case JBC_iinc: {
+          int value = bytecodes.getWideIncrement(); // skip increment
+          if (doDFS) ltypes[index] = IntTypeCode;
+          }
+          break;
+        case JBC_ret:
+          if (doDFS) ltypes[index] = VoidTypeCode;
 
-	  if (retaddr[index] != -1) {
-	    bytecodes.reset(retaddr[index]);
-	    retaddr[index] = -1;
-	  } else {
-	    // now we hit ret, return out
-	    return false;
-	  }
-	  break;
-	default:
-	  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	  break;
-	}
-	break;
+          if (retaddr[index] != -1) {
+            bytecodes.reset(retaddr[index]);
+            retaddr[index] = -1;
+          } else {
+            // now we hit ret, return out
+            return false;
+          }
+          break;
+        default:
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+          break;
+        }
+        break;
       }
       case JBC_multianewarray:
-	{
-	  bytecodes.getTypeReference(); // skip type reference
-	  int dims = bytecodes.getArrayDimension();
-	  S.pop(dims);
-	  S.push(ArrayTypeCode);
-	}
-	break;
+        {
+          bytecodes.getTypeReference(); // skip type reference
+          int dims = bytecodes.getArrayDimension();
+          S.pop(dims);
+          S.push(ArrayTypeCode);
+        }
+        break;
       case JBC_impdep1: {
-	int pseudo_opcode = bytecodes.nextPseudoInstruction();
-	switch (pseudo_opcode) {
-	case PSEUDO_LoadIntConst:
-	  bytecodes.readIntConst(); // skip value
-	  S.push(IntTypeCode);
-	  break;
-	case PSEUDO_LoadLongConst:
-	  bytecodes.readLongConst(); // skip value 
-	  S.push(VoidTypeCode);
-	  S.push(LongTypeCode);
-	  break;
-	case PSEUDO_LoadFloatConst:
-	  bytecodes.readIntConst(); // skip value
-	  S.push(FloatTypeCode);
-	  break;
-	case PSEUDO_LoadDoubleConst:
-	  bytecodes.readLongConst(); // skip value
-	  S.push(VoidTypeCode);
-	  S.push(DoubleTypeCode);
-	  break;
-	case PSEUDO_LoadAddrConst:	  
-	  // remember the address for ret.
-	  addr = bytecodes.readIntConst(); // get address	  
-	  S.push(AddressTypeCode);
-	  break;
-	case PSEUDO_InvokeStatic: {
-	  int mid = bytecodes.readIntConst(); // get METHIDX
-	  VM_Method callee = null;
-	  switch (mid) {
-	  case GETREFAT:
-	    callee = VM_Entrypoints.osrGetRefAtMethod;
-	    break;
-	  case CLEANREFS:
-	    callee = VM_Entrypoints.osrCleanRefsMethod;
-	    break;
-	  default:
-	    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-	    break;
-	  }
-	  
-	  int psize = callee.getParameterWords();
-	  
-	  S.pop(psize);
+        int pseudo_opcode = bytecodes.nextPseudoInstruction();
+        switch (pseudo_opcode) {
+        case PSEUDO_LoadIntConst:
+          bytecodes.readIntConst(); // skip value
+          S.push(IntTypeCode);
+          break;
+        case PSEUDO_LoadLongConst:
+          bytecodes.readLongConst(); // skip value 
+          S.push(VoidTypeCode);
+          S.push(LongTypeCode);
+          break;
+        case PSEUDO_LoadFloatConst:
+          bytecodes.readIntConst(); // skip value
+          S.push(FloatTypeCode);
+          break;
+        case PSEUDO_LoadDoubleConst:
+          bytecodes.readLongConst(); // skip value
+          S.push(VoidTypeCode);
+          S.push(DoubleTypeCode);
+          break;
+        case PSEUDO_LoadAddrConst:        
+          // remember the address for ret.
+          addr = bytecodes.readIntConst(); // get address         
+          S.push(AddressTypeCode);
+          break;
+        case PSEUDO_InvokeStatic: {
+          int mid = bytecodes.readIntConst(); // get METHIDX
+          VM_Method callee = null;
+          switch (mid) {
+          case GETREFAT:
+            callee = VM_Entrypoints.osrGetRefAtMethod;
+            break;
+          case CLEANREFS:
+            callee = VM_Entrypoints.osrCleanRefsMethod;
+            break;
+          default:
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+            break;
+          }
+          
+          int psize = callee.getParameterWords();
+          
+          S.pop(psize);
 
-	  VM_TypeReference rtype = callee.getReturnType();
-	  byte tcode = rtype.getName().parseForTypeCode();
-	  
-	  if (tcode == VoidTypeCode) {
-	    // nothing to do with void return type
-	  } else {
-	    if ( (tcode == LongTypeCode) 
-		 || (tcode == DoubleTypeCode) ) {
-	      S.push(VoidTypeCode);
-	    }
-	    S.push(tcode);
-	  }
-	  break;
-	}
+          VM_TypeReference rtype = callee.getReturnType();
+          byte tcode = rtype.getName().parseForTypeCode();
+          
+          if (tcode == VoidTypeCode) {
+            // nothing to do with void return type
+          } else {
+            if ( (tcode == LongTypeCode) 
+                 || (tcode == DoubleTypeCode) ) {
+              S.push(VoidTypeCode);
+            }
+            S.push(tcode);
+          }
+          break;
+        }
 /*
-	case PSEUDO_CheckCast:
-	  bytecodes.readIntConst(); // skip type id
-	  break;
+        case PSEUDO_CheckCast:
+          bytecodes.readIntConst(); // skip type id
+          break;
 */
-	case PSEUDO_InvokeCompiledMethod:
-	  int cmid = bytecodes.readIntConst(); // cmid
-	  bytecodes.readIntConst(); // skip bcindex
+        case PSEUDO_InvokeCompiledMethod:
+          int cmid = bytecodes.readIntConst(); // cmid
+          bytecodes.readIntConst(); // skip bcindex
 
-	  VM_Method callee = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
-	  int psize = callee.getParameterWords();
-	  
-	  S.pop(psize);
+          VM_Method callee = VM_CompiledMethods.getCompiledMethod(cmid).getMethod();
+          int psize = callee.getParameterWords();
+          
+          S.pop(psize);
 
-	  if (!callee.isStatic()) 
-		S.pop();   // pop receiver
-	  
-	  VM_TypeReference rtype = callee.getReturnType();
-	  byte tcode = rtype.getName().parseForTypeCode();
-	  
-	  if (tcode == VoidTypeCode) {
-	    // nothing to do with void return type
-	  } else {
-	    if ( (tcode == LongTypeCode) 
-		 || (tcode == DoubleTypeCode) ) {
-	      S.push(VoidTypeCode);
-	    }
-	    S.push(tcode);
-	  }
-	  break;
-	case PSEUDO_ParamInitEnd:
-	  break;
-	default:
-	  if (VM.VerifyAssertions) {
-	    VM.sysWrite(" Error, no such pseudo code : "
-			+pseudo_opcode +"\n");
-	    VM._assert(VM.NOT_REACHED);
-	  }
-	  return false;
-	}
-	break;
+          if (!callee.isStatic()) 
+                S.pop();   // pop receiver
+          
+          VM_TypeReference rtype = callee.getReturnType();
+          byte tcode = rtype.getName().parseForTypeCode();
+          
+          if (tcode == VoidTypeCode) {
+            // nothing to do with void return type
+          } else {
+            if ( (tcode == LongTypeCode) 
+                 || (tcode == DoubleTypeCode) ) {
+              S.push(VoidTypeCode);
+            }
+            S.push(tcode);
+          }
+          break;
+        case PSEUDO_ParamInitEnd:
+          break;
+        default:
+          if (VM.VerifyAssertions) {
+            VM.sysWrite(" Error, no such pseudo code : "
+                        +pseudo_opcode +"\n");
+            VM._assert(VM.NOT_REACHED);
+          }
+          return false;
+        }
+        break;
       }
       default:
-	VM.sysWrite("Unknown bytecode : "+bcode+"\n");
-	return false;
+        VM.sysWrite("Unknown bytecode : "+bcode+"\n");
+        return false;
       }
     } 
     
@@ -1429,16 +1429,16 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
 }
     
 class OSR_TypeStack {
-	private byte[] stack;
-	private int top;
-	private byte defv;
-		
+        private byte[] stack;
+        private int top;
+        private byte defv;
+                
   public OSR_TypeStack (int depth, byte defv) {
     byte[] stk = new byte[depth];
     for (int i=0; i<depth; i++) {
       stk[i] = defv;
     }
-	    
+            
     this.stack = stk;
     this.top = 0;
     this.defv = defv;
@@ -1470,7 +1470,7 @@ class OSR_TypeStack {
 
     return v;
   }
-	
+        
   public void pop(int n) {
     int newtop = top - n;
     
@@ -1492,7 +1492,7 @@ class OSR_TypeStack {
   public byte[] snapshot () {
     return stack;
   }
-	
+        
   public void clear () {
     top = 0;
     for (int i=0, n=stack.length; i<n; i++) {

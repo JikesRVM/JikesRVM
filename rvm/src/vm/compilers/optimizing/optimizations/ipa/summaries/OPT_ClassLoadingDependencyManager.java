@@ -84,12 +84,12 @@ public final class OPT_ClassLoadingDependencyManager {
           while (invalidatedMethods.hasNext()) {
             int cmid = ((Integer)invalidatedMethods.next()).intValue();
             VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
-	    if (im != null) { // im == null implies that the code has been GCed already
-	      invalidate(im);
-	    }
+            if (im != null) { // im == null implies that the code has been GCed already
+              invalidate(im);
+            }
           }
           db.removeNotOverriddenDependency(overridden);
-	}
+        }
       }
     }
   }
@@ -102,9 +102,9 @@ public final class OPT_ClassLoadingDependencyManager {
       while (invalidatedMethods.hasNext()) {
         int cmid = ((Integer)invalidatedMethods.next()).intValue();
         VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
-	if (im != null) { // im == null implies that the code has been GCed already
-	  invalidate(im);
-	}
+        if (im != null) { // im == null implies that the code has been GCed already
+          invalidate(im);
+        }
       }
       db.removeNoSubclassDependency(sc);
     }
@@ -121,8 +121,8 @@ public final class OPT_ClassLoadingDependencyManager {
     // (1) Mark the compiled method as invalid.
     synchronized(cm) {
       if (cm.isInvalid()) {
-	if (TRACE || DEBUG) report("\tcmid was alrady invalid; nothing more to do\n");
-	return;
+        if (TRACE || DEBUG) report("\tcmid was alrady invalid; nothing more to do\n");
+        return;
       }
 
       // (2) Apply any code patches to protect invocations already executing
@@ -145,15 +145,15 @@ public final class OPT_ClassLoadingDependencyManager {
   void report(String s) {
     if (VM.runningVM) {
       if (log == null) {
-	if (!VM.fullyBooted) {
-	  VM.sysWriteln("CLDM: VM not fully booted ", s);
-	  return;
-	}
-	try {
-	  log = new PrintStream(new FileOutputStream("PREEX_OPTS.TRACE"));
-	} catch (IOException e) {
-	  VM.sysWrite("\n\nCLDM: Error opening logging file!!\n\n");
-	}
+        if (!VM.fullyBooted) {
+          VM.sysWriteln("CLDM: VM not fully booted ", s);
+          return;
+        }
+        try {
+          log = new PrintStream(new FileOutputStream("PREEX_OPTS.TRACE"));
+        } catch (IOException e) {
+          VM.sysWrite("\n\nCLDM: Error opening logging file!!\n\n");
+        }
       }
     } else {
       System.out.print(s);

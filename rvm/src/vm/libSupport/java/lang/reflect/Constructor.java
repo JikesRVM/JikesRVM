@@ -72,9 +72,9 @@ public final class Constructor extends AccessibleObject implements Member {
   }
 
   public Object newInstance(Object args[]) throws InstantiationException, 
-						  IllegalAccessException, 
-						  IllegalArgumentException, 
-						  InvocationTargetException {
+                                                  IllegalAccessException, 
+                                                  IllegalArgumentException, 
+                                                  InvocationTargetException {
     // Check accessibility
     if (!constructor.isPublic() && !isAccessible()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
@@ -85,14 +85,14 @@ public final class Constructor extends AccessibleObject implements Member {
     VM_TypeReference[] parameterTypes = constructor.getParameterTypes();
     if (args == null) {
       if (parameterTypes.length != 0) {
-	throw new IllegalArgumentException("argument count mismatch");
+        throw new IllegalArgumentException("argument count mismatch");
       }
     } else {
       if (args.length != parameterTypes.length) {
-	throw new IllegalArgumentException("argument count mismatch");
+        throw new IllegalArgumentException("argument count mismatch");
       }
       for (int i = 0; i < parameterTypes.length; i++) {
-	args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
+        args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
       }
     }
     
@@ -104,11 +104,11 @@ public final class Constructor extends AccessibleObject implements Member {
     // Ensure that the class is initialized
     if (!cls.isInitialized()) {
       try {
-	VM_Runtime.initializeClassForDynamicLink(cls);
+        VM_Runtime.initializeClassForDynamicLink(cls);
       } catch (Throwable e) {
-	ExceptionInInitializerError ex = new ExceptionInInitializerError();
-	ex.initCause(e);
-	throw ex;
+        ExceptionInInitializerError ex = new ExceptionInInitializerError();
+        ex.initCause(e);
+        throw ex;
       }
     }
 
@@ -130,7 +130,7 @@ public final class Constructor extends AccessibleObject implements Member {
     Class[] types;
     Class current;
     int i, arity;
-	
+        
     buf = new StringBuffer();
     mods = Modifier.toString(getModifiers());
     if(mods.length() != 0) {
@@ -144,23 +144,23 @@ public final class Constructor extends AccessibleObject implements Member {
       current = types[i];
       arity = 0;
       while(current.isArray()) {
-	current = current.getComponentType();
-	arity++;
+        current = current.getComponentType();
+        arity++;
       }
       buf.append(current.getName());
       for(;arity > 0; arity--) buf.append("[]");
       if(i != (types.length - 1))
-	buf.append(",");
+        buf.append(",");
     }
     buf.append(")");
     types = getExceptionTypes();
     if(types.length > 0) {
       buf.append(" throws ");
       for(i = 0; i < types.length; i++) {
-	current = types[i];
-	buf.append(current.getName());
-	if(i != (types.length - 1))
-	  buf.append(",");
+        current = types[i];
+        buf.append(current.getName());
+        if(i != (types.length - 1))
+          buf.append(",");
       }
     }
     return buf.toString();

@@ -30,7 +30,7 @@ public class OPT_InterfaceHierarchy {
     if (!c.isInterface()) {
       VM_Class[] interfaces = c.getAllImplementedInterfaces();
       for (int i=0; i<interfaces.length; i++) {
-	noteImplements(c, interfaces[i]);
+        noteImplements(c, interfaces[i]);
       }
     }
   }

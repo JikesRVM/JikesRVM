@@ -14,21 +14,21 @@ import HTTPClient.*;
 public class GetRequest extends Request {
 
     public String toString() {
-	return "GET: " + url;
+        return "GET: " + url;
     }
 
     public void setUrl(String url) {
-	super.setUrl( url );
+        super.setUrl( url );
     }
     
     public void setDesired(String fileName) {
-	super.setDesired( fileName );
+        super.setDesired( fileName );
     }
 
     HTTPResponse doGet(HTTPConnection server) 
-	throws IOException, ModuleException
+        throws IOException, ModuleException
     {
-	return server.Get( url.getPath() );
+        return server.Get( url.getPath() );
     }
 
 }

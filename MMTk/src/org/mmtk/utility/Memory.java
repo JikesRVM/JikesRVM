@@ -33,16 +33,16 @@ public class Memory implements VM_Uninterruptible {
       VM_Interface._assert(size == (size & (~3)));
     for (int i=0; i<size; i+=4) 
       if (VM_Magic.getMemoryInt(start.add(i)) != v) {
-	if (verbose) {
-	    Log.prependThreadId();
-	    Log.write("Memory range does not contain only value ");
-	    Log.writeln(v);
-	    Log.write("Non-zero range: "); Log.write(start);
-	    Log.write(" .. "); Log.writeln(start.add(size));
-	    Log.write("First bad value at "); Log.writeln(start.add(i));
-	    dumpMemory(start, 0, size);
-	}
-	return false;
+        if (verbose) {
+            Log.prependThreadId();
+            Log.write("Memory range does not contain only value ");
+            Log.writeln(v);
+            Log.write("Non-zero range: "); Log.write(start);
+            Log.write(" .. "); Log.writeln(start.add(size));
+            Log.write("First bad value at "); Log.writeln(start.add(i));
+            dumpMemory(start, 0, size);
+        }
+        return false;
       }
     return true;
   }

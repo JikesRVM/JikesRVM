@@ -458,19 +458,19 @@ class TestConversions
     //    System.out.println();
     String str = Float.toString(lo);
     if ((!Float.toString(lo).equals("-Infinity")) || 
-	(!Float.toString(hi).equals("Infinity"))) {
+        (!Float.toString(hi).equals("Infinity"))) {
       System.out.println("\nfloat:  " +       lo + " .. " +       hi);
       testSuccess = false;
     }
 
     if ((!Long.toString((long)lo).equals("-9223372036854775808")) || 
-	(!Long.toString((long)hi).equals("9223372036854775807"))) {    
+        (!Long.toString((long)hi).equals("9223372036854775807"))) {    
       System.out.println("\nlong:   " + (long)lo + " .. " + (long)hi);
       testSuccess = false;
     }
 
     if ((!Integer.toString((int)lo).equals("-2147483648")) || 
-	(!Integer.toString((int)hi).equals("2147483647"))) {
+        (!Integer.toString((int)hi).equals("2147483647"))) {
       System.out.println("\nint:    " + (int )lo + " .. " + (int )hi);
       testSuccess = false;
     }
@@ -483,19 +483,19 @@ class TestConversions
 
     Double dbl1 = new Double(lo), dbl2 = new Double(hi);
     if ((!dbl1.toString().equals("-Infinity")) || 
-	(!dbl2.toString().equals("Infinity"))) {
+        (!dbl2.toString().equals("Infinity"))) {
       System.out.println("\ndouble: " +       lo + " .. " +       hi);
       testSuccess = false;
     }
 
     if ((!Long.toString((long)lo).equals("-9223372036854775808")) || 
-	(!Long.toString((long)hi).equals("9223372036854775807"))) {
+        (!Long.toString((long)hi).equals("9223372036854775807"))) {
       System.out.println("\nlong:   " + (long)lo + " .. " + (long)hi);
       testSuccess = false;
     }
 
     if ((!Integer.toString((int)lo).equals("-2147483648")) || 
-	(!Integer.toString((int)hi).equals("2147483647"))) {
+        (!Integer.toString((int)hi).equals("2147483647"))) {
       System.out.println("\nint:    " + (int )lo + " .. " + (int )hi);
       testSuccess = false;
     }

@@ -31,9 +31,9 @@ public class tField {
     Class tf_type = Class.forName("tField");
     Field fields[] = tf_type.getFields();
     Arrays.sort(fields, new Comparator() {
-	public int compare(Object x, Object y) {
-	  return x.toString().compareTo( y.toString() );
-	}
+        public int compare(Object x, Object y) {
+          return x.toString().compareTo( y.toString() );
+        }
       });
     
     t.printFields(fields);
@@ -61,11 +61,11 @@ public class tField {
 
     for (int j = 0; j < fields.length; j++) {
       try {
-	fields[j].setBoolean(this, false); 
-	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+        fields[j].setBoolean(this, false); 
+        System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));  
       } catch(Exception e) {
-	System.out.print(j+"\t "+fields[j]+" \t ");
-	System.out.println(e);
+        System.out.print(j+"\t "+fields[j]+" \t ");
+        System.out.println(e);
       }
     }
   }
@@ -75,11 +75,11 @@ public class tField {
 
     for (int j = 0; j < fields.length; j++) {
       try {
-	fields[j].setByte(this, (byte)12); 
-	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+        fields[j].setByte(this, (byte)12); 
+        System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));  
       } catch(Exception e) {
-	System.out.print(j+"\t "+fields[j]+" \t ");
-	System.out.println(e);
+        System.out.print(j+"\t "+fields[j]+" \t ");
+        System.out.println(e);
       }
     }
   }
@@ -89,11 +89,11 @@ public class tField {
 
     for (int j = 0; j < fields.length; j++) {
       try {
-	fields[j].setShort(this, (short)2); 
-	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
+        fields[j].setShort(this, (short)2); 
+        System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
       } catch(Exception e) {
-	System.out.print(j+"\t "+fields[j]+" \t ");
-	System.out.println(e);
+        System.out.print(j+"\t "+fields[j]+" \t ");
+        System.out.println(e);
       }
     }
   }
@@ -103,11 +103,11 @@ public class tField {
 
     for (int j = 0; j < fields.length; j++) {
       try {
-	fields[j].setInt(this, 3); 
-	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
+        fields[j].setInt(this, 3); 
+        System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
       } catch(Exception e) {
-	System.out.print(j+"\t "+fields[j]+" \t ");
-	System.out.println(e);
+        System.out.print(j+"\t "+fields[j]+" \t ");
+        System.out.println(e);
       }
     } 
   }
@@ -117,11 +117,11 @@ public class tField {
 
     for (int j = 0; j < fields.length; j++) {
       try {
-	fields[j].setLong(this, 4); 
-	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
+        fields[j].setLong(this, 4); 
+        System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));
       } catch(Exception e) {
-	System.out.print(j+"\t "+fields[j]+" \t ");
-	System.out.println(e);
+        System.out.print(j+"\t "+fields[j]+" \t ");
+        System.out.println(e);
       }
     }
   }
@@ -131,11 +131,11 @@ public class tField {
 
     for (int j = 0; j < fields.length; j++) {
       try {
-	fields[j].setFloat(this, 5.0F); 
-	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+        fields[j].setFloat(this, 5.0F); 
+        System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));  
       } catch(Exception e) {
-	System.out.print(j+"\t "+fields[j]+" \t ");
-	System.out.println(e);
+        System.out.print(j+"\t "+fields[j]+" \t ");
+        System.out.println(e);
       }
     }
   }
@@ -145,11 +145,11 @@ public class tField {
 
     for (int j = 0; j < fields.length; j++) {
       try {
-	fields[j].setDouble(this, 6.0); 
-	System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));	
+        fields[j].setDouble(this, 6.0); 
+        System.out.println("OK:"+j+"\t "+fields[j]+" = "+fields[j].get(this));  
       } catch(Exception e) {
-	System.out.print(j+"\t "+fields[j]+" \t ");
-	System.out.println(e);
+        System.out.print(j+"\t "+fields[j]+" \t ");
+        System.out.println(e);
       }
     }
   }

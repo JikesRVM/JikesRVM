@@ -79,8 +79,8 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
     // Temp code for selective debugging.  Dump the whole IR if either DEBUG2 is set, or if a specific method name is specified.
     if (DEBUG2 || 
-	(DEBUG &&
-	 ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()))) {
+        (DEBUG &&
+         ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()))) {
       dumpIR(ir, "Before instrumentation sampling transformation");
       dumpCFG(ir);
     }
@@ -95,8 +95,8 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
     // Dump method again after phase completes
     if (DEBUG2 ||
-	(DEBUG && 
-	 ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())))  {
+        (DEBUG && 
+         ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())))  {
       dumpIR(ir, "After instrumentation sampling transformation");
       dumpCFG(ir);
     }
@@ -192,13 +192,13 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     OPT_BasicBlock curBlock = ir.cfg.firstInCodeOrder();
     while (!done && curBlock != null) {
       if (curBlock == origLastBlock)  // Stop after this iteration
-	done = true;
+        done = true;
 
       // Don't duplicate the exit node
       if (curBlock == ir.cfg.exit()) {
-	// Next block
-	curBlock = curBlock.nextBasicBlockInCodeOrder();
-	continue;
+        // Next block
+        curBlock = curBlock.nextBasicBlockInCodeOrder();
+        continue;
       }
 
 
@@ -207,32 +207,32 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // in the method) to insert the method-entry check, and also
       // exception handler blocks to simplify handling
       if (curBlock == ir.cfg.entry() ||
-	  curBlock.isExceptionHandlerBasicBlock()) {
-	
-	OPT_Instruction splitInstr = null;
-	
-	if (curBlock == ir.cfg.entry()) 
-	  splitInstr = getFirstInstWithOperator(IR_PROLOGUE,curBlock);
-	else 
-	  splitInstr = getFirstInstWithOperator(LABEL,curBlock);
-	
-	// Split entry node so the split instr isn't duplicated, but rest
-	// of block is.   
-	OPT_BasicBlock blockTail = 
-	  curBlock.splitNodeWithLinksAt(splitInstr,ir); 
-	curBlock.recomputeNormalOut(ir);
-	
-	if (curBlock.isExceptionHandlerBasicBlock()) {
-	  // Remember that the tail of the block we just split is an
-	  // exception handler and we want to add a check here
-	  exceptionHandlerBlocks.add(blockTail);
-	}
-	
-	// proceed with the duplication using the second half of the split block.
-	curBlock = blockTail;  
-	
-	// Is this necessary?   TODO:  see if it can be removed.
-	OPT_DefUse.recomputeSpansBasicBlock(ir);
+          curBlock.isExceptionHandlerBasicBlock()) {
+        
+        OPT_Instruction splitInstr = null;
+        
+        if (curBlock == ir.cfg.entry()) 
+          splitInstr = getFirstInstWithOperator(IR_PROLOGUE,curBlock);
+        else 
+          splitInstr = getFirstInstWithOperator(LABEL,curBlock);
+        
+        // Split entry node so the split instr isn't duplicated, but rest
+        // of block is.   
+        OPT_BasicBlock blockTail = 
+          curBlock.splitNodeWithLinksAt(splitInstr,ir); 
+        curBlock.recomputeNormalOut(ir);
+        
+        if (curBlock.isExceptionHandlerBasicBlock()) {
+          // Remember that the tail of the block we just split is an
+          // exception handler and we want to add a check here
+          exceptionHandlerBlocks.add(blockTail);
+        }
+        
+        // proceed with the duplication using the second half of the split block.
+        curBlock = blockTail;  
+        
+        // Is this necessary?   TODO:  see if it can be removed.
+        OPT_DefUse.recomputeSpansBasicBlock(ir);
       }
       
       
@@ -241,7 +241,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       dup.setInfrequent();  // duplicated code is known to be infrequent.
       
       if (DEBUG2) VM.sysWrite("Copying bb: " + curBlock + 
-			      " to be " + dup + "\n");
+                              " to be " + dup + "\n");
       
       ir.cfg.addLastInCodeOrder(dup);
       
@@ -252,11 +252,11 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // originally done to make the remaining passes simpler.
       OPT_BasicBlock fallthrough = curBlock.getFallThroughBlock();
       if (fallthrough != null) {
-	
-	OPT_Instruction g = 
-	  Goto.create(GOTO, 
-		      fallthrough.makeJumpTarget()); 
-	dup.appendInstruction(g);
+        
+        OPT_Instruction g = 
+          Goto.create(GOTO, 
+                      fallthrough.makeJumpTarget()); 
+        dup.appendInstruction(g);
       }
 
       dup.recomputeNormalOut(ir);
@@ -286,10 +286,10 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       OPT_BasicBlock dup = (OPT_BasicBlock) origToDupMap.get(bb);
 
       if (dup == null) {
-	// Getting here means that for some reason the block was not duplicated.  
-	if (DEBUG) 
-	  VM.sysWrite("Debug: block " + bb + " was not duplicated\n");
-	continue;
+        // Getting here means that for some reason the block was not duplicated.  
+        if (DEBUG) 
+          VM.sysWrite("Debug: block " + bb + " was not duplicated\n");
+        continue;
       }
 
       // If you have a yieldpoint, or if you are the predecessor of a
@@ -297,37 +297,37 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // check 
 
       if (getFirstInstWithYieldPoint(bb) != null ||   // contains yieldpoint
-	  exceptionHandlerBlocks.contains(bb)) { // is exception handler
+          exceptionHandlerBlocks.contains(bb)) { // is exception handler
 
-	OPT_BasicBlock checkBB = null;
-	OPT_BasicBlock prev = bb.prevBasicBlockInCodeOrder();
-	// Entry has been split, so any node containing a yieldpoint
-	// should not be first
-	if (VM.VerifyAssertions) 
-	  VM._assert(prev != null);  
-	
-	// Make a new BB that contains the check itself (it needs to
-	// be a basic block because the duplicated code branches back
-	// to it).  
-	checkBB = new OPT_BasicBlock(-1,null,ir.cfg);
+        OPT_BasicBlock checkBB = null;
+        OPT_BasicBlock prev = bb.prevBasicBlockInCodeOrder();
+        // Entry has been split, so any node containing a yieldpoint
+        // should not be first
+        if (VM.VerifyAssertions) 
+          VM._assert(prev != null);  
+        
+        // Make a new BB that contains the check itself (it needs to
+        // be a basic block because the duplicated code branches back
+        // to it).  
+        checkBB = new OPT_BasicBlock(-1,null,ir.cfg);
 
-	// Break the code to insert the check logic
-	ir.cfg.breakCodeOrder(prev, bb);
-	ir.cfg.linkInCodeOrder(prev, checkBB);
-	ir.cfg.linkInCodeOrder(checkBB, bb);	    
-	if (DEBUG)
-	  VM.sysWrite("Creating check " + checkBB + 
-		      " to preceed " + bb +" \n");
-	
-	// Step 2, Make all of bb's predecessors point to the check instead
-	for (OPT_BasicBlockEnumeration preds = bb.getIn();
-	     preds.hasMoreElements();) {
-	  OPT_BasicBlock pred = preds.next();	
-	  pred.redirectOuts(bb,checkBB,ir);
-	}
+        // Break the code to insert the check logic
+        ir.cfg.breakCodeOrder(prev, bb);
+        ir.cfg.linkInCodeOrder(prev, checkBB);
+        ir.cfg.linkInCodeOrder(checkBB, bb);        
+        if (DEBUG)
+          VM.sysWrite("Creating check " + checkBB + 
+                      " to preceed " + bb +" \n");
+        
+        // Step 2, Make all of bb's predecessors point to the check instead
+        for (OPT_BasicBlockEnumeration preds = bb.getIn();
+             preds.hasMoreElements();) {
+          OPT_BasicBlock pred = preds.next();   
+          pred.redirectOuts(bb,checkBB,ir);
+        }
 
-	// Insert the check logic
-	createCheck(checkBB,bb,dup,false,ir);
+        // Insert the check logic
+        createCheck(checkBB,bb,dup,false,ir);
 
       }
     }
@@ -344,10 +344,10 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *                            (otherwise it must fallthrough to noInstBB)
    */
   private final static void createCheck(OPT_BasicBlock checkBB, 
-				OPT_BasicBlock noInstBB,
-				OPT_BasicBlock instBB,
-				boolean fallthroughToInstBB,
-				OPT_IR ir) {
+                                OPT_BasicBlock noInstBB,
+                                OPT_BasicBlock instBB,
+                                boolean fallthroughToInstBB,
+                                OPT_IR ir) {
 
     appendLoad(checkBB,ir);
 
@@ -371,12 +371,12 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     }
     OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
     checkBB.appendInstruction(IfCmp.create(INT_IFCMP, 
-					   guard,
-					   cbsReg.copyRO(),
-					   new OPT_IntConstantOperand(0),
-					   cond,
-					   target,
-					   profileOperand));
+                                           guard,
+                                           cbsReg.copyRO(),
+                                           new OPT_IntConstantOperand(0),
+                                           cond,
+                                           target,
+                                           profileOperand));
     checkBB.recomputeNormalOut(ir);
 
     // Insert the decrement and store in the block that is the
@@ -398,7 +398,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param bb The block to append the load to
    * @param ir The IR */
   private static void appendLoad(OPT_BasicBlock bb, 
-				OPT_IR ir) {
+                                OPT_IR ir) {
 
     if (DEBUG)VM.sysWrite("Adding load to "+ bb + "\n");
     OPT_Instruction load = null;
@@ -406,41 +406,41 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // Use one CBS counter per processor (better for multi threaded apps)
 
       if (ir.IRStage == ir.HIR) {
-	// NOT IMPLEMENTED
+        // NOT IMPLEMENTED
       }
       else {
-	// Phase is being used in LIR
-	OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
-	
-	// Insert the load instruction. 
-	load = 
-	  Load.create(INT_LOAD, cbsReg.copyRO(), 
-		      OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
-		      OPT_IRTools.I(VM_Entrypoints.processorCBSField.getOffset()),
-		      new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
-	
-	bb.appendInstruction(load);
+        // Phase is being used in LIR
+        OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
+        
+        // Insert the load instruction. 
+        load = 
+          Load.create(INT_LOAD, cbsReg.copyRO(), 
+                      OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
+                      OPT_IRTools.I(VM_Entrypoints.processorCBSField.getOffset()),
+                      new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
+        
+        bb.appendInstruction(load);
       }
     }
     else {
       // Use global counter
       if (ir.IRStage == ir.HIR) {
-	OPT_Operand offsetOp = new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset());
-	load = GetStatic.create(GETSTATIC,cbsReg.copyRO(),offsetOp, new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
-	bb.appendInstruction(load);
+        OPT_Operand offsetOp = new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset());
+        load = GetStatic.create(GETSTATIC,cbsReg.copyRO(),offsetOp, new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
+        bb.appendInstruction(load);
       }
       else {
-	// LIR
-	OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
-	
-	bb.appendInstruction(dummy);
-	load = Load.create(INT_LOAD, cbsReg.copyRO(), 
-			   ir.regpool.makeJTOCOp(ir,dummy), 
-			   OPT_IRTools.I(VM_Entrypoints.globalCBSField.getOffset()),
-			   new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
-	
-	dummy.insertBefore(load);
-	dummy.remove();
+        // LIR
+        OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
+        
+        bb.appendInstruction(dummy);
+        load = Load.create(INT_LOAD, cbsReg.copyRO(), 
+                           ir.regpool.makeJTOCOp(ir,dummy), 
+                           OPT_IRTools.I(VM_Entrypoints.globalCBSField.getOffset()),
+                           new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
+        
+        dummy.insertBefore(load);
+        dummy.remove();
       }
     }
   }
@@ -458,34 +458,34 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
       OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
       store = Store.create(INT_STORE, 
-			   cbsReg.copyRO(),
-			   OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
-			   OPT_IRTools.I(VM_Entrypoints.processorCBSField.getOffset()),
-			   new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
+                           cbsReg.copyRO(),
+                           OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
+                           OPT_IRTools.I(VM_Entrypoints.processorCBSField.getOffset()),
+                           new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
 
 
       bb.prependInstruction(store);
     }
     else {
       if (ir.IRStage == ir.HIR) {
-	store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(),new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
-				 new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
-	
-	bb.prependInstruction(store);
+        store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(),new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
+                                 new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
+        
+        bb.prependInstruction(store);
       } else {
-	OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
+        OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
 
-	bb.prependInstruction(dummy);
-	store = Store.create(INT_STORE, 
-			     cbsReg.copyRO(),
-			     ir.regpool.makeJTOCOp(ir,dummy), 
-			     OPT_IRTools.I(VM_Entrypoints.globalCBSField.getOffset()),
-			     new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
-	
-	dummy.insertBefore(store);
-	dummy.remove();
+        bb.prependInstruction(dummy);
+        store = Store.create(INT_STORE, 
+                             cbsReg.copyRO(),
+                             ir.regpool.makeJTOCOp(ir,dummy), 
+                             OPT_IRTools.I(VM_Entrypoints.globalCBSField.getOffset()),
+                             new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
+        
+        dummy.insertBefore(store);
+        dummy.remove();
       }
-    }	
+    }   
   }    
   /**
    * Append a decrement of the global counter to the given basic block.
@@ -496,14 +496,14 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param ir The IR
    */
   private final static void prependDecrement(OPT_BasicBlock bb,
-						OPT_IR ir) {
+                                                OPT_IR ir) {
     if (DEBUG)VM.sysWrite("Adding Increment to "+ bb + "\n");
 
     OPT_RegisterOperand use = cbsReg.copyRO();
     OPT_RegisterOperand def = use.copyU2D();
     OPT_Instruction inc = Binary.create(INT_ADD,
-					def,use, 
-					OPT_IRTools.I(-1));
+                                        def,use, 
+                                        OPT_IRTools.I(-1));
     bb.prependInstruction(inc);
   }
 
@@ -516,7 +516,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param bb The block to append the load to
    * @param ir The IR */
   private final static void prependCounterReset(OPT_BasicBlock bb,
-				       OPT_IR ir) {
+                                       OPT_IR ir) {
     OPT_Instruction load = null;
     OPT_Instruction store = null;
 
@@ -524,9 +524,9 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // Not tested
       OPT_Operand offsetOp = new OPT_IntConstantOperand(VM_Entrypoints.cbsResetValueField.getOffset());
       load = GetStatic.create(GETSTATIC,cbsReg.copyRO(),offsetOp,
-			      new OPT_LocationOperand(VM_Entrypoints.cbsResetValueField));
+                              new OPT_LocationOperand(VM_Entrypoints.cbsResetValueField));
       store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(), new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
-			      new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
+                              new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
       bb.prependInstruction(store);
       bb.prependInstruction(load);
     }
@@ -536,27 +536,27 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       bb.prependInstruction(dummy);
       // Load the reset value
       load = Load.create(INT_LOAD, cbsReg.copyRO(), 
-			 ir.regpool.makeJTOCOp(ir,dummy), 
-			 OPT_IRTools.I(VM_Entrypoints.cbsResetValueField.getOffset()),
-			 new OPT_LocationOperand(VM_Entrypoints.cbsResetValueField));
+                         ir.regpool.makeJTOCOp(ir,dummy), 
+                         OPT_IRTools.I(VM_Entrypoints.cbsResetValueField.getOffset()),
+                         new OPT_LocationOperand(VM_Entrypoints.cbsResetValueField));
       
       dummy.insertBefore(load);
 
       // Store it in the counter register
       if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
-	store = Store.create(INT_STORE, 
-			     cbsReg.copyRO(),
-			     OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
-			     OPT_IRTools.I(VM_Entrypoints.processorCBSField.getOffset()),
-			     new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
+        store = Store.create(INT_STORE, 
+                             cbsReg.copyRO(),
+                             OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
+                             OPT_IRTools.I(VM_Entrypoints.processorCBSField.getOffset()),
+                             new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
       }
       else {
-	// Use global counter
-	store = Store.create(INT_STORE, 
-			     cbsReg.copyRO(),
-			     ir.regpool.makeJTOCOp(ir,dummy), 
-			     OPT_IRTools.I(VM_Entrypoints.globalCBSField.getOffset()),
-			     new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
+        // Use global counter
+        store = Store.create(INT_STORE, 
+                             cbsReg.copyRO(),
+                             ir.regpool.makeJTOCOp(ir,dummy), 
+                             OPT_IRTools.I(VM_Entrypoints.globalCBSField.getOffset()),
+                             new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
       }
       dummy.insertBefore(store);
       dummy.remove();
@@ -574,15 +574,15 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @return The first instruction in bb that has operator operator.  */
   private final static 
     OPT_Instruction getFirstInstWithOperator(OPT_Operator operator,
-					     OPT_BasicBlock bb) {
+                                             OPT_BasicBlock bb) {
     for (OPT_InstructionEnumeration ie
-	   = bb.forwardInstrEnumerator();
-	 ie.hasMoreElements();) {
+           = bb.forwardInstrEnumerator();
+         ie.hasMoreElements();) {
       OPT_Instruction i = ie.next();
       
       if (i.operator() == operator) {
-	return i;
-      }	
+        return i;
+      } 
     }
     return null;
   }
@@ -596,13 +596,13 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   public final static 
     OPT_Instruction getFirstInstWithYieldPoint(OPT_BasicBlock bb) {
     for (OPT_InstructionEnumeration ie
-	   = bb.forwardInstrEnumerator();
-	 ie.hasMoreElements();) {
+           = bb.forwardInstrEnumerator();
+         ie.hasMoreElements();) {
       OPT_Instruction i = ie.next();
       
       if (isYieldpoint(i)) {
-	return i;
-      }	
+        return i;
+      } 
     }
     return null;
   }
@@ -616,9 +616,9 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    */
   public final static boolean isYieldpoint(OPT_Instruction i) {
     if (i.operator() == YIELDPOINT_PROLOGUE ||
-	// Skip epilogue yieldpoints.   No checks needed for them
-	//	  i.operator() == YIELDPOINT_EPILOGUE ||
-	i.operator() == YIELDPOINT_BACKEDGE) 
+        // Skip epilogue yieldpoints.   No checks needed for them
+        //        i.operator() == YIELDPOINT_EPILOGUE ||
+        i.operator() == YIELDPOINT_BACKEDGE) 
       return true;
 
     return false;
@@ -649,34 +649,34 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
       // Look at the successors of duplicated Block. 
       for (OPT_BasicBlockEnumeration out = dupBlock.getNormalOut();
-	   out.hasMoreElements();) {
-	OPT_BasicBlock origSucc = out.next();
+           out.hasMoreElements();) {
+        OPT_BasicBlock origSucc = out.next();
 
-	OPT_BasicBlock dupSucc =  (OPT_BasicBlock)origToDupMap.get(origSucc);
+        OPT_BasicBlock dupSucc =  (OPT_BasicBlock)origToDupMap.get(origSucc);
 
-	// If the successor is not in the duplicated code, then
-	// redirect it to stay in the duplicated code. (dupSucc !=
-	// null implies that origSucc has a corresponding duplicated
-	// block, and thus origSucc is in the checking code.
+        // If the successor is not in the duplicated code, then
+        // redirect it to stay in the duplicated code. (dupSucc !=
+        // null implies that origSucc has a corresponding duplicated
+        // block, and thus origSucc is in the checking code.
 
-	if (dupSucc != null) {
-	  
-	  dupBlock.redirectOuts(origSucc,dupSucc,ir);
-	  if (DEBUG) {
-	    VM.sysWrite("Source: " + dupBlock + "\n");
-	    VM.sysWrite("============= FROM " + origSucc + 
-			" =============\n");
-	    //origSucc.printExtended();
-	    VM.sysWrite("============= TO " + dupSucc + 
-			"=============\n");
-	    //dupSucc.printExtended();
-	  }
-	}
-	else {
-	  if (DEBUG) 
-	    VM.sysWrite("Not adjusting pointer from " + dupBlock + 
-			" to " + origSucc + " because dupSucc is null\n");
-	}
+        if (dupSucc != null) {
+          
+          dupBlock.redirectOuts(origSucc,dupSucc,ir);
+          if (DEBUG) {
+            VM.sysWrite("Source: " + dupBlock + "\n");
+            VM.sysWrite("============= FROM " + origSucc + 
+                        " =============\n");
+            //origSucc.printExtended();
+            VM.sysWrite("============= TO " + dupSucc + 
+                        "=============\n");
+            //dupSucc.printExtended();
+          }
+        }
+        else {
+          if (DEBUG) 
+            VM.sysWrite("Not adjusting pointer from " + dupBlock + 
+                        " to " + origSucc + " because dupSucc is null\n");
+        }
       }
 
     }
@@ -704,15 +704,15 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // Remove all instrumentation instructions.  They already have
       // been transfered to the duplicated code.
       for (OPT_InstructionEnumeration ie
-	     = origBlock.forwardInstrEnumerator();
-	   ie.hasMoreElements();) {
-	OPT_Instruction i = ie.next();
-	if (isInstrumentationInstruction(i) ||
-	    (isYieldpoint(i) && ir.options.REMOVE_YP_FROM_CHECKING)) {
+             = origBlock.forwardInstrEnumerator();
+           ie.hasMoreElements();) {
+        OPT_Instruction i = ie.next();
+        if (isInstrumentationInstruction(i) ||
+            (isYieldpoint(i) && ir.options.REMOVE_YP_FROM_CHECKING)) {
 
-	  if (DEBUG)VM.sysWrite("Removing " + i + "\n");
-	  i.remove(); 
-	}
+          if (DEBUG)VM.sysWrite("Removing " + i + "\n");
+          i.remove(); 
+        }
       }
     }  
   }
@@ -731,7 +731,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * 
    */
   private final static OPT_BasicBlock myCopyWithoutLinks(OPT_BasicBlock bb,
-						 OPT_IR ir) {
+                                                 OPT_IR ir) {
 
     OPT_BasicBlock newBlock = bb.copyWithoutLinks(ir);
 
@@ -751,26 +751,26 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
     // For each instruction in the block
     for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-	 ie.hasMoreElements();) {
+         ie.hasMoreElements();) {
       OPT_Instruction inst = ie.next();
 
       // Look at each register operand
       int numOperands = inst.getNumberOfOperands();
       for (int i = 0; i < numOperands; i++) {
-	OPT_Operand op = inst.getOperand(i);
-	if (op instanceof OPT_RegisterOperand) {
-	  OPT_RegisterOperand ro = (OPT_RegisterOperand) op;
- 	  if (ro.register.isTemp() &&
-	      !ro.register.spansBasicBlock()) {
-	    // This register does not span multiple basic blocks, so 
-	    // replace it with a temp.
-	    OPT_RegisterOperand newReg = 
-	      getOrCreateDupReg(ro, ir);
-	    if (DEBUG2) 
-	      VM.sysWrite( "Was " + ro + " and now it's " + newReg + "\n");
-	    inst.putOperand(i,newReg);
-	  }
-	}
+        OPT_Operand op = inst.getOperand(i);
+        if (op instanceof OPT_RegisterOperand) {
+          OPT_RegisterOperand ro = (OPT_RegisterOperand) op;
+          if (ro.register.isTemp() &&
+              !ro.register.spansBasicBlock()) {
+            // This register does not span multiple basic blocks, so 
+            // replace it with a temp.
+            OPT_RegisterOperand newReg = 
+              getOrCreateDupReg(ro, ir);
+            if (DEBUG2) 
+              VM.sysWrite( "Was " + ro + " and now it's " + newReg + "\n");
+            inst.putOperand(i,newReg);
+          }
+        }
       }
     }
 
@@ -787,24 +787,24 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   private final static void clearScratchObjects(OPT_BasicBlock bb, OPT_IR ir) {
     // For each instruction in the block
     for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator();
-	 ie.hasMoreElements();) {
+         ie.hasMoreElements();) {
       OPT_Instruction inst = ie.next();
 
       // Look at each register operand
       int numOperands = inst.getNumberOfOperands();
       for (int i = 0; i < numOperands; i++) {
-	OPT_Operand op = inst.getOperand(i);
-	if (op instanceof OPT_RegisterOperand) {
-	  OPT_RegisterOperand ro = (OPT_RegisterOperand) op;
- 	  if (ro.register.isTemp() &&
-	      !ro.register.spansBasicBlock()) {
+        OPT_Operand op = inst.getOperand(i);
+        if (op instanceof OPT_RegisterOperand) {
+          OPT_RegisterOperand ro = (OPT_RegisterOperand) op;
+          if (ro.register.isTemp() &&
+              !ro.register.spansBasicBlock()) {
 
-	    // This register does not span multiple basic blocks.  It
-	    // will be touched by the register duplication, so clear
-	    // its scratch reg.
-	    ro.register.scratchObject=null;
-	  }
-	}
+            // This register does not span multiple basic blocks.  It
+            // will be touched by the register duplication, so clear
+            // its scratch reg.
+            ro.register.scratchObject=null;
+          }
+        }
       }
     }
 
@@ -821,7 +821,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    */
   private final static 
     OPT_RegisterOperand getOrCreateDupReg(OPT_RegisterOperand ro, 
-						     OPT_IR ir) {
+                                                     OPT_IR ir) {
 
     // Check if the register associated with this regOperand already
     // has a paralles operand
@@ -832,7 +832,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     }
     return new
       OPT_RegisterOperand((OPT_Register)ro.register.scratchObject,
-			  ro.type);
+                          ro.type);
   }
 
   /**
@@ -846,17 +846,17 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
     Vector v = new Vector();
     for (OPT_BasicBlockEnumeration allBB = ir.getBasicBlocks(); 
-	 allBB.hasMoreElements(); ) {
+         allBB.hasMoreElements(); ) {
       OPT_BasicBlock bb = allBB.next();
 
       for (OPT_InstructionEnumeration ie
-	     = bb.forwardInstrEnumerator();
-	   ie.hasMoreElements();) {
-	OPT_Instruction i = ie.next();		
+             = bb.forwardInstrEnumerator();
+           ie.hasMoreElements();) {
+        OPT_Instruction i = ie.next();          
 
-	// If it's an instrumentation operation, remember the instruction 
-	if (isInstrumentationInstruction(i))
-	  v.add(i);
+        // If it's an instrumentation operation, remember the instruction 
+        if (isInstrumentationInstruction(i))
+          v.add(i);
       }
     }
 
@@ -880,8 +880,8 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    */
   private static final void 
     conditionalizeInstrumentationOperation(OPT_IR ir,
-					   OPT_Instruction i,
-					   OPT_BasicBlock bb) {
+                                           OPT_Instruction i,
+                                           OPT_BasicBlock bb) {
 
     // Create bb after instrumentation ('C', in comment above)
     OPT_BasicBlock C = bb.splitNodeWithLinksAt(i,ir); 

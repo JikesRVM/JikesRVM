@@ -54,7 +54,7 @@ public final class OPT_InvalidationDatabase {
    * the VM_CompiledMethod encoded by the cmid must be invalidated.
    */
   public void addNotOverriddenDependency(VM_Method source, 
-					 int dependent_cmid) {
+                                         int dependent_cmid) {
     MethodSet s = findOrCreateMethodSet(nonOverriddenHash, source);
     s.add(dependent_cmid);
   }
@@ -64,7 +64,7 @@ public final class OPT_InvalidationDatabase {
    * No effect if the dependency doesn't exist..
    */
   public void removeNotOverriddenDependency(VM_Method source, 
-					    int dependent_cmid) {
+                                            int dependent_cmid) {
     MethodSet s = (MethodSet)nonOverriddenHash.get(source);
     if (s != null) {
       s.remove(dependent_cmid);

@@ -77,8 +77,8 @@
 
 #include "ihnpdsm.h"
 
-#ifndef UNUSED			// we're having trouble with some g++ versions
-				// doing "unused"
+#ifndef UNUSED                  // we're having trouble with some g++ versions
+                                // doing "unused"
 #define UNUSED __attribute__((unused))
 /* In GNU C, __attribute__((unused)) really means "possibly unused". */
 #define POSSIBLY_UNUSED UNUSED
@@ -1450,7 +1450,7 @@ operandSignedHex(long val, const char *suffix)
 ULONG _lrotl4(ULONG val)
 {
     if (debug)
-	printf("Calling _lrotl4: 0x%08lx\n", val);  
+        printf("Calling _lrotl4: 0x%08lx\n", val);  
 
     ULONG tmp = (val >> 28) & 0x0f;
     return ((val << 4) | tmp);
@@ -1471,14 +1471,14 @@ operandHex(ULONG val, const char *suffix)
       } else {
          int i;
          for (i = 0; i < 8 ; i++ ) {
-	     /* val = _lrotl(val,4); */
-	    val = _lrotl4(val);   /* rotate left logical 4 bits */
+             /* val = _lrotl(val,4); */
+            val = _lrotl4(val);   /* rotate left logical 4 bits */
             if (val & 0x0f ) {
                if ((val & 0x0f) >= 0x0a)
                   *ibuff++ = '0';      // leading zero required
                *ibuff++ = hexConvVal[val & 0x0f];
                for (; ++i < 8 ;  ) {
-		   /* val = _lrotl(val,4); */ 
+                   /* val = _lrotl(val,4); */ 
                   val = _lrotl4(val);
                   *ibuff++ = hexConvVal[val & 0x0f];
                } // endfor
@@ -1780,14 +1780,14 @@ getNextDword(void)
     ULONG Dword1 = *(ULONG *)(parm->iptr);
     parm->iptr += sizeof(ULONG);
     if (hbuff) {                         // Print the instruction word in hex
-	for (unsigned i = 0; i < (8 * sizeof(ULONG)); i += 8) {
-	    unsigned x = Dword1 >> i;
-	    *hbuff++ = hexConvVal[( x >> 4)&0x0F];
-	    *hbuff++ = hexConvVal[x & 0x0F];
-	} // endfor
+        for (unsigned i = 0; i < (8 * sizeof(ULONG)); i += 8) {
+            unsigned x = Dword1 >> i;
+            *hbuff++ = hexConvVal[( x >> 4)&0x0F];
+            *hbuff++ = hexConvVal[x & 0x0F];
+        } // endfor
     } 
     if (debug)
-	printf("getNextDword:  0x%08lx\n", Dword1);
+        printf("getNextDword:  0x%08lx\n", Dword1);
     return Dword1;
 } 
 
@@ -1812,11 +1812,11 @@ static ULONG
 getImmediate(FLAGS flags) 
 {
     if (flags.Wbit == 0) { 
-	// a byte operand
-	return getNextByte();
+        // a byte operand
+        return getNextByte();
     } else {
-	// a 16 or 32 bit ooerand depending on instruction setting
-	return getNextOperand(flags);
+        // a 16 or 32 bit ooerand depending on instruction setting
+        return getNextOperand(flags);
     } 
 } 
 
@@ -1840,11 +1840,11 @@ static long
 getSignedImmediate(FLAGS flags) 
 {
     if (flags.Wbit == 0) { 
-	return (signed char)getNextByte();  // sign extended byte operand
+        return (signed char)getNextByte();  // sign extended byte operand
     } else if (flags.opsize32) {
-	return getNextDword();
+        return getNextDword();
     } else {
-	return (short)getNextWord();        // sign extended word operand
+        return (short)getNextWord();        // sign extended word operand
     } 
 } 
 
@@ -1867,9 +1867,9 @@ static void
 operandString(const char *str) 
 {
     if (ibuff) {
-	for (;*str ; ) {
-	    *ibuff++ = *str++;
-	} // endfor
+        for (;*str ; ) {
+            *ibuff++ = *str++;
+        } // endfor
     } // endif
 } 
 
@@ -1892,13 +1892,13 @@ static void
 initialize(FLAGS & flags, int print) 
 {
     if (!print) {
-	hbuff = 0;
-	ibuff = 0;
-	mbuff = 0;
+        hbuff = 0;
+        ibuff = 0;
+        mbuff = 0;
     } else {
-	hbuff = (char *)parm->hbuffer;
-	ibuff = (char *)parm->ibuffer;
-	mbuff = (char *)parm->mbuffer;
+        hbuff = (char *)parm->hbuffer;
+        ibuff = (char *)parm->ibuffer;
+        mbuff = (char *)parm->mbuffer;
     }
     flags.Dbit = DBit_RegToMem;
     parm->rettype = notype;
@@ -1963,48 +1963,48 @@ getMod_rm_dw(FLAGS & flags)
     flags.mod = (ic >> 6) & 0x03;
 
     if (flags.addr32) {                // interpret this as a 32-bit instr
-	indexreg = 0;
-	scalefactor = 0;
-	if (flags.mod != 3) {
-	    flags.addroverUsed = 1;      // we made use of the address override
-	    basereg = (UCHAR)(flags.rm+1);
-	    if (flags.rm == 4) {         // we have a SIB byte
-		ic = getNextByte();   // get it
-		basereg = (ic & 0x07) + 1;
-		indexreg = ((ic >> 3) & 0x07 ) + 1;
-		scalefactor = (ic >> 6) & 0x03;
+        indexreg = 0;
+        scalefactor = 0;
+        if (flags.mod != 3) {
+            flags.addroverUsed = 1;      // we made use of the address override
+            basereg = (UCHAR)(flags.rm+1);
+            if (flags.rm == 4) {         // we have a SIB byte
+                ic = getNextByte();   // get it
+                basereg = (ic & 0x07) + 1;
+                indexreg = ((ic >> 3) & 0x07 ) + 1;
+                scalefactor = (ic >> 6) & 0x03;
   
-		if (indexreg == 5) {          // index=4 -> no index
-		    indexreg = 0;
-		    if (scalefactor != 0) {
-			// scale factor must be zero
-			throw IllegalOp();
-		    } // endif
-		} 
-		if (flags.mod == 0 && basereg == 6) {  // a special case, no base
-		    basereg = 0;
-		    flags.disppres = 1;          // remember what we have done
-		} 
-	    } else if (flags.mod == 0 && flags.rm == 5)
-		basereg = 0;
-	}
-	if (basereg == (1 + EBP) || basereg == (1 + ESP))  // EBP or ESP
-	    defseg = SS+1;                      // SS
+                if (indexreg == 5) {          // index=4 -> no index
+                    indexreg = 0;
+                    if (scalefactor != 0) {
+                        // scale factor must be zero
+                        throw IllegalOp();
+                    } // endif
+                } 
+                if (flags.mod == 0 && basereg == 6) {  // a special case, no base
+                    basereg = 0;
+                    flags.disppres = 1;          // remember what we have done
+                } 
+            } else if (flags.mod == 0 && flags.rm == 5)
+                basereg = 0;
+        }
+        if (basereg == (1 + EBP) || basereg == (1 + ESP))  // EBP or ESP
+            defseg = SS+1;                      // SS
     } 
     else {                               // interpret this as a 16-bit instr
-	// vectors to convert 16-bit format mod-r/m bytes to base and index register forms
-	static const UCHAR basereg16[8] =  { BX, BX, BP, BP, SI, DI, BP, BX };
-	static const UCHAR indexreg16[8] =  { SI + 1, DI + 1, SI + 1, DI + 1, 0, 0, 0, 0 } ;
+        // vectors to convert 16-bit format mod-r/m bytes to base and index register forms
+        static const UCHAR basereg16[8] =  { BX, BX, BP, BP, SI, DI, BP, BX };
+        static const UCHAR indexreg16[8] =  { SI + 1, DI + 1, SI + 1, DI + 1, 0, 0, 0, 0 } ;
     
-	if (flags.mod != 3) 
-	    flags.addroverUsed = 1;      // we made use of the address override
-	basereg = 1 + basereg16[flags.rm];
-	indexreg = indexreg16[flags.rm];
-	if (flags.mod == 0 && flags.rm == 6)
-	    basereg = 0;
-	else if (basereg == (1 + BP))      // BP
-	    defseg = SS+1;                      // SS
-	scalefactor = 0;
+        if (flags.mod != 3) 
+            flags.addroverUsed = 1;      // we made use of the address override
+        basereg = 1 + basereg16[flags.rm];
+        indexreg = indexreg16[flags.rm];
+        if (flags.mod == 0 && flags.rm == 6)
+            basereg = 0;
+        else if (basereg == (1 + BP))      // BP
+            defseg = SS+1;                      // SS
+        scalefactor = 0;
     } 
 } 
 
@@ -2027,10 +2027,10 @@ op_IL(FLAGS UNUSED & flags )
 {
     parm->iptr = startiptr+1;
     if (mbuff) {
-	/*********************************************************************/
-	/* put the hexcode of the first byte of the instruction into mbuff   */
-	/*********************************************************************/
-	sprintf(mbuff, "%s%2.2X", mnemstr[ILLEGAL].string, *startiptr);
+        /*********************************************************************/
+        /* put the hexcode of the first byte of the instruction into mbuff   */
+        /*********************************************************************/
+        sprintf(mbuff, "%s%2.2X", mnemstr[ILLEGAL].string, *startiptr);
     } 
     parm->rettype = illegtype;
 } 
@@ -2055,107 +2055,107 @@ static void
 operandMemop(FLAGS & flags) 
 {
     if (flags.Dbit == DBit_MemToReg) {
-	if (flags.MMXop) 
-	    operandMMXreg(flags.regf, ",");
-	else 
-	    operandRegister(flags.regf,flags, ",");
+        if (flags.MMXop) 
+            operandMMXreg(flags.regf, ",");
+        else 
+            operandRegister(flags.regf,flags, ",");
     }
 
     memopSetParms(flags);
 
     if (flags.mod == 3) {                    // operand is a register
-	// it is illegal for a LOCK prefix to be present if there is no memory op
-	if (flags.replock == replockLOCK) 
-	    throw IllegalOp();
+        // it is illegal for a LOCK prefix to be present if there is no memory op
+        if (flags.replock == replockLOCK) 
+            throw IllegalOp();
 
-	if (ibuff) {
-	    if (flags.MMXop)
-		operandMMXreg(flags.rm);
-	    else
-		operandRegister(flags.rm,flags);
-	}
+        if (ibuff) {
+            if (flags.MMXop)
+                operandMMXreg(flags.rm);
+            else
+                operandRegister(flags.rm,flags);
+        }
     } else if (ibuff) {
-	// operand is a memory location
-	if (flags.sizePrefix != sizeWop) {
-	    operandTableItem(flags.sizePrefix,PTRsize);
-	} else if (flags.Wbit) {
-	    if (flags.opsize32)
-		operandTableItem(PTRdword,PTRsize);
-	    else
-		operandTableItem(PTRword,PTRsize);
-	} else {
-	    operandTableItem(PTRbyte,PTRsize);
-	}
+        // operand is a memory location
+        if (flags.sizePrefix != sizeWop) {
+            operandTableItem(flags.sizePrefix,PTRsize);
+        } else if (flags.Wbit) {
+            if (flags.opsize32)
+                operandTableItem(PTRdword,PTRsize);
+            else
+                operandTableItem(PTRword,PTRsize);
+        } else {
+            operandTableItem(PTRbyte,PTRsize);
+        }
  
-	// must show displacement if base and index are not present,
-	// even if the displacement is 0
-	int mustShowDisp = !basereg && !indexreg;  
+        // must show displacement if base and index are not present,
+        // even if the displacement is 0
+        int mustShowDisp = !basereg && !indexreg;  
 
-	char paren = '[';
+        char paren = '[';
  
-	if (ovseg) {                      // override segment present
-	    operandSegRegister(ovseg-1, ":");
-	    ovseg = 0;                      // delete it - used
-	} else if (mustShowDisp) {      // there is no base or index
-	    // need to explicitly show the segment register if displacement only
-	    operandSegRegister(defseg-1, ":");
-	}
+        if (ovseg) {                      // override segment present
+            operandSegRegister(ovseg-1, ":");
+            ovseg = 0;                      // delete it - used
+        } else if (mustShowDisp) {      // there is no base or index
+            // need to explicitly show the segment register if displacement only
+            operandSegRegister(defseg-1, ":");
+        }
  
-	if (basereg) {                   
-	    // there is a base register
-	    *ibuff++ = paren;
-	    paren = '+';
-	    if (flags.addr32)
-		operandTableItem(basereg-1, reg32);
-	    else
-		operandTableItem(basereg-1, reg16);
-	} 
+        if (basereg) {                   
+            // there is a base register
+            *ibuff++ = paren;
+            paren = '+';
+            if (flags.addr32)
+                operandTableItem(basereg-1, reg32);
+            else
+                operandTableItem(basereg-1, reg16);
+        } 
  
-	if (indexreg) {             
-	    // there is an index register
-	    *ibuff++ = paren;
-	    paren = '+';
-	    if (flags.addr32)
-		operandTableItem(indexreg-1, reg32);
-	    else
-		operandTableItem(indexreg-1, reg16);
+        if (indexreg) {             
+            // there is an index register
+            *ibuff++ = paren;
+            paren = '+';
+            if (flags.addr32)
+                operandTableItem(indexreg-1, reg32);
+            else
+                operandTableItem(indexreg-1, reg16);
  
-	    switch (scalefactor) {
-	    case 1 :
-		operandString("*2");
-		break;
-	    case 2 :
-		operandString("*4"); 
-		break;
-	    case 3 :
-		operandString("*8"); 
-		break;
-	    } // endswitch
-	} 
+            switch (scalefactor) {
+            case 1 :
+                operandString("*2");
+                break;
+            case 2 :
+                operandString("*4"); 
+                break;
+            case 3 :
+                operandString("*8"); 
+                break;
+            } // endswitch
+        } 
  
-	if (opdisp || mustShowDisp) {   
-	    // put out a paren if we have not done so yet
-	    if (paren == '[') {
-		*ibuff++ = '[';
-	    } // endif
+        if (opdisp || mustShowDisp) {   
+            // put out a paren if we have not done so yet
+            if (paren == '[') {
+                *ibuff++ = '[';
+            } // endif
 
-	    operandSignedHex(opdisp);
-	} // endif
+            operandSignedHex(opdisp);
+        } // endif
  
-	// we have output a left parenthesis - output a right parenthesis to match
-	*ibuff++ = ']';
+        // we have output a left parenthesis - output a right parenthesis to match
+        *ibuff++ = ']';
 
     } // endif
 
     if (flags.Dbit == DBit_RegToMem) {
-	/************************************************************************/
-	/* register is second operand - print register name                     */
-	/************************************************************************/
-	operandChar(',');
-	if (flags.MMXop) 
-	    operandMMXreg(flags.regf);
-	else 
-	    operandRegister(flags.regf,flags);
+        /************************************************************************/
+        /* register is second operand - print register name                     */
+        /************************************************************************/
+        operandChar(',');
+        if (flags.MMXop) 
+            operandMMXreg(flags.regf);
+        else 
+            operandRegister(flags.regf,flags);
     } // endif
 } 
 
@@ -2204,28 +2204,28 @@ getMemop(FLAGS flags)
 
     switch (flags.mod) {
     case 0:
-	// there is a diplacement only for certain combinations
-	if ((flags.rm == 6 && !flags.addr32)
-	    || (flags.rm == 5 && flags.addr32)
-	    || (flags.addr32 && flags.disppres)) {
+        // there is a diplacement only for certain combinations
+        if ((flags.rm == 6 && !flags.addr32)
+            || (flags.rm == 5 && flags.addr32)
+            || (flags.addr32 && flags.disppres)) {
 
-	    // we have a displacement
-	    opdisp = getDisplacement(flags);
-	    flags.disppres = 1;
-	}
-	break;
+            // we have a displacement
+            opdisp = getDisplacement(flags);
+            flags.disppres = 1;
+        }
+        break;
     case 1:
-	// there is an 8 bit signed displacement
-	ic = getNextByte();
-	opdisp = (signed long)((signed char)ic); // sign extend operand
-	flags.disppres = 1;
-	break;
+        // there is an 8 bit signed displacement
+        ic = getNextByte();
+        opdisp = (signed long)((signed char)ic); // sign extend operand
+        flags.disppres = 1;
+        break;
     case 2:
-	// we have a 16/32 bit displacement
-	opdisp = getDisplacement(flags);
-	flags.disppres = 1;
-	break;
-	// case 3 is a register
+        // we have a 16/32 bit displacement
+        opdisp = getDisplacement(flags);
+        flags.disppres = 1;
+        break;
+        // case 3 is a register
     } // endswitch
 
     return flags;
@@ -2250,31 +2250,31 @@ static void
 memopSetParms(FLAGS flags) 
 {
     if (flags.mod != 3) {
-	if (flags.disppres)
-	    parm->retoffset = opdisp;
-	if (parm->rettype == 0) {
-	    if (flags.Wbit == 0)
-		parm->rettype = membtype;
-	    else
-		parm->rettype = memwtype;
-	} 
+        if (flags.disppres)
+            parm->retoffset = opdisp;
+        if (parm->rettype == 0) {
+            if (flags.Wbit == 0)
+                parm->rettype = membtype;
+            else
+                parm->rettype = memwtype;
+        } 
 #if RETPARMS
-	if (basereg != 0) {
-	    parm->retbase = (UCHAR)(basereg-1);
-	    if (flags.addr32)
-		parm->retbase = (UCHAR)(parm->retbase+8);
-	}
-	if (indexreg != 0) {
-	    parm->retindex = (UCHAR)(indexreg-1);
-	    if (flags.addr32)
-		parm->retindex = (UCHAR)(parm->retindex+8);
-	    parm->retscale = scalefactor;
-	}
-	if (ovseg == 0) {
-	    parm->retreg = defseg;
-	} else {
-	    parm->retreg = ovseg;
-	}
+        if (basereg != 0) {
+            parm->retbase = (UCHAR)(basereg-1);
+            if (flags.addr32)
+                parm->retbase = (UCHAR)(parm->retbase+8);
+        }
+        if (indexreg != 0) {
+            parm->retindex = (UCHAR)(indexreg-1);
+            if (flags.addr32)
+                parm->retindex = (UCHAR)(parm->retindex+8);
+            parm->retscale = scalefactor;
+        }
+        if (ovseg == 0) {
+            parm->retreg = defseg;
+        } else {
+            parm->retreg = ovseg;
+        }
 #endif
     } 
 }
@@ -2392,7 +2392,7 @@ op_04(FLAGS & flags)
     setw(flags);
 
     if (flags.replock == replockLOCK) 
-	throw IllegalOp();
+        throw IllegalOp();
 
     flags.regf = 0;                            // the register is EAX/AX/AL
     operandRegister(flags.regf,flags, ",");
@@ -2404,9 +2404,9 @@ op_04(FLAGS & flags)
 #if RETPARMS
     parm->retreg = flags.regf;
     if (!flags.Wbit)
-	parm->retreg += 16;
+        parm->retreg += 16;
     else if (flags.opsize32)
-	parm->retreg += 8;
+        parm->retreg += 8;
     parm->retimmed = Dword1;
 #endif
 } 
@@ -2435,7 +2435,7 @@ op_0C(FLAGS & flags)
     setw(flags);
 
     if (flags.replock == replockLOCK) 
-	throw IllegalOp();
+        throw IllegalOp();
 
     flags.regf = 0;                            // the register is EAX/AX/AL
     operandRegister(flags.regf,flags, ",");
@@ -2446,9 +2446,9 @@ op_0C(FLAGS & flags)
 #if RETPARMS
     parm->retreg = flags.regf;
     if (!flags.Wbit)
-	parm->retreg += 16;
+        parm->retreg += 16;
     else if (flags.opsize32)
-	parm->retreg += 8;
+        parm->retreg += 8;
     parm->retimmed = Dword1;
 #endif
 } 
@@ -2499,46 +2499,46 @@ static void
 op_0F(FLAGS & flags) 
 {
     static opcodeFunction *const opcode0FTable[] =  {
-	//  0        1        2        3        4        5        6        7        8        9        A        B        C        D        E        F    */
-	op_0F00, op_0F01, op_0F02, op_0F02, op_IL  , op_IL  , op_NL  , op_IL  , op_NL  , op_NL  , op_IL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 0 
-	op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 1 
-	op_0F20, op_0F20, op_0F20, op_0F20, op_0F24, op_IL  , op_0F24, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 2
-	op_NL  , op_NL  , op_NL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 3 
-	op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40,  // 4 
-	op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 5 
-	op_0F60, op_0F60, op_0F60, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_IL  , op_IL  , op_0F6E, op_0F6F,  // 6 
-	op_IL  , op_0F71, op_0F71, op_0F71, op_0F64, op_0F64, op_0F64, op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0F6E, op_0F6F,  // 7 
-	op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80,  // 8 
-	op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90,  // 9 
-	op_0FA0, op_0FA0, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_0FA6, op_0FA6, op_0FA8, op_0FA8, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_IL  , op_0FAF,  // A
-	op_0FB0, op_0FB0, op_0FB2, op_0FBB, op_0FB2, op_0FB2, op_0FB6, op_0FB7, op_IL  , op_IL  , op_0FBA, op_0FBB, op_0FAF, op_0FAF, op_0FB6, op_0FB7,  // B 
-	op_0FC0, op_0FC0, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0FC7, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8,  // C
-	op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // D 
-	op_IL  , op_0F64, op_0F64, op_IL  , op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // E 
-	op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL     // F 
+        //  0        1        2        3        4        5        6        7        8        9        A        B        C        D        E        F    */
+        op_0F00, op_0F01, op_0F02, op_0F02, op_IL  , op_IL  , op_NL  , op_IL  , op_NL  , op_NL  , op_IL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 0 
+        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 1 
+        op_0F20, op_0F20, op_0F20, op_0F20, op_0F24, op_IL  , op_0F24, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 2
+        op_NL  , op_NL  , op_NL  , op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 3 
+        op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40, op_0F40,  // 4 
+        op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  ,  // 5 
+        op_0F60, op_0F60, op_0F60, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_0F64, op_IL  , op_IL  , op_0F6E, op_0F6F,  // 6 
+        op_IL  , op_0F71, op_0F71, op_0F71, op_0F64, op_0F64, op_0F64, op_NL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0F6E, op_0F6F,  // 7 
+        op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80, op_0F80,  // 8 
+        op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90, op_0F90,  // 9 
+        op_0FA0, op_0FA0, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_0FA6, op_0FA6, op_0FA8, op_0FA8, op_NL  , op_0FBB, op_0FA4, op_0FA4, op_IL  , op_0FAF,  // A
+        op_0FB0, op_0FB0, op_0FB2, op_0FBB, op_0FB2, op_0FB2, op_0FB6, op_0FB7, op_IL  , op_IL  , op_0FBA, op_0FBB, op_0FAF, op_0FAF, op_0FB6, op_0FB7,  // B 
+        op_0FC0, op_0FC0, op_IL  , op_IL  , op_IL  , op_IL  , op_IL  , op_0FC7, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8, op_0FC8,  // C
+        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // D 
+        op_IL  , op_0F64, op_0F64, op_IL  , op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64,  // E 
+        op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_IL  , op_IL  , op_0F64, op_0F64, op_0F64, op_IL  , op_0F64, op_0F64, op_0F64, op_IL     // F 
     } ;
 
     /**************************************************************************/
     /* mnemonic numbers for 0F orders                                         */
     /**************************************************************************/
     static const USHORT mnem0F[256] =  {
-	//0         1          2          3         4        5        6        7         8          9          A          B         C        D        E       F     
-	odd      , odd      , LAR      , LSL     , ILLEGAL, ILLEGAL, CLTS   , ILLEGAL , INVD     , WBINVD   , ILLEGAL  , UD2     , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 0
-	ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 1
-	MOV      , MOV      , MOV      , MOV     , MOV    , ILLEGAL, MOV    , ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 2
-	WRMSR    , RDTSC    , RDMSR    , RDPMC   , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 3
-	CMOVO    , CMOVNO   , CMOVB    , CMOVAE  , CMOVE  , CMOVNE , CMOVBE , CMOVA   , CMOVS    , CMOVNS   , CMOVPE   , CMOVPO  , CMOVL  , CMOVGE , CMOVLE , CMOVG  , // 4
-	ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 5
-	PUNPCKLBW, PUNPCKLWD, PUNPCKLDQ, PACKSSWB, PCMPGTB, PCMPGTW, PCMPGTD, PACKUSWB, PUNPCKHBW, PUNPCKHWD, PUNPCKHDQ, PACKSSDW, ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 6
-	ILLEGAL  , odd      , odd      , odd     , PCMPEQB, PCMPEQW, PCMPEQD, EMMS    , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 7
-	JO       , JNO      , JB       , JNB     , JZ     , JNZ    , JNA    , JA      , JS       , JNS      , JPE      , JPO     , JL     , JNL    , JNG    , JG     , // 8
-	SETO     , SETNO    , SETB     , SETAE   , SETZ   , SETNZ  , SETBE  , SETA    , SETS     , SETNS    , SETPE    , SETPO   , SETL   , SETGE  , SETLE  , SETG   , // 9
-	PUSH     , POP      , CPUID    , BT      , SHLD   , SHLD   , CMPXCHG, CMPXCHG , PUSH     , POP      , RSM      , BTS     , SHRD   , SHRD   , ILLEGAL, IMUL   , // A
-	CMPXCHG  , CMPXCHG  , LSS      , BTR     , LFS    , LGS    , MOVZX  , MOVZX   , ILLEGAL  , ILLEGAL  , odd      , BTC     , BSF    , BSR    , MOVSX  , MOVSX  , // B
-	XADD     , XADD     , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, odd     , BSWAP    , BSWAP    , BSWAP    , BSWAP   , BSWAP  , BSWAP  , BSWAP  , BSWAP  , // C
-	ILLEGAL  , PSRLW    , PSRLD    , PSRLQ   , ILLEGAL, PMULLW , ILLEGAL, ILLEGAL , PSUBUSB  , PSUBUSW  , ILLEGAL  , PAND    , PADDUSB, PADDUSW, ILLEGAL, PANDN  , // D
-	ILLEGAL  , PSRAW    , PSRAD    , ILLEGAL , ILLEGAL, PMULHW , ILLEGAL, ILLEGAL , PSUBSB   , PSUBSW   , ILLEGAL  , POR     , PADDSB , PADDSW , ILLEGAL, PXOR   , // E
-	ILLEGAL  , PSLLW    , PSLLD    , PSLLQ   , ILLEGAL, PMADDWD, ILLEGAL, ILLEGAL , PSUBB    , PSUBW    , PSUBD    , ILLEGAL , PADDB  , PADDW  , PADDD  , ILLEGAL  // F
+        //0         1          2          3         4        5        6        7         8          9          A          B         C        D        E       F     
+        odd      , odd      , LAR      , LSL     , ILLEGAL, ILLEGAL, CLTS   , ILLEGAL , INVD     , WBINVD   , ILLEGAL  , UD2     , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 0
+        ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 1
+        MOV      , MOV      , MOV      , MOV     , MOV    , ILLEGAL, MOV    , ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 2
+        WRMSR    , RDTSC    , RDMSR    , RDPMC   , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 3
+        CMOVO    , CMOVNO   , CMOVB    , CMOVAE  , CMOVE  , CMOVNE , CMOVBE , CMOVA   , CMOVS    , CMOVNS   , CMOVPE   , CMOVPO  , CMOVL  , CMOVGE , CMOVLE , CMOVG  , // 4
+        ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, // 5
+        PUNPCKLBW, PUNPCKLWD, PUNPCKLDQ, PACKSSWB, PCMPGTB, PCMPGTW, PCMPGTD, PACKUSWB, PUNPCKHBW, PUNPCKHWD, PUNPCKHDQ, PACKSSDW, ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 6
+        ILLEGAL  , odd      , odd      , odd     , PCMPEQB, PCMPEQW, PCMPEQD, EMMS    , ILLEGAL  , ILLEGAL  , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, MOVD   , MOVQ   , // 7
+        JO       , JNO      , JB       , JNB     , JZ     , JNZ    , JNA    , JA      , JS       , JNS      , JPE      , JPO     , JL     , JNL    , JNG    , JG     , // 8
+        SETO     , SETNO    , SETB     , SETAE   , SETZ   , SETNZ  , SETBE  , SETA    , SETS     , SETNS    , SETPE    , SETPO   , SETL   , SETGE  , SETLE  , SETG   , // 9
+        PUSH     , POP      , CPUID    , BT      , SHLD   , SHLD   , CMPXCHG, CMPXCHG , PUSH     , POP      , RSM      , BTS     , SHRD   , SHRD   , ILLEGAL, IMUL   , // A
+        CMPXCHG  , CMPXCHG  , LSS      , BTR     , LFS    , LGS    , MOVZX  , MOVZX   , ILLEGAL  , ILLEGAL  , odd      , BTC     , BSF    , BSR    , MOVSX  , MOVSX  , // B
+        XADD     , XADD     , ILLEGAL  , ILLEGAL , ILLEGAL, ILLEGAL, ILLEGAL, odd     , BSWAP    , BSWAP    , BSWAP    , BSWAP   , BSWAP  , BSWAP  , BSWAP  , BSWAP  , // C
+        ILLEGAL  , PSRLW    , PSRLD    , PSRLQ   , ILLEGAL, PMULLW , ILLEGAL, ILLEGAL , PSUBUSB  , PSUBUSW  , ILLEGAL  , PAND    , PADDUSB, PADDUSW, ILLEGAL, PANDN  , // D
+        ILLEGAL  , PSRAW    , PSRAD    , ILLEGAL , ILLEGAL, PMULHW , ILLEGAL, ILLEGAL , PSUBSB   , PSUBSW   , ILLEGAL  , POR     , PADDSB , PADDSW , ILLEGAL, PXOR   , // E
+        ILLEGAL  , PSLLW    , PSLLD    , PSLLQ   , ILLEGAL, PMADDWD, ILLEGAL, ILLEGAL , PSUBB    , PSUBW    , PSUBD    , ILLEGAL , PADDB  , PADDW  , PADDD  , ILLEGAL  // F
     } ;
 
     instr = getNextByte();                   // get the second byte of the instr
@@ -2570,27 +2570,27 @@ static void
 op_26(FLAGS & flags) 
 {
     if (ovseg) 
-	throw IllegalOp();             // two segment overrides indicates a problem
+        throw IllegalOp();             // two segment overrides indicates a problem
 
     switch (instr) {
     case 0x26:
-	ovseg = ES + 1;
-	break;
+        ovseg = ES + 1;
+        break;
     case 0x2E:
-	ovseg = CS + 1;
-	break;
+        ovseg = CS + 1;
+        break;
     case 0x36:
-	ovseg = SS + 1;
-	break;
+        ovseg = SS + 1;
+        break;
     case 0x3E:
-	ovseg = DS + 1;
-	break;
+        ovseg = DS + 1;
+        break;
     case 0x64:
-	ovseg = FS + 1;
-	break;
+        ovseg = FS + 1;
+        break;
     case 0x65:
-	ovseg = GS + 1;
-	break;
+        ovseg = GS + 1;
+        break;
     } /* endswitch */
     flags.prefix = 1;
 } 
@@ -2616,7 +2616,7 @@ static void
 op_40(FLAGS & flags) 
 {
     if (flags.replock == replockLOCK) 
-	throw IllegalOp();
+        throw IllegalOp();
 
     flags.regf = instr & 0x07;                 // get register number
     flags.Wbit = 1;                      // force 16 or 32 bit register
@@ -2641,7 +2641,7 @@ op_62(FLAGS & flags)
 {
     getMod_rm_dw(flags);
     if (flags.mod == 3)
-	throw IllegalOp();   // illegal if second operand would be a register 
+        throw IllegalOp();   // illegal if second operand would be a register 
 
     flags.Dbit = DBit_MemToReg;       // register is first operand
     flags.Wbit = 1;                   // word operation
@@ -2666,7 +2666,7 @@ static void
 op_63(FLAGS & flags)
 {
     if (flags.opsizeover) 
-	throw IllegalOp();
+        throw IllegalOp();
 
     getMod_rm_dw(flags);
     flags.Dbit = DBit_RegToMem;      // register is second operand
@@ -4506,7 +4506,7 @@ op_0F20(FLAGS & flags)
      static const TABLE testreg[] =  {
          { 3, "TR0" } , { 3, "TR1" } , { 3, "TR2" } , { 3, "TR3" } ,
          { 3, "TR4" } , { 3, "TR5" } , { 3, "TR6" } , { 3, "TR7" } ,
-	 { 0, NULL }
+         { 0, NULL }
      } ;
   #endif
 
@@ -4962,8 +4962,8 @@ static void
 op_0FAF(FLAGS & flags)
 { 
     getMod_rm_dw(flags);
-    flags.Dbit = DBit_MemToReg;	// register is first operand
-    flags.Wbit = 1;		// word operation
+    flags.Dbit = DBit_MemToReg; // register is first operand
+    flags.Wbit = 1;             // word operation
     getNormalMemop(flags);
 } 
 
@@ -5010,7 +5010,7 @@ op_0FB2(FLAGS & flags)
 {
     getMod_rm_dw(flags);
     if (flags.mod == 3)              // memory operand required
-	throw IllegalOp(); 
+        throw IllegalOp(); 
 
     flags.Dbit = DBit_MemToReg;      // register is first operand
     flags.Wbit = 1;                  // force a word operation
@@ -5038,7 +5038,7 @@ op_0FB6(FLAGS & flags)
     flags.Wbit = 1;                  //  always has a wide first operand
     operandRegister(flags.regf,flags, ",");
     if (flags.mod != 3)
-	parm->rettype = membtype;
+        parm->rettype = membtype;
 #if RETPARMS
     parm->retbits &= 0xFE;          // clear 32 bit address marker
 #endif
@@ -5068,7 +5068,7 @@ op_0FB7(FLAGS & flags)
     flags.Wbit = 1;                     // always wide operands
     operandRegister(flags.regf,flags, ",");
     if (flags.mod != 3)
-	parm->rettype = memwtype;
+        parm->rettype = memwtype;
 #if RETPARMS
     parm->retbits &= 0xFE;         // clear 32 bit address marker
 #endif
@@ -5097,13 +5097,13 @@ op_0FBA(FLAGS & flags)
     /* mnemonic numbers for 0F BA orders                                     */
     /*************************************************************************/
     static const USHORT mnem0FBA[8] =  {
-	ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, BT, BTS, BTR, BTC } ;
+        ILLEGAL, ILLEGAL, ILLEGAL, ILLEGAL, BT, BTS, BTR, BTC } ;
 
     getMod_rm_dw(flags);
     flags.Dbit = DBit_Mem1op;           // always an 8-bit immediate operand
     flags.Wbit = 1;                     // always a word/dword operation
     if (flags.regf < 4)  
-	throw IllegalOp(); 
+        throw IllegalOp(); 
 
     mnemonicStd(flags,mnem0FBA[flags.regf]);
     getNormalMemop(flags);
@@ -5188,9 +5188,9 @@ op_0FC7(FLAGS & flags)
     flags.Dbit = DBit_Mem1op;          // no register operand
     flags.Wbit = 1;                    // word operation
     if (flags.regf != 1 || flags.mod == 3) 
-	// Group 9 can only have CMPXCHG8B
-	// This can only access memory
-	throw IllegalOp(); 
+        // Group 9 can only have CMPXCHG8B
+        // This can only access memory
+        throw IllegalOp(); 
 
 #if RETPARMS
     parm->retbits &= 0xFE;   // clear 32 bit address marker
@@ -5223,7 +5223,7 @@ static void
 op_0FC8(FLAGS & flags)
 {
     if (flags.opsizeover) 
-	throw IllegalOp();
+        throw IllegalOp();
 
     flags.regf = instr & 0x07;         // get register number
     flags.Wbit = 1;                    // force 32 bit register

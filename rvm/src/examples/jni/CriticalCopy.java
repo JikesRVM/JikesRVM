@@ -23,10 +23,10 @@ class CriticalCopy {
   static byte    byteArray[]    = {2, 4, 6, 8, 10, 12, 14, 16, 18, 20};
   static char    charArray[]    = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'};
   static long    longArray[]    = {0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000,
-				   0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
+                                   0x80001000, 0x80001000, 0x80001000, 0x80001000, 0x80001000};
   static double  doubleArray[]  = {115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1, 115.1};
   static float   floatArray[]   = {(float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, 
-				   (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
+                                   (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1, (float) 115.1};
 
 
   /**
@@ -47,9 +47,9 @@ class CriticalCopy {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
 
@@ -61,9 +61,9 @@ class CriticalCopy {
 
     for (int i=0; i<intArray.length; i++) {
       if (verbose)
-	System.out.println("    " + i + " = " + intArray[i] );
+        System.out.println("    " + i + " = " + intArray[i] );
       if (intArray[i]!=i)
-	checkFlag = false;
+        checkFlag = false;
     }
     checkTest(returnValue, checkFlag, "primitiveIntegerArray");
   

@@ -34,7 +34,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    * @param manager The manager that will provide the counter space
    **/
   VM_StringEventCounterData(OPT_InstrumentedEventCounterManager manager,
-			    String name)
+                            String name)
   {
     // Call superclass constructor
     super(manager);
@@ -63,7 +63,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    *
    */
   public OPT_Instruction getCounterInstructionForEvent(String event, 
-						double incrementValue) {
+                                                double incrementValue) {
 
     // Get (or create) the counter for this string and return it.
     int counterIdx = getOrCreateCounterIndexForString(event);
@@ -102,7 +102,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
     VM.sysWrite("--------------------------------------------------\n");
     double total=0;
     for (Enumeration e = stringToCounterMap.keys();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       String stringName = (String) e.nextElement();
 
       int counterIdx = getCounterIndexForString(stringName);
@@ -160,7 +160,7 @@ public class VM_StringEventCounterData extends VM_ManagedCounterData
    **/
   public void reset() { 
     for (Enumeration e = stringToCounterMap.keys();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       String stringName = (String) e.nextElement();
       int counterIdx = getCounterIndexForString(stringName);
       setCounter(counterIdx, 0.0);

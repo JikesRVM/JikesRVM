@@ -52,7 +52,7 @@ public class Runtime {
     defaultProperties.put("file.separator", "/");
     defaultProperties.put("path.separator", ":");
     defaultProperties.put("line.separator", "\n");
-	
+        
     defaultProperties.put("java.compiler", "JikesRVM");
     defaultProperties.put("java.vendor", "IBM");
     defaultProperties.put("java.version", "1.3.0");
@@ -65,8 +65,8 @@ public class Runtime {
   }
 
   public void addShutdownHook(Thread hook) throws IllegalArgumentException, 
-						  IllegalStateException, 
-						  SecurityException {
+                                                  IllegalStateException, 
+                                                  SecurityException {
     throw new VM_UnimplementedError();
   }
 
@@ -75,26 +75,26 @@ public class Runtime {
   }
     
   public Process exec(String prog) throws java.io.IOException, 
-					  SecurityException {
+                                          SecurityException {
     return exec(prog, null);
   }
     
   public Process exec(String[] progArray) throws java.io.IOException,
-						 SecurityException {
+                                                 SecurityException {
     return exec(progArray, null, null);
   }
 
   public Process exec(String[] progArray, String[] envp) throws java.io.IOException,
-								SecurityException {
+                                                                SecurityException {
     return exec(progArray, envp, null);
   }
 
   public Process exec(String[] progArray, String[] envp, java.io.File dir) throws java.io.IOException,
-										  SecurityException {
+                                                                                  SecurityException {
     if (progArray != null && progArray.length > 0 && progArray[0] != null) {
       SecurityManager smngr = System.getSecurityManager();
       if (smngr != null)
-	smngr.checkExec(progArray[0]);
+        smngr.checkExec(progArray[0]);
       String dirPath = (dir != null) ? dir.getPath() : null;
       return new VM_Process(progArray[0], progArray, envp, dirPath);
     } else {
@@ -103,7 +103,7 @@ public class Runtime {
   }
 
   public Process exec(String prog, String[] envp) throws java.io.IOException,
-							 SecurityException {
+                                                         SecurityException {
     //use a regular StringTokenizer to break the command_line into
     //small peaces. By convention the first argument is the name of the
     //command.
@@ -122,7 +122,7 @@ public class Runtime {
   }
 
   public Process exec(String command, String[] envp, java.io.File dir) throws java.io.IOException, 
-									      SecurityException {
+                                                                              SecurityException {
     return exec(new String[]{command}, envp, dir);
   }
   
@@ -164,7 +164,7 @@ public class Runtime {
   }
 
   public synchronized void load(String pathName) throws SecurityException,
-							UnsatisfiedLinkError {
+                                                        UnsatisfiedLinkError {
     SecurityManager smngr = System.getSecurityManager();
     if (smngr != null) {
       smngr.checkLink(pathName);
@@ -173,7 +173,7 @@ public class Runtime {
   }
     
   public void loadLibrary(String libName) throws SecurityException, 
-						 UnsatisfiedLinkError {
+                                                 UnsatisfiedLinkError {
     SecurityManager smngr = System.getSecurityManager();
     if (smngr != null) {
       smngr.checkLink(libName);
@@ -197,7 +197,7 @@ public class Runtime {
   }
 
   public boolean removeShutdownHook(Thread hook) throws IllegalStateException,
-							SecurityException {
+                                                        SecurityException {
     throw new VM_UnimplementedError();
   }
 

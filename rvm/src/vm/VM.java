@@ -16,11 +16,11 @@ import java.lang.ref.Reference;
  * @date 21 Nov 1997 
  *
  * @modified Steven Augart (to catch recursive shutdowns, 
- *			    such as when out of memory)
+ *                          such as when out of memory)
  * @date 10 July 2003
  */
 public class VM extends VM_Properties implements VM_Constants, 
-						 VM_Uninterruptible { 
+                                                 VM_Uninterruptible { 
 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
@@ -32,7 +32,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */ 
   public static void initForBootImageWriter(String classPath, 
-					    String[] bootCompilerArgs) 
+                                            String[] bootCompilerArgs) 
     throws VM_PragmaInterruptible {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
@@ -67,7 +67,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @exception Exception
    */
   public static void boot() throws Exception, 
-				   VM_PragmaLogicallyUninterruptible {
+                                   VM_PragmaLogicallyUninterruptible {
     writingBootImage = false;
     runningVM        = true;
     runningAsSubsystem = false;
@@ -208,18 +208,18 @@ public class VM extends VM_Properties implements VM_Constants,
     if (BuildForHPM) {
       // assume only one Java thread is executing!
       if(VM_HardwarePerformanceMonitors.verbose>=1)
-	VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
+        VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
       VM_HardwarePerformanceMonitors.boot();
 
       // set hpm program for current pthread.  Inherited by other, to be created, pthreads.
       if (VM_HardwarePerformanceMonitors.enabled()) {
-	if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
-	  if(VM_HardwarePerformanceMonitors.verbose>=1)
-	    VM.sysWriteln("VM.boot()","call to sysHPMsetSettings() and sysHPMstartMyThread()\n");
-	  VM_SysCall.sysHPMsetProgramMyThread();
-	  VM_SysCall.sysHPMstartMyThread();
-	}
-	// start tracing
+        if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+          if(VM_HardwarePerformanceMonitors.verbose>=1)
+            VM.sysWriteln("VM.boot()","call to sysHPMsetSettings() and sysHPMstartMyThread()\n");
+          VM_SysCall.sysHPMsetProgramMyThread();
+          VM_SysCall.sysHPMstartMyThread();
+        }
+        // start tracing
       }
     }
     //-#endif
@@ -292,7 +292,7 @@ public class VM extends VM_Properties implements VM_Constants,
       pleaseSpecifyAClass();
     }
     if (applicationArguments.length > 0 && 
-	! VM_TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
+        ! VM_TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
       VM.sysWrite("vm: \"");
       VM.sysWrite(applicationArguments[0]);
       VM.sysWrite("\" is not a legal Java class name.\n");
@@ -325,9 +325,9 @@ public class VM extends VM_Properties implements VM_Constants,
     if (VM_HardwarePerformanceMonitors.enabled()) {
       // IS THIS NEEDED?
       if (!VM_HardwarePerformanceMonitors.hpm_thread_group) {
-	if(VM_HardwarePerformanceMonitors.verbose>=1)
-	  VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
-	VM_SysCall.sysHPMresetMyThread();
+        if(VM_HardwarePerformanceMonitors.verbose>=1)
+          VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
+        VM_SysCall.sysHPMresetMyThread();
       }
     }
     //-#endif
@@ -368,7 +368,7 @@ public class VM extends VM_Properties implements VM_Constants,
   private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
       if (verboseBoot >= 2) {
-	VM.sysWriteln(classObjects[i].toString()); 
+        VM.sysWriteln(classObjects[i].toString()); 
       }
       classObjects[i].getClassForType();
     }
@@ -396,22 +396,22 @@ public class VM extends VM_Properties implements VM_Constants,
     if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
       if (clinit != null) {
-	clinit.compile();
-	if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
-	try {
-	  VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
-	} catch (Error e) {
-	  throw e;
-	} catch (Throwable t) {
-	  ExceptionInInitializerError eieio
-	    = new ExceptionInInitializerError("Caught exception while invoking the class initializer for"
-					      +  className);
-	  eieio.initCause(t);
-	  throw eieio;
-	}
+        clinit.compile();
+        if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
+        try {
+          VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
+        } catch (Error e) {
+          throw e;
+        } catch (Throwable t) {
+          ExceptionInInitializerError eieio
+            = new ExceptionInInitializerError("Caught exception while invoking the class initializer for"
+                                              +  className);
+          eieio.initCause(t);
+          throw eieio;
+        }
       } else {
-	if (verboseBoot >= 10) VM.sysWriteln("has no clinit method ");
-      }	
+        if (verboseBoot >= 10) VM.sysWriteln("has no clinit method ");
+      } 
       cls.setAllFinalStaticJTOCEntries();
     }
   }
@@ -464,14 +464,14 @@ public class VM extends VM_Properties implements VM_Constants,
     }
     if (VM.runningVM) {
       if (msg1 != null) {
-	sysWrite(msg1);
-	//	sysWrite(": ");
+        sysWrite(msg1);
+        //      sysWrite(": ");
       }
       sysFail(msg2);
     }
     throw new RuntimeException((msg1 != null ? msg1 : "") 
-			       // + ( (msg1 != null) ? ": " : "") 
-			       + msg2);
+                               // + ( (msg1 != null) ? ": " : "") 
+                               + msg2);
   }
 
 
@@ -577,13 +577,13 @@ public class VM extends VM_Properties implements VM_Constants,
       write("null");
     } else {
       if (runningVM) {
-	char[] chars = java.lang.JikesRVMSupport.getBackingCharArray(value);
-	int numChars = java.lang.JikesRVMSupport.getStringLength(value);
+        char[] chars = java.lang.JikesRVMSupport.getBackingCharArray(value);
+        int numChars = java.lang.JikesRVMSupport.getStringLength(value);
         int offset = java.lang.JikesRVMSupport.getStringOffset(value);
-	for (int i = 0; i<numChars; i++) 
-	  write(chars[offset+i]);
+        for (int i = 0; i<numChars; i++) 
+          write(chars[offset+i]);
       } else {
-	System.err.print(value);
+        System.err.print(value);
       }
     }
   }
@@ -596,15 +596,15 @@ public class VM extends VM_Properties implements VM_Constants,
   public static void write(char[] value, int len) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     for (int i = 0, n = len; i < n; ++i) {
       if (runningVM)
-	write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
+        write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
       else
-	write(value[i]);
+        write(value[i]);
     }
   }
 
   /**
     * Low level print to console.
-   * @param value	what is printed
+   * @param value       what is printed
    */
   public static void write(char value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
@@ -629,15 +629,15 @@ public class VM extends VM_Properties implements VM_Constants,
       int ones = (int) value;
       int multiplier = 1;
       while (postDecimalDigits-- > 0)
-	multiplier *= 10;
+        multiplier *= 10;
       int remainder = (int) (multiplier * (value - ones));
       if (negative) write('-');
       write(ones, false); 
       write('.');
       while (multiplier > 1) {
-	multiplier /= 10;
-	write(remainder / multiplier);
-	remainder %= multiplier;
+        multiplier /= 10;
+        write(remainder / multiplier);
+        remainder %= multiplier;
       }
     }
     else
@@ -646,7 +646,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Low level print to console.
-   * @param value	what is printed
+   * @param value       what is printed
    */
   public static void write(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM) {
@@ -659,7 +659,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Low level print to console.
-   * @param value	what is printed, as hex only
+   * @param value       what is printed, as hex only
    */
   public static void writeHex(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
@@ -671,7 +671,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Low level print to console.
-   * @param value	what is printed, as hex only
+   * @param value       what is printed, as hex only
    */
   public static void writeHex(long value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM){
@@ -715,7 +715,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Low level print to console.
-   * @param value	what is printed, as int only
+   * @param value       what is printed, as int only
    */
   public static void writeInt(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
@@ -768,7 +768,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Low level print to console.
-   * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
+   * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
    */
   public static void writeField(int fieldWidth, int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     int len = 1, temp = value;
@@ -783,7 +783,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Low level print to console.
-   * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
+   * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
    */
   public static void writeField(int fieldWidth, VM_Atom s) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     int len = s.length();
@@ -1028,7 +1028,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
   private static int inSysFail = 0;
   private static void handlePossibleRecursiveCallToSysFail(
-							   String message) 
+                                                           String message) 
   {
     ++inSysFail;
     if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
@@ -1067,7 +1067,7 @@ public class VM extends VM_Properties implements VM_Constants,
     ++inShutdown;
     /* If we've been here only a few times, print message. */
     if (   inShutdown > 1 
-	&& inShutdown <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+        && inShutdown <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       sysWriteln("We're in a recursive call to VM.shutdown()");
       sysWrite(inShutdown);
       sysWriteln(" deep!");

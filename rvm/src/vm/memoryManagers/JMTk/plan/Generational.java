@@ -181,16 +181,16 @@ public abstract class Generational extends StopTheWorldGC
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
-				AllocAdvice advice)
+                                AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       if (Plan.usesLOS) {
-	region = los.alloc(isScalar, bytes);
+        region = los.alloc(isScalar, bytes);
       } else {
-	region = matureAlloc(isScalar, bytes);
+        region = matureAlloc(isScalar, bytes);
       }
     } else {
       switch (allocator) {
@@ -199,9 +199,9 @@ public abstract class Generational extends StopTheWorldGC
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       default:
-	if (VM_Interface.VerifyAssertions) 
-	  VM_Interface.sysFail("No such allocator");
-	region = VM_Address.zero();
+        if (VM_Interface.VerifyAssertions) 
+          VM_Interface.sysFail("No such allocator");
+        region = VM_Address.zero();
       }
     }
     if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
@@ -219,13 +219,13 @@ public abstract class Generational extends StopTheWorldGC
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-			      boolean isScalar, int allocator)
+                              boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       if (Plan.usesLOS) {
-	Header.initializeLOSHeader(ref, tib, bytes, isScalar);
+        Header.initializeLOSHeader(ref, tib, bytes, isScalar);
       } else {
-	if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar);
+        if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar);
       }
     } else {
       switch (allocator) {
@@ -234,8 +234,8 @@ public abstract class Generational extends StopTheWorldGC
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       default:
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface.sysFail("No such allocator");
+        if (VM_Interface.VerifyAssertions)
+          VM_Interface.sysFail("No such allocator");
       }
     }
   }
@@ -250,7 +250,7 @@ public abstract class Generational extends StopTheWorldGC
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes,
-				    boolean isScalar) 
+                                    boolean isScalar) 
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
     return matureCopy(isScalar, bytes);
@@ -265,7 +265,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param isScalar True if the object occupying this space will be a scalar
    */
   public final void postCopy(VM_Address ref, Object[] tib, int size,
-			     boolean isScalar) {} // do nothing
+                             boolean isScalar) {} // do nothing
 
   /**
    * Advise the compiler/runtime which allocator to use for a
@@ -281,7 +281,7 @@ public abstract class Generational extends StopTheWorldGC
    * @return The allocator number to be used for this allocation.
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite,
-				AllocAdvice hint) {
+                                AllocAdvice hint) {
     return (bytes > LOS_SIZE_THRESHOLD) ? (Plan.usesLOS ? LOS_SPACE : MATURE_SPACE) : NURSERY_SPACE;
   }
 
@@ -313,8 +313,8 @@ public abstract class Generational extends StopTheWorldGC
    * at runtime
    */
   public final AllocAdvice getAllocAdvice(Type type, int bytes,
-					  CallSite callsite,
-					  AllocAdvice hint) {
+                                          CallSite callsite,
+                                          AllocAdvice hint) {
     return null;
   }
 
@@ -350,7 +350,7 @@ public abstract class Generational extends StopTheWorldGC
     if (mustCollect || heapFull || nurseryFull) {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR || (Plan.copyMature && (mr == matureMR)))
-	required = required<<1;  // must account for copy reserve
+        required = required<<1;  // must account for copy reserve
       int nurseryYield = ((int)((float) nurseryMR.committedPages() * SURVIVAL_ESTIMATE))<<1;
       fullHeapGC = mustCollect || (nurseryYield < required) || fullHeapGC;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
@@ -435,7 +435,7 @@ public abstract class Generational extends StopTheWorldGC
     }
     else {
       if (count == NON_PARTICIPANT)
-	flushRememberedSets();
+        flushRememberedSets();
     }
   }
 
@@ -574,9 +574,9 @@ public abstract class Generational extends StopTheWorldGC
       VM_Address addr = VM_Interface.refToAddress(obj);
       byte space = VMResource.getSpace(addr);
       if (space == NURSERY_SPACE) 
-	VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
+        VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
       else if (fullHeapGC) 
-	Plan.forwardMatureObjectLocation(location, obj, space);
+        Plan.forwardMatureObjectLocation(location, obj, space);
     }
   }
 
@@ -603,11 +603,11 @@ public abstract class Generational extends StopTheWorldGC
       VM_Address addr = VM_Interface.refToAddress(object);
       byte space = VMResource.getSpace(addr);
       if (space == NURSERY_SPACE) {
-	if (VM_Interface.VerifyAssertions) 
-	  VM_Interface._assert(CopyingHeader.isForwarded(object));
-	return CopyingHeader.getForwardingPointer(object);
+        if (VM_Interface.VerifyAssertions) 
+          VM_Interface._assert(CopyingHeader.isForwarded(object));
+        return CopyingHeader.getForwardingPointer(object);
       } else if (fullHeapGC)
-	return Plan.getForwardedMatureReference(object, space);
+        return Plan.getForwardedMatureReference(object, space);
     }
     return object;
   }
@@ -629,7 +629,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param tgt The target of the new reference
    */
   public final void putFieldWriteBarrier(VM_Address src, int offset,
-					 VM_Address tgt)
+                                         VM_Address tgt)
     throws VM_PragmaInline {
     writeBarrier(src.add(offset), tgt);
   }
@@ -646,7 +646,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param tgt The target of the new reference
    */
   public final void arrayStoreWriteBarrier(VM_Address src, int index,
-					   VM_Address tgt)
+                                           VM_Address tgt)
     throws VM_PragmaInline {
     writeBarrier(src.add(index<<LOG_BYTES_IN_ADDRESS), tgt);
   }

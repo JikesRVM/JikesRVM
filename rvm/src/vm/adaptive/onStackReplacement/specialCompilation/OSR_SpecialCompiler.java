@@ -30,18 +30,18 @@ public class OSR_SpecialCompiler{
     // compile from callee to caller
     VM_CompiledMethod newCM = null;
     do {
-	if (!invalidate) 
-	  {
-	newCM = optCompile(state);
+        if (!invalidate) 
+          {
+        newCM = optCompile(state);
       } else {
-	 newCM = baselineCompile(state);
+         newCM = baselineCompile(state);
       }
 
       if (VM.TraceOnStackReplacement) {
-	VM.sysWriteln("new CMID 0x"+Integer.toHexString(newCM.getId())
-		      +" for "+newCM.getMethod());
+        VM.sysWriteln("new CMID 0x"+Integer.toHexString(newCM.getId())
+                      +" for "+newCM.getMethod());
       }
-	  
+          
       if (state.callerState == null) break;
       state = state.callerState;
       // set callee_cmid of the caller
@@ -83,7 +83,7 @@ public class OSR_SpecialCompiler{
      * know how to do it properly.
      */
     method.setForOsrSpecialization(prologue, state.getMaxStackHeight());
-	
+        
     /* for baseline compilation, we donot adjust the exception table and line table
      * because the compiler will generate maps after compilation. 
      * Any necessary adjustment should be made during the compilation 
@@ -99,10 +99,10 @@ public class OSR_SpecialCompiler{
     newCompiledMethod.setSpecialForOSR();
 
     if (VM.TraceOnStackReplacement) { 
-//	  ((VM_BaselineCompiledMethod)newCompiledMethod).printCodeMapEntries();
-	  VM.sysWriteln("BASE : done, CMID 0x"+Integer.toHexString(newCompiledMethod.getId())
-					  +" JTOC offset 0x"+Integer.toHexString(newCompiledMethod.getOsrJTOCoffset())); 
-	}
+//        ((VM_BaselineCompiledMethod)newCompiledMethod).printCodeMapEntries();
+          VM.sysWriteln("BASE : done, CMID 0x"+Integer.toHexString(newCompiledMethod.getId())
+                                          +" JTOC offset 0x"+Integer.toHexString(newCompiledMethod.getOsrJTOCoffset())); 
+        }
 
     return newCompiledMethod;
   }
@@ -136,7 +136,7 @@ public class OSR_SpecialCompiler{
 
     OPT_CompilationPlan compPlan = 
       new OPT_CompilationPlan(method, VM_RuntimeCompiler.optimizationPlan, 
-			      null, _options);
+                              null, _options);
 
     // it is also necessary to recompile the current method
     // without OSR.
@@ -146,7 +146,7 @@ public class OSR_SpecialCompiler{
     int prosize = prologue.length;
 
     method.setForOsrSpecialization(prologue, state.getMaxStackHeight());
-	
+        
     int[] oldStartPCs = null;
     int[] oldEndPCs = null;
     int[] oldHandlerPCs = null;
@@ -189,7 +189,7 @@ public class OSR_SpecialCompiler{
 
  
     VM_CompiledMethod newCompiledMethod =
-	VM_RuntimeCompiler.recompileWithOptOnStackSpecialization(compPlan);
+        VM_RuntimeCompiler.recompileWithOptOnStackSpecialization(compPlan);
 
     // restore original bytecode, exception table, and line number table
     method.finalizeOsrSpecialization();
@@ -208,8 +208,8 @@ public class OSR_SpecialCompiler{
     // reverse back to the baseline
     if (newCompiledMethod == null) {
       if (VM.TraceOnStackReplacement) 
-	VM.sysWriteln("OPT : fialed, because compilation in progress, "
-		      +"fall back to baseline");
+        VM.sysWriteln("OPT : fialed, because compilation in progress, "
+                      +"fall back to baseline");
       return baselineCompile(state);
     }
  

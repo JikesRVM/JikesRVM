@@ -390,20 +390,20 @@ class TestArrayAccess
     int m = 0;
     for (int i = 0; i < outer; ++i)
       for (int j = 0; j < middle; ++j)
-	for (int k = 0; k < inner; ++k)
-	  ary[i][j][k] = n++;
+        for (int k = 0; k < inner; ++k)
+          ary[i][j][k] = n++;
     
     for (int i = 0; i < outer; ++i)
       for (int j = 0; j < middle; ++j)
-	for (int k = 0; k < inner; ++k) {
-	  if (ary[i][j][k] != m) {
-	    System.out.println("\nary["+i+"]["+j+"]["+k+"]="+ary[i][j][k]);
-	    System.out.println("    It should be: " + m);
-	    testSuccess = false;
-	  }
-	  m++;
+        for (int k = 0; k < inner; ++k) {
+          if (ary[i][j][k] != m) {
+            System.out.println("\nary["+i+"]["+j+"]["+k+"]="+ary[i][j][k]);
+            System.out.println("    It should be: " + m);
+            testSuccess = false;
+          }
+          m++;
 
-	}
+        }
     
     //    System.out.println();
   }
@@ -421,27 +421,27 @@ class TestArrayAccess
     int m = 0;
     for (int i = 0; i < outer; ++i)
       for (int j = 0; j < middle; ++j)
-	for (int k = 0; k < inner; ++k) {
-	  ary[i][j][k] = new Integer(n++);
-	  if (ary[i][j][k].intValue() != m) {
-	    System.out.println("\nary["+i+"]["+j+"]["+k+"]="+ary[i][j][k]);
-	    System.out.println("    It should be: " + m);
-	    testSuccess = false;
-	  }
-	  m++;
-	}
-	  
+        for (int k = 0; k < inner; ++k) {
+          ary[i][j][k] = new Integer(n++);
+          if (ary[i][j][k].intValue() != m) {
+            System.out.println("\nary["+i+"]["+j+"]["+k+"]="+ary[i][j][k]);
+            System.out.println("    It should be: " + m);
+            testSuccess = false;
+          }
+          m++;
+        }
+          
     m = 0;
     for (int i = 0; i < outer; ++i)
       for (int j = 0; j < middle; ++j)
-	for (int k = 0; k < inner; ++k) {
-	  if (ary[i][j][k].intValue() != m) {
-	    System.out.println("\nary["+i+"]["+j+"]["+k+"]="+ary[i][j][k]);
-	    System.out.println("    It should be: " + m);
-	    testSuccess = false;
-	  }
-	  m++;
-	}
+        for (int k = 0; k < inner; ++k) {
+          if (ary[i][j][k].intValue() != m) {
+            System.out.println("\nary["+i+"]["+j+"]["+k+"]="+ary[i][j][k]);
+            System.out.println("    It should be: " + m);
+            testSuccess = false;
+          }
+          m++;
+        }
     
     //    System.out.println();
   }
@@ -456,10 +456,10 @@ class TestArrayAccess
     
     for (int i = 0; i < outer; ++i)
       for (int j = 0; j < middle; ++j)
-	if (ary[i][j] != null) {
-	  System.out.println("\nary["+i+"]["+j+"]="+ary[i][j]);
-	  System.out.println("   It should ne: nill");
-	}
+        if (ary[i][j] != null) {
+          System.out.println("\nary["+i+"]["+j+"]="+ary[i][j]);
+          System.out.println("   It should ne: nill");
+        }
     
     //    System.out.println();
   }

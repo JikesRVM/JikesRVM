@@ -15,13 +15,13 @@ public class TestInterruptedSleep {
 
     new Thread() {
       public void run() {
-	try {
-	  Thread.sleep(1000);
-	}
-	catch (InterruptedException e) {
-	}
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+        }
 
-	mainThread.interrupt();
+        mainThread.interrupt();
       }
     }.start();
 

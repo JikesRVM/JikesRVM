@@ -45,7 +45,7 @@ public class Utilities
       constructed += value.substring(start, start+3);
       start += 3;
       if (i<(segments-1)) {
-	constructed += ",";
+        constructed += ",";
       }
     }
     return constructed;
@@ -101,7 +101,7 @@ public class Utilities
       value = stream.readInt();
     } catch (EOFException e) {
       if (debug>=3) 
-	System.out.println("***Utilities.getIntFromDataInputStream() EOF exception!***");
+        System.out.println("***Utilities.getIntFromDataInputStream() EOF exception!***");
       return EOF_int;
     }catch (IOException e) {
       System.out.println("***Utilities.getIntFromDataInputStream() IO exception!***");
@@ -126,11 +126,11 @@ public class Utilities
       length = input_file.readInt();
       b_array = new byte[length];
       for (int i=0; i<length; i++) {
-	b_array[i] = input_file.readByte();
+        b_array[i] = input_file.readByte();
       }
     } catch (EOFException e) {
       if(debug>=3)
-	System.out.println("***Utilities.getStringFromDataInputStream() EOF exception!***");
+        System.out.println("***Utilities.getStringFromDataInputStream() EOF exception!***");
       return EOF_String;
     }catch (IOException e) {
       System.out.println("***Utilities.getStringFromDataInputStream() IO exception!***");
@@ -154,7 +154,7 @@ public class Utilities
   static public int[] addIntArrayElement(int[] array, int value, int index) 
   {
     if(debug>=3)System.out.println("addIntArrayElement: index "+index+" has value "+value+
-				   " length "+array.length);
+                                   " length "+array.length);
     if (index >= array.length) {
       array = growIntArray(array, Math.max(array.length<<1,index+1));
     }
@@ -173,7 +173,7 @@ public class Utilities
     if(debug>=3)System.out.println("growIntArray("+newLength+")");
     if (array.length >= newLength) {
       System.err.println("***Utilities.growIntArray() called with array.length "+array.length+
-			 " >= length "+newLength+"!***");
+                         " >= length "+newLength+"!***");
       new Exception().printStackTrace();
       System.exit(-1);
     }

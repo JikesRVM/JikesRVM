@@ -38,19 +38,19 @@ public class VM_AdaptiveInlining {
     plan = new OPT_ContextFreeInlinePlan();
     if (options.USE_OFFLINE_INLINE_PLAN) {
       try {
-	//  Read the plan from disk
-	String fn = options.OFFLINE_INLINE_PLAN_NAME;
-	LineNumberReader in = new LineNumberReader(new FileReader(fn));
-	VM_AdaptiveInlining.plan.readObject(in);
+        //  Read the plan from disk
+        String fn = options.OFFLINE_INLINE_PLAN_NAME;
+        LineNumberReader in = new LineNumberReader(new FileReader(fn));
+        VM_AdaptiveInlining.plan.readObject(in);
       } catch (Exception e) {
-	e.printStackTrace();
-	throw new OPT_OptimizingCompilerException("Inline",
-						  "Error creating offline plan");
+        e.printStackTrace();
+        throw new OPT_OptimizingCompilerException("Inline",
+                                                  "Error creating offline plan");
       }
       
       // now make an inlining oracle
       VM_RuntimeCompiler.offlineInlineOracle = 
-	new OPT_AdaptiveInlineOracle(plan);
+        new OPT_AdaptiveInlineOracle(plan);
     }
   }
 
@@ -61,7 +61,7 @@ public class VM_AdaptiveInlining {
     OPT_AdaptiveInlineOracle oracle = null;
     synchronized(plan) {
       if (VM_Controller.options.ADAPTIVE_INLINING) {
-	oracle = new OPT_AdaptiveInlineOracle(plan);
+        oracle = new OPT_AdaptiveInlineOracle(plan);
       }
     }
     return oracle;
@@ -79,7 +79,7 @@ public class VM_AdaptiveInlining {
   public static Vector recomputeHotEdges() {
     if(DEBUG) {
       VM.sysWrite(" VM_AdaptiveInlining.recomputeHotEdges() hotEdgeThreshold: "
-		  + hotEdgeThreshold +" "+(++recomputeHotEdgesTrips)+"\n");
+                  + hotEdgeThreshold +" "+(++recomputeHotEdgesTrips)+"\n");
     }
     Vector vectorOfTriples = new Vector();
       
@@ -87,21 +87,21 @@ public class VM_AdaptiveInlining {
     for (java.util.Iterator i = dcg.getEdges(); i.hasNext(); ) {
       VM_CallSiteTriple triple = (VM_CallSiteTriple)i.next();
       if(DEBUG)VM.sysWrite(" :"+ triple +"\n");
-	 
+         
       double weight = triple.getWeight()/nYieldPointsTaken;
       if (weight >= hotEdgeThreshold) { 
-	VM_Method caller = triple.getCaller();
-	VM_Method callee = triple.getCallee();
-	int bcIndex = triple.getBytecodeIndex();
-	plan.addRule(caller,bcIndex,callee);
-	vectorOfTriples.addElement(triple);
+        VM_Method caller = triple.getCaller();
+        VM_Method callee = triple.getCallee();
+        int bcIndex = triple.getBytecodeIndex();
+        plan.addRule(caller,bcIndex,callee);
+        vectorOfTriples.addElement(triple);
       }
     }
 
     if(DEBUG){ VM.sysWrite("\nEdges found:\n");
     for (int i=0; i<vectorOfTriples.size(); i++) {
       VM_CallSiteTriple triple = 
-	(VM_CallSiteTriple)vectorOfTriples.elementAt(i);
+        (VM_CallSiteTriple)vectorOfTriples.elementAt(i);
       VM.sysWrite((i+1)+": "+triple.toString()+"\n");
     }  }
 
@@ -109,7 +109,7 @@ public class VM_AdaptiveInlining {
 
     // now adjust the AI Threshold
     double newThreshold = Math.max(hotEdgeThreshold/2.0,
-				   VM_Controller.options.FINAL_AI_THRESHOLD);
+                                   VM_Controller.options.FINAL_AI_THRESHOLD);
     setHotEdgeThreshold(newThreshold);
 
     return vectorOfTriples;
@@ -121,19 +121,19 @@ public class VM_AdaptiveInlining {
    * was aware that a call edge was hot, but still refused to inline it.
    */
   public static void recordRefusalToInlineHotEdge(int cmid, 
-					   VM_Method caller, 
-					   int bcX, 
-					   VM_Method callee) {
+                                           VM_Method caller, 
+                                           int bcX, 
+                                           VM_Method callee) {
     VM_CallSiteTriple edge = new VM_CallSiteTriple(caller, bcX, callee);
     Integer key = new Integer(cmid);
     NonInlinedElement oldEdges = (NonInlinedElement)nonInlinedEdges.get(key);
     NonInlinedElement p = oldEdges;
     while (p != null) {
       if (p.cmid == cmid && 
-	  p.edge.getCaller() == edge.getCaller() &&
-	  p.edge.getCallee() == edge.getCallee() &&
-	  p.edge.getBytecodeIndex() == edge.getBytecodeIndex()) {
-	return;
+          p.edge.getCaller() == edge.getCaller() &&
+          p.edge.getCallee() == edge.getCallee() &&
+          p.edge.getBytecodeIndex() == edge.getBytecodeIndex()) {
+        return;
       }
       p = p.next;
     }
@@ -152,11 +152,11 @@ public class VM_AdaptiveInlining {
     NonInlinedElement p = oldEdges;
     while (p != null) {
       if (p.cmid == cmid && 
-	  p.edge.getCaller() == edge.getCaller() &&
-	  p.edge.getCallee() == edge.getCallee() &&
-	  p.edge.getBytecodeIndex() == edge.getBytecodeIndex()) {
-	if (DEBUG) VM.sysWrite ("Squashing "+edge+" into "+cmid);
-	return true;
+          p.edge.getCaller() == edge.getCaller() &&
+          p.edge.getCallee() == edge.getCallee() &&
+          p.edge.getBytecodeIndex() == edge.getBytecodeIndex()) {
+        if (DEBUG) VM.sysWrite ("Squashing "+edge+" into "+cmid);
+        return true;
       }
       p = p.next;
     }

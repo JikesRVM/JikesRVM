@@ -183,7 +183,7 @@ class TestConversions_toHex
       {
       SystemOut.println();
       SystemOut.println("float:  " + Integer.toHexString(Float.floatToIntBits(lo)) + " .. " +
-				     Integer.toHexString(Float.floatToIntBits(hi )));
+                                     Integer.toHexString(Float.floatToIntBits(hi )));
       SystemOut.println("long:   " + (long)lo + " .. " + (long)hi);
       SystemOut.println("int:    " + (int )lo + " .. " + (int )hi);
       }
@@ -193,7 +193,7 @@ class TestConversions_toHex
       {
       SystemOut.println();
       SystemOut.println("double: " + Long.toHexString(Double.doubleToLongBits(lo)) + " .. " +
-				     Long.toHexString(Double.doubleToLongBits(hi)));
+                                     Long.toHexString(Double.doubleToLongBits(hi)));
       SystemOut.println("long:   " + (long)lo + " .. " + (long)hi);
       SystemOut.println("int:    " + (int )lo + " .. " + (int )hi);
       }

@@ -68,41 +68,41 @@ class OptTestHarness {
 
 
   static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i,
-			     Object[] methodArgs){
+                             Object[] methodArgs){
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
-	if (argDesc[argNum].isBooleanType()) {
-	  methodArgs[argNum] = Boolean.valueOf(args[++i]);
-	} else if (argDesc[argNum].isByteType()) {
-	  methodArgs[argNum] = Byte.valueOf(args[++i]);
-	} else if (argDesc[argNum].isShortType()) {
-	  methodArgs[argNum] = Short.valueOf(args[++i]);
-	} else if (argDesc[argNum].isIntType()) {
-	  methodArgs[argNum] = Integer.valueOf(args[++i]);
-	} else if (argDesc[argNum].isLongType()) {
-	  methodArgs[argNum] = Long.valueOf(args[++i]);
-	} else if (argDesc[argNum].isFloatType()) {
-	  methodArgs[argNum] = Float.valueOf(args[++i]);
-	} else if (argDesc[argNum].isDoubleType()) {
-	  methodArgs[argNum] = Double.valueOf(args[++i]);
-	} else if (argDesc[argNum].isCharType()) {
-	  methodArgs[argNum] = new Character(args[++i].charAt(0));
-	} else if (argDesc[argNum].isClassType()) {
-	  // TODO
-	  System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");
-	} else if (argDesc[argNum].isArrayType()) {
+        if (argDesc[argNum].isBooleanType()) {
+          methodArgs[argNum] = Boolean.valueOf(args[++i]);
+        } else if (argDesc[argNum].isByteType()) {
+          methodArgs[argNum] = Byte.valueOf(args[++i]);
+        } else if (argDesc[argNum].isShortType()) {
+          methodArgs[argNum] = Short.valueOf(args[++i]);
+        } else if (argDesc[argNum].isIntType()) {
+          methodArgs[argNum] = Integer.valueOf(args[++i]);
+        } else if (argDesc[argNum].isLongType()) {
+          methodArgs[argNum] = Long.valueOf(args[++i]);
+        } else if (argDesc[argNum].isFloatType()) {
+          methodArgs[argNum] = Float.valueOf(args[++i]);
+        } else if (argDesc[argNum].isDoubleType()) {
+          methodArgs[argNum] = Double.valueOf(args[++i]);
+        } else if (argDesc[argNum].isCharType()) {
+          methodArgs[argNum] = new Character(args[++i].charAt(0));
+        } else if (argDesc[argNum].isClassType()) {
+          // TODO
+          System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");
+        } else if (argDesc[argNum].isArrayType()) {
           VM_TypeReference element = argDesc[argNum].getArrayElementType();
           if (element.equals(VM_TypeReference.JavaLangString)) {
-	    String[] array = new String[args.length-i-1];
-	    for (int j = 0; j < array.length; j++) {
-	      array[j] = args[++i];
-	    }
-	    methodArgs[argNum] = array; 
+            String[] array = new String[args.length-i-1];
+            for (int j = 0; j < array.length; j++) {
+              array[j] = args[++i];
+            }
+            methodArgs[argNum] = array; 
           } else {// TODO
-	    System.err.println("Parsing args of array of " + element + 
-			       " not implemented");
-	  }
-	}
+            System.err.println("Parsing args of array of " + element + 
+                               " not implemented");
+          }
+        }
       }
     } catch (ArrayIndexOutOfBoundsException e) {
       throw new InternalError("Error: not enough method arguments specified on command line after -er");
@@ -114,7 +114,7 @@ class OptTestHarness {
   // if "methdesc" is "-", find the first method with "methname" in "klass",
   // otherwise, find the method whose signature matches "methdesc"
   static VM_Method findDeclaredOrFirstMethod(VM_Class klass, String methname,
-					     String methdesc) {
+                                             String methdesc) {
     if (klass == null) return null;
     VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methname);
     VM_Atom methodDesc = 
@@ -124,15 +124,15 @@ class OptTestHarness {
     for (int j = 0 ; j < methods.length; ++j) {
       VM_Method method = methods[j];
       if (method.getName() == methodName &&
-	  ((methodDesc == null) || (methodDesc == method.getDescriptor())))
-	return method;
+          ((methodDesc == null) || (methodDesc == method.getDescriptor())))
+        return method;
     }
     if (methodDesc == null) {
       System.err.println("No method named "+methodName+
-			 " found in class "+klass);
+                         " found in class "+klass);
     } else {
       System.err.println("No method matching "+methodName+" "+methodDesc+
-			 " found in class "+klass);
+                         " found in class "+klass);
     }
     return null;
   }
@@ -150,7 +150,7 @@ class OptTestHarness {
     s = s.replace('.','/');
 
     return (VM_Class)
-	java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
+        java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
   }
 
   static void printFormatString() {
@@ -162,7 +162,7 @@ class OptTestHarness {
     for (int j=0; j<methods.length; ++j) {
       VM_Method     method = methods[j];
       if (!method.isAbstract() && !method.isNative()) 
-	processMethod(method, opts) ;
+        processMethod(method, opts) ;
     }
   }
   
@@ -172,11 +172,11 @@ class OptTestHarness {
   }
 
   private static void processMethod(VM_Method method, OPT_Options opts,
-				    boolean isBaseline) {
+                                    boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
       if (!baselineMethodVector.contains(method)) {
-	baselineMethodVector.addElement(method);
+        baselineMethodVector.addElement(method);
       }
     } else if (!optMethodVector.contains(method)) {
       // Method to be opt compiled
@@ -192,124 +192,124 @@ class OptTestHarness {
   private static void  processOptionString(String []args) {
     for (int i = 0, n = args.length; i < n; i++) {
       try {
-	String arg = args[i];
-	if (arg.startsWith("-oc:") && 
-	    options.processAsOption("-X:rc:", arg.substring(4))) {
-	  // handled in processAsOption
-	} else if (arg.equals("-useBootOptions")) {
-	  OPT_Compiler.setBootOptions(options);
-	} else if (arg.equals("-longcommandline")) {
-	  // the -longcommandline option reads options from a file.
-	  // use for cases when the command line is too long for AIX
-	  i++;
-	  BufferedReader in = new BufferedReader(new FileReader(args[i]));
-	  StringBuffer s = new StringBuffer("");
-	  while (in.ready()) {
-	    String line = in.readLine().trim();
-	    if (!line.startsWith("#")) {
-	      s.append(line);
-	      s.append(" ");
-	    }
-	  }
-	  in.close();
-	  StringTokenizer t = new StringTokenizer(s.toString());
-	  String[] av = new String[t.countTokens()];
-	  for (int j=0; j<av.length; j++) {
-	    av[j] = t.nextToken();
-	  }
-	  processOptionString(av);
-	} else if (arg.equals("-inlineplan")) {
-	  // -inlineplan is used to read an inline plan from a file
-	  i++;
-	  OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
-	  plan.readObject(new LineNumberReader(new FileReader(args[i])));
-	  System.out.println(plan.toString());
-	  OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
+        String arg = args[i];
+        if (arg.startsWith("-oc:") && 
+            options.processAsOption("-X:rc:", arg.substring(4))) {
+          // handled in processAsOption
+        } else if (arg.equals("-useBootOptions")) {
+          OPT_Compiler.setBootOptions(options);
+        } else if (arg.equals("-longcommandline")) {
+          // the -longcommandline option reads options from a file.
+          // use for cases when the command line is too long for AIX
+          i++;
+          BufferedReader in = new BufferedReader(new FileReader(args[i]));
+          StringBuffer s = new StringBuffer("");
+          while (in.ready()) {
+            String line = in.readLine().trim();
+            if (!line.startsWith("#")) {
+              s.append(line);
+              s.append(" ");
+            }
+          }
+          in.close();
+          StringTokenizer t = new StringTokenizer(s.toString());
+          String[] av = new String[t.countTokens()];
+          for (int j=0; j<av.length; j++) {
+            av[j] = t.nextToken();
+          }
+          processOptionString(av);
+        } else if (arg.equals("-inlineplan")) {
+          // -inlineplan is used to read an inline plan from a file
+          i++;
+          OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
+          plan.readObject(new LineNumberReader(new FileReader(args[i])));
+          System.out.println(plan.toString());
+          OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
-	  BASELINE = true;
-	} else if (arg.equals("-baseline")) {
-	  BASELINE = false;
-	} else if (arg.equals("-load")) {
-	  loadClass(args[++i]);
-	} else if (arg.equals("-class")) {
-	  VM_Class klass = loadClass(args[++i]);
-	  processClass(klass, options);
-	  options = (OPT_Options) options.clone() ;
-	} else if (arg.equals("-method") || 
-		   arg.equals("-methodOpt") || arg.equals("-methodBase")) {
-	  // Default for this method is determined by BASELINE var
-	  boolean isBaseline = BASELINE;
-	  // Unless specified by these options
-	  if (arg.equals("-methodOpt"))
-	    isBaseline = false;
-	  if (arg.equals("-methodBase"))
-	    isBaseline = true;
-	  
-	  VM_Class klass = null;
-	  try {
-	    klass = loadClass(args[++i]);
-   	  } catch (Exception e) {
-	    System.err.println("WARNING: Skipping method from " + args[i-1]); 
-	    klass = null;
-	  }
-	  if (klass == null) continue;
-	  String   name = args[++i];
-	  String   desc = args[++i];
+          BASELINE = true;
+        } else if (arg.equals("-baseline")) {
+          BASELINE = false;
+        } else if (arg.equals("-load")) {
+          loadClass(args[++i]);
+        } else if (arg.equals("-class")) {
+          VM_Class klass = loadClass(args[++i]);
+          processClass(klass, options);
+          options = (OPT_Options) options.clone() ;
+        } else if (arg.equals("-method") || 
+                   arg.equals("-methodOpt") || arg.equals("-methodBase")) {
+          // Default for this method is determined by BASELINE var
+          boolean isBaseline = BASELINE;
+          // Unless specified by these options
+          if (arg.equals("-methodOpt"))
+            isBaseline = false;
+          if (arg.equals("-methodBase"))
+            isBaseline = true;
+          
+          VM_Class klass = null;
+          try {
+            klass = loadClass(args[++i]);
+          } catch (Exception e) {
+            System.err.println("WARNING: Skipping method from " + args[i-1]); 
+            klass = null;
+          }
+          if (klass == null) continue;
+          String   name = args[++i];
+          String   desc = args[++i];
           VM_Method method = findDeclaredOrFirstMethod(klass, name, desc);
-  	  if (method == null || method.isAbstract() || method.isNative()) {
-	    System.err.println("WARNING: Skipping method " + args[i-2] +
-			       "." + name);
-	  } else {
-	    processMethod(method,options,isBaseline);
-	  }
-	  options = (OPT_Options) options.clone() ;
-	} else if (arg.equals("-performance")) {
-	    perf = new Performance();
-	} else if (arg.equals("-disableClassLoading")) {
-	  DISABLE_CLASS_LOADING = true;
-	} else if (arg.equals("-er")) {
-	  EXECUTE_WITH_REFLECTION = true ;
-	  VM_Class  klass      = loadClass(args[++i]);
-	  String    name = args[++i];
-	  String    desc = args[++i];
-	  VM_NormalMethod method = (VM_NormalMethod)findDeclaredOrFirstMethod(klass, name, desc);
-	  VM_CompiledMethod cm = null;
-	  if (BASELINE) 
-	    cm = VM_Compiler.compile(method);
-	  else {
-	    OPT_CompilationPlan cp = 
-	      new OPT_CompilationPlan(method, 
-				      OPT_OptimizationPlanner.createOptimizationPlan(options),
-				      null,
-				      options);
-	    try {
-	      cm = OPT_Compiler.compile(cp);
-	    } catch (Throwable e) {
-	      System.err.println("SKIPPING method:"+ method + "Due to exception: "+ e) ;
-	    }
-	  }
-	  if (cm != null) method.replaceCompiledMethod(cm);
-	  VM_TypeReference[] argDesc  = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
-	  Object[]  reflectMethodArgs = new Object[argDesc.length] ;
-	  i = parseMethodArgs(argDesc, args, i, reflectMethodArgs) ;
-	  java.lang.reflect.Method reflectoid = java.lang.reflect.JikesRVMSupport.createMethod(method) ;
+          if (method == null || method.isAbstract() || method.isNative()) {
+            System.err.println("WARNING: Skipping method " + args[i-2] +
+                               "." + name);
+          } else {
+            processMethod(method,options,isBaseline);
+          }
+          options = (OPT_Options) options.clone() ;
+        } else if (arg.equals("-performance")) {
+            perf = new Performance();
+        } else if (arg.equals("-disableClassLoading")) {
+          DISABLE_CLASS_LOADING = true;
+        } else if (arg.equals("-er")) {
+          EXECUTE_WITH_REFLECTION = true ;
+          VM_Class  klass      = loadClass(args[++i]);
+          String    name = args[++i];
+          String    desc = args[++i];
+          VM_NormalMethod method = (VM_NormalMethod)findDeclaredOrFirstMethod(klass, name, desc);
+          VM_CompiledMethod cm = null;
+          if (BASELINE) 
+            cm = VM_Compiler.compile(method);
+          else {
+            OPT_CompilationPlan cp = 
+              new OPT_CompilationPlan(method, 
+                                      OPT_OptimizationPlanner.createOptimizationPlan(options),
+                                      null,
+                                      options);
+            try {
+              cm = OPT_Compiler.compile(cp);
+            } catch (Throwable e) {
+              System.err.println("SKIPPING method:"+ method + "Due to exception: "+ e) ;
+            }
+          }
+          if (cm != null) method.replaceCompiledMethod(cm);
+          VM_TypeReference[] argDesc  = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
+          Object[]  reflectMethodArgs = new Object[argDesc.length] ;
+          i = parseMethodArgs(argDesc, args, i, reflectMethodArgs) ;
+          java.lang.reflect.Method reflectoid = java.lang.reflect.JikesRVMSupport.createMethod(method) ;
           reflectoidVector.addElement(reflectoid) ;
           reflectMethodVector.addElement(method) ;
           reflectMethodArgsVector.addElement(reflectMethodArgs) ;
-	  options = (OPT_Options) options.clone() ;
-	} else {
-	  System.err.println("Unrecognized argument: " + arg + " - ignored");
-	}
+          options = (OPT_Options) options.clone() ;
+        } else {
+          System.err.println("Unrecognized argument: " + arg + " - ignored");
+        }
       } catch (ArrayIndexOutOfBoundsException e) {
-	System.err.println("Uncaught ArrayIndexOutOfBoundsException, possibly"+
-			   " not enough command-line arguments - aborting");
-	printFormatString();
-	e.printStackTrace(System.err);
-	break;
+        System.err.println("Uncaught ArrayIndexOutOfBoundsException, possibly"+
+                           " not enough command-line arguments - aborting");
+        printFormatString();
+        e.printStackTrace(System.err);
+        break;
       } catch (Exception e) {
-	System.err.println(e);
-	e.printStackTrace(System.err);
-	break;
+        System.err.println(e);
+        e.printStackTrace(System.err);
+        break;
       }
     }
   }
@@ -333,51 +333,51 @@ class OptTestHarness {
       VM_NormalMethod method = (VM_NormalMethod) optMethodVector.elementAt(i) ;
       OPT_Options opts = (OPT_Options) optOptionsVector.elementAt(i) ;
       try {
-	VM_CompiledMethod cm = null;
-	OPT_CompilationPlan cp = 
-	  new OPT_CompilationPlan(method, 
-				  OPT_OptimizationPlanner.createOptimizationPlan(opts),
-				  null,
-				  opts);
-	cm = OPT_Compiler.compile(cp);
-	method.replaceCompiledMethod(cm);
+        VM_CompiledMethod cm = null;
+        OPT_CompilationPlan cp = 
+          new OPT_CompilationPlan(method, 
+                                  OPT_OptimizationPlanner.createOptimizationPlan(opts),
+                                  null,
+                                  opts);
+        cm = OPT_Compiler.compile(cp);
+        method.replaceCompiledMethod(cm);
       } catch (OPT_OptimizingCompilerException e) {
-	if (e.isFatal && opts.ERRORS_FATAL) {
-	  e.printStackTrace();
-	  VM.sysFail("Internal vm error: "+e.toString());
-	} else {
-	  System.err.println("SKIPPING opt-compilation of "+method+":\n  "+e.getMessage());
-	  if (opts.PRINT_METHOD)
-	    e.printStackTrace();
-	}
+        if (e.isFatal && opts.ERRORS_FATAL) {
+          e.printStackTrace();
+          VM.sysFail("Internal vm error: "+e.toString());
+        } else {
+          System.err.println("SKIPPING opt-compilation of "+method+":\n  "+e.getMessage());
+          if (opts.PRINT_METHOD)
+            e.printStackTrace();
+        }
       }
     }
   }
 
   private static void executeCommand() 
    throws InvocationTargetException, 
-	  IOException,
-	  IllegalAccessException {
+          IOException,
+          IllegalAccessException {
     compileMethodsInVector();
 
     if(EXECUTE_WITH_REFLECTION == true) {
 
       if (DISABLE_CLASS_LOADING) {
-	VM_Class.classLoadingDisabled = true;
+        VM_Class.classLoadingDisabled = true;
       }
 
       int size = reflectoidVector.size() ;
       for(int i = 0; i < size ; i++) {
-	reflectoid = (java.lang.reflect.Method) reflectoidVector.elementAt(i);
-	reflectMethodArgs = (Object []) reflectMethodArgsVector.elementAt(i);
-	VM_Method method = (VM_Method) reflectMethodVector.elementAt(i);
-	VM.sysWrite("**** START OF EXECUTION of "+method+" ****.\n");
-	Object result = null;
-	if (perf != null) perf.reset();
-	result   = reflectoid.invoke(null, reflectMethodArgs);
-	if (perf != null) perf.stop();
-	VM.sysWrite("**** END OF EXECUTION of "+method+" ****.\n");
-	VM.sysWrite("**** RESULT: " + result+"\n");
+        reflectoid = (java.lang.reflect.Method) reflectoidVector.elementAt(i);
+        reflectMethodArgs = (Object []) reflectMethodArgsVector.elementAt(i);
+        VM_Method method = (VM_Method) reflectMethodVector.elementAt(i);
+        VM.sysWrite("**** START OF EXECUTION of "+method+" ****.\n");
+        Object result = null;
+        if (perf != null) perf.reset();
+        result   = reflectoid.invoke(null, reflectMethodArgs);
+        if (perf != null) perf.stop();
+        VM.sysWrite("**** END OF EXECUTION of "+method+" ****.\n");
+        VM.sysWrite("**** RESULT: " + result+"\n");
       }
       EXECUTE_WITH_REFLECTION = false ;
     }
@@ -386,8 +386,8 @@ class OptTestHarness {
 
   public static void main(String args[]) 
     throws InvocationTargetException, 
-	   IOException,
-	   IllegalAccessException {
+           IOException,
+           IllegalAccessException {
     cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector(50);
     optOptionsVector = new Vector(50);
@@ -401,10 +401,10 @@ class OptTestHarness {
     }
     processOptionString(args);
     if (perf != null)
-	VM_Callbacks.addExitMonitor(perf);
+        VM_Callbacks.addExitMonitor(perf);
     executeCommand();
     if (perf != null)
-	perf.show();
+        perf.show();
   }
 
 

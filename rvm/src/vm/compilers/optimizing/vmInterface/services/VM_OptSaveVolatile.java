@@ -22,7 +22,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Dave Grove
  */
 public class VM_OptSaveVolatile implements VM_SaveVolatile,
-					   VM_Uninterruptible {
+                                           VM_Uninterruptible {
  
   /**
    * Handle timer interrupt taken in method prologue.
@@ -90,7 +90,7 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile,
    * dynamically loaded/resolved/etc.
    */
   public static void OPT_resolve() throws NoClassDefFoundError,
-					  VM_PragmaInterruptible {
+                                          VM_PragmaInterruptible {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt) 
     // compiled method that called OPT_resolve

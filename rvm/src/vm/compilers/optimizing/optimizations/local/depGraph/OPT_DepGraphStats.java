@@ -106,14 +106,14 @@ class OPT_DepGraphStats implements OPT_Operators {
     }
 
     // Performing live analysis may reduce dependences between PEIs and stores
-    if (ir.options.HANDLER_LIVENESS) {	
+    if (ir.options.HANDLER_LIVENESS) {  
       new OPT_LiveAnalysis(false, false, true).perform(ir);
     }
 
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
         bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       OPT_DepGraph dg = new OPT_DepGraph(ir, bb.firstRealInstruction(), 
-					 bb.lastRealInstruction(), bb);
+                                         bb.lastRealInstruction(), bb);
       OPT_DepGraphStats s = new OPT_DepGraphStats(dg, bb.toString());
     }
     System.out.println("**** END OF printBasicBlockStatistics() ****");

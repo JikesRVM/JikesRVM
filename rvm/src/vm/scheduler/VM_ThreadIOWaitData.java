@@ -56,7 +56,7 @@ public class VM_ThreadIOWaitData
   private void markAsReady(int[] fds) {
     if (fds != null) {
       for (int i = 0; i < fds.length; ++i)
-	fds[i] |= FD_READY_BIT;
+        fds[i] |= FD_READY_BIT;
     }
   }
 }

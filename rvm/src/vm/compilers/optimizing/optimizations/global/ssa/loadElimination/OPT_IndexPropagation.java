@@ -52,7 +52,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
   /** 
    * Perform the analysis.
    * <p> Pre-condition: The ir is in Array SSA form and global value numbers
-   *  	have been computed.
+   *    have been computed.
    *
    * @param ir the IR to optimize 
    */

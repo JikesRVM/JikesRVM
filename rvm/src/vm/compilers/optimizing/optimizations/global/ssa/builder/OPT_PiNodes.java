@@ -94,11 +94,11 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   public void perform(OPT_IR ir) {
     if (insertion) {
       if (!typeChecks) {
-	  insertPiIfNodes(ir);
-	  insertPiBcNodes(ir);
-	  insertPiNullCheckNodes(ir);
+          insertPiIfNodes(ir);
+          insertPiBcNodes(ir);
+          insertPiNullCheckNodes(ir);
       } else
-	  insertPiCheckCastNodes(ir);
+          insertPiCheckCastNodes(ir);
       // invalidate SSA state
       ir.actualSSAOptions = null;
     } 
@@ -135,10 +135,10 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
         OPT_BasicBlock out2 = outBB.next();
         OPT_BasicBlock new2 = OPT_IRTools.makeBlockOnEdge(thisbb, out2, ir);
 
-	// For these types of IfCmp's, the Pi Node is not actually
-	// needed yet.  For now the only functionality needed is the
-	// blocks made on the outgoing edges.
-	if (InlineGuard.conforms(instr)) continue;
+        // For these types of IfCmp's, the Pi Node is not actually
+        // needed yet.  For now the only functionality needed is the
+        // blocks made on the outgoing edges.
+        if (InlineGuard.conforms(instr)) continue;
 
         OPT_RegisterOperand ifGuard = (OPT_RegisterOperand)
             IfCmp.getGuardResult(instr);
@@ -309,14 +309,14 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
           lval.type = TypeCheck.getType(instr).getTypeRef();
           lval.clearDeclaredType();
           OPT_Instruction s = GuardedUnary.create(PI, lval, obj.copy(), null);
-	  s.position = instr.position;
-	  s.bcIndex = instr.bcIndex;
+          s.position = instr.position;
+          s.bcIndex = instr.bcIndex;
           OPT_Operand iGuard = TypeCheck.getGuard(instr);
-	  if (iGuard != null) {
-	      OPT_Operand sGuard = iGuard.copy();
-	      GuardedUnary.setGuard(s, sGuard);
-	  }
-	  instr.insertAfter(s);
+          if (iGuard != null) {
+              OPT_Operand sGuard = iGuard.copy();
+              GuardedUnary.setGuard(s, sGuard);
+          }
+          instr.insertAfter(s);
         }
       }
     }

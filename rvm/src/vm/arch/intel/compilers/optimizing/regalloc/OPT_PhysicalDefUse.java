@@ -55,14 +55,14 @@ public class OPT_PhysicalDefUse {
   public static boolean usesEFLAGS(OPT_Operator op) {
     return (op.implicitUses & maskAF_CF_OF_PF_SF_ZF) != 0;
   }
-			      
+                              
   /**
    * @return whether or not an OPT_Operator uses the EFLAGS
    */
   public static boolean definesEFLAGS(OPT_Operator op) {
     return (op.implicitDefs & maskAF_CF_OF_PF_SF_ZF) != 0;
   }
-			      
+                              
 
   /**
    * @return a string representation of the physical registers encoded by
@@ -124,10 +124,10 @@ public class OPT_PhysicalDefUse {
 
     public Object nextElement() {
       while (true) {
-	int curBit = code & curMask;
-	code -= curBit;
-	curMask = curMask >> 1;
-	if (curBit != 0) return getReg(curBit, phys);
+        int curBit = code & curMask;
+        code -= curBit;
+        curMask = curMask >> 1;
+        if (curBit != 0) return getReg(curBit, phys);
       }
     }
 

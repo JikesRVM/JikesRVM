@@ -87,7 +87,7 @@ public final class OPT_GCIRMap {
       //  and not a physcial register
       if (regOp.type.isReferenceType() && !regOp.register.isPhysical()) {
         OPT_RegSpillListElement elem = 
-	  new OPT_RegSpillListElement(regOp.register);
+          new OPT_RegSpillListElement(regOp.register);
         regList.append(elem);
       }
     }
@@ -127,27 +127,27 @@ public final class OPT_GCIRMap {
       OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
       // is it at the head of the list
       if (ptr.getInstruction() == inst) {
-	numInstructionMaps--;
-	instructionInList = true;
-	list.removeHead();
+        numInstructionMaps--;
+        instructionInList = true;
+        list.removeHead();
       } else {
-	// is it in the list
-	for (OPT_GCIRMapElement ptr_next = (OPT_GCIRMapElement)ptr.getNext();
-	     ptr_next != null; 
-	     ptr = ptr_next,    ptr_next = (OPT_GCIRMapElement)ptr.getNext()) {
-	  
-	  if (ptr_next.getInstruction() == inst) {
-	    numInstructionMaps--;
-	    instructionInList = true;
-	    list.removeNext(ptr);
-	    break;
-	  }
-	}
+        // is it in the list
+        for (OPT_GCIRMapElement ptr_next = (OPT_GCIRMapElement)ptr.getNext();
+             ptr_next != null; 
+             ptr = ptr_next,    ptr_next = (OPT_GCIRMapElement)ptr.getNext()) {
+          
+          if (ptr_next.getInstruction() == inst) {
+            numInstructionMaps--;
+            instructionInList = true;
+            list.removeNext(ptr);
+            break;
+          }
+        }
       }
     }
     if (! instructionInList) {
       throw new OPT_OptimizingCompilerException("OPT_GCIRMap.delete("+inst+
-						") did not delete instruction from GC Map ");
+                                                ") did not delete instruction from GC Map ");
     }
   }
 
@@ -162,27 +162,27 @@ public final class OPT_GCIRMap {
     if (list.first() != null) {
       OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
       if (ptr.getInstruction() == inst) {
-	// it is at the head of the list
-	instructionInList = true;
-	list.removeHead();
-	list.append(ptr);
+        // it is at the head of the list
+        instructionInList = true;
+        list.removeHead();
+        list.append(ptr);
       } else {
-	// is it in the list
-	for (OPT_GCIRMapElement ptr_next = (OPT_GCIRMapElement)ptr.getNext();
-	     ptr_next != null; 
-	     ptr = ptr_next,    ptr_next = (OPT_GCIRMapElement)ptr.getNext()) {
-	  if (ptr_next.getInstruction() == inst) {
-	    instructionInList = true;
-	    list.removeNext(ptr);
-	    list.append(ptr_next);
-	    break;
-	  }
-	}
+        // is it in the list
+        for (OPT_GCIRMapElement ptr_next = (OPT_GCIRMapElement)ptr.getNext();
+             ptr_next != null; 
+             ptr = ptr_next,    ptr_next = (OPT_GCIRMapElement)ptr.getNext()) {
+          if (ptr_next.getInstruction() == inst) {
+            instructionInList = true;
+            list.removeNext(ptr);
+            list.append(ptr_next);
+            break;
+          }
+        }
       }
     }
     if (!instructionInList) {
       throw new OPT_OptimizingCompilerException("OPT_GCIRMap.moveToEnd("+inst+
-						") did not delete instruction from GC Map ");
+                                                ") did not delete instruction from GC Map ");
     }
   }
 
@@ -195,14 +195,14 @@ public final class OPT_GCIRMap {
    */
   public void insertTwin(OPT_Instruction inst, OPT_Instruction twin) {
     for (OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
-	 ptr != null; 
-	 ptr  = (OPT_GCIRMapElement)ptr.getNext()) {
+         ptr != null; 
+         ptr  = (OPT_GCIRMapElement)ptr.getNext()) {
       if (ptr.getInstruction() == inst) {
-	numInstructionMaps++;
-	ptr.insertAfter(ptr.createTwin(twin));
-	return;
+        numInstructionMaps++;
+        ptr.insertAfter(ptr.createTwin(twin));
+        return;
       }
-    }		
+    }           
     throw new OPT_OptimizingCompilerException("OPT_GCIRMap.createTwin: "+inst+" not found");
   }
 
@@ -230,7 +230,7 @@ public final class OPT_GCIRMap {
       buf.append("empty"); 
     } else {
       for (OPT_GCIRMapElement ptr = (OPT_GCIRMapElement)list.first(); 
-	   ptr != null; ptr = (OPT_GCIRMapElement)ptr.getNext()) {
+           ptr != null; ptr = (OPT_GCIRMapElement)ptr.getNext()) {
         buf.append(ptr);
       }
     }

@@ -18,7 +18,7 @@ import java.util.HashMap;
  *
  * There is almost always a zero-length VM_Atom, since any class which
  * contains statements like:
- *	    return "";
+ *          return "";
  * will have one in its constant pool.
  * 
  * @author Bowen Alpern
@@ -302,7 +302,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     int i = 0;
     while (val[i++] != ')') {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length, "Method descriptor missing closing ')'");
+        VM._assert(i < val.length, "Method descriptor missing closing ')'");
     }
     if (VM.VerifyAssertions)
       VM._assert(i < val.length, "Method descriptor missing type after closing ')'");
@@ -329,13 +329,13 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     case ArrayTypeCode:
       return VM_TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i));
     default:
-	if (VM.VerifyAssertions) {
-	  VM._assert(false,
-		     "Need a valid method descriptor; got \"" + this
-		     + "\"; can't parse the character '"  
-		     + byteToString(val[i]) + "'");
-	}
-	return null;		// NOTREACHED
+        if (VM.VerifyAssertions) {
+          VM._assert(false,
+                     "Need a valid method descriptor; got \"" + this
+                     + "\"; can't parse the character '"  
+                     + byteToString(val[i]) + "'");
+        }
+        return null;            // NOTREACHED
     }
   }
       
@@ -358,58 +358,58 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     int i = 1;
     while (true) {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length, "Method descriptor missing closing `)`");
+        VM._assert(i < val.length, "Method descriptor missing closing `)`");
       
-      switch (val[i++])	{
+      switch (val[i++]) {
       case VoidTypeCode:    sigs.addElement(VM_TypeReference.Void);     
-	continue;
+        continue;
       case BooleanTypeCode: sigs.addElement(VM_TypeReference.Boolean);  
-	continue;
+        continue;
       case ByteTypeCode:    sigs.addElement(VM_TypeReference.Byte);     
-	continue;
+        continue;
       case ShortTypeCode:   sigs.addElement(VM_TypeReference.Short);
-	continue;
+        continue;
       case IntTypeCode:     sigs.addElement(VM_TypeReference.Int);
-	continue;
+        continue;
       case LongTypeCode:    sigs.addElement(VM_TypeReference.Long);     
-	continue;
+        continue;
       case FloatTypeCode:   sigs.addElement(VM_TypeReference.Float);
-	continue;
+        continue;
       case DoubleTypeCode:  sigs.addElement(VM_TypeReference.Double);
-	continue;
+        continue;
       case CharTypeCode:    sigs.addElement(VM_TypeReference.Char);
-	continue;
+        continue;
       case ClassTypeCode: {
-	int off = i - 1;
-	while (val[i++] != ';') {
-	  if (VM.VerifyAssertions)
-	    VM._assert(i < val.length, "class descriptor missing a final ';'");
-	}
-	sigs.addElement(
-	    VM_TypeReference
-	       .findOrCreate(cl, 
-			     findOrCreate(val, off, i - off)));
-	continue;
+        int off = i - 1;
+        while (val[i++] != ';') {
+          if (VM.VerifyAssertions)
+            VM._assert(i < val.length, "class descriptor missing a final ';'");
+        }
+        sigs.addElement(
+            VM_TypeReference
+               .findOrCreate(cl, 
+                             findOrCreate(val, off, i - off)));
+        continue;
       }
       case ArrayTypeCode: {
-	int off = i - 1;
-	while (val[i] == ArrayTypeCode) {
-	  if (VM.VerifyAssertions)
-	    VM._assert(i < val.length, "malformed array descriptor");
-	  ++i;
-	}
-	if (val[i++] == ClassTypeCode) while (val[i++] != ';');
-	sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
-	continue;
+        int off = i - 1;
+        while (val[i] == ArrayTypeCode) {
+          if (VM.VerifyAssertions)
+            VM._assert(i < val.length, "malformed array descriptor");
+          ++i;
+        }
+        if (val[i++] == ClassTypeCode) while (val[i++] != ';');
+        sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
+        continue;
       }
       case (byte)')': // end of parameter list
-	return sigs.finish();
+        return sigs.finish();
             
-      default:	
-	if (VM.VerifyAssertions)
-	  VM._assert(false,
-		"The class descriptor \"" + this + "\" contains the illegal"
-		+ " character '" + byteToString(val[i]) + "'");
+      default:  
+        if (VM.VerifyAssertions)
+          VM._assert(false,
+                "The class descriptor \"" + this + "\" contains the illegal"
+                + " character '" + byteToString(val[i]) + "'");
       }
     }
   }
@@ -461,9 +461,9 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     }
     for (int i = 0; ; ++i) {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length, "Malformed array descriptor: it can't just have [ characters");
+        VM._assert(i < val.length, "Malformed array descriptor: it can't just have [ characters");
       if (val[i] != '[')
-	return i;
+        return i;
     }
   }
 
@@ -497,7 +497,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     int i=0; 
     while (val[i] == '[') {
       if (VM.VerifyAssertions)
-	VM._assert(i < val.length, "Malformed array descriptor: it can't just have [ characters");
+        VM._assert(i < val.length, "Malformed array descriptor: it can't just have [ characters");
       i++;
     }
     return findOrCreate(val, i, val.length -i);
@@ -531,8 +531,8 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
       byte[] test = systemClassPrefixes[i];
       if (test.length > val.length) continue outer;
       for (int j = 0; j < test.length; j++) {
-	if (val[j] != test[j]) 
-	  continue outer;
+        if (val[j] != test[j]) 
+          continue outer;
       }
       return true;
     }
@@ -588,7 +588,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     public final int hashCode() {
       int tmp = 99989;
       for (int i = val.length; --i >= 0; ) {
-	tmp = 99991 * tmp + val[i];
+        tmp = 99991 * tmp + val[i];
       }
       return tmp;
     }
@@ -596,14 +596,14 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
     public final boolean equals(Object other) {
       if (this == other) return true;
       if (other instanceof Key) {
-	Key that = (Key)other;
-	if (val.length != that.val.length) return false;
-	for (int i=0; i<val.length; i++) {
-	  if (val[i] != that.val[i]) return false;
-	}
-	return true;
+        Key that = (Key)other;
+        if (val.length != that.val.length) return false;
+        for (int i=0; i<val.length; i++) {
+          if (val[i] != that.val[i]) return false;
+        }
+        return true;
       } else {
-	return false;
+        return false;
       }
     }
   }

@@ -82,7 +82,7 @@ public class VM_Handshake {
       /* allow a gc thread to run */
       VM_Thread.getCurrentThread().yield();
       complete();
-      if (verbose >= 1)	VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - mutator running");
+      if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - mutator running");
     }
   }
   
@@ -164,8 +164,8 @@ public class VM_Handshake {
     VM_Scheduler.collectorMutex.lock();
     if (VM_Scheduler.collectorQueue.length() != maxCollectorThreads) 
       VM.sysWriteln("GC Error: Expected ", maxCollectorThreads, 
-		    " GC threads.   Found ", 
-		    VM_Scheduler.collectorQueue.length());
+                    " GC threads.   Found ", 
+                    VM_Scheduler.collectorQueue.length());
     while (VM_Scheduler.collectorQueue.length() > 0) {
       VM_Thread t = VM_Scheduler.collectorQueue.dequeue();
       t.scheduleHighPriority();
@@ -190,34 +190,34 @@ public class VM_Handshake {
     
     /* Wait for all gc threads to finish preceeding collection cycle */
     if (verbose >= 1) {
-	VM.sysWrite("GC Message: VM_Handshake.initiateCollection ");
-	VM.sysWriteln("checking if previous collection is finished");
+        VM.sysWrite("GC Message: VM_Handshake.initiateCollection ");
+        VM.sysWriteln("checking if previous collection is finished");
     }
     int count = 0;
     while (true) {
       VM_Scheduler.collectorMutex.lock();
       int len = VM_Scheduler.collectorQueue.length();
       if (count++ == 100000) {
-	VM.sysWriteln("GC Warning: WAITED LONG TIME FOR PRECEEDING GC TO FINISH");
-	VM.sysWriteln("GC Warning:          len = ", len);
-	VM.sysWriteln("GC Warning:    maxCollTh = ", maxCollectorThreads);
-	// VM_Scheduler.collectorQueue.dump();
+        VM.sysWriteln("GC Warning: WAITED LONG TIME FOR PRECEEDING GC TO FINISH");
+        VM.sysWriteln("GC Warning:          len = ", len);
+        VM.sysWriteln("GC Warning:    maxCollTh = ", maxCollectorThreads);
+        // VM_Scheduler.collectorQueue.dump();
       }
       VM_Scheduler.collectorMutex.unlock();
       if (len < maxCollectorThreads) {
-	if (verbose >= 1) VM.sysWrite("GC Message: VM_Handshake.initiateCollection waiting for previous collection to finish");
-	lock.release();   // release lock so other threads can make progress
-	VM_Thread.getCurrentThread().yield();
-	lock.acquire();   // acquire lock to make progress
+        if (verbose >= 1) VM.sysWrite("GC Message: VM_Handshake.initiateCollection waiting for previous collection to finish");
+        lock.release();   // release lock so other threads can make progress
+        VM_Thread.getCurrentThread().yield();
+        lock.acquire();   // acquire lock to make progress
       } else 
-	break;
+        break;
     }
     return maxCollectorThreads;
   }
 
   private void complete() throws VM_PragmaUninterruptible {
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-	VM_Scheduler.processors[i].unblockIfBlockedInC();
+        VM_Scheduler.processors[i].unblockIfBlockedInC();
     }
   }
 
@@ -233,17 +233,17 @@ public class VM_Handshake {
     lock.acquire();
     if (completionFlag) {
       if (verbose >= 1)
-	VM.sysWriteln("GC Message: mutator: already completed");
+        VM.sysWriteln("GC Message: mutator: already completed");
       lock.release();
       return false;
     }
     if (requestFlag) {
       if (verbose >= 1)
-	VM.sysWriteln("GC Message: mutator: already in progress");
+        VM.sysWriteln("GC Message: mutator: already in progress");
     } else {
       // first mutator initiates collection by making all gc threads
       // runnable at high priority
-      if (verbose >= 1)	VM.sysWriteln("GC Message: VM_Handshake - mutator: initiating collection");
+      if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake - mutator: initiating collection");
       requestFlag = true;
       initiateCollection();
     }

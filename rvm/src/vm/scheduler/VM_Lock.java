@@ -59,7 +59,7 @@ package com.ibm.JikesRVM;
    <LI> <EM>What to do if the attempt to lock an object fails?</EM>  There
         are three choices: try again (busy-wait), yield and then try again,
         inflate the lock and yield to the heavy-weight lock's entering
-	queue.  Currently, yield n times, then inflate.  
+        queue.  Currently, yield n times, then inflate.  
         (This seemed to be best for the portBOB benchmark on a 12-way AIX
         SMP in the Fall of '99.)
    <LI> <EM>When should a heavy-weight lock be deflated?</EM>  Currently,
@@ -69,11 +69,11 @@ package com.ibm.JikesRVM;
         been held for a while (how long?).
    <LI> <EM>How many heavy-weight locks are needed? and how should they be
         managed?</EM>  Currently, each processor maintains a pool of free
-	locks.  When a lock is inflated by a processor it is taken from
-	this pool and when a lock is deflated by a processor it gets added
+        locks.  When a lock is inflated by a processor it is taken from
+        this pool and when a lock is deflated by a processor it gets added
         to the processors pool.  Since inflation can happen on one processor
         and deflation on another, this can create an imbalance.  It might
-	be worth investigating a scheme for balancing these local pools.
+        be worth investigating a scheme for balancing these local pools.
    <LI> <EM>Is there any advantage to using the {@link VM_ProcessorLock#tryLock}
         method?</EM>  
    </OL>
@@ -170,7 +170,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     try {
       t.yield(l.waiting, l.mutex, VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex); // thread-switching benign
     } catch (Throwable thr) {
-	rethrow = thr;
+        rethrow = thr;
     }
     // regain lock
     VM_ObjectModel.genericLock(o);
@@ -180,7 +180,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       l.recursionCount = t.waitCount;
     }
     if (rethrow != null)
-	VM_Runtime.athrow(rethrow);
+        VM_Runtime.athrow(rethrow);
   }
 
   /**
@@ -269,7 +269,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   boolean lockHeavy (Object o) {
     if (tentativeMicrolocking) {
       if (!mutex.tryLock()) 
-	return false;
+        return false;
     } else mutex.lock();  // Note: thread switching is not allowed while mutex is held.
     if (lockedObject != o) { // lock disappeared before we got here
       mutex.unlock(); // thread switching benign
@@ -321,8 +321,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       // Possible project: decide on a heuristic to control when lock should be deflated
       int lockOffset = VM_Magic.getObjectType(o).getThinLockOffset();
       if (lockOffset != -1) { // deflate heavy lock
-	deflate(o, lockOffset);
-	deflated = true;
+        deflate(o, lockOffset);
+        deflated = true;
       }
     }
     mutex.unlock(); // does a VM_Magic.sync();  (thread-switching benign)
@@ -422,19 +422,19 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       l = new VM_Lock(); // may cause thread switch (and processor loss)
       mine = VM_Processor.getCurrentProcessor();
       if (mine.lastLockIndex < mine.nextLockIndex) {
-	lockAllocationMutex.lock();
-	mine.nextLockIndex = 1 + (LOCK_ALLOCATION_UNIT_SIZE * lockUnitsAllocated++);
-	lockAllocationMutex.unlock();
-	mine.lastLockIndex = mine.nextLockIndex + LOCK_ALLOCATION_UNIT_SIZE - 1;
-	if (MAX_LOCKS <= mine.lastLockIndex) {
-	  VM.sysWriteln("Too many fat locks on processor ", mine.id); // make MAX_LOCKS bigger? we can keep going??
-	  VM.sysFail("Exiting VM with fatal error");
-	  return null;
-	}
+        lockAllocationMutex.lock();
+        mine.nextLockIndex = 1 + (LOCK_ALLOCATION_UNIT_SIZE * lockUnitsAllocated++);
+        lockAllocationMutex.unlock();
+        mine.lastLockIndex = mine.nextLockIndex + LOCK_ALLOCATION_UNIT_SIZE - 1;
+        if (MAX_LOCKS <= mine.lastLockIndex) {
+          VM.sysWriteln("Too many fat locks on processor ", mine.id); // make MAX_LOCKS bigger? we can keep going??
+          VM.sysFail("Exiting VM with fatal error");
+          return null;
+        }
       }
       l.index = mine.nextLockIndex++;
       while (l.index >= VM_Scheduler.locks.length)
-	growLocks();
+        growLocks();
       VM_Scheduler.locks[l.index] = l;
       l.active = true;
       VM_Magic.sync(); // make sure other processors see lock initialization.  Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen
@@ -472,7 +472,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       if (VM.VerifyAssertions) VM._assert(mine.freeLock != null);
       VM_Lock q = mine.freeLock;
       while (q.nextFreeLock != null) {
-	q = q.nextFreeLock;
+        q = q.nextFreeLock;
       }
       lockAllocationMutex.lock();
       q.nextFreeLock  = globalFreeLock;
@@ -485,8 +485,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       VM_Lock p = null;
       VM_Lock q = mine.freeLock;
       for (int i=0; i<LOCK_ALLOCATION_UNIT_SIZE; i++) {
-	p = q;
-	q = q.nextFreeLock;
+        p = q;
+        q = q.nextFreeLock;
       }
       lockAllocationMutex.lock();
       p.nextFreeLock   = globalFreeLock;
@@ -519,8 +519,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       VM_Lock p = null;
       VM_Lock q = globalFreeLock;
       for (int i=0; i<LOCK_ALLOCATION_UNIT_SIZE; i++) {
-	p = q;
-	q = q.nextFreeLock;
+        p = q;
+        q = q.nextFreeLock;
       }
       p.nextFreeLock   = null;
       mine.freeLock    = globalFreeLock;
@@ -625,13 +625,13 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     } else {
       int bits = VM_Magic.getIntAtOffset(o, thinLockOffset);
       if ((bits & VM_ThinLockConstants.TL_FAT_LOCK_MASK) == 0) {
-	// if locked, then locked with a thin lock
-	return (bits & VM_ThinLockConstants.TL_THREAD_ID_MASK) == tid;
+        // if locked, then locked with a thin lock
+        return (bits & VM_ThinLockConstants.TL_THREAD_ID_MASK) == tid;
       } else {
-	// if locked, then locked with a fat lock
-	int index = (bits & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
-	VM_Lock l = VM_Scheduler.locks[index];
-	return l != null && l.ownerId == tid;
+        // if locked, then locked with a fat lock
+        int index = (bits & TL_LOCK_ID_MASK) >>> TL_LOCK_ID_SHIFT;
+        VM_Lock l = VM_Scheduler.locks[index];
+        return l != null && l.ownerId == tid;
       }
     }
   }

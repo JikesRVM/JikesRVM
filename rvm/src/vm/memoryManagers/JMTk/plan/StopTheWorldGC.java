@@ -137,7 +137,7 @@ public abstract class StopTheWorldGC extends BasePlan
     throws VM_PragmaInline {
     long pages = MemoryResource.getCumulativeCommittedPages();
     if (initialized &&
-	((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
+        ((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
       lastStressCumulativeCommittedPages = pages;
       return true;
     } else
@@ -235,9 +235,9 @@ public abstract class StopTheWorldGC extends BasePlan
     VM_Interface.rendezvous(4240);
     if (order == 1)
       for (int i=0; i<planCount; i++) {
-	Plan p = plans[i];
-	if (VM_Interface.isNonParticipating(p)) 
-	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
+        Plan p = plans[i];
+        if (VM_Interface.isNonParticipating(p)) 
+          p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
     VM_Interface.rendezvous(4250);
@@ -266,13 +266,13 @@ public abstract class StopTheWorldGC extends BasePlan
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
       Log.write("[GC "); Log.write(Statistics.gcCount);
       if (Options.verbose == 1) {
-	Log.write(" Start "); 
-	Log.write(VM_Interface.cyclesToSecs(gcStartTime - bootTime));
-	Log.write(" s");
+        Log.write(" Start "); 
+        Log.write(VM_Interface.cyclesToSecs(gcStartTime - bootTime));
+        Log.write(" s");
       } else {
-	Log.write(" Start "); 
-	Log.write(VM_Interface.cyclesToMillis(gcStartTime - bootTime));
-	Log.write(" ms");
+        Log.write(" Start "); 
+        Log.write(VM_Interface.cyclesToMillis(gcStartTime - bootTime));
+        Log.write(" ms");
       }
       Log.write("   ");
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
@@ -287,8 +287,8 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write("  Before Collection: ");
       MemoryResource.showUsage(MB);
       if (Options.verbose >= 4) {
-	Log.write("                     ");
-	MemoryResource.showUsage(PAGES);
+        Log.write("                     ");
+        MemoryResource.showUsage(PAGES);
       }
     }
     globalPrepare();
@@ -328,15 +328,15 @@ public abstract class StopTheWorldGC extends BasePlan
     if (order == 1) {
       int count = 0;
       for (int i=0; i<planCount; i++) {
-	Plan p = plans[i];
-	if (VM_Interface.isNonParticipating(p)) {
-	  count++;
-	  ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
-	}
+        Plan p = plans[i];
+        if (VM_Interface.isNonParticipating(p)) {
+          count++;
+          ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
+        }
       }
       if (Options.verbose >= 4) {
-	Log.write("  There were "); Log.write(count);
-	Log.writeln(" non-participating GC threads");
+        Log.write("  There were "); Log.write(count);
+        Log.writeln(" non-participating GC threads");
       }
     }
     order = VM_Interface.rendezvous(4280);
@@ -390,35 +390,35 @@ public abstract class StopTheWorldGC extends BasePlan
     do {
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing forwarded (pre-copied) objects"); }
       while (!forwardedObjects.isEmpty()) {
-	VM_Address object = forwardedObjects.pop();
-	scanForwardedObject(object);
+        VM_Address object = forwardedObjects.pop();
+        scanForwardedObject(object);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
       while (!rootLocations.isEmpty()) {
-	VM_Address loc = rootLocations.pop();
-	traceObjectLocation(loc, true);
+        VM_Address loc = rootLocations.pop();
+        traceObjectLocation(loc, true);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing interior root locations"); }
       while (!interiorRootLocations.isEmpty()) {
-	VM_Address obj = interiorRootLocations.pop1();
-	VM_Address interiorLoc = interiorRootLocations.pop2();
-	VM_Address interior = VM_Magic.getMemoryAddress(interiorLoc);
-	VM_Address newInterior = traceInteriorReference(obj, interior, true);
-	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
+        VM_Address obj = interiorRootLocations.pop1();
+        VM_Address interiorLoc = interiorRootLocations.pop2();
+        VM_Address interior = VM_Magic.getMemoryAddress(interiorLoc);
+        VM_Address newInterior = traceInteriorReference(obj, interior, true);
+        VM_Magic.setMemoryAddress(interiorLoc, newInterior);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
-	VM_Address v = values.pop();
-	ScanObject.scan(v);  // NOT traceObject
+        VM_Address v = values.pop();
+        ScanObject.scan(v);  // NOT traceObject
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing locations"); }
       while (!locations.isEmpty()) {
-	VM_Address loc = locations.pop();
-	traceObjectLocation(loc, false);
+        VM_Address loc = locations.pop();
+        traceObjectLocation(loc, false);
       }
       flushRememberedSets();
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
-	       && values.isEmpty() && locations.isEmpty()));
+               && values.isEmpty() && locations.isEmpty()));
 
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
     VM_Interface.rendezvous(4300);
@@ -453,20 +453,20 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
       Log.write(" KB   ");
       if (Options.verbose == 1) {
-	Log.write(VM_Interface.cyclesToMillis(gcStopTime - gcStartTime)); 
-	Log.writeln(" ms]");
+        Log.write(VM_Interface.cyclesToMillis(gcStopTime - gcStartTime)); 
+        Log.writeln(" ms]");
       } else {
-	Log.write("End "); 
-	Log.write(VM_Interface.cyclesToMillis(gcStopTime - bootTime));
-	Log.writeln(" ms]");
+        Log.write("End "); 
+        Log.write(VM_Interface.cyclesToMillis(gcStopTime - bootTime));
+        Log.writeln(" ms]");
       }
     }
     if (Options.verbose > 2) {
       Log.write("   After Collection: ");
       MemoryResource.showUsage(MB);
       if (Options.verbose >= 4) {
-	  Log.write("                     ");
-	  MemoryResource.showUsage(PAGES);
+          Log.write("                     ");
+          MemoryResource.showUsage(PAGES);
       }
       Log.write("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
       Log.write("      total = "); writePages(getTotalPages(), MB_PAGES);

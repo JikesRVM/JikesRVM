@@ -71,7 +71,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
    */
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_FloatConstantOperand) &&
-	   (value == ((OPT_FloatConstantOperand)op).value);
+           (value == ((OPT_FloatConstantOperand)op).value);
   }
 
   /**

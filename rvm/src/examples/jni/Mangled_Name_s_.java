@@ -32,9 +32,9 @@ class Mangled_Name_s_ {
     System.loadLibrary("Mangled_Name_s_");
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
     returnValue = _underscore();

@@ -97,7 +97,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * with a move from a register.
    *
    * POSTCONDITION: sets up the mapping 'registers' from value number
-   *		     to temporary register
+   *                 to temporary register
    * @param ir the IR
    * @param available information on which values are available
    * @param registers a place to store information about temp registers
@@ -285,7 +285,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * for that value number.  Create one if necessary.
    *
    * @param heapType a VM_TypeReference or VM_Field identifying the array SSA
-   *			heap type
+   *                    heap type
    * @param valueNumber
    * @param registers a mapping from value number to temporary register
    * @param pool register pool to allocate new temporaries from
@@ -309,15 +309,15 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * allocated for that pair.  Create one if necessary.
    *
    * @param heapType a VM_TypeReference identifying the array SSA
-   *			heap type
+   *                    heap type
    * @param v1, v2 valueNumbers
    * @param registers a mapping from value number to temporary register
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register
    */
   static OPT_Register findOrCreateRegister(Object heapType, int v1, int v2, 
-					   HashMap registers, OPT_RegisterPool pool, 
-					   VM_TypeReference type) {
+                                           HashMap registers, OPT_RegisterPool pool, 
+                                           VM_TypeReference type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -407,8 +407,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * Do a quick pass over the IR, and return types that are candidates
    * for redundant load elimination.
    * Algorithm: return those types T where
-   *	1) there's a load L(i) of type T 
-   *	2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
+   *    1) there's a load L(i) of type T 
+   *    2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
    */
   final public static Set getCandidates(OPT_IR ir) {
     OPT_GlobalValueNumberState valueNumbers = ir.HIRInfo.valueNumbers;
@@ -432,70 +432,70 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
               {
                 OPT_Operand ref = GetField.getRef(s);
                 VM_FieldReference fr = GetField.getLocation(s).getFieldRef();
-		VM_Field f = fr.peekResolvedField();
-		if (f == null) {
-		  forbidden.add(fr);
-		} else {
-		  HashSet numbers = findOrCreateIndexSet(indices,f);
-		  int v = valueNumbers.getValueNumber(ref);
-		  Integer V = new Integer(v);
-		  if (numbers.contains(V)) {
-		    resultSet.add(f);
-		  } else {
-		    numbers.add(V);
-		  }
-		  seenLoad.add(f);
-		}
-	      }
+                VM_Field f = fr.peekResolvedField();
+                if (f == null) {
+                  forbidden.add(fr);
+                } else {
+                  HashSet numbers = findOrCreateIndexSet(indices,f);
+                  int v = valueNumbers.getValueNumber(ref);
+                  Integer V = new Integer(v);
+                  if (numbers.contains(V)) {
+                    resultSet.add(f);
+                  } else {
+                    numbers.add(V);
+                  }
+                  seenLoad.add(f);
+                }
+              }
               break;
             case PUTFIELD_opcode:
               {
                 OPT_Operand ref = PutField.getRef(s);
                 VM_FieldReference fr = PutField.getLocation(s).getFieldRef();
-		VM_Field f = fr.peekResolvedField();
-		if (f == null) {
-		  forbidden.add(fr);
-		} else {
-		  HashSet numbers = findOrCreateIndexSet(indices,f);
-		  int v = valueNumbers.getValueNumber(ref);
-		  Integer V = new Integer(v);
-		  if (numbers.contains(V)) {
-		    if (seenLoad.contains(f)) {
-		      resultSet.add(f);
-		    }
-		  } else {
-		    numbers.add(V);
-		  }
-		}
-	      }
+                VM_Field f = fr.peekResolvedField();
+                if (f == null) {
+                  forbidden.add(fr);
+                } else {
+                  HashSet numbers = findOrCreateIndexSet(indices,f);
+                  int v = valueNumbers.getValueNumber(ref);
+                  Integer V = new Integer(v);
+                  if (numbers.contains(V)) {
+                    if (seenLoad.contains(f)) {
+                      resultSet.add(f);
+                    }
+                  } else {
+                    numbers.add(V);
+                  }
+                }
+              }
               break;
             case GETSTATIC_opcode:
               {
                 VM_FieldReference fr = GetStatic.getLocation(s).getFieldRef();
-		VM_Field f = fr.peekResolvedField();
-		if (f == null) {
-		  forbidden.add(fr);
-		} else {
-		  if (seenLoad.contains(f) || seenStore.contains(f)) {
-		    resultSet.add(f);
-		  }
-		  seenLoad.add(f);
-		}
+                VM_Field f = fr.peekResolvedField();
+                if (f == null) {
+                  forbidden.add(fr);
+                } else {
+                  if (seenLoad.contains(f) || seenStore.contains(f)) {
+                    resultSet.add(f);
+                  }
+                  seenLoad.add(f);
+                }
               }
               break;
             case PUTSTATIC_opcode:
               {
                 VM_FieldReference fr = PutStatic.getLocation(s).getFieldRef();
-		VM_Field f = fr.peekResolvedField();
-		if (f == null) {
-		  forbidden.add(fr);
-		} else {
-		  if (seenLoad.contains(f)) {
-		    resultSet.add(f);
-		  }
-		  seenStore.add(f);
-		}
-	      }
+                VM_Field f = fr.peekResolvedField();
+                if (f == null) {
+                  forbidden.add(fr);
+                } else {
+                  if (seenLoad.contains(f)) {
+                    resultSet.add(f);
+                  }
+                  seenStore.add(f);
+                }
+              }
               break;
             case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
             case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
@@ -566,12 +566,12 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     for (Iterator i1 = forbidden.iterator(); i1.hasNext(); ) {
       VM_FieldReference forbid = (VM_FieldReference)i1.next();
       for (Iterator i2 = resultSet.iterator(); i2.hasNext(); ) {
-	Object it = i2.next();
-	if (it instanceof VM_Field) {
-	  if (!forbid.definitelyDifferent(((VM_Field)it).getMemberRef().asFieldReference())) {
-	    i2.remove();
-	  }
-	}
+        Object it = i2.next();
+        if (it instanceof VM_Field) {
+          if (!forbid.definitelyDifferent(((VM_Field)it).getMemberRef().asFieldReference())) {
+            i2.remove();
+          }
+        }
       }
     }
 

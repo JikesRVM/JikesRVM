@@ -73,25 +73,25 @@ public final class Class implements java.io.Serializable {
   }
 
   public static Class forName(String className, 
-			      boolean initialize, 
-			      ClassLoader classLoader) 
+                              boolean initialize, 
+                              ClassLoader classLoader) 
     throws ClassNotFoundException,
-	   LinkageError,
-	   ExceptionInInitializerError {
+           LinkageError,
+           ExceptionInInitializerError {
     if (classLoader == null) {
       SecurityManager security = System.getSecurityManager();
       if (security != null) {
-	ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
-	if (parentCL != null) {
-	  try {
-	    security.checkPermission(new RuntimePermission("getClassLoader"));
-	  } catch (SecurityException e) {
-	    throw new ClassNotFoundException(
-		    "Security exception when"
-		    + " trying to get a classloader so we can load the"
-		    + " class named \"" + className +"\"", e);
-	  }
-	}
+        ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
+        if (parentCL != null) {
+          try {
+            security.checkPermission(new RuntimePermission("getClassLoader"));
+          } catch (SecurityException e) {
+            throw new ClassNotFoundException(
+                    "Security exception when"
+                    + " trying to get a classloader so we can load the"
+                    + " class named \"" + className +"\"", e);
+          }
+        }
       }
       classLoader = VM_SystemClassLoader.getVMClassLoader();
     }
@@ -108,16 +108,16 @@ public final class Class implements java.io.Serializable {
     for (Class c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
       VM_TypeReference[] declaredClasses 
-	= c.type.asClass().getDeclaredClasses();
+        = c.type.asClass().getDeclaredClasses();
       if (declaredClasses != null) {
-	for (int i=0; i<declaredClasses.length; i++) {
-	  if (declaredClasses[i] != null) {
-	    VM_Class dc = declaredClasses[i].resolve().asClass();
-	    if (dc.isPublic()) {
-	      publicClasses.add(dc.getClassForType());
-	    }
-	  }
-	}
+        for (int i=0; i<declaredClasses.length; i++) {
+          if (declaredClasses[i] != null) {
+            VM_Class dc = declaredClasses[i].resolve().asClass();
+            if (dc.isPublic()) {
+              publicClasses.add(dc.getClassForType());
+            }
+          }
+        }
       }
     }
     
@@ -131,7 +131,7 @@ public final class Class implements java.io.Serializable {
     if (security != null) {
       ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
       if (parentCL != null) {
-	security.checkPermission(new RuntimePermission("getClassLoader"));
+        security.checkPermission(new RuntimePermission("getClassLoader"));
       }
     }
     ClassLoader cl = type.getClassLoader();
@@ -154,8 +154,8 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i<methods.length; i++) {
       VM_Method method = methods[i];
       if (method.isPublic() && 
-	  parametersMatch(method.getParameterTypes(), parameterTypes)) {
-	return JikesRVMSupport.createConstructor(method);
+          parametersMatch(method.getParameterTypes(), parameterTypes)) {
+        return JikesRVMSupport.createConstructor(method);
       }
     }
 
@@ -173,7 +173,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i<methods.length; i++) {
       VM_Method method = methods[i];
       if (method.isPublic()) {
-	coll.collect(JikesRVMSupport.createConstructor(method));
+        coll.collect(JikesRVMSupport.createConstructor(method));
       }
     }
     return coll.constructorArray();
@@ -199,7 +199,7 @@ public final class Class implements java.io.Serializable {
     int length = declaredClasses.length;
     for (int i = 0; i < length; ++i) {
       if (declaredClasses[i] != null) {
-	++count;
+        ++count;
       }
     }
 
@@ -208,7 +208,7 @@ public final class Class implements java.io.Serializable {
     count = 0;
     for (int i = 0; i < length; ++i) {
       if (declaredClasses[i] != null) {
-	result[count++] = declaredClasses[i].resolve().getClassForType();
+        result[count++] = declaredClasses[i].resolve().getClassForType();
       }
     }
     
@@ -225,7 +225,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
       if (parametersMatch(method.getParameterTypes(), parameterTypes)) {
-	return JikesRVMSupport.createConstructor(method);
+        return JikesRVMSupport.createConstructor(method);
       }
     }
 
@@ -256,7 +256,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < fields.length; i++) {
       VM_Field field = fields[i];
       if (field.getName() == aName) {
-	return JikesRVMSupport.createField(field);
+        return JikesRVMSupport.createField(field);
       }
     }
     
@@ -286,8 +286,8 @@ public final class Class implements java.io.Serializable {
 
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
     if (aName == null 
-	|| aName == VM_ClassLoader.StandardClassInitializerMethodName 
-	|| aName == VM_ClassLoader.StandardObjectInitializerMethodName)
+        || aName == VM_ClassLoader.StandardClassInitializerMethodName 
+        || aName == VM_ClassLoader.StandardObjectInitializerMethodName)
     {
       // null means that we don't have such an atom; 
       // <init> and <clinit> are not methods. 
@@ -299,15 +299,15 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i<methods.length; i++) {
       VM_Method meth = methods[i];
       if (meth.getName() == aName && 
-	  parametersMatch(meth.getParameterTypes(), parameterTypes)) {
-	if (answer == null) {
-	  answer = JikesRVMSupport.createMethod(meth);
-	} else {
-	  Method m2 = JikesRVMSupport.createMethod(meth);
-	  if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
-	    answer = m2;
-	  }
-	}
+          parametersMatch(meth.getParameterTypes(), parameterTypes)) {
+        if (answer == null) {
+          answer = JikesRVMSupport.createMethod(meth);
+        } else {
+          Method m2 = JikesRVMSupport.createMethod(meth);
+          if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
+            answer = m2;
+          }
+        }
       }
     }
 
@@ -325,7 +325,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < methods.length; i++) {
       VM_Method meth = methods[i];
       if (!meth.isClassInitializer() && !meth.isObjectInitializer()) {
-	coll.collect(JikesRVMSupport.createMethod(meth));
+        coll.collect(JikesRVMSupport.createMethod(meth));
       }
     }
     return coll.methodArray();
@@ -380,12 +380,12 @@ public final class Class implements java.io.Serializable {
     if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
       return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
-			   VM_Type.JavaIoSerializableType.getClassForType() };
+                           VM_Type.JavaIoSerializableType.getClassForType() };
     } else if (type.isClassType()) {
       VM_Class[] interfaces  = type.asClass().getDeclaredInterfaces();
       Class[]    jinterfaces = new Class[interfaces.length];
       for (int i = 0; i != interfaces.length; i++)
-	jinterfaces[i] = interfaces[i].getClassForType();
+        jinterfaces[i] = interfaces[i].getClassForType();
       return jinterfaces;
     } else {
       return new Class[0];
@@ -399,8 +399,8 @@ public final class Class implements java.io.Serializable {
 
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
     if (aName == null || 
-	aName == VM_ClassLoader.StandardClassInitializerMethodName ||
-	aName == VM_ClassLoader.StandardObjectInitializerMethodName) {
+        aName == VM_ClassLoader.StandardClassInitializerMethodName ||
+        aName == VM_ClassLoader.StandardObjectInitializerMethodName) {
       // null means that we don't have such an atom; <init> and <clinit> are not methods.
       throw new NoSuchMethodException(name + parameterTypes);
     }
@@ -410,18 +410,18 @@ public final class Class implements java.io.Serializable {
       VM_Method[] methods = current.getDeclaredMethods(); 
       Method answer = null;
       for (int i = 0; i<methods.length; i++) {
-	VM_Method meth = methods[i];
-	if (meth.getName() == aName && meth.isPublic() &&
-	    parametersMatch(meth.getParameterTypes(), parameterTypes)) {
-	  if (answer == null) {
-	    answer = JikesRVMSupport.createMethod(meth);
-	  } else {
-	    Method m2 = JikesRVMSupport.createMethod(meth);
-	    if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
-	      answer = m2;
-	    }
-	  }
-	}
+        VM_Method meth = methods[i];
+        if (meth.getName() == aName && meth.isPublic() &&
+            parametersMatch(meth.getParameterTypes(), parameterTypes)) {
+          if (answer == null) {
+            answer = JikesRVMSupport.createMethod(meth);
+          } else {
+            Method m2 = JikesRVMSupport.createMethod(meth);
+            if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
+              answer = m2;
+            }
+          }
+        }
       }
       if (answer != null) return answer;
     }
@@ -434,15 +434,15 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i<methods.length; i++) {
       VM_Method meth = methods[i];
       if (meth.getName() == aName && meth.isPublic() &&
-	  parametersMatch(meth.getParameterTypes(), parameterTypes)) {
-	if (answer == null) {
-	  answer = JikesRVMSupport.createMethod(meth);
-	} else {
-	  Method m2 = JikesRVMSupport.createMethod(meth);
-	  if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
-	    answer = m2;
-	  }
-	}
+          parametersMatch(meth.getParameterTypes(), parameterTypes)) {
+        if (answer == null) {
+          answer = JikesRVMSupport.createMethod(meth);
+        } else {
+          Method m2 = JikesRVMSupport.createMethod(meth);
+          if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
+            answer = m2;
+          }
+        }
       }
     }
 
@@ -479,10 +479,10 @@ public final class Class implements java.io.Serializable {
       VM_Type innermostElementType = type.asArray().getInnermostElementType();
       int result = Modifier.FINAL;
       if (innermostElementType.isClassType()) {
-	int component = innermostElementType.asClass().getModifiers();
-	result |= (component & (Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE));
+        int component = innermostElementType.asClass().getModifiers();
+        result |= (component & (Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE));
       } else {
-	result |= Modifier.PUBLIC; // primitive
+        result |= Modifier.PUBLIC; // primitive
       }
       return result;
     } else {
@@ -567,9 +567,9 @@ public final class Class implements java.io.Serializable {
   }
 
   public Object newInstance() throws IllegalAccessException, 
-				     InstantiationException,
-				     ExceptionInInitializerError,
-				     SecurityException {
+                                     InstantiationException,
+                                     ExceptionInInitializerError,
+                                     SecurityException {
     // Basic checks
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) 
@@ -586,8 +586,8 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < methods.length; i++) {
       VM_Method method = methods[i];
       if (method.getParameterTypes().length == 0) {
-	defaultConstructor = method;
-	break;
+        defaultConstructor = method;
+        break;
       }
     }
     if (defaultConstructor == null) 
@@ -602,11 +602,11 @@ public final class Class implements java.io.Serializable {
     // Ensure that the class is initialized
     if (!cls.isInitialized()) {
       try {
-	VM_Runtime.initializeClassForDynamicLink(cls);
+        VM_Runtime.initializeClassForDynamicLink(cls);
       } catch (Throwable e) {
-	ExceptionInInitializerError ex = new ExceptionInInitializerError();
-	ex.initCause(e);
-	throw ex;
+        ExceptionInInitializerError ex = new ExceptionInInitializerError();
+        ex.initCause(e);
+        throw ex;
       }
     }
 
@@ -653,28 +653,28 @@ public final class Class implements java.io.Serializable {
   }
    
   private static Class forNameInternal(String className, 
-				       boolean initialize, 
-				       ClassLoader classLoader)
+                                       boolean initialize, 
+                                       ClassLoader classLoader)
     throws ClassNotFoundException,
-	   LinkageError,
-	   ExceptionInInitializerError {
+           LinkageError,
+           ExceptionInInitializerError {
     try {
       if (className.startsWith("[")) {
-	if (!validArrayDescriptor(className)) {
-	  throw new ClassNotFoundException(className);
-	}
+        if (!validArrayDescriptor(className)) {
+          throw new ClassNotFoundException(className);
+        }
       }
       VM_Atom descriptor = VM_Atom
-	.findOrCreateAsciiAtom(className.replace('.','/'))
-	.descriptorFromClassName();
+        .findOrCreateAsciiAtom(className.replace('.','/'))
+        .descriptorFromClassName();
       VM_TypeReference tRef 
-	= VM_TypeReference.findOrCreate(classLoader, descriptor);
+        = VM_TypeReference.findOrCreate(classLoader, descriptor);
       VM_Type ans = tRef.resolve();
       VM_Callbacks.notifyForName(ans);
       if (initialize && !ans.isInitialized()) {
-	ans.resolve();
-	ans.instantiate();
-	ans.initialize();
+        ans.resolve();
+        ans.instantiate();
+        ans.initialize();
       }
       return ans.getClassForType();
     } catch (NoClassDefFoundError ncdfe) {
@@ -682,9 +682,9 @@ public final class Class implements java.io.Serializable {
       ClassNotFoundException cnf;
       // If we get a NCDFE that was caused by a CNFE, throw the original CNFE.
       if (cause2 instanceof ClassNotFoundException)
-	cnf = (ClassNotFoundException) cause2;
+        cnf = (ClassNotFoundException) cause2;
       else
-	cnf = new ClassNotFoundException(className, ncdfe);
+        cnf = new ClassNotFoundException(className, ncdfe);
       throw cnf;
     }
   }
@@ -697,7 +697,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < fields.length; i++) {
       VM_Field field = fields[i];
       if (field.isPublic() && field.getName() == name) {
-	return JikesRVMSupport.createField(field);
+        return JikesRVMSupport.createField(field);
       }
     }
 
@@ -741,26 +741,26 @@ public final class Class implements java.io.Serializable {
 
     for (i = 0; i < length; i++)
       if (name.charAt(i) != '[') break;
-    if (i == length) return false;	// string of only ['s
+    if (i == length) return false;      // string of only ['s
 
     if (i == length - 1) {
       switch (name.charAt(i)) {
-      case 'B':	return true;	// byte
-      case 'C':	return true; 	// char
-      case 'D':	return true; 	// double
-      case 'F':	return true; 	// float
-      case 'I':	return true; 	// integer
-      case 'J':	return true; 	// long
-      case 'S':	return true; 	// short
-      case 'Z':	return true; 	// boolean
-      default:	return false;
+      case 'B': return true;    // byte
+      case 'C': return true;    // char
+      case 'D': return true;    // double
+      case 'F': return true;    // float
+      case 'I': return true;    // integer
+      case 'J': return true;    // long
+      case 'S': return true;    // short
+      case 'Z': return true;    // boolean
+      default:  return false;
       }
     } else if (name.charAt(i) != 'L') {
       return false;    // not a class descriptor
     } else if (name.charAt(length - 1) != ';') {
-      return false;	// ditto
+      return false;     // ditto
     }
-    return true;			// a valid class descriptor
+    return true;                        // a valid class descriptor
   }
 
   /**
@@ -787,9 +787,9 @@ public final class Class implements java.io.Serializable {
     for (int i = 0, n = lhs.length; i < n; ++i) {
       if (rhs[i] == null) return false;
       if (lhs[i].resolve() != rhs[i].type) {
-	return false;
+        return false;
       }
-    }	
+    }   
     return true;
   }
 

@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @modified by Kris Venstermans (64-bit port AIX)
  */
 public class VM_JNICompiler implements VM_BaselineConstants,
-				       VM_AssemblerConstants,
+                                       VM_AssemblerConstants,
                                        VM_JNIStackframeLayoutConstants {
 
   /**
@@ -84,14 +84,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   | ...      |
    *   |nonvol 31 |                                         <- JNI_RVM_NONVOLATILE_OFFSET
    *   |----------|   
-   *   |  fp   	  | <- Java caller frame
-   *   | mid   	  |
-   *   | xxx   	  |
-   *   |       	  |
-   *   |       	  |
-   *   |       	  |
+   *   |  fp      | <- Java caller frame
+   *   | mid      |
+   *   | xxx      |
+   *   |          |
+   *   |          |
+   *   |          |
    *   |----------|
-   *   |       	  |
+   *   |          |
    * </pre>
    * 
    * Linux (and OSX) uses different transition scheme: the Java-to-Native transition
@@ -129,9 +129,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     int compiledMethodId = cm.getId();
-    VM_Assembler asm	= new VM_Assembler(0);
-    int frameSize	= VM_Compiler.getFrameSize(method);
-    VM_Class klass	= method.getDeclaringClass();
+    VM_Assembler asm    = new VM_Assembler(0);
+    int frameSize       = VM_Compiler.getFrameSize(method);
+    VM_Class klass      = method.getDeclaringClass();
 
     /* initialization */
     if (VM.VerifyAssertions) VM._assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
@@ -150,7 +150,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     // save return address in caller frame
     asm.emitMFLR(REGISTER_ZERO);
-    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);	
+    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);      
   
     //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // buy mini frame (2)
@@ -160,7 +160,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // buy mini frame (1), the total size equals to frameSize
     asm.emitSTAddrU   (FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
     //-#endif
-	
+        
     //-#if RVM_FOR_AIX
     asm.emitSTAddrU   (FP,  -frameSize, FP);             // get transition frame on stack
     asm.emitLVAL  (S0, compiledMethodId);                // save jni method id
@@ -187,12 +187,12 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //-#elif RVM_FOR_AIX
     asm.emitSTAddr(FP, VM_Entrypoints.JNITopJavaFPField.getOffset(), S0);           
     //-#endif
-	
+        
     // save the RVM nonvolatile registers, to be scanned by GC stack mapper
     // remember to skip past the saved JTOC  by starting with offset = JNI_RVM_NONVOLATILE_OFFSET
     //
     for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
-	 i >= FIRST_NONVOLATILE_GPR; --i, offset+=BYTES_IN_STACKSLOT) {
+         i >= FIRST_NONVOLATILE_GPR; --i, offset+=BYTES_IN_STACKSLOT) {
       asm.emitSTAddr(i, frameSize - offset, FP);
     }
 
@@ -208,7 +208,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // Assumes S0 set to JNIEnv, kills KLUDGE_TI_REG, S1 & PROCESSOR_REGISTER
     // On return, S0 still contains JNIEnv
     storeParameters(asm, frameSize, method, klass);
-	
+        
     // Get address of out_of_line prolog into S1, before setting TOC reg.
     asm.emitLAddr (S1, VM_Entrypoints.invokeNativeFunctionInstructionsField.getOffset(), JTOC);
     asm.emitMTCTR (S1);
@@ -238,7 +238,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitCMPI(T2,0);
     VM_ForwardReference fr1 = asm.emitForwardBC(EQ);
     for (int i = LAST_NONVOLATILE_GPR, offset = JNI_RVM_NONVOLATILE_OFFSET;
-	 i >= FIRST_NONVOLATILE_GPR; --i, offset+=BYTES_IN_STACKSLOT) {
+         i >= FIRST_NONVOLATILE_GPR; --i, offset+=BYTES_IN_STACKSLOT) {
       asm.emitLAddr(i, frameSize - offset, FP);
     }
     fr1.resolve(asm);
@@ -351,7 +351,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // and make current TOP the new savedFP
     //
     asm.emitLInt  (S1, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), S0);
-    asm.emitSTWU (S1, BYTES_IN_ADDRESS, KLUDGE_TI_REG);                           // push prev frame ptr onto JNIRefs array	
+    asm.emitSTWU (S1, BYTES_IN_ADDRESS, KLUDGE_TI_REG);                           // push prev frame ptr onto JNIRefs array     
     asm.emitSUBFC(S1, PROCESSOR_REGISTER, KLUDGE_TI_REG);          // compute offset for new TOP
     asm.emitSTW  (S1, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), S0);  // save new TOP as new frame ptr in JNIEnv
 
@@ -361,23 +361,23 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // 
     // for static methods:                for nonstatic methods:       
     //  Java caller     OS callee         Java caller     OS callee    
-    //  -----------     ----------	    -----------     ----------  
-    //  spill = arg11 -> new spill	    spill = arg11 -> new spill  
-    //  spill = arg10 -> new spill	    spill = arg10 -> new spill  
-    // 				            spill = arg9  -> new spill  
-    //  spill = arg9  -> new spill	                                
-    //  spill = arg8  -> new spill	    spill = arg8  -> new spill  
-    //    R10 = arg7  -> new spill	    spill = arg7  -> new spill  
-    //    R9  = arg6  -> new spill	      R10 = arg6  -> new spill  
-    // 								   
+    //  -----------     ----------          -----------     ----------  
+    //  spill = arg11 -> new spill          spill = arg11 -> new spill  
+    //  spill = arg10 -> new spill          spill = arg10 -> new spill  
+    //                                      spill = arg9  -> new spill  
+    //  spill = arg9  -> new spill                                      
+    //  spill = arg8  -> new spill          spill = arg8  -> new spill  
+    //    R10 = arg7  -> new spill          spill = arg7  -> new spill  
+    //    R9  = arg6  -> new spill            R10 = arg6  -> new spill  
+    //                                                             
     //    R8  = arg5  -> R10                  R9  = arg5  -> R10         
-    //    R7  = arg4  -> R9		      R8  = arg4  -> R9          
-    //    R6  = arg3  -> R8		      R7  = arg3  -> R8          
-    //    R5  = arg2  -> R7		      R6  = arg2  -> R7          
-    //    R4  = arg1  -> R6		      R5  = arg1  -> R6          
-    //    R3  = arg0  -> R5		      R4  = arg0  -> R5          
+    //    R7  = arg4  -> R9                   R8  = arg4  -> R9          
+    //    R6  = arg3  -> R8                   R7  = arg3  -> R8          
+    //    R5  = arg2  -> R7                   R6  = arg2  -> R7          
+    //    R4  = arg1  -> R6                   R5  = arg1  -> R6          
+    //    R3  = arg0  -> R5                   R4  = arg0  -> R5          
     //                   R4 = class           R3  = this  -> R4         
-    // 	                 R3 = JNIenv                         R3 = JNIenv
+    //                   R3 = JNIenv                         R3 = JNIenv
     //
 
     nextOSArgFloatReg = FIRST_OS_PARAMETER_FPR;
@@ -420,7 +420,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       asm.emitSUBFC(SECOND_OS_PARAMETER_GPR, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
     }
     
-    // store the new JNIRefs array TOP back into JNIEnv	
+    // store the new JNIRefs array TOP back into JNIEnv 
     asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
     asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
   }
@@ -476,7 +476,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       // double 
       //
       if (types[arg].isFloatType() || types[arg].isDoubleType()) {
-	boolean is32bits = types[arg].isFloatType();
+        boolean is32bits = types[arg].isFloatType();
 
         //-#if RVM_FOR_OSX
         if (is32bits)
@@ -486,35 +486,35 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           nextOsxGprIncrement = 2;
         }
         //-#endif
-       	
-       	// 1. check the source, the value will be in srcVMArg
-	int srcVMArg; // scratch fpr
-	if (nextVMArgFloatReg <= LAST_VOLATILE_FPR) {
-	  srcVMArg = nextVMArgFloatReg;
-	  nextVMArgFloatReg ++;
-	} else {
-	  srcVMArg = FIRST_SCRATCH_FPR;
-	  // VM float reg is in spill area
-	  if (is32bits) {
-	    asmArg.emitLFS(srcVMArg, spillOffsetVM, FP);
-	    spillOffsetVM += 4;
-	  } else {
-	    asmArg.emitLFD(srcVMArg, spillOffsetVM, FP);
-	    spillOffsetVM += 8;
-	  }
-	}  
-		
-	// 2. check the destination, 
-	if (nextOSArgFloatReg <= LAST_OS_PARAMETER_FPR) {
-	  // leave it there
-	  nextOSArgFloatReg ++;
-	} else {
+        
+        // 1. check the source, the value will be in srcVMArg
+        int srcVMArg; // scratch fpr
+        if (nextVMArgFloatReg <= LAST_VOLATILE_FPR) {
+          srcVMArg = nextVMArgFloatReg;
+          nextVMArgFloatReg ++;
+        } else {
+          srcVMArg = FIRST_SCRATCH_FPR;
+          // VM float reg is in spill area
+          if (is32bits) {
+            asmArg.emitLFS(srcVMArg, spillOffsetVM, FP);
+            spillOffsetVM += 4;
+          } else {
+            asmArg.emitLFD(srcVMArg, spillOffsetVM, FP);
+            spillOffsetVM += 8;
+          }
+        }  
+                
+        // 2. check the destination, 
+        if (nextOSArgFloatReg <= LAST_OS_PARAMETER_FPR) {
+          // leave it there
+          nextOSArgFloatReg ++;
+        } else {
           //-#if RVM_FOR_LINUX          
-	  // spill it, round the spill address to 8
-	  // assuming FP is aligned to 8
-	  spillOffsetOS = (spillOffsetOS + 7) & -8;	  
-	  asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
-	  spillOffsetOS += 8;
+          // spill it, round the spill address to 8
+          // assuming FP is aligned to 8
+          spillOffsetOS = (spillOffsetOS + 7) & -8;       
+          asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
+          spillOffsetOS += 8;
           //-#elif RVM_FOR_OSX
           if (is32bits) {
             asmArg.emitSTFS(srcVMArg, spillOffsetOS, FP);
@@ -523,59 +523,59 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           }
           //-#endif
         }
-	// for 64-bit long arguments
+        // for 64-bit long arguments
       } else if (types[arg].isLongType()) {
         //-#if RVM_FOR_OSX
-	spillSizeOSX = 8;
+        spillSizeOSX = 8;
         nextOsxGprIncrement = 2;
-	//-#endif
-	
-	// handle OS first
-	boolean dstSpilling;
-	int regOrSpilling = -1;  // it is register number or spilling offset
-	// 1. check if Linux register > 9
-	if (nextOSArgReg > (LAST_OS_PARAMETER_GPR - 1)) {
-	  // goes to spilling area
-	  dstSpilling = true;
+        //-#endif
+        
+        // handle OS first
+        boolean dstSpilling;
+        int regOrSpilling = -1;  // it is register number or spilling offset
+        // 1. check if Linux register > 9
+        if (nextOSArgReg > (LAST_OS_PARAMETER_GPR - 1)) {
+          // goes to spilling area
+          dstSpilling = true;
 
           //-#if RVM_FOR_LINUX
-	  /* NOTE: following adjustment is not stated in SVR4 ABI, but 
-	   * was implemented in GCC.
-	   * -- Feng
-	   */
-	  nextOSArgReg = LAST_OS_PARAMETER_GPR + 1;
-	  
-	  // do alignment and compute spilling offset
+          /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+           * was implemented in GCC.
+           * -- Feng
+           */
+          nextOSArgReg = LAST_OS_PARAMETER_GPR + 1;
+          
+          // do alignment and compute spilling offset
           spillOffsetOS = (spillOffsetOS + 7) & -8;
-	  regOrSpilling = spillOffsetOS;
-	  spillOffsetOS += 8;
+          regOrSpilling = spillOffsetOS;
+          spillOffsetOS += 8;
 
           //-#elif RVM_FOR_OSX
           
           regOrSpilling = spillOffsetOS;          
           //-#endif
-	} else {
-	  // use registers
-	  dstSpilling = false;
+        } else {
+          // use registers
+          dstSpilling = false;
 
           //-#if RVM_FOR_LINUX
-	  // rounds to odd
-	  nextOSArgReg += (nextOSArgReg + 1) & 0x01; // if gpr is even, gpr += 1
-	  regOrSpilling = nextOSArgReg;
-	  nextOSArgReg += 2;
+          // rounds to odd
+          nextOSArgReg += (nextOSArgReg + 1) & 0x01; // if gpr is even, gpr += 1
+          regOrSpilling = nextOSArgReg;
+          nextOSArgReg += 2;
           //-#elif RVM_FOR_OSX
           regOrSpilling = nextOSArgReg;
           //-#endif
-	}
-	
-	// handle RVM source
-	if (nextVMArgReg < LAST_VOLATILE_GPR) {
-	  // both parts in registers
-	  if (dstSpilling) {
-	    asmArg.emitSTW(nextVMArgReg+1, regOrSpilling+4, FP);
+        }
+        
+        // handle RVM source
+        if (nextVMArgReg < LAST_VOLATILE_GPR) {
+          // both parts in registers
+          if (dstSpilling) {
+            asmArg.emitSTW(nextVMArgReg+1, regOrSpilling+4, FP);
 
             //-#if RVM_FOR_LINUX
-	    asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
+            asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
             //-#elif RVM_FOR_OSX
             if (nextOSArgReg == LAST_OS_PARAMETER_GPR) {
               asmArg.emitMR(nextOSArgReg, nextVMArgReg); 
@@ -583,96 +583,96 @@ public class VM_JNICompiler implements VM_BaselineConstants,
               asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
             }
             //-#endif
-	  } else {
-	    asmArg.emitMR(regOrSpilling+1, nextVMArgReg+1);
-	    asmArg.emitMR(regOrSpilling, nextVMArgReg);
-	  }
-	  // advance register counting, Linux register number
-	  // already advanced 
-	  nextVMArgReg += 2;
-	} else if (nextVMArgReg == LAST_VOLATILE_GPR) {
-	  // VM striding
-	  if (dstSpilling) {
-	    asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM, FP);
-	    asmArg.emitSTW(REGISTER_ZERO, regOrSpilling+4, FP);
-	    asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
-	  } else {
-	    asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM, FP);
-	    asmArg.emitMR(regOrSpilling, nextVMArgReg);
-	  }
-	  // advance spillOffsetVM and nextVMArgReg
-	  nextVMArgReg ++;
-	  spillOffsetVM += 4;
-	} else if (nextVMArgReg > LAST_VOLATILE_GPR) {
-	  if (dstSpilling) {
-	    asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
-	    asmArg.emitSTFD(FIRST_SCRATCH_FPR, regOrSpilling, FP);
-	  } else {
-	    // this shouldnot happen, VM spills, OS has registers
-	    asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM+4, FP);
-	    asmArg.emitLWZ(regOrSpilling, spillOffsetVM, FP);
-	  }	
-	  spillOffsetVM += 8;
-	}
+          } else {
+            asmArg.emitMR(regOrSpilling+1, nextVMArgReg+1);
+            asmArg.emitMR(regOrSpilling, nextVMArgReg);
+          }
+          // advance register counting, Linux register number
+          // already advanced 
+          nextVMArgReg += 2;
+        } else if (nextVMArgReg == LAST_VOLATILE_GPR) {
+          // VM striding
+          if (dstSpilling) {
+            asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM, FP);
+            asmArg.emitSTW(REGISTER_ZERO, regOrSpilling+4, FP);
+            asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
+          } else {
+            asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM, FP);
+            asmArg.emitMR(regOrSpilling, nextVMArgReg);
+          }
+          // advance spillOffsetVM and nextVMArgReg
+          nextVMArgReg ++;
+          spillOffsetVM += 4;
+        } else if (nextVMArgReg > LAST_VOLATILE_GPR) {
+          if (dstSpilling) {
+            asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
+            asmArg.emitSTFD(FIRST_SCRATCH_FPR, regOrSpilling, FP);
+          } else {
+            // this shouldnot happen, VM spills, OS has registers
+            asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM+4, FP);
+            asmArg.emitLWZ(regOrSpilling, spillOffsetVM, FP);
+          }     
+          spillOffsetVM += 8;
+        }
       } else if (types[arg].isReferenceType() ) {
         //-#if RVM_FOR_OSX
-	spillSizeOSX = 4;
-	//-#endif
-	
-	// For reference type, replace with handlers before passing to native
-	int srcreg, dstreg;
-	if (nextVMArgReg <= LAST_VOLATILE_GPR) {
-	  srcreg = nextVMArgReg++;
-	} else {
-	  srcreg = REGISTER_ZERO;
-	  asmArg.emitLWZ(srcreg, spillOffsetVM, FP);
-	  spillOffsetVM += 4;
-	}
-	asmArg.emitSTWU(srcreg, 4, KLUDGE_TI_REG);
-	
-	if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
+        spillSizeOSX = 4;
+        //-#endif
+        
+        // For reference type, replace with handlers before passing to native
+        int srcreg, dstreg;
+        if (nextVMArgReg <= LAST_VOLATILE_GPR) {
+          srcreg = nextVMArgReg++;
+        } else {
+          srcreg = REGISTER_ZERO;
+          asmArg.emitLWZ(srcreg, spillOffsetVM, FP);
+          spillOffsetVM += 4;
+        }
+        asmArg.emitSTWU(srcreg, 4, KLUDGE_TI_REG);
+        
+        if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
           //-#if RVM_FOR_LINUX
-	  asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+          asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
           //-#else
-	  asmArg.emitSUBFC(nextOSArgReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+          asmArg.emitSUBFC(nextOSArgReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);
           //-#endif
-	} else {
-	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS, FP);
-          //-#if RVM_FOR_LINUX
-	  spillOffsetOS += 4;
-          //-#endif
-	}
-      } else {
-        //-#if RVM_FOR_OSX
-	spillSizeOSX = 4;
-	//-#endif
-	
-	// For all other types: int, short, char, byte, boolean
-	// (1a) fit in OS register, move the register
-	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
-          //-#if RVM_FOR_LINUX
-	  asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
-          //-#else
-	  asmArg.emitMR(nextOSArgReg, nextVMArgReg++);
-          //-#endif
-	}
-	// (1b) spill OS register, but still fit in VM register
-	else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
-	  asmArg.emitSTW(nextVMArgReg++, spillOffsetOS, FP);
+        } else {
+          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+          asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS, FP);
           //-#if RVM_FOR_LINUX
           spillOffsetOS += 4;
           //-#endif
-	} else {
-	  // (1c) spill VM register
-	  asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM, FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS, FP);
-	  spillOffsetVM+=4;
+        }
+      } else {
+        //-#if RVM_FOR_OSX
+        spillSizeOSX = 4;
+        //-#endif
+        
+        // For all other types: int, short, char, byte, boolean
+        // (1a) fit in OS register, move the register
+        if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+          //-#if RVM_FOR_LINUX
+          asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
+          //-#else
+          asmArg.emitMR(nextOSArgReg, nextVMArgReg++);
+          //-#endif
+        }
+        // (1b) spill OS register, but still fit in VM register
+        else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
+          asmArg.emitSTW(nextVMArgReg++, spillOffsetOS, FP);
+          //-#if RVM_FOR_LINUX
+          spillOffsetOS += 4;
+          //-#endif
+        } else {
+          // (1c) spill VM register
+          asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM, FP);        // retrieve arg from VM spill area
+          asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS, FP);
+          spillOffsetVM+=4;
 
           //-#if RVM_FOR_LINUX
-	  spillOffsetOS+=4;
+          spillOffsetOS+=4;
           //-#endif
-	}
+        }
       }
 
       //-#if RVM_FOR_OSX
@@ -737,178 +737,178 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       // For 32-bit float arguments
       //
       if (types[arg].isFloatType()) {
-	// Side effect of float arguments on the GPR's
-	// (1a) reserve one GPR for each float if it is available
-	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
-	  nextOSArgReg++;
-	  mustSaveFloatToSpill = false;
-	} else {
-	  // (1b) if GPR has spilled, store the float argument in the callee spill area
-	  // regardless of whether the FPR has spilled or not
-	  mustSaveFloatToSpill = true;
-	}
-	
+        // Side effect of float arguments on the GPR's
+        // (1a) reserve one GPR for each float if it is available
+        if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+          nextOSArgReg++;
+          mustSaveFloatToSpill = false;
+        } else {
+          // (1b) if GPR has spilled, store the float argument in the callee spill area
+          // regardless of whether the FPR has spilled or not
+          mustSaveFloatToSpill = true;
+        }
+        
         spillOffsetOS+=BYTES_IN_STACKSLOT;
-	// Check if the args need to be moved
-	// (2a) leave those in FPR[1:13] as is unless the GPR has spilled
-	if (nextVMArgFloatReg<=LAST_OS_PARAMETER_FPR) {
-	  if (mustSaveFloatToSpill) {
-	    asmArg.emitSTFS(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_FLOAT, FP); 
-	  }
-	  nextOSArgFloatReg++;
-	  nextVMArgFloatReg++;  
-	} else if (nextVMArgFloatReg<=LAST_VOLATILE_FPR) {
-	  // (2b) run out of FPR in OS, but still have 2 more FPR in VM,
-	  // so FPR[14:15] goes to the callee spill area
-	  asmArg.emitSTFS(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_FLOAT, FP);
-	  nextVMArgFloatReg++;
-	} else {
-	  // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
-	  // and move them into the callee spill area
-	  //Kris Venstermans: Attention, different calling convention !!
-	  spillOffsetVM+=BYTES_IN_STACKSLOT;
-	  asmArg.emitLFS(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_FLOAT, FP);
-	  asmArg.emitSTFS(FIRST_SCRATCH_FPR, spillOffsetOS - BYTES_IN_FLOAT, FP);
-	}
+        // Check if the args need to be moved
+        // (2a) leave those in FPR[1:13] as is unless the GPR has spilled
+        if (nextVMArgFloatReg<=LAST_OS_PARAMETER_FPR) {
+          if (mustSaveFloatToSpill) {
+            asmArg.emitSTFS(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_FLOAT, FP); 
+          }
+          nextOSArgFloatReg++;
+          nextVMArgFloatReg++;  
+        } else if (nextVMArgFloatReg<=LAST_VOLATILE_FPR) {
+          // (2b) run out of FPR in OS, but still have 2 more FPR in VM,
+          // so FPR[14:15] goes to the callee spill area
+          asmArg.emitSTFS(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_FLOAT, FP);
+          nextVMArgFloatReg++;
+        } else {
+          // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
+          // and move them into the callee spill area
+          //Kris Venstermans: Attention, different calling convention !!
+          spillOffsetVM+=BYTES_IN_STACKSLOT;
+          asmArg.emitLFS(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_FLOAT, FP);
+          asmArg.emitSTFS(FIRST_SCRATCH_FPR, spillOffsetOS - BYTES_IN_FLOAT, FP);
+        }
       } else if (types[arg].isDoubleType()) {
-	// For 64-bit float arguments 
+        // For 64-bit float arguments 
         if (VM.BuildFor64Addr) {
-	  // Side effect of float arguments on the GPR's
-	  // (1a) reserve one GPR for double
-	  if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
-	    nextOSArgReg++;
-	    mustSaveFloatToSpill = false;
-	  } else {
-	    // (1b) if GPR has spilled, store the float argument in the callee spill area
-	    // regardless of whether the FPR has spilled or not
-	    mustSaveFloatToSpill = true;
-	  }
+          // Side effect of float arguments on the GPR's
+          // (1a) reserve one GPR for double
+          if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+            nextOSArgReg++;
+            mustSaveFloatToSpill = false;
+          } else {
+            // (1b) if GPR has spilled, store the float argument in the callee spill area
+            // regardless of whether the FPR has spilled or not
+            mustSaveFloatToSpill = true;
+          }
 
-	} else {
-	  // Side effect of float arguments on the GPR's
-	  // (1a) reserve two GPR's for double
-	  if (nextOSArgReg<=LAST_OS_PARAMETER_GPR-1) {
-	    nextOSArgReg+=2;
-	    mustSaveFloatToSpill = false;
-	  } else {
-	    // if only one GPR is left, reserve it anyway although it won't be used
-	    if (nextOSArgReg<=LAST_OS_PARAMETER_GPR)
-	      nextOSArgReg++;
-	    mustSaveFloatToSpill = true;
-	  }
-	}
+        } else {
+          // Side effect of float arguments on the GPR's
+          // (1a) reserve two GPR's for double
+          if (nextOSArgReg<=LAST_OS_PARAMETER_GPR-1) {
+            nextOSArgReg+=2;
+            mustSaveFloatToSpill = false;
+          } else {
+            // if only one GPR is left, reserve it anyway although it won't be used
+            if (nextOSArgReg<=LAST_OS_PARAMETER_GPR)
+              nextOSArgReg++;
+            mustSaveFloatToSpill = true;
+          }
+        }
 
-	spillOffsetOS+=BYTES_IN_DOUBLE; //Kris Venstermans: equals 2 slots on 32-bit platforms and 1 slot on 64-bit platform
-	// Check if the args need to be moved
-	// (2a) leave those in FPR[1:13] as is unless the GPR has spilled
-	if (nextVMArgFloatReg<=LAST_OS_PARAMETER_FPR) {
-	  if (mustSaveFloatToSpill) {
-	    asmArg.emitSTFD(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_DOUBLE, FP); 
-	  }
-	  nextOSArgFloatReg++;
-	  nextVMArgFloatReg++;  
-	} else if (nextVMArgFloatReg<=LAST_VOLATILE_FPR) {
-	  // (2b) run out of FPR in OS, but still have 2 more FPR in VM,
-	  // so FPR[14:15] goes to the callee spill area
-	  asmArg.emitSTFD(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_DOUBLE, FP);
-	  nextVMArgFloatReg++;
-	} else {
-	  // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
-	  // and move them into the callee spill area
-	  spillOffsetVM+=BYTES_IN_DOUBLE;
-	  asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_DOUBLE, FP);
-	  asmArg.emitSTFD(FIRST_SCRATCH_FPR, spillOffsetOS - BYTES_IN_DOUBLE, FP);
-	}
+        spillOffsetOS+=BYTES_IN_DOUBLE; //Kris Venstermans: equals 2 slots on 32-bit platforms and 1 slot on 64-bit platform
+        // Check if the args need to be moved
+        // (2a) leave those in FPR[1:13] as is unless the GPR has spilled
+        if (nextVMArgFloatReg<=LAST_OS_PARAMETER_FPR) {
+          if (mustSaveFloatToSpill) {
+            asmArg.emitSTFD(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_DOUBLE, FP); 
+          }
+          nextOSArgFloatReg++;
+          nextVMArgFloatReg++;  
+        } else if (nextVMArgFloatReg<=LAST_VOLATILE_FPR) {
+          // (2b) run out of FPR in OS, but still have 2 more FPR in VM,
+          // so FPR[14:15] goes to the callee spill area
+          asmArg.emitSTFD(nextVMArgFloatReg, spillOffsetOS - BYTES_IN_DOUBLE, FP);
+          nextVMArgFloatReg++;
+        } else {
+          // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
+          // and move them into the callee spill area
+          spillOffsetVM+=BYTES_IN_DOUBLE;
+          asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_DOUBLE, FP);
+          asmArg.emitSTFD(FIRST_SCRATCH_FPR, spillOffsetOS - BYTES_IN_DOUBLE, FP);
+        }
       } else if (VM.BuildFor32Addr && types[arg].isLongType()) {
-	// For 64-bit int arguments on 32-bit platforms
-	//
-	spillOffsetOS+=BYTES_IN_LONG;
-	// (1a) fit in OS register, move the pair
-	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR-1) {
-	  asmArg.emitMR(nextOSArgReg+1, nextVMArgReg+1);  // move lo-word first
-	  asmArg.emitMR(nextOSArgReg, nextVMArgReg);      // so it doesn't overwritten
-	  nextOSArgReg+=2;
-	  nextVMArgReg+=2;
-	} else if (nextOSArgReg==LAST_OS_PARAMETER_GPR &&
-	  nextVMArgReg<=LAST_VOLATILE_GPR-1) {
-	  // (1b) fit in VM register but straddle across OS register/spill
-	  asmArg.emitSTW(nextVMArgReg+1, spillOffsetOS - BYTES_IN_STACKSLOT, FP);   // move lo-word first, so it doesn't overwritten
-	  asmArg.emitMR(nextOSArgReg, nextVMArgReg);
-	  nextOSArgReg+=2;
-	  nextVMArgReg+=2;	  
-	} else if (nextOSArgReg>LAST_OS_PARAMETER_GPR &&
-		   nextVMArgReg<=LAST_VOLATILE_GPR-1) {
-	  // (1c) fit in VM register, spill in OS without straddling register/spill
-	  asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - 2*BYTES_IN_STACKSLOT, FP);
-	  asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - BYTES_IN_STACKSLOT, FP);
-	} else if (nextVMArgReg==LAST_VOLATILE_GPR) {
-	  // (1d) split across VM/spill, spill in OS
-	  spillOffsetVM+=BYTES_IN_STACKSLOT;
-	  asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - 2*BYTES_IN_STACKSLOT, FP);
-	  asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM - BYTES_IN_STACKSLOT, FP);
-	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS - BYTES_IN_STACKSLOT, FP);
-	} else {
-	  // (1e) spill both in VM and OS
-	  spillOffsetVM+=BYTES_IN_LONG;
-	  asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_LONG, FP);
-	  asmArg.emitSTFD(FIRST_SCRATCH_FPR, spillOffsetOS - BYTES_IN_LONG, FP);
-	}
+        // For 64-bit int arguments on 32-bit platforms
+        //
+        spillOffsetOS+=BYTES_IN_LONG;
+        // (1a) fit in OS register, move the pair
+        if (nextOSArgReg<=LAST_OS_PARAMETER_GPR-1) {
+          asmArg.emitMR(nextOSArgReg+1, nextVMArgReg+1);  // move lo-word first
+          asmArg.emitMR(nextOSArgReg, nextVMArgReg);      // so it doesn't overwritten
+          nextOSArgReg+=2;
+          nextVMArgReg+=2;
+        } else if (nextOSArgReg==LAST_OS_PARAMETER_GPR &&
+          nextVMArgReg<=LAST_VOLATILE_GPR-1) {
+          // (1b) fit in VM register but straddle across OS register/spill
+          asmArg.emitSTW(nextVMArgReg+1, spillOffsetOS - BYTES_IN_STACKSLOT, FP);   // move lo-word first, so it doesn't overwritten
+          asmArg.emitMR(nextOSArgReg, nextVMArgReg);
+          nextOSArgReg+=2;
+          nextVMArgReg+=2;        
+        } else if (nextOSArgReg>LAST_OS_PARAMETER_GPR &&
+                   nextVMArgReg<=LAST_VOLATILE_GPR-1) {
+          // (1c) fit in VM register, spill in OS without straddling register/spill
+          asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - 2*BYTES_IN_STACKSLOT, FP);
+          asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - BYTES_IN_STACKSLOT, FP);
+        } else if (nextVMArgReg==LAST_VOLATILE_GPR) {
+          // (1d) split across VM/spill, spill in OS
+          spillOffsetVM+=BYTES_IN_STACKSLOT;
+          asmArg.emitSTW(nextVMArgReg++, spillOffsetOS - 2*BYTES_IN_STACKSLOT, FP);
+          asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM - BYTES_IN_STACKSLOT, FP);
+          asmArg.emitSTW(REGISTER_ZERO, spillOffsetOS - BYTES_IN_STACKSLOT, FP);
+        } else {
+          // (1e) spill both in VM and OS
+          spillOffsetVM+=BYTES_IN_LONG;
+          asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_LONG, FP);
+          asmArg.emitSTFD(FIRST_SCRATCH_FPR, spillOffsetOS - BYTES_IN_LONG, FP);
+        }
       } else if (VM.BuildFor64Addr && types[arg].isLongType()) {
-	// For 64-bit int arguments on 64-bit platforms
-	//
-	spillOffsetOS+=BYTES_IN_LONG;
-	// (1a) fit in OS register, move the register
-	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
-	  asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
-	// (1b) spill OS register, but still fit in VM register
+        // For 64-bit int arguments on 64-bit platforms
+        //
+        spillOffsetOS+=BYTES_IN_LONG;
+        // (1a) fit in OS register, move the register
+        if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+          asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
+        // (1b) spill OS register, but still fit in VM register
         } else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
-	  asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS - BYTES_IN_LONG, FP);
-	} else {
-	  // (1c) spill VM register
-	  spillOffsetVM+=BYTES_IN_LONG;
-	  asmArg.emitLAddr(REGISTER_ZERO,spillOffsetVM - BYTES_IN_LONG, FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_LONG, FP);
-	}
-      } else if (types[arg].isReferenceType() ) {	
-	// For reference type, replace with handlers before passing to OS
-	//
-	spillOffsetOS+=BYTES_IN_ADDRESS;
-	
-	// (1a) fit in OS register, move the register
-	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
-	  asmArg.emitSTAddrU(nextVMArgReg++, BYTES_IN_ADDRESS, KLUDGE_TI_REG);          // append ref to end of JNIRefs array
-	  asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes of jref
-	} else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
-	  // (1b) spill OS register, but still fit in VM register
-	  asmArg.emitSTAddrU(nextVMArgReg++, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
-	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
-	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);       // spill into OS frame
-	} else {
-	  // (1c) spill VM register
-	  spillOffsetVM+=BYTES_IN_STACKSLOT;
-	  asmArg.emitLAddr(REGISTER_ZERO, spillOffsetVM - BYTES_IN_ADDRESS , FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTAddrU(REGISTER_ZERO, BYTES_IN_ADDRESS, KLUDGE_TI_REG);  // append ref to end of JNIRefs array
-	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
-	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);       // spill into OS frame
-	}
+          asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS - BYTES_IN_LONG, FP);
+        } else {
+          // (1c) spill VM register
+          spillOffsetVM+=BYTES_IN_LONG;
+          asmArg.emitLAddr(REGISTER_ZERO,spillOffsetVM - BYTES_IN_LONG, FP);        // retrieve arg from VM spill area
+          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_LONG, FP);
+        }
+      } else if (types[arg].isReferenceType() ) {       
+        // For reference type, replace with handlers before passing to OS
+        //
+        spillOffsetOS+=BYTES_IN_ADDRESS;
+        
+        // (1a) fit in OS register, move the register
+        if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+          asmArg.emitSTAddrU(nextVMArgReg++, BYTES_IN_ADDRESS, KLUDGE_TI_REG);          // append ref to end of JNIRefs array
+          asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes of jref
+        } else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
+          // (1b) spill OS register, but still fit in VM register
+          asmArg.emitSTAddrU(nextVMArgReg++, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
+          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
+          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);       // spill into OS frame
+        } else {
+          // (1c) spill VM register
+          spillOffsetVM+=BYTES_IN_STACKSLOT;
+          asmArg.emitLAddr(REGISTER_ZERO, spillOffsetVM - BYTES_IN_ADDRESS , FP);        // retrieve arg from VM spill area
+          asmArg.emitSTAddrU(REGISTER_ZERO, BYTES_IN_ADDRESS, KLUDGE_TI_REG);  // append ref to end of JNIRefs array
+          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
+          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);       // spill into OS frame
+        }
       } else { 
-	// For all other types: int, short, char, byte, boolean 
-	spillOffsetOS+=BYTES_IN_STACKSLOT;
+        // For all other types: int, short, char, byte, boolean 
+        spillOffsetOS+=BYTES_IN_STACKSLOT;
 
-	// (1a) fit in OS register, move the register
-	if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
-	  asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
-	}
+        // (1a) fit in OS register, move the register
+        if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
+          asmArg.emitMR(nextOSArgReg++, nextVMArgReg++);
+        }
 
-	// (1b) spill OS register, but still fit in VM register
-	else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
-	  asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS - BYTES_IN_ADDRESS, FP);
-	} else {
-	  // (1c) spill VM register
-	  spillOffsetVM+=BYTES_IN_STACKSLOT;
+        // (1b) spill OS register, but still fit in VM register
+        else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
+          asmArg.emitSTAddr(nextVMArgReg++, spillOffsetOS - BYTES_IN_ADDRESS, FP);
+        } else {
+          // (1c) spill VM register
+          spillOffsetVM+=BYTES_IN_STACKSLOT;
           asmArg.emitLInt(REGISTER_ZERO,spillOffsetVM - BYTES_IN_INT, FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);
-	}
+          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);
+        }
       }
     }
     
@@ -960,29 +960,29 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     String mthName = mth.getName().toString();
     if ((mthName.startsWith("Call") && mthName.endsWith("Method")) ||
-	mthName.equals("NewObject")) {
+        mthName.equals("NewObject")) {
 
       //-#if RVM_FOR_AIX
       offset = STACKFRAME_HEADER_SIZE + 3*BYTES_IN_STACKSLOT;   // skip over slots for GPR 3-5
       for (int i = 6; i <= 10; i++ ) {
-	asm.emitSTAddr(i, offset, FP);
-	offset+=BYTES_IN_ADDRESS;
+        asm.emitSTAddr(i, offset, FP);
+        offset+=BYTES_IN_ADDRESS;
       }
       // store FPRs 1-3 in first 3 slots of volatile FPR save area
       for (int i = 1; i <= 3; i++) {
-	asm.emitSTFD (i, offset, FP);
-	offset+=BYTES_IN_DOUBLE;
+        asm.emitSTFD (i, offset, FP);
+        offset+=BYTES_IN_DOUBLE;
       }
       //-#elif RVM_FOR_LINUX || RVM_FOR_OSX
       // save all parameter registers
       offset = STACKFRAME_HEADER_SIZE + 0;
       for (int i=FIRST_OS_PARAMETER_GPR; i<=LAST_OS_PARAMETER_GPR; i++) {
-	asm.emitSTAddr(i, offset, FP);
-	offset += BYTES_IN_ADDRESS;
+        asm.emitSTAddr(i, offset, FP);
+        offset += BYTES_IN_ADDRESS;
       }
       for (int i =FIRST_OS_PARAMETER_FPR; i<=LAST_OS_PARAMETER_FPR; i++) {
-	asm.emitSTFD(i, offset, FP);
-	offset += BYTES_IN_DOUBLE;
+        asm.emitSTFD(i, offset, FP);
+        offset += BYTES_IN_DOUBLE;
       }
       //-#endif
     } else {

@@ -157,7 +157,7 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @param depKind the type of the dependence edge
    */
   OPT_DepGraphEdge(OPT_DepGraphNode sourceNode, 
-		   OPT_DepGraphNode destNode,
+                   OPT_DepGraphNode destNode,
                    int depKind) {
     this(null, sourceNode, destNode, depKind);
   }
@@ -280,10 +280,10 @@ final class OPT_DepGraphEdge extends OPT_SpaceEffGraphEdge
    * @return input edge or null if not found
    */
   public static final OPT_DepGraphEdge findInputEdge(OPT_DepGraphNode n,
-						     OPT_Operand op) {
+                                                     OPT_Operand op) {
     for (OPT_DepGraphEdge inEdge = (OPT_DepGraphEdge) n.firstInEdge();
          inEdge != null; 
-	 inEdge = (OPT_DepGraphEdge) inEdge.getNextIn()) {
+         inEdge = (OPT_DepGraphEdge) inEdge.getNextIn()) {
       if (inEdge.destOperand() == op)
         return inEdge; 
     }

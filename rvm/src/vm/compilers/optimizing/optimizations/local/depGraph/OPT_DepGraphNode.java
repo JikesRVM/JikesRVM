@@ -66,7 +66,7 @@ public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
       int numTries = 0; // bound to avoid quadratic blowup.
       for (OPT_DepGraphEdge oe = (OPT_DepGraphEdge) firstOutEdge(); 
            oe != null && numTries < 4; 
-	   oe = (OPT_DepGraphEdge) oe.getNextOut(), numTries++) {
+           oe = (OPT_DepGraphEdge) oe.getNextOut(), numTries++) {
         if (oe.toNode() == node) {
           oe.addDepType(type);
           return;
@@ -85,7 +85,7 @@ public final class OPT_DepGraphNode extends OPT_SpaceEffGraphNode
    * @param op   the operand of node that is defined by this edge
    */
   public void insertRegTrueOutEdge(OPT_DepGraphNode node, 
-				   OPT_RegisterOperand op) {
+                                   OPT_RegisterOperand op) {
     OPT_DepGraphEdge e = new OPT_DepGraphEdge(op, this, node, REG_TRUE);
     this.appendOutEdge(e);
     node.appendInEdge(e);

@@ -132,7 +132,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * @param t      thread as an object to fool jikes at compile time.
    * @param value  valued used to determine which virtual processor to bind thread to.
    *               Use mod of value to compute processor id.
-   *		   Assume value > 0.
+   *               Assume value > 0.
    */
   static public void setProcessorAffinity(Object t, int value) 
   {
@@ -202,7 +202,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; i++) {
       VM_Processor p = (i < origProcs.length) ? origProcs[i] : null;
       if (p == null) {
-	processors[i] = new VM_Processor(i);
+        processors[i] = new VM_Processor(i);
       } else { 
         processors[i] = p;
         //-#if RVM_FOR_IA32
@@ -285,23 +285,23 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
         //-#if RVM_FOR_POWERPC
-	// NOTE: it is critical that we acquire the tocPointer explicitly
-	//       before we start the SysCall sequence. This prevents 
-	//       the opt compiler from generating code that passes the AIX 
-	//       sys toc instead of the RVM jtoc. --dave
-	VM_Address toc = VM_Magic.getTocPointer();
+        // NOTE: it is critical that we acquire the tocPointer explicitly
+        //       before we start the SysCall sequence. This prevents 
+        //       the opt compiler from generating code that passes the AIX 
+        //       sys toc instead of the RVM jtoc. --dave
+        VM_Address toc = VM_Magic.getTocPointer();
         VM_SysCall.sysVirtualProcessorCreate(toc,
-					     VM_Magic.objectAsAddress(processors[i]),
-					     target.contextRegisters.ip, 
-					     target.contextRegisters.getInnermostFramePointer());
-	if (cpuAffinity != NO_CPU_AFFINITY)
-	  VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+                                             VM_Magic.objectAsAddress(processors[i]),
+                                             target.contextRegisters.ip, 
+                                             target.contextRegisters.getInnermostFramePointer());
+        if (cpuAffinity != NO_CPU_AFFINITY)
+          VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
         //-#endif
       } else if (VM.BuildForIA32) {
         VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-					     VM_Magic.objectAsAddress(processors[i]),
-					     target.contextRegisters.ip, 
-					     target.contextRegisters.getInnermostFramePointer());
+                                             VM_Magic.objectAsAddress(processors[i]),
+                                             target.contextRegisters.ip, 
+                                             target.contextRegisters.getInnermostFramePointer());
       }
 
     }
@@ -322,10 +322,10 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (!VM.BuildForDeterministicThreadSwitching) {
       schedulingQuantum = VM.interruptQuantum * VM.schedulingMultiplier;
       if (VM.TraceThreads) {
-	VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
-	VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
-	VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
-	VM.sysWriteln();
+        VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
+        VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
+        VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
+        VM.sysWriteln();
       }
       if (VM.BuildFor64Addr) {
         VM.sysWriteln("Warning: Time slicing disabled in 64 bit mode until more stuff is working");
@@ -630,60 +630,60 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       } else {
         // normal java frame(s)
         VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
-	  VM.sysWrite("   <hardware trap>\n");
-	} else {
-	  VM_Method method            = compiledMethod.getMethod();
-	  int       instructionOffset = compiledMethod.getInstructionOffset(ip);
-	  int       lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
-	  
-	  //-#if RVM_WITH_OPT_COMPILER
-	  if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-	    VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
-	    // Opt stack frames may contain multiple inlined methods.
-	    VM_OptMachineCodeMap map = optInfo.getMCMap();
-	    int iei = map.getInlineEncodingForMCOffset(instructionOffset);
-	    if (iei >= 0) {
-	      int[] inlineEncoding = map.inlineEncoding;
-	      int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-	      for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
-		int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-		method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
-		lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
-		VM.sysWrite("   ");
-		VM.sysWrite(method.getDeclaringClass().getDescriptor());
-		VM.sysWrite(" ");
-		VM.sysWrite(method.getName());
-		VM.sysWrite(method.getDescriptor());
-		VM.sysWrite(" at line ");
-		VM.sysWriteInt(lineNumber);
-		VM.sysWrite("\n");
-		if (j > 0) 
-		  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
-	      }
-	    } else {
-	      VM.sysWrite("   Unknown location in opt compiled method ");
-	      VM.sysWrite(method.getDeclaringClass().getDescriptor());
-	      VM.sysWrite(" ");
-	      VM.sysWrite(method.getName());
-	      VM.sysWrite(method.getDescriptor());
-	      VM.sysWrite("\n");
-	    }
-	    ip = VM_Magic.getReturnAddress(fp);
-	    fp = VM_Magic.getCallerFramePointer(fp);
-	    continue; // done printing this stack frame
-	  } 
-	  //-#endif
+        if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+          VM.sysWrite("   <hardware trap>\n");
+        } else {
+          VM_Method method            = compiledMethod.getMethod();
+          int       instructionOffset = compiledMethod.getInstructionOffset(ip);
+          int       lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
+          
+          //-#if RVM_WITH_OPT_COMPILER
+          if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+            VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+            // Opt stack frames may contain multiple inlined methods.
+            VM_OptMachineCodeMap map = optInfo.getMCMap();
+            int iei = map.getInlineEncodingForMCOffset(instructionOffset);
+            if (iei >= 0) {
+              int[] inlineEncoding = map.inlineEncoding;
+              int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
+              for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
+                int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
+                method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
+                VM.sysWrite("   ");
+                VM.sysWrite(method.getDeclaringClass().getDescriptor());
+                VM.sysWrite(" ");
+                VM.sysWrite(method.getName());
+                VM.sysWrite(method.getDescriptor());
+                VM.sysWrite(" at line ");
+                VM.sysWriteInt(lineNumber);
+                VM.sysWrite("\n");
+                if (j > 0) 
+                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
+              }
+            } else {
+              VM.sysWrite("   Unknown location in opt compiled method ");
+              VM.sysWrite(method.getDeclaringClass().getDescriptor());
+              VM.sysWrite(" ");
+              VM.sysWrite(method.getName());
+              VM.sysWrite(method.getDescriptor());
+              VM.sysWrite("\n");
+            }
+            ip = VM_Magic.getReturnAddress(fp);
+            fp = VM_Magic.getCallerFramePointer(fp);
+            continue; // done printing this stack frame
+          } 
+          //-#endif
 
-	  VM.sysWrite("   ");
-	  VM.sysWrite(method.getDeclaringClass().getDescriptor());
-	  VM.sysWrite(" ");
-	  VM.sysWrite(method.getName());
-	  VM.sysWrite(method.getDescriptor());
-	  VM.sysWrite(" at line ");
-	  VM.sysWriteInt(lineNumber);
-	  VM.sysWrite("\n");
-	}
+          VM.sysWrite("   ");
+          VM.sysWrite(method.getDeclaringClass().getDescriptor());
+          VM.sysWrite(" ");
+          VM.sysWrite(method.getName());
+          VM.sysWrite(method.getDescriptor());
+          VM.sysWrite(" at line ");
+          VM.sysWriteInt(lineNumber);
+          VM.sysWrite("\n");
+        }
       }
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
@@ -725,7 +725,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       processor.dumpProcessorState();
     }
 
-    // system queues	
+    // system queues    
     VM.sysWrite("\n-- System Queues -- \n");   wakeupQueue.dump();
     VM.sysWrite(" wakeupQueue: ");   wakeupQueue.dump();
     VM.sysWrite(" debuggerQueue: "); debuggerQueue.dump();
@@ -736,8 +736,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM.sysWrite("\n-- Threads --\n");
     for (int i = 1; i < threads.length; ++i) {
       if (threads[i] != null) {
-	threads[i].dump();
-	VM.sysWrite("\n");
+        threads[i].dump();
+        VM.sysWrite("\n");
       }
     }
     VM.sysWrite("\n");
@@ -757,7 +757,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM.sysWrite("\n-- Locks in use --\n");
     for (int i = 0; i < locks.length; ++i)
       if (locks[i] != null)
-	locks[i].dump();
+        locks[i].dump();
     VM.sysWrite("\n");
   }
 

@@ -34,7 +34,7 @@
        _bootThread:
 #else
 #ifdef __GNUC__
-	.globl	.bootThread
+        .globl  .bootThread
        .bootThread:
 #else
        .csect   .bootThread[ro]   /* function name */

@@ -174,14 +174,14 @@ class TypeCheck {
     for (int i=0; i<num_io_cc_cs; ++i) {
       Object foo = a2[i];
       if (foo instanceof Integer) {
-	//	System.err.println("bug in type checking");
-	return false;
+        //      System.err.println("bug in type checking");
+        return false;
       }
       if (foo instanceof java.io.IOException) {
-	a3[i] = (Exception)foo;
+        a3[i] = (Exception)foo;
       }
       if (foo instanceof Throwable) {
-	a2[i] = (Throwable)foo;
+        a2[i] = (Throwable)foo;
       }
     }
     t1 = System.currentTimeMillis() - t1;
@@ -191,38 +191,38 @@ class TypeCheck {
     // checkcast + nullcheck
     Object x;
     if (t1 > 0)
-	x  = new Integer(5);
+        x  = new Integer(5);
     else if (t1 < 0)
-	x = new Float(6.7);
+        x = new Float(6.7);
     else 
-	x = null;
+        x = null;
     if (t1 > 0 && ((Integer) x).intValue() != 5)
-	return false;
+        return false;
 
     // TEST 16
     // checkcast + if null
     if (t1 > 0)
-	x  = new Integer(5);
+        x  = new Integer(5);
     else if (t1 < 0)
-	x = new Float(6.7);
+        x = new Float(6.7);
     else 
-	x = null;
+        x = null;
     Integer i = (Integer) x;
     if (i == null && t1 > 0)
-	return false;
+        return false;
     
     // TEST 17
     // checkcast + if null
     if (t1 > 0)
-	x  = new Integer(5);
+        x  = new Integer(5);
     else if (t1 < 0)
-	x = new Float(6.7);
+        x = new Float(6.7);
     else 
-	x = null;
+        x = null;
     i = (Integer) x;
     if (i != null)
-	if (t1 > 0 && i.intValue() != 5)
-	    return false;
+        if (t1 > 0 && i.intValue() != 5)
+            return false;
         
     return testSuccess;
   }

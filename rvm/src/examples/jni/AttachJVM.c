@@ -93,7 +93,7 @@ void *thread_fun(void *arg)
   dummyBreakpoint();  
 
   mid = (*env)->GetStaticMethodID(env, cls, "compute", 
-				  "([Ljava/lang/String;)I");
+                                  "([Ljava/lang/String;)I");
   if (mid == 0) {
     if (verbose_mode)
       printf("C thread %d: ERROR, GetStaticMethodID fails\n", threadNum);
@@ -159,10 +159,10 @@ void *thread_fun(void *arg)
   } else {
     if (env2==env) {
       if (verbose_mode)
-	fprintf(stderr, "C thread %d: GetEnv succeeds\n", threadNum);
+        fprintf(stderr, "C thread %d: GetEnv succeeds\n", threadNum);
     } else {
       if (verbose_mode)
-	fprintf(stderr, "C thread %d: GetEnv fails\n", threadNum);
+        fprintf(stderr, "C thread %d: GetEnv fails\n", threadNum);
       thread_pass = 0;
     }
   }
@@ -358,15 +358,15 @@ main(int argc, char **argv) {
   } else {
     if (numJVM>1) {
       if (verbose_mode)
-	printf("AttachJVM: ERROR GetCreatedJavaVMs returns more than one JVM instance\n");
+        printf("AttachJVM: ERROR GetCreatedJavaVMs returns more than one JVM instance\n");
       main_pass = 0;
     } else if (numJVM==0) {
       if (verbose_mode)
-	printf("AttachJVM: ERROR GetCreatedJavaVMs returns none \n");
+        printf("AttachJVM: ERROR GetCreatedJavaVMs returns none \n");
       main_pass = 0;
     } else if (jvmBuf[0]==jvm) {
       if (verbose_mode)
-	printf("AttachJVM: GetCreatedJavaVMs succeeds\n");
+        printf("AttachJVM: GetCreatedJavaVMs succeeds\n");
     }
   }
   

@@ -26,25 +26,25 @@ import com.ibm.JikesRVM.*;
 public final class VM_JNIGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
              VM_JNIStackframeLayoutConstants,
-	     VM_Uninterruptible {
+             VM_Uninterruptible {
 
   // non-volitile regs are saved at the end of the transition frame,
   // after the saved JTOC and SP, and preceeded by a GC flag.
   //
   // JNI Java to Native C transition frame...
   //
-  //	 <-- | saved FP       |  <- this.framePtr
-  //	 |   |    ...         |
-  //	 |   |    ...         |
-  //	 |   | GC flag        |
-  //	 |   | saved affinity |
-  //	 |   | proc reg       |
-  //	 |   | non vol 17     |
-  //	 |   |    ...         |
-  //	 |   | non vol 31     |
-  //	 |   | saved SP       |
-  //	 |   | saved JTOC     |
-  //	 --> |                |  <- callers FP
+  //     <-- | saved FP       |  <- this.framePtr
+  //     |   |    ...         |
+  //     |   |    ...         |
+  //     |   | GC flag        |
+  //     |   | saved affinity |
+  //     |   | proc reg       |
+  //     |   | non vol 17     |
+  //     |   |    ...         |
+  //     |   | non vol 31     |
+  //     |   | saved SP       |
+  //     |   | saved JTOC     |
+  //     --> |                |  <- callers FP
   //
   // The following constant is the offset from the callers FP to
   // the GC flag at the beginning of this area.  
@@ -80,8 +80,8 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   }
 
   public void setupIterator(VM_CompiledMethod compiledMethod, 
-			    int instructionOffset, 
-			    VM_Address framePtr) { 
+                            int instructionOffset, 
+                            VM_Address framePtr) { 
     this.framePtr = framePtr;
     // processore reg (R16) was saved in reg save area at offset -72 
     // from callers frameptr, and after GC will be used to set 
@@ -106,7 +106,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   }
   
   // return (address of) next ref in the current "frame" on the
-  // threads JNIEnvironment stack of refs	  
+  // threads JNIEnvironment stack of refs         
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //
@@ -146,7 +146,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
       VM_Address ref_address = jniSavedReturnAddr;
       jniSavedReturnAddr = VM_Address.zero();
       if (verbose > 0) {
-	VM.sysWriteln("JNI getNextReturnAddressAddress returning ", ref_address);
+        VM.sysWriteln("JNI getNextReturnAddressAddress returning ", ref_address);
       }
       return ref_address;
     }

@@ -26,8 +26,8 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  * @author Dave Grove 
  */
 public class VM_LockNurseryJavaHeader implements VM_Uninterruptible, 
-						 VM_JavaHeaderConstants,
-						 VM_Constants {
+                                                 VM_JavaHeaderConstants,
+                                                 VM_Constants {
 
   private static final int OTHER_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER + VM_MiscHeader.NUM_BYTES_HEADER;
   private static final int SCALAR_HEADER_SIZE = OTHER_HEADER_BYTES + 4; // 1 word for TIB encoding
@@ -165,7 +165,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static int initializeScalarHeader(BootImageInterface bootImage, int ptr, 
-					   Object[] tib, int size) {
+                                           Object[] tib, int size) {
     return ptr + size + SCALAR_PADDING_BYTES;
   }
 
@@ -188,7 +188,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static int initializeArrayHeader(BootImageInterface bootImage ,int ptr, 
-					   Object[] tib, int size) {
+                                           Object[] tib, int size) {
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
     return ptr + ARRAY_HEADER_SIZE;
   }
@@ -245,21 +245,21 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
     if (MOVES_OBJECTS) {
       int hashState = VM_Magic.getIntAtOffset(o, TIB_OFFSET) & HASH_STATE_MASK;
       if (hashState == HASH_STATE_HASHED) {
-	return VM_Magic.objectAsAddress(o).toInt() >>> 2;
+        return VM_Magic.objectAsAddress(o).toInt() >>> 2;
       } else if (hashState == HASH_STATE_HASHED_AND_MOVED) {
-	VM_Type t = VM_Magic.getObjectType(o);
-	if (t.isArrayType()) {
-	  return VM_Magic.getIntAtOffset(o, HASHCODE_ARRAY_OFFSET) >>> 2;
-	} else {
-	  return VM_Magic.getIntAtOffset(o, HASHCODE_SCALAR_OFFSET) >>> 2;
-	}
+        VM_Type t = VM_Magic.getObjectType(o);
+        if (t.isArrayType()) {
+          return VM_Magic.getIntAtOffset(o, HASHCODE_ARRAY_OFFSET) >>> 2;
+        } else {
+          return VM_Magic.getIntAtOffset(o, HASHCODE_SCALAR_OFFSET) >>> 2;
+        }
       } else {
-	int tmp;
-	do {
-	  tmp = VM_Magic.prepareInt(o, TIB_OFFSET);
-	} while (!VM_Magic.attemptInt(o, TIB_OFFSET, tmp, tmp | HASH_STATE_HASHED));
-	if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition1++;
-	return getObjectHashCode(o);
+        int tmp;
+        do {
+          tmp = VM_Magic.prepareInt(o, TIB_OFFSET);
+        } while (!VM_Magic.attemptInt(o, TIB_OFFSET, tmp, tmp | HASH_STATE_HASHED));
+        if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition1++;
+        return getObjectHashCode(o);
       }
     } else {
       return VM_Magic.objectAsAddress(o).toInt() >>> 2;
@@ -294,7 +294,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Class type, int tibWord) {
+                                  VM_Class type, int tibWord) {
     int hashState = tibWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
       VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(numBytes + SCALAR_PADDING_BYTES);
@@ -324,7 +324,7 @@ public class VM_LockNurseryJavaHeader implements VM_Uninterruptible,
    * Copy an object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
-				  VM_Array type, int tibWord) throws VM_PragmaInline {
+                                  VM_Array type, int tibWord) throws VM_PragmaInline {
     int hashState = tibWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
       VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(ARRAY_HEADER_SIZE);
