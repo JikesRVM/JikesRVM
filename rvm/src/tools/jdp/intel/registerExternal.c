@@ -271,7 +271,14 @@ JNIEXPORT jint JNICALL Java_Platform_currentFP1
 {
   // Use the VirtualProcessor register (esi) to get the Frame Pointer value
   jint regdata = Java_Platform_readreg1(env, obj, debuggee_pid, jvmESI);
-  regdata = *(unsigned*)(regdata + VM_Processor_framePointer_offset);
+
+  // printf("VM_Processor_framePointer_offset = %08x\n", VM_Processor_framePointer_offset);
+  // printf("current fp at %08x\n", regdata + VM_Processor_framePointer_offset);
+
+  regdata = ptrace(PTRACE_PEEKDATA, debuggee_pid, (int *)(regdata + VM_Processor_framePointer_offset), 0);
+  if (regdata==-1 && errno==EIO)
+    printf("CAUTION:  invalid address for saved FP in VM_Processor\n");
+
   return regdata;
 
 }
@@ -282,11 +289,18 @@ JNIEXPORT jint JNICALL Java_Platform_currentFP1
  * Method:    getFPFromPR
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_Platform_getFPFromPR
-  (JNIEnv *env, jobject obj, jint regpr)
+JNIEXPORT jint JNICALL Java_Platform_getFPFromPR1
+  (JNIEnv *env, jobject obj, jint debuggee_pid, jint regpr)
 {
   // Use the VirtualProcessor register (esi) to get the Frame Pointer value
-  jint regdata = *(unsigned*)(regpr + VM_Processor_framePointer_offset);
+  jint regdata = ptrace(PTRACE_PEEKDATA, debuggee_pid, (int *)(regpr + VM_Processor_framePointer_offset));
+
+  // printf("VM_Processor_framePointer_offset = %08x\n", VM_Processor_framePointer_offset);
+  // printf("fp from PR at %08x\n", regpr + VM_Processor_framePointer_offset);
+
+  if (regdata==-1 && errno==EIO)
+    printf("CAUTION:  invalid address for saved FP in VM_Processor\n");
+
   return regdata;
 
 }
