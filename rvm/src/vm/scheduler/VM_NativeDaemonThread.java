@@ -367,8 +367,11 @@ class VM_NativeDaemonThread extends VM_Thread {
     if (needToCreate <= 0) return;
 
 
-		// reset startup locks count
+    // reset startup locks count
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    //-#else
     VM.sysInitializeStartupLocks(needToCreate);
+    //-#endif
 
     while (needToCreate > 0) {
       VM_Processor processor = VM_Processor.createNativeProcessor();
