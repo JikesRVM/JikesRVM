@@ -708,6 +708,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, String s2, int i1, String s3) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(i1); write(s3); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, String s2, String s3, int i1) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(  i1); swUnlock(); }
   public static void sysWriteln (String s1, String s2, String s3, int i1) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(i1); writeln(); swUnlock(); }
+  public static void sysWrite   (int i, String s1, double d, String s2) throws VM_PragmaNoInline { swLock(); write(i); write(s1);  write(d); write(s2); swUnlock(); }
+  public static void sysWriteln (int i, String s1, double d, String s2) throws VM_PragmaNoInline { swLock(); write(i); write(s1);  write(d); write(s2); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, String s2, String s3, int i1, String s4) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(i1); write(  s4); swUnlock(); }
   public static void sysWriteln (String s1, String s2, String s3, int i1, String s4) throws VM_PragmaNoInline { swLock(); write(s1);  write(s2); write(s3); write(i1); write(s4); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, VM_Address a1, String s2, VM_Address a2) throws VM_PragmaNoInline { swLock(); write(s1);  write(a1); write(s2); write(a2); swUnlock(); }
