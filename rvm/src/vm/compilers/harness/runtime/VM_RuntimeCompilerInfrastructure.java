@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.VM_Method;
 /**
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for

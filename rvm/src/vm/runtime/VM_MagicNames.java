@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.VM_Atom;
+
 /**
  * Method names that are treated specially by compiler.
  * See also: VM_Magic, various magic compilers (eg VM_MagicCompiler)

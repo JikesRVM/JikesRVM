@@ -4,15 +4,14 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-/**
- * @author Anthony Cocchi
- *
- * @modified Perry Cheng
- */
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * class that provides stack (and local var) map for a baseline compiled method
  * GC uses the methods provided here
+ * 
+ * @author Anthony Cocchi
+ * @modified Perry Cheng
  */
 final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterruptible  {
 

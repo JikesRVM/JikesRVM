@@ -6,23 +6,17 @@
 package com.ibm.JikesRVM.librarySupport;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.classloader.*;
 
-import java.util.HashMap;
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Array;
 import com.ibm.JikesRVM.VM_Callbacks;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Field;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_Reflection;
-import com.ibm.JikesRVM.VM_ResolutionException;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
-import com.ibm.JikesRVM.VM_Type;
 import com.ibm.JikesRVM.VM_UnimplementedError;
+
+import java.util.HashMap;
 import java.lang.reflect.*;
 import java.io.*;
 

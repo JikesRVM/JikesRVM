@@ -2,9 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * VM_ModifiableBytecodeStream.java
  *

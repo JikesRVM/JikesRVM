@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * This pragma indicates that a particular method should always be inlined
  * by the optimizing compiler.

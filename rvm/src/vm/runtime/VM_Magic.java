@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
+import com.ibm.JikesRVM.classloader.VM_Type;
 
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
 import com.ibm.JikesRVM.memoryManagers.watson.VM_BlockControl;

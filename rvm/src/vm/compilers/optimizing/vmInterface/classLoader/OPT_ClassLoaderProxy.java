@@ -4,15 +4,15 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * @author Doug Lorch (retired)
  * @author Dave Grove
  * @author Julian Dolby
  **/
-
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.opt.ir.*;
-
 public final class OPT_ClassLoaderProxy 
 implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
 {

@@ -1,8 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id:
-package com.ibm.JikesRVM;
+//$Id$
+package com.ibm.JikesRVM.classloader;
 
 /**
  * A triplet of atoms, ie. classDescriptor + memberName + memberDescriptor
@@ -10,12 +10,12 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_Triplet {
+public class VM_Triplet {
   //-----------//
   // interface //
   //-----------//
    
-  VM_Triplet(VM_Atom a, VM_Atom b, VM_Atom c) {
+  public VM_Triplet(VM_Atom a, VM_Atom b, VM_Atom c) {
     this.a = a;
     this.b = b;
     this.c = c;
@@ -32,7 +32,7 @@ class VM_Triplet {
   /**
    * Hash VM_Dictionary keys.
    */ 
-  static int dictionaryHash(VM_Triplet key) {
+  public static int dictionaryHash(VM_Triplet key) {
     return VM_Atom.dictionaryHash(key.a) +
       VM_Atom.dictionaryHash(key.b) +
       VM_Atom.dictionaryHash(key.c) ;
@@ -44,7 +44,7 @@ class VM_Triplet {
    *         1 iff "leftKey" is to be considered a duplicate of "rightKey"
    *         -1 otherwise
    */
-  static int dictionaryCompare(VM_Triplet leftKey, VM_Triplet rightKey) {
+  public static int dictionaryCompare(VM_Triplet leftKey, VM_Triplet rightKey) {
     if (leftKey == null)
       return 0;
          

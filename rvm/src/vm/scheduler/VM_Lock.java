@@ -609,7 +609,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @return true if the currently executing thread owns obj, false otherwise
    */
   static boolean owns(Object o, int tid) {
-    VM_Type t = VM_Magic.getObjectType(o);
+    com.ibm.JikesRVM.classloader.VM_Type t = VM_Magic.getObjectType(o);
     int thinLockOffset = t.thinLockOffset;
     if (thinLockOffset == -1) {
       VM_Lock l = VM_LockNursery.findOrCreate(o, false);

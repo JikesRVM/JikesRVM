@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Finalizer;
+import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
  * Finalizer thread.

@@ -4,8 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import java.lang.reflect.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import java.lang.reflect.*;
 
 /**
  *   This class implements the JNI environment, it includes:

@@ -4,6 +4,8 @@
 // $Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Encoding of try ranges in the final machinecode and the
  * corresponding exception type and catch block start.

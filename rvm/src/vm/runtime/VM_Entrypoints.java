@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Fields and methods of the virtual machine that are needed by 
  * compiler-generated machine code or C runtime code.
@@ -47,12 +49,12 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Method invokeInterfaceMethod                          = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
   public static final VM_Method findItableMethod                               = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
-  public static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lcom/ibm/JikesRVM/VM_Class;[Ljava/lang/Object;)V");
+  public static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)V");
   public static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("Lcom/ibm/JikesRVM/VM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
 
-  public static final VM_Method instanceOfUnresolvedMethod         = getMethod("Lcom/ibm/JikesRVM/VM_DynamicTypeCheck;", "instanceOfUnresolved", "(Lcom/ibm/JikesRVM/VM_Class;[Ljava/lang/Object;)Z");
-  public static final VM_Method instanceOfArrayMethod              = getMethod("Lcom/ibm/JikesRVM/VM_DynamicTypeCheck;", "instanceOfArray", "(Lcom/ibm/JikesRVM/VM_Class;ILcom/ibm/JikesRVM/VM_Type;)Z");
-  public static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("Lcom/ibm/JikesRVM/VM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(Lcom/ibm/JikesRVM/VM_Class;ILcom/ibm/JikesRVM/VM_Type;)Z");
+  public static final VM_Method instanceOfUnresolvedMethod         = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfUnresolved", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)Z");
+  public static final VM_Method instanceOfArrayMethod              = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfArray", "(Lcom/ibm/JikesRVM/classloader/VM_Class;ILcom/ibm/JikesRVM/classloader/VM_Type;)Z");
+  public static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("Lcom/ibm/JikesRVM/classloader/VM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(Lcom/ibm/JikesRVM/classloader/VM_Class;ILcom/ibm/JikesRVM/classloader/VM_Type;)Z");
 
   public static final VM_Method lockMethod          = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
   public static final VM_Method unlockMethod        = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
@@ -63,10 +65,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method lazyMethodInvokerMethod         = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
   public static final VM_Method unimplementedNativeMethodMethod = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
 
-  public static final VM_Method resolveMethodMethod     = getMethod("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
-  public static final VM_Field  methodOffsetsField      = getField("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
-  public static final VM_Method resolveFieldMethod      = getMethod("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "resolveField", "(I)V");
-  public static final VM_Field  fieldOffsetsField       = getField("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
+  public static final VM_Method resolveMethodMethod     = getMethod("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "resolveMethod", "(I)V");
+  public static final VM_Field  methodOffsetsField      = getField("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "methodOffsets", "[I");   
+  public static final VM_Method resolveFieldMethod      = getMethod("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "resolveField", "(I)V");
+  public static final VM_Field  fieldOffsetsField       = getField("Lcom/ibm/JikesRVM/classloader/VM_TableBasedDynamicLinker;", "fieldOffsets", "[I");    
 
   public static final VM_Field longOneField        = getField("Lcom/ibm/JikesRVM/VM_Math;", "longOne", "J");  // 1L
   public static final VM_Field minusOneField       = getField("Lcom/ibm/JikesRVM/VM_Math;", "minusOne", "F"); // -1.0F
@@ -200,12 +202,12 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method processorLockMethod            = getMethod("Lcom/ibm/JikesRVM/VM_ProcessorLock;", "lock", "()V");
   public static final VM_Method processorUnlockMethod          = getMethod("Lcom/ibm/JikesRVM/VM_ProcessorLock;", "unlock", "()V");
 
-  public static final VM_Field classForTypeField              = getField("Lcom/ibm/JikesRVM/VM_Type;", "classForType", "Ljava/lang/Class;");
-  public static final VM_Field depthField                     = getField("Lcom/ibm/JikesRVM/VM_Type;", "depth", "I");
-  public static final VM_Field idField                        = getField("Lcom/ibm/JikesRVM/VM_Type;", "dictionaryId", "I");
-  public static final VM_Field dimensionField                 = getField("Lcom/ibm/JikesRVM/VM_Type;", "dimension", "I");
+  public static final VM_Field classForTypeField              = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "classForType", "Ljava/lang/Class;");
+  public static final VM_Field depthField                     = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "depth", "I");
+  public static final VM_Field idField                        = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "dictionaryId", "I");
+  public static final VM_Field dimensionField                 = getField("Lcom/ibm/JikesRVM/classloader/VM_Type;", "dimension", "I");
 
-  public static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/VM_Type;");
+  public static final VM_Field innermostElementTypeField      = getField("Lcom/ibm/JikesRVM/classloader/VM_Array;", "innermostElementType", "Lcom/ibm/JikesRVM/classloader/VM_Type;");
 
   public static final VM_Field JNIEnvAddressField         = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIEnvAddress", "Lcom/ibm/JikesRVM/VM_Address;");
   static final VM_Field JNIEnvSavedTIField         = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "savedTIreg", "I");

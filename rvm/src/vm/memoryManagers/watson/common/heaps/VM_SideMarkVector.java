@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**

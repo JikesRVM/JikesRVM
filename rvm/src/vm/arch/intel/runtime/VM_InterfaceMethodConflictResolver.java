@@ -4,6 +4,7 @@
 // $Id$ 
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * An interface conflict resolution stub uses a hidden parameter to
  * distinguish among multiple interface methods of a class that map to

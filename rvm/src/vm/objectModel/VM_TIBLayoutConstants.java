@@ -12,7 +12,7 @@ package com.ibm.JikesRVM;
  * @author David Bacon
  */
 
-interface VM_TIBLayoutConstants {
+public interface VM_TIBLayoutConstants {
 
    //--------------------------------------------------------------------------------------------//
    //                      Type Information Block (TIB) Layout Constants                         //

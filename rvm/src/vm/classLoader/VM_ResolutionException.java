@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
 /**
  * An exception to indicate that a method in the vm failed to return
@@ -57,11 +57,11 @@ public class VM_ResolutionException extends Exception {
    */
   final ClassLoader classloader;
    
-  VM_ResolutionException(VM_Atom targetTypeDescriptor, Throwable exception) {
+  public VM_ResolutionException(VM_Atom targetTypeDescriptor, Throwable exception) {
     this(targetTypeDescriptor, exception, null);
   }
 
-  VM_ResolutionException(VM_Atom targetTypeDescriptor, Throwable exception, ClassLoader classloader) {
+  public VM_ResolutionException(VM_Atom targetTypeDescriptor, Throwable exception, ClassLoader classloader) {
     this.targetTypeDescriptor = targetTypeDescriptor;
     this.exception            = exception;
     this.classloader          = classloader;

@@ -4,6 +4,10 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+import java.util.Stack;
+import java.lang.Exception;
+
 /**
  * This class is used to verify the bytecode of a method or a class.
  * <p> 
@@ -16,9 +20,6 @@ package com.ibm.JikesRVM;
  * @see VM_BuildBB.java
  *
  */
-import java.util.Stack;
-import java.lang.Exception;
-
 public class VM_Verifier  implements VM_BytecodeConstants {
 
   //type of local variable and stack cell

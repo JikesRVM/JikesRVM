@@ -6,6 +6,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Memory image of virtual machine that will be written to disk file and later

@@ -4,11 +4,12 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * @author Julian Dolby
  * @date May 20, 2002
  */
-
 public class VM_StackBrowser implements VM_Constants {
 
     private VM_Method currentMethod;

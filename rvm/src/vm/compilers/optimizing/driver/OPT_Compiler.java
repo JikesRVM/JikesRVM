@@ -5,8 +5,9 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import  java.util.Enumeration;
+import java.util.Enumeration;
 
 /**
  * <p> The main driver of the OPT_Compiler. 

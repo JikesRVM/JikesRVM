@@ -1,9 +1,10 @@
 /*
  * (C) Copyright IBM Corp 2001,2002
  */
-//$Id:
-package com.ibm.JikesRVM;
+//$Id$
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.*;
 //-#if RVM_WITH_JMTK
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 //-#endif
@@ -413,7 +414,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
   }
 
   /**
-   * get superclass id vector (see VM_DynamicTypeCheck)
+   * get superclass id vector (@see VM_DynamicTypeCheck)
    */ 
   final short[] getSuperclassIds () throws VM_PragmaUninterruptible {
     return VM_Magic.objectAsShortArray(getTypeInformationBlock()
@@ -423,7 +424,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
   /**
    * get doesImplement vector (@see VM_DynamicTypeCheck)
    */ 
-  final int[] getDoesImplement () throws VM_PragmaUninterruptible {
+   public final int[] getDoesImplement () throws VM_PragmaUninterruptible {
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
 	 

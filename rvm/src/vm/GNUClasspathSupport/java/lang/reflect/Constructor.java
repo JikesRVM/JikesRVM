@@ -5,7 +5,7 @@
 package java.lang.reflect;
 
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
-import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
  * Library support interface of Jikes RVM

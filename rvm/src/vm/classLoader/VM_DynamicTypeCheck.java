@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * Data structures and code for fast dynamic type checking.
@@ -204,7 +206,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfUnresolved(VM_Class LHSclass, Object[] rhsTIB)  
+  public static boolean instanceOfUnresolved(VM_Class LHSclass, Object[] rhsTIB)  
     throws VM_ResolutionException {
     if (!LHSclass.isInitialized()) {
       VM_Runtime.initializeClassForDynamicLink(LHSclass);
@@ -222,7 +224,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfResolved(VM_Class LHSclass, Object[] rhsTIB) 
+  public static boolean instanceOfResolved(VM_Class LHSclass, Object[] rhsTIB) 
     throws VM_ResolutionException {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
@@ -241,7 +243,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
+  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
     short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
@@ -259,7 +261,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) throws VM_ResolutionException {
+  public static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) throws VM_ResolutionException {
     int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[TIB_DOES_IMPLEMENT_INDEX]);
     int idx = LHSclass.getDoesImplementIndex();
     int mask = LHSclass.getDoesImplementBitMask();
@@ -300,7 +302,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *       [^LHSDimension of LHSInnermostClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfObjectArray(int LHSDimension, VM_Type RHSType) {
+  public static boolean instanceOfObjectArray(int LHSDimension, VM_Type RHSType) {
     int RHSDimension = RHSType.getDimensionality();
     if (RHSDimension < LHSDimension) return false;
     if (RHSDimension > LHSDimension) return true;
@@ -321,7 +323,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *        [^LHSDimension of LHSInnermostClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfArray(VM_Class LHSInnermostElementClass, 
+  public static boolean instanceOfArray(VM_Class LHSInnermostElementClass, 
 				 int LHSDimension,  VM_Type RHSType) 
     throws VM_ResolutionException {
     int RHSDimension = RHSType.getDimensionality();
@@ -343,7 +345,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         RHSType into a variable of type LSType
    *         or <code>false</code> if we cannot.
    */
-  static boolean instanceOf(VM_Type LHSType, VM_Type RHSType) 
+  public static boolean instanceOf(VM_Type LHSType, VM_Type RHSType) 
     throws VM_ResolutionException {
     if (LHSType == RHSType) return true;
     if (!LHSType.isResolved()) {

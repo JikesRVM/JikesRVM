@@ -2,11 +2,10 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-
-
 package com.ibm.JikesRVM.librarySupport;
+
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_Lock;
 import com.ibm.JikesRVM.VM_Magic;

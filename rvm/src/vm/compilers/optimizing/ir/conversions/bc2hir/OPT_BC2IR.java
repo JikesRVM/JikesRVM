@@ -2,11 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
-
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;

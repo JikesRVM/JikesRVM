@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 import com.ibm.JikesRVM.opt.OPT_Constants;
 import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;

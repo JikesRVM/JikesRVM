@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
  * save/restore all registers (both volatile and non-volatile).
@@ -18,8 +21,6 @@ package com.ibm.JikesRVM.opt;
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.*;
-
 public class VM_OptSaveVolatile implements VM_SaveVolatile {
  
   /**

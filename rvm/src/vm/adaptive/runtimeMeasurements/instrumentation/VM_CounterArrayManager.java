@@ -3,19 +3,17 @@
  */
 // $Id$
 package com.ibm.JikesRVM.adaptive;
-import com.ibm.JikesRVM.opt.*;
 
+import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Statics;
-import com.ibm.JikesRVM.VM_Type;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.opt.ir.*;
 
 /**
- * VM_CounterArrayManager.java
- *
  * An implementation of a OPT_InstrumentedEventCounterManager .  It
  * uses an unsynchronized two dimensional array of doubles to allocate
  * it's counters. (see OPT_InstrumentedEventCounterManager.java for a
@@ -26,9 +24,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  *
  * @author Matthew Arnold
  *
- **/
-
-
+ */
 final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   implements OPT_Operators, OPT_Constants {
 

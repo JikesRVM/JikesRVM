@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * Generates a custom IMT-conflict resolution stub.
  * We create a binary search tree.

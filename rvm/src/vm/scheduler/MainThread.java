@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.Socket;

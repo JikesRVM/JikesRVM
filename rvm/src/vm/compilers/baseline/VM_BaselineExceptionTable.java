@@ -4,6 +4,8 @@
 // $Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Encoding of try ranges in the final machinecode and the
  * corresponding exception type and catch block start.
@@ -21,10 +23,10 @@ final class VM_BaselineExceptionTable extends VM_ExceptionTable {
    * @return the encoded exception table
    */
   static int[] encode(VM_ExceptionHandlerMap emap, int[] bytecodeMap) {
-    int[] startPCs = emap.startPCs;
-    int[] endPCs = emap.endPCs;
-    int[] handlerPCs = emap.handlerPCs;
-    VM_Type[] exceptionTypes = emap.exceptionTypes;
+    int[] startPCs = emap.getStartPC();
+    int[] endPCs = emap.getEndPC();
+    int[] handlerPCs = emap.getHandlerPC();
+    VM_Type[] exceptionTypes = emap.getExceptionTypes();
     int tableSize = startPCs.length;
     int[] eTable = new int[tableSize*4];
     

@@ -5,6 +5,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /** 
  * This class builds the reference and non-reference maps for a given method.
  * The maps are recorded with VM_ReferenceMaps. This class works with the baseline
@@ -17,7 +18,6 @@ package com.ibm.JikesRVM;
  * seemed best to use "stack" for java operand stack.)
  * @author Janice and Tony
  */
-
 final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 
   // ------------------ Static Class Fields ----------------------

@@ -5,7 +5,8 @@
 
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.adaptive.VM_AdaptiveInlining;
 
 /**

@@ -35,7 +35,7 @@ public class VM_Memory implements VM_Uninterruptible {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) throws VM_PragmaInline {
+  public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) throws VM_PragmaInline {
     if (len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos), 
               VM_Magic.objectAsAddress(src).add(srcPos), 
@@ -93,7 +93,7 @@ public class VM_Memory implements VM_Uninterruptible {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) throws VM_PragmaInline {
+  public static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) throws VM_PragmaInline {
     if (len > (NATIVE_THRESHOLD>>1)) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<1), 
               VM_Magic.objectAsAddress(src).add(srcPos<<1), 
@@ -138,7 +138,7 @@ public class VM_Memory implements VM_Uninterruptible {
    * @param dstPos  index in the destination array to being copy
    * @param len     number of array elements to copy
    */
-  static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) throws VM_PragmaInline {
+  public static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) throws VM_PragmaInline {
     if (len > (NATIVE_THRESHOLD>>1)) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<1), 
               VM_Magic.objectAsAddress(src).add(srcPos<<1), 
@@ -182,7 +182,7 @@ public class VM_Memory implements VM_Uninterruptible {
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  static void aligned32Copy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
+  public static void aligned32Copy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
     if (numBytes > NATIVE_THRESHOLD) {
       memcopy(dst, src, numBytes);
     } else {

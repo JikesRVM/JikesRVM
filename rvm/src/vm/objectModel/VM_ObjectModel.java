@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 //-#if RVM_WITH_JMTK
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
 //-#endif
@@ -418,7 +420,11 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Compute the header size of an instance of the given type.
    */
   public static int computeHeaderSize(VM_Type type) throws VM_PragmaInline {
-    return (type.dimension>0)?computeArrayHeaderSize(type.asArray()):computeScalarHeaderSize(type.asClass());
+    if (type.isArrayType()) {
+      return computeArrayHeaderSize(type.asArray());
+    } else {
+      return computeScalarHeaderSize(type.asClass());
+    }
   }
 
   /**

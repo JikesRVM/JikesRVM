@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.*;
 import java.io.*;

@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  *  Handle exception delivery and stack unwinding for methods compiled 
  * by baseline compiler.

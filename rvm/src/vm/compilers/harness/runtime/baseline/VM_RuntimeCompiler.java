@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
  * Use baseline compiler to compile methods at runtime. 
@@ -23,7 +24,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
     VM_BaselineCompiler.processCommandLineArg("-X:irc",arg);
   }
 
-  static VM_CompiledMethod compile(VM_Method method) {
+  public static VM_CompiledMethod compile(VM_Method method) {
     return method.isNative() ? jniCompile(method) : baselineCompile(method);
   }
   

@@ -2,10 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
-
 package com.ibm.JikesRVM.librarySupport;
-import com.ibm.JikesRVM.VM_Atom;
+
+import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.VM_Statics;
 
 /**

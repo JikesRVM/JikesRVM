@@ -4,10 +4,11 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import java.util.*;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
+import java.util.*;
 
 /**
  * Represents a set of dataflow equations used to solve the

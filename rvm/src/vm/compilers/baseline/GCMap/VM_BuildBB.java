@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * Analyze the byte codes and determine the boundaries of the 
  * basic blocks. Used for building the reference maps for a 
@@ -11,7 +12,6 @@ package com.ibm.JikesRVM;
  *
  * @author Anthony Cocchi
  */
-
 final class VM_BuildBB implements VM_BytecodeConstants {
 
   // ---------------- Static Class Fields --------------------

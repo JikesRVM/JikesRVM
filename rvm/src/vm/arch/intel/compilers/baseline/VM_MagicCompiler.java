@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * Generate inline machine instructions for special methods that cannot be implemented
  * in java bytecodes. These instructions are generated whenever we encounter an 

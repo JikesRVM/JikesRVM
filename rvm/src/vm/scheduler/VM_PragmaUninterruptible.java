@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Any method that is declared capable of throwing this exception
  * is treated specially by the machine code compiler:

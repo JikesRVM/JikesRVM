@@ -3,14 +3,16 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
 import java.util.Iterator;
-import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform live-range splitting.

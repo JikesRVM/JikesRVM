@@ -4,6 +4,7 @@
 // $Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * Helper routine to pull the parameters to multianewarray off the
  * Java expression stack maintained by the baseline compiler and 

@@ -6,8 +6,9 @@
 
 package com.ibm.JikesRVM.memoryManagers.watson;
 
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.JikesRVM.classloader.VM_Array;
+import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_ProcessorLock;
 import com.ibm.JikesRVM.VM_Address;
@@ -15,7 +16,6 @@ import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Type;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;

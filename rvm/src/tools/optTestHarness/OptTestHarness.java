@@ -7,6 +7,7 @@ import java.util.*;
 import java.lang.reflect.InvocationTargetException;
 import java.io.*;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 
 /**

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.*;
 import java.util.StringTokenizer;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import java.io.*;
  */
 public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
-  static void boot() {
+  public static void boot() {
       zipFileCache = new HashMap();
       //-#if RVM_WITH_GNU_CLASSPATH
       // the following idiot reflection hack is because the field is final :(
@@ -230,7 +231,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   /**
    * Initialize for measuring class loading.
    */
-  static void initializeMeasureClassLoading() {
+  public static void initializeMeasureClassLoading() {
     if (VM.MeasureClassLoading == 1) {
       VM_Callbacks.addExitMonitor(new Reporter(getVMClassLoader()));
     }

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
  * Use optimizing compiler to compile code at run time.
@@ -49,7 +50,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 
   // tries to compile the passed method with the OPT_Compiler.
   // if this fails we use the fallback compiler (baseline for now)
-  static VM_CompiledMethod compile(VM_Method method) {
+  public static VM_CompiledMethod compile(VM_Method method) {
     if (method.isNative()) {
       return jniCompile(method);
     } 

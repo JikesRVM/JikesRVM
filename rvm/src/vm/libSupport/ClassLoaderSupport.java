@@ -2,19 +2,18 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-
-
 package com.ibm.JikesRVM.librarySupport;
+
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_ClassLoader;
 import com.ibm.JikesRVM.VM_StackBrowser;
-import com.ibm.JikesRVM.VM_ResolutionException;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
 import com.ibm.JikesRVM.VM_UnimplementedError;
+import com.ibm.JikesRVM.classloader.VM_Atom;
+import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Array;
+import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.JikesRVM.classloader.VM_ClassLoader;
+import com.ibm.JikesRVM.classloader.VM_ResolutionException;
+import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 import java.security.ProtectionDomain;
 
 /**

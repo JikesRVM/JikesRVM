@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.*;
+import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
  * The adaptive version of the runtime compiler.

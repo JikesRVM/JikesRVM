@@ -6,7 +6,7 @@ package java.lang;
 
 import java.security.ProtectionDomain;
 
-import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Type;
 
 /**
  * Library support interface of Jikes RVM

@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * The static fields and methods comprising a running virtual machine image.
  *
@@ -183,7 +184,7 @@ package com.ibm.JikesRVM;
      * @return slot number that was allocated 
      * (two slots are allocated for longs and doubles)
      */ 
-    static int allocateSlot(byte description) {
+    public static int allocateSlot(byte description) {
       int slot = nextSlot;
 
       if (slot > descriptions.length - 2)
@@ -327,7 +328,7 @@ package com.ibm.JikesRVM;
     /**
      * Set contents of a slot, as an object.
      */ 
-    static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
+    public static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
       VM_Address newContent = VM_Magic.objectAsAddress(object);
       slots[slot] = newContent.toInt();
     }
@@ -358,18 +359,18 @@ package com.ibm.JikesRVM;
     /**
      * Hash VM_Dictionary keys.
      */ 
-    static int dictionaryHash(int n) { return n; }
+    public static int dictionaryHash(int n) { return n; }
     /**
      * Hash VM_Dictionary keys.
      */ 
-    static int dictionaryHash(long n) { return (int)n; }
+    public static int dictionaryHash(long n) { return (int)n; }
 
     /**
      * Compare VM_Dictionary keys.
      */ 
-    static int dictionaryCompare(long l, long r) { if (l == 0) return 0; if (l == r) return 1; return -1; }
+    public static int dictionaryCompare(long l, long r) { if (l == 0) return 0; if (l == r) return 1; return -1; }
     /**
      * Compare VM_Dictionary keys.
      */ 
-    static int dictionaryCompare(int l, int r) { if (l == 0) return 0; if (l == r) return 1; return -1; }
+    public static int dictionaryCompare(int l, int r) { if (l == 0) return 0; if (l == r) return 1; return -1; }
   }

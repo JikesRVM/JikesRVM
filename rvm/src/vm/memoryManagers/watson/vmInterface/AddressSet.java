@@ -7,16 +7,13 @@ package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
 import com.ibm.JikesRVM.VM_EventLogger;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
-/*
+/**
  * @author Perry Cheng  
  */  
-
 public class AddressSet {
 
   // Deficiency in compiler prevents use of VM_Address []

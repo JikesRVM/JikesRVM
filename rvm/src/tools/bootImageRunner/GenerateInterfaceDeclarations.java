@@ -2,21 +2,17 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+
+import  java.io.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Emit a header file containing declarations required to access VM data structures from C++.
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  *
  * @author Derek Lieber
  * @date 20 Apr 1998
- */
-
-
-import  java.io.*;
-import com.ibm.JikesRVM.*;
-
-
-/**
- * put your documentation comment here
  */
 class GenerateInterfaceDeclarations {
 

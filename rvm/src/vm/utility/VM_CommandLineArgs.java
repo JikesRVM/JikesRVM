@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.adaptive.VM_Controller;
 //-#endif
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Command line option processing.

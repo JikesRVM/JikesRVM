@@ -2,8 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
-
+package com.ibm.JikesRVM.classloader;
 
 import java.io.UTFDataFormatException;
 
@@ -21,7 +20,7 @@ import java.io.UTFDataFormatException;
  *
  * @author John Whaley
  */
-abstract class VM_UTF8Convert {
+public abstract class VM_UTF8Convert {
 
   /**
    * Strictly check the format of the utf8/pseudo-utf8 byte array in
@@ -55,7 +54,7 @@ abstract class VM_UTF8Convert {
    * @throws UTFDataFormatException if the (pseudo-)utf8 byte array is not valid (pseudo-)utf8
    * @returns unicode string
    */
-  static String fromUTF8(byte[] utf8) throws UTFDataFormatException {
+  public static String fromUTF8(byte[] utf8) throws UTFDataFormatException {
     char[] result = new char[utf8.length];
     int result_index = 0;
     for (int i=0, n=utf8.length; i<n; ) {
@@ -116,7 +115,7 @@ abstract class VM_UTF8Convert {
    * @param s String to convert
    * @returns array containing sequence of (pseudo-)utf8 formatted bytes
    */
-  static byte[] toUTF8(String s) {
+  public static byte[] toUTF8(String s) {
     byte[] result = new byte[utfLength(s)];
     int result_index = 0;
     for (int i = 0, n = s.length(); i < n; ++i) {
@@ -140,7 +139,7 @@ abstract class VM_UTF8Convert {
   /**
    * Returns the length of a string's UTF encoded form.
    */
-  static int utfLength(String s) {
+  public static int utfLength(String s) {
     int utflen = 0;
     for (int i = 0, n = s.length(); i < n; ++i) {
       int c = s.charAt(i);
@@ -160,7 +159,7 @@ abstract class VM_UTF8Convert {
    * @param bytes byte array to check
    * @returns true iff the given sequence is valid (pseudo-)utf8.
    */
-  static boolean check(byte[] bytes) {
+  public static boolean check(byte[] bytes) {
     for (int i=0, n=bytes.length; i<n; ) {
       byte b = bytes[i++];
       if (!ALLOW_NORMAL_UTF8)

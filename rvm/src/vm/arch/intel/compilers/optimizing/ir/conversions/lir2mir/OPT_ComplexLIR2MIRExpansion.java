@@ -3,9 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose 

@@ -4,10 +4,11 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * @author Julian Dolby
  */
-
 class VM_LazySpecializationTrampoline 
 implements VM_BaselineConstants, VM_DynamicBridge 
 {

@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * This class compiles the prolog and epilog for all code that makes
  * the transition between Java and Native C

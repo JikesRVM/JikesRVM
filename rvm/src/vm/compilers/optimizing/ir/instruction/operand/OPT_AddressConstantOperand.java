@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_Bits;
-import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.VM_Address;
 
 /**

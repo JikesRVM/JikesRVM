@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.*;
 import java.io.DataInputStream;
 import java.io.IOException;
 
@@ -422,7 +423,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * 
    * @return VM_CompiledMethod object representing the result of the compilation.
    */
-  final synchronized void compile() {
+  public final synchronized void compile() {
     if (VM.VerifyAssertions) VM._assert(isLoaded());
 
     if (isCompiled()) return;
@@ -813,11 +814,11 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   // TODO: fix the following to work with dummy methods! (IP)
   //////////////////////////////////////////////////////////////
 
-  int getNativeIP() { 
+  public int getNativeIP() { 
     return nativeIP;
   }
 
-  int getNativeTOC() { 
+  public int getNativeTOC() { 
     return nativeTOC;
   }
 

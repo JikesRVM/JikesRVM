@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 import java.io.JikesRVMSupport;
 import java.io.*;
 
@@ -14,7 +15,6 @@ import java.io.*;
  * @author David Hovemeyer
  * @date May 20, 2002
  */
-
 public class VM_Process extends java.lang.Process {
 
     static {

@@ -4,8 +4,8 @@
 //$Id$
 package java.lang.reflect;
 
-import com.ibm.JikesRVM.VM_Method;
-import com.ibm.JikesRVM.VM_Field;
+import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_Field;
 
 /**
  * Library support interface of Jikes RVM

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.*;
 import java.io.DataInputStream;
 import java.io.IOException;
 

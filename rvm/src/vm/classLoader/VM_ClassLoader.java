@@ -2,10 +2,11 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
+package com.ibm.JikesRVM.classloader;
 
-package com.ibm.JikesRVM;
-
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 import java.util.StringTokenizer;
 import java.io.*;
 import java.util.zip.ZipFile;
@@ -291,8 +292,8 @@ implements VM_Constants, VM_ClassLoaderConstants {
   static VM_Atom StandardClassInitializerMethodName;        // "<clinit>"
   static VM_Atom StandardClassInitializerMethodDescriptor;  // "()V"
 
-  static VM_Atom StandardObjectInitializerMethodName;       // "<init>"
-  static VM_Atom StandardObjectInitializerMethodDescriptor; // "()V"
+  public static VM_Atom StandardObjectInitializerMethodName;       // "<init>"
+  public static VM_Atom StandardObjectInitializerMethodDescriptor; // "()V"
 
   static VM_Atom StandardObjectFinalizerMethodName;         // "finalize"
   static VM_Atom StandardObjectFinalizerMethodDescriptor;   // "()V"
@@ -324,7 +325,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * Initialize for bootimage.
    */
-  static void init(String vmClassPath) {
+  public static void init(String vmClassPath) {
     // specify place where vm classes and resources live
     //
     setVmRepositories(vmClassPath);
@@ -357,8 +358,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
 
     VM_Type.init();
 
-    //-#if RVM_WITH_GNU_CLASSPATH
-    //-#else
+    //-#if !RVM_WITH_GNU_CLASSPATH
     com.ibm.oti.vm.AbstractClassLoader.setBootstrapClassLoader( VM_SystemClassLoader.getVMClassLoader() );
     //-#endif
   }
@@ -370,8 +370,8 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * bootimage was created)
    * @return nothing
    */
-  static void boot(String vmClasses) {
-    setVmRepositories( vmClasses );
+  public static void boot(String vmClasses) {
+    setVmRepositories(vmClasses);
     currentDynamicLibraryId = 0;
     dynamicLibraries = new VM_DynamicLibrary[0];
   }
@@ -385,7 +385,7 @@ implements VM_Constants, VM_ClassLoaderConstants {
    * for identification when walking the stack
    * during gc.
    */ 
-  static int createHardwareTrapCompiledMethodId() {
+  public static int createHardwareTrapCompiledMethodId() {
     VM_Method method = VM_ClassLoader.findOrCreateMethod(VM_Atom.findOrCreateAsciiAtom("L<hardware>;"),
                                                          VM_Atom.findOrCreateAsciiAtom("<trap>"),
                                                          VM_Atom.findOrCreateAsciiAtom("()V"),

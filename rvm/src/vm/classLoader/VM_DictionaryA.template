@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+package PPP;
 
-package com.ibm.JikesRVM;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Template for a dictionary of key/value[] pairs.
@@ -35,6 +38,7 @@ package com.ibm.JikesRVM;
  *    }
  *
  * In this template: 
+ *    PPP stands for package of dictionary
  *    CCC stands for classname of dictionary
  *    KKK stands for typename of dictionary's keys
  *    VVV stands for typename of element type of dictionary's values

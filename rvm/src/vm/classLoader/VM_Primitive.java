@@ -2,9 +2,11 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 /**
  * Description of a java "primitive" type (int, float, etc.)
  * 

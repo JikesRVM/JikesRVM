@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.VM_Uninterruptible;
 import java.io.DataInputStream;
 import java.io.IOException;
 
@@ -22,13 +23,13 @@ public class VM_LineNumberMap implements VM_Uninterruptible {
    * bytecode offset at which each instruction sequence begins
    * 0-indexed from start of method's bytecodes[]     
    */
-  final int[] startPCs;    
+  public final int[] startPCs;    
 
   /** 
    * line number at which each instruction sequence begins
    * 1-indexed from start of method's source file
    */
-  final int[] lineNumbers;
+  public final int[] lineNumbers;
 
   VM_LineNumberMap(int n) {
     startPCs    = new int[n];

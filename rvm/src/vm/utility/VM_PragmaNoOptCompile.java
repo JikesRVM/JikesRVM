@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * This pragma indicates that a particular method should never be 
  * compiled by the optimizing compiler. It also implies that the

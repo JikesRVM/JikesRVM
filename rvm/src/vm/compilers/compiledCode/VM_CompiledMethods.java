@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
@@ -124,7 +125,7 @@ public class VM_CompiledMethods {
   // can only be collected once we are certain that they are no longer being
   // executed. Here, we keep track of them until we know they are no longer
   // in use.
-  static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
+  public static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
     if (compiledMethod.isObsolete()) return; // someone else already marked it as obsolete.
     int	cmid = compiledMethod.getId();
 
@@ -133,7 +134,7 @@ public class VM_CompiledMethods {
     // and are not updated on recompilation.
     // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
     //	and update TIB to use newly recompiled method.
-    if (compiledMethod.getMethod().declaringClass.isJavaLangObjectType())
+    if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType())
       return;
 
     if (VM.VerifyAssertions) VM._assert(compiledMethods[cmid] != null);

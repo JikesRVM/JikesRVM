@@ -10,18 +10,19 @@
 # @author Anthony Cocchi
 # @author Derek Lieber
 
-if [ $# != 6 ]; then
-   echo "usage: $0 dictionaryClassName keyTypeName valueTypeName hasherClassName templateFileName outputFileName"
+if [ $# != 7 ]; then
+   echo "usage: $0 packageName dictionaryClassName keyTypeName valueTypeName hasherClassName templateFileName outputFileName"
    exit 1
 fi
 
-CNAME=$1
-KNAME=$2
-VNAME=$3
-DNAME=$4
-IFILE=$5
-OFILE=$6
+PNAME=$1
+CNAME=$2
+KNAME=$3
+VNAME=$4
+DNAME=$5
+IFILE=$6
+OFILE=$7
 
 echo '/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'           >$OFILE
 echo                                                                                >>$OFILE
-sed -e s/CCC/$CNAME/g -e s/KKK/$KNAME/g -e s/VVV/$VNAME/g -e s/DDD/$DNAME/g <$IFILE >>$OFILE
+sed -e s/PPP/$PNAME/g -e s/CCC/$CNAME/g -e s/KKK/$KNAME/g -e s/VVV/$VNAME/g -e s/DDD/$DNAME/g <$IFILE >>$OFILE

@@ -5,8 +5,8 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
 import com.ibm.JikesRVM.librarySupport.SystemSupport;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Entrypoints into the runtime of the virtual machine.

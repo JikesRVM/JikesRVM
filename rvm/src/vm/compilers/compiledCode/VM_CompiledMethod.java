@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * A method that has been compiled into machine code by one of our compilers.
  * We implement VM_SynchronizedObject because we need to synchronized 

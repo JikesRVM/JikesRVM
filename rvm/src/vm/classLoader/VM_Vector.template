@@ -1,12 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
-package com.ibm.JikesRVM;
+//$Id$
+package PPP;
 
 /** A template for building arrays whose length can grow/shrink.
  *
  *  In this template: 
+ *     PPP stands for package of array builder
  *     CCC stands for classname of array builder
  *     EEE stands for typename of array elements
  *

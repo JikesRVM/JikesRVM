@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -18,10 +18,10 @@ public class VM_LocalVariable {
   VM_Atom descriptor;         // its type descriptor
   ClassLoader classloader;
 
-  int stackSlot;              // slot where it resides (in "locals" part of stackframe)
+  public int stackSlot;              // slot where it resides (in "locals" part of stackframe)
 
-  int startPC;                // range of bytecodes for which it resides in that stack slot,
-  int endPC;                  // indexed from start of methods' bytecodes[] (inclusive)
+  public int startPC;                // range of bytecodes for which it resides in that stack slot,
+  public int endPC;                  // indexed from start of methods' bytecodes[] (inclusive)
 
   VM_LocalVariable(VM_Class cls, DataInputStream input) throws IOException {
     startPC    = input.readUnsignedShort();

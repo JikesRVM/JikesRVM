@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
  * This class encapsulates the analytic model used by the controller

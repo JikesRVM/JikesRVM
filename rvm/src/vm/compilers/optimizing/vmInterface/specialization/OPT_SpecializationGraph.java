@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  *  This graph represents a set of specializations to perform.
  * Specializations to perform are represented by the nodes in the

@@ -2,8 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.*;
 /** 
  * A utf8-encoded byte string.
  *
@@ -46,7 +47,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @param utf8 atom value, as utf8 encoded bytes
    * @return id, for use by VM_AtomDictionary.getValue()
    */
-  static int findOrCreateAtomId(byte[] utf8) {
+  public static int findOrCreateAtomId(byte[] utf8) {
     VM_Atom atom = new VM_Atom(utf8);
     return VM_AtomDictionary.findOrCreateId(atom, atom);
   }
@@ -66,7 +67,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * Return printable representation of "this" atom.
    */ 
-  final String toUnicodeString() throws java.io.UTFDataFormatException { 
+  public final String toUnicodeString() throws java.io.UTFDataFormatException { 
     return VM_UTF8Convert.fromUTF8(val);
   }
 
@@ -129,28 +130,28 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * Note: Sun has reserved all member names starting with '<' for future use.
    *       At present, only <init> and <clinit> are used.
    */ 
-  final boolean isReservedMemberName() {
+  public final boolean isReservedMemberName() {
     return val[0] == '<';
   }
 
   /**
    * Is "this" atom a class descriptor?
    */ 
-  final boolean isClassDescriptor() {
+  public final boolean isClassDescriptor() {
     return val[0] == 'L';
   }
       
   /**
    * Is "this" atom an array descriptor?
    */ 
-  final boolean isArrayDescriptor() {
+  public final boolean isArrayDescriptor() {
     return val[0] == '[';
   }
       
   /**
    * Is "this" atom a method descriptor?
    */ 
-  final boolean isMethodDescriptor() {
+  public final boolean isMethodDescriptor() {
     return val[0] == '(';
   }
       
@@ -164,7 +165,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
-  final VM_Type parseForReturnType(ClassLoader classloader) {
+  public final VM_Type parseForReturnType(ClassLoader classloader) {
     if (VM.VerifyAssertions) VM._assert(val[0] == '(');
 
     int i = 0;
@@ -253,7 +254,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    *            CharTypeCode         'C'
    * </pre>
    */
-  final byte parseForTypeCode() {
+  public final byte parseForTypeCode() {
     return val[0];
   }
 
@@ -263,7 +264,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: descriptor     - something like "[Ljava/lang/String;" or "[[I"
    * @return dimensionality - something like "1" or "2"
    */ 
-  final int parseForArrayDimensionality() {
+  public final int parseForArrayDimensionality() {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     for (int i = 0; ; ++i)
       if (val[i] != '[')
@@ -276,7 +277,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return type code  - something like VM.ObjectTypeCode or VM.IntTypeCode
    * The type code will be one of the constants appearing in the table above.
    */ 
-  final byte parseForArrayElementTypeCode() throws VM_PragmaUninterruptible {
+  public final byte parseForArrayElementTypeCode() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     return val[1];
   }
@@ -287,7 +288,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: array descriptor         - something like "[I"
    * @return array element descriptor - something like "I"
    */
-  final VM_Atom parseForArrayElementDescriptor() {
+  public final VM_Atom parseForArrayElementDescriptor() {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     return findOrCreateAtom(val, 1, val.length - 1);
   }
@@ -296,12 +297,12 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
   // debugging //
   //-----------//
    
-  final void sysWrite() throws VM_PragmaUninterruptible {
+  public final void sysWrite() throws VM_PragmaUninterruptible {
     for (int i = 0, n = val.length; i < n; ++i)
       VM.sysWrite((char)val[i]);
   }
 
-  final int length() throws VM_PragmaUninterruptible {
+  public final int length() throws VM_PragmaUninterruptible {
     return val.length;
   }
 

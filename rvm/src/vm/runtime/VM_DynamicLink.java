@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Place for VM_CompiledMethod.getDynamicLink() to deposit return information.
  *

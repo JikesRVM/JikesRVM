@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
+
+import com.ibm.JikesRVM.*;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -96,7 +98,7 @@ public final class VM_Class extends VM_Type
   /**
    * Non-instantiable?
    */ 
-  final boolean isAbstract() throws VM_PragmaUninterruptible { 
+  public final boolean isAbstract() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0; 
   }
@@ -104,7 +106,7 @@ public final class VM_Class extends VM_Type
   /**
    * Use new-style "invokespecial" semantics for method calls in this class?
    */ 
-  final boolean isSpecial() throws VM_PragmaUninterruptible { 
+  public final boolean isSpecial() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_SPECIAL) != 0; 
   }
@@ -177,7 +179,7 @@ public final class VM_Class extends VM_Type
    * Static initializer method for this class (null -> no static initializer
    *  or initializer already been run).
    */ 
-  final VM_Method getClassInitializerMethod() throws VM_PragmaUninterruptible {
+  public final VM_Method getClassInitializerMethod() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     return classInitializerMethod;
   }
@@ -188,7 +190,7 @@ public final class VM_Class extends VM_Type
    * @param fieldDescriptor field descriptor - something like "I"
    * @return description (null --> not found)
    */ 
-  final VM_Field findDeclaredField(VM_Atom fieldName, VM_Atom fieldDescriptor) {
+  public final VM_Field findDeclaredField(VM_Atom fieldName, VM_Atom fieldDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isLoaded());
     for (int i = 0, n = declaredFields.length; i < n; ++i) {
       VM_Field field = declaredFields[i];
@@ -449,7 +451,7 @@ public final class VM_Class extends VM_Type
     return instanceSize;
   }
 
-  final int getInstanceSizeInternal() throws VM_PragmaUninterruptible {
+  public final int getInstanceSizeInternal() throws VM_PragmaUninterruptible {
     return instanceSize;
   }
 
@@ -457,7 +459,7 @@ public final class VM_Class extends VM_Type
    * Add a field to the object; only meant to be called from VM_ObjectModel et al.
    * must be called when lock on class object is already held (ie from resolve).
    */
-  final void increaseInstanceSize(int numBytes) throws VM_PragmaUninterruptible {
+  public final void increaseInstanceSize(int numBytes) throws VM_PragmaUninterruptible {
     instanceSize += numBytes;
   }
 
@@ -513,7 +515,7 @@ public final class VM_Class extends VM_Type
    * @param    init method descriptor - something like "(I)V"
    * @return method description (null --> not found)
    */
-  final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
+  public final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
     VM_Method methods[] = getStaticMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
@@ -1380,7 +1382,7 @@ public final class VM_Class extends VM_Type
    * the JTOC.  Note: This method should only be run AFTER
    * the class initializer has run.
    */
-  void setAllFinalStaticJTOCEntries() {
+  public void setAllFinalStaticJTOCEntries() {
     if (VM.VerifyAssertions) VM._assert (isInitialized());
     VM_Field[] fields = getStaticFields();
     for (int i=0; i<fields.length; i++) {
@@ -1691,7 +1693,7 @@ public final class VM_Class extends VM_Type
   private static int          interfaceCount     = 0;
   private static VM_Class[]   interfaces         = new VM_Class[100];
   private int                 interfaceId        = -1; 
-  VM_Method[]                 noIMTConflictMap; // used by VM_InterfaceInvocation to support resetTIB
+  public VM_Method[]          noIMTConflictMap; // used by VM_InterfaceInvocation to support resetTIB
 
   /**
    * VM_Classes used as Interfaces get assigned an interface id.
@@ -1713,7 +1715,7 @@ public final class VM_Class extends VM_Type
     return 1 << (getInterfaceId() & 31);
   }
 
-  static VM_Class getInterface(int id) {
+  public static VM_Class getInterface(int id) {
     return interfaces[id];
   }
 

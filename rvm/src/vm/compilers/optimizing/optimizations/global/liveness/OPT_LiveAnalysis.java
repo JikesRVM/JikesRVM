@@ -3,11 +3,13 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.Stack;
-import  java.util.Enumeration;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+
+import java.util.Stack;
+import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashSet;

@@ -2,7 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -18,9 +18,10 @@ public class VM_ExceptionHandlerMap {
   // Interface //
   //-----------//
 
-  public final int[] getStartPC()   { return startPCs;   }
-  public final int[] getEndPC()     { return endPCs;     }
+  public final int[] getStartPC() { return startPCs;   }
+  public final int[] getEndPC()   { return endPCs;     }
   public final int[] getHandlerPC() { return handlerPCs; }
+  public final VM_Type[] getExceptionTypes() { return exceptionTypes; }
   public final VM_Type getExceptionType(int i) { return exceptionTypes[i]; }
    
   //----------------//

@@ -12,21 +12,17 @@ import com.ibm.JikesRVM.memoryManagers.watson.VM_GCWorkQueue;
 import com.ibm.JikesRVM.memoryManagers.watson.VM_GCStatistics;
 import com.ibm.JikesRVM.memoryManagers.watson.VM_Heap;
 
+import com.ibm.JikesRVM.classloader.*;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
 import com.ibm.JikesRVM.VM_EventLogger;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Atom;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_CompiledMethod;
