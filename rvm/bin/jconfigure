@@ -1551,8 +1551,7 @@ EOF
     echo "   echo Dummy.class                      >> ${EXCLUDED_CLASSES_STR}"
     echo "   echo OptDummy.class                   >> ${EXCLUDED_CLASSES_STR}"
 
-    # skip: VM_InetAddress and JikesRVMSocketImpl; don't load native libs unless needed
-    echo "   echo VM_InetAddress.class             >> ${EXCLUDED_CLASSES_STR}"
+    # skip: JikesRVMSocketImpl; don't load native libs unless needed
     echo "   echo JikesRVMSocketImpl               >> ${EXCLUDED_CLASSES_STR}"
 
     # skip: don't put application class loader in, due to static data issues
@@ -2246,10 +2245,8 @@ function emitBooterLinker () {
     # build the JNI code for heavyweight networking calls
     echo "cd \${JAL_ROOT}/rvm/src/tools/bootImageRunner/"
     if (( RVM_FOR_AIX )); then
-	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.a $JAL_BUILD/libjpninet.a'
 	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.a $JAL_BUILD/libjpnexec.a'
     else
-	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.inet DEST=$JAL_BUILD/libjpninet.so $JAL_BUILD/libjpninet.so '
 	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec.so $JAL_BUILD/libjpnexec.so '
     fi
 
