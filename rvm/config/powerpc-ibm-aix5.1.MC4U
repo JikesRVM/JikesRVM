@@ -42,8 +42,8 @@ export RVM_WITH_HPM=1
 # you're doing a cross-build.)
 ########## 
 
-# Root of Sun-style JDK installation.
-[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/homes/munchkin.2/jalapeno/PowerPC-Java-1.4.2-SDK-SR1-20041203/sdk"
+# Root of JDK installation.
+[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/java14"
 
 # the JDK java executable
 export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
@@ -103,7 +103,8 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 ## The Jikes RVM build process will expect to automatically take 
 ## care of building Classpath from those sources, if you want.
 # export CLASSPATH_ROOT=/opt/classpath-0.12
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.12
+export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.14
+export 	RVM_WITH_CLASSPATH_0_14=1
 
 ## OR you can leave all of the CLASSPATH_ variables unset and let the
 ## build process download and build GNU Classpath for you.  This
@@ -120,9 +121,8 @@ export WGET="/homes/meriadoc/jalapeno/bin/power/wget"
 export GNU_MAKE="/usr/gnu/bin/make"
 
 # Path for the Jikes java-to-byte-code compiler.
-# Try Jikes 1.13 if you have trouble figuring out the error messages
-# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20 or 1.21.
-export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.19
+# Jikes 1.22 or better is now required.
+export JIKES=/homes/meriadoc/jalapeno/bin/power/jikes-1.22
 
 ## What C compiler should be used?  We only use the GNU C compiler
 ## on the project, although it is possible that other compilers might work.
