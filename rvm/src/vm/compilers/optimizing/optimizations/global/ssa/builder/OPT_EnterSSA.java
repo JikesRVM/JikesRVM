@@ -50,7 +50,18 @@ implements OPT_Operators, OPT_Constants {
   /**
    * A set of registers determined to span basic blocks
    */
-  private java.util.HashSet nonLocalRegisters;
+  private HashSet nonLocalRegisters;
+
+  /**
+   * The set of scalar phi functions inserted
+   */
+  private HashSet scalarPhis = new HashSet();
+
+  /**
+   * For each basic block, the number of predecessors that have been
+   * processed.
+   */
+  private int[] numPredProcessed;
 
   /**
    * Should this phase be performed under a guiding set of compiler
@@ -89,7 +100,7 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param ir the governing IR
    */
-  final public void perform (OPT_IR ir) {
+  final public void perform(OPT_IR ir) {
 
     // Exit if we don't have to recompute SSA.
     if (ir.actualSSAOptions != null)
@@ -98,7 +109,7 @@ implements OPT_Operators, OPT_Constants {
     this.ir = ir;
     boolean scalarsOnly = ir.desiredSSAOptions.getScalarsOnly();
     boolean backwards = ir.desiredSSAOptions.getBackwards();
-    java.util.Set heapTypes = ir.desiredSSAOptions.getHeapTypes();
+    Set heapTypes = ir.desiredSSAOptions.getHeapTypes();
     boolean insertUsePhis = ir.desiredSSAOptions.getInsertUsePhis();
     boolean insertPEIDeps = ir.desiredSSAOptions.getInsertPEIDeps();
     boolean excludeGuards = ir.desiredSSAOptions.getExcludeGuards();
@@ -156,10 +167,10 @@ implements OPT_Operators, OPT_Constants {
    * </code> field.
    */
   private void computeNonLocals () {
-    nonLocalRegisters = new java.util.HashSet(20);
+    nonLocalRegisters = new HashSet(20);
     OPT_BasicBlockEnumeration blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      java.util.HashSet killed = new java.util.HashSet(5);
+      HashSet killed = new HashSet(5);
       OPT_BasicBlock block = blocks.next();
       OPT_InstructionEnumeration instrs = block.forwardRealInstrEnumerator();
       while (instrs.hasMoreElements()) {
@@ -191,7 +202,7 @@ implements OPT_Operators, OPT_Constants {
     // this only applies if there are exception handlers
     if (!ir.hasReachableExceptionHandlers()) return;
 
-    java.util.HashSet needed = new java.util.HashSet(4);
+    HashSet needed = new HashSet(4);
     OPT_BasicBlockEnumeration blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
       OPT_BasicBlock block = blocks.next();
@@ -235,7 +246,7 @@ implements OPT_Operators, OPT_Constants {
       }
     }
     // having determine where copies should be inserted, now insert them.
-    java.util.Iterator copies = needed.iterator();
+    Iterator copies = needed.iterator();
     while (copies.hasNext()) {
       OPT_Pair copy = (OPT_Pair)copies.next();
       OPT_BasicBlock inBlock = (OPT_BasicBlock)copy.first;
@@ -290,7 +301,7 @@ implements OPT_Operators, OPT_Constants {
    * @param excludeGuards: Should we exclude guard registers from SSA?
    */
   private void computeSSA (OPT_IR ir, boolean scalarsOnly, boolean backwards, 
-                           java.util.Set heapTypes, boolean insertUsePhis,
+                           Set heapTypes, boolean insertUsePhis,
                            boolean insertPEIDeps, boolean excludeGuards) {
     // if reads Kill.  model this with uphis.
     if (ir.options.READS_KILL) insertUsePhis = true;
@@ -304,43 +315,41 @@ implements OPT_Operators, OPT_Constants {
       ir.HIRInfo.SSADictionary = new OPT_SSADictionary(null, 
                                                        insertUsePhis, 
                                                        insertPEIDeps, ir);
-    if (DEBUG)
-      System.out.println("Computing register lists...");
+    if (DEBUG) System.out.println("Computing register lists...");
+
     // 1. re-compute the flow-insensitive isSSA flag for each register
     OPT_DefUse.computeDU(ir);
     OPT_DefUse.recomputeSSA(ir);
+
     // 2. set up a mapping from symbolic register number to the
     //	register.  !!TODO: factor this out and make it more
     //	useful.
-    OPT_Register[] symbolicRegisters = getSymbolicRegisters(ir);
+    OPT_Register[] symbolicRegisters = getSymbolicRegisters();
+
     // 3. walk through the IR, and set up BitVectors representing the defs
     //    for each symbolic register (more efficient than using register
     //	lists)
-    if (DEBUG)
-      System.out.println("Find defs for each register...");
-    OPT_BitVector[] defSets = getDefSets(ir);
+    if (DEBUG) System.out.println("Find defs for each register...");
+    OPT_BitVector[] defSets = getDefSets();
+
     // 4. Insert phi functions for scalars
-    if (DEBUG)
-      System.out.println("Insert phi functions...");
+    if (DEBUG) System.out.println("Insert phi functions...");
     insertPhiFunctions(ir, defSets, symbolicRegisters, excludeGuards);
+
     // 5. Insert heap variables into the Array SSA form
     if (!scalarsOnly) {
       insertHeapVariables(ir, backwards);
     }
-    if (DEBUG)
-      System.out.println("Before renaming...");
-    if (DEBUG)
-      OPT_SSA.printInstructions(ir);
-    if (DEBUG)
-      System.out.println("Renaming...");
-    renameSymbolicRegisters(ir, symbolicRegisters);
+    if (DEBUG) System.out.println("Before renaming...");
+    if (DEBUG) OPT_SSA.printInstructions(ir);
+    if (DEBUG) System.out.println("Renaming...");
+    renameSymbolicRegisters(symbolicRegisters);
+
     if (!scalarsOnly) {
       renameHeapVariables(ir);
     }
-    if (DEBUG)
-      System.out.println("SSA done.");
-    if (ir.options.PRINT_SSA)
-      OPT_SSA.printInstructions(ir);
+    if (DEBUG) System.out.println("SSA done.");
+    if (ir.options.PRINT_SSA) OPT_SSA.printInstructions(ir);
   }
 
   /**
@@ -351,7 +360,7 @@ implements OPT_Operators, OPT_Constants {
    *		       procedure <em> uses </em> every heap variable.
    *		       This option is useful for backwards analyses
    */
-  private static void insertHeapVariables (OPT_IR ir, boolean backwards) {
+  private void insertHeapVariables (OPT_IR ir, boolean backwards) {
     // insert dphi functions where needed
     registerHeapVariables(ir);
 
@@ -372,7 +381,7 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param ir the governing IR
    */
-  private static void registerExits (OPT_IR ir) {
+  private void registerExits (OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements();) {
@@ -398,7 +407,7 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param ir the governing IR
    */
-  private static void registerCalls (OPT_IR ir) {
+  private void registerCalls (OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements();) {
@@ -423,7 +432,7 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param ir the governing IR
    */
-  private static void registerHeapVariables (OPT_IR ir) {
+  private void registerHeapVariables (OPT_IR ir) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements();) {
@@ -447,7 +456,7 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param ir the governing IR
    */
-  private static void insertHeapPhiFunctions (OPT_IR ir) {
+  private void insertHeapPhiFunctions (OPT_IR ir) {
     Enumeration e = ir.HIRInfo.SSADictionary.getHeapVariables();
     for (; e.hasMoreElements();) {
       OPT_HeapVariable H = (OPT_HeapVariable)e.nextElement();
@@ -478,11 +487,10 @@ implements OPT_Operators, OPT_Constants {
    * 	registers marked  already having a single static
    * 	definition, physical registers, and guard registeres.
    *
-   * @param ir the governing IR
    * @returns an array of BitVectors, where element <em>i</em> represents the
    *	basic blocks that contain defs for symbolic register <em>i</em>
    */
-  private static OPT_BitVector[] getDefSets (OPT_IR ir) {
+  private OPT_BitVector[] getDefSets() {
     int nBlocks = ir.getMaxBasicBlockNumber();
     OPT_BitVector[] result = new OPT_BitVector[ir.getNumberOfSymbolicRegisters()];
 
@@ -534,22 +542,15 @@ implements OPT_Operators, OPT_Constants {
                                   OPT_Register[] symbolics,
                                   boolean excludeGuards) {
     for (int r = 0; r < defs.length; r++) {
-      if (symbolics[r] == null)
-        continue;
-      if (symbolics[r].isSSA())
-        continue;
-      if (symbolics[r].isPhysical())
-        continue;
+      if (symbolics[r] == null) continue;
+      if (symbolics[r].isSSA()) continue;
+      if (symbolics[r].isPhysical()) continue;
       if (excludeGuards && symbolics[r].isValidation()) continue;
-      if (DEBUG)
-        System.out.println("Inserting phis for register " + r);
-      if (DEBUG)
-        System.out.println("Start iterated frontier...");
-      OPT_BitVector needsPhi = OPT_DominanceFrontier.
-        getIteratedDominanceFrontier(ir, defs[r]);
+      if (DEBUG) System.out.println("Inserting phis for register " + r);
+      if (DEBUG) System.out.println("Start iterated frontier...");
+      OPT_BitVector needsPhi = OPT_DominanceFrontier. getIteratedDominanceFrontier(ir, defs[r]);
       removePhisThatDominateAllDefs(needsPhi, ir, defs[r]);
-      if (DEBUG)
-        System.out.println("Done.");
+      if (DEBUG) System.out.println("Done.");
 
       if (ir.options.PRUNED_SSA) {
         for (int b = 0; b < needsPhi.length(); b++) {
@@ -587,9 +588,9 @@ implements OPT_Operators, OPT_Constants {
    * @param ir the governing IR
    * @param defs set of nodes that define register r
    */
-  private static void removePhisThatDominateAllDefs (OPT_BitVector needsPhi, 
-                                                     OPT_IR ir, 
-                                                     OPT_BitVector defs) {
+  private void removePhisThatDominateAllDefs (OPT_BitVector needsPhi, 
+                                              OPT_IR ir, 
+                                              OPT_BitVector defs) {
     for (int i = 0; i < needsPhi.length(); i++) {
       if (!needsPhi.get(i))
         continue;
@@ -605,9 +606,10 @@ implements OPT_Operators, OPT_Constants {
    * @param bb the basic block
    * @param r the symbolic register that needs a phi function
    */
-  private void insertPhi (OPT_BasicBlock bb, OPT_Register r) {
+  private void insertPhi(OPT_BasicBlock bb, OPT_Register r) {
     OPT_Instruction s = makePhiInstruction(r, bb);
     bb.firstInstruction().insertAfter(s);
+    scalarPhis.add(s);
   }
 
   /**
@@ -615,19 +617,16 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param r the symbolic register
    * @param bb the basic block holding the new phi function
-   * @returns the instruction r = PHI r,r,..,r
+   * @returns the instruction r = PHI null,null,..,null
    */
-  private OPT_Instruction makePhiInstruction (OPT_Register r,
-                                              OPT_BasicBlock bb) {
+  private OPT_Instruction makePhiInstruction(OPT_Register r, OPT_BasicBlock bb) {
     int n = bb.getNumberOfIn();
     OPT_BasicBlockEnumeration in = bb.getIn();
     VM_Type type = null;
-    OPT_Instruction s = Phi.create(PHI, 
-                                   new OPT_RegisterOperand(r, type), 
-                                   n);
+    OPT_Instruction s = Phi.create(PHI, new OPT_RegisterOperand(r, type), n);
     for (int i = 0; i < n; i++) {
-      OPT_RegisterOperand op = new OPT_RegisterOperand(r, type);
-      Phi.setValue(s, i, op);
+      OPT_RegisterOperand junk = new OPT_RegisterOperand(r,type);
+      Phi.setValue(s, i, junk);
       OPT_BasicBlock pred = in.next();
       Phi.setPred(s, i, new OPT_BasicBlockOperand(pred)); 
     }
@@ -640,10 +639,9 @@ implements OPT_Operators, OPT_Constants {
    * Set up a mapping from symbolic register number to the register.
    * <p> TODO: put this functionality elsewhere.
    *
-   * @param ir the governing IR.
    * @returns a mapping
    */
-  private static OPT_Register[] getSymbolicRegisters (OPT_IR ir) {
+  private OPT_Register[] getSymbolicRegisters() {
     OPT_Register[] map = new OPT_Register[ir.getNumberOfSymbolicRegisters()];
     for (OPT_Register reg = ir.regpool.getFirstRegister(); reg != null; 
          reg = reg.getNext()) {
@@ -685,42 +683,40 @@ implements OPT_Operators, OPT_Constants {
    *  done (end of second loop)
    *  for each Y in Children(X) do
    * 	call search(Y)
-   *  done (end of third loop)
-   *  for each assignment A in X do
-   *     for each r in LHS(A) do
-   *	   pop(S(r))
-   *	done
-   *  done (end of fourth loop)
-   *  end
-   * <pre>
-   *
-   * @param ir the governing IR
-   * @param symbolicRegisters mapping from integer to symbolic registers
-   */
-   private static void renameSymbolicRegisters (OPT_IR ir, 
-                                                OPT_Register[] symbolicRegisters) {
+  *  done (end of third loop)
+    *  for each assignment A in X do
+    *     for each r in LHS(A) do
+    *	   pop(S(r))
+    *	done
+    *  done (end of fourth loop)
+    *  end
+    * <pre>
+    *
+    * @param ir the governing IR
+    * @param symbolicRegisters mapping from integer to symbolic registers
+    */
+    private void renameSymbolicRegisters(OPT_Register[] symbolicRegisters) {
       OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
       int n = ir.getNumberOfSymbolicRegisters();
-      java.util.Stack[] S = new java.util.Stack[n + 1];
+      Stack[] S = new Stack[n + 1];
       for (int i = 0; i < S.length; i++) {
-        S[i] = new java.util.Stack();
+        S[i] = new Stack();
         // populate the Stacks with initial names for
         // each parameter, and push "null" for other symbolic registers
-        if (i >= symbolicRegisters.length)
-          continue;
+        if (i >= symbolicRegisters.length) continue;
         OPT_Register r = symbolicRegisters[i];
         // If a register's name is "null", that means the
         // register has not yet been defined.
         S[i].push(null);
       }
       OPT_BasicBlock entry = ir.cfg.entry();
-      java.util.HashMap phiDefTypes = new java.util.HashMap(10);
-      java.util.HashSet ambiguous = new java.util.HashSet(10);
       OPT_DefUse.clearDU(ir);
-      search(entry, S, ir, phiDefTypes, ambiguous);
+      numPredProcessed = new int[ir.getMaxBasicBlockNumber()];
+      search(entry, S);
       OPT_DefUse.recomputeSSA(ir);
-      setAmbiguousTypes(ambiguous, phiDefTypes);
+      rectifyPhiTypes();
     }
+
 
   /**
    * This routine is the guts of the SSA construction phase for scalars.  See
@@ -729,15 +725,9 @@ implements OPT_Operators, OPT_Constants {
    * @param X basic block to search dominator tree from
    * @param S stack of names for each register
    * @param ir governing IR
-   * @param phiDefTypes, a mapping from register->type, for registers
-   *			defined in phi instructions
-   * @param ambiguous, a set of phi statements whose type is unknown
    */
-  private static void search (OPT_BasicBlock X, java.util.Stack[] S, OPT_IR ir, 
-                              java.util.HashMap phiDefTypes, 
-                              java.util.HashSet ambiguous) {
-    if (DEBUG)
-      System.out.println("SEARCH " + X);
+  private void search(OPT_BasicBlock X, Stack[] S) {
+    if (DEBUG) System.out.println("SEARCH " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_InstructionEnumeration ie = 
          X.forwardInstrEnumerator(); ie.hasMoreElements();) {
@@ -749,15 +739,10 @@ implements OPT_Operators, OPT_Constants {
           if (op instanceof OPT_RegisterOperand) {
             OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
             OPT_Register r1 = rop.register;
-            if (r1.isSSA())
-              continue;
-            if (r1.isPhysical())
-              continue;
-            OPT_RegisterOperand r2 = (OPT_RegisterOperand)
-              S[r1.getNumber()].peek();
-            if (DEBUG)
-              System.out.println("REPLACE NORMAL USE " + r1 + " with "
-                                 + r2);
+            if (r1.isSSA()) continue;
+            if (r1.isPhysical()) continue;
+            OPT_RegisterOperand r2 = (OPT_RegisterOperand)S[r1.getNumber()].peek();
+            if (DEBUG) System.out.println("REPLACE NORMAL USE " + r1 + " with " + r2);
             if (r2 != null) {
               rop.register = r2.register;
               OPT_DefUse.recordUse(rop);
@@ -771,21 +756,11 @@ implements OPT_Operators, OPT_Constants {
         if (op instanceof OPT_RegisterOperand) {
           OPT_RegisterOperand rop = (OPT_RegisterOperand)op;
           OPT_Register r1 = rop.register;
-          if (r1.isSSA())
-            continue;
-          if (r1.isPhysical())
-            continue;
+          if (r1.isSSA()) continue;
+          if (r1.isPhysical()) continue;
           OPT_Register r2 = ir.regpool.getReg(r1);
-          if (DEBUG)
-            System.out.println("PUSH " + r2 + " FOR " + r1 + "BECAUSE "
-                               + A);
+          if (DEBUG) System.out.println("PUSH " + r2 + " FOR " + r1 + " BECAUSE " + A);
           S[r1.getNumber()].push(new OPT_RegisterOperand(r2, rop.type));
-          // if we haven't yet determined the type of the def'ed
-          // register, (this can happen for phi defs occasionally)
-          // place this instruction in a set whose
-          // types are yet to be determined.
-          if (rop.type == null)
-            ambiguous.add(A);
           rop.setRegister(r2);
           r2.scratchObject = r1;
         }
@@ -795,52 +770,40 @@ implements OPT_Operators, OPT_Constants {
     if (DEBUG) System.out.println("SEARCH (second loop) " + X);
     for (OPT_BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
       OPT_BasicBlock Y = y.next();
-      if (Y.isExit())
-        continue;
+      if (DEBUG) System.out.println(" Successor: " + Y);
+      int j = numPredProcessed[Y.getNumber()]++;
+      if (Y.isExit()) continue;
       OPT_Instruction s = Y.firstRealInstruction();
-      if (s == null)
-        continue;
+      if (s == null) continue;
       // replace use USE in each PHI instruction
+      if (DEBUG) System.out.println(" Predecessor: " + j);
       while (s.operator() == PHI) {
-        for (int j = 0; j< Phi.getNumberOfValues(s); j++) {
-          if (Phi.getPred(s,j).block == X) {
-            OPT_Operand valj = Phi.getValue(s, j);
-            if (valj instanceof OPT_RegisterOperand) {
-              // skip registers already marked SSA from a previous pass
-              if (!valj.asRegister().register.isSSA()) {
-                OPT_RegisterOperand rop = (OPT_RegisterOperand)valj;
-                OPT_Register r1 = rop.register;
-                OPT_RegisterOperand r2 = (OPT_RegisterOperand)
-                  S[r1.getNumber()].peek();
-                if (r2 == null) {
-                  // in this case, the register is never defined along
-                  // this particular control flow path into the basic
-                  // block.  So, null out the operand to indicate that
-                  // that case will never happen.
-                  if (r1.isValidation()) {
-                    Phi.setValue(s, j, new OPT_TrueGuardOperand());
-                  } else {
-                    if (ir.IRStage == ir.LIR) {
-                      Phi.setValue(s, j, new OPT_IntConstantOperand(0));
-                    } 
-                    else {
-                      Phi.setValue(s, j, new OPT_NullConstantOperand());
-                    }
-                  }
-                } else {
-                  rop.register = r2.register;
-                  OPT_DefUse.recordUse(rop);
-                  // if type is null, then this register was
-                  // defined in a phi instruction.  get the type
-                  // from the mapping phiDefTypes
-                  VM_Type t = r2.type;
-                  if (t == null) {
-                    t = (VM_Type)phiDefTypes.get(r2.register);
-                  }
-                  // resolve the type for this phi instruction
-                  setPhiType(s, t, phiDefTypes, j);
+        OPT_Operand val = Phi.getValue(s,j);
+        if (val.isRegister()) {
+          OPT_Register r1 = ((OPT_RegisterOperand)Phi.getValue(s,j)).register;
+          // ignore registers already marked SSA by a previous pass
+          if (!r1.isSSA()) {
+            OPT_RegisterOperand r2 = (OPT_RegisterOperand)S[r1.getNumber()].peek();
+            if (r2 == null) {
+              // in this case, the register is never defined along
+              // this particular control flow path into the basic
+              // block.  So, null out the operand to indicate that
+              // that case will never happen.
+              if (r1.isValidation()) {
+                Phi.setValue(s, j, new OPT_TrueGuardOperand());
+              } else {
+                if (ir.IRStage == ir.LIR) {
+                  Phi.setValue(s, j, new OPT_IntConstantOperand(0));
+                } 
+                else {
+                  Phi.setValue(s, j, new OPT_NullConstantOperand());
                 }
               }
+            } else {
+              OPT_RegisterOperand rop = r2.copyRO();
+              Phi.setValue(s,j,rop);
+              Phi.setPred(s,j,new OPT_BasicBlockOperand(X));
+              OPT_DefUse.recordUse(rop);
             }
           }
         }
@@ -852,7 +815,7 @@ implements OPT_Operators, OPT_Constants {
     for (Enumeration c = ir.HIRInfo.dominatorTree.getChildren(X); 
          c.hasMoreElements();) {
       OPT_DominatorTreeNode v = (OPT_DominatorTreeNode)c.nextElement();
-      search(v.getBlock(), S, ir, phiDefTypes, ambiguous);
+      search(v.getBlock(), S);
     } // end of third loop
 
     if (DEBUG) System.out.println("SEARCH (fourth loop) " + X);
@@ -862,103 +825,17 @@ implements OPT_Operators, OPT_Constants {
       // loop over each def
       for (int d = 0; d < A.getNumberOfDefs(); d++) {
         OPT_Operand newOp = A.getOperand(d);
-        if (newOp == null)
-          continue;
-        if (!newOp.isRegister())
-          continue;
+        if (newOp == null) continue;
+        if (!newOp.isRegister()) continue;
         OPT_Register newReg = newOp.asRegister().register;
-        if (newReg.isSSA())
-          continue;
-        if (newReg.isPhysical())
-          continue;
+        if (newReg.isSSA()) continue;
+        if (newReg.isPhysical()) continue;
         OPT_Register r1 = (OPT_Register)newReg.scratchObject;
         S[r1.getNumber()].pop();
-        if (DEBUG)
-          System.out.println("POP " + r1);
+        if (DEBUG) System.out.println("POP " + r1);
       }
     } // end of fourth loop
     if (DEBUG) System.out.println("FINISHED SEARCH " + X);
-  }
-
-  /**
-   * Fix up types on phi function operands marked as having ambiguous
-   * types.
-   * 
-   * <p> After renaming with <code> search </code> above, some phi 
-   * functions * may still be marked with type null.  Fix up the types
-   * for these instructions.
-   *
-   * @param ambig set of instructions with ambiguous types
-   * @param phiDefTypes mapping from register to types
-   */
-  private static void setAmbiguousTypes (java.util.HashSet ambig, 
-                                         java.util.HashMap phiDefTypes) {
-    java.util.HashSet remove = new java.util.HashSet(10);
-    // worklist algorithm to drain the ambig set.
-    int fixedPoint = ambig.size() + 1;
-    while (ambig.size() < fixedPoint) {
-      remove.clear();
-      // for each phi instruction with an ambiguous type  ..
-      for (java.util.Iterator i = ambig.iterator(); i.hasNext();) {
-        OPT_Instruction s = (OPT_Instruction)i.next();
-        // loop across all rvals with type info
-        OPT_Operand op = null;
-        int j = 0;
-        for (; j < Phi.getNumberOfValues(s); j++) {
-          OPT_Operand op2 = Phi.getValue(s, j);
-          if (op2 instanceof OPT_RegisterOperand) {
-            OPT_RegisterOperand r = op2.asRegister();
-            if (r.type != null) {
-              op = op2;
-              setPhiType(s, r.type, phiDefTypes, j);
-              remove.add(s);
-            } 
-            // set the type of the phi instruction, and update
-            // the phiDefTypes mapping
-            else {
-              VM_Type t = (VM_Type)phiDefTypes.get(r.register);
-              if (t != null) {
-                op = op2;
-                setPhiType(s, t, phiDefTypes, j);
-                remove.add(s);
-              }
-            }
-          }
-        }
-        if (op == null) {
-          // in this case, this phi instruction is really dead
-          OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses
-            (s.getOperand(0).asRegister().register);
-          while (uses.hasMoreElements()) {
-            OPT_RegisterOperand use = uses.next();
-            int ii = use.getIndexInInstruction();
-            use.instruction.putOperand(ii, new OPT_NullConstantOperand());
-          }
-          s.remove();
-          remove.add(s);
-        }
-      }
-      // now remove the resolved instructions from the worklist
-      for (java.util.Iterator i2 = remove.iterator(); i2.hasNext();) {
-        OPT_Instruction s = (OPT_Instruction)i2.next();
-        ambig.remove(s);
-      }
-      // set the new fixed point
-      fixedPoint = ambig.size();
-    }
-    // we've reached the fixed point.  Remaining ambiguous
-    // phis are truly dead. remove them
-    for (java.util.Iterator i3 = ambig.iterator(); i3.hasNext();) {
-      OPT_Instruction s = (OPT_Instruction)i3.next();
-      OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses
-        (s.getOperand(0).asRegister().register);
-      while (uses.hasMoreElements()) {
-        OPT_RegisterOperand use = uses.next();
-        int ii = use.getIndexInInstruction();
-        use.instruction.putOperand(ii, new OPT_NullConstantOperand());
-      }
-      s.remove();
-    }
   }
 
   /**
@@ -969,7 +846,7 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param ir the governing IR
    */
-  private static void renameHeapVariables (OPT_IR ir) {
+  private void renameHeapVariables (OPT_IR ir) {
     int n = ir.HIRInfo.SSADictionary.getNumberOfHeapVariables();
     if (n == 0)
       return;
@@ -977,19 +854,20 @@ implements OPT_Operators, OPT_Constants {
     // stacks implements a mapping from type to Stack.
     // Example: to get the stack of names for HEAP<int> variables,
     // use stacks.get(VM_Type.IntType);
-    java.util.HashMap stacks = new java.util.HashMap(n);
+    HashMap stacks = new HashMap(n);
     // populate the stacks variable with the initial heap variable
     // names, currently stored in the SSADictionary
     for (Enumeration e = ir.HIRInfo.SSADictionary.getHeapVariables(); 
          e.hasMoreElements();) {
       OPT_HeapVariable H = (OPT_HeapVariable)e.nextElement();
-      java.util.Stack S = new java.util.Stack();
+      Stack S = new Stack();
       S.push(new OPT_HeapOperand(H));
       Object heapType = H.getHeapType();
       stacks.put(heapType, S);
     }
     OPT_BasicBlock entry = ir.cfg.entry();
-    search2(entry, stacks, ir);
+    numPredProcessed = new int[ir.getMaxBasicBlockNumber()];
+    search2(entry, stacks);
     registerRenamedHeapPhis(ir);
   }
 
@@ -1001,11 +879,9 @@ implements OPT_Operators, OPT_Constants {
    * @param X the current basic block being traversed
    * @param stacks a structure holding the current names for each heap
    * variable
-   * @param ir the governing IR
    * used and defined by each instruction.
    */
-  private static void search2(OPT_BasicBlock X, java.util.HashMap stacks, 
-                              OPT_IR ir ) {
+  private void search2(OPT_BasicBlock X, HashMap stacks) {
     if (DEBUG) System.out.println("SEARCH2 " + X);
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (Enumeration ie = dictionary.getAllInstructions(X); 
@@ -1019,7 +895,7 @@ implements OPT_Operators, OPT_Constants {
         if (uses != null) {
           OPT_HeapOperand[] newUses = new OPT_HeapOperand[uses.length];
           for (int i = 0; i < uses.length; i++) {
-            java.util.Stack S = (java.util.Stack)stacks.get
+            Stack S = (Stack)stacks.get
               (uses[i].getHeapType());
             newUses[i] = (OPT_HeapOperand)((OPT_HeapOperand)S.peek()).copy();
             if (DEBUG)
@@ -1033,7 +909,7 @@ implements OPT_Operators, OPT_Constants {
       if (defs != null) {
         OPT_HeapOperand r[] = dictionary.replaceDefs(A, X);
         for (int i = 0; i < r.length; i++) {
-          java.util.Stack S = (java.util.Stack)stacks.get(r[i].getHeapType());
+          Stack S = (Stack)stacks.get(r[i].getHeapType());
           S.push(r[i]);
           if (DEBUG)
             System.out.println("PUSH " + r[i] + " FOR " + r[i].getHeapType());
@@ -1043,27 +919,22 @@ implements OPT_Operators, OPT_Constants {
 
     for (OPT_BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
       OPT_BasicBlock Y = y.next();
-      if (Y.isExit())
-        continue;
+      if (Y.isExit()) continue;
+      int j = numPredProcessed[Y.getNumber()]++;
       // replace each USE in each HEAP-PHI function for Y
-      for (Enumeration hp = dictionary.getHeapPhiInstructions(Y); 
-           hp.hasMoreElements();) {
+      for (Enumeration hp = dictionary.getHeapPhiInstructions(Y); hp.hasMoreElements();) {
         OPT_Instruction s = (OPT_Instruction)hp.nextElement();
-        for (int j=0; j<Phi.getNumberOfValues(s); j++) {
-          if (Phi.getPred(s,j).block == X) {
-            OPT_HeapOperand H1 = (OPT_HeapOperand)Phi.getValue(s,j);
-            java.util.Stack S = (java.util.Stack)stacks.get(H1.getHeapType());
-            OPT_HeapOperand H2 = (OPT_HeapOperand)S.peek();
-            Phi.setValue(s, j, new OPT_HeapOperand(H2.getHeapVariable()));
-          }
-        }
+        OPT_HeapOperand H1 = (OPT_HeapOperand)Phi.getResult(s);
+        Stack S = (Stack)stacks.get(H1.getHeapType());
+        OPT_HeapOperand H2 = (OPT_HeapOperand)S.peek();
+        Phi.setValue(s, j, new OPT_HeapOperand(H2.getHeapVariable()));
+        Phi.setPred(s, j, new OPT_BasicBlockOperand(X));
       }
     } // end of second loop
 
-    for (Enumeration c = ir.HIRInfo.dominatorTree.getChildren(X); 
-         c.hasMoreElements();) {
+    for (Enumeration c = ir.HIRInfo.dominatorTree.getChildren(X); c.hasMoreElements();) {
       OPT_DominatorTreeNode v = (OPT_DominatorTreeNode)c.nextElement();
-      search2(v.getBlock(), stacks, ir);
+      search2(v.getBlock(), stacks);
     } // end of third loop
 
     for (Enumeration a = dictionary.getAllInstructions(X); 
@@ -1073,8 +944,8 @@ implements OPT_Operators, OPT_Constants {
       OPT_HeapOperand[] defs = dictionary.getHeapDefs(A);
       if (defs != null) {
         for (int i = 0; i < defs.length; i++) {
-          java.util.Stack S = (java.util.Stack)stacks.get(
-                                                          defs[i].getHeapType());
+          Stack S = (Stack)stacks.get(
+                                      defs[i].getHeapType());
           S.pop();
           if (DEBUG) System.out.println("POP " + defs[i].getHeapType());
         }
@@ -1089,7 +960,7 @@ implements OPT_Operators, OPT_Constants {
    * 
    * @param ir the governing IR
    */
-  private static void registerRenamedHeapPhis (OPT_IR ir) {
+  private void registerRenamedHeapPhis (OPT_IR ir) {
     OPT_SSADictionary ssa = ir.HIRInfo.SSADictionary;
     for (Enumeration e1 = ir.getBasicBlocks(); e1.hasMoreElements();) {
       OPT_BasicBlock bb = (OPT_BasicBlock)e1.nextElement();
@@ -1115,7 +986,7 @@ implements OPT_Operators, OPT_Constants {
    * @param IR governing IR
    * @param store place to store copies
    */
-  private static void copyHeapDefs (OPT_IR ir, java.util.HashMap store) {
+  private void copyHeapDefs (OPT_IR ir, HashMap store) {
     OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_BasicBlockEnumeration be = ir.forwardBlockEnumerator(); 
          be.hasMoreElements();) {
@@ -1129,52 +1000,70 @@ implements OPT_Operators, OPT_Constants {
   }
 
   /**
-   * Set the type of every operand in a phi instruction.
+   * Compute type information for operands in each phi instruction.
+   *
+   * PRECONDITION: Def-use chains computed.
+   * SIDE EFFECT: empties the scalarPhis set
+   * SIDE EFFECT: bashes the OPT_Instruction scratch field.
+   */
+  private final static int NO_NULL_TYPE = 0;
+  private final static int FOUND_NULL_TYPE = 1;
+  private void rectifyPhiTypes() {
+    if (DEBUG) System.out.println("Rectify phi types.");
+    while (!scalarPhis.isEmpty()) {
+      for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
+        OPT_Instruction phi = (OPT_Instruction)i.next();
+        phi.scratch = NO_NULL_TYPE;
+        if (DEBUG) System.out.println("PHI: " + phi);
+        VM_Type meet = meetPhiType(phi);
+        if (DEBUG) System.out.println("MEET: " + meet);
+        if (meet != null) {
+          if (phi.scratch == NO_NULL_TYPE) i.remove();
+          OPT_RegisterOperand result = (OPT_RegisterOperand)Phi.getResult(phi);
+          result.type = meet;
+          for (Enumeration e = OPT_DefUse.uses(result.register);
+               e.hasMoreElements(); ) { 
+            OPT_RegisterOperand rop = (OPT_RegisterOperand)e.nextElement();
+            rop.type = meet;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Return the meet of the types on the rhs of a phi instruction
    *
    * @param s phi instruction
-   * @param t type
-   * @param phiDefTypes this holds a mapping from register-> type for
-   *	    registers that are defined by phi instructions
+   * @param a VM_type, or null if all rhs types are null
+   *
+   * SIDE EFFECT: bashes the OPT_Instruction scratch field.
    */
-  private static void setPhiType (OPT_Instruction s, VM_Type t, 
-                                  java.util.HashMap phiDefTypes, 
-                                  int operandIndex) {
-    // if t is null, do nothing
-    if (t == null) return;
+  private static VM_Type meetPhiType(OPT_Instruction s) {
 
-    OPT_Operand op = Phi.getValue(s, operandIndex);
-    if (op.isRegister()) {
-      op.asRegister().type = t;
-    }
-    OPT_Operand result = Phi.getResult(s);
-    if (result.isRegister()) {
-      if (result.asRegister().type == null)
-        result.asRegister().type = t; 
-      else {
-        VM_Type meet = OPT_ClassLoaderProxy.proxy.
-          findCommonSuperclass(t, result.asRegister().type);
+    VM_Type result = null;
+    for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
+      OPT_Operand val = Phi.getValue(s,i);
+      VM_Type t = val.getType();
+      if (t == null) {
+        s.scratch = FOUND_NULL_TYPE;
+        continue;
+      } else if (result == null) {
+        result = t;
+        continue;
+      } else {
+        VM_Type meet = OPT_ClassLoaderProxy.proxy.findCommonSuperclass(result,t);
         if (meet == null) {
-	  VM_Type resultType = result.asRegister().type;
-          if (  (resultType.isIntLikeType()
-                  && (t.isReferenceType() || t.isAddressType())) 
-	    || ((resultType.isReferenceType() || resultType.isAddressType())
-                  && t.isIntLikeType()) ) {
+          if (  (result.isIntLikeType() && (t.isReferenceType() || t.isAddressType())) 
+                || ((result.isReferenceType() || t.isAddressType()) && t.isIntLikeType()) ) {
             meet = VM_Type.IntType;
           }
         }
-        t = meet;
-        result.asRegister().type = t;
-      }
-      if (VM.VerifyAssertions) VM.assert (t != null);
-      phiDefTypes.put(result.asRegister().register, t);
-      OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses
-        (result.asRegister().register);
-      while (uses.hasMoreElements()) {
-        OPT_RegisterOperand use = uses.next();
-        if (use.type == null)
-          use.type = result.asRegister().type;
+        if (VM.VerifyAssertions) VM.assert(meet!=null);
+        result = meet;
       }
     }
+    return result;
   }
 
   /**
@@ -1183,7 +1072,7 @@ implements OPT_Operators, OPT_Constants {
    * <p> Given a register that holds a parameter, look at the register's
    * use chain to find the type of the parameter
    */
-  private static VM_Type findParameterType (OPT_Register p) {
+  private VM_Type findParameterType (OPT_Register p) {
     OPT_RegisterOperand firstUse = p.useList;
     if (firstUse == null) {
       return  null;             // parameter has no uses
