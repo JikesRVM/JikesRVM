@@ -340,8 +340,8 @@ class VM_CommandLineArgs {
 	  }
 	}
 	if (VM_Scheduler.numProcessors < 1 ||
-	    VM_Scheduler.numProcessors > VM_Scheduler.MAX_PROCESSORS) {
-	  VM.sysWrite("vm: "+p.value+arg+" needs an argument between 1 and " + VM_Scheduler.MAX_PROCESSORS + " (inclusive)\n");
+	    VM_Scheduler.numProcessors > (VM_Scheduler.MAX_PROCESSORS-1)) {
+	  VM.sysWrite("vm: "+p.value+arg+" needs an argument between 1 and " + (VM_Scheduler.MAX_PROCESSORS-1) + " (inclusive)\n");
 	  VM.sysExit(1);
 	}
 	if (VM.BuildForSingleVirtualProcessor &&
