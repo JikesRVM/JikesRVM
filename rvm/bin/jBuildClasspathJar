@@ -1,6 +1,10 @@
 #!/bin/sh
 
-CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
+if [ `uname` = Linux ]; then
+  CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
+else
+  CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:2401/cvsroot/classpath
+fi
 CLASSPATH_CVS_DATESPEC_ARG="2002-10-08 00:00 EST"
 
 ##
