@@ -249,15 +249,26 @@
    * Instance of java.lang.Class corresponding to this type.
    */   
  public final Class getClassForType() {
-    //ensure that create() is not called during boot image writing
-    //since the jdk loads the wrong version of 
-    //java.lang.Class (the one without create)
-    //This is only called for static synchronized methods and the Class 
-    //object must
-    //be loaded at start up of the runtime.  
-    //See VM.boot(). This test for runtime can be removed 
-    //once the bootImageWriter has been rewritten to properly load classes.
+    // ensure that create() is not called during boot image writing
+    // since the jdk loads its version of java.lang.Class instead of ours.
+    // This only happens for static synchronized methods and the Class 
+    // object must be explictly loaded at start up of the runtime.  
+    // See VM.boot(). This test for runtime can be removed 
+    // once the bootImageWriter has been rewritten to properly load classes.
    if (classForType == null && VM.runningVM) {
+     // ensure that we load and resolve VM_Class before creating a 
+     // java.lang.Class object for it.  Doing it here frees us from having
+     // to check it all over the reflection code. 
+     if (!isResolved()) {
+       try {
+	 synchronized(VM_ClassLoader.lock) {
+	   load();
+	   resolve();
+	 }
+       } catch (VM_ResolutionException e) {
+	 throw new NoClassDefFoundError(e.getException().toString());
+       }
+     }
      synchronized(this) {
        if (classForType == null) {
 	 classForType = Class.create(this);
