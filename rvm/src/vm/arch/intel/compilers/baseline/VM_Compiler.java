@@ -1514,7 +1514,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_ifeq(int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
   }
 
@@ -1525,7 +1525,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_ifne(int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
   }
 
@@ -1676,7 +1676,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_ifnull(int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     asm.emitJCC_Cond_ImmOrLabel(asm.EQ, mTarget, bTarget);
   }
 
@@ -1687,7 +1687,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   protected final void emit_ifnonnull(int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     asm.emitPOP_Reg(T0);
-    asm.emitCMP_Reg_Imm(T0, 0);
+    asm.emitTEST_Reg_Reg(T0, T0);
     asm.emitJCC_Cond_ImmOrLabel(asm.NE, mTarget, bTarget);
   }
 
