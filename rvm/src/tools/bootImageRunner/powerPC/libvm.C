@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp 2001,2002, 2003
+ * (C) Copyright © IBM Corp 2001,2002, 2003
+ *
+ * $Id$
  */
-//$Id$
 
 /**
  * C runtime support for virtual machine.
