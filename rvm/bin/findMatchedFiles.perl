@@ -10,6 +10,10 @@
 # @date   6/9/2003
 #	Added check for internal error.
 
+## This is a helper program for
+## "rvm/bin/findDeviantFiles".
+
+
 
 #
 # Given input in the form of 
