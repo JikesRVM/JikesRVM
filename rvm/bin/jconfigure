@@ -541,7 +541,7 @@ fi
 # Convert configuration choices into preprocessor definitions.
 #    RVM_FOR_xxx  --> -DRVM_FOR_xxx
 #    RVM_WITH_xxx --> -DRVM_WITH_xxx
-#    RVM_WITHOUT_xxx --> -DRVM_WITH_xxx
+#    RVM_WITHOUT_xxx --> -DRVM_WITHOUT_xxx
 #
 ## To find out which programmable conditions are still alive (i.e., which ones
 ## are currently in use in the program source code), look at 
