@@ -498,17 +498,27 @@ public class ReflectionSupport {
       }
     } else {
       if (DEBUG) VM_Scheduler.trace("Class.forName 3 args, loading", className);
-      Class klass = classLoader.loadClass(className);
-      if (initialize) {
-	  VM_Type kls = java.lang.JikesRVMSupport.getTypeForClass(klass);
-	  try {
-	      kls.resolve();
-	      kls.instantiate();
-	      kls.initialize();
-	  } catch (VM_ResolutionException e) {
-	      throw new ClassNotFoundException(className);
+      Class klass;
+      if (className.startsWith("[")) {
+	  Class c = forName( className.substring(1), initialize, classLoader);
+	  VM_Type k = java.lang.JikesRVMSupport.getTypeForClass(c);
+	  klass = k.getArrayTypeForElementType().getClassForType();
+      } else {
+	  if (className.endsWith(";")) 
+	      className = className.substring(1, className.length() - 1);
+	  klass = classLoader.loadClass(className);
+	  if (initialize) {
+	      VM_Type kls = java.lang.JikesRVMSupport.getTypeForClass(klass);
+	      try {
+		  kls.resolve();
+		  kls.instantiate();
+		  kls.initialize();
+	      } catch (VM_ResolutionException e) {
+		  throw new ClassNotFoundException(className);
+	      }
 	  }
       }
+
       VM_Callbacks.notifyForName( java.lang.JikesRVMSupport.getTypeForClass(klass) );
       return klass;
     }
