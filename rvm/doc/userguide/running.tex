@@ -1,6 +1,15 @@
 This section describes how to run a Jikes\trademark RVM  image built
 from the previous section. 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\Mor}{{\bf \tt |}}	%meta-Or
+\newcommand{\Mlbr}{{\bf \{}}	%left-brace
+\newcommand{\Mrbr}{{\bf \}}}	%right-brace
+\newcommand{\Mlsq}{{\bf [}}	%left-square
+\newcommand{\Mrsq}{{\bf ]}}	%right-brace
+\newcommand{\Mmeta}[1]{{\it $<$#1$>$}} %meta-token
+\newcommand{\Mlitch}[1]{{\rm \bf ``{\tt #1}''}}	%literal char or txt
+\newcommand{\MZeroOrMore}[1]{{\(\Mlsq\mbox{#1}\Mrsq_+\)}}
 %%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Running \jrvm}
 
@@ -19,35 +28,36 @@ For example, to run class {\tt foo} with source code in file {\tt foo.java}:
 \end{verbatim}
 
 The general syntax is
-\begin{verbatim}
-rvm [rvm options] class [args]
-\end{verbatim}
+\begin{example}
+\tt{}   rvm \MZeroOrMore{rvm options\ldots} class \MZeroOrMore{args\ldots}
+\end{example}
 
 \index{command-line options}
-You may choose from myriad options for the {\tt rvm} command-line.  
+You may choose from a myriad of options for the {\tt rvm} command-line.  
 Options fall into two categories: {\em standard} and {\em
 non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Standard Command-Line Options}
 
 We currently support a subset of the JDK 1.3 standard options.  Below
 is a list of all options and their descriptions.  Unless otherwise noted each
 option is supported in Jikes RVM.
 \begin{description}
-\item[{\tt -cp -classpath <directories and zip/jar files separated by :>}]
+\item[{\tt \Mlbr{} -cp \Mor{} -classpath \Mrbr{} \Mmeta{directories and
+zip/jar files separated by \Mlitch{:}}}]
 set search path for application classes and resources
 
-\item[{\tt -D<name>=<value>}] set a system property
+\item[{\tt -D\Mmeta{name}=\Mmeta{value}}] set a system property
 
-\item[{\tt -verbose[:class|:gc|:jni]}]
+\item[{\tt -verbose:\Mlsq{} class \Mor{} gc \Mor{} jni \Mrsq}]
 enable verbose output
 
-\item[{\tt -version}] print current VM version and terminate
+\item[{\tt -version}] print current VM version and terminate the run
 
-\item[{\tt -showversion}] print current VM version and continue
+\item[{\tt -showversion}] print current VM version and continue running
 
-\item[{\tt -fullversion}] like version but with more information
+\item[{\tt -fullversion}] like ``{\tt -version}'', but with more information
 
 \item[{\tt -?} or {\tt -help}] print help message
 
@@ -64,79 +74,82 @@ The non-standard options are
 
 \begin{description}
 \item [{\tt -X}]
-print usage on nonstandard options
+immediately print usage information on nonstandard options
 
 \item[{\tt -X:verbose}]
-print out additional information for GC and hardware trap handling
+during run, print out additional information for GC and hardware trap handling
 
-\item[{\tt -X:verboseBoot=<number>}]
-print out additional information while VM is booting
+\item[{\tt -X:verboseBoot=\Mmeta{number}}]
+print out additional information while VM is booting, using verbosity
+level \Mmeta{number}.
 
-\item[{\tt -Xms<number>}]
-set the initial heap size to {\tt <number>} megabytes
+\item[{\tt -Xms\Mmeta{number}}]
+set the initial heap size to \Mmeta{number} megabytes
 
-\item[{\tt -Xmx<number>}]
-set the maximum heap size to {\tt <number>} megabytes
+\item[{\tt -Xmx\Mmeta{number}}]
+set the maximum heap size to \Mmeta{number} megabytes
 
-\item[{\tt -X:sysLogfile=<filename>}]
-writes standard error message to {\tt <filename>}
+\item[{\tt -X:sysLogfile=\Mmeta{filename}}]
+redirects messages that would go to standard error to \Mmeta{filename} instead.
 
-\item[{\tt -X:i=<filename>}]
-read boot image from {\tt <filename>}
+\item[{\tt -X:i=\Mmeta{filename}}]
+read Jikes RVM's \emph{boot image} from \Mmeta{filename}
 
-\item[{\tt -X:vm[:help]}]
-print options supported by core virtual machine
+\item[{\tt -X:vm\Mlsq{}:help\Mrsq{}}]
+immediately print options supported by the core virtual machine
 
-\item[{\tt -X:gc:<option>}]
-pass {\tt <option>} to the core vitual machine
+\item[{\tt -X:vm:\Mmeta{option}}]
+pass \Mmeta{option} to the core virtual machine
 
-\item[{\tt -X:gc[:help]}]
-print options supported by memory management system
+\item[{\tt -X:gc\Mlsq{}:help\Mrsq}]
+print options supported by the memory management system
 
-\item[{\tt -X:gc:<option>}]
-pass {\tt <option>} to the memory management system
+\item[{\tt -X:gc:\Mmeta{option}}]
+pass \Mmeta{option} to the memory management system
 
-\item[{\tt -X:aos[:help]}]
+\item[{\tt -X:aos\Mlsq{}:help\Mrsq{}}]
 print options supported by adaptive optimization system when in an
 adaptive configuration
 
-\item[{\tt -X:aos:<option>}]
-pass {\tt <option>} to the adaptive optimization system when in an adaptive configuration
+\item[{\tt -X:aos:\Mmeta{option}}]
+pass \Mmeta{option} to the adaptive optimization system when in an adaptive configuration
 
-\item[{\tt -X:irc[:help]}]
+\item[{\tt -X:irc\Mlsq{}:help\Mrsq{}}]
 print options supported by the initial runtime compiler
 
-\item[{\tt -X:irc:<option>}]
-pass {\tt <option>} to the initial runtime compiler
+\item[{\tt -X:irc:\Mmeta{option}}]
+pass \Mmeta{option} to the initial runtime compiler
 
-\item[{\tt -X:recomp[:help]}]
+\item[{\tt -X:recomp\Mlsq{}:help\Mrsq{}}]
 print options supported by the compilers used for recompilation
 
-\item[{\tt -X:irc:<option>}]
-pass {\tt <option>} to the compilers used for recompilation
+\item[{\tt -X:recomp:\Mmeta{option}}]
+pass \Mmeta{option} to the compilers used for recompilation
 
-\item[{\tt -X:base[:help]}]
-print options supported by the baseline compiler
+\item[{\tt -X:base\Mlsq{}:help\Mrsq{}}]
+print the options supported by the baseline compiler
 
-\item[{\tt -X:base:<option>}]
-pass {\tt <option>} to the baseline compiler
+\item[{\tt -X:base:\Mmeta{option}}]
+pass \Mmeta{option} to the baseline compiler
 
-\item[{\tt -X:opt[:help]}]
-print options supported by the optimizing compiler
+\item[{\tt -X:opt\Mlsq{}:help\Mrsq{}}]
+print the options supported by the optimizing compiler
 
-\item[{\tt -X:opt:<option>}]
-pass {\tt <option>} to the optimizing compiler
+\item[{\tt -X:opt:\Mmeta{option}}]
+pass \Mmeta{option} to the optimizing compiler
 
-\item[{\tt -X:prof:<option>}]
-pass {\tt <option>} to the profiling subsystem
+\item[{\tt -X:prof:\Mmeta{option}}]
+pass \Mmeta{option} to the profiling subsystem
 
-\item[{\tt -X:vmClasses=<filename>}]
-load classes from {\tt <filename>}
+\item[{\tt -X:vmClasses=\Mmeta{path}}]
+load classes from \Mmeta{path}.  \Mmeta{path} is the file name or
+file names of one or more {\tt .jar} files.  File names in
+\Mmeta{path} are separated by colons (\Mlitch{:}).
 
-\item[{\tt -X:cpuAffinity=<int>}]
-physical cpu to which first virtual processor is bound
+\item[{\tt -X:cpuAffinity=\Mmeta{int}}]
+\Mmeta{int} is the number of the physical cpu to which the first virtual processor will be bound.
 
-\item[{\tt -X:processors=<int|``all''>}]
+\item[{\tt -X:processors=\Mlsq{} \Mmeta{int} \Mor{} \Mlitch{all} \Mrsq{}}]
 number of processors to use on a multiprocessor
 
 \end{description}
