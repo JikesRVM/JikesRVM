@@ -16,6 +16,7 @@
 
 // Aix and Linux version.  PowerPC and IA32.
 
+// Only called externally from Java programs.
 extern "C" void sysExit(int);
 
 // AIX needs this to get errno right. JTD
@@ -65,12 +66,18 @@ extern "C" int sched_yield();
 #include <errno.h>
 #include <dlfcn.h>
 
-#define EXIT_STATUS_SYSCALL_TROUBLE 121
-#define EXIT_STATUS_TIMER_TROUBLE EXIT_STATUS_SYSCALL_TROUBLE
+// These exit status codes are defined here and in VM.java.
+// If you change one of them here, or add any, add it there too.
+// See VM.java; vm.exitStatusSyscallTrouble
+const int EXIT_STATUS_SYSCALL_TROUBLE = 121;
+// See VM.java; vm.exitStatusTimerTrouble
+const int EXIT_STATUS_TIMER_TROUBLE = EXIT_STATUS_SYSCALL_TROUBLE;
 
-#define EXIT_STATUS_UNSUPPORTED_INTERNAL_OP 120
+const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 120;
+
 // see VM.exitStatusUnexpectedCallToSys:
-#define EXIT_STATUS_UNEXPECTED_CALL_TO_SYS EXIT_STATUS_UNSUPPORTED_INTERNAL_OP
+const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS= EXIT_STATUS_UNSUPPORTED_INTERNAL_OP;
+
 
 #ifdef _AIX
 extern "C" timer_t gettimerid(int timer_type, int notify_type);
@@ -80,6 +87,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include "InterfaceDeclarations.h"
+#include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner.
 
 // Because of the time-slicer thread, we use the pthread library
 // even when building for a single virtual processor.
@@ -88,9 +96,6 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
 # include "syswrap.h"
 
-// These are defined in libvm.C.
-extern "C" void *getJTOC();
-extern "C" int getProcessorsOffset();
 #endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
 
 /* #define DEBUG_SYS */
@@ -98,10 +103,6 @@ extern "C" int getProcessorsOffset();
 
 static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
-
-extern FILE *SysErrorFile;    // sink for serious error messages
-extern FILE *SysTraceFile;    // sink for trace messages...
-extern int   SysTraceFd;      // ...produced by VM.sysWrite()
 
 /*
  * Network addresses are sensible, that is big endian, and the intel
@@ -208,8 +209,6 @@ sysExit(int value)
 //           buffer to fill
 // Returned: number of bytes written to buffer (-1: arg didn't fit, buffer too small)
 //
-extern char **	JavaArgs;
-extern int	JavaArgc;
 extern "C" int
 sysArg(int argno, char *buf, int buflen)
    {
@@ -669,15 +668,15 @@ extern "C" int sysSetFdCloseOnExec(int fd) {
  // System timer operations. //
  //--------------------------//
 
- extern int VmBottom, VmTop;
- #ifdef _AIX
+// Appears unused. --Steve Augart, July 2003
+// extern int VmBottom, VmTop;
+#ifdef _AIX
  #include <mon.h>
- #endif
+#endif
 
 #if (! defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-extern "C" void processTimerTick();
 
-void *timeSlicerThreadMain(void *arg) {
+static void *timeSlicerThreadMain(void *arg) {
     int ns = (int)arg;
     #ifdef DEBUG_SYS
     fprintf(SysErrorFile, "time slice interval %dns\n", ns);
@@ -849,11 +848,6 @@ void *timeSlicerThreadMain(void *arg) {
     }
 
  static void *sysVirtualProcessorStartup(void *arg);
- #ifdef RVM_FOR_IA32
- extern "C" void bootThread(int ip, int jtoc, int pr, int sp); // assembler routine
- #else
- extern "C" void bootThread(int jtoc, int pr, int ti, int fp); // assembler routine
- #endif
 
 //-----------------------------------------------------------
 //  Minimal subset of hardware performance monitor operations for PowerPC      
@@ -1418,15 +1412,15 @@ sysHPMprintMyGroup()
 
     // branch to vm code
     //
-    #if RVM_FOR_IA32
+#if RVM_FOR_IA32
     {
     *(unsigned *) (pr + VM_Processor_framePointer_offset) = fp;
     int sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
     bootThread(ti_or_ip, jtoc, pr, sp);
     }
-    #else
+#else
     bootThread(jtoc, pr, ti_or_ip, fp);
-    #endif
+#endif
 
     // not reached
     //
