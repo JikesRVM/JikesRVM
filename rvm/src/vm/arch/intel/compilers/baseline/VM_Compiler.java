@@ -3274,7 +3274,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.getByteAtOffset) {
       asm.emitPOP_Reg (T0);                  // object ref
       asm.emitPOP_Reg (S0);                  // offset
-      asm.emitMOV_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, 0); // load and zero extend byte [T0+S0]
+      asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, 0); // load and zero extend byte [T0+S0]
       asm.emitPUSH_Reg (T0);
       return true;
     }
