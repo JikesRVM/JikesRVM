@@ -417,11 +417,6 @@ public class VM_Allocator  extends VM_GCStatistics
   private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap       = new VM_LargeHeap(immortalHeap);
 
-  // TODO: these are no longer used; delete as soon as all allocators
-  //       have been switched to the new VM_Chunk code.
-  static VM_Address areaCurrentAddress;
-  static VM_Address matureCurrentAddress;  
-
   static boolean gcInProgress;      // true if collection in progress, initially false
 
   // FromSpace object are "marked" if mark bit in statusword == MARK_VALUE

@@ -622,13 +622,6 @@ if (loopcheck++ >= 1000000) break;
   VM_Address endChunk2;
   VM_ContiguousHeap backingHeapChunk2;
 
-  // Old version of chunking; soon to be eliminated! TODO -- dave
-  // No longer used by Semispace allocator; still need to fix copyGen & hybrid
-  VM_Address localCurrentAddress;  
-  VM_Address localEndAddress;      
-  VM_Address localMatureCurrentAddress;   
-  VM_Address localMatureEndAddress;       
-
   // For fast path of segmented list allocation -- see VM_SegmentedListFastPath.java
   // Can either be used for 'normal' allocation in markSeep collector or
   // copring objects during collection in the hybrid collector.
@@ -647,7 +640,7 @@ if (loopcheck++ >= 1000000) break;
   int[]       modifiedOldObjects;          // the buffer
   VM_Address  modifiedOldObjectsTop;       // address of most recently filled slot
   VM_Address  modifiedOldObjectsMax;       // address of last available slot in buffer
-//-#endif
+  //-#endif
 
   /*
    * END FREQUENTLY ACCESSED INSTANCE FIELDS

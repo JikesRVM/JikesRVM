@@ -142,9 +142,6 @@ class VM_Entrypoints implements VM_Constants {
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   static final VM_Field contiguousHeapCurrentField      = getField("LVM_ContiguousHeap;", "current", "LVM_Address;");
-  // TODO: the next two fields are about to be eliminated
-  static final VM_Field areaCurrentAddressField        = getField("LVM_Allocator;", "areaCurrentAddress", "LVM_Address;");
-  static final VM_Field matureCurrentAddressField      = getField("LVM_Allocator;", "matureCurrentAddress", "LVM_Address;");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS

@@ -3008,8 +3008,6 @@ public class VM_Allocator
     static int numberOfAmbiguousRefs;		    // unused -- for compatibility
     static int numberOfStackFramesProcessed;
     static int gcMajorCount; 
-    static VM_Address areaCurrentAddress;
-    static VM_Address matureCurrentAddress;
 
     static void gcSetup (int dummy) { 
 	// NO-OP

@@ -122,10 +122,6 @@ public class VM_Allocator implements VM_Constants,
   private static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
 
-  // These two fields are unused but unconditionally needed in VM_EntryPoints.
-  static VM_Address areaCurrentAddress;    
-  static VM_Address matureCurrentAddress;  
-
   static VM_BootRecord   bootrecord;
  
   static int markboot_count = 0;  // counter of objects marked in the boot image

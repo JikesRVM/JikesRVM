@@ -144,8 +144,6 @@ public class VM_Allocator implements VM_Constants, VM_GCConstants {
   static final boolean movesObjects = false;
   static final boolean writeBarrier = false;
   static boolean       gcInProgress;
-  static VM_Address    areaCurrentAddress;
-  static VM_Address    matureCurrentAddress;
   static void          gcSetup(int numProcessors) {}
   static void          setupProcessor(VM_Processor p) {}
   static boolean       processFinalizerListElement (VM_FinalizerListElement le) { return true; }

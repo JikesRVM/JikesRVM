@@ -546,11 +546,6 @@ public class VM_Allocator
 
   private static VM_ProcessorLock lock  = new VM_ProcessorLock();      // for signalling out of memory
 
-  // TODO: these are no longer used; delete as soon as all allocators
-  //       have been switched to the new VM_Chunk code.
-  static VM_Address areaCurrentAddress;
-  static VM_Address matureCurrentAddress;  
-
   static boolean gcInProgress;      // true if collection in progress, initially false
   
   private static int    collisionCount = 0;      // counts attempts to mark same object
@@ -611,10 +606,9 @@ public class VM_Allocator
 	  t.contextRegisters.setInnermost( VM_Address.zero(), t.jniEnv.JNITopJavaFP );
 	}
 
-	if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
-	  vp.localMatureCurrentAddress = VM_Address.zero();
-	  vp.localMatureEndAddress =  VM_Address.zero();
-	}
+	// force exception if it comes back and tries to participate
+	if (PROCESSOR_LOCAL_MATURE_ALLOCATE) 
+	  VM_Chunk.resetChunk2(vp, null, false);
 
 	// move the processors writebuffer entries into the executing collector
 	// threads work buffers so the referenced objects will be scanned.
@@ -622,18 +616,17 @@ public class VM_Allocator
 	}
       }
   
-    // in case (actually doubtful) native processors have writebuffer
-    // entries, move them also.
+    // in case native processors have writebuffer entries, move them also.
     for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
       VM_Processor vp = VM_Processor.nativeProcessors[i];
       VM_WriteBuffer.moveToWorkQueue(vp);
       // check that native processors have not done allocations
       if (VM.VerifyAssertions) {
-	if (!vp.localCurrentAddress.isZero()) {
+	if (!vp.startChunk1.isZero()) {
 	  VM_Scheduler.trace("prepareNonParticipatingVPsForGC:",
 			     "native processor with non-zero allocation ptr, id =",vp.id);
 	  vp.dumpProcessorState();
-	  VM.assert(vp.localCurrentAddress.isZero());
+	  VM.assert(false);
 	}
       }
     }
@@ -646,10 +639,11 @@ public class VM_Allocator
       if (vp == null) continue;   // the last VP (nativeDeamonProcessor) may be null
       int vpStatus = VM_Processor.vpStatus[vp.vpStatusIndex];
       if ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || (vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT)) {
-        // Did not participate in GC. Reset VPs allocation pointers so subsequent
-        // allocations will acquire a new local block from the new nursery
-        vp.localCurrentAddress = VM_Address.zero();
-        vp.localEndAddress     = VM_Address.zero();
+        // Did not participate in GC. 
+	// Reset chunk space to the new fromSpace, but don't acquire a chunk
+	// since we might never use it.
+	if (PROCESSOR_LOCAL_ALLOCATE) 
+	  VM_Chunk.resetChunk1(vp, fromHeap, false);
       }
     }
   }
@@ -1627,14 +1621,6 @@ public class VM_Allocator
   }
   
   
-  // Somebody tried to allocate an object within a block
-  // of code guarded by VM.disableGC() / VM.enableGC().
-  //
-  private static void fail() {
-    VM.sysWrite("vm error: allocator/collector called within critical section\n");
-    VM.assert(false);
-  }
-  
   // Called from VM_Processor constructor: 
   // Must alloc & initialize write buffer
   // allocation chunk associated with nursery
@@ -1703,34 +1689,6 @@ public class VM_Allocator
   }  // processFinalizerListElement
   
   
-  // allocate buffer for allocates during traceback & call sysFail (gets stacktrace)
-  // or sysWrite the message and sysExit (no traceback possible)
-  // ...may not be needed if sysFail now does NOT do allocations
-  //
-  private static void crash (String err_msg) {
-
-    VM.sysWrite("VM_Allocator.crash:\n");
-    if (PROCESSOR_LOCAL_ALLOCATE) {
-	VM_Address tempbuffer = VM_Address.fromInt(VM.sysCall1(bootrecord.sysMallocIP,
-							       VM_Allocator.CRASH_BUFFER_SIZE));
-      if (tempbuffer.isZero()) {
-	VM_Scheduler.trace("VM_ALLOCATOR.crash()","sysMalloc returned 0");
-	VM.shutdown(1800);
-      }
-      VM_Processor p = VM_Processor.getCurrentProcessor();
-      p.localCurrentAddress = tempbuffer;
-      p.localEndAddress = tempbuffer.add(VM_Allocator.CRASH_BUFFER_SIZE);
-      VM_Memory.zero(tempbuffer, tempbuffer.add(VM_Allocator.CRASH_BUFFER_SIZE));
-      VM.sysFail(err_msg);
-    }
-    else {
-      VM.sysFail(err_msg);   // this is now supposed to complete without allocations
-    }
-  }
-
-  //   static void
-  //   gc_processWriteBufferEntry (VM_RememberedSet rs, int wbref) {}
-
   // Called from WriteBuffer code for generational collectors.
   // Argument is a modified old object which needs to be scanned
   //
@@ -1744,7 +1702,6 @@ public class VM_Allocator
    * @param location  address of a reference field
    */
   static void processPtrField ( VM_Address location ) {
-
     VM_Magic.setMemoryAddress(location, processPtrValue(VM_Magic.getMemoryAddress(location)));
 
   } // processPtrField
@@ -1779,10 +1736,9 @@ public class VM_Allocator
 	return ref;
     }
 
-    // large objects processed only on major GC but "new" objects always processed
-    //    For now, just all large objects.
+    // large objects processed only on major GC
     if (largeHeap.refInHeap (ref)) {
-	resetObjectBarrier(ref);
+        if (!majorCollection) return ref;
 	if (!largeHeap.mark(ref)) 
 	    VM_GCWorkQueue.putToWorkBuffer( ref ); 	// we marked it, so put to workqueue
       return ref;
