@@ -1,5 +1,8 @@
-/*
+/* -*-java-*-
+ *
  * (C) Copyright IBM Corp. 2001
+ *
+ * $Id$
  */
    // Begin template-specified options
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
