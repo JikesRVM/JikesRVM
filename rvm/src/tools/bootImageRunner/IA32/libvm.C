@@ -53,6 +53,7 @@
 #define NEED_EXIT_STATUS_CODES
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_MM_INTERFACE_DECLARATIONS
 #include <InterfaceDeclarations.h>
 
 extern "C" void setLinkage(VM_BootRecord*);
@@ -156,21 +157,19 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
 }
 
 static int 
-inRVMAddressSpace(unsigned int addr) 
+inRVMAddressSpace(VM_Address addr) 
 {
     /* get the boot record */
     VM_Address *heapRanges = bootRecord->heapRanges;
-    int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
-
-    for (int which = 0; ; which++) {
-        assert(which <= 2 * (MaxHeaps + 1));
+    for (int which = 0; which < MAXHEAPS; which++) {
         VM_Address start = heapRanges[2 * which];
         VM_Address end = heapRanges[2 * which + 1];
+        // Test against sentinel.
         if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
-        if (start <= addr  && addr  < end)
+        if (start <= addr  && addr < end) {
             return true;
+        }
     }
-        
     return false;
 }
 

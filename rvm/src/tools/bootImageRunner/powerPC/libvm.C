@@ -206,6 +206,7 @@ extern "C" char *sys_siglist[];
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #define NEED_EXIT_STATUS_CODES
+#define NEED_MM_INTERFACE_DECLARATIONS
 #include <InterfaceDeclarations.h>
 extern "C" void setLinkage(VM_BootRecord *);
 
@@ -329,8 +330,6 @@ getRegAddress(ppc_thread_state_t *state, int r)
 
 VM_BootRecord *theBootRecord;
 #define VM_NULL 0
-// XXX TODO: update to auto-generate from (VM_BootRecord.heapRange.length / 2)
-#define MAXHEAPS 20  
 
 #include "../bootImageRunner.h" // In rvm/src/tools/bootImageRunner
 
@@ -374,10 +373,13 @@ pthread_t vm_pthreadid;         // pthread id of the main RVM pthread
 static int 
 inRVMAddressSpace(VM_Address addr) 
 {
+    /* get the boot record */
     VM_Address *heapRanges = theBootRecord->heapRanges;
     for (int which = 0; which < MAXHEAPS; which++) {
         VM_Address start = heapRanges[2 * which];
         VM_Address end = heapRanges[2 * which + 1];
+        // Test against sentinel.
+        if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
         if (start <= addr  && addr < end) {
             return true;
         }
