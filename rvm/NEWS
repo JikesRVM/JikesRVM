@@ -36,12 +36,11 @@ for experimenting with other optimizations without having to deal with
 the implementation details of the Opt compiler and the complex 
 interactions among the many optimizations performed by the Opt compiler.
 
-
 *Other Notes after the Jikes RVM 2.3.4 release:
 **The release notes are now in a file called NEWS instead of 
-the old ReleaseNotes-<revision-number> files.  Further, NEWS
-is an archive; it is intended to contain release notes for past
-versions as well as the most recent release.
+the old ReleaseNotes-<revision-number> files.  Further, NEWS is an
+archive; it is contains release notes for all open source versions of
+Jikes RVM.
 
 **The java.version system property is now at 1.4.2 
 (This is missing from the original 2.3.4 release notes)
