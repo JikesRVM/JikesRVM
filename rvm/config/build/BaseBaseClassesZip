@@ -1,2 +1,0 @@
-. $1/BaseBaseNoGC
-   export GENERATE_CLASSES_ZIP=1
