@@ -445,16 +445,14 @@ The first two areas of the callee's stackframe (see above) have been
 \index{class loading}
 
 Jikes\trademark RVM implements the Java\trademark programming
-language's dynamic class 
-loading. While a class is being loaded it 
-can be in one of five states. These are
+language's dynamic class loading. While a class is being loaded it can
+be in one of six states. These are
 \begin{description}
-\item[vacant] a forward reference exists to the class but loading has not yet 
-begun.
+\item[vacant] The class is in the process of being loaded.
 \item[loaded] the class's bytecode file has been read and parsed successfully.
 \item[resolved] the superclass of this class has been loaded and resolved and
-the offsets (whether in the object itself, the JTOC, or the class's TIB) of its 
-fields and methods have been calculated.
+the offsets (whether in the object itself, the JTOC, or the class's
+TIB) of its fields and methods have been calculated.
 \item[instantiated] the superclass has been instantiated and pointers to the
 compiled methods have been inserted into the JTOC(for static methods) and the
 TIB (for virtual methods).
@@ -469,33 +467,32 @@ The class passes through these states in the following fashion.
 \paragraph{Vacant}
 The 
 \xlink{{\tt VM\_Class}}{\VMClassURL} 
-object for this class has been created and registered. 
-A class can be in this state if a reference to the class exists in a constant
-pool of some other class.
+object for this class has been created and registered and is in the
+process of being loaded.
 
 \paragraph{Loaded} 
 \index{constant pool}
-In this state the class file has been read and parsed.  The constant pool has 
-been constructed. The declared methods and fields of the class have been loaded.
-Loading a method or field consists of reading its modifiers and attributes.
+In this state the class file has been read and parsed.  The constant
+pool has been constructed. The declared methods and fields of the
+class have been loaded.  Loading a method or field consists of reading
+its modifiers and attributes. The class's superclass (if any) and
+superinterfaces have been loaded as well.
 
 \paragraph{Resolved}
-In this state the superclass of this class has been loaded and resolved. 
-A list of the virtual methods and instance fields of this class, including the 
-methods and fields
-inherited from its superclass has been constructed and the offsets for the 
-instance fields have been calculated.  
-Space has been allocated in the JTOC for all static fields of the class and for
-static method pointers and the appropriate offsets calculated.
-The TIB has been initialized and offsets for the virtual methods have been
-calculated.
+In this state the superclass and superinterfaces of this class have
+resolved as well.  A list of the virtual methods and instance fields
+of this class, including the methods and fields inherited from its
+superclass has been constructed and the offsets for the instance
+fields have been calculated.  Space has been allocated in the JTOC for
+all static fields of the class and for static method pointers and the
+appropriate offsets calculated.  The TIB has been initialized and
+offsets for the virtual methods have been calculated.
 
 \paragraph{Instantiated}
-In this state the superclass of this state has been instantiated. 
-The slots in the TIB are filled in with pointers to the compiled code for the 
-virtual methods. 
-The slots in the JTOC are filled in with pointers to the compiled code for the 
-static methods.
+In this state the superclass of this state has been instantiated.  The
+slots in the TIB are filled in with pointers to the compiled code for
+the virtual methods.  The slots in the JTOC are filled in with
+pointers to the compiled code for the static methods.
 
 \paragraph{Initializing} 
 \index{class initializer}
