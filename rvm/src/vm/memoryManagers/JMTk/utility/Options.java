@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
@@ -25,7 +26,6 @@ public class Options implements VM_Uninterruptible {
   static int stressTest       = (1<<30);  // default to never
 
   public static void process (String arg) throws VM_PragmaInterruptible {
-    // VM.sysWriteln("processing arg = ", arg);
     if (arg.startsWith("initial=")) {
       String tmp = arg.substring(8);
       int size = Integer.parseInt(tmp);
@@ -64,6 +64,11 @@ public class Options implements VM_Uninterruptible {
     if (heapSize != 0) // if deprecated interface is used
       initialHeapSize = heapSize + largeHeapSize;
     if (maxHeapSize < initialHeapSize) maxHeapSize = initialHeapSize;
+    if (VM_Word.fromInt(maxHeapSize).GT(VM_Word.fromInt(Plan.MAX_SIZE))) {
+	VM.sysWriteln("Specified heap size ", maxHeapSize >>> 20);
+	VM.sysWriteln(" MB is greater than maximum supported heap size for this collector which is ", (int) (Plan.MAX_SIZE >>> 20), " Mb");
+	VM.sysFail("Max heap too large");
+    }
   }
 
 }
