@@ -27,12 +27,12 @@
 #endif
 
 /*
- * Class:     VM_1InetAddressJpn
+ * Class:     VM_1InetAddress
  * Method:    getAliasesByNameImpl
  * Signature: (Ljava/lang/String;)[Ljava/net/InetAddress;
  */
 JNIEXPORT jobjectArray JNICALL 
-Java_VM_1InetAddressJpn_getAliasesByNameImpl(
+Java_VM_1InetAddress_getAliasesByNameImpl(
 		    JNIEnv *env, 
 		    jclass type, 
 		    jstring hostname) 
@@ -94,12 +94,12 @@ Java_VM_1InetAddressJpn_getAliasesByNameImpl(
 }
 
 /*
- * Class:     VM_1InetAddressJpn
+ * Class:     VM_1InetAddress
  * Method:    getHostByAddrImpl
  * Signature: (I)Ljava/net/InetAddress;
  */
 JNIEXPORT jobject JNICALL 
-Java_VM_1InetAddressJpn_getHostByAddrImpl(
+Java_VM_1InetAddress_getHostByAddrImpl(
 	       JNIEnv *env, 
 	       jclass type, 
 	       jint inetAddress)
@@ -143,12 +143,12 @@ Java_VM_1InetAddressJpn_getHostByAddrImpl(
 
 
 /*
- * Class:     VM_1InetAddressJpn
+ * Class:     VM_1InetAddress
  * Method:    getHostNameImpl
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL 
-Java_VM_1InetAddressJpn_getHostNameImpl(JNIEnv *env, jclass type) {
+Java_VM_1InetAddress_getHostNameImpl(JNIEnv *env, jclass type) {
   char buf[ MAXHOSTNAMELEN ];
   int rc = gethostname(buf, MAXHOSTNAMELEN);
 
