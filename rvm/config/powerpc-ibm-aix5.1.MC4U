@@ -52,6 +52,9 @@ export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/rt.jar"
 # the JDK1.3.1 standard library jar files
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
+# sources for classpath 0.05 (current stable version of classpath)
+export CLASSPATH_SRC=/homes/meriadoc/jalapeno/contrib/classpath-0.05
+
 # path for GNU make
 export GNU_MAKE="/usr/gnu/bin/make"
 
