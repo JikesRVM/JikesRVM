@@ -1,10 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$ 
+//$Id: 
 
 import instructionFormats.*;
-import java.util.*;
 
 /**
  * Perform local copy propagation for a factored basic block.
@@ -32,13 +31,13 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
   }
 
   /**
-   * Perform local constant propagation for a method.
+   * Perform Local Constant propagation for a method.
    * 
    * @param ir the IR to optimize
    */
   public void perform (OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_Register
-    HashMap info = new HashMap();
+    java.util.HashMap info = new java.util.HashMap();
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	 bb != null; 
 	 bb = bb.nextBasicBlockInCodeOrder()) {
@@ -55,44 +54,22 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
 	    if (numUses > 0) {
 	      boolean didSomething = false;
 	      int numDefs = s.getNumberOfDefs();
-              for (OPT_OperandEnumeration e = s.getUses(); e.hasMoreElements(); ) {
-		OPT_Operand use = e.next();
+	      for (int idx = numDefs; idx < numUses + numDefs; idx++) {
+		OPT_Operand use = s.getOperand(idx);
 		if (use instanceof OPT_RegisterOperand) {
 		  OPT_RegisterOperand rUse = (OPT_RegisterOperand)use;
 		  OPT_Operand value = (OPT_Operand)info.get(rUse.register);
 		  if (value != null) {
 		    didSomething = true;
-		    s.replaceOperand(use, value.copy());
+		    s.putOperand(idx, value.copy());
 		  }
 		}
 	      }
 	      if (didSomething) OPT_Simplifier.simplify(s);
-            }
-            // KILL
-            boolean killPhysicals = s.isTSPoint() || s.operator().implicitDefs != 0;
-            // kill any physical registers
-            // TODO: use a better data structure for efficiency.
-            // I'm being lazy for now in the name of avoiding
-            // premature optimization.
-            if (killPhysicals) {
-              HashSet toRemove = new HashSet();
-              for (Iterator i = info.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry entry = (Map.Entry)i.next();
-                OPT_Register eR = ((OPT_RegisterOperand)entry.getValue()).
-                  asRegister().register;
-                if (killPhysicals && eR.isPhysical()) {
-                  // delay the removal to avoid ConcurrentModification
-                  // with iterator.
-                  toRemove.add(entry.getKey());
-                }
-              }
-              // Now perform the removals.
-              for (Iterator i = toRemove.iterator(); i.hasNext();) {
-                info.remove(i.next());
-              }
-            }
-
-            for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
+	    }
+	    // KILL
+	    boolean killPhysicals = s.isTSPoint() || s.operator().implicitDefs != 0;
+	    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
               OPT_Operand def = e.next();
               if (def != null && def.isRegister()) {
                 OPT_Register r = def.asRegister().register;
@@ -101,21 +78,21 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
                 // TODO: use a better data structure for efficiency.
                 // I'm being lazy for now in the name of avoiding
                 // premature optimization.
-                HashSet toRemove = new HashSet();
-                for (Iterator i = info.entrySet().iterator();
+                java.util.HashSet toRemove = new java.util.HashSet();
+                for (java.util.Iterator i = info.entrySet().iterator();
                      i.hasNext(); ) {
-                  Map.Entry entry = (Map.Entry)i.next();
+                  java.util.Map.Entry entry = (java.util.Map.Entry)i.next();
                   OPT_Register eR =
                     ((OPT_RegisterOperand)entry.getValue()).
                     asRegister().register;
-                  if (eR == r) {
+                  if (eR == r || (killPhysicals && eR.isPhysical())) {
                     // delay the removal to avoid ConcurrentModification
                     // with iterator.
                     toRemove.add(entry.getKey());
                   }
                 }
                 // Now perform the removals.
-                for (Iterator i = toRemove.iterator(); i.hasNext();) {
+                for (java.util.Iterator i = toRemove.iterator(); i.hasNext();) {
                   info.remove(i.next());
                 }
               }

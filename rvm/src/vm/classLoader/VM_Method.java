@@ -506,9 +506,8 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
     VM_CompiledMethods.setCompiledMethod(compiledMethod.getId(), compiledMethod);
 
-    // Grab ahold of version that is being replaced
-    VM_CompiledMethod	previouslyGeneratedCompiledMethod =
-				this.mostRecentlyGeneratedCompiledMethod;
+    // old version is now obsolete
+    VM_CompiledMethods.setCompiledMethodObsolete( this.mostRecentlyGeneratedCompiledMethod );
     this.mostRecentlyGeneratedInstructions = compiledMethod.getInstructions();
     this.mostRecentlyGeneratedCompiledMethod = compiledMethod;
 
@@ -520,9 +519,9 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     // all subclasses that inherited the method.
     this.getDeclaringClass().resetMethod(this, updatedInstructions, true);
 
-    // Now that we've updated the jtoc/tib, old version is now obsolete
-    VM_CompiledMethods.setCompiledMethodObsolete( previouslyGeneratedCompiledMethod );
-
+    // !!TODO: reclaim entries in VM_CompiledMethods.compiledMethods[] corresponding to
+    // code that is no longer in use (ie. return address does not appear on
+    // any stack and entrypoint does not appear in jtoc or in any method dispatch table)
   }
 
   //----------------//
