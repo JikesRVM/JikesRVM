@@ -79,7 +79,8 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
 
     //-#if RVM_FOR_LINUX
     // set JTOC content, how about GC ? will it move JTOC ?
-    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(JNIFUNCTIONS_JTOC_OFFSET),
+    int offset = getJNIFunctionsJTOCOffset();
+    VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(JNIFunctions).add(offset),
 			      VM_Magic.getTocPointer());
     //-#endif
   }
