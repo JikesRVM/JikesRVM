@@ -10,11 +10,11 @@ export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
 
 . $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 
-# export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.10
-
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.12
+export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.14
 # On Wormtongue, for AWT testing:
 # export CLASSPATH_ROOT=/home/jikesrvm/classpath-0.12-with-awt
-export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.19
+export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.22
 export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
 export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
+
+export 	RVM_WITH_CLASSPATH_0_14=1
