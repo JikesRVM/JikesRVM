@@ -57,12 +57,6 @@ public class OPT_SummaryDatabase {
   private static final boolean DEBUG = false;
   private static java.util.HashMap hash = new java.util.HashMap();
 
-  /** 
-   * Initializer.
-   */
-  private static void initialize () {
-    hash = new java.util.HashMap();
-  }
 }
 
 
