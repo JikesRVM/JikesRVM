@@ -57,12 +57,17 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         switch (s.getOpcode()) {
 	case ARRAYLENGTH_opcode:
 	  {
-	    OPT_Operand address = GuardedUnary.getClearVal(s);
-	    // get array_ref+ARRAY_LENGTH_OFFSET into array_length_mem
-	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			address, I(ARRAY_LENGTH_OFFSET), 
-			new OPT_LocationOperand(), 
-			GuardedUnary.getClearGuard(s));
+	    if (VM.BuildForRealtimeGC) {
+	    //-#if RVM_WITH_REALTIME_GC
+		VM_SegmentedArray.optArrayLength(ir,s);
+	    //-#endif
+	    }
+	    else 
+		// array_ref[ARRAY_LENGTH_OFFSET] contains the length
+		Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
+			    GuardedUnary.getClearVal(s), I(ARRAY_LENGTH_OFFSET), 
+			    new OPT_LocationOperand(), 
+			    GuardedUnary.getClearGuard(s));
 	  }
 	  break;
 
