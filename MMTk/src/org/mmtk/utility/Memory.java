@@ -41,24 +41,31 @@ public class Memory implements VM_Uninterruptible {
     return true;
   }
 
-  public static boolean IsZeroed(VM_Address start, EXTENT size) {
+  public static boolean IsZeroed(VM_Address start, EXTENT size) throws VM_PragmaInline {
     return isZeroedHelper(start, size, false);
   }
 
-  public static boolean assertIsZeroed(VM_Address start, EXTENT size) {
+  public static boolean assertIsZeroed(VM_Address start, EXTENT size) throws VM_PragmaInline {
     return isZeroedHelper(start, size, true);
   }
 
-  public static void zero(VM_Address start, VM_Address end) {
-    VM_Memory.zero(start, end);
+  public static void zeroSmall(VM_Address start, int len) throws VM_PragmaInline {
+    for (int i=0; i<len; i+=4) 
+      VM_Magic.setMemoryWord(start.add(i), 0);
   }
 
-  public static void zero(VM_Address start, int len) {
+  public static void zero(VM_Address start, int len) throws VM_PragmaInline {
     VM_Memory.zero(start, len);
   }
 
-  public static void zeroPages(VM_Address start, int len) {
+  public static void zeroPages(VM_Address start, int len) throws VM_PragmaInline {
     VM_Memory.zeroPages(start, len);
+  }
+
+  // Derived form
+  //
+  public static void zero(VM_Address start, VM_Address end) throws VM_PragmaInline {
+    zero(start, end.diff(start).toInt());
   }
 
   public static void dumpMemory(VM_Address addr, int before, int after) {
