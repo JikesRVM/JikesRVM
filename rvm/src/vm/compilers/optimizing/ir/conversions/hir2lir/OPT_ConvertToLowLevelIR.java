@@ -272,18 +272,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	s = OPT_DynamicTypeCheckExpansion.checkcastInterfaceNotNull(s, ir);
 	break;
 
-      case CHECKTYPE_opcode:
-	{
-	  OPT_RegisterOperand reg = TypeCheck.getClearRef(s).asRegister();
-	  TrapIf.mutate(s, TRAP_IF, null, 
-			getTIB(s, ir, reg, 
-			       TypeCheck.getClearGuard(s)), 
-			getTIB(s, ir, TypeCheck.getClearType(s)), 
-			OPT_ConditionOperand.NOT_EQUAL(), 
-			OPT_TrapCodeOperand.Regenerate());
-	}
-	break;
-
       case IG_CLASS_TEST_opcode:
 	{
 	  IfCmp.mutate(s, INT_IFCMP, null, 

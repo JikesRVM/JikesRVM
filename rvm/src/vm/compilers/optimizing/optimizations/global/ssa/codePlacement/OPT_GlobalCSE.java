@@ -176,7 +176,6 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case CHECKCAST_opcode:
     case CHECKCAST_NOTNULL_opcode:
     case CHECKCAST_INTERFACE_NOTNULL_opcode:
-    case CHECKTYPE_opcode:
     case INSTANCEOF_opcode:
     case INSTANCEOF_NOTNULL_opcode:
     case PI_opcode:

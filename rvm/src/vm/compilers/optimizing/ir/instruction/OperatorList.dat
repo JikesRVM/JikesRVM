@@ -108,13 +108,6 @@ immedPEI | dynLink
 
 
 
-# Trap on type inequality. In some configurations used to guard speculative inlining of virutal calls
-CHECKTYPE
-TypeCheck
-immedPEI
-
-
-
 # implement instanceof bytecode. Numerous exceptions could be raised during dynamic class loading
 # The object being checked may be null
 INSTANCEOF
