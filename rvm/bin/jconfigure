@@ -632,10 +632,10 @@ load_config_file "${RVM_HOST_CONFIG}"
 ## in the default configuration, then CLASSPATH_INSTALLATION will be
 ## "/usr/local/classpath".
 ##
-## This does not include the usual consistency checks we perform on 
+## This automatically skips the usual consistency checks we perform on 
 ## CLASSPATH_ROOT.
 ##
-## OR, if you haven't installed GNU Classpath, you can set
+## Second, if you haven't installed GNU Classpath, you can set
 ## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
 ## *and* set CLASSPATH_BUILD_DIR to the directory
 ## from which you ran "${CLASSPATH_SOURCE_DIR}/configure"
@@ -891,15 +891,13 @@ declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 #       revert to old default until it works again.
 declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 
-declare -i RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD=0
+## Classpath 0.12 is the default on Linux.
+## We have build problems on AIX, so are using Classpath 0.10 on that platform
+## for now.  The minimum required version is Classpath 0.11
 
-# Our support for classpath 0.11 isn't up and running yet.  For now, 
-# we're using Classpath 0.10.
-declare -i RVM_WITH_CLASSPATH_0_11_OR_LATER=0
+declare -i RVM_WITH_CLASSPATH_0_10=0
 
-## We actually already require Classpath 0.10 -- this config variable should go
-## away Real Soon Now.  
-declare -i RVM_WITH_CLASSPATH_0_10_OR_LATER=1
+declare -i RVM_WITH_CLASSPATH_0_11=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
 ## I've surrounded them with this. --Steve Augart
@@ -1449,7 +1447,9 @@ EOF
 	$RVM_ROOT/rvm/src/vm/libSupport/java/net
 	$RVM_ROOT/rvm/src/vm/libSupport/java/io
 EOF
-    if (( RVM_WITH_CLASSPATH_0_11_OR_LATER )); then
+    if (( ! RVM_WITH_CLASSPATH_0_10 )); then
+	## Later than Classpath 0.10
+
 	# We actually aren't using java.security right now, except in a branch,
 	# but this does no harm.	
 	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/security"
@@ -1618,6 +1618,7 @@ EOF
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
     [[ ! ${DONOR_RVM_BUILD-} ]] || echo "export DONOR_RVM_BUILD=$DONOR_RVM_BUILD"
     echo ""
+    [[ ! $OBJECT_MODE ]] || echo "export OBJECT_MODE=$OBJECT_MODE   # Horrible kludge for AIX"
 }
 
 #
@@ -1720,6 +1721,10 @@ EOF
     [[ ! ${BENCHMARK_ROOT-} ]] || echo "BENCHMARK_ROOT = $BENCHMARK_ROOT"
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "DONOR_RVM_ROOT = $DONOR_RVM_ROOT"
     [[ ! ${DONOR_RVM_BUILD-} ]] || echo "DONOR_RVM_BUILD = $DONOR_RVM_BUILD"
+    if [[ ${OBJECT_MODE-} ]]; then
+	echo "# Horrible kludge for AIX:"
+	echo "export OBJECT_MODE = $OBJECT_MODE"
+    fi
 }
 
 
@@ -2831,7 +2836,7 @@ java/io/FileDescriptor
 gnu/java/nio/channels/FileChannelImpl
 EOF
 
-    if (( RVM_WITH_CLASSPATH_0_11_OR_LATER )); then
+    if (( ! RVM_WITH_CLASSPATH_0_10 )); then
         # Boot classes we need to work with Classpath 0.11, but don't 
 	# need to work with Classpath 0.10
 
