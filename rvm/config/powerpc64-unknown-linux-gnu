@@ -33,6 +33,10 @@ export MAXIMUM_MAPPABLE_ADDRESS=0x80000000L
 # PART II: Where to find tools and resources on this target
 ########## 
 
+# Selection of GNU Classpath version is platform independent and fairly
+# involved; therefore it has been factored out into a separate file.
+. $RVM_ROOT/rvm/config/classpath-version
+
 export HOST_JAVA_HOME=/opt/IBMJava2-ppc-141
 
 # the JDK java executable
@@ -52,10 +56,6 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/lib/rt.jar"
 
 # the JDK tools jar
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
-
-## Note: This file is not currently in use; Classpath 0.10 is the minimum
-## required version for Jikes RVM 2.3.4.
-# export CLASSPATH_ROOT=/opt/classpath-0.06
 
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
