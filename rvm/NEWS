@@ -6,14 +6,18 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Changes after Jikes RVM 2.3.4: future release notes
-The following four sections of the document will one day be the
-release notes for Jikes RVM following the 2.3.4 release.
+*Jikes RVM 2.3.5 Release Notes (released on April 8, 2005)
+*Highlights 
+** This release of Jikes RVM does not work on OSX.  
+If you use Jikes RVM on OSX please help us fix it so subsequent
+releases will support OSX again.
 
-*Highlights after the Jikes RVM 2.3.4 release
-**We work with the new GNU Classpath 0.14.  Carefully read
-the comments before the definition of RVM_WITH_CLASSPATH_0_14 in
-rvm/bin/jconfigure if you want to work with Classpath 0.14.
+**The recommended version of GNU classpath for this release of Jikes RVM is 0.14.  
+Furthermore, all of the configuration logic that controls classpath
+version has been moved to $RVM_ROOT/rvm/config/classpath-version.  We
+suggest you may want to modify your local configuration files to source
+this file, to make it easier to track changes in classpath version
+across releases of Jikes RVM. 
 
 **We can build with Jikes versions 1.20, 1.21, 1.22, and CVS Head.
 
@@ -45,7 +49,7 @@ for experimenting with other optimizations without having to deal with
 the implementation details of the Opt compiler and the complex 
 interactions among the many optimizations performed by the Opt compiler.
 
-*Other Notes after the Jikes RVM 2.3.4 release:
+*Other Notes:
 **We've moved to http://jikesrvm.sourceforge.net.  
 We'll try to update the documentation, but please point out anything
 that we missed.
@@ -66,14 +70,15 @@ insists upon at least 1.4.1 to run.
 Similarly, java.specification.version is up to 1.4 and
 java.vm.version is at 1.4.2.
 
-*Bug Fixes after the Jikes RVM 2.3.4 release:
+*Bug Fixes:
+**The problems with timezones that several users have reported with the change to daylight savings times and Jikes RVM 2.3.4/classpath 0.12 are not a problem in Jikes RVM 2.3.5/classpath 0.14. 
 **Calling VM.sysFail during boot image writing no longer generates a bogus "vm internal error" message.
 ***VM_Scheduler.traceback and VM_Scheduler.dumpStack now work properly
 even when Jikes RVM is writing the boot image.  This, in turn, means
 that we no longer generate internal errors if we have to call
 VM.sysFail during boot image writing time.
 
-*Internal Changes after the Jikes RVM 2.3.4 release:
+
 
 *Jikes RVM 2.3.4 Release Notes (released December 21, 2004)
 THe following four sections of the document contain the Jikes RVM
@@ -157,8 +162,11 @@ it no longer inappropriately elides frames.
 and rationalized. Further work on refactoring magic usage (mainly in Jikes 
 RVM as opposed to MMTk) is ongoing.
 
+
+
+
 *Jikes RVM 2.3.3 release notes sections
-THe following three sections of the document contain the Jikes RVM
+The following three sections of the document contain the Jikes RVM
 2.3.3 release notes.  They are:
 **Highlights
 **Other Notes
@@ -240,6 +248,9 @@ references multiple times in dynamic linking frames.
 ** Fixed a bug in the GC map iterator code on PPC that was failing to return 
 spilled parameters in dynamic linking frames.
 
+
+
+
 *Jikes RVM 2.3.2 release notes sections:
 The following three sections of the document contain the Jikes RVM
 2.3.2 release notes.  They are:
@@ -311,6 +322,9 @@ ErrorInInitializerError out of the VM's list of boot classes.
 ** If an uncaught exception is thrown while booting, 
 we no longer try to print to the uninitialized System.err stream.
 That used to trigger a NullPointerException.
+
+
+
 
 *Jikes RVM 2.3.1 Release Notes (released on December 10, 2003)
 The following three sections of the document contain the Jikes RVM
@@ -418,6 +432,9 @@ somewhere under the name "bash".
 
 *** Other misc bugs fixed as well; see the bug tracking software.
 
+
+
+
 *Jikes RVM 2.3.0.1 Release Notes (released on September 3, 2003)
 2.3.0.1 is minor release of Jikes RVM to fix a few regressions in Jikes
 RVM 2.3.0.
@@ -429,6 +446,9 @@ The following three sections of the document contain the Jikes RVM
 **Highlights
 **Other Notes
 **Bug Fixes
+
+
+
 
 *Jikes RVM 2.3.0 Release Notes (released on August 28, 2003)
 This is release 2.3.0 of the Jikes RVM. 
@@ -550,6 +570,7 @@ Expansions of some of the highlights listed above:
   collecting profiling information using instrumentation.   For details,
   see the user guide section "Using the Jikes RVM to Profile an
   Application -> Instrumentation Sampling Framework."
+
 
 
 *Jikes RVM 2.2.2 Release Notes (released on June 6, 2003)
@@ -769,6 +790,7 @@ fixed in 2.1.0:
        switching
  2823: VM_Lister of CMPXCHG
  2831: BaseBase GC Map bug for Native Bridge
+
 
 *Jikes RVM 2.0.3 Release Notes (released on March 11, 2002)
 This is release 2.0.3 of the Jikes RVM. The main purpose
