@@ -101,7 +101,7 @@ public class OSR_SpecialCompiler{
     if (VM.TraceOnStackReplacement) { 
 //        ((VM_BaselineCompiledMethod)newCompiledMethod).printCodeMapEntries();
           VM.sysWriteln("BASE : done, CMID 0x"+Integer.toHexString(newCompiledMethod.getId())
-                                          +" JTOC offset 0x"+Integer.toHexString(newCompiledMethod.getOsrJTOCoffset())); 
+          +" JTOC offset "+VM.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress())); 
         }
 
     return newCompiledMethod;

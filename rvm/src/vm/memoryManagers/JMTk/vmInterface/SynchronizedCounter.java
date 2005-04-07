@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
 import com.ibm.JikesRVM.VM_Entrypoints;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A counter that supports atomic increment and reset.
@@ -18,7 +19,7 @@ import org.vmmagic.pragma.*;
  */
 public final class SynchronizedCounter implements Uninterruptible {
 
-  private static int offset = -1;
+  private static Offset offset = Offset.max();
 
   public static void boot() {
     offset = VM_Entrypoints.synchronizedCounterField.getOffset();
@@ -41,7 +42,7 @@ public final class SynchronizedCounter implements Uninterruptible {
   // Returns the value before the add
   //
   public int increment() {
-    if (VM.VerifyAssertions) VM._assert(offset != -1);
+    if (VM.VerifyAssertions) VM._assert(!offset.isMax());
     return VM_Synchronization.fetchAndAdd(this, offset, 1);
   }
 

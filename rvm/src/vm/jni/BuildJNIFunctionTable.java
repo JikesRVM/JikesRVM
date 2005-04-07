@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001, 2003
+ * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.jni;
@@ -254,9 +254,9 @@ public class BuildJNIFunctionTable {
   private static final int DELETEWEAKGLOBALREF           =  227;               
   private static final int EXCEPTIONCHECK                =  228;           
   /* Added in JNI 1.4: */
-  private static final int NEWDIRECTBYTEBUFFER		 =  229;
-  private static final int GETDIRECTBUFFERADDRESS	 =  230;
-  private static final int GETDIRECTBUFFERCAPACITY	 =  231;
+  private static final int NEWDIRECTBYTEBUFFER           =  229;
+  private static final int GETDIRECTBUFFERADDRESS        =  230;
+  private static final int GETDIRECTBUFFERCAPACITY       =  231;
 
   /**
    * Construct the JNIFuntionTable.
@@ -267,7 +267,7 @@ public class BuildJNIFunctionTable {
     String[] names = initNames();
     VM_CodeArray[] functions = new VM_CodeArray[VM_JNIFunctions.FUNCTIONCOUNT];
     
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), 
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_JNIFunctions;"));
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (VM.VerifyAssertions) VM._assert(cls.isInstantiated());
@@ -527,9 +527,9 @@ public class BuildJNIFunctionTable {
     names[NEWWEAKGLOBALREF]              = "NewWeakGlobalRef";              // JDK 1.2, #226
     names[DELETEWEAKGLOBALREF]           = "DeleteWeakGlobalRef";           // JDK 1.2, #227
     names[EXCEPTIONCHECK]                = "ExceptionCheck";                // JDK 1.2, #228
-    names[NEWDIRECTBYTEBUFFER]		 = "NewDirectByteBuffer";           // JDK 1.4, #229
-    names[GETDIRECTBUFFERADDRESS]        = "GetDirectBufferAddress";	    // JDK 1.4, #230
-    names[GETDIRECTBUFFERCAPACITY]       = "GetDirectBufferCapacity";	    // JDK 1.4, #231
+    names[NEWDIRECTBYTEBUFFER]           = "NewDirectByteBuffer";           // JDK 1.4, #229
+    names[GETDIRECTBUFFERADDRESS]        = "GetDirectBufferAddress";        // JDK 1.4, #230
+    names[GETDIRECTBUFFERCAPACITY]       = "GetDirectBufferCapacity";       // JDK 1.4, #231
 
     return names;
   }

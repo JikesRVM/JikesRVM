@@ -5,8 +5,9 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.policy.RawPageSpace;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 
 import org.vmmagic.unboxed.*;
@@ -17,13 +18,14 @@ import org.vmmagic.pragma.*;
  * for shared use.  The data can be added to and removed from either end
  * of the deque.  
  *
+ * $Id$
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
  */ 
 public class SharedDeque extends Deque implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
 
   private static final Offset PREV_OFFSET = Offset.fromInt(BYTES_IN_ADDRESS);
 
@@ -69,7 +71,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       if (head.EQ(HEAD_INITIAL_VALUE))
         tail = buf;
       else
-	setPrev(head, buf);
+        setPrev(head, buf);
       setNext(buf, head);
       head = buf;
     } 
@@ -120,6 +122,10 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   final Address alloc() throws InlinePragma {
     Address rtn = rps.acquire(PAGES_PER_BUFFER);
+    if (rtn.isZero()) {
+      Space.printUsageMB();
+      Assert.fail("Failed to allocate space for queue.  Is metadata virtual memory exhausted?");
+    }
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
@@ -161,23 +167,23 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       }
     } else {
       if (fromTail) {
-	// dequeue the tail buffer
-	setTail(getPrev(tail));	
-	if (head.EQ(rtn)) {
-	  setHead(Address.zero());
-	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero());
-	} else {
-	  setNext(tail, Address.zero());
-	}
+        // dequeue the tail buffer
+        setTail(getPrev(tail)); 
+        if (head.EQ(rtn)) {
+          setHead(Address.zero());
+          if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero());
+        } else {
+          setNext(tail, Address.zero());
+        }
       } else {
       // dequeue the head buffer
       setHead(getNext(head));
       if (tail.EQ(rtn)) {
         setTail(Address.zero());
         if (Assert.VERIFY_ASSERTIONS) Assert._assert(head.isZero());
-	} else {
-	  setPrev(head, Address.zero());
-	}
+        } else {
+          setPrev(head, Address.zero());
+        }
       }
       bufsenqueued--;
       if (waiting)

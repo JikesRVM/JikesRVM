@@ -13,13 +13,13 @@ import org.vmmagic.pragma.UninterruptiblePragma;
  * @version $Revision$
  * @date $Date$
  */
-public class TraceRate extends IntOption implements org.mmtk.vm.Constants {
+public class TraceRate extends IntOption implements org.mmtk.utility.Constants {
   /**
    * Create the option.
    */
   public TraceRate() {
     super("Trace Rate",
-          "The granularity of the trace being produced.  By default, the trace has the maximum possible granularity.  (Log 2 of the num of bytes)",
+          "The granularity of the trace being produced.  By default, the trace has the maximum possible granularity.",
           Integer.MAX_VALUE);
   }
 
@@ -29,8 +29,15 @@ public class TraceRate extends IntOption implements org.mmtk.vm.Constants {
    * @return the trace rate.
    */
   public int getValue() throws UninterruptiblePragma {
-    return (this.value < LOG_BYTES_IN_ADDRESS) 
-      ? 0 
-      : 1 << (this.value - LOG_BYTES_IN_ADDRESS);
+    return (this.value < BYTES_IN_ADDRESS) 
+      ? 1 
+      : (this.value >> LOG_BYTES_IN_ADDRESS);
+  }
+
+  /**
+   * Trace rate must be positive.
+   */ 
+  protected void validate() {
+    failIf(value <= 0, "Can not have a negative trace rate"); 
   }
 }

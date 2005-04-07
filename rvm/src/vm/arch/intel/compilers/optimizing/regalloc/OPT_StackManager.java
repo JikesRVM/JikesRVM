@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.HashSet;
 import java.util.HashMap;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Class to manage the allocation of the "compiler-specific" portion of 
@@ -401,7 +402,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     //       stackoverflow in the callee. We can't do this if the frame is too big, 
     //       because growing the stack in the callee and/or handling a hardware trap 
     //       in this frame will require most of the guard region to complete.
-    //       See libjvm.C.
+    //       See libvm.C.
     if (frameFixedSize >= 256) {
       // 1. Insert Stack overflow check.  
       insertBigFrameStackOverflowCheck(plg);
@@ -683,7 +684,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
         s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), IC(delta)));
       } else {
         OPT_MemoryOperand M = 
-          OPT_MemoryOperand.BD(R(ESP),delta, (byte)4, null, null); 
+          OPT_MemoryOperand.BD(R(ESP),Offset.fromIntSignExtend(delta), (byte)4, null, null); 
         s.insertBefore(MIR_Lea.create(IA32_LEA, R(ESP), M));
       }
       ESPOffset = desiredOffset;
@@ -824,14 +825,14 @@ public final class OPT_StackManager extends OPT_GenericStackManager
           offset -= ESPOffset;
           byte size = sop.getSize();
           OPT_MemoryOperand M = 
-            OPT_MemoryOperand.BD(R(ESP),offset,
+            OPT_MemoryOperand.BD(R(ESP),Offset.fromIntSignExtend(offset),
                                  size, null, null); 
           s.replaceOperand(op, M);
         } else if (op instanceof OPT_MemoryOperand) {
           OPT_MemoryOperand M = op.asMemory();
           if ((M.base != null && M.base.register == ESP) ||
               (M.index != null && M.index.register == ESP)) {
-            M.disp -= ESPOffset;
+            M.disp = M.disp.sub(ESPOffset);
           }
         }
       }

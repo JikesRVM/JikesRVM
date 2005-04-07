@@ -301,21 +301,21 @@ public class GenMS extends Generational implements Uninterruptible {
     if (object.isNull()) return false;
     if (!fullHeapGC) {
       if (object.toAddress().GE(NURSERY_START))
- 	return nurserySpace.isLive(object);
+        return nurserySpace.isLive(object);
       else
- 	return true;
+        return true;
     } else {
       Space space = Space.getSpaceForObject(object);
       if (space == nurserySpace)
- 	return nurserySpace.isLive(object);
+        return nurserySpace.isLive(object);
       else if (space == matureSpace)
- 	return matureSpace.isLive(object);
+        return matureSpace.isLive(object);
       else if (space == loSpace)
-	 return loSpace.isLive(object);
+         return loSpace.isLive(object);
       else if (space == null) {
- 	if (Assert.VERIFY_ASSERTIONS) {
- 	  Log.write("space failure: "); Log.writeln(object);
- 	}
+        if (Assert.VERIFY_ASSERTIONS) {
+          Log.write("space failure: "); Log.writeln(object);
+        }
       }
       return true;
     }

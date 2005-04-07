@@ -8,7 +8,7 @@ package org.mmtk.utility.heap;
 
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Memory;
@@ -157,7 +157,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
     }
   }
 
-  public static void boot (Address bootStart, Extent bootSize) {
+  public static void boot (Address bootStart, int bootSize) {
     int startChunk = Conversions.addressToMmapChunksDown(bootStart);
     int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
     for (int i=startChunk; i<=endChunk; i++)

@@ -44,7 +44,7 @@ class Start {
         } catch (Throwable e) {
             System.err.println("Cannot read request file");
             e.printStackTrace();
-            System.exit( -1 );
+            System.exit(1);
         }
 
         return null;
@@ -121,7 +121,7 @@ class Start {
 
         } catch (InterruptedException e) {
             System.err.println("Timing loop interrupted!");
-            System.exit( -1 );
+            System.exit(1);
         }
 
         // time the downloads

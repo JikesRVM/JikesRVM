@@ -8,7 +8,7 @@ package org.mmtk.policy;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -40,7 +40,7 @@ public final class RawPageSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public RawPageSpace(String name, int pageBudget, Address start,
-		      Extent bytes) {
+                      Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }

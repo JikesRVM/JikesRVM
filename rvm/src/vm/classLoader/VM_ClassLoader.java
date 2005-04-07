@@ -1,10 +1,12 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Properties;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 import java.util.StringTokenizer;
@@ -24,28 +26,50 @@ import java.security.ProtectionDomain;
 public class VM_ClassLoader implements VM_Constants, 
                                        VM_ClassLoaderConstants {
 
+  final private static boolean DBG_APP_CL = false;
+  /** The GNU Classloaded failed for us, as of Classpath 0.13 + CVS head.   I
+   * have not attempted to debug it. */
+  final public static boolean USE_OLD_APP_CLASSLOADER = false;
+  
   private static ClassLoader appCL;
 
   /**
-   * Set list of places to be searched for vm classes and resources.
-   * @param classPath path specification in standard "classpath" format
+   * Set list of places to be searched for application classes and resources.
+   * Do NOT set the java.class.path property; it is probably too early in
+   * the VM's booting cycle to set properties.
+   *
+   * @param classpath path specification in standard "classpath" format
    */
-  public static void setVmRepositories(String classPath) {
-    vmRepositories = classPath;
+  public static void stashApplicationRepositories(String classpath) {
+    if (DBG_APP_CL) {
+      VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: "
+                    + "applicationRepositories = ", classpath);
+    }
+    /* If mis-initialized, trash it. */
+    if (appCL != null && !classpath.equals(applicationRepositories)) {
+      appCL = null;
+      if (DBG_APP_CL)
+        VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: Wiping out my remembered appCL.");
+    }
+    VM_ApplicationClassLoader2.setApplicationRepositories(classpath);
+    applicationRepositories = classpath;
   }
 
-  public static String getVmRepositories() {
-    return vmRepositories;
-  }
-
+  
   /**
    * Set list of places to be searched for application classes and resources.
-   * @param classPath path specification in standard "classpath" format
+   * @param classpath path specification in standard "classpath" format
+   *
+   * Our Jikes RVM classloader can not handle having the class path reset
+   * after it's been set up.   Unfortunately, it is stashed by classes in
+   * GNU Classpath.
    */
-  public static void setApplicationRepositories(String classPath) {
-    System.setProperty("java.class.path", classPath);
-    applicationRepositories = classPath;
-    appCL = null;
+  public static void setApplicationRepositories(String classpath) {
+    System.setProperty("java.class.path", classpath);
+    stashApplicationRepositories(classpath);
+    if (DBG_APP_CL) {
+      VM.sysWriteln("VM_ClassLoader.setApplicationRepositories: applicationRepositories = ", applicationRepositories);
+    }
   }
 
   /**
@@ -57,10 +81,62 @@ public class VM_ClassLoader implements VM_Constants,
     return applicationRepositories;
   }
 
+  /** Are we getting the application CL?  Access is synchronized via the
+   *  Class object.  Probably not necessary, but doesn't hurt, or shouldn't.
+   *  Used for sanity checks. */
+      
+  private static int gettingAppCL = 0;
+  
+  /** Is the application class loader ready for use?  Don't leak it out until
+   * it is! */
+  private static boolean appCLReady;
+  public static void declareApplicationClassLoaderIsReady() {
+    appCLReady = true;
+  };
+  
+
   public static ClassLoader getApplicationClassLoader() {
-    if (appCL == null) {
-      appCL = new ApplicationClassLoader(getApplicationRepositories());
-    }
+    if (! VM.runningVM)
+      return null;              /* trick the boot image writer with null,
+                                   which it will use when initializing
+                                   java.lang.ClassLoader$StaticData */
+
+    /* Lie, until we are really ready for someone to actually try
+     * to use this class loader to load classes and resources.
+     */
+    if (!appCLReady)
+      return VM_BootstrapClassLoader.getBootstrapClassLoader(); 
+    
+    if (appCL != null)
+      return appCL;
+
+    // Sanity Checks:
+    //    synchronized (this) {
+      if (gettingAppCL > 0 || DBG_APP_CL)
+        VM.sysWriteln("JikesRVM: VM_ClassLoader.getApplicationClassLoader(): ", gettingAppCL > 0 ? "Recursively " : "", "invoked with ", gettingAppCL, " previous instances pending");
+      if (gettingAppCL > 0) {
+        VM.sysFail("JikesRVM: While we are setting up the application class loader, some class required that selfsame application class loader.  This is a chicken-and-egg problem; see a Jikes RVM Guru.");
+      }
+      ++gettingAppCL;
+
+      String r = getApplicationRepositories();
+
+      if (VM_Properties.verboseBoot >= 1 || DBG_APP_CL)
+        VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): " +
+                      "Initializing Application ClassLoader, with" +
+                      " repositories: `", r, "'...");
+
+      if (USE_OLD_APP_CLASSLOADER) {
+        appCL = new ApplicationClassLoader(r);
+      } else {
+        VM_ApplicationClassLoader2.setApplicationRepositories(r);
+        appCL = VM_ApplicationClassLoader2.getApplicationClassLoader();
+      }
+
+      if (VM_Properties.verboseBoot >= 1 || DBG_APP_CL)
+        VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ", appCL.toString());
+      --gettingAppCL;
+      //    }
     return appCL;
   }
 
@@ -68,10 +144,8 @@ public class VM_ClassLoader implements VM_Constants,
   // implementation //
   //----------------//
 
-  // Places from which to load .class files.
   //
   private static String applicationRepositories;
-  private static String vmRepositories;
 
   // Names of special methods.
   //
@@ -99,16 +173,24 @@ public class VM_ClassLoader implements VM_Constants,
   static VM_Atom syntheticAttributeName;              // "Synthetic"
   static VM_Atom arrayNullCheckAttributeName;         // "ArrayNullCheckAttribute"
 
-  /**
-   * Initialize for boot image.
+  /** Initialize at boot time.
    */
-  public static void init(String vmClassPath) {
-    // specify place where vm classes and resources live
+  public static void boot() {
+    appCL = null;
+  }
+
+  /**
+   * Initialize for boot image writing
+   */
+  public static void init(String bootstrapClasspath) {
+    // specify where the VM's core classes and resources live
     //
-    if (vmClassPath != null)
-      setVmRepositories(vmClassPath);
-    applicationRepositories = null;
-    VM_SystemClassLoader.boot();
+    applicationRepositories = "."; // Carried over.
+    VM_BootstrapClassLoader.boot(bootstrapClasspath);
+    /* Don't need to initialize VM_ApplicationClassLoader2 when we're writing
+     * the boot image..  Not that it would
+     * hurt, though...*/
+    VM_ApplicationClassLoader2.boot(applicationRepositories);
 
     // create special method- and attribute- names
     //
@@ -137,18 +219,6 @@ public class VM_ClassLoader implements VM_Constants,
     VM_Type.init();
   }
 
-  /**
-   * Initialize for execution.
-   * @param vmClasses name of directory containing vm .class and .zip/.jar 
-   * files.  This may contain several names separated with colons (':'), just
-   * as a classpath may.   (null -> use values specified by
-   * setVmRepositories() when boot image was created)
-   * @return nothing
-   */
-  public static void boot(String vmClasses) {      
-    if (vmClasses != null)
-      setVmRepositories(vmClasses);
-  }
 
   public static final VM_Type defineClassInternal(String className, 
                                                   byte[] classRep, 

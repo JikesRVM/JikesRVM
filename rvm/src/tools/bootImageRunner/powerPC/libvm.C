@@ -33,7 +33,6 @@
 #include <assert.h>
 #include <sys/mman.h>
 #include <sys/shm.h>
-#include <pthread.h>
 #define SIGNAL_STACKSIZE (16 * 1024)    // in bytes
 
 /* There are several ways to allocate large areas of virtual memory:
@@ -205,6 +204,8 @@ extern "C" char *sys_siglist[];
 /* Interface to virtual machine data structures. */
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_EXIT_STATUS_CODES
+#define NEED_MM_INTERFACE_DECLARATIONS
 #include <InterfaceDeclarations.h>
 extern "C" void setLinkage(VM_BootRecord *);
 
@@ -328,8 +329,6 @@ getRegAddress(ppc_thread_state_t *state, int r)
 
 VM_BootRecord *theBootRecord;
 #define VM_NULL 0
-// XXX TODO: update to auto-generate from (VM_BootRecord.heapRange.length / 2)
-#define MAXHEAPS 20  
 
 #include "../bootImageRunner.h" // In rvm/src/tools/bootImageRunner
 
@@ -361,22 +360,32 @@ static uintptr_t VmToc;                 // Location of VM's JTOC
 int HardwareTrapMethodId;  
 
 /* TOC offset of VM_Runtime.deliverHardwareException */
-int DeliverHardwareExceptionOffset; 
-int DumpStackAndDieOffset;      // TOC offset of VM_Scheduler.dumpStackAndDie
-static int ProcessorsOffset;    // TOC offset of VM_Scheduler.processors[]
-int DebugRequestedOffset;       // TOC offset of VM_Scheduler.debugRequested
+VM_Offset DeliverHardwareExceptionOffset; 
+VM_Offset DumpStackAndDieOffset;      // TOC offset of VM_Scheduler.dumpStackAndDie
+static VM_Offset ProcessorsOffset;    // TOC offset of VM_Scheduler.processors[]
+VM_Offset DebugRequestedOffset;       // TOC offset of VM_Scheduler.debugRequested
 
 typedef void (*SIGNAL_HANDLER)(int); // Standard unix signal handler.
+
+#include "../pthread-wrappers.h"     // We do not include 
+                                     // pthread-wrappers.h until the last
+                                     // possible minutes, since other include
+                                     // files may include <pthread.h>.  We
+                                     // will fail to compile if that happens.
+
 pthread_t vm_pthreadid;         // pthread id of the main RVM pthread
 
 
 static int 
 inRVMAddressSpace(VM_Address addr) 
 {
+    /* get the boot record */
     VM_Address *heapRanges = theBootRecord->heapRanges;
     for (int which = 0; which < MAXHEAPS; which++) {
         VM_Address start = heapRanges[2 * which];
         VM_Address end = heapRanges[2 * which + 1];
+        // Test against sentinel.
+        if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
         if (start <= addr  && addr < end) {
             return true;
         }
@@ -427,7 +436,7 @@ getLinuxSavedRegisters(int signum, void* arg3)
        fprintf(stderr, "%12p %p arg3[%d]\n", (void *) ((void**) arg3)[i], ((void**) arg3) + i, i);
      }
      fprintf(stderr, "trap: %d link: %p nip: %p\n", context->regs->trap, context->regs->link, context->regs->nip);
-     exit(1);
+     exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
    }
 
    return context->regs;
@@ -592,7 +601,7 @@ getFaultingAddress(mstsave *save)
             faultingAddressLocation = 0;
         else {
             fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
-            exit(1);
+            exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
         }
     }
     return save->except[0];
@@ -603,7 +612,7 @@ getFaultingAddress(mstsave *save)
         } else {
             fprintf(SysTraceFile, "Could not figure out where"
                     " faulting address is stored - exiting\n");
-            exit(1);
+            exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
         }
     }
     return save->o_vaddr;
@@ -732,7 +741,8 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #if (defined RVM_FOR_OSX)
        fprintf(SysTraceFile,"            dar=" FMTrvmPTR "\n", rvmPTR_ARG(context->uc_mcontext->es.dar ));
 #else  // ! RVM_FOR_OSX:
-       fprintf(SysTraceFile,"   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
+       if (rvm_singleVirtualProcessor) 
+           fprintf(SysTraceFile,"   pthread_self=" FMTrvmPTR "\n", rvmPTR_ARG(pthread_self()));
 #endif // ! RVM_FOR_OSX
        
        if (isRecoverable) {
@@ -740,7 +750,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
        } else {
            fprintf(SysErrorFile, "%s: internal error trap\n", Me);
            if (--remainingFatalErrors <= 0)
-               exit(1); 
+               exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
        }
     }
     
@@ -918,7 +928,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
             //!!TODO: someday use logic similar to stack guard page to force a gc
             if (lib_verbose) fprintf(SysTraceFile, "%s: write buffer overflow trap\n", Me);
             fprintf(SysErrorFile,"%s: write buffer overflow trap\n", Me);
-            exit(1);
+            exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
         } else if (((instruction & VM_Constants_STACK_OVERFLOW_MASK) 
                     == VM_Constants_STACK_OVERFLOW_TRAP) 
                  || ((instruction & VM_Constants_STACK_OVERFLOW_MASK) 
@@ -1047,7 +1057,6 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 
 
 static void *bootThreadCaller(void *);
-#include <pthread.h>
 
 // A startup configuration option with default values.
 // Declared in bootImageRunner.h
@@ -1077,7 +1086,7 @@ pageRoundUp(size_t size)
 // }
 
 int 
-createJVM(int vmInSeparateThread) 
+createVM(int vmInSeparateThread) 
 {
     // arguments processing moved to runboot.c
 
@@ -1249,6 +1258,7 @@ createJVM(int vmInSeparateThread)
     bootRecord.bootImageStart   = (VM_Address) bootRegion;
     bootRecord.bootImageEnd     = (VM_Address) bootRegion + roundedImageSize;
     bootRecord.verboseBoot      = verboseBoot;
+    bootRecord.singleVirtualProcessor = rvm_singleVirtualProcessor;
   
     // set host o/s linkage information into boot record
     //
@@ -1452,11 +1462,11 @@ createJVM(int vmInSeparateThread)
         // clear flag for synchronization
         bootRecord.bootCompleted = 0;
 
-#if (defined RVM_FOR_LINUX) && defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-        fprintf(stderr, "%s: Unsupported operation (no linux pthreads)\n", Me);
-        exit(1);
-#else
-
+        if (rvm_singleVirtualProcessor) {
+            fprintf(stderr, "%s: createVM(vmInSeparateThread = %d): Unsupported operation (no pthreads available)\n", Me, vmInSeparateThread);
+            exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+        }
+    
         pthread_create(&vm_pthreadid, NULL, bootThreadCaller, NULL);
      
         // wait for the JNIStartUp code to set the completion flag before returning
@@ -1467,7 +1477,6 @@ createJVM(int vmInSeparateThread)
             pthread_yield();
 #endif    
         }
-#endif
 
         return 0;
     } else {
@@ -1515,7 +1524,7 @@ getJTOC()
 }
 
 // Get offset of VM_Scheduler.processors in JTOC.
-extern "C" int 
+extern "C" VM_Offset 
 getProcessorsOffset() 
 {
     return ProcessorsOffset;

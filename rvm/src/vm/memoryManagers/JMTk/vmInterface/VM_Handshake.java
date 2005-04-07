@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
@@ -79,7 +79,7 @@ public class VM_Handshake {
       gcTrigger = why;
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - yielding");
       /* allow a gc thread to run */
-      VM_Thread.getCurrentThread().yield();
+      VM_Thread.yield();
       complete();
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - mutator running");
     }
@@ -205,7 +205,7 @@ public class VM_Handshake {
       if (len < maxCollectorThreads) {
         if (verbose >= 1) VM.sysWrite("GC Message: VM_Handshake.initiateCollection waiting for previous collection to finish");
         lock.release();   // release lock so other threads can make progress
-        VM_Thread.getCurrentThread().yield();
+        VM_Thread.yield();
         lock.acquire();   // acquire lock to make progress
       } else 
         break;

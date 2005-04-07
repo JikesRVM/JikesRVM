@@ -426,9 +426,9 @@ public class Thread implements Runnable {
     VM_Thread.yield();
   }
 
-  /** Does this Thread hold a lock on obj? */
-  public boolean holdsLock(Object obj) {
-    return VM_Lock.owns(obj, vmdata);
+  /** Does the currently running Thread hold the lock on an obj? */
+  public static boolean holdsLock(Object obj) {
+    return VM_Lock.owns(obj);
   }
   
 

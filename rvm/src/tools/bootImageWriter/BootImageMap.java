@@ -84,7 +84,7 @@ public class BootImageMap extends BootImageWriterMessages
      * Offset of corresponding rvm object in bootimage, in bytes
      * (OBJECT_NOT_ALLOCATED --> hasn't been written to image yet)
      */
-    int imageOffset;
+    Offset imageOffset;
 
     /**
      * Constructor.
@@ -92,7 +92,7 @@ public class BootImageMap extends BootImageWriterMessages
      * @param jdkObject the JDK object
      * @param imageOffset the offset of the object in the bootimage
      */
-    public Entry(Address objectId, Object jdkObject, int imageOffset) {
+    public Entry(Address objectId, Object jdkObject, Offset imageOffset) {
       this.objectId    = objectId;
       this.jdkObject   = jdkObject;
       this.imageOffset = imageOffset;
@@ -111,7 +111,7 @@ public class BootImageMap extends BootImageWriterMessages
     keyToEntry      = new Hashtable(5000);
     objectIdToEntry = new ArrayList(5000);
     // predefine "null" object
-    objectIdToEntry.add(nullEntry = new Entry(newId(), null, 0));
+    objectIdToEntry.add(nullEntry = new Entry(newId(), null, Offset.zero()));
     // slot 0 reserved for "null" object entry
   }
 
@@ -149,9 +149,9 @@ public class BootImageMap extends BootImageWriterMessages
    * @param jdkObject JDK object
    * @return offset of corresponding rvm object within bootimage, in bytes
    */
-  public static int getImageOffset(Object jdkObject) {
+  public static Offset getImageOffset(Object jdkObject) {
     BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
-    if (mapEntry.imageOffset == OBJECT_NOT_ALLOCATED)
+    if (mapEntry.imageOffset.EQ(OBJECT_NOT_ALLOCATED))
       fail(jdkObject + " is not in bootimage");
     return mapEntry.imageOffset;
   }
@@ -165,7 +165,7 @@ public class BootImageMap extends BootImageWriterMessages
    */
   public static Address getImageAddress(Address bootImageAddress, Object jdkObject) {
     BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
-    if (mapEntry.imageOffset == OBJECT_NOT_ALLOCATED)
+    if (mapEntry.imageOffset.EQ(OBJECT_NOT_ALLOCATED))
       return Address.zero();
     return bootImageAddress.add(mapEntry.imageOffset);
   }

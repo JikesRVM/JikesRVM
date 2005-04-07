@@ -184,60 +184,42 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
    */
   public void translate(OPT_ConditionOperand c) {
     switch (c.value) {
-      case OPT_ConditionOperand.EQUAL:
-        value = EQUAL;
-        break;
-      case OPT_ConditionOperand.NOT_EQUAL:
-        value = NOT_EQUAL;
-        break;
-      case OPT_ConditionOperand.LESS:
-        value = LESS;
-        break;
-      case OPT_ConditionOperand.LESS_EQUAL:
-        value = LESS_EQUAL;
-        break;
-      case OPT_ConditionOperand.GREATER:
-        value = GREATER;
-        break;
-      case OPT_ConditionOperand.GREATER_EQUAL:
-        value = GREATER_EQUAL;
-        break;
-      case OPT_ConditionOperand.NULL:
-        value = EQUAL;
-        break;
-      case OPT_ConditionOperand.NONNULL:
-        value = NOT_EQUAL;
-        break;
-      case OPT_ConditionOperand.OVERFLOW:
-        value = OVERFLOW;
-        break;
-      case OPT_ConditionOperand.NOT_OVERFLOW:
-        value = NOT_OVERFLOW;
-        break;
-      case OPT_ConditionOperand.HIGHER:
-        value = GREATER;
-        break;
-      case OPT_ConditionOperand.LOWER:
-        value = LESS;
-        break;
-      case OPT_ConditionOperand.HIGHER_EQUAL:
-        value = GREATER_EQUAL;
-        break;
-      case OPT_ConditionOperand.LOWER_EQUAL:
-        value = LESS_EQUAL;
-        break;
-      case OPT_ConditionOperand.CARRY:
-        value = OVERFLOW;
-        break;
-      case OPT_ConditionOperand.NOT_CARRY:
-        value = NOT_OVERFLOW;
-        break;
-      case OPT_ConditionOperand.UNORDERED:
-        value = OVERFLOW;
-        break;
-      case OPT_ConditionOperand.NOT_UNORDERED:
-        value = NOT_OVERFLOW;
-        break;
+    case OPT_ConditionOperand.EQUAL:
+    case OPT_ConditionOperand.SAME:
+    case OPT_ConditionOperand.CMPL_EQUAL:
+      value =  EQUAL;
+      break;
+    case OPT_ConditionOperand.NOT_EQUAL:
+    case OPT_ConditionOperand.NOT_SAME:
+    case OPT_ConditionOperand.CMPL_NOT_EQUAL: // Extra unordered test required
+      value =  NOT_EQUAL;
+      break;
+    case OPT_ConditionOperand.LESS:
+    case OPT_ConditionOperand.LOWER:
+    case OPT_ConditionOperand.CMPG_LESS:
+    case OPT_ConditionOperand.CMPL_LESS: // Extra unordered test required
+      value =  LESS;
+      break;
+    case OPT_ConditionOperand.LESS_EQUAL:
+    case OPT_ConditionOperand.LOWER_EQUAL:
+    case OPT_ConditionOperand.CMPG_LESS_EQUAL:
+    case OPT_ConditionOperand.CMPL_LESS_EQUAL: // Extra unordered test required
+      value =  LESS_EQUAL;
+      break;
+    case OPT_ConditionOperand.GREATER:
+    case OPT_ConditionOperand.HIGHER:
+    case OPT_ConditionOperand.CMPL_GREATER:
+    case OPT_ConditionOperand.CMPG_GREATER: // Extra unordered test required
+      value =  GREATER;
+      break;
+    case OPT_ConditionOperand.GREATER_EQUAL:
+    case OPT_ConditionOperand.HIGHER_EQUAL:
+    case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
+    case OPT_ConditionOperand.CMPG_GREATER_EQUAL: // Extra unordered test required
+      value =  GREATER_EQUAL;
+      break;
+    default:
+      com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException.UNREACHABLE();
     }
   }
 

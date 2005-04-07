@@ -225,7 +225,7 @@ class CommandLineOptions
                        "  trace_filename       name of trace file.  If more than one trace file name is\n"+
                        "                       specified, combine all the records.\n"+
                        "\n");
-    System.exit(-1);
+    System.exit(1);
   }
 
   /*

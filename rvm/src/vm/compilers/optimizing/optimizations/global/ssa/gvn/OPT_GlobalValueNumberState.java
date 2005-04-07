@@ -311,7 +311,7 @@ public final class OPT_GlobalValueNumberState {
    * @return the congruence class for the label.
    */
   private OPT_GVCongruenceClass findOrCreateCongruenceClass (Object label, 
-							     HashMap labelMap) {
+                                                             HashMap labelMap) {
     OPT_GVCongruenceClass result = (OPT_GVCongruenceClass)labelMap.get(label);
     if ((result == null) || (label == null)) {
       result = createCongruenceClass(label);

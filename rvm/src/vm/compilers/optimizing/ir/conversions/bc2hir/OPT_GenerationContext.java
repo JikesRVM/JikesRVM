@@ -682,7 +682,7 @@ public final class OPT_GenerationContext
       VM_Method target = VM_Entrypoints.unlockAndThrowMethod;
       OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
-      s = Call.create2(CALL, null, new OPT_IntConstantOperand(target.getOffset()),
+      s = Call.create2(CALL, null, new OPT_AddressConstantOperand(target.getOffset()),
                        methodOp, lockObject, ceo);
       appendInstruction(rethrow, s, RUNTIME_SERVICES_BCI);
 

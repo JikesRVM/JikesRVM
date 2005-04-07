@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -15,16 +15,22 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  */
 public class VM_Entrypoints implements VM_Constants {
-  public static final VM_NormalMethod bootMethod            = getMethod("Lcom/ibm/JikesRVM/VM;", "boot", "()V");
+
+  public static final VM_NormalMethod bootMethod               =
+    getMethod("Lcom/ibm/JikesRVM/VM;", "boot", "()V");
+
+  public static final VM_Method java_lang_reflect_Method_invokeMethod =
+    getMethod("Ljava/lang/reflect/Method;", "invoke", 
+              "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 
   public static final VM_Field magicObjectRemapperField = getField("Lcom/ibm/JikesRVM/VM_Magic;", "objectAddressRemapper","Lcom/ibm/JikesRVM/VM_ObjectAddressRemapper;");
  
   public static final VM_NormalMethod instanceOfMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "instanceOf", "(Ljava/lang/Object;I)Z");
   public static final VM_NormalMethod instanceOfResolvedClassMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "instanceOfResolvedClass", "(Ljava/lang/Object;I)Z");
-  public static final VM_NormalMethod instanceOfFinalMethod    = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;I)Z");
+  public static final VM_NormalMethod instanceOfFinalMethod    = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "instanceOfFinal", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)Z");
   public static final VM_NormalMethod checkcastMethod          = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkcast", "(Ljava/lang/Object;I)V");
   public static final VM_NormalMethod checkcastResolvedClassMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkcastResolvedClass", "(Ljava/lang/Object;I)V");
-  public static final VM_NormalMethod checkcastFinalMethod     = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;I)V");
+  public static final VM_NormalMethod checkcastFinalMethod     = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
   public static final VM_NormalMethod checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_NormalMethod athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
 
@@ -68,8 +74,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod lockMethod          = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericLock", "(Ljava/lang/Object;)V");
   public static final VM_NormalMethod unlockMethod        = getMethod("Lcom/ibm/JikesRVM/VM_ObjectModel;", "genericUnlock", "(Ljava/lang/Object;)V");
 
-  public static final VM_NormalMethod inlineLockMethod    = getMethod("Lcom/ibm/JikesRVM/VM_ThinLock;", "inlineLock", "(Ljava/lang/Object;I)V");
-  public static final VM_NormalMethod inlineUnlockMethod  = getMethod("Lcom/ibm/JikesRVM/VM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;I)V");
+  public static final VM_NormalMethod inlineLockMethod    = getMethod("Lcom/ibm/JikesRVM/VM_ThinLock;", "inlineLock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
+  public static final VM_NormalMethod inlineUnlockMethod  = getMethod("Lcom/ibm/JikesRVM/VM_ThinLock;", "inlineUnlock", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;)V");
 
   public static final VM_NormalMethod lazyMethodInvokerMethod         = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "lazyMethodInvoker", "()V");
   public static final VM_NormalMethod unimplementedNativeMethodMethod = getMethod("Lcom/ibm/JikesRVM/VM_DynamicLinker;", "unimplementedNativeMethod", "()V");
@@ -140,7 +146,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
-  public static final VM_Field tracePrevAddressField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "prevAddress", "I");
+  public static final VM_Field tracePrevAddressField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "prevAddress", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field traceOIDField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field dispenserField = getField("Lorg/mmtk/vm/Lock;", "dispenser","I");
   public static final VM_Field servingField = getField("Lorg/mmtk/vm/Lock;", "serving","I");
@@ -157,8 +163,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field SQBEField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lorg/mmtk/vm/SynchronizedCounter;", "count", "I");
   public static final VM_NormalMethod arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;I)V");
-  public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
+  public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
+  public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;)V");
   public static final VM_NormalMethod modifyCheckMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
 
   public static final VM_Field registersIPField   = getField("Lcom/ibm/JikesRVM/VM_Registers;",   "ip",  "Lorg/vmmagic/unboxed/Address;");
@@ -281,6 +287,15 @@ public class VM_Entrypoints implements VM_Constants {
     getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
     //-#endif
 
+  public static final VM_Field classLoaderLoadedClasses =
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
+    getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/Map;");
+    //-#else 
+    // Classpath 0.12 and later:
+    getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/HashMap;");
+    //-#endif
+
+
   static {
 
     // Don't mark the following as runtime serivce methods;
@@ -308,7 +323,7 @@ public class VM_Entrypoints implements VM_Constants {
     VM_Atom memName       = VM_Atom.findOrCreateAsciiAtom(memberName);
     VM_Atom memDescriptor = VM_Atom.findOrCreateAsciiAtom(memberDescriptor);
     try {
-      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), clsDescriptor);
+      VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), clsDescriptor);
       VM_Class cls = (VM_Class)tRef.resolve();
       cls.resolve();
 

@@ -416,7 +416,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         load = 
           Load.create(INT_LOAD, cbsReg.copyRO(), 
                       OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
-                      OPT_IRTools.IC(VM_Entrypoints.processorCBSField.getOffset()),
+                      OPT_IRTools.AC(VM_Entrypoints.processorCBSField.getOffset()),
                       new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
         
         bb.appendInstruction(load);
@@ -425,7 +425,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     else {
       // Use global counter
       if (ir.IRStage == ir.HIR) {
-        OPT_Operand offsetOp = new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset());
+        OPT_Operand offsetOp = new OPT_AddressConstantOperand(VM_Entrypoints.globalCBSField.getOffset());
         load = GetStatic.create(GETSTATIC,cbsReg.copyRO(),offsetOp, new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
         bb.appendInstruction(load);
       }
@@ -436,7 +436,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         bb.appendInstruction(dummy);
         load = Load.create(INT_LOAD, cbsReg.copyRO(), 
                            ir.regpool.makeJTOCOp(ir,dummy), 
-                           OPT_IRTools.IC(VM_Entrypoints.globalCBSField.getOffset()),
+                           OPT_IRTools.AC(VM_Entrypoints.globalCBSField.getOffset()),
                            new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
         
         dummy.insertBefore(load);
@@ -460,7 +460,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       store = Store.create(INT_STORE, 
                            cbsReg.copyRO(),
                            OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
-                           OPT_IRTools.IC(VM_Entrypoints.processorCBSField.getOffset()),
+                           OPT_IRTools.AC(VM_Entrypoints.processorCBSField.getOffset()),
                            new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
 
 
@@ -468,7 +468,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     }
     else {
       if (ir.IRStage == ir.HIR) {
-        store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(),new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
+        store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(),new OPT_AddressConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
                                  new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
         
         bb.prependInstruction(store);
@@ -479,7 +479,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         store = Store.create(INT_STORE, 
                              cbsReg.copyRO(),
                              ir.regpool.makeJTOCOp(ir,dummy), 
-                             OPT_IRTools.IC(VM_Entrypoints.globalCBSField.getOffset()),
+                             OPT_IRTools.AC(VM_Entrypoints.globalCBSField.getOffset()),
                              new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
         
         dummy.insertBefore(store);
@@ -522,10 +522,10 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
     if (ir.IRStage == ir.HIR) {
       // Not tested
-      OPT_Operand offsetOp = new OPT_IntConstantOperand(VM_Entrypoints.cbsResetValueField.getOffset());
+      OPT_Operand offsetOp = new OPT_AddressConstantOperand(VM_Entrypoints.cbsResetValueField.getOffset());
       load = GetStatic.create(GETSTATIC,cbsReg.copyRO(),offsetOp,
                               new OPT_LocationOperand(VM_Entrypoints.cbsResetValueField));
-      store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(), new OPT_IntConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
+      store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(), new OPT_AddressConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
                               new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
       bb.prependInstruction(store);
       bb.prependInstruction(load);
@@ -537,7 +537,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       // Load the reset value
       load = Load.create(INT_LOAD, cbsReg.copyRO(), 
                          ir.regpool.makeJTOCOp(ir,dummy), 
-                         OPT_IRTools.IC(VM_Entrypoints.cbsResetValueField.getOffset()),
+                         OPT_IRTools.AC(VM_Entrypoints.cbsResetValueField.getOffset()),
                          new OPT_LocationOperand(VM_Entrypoints.cbsResetValueField));
       
       dummy.insertBefore(load);
@@ -547,7 +547,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         store = Store.create(INT_STORE, 
                              cbsReg.copyRO(),
                              OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
-                             OPT_IRTools.IC(VM_Entrypoints.processorCBSField.getOffset()),
+                             OPT_IRTools.AC(VM_Entrypoints.processorCBSField.getOffset()),
                              new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
       }
       else {
@@ -555,7 +555,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         store = Store.create(INT_STORE, 
                              cbsReg.copyRO(),
                              ir.regpool.makeJTOCOp(ir,dummy), 
-                             OPT_IRTools.IC(VM_Entrypoints.globalCBSField.getOffset()),
+                             OPT_IRTools.AC(VM_Entrypoints.globalCBSField.getOffset()),
                              new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
       }
       dummy.insertBefore(store);

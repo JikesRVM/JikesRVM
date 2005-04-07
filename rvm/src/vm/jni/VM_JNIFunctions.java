@@ -115,12 +115,12 @@ class VM_JNIFunctions implements VM_NativeBridge,
     try {
       String classString = null;
       if (!classNameAddress.isZero())
-	VM_JNIHelpers.createStringFromC(classNameAddress);
+        VM_JNIHelpers.createStringFromC(classNameAddress);
       ClassLoader cl;
       if (classLoader == 0)
-	cl = VM_Class.getClassLoaderFromStackFrame(1);
+        cl = VM_Class.getClassLoaderFromStackFrame(1);
       else
-	cl = (ClassLoader) env.getJNIRef(classLoader);
+        cl = (ClassLoader) env.getJNIRef(classLoader);
 
       byte[]  bytecode = new byte[dataLen];
       VM_Memory.memcopy(VM_Magic.objectAsAddress(bytecode), data, dataLen);
@@ -377,8 +377,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
     try {
       env.deleteJNIRef(objJREF);
     } catch (ArrayIndexOutOfBoundsException e) {
-      VM.sysWrite("JNI refs array confused.  Fatal Error!\n");
-      VM.sysExit(VM.EXIT_STATUS_JNI_TROUBLE );
+      VM.sysFail("JNI refs array confused, or DeleteLocalRef gave us a bad JREF argument:", objJREF);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -3776,18 +3775,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -3892,18 +3880,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4237,18 +4214,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4286,18 +4252,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4335,18 +4290,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4383,18 +4327,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4430,18 +4363,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4477,18 +4399,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4525,18 +4436,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -4572,18 +4472,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, true);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000001));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x01000000));
-        }
-      }
-      //-#endif
 
       return copyBuffer;
     } catch (Throwable unexpected) {
@@ -5394,21 +5283,21 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       Address curMethod = methodsAddress;
       for (int i = 0; i < nmethods; i++) {
-	String methodString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress());
-	VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
-	String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS)));
-	VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
-	
-	// Find the target method
-	VM_Method meth = klass.findDeclaredMethod(methodName, sigName);
+        String methodString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress());
+        VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
+        String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS)));
+        VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
+        
+        // Find the target method
+        VM_Method meth = klass.findDeclaredMethod(methodName, sigName);
 
-	if (meth == null || !meth.isNative()) {
-	  env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
-	  return -1;
-	} 
-	methods[i] = (VM_NativeMethod)meth;
-	symbols.set(i, curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS * 2)));
-	curMethod = curMethod.add(3 * BYTES_IN_ADDRESS);
+        if (meth == null || !meth.isNative()) {
+          env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
+          return -1;
+        } 
+        methods[i] = (VM_NativeMethod)meth;
+        symbols.set(i, curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS * 2)));
+        curMethod = curMethod.add(3 * BYTES_IN_ADDRESS);
       }
 
       // Register methods
@@ -5446,7 +5335,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       VM_Class klass = type.asClass();
       if (!klass.isInitialized()) {
-	return 0;
+        return 0;
       }
 
       klass.unregisterNativeMethods();
@@ -5762,18 +5651,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
       /* Set caller's isCopy boolean to false, if we got a valid (non-null)
          address */
-      //-#if RVM_WITH_JNI_SETBOOLSTAR
       VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-      //-#else
-      if (!isCopyAddress.isZero()) {
-        int temp = isCopyAddress.loadInt();
-        if (VM.LittleEndian) {
-          isCopyAddress.store(((temp & 0xffffff00) | 0x00000000));
-        } else {
-          isCopyAddress.store(((temp & 0x00ffffff) | 0x00000000));
-        }
-      }
-      //-#endif
 
       // For array of primitive, return the object address, which is the array itself
       VM.disableGC(true);
@@ -5830,18 +5708,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
     /* Set caller's isCopy boolean to false, if we got a valid (non-null)
        address */
-    //-#if RVM_WITH_JNI_SETBOOLSTAR
     VM_JNIGenericHelpers.setBoolStar(isCopyAddress, false);
-    //-#else
-    if (!isCopyAddress.isZero()) {
-      int temp = isCopyAddress.loadInt();
-      if (VM.LittleEndian) {
-        isCopyAddress.store(((temp & 0xffffff00) | 0x00000000));
-      } else {
-        isCopyAddress.store(((temp & 0x00ffffff) | 0x00000000));
-      }
-    }
-    //-#endif
 
     VM.disableGC(true);
     Address strBase = VM_Magic.objectAsAddress(strChars);

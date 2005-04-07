@@ -498,7 +498,6 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       }
       return UNCHANGED;
     case BOOLEAN_CMP_INT_opcode:
-    case BOOLEAN_CMP_ADDR_opcode:
       if (CF_INT) {
         OPT_Operand op1 = BooleanCmp.getVal1(s);
         OPT_Operand op2 = BooleanCmp.getVal2(s);
@@ -508,6 +507,29 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             int cond = BooleanCmp.getCond(s).evaluate(op1, op2);
             if (cond != OPT_ConditionOperand.UNKNOWN) {
               Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), 
+                          (cond == OPT_ConditionOperand.TRUE) ? IC(1):IC(0));
+              return MOVE_FOLDED;
+            }
+          } else {
+            // Canonicalize by switching operands and fliping code.
+            OPT_Operand tmp = BooleanCmp.getClearVal1(s);
+            BooleanCmp.setVal1(s, BooleanCmp.getClearVal2(s));
+            BooleanCmp.setVal2(s, tmp);
+            BooleanCmp.getCond(s).flipOperands();
+          }
+        }
+      }
+      return UNCHANGED;
+    case BOOLEAN_CMP_ADDR_opcode:
+      if (CF_ADDR) {
+        OPT_Operand op1 = BooleanCmp.getVal1(s);
+        OPT_Operand op2 = BooleanCmp.getVal2(s);
+        if (op1.isConstant()) {
+          if (op2.isConstant()) {
+            // BOTH CONSTANTS: FOLD
+            int cond = BooleanCmp.getCond(s).evaluate(op1, op2);
+            if (cond != OPT_ConditionOperand.UNKNOWN) {
+              Move.mutate(s, REF_MOVE, BooleanCmp.getResult(s), 
                           (cond == OPT_ConditionOperand.TRUE) ? IC(1):IC(0));
               return MOVE_FOLDED;
             }

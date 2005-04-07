@@ -50,7 +50,7 @@ public final class VM_MachineCode {
     /* NOTE: MM_Interface.pickAllocator() depends on the name of this
        class and method to identify code allocation */
     int n = (next_bundle-1)*size+next;
-    instructions = VM_CodeArray.create(n);
+    instructions = VM_CodeArray.Factory.create(n, false);
     int k = 0;
     for (int i=0; i<next_bundle; i++){
       int[] b = (int[]) bundles.get(i);

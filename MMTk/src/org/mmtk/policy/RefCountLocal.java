@@ -13,7 +13,7 @@ import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TrialDeletion;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
@@ -140,8 +140,9 @@ public final class RefCountLocal extends SegregatedFreeList
         int cells = usableBytes/cellSize[sc];
         blockSizeClass[sc] = blk;
         cellsInBlock[sc] = cells;
-        /*cells must start at multiple of BYTES_IN_PARTICLE
-           because cellSize is also supposed to be multiple, this should do the trick: */
+        /* cells must start at multiple of MIN_ALIGNMENT because
+           cellSize is also supposed to be multiple, this should do
+           the trick: */
         blockHeaderSize[sc] = BlockAllocator.blockSize(blk) - cells * cellSize[sc];
         if (((usableBytes < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
             ((usableBytes > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
@@ -350,7 +351,7 @@ public final class RefCountLocal extends SegregatedFreeList
     if (state == RefCountSpace.DEC_KILL)
       release(object, plan);
     else if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
-	     state == RefCountSpace.DEC_BUFFER)
+             state == RefCountSpace.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
 
@@ -372,7 +373,7 @@ public final class RefCountLocal extends SegregatedFreeList
     if (RefCountSpace.RC_SANITY_CHECK) rcLiveObjects--;
     Scan.enumeratePointers(object, plan.decEnum);
     if (!RefCountBase.REF_COUNT_CYCLE_DETECTION ||
-	!RefCountSpace.isBuffered(object)) 
+        !RefCountSpace.isBuffered(object)) 
       free(object);
   }
 

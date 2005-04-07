@@ -197,7 +197,7 @@ class TestRuntimeExec extends Thread {
         } catch (Throwable e) {
             System.err.println("TestRuntimeExec FAILED with");
             e.printStackTrace();
-            System.exit(-1);
+            System.exit(1);
         }
     }
 }

@@ -48,8 +48,10 @@
 %%     Apr, 2004: 2.3.2
 %%     Jul, 2004: 2.3.3
 %%     Dec, 2004  2.3.4
-\newcommand{\version}{2.3.4}
-\newcommand{\classpathversion}{0.12}
+%%     Apr, 2005  2.3.5
+
+\newcommand{\version}{2.3.5}
+\newcommand{\classpathversion}{0.14}
 \newcommand{\jp}{Jalape\~{n}o}
 \newcommand{\jrvm}{Jikes RVM}
 
@@ -111,8 +113,10 @@
 \W \renewcommand{\htmlpanelfield}[3][\link]{\HlxAppend{\HlxPanelFields}%
   {\xml*{td bgcolor="###99ccff" align="center"}%
     #1{#2}{#3}\xml*{/td}}}
-\W \htmlpanelfield[\xlink]{Home}{http://www-124.ibm.com/developerworks/oss/jikesrvm" target="\_top}
-\W \htmlpanelfield[\xlink]{Project}{http://www-124.ibm.com/developerworks/projects/jikesrvm" target="\_top}
+%\W \htmlpanelfield[\xlink]{Home}{http://www-124.ibm.com/developerworks/oss/jikesrvm" target="\_top}
+%\W \htmlpanelfield[\xlink]{Project}{http://www-124.ibm.com/developerworks/projects/jikesrvm" target="\_top}
+\W \htmlpanelfield[\xlink]{Home}{http://sourceforge.jikesrvm.net" target="\_top}
+\W \htmlpanelfield[\xlink]{Project}{http://sourceforge.jikesrvm.net" target="\_top}
 \W \htmlpanelfield{\contentsname}{hlxtoc}
 \W \htmlpanelfield{\indexname}{hlxindex}
 %\setcounter{secnumdepth}{3}
@@ -146,7 +150,9 @@
 
 \title{\texonly{\vfill} {\huge The Jikes\TMboth{} 
 Research Virtual Machine \\
-User's Guide} \\ {\huge Post \version{} (CVS Head)}\\ { } \texonly{\vfill} }
+User's Guide} 
+% \\ {\huge Post \version{} (CVS Head)}\\ { } \texonly{\vfill} }
+\\ {\huge Version \version{}}\\ { } \texonly{\vfill} }
 
 \makeindex
 
@@ -226,6 +232,12 @@ User's Guide} \\ {\huge Post \version{} (CVS Head)}\\ { } \texonly{\vfill} }
 \input{basedetails}
 
 \T \newpage
+\xname{quick_compiler}
+\section{Quick Compiler}
+\label{section:quick}
+\input{quick-compiler}
+
+\T \newpage
 \xname{optdetails}
 \section{Optimizing Compiler Implementation Details}
 \label{section:optdetails}
@@ -300,6 +312,7 @@ User's Guide} \\ {\huge Post \version{} (CVS Head)}\\ { } \texonly{\vfill} }
 \input{faq}
 
 \T \newpage
+\xname{acknowledgements}
 \section*{Acknowledgements}
 \input{ack}
 

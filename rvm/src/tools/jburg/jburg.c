@@ -62,7 +62,7 @@ writePacked(Nonterm term_, int value)
     int x=(unsigned int)((int)0x80000000 >> (term_->number_bits-1)) >> term_->bit_offset;
     int shift = (32-(term_->bit_offset+term_->number_bits));
     char temp[256];
-    sprintf(temp, "p.word%d = (p.word%d & 0x%X) | 0x%X;",
+    snprintf(temp, sizeof temp, "p.word%d = (p.word%d & 0x%X) | 0x%X;",
             term_->word_number, term_->word_number, ~x, (value << shift));
     if (oneterminal)
         print("p.word0 = %d; // p.%S = %d", value, term_, value);
@@ -76,7 +76,7 @@ readPacked(Nonterm term_)
     char temp[256];
     int x=(unsigned int)((int)0x80000000 >> (term_->number_bits-1))>>(32-term_->number_bits);
     int shift = (32-(term_->bit_offset+term_->number_bits));
-    sprintf(temp, "((word%d >>> %d) & 0x%X)",term_->word_number,shift,x);
+    snprintf(temp, sizeof temp, "((word%d >>> %d) & 0x%X)",term_->word_number,shift,x);
     print("%s",temp);
 }
 

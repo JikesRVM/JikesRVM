@@ -6,7 +6,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 /**
  * This class merely exposes the MMTk constants into the Jikes RVM

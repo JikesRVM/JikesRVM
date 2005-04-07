@@ -110,7 +110,7 @@ public final class TraceHeader
       System.out.println("***TraceHeader.threads("+i+") > n_threads "+(n_threads+1)+"!***");
       new Exception().printStackTrace();
       return "NO_THREAD_NAME";
-      //      System.exit(-1);
+      //      System.exit(1);
     }
     return threads[i];
   }
@@ -169,7 +169,7 @@ public final class TraceHeader
         if (value_index > n_values) {
           System.out.println("***"+trips+": TraceHeader("+trace_filename+") counter number "+
                              value_index+" > n_values "+n_values+"!***");
-          System.exit(-1);
+          System.exit(1);
         }
         ids[value_index] =  Utilities.getIntFromDataInputStream(input_file);
         short_event_names[value_index] = Utilities.getStringFromDataInputStream(input_file);
@@ -289,7 +289,7 @@ public final class TraceHeader
     if (i>=n_values || i < 0) {
       System.err.println("***TraceHeader.short_event_name("+i+") 0 > "+i+" > number of values "+
                          n_values+"!***");
-      System.exit(-1);
+      System.exit(1);
     }
     return short_event_names[i];
   }

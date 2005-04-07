@@ -11,7 +11,7 @@ import java.io.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * A OSR_ExecStateExtractor extracts a runtime state (JVM scope descriptor) 
+ * A OSR_ExecStateExtractor extracts a runtime state (VM scope descriptor) 
  * of a method activation. The implementation depends on compilers and 
  * hardware architectures
  * @see OSR_BaselineExecStateExtractor
@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
 
 public abstract class OSR_ExecStateExtractor implements VM_Constants{
   /** 
-   * Returns a JVM scope descriptor (OSR_ExecutionState) for a compiled method
+   * Returns a VM scope descriptor (OSR_ExecutionState) for a compiled method
    * on the top of a thread stack, (or a list of descriptors for an inlined
    * method).  
    *
@@ -37,11 +37,11 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
    * @param cmid the compiled method id of ypTaken
    */
   public abstract OSR_ExecutionState extractState(VM_Thread thread, 
-                                           int tsFromFPoff,
-                                           int ypTakenFPoff,
+                                           Offset tsFromFPoff,
+                                           Offset ypTakenFPoff,
                                            int cmid);
 
-  public static void printStackTraces(int[] stack, int osrFPoff) {
+  public static void printStackTraces(int[] stack, Offset osrFPoff) {
 
     VM.disableGC();
 
@@ -55,7 +55,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
         VM.sysWriteln(" invisible method ");
       } else {
         VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-        int instrOff = cm.getInstructionOffset(ip);
+        Offset instrOff = cm.getInstructionOffset(ip);
         cm.printStackTrace(instrOff, PrintContainer.get(System.out));
 
         if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {

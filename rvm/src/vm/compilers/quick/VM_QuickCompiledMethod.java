@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001, 2003
+ * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.quick;
@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.PrintLN; // not needed.
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Compiler-specific information associated with a method's machine 
@@ -94,7 +95,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     return exceptionDeliverer;
   }
 
-  public final int findCatchBlockForInstruction (int instructionOffset, VM_Type exceptionType) {
+  public final int findCatchBlockForInstruction (Offset instructionOffset, VM_Type exceptionType) {
     if (eTable == null) {
       return -1;
     } else {
@@ -102,22 +103,22 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  public final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws UninterruptiblePragma {
+  public final void getDynamicLink (VM_DynamicLink dynamicLink, Offset instructionOffset) throws UninterruptiblePragma {
     int bytecodeIndex = -1;
-    int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
+    Offset instructionIndex = instructionOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
     for (int i = 0, n = _bytecodeMap.length; i < n; ++i) {
-      if (_bytecodeMap[i] == 0)
+      Offset bcMi = Offset.fromIntSignExtend(_bytecodeMap[i]); 
+      if (bcMi.isZero())
         continue;               // middle of a bytecode
-      if (_bytecodeMap[i] >= instructionIndex)
+      if (bcMi.sGE(instructionIndex))
         break;                  // next bytecode
       bytecodeIndex = i;
     }
     ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
 
-  public final int findLineNumberForInstruction (int instructionOffset) throws UninterruptiblePragma {
-    int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH; 
-    int bci = findBytecodeIndexForInstruction(instructionIndex);
+  public final int findLineNumberForInstruction (Offset instructionOffset) throws UninterruptiblePragma {
+    int bci = findBytecodeIndexForInstruction(instructionOffset);
     if (bci == -1) return 0;
     return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
   }
@@ -127,26 +128,28 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
    * machine instructions.
    *
    * Note: This method expects the instructionIndex to refer to the machine
-   * 	     instruction immediately FOLLOWING the bytecode in question.
-   *	     just like findLineNumberForInstruction. See VM_CompiledMethod
-   * 	     for rationale
+   *         instruction immediately FOLLOWING the bytecode in question.
+   *         just like findLineNumberForInstruction. See VM_CompiledMethod
+   *         for rationale
    * NOTE: instructionIndex is in units of instructions, not bytes (different from
    *       all the other methods in this interface!!)
    *
    * @return the bytecode index for the machine instruction, -1 if
-   *		not available or not found.
+   *            not available or not found.
    */
-  public final int findBytecodeIndexForInstruction (int instructionIndex) throws UninterruptiblePragma {
+  public final int findBytecodeIndexForInstruction (Offset instructionOffset) throws UninterruptiblePragma {
     // since "instructionIndex" points just beyond the desired instruction,
     // we scan for the line whose "instructionIndex" most-closely-preceeds
     // the desired instruction
     //
+    Offset instructionIndex = instructionOffset.rsha(LG_INSTRUCTION_WIDTH);
     int candidateIndex = -1;
     for (int i = 0, n = _bytecodeMap.length; i < n; i++) {
-      if (_bytecodeMap[i] >= instructionIndex)
+      Offset bcMi = Offset.fromIntSignExtend(_bytecodeMap[i]); 
+      if ( bcMi.sGE(instructionIndex))
         break;
       // remember index at which each bytecode starts
-      if (_bytecodeMap[i] != 0)
+      if (!bcMi.isZero())
         candidateIndex = i;
     }
     return candidateIndex;
@@ -164,16 +167,16 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public final void set(VM_StackBrowser browser, int instr) {
+  public final void set(VM_StackBrowser browser, Offset instr) {
     browser.setMethod(method);
     browser.setCompiledMethod(this);
-    browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr>>>LG_INSTRUCTION_WIDTH));
+    browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr));
 
     if (VM.TraceStackTrace) {
-	VM.sysWrite("setting stack to frame (base): ");
-	VM.sysWrite( browser.getMethod() );
-	VM.sysWrite( browser.getBytecodeIndex() );
-	VM.sysWrite("\n");
+        VM.sysWrite("setting stack to frame (base): ");
+        VM.sysWrite( browser.getMethod() );
+        VM.sysWrite( browser.getBytecodeIndex() );
+        VM.sysWrite("\n");
     }
   }
 
@@ -187,8 +190,8 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
   //          the PrintLN to print the stack trace to.
-  public final void printStackTrace(int instructionOffset, 
-				    PrintLN out) 
+  public final void printStackTrace(Offset instructionOffset, 
+                                    PrintLN out) 
   {
     out.print("\tat ");
     out.print(method.getDeclaringClass()); // VM_Class
@@ -199,7 +202,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
       out.print("; machine code offset: ");
-      out.printHex(instructionOffset);
+      out.printHex(instructionOffset.toInt());
     } else {
       out.print(':');
       out.print(lineNumber);
@@ -227,8 +230,8 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     bitField1 |= (off & LOCK_OFFSET);
   }
 
-  public int getLockAcquisitionOffset() {
-    return bitField1 & LOCK_OFFSET;
+  public Offset getLockAcquisitionOffset() {
+    return Offset.fromIntSignExtend(bitField1 & LOCK_OFFSET);
   }
 
   void setHasCounterArray() {
@@ -244,7 +247,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
   //        number of instructions for method
   //
   public void encodeMappingInfo(VM_QuickReferenceMaps referenceMaps, 
-				int[] bytecodeMap, int numInstructions) {
+                                int[] bytecodeMap, int numInstructions) {
     _bytecodeMap = bytecodeMap;
     referenceMaps.translateByte2Machine(bytecodeMap);
     this.referenceMaps = referenceMaps;
@@ -254,8 +257,8 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickCompiledMethod;"));
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickCompiledMethod;"));
   public int size() {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (_bytecodeMap != null) size += VM_Array.IntArray.getInstanceSize(_bytecodeMap.length);

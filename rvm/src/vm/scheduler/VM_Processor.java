@@ -29,7 +29,7 @@ implements Uninterruptible, VM_Constants {
   public static final int BLOCKED_IN_NATIVE       = 3;
 
   // fields to track attached processors - processors created for user
-  // pthreads that "enter" the VM via attachJVM.
+  // pthreads that "enter" the VM via attachVM.
   //
   public static int            numberAttachedProcessors   = 0;
   public static VM_Processor[] attachedProcessors         = new VM_Processor[100];
@@ -88,9 +88,8 @@ implements Uninterruptible, VM_Constants {
     //
     isInitialized = true;
     
-    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    VM_SysCall.sysWaitForVirtualProcessorInitialization();
-    //-#endif
+    if (!VM_Properties.singleVirtualProcessor)
+      VM_SysCall.sysWaitForVirtualProcessorInitialization();
 
     // enable multiprocessing
     //
@@ -98,9 +97,8 @@ implements Uninterruptible, VM_Constants {
 
     // wait for all other processors to do likewise
     //
-    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    VM_SysCall.sysWaitForMultithreadingStart();
-    //-#endif
+    if (!VM_Properties.singleVirtualProcessor)
+      VM_SysCall.sysWaitForMultithreadingStart();
 
     //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
     // Store VM_Processor in pthread
@@ -393,7 +391,7 @@ implements Uninterruptible, VM_Constants {
   public boolean unblockIfBlockedInC () {
     int newState, oldState;
     boolean result = true;
-    int offset = VM_Entrypoints.vpStatusField.getOffset();
+    Offset offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
       oldState = VM_Magic.prepareInt(this, offset);
       if (oldState != BLOCKED_IN_NATIVE) {
@@ -411,7 +409,7 @@ implements Uninterruptible, VM_Constants {
    */ 
   public boolean lockInCIfInC () {
     int oldState;
-    int offset = VM_Entrypoints.vpStatusField.getOffset();
+    Offset offset = VM_Entrypoints.vpStatusField.getOffset();
     do {
       oldState = VM_Magic.prepareInt(this, offset);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;
@@ -523,6 +521,51 @@ implements Uninterruptible, VM_Constants {
    * Is the next taken yieldpoint in response to a request to perform OSR?
    */
   public boolean yieldToOSRRequested;
+
+    /**
+   * Is CBS enabled for 'call' yieldpoints?
+   */
+  boolean yieldForCBSCall;
+  
+  /**
+   * Is CBS enabled for 'method' yieldpoints?
+   */
+  boolean yieldForCBSMethod;
+
+  /**
+   * Should we threadswitch when all CBS samples are taken for this window?
+   */
+  boolean threadSwitchWhenCBSComplete;
+  
+  /**
+   * Number of CBS samples to take in this window
+   */
+  int numCBSCallSamples;
+  
+  /**
+   * Number of call yieldpoints between CBS samples
+   */
+  int countdownCBSCall;
+
+  /**
+   * round robin starting point for CBS samples
+   */
+  int firstCBSCallSample;
+  
+  /**
+   * Number of CBS samples to take in this window
+   */
+  int numCBSMethodSamples;
+  
+  /**
+   * Number of counter ticks between CBS samples
+   */
+  int countdownCBSMethod;
+
+  /**
+   * round robin starting point for CBS samples
+   */
+  int firstCBSMethodSample;
   
   //-#if RVM_FOR_POWERPC
   /**

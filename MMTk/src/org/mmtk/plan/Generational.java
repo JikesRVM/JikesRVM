@@ -67,7 +67,7 @@ public abstract class Generational extends StopTheWorldGC
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = true;
   public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
+  public static final int GC_HEADER_WORDS_REQUIRED = CopySpace.GC_HEADER_WORDS_REQUIRED;
   public static final boolean IGNORE_REMSET = false;    // always do full trace
 
   // Global pool for shared remset queue
@@ -88,9 +88,9 @@ public abstract class Generational extends StopTheWorldGC
 
   // Create the nursery
   protected static CopySpace nurserySpace = new CopySpace("nursery", 
-							  DEFAULT_POLL_FREQUENCY, 
-							  (float) 0.15, true, 
-							  false);
+                                                          DEFAULT_POLL_FREQUENCY, 
+                                                          (float) 0.15, true, 
+                                                          false);
   protected static final int NS = nurserySpace.getDescriptor();
   protected static final Address NURSERY_START = nurserySpace.getStart();
 
@@ -314,7 +314,8 @@ public abstract class Generational extends StopTheWorldGC
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() > nurserySize.getMaxNursery();
-    if (mustCollect || heapFull || nurseryFull) {
+    boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
+    if (mustCollect || heapFull || nurseryFull || metaDataFull) {
       required = space.reservedPages() - space.committedPages();
       if (space == nurserySpace || (Plan.COPY_MATURE() && (space == activeMatureSpace)))
         required = required<<1;  // must account for copy reserve
@@ -417,8 +418,8 @@ public abstract class Generational extends StopTheWorldGC
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
       while (start.LT(guard)) {
-       	remset.insert(start);
-	start = start.add(BYTES_IN_ADDRESS);
+        remset.insert(start);
+        start = start.add(BYTES_IN_ADDRESS);
       }
     }
     remset.flushLocal();
@@ -567,7 +568,7 @@ public abstract class Generational extends StopTheWorldGC
     if (!object.isNull()) {
       if (Space.isInSpace(NS, object)) {
         if (Assert.VERIFY_ASSERTIONS)
-	  Assert._assert(CopySpace.isForwarded(object));
+          Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       } else if (fullHeapGC)
         return Plan.getForwardedMatureReference(object);
@@ -597,7 +598,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(ObjectReference src, Address slot,
-                                 ObjectReference tgt, int metaDataA, 
+                                 ObjectReference tgt, Offset metaDataA, 
                                  int metaDataB, int mode) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
@@ -629,12 +630,12 @@ public abstract class Generational extends StopTheWorldGC
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public final boolean writeBarrier(ObjectReference src, int srcOffset,
-				    ObjectReference dst, int dstOffset,
-				    int bytes) throws InlinePragma {
+  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                                    ObjectReference dst, Offset dstOffset,
+                                    int bytes) throws InlinePragma {
     if (dst.toAddress().LT(NURSERY_START))
       arrayRemset.insert(dst.toAddress().add(dstOffset), 
-                         dst.toAddress().add(dstOffset + bytes));
+                         dst.toAddress().add(dstOffset.add(bytes)));
     return false;
   }
 

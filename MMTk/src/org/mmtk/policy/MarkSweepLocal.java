@@ -9,7 +9,7 @@ import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Memory;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Assert;
 
@@ -96,8 +96,9 @@ public final class MarkSweepLocal extends SegregatedFreeList
         int cells = usableBytes/cellSize[sc];
         blockSizeClass[sc] = blk;
         cellsInBlock[sc] = cells;
-        /*cells must start at multiple of BYTES_IN_PARTICLE
-           because cellSize is also supposed to be multiple, this should do the trick: */
+        /* cells must start at multiple of MIN_ALIGNMENT because
+           cellSize is also supposed to be multiple, this should do
+           the trick: */
         blockHeaderSize[sc] = BlockAllocator.blockSize(blk) - cells * cellSize[sc];
         if (((usableBytes < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
             ((usableBytes > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
@@ -251,14 +252,14 @@ public final class MarkSweepLocal extends SegregatedFreeList
       Word mark = getLiveBits(markCursor);
       for (int i=0; i < BITS_IN_WORD; i++) {
         if (!mark.isZero() && !(mark.and(Word.one().lsh(i)).isZero())) {
-	  marked = true;
+          marked = true;
         }
         markCursor = markCursor.add(BYTES_PER_LIVE_BIT);
         if (markCursor.GE(nextCellCursor)) {
-	  if (marked) markCount++;
+          if (marked) markCount++;
           cellCursor = nextCellCursor;
           nextCellCursor = nextCellCursor.add(cellBytes);
-	  marked = false;
+          marked = false;
         }
       }
     }

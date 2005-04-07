@@ -7,7 +7,7 @@ package org.mmtk.utility.heap;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -83,7 +83,7 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
     }
     int mantissa = tmp.toInt();
     if (Assert.VERIFY_ASSERTIONS) 
-      Assert._assert(mantissa<<(VM_BASE_EXPONENT + exponent) == start.toInt());
+      Assert._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
     return (mantissa<<VM_MANTISSA_SHIFT)
       | (exponent<<VM_EXPONENT_SHIFT) 
       | (chunks<<VM_SIZE_SHIFT)

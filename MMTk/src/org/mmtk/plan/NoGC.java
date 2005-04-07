@@ -39,7 +39,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   public static final boolean MOVES_OBJECTS = false;
   public static final int GC_HEADER_BITS_REQUIRED = 0;
-  public static final int GC_HEADER_BYTES_REQUIRED = 0;
+  public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   // Allocators
   public static final int ALLOCATORS = BASE_ALLOCATORS;
@@ -120,7 +120,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(ObjectReference object, ObjectReference typeRef, 
-			      int bytes, int allocator) throws InlinePragma {
+                              int bytes, int allocator) throws InlinePragma {
     switch (allocator) {
     case      ALLOC_LOS: // no los, so use default allocator
     case  ALLOC_DEFAULT: return;
@@ -157,7 +157,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    */
   public final void postCopy(ObjectReference ref, ObjectReference typeRef, 
-			     int bytes) {
+                             int bytes) {
     Assert.fail("no postCopy in noGC");
   } 
 
@@ -246,9 +246,9 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
     if (!initialized || collectionsInitiated > 0 || space == metaDataSpace)
       return false;
     if (getPagesAvail() <= 0) {
-      Assert.error("Out of memory");	
+      Assert.error("Out of memory");    
       // Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
-      // return true;	
+      // return true;   
     }
     return false;
   }
@@ -336,7 +336,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final ObjectReference traceObject(ObjectReference object,
-						  boolean root) {
+                                                  boolean root) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return ObjectReference.nullReference();
   }

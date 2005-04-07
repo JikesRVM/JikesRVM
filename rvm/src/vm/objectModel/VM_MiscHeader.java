@@ -28,7 +28,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
    * Support for GC Tracing; uses either 0 or 3 words of MISC HEADER
    */
 
-  private static final Offset MISC_HEADER_START = Offset.fromInt(VM_JavaHeaderConstants.MISC_HEADER_OFFSET);
+  private static final Offset MISC_HEADER_START = VM_JavaHeaderConstants.MISC_HEADER_OFFSET;
 
   /* offset from object ref to .oid field, in bytes */
   static final Offset OBJECT_OID_OFFSET   = VM.CompileForGCTracing ? MISC_HEADER_START : Offset.zero();
@@ -69,12 +69,12 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
   /**
    * The address of the last object allocated into the header.
    */
-  private static int prevAddress;
+  private static Word prevAddress;
 
   static {
     oid = Word.fromInt(4);
     time = Word.fromInt(4);
-    prevAddress = 0;
+    prevAddress = Word.zero();
   }
 
   /**
@@ -85,7 +85,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(Object obj, Object[] tib, int size, 
-				      boolean isScalar) 
+                                      boolean isScalar) 
     throws UninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
@@ -93,7 +93,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
       ref.store(oid, OBJECT_OID_OFFSET);
       ref.store(time, OBJECT_DEATH_OFFSET);
       oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
- 				    >> LOG_BYTES_IN_ADDRESS));
+                                    >> LOG_BYTES_IN_ADDRESS));
     }
   }
 
@@ -105,17 +105,17 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(BootImageInterface bootImage, int ref, 
+  public static void initializeHeader(BootImageInterface bootImage, Offset ref, 
                                       Object[] tib, int size, boolean isScalar)
     throws LogicallyUninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
-      bootImage.setAddressWord(ref + OBJECT_OID_OFFSET.toInt(), oid);
-      bootImage.setAddressWord(ref + OBJECT_DEATH_OFFSET.toInt(), time);
-      bootImage.setFullWord(ref + OBJECT_LINK_OFFSET.toInt(), prevAddress);
-      prevAddress = ref;
+      bootImage.setAddressWord(ref.add(OBJECT_OID_OFFSET), oid);
+      bootImage.setAddressWord(ref.add(OBJECT_DEATH_OFFSET), time);
+      bootImage.setAddressWord(ref.add(OBJECT_LINK_OFFSET), prevAddress);
+      prevAddress = ref.toWord();
       oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
- 				    >> LOG_BYTES_IN_ADDRESS));
+                                    >> LOG_BYTES_IN_ADDRESS));
     }
   }
 
@@ -162,7 +162,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
       return ObjectReference.fromObject(VM_Magic.getObjectAtOffset(ref,
-							       OBJECT_LINK_OFFSET.toInt()));
+                                                               OBJECT_LINK_OFFSET));
     else
       return ObjectReference.nullReference();
   }
@@ -170,7 +170,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
   public static Address getBootImageLink() {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return Address.fromInt(prevAddress);
+      return prevAddress.toAddress();
     else
       return Address.zero();
   }

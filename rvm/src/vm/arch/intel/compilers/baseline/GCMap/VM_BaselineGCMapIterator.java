@@ -60,7 +60,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
-  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, Address fp) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
     currentMethod = (VM_BaselineCompiledMethod)compiledMethod;
       
     // setup superclass
@@ -101,7 +101,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
                         fp                       = VM_Magic.getCallerFramePointer(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
       VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-      int               callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
+      Offset            callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
       bridgeTarget                    = dynamicLink.methodRef().getResolvedMember();

@@ -58,7 +58,6 @@ public class VM_BootImageCompiler {
       }
 
       OPT_Compiler.init(options);
-
       optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
 
     } catch (OPT_OptimizingCompilerException e) {

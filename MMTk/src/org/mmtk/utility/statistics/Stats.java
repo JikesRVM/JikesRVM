@@ -79,7 +79,7 @@ public class Stats implements Uninterruptible {
     if (!gatheringStats) return;
     if (phase < MAX_PHASES - 1) {
       for (int c = 0; c < counters; c++) {
-	counter[c].phaseChange(phase);
+        counter[c].phaseChange(phase);
       }
       phase++;
     } else {
@@ -95,7 +95,7 @@ public class Stats implements Uninterruptible {
     if (!gatheringStats) return;
     if (phase < MAX_PHASES - 1) {
       for (int c = 0; c < counters; c++) {
-	counter[c].phaseChange(phase);
+        counter[c].phaseChange(phase);
       }
       phase++;
     } else {
@@ -116,7 +116,7 @@ public class Stats implements Uninterruptible {
     gatheringStats = true;
     for (int c = 0; c < counters; c++) {
       if (counter[c].getStart()) 
-	counter[c].start();
+        counter[c].start();
     }
   }
 
@@ -126,7 +126,7 @@ public class Stats implements Uninterruptible {
   public static void stopAll() {
     for (int c = 0; c < counters; c++) {
       if (counter[c].getStart()) 
-	counter[c].stop();
+        counter[c].stop();
     }
     gatheringStats = false;
   }
@@ -149,9 +149,9 @@ public class Stats implements Uninterruptible {
     Log.write((phase/2)+1); Log.write("\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
-	counter[c].printTotal(); Log.write("\t");
+        counter[c].printTotal(); Log.write("\t");
       } else {
-	counter[c].printTotal(true); Log.write("\t");
+        counter[c].printTotal(true); Log.write("\t");
         counter[c].printTotal(false); Log.write("\t");
       }
     }
@@ -171,9 +171,9 @@ public class Stats implements Uninterruptible {
       Log.write((p/2)+1); Log.write("\t");
       for (int c = 0; c < counters; c++) {
         if (counter[c].mergePhases()) {
-	  counter[c].printCount(p); Log.write("\t");
+          counter[c].printCount(p); Log.write("\t");
         } else {
-	  counter[c].printCount(p); Log.write("\t");
+          counter[c].printCount(p); Log.write("\t");
           counter[c].printCount(p+1); Log.write("\t");
         }
       }
@@ -188,13 +188,13 @@ public class Stats implements Uninterruptible {
     Log.write("GC\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
-	Log.write(counter[c].getName());
-	Log.write("\t");
+        Log.write(counter[c].getName());
+        Log.write("\t");
       } else {
-	Log.write(counter[c].getName());
-	Log.write(".mu\t");
-	Log.write(counter[c].getName());
-	Log.write(".gc\t");
+        Log.write(counter[c].getName());
+        Log.write(".mu\t");
+        Log.write(counter[c].getName());
+        Log.write(".gc\t");
       }
     }
     Log.writeln();

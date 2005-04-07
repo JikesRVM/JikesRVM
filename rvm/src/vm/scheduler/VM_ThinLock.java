@@ -32,7 +32,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, Uninterruptible {
    * @param lockOffset the offset of the thin lock word in the object.
    * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
-  static void inlineLock(Object o, int lockOffset) throws InlinePragma {
+  static void inlineLock(Object o, Offset lockOffset) throws InlinePragma {
     Word old = VM_Magic.prepareWord(o, lockOffset);
     if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) { 
       // implies that fatbit == 0 & threadid == 0
@@ -56,7 +56,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, Uninterruptible {
    * @param lockOffset the offset of the thin lock word in the object.
    * @see com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices
    */
-  static void inlineUnlock(Object o, int lockOffset) throws InlinePragma {
+  static void inlineUnlock(Object o, Offset lockOffset) throws InlinePragma {
     Word old = VM_Magic.prepareWord(o, lockOffset);
     Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
     if (old.xor(threadId).rshl(TL_LOCK_COUNT_SHIFT).isZero()) { // implies that fatbit == 0 && count == 0 && lockid == me
@@ -76,7 +76,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, Uninterruptible {
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
    */
-  static void lock(Object o, int lockOffset) throws NoInlinePragma {
+  static void lock(Object o, Offset lockOffset) throws NoInlinePragma {
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit;
          Word threadId = Word.fromIntZeroExtend(VM_Processor.getCurrentProcessor().threadId);
@@ -151,7 +151,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @param o the object to be locked 
    * @param lockOffset the offset of the thin lock word in the object.
    */
-  static void unlock(Object o, int lockOffset) throws NoInlinePragma {
+  static void unlock(Object o, Offset lockOffset) throws NoInlinePragma {
     VM_Magic.sync(); // prevents stale data from being seen by next owner of the lock
     while (true) { // spurious contention detected
       Word old = VM_Magic.prepareWord(o, lockOffset);
@@ -199,7 +199,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @param lockOffset the offset of the thin lock word in the object.
    * @return the heavy-weight lock on this object
    */
-  private static VM_Lock inflate (Object o, int lockOffset) {
+  private static VM_Lock inflate (Object o, Offset lockOffset) {
     Word old;
     Word changed;
     VM_Lock l = VM_Lock.allocate();
@@ -229,7 +229,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
     } while (true);
   }
 
-  static void deflate (Object o, int lockOffset, VM_Lock l) {
+  static void deflate (Object o, Offset lockOffset, VM_Lock l) {
     if (VM.VerifyAssertions) {
       Word old = VM_Magic.getWordAtOffset(o, lockOffset);
       VM._assert(!(old.and(TL_FAT_LOCK_MASK).isZero()));
@@ -253,7 +253,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @param lockOffset the offset of the thin lock word in the object.
    * @return whether the object was successfully locked
    */
-  private static boolean inflateAndLock (Object o, int lockOffset) {
+  private static boolean inflateAndLock (Object o, Offset lockOffset) {
     Word old;
     Word changed;
     VM_Lock l = VM_Lock.allocate();
@@ -319,7 +319,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
    * @param create if true, create heavy lock if none found
    * @return the heavy-weight lock on the object (if any)
    */
-  static VM_Lock getHeavyLock (Object o, int lockOffset, boolean create) {
+  static VM_Lock getHeavyLock (Object o, Offset lockOffset, boolean create) {
     Word old = VM_Magic.getWordAtOffset(o, lockOffset);
     if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
       int index = old.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();

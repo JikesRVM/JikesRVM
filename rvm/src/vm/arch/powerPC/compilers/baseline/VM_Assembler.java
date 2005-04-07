@@ -55,6 +55,24 @@ public final class VM_Assembler implements VM_BaselineConstants,
     shouldPrint = sp;
   }
 
+  private final static int maskLower16 (Offset val) {
+    return (val.toInt() & 0xFFFF);
+  }
+
+  public final static int maskUpper16 (Offset val) {
+   return maskUpper16(val.toInt());
+  }
+  
+  public final static int maskUpper16 (int val) {
+    short s = (short) (val & 0xFFFF);
+    return ((val - (int)s) >>> 16);
+  }
+
+  public final static boolean fits (Offset val, int bits) {
+    Word o = val.toWord().rsha(bits-1);
+    return (o.isZero() || o.isMax());
+  }
+
   public final static boolean fits (long val, int bits) {
     val = val >> bits-1;
     return (val == 0L || val == -1L);
@@ -449,15 +467,30 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitADDI (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = ADDItemplate | RT<<21 | RA<<16 | (D&0xFFFF);
+    _emitADDI (RT, D&0xFFFF, RA);
+  }
+
+  private final void _emitADDI (int RT, int D, int RA) {
+    //D has already been masked
+    int mi = ADDItemplate | RT<<21 | RA<<16 | D;
     mIP++;
     mc.addInstruction(mi);
+  }
+
+  public final void emitADDI (int RT, Offset off, int RA) {
+    if (VM.VerifyAssertions) VM._assert(fits(off, 16));
+    _emitADDI (RT, maskLower16(off), RA);
   }
 
   static final int ADDIStemplate = 15<<26;
 
   public final void emitADDIS (int RT, int RA, int UI) {
     if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
+    _emitADDIS (RT, RA, UI);
+  }
+
+  private final void _emitADDIS (int RT, int RA, int UI) {
+    //UI has already been masked
     int mi = ADDIStemplate | RT<<21 | RA<<16 | UI;
     mIP++;
     mc.addInstruction(mi);
@@ -465,6 +498,11 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitADDIS (int RT, int UI) {
     if (VM.VerifyAssertions) VM._assert(UI == (UI&0xFFFF));
+    _emitADDIS (RT, UI);
+  }
+
+  private final void _emitADDIS (int RT, int UI) {
+    //UI has already been masked
     int mi = ADDIStemplate | RT<<21 | UI;
     mIP++;
     mc.addInstruction(mi);
@@ -704,7 +742,12 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitLWZ (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = LWZtemplate  | RT<<21 | RA<<16 | (D&0xFFFF);
+    _emitLWZ (RT, D&0xFFFF, RA);
+  }
+
+  private final void _emitLWZ (int RT, int D, int RA) {
+    //D has already been masked
+    int mi = LWZtemplate  | RT<<21 | RA<<16 | D;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -748,7 +791,19 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitLFD (int FRT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = LFDtemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
+    _emitLFD (FRT, D&0xFFFF, RA);
+  }
+
+  private final void _emitLFD (int FRT, int D, int RA) {
+    //D has already been masked
+    int mi = LFDtemplate | FRT<<21 | RA<<16 | D;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  public final void emitLFDoffset (int FRT, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = LFDtemplate | FRT<<21 | RA<<16 | maskLower16(D);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -774,7 +829,12 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitLFS (int FRT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = LFStemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
+    _emitLFS (FRT, D&0xFFFF, RA);
+  }
+
+  private final void _emitLFS (int FRT, int D, int RA) {
+    //D has already been masked
+    int mi = LFStemplate | FRT<<21 | RA<<16 | D;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -807,9 +867,9 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  private final void emitLI (int RT, int D) {
-    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = ADDItemplate | RT<<21 | (D&0xFFFF);
+  private final void _emitLI (int RT, int D) {
+    //D has already been masked
+    int mi = ADDItemplate | RT<<21 | D;
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1072,7 +1132,19 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitSTW (int RS, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = STWtemplate | RS<<21 | RA<<16 | (D&0xFFFF);
+    _emitSTW (RS, D&0xFFFF, RA);
+  }
+
+  private final void _emitSTW (int RS, int D, int RA) {
+    //D has already been masked
+    int mi = STWtemplate | RS<<21 | RA<<16 | D;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  public final void emitSTWoffset (int RS, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = STWtemplate | RS<<21 | RA<<16 | maskLower16(D);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1126,7 +1198,19 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitSTFD (int FRS, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = STFDtemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
+    _emitSTFD (FRS, D&0xFFFF, RA);
+  }
+
+  private final void _emitSTFD (int FRS, int D, int RA) {
+    //D has already been masked
+    int mi = STFDtemplate | FRS<<21 | RA<<16 | D;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  public final void emitSTFDoffset (int FRS, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = STFDtemplate | FRS<<21 | RA<<16 | maskLower16(D);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1152,7 +1236,19 @@ public final class VM_Assembler implements VM_BaselineConstants,
 
   public final void emitSTFS (int FRS, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
-    int mi = STFStemplate | FRS<<21 | RA<<16 | (D&0xFFFF);
+    _emitSTFS (FRS, D&0xFFFF, RA);
+  }
+
+  private final void _emitSTFS (int FRS, int D, int RA) {
+    //D has already been masked
+    int mi = STFStemplate | FRS<<21 | RA<<16 | D;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  public final void emitSTFSoffset (int FRS, int RA, Offset D) {
+    if (VM.VerifyAssertions) VM._assert(fits(D, 16));
+    int mi = STFStemplate | FRS<<21 | RA<<16 | maskLower16(D);
     mIP++;
     mc.addInstruction(mi);
   }
@@ -1274,174 +1370,135 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   //private: use emitLIntOffset or emitLAddrOffset instead
-  private final void emitLDoffset(int RT, int RA, int offset) {
+  private final void emitLDoffset(int RT, int RA, Offset offset) {
     if (fits(offset, 16)) {
-      emitLD(RT, offset, RA);
-    } else if ((offset & 0x8000) == 0) {
-      emitADDIS(RT, RA, offset>>16);
-      emitLD (RT, offset&0xFFFF, RT);
+      _emitLD (RT, maskLower16(offset), RA);
     } else {
-      emitADDIS(RT, RA, (offset>>16)+1);
-      emitLD (RT, offset|0xFFFF0000, RT);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(RT, RA, maskUpper16(offset));
+      _emitLD (RT, maskLower16(offset), RT);
     }
   }
   
   //private: use emitLIntOffset or emitLAddrOffset instead
-  private final void emitLWAoffset(int RT, int RA, int offset) {
+  private final void emitLWAoffset(int RT, int RA, Offset offset) {
     if (fits(offset, 16)) {
-      emitLWA (RT, offset, RA);
-    } else if ((offset & 0x8000) == 0) {
-      emitADDIS(RT, RA, offset>>16);
-      emitLWA (RT, offset&0xFFFF, RT);
+      _emitLWA (RT, maskLower16(offset), RA);
     } else {
-      emitADDIS(RT, RA, (offset>>16)+1);
-      emitLWA (RT, offset|0xFFFF0000, RT);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(RT, RA, maskUpper16(offset));
+      _emitLWA (RT, maskLower16(offset), RT);
     }
   }
     
   //private: use emitLIntOffset or emitLAddrOffset instead
-  private final void emitLWZoffset(int RT, int RA, int offset) {
+  private final void emitLWZoffset(int RT, int RA, Offset offset) {
     if (fits(offset, 16)) {
-      emitLWZ (RT, offset, RA);
-    } else if ((offset & 0x8000) == 0) {
-      emitADDIS(RT, RA, offset>>16);
-      emitLWZ (RT, offset&0xFFFF, RT);
+      _emitLWZ (RT, maskLower16(offset), RA);
     } else {
-      emitADDIS(RT, RA, (offset>>16)+1);
-      emitLWZ (RT, offset|0xFFFF0000, RT);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(RT, RA, maskUpper16(offset));
+      _emitLWZ (RT, maskLower16(offset), RT);
     }
   }
     
-  //prefer to use emitLIntToc or emitLAddrToc instead
-  public final void emitLDtoc (int RT, int offset) {
-    emitLDoffset(RT, JTOC, offset); 
-  }
-
-  //prefer to use emitLIntToc or emitLAddrToc instead
-  public final void emitLWAtoc (int RT, int offset) {
-    emitLWAoffset(RT, JTOC, offset);
-  }
-
-  //prefer to use emitLIntToc or emitLAddrToc instead
-  public final void emitLWZtoc (int RT, int offset) {
-    emitLWZoffset(RT, JTOC, offset);
-  }
-
-  public final void emitSTDtoc (int RT, int offset, int Rz) {
+  public final void emitSTDtoc (int RT, Offset offset, int Rz) {
     if (fits(offset, 16)) {
-      emitSTD(RT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitADDIS(Rz, JTOC, offset>>16);
-      emitSTD(RT, offset&0xFFFF, Rz);
+      _emitSTD(RT, maskLower16(offset), JTOC);
     } else {
-      emitADDIS(Rz, JTOC, (offset>>16)+1);
-      emitSTD(RT, offset|0xFFFF0000, Rz);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(Rz, JTOC, maskUpper16(offset));
+      _emitSTD(RT, maskLower16(offset), Rz);
     }
   } 
 
-  public final void emitSTWtoc (int RT, int offset, int Rz) {
+  public final void emitSTWtoc (int RT, Offset offset, int Rz) {
     if (fits(offset, 16)) {
-      emitSTW(RT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitADDIS(Rz, JTOC, offset>>16);
-      emitSTW(RT, offset&0xFFFF, Rz);
+      _emitSTW(RT, maskLower16(offset), JTOC);
     } else {
-      emitADDIS(Rz, JTOC, (offset>>16)+1);
-      emitSTW(RT, offset|0xFFFF0000, Rz);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(Rz, JTOC, maskUpper16(offset));
+      _emitSTW(RT, maskLower16(offset), Rz);
     }
   }
 
-  public final void emitADDItoc (int RT, int offset) {
+  public final void emitLFDtoc (int FRT, Offset offset, int Rz) {
     if (fits(offset, 16)) {
-      emitADDI(RT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitADDIS(RT, JTOC, offset>>16);
-      emitADDI(RT, offset&0xFFFF, RT);
+      _emitLFD(FRT, maskLower16(offset), JTOC);
     } else {
-      emitADDIS(RT, JTOC, (offset>>16)+1);
-      emitADDI(RT, offset|0xFFFF0000, RT);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(Rz, JTOC, maskUpper16(offset));
+      _emitLFD(FRT, maskLower16(offset), Rz);
     }
   }
 
-  public final void emitLFDtoc (int FRT, int offset, int Rz) {
+  public final void emitSTFDtoc (int FRT, Offset offset, int Rz) {
     if (fits(offset, 16)) {
-      emitLFD(FRT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitADDIS( Rz, JTOC, offset>>16);
-      emitLFD(FRT, offset&0xFFFF, Rz);
+      _emitSTFD(FRT, maskLower16(offset), JTOC);
     } else {
-      emitADDIS( Rz, JTOC, (offset>>16)+1);
-      emitLFD(FRT, offset|0xFFFF0000, Rz);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(Rz, JTOC, maskUpper16(offset));
+      _emitSTFD(FRT, maskLower16(offset), Rz);
     }
   }
 
-  public final void emitSTFDtoc (int FRT, int offset, int Rz) {
+  public final void emitLFStoc (int FRT, Offset offset, int Rz) {
     if (fits(offset, 16)) {
-      emitSTFD(FRT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitADDIS ( Rz, JTOC, offset>>16);
-      emitSTFD(FRT, offset&0xFFFF, Rz);
+      _emitLFS(FRT, maskLower16(offset), JTOC);
     } else {
-      emitADDIS ( Rz, JTOC, (offset>>16)+1);
-      emitSTFD(FRT, offset|0xFFFF0000, Rz);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(Rz, JTOC, maskUpper16(offset));
+      _emitLFS(FRT, maskLower16(offset), Rz);
     }
   }
 
-  public final void emitLFStoc (int FRT, int offset, int Rz) {
+  public final void emitSTFStoc (int FRT, Offset offset, int Rz) {
     if (fits(offset, 16)) {
-      emitLFS(FRT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitADDIS( Rz, JTOC, offset>>16);
-      emitLFS(FRT, offset&0xFFFF, Rz);
+      _emitSTFS(FRT, maskLower16(offset), JTOC);
     } else {
-      emitADDIS( Rz, JTOC, (offset>>16)+1);
-      emitLFS(FRT, offset|0xFFFF0000, Rz);
+      if (VM.VerifyAssertions) VM._assert(fits(offset, 32));
+      _emitADDIS(Rz, JTOC, maskUpper16(offset));
+      _emitSTFS(FRT, maskLower16(offset), Rz);
     }
   }
 
-  public final void emitSTFStoc (int FRT, int offset, int Rz) {
-    if (fits(offset, 16)) {
-      emitSTFS(FRT, offset, JTOC);
-    } else if (0 == (offset&0x8000)) {
-      emitADDIS ( Rz, JTOC, offset>>16);
-      emitSTFS(FRT, offset&0xFFFF, Rz);
-    } else {
-      emitADDIS ( Rz, JTOC, (offset>>16)+1);
-      emitSTFS(FRT, offset|0xFFFF0000, Rz);
-    }
+  public final void emitLVALAddr (int RT, Offset off) {
+    emitLVALAddr (RT, off.toWord().toAddress()); 
   }
 
   public final void emitLVALAddr (int RT, Address addr) {
+    Offset val = addr.toWord().toOffset();
 //-#if RVM_FOR_64_ADDR
-    long val = addr.toLong();
     if (!fits(val,48)){
-      emitADDIS(RT, (int)(val>>>48));
-      emitORI(RT, RT, (int)((val>>>32)&0xFFFF));
+      val = val.toWord().lsh(32).rsha(32).toOffset();
+      Offset valHigh = addr.sub(val).toWord().rsha(32).toOffset();
+      _emitADDIS(RT, maskUpper16(valHigh));
+      _emitADDI(RT, maskLower16(valHigh), RT);
       emitSLDI(RT,RT,32);
-      emitORIS(RT, RT, (int)((val>>>16)&0xFFFF));
-      emitORI(RT, RT, (int)(val&0xFFFF));
+      _emitADDIS(RT, RT, maskUpper16(val));
+      _emitADDI(RT, maskLower16(val), RT);
     } else if (!fits(val,32)){
-      emitLI(RT, (int)(val>>>32));
+      val = val.toWord().lsh(32).rsha(32).toOffset();
+      Offset valHigh = addr.sub(val).toWord().rsha(32).toOffset();
+      _emitLI(RT, maskLower16(valHigh));
       emitSLDI(RT,RT,32);
-      emitORIS(RT, RT, (int)((val>>>16)&0xFFFF));
-      emitORI(RT, RT, (int)(val&0xFFFF));
+      _emitADDIS(RT, RT, maskUpper16(val));
+      _emitADDI(RT, maskLower16(val), RT);
     } else 
-//-#else
-    int val = addr.toInt();
 //-#endif         
     if (!fits(val,16)){
-      emitADDIS(RT, (int)(val>>>16));
-      emitORI(RT, RT, (int)(val&0xFFFF));
+      _emitADDIS(RT, maskUpper16(val));
+      _emitADDI(RT, maskLower16(val), RT);
     } else {
-      emitLI(RT, (int)val);
+      _emitLI(RT, maskLower16(val));
     }
   }
 
   public final void emitLVAL (int RT, int val) {
     if (fits(val, 16)) { 
-      emitLI(RT, val);
+      _emitLI(RT, val&0xFFFF);
     } else { 
-      emitADDIS(RT, val>>>16);
+      _emitADDIS(RT, val>>>16);
       emitORI(RT, RT, val&0xFFFF);
     }
   }
@@ -1621,9 +1678,13 @@ public final class VM_Assembler implements VM_BaselineConstants,
   static final int LDtemplate = 58<<26;
 
   public final void emitLD (int RT, int DS, int RA) {
-
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    _emitLD (RT, DS, RA);
+  }
+
+  private final void _emitLD (int RT, int DS, int RA) {
+    //DS is already checked to fit 16 bits
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     int mi = LDtemplate  | RT<<21 | RA<<16 | (DS&0xFFFC);
     mIP++;
     mc.addInstruction(mi);
@@ -1669,8 +1730,13 @@ public final class VM_Assembler implements VM_BaselineConstants,
   static final int LWAtemplate = 58<<26 | 2;
 
   public final void emitLWA (int RT, int DS, int RA) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    _emitLWA (RT, DS, RA);
+  }
+  
+  private final void _emitLWA (int RT, int DS, int RA) {
+    //DS is already checked to fit 16 bits
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     int mi = LWAtemplate | RT<<21 | RA<<16 | (DS&0xFFFC);
     mIP++;
     mc.addInstruction(mi);
@@ -1764,8 +1830,23 @@ public final class VM_Assembler implements VM_BaselineConstants,
   static final int STDtemplate = 62<<26;
 
   public final void emitSTD (int RS, int DS, int RA) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
     if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
+    _emitSTD (RS, DS, RA);
+  }
+
+  private final void _emitSTD (int RS, int DS, int RA) {
+    //DS is already checked to fit 16 bits
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    int mi = STDtemplate | RS<<21 | RA<<16 | (DS&0xFFFC);
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  //private: use emitSTWOffset or emitSTAddrOffset instead
+  private final void emitSTDoffset (int RS, int RA, Offset Dis) {
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(fits(Dis, 16));
+    int DS = maskLower16(Dis);
     int mi = STDtemplate | RS<<21 | RA<<16 | (DS&0xFFFC);
     mIP++;
     mc.addInstruction(mi);
@@ -1973,6 +2054,14 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitSTW(src_reg, offset, dest_reg);                                    
   }
 
+  public final void emitSTAddrOffset(int src_reg, int dest_reg, Offset offset){                    
+
+    if (VM.BuildFor64Addr)
+      emitSTDoffset(src_reg, dest_reg, offset);                   
+    else
+      emitSTWoffset(src_reg, dest_reg, offset);                                    
+  }
+
   public final void emitSTAddrX(int src_reg, int offset_reg, int dest_reg){           
 
     if (VM.BuildFor64Addr) 
@@ -2013,14 +2102,13 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitLWZU(dest_reg, offset, src_reg);                         
   }
 
-  public final void emitLAddrToc(int dest_reg, int TOCoffset){            
-
+  public final void emitLAddrToc(int dest_reg, Offset TOCoffset){           
     if (VM.BuildFor64Addr) 
-      emitLDtoc(dest_reg, TOCoffset);
+      emitLDoffset(dest_reg, JTOC, TOCoffset);
     else 
-      emitLWZtoc(dest_reg, TOCoffset);
+      emitLWZoffset(dest_reg, JTOC, TOCoffset);
   }
-  
+
   final void emitRLAddrINM (int RA, int RS, int SH, int MB, int ME) {
 
     if (VM.BuildFor64Addr) 
@@ -2045,22 +2133,21 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitLWZX(dest_reg, offset_reg, src_reg);                         
   }
 
-  public final void emitLIntToc(int dest_reg, int TOCoffset){            
-
+  public final void emitLIntToc(int dest_reg, Offset TOCoffset){            
     if (VM.BuildFor64Addr) 
-      emitLWAtoc(dest_reg, TOCoffset);
+      emitLWAoffset(dest_reg, JTOC, TOCoffset);
     else 
-      emitLWZtoc(dest_reg, TOCoffset);
+      emitLWZoffset(dest_reg, JTOC, TOCoffset);
   }
   
-  public final void emitLIntOffset(int RT, int RA, int offset) {
+  public final void emitLIntOffset(int RT, int RA, Offset offset) {
     if (VM.BuildFor64Addr) 
       emitLWAoffset(RT, RA, offset);
     else 
       emitLWZoffset(RT, RA, offset);
   }
 
-  public final void emitLAddrOffset(int RT, int RA, int offset) {
+  public final void emitLAddrOffset(int RT, int RA, Offset offset) {
       if (VM.BuildFor64Addr) 
         emitLDoffset(RT, RA, offset);
       else 
@@ -2080,7 +2167,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
   //
 
   public void emitStackOverflowCheck (int frameSize) {
-    emitLAddr ( 0,  VM_Entrypoints.activeThreadStackLimitField.getOffset(), PROCESSOR_REGISTER);   // R0 := &stack guard page
+    emitLAddrOffset ( 0, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadStackLimitField.getOffset());   // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
   }
@@ -2106,21 +2193,21 @@ public final class VM_Assembler implements VM_BaselineConstants,
   // After:    R0, S0 destroyed
   //
   public void emitNativeStackOverflowCheck (int frameSize) {
-    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
-    emitLAddr   (S0, VM_Entrypoints.jniEnvField.getOffset(), S0);      // S0 := thread.jniEnv
-    emitLInt   ( 0, VM_Entrypoints.JNIRefsTopField.getOffset(),S0);   // R0 := thread.jniEnv.JNIRefsTop
-    emitLAddr   (S0, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);   // S0 := thread pointer
+    emitLAddrOffset   (S0, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
+    emitLAddrOffset   (S0, S0, VM_Entrypoints.jniEnvField.getOffset());      // S0 := thread.jniEnv
+    emitLIntOffset   ( 0, S0, VM_Entrypoints.JNIRefsTopField.getOffset());   // R0 := thread.jniEnv.JNIRefsTop
+    emitLAddrOffset   (S0, PROCESSOR_REGISTER, VM_Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
     emitCMPI ( 0, 0);                                    // check if S0 == 0 -> first native frame on stack
     VM_ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
-    emitLAddr  ( 0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
+    emitLAddrOffset  ( 0, S0, VM_Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame pointer
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
     VM_ForwardReference fr2 = emitForwardB();
 
     // check for enough space for STACK_SIZE_JNINATIVE 
     fr1.resolve(this);
-    emitLAddr (0,  VM_Entrypoints.stackLimitField.getOffset(), S0);  // R0 := &stack guard page
+    emitLAddrOffset (0, S0, VM_Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
     emitLVAL  (S0, STACK_SIZE_JNINATIVE);
     emitSUBFC (S0, S0, FP);             // S0 := &new frame pointer
 

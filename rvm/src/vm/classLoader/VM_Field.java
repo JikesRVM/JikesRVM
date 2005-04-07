@@ -148,9 +148,9 @@ public final class VM_Field extends VM_Member {
     */
   public final Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {
-      return VM_Statics.getSlotContentsAsObject(offset>>>LOG_BYTES_IN_INT);
+      return VM_Statics.getSlotContentsAsObject(getOffset());
     } else {
-      return VM_Magic.getObjectAtOffset(obj, offset);
+      return VM_Magic.getObjectAtOffset(obj, getOffset());
     }
   }
 
@@ -190,17 +190,17 @@ public final class VM_Field extends VM_Member {
 
   private int get32Bits(Object obj) {
     if (isStatic()) {
-      return VM_Statics.getSlotContentsAsInt(offset >>> LOG_BYTES_IN_INT);
+      return VM_Statics.getSlotContentsAsInt(getOffset());
     } else {
-      return VM_Magic.getIntAtOffset(obj, offset);
+      return VM_Magic.getIntAtOffset(obj, getOffset());
     }
   }
 
   private long get64Bits(Object obj) {
     if (isStatic()) {
-      return VM_Statics.getSlotContentsAsLong(offset >>> LOG_BYTES_IN_INT); 
+      return VM_Statics.getSlotContentsAsLong(getOffset()); 
     } else {
-      return VM_Magic.getLongAtOffset(obj, offset);
+      return VM_Magic.getLongAtOffset(obj, getOffset());
     }
   }
 
@@ -213,14 +213,14 @@ public final class VM_Field extends VM_Member {
   public final void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
       if (MM_Interface.NEEDS_PUTSTATIC_WRITE_BARRIER)
-        MM_Interface.putstaticWriteBarrier(offset, ref);
+        MM_Interface.putstaticWriteBarrier(getOffset(), ref);
       else
-        VM_Statics.setSlotContents(offset>>>LOG_BYTES_IN_INT, ref);
+        VM_Statics.setSlotContents(getOffset(), ref);
     } else {
       if (MM_Interface.NEEDS_WRITE_BARRIER)
-        MM_Interface.putfieldWriteBarrier(obj, offset, ref, getId());
+        MM_Interface.putfieldWriteBarrier(obj, getOffset(), ref, getId());
       else
-        VM_Magic.setObjectAtOffset(obj, offset, ref);
+        VM_Magic.setObjectAtOffset(obj, getOffset(), ref);
     }
   }
   
@@ -258,17 +258,17 @@ public final class VM_Field extends VM_Member {
 
   private void put32(Object obj, int value) {
     if (isStatic()) {
-      VM_Statics.setSlotContents(offset >>> LOG_BYTES_IN_INT, value );
+      VM_Statics.setSlotContents(getOffset(), value );
     } else {
-      VM_Magic.setIntAtOffset(obj, offset, value);
+      VM_Magic.setIntAtOffset(obj, getOffset(), value);
     }
   }
 
   private void put64(Object obj, long value) {
     if (isStatic()) {
-      VM_Statics.setSlotContents(offset >>> LOG_BYTES_IN_INT, value);
+      VM_Statics.setSlotContents(getOffset(), value);
     } else {
-      VM_Magic.setLongAtOffset(obj, offset, value);
+      VM_Magic.setLongAtOffset(obj, getOffset(), value);
     }
   }
 }

@@ -61,10 +61,10 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
     int offset;
     if (ref.isFieldReference()) {
       VM_Field f = ref.asFieldReference().resolve();
-      offset = f.getOffset();
+      offset = f.getOffset().toInt();
     } else {
       VM_Method m = ref.asMethodReference().resolve();
-      offset = m.getOffset();
+      offset = m.getOffset().toInt();
     }
     if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
     memberOffsets[ref.getId()] = offset;

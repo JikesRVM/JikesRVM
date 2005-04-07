@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.adaptive;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.OSR.*;
+import org.vmmagic.unboxed.Offset;
 /**
  * A OSR_ControllerOnStackReplacementPlan is scheduled by VM_ControllerThread,
  * and executed by the VM_RecompilationThread.
@@ -24,8 +25,8 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
   private double priority;
   private int CMID;
   private int whereFrom;
-  private int tsFromFPoff;
-  private int ypTakenFPoff;
+  private Offset tsFromFPoff;
+  private Offset ypTakenFPoff;
 
   private byte status;
   
@@ -41,8 +42,8 @@ public class OSR_OnStackReplacementPlan implements VM_Constants {
                                     OPT_CompilationPlan cp,
                                     int cmid,
                                     int source,
-                                    int tsoff,
-                                    int ypoff,
+                                    Offset tsoff,
+                                    Offset ypoff,
                                     double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;

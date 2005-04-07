@@ -21,7 +21,7 @@ abstract class Request {
             this.url = new URI( url );
         } catch (ParseException e) {
             System.err.println("bad url: " + url);
-            System.exit(-1);
+            System.exit(1);
         }
     }
 
@@ -37,7 +37,7 @@ abstract class Request {
             new FileInputStream(f).read(desired);
         } catch (Exception e) {
             System.err.println("Error reading requests: " + e.toString());
-            System.exit( -1 );
+            System.exit(1);
         }
     }
 

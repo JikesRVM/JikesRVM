@@ -1266,10 +1266,8 @@ public final class OPT_Instruction
     case INT_IFCMP_opcode:
     case REF_IFCMP_opcode:
     case LONG_IFCMP_opcode:
-    case FLOAT_IFCMPL_opcode:
-    case FLOAT_IFCMPG_opcode:
-    case DOUBLE_IFCMPL_opcode:
-    case DOUBLE_IFCMPG_opcode:
+    case FLOAT_IFCMP_opcode:
+    case DOUBLE_IFCMP_opcode:
       return IfCmp.getTarget(this).target.getBasicBlock();
 
     case IG_CLASS_TEST_opcode:
@@ -1317,10 +1315,8 @@ public final class OPT_Instruction
     case INT_IFCMP_opcode:
     case REF_IFCMP_opcode:
     case LONG_IFCMP_opcode:
-    case FLOAT_IFCMPL_opcode:
-    case FLOAT_IFCMPG_opcode:
-    case DOUBLE_IFCMPL_opcode:
-    case DOUBLE_IFCMPG_opcode:
+    case FLOAT_IFCMP_opcode:
+    case DOUBLE_IFCMP_opcode:
       e.addElement(IfCmp.getTarget(this).target.getBasicBlock());
       break;
 

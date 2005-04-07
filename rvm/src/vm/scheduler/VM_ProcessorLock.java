@@ -98,13 +98,13 @@ public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
    * Acquire a processor lock.
    */
   public void lock () {
-    if (VM.BuildForSingleVirtualProcessor) return;
+    if (VM_Scheduler.numProcessors == 1) return;
     VM_Processor i = VM_Processor.getCurrentProcessor();
     if (VM.VerifyAssertions) i.lockCount += 1;
     VM_Processor p;
     int attempts = 0;
     int retries = 0;
-    int latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
+    Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     do {
       p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepareAddress(this, latestContenderOffset)));
       if (p == null) { // nobody owns the lock
@@ -143,8 +143,8 @@ public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
    * @return whether acquisition succeeded
    */
   boolean tryLock () {
-    if (VM.BuildForSingleVirtualProcessor) return true;
-    int latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
+    if (VM_Scheduler.numProcessors == 1) return true;
+    Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     if (VM_Magic.prepareAddress(this, latestContenderOffset).isZero()) {
       Address cp = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor());
       if (VM_Magic.attemptAddress(this, latestContenderOffset, Address.zero(), cp)) {
@@ -159,9 +159,9 @@ public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
    * Release a processor lock.
    */
   public void unlock () {
-    if (VM.BuildForSingleVirtualProcessor) return;
+    if (VM_Scheduler.numProcessors == 1) return;
     VM_Magic.sync(); // commit changes while lock was held so they are visiable to the next processor that acquires the lock
-    int latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
+    Offset latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     VM_Processor i = VM_Processor.getCurrentProcessor();
     if (!MCS_Locking) {
       if (VM.VerifyAssertions) i.lockCount -= 1;

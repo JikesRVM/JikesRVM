@@ -48,7 +48,7 @@ public abstract class VM_GCMapIterator implements Uninterruptible {
    * @param instructionOffset  offset of current instruction within that method's code
    * @param framePtr           address of stackframe to be visited
    */
-  public abstract void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, Address framePtr);
+  public abstract void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr);
   
   /**
    * Get address of next object reference held by current stackframe.

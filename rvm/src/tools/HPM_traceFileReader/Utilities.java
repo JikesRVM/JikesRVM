@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id:&
+//$Id$
 
 /**
  * Collection of useful utilities.
@@ -83,10 +83,10 @@ public class Utilities
       input_file = new DataInputStream(new FileInputStream(trace_filename));
     } catch (FileNotFoundException e) {
       System.out.println("***Utilities.openDataInputStream("+trace_filename+"): FileNotFound exception!***");
-      System.exit(-1);
+      System.exit(1);
     } catch (SecurityException e) {
       System.out.println("***Utilities.openDataInputStream("+trace_filename+"): Security exception!***");
-      System.exit(-1);
+      System.exit(1);
     }
     return input_file;
   }
@@ -108,22 +108,22 @@ public class Utilities
     }catch (IOException e) {
       System.out.println("***Utilities.readInt() IO exception!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
     if(debug>=5) {System.out.print("Utilities.readInt("+b[0]+" "+b[1]+" "+b[2]+" "+b[3]+") ");}
     if (TraceHeader.isLittleEndian()) {
       value = 
-	(((int)(b[3] << 24)) & 0xFF000000) + 
-	(((int)(b[2] << 16)) & 0x00FF0000) + 
-	(((int)(b[1] <<  8)) & 0x0000FF00) + 
-	(((int)(b[0]      )) & 0x000000FF);
+        (((int)(b[3] << 24)) & 0xFF000000) + 
+        (((int)(b[2] << 16)) & 0x00FF0000) + 
+        (((int)(b[1] <<  8)) & 0x0000FF00) + 
+        (((int)(b[0]      )) & 0x000000FF);
       if(debug>=5){System.out.print(value+" little-endian\n");}
     } else {
       value = 
-	(((int)(b[0] << 24)) & 0xFF000000) + 
-	(((int)(b[1] << 16)) & 0x00FF0000) + 
-	(((int)(b[2] <<  8)) & 0x0000FF00) + 
-	(((int)(b[3]      )) & 0x000000FF);
+        (((int)(b[0] << 24)) & 0xFF000000) + 
+        (((int)(b[1] << 16)) & 0x00FF0000) + 
+        (((int)(b[2] <<  8)) & 0x0000FF00) + 
+        (((int)(b[3]      )) & 0x000000FF);
       if(debug>=5) {System.out.print(value+" big-endian (default)");}
     }
     if(debug>=5) {System.out.print("\n");}
@@ -147,32 +147,32 @@ public class Utilities
     }catch (IOException e) {
       System.out.println("***Utilities.getLongFromDataInputStream() IO exception!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
 
     if(debug>=4) {System.out.print("Utilities.getLongFromDataInputStream("+
                                    b[0]+" "+b[1]+" "+b[2]+" "+b[3]+" "+b[4]+" "+b[5]+" "+b[6]+" "+b[7]+") ");}
     if (TraceHeader.isLittleEndian()) {
       value = (long)
-	(((long)(b[7]) << 56)&0xFF00000000000000L) + 
-	(((long)(b[6]) << 48)&0x00FF000000000000L) +
-	(((long)(b[5]) << 40)&0x0000FF0000000000L) + 
-	(((long)(b[4]) << 32)&0x000000FF00000000L) + 
-	(((long)(b[3]) << 24)&0x00000000FF000000L) + 
-	(((long)(b[2]) << 16)&0x0000000000FF0000L) + 
-	(((long)(b[1]) <<  8)&0x000000000000FF00L) + 
-	(((long)(b[0])      )&0x00000000000000FFL);
+        (((long)(b[7]) << 56)&0xFF00000000000000L) + 
+        (((long)(b[6]) << 48)&0x00FF000000000000L) +
+        (((long)(b[5]) << 40)&0x0000FF0000000000L) + 
+        (((long)(b[4]) << 32)&0x000000FF00000000L) + 
+        (((long)(b[3]) << 24)&0x00000000FF000000L) + 
+        (((long)(b[2]) << 16)&0x0000000000FF0000L) + 
+        (((long)(b[1]) <<  8)&0x000000000000FF00L) + 
+        (((long)(b[0])      )&0x00000000000000FFL);
       if(debug>=4) {System.out.print(Long.toString(value)+" little-endian\n");}
     } else {
       value = (long)
-	(((long)(b[0]) << 56)&0xFF00000000000000L) + 
-	(((long)(b[1]) << 48)&0x00FF000000000000L) +
-	(((long)(b[2]) << 40)&0x0000FF0000000000L) + 
-	(((long)(b[3]) << 32)&0x000000FF00000000L) + 
-	(((long)(b[4]) << 24)&0x00000000FF000000L) + 
-	(((long)(b[5]) << 16)&0x0000000000FF0000L) + 
-	(((long)(b[6]) <<  8)&0x000000000000FF00L) + 
-	(((long)(b[7])      )&0x00000000000000FFL);
+        (((long)(b[0]) << 56)&0xFF00000000000000L) + 
+        (((long)(b[1]) << 48)&0x00FF000000000000L) +
+        (((long)(b[2]) << 40)&0x0000FF0000000000L) + 
+        (((long)(b[3]) << 32)&0x000000FF00000000L) + 
+        (((long)(b[4]) << 24)&0x00000000FF000000L) + 
+        (((long)(b[5]) << 16)&0x0000000000FF0000L) + 
+        (((long)(b[6]) <<  8)&0x000000000000FF00L) + 
+        (((long)(b[7])      )&0x00000000000000FFL);
       if(debug>=4) {System.out.print(value+" big-endian (default)\n");}
     }
     
@@ -202,7 +202,7 @@ public class Utilities
     }catch (IOException e) {
       System.out.println("***Utilities.getStringFromDataInputStream() IO exception!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
     
     String string = new String(b_array);
@@ -242,7 +242,7 @@ public class Utilities
       System.err.println("***Utilities.growIntArray() called with array.length "+array.length+
                          " >= length "+newLength+"!***");
       new Exception().printStackTrace();
-      System.exit(-1);
+      System.exit(1);
     }
     int[] newarray = new int[newLength];
     for (int i = 0, n = array.length; i < n; ++i)

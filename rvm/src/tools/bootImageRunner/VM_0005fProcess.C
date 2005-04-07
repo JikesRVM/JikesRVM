@@ -350,8 +350,9 @@ Java_com_ibm_JikesRVM_VM_1Process_exec4
      *  but is not executable, the return status is 126.¨
      * We shall adopt those customs here. --Steve Augart*/
     if (errno == ENOENT || errno == ENOTDIR)
-        exit(127);
-    exit(126);                  // couldn't be executed for some other reason.
+        exit(EXIT_STATUS_EXECUTABLE_NOT_FOUND);
+    exit(EXIT_STATUS_COULD_NOT_EXECUTE); // couldn't be executed for some
+                                         // other reason. 
   } else if (fid > 0) {
     // parent
 

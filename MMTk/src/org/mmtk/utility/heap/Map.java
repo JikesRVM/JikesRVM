@@ -8,7 +8,7 @@ import org.mmtk.utility.Log;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.pragma.*;
@@ -63,16 +63,16 @@ public class Map implements Constants, Uninterruptible {
    * @param space The space to be associated with this region
    */
   public static void insert(Address start, Extent extent, int descriptor,
-			    Space space) throws InterruptiblePragma {
+                            Space space) throws InterruptiblePragma {
     Extent e = Extent.zero();
     while (e.LT(extent)) {
       int index = hashAddress(start.add(e));
       if (descriptorMap[index] != 0) {
-	Log.write("Conflicting virtual address request for space \"");
-	Log.write(space.getName()); Log.write("\" at ");
-	Log.writeln(start.add(e));
-	Space.printVMMap();
-	Assert.fail("exiting");
+        Log.write("Conflicting virtual address request for space \"");
+        Log.write(space.getName()); Log.write("\" at ");
+        Log.writeln(start.add(e));
+        Space.printVMMap();
+        Assert.fail("exiting");
       }
       descriptorMap[index] = descriptor;
       spaceMap[index] = space;

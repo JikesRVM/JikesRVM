@@ -112,6 +112,11 @@ public final class Offset implements Uninterruptible {
     return new Offset(value + byteSize);
   }
 
+  public Offset add (Offset off2) throws UninterruptibleNoWarnPragma {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return new Offset(value + off2.value);
+  }
+
   public Offset sub (int byteSize) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - byteSize);

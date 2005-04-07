@@ -1,6 +1,16 @@
 #! /usr/bin/env bash
-set -e
+# -*- coding: iso-8859-1 ; mode: shell-script ;-*-
+# (C) Copyright © IBM Corp. 2003, 2005
+#
+# $Id$
+#
+# Purpose: Autodetect whether:
 msg="Does printf() understand the '%z' modifier?"
+#
+# @author Steven Augart
+# @date 20 October 2003
+
+set -e
 echo "$msg" >> ${LOG}
 echo >&2 -n "$msg..."
 
@@ -14,7 +24,8 @@ echo "\
    This test is less useful than it might be, because it's a hassle to
    write a portable way around needing %z; less work is to substitute
    %lu for %zu, and then cast the size_t argument to (unsigned long).
-   So we don't use the results.
+   So this test is disabled, although it could be brought on-line again
+   if you ever decided to use it.
  */"
 CMD=printf_handles_percent_z
 

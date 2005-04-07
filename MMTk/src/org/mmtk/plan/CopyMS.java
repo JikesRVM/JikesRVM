@@ -61,7 +61,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    */
   public static final boolean MOVES_OBJECTS = true;
   public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
+  public static final int GC_HEADER_WORDS_REQUIRED = CopySpace.GC_HEADER_WORDS_REQUIRED;
 
   // Allocators
   private static final int ALLOC_NURSERY = ALLOC_DEFAULT;
@@ -69,9 +69,12 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   public static final int ALLOCATORS = ALLOC_MS + 1;
 
   // spaces
-  private static MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
+  private static final float MS_FRACTION= (float)0.50;
+  private static final float NURSERY_FRACTION= (float)0.15;
+
+  private static MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, MS_FRACTION);
   private static final int MS = msSpace.getDescriptor();
-  protected static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
+  protected static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, NURSERY_FRACTION, true, false);
   protected static final int NS = nurserySpace.getDescriptor();
 
   /****************************************************************************
@@ -151,7 +154,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef, 
-			      int bytes, int allocator) throws InlinePragma {
+                              int bytes, int allocator) throws InlinePragma {
     switch (allocator) {
     case  ALLOC_NURSERY: return;
     case      ALLOC_LOS: loSpace.initializeHeader(ref); return;
@@ -173,7 +176,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final Address allocCopy(ObjectReference original, int bytes,
-				 int align, int offset) throws InlinePragma {
+                                 int align, int offset) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     return ms.alloc(bytes, align, offset, true);
   }
@@ -186,7 +189,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    */
   public final void postCopy(ObjectReference ref, ObjectReference typeRef,
-			     int bytes) throws InlinePragma {
+                             int bytes) throws InlinePragma {
     msSpace.writeMarkBit(ref);
     MarkSweepLocal.liveObject(ref);
   }
@@ -400,7 +403,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final ObjectReference traceObject(ObjectReference obj,
-						  boolean root) {
+                                                  boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 

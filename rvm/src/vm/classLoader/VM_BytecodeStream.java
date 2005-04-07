@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Statics;
 import com.ibm.JikesRVM.VM_SizeConstants;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
@@ -638,8 +639,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.INT_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index) ;
-    int val = VM_Statics.getSlotContentsAsInt(offset >> LOG_BYTES_IN_INT);
+    Offset offset = declaringClass.getLiteralOffset(index) ;
+    int val = VM_Statics.getSlotContentsAsInt(offset);
     return val;
   }
 
@@ -660,8 +661,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert(opcode == JBC_ldc2_w &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.LONG_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index);
-    long val = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
+    Offset offset = declaringClass.getLiteralOffset(index);
+    long val = VM_Statics.getSlotContentsAsLong(offset);
     return val;
   }
 
@@ -682,8 +683,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.FLOAT_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index);
-    int val_raw = VM_Statics.getSlotContentsAsInt(offset >> LOG_BYTES_IN_INT);
+    Offset offset = declaringClass.getLiteralOffset(index);
+    int val_raw = VM_Statics.getSlotContentsAsInt(offset);
     float val = Float.intBitsToFloat(val_raw);
     return val;
   }
@@ -705,8 +706,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert(opcode == JBC_ldc2_w &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.DOUBLE_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index) ;
-    long val_raw = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
+    Offset offset = declaringClass.getLiteralOffset(index) ;
+    long val_raw = VM_Statics.getSlotContentsAsLong(offset);
     double val = Double.longBitsToDouble(val_raw);
     return val;
   }
@@ -728,8 +729,8 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
                 declaringClass.getLiteralDescription(index) ==
                 VM_Statics.STRING_LITERAL);
-    int offset = declaringClass.getLiteralOffset(index);
-    String val = (String) VM_Statics.getSlotContentsAsObject(offset >> LOG_BYTES_IN_INT);
+    Offset offset = declaringClass.getLiteralOffset(index);
+    String val = (String) VM_Statics.getSlotContentsAsObject(offset);
     return val;
   }
 

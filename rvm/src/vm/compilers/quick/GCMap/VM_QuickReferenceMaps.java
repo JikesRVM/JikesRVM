@@ -156,9 +156,9 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
    * If the located site is within the scope of a jsr subroutine
    *  the index value returned is a negative number
    */
-  public int locateGCPoint(int machCodeOffset, VM_Method method)  {
+  public int locateGCPoint(Offset machCodeOffset, VM_Method method)  {
 
-    machCodeOffset = machCodeOffset - (1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
+    machCodeOffset = machCodeOffset.sub(1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
 
     if (VM.TraceStkMaps) {
@@ -171,22 +171,22 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
 
     //  Scan the list of machine code addresses to find the
     //  closest site offset BEFORE the input machine code index ( offset in the code)
-    int distance = 0;
+    Offset distance = Offset.zero();
     int index = 0;
     // get the first possible location
     for (int i = 0; i < mapCount; i++) {
       // get an initial non zero distance
-      distance = machCodeOffset - MCSites[i];
-      if (distance >= 0) {
+      distance = machCodeOffset.sub(MCSites[i]);
+      if (distance.sGE(Offset.zero())) {
         index = i;
         break;
       }
     }
     // scan to find any better location ie closer to the site
     for(int i = index+1; i < mapCount; i++) {
-      int dist =  machCodeOffset- MCSites[i];
-      if (dist < 0) continue;
-      if (dist <= distance) {
+      Offset dist =  machCodeOffset.sub(MCSites[i]);
+      if (dist.sLT(Offset.zero())) continue;
+      if (dist.sLE(distance)) {
         index = i;
         distance = dist;
       }
@@ -199,11 +199,11 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
       VM.sysWrite(referenceMaps[index]);
       VM.sysWrite( "\n");
       if (index - 1 >= 0) {
-        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset - MCSites[index-1]); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index-1])); VM.sysWrite("\n");
       }
-      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset - MCSites[index  ]); VM.sysWrite("\n");
+      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index  ])); VM.sysWrite("\n");
       if (index + 1 < MCSites.length) {
-        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset - MCSites[index+1]); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index+1])); VM.sysWrite("\n");
       }
     }
 
@@ -283,7 +283,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
     // test for end of map
     if (bitnum == NOMORE) {
       if ( VM.TraceStkMaps) 
-	      VM.sysWrite("  NOMORE \n");
+              VM.sysWrite("  NOMORE \n");
       return NOMORE;
     }
 
@@ -489,8 +489,8 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
     MCLocations[byteToGCIndex[biStart]] = l;
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickReferenceMaps;"));
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/quick/VM_QuickReferenceMaps;"));
   int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     if (MCSites != null) size += VM_Array.IntArray.getInstanceSize(MCSites.length);
@@ -594,7 +594,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
           int start = mapNum * bytesPerMap;  // get starting byte in map
           for ( int i = start; i < start + bytesPerMap; i++) {
             referenceMaps[i] = 0;
-	  }
+          }
           if (VM.TraceStkMaps) {
             VM.sysWrite(" VM_QuickReferenceMaps-recordStkMap replacing map number = ", mapNum);
             VM.sysWriteln("  for machinecode index = ", MCSites[mapNum]);
@@ -713,14 +713,14 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
             for (unusualMapIndex = JSR_INDEX_MASK; unusualMapIndex < numberUnusualMaps; unusualMapIndex++) {
               if (unusualMaps[unusualMapIndex].getReturnAddressLocation() == returnLocation) {
                 jsrSiteMap = unusualMaps[unusualMapIndex];
-		break findJSRSiteMap;
-	      }
+                break findJSRSiteMap;
+              }
             }
             VM.sysFail(" can't find unusual map !!!!!!! - should never occur");
           } else {
             jsrSiteMap = unusualMaps[unusualMapIndex];
             break findJSRSiteMap;
-	  }
+          }
         }
       }
     } else {
@@ -763,7 +763,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
         VM.sysWrite( referenceMaps[mapNum*bytesPerMap]);
         VM.sysWrite( "\n");
       }
-    }	 // end else clause - add new map
+    }    // end else clause - add new map
 
     // for new maps, setup maps in UnusualMap, for existing map replace them
 
@@ -914,7 +914,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
 
     VM_QuickUnusualMaps unusualMap = unusualMaps[unusualMapid];
 //    unusualMapcopy(unusualMap, -mapid); // deep copy unusual map into the extra map
-    unusualMapcopy(unusualMap);	// deep copy unusual map into the extra map
+    unusualMapcopy(unusualMap); // deep copy unusual map into the extra map
 
 
     // from the unusual map and the frame - get the location of the jsr invoker
@@ -932,14 +932,14 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
 
     // from the invoker address and the code base address - get the machine
     // code offset 
-    int machineCodeOffset = compiledMethod.getInstructionOffset(callerAddress);
+    Offset machineCodeOffset = compiledMethod.getInstructionOffset(callerAddress);
 
     if (VM.TraceStkMaps) {
       VM.sysWriteln("VM_QuickReferenceMaps-setupJSRMap- inputMapid = ", mapid);
       VM.sysWriteln("       jsrReturnAddressLocation = ", jsrAddressLocation);
       VM.sysWriteln("       jsr callers address = ", callerAddress);
       VM.sysWriteln("       machine code offset of caller = ", machineCodeOffset);
-      if (machineCodeOffset <0)
+      if (machineCodeOffset.sLT(Offset.zero()))
         VM.sysWriteln("BAD MACHINE CODE OFFSET");
     }
 
@@ -982,7 +982,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
           thisJsrAddressAddress =
             frameAddress.add(VM_QuickCompiler.locationToOffset(thisJsrAddressLocation));
         Address nextCallerAddress    = thisJsrAddressAddress.loadAddress();
-        int nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
+        Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
         jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
       if (VM.TraceStkMaps) {
@@ -1500,8 +1500,8 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
       byte res = (byte)((finalBase | newRef) & (~newNonRef));
       unusualReferenceMaps[mergedReferenceMap+i] = res;
       unusualReferenceMaps[mergedReturnAddressMap+i] 
-	= (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] 
-		 | unusualReferenceMaps[returnAddressMapIndex + i]);
+        = (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] 
+                 | unusualReferenceMaps[returnAddressMapIndex + i]);
       /*
          VM.sysWrite("   **** base = "); VM.sysWrite(base);
          VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
@@ -1675,7 +1675,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
     for (int i=0; i<mapCount; i++) {
       byte mapindex  = referenceMaps[i * bytesPerMap];
       if (mapindex < 0) {
-	// check for non jsr map
+        // check for non jsr map
         VM.sysWrite("  -----skipping jsr map------- \n ");
         continue;
       }
@@ -1711,10 +1711,10 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
    * @return true, if it is a reference type
    *         false, otherwise
    */
-  public boolean isLocalRefType(VM_Method method, int mcoff, int lidx) {
+  public boolean isLocalRefType(VM_Method method, Offset mcoff, int lidx) {
     int bytenum, bitnum;
     byte[] maps;
-	
+        
     if (bytesPerMap == 0) return false;           // no map ie no refs
     int mapid = locateGCPoint(mcoff, method);
 

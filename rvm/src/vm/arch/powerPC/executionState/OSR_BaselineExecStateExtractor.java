@@ -28,8 +28,8 @@ public final class OSR_BaselineExecStateExtractor
    * Implements OSR_ExecStateExtractor.extractState.
    */
   public OSR_ExecutionState extractState(VM_Thread thread,
-                                         int tsFromFPoff,
-                                         int methFPoff, 
+                                         Offset tsFromFPoff,
+                                         Offset methFPoff, 
                                          int cmid) {
 
   /* performs architecture and compiler dependent operations here
@@ -63,7 +63,7 @@ public final class OSR_BaselineExecStateExtractor
 
     if (VM.VerifyAssertions) {
       int fooCmid     = VM_Magic.getIntAtOffset(stack, 
-                              methFPoff + STACKFRAME_METHOD_ID_OFFSET);
+                              methFPoff.add(STACKFRAME_METHOD_ID_OFFSET));
       VM._assert(fooCmid == cmid);
     }
 
@@ -76,12 +76,12 @@ public final class OSR_BaselineExecStateExtractor
     VM_CodeArray instructions = fooCM.getInstructions();
 
     VM.disableGC();
-    Address rowIP     = VM_Magic.objectAsAddress(stack).add(methFPoff + STACKFRAME_NEXT_INSTRUCTION_OFFSET).loadAddress();
-    int ipIndex   = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
+    Address rowIP     = VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
+    Offset ipOffset = rowIP.diff(VM_Magic.objectAsAddress(instructions));
     VM.enableGC();
 
     // CAUTION: IP Offset should point to next instruction
-    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipIndex + 1);
+    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
     // assertions
     if (VM.VerifyAssertions) VM._assert(bcIndex != -1);
@@ -108,7 +108,7 @@ public final class OSR_BaselineExecStateExtractor
       // if typer reports a local is reference type, but the GC map says no
       // then set the localType to uninitialized, see VM spec, bytecode verifier
       // CAUTION: gc map uses mc offset in bytes!!!
-      boolean gcref = fooCM.referenceMaps.isLocalRefType(fooM, (ipIndex + 1)<<LG_INSTRUCTION_WIDTH, i);
+      boolean gcref = fooCM.referenceMaps.isLocalRefType(fooM, ipOffset.add(INSTRUCTION_WIDTH), i);
       if (!gcref && (localTypes[i] == ClassTypeCode)) {
         localTypes[i] = VoidTypeCode;   // use gc map as reference
         if (VM.TraceOnStackReplacement) {
@@ -118,9 +118,10 @@ public final class OSR_BaselineExecStateExtractor
     }
 
     if (VM.TraceOnStackReplacement) {
+      Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
       VM.sysWrite("BC Index : "+bcIndex+"\n");
-          VM.sysWrite("IP Index : "+(ipIndex+1)+"\n");
-          VM.sysWrite("MC Offset : "+((ipIndex+1)<<LG_INSTRUCTION_WIDTH)+"\n");
+          VM.sysWrite("IP Index : ", ipIndex.add(1), "\n");
+          VM.sysWrite("MC Offset : ", ipOffset.add(INSTRUCTION_WIDTH), "\n");
       VM.sysWrite("Local Types :");
       for (int i=0; i<localTypes.length; i++) {
         VM.sysWrite(" "+(char)localTypes[i]);
@@ -139,11 +140,9 @@ public final class OSR_BaselineExecStateExtractor
     
     // adjust local offset and stack offset
     // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)     
-    int startLocalOffset = fooCM.getStartLocalOffset();
-    startLocalOffset += methFPoff;
+    Offset startLocalOffset = methFPoff.add(fooCM.getStartLocalOffset());
 
-    int stackOffset = fooCM.getEmptyStackOffset();
-    stackOffset += methFPoff;
+    Offset stackOffset = methFPoff.add(fooCM.getEmptyStackOffset());
     
     // for locals
     getVariableValue(stack, 
@@ -175,18 +174,18 @@ public final class OSR_BaselineExecStateExtractor
   
   /* go over local/stack array, and build OSR_VariableElement. */
   private static void getVariableValue(byte[] stack,
-                                       int   offset,
+                                       Offset   offset,
                                        byte[] types,
                                        VM_BaselineCompiledMethod compiledMethod,
                                        VM_CodeArray instructions,
                                        int   kind,
                                        OSR_ExecutionState state) {
     int size = types.length;
-    int vOffset = offset;
+    Offset vOffset = offset;
     for (int i=0; i<size; i++) {
       switch (types[i]) {
       case VoidTypeCode:
-        vOffset -= BYTES_IN_STACKSLOT;
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
         break;
 
       case BooleanTypeCode:
@@ -195,8 +194,8 @@ public final class OSR_BaselineExecStateExtractor
       case CharTypeCode:
       case IntTypeCode:
       case FloatTypeCode:{
-        int value = VM_Magic.getIntAtOffset(stack, vOffset - BYTES_IN_INT);
-        vOffset -= BYTES_IN_STACKSLOT;
+        int value = VM_Magic.getIntAtOffset(stack, vOffset.sub(BYTES_IN_INT));
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
           
         int tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
 
@@ -209,8 +208,8 @@ public final class OSR_BaselineExecStateExtractor
       case LongTypeCode: 
       case DoubleTypeCode: {
       //KV: this code would be nicer if VoidTypeCode would always follow a 64-bit value. Rigth now for LOCAL it follows, for STACK it proceeds
-        int memoff = 
-          (kind == LOCAL) ? (vOffset-BYTES_IN_DOUBLE) : VM.BuildFor64Addr? vOffset : (vOffset - BYTES_IN_STACKSLOT);
+        Offset memoff = 
+          (kind == LOCAL) ? vOffset.sub(BYTES_IN_DOUBLE) : VM.BuildFor64Addr? vOffset : vOffset.sub(BYTES_IN_STACKSLOT);
         long value = VM_Magic.getLongAtOffset(stack, memoff);
         
         int tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
@@ -221,27 +220,28 @@ public final class OSR_BaselineExecStateExtractor
                                          value));
 
         if (kind == LOCAL) { //KV:VoidTypeCode is next
-          vOffset -= 2*BYTES_IN_STACKSLOT;
+          vOffset = vOffset.sub(2*BYTES_IN_STACKSLOT);
           i++; //KV:skip VoidTypeCode
-        } else vOffset -=  BYTES_IN_STACKSLOT; //KV:VoidTypeCode was already in front
+        } else vOffset = vOffset.sub( BYTES_IN_STACKSLOT); //KV:VoidTypeCode was already in front
 
         break;
       }
       case ReturnAddressTypeCode: {
         VM.disableGC();
-        Address rowIP = VM_Magic.objectAsAddress(stack).add(vOffset - BYTES_IN_ADDRESS).loadAddress();
-        int ipIndex = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
+        Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(vOffset.sub(BYTES_IN_ADDRESS));
+        Offset ipOffset = rowIP.diff(VM_Magic.objectAsAddress(instructions));
         VM.enableGC();
 
-        vOffset -= BYTES_IN_STACKSLOT;
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
 
 
         if (VM.TraceOnStackReplacement) {
-          VM.sysWrite("baseline ret_addr ip "+ipIndex+" --> ");
+          Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+          VM.sysWrite("baseline ret_addr ip ", ipIndex, " --> ");
         }
         
         int bcIndex = 
-          compiledMethod.findBytecodeIndexForInstruction(ipIndex+1);
+          compiledMethod.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
         if (VM.TraceOnStackReplacement) {
           VM.sysWrite(" bc "+ bcIndex+"\n");
@@ -257,10 +257,10 @@ public final class OSR_BaselineExecStateExtractor
       case ClassTypeCode: 
       case ArrayTypeCode: {
         VM.disableGC();
-        Object ref = VM_Magic.getObjectAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
+        Object ref = VM_Magic.getObjectAtOffset(stack, vOffset.sub(BYTES_IN_ADDRESS));
         VM.enableGC();
 
-        vOffset -= BYTES_IN_STACKSLOT;
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
 
         state.add(new OSR_VariableElement(kind,
                                          i,
@@ -269,8 +269,8 @@ public final class OSR_BaselineExecStateExtractor
         break;
       }
       case WordTypeCode: {
-        Word value = VM_Magic.getWordAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
-        vOffset -= BYTES_IN_STACKSLOT;
+        Word value = VM_Magic.getWordAtOffset(stack, vOffset.sub(BYTES_IN_ADDRESS));
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
           
         state.add(new OSR_VariableElement(kind,
                                          i,

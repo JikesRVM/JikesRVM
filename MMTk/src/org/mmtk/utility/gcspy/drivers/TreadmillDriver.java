@@ -34,9 +34,9 @@ import org.vmmagic.pragma.*;
 public class TreadmillDriver extends AbstractDriver 
   implements Uninterruptible {
 
-  private static final int LOS_USED_SPACE_STREAM = 0;	// stream IDs
+  private static final int LOS_USED_SPACE_STREAM = 0;   // stream IDs
   private static final int LOS_OBJECTS_STREAM   = 1;
-  private static final int BUFSIZE = 128;		// scratch buffer size
+  private static final int BUFSIZE = 128;               // scratch buffer size
 
   /**
    * Representation of a tile
@@ -78,15 +78,15 @@ public class TreadmillDriver extends AbstractDriver
   private Stream objectsStream;
 
 
-  private Tile[] tiles;			// the space's tiles
-  private Subspace subspace;			
+  private Tile[] tiles;                 // the space's tiles
+  private Subspace subspace;                    
 
   // Overall statistics
-  private int totalObjects = 0;		// total number of objects allocated
-  private int totalUsedSpace = 0;	// total space used
+  private int totalObjects = 0;         // total number of objects allocated
+  private int totalUsedSpace = 0;       // total space used
 
-  private Address maxAddr;		// the largest address seen
-  private LargeObjectSpace lospace;	// the large object space
+  private Address maxAddr;              // the largest address seen
+  private LargeObjectSpace lospace;     // the large object space
   private int threshold;
 
   
@@ -131,58 +131,58 @@ public class TreadmillDriver extends AbstractDriver
     
     // Create a single GCspy Space
     space = new ServerSpace(
-		    Plan.getNextServerSpaceId(),/* space id */
-		    name,                       /* server name */
-		    "MMTk LargeObjectSpace", 	/* driver (space) name */
-		    "Block ",                   /* space title */
-		    tmp,                   	/* block info */
-		    //size,			/* number of tiles */
-		    maxTileNum,			/* number of tiles */
-		    "UNUSED",                   /* the label for unused blocks */
-		    mainSpace                   /* main space */ );
+                    Plan.getNextServerSpaceId(),/* space id */
+                    name,                       /* server name */
+                    "MMTk LargeObjectSpace",    /* driver (space) name */
+                    "Block ",                   /* space title */
+                    tmp,                        /* block info */
+                    //size,                     /* number of tiles */
+                    maxTileNum,                 /* number of tiles */
+                    "UNUSED",                   /* the label for unused blocks */
+                    mainSpace                   /* main space */ );
     setTilenames(subspace, 0);
    
 
     // Initialise the Space's 2 Streams
     usedSpaceStream 
            = new Stream(
-	             space, 					/* the space */
-		     LOS_USED_SPACE_STREAM,			/* space ID */
-		     StreamConstants.INT_TYPE,			/* stream data type */
-		     "Used Space stream",			/* stream name */
-		     0, 					/* min. data value */
-		     blockSize,					/* max. data value */
-		     0, 					/* zero value */
-		     0,						/* default value */
-		    "Space used: ", 				/* value prefix */
-		    " bytes",					/* value suffix */
-		     StreamConstants.PRESENTATION_PERCENT,	/* presentation style */
-		     StreamConstants.PAINT_STYLE_ZERO, 		/* paint style */
-		     0,						/* max stream index */
-		     Color.Red);				/* tile colour */
+                     space,                                     /* the space */
+                     LOS_USED_SPACE_STREAM,                     /* space ID */
+                     StreamConstants.INT_TYPE,                  /* stream data type */
+                     "Used Space stream",                       /* stream name */
+                     0,                                         /* min. data value */
+                     blockSize,                                 /* max. data value */
+                     0,                                         /* zero value */
+                     0,                                         /* default value */
+                    "Space used: ",                             /* value prefix */
+                    " bytes",                                   /* value suffix */
+                     StreamConstants.PRESENTATION_PERCENT,      /* presentation style */
+                     StreamConstants.PAINT_STYLE_ZERO,          /* paint style */
+                     0,                                         /* max stream index */
+                     Color.Red);                                /* tile colour */
 
 
    objectsStream = new Stream(
-	             space, 
-		     LOS_OBJECTS_STREAM,
-		     StreamConstants.SHORT_TYPE,
-		     "Objects stream",
-		     0, 
-		     (int)(blockSize/threshold),
-		     0, 
-		     0,
-		     "No. of objects = ", 
-		     " objects",
-		     StreamConstants.PRESENTATION_PLUS,
-		     StreamConstants.PAINT_STYLE_ZERO, 
-		     0,
-		     Color.Green);
+                     space, 
+                     LOS_OBJECTS_STREAM,
+                     StreamConstants.SHORT_TYPE,
+                     "Objects stream",
+                     0, 
+                     (int)(blockSize/threshold),
+                     0, 
+                     0,
+                     "No. of objects = ", 
+                     " objects",
+                     StreamConstants.PRESENTATION_PLUS,
+                     StreamConstants.PAINT_STYLE_ZERO, 
+                     0,
+                     Color.Green);
 
     space.resize(0);
     // Initialise the statistics
     zero();
   }
-		      
+                      
    
   /**
    * Zero tile stats
@@ -295,11 +295,11 @@ public class TreadmillDriver extends AbstractDriver
       //checkspace(i, 0, "send");
       if (Assert.VERIFY_ASSERTIONS) 
         if (tiles[i].usedSpace > subspace.getBlockSize()) {
-	  Log.write("Bad value for TreadmillDriver Used Space stream: ");
-	  Log.write(tiles[i].usedSpace);
-	  Log.writeln(" max=", subspace.getBlockSize());
-	  // Assert._assert(false);
-	}
+          Log.write("Bad value for TreadmillDriver Used Space stream: ");
+          Log.write(tiles[i].usedSpace);
+          Log.writeln(" max=", subspace.getBlockSize());
+          // Assert._assert(false);
+        }
       space.streamIntValue(tiles[i].usedSpace);
     }
     space.streamEnd();
@@ -314,11 +314,11 @@ public class TreadmillDriver extends AbstractDriver
     for (int i = 0; i < numTiles; ++i) {
       if (Assert.VERIFY_ASSERTIONS) 
         if (tiles[i].objects > subspace.getBlockSize()/threshold) {
-	  Log.write("Bad value for TreadmillDriver Objects stream: ");
-	  Log.write(tiles[i].usedSpace);
-	  Log.writeln(" max=", (int)(subspace.getBlockSize()/threshold));
-	  // Assert._assert(false);
-	}
+          Log.write("Bad value for TreadmillDriver Objects stream: ");
+          Log.write(tiles[i].usedSpace);
+          Log.writeln(" max=", (int)(subspace.getBlockSize()/threshold));
+          // Assert._assert(false);
+        }
       space.streamShortValue(tiles[i].objects);
     }
     space.streamEnd();
@@ -329,8 +329,8 @@ public class TreadmillDriver extends AbstractDriver
     // send the control info
     // all of space is USED
     controlValues(tiles, AbstractTile.CONTROL_USED,
-		  subspace.getFirstIndex(),
-		  subspace.getBlockNum());
+                  subspace.getFirstIndex(),
+                  subspace.getBlockNum());
 
     space.controlEnd(numTiles, tiles);     
     

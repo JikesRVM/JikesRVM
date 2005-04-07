@@ -48,8 +48,8 @@ public class FinalizerThread extends VM_Thread {
          // places objects on the finalizer queue and notifies.
          
          VM_Scheduler.finalizerMutex.lock();
-         VM_Thread.getCurrentThread().yield(VM_Scheduler.finalizerQueue, 
-                                            VM_Scheduler.finalizerMutex);
+         VM_Thread.yield(VM_Scheduler.finalizerQueue, 
+                         VM_Scheduler.finalizerMutex);
          
          if (verbose >= 1)
            VM.sysWriteln("FinalizerThread starting finalization");

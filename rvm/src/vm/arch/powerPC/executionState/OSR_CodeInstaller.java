@@ -28,13 +28,11 @@ public class OSR_CodeInstaller implements VM_BaselineConstants {
     VM_Thread thread = state.getThread();
     byte[] stack = thread.stack;
 
-    int tsfromFPOffset = state.getTSFPOffset();
-    int fooFPOffset    = state.getFPOffset();
+    Offset fooFPOffset    = state.getFPOffset();
 
     // we are going to dynamically generate some code recover 
     // register values from the stack frame.
-    int foomid = VM_Magic.getIntAtOffset(stack, 
-                           fooFPOffset + STACKFRAME_METHOD_ID_OFFSET);
+    int foomid = VM_Magic.getIntAtOffset(stack, fooFPOffset.add(STACKFRAME_METHOD_ID_OFFSET));
 
     VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
@@ -83,7 +81,7 @@ public class OSR_CodeInstaller implements VM_BaselineConstants {
     }
 
     if (VM.VerifyAssertions) {
-      Object jtocContent = VM_Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset() >> 2);
+      Object jtocContent = VM_Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset());
       VM._assert(jtocContent == cm.getInstructions());
     }   
     

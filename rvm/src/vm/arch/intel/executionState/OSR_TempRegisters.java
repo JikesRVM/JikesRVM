@@ -44,10 +44,10 @@ public class OSR_TempRegisters implements VM_Constants {
   }
 
   public void dumpContents() {
-    System.err.println("OSR_TempRegister: @"+ip.toInt());
+    System.err.println("OSR_TempRegister: @"+VM.addressAsHexString(ip));
     System.err.println("  GPRS: ");
     for (int i=0; i<NUM_GPRS; i++) {
-      System.err.println("    ("+i+","+gprs.get(i).toInt()+")");
+      System.err.println("    ("+i+","+VM.addressAsHexString(gprs.get(i).toAddress())+")");
     }
 
     System.err.println();

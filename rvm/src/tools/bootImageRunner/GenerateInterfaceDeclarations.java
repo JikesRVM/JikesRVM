@@ -8,6 +8,7 @@ import  java.io.PrintStream;
 import  java.util.*;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Emit a header file containing declarations required to access VM 
@@ -25,8 +26,21 @@ class GenerateInterfaceDeclarations {
   static void p(String s) {
     out.print(s);
   }
+  static void p(String s, Offset off) {
+    //-#if RVM_FOR_64_ADDR
+    out.print(s+ off.toLong());
+    //-#else
+    out.print(s+ VM.addressAsHexString(off.toWord().toAddress()));
+    //-#endif
+  }
   static void pln(String s) {
     out.println(s);
+  }
+  static void pln(String s, Address addr) {
+    out.print("const VM_Address " + s + VM.addressAsHexString(addr) + ";\n");
+  }
+  static void pln(String s, Offset off) {
+    out.print("const VM_Offset " + s + VM.addressAsHexString(off.toWord().toAddress()) + ";\n");
   }
   static void pln() {
     out.println();
@@ -46,7 +60,7 @@ class GenerateInterfaceDeclarations {
       if (args[i].equals("-ia")) {              // image address
         if (++i == args.length) {
           System.err.println("Error: The -ia flag requires an argument");
-          System.exit(-1);
+          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         bootImageAddress = Integer.decode(args[i]).intValue();
         continue;
@@ -54,18 +68,18 @@ class GenerateInterfaceDeclarations {
       if (args[i].equals("-out")) {              // output file
         if (++i == args.length) {
           System.err.println("Error: The -out flag requires an argument");
-          System.exit(-1);
+          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         outFileName = args[i];
         continue;
       }
       System.err.println("Error: unrecognized command line argument: " + args[i]);
-      System.exit(-1);
+      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
 
     if (bootImageAddress == 0) {
       System.err.println("Error: Must specify boot image load address.");
-      System.exit(-1);
+      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (outFileName == null) {
       out = System.out;
@@ -73,8 +87,6 @@ class GenerateInterfaceDeclarations {
       try {
         // We'll let an unhandled exception throw an I/O error for us.
         out = new PrintStream(new FileOutputStream(outFileName));
-        //      System.err.println("We don't support the -out argument yet");
-        //      System.exit(-1);
       } catch (IOException e) {
         reportTrouble("Caught an exception while opening" + outFileName +" for writing: " + e.toString());
       }
@@ -116,10 +128,14 @@ class GenerateInterfaceDeclarations {
     pln("#include <inttypes.h>");
     if (VM.BuildFor32Addr) {
       pln("#define VM_Address uint32_t");
+      pln("#define VM_Offset int32_t");
+      pln("#define VM_Extent uint32_t");
       pln("#define VM_Word uint32_t");
       pln("#define JavaObject_t uint32_t");
     } else {
       pln("#define VM_Address uint64_t");
+      pln("#define VM_Offset int64_t");
+      pln("#define VM_Extent uint64_t");
       pln("#define VM_Word uint64_t");
       pln("#define JavaObject_t uint64_t");
     }
@@ -157,17 +173,24 @@ class GenerateInterfaceDeclarations {
     pln("#ifdef NEED_ASSEMBLER_DECLARATIONS");
     emitAssemblerDeclarations();
     pln("#endif /* NEED_ASSEMBLER_DECLARATIONS */");
+
+    pln("#ifdef NEED_MM_INTERFACE_DECLARATIONS");
+    pln("#define MAXHEAPS " + com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface.getMaxHeaps());
+    pln("#endif /* NEED_MM_INTERFACE_DECLARATIONS */");
+    pln();
+
+
   }
 
   private static class SortableField implements Comparable {
     final VM_Field f;
-    final int offset;
+    final Offset offset;
     SortableField (VM_Field ff) { f = ff; offset = f.getOffset(); }
     public int compareTo (Object y) {
       if (y instanceof SortableField) {
-        int offset2 = ((SortableField) y).offset;
-        if (offset > offset2) return 1;
-        if (offset < offset2) return -1;
+        Offset offset2 = ((SortableField) y).offset;
+        if (offset.sGT(offset2)) return 1;
+        if (offset.sLT(offset2)) return -1;
         return 0;
       }
       return 1;
@@ -203,42 +226,45 @@ class GenerateInterfaceDeclarations {
 
     // Header Space for objects
     int startOffset = VM_ObjectModel.objectStartOffset(cls);
-    int current = startOffset;
-    for(int i = 0; current < fields[0].f.getOffset(); i++) {
+    Offset current = Offset.fromIntSignExtend(startOffset);
+    for(int i = 0; current.sLT(fields[0].f.getOffset()); i++) {
       pln("  uint32_t    headerPadding" + i + ";\n");
-      current += 4; 
+      current=current.add(4); 
     }
     
     for (int i = 0; i<fields.length; i++) {
       VM_Field field = fields[i].f;
       VM_TypeReference t = field.getType();
-      int offset = field.getOffset();
+      Offset offset = field.getOffset();
       String name = field.getName().toString();
       // Align by blowing 4 bytes if needed
-      if (needsAlign && current + 4 == offset) {
+      if (needsAlign && current.add(4).EQ(offset)) {
           pln("  uint32_t    padding" + i + ";");
-          current += 4;
+          current=current.add(4);
       }
-      if (current != offset) 
-        pln("current = " + current + " and offset = " + offset + " are neither identical not differ by 4");
+      if (!current.EQ(offset)) { 
+        p("current = ", current);
+        p(" and offset = ", offset);
+        pln(" are neither identical not differ by 4");
+      }
       if (t.isIntType()) {
-        current += 4;
+        current=current.add(4);
         p("   uint32_t " + name + ";\n");
       } else if (t.isLongType()) {
-        current += 8;
+        current=current.add(8);
         p("   uint64_t " + name + ";\n");
       } else if (t.isWordType()) {
         p("   VM_Address " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
         p("   VM_Address * " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
         p("   unsigned int * " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else if (t.isReferenceType()) {
         p("   JavaObject_t " + name + ";\n");
-        current += addrSize;
+        current=current.add(addrSize);
       } else {
         System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
         throw new RuntimeException("unexpected field type");
@@ -254,10 +280,10 @@ class GenerateInterfaceDeclarations {
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
-      bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
+      bootRecord = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor).resolve().asClass();
     } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
-      System.exit(-1);
+      System.exit(1);
     }
     emitCDeclarationsForJavaType("VM_BootRecord", bootRecord);
   }
@@ -272,10 +298,10 @@ class GenerateInterfaceDeclarations {
     VM_Atom classDescriptor = className.descriptorFromClassName();
     VM_Class bootRecord = null;
     try {
-      bootRecord = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor).resolve().asClass();
+      bootRecord = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor).resolve().asClass();
     } catch (NoClassDefFoundError e) {
       System.err.println("Failed to load VM_BootRecord!");
-      System.exit(-1);
+      System.exit(1);
     }
     VM_Field[] fields = bootRecord.getDeclaredFields();
 
@@ -471,14 +497,15 @@ class GenerateInterfaceDeclarations {
         + VM_Constants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
     p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
         + VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
-    p("static const int VM_Constants_STACKFRAME_SENTINEL_FP             = "
-        + VM_Constants.STACKFRAME_SENTINEL_FP.toInt() + ";\n");
+    pln("VM_Constants_STACKFRAME_SENTINEL_FP             = ",
+         VM_Constants.STACKFRAME_SENTINEL_FP);
     p("\n");
 
     // values in VM_ObjectModel
     //
-    pln("static const int VM_ObjectModel_ARRAY_LENGTH_OFFSET = " + 
-                       VM_ObjectModel.getArrayLengthOffset() + "\n;");
+    pln("VM_ObjectModel_ARRAY_LENGTH_OFFSET = ", 
+                       VM_ObjectModel.getArrayLengthOffset());
+    pln();
 
     // values in VM_Scheduler
     //
@@ -579,116 +606,101 @@ class GenerateInterfaceDeclarations {
 
     // Value in org.mmtk.vm.Constants:
     p("static const int MMTk_Constants_BYTES_IN_PAGE            = "
-        + org.mmtk.vm.Constants.BYTES_IN_PAGE + ";\n");
+        + org.mmtk.utility.Constants.BYTES_IN_PAGE + ";\n");
 
 
     // fields in VM_Processor
     //
-    int offset;
+    Offset offset;
     offset = VM_Entrypoints.timeSliceExpiredField.getOffset();
-    p("static const int VM_Processor_timeSliceExpired_offset = "
-        + offset + ";\n");
+    pln("VM_Processor_timeSliceExpired_offset = ", offset);
     offset = VM_Entrypoints.takeYieldpointField.getOffset();
-    p("static const int VM_Processor_takeYieldpoint_offset = "
-        + offset + ";\n");
+    pln("VM_Processor_takeYieldpoint_offset = ", offset);
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
-    offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
-    p("static const int VM_Processor_activeThreadStackLimit_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_activeThreadStackLimit_offset = ", offset);
     offset = VM_Entrypoints.pthreadIDField.getOffset();
-    p("static const int VM_Processor_pthread_id_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_pthread_id_offset = ", offset);
     offset = VM_Entrypoints.timerTicksField.getOffset();
-    p("static const int VM_Processor_timerTicks_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_timerTicks_offset = ", offset);
     offset = VM_Entrypoints.reportedTimerTicksField.getOffset();
-    p("static const int VM_Processor_reportedTimerTicks_offset = "
-                    + offset + ";\n");
+    pln("VM_Processor_reportedTimerTicks_offset = ", offset);
     offset = VM_Entrypoints.activeThreadField.getOffset();
-    p("static const int VM_Processor_activeThread_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_activeThread_offset = ", offset);
     offset = VM_Entrypoints.threadIdField.getOffset();
-    p("static const int VM_Processor_threadId_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_threadId_offset = ", offset);
     //-#if RVM_FOR_IA32
     offset = VM_Entrypoints.framePointerField.getOffset();
-    p("static const int VM_Processor_framePointer_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_framePointer_offset = ", offset);
     offset = VM_Entrypoints.jtocField.getOffset();
-    p("static const int VM_Processor_jtoc_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_jtoc_offset = ", offset);
     offset = VM_Entrypoints.arrayIndexTrapParamField.getOffset();
-    p("static const int VM_Processor_arrayIndexTrapParam_offset = "
-                     + offset + ";\n");
+    pln("VM_Processor_arrayIndexTrapParam_offset = ", offset);
     //-#endif
 
     // fields in VM_Thread
     //
     offset = VM_Entrypoints.threadStackField.getOffset();
-    p("static const int VM_Thread_stack_offset = " + offset + ";\n");
+    pln("VM_Thread_stack_offset = ", offset);
     offset = VM_Entrypoints.stackLimitField.getOffset();
-    p("static const int VM_Thread_stackLimit_offset = " + offset + ";\n");
+    pln("VM_Thread_stackLimit_offset = ", offset);
     offset = VM_Entrypoints.threadHardwareExceptionRegistersField.getOffset();
-    p("static const int VM_Thread_hardwareExceptionRegisters_offset = "
-                     + offset + ";\n");
+    pln("VM_Thread_hardwareExceptionRegisters_offset = ", offset);
     offset = VM_Entrypoints.jniEnvField.getOffset();
-    p("static const int VM_Thread_jniEnv_offset = "
-                     + offset + ";\n");
+    pln("VM_Thread_jniEnv_offset = ", offset);
 
     // fields in VM_Registers
     //
     offset = VM_Entrypoints.registersGPRsField.getOffset();
-    p("static const int VM_Registers_gprs_offset = " + offset + ";\n");
+    pln("VM_Registers_gprs_offset = ", offset);
     offset = VM_Entrypoints.registersFPRsField.getOffset();
-    p("static const int VM_Registers_fprs_offset = " + offset + ";\n");
+    pln("VM_Registers_fprs_offset = ", offset);
     offset = VM_Entrypoints.registersIPField.getOffset();
-    p("static const int VM_Registers_ip_offset = " + offset + ";\n");
+    pln("VM_Registers_ip_offset = ", offset);
     //-#if RVM_FOR_IA32
     offset = VM_Entrypoints.registersFPField.getOffset();
-    p("static const int VM_Registers_fp_offset = " + offset + ";\n");
+    pln("VM_Registers_fp_offset = ", offset);
     //-#endif
     //-#if RVM_FOR_POWERPC
     offset = VM_Entrypoints.registersLRField.getOffset();
-    p("static const int VM_Registers_lr_offset = " + offset + ";\n");
+    pln("VM_Registers_lr_offset = ", offset);
     //-#endif
 
     offset = VM_Entrypoints.registersInUseField.getOffset();
-    p("static const int VM_Registers_inuse_offset = " + 
-                     offset + ";\n");
+    pln("VM_Registers_inuse_offset = ", offset);  
 
     // fields in VM_JNIEnvironment
     offset = VM_Entrypoints.JNIExternalFunctionsField.getOffset();
-    p("static const int VM_JNIEnvironment_JNIExternalFunctions_offset = " +
-      offset + ";\n");
+    pln("VM_JNIEnvironment_JNIExternalFunctions_offset = ", offset); 
 
     // fields in java.net.InetAddress
     //
     offset = VM_Entrypoints.inetAddressAddressField.getOffset();
-    p("static const int java_net_InetAddress_address_offset = "
-                     + offset + ";\n");
+    pln("java_net_InetAddress_address_offset = ", offset);
     offset = VM_Entrypoints.inetAddressFamilyField.getOffset();
-    p("static const int java_net_InetAddress_family_offset = "
-                     + offset + ";\n");
+    pln("java_net_InetAddress_family_offset = ", offset);
 
     // fields in java.net.SocketImpl
     //
     offset = VM_Entrypoints.socketImplAddressField.getOffset();
-    p("static const int java_net_SocketImpl_address_offset = "
-                     + offset + ";\n");
+    pln("java_net_SocketImpl_address_offset = ", offset);
     offset = VM_Entrypoints.socketImplPortField.getOffset();
-    p("static const int java_net_SocketImpl_port_offset = "
-                     + offset + ";\n");
+    pln("java_net_SocketImpl_port_offset = ", offset);
 
     // fields in com.ibm.JikesRVM.memoryManagers.JMTk.BasePlan
     offset = VM_Entrypoints.gcStatusField.getOffset();
-    p("static const int com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = "
-                     + offset + ";\n");
+    pln("com_ibm_JikesRVM_memoryManagers_JMTk_BasePlan_gcStatusOffset = ", offset);
   }
 
 
   // Codes for exit(3).
   static void emitExitStatusCodes () {
-    pln("/* Automatically generated from the exitStatus declarations in VM.java */");
+    pln("/* Automatically generated from the exitStatus declarations in VM_ExitStatus.java */");
+    pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = "
+        + VM.EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
+    pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = "
+        + VM.EXIT_STATUS_COULD_NOT_EXECUTE + ";");
+    pln("const int EXIT_STATUS_MISC_TROUBLE                         = "
+        + VM.EXIT_STATUS_MISC_TROUBLE + ";");
     pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = "
         + VM.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
     pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = "
@@ -699,6 +711,10 @@ class GenerateInterfaceDeclarations {
         + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
     pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = "
         + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
+    pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = "
+        + VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
+    pln("const int EXIT_STATUS_HPM_TROUBLE                          = "
+        + VM.EXIT_STATUS_HPM_TROUBLE + ";");
     pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = "
         + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
     pln("const int EXIT_STATUS_JNI_TROUBLE                          = "

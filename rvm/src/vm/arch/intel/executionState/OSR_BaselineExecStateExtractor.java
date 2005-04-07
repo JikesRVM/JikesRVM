@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.opt.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * OSR_BaselineExecStateExtractor retrieves the JVM scope descriptor
+ * OSR_BaselineExecStateExtractor retrieves the VM scope descriptor
  * from a suspended thread whose top method was compiled by the
  * baseline compiler.
  *
@@ -35,8 +35,8 @@ public final class OSR_BaselineExecStateExtractor
    * return a OSR_ExecStateExtractor object.
    */
   public OSR_ExecutionState extractState(VM_Thread thread,
-                                  int osrFPoff,
-                                  int methFPoff, 
+                                  Offset osrFPoff,
+                                  Offset methFPoff, 
                                   int cmid) {
 
   /* performs architecture and compiler dependent operations here
@@ -70,7 +70,7 @@ public final class OSR_BaselineExecStateExtractor
 
     if (VM.VerifyAssertions) {
       int fooCmid  = VM_Magic.getIntAtOffset(stack, 
-                                             methFPoff + STACKFRAME_METHOD_ID_OFFSET);
+                                             methFPoff.add(STACKFRAME_METHOD_ID_OFFSET));
 
       if (VM.TraceOnStackReplacement) {
         VM.sysWriteln("fooCmid = " + fooCmid);
@@ -90,24 +90,25 @@ public final class OSR_BaselineExecStateExtractor
 
     VM.disableGC();
     Address instr_beg = VM_Magic.objectAsAddress(instructions);
-    Address rowIP     = VM_Magic.objectAsAddress(stack).add(osrFPoff + STACKFRAME_RETURN_ADDRESS_OFFSET).loadAddress(); 
+    Address rowIP     = VM_Magic.objectAsAddress(stack).loadAddress(osrFPoff.add(STACKFRAME_RETURN_ADDRESS_OFFSET)); 
     VM.enableGC();
-    int ipIndex   = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
+    Offset ipOffset = rowIP.diff(instr_beg);
     
     // CAUTION: IP Offset should point to next instruction
-    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipIndex + 1);
+    int bcIndex = fooCM.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
     // assertions
     if (VM.VerifyAssertions) {
       if (bcIndex == -1) {      
 
-        VM.sysWriteln("osrFPoff = " + osrFPoff);
+        VM.sysWriteln("osrFPoff = ", osrFPoff);
         VM.sysWriteln("instr_beg = " + instr_beg);
 
-        for (int i=(osrFPoff)-10; i<(osrFPoff)+10; i++)
+        for (int i=(osrFPoff.toInt())-10; i<(osrFPoff.toInt())+10; i++)
           VM.sysWriteln("  stack["+i+"] = "+stack[i]);
 
-        VM.sysWriteln("ipIndex : " + ipIndex);
+        Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+        VM.sysWriteln("ipIndex : " , ipIndex);
         VM.sysWriteln("bcIndex : " + bcIndex);
       }
       VM._assert(bcIndex != -1);
@@ -148,7 +149,7 @@ public final class OSR_BaselineExecStateExtractor
       // if typer reports a local is reference type, but the GC map says no
       // then set the localType to uninitialized, see VM spec, bytecode verifier
       if (localTypes[i] == ClassTypeCode) {
-        if (!fooCM.referenceMaps.isLocalRefType(fooM, ipIndex+ 1, i)) {
+        if (!fooCM.referenceMaps.isLocalRefType(fooM, ipOffset.add(1<<LG_INSTRUCTION_WIDTH), i)) {
           localTypes[i] = VoidTypeCode;
           if (VM.TraceOnStackReplacement) {
             VM.sysWriteln("GC maps disagrees with type matcher at "+i+"th local\n");
@@ -163,11 +164,9 @@ public final class OSR_BaselineExecStateExtractor
     
     // adjust local offset and stack offset
     // NOTE: donot call VM_Compiler.getFirstLocalOffset(method)     
-    int startLocalOffset = fooCM.getStartLocalOffset();
-    startLocalOffset += methFPoff;
+    Offset startLocalOffset = methFPoff.add(fooCM.getStartLocalOffset());
 
-    int stackOffset = fooCM.getEmptyStackOffset();
-    stackOffset += methFPoff;
+    Offset stackOffset = methFPoff.add(fooCM.getEmptyStackOffset());
 
     // for locals
     getVariableValue(stack, 
@@ -199,24 +198,24 @@ public final class OSR_BaselineExecStateExtractor
   
   /* go over local/stack array, and build OSR_VariableElement. */
   private static void getVariableValue(byte[] stack,
-                                       int   offset,
+                                       Offset   offset,
                                        byte[] types,
                                        VM_BaselineCompiledMethod compiledMethod,
                                        VM_CodeArray instructions,
                                        int   kind,
                                        OSR_ExecutionState state) {
     int size = types.length;
-    int vOffset = offset;
+    Offset vOffset = offset;
     for (int i=0; i<size; i++) {
       if (VM.TraceOnStackReplacement) {
-        Word content = VM_Magic.getWordAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
-        VM.sysWrite("0x"+Integer.toHexString(vOffset - BYTES_IN_ADDRESS)+"    0x");
+        Word content = VM_Magic.getWordAtOffset(stack, vOffset.sub(BYTES_IN_ADDRESS));
+        VM.sysWrite("0x",vOffset.sub(BYTES_IN_ADDRESS),"    0x");
         VM.sysWriteln(content);
       }
       
       switch (types[i]) {
       case VoidTypeCode:
-        vOffset -= BYTES_IN_STACKSLOT;
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
         break;
 
       case BooleanTypeCode:
@@ -225,8 +224,8 @@ public final class OSR_BaselineExecStateExtractor
       case CharTypeCode:
       case IntTypeCode:
       case FloatTypeCode:{
-        int value = VM_Magic.getIntAtOffset(stack, vOffset - BYTES_IN_INT);
-        vOffset -= BYTES_IN_STACKSLOT;
+        int value = VM_Magic.getIntAtOffset(stack, vOffset.sub(BYTES_IN_INT));
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
           
         int tcode = (types[i] == FloatTypeCode) ? FLOAT : INT;
 
@@ -239,8 +238,8 @@ public final class OSR_BaselineExecStateExtractor
       case LongTypeCode: 
       case DoubleTypeCode: {
       //KV: this code would be nicer if VoidTypeCode would always follow a 64-bit value. Rigth now for LOCAL it follows, for STACK it proceeds
-        int memoff = 
-          (kind == LOCAL) ? (vOffset-BYTES_IN_DOUBLE) : VM.BuildFor64Addr? vOffset : (vOffset - BYTES_IN_STACKSLOT);
+        Offset memoff = 
+          (kind == LOCAL) ? vOffset.sub(BYTES_IN_DOUBLE) : VM.BuildFor64Addr? vOffset : vOffset.sub(BYTES_IN_STACKSLOT);
         long value = VM_Magic.getLongAtOffset(stack, memoff);
         
         int tcode = (types[i] == LongTypeCode) ? LONG : DOUBLE;
@@ -251,28 +250,29 @@ public final class OSR_BaselineExecStateExtractor
                                          value));
 
         if (kind == LOCAL) { //KV:VoidTypeCode is next
-          vOffset -= 2*BYTES_IN_STACKSLOT;
+          vOffset = vOffset.sub(2*BYTES_IN_STACKSLOT);
           i++;
-        } else vOffset -=  BYTES_IN_STACKSLOT; //KV:VoidTypeCode was already in front
+        } else vOffset = vOffset.sub( BYTES_IN_STACKSLOT); //KV:VoidTypeCode was already in front
         
         break;
       }
       case ReturnAddressTypeCode: {
         VM.disableGC();
-        Address rowIP = VM_Magic.objectAsAddress(stack).add(vOffset).loadAddress();
+        Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(vOffset);
         Address instr_beg = VM_Magic.objectAsAddress(instructions);  
         VM.enableGC();
 
-        vOffset -= BYTES_IN_STACKSLOT;
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
 
-        int ipIndex = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
+        Offset ipOffset = rowIP.diff(instr_beg);
 
         if (VM.TraceOnStackReplacement) {
-          VM.sysWrite("baseline ret_addr ip "+ipIndex+" --> ");
+          Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
+          VM.sysWrite("baseline ret_addr ip ", ipIndex, " --> ");
         }
         
         int bcIndex = 
-          compiledMethod.findBytecodeIndexForInstruction(ipIndex+1);
+          compiledMethod.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
 
         if (VM.TraceOnStackReplacement) {
           VM.sysWrite(" bc "+ bcIndex+"\n");
@@ -288,10 +288,10 @@ public final class OSR_BaselineExecStateExtractor
       case ClassTypeCode: 
       case ArrayTypeCode: {
         VM.disableGC();
-        Object ref = VM_Magic.getObjectAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
+        Object ref = VM_Magic.getObjectAtOffset(stack, vOffset.sub(BYTES_IN_ADDRESS));
         VM.enableGC();
 
-        vOffset -= BYTES_IN_STACKSLOT;
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
 
         state.add(new OSR_VariableElement(kind,
                                          i,
@@ -300,8 +300,8 @@ public final class OSR_BaselineExecStateExtractor
         break;
       }
       case WordTypeCode: {
-        Word value = VM_Magic.getWordAtOffset(stack, vOffset - BYTES_IN_ADDRESS);
-        vOffset -= BYTES_IN_STACKSLOT;
+        Word value = VM_Magic.getWordAtOffset(stack, vOffset.sub(BYTES_IN_ADDRESS));
+        vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
           
         state.add(new OSR_VariableElement(kind,
                                          i,

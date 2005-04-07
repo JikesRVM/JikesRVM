@@ -50,9 +50,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
    * Generate machine code into ir.MIRInfo.machinecode.
    * 
    * @param ir the IR to generate
+   * @param shouldPrint should we print the machine code?
    * @return   the number of machinecode instructions generated
    */
   public static final int generateCode (OPT_IR ir, boolean shouldPrint) {
+    ir.MIRInfo.machinecode = VM_CodeArray.Factory.create(ir.MIRInfo.mcSizeEstimate, true);
     return new OPT_Assembler().genCode(ir, shouldPrint);
   }
 
@@ -297,7 +299,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = OPT_PowerPCTrapOperand.LOWER;
           int op1 = ((OPT_RegisterOperand)NullCheck.getRef(p)).register.number & REG_MASK;
           int op2 = 1;
+          //-#if RVM_FOR_64_ADDR
+          inst = PPC64_TDI.instTemplate;
+          //-#else
           inst = PPC_TWI.instTemplate;
+                         //-#endif
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }

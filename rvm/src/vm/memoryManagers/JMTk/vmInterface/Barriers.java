@@ -6,6 +6,7 @@
  */
 package org.mmtk.vm;
 
+import com.ibm.JikesRVM.VM_SizeConstants;
 import com.ibm.JikesRVM.VM_Magic;
 
 import org.vmmagic.unboxed.*;
@@ -20,7 +21,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Barriers implements Constants, Uninterruptible {
+public class Barriers implements VM_SizeConstants, Uninterruptible {
   /**
    * Sets an element of a char array without invoking any write
    * barrier.  This method is called by the Log method, as it will be
@@ -33,7 +34,7 @@ public class Barriers implements Constants, Uninterruptible {
    */
   public static void setArrayNoBarrier(char [] dst, int index, char value) {
     if (Assert.runningVM())
-      VM_Magic.setCharAtOffset(dst, index << LOG_BYTES_IN_CHAR, value);
+      VM_Magic.setCharAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR), value);
     else
       dst[index] = value;
   }
@@ -49,7 +50,7 @@ public class Barriers implements Constants, Uninterruptible {
    * @param mode The context in which the write is occuring
    */
   public static void performWriteInBarrier(ObjectReference ref, Address slot, 
-                                           ObjectReference target, int offset, 
+                                           ObjectReference target, Offset offset, 
                                            int locationMetadata, int mode) 
     throws InlinePragma {
     Object obj = ref.toObject();
@@ -70,7 +71,7 @@ public class Barriers implements Constants, Uninterruptible {
    */
   public static ObjectReference performWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
-                                           ObjectReference target, int offset,
+                                           ObjectReference target, Offset offset,
                                            int locationMetadata, int mode)
     throws InlinePragma {                                
     Object obj = ref.toObject();
@@ -92,7 +93,7 @@ public class Barriers implements Constants, Uninterruptible {
    */
   public static char getArrayNoBarrier(char [] src, int index) {
     if (Assert.runningVM())
-      return VM_Magic.getCharAtOffset(src, index << LOG_BYTES_IN_CHAR);
+      return VM_Magic.getCharAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR));
     else
       return src[index];
   }
@@ -107,7 +108,7 @@ public class Barriers implements Constants, Uninterruptible {
    */
   public static byte getArrayNoBarrier(byte [] src, int index) {
     if (Assert.runningVM())
-      return VM_Magic.getByteAtOffset(src, index);
+      return VM_Magic.getByteAtOffset(src, Offset.fromIntZeroExtend(index));
     else
       return src[index];
   }
@@ -122,7 +123,7 @@ public class Barriers implements Constants, Uninterruptible {
    */
   public static int getArrayNoBarrier(int [] src, int index) {
     if (Assert.runningVM())
-      return VM_Magic.getIntAtOffset(src, index<<LOG_BYTES_IN_INT);
+      return VM_Magic.getIntAtOffset(src, Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_INT));
     else
       return src[index];
   }
@@ -137,7 +138,7 @@ public class Barriers implements Constants, Uninterruptible {
    */
   public static Object getArrayNoBarrier(Object [] src, int index) {
     if (Assert.runningVM())
-      return VM_Magic.getObjectAtOffset(src, index<<LOG_BYTES_IN_ADDRESS);
+      return VM_Magic.getObjectAtOffset(src, Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS));
     else
       return src[index];
   }
@@ -152,7 +153,7 @@ public class Barriers implements Constants, Uninterruptible {
    */
   public static byte[] getArrayNoBarrier(byte[][] src, int index) {
     if (Assert.runningVM())
-      return VM_Magic.addressAsByteArray(VM_Magic.objectAsAddress(VM_Magic.getObjectAtOffset(src, index << LOG_BYTES_IN_ADDRESS)));
+      return VM_Magic.addressAsByteArray(VM_Magic.objectAsAddress(VM_Magic.getObjectAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS))));
     else
       return src[index];
   }

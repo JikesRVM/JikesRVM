@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -7,6 +7,7 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.*;
 import java.io.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * A VM_TraceWriter thread offloads interruptible work when in uninterruptible code.
@@ -47,7 +48,8 @@ import org.vmmagic.pragma.*;
 class VM_TraceWriter extends VM_Thread 
   implements   VM_Callbacks.StartupMonitor,     VM_Callbacks.ExitMonitor,
                VM_Callbacks.AppStartMonitor,    VM_Callbacks.AppCompleteMonitor,
-               VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor
+               VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor,
+               VM_SizeConstants
 {
 
   /**
@@ -73,15 +75,15 @@ class VM_TraceWriter extends VM_Thread
     while (true) {
       passivate(); // wait until externally scheduled to run
       if (notifyExit == true) {
-	// do nothing 
-	return;
+        // do nothing 
+        return;
       } else {
-	try {
-	  thresholdReached();       // we've been scheduled; do our job!
-	} catch (Exception e) {
-	  e.printStackTrace();
-	  VM.sysFail("Exception in VM_ConsumerThread "+this);
-	}
+        try {
+          thresholdReached();       // we've been scheduled; do our job!
+        } catch (Exception e) {
+          e.printStackTrace();
+          VM.sysFail("Exception in VM_ConsumerThread "+this);
+        }
       }
     } 
   }
@@ -103,7 +105,7 @@ class VM_TraceWriter extends VM_Thread
   {
     if (active == true) {
       VM.sysWriteln("***VM_TraceWriter.activate() active == true!  PID ",
-		    ((VM_TraceWriter)this).getPid(),"***");
+                    ((VM_TraceWriter)this).getPid(),"***");
       VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.activate()");
@@ -181,7 +183,7 @@ class VM_TraceWriter extends VM_Thread
     if(VM_HardwarePerformanceMonitors.verbose>=4)
       VM.sysWriteln("VM_TraceWriter.thresholdReached() write full buffer ",hpm.getNameOfFullBuffer());
     byte[] buffer = hpm.getFullBuffer();
-    int    index  = hpm.getFullIndex();
+    Offset index  = hpm.getFullIndex();
     writeFileOutputStream(buffer, index);
     hpm.resetFull();    
   }
@@ -201,7 +203,7 @@ class VM_TraceWriter extends VM_Thread
   {
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.openFileOutputStream(",trace_file_name,")");
 
-    if (trace_file != null) {	// constraint
+    if (trace_file != null) {   // constraint
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream(",trace_file_name,") trace_file != null!***");      
       new Exception().printStackTrace(); VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
@@ -233,8 +235,8 @@ class VM_TraceWriter extends VM_Thread
   {
     if(VM_HardwarePerformanceMonitors.verbose>=2){ VM.sysWriteln("VM_TraceWriter.writeHeader() PID ",pid); }
 
-    byte[] buffer   = new byte[32+(10*100)];	// temporary buffer
-    int    index    = 0;
+    byte[] buffer   = new byte[32+(10*100)];    // temporary buffer
+    Offset index    = Offset.zero();
     
     // write version number 
     int version_number = HPM_info.version_number;
@@ -246,7 +248,7 @@ class VM_TraceWriter extends VM_Thread
     } else {
       VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(version_number));
     }
-    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+    index = index.add(BYTES_IN_INT);
     // write name of header file
     if(VM_HardwarePerformanceMonitors.verbose>=4) {
       VM.sysWriteln("VM_TraceWriter.writeHeader() write headerFilename \"",HPM_info.headerFilename(),"\"");
@@ -268,18 +270,18 @@ class VM_TraceWriter extends VM_Thread
    * @param buffer bytes to write to file
    * @param length number of bytes to write 
    */
-  public void writeFileOutputStream(byte[] buffer, int length)
+  public void writeFileOutputStream(byte[] buffer, Offset length)
   {
     if(VM_HardwarePerformanceMonitors.verbose>=4)VM.sysWriteln("VM_TraceWriter.writeFileOutputStream(buffer, 0, ",length,")");
-    if (length <= 0) return;
-    if (trace_file == null) { 	// constraint
+    if (length.sLE(Offset.zero())) return;
+    if (trace_file == null) {   // constraint
       VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE)***");
       VM.shutdown(VM.EXIT_STATUS_MISC_TROUBLE);
     }
     try {
       // allow only one writer at a time to trace file.
       synchronized(trace_file) {
-	trace_file.write(buffer, 0, length);
+        trace_file.write(buffer, 0, length.toInt());
       }
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.writeFileOutputStream(",length,") throws IOException!***");
@@ -296,9 +298,9 @@ class VM_TraceWriter extends VM_Thread
   private void closeFileOutputStream()
   {
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.closeFileOutputStream()");
-    if (trace_file == null) {	// constraint
+    if (trace_file == null) {   // constraint
       if(VM_HardwarePerformanceMonitors.verbose>=3)
-	VM.sysWriteln("\n***VM_TraceWriter.closeFileOutputStream() trace_file == null!***\n");
+        VM.sysWriteln("\n***VM_TraceWriter.closeFileOutputStream() trace_file == null!***\n");
       return;
     }
     try {
@@ -339,14 +341,18 @@ class VM_TraceWriter extends VM_Thread
    * Assumed called once.
    * Actions:
    *  Open trace file. 
+   * Verified Constraint: Assume trace file is not already open!
    */
   public void notifyStartup()
   {
     if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2){ VM.sysWriteln("VM_TraceWriter.notifyStartup() PID ",pid); }
       if (trace_file != null) {
-	VM.sysWriteln("***VM_TraceWriter.notifyStartup() pid ",pid," trace_file != null!***");
-	VM.sysExit(-1);
+        VM.sysWriteln("***VM_TraceWriter.notifyStartup() pid ",pid," trace_file != null!***");
+        // NOTE: This is called during the boot sequence, so we use
+        // VM.sysExit, since we do not need System.exit to run shutdown hooks.
+        
+        VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
       }
       int n_processors = VM_Scheduler.numProcessors;
       String file_name = HPM_info.filenamePrefix+"."+pid+".startup";
@@ -363,39 +369,42 @@ class VM_TraceWriter extends VM_Thread
    * The thread that executes this method is not necessarily the thread that
    * produces the trace records.
    *
+   * <B>NB:</b> Called late in the shutdown sequence, so we should not call
+   *   System.exit, since we could get into a recursive calling loop.
+   *    
    * @param value the exit value
    */
   public void notifyExit(int value)
   {
     if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2) { 
-	VM.sysWriteln("VM_TraceWriter.notifyExit(",value,") PID ",pid); 
+        VM.sysWriteln("VM_TraceWriter.notifyExit(",value,") PID ",pid); 
       }
       if (trace_file == null) {
-	VM.sysWriteln("\n***VM_TraceWriter.notifyExit() PID ",pid," trace_file == null! notifyStartup never called!***\n");
-	VM.sysExit(-1);
+        VM.sysWriteln("\n***VM_TraceWriter.notifyExit() PID ",pid," trace_file == null! notifyStartup never called!***\n");
+        VM.sysExit(VM.EXIT_STATUS_HPM_TROUBLE);
       }
       // Only called once from producer when notify exit occurs.
       // Flush current buffer
       hpm.passivate();
 
       byte[] buffer = hpm.getCurrentBuffer();
-      int    index  = hpm.getCurrentIndex();
+      Offset index  = hpm.getCurrentIndex();
       writeFileOutputStream(buffer, index);
 
       // write Exit record
-      index = 0;
+      index = Offset.zero();
       byte[] buffer2 = new byte[10];
       VM_Magic.setIntAtOffset( buffer2, index, VM_HardwarePerformanceMonitor.EXIT_FORMAT);// format
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
-      VM_Magic.setIntAtOffset( buffer2, index, value);					// value
-      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      index = index.add(BYTES_IN_INT);
+      VM_Magic.setIntAtOffset( buffer2, index, value);                                  // value
+      index = index.add(BYTES_IN_INT);
       writeFileOutputStream(buffer2, index);
 
       if (VM_HardwarePerformanceMonitors.verbose>=3) {
-	VM.sysWrite  ("VM_TraceWriter.notifyExit(");
-	VM.sysWrite  (") n_records ",hpm.numberOfRecords()+1);
-	VM.sysWriteln(", missed ",hpm.missedRecords());
+        VM.sysWrite  ("VM_TraceWriter.notifyExit(");
+        VM.sysWrite  (") n_records ",hpm.numberOfRecords()+1);
+        VM.sysWriteln(", missed ",hpm.missedRecords());
       }
 
       closeFileOutputStream();
@@ -414,9 +423,9 @@ class VM_TraceWriter extends VM_Thread
     if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2){ VM.sysWriteln("VM_TraceWriter.notifyAppStart(",app,") PID ",pid); }
       if (trace_file == null) {
-	VM.sysWriteln("\n***VM_TraceWriter.notifyAppStart() pid ",pid," trace_file == null!***\n");
-	return;
-	//	VM.sysExit(-1);
+        VM.sysWriteln("\n***VM_TraceWriter.notifyAppStart() pid ",pid," trace_file == null!***\n");
+        return;
+        //      VM.sysexit(1);
       }
       hpm.notifyAppStart(app);
     }
@@ -433,10 +442,10 @@ class VM_TraceWriter extends VM_Thread
     if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2){ VM.sysWriteln("VM_TraceWriter.notifyAppComplete(",app,") PID ",pid); }
       if (trace_file == null) {
-	VM.sysWrite(  "\n***VM_TraceWriter.notifyAppComplete(",app,") PID ",pid);
-	VM.sysWriteln(" trace_file == null! notifyAppStart() never called!***\n");
-	return;
-	//	VM.sysExit(-1);
+        VM.sysWrite(  "\n***VM_TraceWriter.notifyAppComplete(",app,") PID ",pid);
+        VM.sysWriteln(" trace_file == null! notifyAppStart() never called!***\n");
+        return;
+        //      VM.sysexit(1);
       }
       hpm.notifyAppComplete(app);
     }
@@ -453,15 +462,15 @@ class VM_TraceWriter extends VM_Thread
   {
     if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2){ 
-	VM.sysWrite("VM_TraceWriter.notifyAppRunStart(",app,", ",run);
-	VM.sysWriteln(") PID ",pid);
+        VM.sysWrite("VM_TraceWriter.notifyAppRunStart(",app,", ",run);
+        VM.sysWriteln(") PID ",pid);
       }
       if(trace_file == null) {
-	VM.sysWrite  ("***VM_TraceWriter.notifyAppRunStart(",app,", ",run);
-	VM.sysWrite  (") PID ",pid);
-	VM.sysWriteln(" trace_file == null!***");
-	return;
-	// VM.sysExit(-1);
+        VM.sysWrite  ("***VM_TraceWriter.notifyAppRunStart(",app,", ",run);
+        VM.sysWrite  (") PID ",pid);
+        VM.sysWriteln(" trace_file == null!***");
+        return;
+        // VM.sysexit(1);
       }
       hpm.notifyAppRunStart(app,run);
     } 
@@ -479,10 +488,10 @@ class VM_TraceWriter extends VM_Thread
     if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2){ VM.sysWrite("VM_TraceWriter.notifyAppRunComplete(",app,",",run);VM.sysWriteln(") PID ",pid); }
       if (trace_file == null) {
-	VM.sysWrite(  "\n***VM_TraceWriter.notifyAppRunComplete(",app,",",run);
-	VM.sysWriteln(") PID ",pid," trace_file == null!***\n");
-	return;
-	//	VM.sysExit(-1);
+        VM.sysWrite(  "\n***VM_TraceWriter.notifyAppRunComplete(",app,",",run);
+        VM.sysWriteln(") PID ",pid," trace_file == null!***\n");
+        return;
+        //      VM.sysexit(1);
       }
       hpm.notifyAppRunComplete(app,run);
     }

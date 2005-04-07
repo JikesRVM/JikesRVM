@@ -318,6 +318,15 @@ public abstract class OPT_AbstractRegisterPool {
   }
 
   /**
+   * Make a temporary to hold an address (allocating a new register).
+   * 
+   * @return the newly created temporary
+   */
+  public OPT_RegisterOperand makeTempOffset() {
+    return new OPT_RegisterOperand(getAddress(), VM_TypeReference.Offset);
+  }
+
+  /**
    * Make a temporary to hold an int (allocating a new register).
    * 
    * @return the newly created temporary

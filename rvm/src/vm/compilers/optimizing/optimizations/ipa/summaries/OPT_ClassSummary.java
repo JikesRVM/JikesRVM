@@ -1,22 +1,23 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001,2005
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.classloader.VM_Class;
 
 /**
  * Hold semantic information about a class that is not defined in
- * VM_Class.
+ * {@link VM_Class}.  Note: This is currently unused but is kept around
+ * in case we should have a need for it.
  * 
  * @author Stephen Fink
  */
 public class OPT_ClassSummary {
 
   /**
-   * @param v lightweith class corresponding to this OPT_Class
+   * @param v The {@link VM_Class} we want to store additional information
+   * about. 
    */
   OPT_ClassSummary (VM_Class v) {
     vmClass = v;

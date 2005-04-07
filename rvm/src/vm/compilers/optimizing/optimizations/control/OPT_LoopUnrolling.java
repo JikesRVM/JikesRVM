@@ -163,7 +163,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
         OPT_BasicBlock out = e.next();
         if (!OPT_CFGTransformations.inLoop (out, nloop)) {
           if (exitBlock == null) {
-            exitBlock = out;
+            exitBlock = b;
           } else {
             report("5 multiple exit blocks.\n"); return true;
           }

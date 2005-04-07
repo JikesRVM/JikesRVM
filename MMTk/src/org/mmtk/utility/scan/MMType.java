@@ -5,7 +5,7 @@
 //$Id$
 package org.mmtk.utility.scan;
 
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;

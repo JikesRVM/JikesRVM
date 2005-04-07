@@ -6,7 +6,7 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
 
@@ -38,7 +38,7 @@ public final class CopySpace extends Space
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
-  public static final int GC_HEADER_BYTES_REQUIRED = 0;
+  public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   private static final Word GC_MARK_BIT_MASK = Word.one();
   private static final Word GC_FORWARDED        = Word.one().lsh(1);  // ...10
@@ -70,7 +70,7 @@ public final class CopySpace extends Space
    * (or to-space)?
    */
   public CopySpace(String name, int pageBudget, Address start, Extent bytes,
-		   boolean fromSpace) {
+                   boolean fromSpace) {
     super(name, true, false, start, bytes);
     this.fromSpace = fromSpace;
     pr = new MonotonePageResource(pageBudget, this, start, extent);
@@ -113,7 +113,7 @@ public final class CopySpace extends Space
    * (or to-space)?
    */
   public CopySpace(String name, int pageBudget, float frac, 
-		   boolean fromSpace) {
+                   boolean fromSpace) {
     super(name, true, false, frac);
     this.fromSpace = fromSpace;
     pr = new MonotonePageResource(pageBudget, this, start, extent);
@@ -140,7 +140,7 @@ public final class CopySpace extends Space
    * (or to-space)?
    */
   public CopySpace(String name, int pageBudget, int mb, boolean top, 
-   		   boolean fromSpace) {
+                   boolean fromSpace) {
     super(name, true, false, mb, top);
     this.fromSpace = fromSpace;
     pr = new MonotonePageResource(pageBudget, this, start, extent);
@@ -168,7 +168,7 @@ public final class CopySpace extends Space
    * (or to-space)?
    */
   public CopySpace(String name, int pageBudget, float frac, boolean top,
-		   boolean fromSpace) {
+                   boolean fromSpace) {
     super(name, true, false, frac, top);
     this.fromSpace = fromSpace;
     pr = new MonotonePageResource(pageBudget, this, start, extent);
@@ -291,7 +291,7 @@ public final class CopySpace extends Space
    * @param object the object ref to the storage to be initialized
    */
    public final void postAlloc(ObjectReference object) 
-    	throws InlinePragma {}
+        throws InlinePragma {}
    
   /**
    * Clear the GC portion of the header for an object.
@@ -432,7 +432,7 @@ public final class CopySpace extends Space
    * forwarding word
    */
   private static void setForwardingPointer(ObjectReference object, 
-					   ObjectReference ptr)
+                                           ObjectReference ptr)
     throws InlinePragma {
     ObjectModel.writeAvailableBitsWord(object, ptr.toAddress().toWord().or(GC_FORWARDED));
   }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 // $Id$
 package com.ibm.JikesRVM;
@@ -286,7 +286,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM 
     // Get the opt's report
-    VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                                 VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"));
     VM_Type theType = theTypeRef.peekResolvedType();
     if (theType != null && theType.asClass().isInitialized()) {
@@ -652,10 +652,10 @@ public class VM_RuntimeCompiler implements VM_Constants,
       return fallback(method);
     } else {
       try {
-	quickCompilationInProgress = true;
-	return quickCompileWithFallBackInternal(method);
+        quickCompilationInProgress = true;
+        return quickCompileWithFallBackInternal(method);
       } finally {
-	quickCompilationInProgress = false;
+        quickCompilationInProgress = false;
       }
     }
   }
@@ -672,11 +672,11 @@ public class VM_RuntimeCompiler implements VM_Constants,
     } catch (VM_QuickCompilerException e) {
       String msg = "VM_RuntimeCompiler: can't quick compile \"" + method + "\" (error was: " + e + "): reverting to baseline compiler\n"; 
       if (e.isFatal ) {
-	e.printStackTrace();
-	VM.sysFail(msg);
+        e.printStackTrace();
+        VM.sysFail(msg);
       } else {
-	boolean printMsg = false;
-	if (printMsg) VM.sysWrite(msg);
+        boolean printMsg = false;
+        if (printMsg) VM.sysWrite(msg);
       }
       return fallback(method);
     } 

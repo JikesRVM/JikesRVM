@@ -6,6 +6,7 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.ReferenceProcessor;
@@ -156,7 +157,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     if (why == EXTERNAL_GC_TRIGGER) {
       Plan.userTriggeredGC();
       if (Plan.verbose.getValue() == 1 || Plan.verbose.getValue() == 2) 
-	VM.sysWrite("[Forced GC]");
+        VM.sysWrite("[Forced GC]");
     }
     if (Plan.verbose.getValue() > 2) 
       VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);

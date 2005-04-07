@@ -160,10 +160,10 @@ public class TraceCounterRecord extends TraceRecord
     for (int i=0; i<1; i++) {
       int mask = TraceFileReader.options.event_mask_array[i];
       if ((mask & TraceFileReader.options.event_mask) == mask) {
-	//        if (values[i] > 0) {
+        //        if (values[i] > 0) {
           notZero = true;
           System.out.println(i+":"+trace_header.short_event_name(i)+": "+Utilities.format_long(values[i]));
-	  //        }
+          //        }
       }
     }
     return notZero;

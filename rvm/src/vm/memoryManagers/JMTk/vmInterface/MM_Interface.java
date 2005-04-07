@@ -14,6 +14,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
+import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
@@ -22,7 +23,6 @@ import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.Options;
@@ -46,7 +46,7 @@ import org.vmmagic.pragma.*;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.VM_HeapLayoutConstants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
@@ -65,7 +65,7 @@ import org.mmtk.utility.gcspy.GCspy;
  * @version $Revision$
  * @date $Date$
  */  
-public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
+public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterruptible {
 
   /***********************************************************************
    *
@@ -210,8 +210,8 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   public static void processCommandLineArg(String arg)
     throws InterruptiblePragma {
       if (!Options.process(arg)) {
-	VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
-	VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
      } 
   }
 
@@ -228,7 +228,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @param value the new value for the field
    * @param locationMetadata an int that encodes the source location being modified
    */
-  public static void putfieldWriteBarrier(Object ref, int offset, Object value,
+  public static void putfieldWriteBarrier(Object ref, Offset offset, Object value,
                                           int locationMetadata)
     throws InlinePragma {
     ObjectReference src = ObjectReference.fromObject(ref);
@@ -246,7 +246,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @param offset the offset of the field to be modified
    * @param value the new value for the field
    */
-  public static void putstaticWriteBarrier(int offset, Object value)
+  public static void putstaticWriteBarrier(Offset offset, Object value)
     throws InlinePragma { 
     // putstatic barrier currently unimplemented
     if (VM.VerifyAssertions) VM._assert(false);
@@ -271,7 +271,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
                                             Object value)
     throws InlinePragma {
     ObjectReference array = ObjectReference.fromObject(ref);
-    int offset = (index<<LOG_BYTES_IN_ADDRESS);
+    Offset offset = Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS);
     Plan.getInstance().writeBarrier(array,
                                     array.toAddress().add(offset),
                                     ObjectReference.fromObject(value),
@@ -296,14 +296,14 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public static boolean arrayCopyWriteBarrier(Object src, int srcOffset,
-					      Object tgt, int tgtOffset,
-					      int bytes) 
+  public static boolean arrayCopyWriteBarrier(Object src, Offset srcOffset,
+                                              Object tgt, Offset tgtOffset,
+                                              int bytes) 
     throws InlinePragma {
     return Plan.getInstance().writeBarrier(ObjectReference.fromObject(src),
-					       srcOffset,
+                                               srcOffset,
                                            ObjectReference.fromObject(tgt),
-					       tgtOffset, bytes);
+                                               tgtOffset, bytes);
   }
 
   /**
@@ -484,44 +484,6 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   public static int getDefaultAllocator() { return Plan.ALLOC_DEFAULT; }
 
   /**
-   * Determine whether an allocation is a code array from the baseline
-   * compiler. 
-   * 
-   * @param method The method allocating the array.
-   */
-  private static boolean isBaseCodeArrayAllocSite(VM_Method method) 
-    throws InterruptiblePragma, InlinePragma {
-    if (method != null) {
-      VM_Class cls = method.getDeclaringClass();
-      byte[] clsBA = cls.getDescriptor().toByteArray();
-      byte[] mthBA = method.getName().toByteArray();
-      return ((isPrefix("Lcom/ibm/JikesRVM/VM_Assembler", clsBA) && 
-	       isPrefix("getMachineCodes", mthBA)) ||
-	      (isPrefix("Lcom/ibm/JikesRVM/VM_MachineCode", clsBA) && 
-	       isPrefix("finish", mthBA)));
-    } else
-      return false;
-  }
-
-  /**
-   * Determine whether an allocation is a code array from the opt
-   * compiler.
-   * 
-   * @param method The method allocating the array.
-   */
-  private static boolean isOptCodeArrayAllocSite(VM_Method method) 
-    throws InterruptiblePragma, InlinePragma {
-    if (method != null) {
-      VM_Class cls = method.getDeclaringClass();
-      byte[] clsBA = cls.getDescriptor().toByteArray();
-      byte[] mthBA = method.getName().toByteArray();
-      return (isPrefix("Lcom/ibm/JikesRVM/opt/OPT_ConvertMIRtoMC", clsBA) &&
-	      isPrefix("perform", mthBA));
-    } else
-      return false;
-  }
-
-  /**
    * Returns the appropriate allocation scheme/area for the given type
    * and given method requesting the allocation.
    * 
@@ -531,17 +493,6 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static int pickAllocator(VM_Type type, VM_Method method)
     throws InterruptiblePragma {
-    /*
-     * We check the calling method so GC-data can go into special
-     * places.  A better implementation would be call-site specific
-     * which is strictly more refined.
-     */
-    if (type.isArrayType()) {
-      if (isBaseCodeArrayAllocSite(method))
-	return Plan.ALLOC_COLD_CODE;
-      else if (isOptCodeArrayAllocSite(method))
-	return Plan.ALLOC_HOT_CODE;
-    }
 
     if (method != null) {
      // We should strive to be allocation-free here.
@@ -551,18 +502,18 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
       if (Plan.WITH_GCSPY) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
-	  return Plan.ALLOC_GCSPY;
+          return Plan.ALLOC_GCSPY;
         }
       }
       if (isPrefix("Lorg/mmtk/", clsBA) 
-	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
+          || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
     MMType t = (MMType) type.getMMType();
     return t.getAllocator();
   }
-
+  
   /**
    * Determine the default allocator to be used for a given type.
    *
@@ -576,11 +527,11 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (Plan.WITH_GCSPY) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
-	       isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
-	allocator = Plan.ALLOC_GCSPY;
+               isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
+        allocator = Plan.ALLOC_GCSPY;
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
-	isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
+        isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.ALLOC_IMMORTAL;
@@ -664,7 +615,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static Address allocateSpace(Plan plan, int bytes, int align,
-					  int offset, int allocator)
+                                          int offset, int allocator)
     throws UninterruptiblePragma, InlinePragma {
     return allocateSpace(plan, bytes, align, offset, false, allocator, null);
   }
@@ -698,12 +649,12 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static Address allocateSpace(Plan plan, int bytes, int align,
-					  int offset, boolean copy,
+                                          int offset, boolean copy,
                                        int allocator, ObjectReference from)
-					  
+                                          
     throws UninterruptiblePragma, InlinePragma {
-    // MMTk requests must be in multiples of BYTES_IN_PARTICLE
-    bytes = VM_Memory.alignUp(bytes, BYTES_IN_PARTICLE);
+    // MMTk requests must be in multiples of MIN_ALIGNMENT
+    bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
     /*
      * Now make the request
@@ -735,12 +686,12 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * that the return value is aligned according to the above
    * constraints.
    */
-  public static final int alignAllocation(int initialOffset, int align,
+  public static final Offset alignAllocation(Offset initialOffset, int align,
                                           int offset)
     throws UninterruptiblePragma, InlinePragma {
-    Address region = VM_Memory.alignUp(Address.fromInt(initialOffset),
-                                          BYTES_IN_PARTICLE);
-    return Allocator.alignAllocation(region, align, offset).toInt();
+    Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(),
+                                       MIN_ALIGNMENT);
+    return Allocator.alignAllocation(region, align, offset).toWord().toOffset();
   }
 
   /**
@@ -766,20 +717,26 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
 
 
   /**
-   * Allocate a VM_CodeArray
-   * NOTE: We don't use this at all for Jikes RVM right now.
-   *       It might be useful to think about expanding the interface
-   *       to take hints on the likely hot/coldness of the code and
-   *       other code placement hints.
-   * @param n The number of instructions to allocate
+   * Allocate a VM_CodeArray into a code space.
+   * Currently the interface is fairly primitive;
+   * just the number of instructions in the code array and a boolean
+   * to indicate hot or cold code.
+   * @param numInstrs number of instructions
+   * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
-  /*
-    public static VM_CodeArray newInstructions(int n)
-     throws InlinePragma, InterruptiblePragma {
-     return VM_CodeArray.create(n);
-   }
-  */
+  public static VM_CodeArray allocateCode(int numInstrs, boolean isHot) {
+    VM_Array type = VM_Type.CodeArrayType;
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
+    int align = VM_ObjectModel.getAlignment(type);
+    int offset = VM_ObjectModel.getOffsetForAlignment(type);
+    int width  = type.getLogElementSize();
+    Object [] tib = type.getTypeInformationBlock();
+    int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
+    
+    return (VM_CodeArray) allocateArray(numInstrs, width, headerSize, tib,
+                                        allocator, align, offset);
+  }
 
   /**
    * Allocate a stack
@@ -1032,7 +989,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean mightBeTIB(ObjectReference obj)
     throws InlinePragma, UninterruptiblePragma {
-    return Space.isImmortal(obj);
+    return !obj.isNull() && Space.isImmortal(obj);
   }
 
   /**

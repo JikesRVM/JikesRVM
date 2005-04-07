@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002, 2004
+ * (C) Copyright IBM Corp 2001,2002, 2004,2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -113,7 +113,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   /**
    * index of jtoc slot that has type information block for this VM_Type
    */
-  protected final int tibSlot;      
+  protected final int tibOffset;      
 
   /**
    * instance of java.lang.Class corresponding to this type 
@@ -142,7 +142,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    * objects of this type?  A value of -1 indicates that the instances of
    * this type do not have inline thin locks.
    */
-  protected int thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
+  protected Offset thinLockOffset = VM_ObjectModel.defaultThinLockOffset();
 
   /** The memory manager's notion of this type */
   private Object mmType;
@@ -165,7 +165,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     this.typeRef = tr;
     this.state = CLASS_VACANT;
     this.dimension = tr.getDimensionality();
-    this.tibSlot = VM_Statics.allocateSlot(VM_Statics.TIB);
+    this.tibOffset = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.id = nextId(this);
 
     // install partial type information block (no method dispatch table) 
@@ -174,7 +174,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     if (VM.VerifyAssertions) VM._assert(VM_TIBLayoutConstants.TIB_TYPE_INDEX == 0);
     Object[] tib = new Object[1];
     tib[0] = this;
-    VM_Statics.setSlotContents(tibSlot, tib);
+    VM_Statics.setSlotContents(getTibOffset(), tib);
   }
   
   /**
@@ -254,19 +254,10 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   }
 
   /**
-   * Get jtoc slot that contains tib for this VM_Type.
-   * Note that tib is incomplete (contains a type-slot but no method-slots) 
-   * until the class/array has been "instantiated".
-   */ 
-  public final int getTibSlot() throws UninterruptiblePragma { 
-    return tibSlot; 
-  }
-
-  /**
    * Get offset of tib slot from start of jtoc, in bytes.
    */ 
-  public final int getTibOffset() throws UninterruptiblePragma { 
-    return tibSlot << LOG_BYTES_IN_INT; 
+  public final Offset getTibOffset() throws UninterruptiblePragma { 
+    return Offset.fromIntSignExtend(tibOffset); 
   }
 
   /**
@@ -289,12 +280,12 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    * Get the offset in instances of this type assigned to the thin lock word.
    * -1 if instances of this type do not have thin lock words.
    */
-  public final int getThinLockOffset() throws UninterruptiblePragma { 
+  public final Offset getThinLockOffset() throws UninterruptiblePragma { 
     return thinLockOffset; 
   }
 
-  public final void setThinLockOffset(int offset) {
-    if (VM.VerifyAssertions) VM._assert (thinLockOffset == -1);
+  public final void setThinLockOffset(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert (thinLockOffset.isMax());
     thinLockOffset = offset;
   }
   
@@ -561,17 +552,17 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     JavaLangCloneableType = (VM_Class)VM_TypeReference.JavaLangCloneable.resolve();
     JavaIoSerializableType = (VM_Class)VM_TypeReference.JavaIoSerializable.resolve();
     MagicType = VM_TypeReference.Magic.resolve();
-    UninterruptibleType   = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    UninterruptibleType   = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Uninterruptible;")).resolve();
-    UnpreemptibleType     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    UnpreemptibleType     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Unpreemptible;")).resolve();
-    SynchronizedObjectType= VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    SynchronizedObjectType= VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                            VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")).resolve();
-    DynamicBridgeType     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    DynamicBridgeType     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;")).resolve();
-    SaveVolatileType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    SaveVolatileType      = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")).resolve();
-    NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+    NativeBridgeType      = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
     WordArrayType = VM_TypeReference.WordArray.resolve().asArray();

@@ -165,6 +165,145 @@ public abstract class VM_RuntimeMeasurements {
   }
 
   /////////////////////////////////////////////////////////////////////////
+  // Support for gathering profile data on CBS samples
+  /////////////////////////////////////////////////////////////////////////
+ 
+  /**
+   * method listeners that trigger on CBS Method yieldpoints
+   */
+  private static VM_MethodListener[] cbsMethodListeners = new VM_MethodListener[0];
+ 
+  /**
+   * context listeners that tigger on CBS call yieldpoints
+   */
+  private static VM_ContextListener[] cbsContextListeners = new VM_ContextListener[0];
+ 
+  /**
+   * Install a method listener on cbs ticks
+   * @param s method listener to be installed
+   */
+  static synchronized void installCBSMethodListener(VM_MethodListener s) { 
+    int numListeners = cbsMethodListeners.length;
+    VM_MethodListener[] tmp = new VM_MethodListener[numListeners+1];
+    for (int i=0; i<numListeners; i++) {
+      tmp[i] = cbsMethodListeners[i];
+    }
+    tmp[numListeners] = s;
+    cbsMethodListeners = tmp;
+  }
+  
+  /**
+   * Install a context listener on cbs ticks
+   * @param s context listener to be installed
+   */
+  static synchronized void installCBSContextListener(VM_ContextListener s) { 
+    int numListeners = cbsContextListeners.length;
+    VM_ContextListener[] tmp = new VM_ContextListener[numListeners+1];
+    for (int i=0; i<numListeners; i++) {
+      tmp[i] = cbsContextListeners[i];
+    }
+    tmp[numListeners] = s;
+    cbsContextListeners = tmp;
+  }
+  
+   
+  /**
+   * Called from VM_Thread.yieldpoint when it is time to take a CBS method sample.
+   * When invoked, the callstack must be as follows:
+   *   <..stuff..>
+   *   <method that executed the taken yieldpoint>
+   *   wrapper method
+   *   VM_Thread.yieldpoint
+   *   takeCBSMethodSample
+   */
+  public static void takeCBSMethodSample(int whereFrom) throws UninterruptiblePragma {
+    //
+    // "The idle thread is boring, and does not deserve to be sampled"
+    //                           -- AOS Commandment Number 1
+    if (!VM_Thread.getCurrentThread().isIdleThread()) {
+      // Crawl stack to get to the frame in which the yieldpoint was taken
+      // NB: depends on calling structure described in method comment!!!
+      Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
+      fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint          
+ 
+      // Get the cmid for the method in which the yieldpoint was taken.
+      int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
+ 
+      // Get the cmid for that method's caller.
+      Address ypTakenInCallerFP = VM_Magic.getCallerFramePointer(ypTakenInFP);
+      int ypTakenInCallerCMID = VM_Magic.getCompiledMethodID(ypTakenInCallerFP);
+       
+      // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
+      // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
+      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
+      //    Caller is a native method
+      VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
+      if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
+          ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
+        ypTakenInCallerCMID = -1;  
+      } 
+ 
+      // Notify all registered listeners
+      VM_MethodListener[] ml = cbsMethodListeners; // side-step dangerous race condition
+      for (int i=0; i<ml.length; i++) {
+        if (ml[i].isActive()) {
+          ml[i].update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
+        }
+      }
+    }
+  }
+  
+   
+  /**
+   * Called from VM_Thread.yieldpoint when it is time to take a CBS call sample.
+   * When invoked, the callstack must be as follows:
+   *   <..stuff..>
+   *   <method that executed the taken yieldpoint>
+   *   wrapper method
+   *   VM_Thread.yieldpoint
+   *   takeCBSCallSample
+   */
+  public static void takeCBSCallSample(int whereFrom) throws UninterruptiblePragma {
+    //
+    // "The idle thread is boring, and does not deserve to be sampled"
+    //                           -- AOS Commandment Number 1
+    if (!VM_Thread.getCurrentThread().isIdleThread()) {
+      // Crawl stack to get to the frame in which the yieldpoint was taken
+      // NB: depends on calling structure described in method comment!!!
+      Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); // VM_Thread.yieldpoint
+      fp = VM_Magic.getCallerFramePointer(fp); // wrapper routine
+      Address ypTakenInFP = VM_Magic.getCallerFramePointer(fp); // method that took yieldpoint          
+ 
+      // Get the cmid for the method in which the yieldpoint was taken.
+      int ypTakenInCMID = VM_Magic.getCompiledMethodID(ypTakenInFP);
+ 
+      // Get the cmid for that method's caller.
+      Address ypTakenInCallerFP = VM_Magic.getCallerFramePointer(ypTakenInFP);
+      int ypTakenInCallerCMID = VM_Magic.getCompiledMethodID(ypTakenInCallerFP);
+       
+      // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
+      // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
+      //    Caller is out-of-line assembly (no VM_Method object) or top-of-stack psuedo-frame
+      //    Caller is a native method
+      VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
+      if (ypTakenInCallerCMID == VM_StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
+          ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) {
+        // drop sample
+      } else {
+        // Notify all registered listeners
+        VM_ContextListener[] cl = cbsContextListeners; // side-step dangerous race condition
+        for (int i=0; i<cl.length; i++) {
+          if (cl[i].isActive()) {
+            cl[i].update(ypTakenInFP, whereFrom);
+          }
+        }
+      }
+    }
+  }
+  
+  
+  /////////////////////////////////////////////////////////////////////////
   // Support for decay
   /////////////////////////////////////////////////////////////////////////
   
@@ -261,6 +400,9 @@ public abstract class VM_RuntimeMeasurements {
     timerMethodListeners = new VM_MethodListener[0];
     timerContextListeners = new VM_ContextListener[0];
     timerNullListeners = new VM_NullListener[0];
+
+    cbsMethodListeners = new VM_MethodListener[0];
+    cbsContextListeners = new VM_ContextListener[0];
   }
     
   /**

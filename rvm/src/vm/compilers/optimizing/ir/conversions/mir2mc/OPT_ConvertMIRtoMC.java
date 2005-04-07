@@ -53,12 +53,10 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
         ir.verify("right before Final MIR Expansion", true);
       }
 
-      /* NOTE: MM_Interface.pickAllocator() depends on the name of
-         this class and method to identify code allocation */
-      int approxMachinecodeSize = OPT_FinalMIRExpansion.expand(ir);
-      ir.MIRInfo.machinecode = VM_CodeArray.create(approxMachinecodeSize);
+      ir.MIRInfo.mcSizeEstimate = OPT_FinalMIRExpansion.expand(ir);
     }
   }
+
   /**
    * A compiler phase that generates machine code instructions and maps.
    */

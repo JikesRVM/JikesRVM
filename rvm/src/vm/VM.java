@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001, 2002, 2003, 2004
+ * (C) Copyright IBM Corp 2001, 2002, 2003, 2004, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.quick.*;
  * @date 10 July 2003
  */
 public class VM extends VM_Properties 
-  implements VM_Constants, Uninterruptible 
+  implements VM_Constants, VM_ExitStatus, Uninterruptible
 { 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
@@ -84,6 +84,8 @@ public class VM extends VM_Properties
     runningVM        = true;
     runningAsSubsystem = false;
     verboseBoot = VM_BootRecord.the_boot_record.verboseBoot;
+    singleVirtualProcessor = (VM_BootRecord.the_boot_record.singleVirtualProcessor != 0);
+    
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
@@ -118,7 +120,7 @@ public class VM extends VM_Properties
     
     // get pthread_id from OS and store into vm_processor field
     // 
-    if (!BuildForSingleVirtualProcessor) {
+    if (!singleVirtualProcessor) {
       VM_SysCall.sysPthreadSetupSignalHandling();
       VM_Processor.getCurrentProcessor().pthread_id = 
         VM_SysCall.sysPthreadSelf();
@@ -183,10 +185,11 @@ public class VM extends VM_Properties
 
     // Initialize class loader.
     //
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing class loader");
-    String vmClasses = VM_CommandLineArgs.getVMClasses();
-    VM_ClassLoader.boot(vmClasses);
-    VM_SystemClassLoader.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader");
+    String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
+    VM_ClassLoader.boot();      // Wipe out cached application class loader
+    VM_BootstrapClassLoader.boot(bootstrapClasses);
+    VM_ApplicationClassLoader2.boot(".");
 
     // Complete calculation of cycles to millsecond conversion factor
     // Must be done before any dynamic compilation occurs.
@@ -202,12 +205,18 @@ public class VM extends VM_Properties
     // writer.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
-    runClassInitializer("java.lang.Runtime");
-    //-#if !RVM_WITH_CLASSPATH_0_11 && !RVM_WITH_CLASSPATH_0_10
-    // Classpath 0.12 and later:
-    java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
     //-#else
-    runClassInitializer("java.lang.System"); // Requires ClassLoader and ApplicationClassLoader
+    runClassInitializer("gnu.classpath.SystemProperties"); // only in 0.13 and later
+    //-#endif
+    
+    runClassInitializer("java.lang.Runtime");
+    //-#if RVM_WITH_CLASSPATH_0_12
+    // Classpath 0.12
+    java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
+    //-#else  // 0.10, 0.11, 0.13, and post-0.13
+    // In 0.10 and 0.11, requires ClassLoader and ApplicationClassLoader
+    runClassInitializer("java.lang.System"); 
     //-#endif
     runClassInitializer("java.lang.Void");
     runClassInitializer("java.lang.Boolean");
@@ -257,17 +266,38 @@ public class VM extends VM_Properties
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     runClassInitializer("java.net.URLClassLoader"); 
+
+    /* Used if we start up Jikes RVM with the -jar argument; that argument
+     * means that we need a working -jar before we can return an
+     * Application Class Loader. */
+    runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
+
     // Calls System.getProperty().  However, the only thing it uses the
     // property for is to set the default protection domain, and THAT is only
-    // used in defineClass.  so, since we haven't needed to call defineClass
+    // used in defineClass.  So, since we haven't needed to call defineClass
     // up to this point, we are OK deferring its proper re-initialization.
     runClassInitializer("java.lang.ClassLoader"); 
-    //-#if !RVM_WITH_CLASSPATH_0_10 && !RVM_WITH_CLASSPATH_0_11
+
+    /* Here, we lie and pretend to have a working app class loader, since we
+       need it in order to run other initializers properly! */
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
+    //-#elif RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
+    //-#else
+    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_CVS_HEAD
+    /** This one absolutely requires that we have a working Application/System
+        class loader, or at least a returnable one.  That, in turn, requires
+        lots of things be set up for Jar.  */
+    runClassInitializer("java.lang.ClassLoader$StaticData");
     //-#endif
+
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
-    runClassInitializer("java.io.PrintWriter"); // Uses system.getProperty
-    runClassInitializer("java.lang.Math");
+    runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    runClassInitializer("java.lang.Math"); /* Load in the javalang library, so
+                                              that Math's native trig functions
+                                              work.  Still can't use them
+                                              until JNI is set up. */ 
+    runClassInitializer("java.util.SimpleTimeZone");
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");
@@ -324,6 +354,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
+    runClassInitializer("java.io.VMFile"); // Load libjavaio.so
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
@@ -367,10 +398,6 @@ public class VM extends VM_Properties
     com.ibm.JikesRVM.adaptive.VM_Controller.boot();
     //-#endif
 
-    // Turn on security checks again.
-    // Commented out because we haven't incorporated this into the main CVS
-    // tree yet. 
-    // java.security.JikesRVMSupport.fullyBootedVM();
 
     // The first argument must be a class name.
     if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
@@ -384,6 +411,28 @@ public class VM extends VM_Properties
       VM.sysWrite("\" is not a legal Java class name.\n");
       pleaseSpecifyAClass();
     }
+
+
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
+    VM_ClassLoader.getApplicationClassLoader();
+    VM_ClassLoader.declareApplicationClassLoaderIsReady();
+
+    if (verboseBoot >= 1) VM.sysWriteln("Turning back on security checks.  Letting people see the ApplicationClassLoader.");
+    // Turn on security checks again.
+    // Commented out because we haven't incorporated this into the main CVS
+    // tree yet. 
+    // java.security.JikesRVMSupport.fullyBootedVM();
+
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
+    //-#elif RVM_WITH_CLASSPATH_0_12
+    java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
+    //-#else
+    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_CVS_HEAD
+    /** This one absolutely requires that we have a working Application/System
+        class loader, or at least a returnable one.  That, in turn, requires
+        lots of things be set up for Jar.  */
+    runClassInitializer("java.lang.ClassLoader$StaticData");
+    //-#endif
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
@@ -473,7 +522,7 @@ public class VM extends VM_Properties
     }
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
@@ -624,16 +673,16 @@ public class VM extends VM_Properties
   }
 
   private static int sysWriteLock = 0;
-  private static int sysWriteLockOffset = -1;
+  private static Offset sysWriteLockOffset = Offset.max();
 
   private static void swLock() {
-    if (sysWriteLockOffset == -1) return;
+    if (sysWriteLockOffset.isMax()) return;
     while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) 
       ;
   }
 
   private static void swUnlock() {
-    if (sysWriteLockOffset == -1) return;
+    if (sysWriteLockOffset.isMax()) return;
     VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);
   }
 
@@ -697,7 +746,7 @@ public class VM extends VM_Properties
          *
          *  TODO: Convert this to use org.mmtk.vm.Barriers.getArrayNoBarrier
          */  
-        write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
+        write(VM_Magic.getCharAtOffset(value, Offset.fromIntZeroExtend(i << LOG_BYTES_IN_CHAR)));
       else
         write(value[i]);
     }
@@ -766,6 +815,14 @@ public class VM extends VM_Properties
     }
   }
 
+  public static void writeDec(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
+    write(value.toLong()); 
+    //-#else
+    write(value.toInt()); 
+    //-#endif
+  }
+
   public static void writeHex(Word value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
@@ -775,31 +832,19 @@ public class VM extends VM_Properties
   }
 
   public static void writeHex(Address value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    writeHex(value.toLong()); 
-    //-#else
-    writeHex(value.toInt()); 
-    //-#endif
+    writeHex(value.toWord()); 
   }
 
   public static void writeHex(ObjectReference value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    writeHex(value.toAddress());
+    writeHex(value.toAddress().toWord());
   }
 
   public static void writeHex(Extent value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    writeHex(value.toLong()); 
-    //-#else
-    writeHex(value.toInt()); 
-    //-#endif
+    writeHex(value.toWord()); 
   }
 
   public static void writeHex(Offset value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
-    //-#if RVM_FOR_64_ADDR
-    writeHex(value.toLong()); 
-    //-#else
-    writeHex(value.toInt()); 
-    //-#endif
+    writeHex(value.toWord()); 
   }
 
   /**
@@ -980,6 +1025,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, String s2, int i)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); swUnlock(); }
   public static void sysWriteln (String s1, int i, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(i);  write(s2); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, Offset o, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(o);  write(s2); swUnlock(); }
+  public static void sysWriteln (String s1, Offset o, String s2)  throws NoInlinePragma { swLock(); write(s1);  write(o);  write(s2); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); swUnlock(); }
   public static void sysWriteln (String s1, String s2, String s3)  throws NoInlinePragma { swLock(); write(s1);  write(s2); write(s3); writeln(); swUnlock(); }
   public static void sysWrite   (int i1, String s, int i2)     throws NoInlinePragma { swLock(); write(i1);  write(s);  write(i2); swUnlock(); }
@@ -994,6 +1041,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, int i1, String s2, int i2) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(i2); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(  l1); swUnlock(); }
   public static void sysWriteln (String s1, int i1, String s2, long l1) throws NoInlinePragma { swLock(); write(s1);  write(i1); write(s2); write(l1); writeln(); swUnlock(); }
+  public static void sysWrite   (String s1, Offset o, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(o); write(s2); write(i); swUnlock(); }
+  public static void sysWriteln (String s1, Offset o, String s2, int i) throws NoInlinePragma { swLock(); write(s1);  write(o); write(s2); write(i); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); swUnlock(); }
   public static void sysWriteln (String s1, double d, String s2)        throws NoInlinePragma { swLock(); write(s1);   write(d); write(s2); writeln(); swUnlock(); }
   public static void sysWrite   (String s1, String s2, int i1, String s3) throws NoInlinePragma { swLock(); write(s1);  write(s2); write(i1); write(  s3); swUnlock(); }
@@ -1042,38 +1091,6 @@ public class VM extends VM_Properties
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4, String s5, Address a5) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
-  
-  /* Exit statuses, pending a better location.
-     Please keep this list in numerical order.
-     We also use the explicit constant -1 as an exit status (it gets mapped
-     / to 255).  -1 is for things that are particularly bad.
-  */
-  final public static int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
-  final public static int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
-  final public static int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
-  final public static int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
-  final public static int EXIT_STATUS_MISC_TROUBLE = 122;
-  final public static int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
-  final public static int EXIT_STATUS_SYSCALL_TROUBLE = 121;
-  final public static int EXIT_STATUS_TIMER_TROUBLE = 
-    EXIT_STATUS_SYSCALL_TROUBLE;
-  final public static int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
-  final public static int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 
-    EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
-  public static int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
-  /** Trouble with the Hardware Performance Monitors */
-  public static int EXIT_STATUS_HPM_TROUBLE = 110;
-  //-#if RVM_WITH_QUICK_COMPILER
-  public static int EXIT_STATUS_QUICK_COMPILER_FAILED = 102;
-  //-#endif
-  public static int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
-  public static int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
-  public static int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
-  public static int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS =
-    EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS;
-  public static int EXIT_STATUS_JNI_TROUBLE = 98;
-  /* Used in VM_0005fProcess.C */
-  public static int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
   
 
   /**
@@ -1289,9 +1306,8 @@ public class VM extends VM_Properties
    * Yield execution of current virtual processor back to o/s.
    */
   public static void sysVirtualProcessorYield() {
-    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    VM_SysCall.sysVirtualProcessorYield();
-    //-#endif
+    if (!VM_Properties.singleVirtualProcessor)
+      VM_SysCall.sysVirtualProcessorYield();
   }
 
   //----------------//
@@ -1301,11 +1317,11 @@ public class VM extends VM_Properties
   /**
    * Create class instances needed for boot image or initialize classes 
    * needed by tools.
-   * @param vmClassPath places where vm implemention class reside
+   * @param bootstrapClasspath places where vm implemention class reside
    * @param bootCompilerArgs command line arguments to pass along to the 
    *                         boot compiler's init routine.
    */
-  private static void init(String vmClassPath, String[] bootCompilerArgs) 
+  private static void init(String bootstrapClasspath, String[] bootCompilerArgs) 
     throws InterruptiblePragma
   {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
@@ -1315,7 +1331,7 @@ public class VM extends VM_Properties
     VM_BootRecord.the_boot_record = new VM_BootRecord();
 
     // initialize type subsystem and classloader
-    VM_ClassLoader.init(vmClassPath);
+    VM_ClassLoader.init(bootstrapClasspath);
 
     // initialize remaining subsystems needed for compilation
     //
@@ -1425,9 +1441,9 @@ public class VM extends VM_Properties
   
   /**
    * enableGC(): Re-Enable GC if we're popping off the last
-   * possibly-recursive disableGC request.  This enforces a stack discipline;
+   * possibly-recursive {@link #disableGC} request.  This enforces a stack discipline;
    * we need it for the JNI Get*Critical and Release*Critical functions.
-   * Should be matched with a preceding call to disableGC().
+   * Should be matched with a preceding call to {@link #disableGC}.
    */
   public static void enableGC(boolean recursiveOK) 
     throws InlinePragma 

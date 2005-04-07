@@ -39,3 +39,19 @@ V EdgeCounterFile String null edgeCounterFile
 Input file of edge counter profile data
 
 
+V CBSCallSamplesPerTick int 0
+How many CBS call samples (Prologue/Epilogue) should we take per time tick
+
+
+V CBSCallSampleStride int 7
+Stride between each CBS call sample (Prologue/Epilogue) within a sampling window
+
+
+V CBSMethodSamplesPerTick int 0
+How many CBS method samples (any yieldpoint) should we take per time tick
+
+
+V CBSMethodSampleStride int 3
+Stride between each CBS method sample (any yieldpoint) within a sampling window
+
+

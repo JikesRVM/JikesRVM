@@ -24,19 +24,19 @@ import org.vmmagic.pragma.*;
 
 public class Stream implements  Uninterruptible {
   public Stream(ServerSpace driver,
-          int id,	
-	  int dataType,
-	  String name,
-	  int minValue,		
-	  int maxValue,
-	  int zeroValue,
-	  int defaultValue,
-	  String stringPre,
-	  String stringPost,
- 	  int presentation,
-	  int paintStyle,
-	  int maxStreamIndex,
-	  Color colour) {
+          int id,       
+          int dataType,
+          String name,
+          int minValue,         
+          int maxValue,
+          int zeroValue,
+          int defaultValue,
+          String stringPre,
+          String stringPost,
+          int presentation,
+          int paintStyle,
+          int maxStreamIndex,
+          Color colour) {
   }
   public int getMinValue() { return 0; }
   public int getMaxValue() { return 0; }

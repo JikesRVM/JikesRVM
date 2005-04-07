@@ -20,7 +20,7 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
@@ -85,6 +85,9 @@ public abstract class BasePlan
   // Spaces
   protected static final int IMMORTAL_MB = 32;
   protected static final int META_DATA_MB = 32;
+  protected static final int META_DATA_PAGES = (META_DATA_MB<<20)>>LOG_BYTES_IN_PAGE;
+  /* heuristic: don't let mutator consume more than half all metadata space */
+  protected static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
   protected static final float LOS_FRAC = (float) 0.1;
   protected static Space vmSpace = Memory.getVMSpace();
   protected static ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
@@ -302,9 +305,9 @@ public abstract class BasePlan
   private static Space getSpaceFromAllocatorAnyPlan(Allocator a) {
     for (int i = 0; i < plans.length; i++) {
       if (plans[i] != null) {
-	Space space = plans[i].getSpaceFromAllocator(a);
-	if (space != null)
-	  return space;
+        Space space = plans[i].getSpaceFromAllocator(a);
+        if (space != null)
+          return space;
       }
     }
     return null;
@@ -359,7 +362,7 @@ public abstract class BasePlan
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public static Word getBootTimeAvailableBits(int ref, ObjectReference typeRef,
+  public static Word getBootTimeAvailableBits(Offset ref, ObjectReference typeRef,
                                               int size, Word status)
     throws InlinePragma {
     return status; // nothing to do (no bytes of GC header)
@@ -581,7 +584,7 @@ public abstract class BasePlan
    * @param mode The context in which the store occured
    */
   public void writeBarrier(ObjectReference src, Address slot,
-                           ObjectReference tgt, int metaDataA, int metaDataB,
+                           ObjectReference tgt, Offset metaDataA, int metaDataB,
                            int mode) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
@@ -606,9 +609,9 @@ public abstract class BasePlan
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean writeBarrier(ObjectReference src, int srcOffset,
-			      ObjectReference dst, int dstOffset,
-			      int bytes) {
+  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                              ObjectReference dst, Offset dstOffset,
+                              int bytes) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
@@ -625,7 +628,7 @@ public abstract class BasePlan
    * @return The reference that was read.
    */
   public final Address readBarrier(ObjectReference src, Address slot,
-				   int context)
+                                   int context)
     throws InlinePragma {
     // read barrier currently unimplemented
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
@@ -656,7 +659,7 @@ public abstract class BasePlan
       return ImmortalSpace.isReachable(object);
     }
       if (Assert.VERIFY_ASSERTIONS)
-	Assert.fail("BasePlan.isReachable given object from unknown space");
+        Assert.fail("BasePlan.isReachable given object from unknown space");
       return false;
     }
 
@@ -926,17 +929,19 @@ public abstract class BasePlan
    */
 
   /**
-   * Start the GCSpy server
-   *
+   * Start the server and wait if necessary
+   * 
    * @param wait Whether to wait
-   * @param port The port to talk to the GCSpy client (e.g. visualiser)
+   * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
-  protected static void startGCSpyServer(int port, boolean wait) {}
+  public static void startGCspyServer(int port, boolean wait)
+    throws InterruptiblePragma {}
 
   /**
    * Deal with root locations
    */
-  protected void gcspyRoots(AddressDeque rootLocations, AddressPairDeque interiorRootLocations) {}
+  protected void gcspyRoots(AddressDeque rootLocations, 
+                            AddressPairDeque interiorRootLocations) {}
 
   /**
    * Before thread-local release
@@ -957,14 +962,6 @@ public abstract class BasePlan
     return 0; 
   }
 
-  /**
-   * Start the server and wait if necessary
-   * 
-   * @param wait Whether to wait
-   * @param port The port to talk to the GCspy client (e.g. visualiser)
-   */
-  public static void startGCspyServer(int port, boolean wait)
-    throws InterruptiblePragma {}
 
   /****************************************************************************
    *

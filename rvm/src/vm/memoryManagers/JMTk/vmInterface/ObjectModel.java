@@ -7,6 +7,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.utility.scan.MMType;
+import org.mmtk.utility.Constants;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
@@ -55,14 +56,14 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
   }
 
   private static ObjectReference copyScalar(ObjectReference from, Object[] tib,
-				       VM_Class type)
+                                       VM_Class type)
     throws InlinePragma {
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = Plan.getInstance();
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
-						   from);
+                                                   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes);
@@ -72,7 +73,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
   }
 
   private static ObjectReference copyArray(ObjectReference from, Object[] tib,
-				      VM_Array type)
+                                      VM_Array type)
     throws InlinePragma {
     int elements = VM_Magic.getArrayLength(from);
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
@@ -80,7 +81,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = Plan.getInstance();
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
-						   from);
+                                                   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes);
@@ -207,7 +208,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * <code>false</code> otherwise
    */
   public static boolean attemptAvailableBits(ObjectReference object,
-					     Word oldVal, Word newVal) {
+                                             Word oldVal, Word newVal) {
     return VM_ObjectModel.attemptAvailableBits(object.toObject(), oldVal,
                                                newVal);
   }
@@ -252,7 +253,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @return the offset, relative the object reference address
    */
   /* AJG: Should this be a variable rather than method? */
-  public static int GC_HEADER_OFFSET() {
+  public static Offset GC_HEADER_OFFSET() {
     return VM_ObjectModel.GC_HEADER_OFFSET;
   }
 
@@ -290,7 +291,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     Object type;
     Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     if (true) {  // necessary to avoid an odd compiler bug
-      type = VM_Magic.getObjectAtOffset(tib, TIB_TYPE_INDEX);
+      type = VM_Magic.getObjectAtOffset(tib, Offset.fromIntZeroExtend(TIB_TYPE_INDEX));
     } else {
       type = tib[TIB_TYPE_INDEX];
     }
@@ -309,8 +310,8 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {
       if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
-	VM.sysWriteln("getObjectType: objRef = ", object.toAddress(), "   tib = ", VM_Magic.objectAsAddress(tib));
-	VM.sysWriteln("               tib's type is not Object[]");
+        VM.sysWriteln("getObjectType: objRef = ", object.toAddress(), "   tib = ", VM_Magic.objectAsAddress(tib));
+        VM.sysWriteln("               tib's type is not Object[]");
         VM._assert(false);
       }
     }

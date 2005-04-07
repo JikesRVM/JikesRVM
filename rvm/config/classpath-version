@@ -1,0 +1,80 @@
+## Currently we recommend GNU Classpath 0.14 for all platforms except
+## OS X, which is still using GNU Classpath 0.10.  These are the only
+## versions of Classpath with which this version of Jikes RVM is 
+## reguarly tested.  If you try an older version that is still mentioned
+## in this file, and it no longer works, please let us know so that we 
+## can remove it.  
+##
+## We think there is a reasonable chance that Jikes RVM will work with
+## GNU Classpath versions 0.10, 0.11, 0.12, and 0.14.  Note that GNU Classpath
+## 0.14 can't be compiled with jikes 1.19 (the previously recommended 
+## version of the jikes bytecode to source compiler).  We now recommend 
+## jikes 1.22. 
+
+sum=$((  ${RVM_WITH_CLASSPATH_0_10-0} + ${RVM_WITH_CLASSPATH_0_11-0} \
+          + ${RVM_WITH_CLASSPATH_0_12-0} + ${RVM_WITH_CLASSPATH_0_13-0} \
+          + ${RVM_WITH_CLASSPATH_0_14-0} \
+          + ${RVM_WITH_CLASSPATH_CVS_HEAD-0} ))
+
+if (( sum == 0 )); then
+    ## If you don't want to use the default version of GNU Classpath for your
+    # platform them you must set one of the variables below to override.
+    if [[ ${RVM_FOR_OSX-} ]]; then
+	export RVM_WITH_CLASSPATH_0_14=1
+	export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.14.tar.gz
+    else 
+	export RVM_WITH_CLASSPATH_0_10=1
+	export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.10.tar.gz
+    fi
+    # export RVM_WITH_CLASSPATH_0_10=1
+    # export RVM_WITH_CLASSPATH_0_11=1
+    # export RVM_WITH_CLASSPATH_0_12=1
+    # export RVM_WITH_CLASSPATH_0_14=1
+    # export RVM_WITH_CLASSPATH_CVS_HEAD=1
+fi
+
+## CLASSPATH_INSTALLATION
+## If you built the version of GNU Classpath selected above with the default 
+## install directory (if unspecified, "--prefix=/usr/local/classpath" 
+## is implied) and installed it with "make install", then uncomment the line 
+## below (if it is installed somewhere else, then edit to match). 
+#
+# export CLASSPATH_INSTALLATION=/usr/local/classpath
+
+
+## OR, if you built GNU Classpath but haven't 
+## installed it (most people haven't), you can set
+## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
+## *and* set CLASSPATH_BUILD_DIR to the directory
+## from which you ran "${CLASSPATH_SOURCE_DIR}/configure" and ran $GNU_MAKE
+# export CLASSPATH_SOURCE_DIR=${HOME}/JikesRVM/ClasspathCVS/classpath
+# export CLASSPATH_BUILD_DIR=${HOME}/JikesRVM/ClasspathCVS/build2
+
+## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
+
+## CLASSPATH_ROOT: Directory containing the unpacked and (optionally built) 
+## sources for the version of GNU Classpath selected above.
+##
+## If you manually downloaded the Classpath sources, then unpack them
+## into $CLASSPATH_ROOT and rename the newly extracted source
+## directory "classpath-<version-number>" to "classpath".  (If you haven't
+## manually downloaded the Classpath sources, then the Jikes RVM build
+## process will automatically do so for you, and will use
+## CLASSPATH_ROOT if you've set it.)
+##
+## The Jikes RVM build process will expect to automatically take 
+## care of building Classpath from those sources, if you want.
+# export CLASSPATH_ROOT=/opt/classpath-<version-number>
+
+## OR you can leave all of the CLASSPATH_ variables unset and let the
+## build process download and build GNU Classpath for you.  This
+## behaves as if you had set CLASSPATH_ROOT to "$RVM_ROOT/classpath".
+## This will work.  I don't recommend doing it more than once, though
+## -- if you and others are all working on Jikes RVM, then please just
+## put Classpath in one place you can share.
+##
+## If you want to auto-download GNU Classpath, you will have to make sure
+##  that the  variable WGET has a rational value.  (It's only used to
+## retrieve GNU Classpath, so you can ignore it otherwise.)
+export WGET="/usr/bin/wget"
+

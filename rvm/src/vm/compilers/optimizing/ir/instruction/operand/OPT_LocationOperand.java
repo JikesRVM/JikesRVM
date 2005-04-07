@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt.ir;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Represents a location in memory. Used to keep track of memory aliasing.
@@ -74,7 +75,7 @@ public final class OPT_LocationOperand extends OPT_Operand
    * JTOC index that corresponds to this location.
    * -1 if this is not a JTOC access.
    */
-  protected int JTOCindex = -1;
+  protected Offset JTOCoffset = Offset.max();
 
   /**
    * Spill offset that corresponds to this location.
@@ -127,19 +128,22 @@ public final class OPT_LocationOperand extends OPT_Operand
   }
 
   /**
-   * Constructs a new location operand with the given JTOC index or
-   * spill offset.
+   * Constructs a new location operand with the given JTOC offset
    * 
-   * @param index if positive, JTOC index, otherwise spill offset
+   */
+  public OPT_LocationOperand(Offset jtocOffset) {
+      type = JTOC_ACCESS;
+      JTOCoffset = jtocOffset;
+  }
+
+  /**
+   * Constructs a new location operand with the given spill offset.
+   * 
    */
   public OPT_LocationOperand(int index) {
-    if (index > 0) {
-      type = JTOC_ACCESS;
-      JTOCindex = index;
-    } else {
-      type = SPILL_ACCESS;
-      spillOffset = index;
-    }
+    if (VM.VerifyAssertions) VM._assert(index <= 0);
+    type = SPILL_ACCESS;
+    spillOffset = index;
   }
 
   /**
@@ -158,7 +162,8 @@ public final class OPT_LocationOperand extends OPT_Operand
 
   public final VM_FieldReference getFieldRef() { return fieldRef; }
   public final VM_TypeReference getElementType() { return arrayElementType; }
-  public final int getIndex() { return JTOCindex; }
+  //public final int getIndex() { return JTOCoffset; }
+  public final Offset getJTOCoffset() { return JTOCoffset; }
   public final int getOffset() { return spillOffset; }
 
   public final boolean isFieldAccess()   { return type == FIELD_ACCESS; }
@@ -193,7 +198,7 @@ public final class OPT_LocationOperand extends OPT_Operand
       o = new OPT_LocationOperand(arrayElementType); 
       break;
     case JTOC_ACCESS:    
-      o = new OPT_LocationOperand(JTOCindex); 
+      o = new OPT_LocationOperand(JTOCoffset); 
       break;
     case SPILL_ACCESS:   
       o = new OPT_LocationOperand(spillOffset); 
@@ -235,7 +240,7 @@ public final class OPT_LocationOperand extends OPT_Operand
       return !op1.fieldRef.definitelyDifferent(op2.fieldRef);
     } else {
       return arrayMayBeAliased(op1.arrayElementType, op2.arrayElementType) &&
-        (op1.JTOCindex == op2.JTOCindex) &&
+        (op1.JTOCoffset.EQ(op2.JTOCoffset)) &&
         (op1.spillOffset == op2.spillOffset);
     }
   }
@@ -268,7 +273,7 @@ public final class OPT_LocationOperand extends OPT_Operand
     case ARRAY_ACCESS:   
       return "<mem loc: array "+arrayElementType+"[]>";
     case JTOC_ACCESS:
-      return "<mem loc: JTOC @"+JTOCindex+">";
+      return "<mem loc: JTOC @"+ VM.addressAsHexString(JTOCoffset.toWord().toAddress()) +">";
     case SPILL_ACCESS:
       return "<mem loc: spill FP "+spillOffset+">";
     case ALENGTH_ACCESS: 

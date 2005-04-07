@@ -8,6 +8,7 @@ package org.mmtk.vm;
 
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 
@@ -20,7 +21,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Scanning {
+public class Scanning implements Constants {
 
   /**
    * Initialization that occurs at <i>build</i> time.  The values of

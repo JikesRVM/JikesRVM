@@ -146,7 +146,7 @@ public class tClass
       if (hello==null) 
          {
          System.out.println("tClass.hello not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else
          {
@@ -168,7 +168,7 @@ public class tClass
       if (iello==null) 
          {
          System.out.println("tClass.iello not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else
          {
@@ -190,7 +190,7 @@ public class tClass
       if (lello==null) 
          {
          System.out.println("tClass.lello not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else
          {
@@ -213,7 +213,7 @@ public class tClass
       if (jello==null) 
          {
          System.out.println("tClass.jello not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else
          {
@@ -240,7 +240,7 @@ public class tClass
       if (vello==null) 
          {
          System.out.println("tClass.vello not found!");
-         System.exit(-1);
+         System.exit(1);
          }
       else
          {

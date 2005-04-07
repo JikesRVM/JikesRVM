@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  *  This class provides support functionality used by the generated
  * OPT_Assembler; it handles basic impedance-matching functionality
@@ -31,6 +33,13 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   OPT_AssemblerBase(int bytecodeSize, boolean shouldPrint) {
     super(bytecodeSize, shouldPrint);
   }
+
+  /**
+   * Should code created by this assembler instance be allocated in the
+   * hot code code space? The default answer for opt compiled code is yes
+   * (otherwise why are we opt compiling it?).
+   */
+  protected boolean isHotCode() { return true; }
 
   /**
    *  Is the given operand an immediate?  In the IA32 assembly, one
@@ -203,7 +212,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the IA32 ISA encoding of the scale of op
    */
-  static int getDisp(OPT_Operand op) {
+  static Offset getDisp(OPT_Operand op) {
     return ((OPT_MemoryOperand)op).disp;
   }
 
@@ -224,7 +233,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
         (mop.index == null) &&
-        (mop.disp != 0) &&
+        (!mop.disp.isZero()) &&
         (mop.scale == 0);
     } else
       return false;
@@ -246,7 +255,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base == null) &&
         (mop.index == null) &&
-        (mop.disp != 0) &&
+        (!mop.disp.isZero()) &&
         (mop.scale == 0);
     } else
       return false;
@@ -269,7 +278,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
         (mop.index == null) &&
-        (mop.disp == 0) &&
+        (mop.disp.isZero()) &&
         (mop.scale == 0);
     } else
       return false;
@@ -567,7 +576,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     if (op instanceof OPT_MemoryOperand) {
       int cost = 1; // might need SIB byte
       OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
-      if (mop.disp != 0) {
+      if (!mop.disp.isZero()) {
         if (fits(mop.disp,8)) {
           cost += 1;
         } else {
@@ -673,6 +682,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   /**
    * generate machine code into ir.machinecode
    * @param ir the IR to generate
+   * @param shouldPrint should we print the machine code?
    * @return   the number of machinecode instructions generated
    */
   public static final int generateCode(OPT_IR ir, boolean shouldPrint) {

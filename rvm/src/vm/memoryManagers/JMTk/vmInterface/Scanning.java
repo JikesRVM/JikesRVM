@@ -8,11 +8,10 @@ package org.mmtk.vm;
 
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
+import org.mmtk.utility.Constants;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
@@ -29,7 +28,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class Scanning implements Constants, VM_Constants, Uninterruptible {
+public class Scanning implements Constants, Uninterruptible {
   /****************************************************************************
    *
    * Class variables

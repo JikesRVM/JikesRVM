@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * An interface conflict resolution stub uses a hidden parameter to
  * distinguish among multiple interface methods of a class that map to
@@ -90,7 +92,7 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
       }
       asm.emitJMP_RegDisp(ECX, target.getOffset());
     } else {
-      int disp = VM_Entrypoints.hiddenSignatureIdField.getOffset();
+      Offset disp = VM_Entrypoints.hiddenSignatureIdField.getOffset();
       VM_ProcessorLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
       if (low < middle) {
         asm.emitJCC_Cond_Label(asm.LT, bcIndices[(low+middle-1)/2]);

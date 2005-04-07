@@ -29,7 +29,7 @@ public class ServerSpace implements  Uninterruptible {
    *
    * Class variables
    */
-  private static final String DEFAULT_UNUSED_STRING = "NOT USED";	// The "unused" string
+  private static final String DEFAULT_UNUSED_STRING = "NOT USED";       // The "unused" string
   private static final boolean DEBUG_ = false;
 
   /****************************************************************************
@@ -37,13 +37,13 @@ public class ServerSpace implements  Uninterruptible {
    * Instance variables
    */
   private final Address driver_;  // the c driver, gcspy_gc_driver_t *driver;
-  private final int id_;	  // the space's ID
+  private final int id_;          // the space's ID
   
 
   /**
    * Create a new GCspy Space
    *
-   * @param id	The space's ID
+   * @param id  The space's ID
    * @param serverName The server's name
    * @param driverName The space driver's name
    * @param title Title for the space
@@ -53,13 +53,13 @@ public class ServerSpace implements  Uninterruptible {
    * @param mainSpace Whether this space is the main space
    */
   public ServerSpace(int id, 
-	      String serverName, 
-	      String driverName,
-	      String title,
-	      String blockInfo,
-	      int tileNum,
-	      String unused, 
-	      boolean mainSpace    ) {
+              String serverName, 
+              String driverName,
+              String title,
+              String blockInfo,
+              int tileNum,
+              String unused, 
+              boolean mainSpace    ) {
     driver_ = VM_SysCall.gcspyMainServerAddDriver(ServerInterpreter.getServerAddress());
     this.id_ = id;
     
@@ -75,8 +75,8 @@ public class ServerSpace implements  Uninterruptible {
     if (DEBUG_)
       Log.writeln("--   Setting up driver");
     VM_SysCall.gcspyDriverInit(driver_, -1, serverName_, driverName_,
-	   	               title_, blockInfo_, tileNum, 
-		               unused_, mainSpace ? 1 : 0 );
+                               title_, blockInfo_, tileNum, 
+                               unused_, mainSpace ? 1 : 0 );
   }
 
   /**
@@ -210,9 +210,9 @@ public class ServerSpace implements  Uninterruptible {
     // start the stream
     VM_SysCall.gcspyDriverInitOutput(driver_);
     VM_SysCall.gcspyIntWriteControl(
-	                    driver_/* NOTE driver->interpreter in sys.C*/, 
-	 	            id_, 
-		            tileNum); 
+                            driver_/* NOTE driver->interpreter in sys.C*/, 
+                            id_, 
+                            tileNum); 
     
     // send a control for each tile
     for (int i = 0; i < tileNum; ++i) {

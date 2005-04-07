@@ -29,11 +29,11 @@ import org.vmmagic.pragma.*;
  */
 public class Subspace implements  Uninterruptible {
 
-  private Address start_;	// The Subspace spans [start_, end_)
+  private Address start_;       // The Subspace spans [start_, end_)
   private Address end_;
-  private int firstIndex_;	// The index of the tile in which start_ lies
-  private int blockSize_;	// The tile size
-  private int blockNum_;	// The number of tiles in this space
+  private int firstIndex_;      // The index of the tile in which start_ lies
+  private int blockSize_;       // The tile size
+  private int blockNum_;        // The number of tiles in this space
 
   private static final boolean DEBUG_ = false;
 
@@ -49,8 +49,8 @@ public class Subspace implements  Uninterruptible {
   public Subspace (Address start, 
                 Address end, 
                 int firstIndex, 
-		int blockSize, 
-		int blockNum) {
+                int blockSize, 
+                int blockNum) {
      reset(start, end, firstIndex, blockSize, blockNum);
   }
 
@@ -66,8 +66,8 @@ public class Subspace implements  Uninterruptible {
   private void reset (Address start, 
                       Address end, 
                       int firstIndex, 
-		      int blockSize, 
-		      int blockNum) {
+                      int blockSize, 
+                      int blockNum) {
     reset(start, end, firstIndex, blockNum);
     blockSize_ = blockSize;
     if (DEBUG_)
@@ -83,9 +83,9 @@ public class Subspace implements  Uninterruptible {
    * @param blockNum The number of tiles in this subspace
    */
   public void reset (Address start, 
-		     Address end, 
-		     int firstIndex, 
-		     int blockNum) {
+                     Address end, 
+                     int firstIndex, 
+                     int blockNum) {
     start_ = start;
     end_ = end;
     firstIndex_ = firstIndex;

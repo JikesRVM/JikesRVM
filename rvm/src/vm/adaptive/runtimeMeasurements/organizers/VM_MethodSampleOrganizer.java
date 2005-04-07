@@ -46,11 +46,20 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
       VM_AOSLogging.methodSampleOrganizerThreadStarted(filterOptLevel);
 
     int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_Scheduler.numProcessors;
+    if (VM_Controller.options.mlCBS()) {
+      numSamples *= VM.CBSMethodSamplesPerTick;
+    }
     VM_MethodListener methodListener = new VM_MethodListener(numSamples);
     listener = methodListener;
     listener.setOrganizer(this);
-    
-    VM_RuntimeMeasurements.installTimerMethodListener(methodListener);
+     
+    if (VM_Controller.options.mlTimer()) {
+      VM_RuntimeMeasurements.installTimerMethodListener(methodListener);
+    } else if (VM_Controller.options.mlCBS()) {
+      VM_RuntimeMeasurements.installCBSMethodListener(methodListener);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false, "Unexpected value of method_listener_trigger");
+    }
   }
 
   /**

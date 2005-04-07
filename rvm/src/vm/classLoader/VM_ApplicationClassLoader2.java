@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002,2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -12,92 +12,115 @@ import java.util.HashMap;
 import java.util.Vector;
 import java.util.zip.*;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.io.*;
 
 /** 
- * Implements an object that functions as the bootstrap class loader.
- * This class is a Singleton pattern.
- *
- * TODO: Perhaps this should be renamed one day to VM_BootstrapClassLoader.
- * HOWEVER, under our current source code control system (CVS), it is a major
- * hassle to rename files, especially if you want to preserve their history.
- * Moreover, at least one of the core team members uses "rdist" to copy files
- * among machines; leaving behind a class named VM_SystemClassLoader would
- * be confusing at best.  (rdist is good at adding files and changing modified
- * files, but not so good at deleting them.)   --Steve Augart, 24 March 2004
+ * Implements an object that functions as the application class loader.
+ * This class is a Singleton pattern.  It is intended to be a working
+ * replacement for our old ApplicationClassLoader class, the one that
+ * inherits from java.net.URLClassLoader (and which requires that all
+ * sorts of stuff be enabled just so that it can be initialized)
+ * <p>
+ * Almost all of this is cribbed from VM_BootstrapClassLoader.  The
+ * Right Thing to do would be for us to write a common class for both of
+ * them to extend, since they are virtually identical.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public final class VM_SystemClassLoader extends java.lang.ClassLoader {
+public final class VM_ApplicationClassLoader2 extends java.lang.ClassLoader {
+
+  VM_BootstrapClassLoader parent = VM_BootstrapClassLoader.getBootstrapClassLoader();
 
   private HashMap loaded = new HashMap(); // Map Strings to VM_Types.
 
-  private final static boolean dbg  = false;
+  private final static boolean DBG = false;
 
-  public static void boot() {
+  /** Places whence we load application .class files. */
+  private static String applicationClasspath = ".";
+  
+  /**
+   * Set list of places to be searched for application classes and resources.
+   * @param applicationClasspath path specification in standard "classpath"
+   *    format.   It is the names of directories containing the application
+   * .class files, and the names of any .zip/.jar files.  
+   * This may contain several names separated with File.pathSeparator (a
+   * colon ':' on every platform we currently run on), just as a classpath may.
+   */
+  public static void setApplicationRepositories(String applicationClasspath) {
+    VM_ApplicationClassLoader2.applicationClasspath = applicationClasspath;
+  }
+
+  /**
+   * @return List of places to be searched for VM classes and resources,
+   *      in standard "classpath" format 
+   */
+  public static String getApplicationRepositories() {
+    return applicationClasspath;
+  }
+
+  /**
+   * Initialize for execution.
+   */
+  public static void boot(String applicationClasspath) {
+    if (applicationClasspath != null)
+      VM_ApplicationClassLoader2.applicationClasspath = applicationClasspath;
     zipFileCache = new HashMap();
-    // the following idiot reflection hack is because the field is final :(
     if (VM.runningVM) {
       try {
-        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(vmClassLoader, new HashMap());
+        /* Here, we have to replace the fields that aren't carried over from
+         * boot image writing time to run time.
+         * This would be the following, if the fields weren't final:
+         *
+         * appClassLoader.definedPackages    = new HashMap();
+         * appClassLoader.loadedClasses      = new HashMap();
+         */
+        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(appClassLoader, new HashMap());
+        VM_Entrypoints.classLoaderLoadedClasses.setObjectValueUnchecked(appClassLoader, new HashMap());
+        if (DBG)
+          VM.sysWriteln("VM_ApplicationClassLoader2.boot(): loadedClasses is: ", VM_Entrypoints.classLoaderLoadedClasses.getObjectValueUnchecked(appClassLoader) == null ? "NULL" : "set");
+        
+        // We probably should really do something like the following, but we
+        // don't, since there's no point in priming the cache -- this is
+        // run time:
+        //      for key in loaded {
+        //        add an entry to loadedClasses, use VM_Type.getClassForType.
+        //      }
+
       } catch (Exception e) {
-        VM.sysWriteln("failed to setup system class loader");
-        VM.sysExit(-1);
+        VM.sysFail("Failed to setup application class loader");
       }
     }
   }
 
-  // prevent other classes from constructing
-  private VM_SystemClassLoader() { super(null); }
+  /** Prevent other classes from constructing one. */
+  private VM_ApplicationClassLoader2() { 
+    super(null);                // We could make this a reference to the
+                                // bootstrap class loader instead of null --
+                                // it comes out to the same thing, or should.
+    
+  }
 
   /* Interface */
-  private final static VM_SystemClassLoader vmClassLoader =
-    new VM_SystemClassLoader();
+  private final static VM_ApplicationClassLoader2 appClassLoader =
+    new VM_ApplicationClassLoader2();
 
-  public static VM_SystemClassLoader getVMClassLoader() { 
-    return vmClassLoader;
+  public static VM_ApplicationClassLoader2 getApplicationClassLoader() { 
+    return appClassLoader;
   }
   
 
-  /**
-   * Backdoor for use by VM_TypeReference.resolve when !VM.runningVM.
-   * As of this writing, it is not used by any other classes. 
-   * @throws NoClassDefFoundError
-   */
-  synchronized VM_Type loadVMClass(String className) throws NoClassDefFoundError {
-    try {           
-      InputStream is = getResourceAsStream(className.replace('.','/') + ".class");
-      if (is == null) throw new NoClassDefFoundError(className);
-      DataInputStream dataInputStream = new DataInputStream(is);
-      VM_Type type = null;
-      try {
-        // Debugging:
-        // VM.sysWriteln("loadVMClass: trying to resolve className " + className);
-        type = VM_ClassLoader.defineClassInternal(className, dataInputStream, this);
-        loaded.put(className, type);
-      } finally {
-        try {
-          // Make sure the input stream is closed.
-          dataInputStream.close();
-        } catch (IOException e) { }
-      }
-      return type;
-    } catch (NoClassDefFoundError e) {
-      throw e;
-    } catch (Throwable e) {
-      // We didn't find the class, or it wasn't valid, etc.
-      NoClassDefFoundError ncdf = new NoClassDefFoundError(className);
-      ncdf.initCause(e);
-      throw ncdf;
-    }
-  }
-
   public synchronized Class loadClass(String className, boolean resolveClass)
-    throws ClassNotFoundException {
+    throws ClassNotFoundException 
+  {
+    try {
+      return parent.loadClass(className, resolveClass);
+    } catch (ClassNotFoundException cnfe) {
+      // Not in the system path; try here in the application  instead.
+    }
+
     if (className.startsWith("L") && className.endsWith(";")) {
       className = className.substring(1, className.length()-2);
     }
@@ -115,13 +138,19 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   }
 
   /**
-   * Search the system class loader's classpath for given class.
+   * Search the application class loader's classpath for given class.
    *
    * @param className the name of the class to load
    * @return the class object, if it was found
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
-  public Class findClass (String className) throws ClassNotFoundException {
+  public Class findClass(String className) throws ClassNotFoundException {
+    try {
+      return parent.findClass(className);
+    } catch (ClassNotFoundException cnfe) {
+      // Not in the system path; try here instead.
+    }
+
     if (className.startsWith("[")) {
       VM_TypeReference typeRef = VM_TypeReference.findOrCreate(this, 
                                                                VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')));
@@ -130,7 +159,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       return ans.getClassForType();
     } else {    
       if ( ! VM.dynamicClassLoadingEnabled ) {
-        VM.sysWrite("Trying to load a class (");
+        VM.sysWrite("Trying to load an Application class (");
         VM.sysWrite(className);
         VM.sysWrite(") too early in the booting process, before dynamic");
         VM.sysWriteln(" class loading is enabled; aborting.");
@@ -159,7 +188,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       } catch (ClassNotFoundException e) {
         throw e;
       } catch (Throwable e) {
-        if (dbg) {
+        if (DBG) {
           VM.sysWrite("About to throw ClassNotFoundException(", className,
                       ") because we got this Throwable:");
           e.printStackTrace();
@@ -170,7 +199,11 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     }
   }
   
-  public String toString() { return "BootstrapCL"; }
+  /** Keep this a static field, since it's looked at in
+   *  {@link VM_MemberReference#parse}. */ 
+  public final static String myName = "ApplicationCL";
+  
+  public String toString() { return myName; }
 
   private static HashMap zipFileCache;
     
@@ -181,6 +214,10 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   }
 
   public InputStream getResourceAsStream(final String name) {
+    InputStream ret = parent.getResourceAsStream(name);
+    if (ret != null)
+      return ret;
+
     Handler findStream = new Handler() {
         InputStream stream;
 
@@ -199,6 +236,9 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   }
 
   public URL findResource(final String name) {
+    URL ret = parent.findResource(name);
+    if (ret != null)
+      return ret;
     Handler findURL = new Handler() {
         URL url;
 
@@ -217,6 +257,12 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   }
 
   public Enumeration findResources(final String name) {
+    Enumeration ret = parent.findResources(name);
+    if (ret != null && ret.hasMoreElements()) {
+      return ret;
+    }
+    ret = null;
+
     Handler findURL = new Handler() {
         Vector urls;
 
@@ -239,12 +285,13 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     return (Enumeration)getResourceInternal(name, findURL, true);
   }
 
+  /** This is quite clever, since we only parse when we have to. */
   private Object getResourceInternal(String name, Handler h, boolean multiple) {
     if (name.startsWith(File.separator)) {
       name = name.substring(File.separator.length());
     }
 
-    StringTokenizer tok = new StringTokenizer(VM_ClassLoader.getVmRepositories(), File.pathSeparator);
+    StringTokenizer tok = new StringTokenizer(getApplicationRepositories(), File.pathSeparator);
 
     while (tok.hasMoreElements()) {
       try {

@@ -63,35 +63,33 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangString);
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
-              int offset = sc.index << LOG_BYTES_IN_INT;
-              if (offset == 0)
+              Offset offset = sc.offset;
+              if (offset.isZero())
                 throw  new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir, true), loc));
+              s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use;
-              int index = dc.index;
-              if (index == 0) {
-                index = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
+              Offset offset = dc.offset;
+              if (offset.isZero()) {
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value)));
               }
-              int offset = index << LOG_BYTES_IN_INT;
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir, true), loc));
+              s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use;
-              int index = fc.index;
-              if (index == 0) {
-                index = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
+              Offset offset = fc.offset;
+              if (offset.isZero()) {
+                offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value)));
               }
-              int offset = index << LOG_BYTES_IN_INT;
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegInt(IC(offset), s, ir, true), loc));
+              s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_LongConstantOperand) {
               if ((!VM.BuildFor64Addr)){
@@ -126,13 +124,13 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         Store.setValue(s, asRegPolymorphic(Store.getClearValue(s), s, ir));
         // Supported addressing modes are quite limited.
         Store.setAddress(s, asRegAddress(Store.getClearAddress(s), s, ir));
-        Store.setOffset(s, asImmediateOrRegPolymorphic(Store.getClearOffset(s), s, ir, true));
+        Store.setOffset(s, asImmediateOrRegOffset(Store.getClearOffset(s), s, ir, true));
       break;
       
       case FLOAT_STORE_opcode:case DOUBLE_STORE_opcode:
         // Supported addressing modes are quite limited.
         Store.setAddress(s, asRegAddress(Store.getClearAddress(s), s, ir));
-        Store.setOffset(s, asImmediateOrRegPolymorphic(Store.getClearOffset(s), s, ir, true));
+        Store.setOffset(s, asImmediateOrRegOffset(Store.getClearOffset(s), s, ir, true));
         break;
 
       case REF_LOAD_opcode:
@@ -143,7 +141,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       case LONG_LOAD_opcode:case FLOAT_LOAD_opcode:case DOUBLE_LOAD_opcode:
         // Supported addressing modes are quite limited.
         Load.setAddress(s, asRegAddress(Load.getClearAddress(s), s, ir));
-        Load.setOffset(s, asImmediateOrRegPolymorphic(Load.getClearOffset(s), s, ir, true));
+        Load.setOffset(s, asImmediateOrRegOffset(Load.getClearOffset(s), s, ir, true));
         break;
 
       case ATTEMPT_INT_opcode:
@@ -153,14 +151,14 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         Attempt.setOldValue(s, null);       // not used on powerpc.
         // Supported addressing modes are quite limited.
         Attempt.setAddress(s, asRegAddress(Attempt.getClearAddress(s),s,ir));
-        Attempt.setOffset(s, asRegInt(Attempt.getClearOffset(s),s,ir));
+        Attempt.setOffset(s, asRegOffset(Attempt.getClearOffset(s),s,ir));
         break;
 
       case PREPARE_INT_opcode:
       case PREPARE_ADDR_opcode:
         // Supported addressing modes are quite limited.
         Prepare.setAddress(s, asRegAddress(Prepare.getAddress(s), s, ir));
-        Prepare.setOffset(s, asRegInt(Prepare.getOffset(s), s, ir));
+        Prepare.setOffset(s, asRegOffset(Prepare.getOffset(s), s, ir));
         break;
 
       //-#if RVM_FOR_64_ADDR
@@ -197,7 +195,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       case BOOLEAN_CMP_INT_opcode:
       case BOOLEAN_CMP_ADDR_opcode:
         // val2 must be small enough.
-        BooleanCmp.setVal2(s, asImmediateOrRegPolymorphic(BooleanCmp.getClearVal2(s),s,ir, true));
+        BooleanCmp.setVal2(s, asImmediateOrRegPolymorphic(BooleanCmp.getClearVal2(s),s,ir, !BooleanCmp.getCond(s).isUNSIGNED()));
         break;
 
         //////////
@@ -342,6 +340,26 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         Unary.setVal(s, asRegInt(Unary.getVal(s), s, ir));
         break;
 
+      case ADDR_2INT_opcode:
+        s.operator = (VM.BuildFor32Addr? REF_MOVE : LONG_2INT);
+        break;
+                case ADDR_2LONG_opcode:
+        s.operator = (VM.BuildFor32Addr? INT_2LONG : REF_MOVE);
+        break;
+                case INT_2ADDRSigExt_opcode:
+        s.operator = (VM.BuildFor32Addr? REF_MOVE : INT_2LONG);
+        break;
+      //-#if RVM_FOR_32_ADDR
+      case INT_2ADDRZerExt_opcode:
+        s.operator = REF_MOVE;
+        break;
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      case LONG_2ADDR_opcode: 
+        s.operator = REF_MOVE;
+        break;
+      //-#endif
+
       case NULL_CHECK_opcode:
         NullCheck.setRef(s, asRegAddress(NullCheck.getClearRef(s), s, ir));
         break;
@@ -376,8 +394,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
     else return (val >= 0L) && (val <= (long) UNSIGNED_UPPER_IMMEDIATE);
   }
 
-  public static boolean canBeImmediate(Address val, boolean signed) {
-    return (VM.BuildFor32Addr? canBeImmediate(val.toInt(), signed) : canBeImmediate(val.toLong(), signed));
+  public static boolean canBeImmediate(Address val, boolean signed) { //KV: Address uses unsigned compares!!
+    if (signed) return (val.GE(Address.fromIntSignExtend(LOWER_IMMEDIATE)) || val.LE(Address.fromIntSignExtend(UPPER_IMMEDIATE)));
+    else return val.LE(Address.fromIntZeroExtend(UNSIGNED_UPPER_IMMEDIATE)); 
   }
 
   static OPT_Operand asImmediateOrRegInt(OPT_Operand addr, 
@@ -389,6 +408,28 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         s.insertBefore(Move.create(REF_MOVE, rop, addr));
         return rop.copyD2U();
       }
+    }
+    else if (addr instanceof OPT_ConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+    }
+    // Operand was OK as is.
+    return addr;
+  }
+
+  static OPT_Operand asImmediateOrRegOffset(OPT_Operand addr, 
+                                      OPT_Instruction s, 
+                                      OPT_IR ir, boolean signed) {
+    if (addr instanceof OPT_AddressConstantOperand) {
+      if (!canBeImmediate(((OPT_AddressConstantOperand)addr).value, signed)) {
+        OPT_RegisterOperand rop = ir.regpool.makeTempOffset();
+        s.insertBefore(Move.create(REF_MOVE, rop, addr));
+        return rop.copyD2U();
+      } else { // can be immediate --> convert to int
+        return new OPT_IntConstantOperand(((OPT_AddressConstantOperand)addr).value.toInt());
+      }
+    } 
+    else if (addr instanceof OPT_ConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen, because is 64-bit unsafe
     }
     // Operand was OK as is.
     return addr;
@@ -405,6 +446,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       } else { // can be immediate --> convert to int
         return new OPT_IntConstantOperand((int)((OPT_LongConstantOperand)addr).value);
       }
+    }
+    else if (addr instanceof OPT_ConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     
     // Operand was OK as is.
@@ -456,6 +500,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
       return rop.copyD2U();
     }
+    else if (addr instanceof OPT_ConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+    }
     // Operand was OK as is.
     return addr;
   }
@@ -468,6 +515,9 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
       return rop.copyD2U();
     }
+    else if (addr instanceof OPT_ConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+    }
     // Operand was OK as is.
     return addr;
   }
@@ -479,6 +529,24 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       OPT_RegisterOperand rop = ir.regpool.makeTempAddress();
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
       return rop.copyD2U();
+    }
+    else if (addr instanceof OPT_ConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+    }
+    // Operand was OK as is.
+    return addr;
+  }
+
+  static OPT_Operand asRegOffset(OPT_Operand addr,
+                           OPT_Instruction s,
+                           OPT_IR ir) {
+    if (addr instanceof OPT_AddressConstantOperand) {
+      OPT_RegisterOperand rop = ir.regpool.makeTempOffset();
+      s.insertBefore(Move.create(REF_MOVE, rop, addr));
+      return rop.copyD2U();
+    }
+    else if (addr instanceof OPT_ConstantOperand) {
+      if (VM.VerifyAssertions) VM._assert(false); //must not happen
     }
     // Operand was OK as is.
     return addr;

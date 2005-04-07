@@ -53,7 +53,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    */
   public static final boolean MOVES_OBJECTS = false;
   public static final int GC_HEADER_BITS_REQUIRED = MarkSweepSpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = MarkSweepSpace.GC_HEADER_BYTES_REQUIRED;
+  public static final int GC_HEADER_WORDS_REQUIRED = MarkSweepSpace.GC_HEADER_WORDS_REQUIRED;
 
   // GC state
   private static int msReservedPages;
@@ -420,7 +420,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
       return loSpace.isLive(object);
     else if (space == null) {
       if (Assert.VERIFY_ASSERTIONS) {
-  	Log.write("space failure: "); Log.writeln(object);
+        Log.write("space failure: "); Log.writeln(object);
       }
     }
     return true;

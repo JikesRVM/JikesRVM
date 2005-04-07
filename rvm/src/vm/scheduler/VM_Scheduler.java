@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -224,7 +224,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
       //-#if RVM_WITH_HPM
       // boot virtual processor's HPM producer
       if (VM_HardwarePerformanceMonitors.booted()) {
-	processors[i].hpm.boot();    
+        processors[i].hpm.boot();    
       }
       //-#endif
     }
@@ -265,66 +265,70 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     // Create virtual cpu's.
     //
     
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    //-#else
-    //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS 
-    //-#else
-    // Create thread-specific data key which will allow us to find
-    // the correct VM_Processor from an arbitrary pthread.
-    VM_SysCall.sysCreateThreadSpecificDataKeys();
+    if (!VM.singleVirtualProcessor) {
+      if (!VM.withoutInterceptBlockingSystemCalls) {
 
-    // enable spoofing of blocking native select calls
-    System.loadLibrary("syswrap");
-    //-#endif
-
-    VM_SysCall.sysInitializeStartupLocks(numProcessors);
-
-    if (cpuAffinity != NO_CPU_AFFINITY)
-      VM_SysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
-
-    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
-      // create VM_Thread for virtual cpu to execute
-      //
-      VM_Thread target = processors[i].idleQueue.dequeue();
-
-      // create virtual cpu and wait for execution to enter target's code/stack.
-      // this is done with gc disabled to ensure that garbage collector doesn't move
-      // code or stack before the C startoff function has a chance
-      // to transfer control into vm image.
-      //
-      if (VM.TraceThreads)
-        trace("VM_Scheduler.boot", "starting processor id", i);
-
-      processors[i].activeThread = target;
-      processors[i].activeThreadStackLimit = target.stackLimit;
-      target.registerThread(); // let scheduler know that thread is active.
-      if (VM.BuildForPowerPC) {
-        //-#if RVM_FOR_POWERPC
-        // NOTE: it is critical that we acquire the tocPointer explicitly
-        //       before we start the SysCall sequence. This prevents 
-        //       the opt compiler from generating code that passes the AIX 
-        //       sys toc instead of the RVM jtoc. --dave
-        Address toc = VM_Magic.getTocPointer();
-        VM_SysCall.sysVirtualProcessorCreate(toc,
-                                             VM_Magic.objectAsAddress(processors[i]),
-                                             target.contextRegisters.ip, 
-                                             target.contextRegisters.getInnermostFramePointer());
-        if (cpuAffinity != NO_CPU_AFFINITY)
-          VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+        //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+        // Create thread-specific data key which will allow us to find
+        // the correct VM_Processor from an arbitrary pthread.
+        VM_SysCall.sysCreateThreadSpecificDataKeys();
         //-#endif
-      } else if (VM.BuildForIA32) {
-        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                             VM_Magic.objectAsAddress(processors[i]),
-                                             target.contextRegisters.ip, 
-                                             target.contextRegisters.getInnermostFramePointer());
+        
+        /// WE now insist on this happening, by using LD_PRELOAD on platforms
+        /// that support it.  Do it here for backup.
+        // Enable spoofing of blocking native select calls
+        System.loadLibrary("syswrap");
+      }
+    
+      VM_SysCall.sysInitializeStartupLocks(numProcessors);
+
+      if (cpuAffinity != NO_CPU_AFFINITY)
+        VM_SysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+      
+      for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
+        // create VM_Thread for virtual cpu to execute
+        //
+        VM_Thread target = processors[i].idleQueue.dequeue();
+        
+        // Create a virtual cpu and wait for execution to enter the target's
+        // code/stack. 
+        // This is done with GC disabled to ensure that the garbage collector
+        // doesn't move code or stack before the C startoff function has a
+        // chance to transfer control into the VM image.
+        //
+        if (VM.TraceThreads)
+          trace("VM_Scheduler.boot", "starting processor id", i);
+
+        processors[i].activeThread = target;
+        processors[i].activeThreadStackLimit = target.stackLimit;
+        target.registerThread(); // let scheduler know that thread is active.
+        if (VM.BuildForPowerPC) {
+          //-#if RVM_FOR_POWERPC
+          // NOTE: It is critical that we acquire the tocPointer explicitly
+          //       before we start the SysCall sequence. This prevents 
+          //       the opt compiler from generating code that passes the AIX 
+          //       sys toc instead of the RVM jtoc. --dave
+          Address toc = VM_Magic.getTocPointer();
+          VM_SysCall.
+            sysVirtualProcessorCreate(toc,
+                                      VM_Magic.objectAsAddress(processors[i]),
+                                      target.contextRegisters.ip, 
+                                      target.contextRegisters.getInnermostFramePointer());
+          if (cpuAffinity != NO_CPU_AFFINITY)
+            VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+          //-#endif
+        } else if (VM.BuildForIA32) {
+          VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+                                               VM_Magic.objectAsAddress(processors[i]),
+                                               target.contextRegisters.ip, 
+                                               target.contextRegisters.getInnermostFramePointer());
+        }
       }
 
+      // wait for everybody to start up
+      //
+      VM_SysCall.sysWaitForVirtualProcessorInitialization();
     }
-
-    // wait for everybody to start up
-    //
-    VM_SysCall.sysWaitForVirtualProcessorInitialization();
-    //-#endif
 
     allProcessorsInitialized = true;
 
@@ -345,10 +349,8 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
 
     // Allow virtual cpus to commence feeding off the work queues.
     //
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    //-#else
-    VM_SysCall.sysWaitForMultithreadingStart();
-    //-#endif
+    if (! VM.singleVirtualProcessor)
+      VM_SysCall.sysWaitForMultithreadingStart();
 
     //-#if RVM_WITH_OSR
     OSR_ObjectHolder.boot();
@@ -367,10 +369,10 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     tt.makeDaemon(true);
     tt.start();
 
-    //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-    //-#else
-    // Store VM_Processor in pthread
-    VM_Processor.getCurrentProcessor().stashProcessorInPthread();
+    //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+    if (!VM.withoutInterceptBlockingSystemCalls)
+      // Store VM_Processor in pthread
+      VM_Processor.getCurrentProcessor().stashProcessorInPthread();
     //-#endif
   }
 
@@ -559,25 +561,36 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
    * as possible (eg. use no bytecodes that require VM_Runtime support).
    */
   static void traceback(String message) {
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-    lockOutput();
+    if (VM.runningVM) {
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      lockOutput();
+    }
     VM.sysWriteln(message);
     tracebackWithoutLock();
-    unlockOutput();
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    if (VM.runningVM) {
+      unlockOutput();
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    }
   }
   static void traceback(String message, int number) {
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
-    lockOutput();
+    if (VM.runningVM) {
+      VM_Processor.getCurrentProcessor().disableThreadSwitching();
+      lockOutput();
+    }
     VM.sysWriteln(message, number);
     tracebackWithoutLock();
-    unlockOutput();
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    if (VM.runningVM) {
+      unlockOutput();
+      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    }
   }
 
   static void tracebackWithoutLock() {
 
-    dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    if (VM.runningVM)
+      dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    else
+      dumpStack();
 
 //     VM.sysWrite("Here comes a Virtual Machine dump.  This can run to\n");
     
@@ -591,8 +604,14 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   /**
    * Dump stack of calling thread, starting at callers frame
    */
-  public static void dumpStack () {
-    dumpStack(VM_Magic.getFramePointer());
+  public static void dumpStack () 
+    throws LogicallyUninterruptiblePragma
+  {
+    if (VM.runningVM)
+      dumpStack(VM_Magic.getFramePointer());
+    else
+      (new Throwable("--traceback from Jikes RVM's VM_Scheduler class--"))
+        .printStackTrace();
   }
 
   /**
@@ -645,45 +664,45 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
         VM.sysWrite("   <invisible method>\n");
       } else {
         // normal java frame(s)
-        VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+        VM_CompiledMethod compiledMethod    =
+          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        if (compiledMethod == null) {
+          VM.sysWrite("   <unprintable normal Java frame: VM_CompiledMethods.getCompiledMethod(", compiledMethodId, ") returned null>");
+        } else if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP){
           VM.sysWrite("   <hardware trap>\n");
         } else {
           VM_Method method            = compiledMethod.getMethod();
-          int       instructionOffset = compiledMethod.getInstructionOffset(ip);
-          int       lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
+          Offset    instructionOffset = 
+            compiledMethod.getInstructionOffset(ip);
+          int       lineNumber        = 
+            compiledMethod.findLineNumberForInstruction(instructionOffset);
           
           //-#if RVM_WITH_OPT_COMPILER
           if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-            VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+            VM_OptCompiledMethod optInfo =
+              (VM_OptCompiledMethod) compiledMethod;
             // Opt stack frames may contain multiple inlined methods.
             VM_OptMachineCodeMap map = optInfo.getMCMap();
             int iei = map.getInlineEncodingForMCOffset(instructionOffset);
             if (iei >= 0) {
               int[] inlineEncoding = map.inlineEncoding;
               int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-              for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
-                int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-                method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
-                lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
-                VM.sysWrite("   ");
-                VM.sysWrite(method.getDeclaringClass().getDescriptor());
-                VM.sysWrite(" ");
-                VM.sysWrite(method.getName());
-                VM.sysWrite(method.getDescriptor());
-                VM.sysWrite(" at line ");
-                VM.sysWriteInt(lineNumber);
-                VM.sysWrite("\n");
-                if (j > 0) 
-                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
+              for (; iei >= 0; iei = VM_OptEncodedCallSiteTree
+                                        .getParent(iei,inlineEncoding)) 
+              {
+                int mid = VM_OptEncodedCallSiteTree
+                  .getMethodID(iei, inlineEncoding);
+                method = VM_MemberReference.getMemberRef(mid)
+                  .asMethodReference().getResolvedMember();
+                lineNumber = ((VM_NormalMethod)method)
+                  .getLineNumberForBCIndex(bci);
+                showMethod(method, lineNumber);
+                if (iei > 0) 
+                  bci = VM_OptEncodedCallSiteTree
+                    .getByteCodeOffset(iei, inlineEncoding);
               }
             } else {
-              VM.sysWrite("   Unknown location in opt compiled method ");
-              VM.sysWrite(method.getDeclaringClass().getDescriptor());
-              VM.sysWrite(" ");
-              VM.sysWrite(method.getName());
-              VM.sysWrite(method.getDescriptor());
-              VM.sysWrite("\n");
+              showMethod(method, lineNumber);
             }
             ip = VM_Magic.getReturnAddress(fp);
             fp = VM_Magic.getCallerFramePointer(fp);
@@ -691,14 +710,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
           } 
           //-#endif
 
-          VM.sysWrite("   ");
-          VM.sysWrite(method.getDeclaringClass().getDescriptor());
-          VM.sysWrite(" ");
-          VM.sysWrite(method.getName());
-          VM.sysWrite(method.getDescriptor());
-          VM.sysWrite(" at line ");
-          VM.sysWriteInt(lineNumber);
-          VM.sysWrite("\n");
+          showMethod(method, lineNumber);
         }
       }
       ip = VM_Magic.getReturnAddress(fp);
@@ -706,6 +718,25 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     }
     --inDumpStack;
   }  
+
+  /** Helper function for {@link #dumpStack(Address, Address)}.  Print a
+   * stack frame showing the method.  */
+  private static void showMethod(VM_Method method, int lineNumber) {
+    VM.sysWrite("   ");
+    if (method == null) {
+      VM.sysWrite("<unknown method>");
+    } else {
+      VM.sysWrite(method.getDeclaringClass().getDescriptor());
+      VM.sysWrite(" ");
+      VM.sysWrite(method.getName());
+      VM.sysWrite(method.getDescriptor());
+    }
+    if (lineNumber > 0) {
+      VM.sysWrite(" at line ");
+      VM.sysWriteInt(lineNumber);
+    }
+    VM.sysWrite("\n");
+  }
 
   private static boolean exitInProgress = false;
   /**
@@ -742,7 +773,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     }
 
     // system queues    
-    VM.sysWrite("\n-- System Queues -- \n");   wakeupQueue.dump();
+    VM.sysWrite("\n-- System Queues -- \n");
     VM.sysWrite(" wakeupQueue: ");   wakeupQueue.dump();
     VM.sysWrite(" debuggerQueue: "); debuggerQueue.dump();
     VM.sysWrite(" deadVPQueue: ");     deadVPQueue.dump();
@@ -784,7 +815,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   static int outputLock;
 
   static final void lockOutput () {
-    if (VM.BuildForSingleVirtualProcessor) return;
+    if (VM_Scheduler.numProcessors == 1) return;
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     do {
       int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
@@ -796,7 +827,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   }
 
   static final void unlockOutput () {
-    if (VM.BuildForSingleVirtualProcessor) return;
+    if (VM_Scheduler.numProcessors == 1) return;
     VM_Magic.sync(); // TODO!! is this really necessary?
     if (true) outputLock = 0; // TODO!! this ought to work, but doesn't?
     else {

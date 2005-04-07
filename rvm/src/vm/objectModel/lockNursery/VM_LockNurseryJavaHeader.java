@@ -38,8 +38,8 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
 
   private static final int SCALAR_PADDING_BYTES = 4;
 
-  protected static final int TIB_OFFSET   = -8;
-  private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (TIB_OFFSET) : (TIB_OFFSET + 3);
+  protected static final Offset TIB_OFFSET   = Offset.fromIntSignExtend(-8);
+  private static final Offset AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (TIB_OFFSET) : (TIB_OFFSET.add(3));
 
   /** How many bits are allocated to a thin lock? */
   public static final int NUM_THIN_LOCK_BITS = 32;
@@ -53,8 +53,8 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
   protected static final int HASH_STATE_BITS = MOVES_OBJECTS ? 2 : 0;
   protected static final int HASH_STATE_MASK = MOVES_OBJECTS ? (HASH_STATE_UNHASHED | HASH_STATE_HASHED | HASH_STATE_HASHED_AND_MOVED) : 0;
   protected static final int HASHCODE_BYTES  = MOVES_OBJECTS ? 4 : 0;
-  protected static final int HASHCODE_SCALAR_OFFSET = -4; // in "phantom word"
-  protected static final int HASHCODE_ARRAY_OFFSET = JAVA_HEADER_END - OTHER_HEADER_BYTES - 4; // to left of header
+  protected static final Offset HASHCODE_SCALAR_OFFSET = Offset.fromIntSignExtend(-4); // in "phantom word"
+  protected static final Offset HASHCODE_ARRAY_OFFSET = Offset.fromIntSignExtend(JAVA_HEADER_END - OTHER_HEADER_BYTES - 4); // to left of header
   
   /**
    * How small is the minimum object header size? 
@@ -203,8 +203,8 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
    */
   public static void dumpHeader(Object ref) {
     // TIB dumped in VM_ObjectModel
-    int lockOffset = getThinLockOffset(ref);
-    if (lockOffset != -1) {
+    Offset lockOffset = getThinLockOffset(ref);
+    if (lockOffset.isMax()) {
       VM.sysWrite(" THIN LOCK=");
       VM.sysWriteHex(VM_Magic.getIntAtOffset(ref, lockOffset));
     }
@@ -355,7 +355,7 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
   /**
    * Get the offset of the thin lock word in this object
    */
-  public static int getThinLockOffset(Object o) {
+  public static Offset getThinLockOffset(Object o) {
       VM_Type cls = VM_Magic.getObjectType(o);
       return cls.getThinLockOffset();
   }
@@ -363,8 +363,8 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
   /**
    * what is the default offset for a thin lock?
    */
-  public static int defaultThinLockOffset() {
-    return -1;
+  public static Offset defaultThinLockOffset() {
+    return Offset.max();
   }
 
   /**
@@ -372,11 +372,11 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
    * (if they already have one, then has no effect).
    */
   public static void allocateThinLock(VM_Type t) {
-    if (t.getThinLockOffset() == -1) {
+    if (t.getThinLockOffset().isMax()) {
       if (VM.VerifyAssertions) VM._assert(t.isClassType());
       VM_Class klass = t.asClass();
       int fieldOffset = objectEndOffset(klass) - 4; // layout field backwards!
-      klass.setThinLockOffset(fieldOffset);
+      klass.setThinLockOffset(Offset.fromIntSignExtend(fieldOffset));
       klass.increaseInstanceSize(4);
     }
   }
@@ -385,8 +385,8 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
    * Generic lock
    */
   public static void genericLock(Object o) { 
-    int lockOffset = getThinLockOffset(o);
-    if (lockOffset != -1) {
+    Offset lockOffset = getThinLockOffset(o);
+    if (!lockOffset.isMax()) {
       VM_ThinLock.lock(o, lockOffset);
     } else {
       VM_LockNursery.lock(o);
@@ -397,8 +397,8 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
    * Generic unlock
    */
   public static void genericUnlock(Object o) {
-    int lockOffset = getThinLockOffset(o);
-    if (lockOffset != -1) {
+    Offset lockOffset = getThinLockOffset(o);
+    if (!lockOffset.isMax()) {
       VM_ThinLock.unlock(o, lockOffset);
     } else {
       VM_LockNursery.unlock(o);
@@ -415,8 +415,8 @@ public class VM_LockNurseryJavaHeader implements Uninterruptible,
    * @return the heavy-weight lock on the object (if any)
    */
   public static VM_Lock getHeavyLock(Object o, boolean create) {
-    int lockOffset = getThinLockOffset(o);
-    if (lockOffset != -1) {
+    Offset lockOffset = getThinLockOffset(o);
+    if (lockOffset.isMax()) {
       return VM_ThinLock.getHeavyLock(o, lockOffset, create);
     } else {
       return VM_LockNursery.findOrCreate(o, create);

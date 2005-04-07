@@ -10,7 +10,7 @@ import org.mmtk.utility.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
@@ -73,17 +73,17 @@ public abstract class Allocator implements Constants, Uninterruptible {
                                              int offset, int knownAlignment)
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
-      Assert._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
-      Assert._assert(alignment <= MAXIMUM_ALIGNMENT);
+      Assert._assert(knownAlignment >= MIN_ALIGNMENT);
+      Assert._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
+      Assert._assert(alignment <= MAX_ALIGNMENT);
       Assert._assert(offset >= 0);
-      Assert._assert((region.toInt() & (BYTES_IN_PARTICLE-1)) == 0);
-      Assert._assert((alignment & (BYTES_IN_PARTICLE-1)) == 0);
-      Assert._assert((offset & (BYTES_IN_PARTICLE-1)) == 0);
+      Assert._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
+      Assert._assert((alignment & (MIN_ALIGNMENT-1)) == 0);
+      Assert._assert((offset & (MIN_ALIGNMENT-1)) == 0);
     }
 
     // No alignment ever required.
-    if (alignment <= knownAlignment || MAXIMUM_ALIGNMENT <= BYTES_IN_PARTICLE)
+    if (alignment <= knownAlignment || MAX_ALIGNMENT <= MIN_ALIGNMENT)
       return region; 
 
     // May require an alignment
@@ -107,7 +107,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static Address alignAllocation(Address region, int alignment, 
                                              int offset) 
     throws InlinePragma {
-    return alignAllocation(region, alignment, offset, BYTES_IN_PARTICLE);
+    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT);
   }
 
   /**
@@ -119,7 +119,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
    */
   final public static int getMaximumAlignedSize(int size, int alignment) 
     throws InlinePragma {
-    return getMaximumAlignedSize(size, alignment, BYTES_IN_PARTICLE);
+    return getMaximumAlignedSize(size, alignment, MIN_ALIGNMENT);
   }
   
   /**
@@ -132,11 +132,10 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * allocators that enforce greater than particle alignment.
    */
   final public static int getMaximumAlignedSize(int size, int alignment,
-						int knownAlignment) 
+                                                int knownAlignment) 
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
-    if (MAXIMUM_ALIGNMENT <= BYTES_IN_PARTICLE
-        || alignment <= knownAlignment) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(knownAlignment >= MIN_ALIGNMENT);
+    if (MAX_ALIGNMENT <= MIN_ALIGNMENT || alignment <= knownAlignment) {
       return size;
     } else {
       return size + alignment - knownAlignment;
@@ -144,7 +143,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   }
 
   abstract protected Address allocSlowOnce (int bytes, int alignment,
-					       int offset, boolean inGC);
+                                               int offset, boolean inGC);
 
   public Address allocSlow(int bytes, int alignment, int offset) 
     throws NoInlinePragma { 
@@ -152,13 +151,13 @@ public abstract class Allocator implements Constants, Uninterruptible {
   }
 
   public Address allocSlow(int bytes, int alignment, int offset,
-			      boolean inGC) 
+                              boolean inGC) 
     throws NoInlinePragma { 
     return allocSlowBody( bytes, alignment, offset, inGC);
   }
 
   private Address allocSlowBody(int bytes, int alignment, int offset,
-				   boolean inGC) 
+                                   boolean inGC) 
     throws InlinePragma { 
 
     int gcCountStart = Stats.gcCount();

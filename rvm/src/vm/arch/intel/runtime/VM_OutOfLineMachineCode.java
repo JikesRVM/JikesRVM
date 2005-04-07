@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.jni.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * A place to put hand written machine code typically invoked by VM_Magic 
  * methods.
@@ -52,10 +54,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray restoreHardwareExceptionStateInstructions;
   private static VM_CodeArray invokeNativeFunctionInstructions;
    
-  private static final int PARAMS_FP_OFFSET     = WORDSIZE * 2;
-  private static final int FPRS_FP_OFFSET       = WORDSIZE * 3;
-  private static final int GPRS_FP_OFFSET       = WORDSIZE * 4;
-  private static final int CODE_FP_OFFSET       = WORDSIZE * 5;
+  private static final Offset PARAMS_FP_OFFSET     = Offset.fromIntSignExtend(WORDSIZE * 2);
+  private static final Offset FPRS_FP_OFFSET       = Offset.fromIntSignExtend(WORDSIZE * 3);
+  private static final Offset GPRS_FP_OFFSET       = Offset.fromIntSignExtend(WORDSIZE * 4);
+  private static final Offset CODE_FP_OFFSET       = Offset.fromIntSignExtend(WORDSIZE * 5);
 
 
   /**
@@ -111,15 +113,15 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      * logically equivalent to ParamaterRegisterUnload in the compiler
      */
     int gprs;
-    int fpOffset = VM_Entrypoints.framePointerField.getOffset();
+    Offset fpOffset = VM_Entrypoints.framePointerField.getOffset();
     byte T = T0;
     gprs = NUM_PARAMETER_GPRS;
-    int offset = 4 << LG_WORDSIZE;              // we have exactly 4 paramaters
+    Offset offset = Offset.fromIntZeroExtend(4 << LG_WORDSIZE);              // we have exactly 4 paramaters
     if (gprs > 0) {
       gprs--;
       asm.emitMOV_RegDisp_Reg(SP, offset, T); 
       T = T1;
-      offset -= WORDSIZE;
+      offset=offset.sub(WORDSIZE);
     }
 
     if (gprs > 0)
@@ -222,18 +224,18 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    Offset   ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    Offset   fpOffset = VM_Entrypoints.registersFPField.getOffset();
+    Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
     asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerField.getOffset()); 
     asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);        // registers.fp := pr.framePointer
     asm.emitPOP_Reg        (T1);                      // T1 := return address 
     asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);        // registers.ip := return address
     asm.emitADD_Reg_Imm    (SP, 4);                   // throw away space for registers parameter (in T0)
     asm.emitMOV_Reg_RegDisp(S0, T0, gprsOffset);      // S0 := registers.gprs[]
-    asm.emitMOV_RegDisp_Reg(S0, SP<<LG_WORDSIZE, SP); // registers.gprs[#SP] := SP
+    asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(SP<<LG_WORDSIZE), SP); // registers.gprs[#SP] := SP
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
-      asm.emitMOV_RegDisp_Reg(S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE, NONVOLATILE_GPRS[i]); // registers.gprs[i] := i'th register
+      asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i]<<LG_WORDSIZE), NONVOLATILE_GPRS[i]); // registers.gprs[i] := i'th register
     }
     asm.emitJMP_Reg        (T1);                      // return to return address
     return asm.getMachineCodes();
@@ -259,10 +261,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-    int regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
+    Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    Offset fpOffset = VM_Entrypoints.registersFPField.getOffset();
+    Offset gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
+    Offset regsOffset = VM_Entrypoints.threadContextRegistersField.getOffset();
 
     // (1) Save hardware state of thread we are switching off of.
     asm.emitMOV_Reg_RegDisp  (S0, T0, regsOffset);      // S0 = T0.contextRegisters
@@ -271,9 +273,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitPOP_RegDisp      (S0, fpOffset);            // T0.contextRegisters.fp = pushed framepointer
     asm.emitADD_Reg_Imm      (SP, 8);                   // discard 2 words of parameters (T0, T1)
     asm.emitMOV_Reg_RegDisp  (S0, S0, gprsOffset);      // S0 = T0.contextRegisters.gprs;
-    asm.emitMOV_RegDisp_Reg  (S0, SP<<LG_WORDSIZE, SP); // T0.contextRegisters.gprs[#SP] := SP
+    asm.emitMOV_RegDisp_Reg  (S0, Offset.fromIntZeroExtend(SP<<LG_WORDSIZE), SP); // T0.contextRegisters.gprs[#SP] := SP
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
-      asm.emitMOV_RegDisp_Reg(S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE, NONVOLATILE_GPRS[i]); // T0.contextRegisters.gprs[i] := i'th register
+      asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i]<<LG_WORDSIZE), NONVOLATILE_GPRS[i]); // T0.contextRegisters.gprs[i] := i'th register
     }
 
     // (2) Set currentThread.beingDispatched to false
@@ -283,9 +285,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, T1, fpOffset);        // S0 := restoreRegs.fp
     VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerField.getOffset(), S0); // PR.framePointer = restoreRegs.fp
     asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := restoreRegs.gprs[]
-    asm.emitMOV_Reg_RegDisp(SP, S0, SP<<LG_WORDSIZE); // SP := restoreRegs.gprs[#SP]
+    asm.emitMOV_Reg_RegDisp(SP, S0, Offset.fromIntZeroExtend(SP<<LG_WORDSIZE)); // SP := restoreRegs.gprs[#SP]
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
-      asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE); // i'th register := restoreRegs.gprs[i]
+      asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], S0, Offset.fromIntZeroExtend(NONVOLATILE_GPRS[i]<<LG_WORDSIZE)); // i'th register := restoreRegs.gprs[i]
     }
     asm.emitJMP_RegDisp    (T1, ipOffset);            // return to (save) return address
     return asm.getMachineCodes();
@@ -308,33 +310,30 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
-    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
-    int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
-    int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
-
     // Set PR.framePointer to be registers.fp
-    asm.emitMOV_Reg_RegDisp(S0, T0, fpOffset); 
+    asm.emitMOV_Reg_RegDisp(S0, T0, VM_Entrypoints.registersFPField.getOffset()); 
     VM_ProcessorLocalState.emitMoveRegToField(asm,
                                               VM_Entrypoints.framePointerField.getOffset(),
                                               S0);
 
     // Restore SP
-    asm.emitMOV_Reg_RegDisp (S0, T0, gprsOffset);
-    asm.emitMOV_Reg_RegDisp (SP, S0, SP<<LG_WORDSIZE);
+    asm.emitMOV_Reg_RegDisp (S0, T0, VM_Entrypoints.registersGPRsField.getOffset());
+    asm.emitMOV_Reg_RegDisp (SP, S0, Offset.fromIntZeroExtend(SP<<LG_WORDSIZE));
     
     // Push registers.ip to stack (now that SP has been restored)
-    asm.emitPUSH_RegDisp(T0, ipOffset);
+    asm.emitPUSH_RegDisp(T0, VM_Entrypoints.registersIPField.getOffset());
 
     // Restore the GPRs except for S0, PR, and SP 
     // (restored above and then modified by pushing registers.ip!)
-    for (byte i= 0; i < NUM_GPRS; i++) {
+    Offset off = Offset.zero();
+    for (byte i= 0; i < NUM_GPRS; i++, off=off.add(WORDSIZE)) {
       if (i != S0 && i != ESI && i != SP) {
-        asm.emitMOV_Reg_RegDisp(i, S0, i<<LG_WORDSIZE);
+        asm.emitMOV_Reg_RegDisp(i, S0, off);
       }
     }
     
     // Restore S0
-    asm.emitMOV_Reg_RegDisp(S0, S0, S0<<LG_WORDSIZE);
+    asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(S0<<LG_WORDSIZE));
 
     // Return to registers.ip (popping stack)
     asm.emitRET();
@@ -376,7 +375,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, EBP, VM_JNICompiler.JNI_ENV_OFFSET);
 
     // reload processor register from JNIEnvironment
-    VM_ProcessorLocalState.emitSetProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
+    VM_ProcessorLocalState.emitLoadProcessor(asm, S0, VM_Entrypoints.JNIEnvSavedPRField.getOffset());
 
     // reload JTOC from vitual processor 
     // NOTE: EDI saved in glue frame is just EDI (opt compiled code uses it as normal non-volatile)

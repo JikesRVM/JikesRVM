@@ -361,7 +361,22 @@ public abstract class VM_Method extends VM_Member {
     if (isCompiled()) {
       return currentCompiledMethod.getInstructions();
     } else if (!VM.writingBootImage || isNative()) {
-      return VM_LazyCompilationTrampolineGenerator.getTrampoline();
+      if (!isStatic() && !isObjectInitializer() && !isPrivate()) {
+        // A non-private virtual method.
+        if (declaringClass.isJavaLangObjectType() ||
+            declaringClass.getSuperClass().findVirtualMethod(getName(), getDescriptor()) == null) {
+          // The root method of a virtual method family can use the lazy method invoker directly.
+          return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentInstructions();
+        } else {
+          // All other virtual methods in the family must generate unique stubs to
+          // ensure correct operation of the method test (guarded inlining of virtual calls).
+          return VM_LazyCompilationTrampolineGenerator.getTrampoline();
+        }
+      } else {
+        // We'll never to a method test against this method.
+        // Therefore we can use the lazy method invoker directly.
+        return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentInstructions();
+      }
     } else {
       compile(); 
       return currentCompiledMethod.getInstructions();

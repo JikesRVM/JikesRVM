@@ -30,10 +30,10 @@ import org.vmmagic.pragma.*;
  */
 abstract public class AbstractDriver implements Uninterruptible {
   // The tiles
-  protected int blockSize;			// tile size
-  protected int allTileNum;			// total number of tiles
+  protected int blockSize;                      // tile size
+  protected int allTileNum;                     // total number of tiles
   
-  protected ServerSpace space;			// The GCspy space abstraction
+  protected ServerSpace space;                  // The GCspy space abstraction
   
   /**
    * Count number of tiles in an address range
@@ -83,7 +83,7 @@ abstract public class AbstractDriver implements Uninterruptible {
     for (int i = 0; i < numTiles; ++i) {
       if (subspace.indexInRange(i)) 
         space.setTilename(i, start.add((i - first) * bs), 
-	                     start.add((i + 1 - first) * bs));
+                             start.add((i + 1 - first) * bs));
     }
   }
  
@@ -118,12 +118,12 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param len The number of tiles in the region
    */
   public void controlValues (AbstractTile[] tiles, byte tag, int start, 
-			     int len) {
+                             int len) {
     for (int i = start; i < (start+len); ++i) {
       if (AbstractTile.controlIsBackground(tag) ||
-   	  AbstractTile.controlIsUnused(tag)) {
+          AbstractTile.controlIsUnused(tag)) {
         if (AbstractTile.controlIsUsed(tiles[i].getControl()))
-	  tiles[i].setControl((byte)~AbstractTile.CONTROL_USED);
+          tiles[i].setControl((byte)~AbstractTile.CONTROL_USED);
       }
       tiles[i].addControl(tag);
     }
@@ -220,11 +220,11 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param length the lenght to distribute
    */
    public static void distributeSpace(AbstractTile[] tiles, 
-   			       Subspace subspace,
+                               Subspace subspace,
                                int blockSize, 
-			       int streamID,
-			       Address start,
-			       int length) {
+                               int streamID,
+                               Address start,
+                               int length) {
 
      int index = subspace.getIndex(start);
      int remainder = subspace.spaceRemaining(start);
@@ -258,7 +258,7 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param size the size of the space
    */
   protected void sendSpaceInfoAndEndComm(Offset size) {
-    //	  - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
+    //    - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
     Address tmp = Util.formatSize("Current Size: %s\n", 128, size.toInt());
     space.spaceInfo(tmp); 
     space.endComm();

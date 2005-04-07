@@ -77,7 +77,7 @@ public class VM_Registers implements VM_Constants, Uninterruptible {
   }
 
   public final Address getIPLocation() {
-    int ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    Offset ipOffset = VM_Entrypoints.registersIPField.getOffset();
     return VM_Magic.objectAsAddress(this).add(ipOffset);
   }
 }

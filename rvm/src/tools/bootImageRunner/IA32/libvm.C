@@ -39,19 +39,13 @@
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-/* OK, here's the scoop with pthreads.  The GNU C library will provide us with
- * the pthread_mutex_lock and pthread_mutex_unlock implementations, WITHOUT
- * linking with -lpthread.    But the C library (libc) does not contain an
- * implementation of pthread_kill().  That's why we can get away with using
- * some of the pthread functions in a single-processor config, but not get
- * away with all of them. */
-#include <pthread.h>
-#endif
+#include "../pthread-wrappers.h" // In rvm/src/tools/bootImageRunner
 
 /* Interface to virtual machine data structures. */
+#define NEED_EXIT_STATUS_CODES
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#define NEED_MM_INTERFACE_DECLARATIONS
 #include <InterfaceDeclarations.h>
 
 extern "C" void setLinkage(VM_BootRecord*);
@@ -81,13 +75,13 @@ int lib_verbose = 0;
 static unsigned VmToc;
 
 /* TOC offset of VM_Scheduler.dumpStackAndDie */
-static int DumpStackAndDieOffset;
+static VM_Offset DumpStackAndDieOffset;
 
 /* TOC offset of VM_Scheduler.processors[] */
-static int ProcessorsOffset;
+static VM_Offset ProcessorsOffset;
 
 /* TOC offset of VM_Scheduler.debugRequested */
-static int DebugRequestedOffset;
+static VM_Offset DebugRequestedOffset;
 
 /* name of program that will load and run RVM */
 char *Me;
@@ -124,15 +118,7 @@ boot (int ip, int jtoc, int pr, int sp)
     return bootThread (ip, jtoc, pr, sp);
 }
 
-#include <ihnpdsm.h>
-extern "C" PARLIST *Disassemble(
-  char *pHexBuffer,                /* output: hex dump of instruction bytes  */
-  char *pMnemonicBuffer,           /* output: instruction mnemonic string    */
-  char *pOperandBuffer,            /* output: operands string                */
-  char *pDataBuffer,               /* input:  buffer of bytes to disassemble */
-  int  *fInvalid,                  /* output: disassembly successful: 1 or 0 */
-  int   WordSize);                 /* input:  Segment word size: 2 or 4      */
-
+#include <disasm.h>
 
 unsigned int
 getInstructionFollowing(unsigned int faultingInstructionAddress)
@@ -140,14 +126,17 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
     int Illegal = 0;
     char HexBuffer[256], MnemonicBuffer[256], OperandBuffer[256];
     //, AddrBuffer[256];
+    PARLIST p_st;
     PARLIST *p;
 
     p = Disassemble(HexBuffer,
+                    sizeof HexBuffer,
                     MnemonicBuffer,
+                    sizeof MnemonicBuffer,
                     OperandBuffer,
+                    sizeof OperandBuffer,
                     (char *) faultingInstructionAddress,
-                    &Illegal,
-                    4);
+                    &Illegal, &p_st);
     if (Illegal)
         return faultingInstructionAddress;
     else
@@ -160,21 +149,19 @@ getInstructionFollowing(unsigned int faultingInstructionAddress)
 }
 
 static int 
-inRVMAddressSpace(unsigned int addr) 
+inRVMAddressSpace(VM_Address addr) 
 {
     /* get the boot record */
     VM_Address *heapRanges = bootRecord->heapRanges;
-    int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
-
-    for (int which = 0; ; which++) {
-        assert(which <= 2 * (MaxHeaps + 1));
+    for (int which = 0; which < MAXHEAPS; which++) {
         VM_Address start = heapRanges[2 * which];
         VM_Address end = heapRanges[2 * which + 1];
+        // Test against sentinel.
         if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
-        if (start <= addr  && addr  < end)
+        if (start <= addr  && addr < end) {
             return true;
+        }
     }
-        
     return false;
 }
 
@@ -264,11 +251,10 @@ void
 hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 {
     unsigned int localInstructionAddress;
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
-    pthread_mutex_lock( &exceptionLock );
-#endif // RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    if (!rvm_singleVirtualProcessor)
+        pthread_mutex_lock( &exceptionLock );
 
     unsigned int localVirtualProcessorAddress;
     unsigned int localFrameAddress;
@@ -327,7 +313,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                  isRecoverable? "" : " UNRECOVERABLE", 
                  signo, strsignal(signo));
 
-        writeErr("handler stack 0x%x\n", (unsigned) &localInstructionAddress);
+        writeErr("handler stack 0x%08x\n", 
+                 (unsigned) &localInstructionAddress);
         if (signo == SIGSEGV)
             writeErr("si->si_addr   0x%08x\n", (unsigned) si->si_addr);
         writeErr("gs            0x%08x\n", gregs[REG_GS]);
@@ -393,7 +380,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         {
             writeErr("invalid vp address (not an address - high nibble %d)\n", 
                      vp_hn);
-            exit(1);
+            signal(signo, SIG_DFL);
+            raise(signo);
+            // We should never get here.
+            _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
         }
     }
 
@@ -411,7 +401,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
             writeErr("invalid frame address %x"
             " (not an address - high nibble %d)\n", 
                                  localFrameAddress, fp_hn);
-            exit(1);
+            signal(signo, SIG_DFL);
+            raise(signo);
+            // We should never get here.
+            _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
         }
     }
 
@@ -476,9 +469,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         gregs[REG_EIP] = dumpStack;
         *vmr_inuse = false;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-        pthread_mutex_unlock( &exceptionLock );
-#endif
+        if (!rvm_singleVirtualProcessor)
+            pthread_mutex_unlock( &exceptionLock );
 
         return;
     }
@@ -513,7 +505,10 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
     if ((uintptr_t) sp <= stackLimit - 384) {
         writeErr("sp (0x%08" PRIxPTR ")too far below stackLimit (0x%08" PRIxPTR ")to recover\n", (uintptr_t) sp, stackLimit);
-        exit (2);
+        signal(signo, SIG_DFL);
+        raise(signo);
+        // We should never get here.
+        _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
     }
     sp = (long unsigned int *)stackLimit - 384;
     stackLimit -= VM_Constants_STACK_SIZE_GUARD;
@@ -595,9 +590,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* setup to return to deliver hardware exception routine */
     gregs[REG_EIP] = javaExceptionHandlerAddress;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    pthread_mutex_unlock( &exceptionLock );
-#endif
+    if (!rvm_singleVirtualProcessor)
+        pthread_mutex_unlock( &exceptionLock );
 }
 
 
@@ -606,12 +600,14 @@ softwareSignalHandler(int signo,
                       siginfo_t UNUSED *si, 
                       void *context) 
 {
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    if (signo == SIGALRM) {     /* asynchronous signal used for time slicing */
-        processTimerTick();
-        return;
+//    bool croak_with_signo = false;
+    
+    if (rvm_singleVirtualProcessor) {
+        if (signo == SIGALRM) { /* asynchronous signal used for time slicing */
+            processTimerTick();
+            return;
+        }
     }
-#endif
 
     // asynchronous signal used to awaken internal debugger
     if (signo == SIGQUIT) { 
@@ -634,11 +630,24 @@ softwareSignalHandler(int signo,
         return;
     }
 
+    /** We need to adapt this code so that we run the exit handlers
+        appropriately. */
+    
     if (signo == SIGTERM) {
         // Presumably we received this signal because someone wants us
         // to shut down.  Exit directly (unless the lib_verbose flag is set).
-        if (!lib_verbose)
-            _exit(1);
+        // TODO: Run the shutdown hooks instead.
+        if (!lib_verbose) {
+            /* Now reraise the signal.  We reactivate the signal's
+               default handling, which is to terminate the process.
+               We could just call `exit' or `abort',
+               but reraising the signal sets the return status
+               from the process correctly.
+               TODO: Go run shutdown hooks before we re-raise the signal. */
+            signal(signo, SIG_DFL);
+            raise(signo);
+        }
+        
 
         DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
@@ -684,7 +693,7 @@ softwareSignalHandler(int signo,
 
 /* Returns 1 upon any errors.   Never returns except to report an error. */
 int
-createJVM(int UNUSED vmInSeparateThread)
+createVM(int UNUSED vmInSeparateThread)
 {
     /* don't buffer trace or error message output */
     setbuf (SysErrorFile, 0);
@@ -692,12 +701,7 @@ createJVM(int UNUSED vmInSeparateThread)
 
     if (lib_verbose)
     {
-        fprintf(SysTraceFile, "IA32 linux build");
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-        fprintf(SysTraceFile, " for single virtual processor\n");
-#else
-        fprintf(SysTraceFile, " for SMP\n");
-#endif
+        fprintf(SysTraceFile, "IA32 linux build\n");
     }
 
 /* Note: You probably always want to use MMAP_COPY_ON_WRITE.
@@ -848,6 +852,7 @@ createJVM(int UNUSED vmInSeparateThread)
     bootRecord->bootImageStart   = (int) bootRegion;
     bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
     bootRecord->verboseBoot      = verboseBoot;
+    bootRecord->singleVirtualProcessor = rvm_singleVirtualProcessor;
   
     /* write sys.C linkage information into boot record */
     setLinkage(bootRecord);
@@ -986,7 +991,7 @@ createJVM(int UNUSED vmInSeparateThread)
     // fprintf(SysTraceFile, "%s: here goes...\n", Me);
     int rc = boot (ip, jtoc, pr, (int) sp);
 
-    fprintf(SysErrorFile, "%s: CreateJVM(): boot() returned; failed to create a VM.  rc=%d.  Bye.\n", Me, rc);
+    fprintf(SysErrorFile, "%s: createVM(): boot() returned; failed to create a virtual machine.  rc=%d.  Bye.\n", Me, rc);
     return 1;
 }
 
@@ -999,7 +1004,7 @@ getJTOC(void)
 }
 
 // Get offset of VM_Scheduler.processors in JTOC.
-extern "C" int 
+extern "C" VM_Offset 
 getProcessorsOffset(void) 
 {
     return ProcessorsOffset;

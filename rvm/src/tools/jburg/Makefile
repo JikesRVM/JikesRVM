@@ -19,7 +19,11 @@ endif
 
 include		$(RVM_BUILD)/Make.rules.host
 
-CFLAGS+=-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts  -fkeep-inline-functions -Wundef -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-unused -Wno-strict-prototypes
+## -Wno-undef: Do not warn if an unknown identifier is evaluated within a #if.
+## This is because bison.simple, at least on some machines, tests against the
+## following undefined conditionals: YYLSP_NEEDED 
+## YYSTACK_USE_ALLOCA YYPURE YYMAXDEPTH 
+CFLAGS+=-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts  -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-unused -Wno-strict-prototypes -Wno-undef
 
 ## For GCC version 3.3, we can add:
 ## but we don't have the infrastructure to do this programmatically right now.

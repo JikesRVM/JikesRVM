@@ -6,7 +6,7 @@ package org.mmtk.utility.heap;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.Plan;
 import org.mmtk.utility.options.ProtectOnRelease;

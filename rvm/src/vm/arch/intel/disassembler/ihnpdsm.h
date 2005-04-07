@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 
@@ -75,10 +75,18 @@ typedef enum   {                       /* type of returned operand info      */
 
 /* fields have been ordered so packing will not affect the structure */
 typedef struct parlist {             /* the parameter area                   */
-  UCHAR  *iptr;                      /* machine code ->                      */
+  UCHAR  *iptr;                      /* machine code (INPUT) -- the
+                                      * instruction stream we are
+                                      * disassembling ->       */ 
   UCHAR  *hbuffer;                   /* hex output buffer ->                 */
+  size_t hbuffer_sz;            /* num bytes available to write into */
+
   UCHAR  *mbuffer;                   /* mnemonic output buffer ->            */
+  size_t mbuffer_sz;            /* num bytes available to write into */
+
   UCHAR  *ibuffer;                   /* operand output buffer ->             */
+  size_t ibuffer_sz;               /* num bytes available to write into */
+  
   ULONG  instr_EIP;                  /* EIP value @ this instruction         */
   UINT   flagbits; /*mt*/            /* flag bits :                          */
                                      /* bit 1 (1) => ESC orders are decoded  */
@@ -117,3 +125,6 @@ typedef struct parlist {             /* the parameter area                   */
 void p__DisAsm (PARLIST * parmptr, int print);
 
 #endif
+/* Local Variables: */
+/* c-basic-offset: 2 */
+/* End: */

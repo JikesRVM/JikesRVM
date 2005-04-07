@@ -56,6 +56,9 @@ import java.lang.reflect.*;
  * This is the purpose of the .fake files in the optimizing compiler's
  * assembler directory. </P>
  *
+ *  <P>Since this is a freestanding program, use the regular Java exit
+ *   code conventions.</P>
+ * 
  * @see OPT_InstructionFormatTables
  * @see OPT_OperatorFormatTables
  * @see com.ibm.JikesRVM.opt.OPT_AssemblerBase
@@ -82,7 +85,7 @@ public class GenerateAssembler {
             out.write(s, 0, s.length());
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit(-1);
+            System.exit(1);
         }
     }
 
@@ -114,7 +117,7 @@ public class GenerateAssembler {
             formats = Class.forName("OPT_InstructionFormatTables");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            System.exit( -1 );
+            System.exit(1);
         }
     }
 
@@ -195,7 +198,7 @@ public class GenerateAssembler {
         } catch (Throwable e) {
             System.err.println("Cannot handle VM_Assembler opcode " + opcode);
             e.printStackTrace();
-            System.exit( -1 );
+            System.exit(1);
         }
     }
 
@@ -379,7 +382,7 @@ public class GenerateAssembler {
             System.err.println(currentOpcode + ": cannot access operand " + op  + ":");
             for(int i = 0; i < currentOpcodeSymbolicNames.length; i++)
                 System.err.println( currentOpcodeSymbolicNames[i] );
-            System.exit( -1 );
+            System.exit(1);
             return null;
         }
     }
@@ -958,7 +961,7 @@ public class GenerateAssembler {
                 if (testsPerformed[rec.argument][rec.test] == true) {
                     System.err.println("repeated split of " + opcode + "[" + rec.argument + "] for " + encoding[rec.test]);
                     System.err.println( this );
-                    System.exit( -1 );
+                    System.exit(1);
                 }
 
                 testsPerformed[rec.argument][rec.test] = true;
@@ -1119,14 +1122,14 @@ public class GenerateAssembler {
             out = new FileWriter(System.getProperty("generateToDir") + "/OPT_Assembler.java");
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit( -1 );
+            System.exit(1);
         }
 
         try {
             lowLevelAsm = Class.forName("com.ibm.JikesRVM.VM_Assembler");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            System.exit( -1 );
+            System.exit(1 );
         }
 
         emit("package com.ibm.JikesRVM.opt;\n\n");
@@ -1257,7 +1260,7 @@ public class GenerateAssembler {
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit( -1 );
+            System.exit(1 );
         }
     }
 }

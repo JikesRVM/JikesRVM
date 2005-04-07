@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.OSR.*;
 //-#endif
 import com.ibm.JikesRVM.classloader.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Framework compiler - platform independent code.
  * This compiler provides the structure for a very simple compiler --
@@ -24,6 +26,7 @@ import org.vmmagic.pragma.*;
  * @author Janice Shepherd
  */
 public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_SizeConstants
+  , VM_StackframeLayoutConstants
 //-#if RVM_WITH_OSR
   , OSR_Constants
 //-#endif
@@ -135,7 +138,6 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
     }
   }
 
-
   final int[] getBytecodeMap () {
     return bytecodeMap;
   }
@@ -175,10 +177,16 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    */
   protected final void printMethodMessage () {
     String compilerName = getCompilerName();
-    
-    VM.sysWrite("-method" + Character.toUpperCase(compilerName.charAt(0))+
-                compilerName.substring(1));
-    VM.sysWrite(" "); 
+
+    // It's tempting to use Character.toUpperCase here, but Character
+    // isn't fully initialized early in booting, so don't do it!
+    if (compilerName.equals("baseline")) {
+      VM.sysWrite("-methodBaseline ");
+    } else if (compilerName.equals("quick")) {
+      VM.sysWrite("-methodQuick ");
+    } else if (VM.VerifyAssertions) {
+      VM._assert(false, "Unknown compiler");
+    }
     VM.sysWrite(method.getDeclaringClass().toString());
     VM.sysWrite(" "); 
     VM.sysWrite(method.getName());
@@ -315,7 +323,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       case JBC_ldc: {
         int index = bcodes.getConstantIndex();
         if (shouldPrint) asm.noteBytecode(biStart, "ldc", index);
-        int offset = klass.getLiteralOffset(index);
+        Offset offset = klass.getLiteralOffset(index);
         emit_ldc(offset);
         break;
       }
@@ -323,7 +331,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       case JBC_ldc_w: {
         int index = bcodes.getWideConstantIndex();
         if (shouldPrint) asm.noteBytecode(biStart, "ldc_w", index);
-        int offset = klass.getLiteralOffset(index);
+        Offset offset = klass.getLiteralOffset(index);
         emit_ldc(offset);
         break;
       }
@@ -331,7 +339,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
       case JBC_ldc2_w: {
         int index = bcodes.getWideConstantIndex();
         if (shouldPrint) asm.noteBytecode(biStart, "ldc2_w", index);
-        int offset = klass.getLiteralOffset(index);
+        Offset offset = klass.getLiteralOffset(index);
         emit_ldc2(offset);
         break;
       }
@@ -1812,9 +1820,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
           
-          int slot = VM_Statics.findOrCreateIntLiteral(value);
-          int offset = slot << LOG_BYTES_IN_INT;
-
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntLiteral(value));
           emit_ldc(offset);
             
           break;
@@ -1824,9 +1830,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
  
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
           
-          int slot = VM_Statics.findOrCreateLongLiteral(value);
-          int offset = slot << LOG_BYTES_IN_INT;
-
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongLiteral(value));
           emit_ldc2(offset);
 
           break;
@@ -1837,9 +1841,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
           
-          int slot = VM_Statics.findOrCreateIntLiteral(value);
-          int offset = slot << LOG_BYTES_IN_INT;
-
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateIntLiteral(value));
           emit_ldc(offset);
           //-#endif
 
@@ -1848,9 +1850,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
           
-          int slot = VM_Statics.findOrCreateLongLiteral(value);
-          int offset = slot << LOG_BYTES_IN_INT;
-
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateLongLiteral(value));
           emit_ldc2(offset);
           emit_l2i(); //dirty hack
           //-#endif
@@ -1861,9 +1861,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
           
-          int slot = VM_Statics.findOrCreateFloatLiteral(ibits);
-          int offset = slot << LOG_BYTES_IN_INT;
-
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateFloatLiteral(ibits));
           emit_ldc(offset);
 
           break;
@@ -1873,9 +1871,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
 
           if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
           
-          int slot = VM_Statics.findOrCreateDoubleLiteral(lbits);
-          int offset = slot << LOG_BYTES_IN_INT;
-
+          Offset offset = Offset.fromIntSignExtend(VM_Statics.findOrCreateDoubleLiteral(lbits));
           emit_ldc2(offset);
 
           break;
@@ -2133,13 +2129,13 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
    * Emit code to load a 32 bit constant
    * @param offset JTOC offset of the constant 
    */
-  protected abstract void emit_ldc(int offset);
+  protected abstract void emit_ldc(Offset offset);
 
   /**
    * Emit code to load a 64 bit constant
    * @param offset JTOC offset of the constant 
    */
-  protected abstract void emit_ldc2(int offset);
+  protected abstract void emit_ldc2(Offset offset);
 
 
   /*

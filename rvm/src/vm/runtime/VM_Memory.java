@@ -64,27 +64,27 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         switch(startDiff) {
         //-#if RVM_FOR_64_ADDR
         case 7:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -7,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -7));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-7),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-7)));
         case 6:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -6,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -6));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-6),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-6)));
         case 5:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -5,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -5));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-5),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-5)));
         case 4:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -4,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -4));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-4),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-4)));
         //-#endif
         case 3:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -3,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -3));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-3),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-3)));
         case 2:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -2,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -2));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-2),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-2)));
         case 1:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), -1,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), -1));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-1),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-1)));
         }
         
         Address endPtr = srcPtr.add(wordLen);
@@ -97,27 +97,27 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         switch(endDiff) {
         //-#if RVM_FOR_64_ADDR
         case 7:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 6,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 6));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(6),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(6)));
         case 6:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 5,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 5));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(5),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(5)));
         case 5:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 4,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 4));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(4),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(4)));
         case 4:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 3,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 3));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(3),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(3)));
         //-#endif
         case 3:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 2,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 2));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(2),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(2)));
         case 2:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 1,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 1));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(1),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(1)));
         case 1:
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));
         }
 
       } else {
@@ -125,8 +125,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstPos);
         Address endPtr = srcPtr.add(len);
         while (srcPtr.LT(endPtr)) {
-          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
-                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          VM_Magic.setByteAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
+                                   VM_Magic.getByteAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));
           srcPtr = srcPtr.add(1);
           dstPtr = dstPtr.add(1);
         }
@@ -166,20 +166,20 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         switch(startDiff) {
         //-#if RVM_FOR_64_ADDR
         case 6:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), -6,
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), -6));
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-6),
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-6)));
         case 4:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), -4,
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), -4));
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-4),
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-4)));
         //-#endif
         case 2:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), -2,
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), -2));
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(-2),
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(-2)));
         }
         
         Address endPtr = srcPtr.add(wordLen);
         while (srcPtr.LT(endPtr)) {
-	  dstPtr.store(srcPtr.loadWord());
+          dstPtr.store(srcPtr.loadWord());
           srcPtr = srcPtr.add(BYTES_IN_ADDRESS);
           dstPtr = dstPtr.add(BYTES_IN_ADDRESS);
         }
@@ -187,15 +187,15 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         switch(endDiff) {
         //-#if RVM_FOR_64_ADDR
         case 6:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 4,
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 4));
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(4),
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(4)));
         case 4:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 2,
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 2));
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(2),
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(2)));
         //-#endif
         case 2:
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));
         }
 
       } else {
@@ -203,8 +203,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         Address dstPtr = VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_CHAR);
         Address endPtr = srcPtr.add(len<<LOG_BYTES_IN_CHAR);
         while (srcPtr.LT(endPtr)) {
-          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
-                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          VM_Magic.setCharAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
+                                   VM_Magic.getCharAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));
           srcPtr = srcPtr.add(2);
           dstPtr = dstPtr.add(2);
         }
@@ -238,8 +238,8 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
       //       we are going into memcopy anyways and that will be faster than anything we do here.
       Address endPtr = srcPtr.add(copyBytes);
       while (srcPtr.LT(endPtr)) {
-        VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
-                                VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+        VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
+                                VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));
         srcPtr = srcPtr.add(4);
         dstPtr = dstPtr.add(4);
       }
@@ -271,13 +271,13 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
         // We generate abysmal code on IA32 if we try to use the FP registers,
         // so use the gprs instead even though it results in more instructions.
         if (VM.BuildForIA32) {
-          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
-                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
-          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), 4,
-                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), 4));
+          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
+                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));
+          VM_Magic.setIntAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.fromIntSignExtend(4),
+                                  VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.fromIntSignExtend(4)));
         } else {          
-          VM_Magic.setDoubleAtOffset(VM_Magic.addressAsObject(dstPtr), 0,
-                                     VM_Magic.getDoubleAtOffset(VM_Magic.addressAsObject(srcPtr), 0));
+          VM_Magic.setDoubleAtOffset(VM_Magic.addressAsObject(dstPtr), Offset.zero(),
+                                     VM_Magic.getDoubleAtOffset(VM_Magic.addressAsObject(srcPtr), Offset.zero()));
         }
         srcPtr = srcPtr.add(8);
         dstPtr = dstPtr.add(8);
@@ -293,39 +293,39 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  public static void aligned32Copy(Address dst, Address src, int numBytes) throws InlinePragma {
-    if (USE_NATIVE && numBytes > NATIVE_THRESHOLD) {
-      memcopy(dst, src, numBytes);
+  public static void aligned32Copy(Address dst, Address src, Offset numBytes) throws InlinePragma {
+    if (USE_NATIVE && numBytes.sGT(Offset.fromIntSignExtend(NATIVE_THRESHOLD))) {
+      memcopy(dst, src, numBytes.toWord().toExtent());
     } else {
       if (VM.BuildFor64Addr) {
         Word wordMask = Word.one().lsh(LOG_BYTES_IN_ADDRESS).sub(Word.one());
-        int srcAlignment = src.toWord().and(wordMask).toInt();
-        if (srcAlignment == dst.toWord().and(wordMask).toInt()) {
-          int i = 0;
-          if (srcAlignment == BYTES_IN_INT) { 
-            dst.add(i).store(src.add(i).loadInt());
-            i += BYTES_IN_INT;
+        Word srcAlignment = src.toWord().and(wordMask);
+        if (srcAlignment.EQ(dst.toWord().and(wordMask))) {
+          Offset i = Offset.zero();
+          if (srcAlignment.EQ(Word.fromIntZeroExtend(BYTES_IN_INT))) { 
+            dst.store(src.loadInt(i), i);
+            i = i.add(BYTES_IN_INT);
           }
-          int endAlignment =( numBytes + srcAlignment) % BYTES_IN_ADDRESS;
-          numBytes -= endAlignment;
-          for (; i<numBytes; i+= BYTES_IN_ADDRESS) {
-            dst.add(i).store(src.add(i).loadWord());
+          Word endAlignment = srcAlignment.add(numBytes).and(Word.fromIntSignExtend(BYTES_IN_ADDRESS-1));
+          numBytes = numBytes.sub(endAlignment.toOffset());
+          for (; i.sLT(numBytes); i = i.add(BYTES_IN_ADDRESS)) {
+            dst.store(src.loadWord(i), i);
           }
-          if (endAlignment != 0) { 
-            dst.add(i).store(src.add(i).loadInt());
+          if (!endAlignment.isZero()) { 
+            dst.store(src.loadInt(i), i);
           }
         return;
         }
       } 
       //normal case: 32 bit or (64 bit not aligned)
-      for (int i=0; i<numBytes; i+= BYTES_IN_INT) {
-        dst.add(i).store(src.add(i).loadInt());
+      for (Offset i= Offset.zero(); i.sLT(numBytes); i = i.add(BYTES_IN_INT)) {
+        dst.store(src.loadInt(i), i);
       }
     }
   }
 
-  public static void aligned32Copy(Address dst, Address src, Offset numBytes) throws InlinePragma {
-    aligned32Copy(dst, src, numBytes.toInt());
+  public static void aligned32Copy(Address dst, Address src, int numBytes) throws InlinePragma {
+    aligned32Copy(dst, src, Offset.fromIntSignExtend(numBytes));
   }
 
   /**
@@ -342,10 +342,6 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
     } else {
       internalAlignedWordCopy(dst, src, numBytes);
     }
-  }
-
-  public static void alignedWordCopy(Address dst, Address src, Offset numBytes) throws InlinePragma {
-    alignedWordCopy(dst, src, numBytes.toInt());
   }
 
   /**
@@ -371,8 +367,12 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param cnt   Number of bytes to copy
    * Assumption: source and destination regions do not overlap
    */
-  public static void memcopy(Address dst, Address src, int cnt) {
+  public static void memcopy(Address dst, Address src, Extent cnt) {
     VM_SysCall.sysCopy(dst, src, cnt);
+  }
+
+  public static void memcopy(Address dst, Address src, int cnt) {
+    VM_SysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
   }
 
   /**
@@ -381,7 +381,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param pattern <code>byte</code> to fill the region with.
    * @param cnt     Number of bytes to fill with <code>pattern</code>
    */
-  public static void fill(Address dst, byte pattern, int cnt) {
+  public static void fill(Address dst, byte pattern, Extent cnt) {
     VM_SysCall.sysFill(dst, pattern, cnt);
   }
 
@@ -391,16 +391,11 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param end of address range   (exclusive)
    */
   public static void zero(Address start, Address end) {
-    VM_SysCall.sysZero(start, end.diff(start).toInt());
-  }
-
-  // temporary different name
-  public static void zero(Address start, int len) {
-    VM_SysCall.sysZero(start, len);
+    VM_SysCall.sysZero(start, end.diff(start).toWord().toExtent());
   }
 
   public static void zero(Address start, Extent len) {
-    VM_SysCall.sysZero(start, len.toInt());
+    VM_SysCall.sysZero(start, len);
   }
 
   /**

@@ -82,7 +82,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param framePtr          The current frame pointer
    */
   public final void setupIterator(VM_CompiledMethod cm, 
-                                  int instructionOffset, 
+                                  Offset instructionOffset, 
                                   Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
@@ -103,13 +103,14 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     map = compiledMethod.getMCMap();
     mapIndex = map.findGCMapIndex(instructionOffset);
     if (mapIndex == VM_OptGCMap.ERROR) {
-      if (instructionOffset < 0) {
+      if (instructionOffset.sLT(Offset.zero())) {
         VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
       } else {
-        int possibleLen = cm.getInstructions().length() << VM.LG_INSTRUCTION_WIDTH;
-        if (possibleLen < instructionOffset) {
+        Offset possibleLen = Offset.fromIntZeroExtend(cm.getInstructions().length() << VM.LG_INSTRUCTION_WIDTH);
+        if (possibleLen.sLT(instructionOffset)) {
           VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
-          VM.sysWriteln("offset is", instructionOffset, " bytes of machine code for method ",possibleLen);
+          VM.sysWriteln("offset is", instructionOffset);
+          VM.sysWriteln( " bytes of machine code for method ",possibleLen);
         } else {
           VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
           VM.sysWrite("Method: ");

@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  *   VM_LockNursery provides RVM support for synchronization on objects that
@@ -119,7 +120,7 @@ public final class VM_LockNursery implements VM_Constants, Uninterruptible {
       // WARNING: Because we are using magic here, we are going to miss a write barrier update in
       //          a generational GC so._assert that the collector isn't using one!!!
       if (VM.VerifyAssertions) VM._assert(!MM_Interface.NEEDS_WRITE_BARRIER);
-      VM_Magic.setObjectAtOffset(buckets, h<<LOG_BYTES_IN_ADDRESS, b); 
+      VM_Magic.setObjectAtOffset(buckets, Offset.fromIntZeroExtend(h<<LOG_BYTES_IN_ADDRESS), b); 
       myLock.unlock();
       return b.lock;
     } else {

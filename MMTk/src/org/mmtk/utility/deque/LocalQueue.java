@@ -4,7 +4,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
@@ -139,7 +139,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
     do {
       if (head.NE(Deque.HEAD_INITIAL_VALUE))
-	queue.free(head);
+        queue.free(head);
       head = queue.dequeue(arity);
     } while (head.NE(Deque.HEAD_INITIAL_VALUE) && bufferOffset(head).isZero());
 

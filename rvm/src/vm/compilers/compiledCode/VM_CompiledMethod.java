@@ -81,17 +81,16 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
 
     // set jtoc
     this.osrJTOCoffset = VM_Statics.allocateSlot(VM_Statics.METHOD);
-    VM_Statics.setSlotContents(this.osrJTOCoffset, this.instructions);
-    this.osrJTOCoffset <<= LOG_BYTES_IN_INT;
+    VM_Statics.setSlotContents(this.getOsrJTOCoffset(), this.instructions);
   }
 
   public boolean isSpecialForOSR() {
     return this.isSpecialForOSR;
   }
 
-  public int getOsrJTOCoffset() {
+  public final Offset getOsrJTOCoffset() {
     if (VM.VerifyAssertions) VM._assert(this.isSpecialForOSR);
-    return this.osrJTOCoffset;
+    return Offset.fromIntSignExtend(this.osrJTOCoffset);
   }
   //-#endif
 
@@ -143,9 +142,9 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * @param ip a Address (should be an interior pointer to instructions)
    * @return offset of addr from start of instructions in bytes
    */
-  public final int getInstructionOffset(Address ip) throws UninterruptiblePragma {
+  public final Offset getInstructionOffset(Address ip) throws UninterruptiblePragma {
     if (getCompilerType() == JNI || getCompilerType() == TRAP) {
-      return 0;
+      return Offset.zero();
     } else {
       VM_CodeArray code = getInstructions();
       Offset offset = ip.diff(VM_Magic.objectAsAddress(code));
@@ -164,7 +163,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
       // NOTE: we are absolutely positive that offset will fit in 32 bits
       // because we don't create VM_CodeArrays that are so massive it won't.
       // Thus, we do the assertion checking above to ensure that ip is in range.
-      return offset.toInt();
+      return offset;
     }
   }
 
@@ -299,7 +298,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * gc disabled when called by VM_Runtime.deliverException().
    * </ul>
    */
-  public abstract int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType);
+  public abstract int findCatchBlockForInstruction(Offset instructionOffset, VM_Type exceptionType);
 
   /**
    * Fetch symbolic reference to a method that's called by one of 
@@ -328,7 +327,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * <ul>
    */
   public abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
-                                      int instructionOffset) throws UninterruptiblePragma;
+                                      Offset instructionOffset) throws UninterruptiblePragma;
 
    /**
     * Find source line number corresponding to one of this method's 
@@ -351,7 +350,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
     * instruction pointer
     * to point to the "call site" or "exception site".
     */
-  public int findLineNumberForInstruction(int instructionOffset) throws UninterruptiblePragma {
+  public int findLineNumberForInstruction(Offset instructionOffset) throws UninterruptiblePragma {
     return 0;
   }
 
@@ -360,12 +359,12 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintLN to print the stack trace to.
    */
-  public abstract void printStackTrace(int instructionOffset, com.ibm.JikesRVM.PrintLN out);
+  public abstract void printStackTrace(Offset instructionOffset, com.ibm.JikesRVM.PrintLN out);
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public abstract void set(VM_StackBrowser browser, int instr);
+  public abstract void set(VM_StackBrowser browser, Offset instr);
 
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible

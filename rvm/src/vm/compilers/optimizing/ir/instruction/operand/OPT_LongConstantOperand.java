@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.OPT_Bits;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Represents a constant long operand.
@@ -20,10 +21,11 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
   public long value;
 
   /**
-   * Index in JTOC where this long constant lives. (0 for constants
+   * Offset in JTOC where this long constant lives. (0 for constants
    * obtained from constant folding)
+   * //KV: is this field still necessary
    */
-  public int index;
+  public Offset offset;
 
   /**
    * Constructs a new long constant operand with the specified value.
@@ -32,17 +34,18 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    */
   public OPT_LongConstantOperand(long v) {
     value = v;
+    offset = Offset.zero();
   }
 
   /**
-   * Constructs a new long constant operand with the specified value and JTOC index.
-   *
+   * Constructs a new long constant operand with the specified value and JTOC offset.
+   * //KV: is this method still necessary
    * @param v value
-   * @param i index in the jtoc
+   * @param i offset in the jtoc
    */
-  public OPT_LongConstantOperand(long v, int i) {
+  public OPT_LongConstantOperand(long v, Offset i) {
     value = v;
-    index = i;
+    offset = i;
   }
 
   /**
@@ -65,7 +68,7 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_LongConstantOperand(value, index);
+    return new OPT_LongConstantOperand(value, offset);
   }
 
   /**

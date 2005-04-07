@@ -33,14 +33,22 @@ final class VM_AccumulatingMethodSampleOrganizer extends VM_Organizer {
    */
   public void initialize() {
     data = new VM_MethodCountData();
-
     int numSamples = VM_Controller.options.METHOD_SAMPLE_SIZE * VM_Scheduler.numProcessors;
+    if (VM_Controller.options.mlCBS()) {
+      numSamples *= VM.CBSMethodSamplesPerTick;
+    }
     VM_MethodListener methodListener = new VM_MethodListener(numSamples);
     listener = methodListener;
     listener.setOrganizer(this);
-    VM_RuntimeMeasurements.installTimerMethodListener(methodListener);
+    if (VM_Controller.options.mlTimer()) {
+      VM_RuntimeMeasurements.installTimerMethodListener(methodListener);
+    } else if (VM_Controller.options.mlCBS()) {
+      VM_RuntimeMeasurements.installCBSMethodListener(methodListener);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(false, "Unexpected value of method_listener_trigger");
+    }
   }
-
+  
   /**
    * Method that is called when the sampling threshold is reached
    */

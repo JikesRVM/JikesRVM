@@ -1,33 +1,26 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
-package PPP;
+package com.ibm.JikesRVM.classloader;
 
-/** A template for building arrays whose length can grow/shrink.
+/**
+ *  Lightweight implementation of a vector of VM_Fields.
  *
- *  In this template: 
- *     PPP stands for package of array builder
- *     CCC stands for classname of array builder
- *     EEE stands for typename of array elements
- *
- *  Note: the method names in this template were chosen to match those
- *  of "java.util.Vector" wherever possible.
- * 
  * @author Derek Lieber
  */
-public final class CCC {
+final class VM_FieldVector {
   //-----------//
   // interface //
   //-----------//
    
-  public CCC() {
-    array = new EEE[10];
+  public VM_FieldVector() {
+    array = new VM_Field[10];
   }
       
   // Add item.
   //
-  final void addElement(EEE item) {
+  final void addElement(VM_Field item) {
     if (cnt == array.length)
       adjustLength(cnt << 1); // double size of array
     array[cnt++] = item;
@@ -35,7 +28,7 @@ public final class CCC {
 
   // Add item if it is not already in the Vector.
   // 
-  public final void addUniqueElement(EEE item) {
+  public final void addUniqueElement(VM_Field item) {
     for (int i=0; i<cnt; i++) {
       if (array[i] == item) return;
     }
@@ -44,13 +37,13 @@ public final class CCC {
 
   // Get item.
   //
-  final EEE elementAt(int index) {
+  final VM_Field elementAt(int index) {
     return array[index];
   }
 
   // Set item.
   //
-  final void setElementAt(EEE item, int index) {
+  final void setElementAt(VM_Field item, int index) {
     array[index] = item;
   }
 
@@ -62,7 +55,7 @@ public final class CCC {
 
   // Get array, trimmed to size.
   //
-  public final EEE[] finish() {
+  public final VM_Field[] finish() {
     adjustLength(cnt);
     return array;
   }
@@ -71,16 +64,16 @@ public final class CCC {
   // implementation //
   //----------------//
 
-  private EEE[] array;
+  private VM_Field[] array;
   private int   cnt;
 
-  private static final EEE[] empty = new EEE[0];	
+  private static final VM_Field[] empty = new VM_Field[0];	
   
   private final void adjustLength(int newLength) {
     if (newLength == 0) {
       array = empty;
     } else {
-      EEE[] newElements = new EEE[newLength];
+      VM_Field[] newElements = new VM_Field[newLength];
       int n = array.length;
       if (n > newLength)
         n = newLength;

@@ -23,13 +23,13 @@ import org.vmmagic.pragma.*;
  */
 public class ServerSpace implements  Uninterruptible {
   public ServerSpace(int id, 
-	      String serverName, 
-	      String driverName,
-	      String title,
-	      String blockInfo,
-	      int tileNum,
-	      String unused, 
-	      boolean mainSpace    ) {}
+              String serverName, 
+              String driverName,
+              String title,
+              String blockInfo,
+              int tileNum,
+              String unused, 
+              boolean mainSpace    ) {}
   public void setTilename(int i, Address start, Address end) {}
   Address addStream(int id) { return Address.zero(); }
   Address getDriverAddress() { return Address.zero(); }

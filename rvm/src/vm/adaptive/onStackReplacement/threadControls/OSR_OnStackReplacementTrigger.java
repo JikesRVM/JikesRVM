@@ -38,8 +38,8 @@ public class OSR_OnStackReplacementTrigger {
     thread.onStackReplacementEvent.suspendedThread = thread;
     thread.onStackReplacementEvent.whereFrom = whereFrom;
     thread.onStackReplacementEvent.CMID = ypTakenInCMID;
-    thread.onStackReplacementEvent.tsFromFPoff = tsFromFPoff.toInt();
-    thread.onStackReplacementEvent.ypTakenFPoff = ypTakenFPoff.toInt();
+    thread.onStackReplacementEvent.tsFromFPoff = tsFromFPoff;
+    thread.onStackReplacementEvent.ypTakenFPoff = ypTakenFPoff;
 
     // consumer:
     thread.requesting_osr = true;

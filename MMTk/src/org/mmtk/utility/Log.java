@@ -8,7 +8,7 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Strings;
 import org.mmtk.vm.Barriers;
@@ -287,6 +287,18 @@ public class Log implements Constants, Uninterruptible {
    */
   public static void write(Word w) {
     writeHex(w, BYTES_IN_ADDRESS);
+  }
+
+  /**
+   * writes a word, in decimal.
+   *
+   * @param w the word to be logged
+   */
+  public static void writeDec(Word w) {
+    if (BYTES_IN_ADDRESS == 4)
+      write(w.toInt());
+    else
+      write(w.toLong());
   }
 
   /**

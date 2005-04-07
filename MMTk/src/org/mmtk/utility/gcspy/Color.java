@@ -43,9 +43,9 @@ public class Color implements  Uninterruptible {
   public static final Color White      = new Color(255, 255, 255);
   public static final Color Yellow     = new Color(255, 255,   0);
 
-  private short r_;	// red component
-  private short g_;	// green component
-  private short b_;	// blue component
+  private short r_;     // red component
+  private short g_;     // green component
+  private short b_;     // blue component
   
   /**
    * Constructor for crude RGB colour model
@@ -56,8 +56,8 @@ public class Color implements  Uninterruptible {
    */
   public Color (short r, short g, short b) {    
     if (Assert.VERIFY_ASSERTIONS) Assert._assert((0 <= r) && (r <= 255) &&
-		           (0 <= g) && (g <= 255) &&
-		           (0 <= b) && (b <= 255));   
+                           (0 <= g) && (g <= 255) &&
+                           (0 <= b) && (b <= 255));   
     this.r_ = r;
     this.g_ = g;
     this.b_ = b;

@@ -310,15 +310,15 @@ public class VM_CollectorThread extends VM_Thread {
       if (count > 0) { // resume normal scheduling
         VM_Processor.getCurrentProcessor().enableThreadSwitching();
       }
-      VM_Thread.getCurrentThread().yield(VM_Scheduler.collectorQueue,
-                                         VM_Scheduler.collectorMutex);
+      VM_Thread.yield(VM_Scheduler.collectorQueue,
+                      VM_Scheduler.collectorMutex);
       
       /* block mutators from running on the current processor */
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
       
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
 
-      gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, 0, 1) + 1;
+      gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + 1;
       long startCycles = VM_Time.cycles();
       
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);

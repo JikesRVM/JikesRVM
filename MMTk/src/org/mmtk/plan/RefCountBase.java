@@ -43,7 +43,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    * Class variables
    */
   public static final boolean NEEDS_WRITE_BARRIER = true;
-  public static final int GC_HEADER_BYTES_REQUIRED = RefCountSpace.GC_HEADER_BYTES_REQUIRED;
+  public static final int GC_HEADER_WORDS_REQUIRED = RefCountSpace.GC_HEADER_WORDS_REQUIRED;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean SUPPORTS_PARALLEL_GC = false;
   protected static final boolean WITH_COALESCING_RC = true;
@@ -251,7 +251,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public static Word getBootTimeAvailableBits(int ref, ObjectReference typeRef,
+  public static Word getBootTimeAvailableBits(Offset ref, ObjectReference typeRef,
                                               int size, Word status)
     throws UninterruptiblePragma, InlinePragma {
     if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);

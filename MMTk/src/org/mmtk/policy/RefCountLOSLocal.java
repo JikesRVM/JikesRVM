@@ -6,7 +6,7 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

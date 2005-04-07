@@ -24,6 +24,12 @@ public final class OPT_MIRInfo {
   public VM_CodeArray machinecode;
 
   /**
+   * Estimate produced by OPT_FinalMIRExpansion and used by
+   * OPT_Assembler to create code array; only meaningful on PowerPC
+   */
+  public int mcSizeEstimate;
+
+  /**
    * The IRMap for the method (symbolic GCMapping info)
    */
   public OPT_GCIRMap  gcIRMap;

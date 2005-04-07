@@ -1,5 +1,5 @@
 # -*-makefile-*-
-# (C) Copyright © IBM Corp. 2001, 2004
+# (C) Copyright © IBM Corp. 2001, 2004, 2005
 #
 #$Id$
 #
@@ -14,6 +14,7 @@
 #   RVM_BOOTIMAGE_COMPILER_ARGS = command line arguments to pass to boot image compiler
 #   RVM_BOOTIMAGE_WRITER_ARGS = command line arguments to pass to boot image writer
 #   VERBOSE_ARG = command-line argument for verbose host jdk options
+#   STUBS_DIR = directory where we'll built the utility_kludge.jar.
 #
 # @author Derek Lieber
 # @modified Steven Augart   March, 2004, to handle using alternative VMs for booting.
@@ -33,17 +34,30 @@ MAP_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map* java/u
 TREEMAP_KLUDGE_CLASSES = java/util/TreeMap* java/util/SortedMap* java/util/Iterator* java/util/TreeSet*
 LINKEDLIST_KLUDGE_CLASSES = java/util/LinkedList* java/util/List*
 BUNDLE_KLUDGE_CLASSES = java/util/ResourceBundle* java/util/Locale*
-UTIL_KLUDGE_CLASSES = $(ZIP_KLUDGE_CLASSES) $(MAP_KLUDGE_CLASSES) $(TREEMAP_KLUDGE_CLASSES) $(LINKEDLIST_KLUDGE_CLASSES) $(BUNDLE_KLUDGE_CLASSES)
-UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
-UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/utility_kludge.jar
+## the SystemProperties.class stub is only needed for Classpath
+## versions 0.13 and later, but it does no harm to include it for 
+## earlier versions.
+UTIL_KLUDGE_STUB_CLASSNAMES = gnu/classpath/SystemProperties.class
+UTIL_KLUDGE_EXTRACT_PATTERNS = $(ZIP_KLUDGE_CLASSES) $(MAP_KLUDGE_CLASSES) $(TREEMAP_KLUDGE_CLASSES) $(LINKEDLIST_KLUDGE_CLASSES) $(BUNDLE_KLUDGE_CLASSES) 
+UTIL_KLUDGE_EXTRACT_PATTERNS_QUOTED = $(foreach PAT, $(UTIL_KLUDGE_EXTRACT_PATTERNS), '$(PAT)')
 
-$(UTIL_KLUDGE_JAR):		$(LIB_JAR)
+UTIL_KLUDGE_JAR=$(STUBS_DIR)/utility_kludge.jar
+STUBS_SRC_DIR := $(JAL_ROOT)/rvm/src/tools/bootImageWriter/utility_kludge_stubs
+UTIL_KLUDGE_STUB_CLASS_FILES := $(foreach name, $(UTIL_KLUDGE_STUB_CLASSNAMES), $(STUBS_DIR)/${name})
+UTIL_KLUDGE_STUB_SOURCE_FILES := $(foreach name, $(UTIL_KLUDGE_STUB_CLASSNAMES), $(STUBS_SRC_DIR)/$(name:.class=.java))
+UTIL_KLUDGE_CLASSES = $(UTIL_KLUDGE_EXTRACT_PATTERNS) $(UTIL_KLUDGE_STUB_CLASSNAMES)
+
+$(UTIL_KLUDGE_JAR):		$(LIB_JAR) $(UTIL_KLUDGE_STUB_CLASS_FILES)
 # args to UNZIP_CMD:
 # -o: Overwrite if we need to
 # -u: Update
-	cd $(SCRATCH_DIR); $(UNZIP_CMD) -uoqq $< $(UTIL_KLUDGE_EXTRACT)
-	cd $(SCRATCH_DIR); $(JAR) -cf $@ $(UTIL_KLUDGE_CLASSES)
+	cd $(STUBS_DIR); $(UNZIP_CMD) -uoqq $< $(UTIL_KLUDGE_EXTRACT_PATTERNS_QUOTED)
+	cd $(STUBS_DIR); $(JAR) -cf $@ $(UTIL_KLUDGE_CLASSES) 
 	@echo -n "(built $$(basename ${UTIL_KLUDGE_JAR})) "
+
+$(UTIL_KLUDGE_STUB_CLASS_FILES): $(UTIL_KLUDGE_STUB_SOURCE_FILES)
+	$(HOST_JAVAC) -d $(STUBS_DIR) $^
+
 
 # The below applies to when we're using a different donor JVM to do our 
 # boot image writing.  It describes a mechanism that we set up to work with the 
@@ -78,7 +92,7 @@ endif
 
 ifeq (${HOST_VM_TYPE},Sun)
    host_vm_bootclasspath_args := -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) \
-				 -Xbootclasspath/a:$(LIB_JAR)
+				 -Xbootclasspath/a:$(RVM_REPOSITORIES)
 endif
 
 ifeq (${HOST_VM_TYPE},gij)
@@ -96,7 +110,7 @@ endif
 	$(HOST_VM_RT) \
 	   $(host_vm_bootclasspath_args) \
 		$(host_mem_size_arg) \
-	   -classpath $(SCRATCH_DIR):$(RVM_REPOSITORIES) \
+	   -classpath $(STUBS_DIR):$(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
 	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \
 	   BootImageWriter\

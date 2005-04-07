@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002, 2005
  */
 //$Id$
 package java.lang;
@@ -11,9 +11,11 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.HashMap;
 
-import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
+import com.ibm.JikesRVM.classloader.VM_BootstrapClassLoader;
 import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.VM;     // for VM.sysWrite()
+
 
 /**
  * Library support interface of Jikes RVM
@@ -46,15 +48,15 @@ final class VMClassLoader {
   }
 
   static final Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-    return VM_SystemClassLoader.getVMClassLoader().loadClass(name, resolve);
+    return VM_BootstrapClassLoader.getBootstrapClassLoader().loadClass(name, resolve);
   }
 
   static URL getResource(String name)  {
-    return VM_SystemClassLoader.getVMClassLoader().findResource(name);
+    return VM_BootstrapClassLoader.getBootstrapClassLoader().findResource(name);
   }
 
   static Enumeration getResources(String name) throws IOException {
-    return VM_SystemClassLoader.getVMClassLoader().findResources(name);
+    return VM_BootstrapClassLoader.getBootstrapClassLoader().findResources(name);
   }
 
   static Package getPackage(String name) {
@@ -113,7 +115,15 @@ final class VMClassLoader {
     return null;
   }
 
+  final static boolean DBG = false;
+  
   static ClassLoader getSystemClassLoader() {
-    return VM_ClassLoader.getApplicationClassLoader();
+    if (DBG)
+      VM.sysWriteln("Someone called VMClassLoader.getSystemClassLoader");
+    ClassLoader cl =  VM_ClassLoader.getApplicationClassLoader();
+    if (DBG)
+      VM.sysWriteln("VMClassLoader.getSystemClassLoader: returning ", 
+                    (cl == null ? "NULL" : cl.toString() ));
+    return cl;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002, 2003
+ * (C) Copyright IBM Corp 2001,2002, 2003, 2005
  */
 //$Id$
 
@@ -39,6 +39,7 @@
 #include <limits.h>             // UINT_MAX, ULONG_MAX, etc
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
+#include <sys/utsname.h>        // for uname(2)
 #if (defined __linux__)
   #include <asm/cache.h>
 #endif
@@ -81,6 +82,30 @@ uint64_t maximumStackSize;      /* Declared in bootImageRunner.h */
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
+int rvm_singleVirtualProcessor = /* Declared in bootImageRunner.h.  Set to 1
+                                  * for true, 0 for false, -1 for Debian
+                                  * auto-detection, -2 for multiboot
+                                  * auto-detection.  The auto-detection
+                                  * settings are temporary until the
+                                  * auto-detection is performed; they should
+                                  * never be seen by the pthread code. */
+
+                                 /* The auto-detection is actually performed by
+                                  * the "runrvm" script, which sets things up
+                                  * for us.   The auto-detection code here
+                                  * should never be executed. */
+#if !defined RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
+    0
+#elif defined RVM_FOR_MULTIBOOT_GLIBC
+   -2
+#elif defined RVM_FOR_DEBIAN_GLIBC
+   -1
+#elif defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+   1
+#else
+   0
+#endif
+;
 
 
 static int DEBUG = 0;                   // have to set this from a debugger
@@ -153,6 +178,45 @@ fullVersion()
     fprintf(SysTraceFile, "\theap default maximum size: %u MiBytes\n",
             heap_default_maximum_size/(1024*1024));
 }
+
+
+#ifdef RVM_FOR_LINUX
+static bool 
+singleVirtualProcessor_for_Debian() 
+{
+    struct utsname u;
+    int r = uname(&u);
+    if (r < 0) {
+        fprintf(SysErrorFile, "%s: Internal error (presumably EFAULT) in call to uname(3): %s\n", Me, strerror(r));
+        exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+    }
+    if (strnequal(u.release, "2.2.", 4) || strnequal(u.release, "2.4.", 4))
+        return 1;               // Debian needs single-virtual-processor mode.
+    else
+        return 0;
+}
+
+/** Are we running Debian GNU/Linux?  If so, then return true.
+ * We just test for the existence of the file /etc/debian_version.  */
+static bool
+running_Debian()
+{
+    if (verboseBoot)
+        fprintf(SysTraceFile, "Checking if running Debian GNU/Linux...");
+    FILE *f = fopen("/etc/debian_version", "r");
+    if (f) {
+        if (verboseBoot)
+            fprintf(SysTraceFile, "YES\n");
+        fclose(f);
+        return true;
+    } else {
+        if (verboseBoot)
+            fprintf(SysTraceFile, "no\n");
+        return false;
+    }
+}
+#endif
+
 
 
 /*
@@ -295,10 +359,24 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                     break;
                 }
             }
-            // canonicalize the argument
-            char *buf = (char *) malloc(20); 
-            sprintf(buf, "-X:gc:verbose=%ld", level);
-            CLAs[n_JCLAs++]=buf;
+            /* Canonicalize the argument, and pass it on to the heavy-weight
+             * Java code that parses -X:gc:verbose */
+            const size_t bufsiz = 20;
+            char *buf = (char *) malloc(bufsiz); 
+            int ret = snprintf(buf, bufsiz, "-X:gc:verbose=%ld", level);
+            if (ret < 0) {
+                fprintf(stderr, "%s: Internal error processing the argument"
+                        " \"%s\"\n", Me, token);
+                exit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+            }
+            if ((unsigned) ret >= bufsiz) {
+                fprintf(SysTraceFile, "%s: \"%s\": %ld is too big a number"
+                        " to process internally\n", Me, token, level);
+                *fastExit = true;
+                break;
+            }
+            
+            CLAs[n_JCLAs++]=buf; // Leave buf allocated!
             continue;
         }
 
@@ -332,6 +410,8 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             initialHeapSize 
                 = parse_memory_size("initial heap size", "ms", "", BYTES_IN_PAGE,
                                     token, subtoken, fastExit);
+            if (*fastExit)
+                break;
             continue;
         }
 
@@ -340,6 +420,8 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             maximumHeapSize 
                 = parse_memory_size("maximum heap size", "mx", "", BYTES_IN_PAGE,
                                     token, subtoken, fastExit);
+            if (*fastExit)
+                break;
             continue;
         }
 
@@ -349,6 +431,8 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             initialStackSize
                 = parse_memory_size("initial stack size", "ss", "", 4, 
                                     token, subtoken, fastExit);
+            if (*fastExit)
+                break;
             continue;
         }
 
@@ -357,6 +441,8 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             stackGrowIncrement
                 = parse_memory_size("stack growth increment", "sg", "", 4, 
                                     token, subtoken, fastExit);
+            if (*fastExit)
+                break;
             continue;
         }
 
@@ -365,6 +451,9 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             maximumStackSize
                 = parse_memory_size("maximum stack size", "sx", "", 4,
                                     token, subtoken, fastExit);
+            
+            if (*fastExit)
+                break;
             continue;
         }
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
@@ -375,6 +464,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             if (!ftmp) {
                 fprintf(SysTraceFile, "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
                 *fastExit = true;
+                break;
                 continue;
             }
             fprintf(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
@@ -384,6 +474,35 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
         }
         if (strnequal(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
             bootFilename = token + 5;
+            continue;
+        }
+        int mainlen = strlen(nonStandardArgs[SINGLE_VIRTUAL_PROCESSOR_INDEX]);
+        if (strnequal(token, nonStandardArgs[SINGLE_VIRTUAL_PROCESSOR_INDEX], 
+                      mainlen))
+        {
+            subtoken = token + mainlen;
+            if (strcasecmp(subtoken, "true") == 0)
+                rvm_singleVirtualProcessor = 1;
+            else if (strcasecmp(subtoken, "false") == 0)
+                rvm_singleVirtualProcessor = 0;
+            else if (strcasecmp(subtoken, "debian") == 0)
+                rvm_singleVirtualProcessor = -1;
+            else if (strcasecmp(subtoken, "multiboot") == 0)
+                rvm_singleVirtualProcessor = -2;
+            else {
+                fprintf(SysTraceFile, "%s: \"%s\": I don't understand the"
+                        " argument value \"%s\".\n", Me, token, subtoken);
+                fprintf(SysTraceFile, "   The acceptable values are \"true\","
+                        "\"false\", and \"debian\"\n");
+                *fastExit = true;
+                break;
+            }
+#if !defined RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
+            if (rvm_singleVirtualProcessor) {
+                fprintf(SysTraceFile, "%s: \"%s\": Jikes RVM is ignoring this argument and proceeding in multiprocessor mode, since we were built without RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT\n");
+                rvm_singleVirtualProcessor = 0;
+            }
+#endif // ! RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
             continue;
         }
 
@@ -436,7 +555,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
  *   1) affect the starting of the VM, 
  *   2) can be handled without starting the VM, or
  *   3) contain quotes
- * then call createJVM().
+ * then call createVM().
  */
 int
 main(int argc, const char **argv)
@@ -488,6 +607,25 @@ main(int argc, const char **argv)
         }
     }
   
+            
+#ifdef RVM_FOR_LINUX
+    if (rvm_singleVirtualProcessor <= -2) {
+        if (running_Debian())
+            rvm_singleVirtualProcessor = -1;
+        else
+            rvm_singleVirtualProcessor = 0;
+    }
+    
+
+    if (rvm_singleVirtualProcessor < 0) // Debian.
+        rvm_singleVirtualProcessor = singleVirtualProcessor_for_Debian();
+#else
+    /* Turn it off for all non-Linux systems.  We could print a diagnostic
+     * message here, but that seems like too much work to implement. */
+    if (rvm_singleVirtualProcessor < 0)
+        rvm_singleVirtualProcessor = 0; 
+#endif
+
     /* Verify heap sizes for sanity. */
     if (initialHeapSize == heap_default_initial_size &&
         maximumHeapSize != heap_default_maximum_size &&
@@ -552,6 +690,7 @@ main(int argc, const char **argv)
                "stackGrowIncrement %lu\n"
                "maxStackSize %lu\n"
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+               "rvm_singleVirtualProcessor %d\n"
                "bootFileName |%s|\nlib_verbose %d\n",
                (unsigned long) initialHeapSize, 
                (unsigned long) maximumHeapSize, 
@@ -560,12 +699,14 @@ main(int argc, const char **argv)
                (unsigned long) stackGrowIncrement,
                (unsigned long) maximumStackSize,
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+               rvm_singleVirtualProcessor,
                bootFilename, lib_verbose);
     }
 
     if (!bootFilename) {
+#define STRINGIZE(x) #x
 #ifdef RVM_BOOTIMAGE
-        bootFilename = RVM_BOOTIMAGE;
+        bootFilename = STRINGIZE(RVM_BOOTIMAGE);
 #endif
     }
 
@@ -574,12 +715,11 @@ main(int argc, const char **argv)
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
-    int ret = createJVM(0);
+    int ret = createVM(0);
     assert(ret == 1);           // must be 1 (error status for this func.)
     
-  
-    fprintf(SysErrorFile, "%s: Could not create the Java Virtual Machine; goodbye\n", Me);
-    exit(1);
+    fprintf(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
+    exit(EXIT_STATUS_MISC_TROUBLE);
 }
 
 

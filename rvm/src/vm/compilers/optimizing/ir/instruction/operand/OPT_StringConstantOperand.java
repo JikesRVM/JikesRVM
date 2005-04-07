@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Represents a constant string operand.
  *
@@ -18,19 +20,19 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
   public String value;
 
   /**
-   * Index in JTOC where this string constant lives.
+   * Offset in JTOC where this string constant lives.
    */
-  public int index;
+  public Offset offset;
 
   /**
    * Construct a new string constant operand
    *
    * @param v the string constant
-   * @param i JTOC index of the string constant
+   * @param i JTOC offset of the string constant
    */
-  public OPT_StringConstantOperand(String v, int i) {
+  public OPT_StringConstantOperand(String v, Offset i) {
     value = v;
-    index = i;
+    offset = i;
   }
 
   /**
@@ -39,7 +41,7 @@ public final class OPT_StringConstantOperand extends OPT_ConstantOperand {
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_StringConstantOperand(value, index);
+    return new OPT_StringConstantOperand(value, offset);
   }
 
   /**

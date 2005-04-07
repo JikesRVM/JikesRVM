@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * OPT_Bits.java
  *
@@ -24,12 +26,28 @@ public class OPT_Bits {
   }
 
   /**
+   * Return the lower 16 bits to
+   * be used in a PPC immediate field
+   */
+  public static int PPCMaskLower16(Offset value) {
+    return  (value.toInt() & 0xffff);
+  }
+
+  /**
    * Return the upper 16 bits to be used in a PPC 
    * immediate field
    */
   public static int PPCMaskUpper16(int value) {
     short s = (short)(value & 0xffff);
     return  ((value - (int)s) >> 16) & 0xffff;
+  }
+
+  /**
+   * Return the upper 16 bits to be used in a PPC 
+   * immediate field, make sure fits in 32 bits
+   */
+  public static int PPCMaskUpper16(Offset value) {
+    return PPCMaskUpper16(value.toInt());
   }
   //-#endif
 
@@ -73,6 +91,37 @@ public class OPT_Bits {
    */
   public static int upper32(long value) {
     return (int)(value >>> 32);
+  }
+
+
+  /**
+   * Does a long literal val fit in bits bits?
+   */
+  public static boolean fits (long val, int bits) {
+    val = val >> bits - 1;
+    return  (val == 0L || val == -1L);
+  }
+
+  /**
+   * Does an offset literal val fit in bits bits?
+   */
+  public static boolean fits (Offset val, int bits) {
+  //-#if RVM_FOR_64_ADDR
+    return fits(val.toLong(), bits);
+  //-#elif RVM_FOR_32_ADDR
+    return fits(val.toInt(), bits);
+  //-#endif
+  }
+
+  /**
+   * Does an address literal val fit in bits bits?
+   */
+  public static boolean fits (Address val, int bits) {
+  //-#if RVM_FOR_64_ADDR
+    return fits(val.toLong(), bits);
+  //-#elif RVM_FOR_32_ADDR
+    return fits(val.toInt(), bits);
+  //-#endif
   }
 
 

@@ -48,11 +48,11 @@ public class VM_SysCall implements Uninterruptible {
   }
 
   // memory
-  public static void sysCopy(Address dst, Address src, int cnt) {}
-  public static void sysFill(Address dst, int pattern, int cnt) {}
+  public static void sysCopy(Address dst, Address src, Extent cnt) {}
+  public static void sysFill(Address dst, int pattern, Extent cnt) {}
   public static Address sysMalloc(int length) { return null; }
   public static void sysFree(Address location) {} 
-  public static void sysZero(Address dst, int cnt) {}
+  public static void sysZero(Address dst, Extent cnt) {}
   public static void sysZeroPages(Address dst, int cnt) {}
   public static void sysSyncCache(Address address, int size) {}
 
@@ -97,7 +97,7 @@ public class VM_SysCall implements Uninterruptible {
     return null; 
   }
   public static Address sysMMapErrno(Address start, Extent length, int protection,
-					int flags, int fd, long offset) { 
+                                        int flags, int fd, long offset) { 
     return null; 
   }
   public static int sysMUnmap(Address start, Extent length) {
@@ -267,7 +267,6 @@ public class VM_SysCall implements Uninterruptible {
   public static void sysWaitPids(Address pidArray, Address exitStatusArray,
                                  int numPids) {}
 
-  //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public static void sysCreateThreadSpecificDataKeys() {}
@@ -275,7 +274,6 @@ public class VM_SysCall implements Uninterruptible {
   public static void sysInitializeStartupLocks(int howMany) {}
   public static void sysWaitForVirtualProcessorInitialization() {} 
   public static void sysWaitForMultithreadingStart() {} 
-  //-#endif
 
   //-#if RVM_WITH_HPM
   // sysCall entry points to HPM
@@ -306,7 +304,7 @@ public class VM_SysCall implements Uninterruptible {
   public static void gcspyDriverEndOutput (Address driver) {}
   public static void gcspyDriverInit (Address driver, int id, Address serverName, Address driverName,
                                Address title, Address blockInfo, int tileNum,
-			       Address unused, int mainSpace) {}
+                               Address unused, int mainSpace) {}
   public static void gcspyDriverInitOutput (Address driver) {}
   public static void gcspyDriverResize (Address driver, int size) {}
   public static void gcspyDriverSetTileName (Address driver, int i, Address start, Address end) {}
@@ -335,8 +333,8 @@ public class VM_SysCall implements Uninterruptible {
    
   public static void gcspyStreamInit (Address stream, int id, int dataType, Address name,
                                int minValue, int maxValue, int zeroValue, int defaultValue,
-			       Address pre, Address post, int presentation, int paintStyle,
-			       int maxStreamIndex, int red, int green, int blue) {}
+                               Address pre, Address post, int presentation, int paintStyle,
+                               int maxStreamIndex, int red, int green, int blue) {}
 
   public static void gcspyFormatSize (Address buffer, int size) {}
 

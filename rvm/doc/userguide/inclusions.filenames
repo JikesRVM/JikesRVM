@@ -11,8 +11,9 @@ vmdetails.tex
 threads.tex
 callbacks.tex
 basedetails.tex
+quick-compiler.tex
 optdetails.tex
-JMTk.tex
+MMTk.tex
 aosdetails.tex
 magic.tex
 preprocessor.tex

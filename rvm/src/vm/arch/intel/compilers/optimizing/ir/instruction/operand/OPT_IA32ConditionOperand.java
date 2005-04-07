@@ -143,21 +143,52 @@ public final class OPT_IA32ConditionOperand extends OPT_Operand
   // translate from OPT_ConditionOperand: used during LIR => MIR translation
   private void translate(OPT_ConditionOperand c) {
     switch(c.value) {
-     case OPT_ConditionOperand.EQUAL:         value =  EQ; break;
-     case OPT_ConditionOperand.NOT_EQUAL:     value =  NE; break;
-     case OPT_ConditionOperand.LESS:          value =  LT; break;
-     case OPT_ConditionOperand.LESS_EQUAL:    value =  LE; break;
-     case OPT_ConditionOperand.GREATER:       value =  GT; break;
-     case OPT_ConditionOperand.GREATER_EQUAL: value =  GE; break;
-     case OPT_ConditionOperand.OVERFLOW:      value =   O; break;
-     case OPT_ConditionOperand.NOT_OVERFLOW:  value =  NO; break;
-     case OPT_ConditionOperand.HIGHER:        value = LGT; break;
-     case OPT_ConditionOperand.LOWER:         value = LLT; break;
-     case OPT_ConditionOperand.HIGHER_EQUAL:  value = LGE; break;
-     case OPT_ConditionOperand.LOWER_EQUAL:   value = LLE; break;
-     default:
-       OPT_OptimizingCompilerException.TODO();
-     }
+    case OPT_ConditionOperand.EQUAL:
+    case OPT_ConditionOperand.SAME:
+      value =  EQ;
+      break;
+    case OPT_ConditionOperand.NOT_EQUAL:
+    case OPT_ConditionOperand.NOT_SAME:
+      value =  NE;
+      break;
+    case OPT_ConditionOperand.LESS:
+      value =  LT;
+      break;
+    case OPT_ConditionOperand.LESS_EQUAL:
+      value =  LE;
+      break;
+    case OPT_ConditionOperand.GREATER:
+      value =  GT; 
+      break;
+    case OPT_ConditionOperand.GREATER_EQUAL:
+      value =  GE;
+      break;
+    case OPT_ConditionOperand.HIGHER:
+      value = LGT;
+      break;
+    case OPT_ConditionOperand.LOWER:
+      value = LLT;
+      break;
+    case OPT_ConditionOperand.HIGHER_EQUAL:
+      value = LGE;
+      break;
+    case OPT_ConditionOperand.LOWER_EQUAL:
+      value = LLE;
+      break;
+    case OPT_ConditionOperand.CMPL_EQUAL:
+    case OPT_ConditionOperand.CMPL_GREATER:
+    case OPT_ConditionOperand.CMPG_LESS:
+    case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
+    case OPT_ConditionOperand.CMPG_LESS_EQUAL:
+    case OPT_ConditionOperand.CMPL_NOT_EQUAL:
+    case OPT_ConditionOperand.CMPL_LESS:
+    case OPT_ConditionOperand.CMPG_GREATER_EQUAL:
+    case OPT_ConditionOperand.CMPG_GREATER:
+    case OPT_ConditionOperand.CMPL_LESS_EQUAL:
+      throw new Error("OPT_IA32ConditionOperand.translate: Complex operand can't be directly translated " + c);
+    default:
+      OPT_OptimizingCompilerException.UNREACHABLE();
+    }
   }
 
   // Returns the string representation of this operand.

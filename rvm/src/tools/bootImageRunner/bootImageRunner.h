@@ -16,9 +16,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif    
+#if 0
+} /* un-confuse the auto-indenter */
+#endif
 
 #include "../../include/cAttributePortability.h"
 
+#if defined(RVM_FOR_32_ADDR)
+#define VM_Offset int32_t
+#elif defined(RVM_FOR_64_ADDR)
+#define VM_Offset int64_t
+#endif
 // Sink for messages relating to serious errors detected by C runtime.
 extern FILE *SysErrorFile;    // sink for serious error messages
 extern FILE *SysErrorFile;	// libvm.C
@@ -61,8 +69,13 @@ unsigned int parse_memory_size(
 
 extern int verboseBoot;
 
+/* Set to 1 for true, 0 for false, -1 for Debian auto-detection. */ 
+    extern int rvm_singleVirtualProcessor;
+    
+
+
 /* Defined in libvm.C; used in RunBootImage.C */
-extern int createJVM(int);
+extern int createVM(int);
 /* Used in libvm.C; Defined in sys.C */
 extern int getArrayLength(void* ptr);
 
@@ -85,7 +98,7 @@ extern int bootThread(int ti_or_ip, int jtoc, int pr, int sp); // assembler rout
 
 // These are defined in libvm.C.
 extern void *getJTOC(void);
-extern int getProcessorsOffset(void);
+extern VM_Offset getProcessorsOffset(void);
 
 /* These are defined in sys.C; used in syswrap.C */
 extern pthread_key_t VmProcessorKey;
@@ -96,6 +109,9 @@ extern void sysSyncCache(void *, size_t size);
 // Defined in sys.C.  Used in libvm.C.
 extern void processTimerTick(void);
 
+#if 0
+{ /* un-confuse the auto-indenter */
+#endif
 #ifdef __cplusplus
 }
 #endif    

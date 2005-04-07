@@ -46,7 +46,7 @@ class t3GT3 {
                                "  waiters, and\n"+
                                "  wait time\n"
                                );
-            System.exit(-1);
+            System.exit(1);
         }
         
         NUMBER_OF_WORKERS = Integer.parseInt(args[0]);

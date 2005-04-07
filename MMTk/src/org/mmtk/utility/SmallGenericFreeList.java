@@ -9,7 +9,7 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.Uninterruptible;

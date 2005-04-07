@@ -72,19 +72,14 @@ function tracing() {
     [[ $TRACE_FLAG ]] || { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return 1 ; }
 
     local -i dflt=1      # default answer, false  (using exit codes)
-    # If $TRACE_FLAG is set and is not in canonical form...
-    if [[ $TRACE_FLAG != ,*, ]]; then
-	# ...then canonicalize it.
-	if [[ $TRACE_FLAG = -trace ]]; then
-	    TRACE_FLAG=,most,
-	elif [[ $TRACE_FLAG != -trace=* ]]; then
-	    echo >&2 "${ME}: I don't understand the trace flag \"$TRACE_FLAG\"."
-	    echo >&2 "${ME}: Aborting execution."
-	    trap '' EXIT
-	    kill $$
-	else	        # TRACE_FLAG has the form -trace=<something>
-	    TRACE_FLAG=",${TRACE_FLAG#-trace=},";
-	fi
+    # Canonicalize $TRACE_FLAG.  Canonical form is:
+    #  -trace=,thing1,[thing-n,]*
+    if [[ $TRACE_FLAG = -trace ]]; then
+	TRACE_FLAG=-trace=most
+    fi
+    if [[ $TRACE_FLAG != -trace=,*, ]]; then
+	# TRACE_FLAG has the form -trace=<something>
+	TRACE_FLAG="-trace=,${TRACE_FLAG#-trace=},";
 	# No-all is a no-op, since we only 
 	# trace if it's explicitly requested.
 	TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
@@ -131,11 +126,12 @@ function copyIfNewer() {
 
 function run() {
     ! tracing make || { cleanline >&2 ; echo >&2 "$@" ; }
-    if [[ $1 == *=* ]]; then
-	eval "$@"
-    else
 	"$@"
-    fi
+}
+
+function run_evaled() {
+    ! tracing make || { cleanline >&2 ; echo >&2 "$@" ; }
+    eval "$@"
 }
 
 function chdir() {
@@ -178,11 +174,9 @@ function show_mesg() {
 
 
 function do_cleanup() {
-    show_mesg >&2 "Cleaning up..."; 
-    eval $CLEANUP
-    if [[ "$CLEANUP" = ":" ]] ; then
-	show_mesg >&2 "...no cleanup was needed."
-    else
+    if [[ $CLEANUP && $CLEANUP != ":" ]]; then
+	show_mesg >&2 "Cleaning up..."; 
+	eval $CLEANUP
 	show_mesg >&2 "...cleaned up."
     fi
 }
@@ -440,16 +434,19 @@ function check_bash_version() {
     [[ ${RVM_CHECKED_BASH_VERSION-} ]] && return;
     export RVM_CHECKED_BASH_VERSION=1
 
+    ## If warnings are turned off, then likewise.
+    [ ${quiet_warnings-0} = 1 ] && return;
+
     ## The user may request that this check be suppressed.  Honor 
     ## her or or his request. 
     [[ ${RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION+is_set} ]] && return;
 
-    local -r recommend_bash="We recommend Bash 2.05a or later"
+    local -r recommend_bash="We recommend Bash 2.05a or later (it came out in 2001)"
 
     ## The checks against Bash 2.03 and earlier are now redundant with a
     ## similar check in jconfigure itself.  They do no harm.
     if [[ ! ${BASH_VERSINFO-} ]]; then
-	show_mesg "You are using a very old version of Bash, one that even lacks the BASH_VERSINFO variable.  Expect trouble.  ${recommend_bash}."
+	show_mesg "You are probably using a very old version of Bash, one that even lacks the BASH_VERSINFO variable.  (You may even not be using Bash at all.)  Expect trouble.  ${recommend_bash}."
 	show_your_bad_bash_version;
 	return 0;
     fi >&2

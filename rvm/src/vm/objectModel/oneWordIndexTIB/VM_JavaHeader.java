@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
 //-#endif
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Defines the JavaHeader portion of the object header for the 
@@ -78,7 +79,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Set the TIB for an object.
    */
   public static void setTIB(Object ref, Object[] tib) throws InlinePragma {
-    int idx = VM_Magic.objectAsType(tib[0]).getTibSlot() << TIB_SHIFT;
+    int idx = VM_Magic.objectAsType(tib[0]).getTibOffset().rsh(LOG_BYTES_IN_INT).toInt() << TIB_SHIFT;
     if (VM.VerifyAssertions) VM._assert((idx & TIB_MASK) == idx);
     int tibWord = (VM_Magic.getIntAtOffset(ref, TIB_OFFSET) & ~TIB_MASK) | idx;
     VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibWord);
@@ -90,7 +91,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Note: Beware; this function clears the additional bits.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, Address tibAddr, VM_Type type) {
-    Word idx = Word.fromIntZeroExtend(type.getTibSlot()).lsh(TIB_SHIFT);
+    Word idx = type.getTibOffset().toWord().rsh(LOG_BYTES_IN_INT).lsh(TIB_SHIFT);
     if (VM.VerifyAssertions) VM._assert((idx.toInt() & TIB_MASK) == idx);
     bootImage.setAddressWord(refOffset + TIB_OFFSET, idx);
   }
@@ -181,11 +182,11 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       fr1.resolve(asm);
       fr2.resolve(asm);
       asm.emitAND_Reg_Imm(dest,TIB_MASK);
-      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, 0);
+      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, Offset.zero());
     } else {
       asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
       asm.emitAND_Reg_Imm(dest,TIB_MASK);
-      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, 0);
+      asm.emitMOV_Reg_RegIdx(dest, JTOC, dest, asm.BYTE, Offset.zero());
     }
   }
   //-#endif

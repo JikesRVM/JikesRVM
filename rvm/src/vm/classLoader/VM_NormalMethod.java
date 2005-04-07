@@ -232,6 +232,7 @@ public final class VM_NormalMethod
 
   /**
    * Return the line number information for the argument bytecode index.
+   * @return The line number, a positive integer.  Zero means unable to find.
    */
   public final int getLineNumberForBCIndex(int bci) throws UninterruptiblePragma {
     if (lineNumberMap == null) return 0;

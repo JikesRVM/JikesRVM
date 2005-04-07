@@ -75,7 +75,7 @@ public class ReferenceProcessor implements Uninterruptible {
    * @param semantics the code number of the semantics
    */
   public static Address processReference(Address reference,
-					 int semantics) {
+                                         int semantics) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!reference.isZero());
     
     if (TRACE) {
@@ -88,7 +88,7 @@ public class ReferenceProcessor implements Uninterruptible {
      * possibly its referent) be garbage-collected.
      */
     if (ReferenceGlue.REFERENCES_ARE_OBJECTS && 
-	!Plan.isLive(reference.toObjectReference())) {
+        !Plan.isLive(reference.toObjectReference())) {
       newReference = Address.zero();
     } else {
       /* Otherwise... */
@@ -123,7 +123,7 @@ public class ReferenceProcessor implements Uninterruptible {
             }
             Plan.makeAlive(oldReferent);
             enqueue = true;
-	} else if (semantics == SOFT_SEMANTICS && !clearSoftReferences) {
+        } else if (semantics == SOFT_SEMANTICS && !clearSoftReferences) {
           /*
            * Unless we've completely run out of memory, we keep
            * softly reachable objects alive.

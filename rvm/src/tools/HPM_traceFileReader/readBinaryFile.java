@@ -82,7 +82,7 @@ class readBinaryFile
         break;
       } catch (IOException e) {
         System.out.println("*** IO Exception in "+filename+"!***");
-        System.exit(-1);
+        System.exit(1);
       }
     }
   }
@@ -96,7 +96,7 @@ class readBinaryFile
                        "                       specified, combine all the records.\n"+
                        "  -length              number of bytes to read.\n"+
                        "\n");
-    System.exit(-1);
+    System.exit(1);
   }
 
 }

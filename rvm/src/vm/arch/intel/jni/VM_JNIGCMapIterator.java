@@ -69,7 +69,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     } 
   }
      
-  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, Address framePtr) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
 
     // return address into generated prolog must be relocated if the code object

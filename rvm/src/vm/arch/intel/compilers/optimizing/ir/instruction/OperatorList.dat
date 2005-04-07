@@ -328,9 +328,37 @@ none
 
 
 
-# Move a value from one of two (register/constant) operands 
-# to a register operand.  Values are unchanged.
-CMOV
+# Move an integer value from one of two (register/constant) operands
+# to a register operand based on an integer compare.  Values are
+# unchanged.
+CMP_CMOV
+CondMove
+compare
+
+
+
+# Move an integer value from one of two (register/constant) operands
+# to a register operand based on a floating point compare.  Values are
+# unchanged.
+FCMP_CMOV
+CondMove
+compare
+
+
+
+# Move a floating point value from one of two (register/constant)
+# operands to a register operand based on an integer compare.  Values
+# are unchanged.
+CMP_FCMOV
+CondMove
+compare
+
+
+
+# Move a floating point value from one of two (register/constant)
+# operands to a register operand based on an integer compare.  Values
+# are unchanged.
+FCMP_FCMOV
 CondMove
 compare
 

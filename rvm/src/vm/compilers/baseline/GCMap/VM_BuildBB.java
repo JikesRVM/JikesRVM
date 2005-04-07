@@ -1501,7 +1501,7 @@ public final class VM_BuildBB
            branchDone = true;
            break;
          }
- 	       
+               
        case JBC_jsr :
        case JBC_jsr_w :
          {
@@ -1565,12 +1565,12 @@ public final class VM_BuildBB
            for (int i=0; i<npairs; i++) {
              int offset  = bcodes.getLookupSwitchOffset(i);
              pushBranch(lastInstrStart+offset, snap);
-           }	   
+           }       
            bcodes.skipLookupSwitchPairs(npairs);
            branchDone = true;
            break;
          }
- 	  
+          
        case JBC_invokespecial :
        case JBC_invokeinterface :
        case JBC_invokevirtual :

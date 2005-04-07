@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001, 2002, 2003, 2004
+# (C) Copyright IBM Corp. 2001, 2002, 2003, 2004, 2005
 #
 # $Id$
 #
@@ -35,16 +35,22 @@
 # Bash internal shorthand that works like the "basename" command.
 ME="${0##*/}"
 
+declare -i dbg=0
+
+## Invocation:
+## usage [ <exitstatus> [ <message>... ] ]
 function usage() {
-    local exitstatus=${1-"1"};
+    local -i exitstatus=${1-"1"};
     shift;
+    (( dbg )) && echo "exitstatus=$exitstatus, \$*=$*"
     # If exit status is non-zero, redirect to stderr.
-    (( $1 != 0 )) && exec >&2
+    (( exitstatus == 0 )) || exec >&2
     [ "$*" ] && echo "$@"
-    echo "Usage: $ME <home> <rvm_root> <rvm_build> [<options>...]";
+    echo "Usage: $ME <home> <rvm_root> <rvm_build> <arguments-for-rvm>... ";
     exit $exitstatus;
 }
 
+## croak_usage  <message>... 
 function croak_nonusage () {
     # Display the error message.  If it's a multi-line error message, indent
     # the second and subsequent lines by a few spaces.  
@@ -76,11 +82,10 @@ rvm_build="$1"; shift;  # Used to be $RVM_BUILD
 ## change gdbrvm as well.
 
 # Load up where the RVM bootimage, booter, and runtime support files reside:
-env="$rvm_build/environment.target"
+declare -r env="$rvm_build/environment.target"
 [[ -f $env ]] || croak_nonusage "There is no file named \"$env\"; have you set RVM_BUILD to a Jikes RVM build directory that was initialized by \"jconfigure\"?"
 [[ -r $env ]] || croak_nonusage "The file \"$env\" doesn't allow me to read it; some sort of permissions problem?"
 . $env
-unset env
 
 ## Set us up so that we use the Xalan XML parser, if it is available.
 ## Xalan works better than the limited XML parsing built into GNU Classpath.
@@ -125,6 +130,8 @@ setup_xalan			# Set xalan_cp and  xalan_property
 # will put these before any user-specified arguments, so that any flags
 # that the user may have explicitly specified will override our defaults.
 
+declare -r os_version="$(uname -r)"
+declare -r os_name="$(uname -s)"
 declare -a sys_args
 sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar${RVM_BOOTCLASSPATH_APPEND:+:}${RVM_BOOTCLASSPATH_APPEND-}${xalan_cp:+:}${xalan_cp}" \
@@ -137,7 +144,7 @@ sys_args=("-X:i=$rvm_build/RVM.image" \
 		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
 		"-Duser.home=$home" "-Duser.dir=$(pwd)"			\
 		"-Duser.name=$(whoami)"					\
-		"-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)"	\
+		"-Dos.name=${os_name}" "-Dos.version=${os_version}"	\
 		"-Dos.arch=$(uname -m)"					\
  )
 
@@ -165,10 +172,106 @@ declare -a user_args
 user_args=("$@")
 
 
+## Return 0 if we need to use a single virtual processor, nonzero if we do not.
+need_single_virtual_processor () {
+    ## This is only for use with Linux; no other systems should need
+    ## single-virtual-processor magic.  I hope.
+
+    ## If we are on a 2.2 Linux kernel, then insist on single virt. processor
+    if [[ $os_name = *inux* ]] && [[ $os_version == 2.2.* ]]; then
+	return 0;
+    fi
+
+    ## First, figure out what the setting is for this build.
+    ## Search all of the arguments, since later ones override earlier ones.
+
+    # Possible values: true, false, debian, multiboot
+    local val="${SINGLE_VIRTUAL_PROCESSOR_DEFAULT-false}" 
+    for arg; do
+	case "$arg" in
+	    -X:singleVirtualProcessor=true)
+		val=true;
+		;;
+	    -X:singleVirtualProcessor=false)
+		val=false;
+		;;
+	    -X:singleVirtualProcessor=debian)
+		val=debian;
+		;;
+	    -X:singleVirtualProcessor=multiboot)
+		val=multiboot;
+		;;
+	    -X:singleVirtualProcessor=*)
+		croak_nonusage "I got the bogus argument \"$arg\"
+If -X:singleVirtualProcessor is specified, must give: -X:singleVirtualProcessor=<true|false|debian|multiboot>"
+		exit 1
+		;;
+	esac
+    done
+    (( ! dbg )) || echo $0:$LINENO:val=$val
+
+    if [[ $val = "multiboot" ]]; then
+	if [[ -f /etc/debian_version ]]; then
+	    val=debian
+	else
+	    val=false
+	fi
+    fi
+
+    case "$val" in
+	debian)
+	    if [[ $os_version = 2.4.* ]]; then
+		return 0;
+	    else
+		return 1;
+	    fi
+	    ;;
+	true)
+	    return 0
+	    ;;
+	false)
+	    (( ! dbg )) || echo "Returning 1"
+	    return 1
+	    ;;
+	*)
+	    croak_nonusage "Internal error: the config file \"$env\" probably specified SINGLE_VIRTUAL_PROCESSOR_DEFAULT as $val; I don't understand that value"
+	    ;;
+    esac
+}
+    
+
+## Set up any preloads for syswrap, which we will use if we need to properly
+## intercept the select() call.
+## Whether it's compiled at all is determined at build time by
+## RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS.  At run time, we need to
+## disable it if we are in single-virtual-processor mode, since it
+## requires that a pthread be available.
+syswrap_preload=""		# Reset if need to preload for syswrap.
+declare -r syswrap_filename="${rvm_build}/libsyswrap.so"
+if [[ -f ${syswrap_filename} ]]; then
+    syswrap_preload="${syswrap_filename}"
+fi
+
+preload=""			# Reset this if we need to preload something
+				# for single-virtual-processor mode.
+if need_single_virtual_processor "${user_args[@]}"; then
+    prog="$rvm_build/JikesRVM.no-pthreads"
+else
+    preload="${preload} ${syswrap_preload}"
+    prog="$rvm_build/JikesRVM"
+fi
+(( ! dbg )) || echo preload=$preload
+
 
 # Now execute the VM
-prog="$rvm_build/JikesRVM"
-[[ -f $prog ]] || croak_nonusage "Cannot find a file named \"$prog\"; have you set RVM_BUILD to a Jikes RVM build directory that contains a successfully-completed build?"
+if ! [[ -f $prog ]]; then
+    if [[ -f "$rvm_build/JikesRVM" ]]; then
+	croak_nonusage "Cannot find a file named \"$prog\"; it appears that this Jikes RVM build does not have support for a single virtual processor.  Try setting RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=1 in the config file, then rerun jconfigure and jbuild."
+    else
+	croak_nonusage "Cannot find a file named \"$prog\"; have you set RVM_BUILD to a Jikes RVM build directory that contains a successfully-completed build?"
+    fi
+fi
+
 [[ -x $prog ]] || croak_nonusage "Cannot execute the file named \"$prog\"; some sort of permissions problem.  Something weird is happening.  Maybe somebody with a highly restrictive \"umask\" compiled Jikes RVM?"
 
 ## "shopt -s execfail" is needed so that we can print a better error
@@ -182,17 +285,8 @@ prog="$rvm_build/JikesRVM"
 ## misleading message.
 shopt -s execfail
 
-declare -r syswrap="${rvm_build}/libsyswrap.so"
-if false; then
-    # This clause is here purely for debugging.
-    :
-elif [[ -f ${syswrap} ]]; then
-    ## Turn on libsyswrap, which is to say, make sure that we will properly
-    ## intercept the select() call.
-    LD_PRELOAD="${syswrap}" exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
-else
-    exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
-fi
+(( ! dbg )) || echo LD_PRELOAD="${preload}" exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
+LD_PRELOAD="${preload}" exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
 declare -r -i status=$?
 echo >&2  "$ME: Failed to execute $prog (command status $status); can't run Jikes RVM"
 exit $status

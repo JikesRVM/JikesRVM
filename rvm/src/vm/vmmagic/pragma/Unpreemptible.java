@@ -19,7 +19,7 @@ package org.vmmagic.pragma;
  * bytecodes that could cause a loss of control. Furthermore,
  * Uninterruptible code will be generated assuming no
  * RuntimeExceptions are raised and without any GC maps (since by
- * definition there can be noGC if control is not lost). Unpreemtible
+ * definition there can be noGC if control is not lost). Unpreemptible
  * code will have GC maps for all potential GC points and may contain
  * places where a thread explicitly yields.
  * <p>

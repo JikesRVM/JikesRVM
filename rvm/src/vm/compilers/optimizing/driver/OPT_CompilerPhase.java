@@ -119,9 +119,9 @@ public abstract class OPT_CompilerPhase implements Cloneable {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
           ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         // only print above centain opt level.
-        if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
+        //if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
           dumpIR(ir, "Before " + getName());
-        }
+        //}
       }
     }
     if (ir.options.PRINT_PHASES) VM.sysWrite(getName());

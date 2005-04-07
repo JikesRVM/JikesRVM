@@ -101,23 +101,33 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     return currentCompiledMethodId;
   }
 
-   // Find method whose machine code contains specified instruction.
-   // Taken:      instruction address
-   // Returned:   method (null --> not found)
-   // Assumption: caller has disabled gc (otherwise collector could move
-   //             objects without fixing up raw "ip" pointer)
-   //
-   // Usage note: "ip" must point to the instruction *following* the actual instruction
-   // whose method is sought. This allows us to properly handle the case where
-   // the only address we have to work with is a return address (ie. from a stackframe)
-   // or an exception address (ie. from a null pointer dereference, array bounds check,
-   // or divide by zero) on a machine architecture with variable length instructions.
-   // In such situations we'd have no idea how far to back up the instruction pointer
-   // to point to the "call site" or "exception site".
-   //
-   // Note: this method is highly inefficient. Normally you should use the following instead:
-   //   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
-   //
+  /**
+   Find the method whose machine code contains the specified instruction.
+
+   Assumption: caller has disabled gc (otherwise collector could move
+               objects without fixing up the raw <code>ip</code> pointer)
+   
+   Note: this method is highly inefficient. Normally you should use the
+   following instead: 
+   
+   <code>
+   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
+   </code>
+
+   @param ip  instruction address
+
+   Usage note: <code>ip</code> must point to the instruction *following* the
+   actual instruction whose method is sought. This allows us to properly
+   handle the case where the only address we have to work with is a return
+   address (ie. from a stackframe) or an exception address (ie. from a null
+   pointer dereference, array bounds check, or divide by zero) on a machine
+   architecture with variable length instructions.  In such situations we'd
+   have no idea how far to back up the instruction pointer to point to the
+   "call site" or "exception site".
+
+   @return method (<code>null</code> --> not found)
+  */
+   
   public static VM_CompiledMethod findMethodForInstruction(Address ip) throws UninterruptiblePragma {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];

@@ -11,7 +11,7 @@ import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Constants;
+import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
 
@@ -49,9 +49,9 @@ public final class RefCountSpace extends Space
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0; 
   /** How many bytes are used by all GC header fields? */
-  public static final int GC_HEADER_BYTES_REQUIRED = (RC_SANITY_CHECK) ? 2*BYTES_IN_ADDRESS : BYTES_IN_ADDRESS;
-  protected static final Offset RC_HEADER_OFFSET = Offset.fromInt(ObjectModel.GC_HEADER_OFFSET());
-  protected static final Offset RC_SANITY_HEADER_OFFSET = Offset.fromInt(ObjectModel.GC_HEADER_OFFSET() + BYTES_IN_ADDRESS);
+  public static final int GC_HEADER_WORDS_REQUIRED = (RC_SANITY_CHECK) ? 2 : 1;
+  protected static final Offset RC_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET();
+  protected static final Offset RC_SANITY_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET().add(BYTES_IN_ADDRESS);
 
 
   /* Mask bits to signify the start/finish of logging an object */
@@ -118,7 +118,7 @@ public final class RefCountSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public RefCountSpace(String name, int pageBudget, Address start,
-		       Extent bytes) {
+                       Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
@@ -345,8 +345,8 @@ public final class RefCountSpace extends Space
    * initial increment?
    */
   public static void initializeHeader(ObjectReference object, 
-				      ObjectReference typeRef,
-				      boolean initialInc) throws InlinePragma {
+                                      ObjectReference typeRef,
+                                      boolean initialInc) throws InlinePragma {
     // all objects are birthed with an RC of INCREMENT
     int initialValue =  (initialInc) ? INCREMENT : 0;
     if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 

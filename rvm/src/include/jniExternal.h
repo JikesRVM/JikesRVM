@@ -244,5 +244,5 @@ struct JNISynchronization {
   int requestFlag;
   int callerFramePointer;
   int returnValue;
-  int exitJVM;
+  int exitVM;
 } JNISynchronization;

@@ -8,6 +8,51 @@ Jikes RVM.\@  We shall subsequently visit the other programming languages.
 This section also includes coding conventions that we
 use within Jikes RVM.\@  
 
+\subsection{Character Set}
+
+The Java source-to-byte-code compilers are invoked with the argument
+``\texttt{-encoding iso-8859-1}''.  Unless you have a good reason
+for doing so, please use the ISO Latin 1 (iso-8859-1) character set
+when you create source files.  If you do have to write a source file
+with another encoding, please be sure that the Java
+source-to-byte-code compilers are invoked with the proper
+\texttt{-encoding} flag.  They may not break on your platform with the
+wrong -encoding flag, or with a missing -encoding flag, but they might
+break on another platform or when run by someone with a different set of
+locale settings.
+
+\subsection{Exit Codes}
+
+Inside the VM itself, and in any code that can be called by the VM,
+please do not exit with low-numbered failure exit codes (1, 2,
+etc.).  Those codes are often used by user programs.  
+
+The standard exit codes for the Jikes RVM VM are defined in the
+interface VM\_ExitStatus.java.  Please use them.  These rules also
+apply to the C code that forms part of Jikes RVM.  Most of the exit
+status codes (you can add the rest if you need them) are exported by
+the program GenerateInterfaceDeclarations.java into the generated
+include file \texttt{InterfaceDeclarations.h}.
+
+This convention does not apply to tools, such as the HPM tracefile
+reader, or the boot image writer.  Those tools are independent
+programs themselves, and do not run arbitrary Java code.  For them,
+System.exit(1) is appropriate.  Also, the Java preprocessor has its
+own exit convention, for which see the code.
+
+Java code should generally exit by calling System.exit.  That is
+because System.exit will run the user program's shutdown hooks, as
+well as any shutdown hooks that might be installed by static
+initializers in library classes (there are none such at the moment).
+Internal errors, and impossible conditions, should usually call
+VM.sysFail, which will print a stack trace.  Also, do not call
+System.exit if your code might be invoked before the VM is fully
+booted.
+
+Please do not use the exit status \texttt{-1}.  \texttt{-1} is not
+handled properly by the Cygwin libraries (it gets mapped to zero,
+meaning success) and will bite us if we ever port to that platform.
+
 \subsection{Coding Conventions}
 
 \subsubsection{The {\tt VM\_} prefix}
@@ -28,8 +73,8 @@ Partly for historical reasons, we use our own built-in assertion
 facility rather than the one that appeared in Sun\Rweb{}'s JDK 1.4.   All
 assertion checks have one of the two forms:
 \begin{example}
-\tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}
-\tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}, {\it message})
+\tt{}    if (VM.VerifyAssertions)  VM.\_assert({\it condition}
+\tt{}    if (VM.VerifyAssertions)  VM.\_assert({\it condition}, {\it message})
 \end{example}
 {\tt VM.VerifyAssertions} is a {\tt 
 public static final} field.  The \varName{RVM\_WITHOUT\_ASSERTIONS}

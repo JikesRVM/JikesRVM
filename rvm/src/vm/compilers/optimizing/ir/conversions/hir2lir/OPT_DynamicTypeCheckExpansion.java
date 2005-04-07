@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-
+import org.vmmagic.unboxed.*;
 /**
  * Expansion of Dynamic Type Checking operations.
  *
@@ -141,11 +141,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       if (branchCondition) {
         return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, branchBB, 
                                           fallThroughBB, oldGuard,
-					  IfCmp.getClearBranchProfile(next).flip());
+                                          IfCmp.getClearBranchProfile(next).flip());
       } else {
         return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, 
                                           fallThroughBB, branchBB, oldGuard,
-					  IfCmp.getClearBranchProfile(next));
+                                          IfCmp.getClearBranchProfile(next));
       }
     } else {
       // Not a branching pattern
@@ -277,7 +277,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     }
     OPT_RegisterOperand entry = 
       InsertLoadOffset(s, ir, INT_LOAD, VM_TypeReference.Int,
-                       doesImpl, interfaceIndex << 2, 
+                       doesImpl, Offset.fromIntZeroExtend(interfaceIndex << 2), 
                        new OPT_LocationOperand(VM_TypeReference.Int), 
                        TG());
     OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int, entry, IC(interfaceMask));
@@ -440,6 +440,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             OPT_RegisterOperand lhsDepthOffset = 
               InsertBinary(curBlock.lastInstruction(), ir, INT_SHL, VM_TypeReference.Int,
                            lhsElemDepth.copyD2U(), IC(1));
+            lhsDepthOffset = InsertUnary(curBlock.lastInstruction(), ir, INT_2ADDRZerExt, VM_TypeReference.Offset, lhsDepthOffset.copy());
             curBlock.appendInstruction(Load.create(USHORT_LOAD, refCandidate, 
                                                    rhsSuperclassIds, 
                                                    lhsDepthOffset, loc, TG()));
@@ -464,7 +465,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
     // Call VM_Runtime.checkstore.
     VM_Method target = VM_Entrypoints.checkstoreMethod;
-    OPT_Instruction call = Call.create2(CALL, null, IC(target.getOffset()),
+    OPT_Instruction call = Call.create2(CALL, null, AC(target.getOffset()),
                                         OPT_MethodOperand.STATIC(target),
                                         rhsGuard.copy(), arrayRef.copy(), elemRef.copy());
     call.copyPosition(s);
@@ -513,14 +514,15 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                         VM_TypeReference.IntArray, RHStib);
           OPT_RegisterOperand entry = 
             InsertLoadOffset(s, ir, INT_LOAD, VM_TypeReference.Int, 
-                             doesImpl, interfaceIndex << 2, 
+                             doesImpl, Offset.fromIntZeroExtend(interfaceIndex << 2), 
                              new OPT_LocationOperand(VM_TypeReference.Int), 
                              TG());
           OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_TypeReference.Int,
                                                  entry, IC(interfaceMask));
-          s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, result, 
+                         //save to use the cheaper ADDR version of BOOLEAN_CMP
+          s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, result, 
                                            bit,
-                                           IC(0),
+                                           AC(Address.zero()),
                                            OPT_ConditionOperand.NOT_EQUAL(),
                                            new OPT_BranchProfileOperand()));
 
@@ -528,9 +530,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             OPT_RegisterOperand doesImplLength = 
               InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, doesImpl.copy(), TG());
             OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, boundscheck, 
+                           //save to use the cheaper ADDR version of BOOLEAN_CMP
+            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, boundscheck, 
                                              doesImplLength,
-                                             IC(interfaceIndex),
+                                             AC(Address.fromIntSignExtend(interfaceIndex)),
                                              OPT_ConditionOperand.GREATER(),
                                              new OPT_BranchProfileOperand()));
             s.insertBefore(Binary.create(INT_AND, result.copyD2D(), 
@@ -558,12 +561,13 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                           VM_TypeReference.ShortArray, RHStib);
             OPT_RegisterOperand refCandidate = 
               InsertLoadOffset(s, ir, USHORT_LOAD, VM_TypeReference.Short, 
-                               superclassIds, LHSDepth << 1, 
+                               superclassIds, Offset.fromIntZeroExtend(LHSDepth << 1), 
                                new OPT_LocationOperand(VM_TypeReference.Short), 
                                TG());
-            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, result, 
+                           //save to use the cheaper ADDR version of BOOLEAN_CMP
+            s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, result, 
                                              refCandidate, 
-                                             IC(LHSId), 
+                                             AC(Address.fromIntZeroExtend(LHSId)), 
                                              OPT_ConditionOperand.EQUAL(),
                                              new OPT_BranchProfileOperand()));
             if (VM_DynamicTypeCheck.MIN_SUPERCLASS_IDS_SIZE <= LHSDepth) {
@@ -571,9 +575,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                 InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_TypeReference.Int, 
                                    superclassIds.copyD2U(), TG());
               OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
-              s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_INT, boundscheck, 
+                             //save to use the cheaper ADDR version of BOOLEAN_CMP
+              s.insertBefore(BooleanCmp.create(BOOLEAN_CMP_ADDR, boundscheck, 
                                                superclassIdsLength, 
-                                               IC(LHSDepth), 
+                                               AC(Address.fromIntSignExtend(LHSDepth)), 
                                                OPT_ConditionOperand.GREATER(),
                                                new OPT_BranchProfileOperand()));
               s.insertBefore(Binary.create(INT_AND, result.copyD2D(), 
@@ -589,7 +594,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         // We expect these to be extremely uncommon in opt code in AOS.
         // Mutate s into a call to VM_Runtime.instanceOf
         VM_Method target = VM_Entrypoints.instanceOfMethod;
-        Call.mutate2(s, CALL, result, IC(target.getOffset()), 
+        Call.mutate2(s, CALL, result, AC(target.getOffset()), 
                      OPT_MethodOperand.STATIC(target),
                      RHSobj, IC(LHStype.getId()));
         return callHelper(s, ir);
@@ -687,7 +692,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                             OPT_BasicBlock trueBlock, 
                                                             OPT_BasicBlock falseBlock,
                                                             OPT_RegisterOperand oldGuard,
-							    OPT_BranchProfileOperand falseProb) {
+                                                            OPT_BranchProfileOperand falseProb) {
     OPT_Instruction continueAt = Goto.create(GOTO, trueBlock.makeJumpTarget());
     continueAt.copyPosition(s);
     s.insertBefore(continueAt);
@@ -723,7 +728,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           }
           OPT_RegisterOperand entry = 
             InsertLoadOffset(continueAt, ir, INT_LOAD, VM_TypeReference.Int,
-                             doesImpl, interfaceIndex << 2, 
+                             doesImpl, Offset.fromIntZeroExtend(interfaceIndex << 2), 
                              new OPT_LocationOperand(VM_TypeReference.Int), 
                              TG());
           OPT_RegisterOperand bit = 
@@ -770,7 +775,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             }
             OPT_RegisterOperand refCandidate = 
               InsertLoadOffset(continueAt, ir, USHORT_LOAD, VM_TypeReference.Short,
-                               superclassIds, LHSDepth << 1, 
+                               superclassIds, Offset.fromIntZeroExtend(LHSDepth << 1), 
                                new OPT_LocationOperand(VM_TypeReference.Short), 
                                TG());
             continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
@@ -787,7 +792,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         // VM_Runtime.instance
         OPT_RegisterOperand result = ir.regpool.makeTempInt();
         VM_Method target = VM_Entrypoints.instanceOfMethod;
-        OPT_Instruction call = Call.create2(CALL, result, IC(target.getOffset()),
+        OPT_Instruction call = Call.create2(CALL, result, AC(target.getOffset()),
                                             OPT_MethodOperand.STATIC(target),
                                             RHSobj, IC(LHStype.getId()));
         call.copyPosition(continueAt);
@@ -820,7 +825,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                falseProb));
           return continueAt;
         }
-	// TODO: branch probability calculation is somewhat bogus for this case.
+        // TODO: branch probability calculation is somewhat bogus for this case.
         OPT_Instruction shortcircuit = 
           IfCmp.create(REF_IFCMP, oldGuard, RHStib, classTIB,
                        OPT_ConditionOperand.EQUAL(), 
@@ -868,7 +873,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // Not a case we want to handle inline
       VM_Method target = VM_Entrypoints.instanceOfMethod;
       OPT_RegisterOperand callResult = ir.regpool.makeTempInt();
-      OPT_Instruction call = Call.create2(CALL, callResult, IC(target.getOffset()), OPT_MethodOperand.STATIC(target), 
+      OPT_Instruction call = Call.create2(CALL, callResult, AC(target.getOffset()), OPT_MethodOperand.STATIC(target), 
                                           RHSobj, IC(LHStype.getId()));
       call.copyPosition(continueAt);
       continueAt.insertBefore(call);
