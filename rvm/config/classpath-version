@@ -7,7 +7,7 @@
 ##
 ## We think there is a reasonable chance that Jikes RVM will work with
 ## GNU Classpath versions 0.10, 0.11, 0.12, and 0.14.  Note that GNU Classpath
-## 0.14 can't be compiled with jikes .1.19 (the previously recommended 
+## 0.14 can't be compiled with jikes 1.19 (the previously recommended 
 ## version of the jikes bytecode to source compiler).  We now recommend 
 ## jikes 1.22. 
 
