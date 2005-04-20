@@ -1978,10 +1978,6 @@ EOF
 	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/security"
 	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/util"
     fi
-    ## gnu.classpath.VMSystemProperties is used for Classpath 0.13 and
-    ## Classpath post-0.13-CVS-head.  It is now also used by earlier
-    ## versions, since we implement some functionality there that the
-    ## earlier interfaces call into.
     echo "$RVM_ROOT/rvm/src/vm/libSupport/gnu/classpath"
 
     # Add support for hardware performance monitors on PowerPC
@@ -3423,6 +3419,15 @@ java/io/FileInputStream
 java/io/FileDescriptor
 java/io/VMFile
 gnu/java/nio/channels/FileChannelImpl
+
+    # Character conversion
+    # 
+java/nio/charset/Charset
+java/nio/charset/CharsetEncoder
+java/nio/charset/CharsetDecoder
+java/nio/charset/Charset
+java/nio/ByteBuffer
+java/nio/CharBuffer
 EOF
 
     if (( ! RVM_WITH_CLASSPATH_0_10 )); then
