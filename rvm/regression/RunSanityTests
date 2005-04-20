@@ -18,10 +18,6 @@
 # @modified by Julian Dolby (9/27/01)
 #     heavily rewritten
 
-# in case someone does not have standard UNIX stuff in their path
-#
-export PATH=/usr/bin:$PATH
-
 # sigh
 #
 ulimit -c 0
