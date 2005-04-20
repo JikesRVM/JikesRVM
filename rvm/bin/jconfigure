@@ -3391,6 +3391,7 @@ java/security/Permissions
 java/security/Principal
 gnu/java/locale/Calendar
 java/lang/reflect/InvocationTargetException
+gnu/java/util/DoubleEnumeration
 
     # ApplicationClassLoader
 com/ibm/JikesRVM/classloader/ApplicationClassLoader # Uses URLClassLoader
