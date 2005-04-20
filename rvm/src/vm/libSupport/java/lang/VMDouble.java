@@ -31,4 +31,10 @@ final class VMDouble {
   static double longBitsToDouble(long bits) {
     return VM_Magic.longBitsAsDouble(bits);
   }
+
+  public static native String toString(double d, boolean isFloat);
+
+  public static native void initIDs();
+
+  public static native double parseDouble(String str);
 }
