@@ -3365,6 +3365,7 @@ java/util/Arrays
 java/util/HashMap
 java/util/HashSet
 java/util/Hashtable
+java/util/LinkedHashSet
 java/util/List
 java/util/ListResourceBundle
 java/util/PropertyResourceBundle
