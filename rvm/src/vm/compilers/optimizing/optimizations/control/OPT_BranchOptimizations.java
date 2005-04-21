@@ -51,8 +51,8 @@ public final class OPT_BranchOptimizations
    */
   public OPT_BranchOptimizations (int level, boolean mayReorderCode, boolean mayDuplicateCondBranches) {
     super(level);
-    mayReorderCode = mayReorderCode;
-    mayDuplicateCondBranches = mayDuplicateCondBranches;
+    this.mayReorderCode = mayReorderCode;
+    this.mayDuplicateCondBranches = mayDuplicateCondBranches;
   }
   
   /**
