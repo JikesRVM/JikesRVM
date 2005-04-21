@@ -3429,8 +3429,12 @@ java/nio/charset/Charset
 java/nio/charset/CharsetEncoder
 java/nio/charset/CharsetDecoder
 java/nio/charset/Charset
+java/nio/charset/CodingErrorAction
+java/nio/ByteOrder
 java/nio/ByteBuffer
+java/nio/ByteBufferImpl
 java/nio/CharBuffer
+java/nio/CharBufferImpl
 gnu/java/nio/charset/Provider
 gnu/java/nio/charset/US_ASCII
 gnu/java/nio/charset/ISO_8859_1
