@@ -3366,6 +3366,7 @@ java/util/HashMap
 java/util/HashSet
 java/util/Hashtable
 java/util/LinkedHashSet
+java/util/LinkedHashMap
 java/util/List
 java/util/ListResourceBundle
 java/util/PropertyResourceBundle
@@ -3430,6 +3431,29 @@ java/nio/charset/CharsetDecoder
 java/nio/charset/Charset
 java/nio/ByteBuffer
 java/nio/CharBuffer
+gnu/java/nio/charset/Provider
+gnu/java/nio/charset/US_ASCII
+gnu/java/nio/charset/ISO_8859_1
+gnu/java/nio/charset/UTF_8
+gnu/java/nio/charset/UTF_16BE
+gnu/java/nio/charset/UTF_16LE
+gnu/java/nio/charset/UTF_16
+gnu/java/nio/charset/UnicodeLittle
+gnu/java/nio/charset/Windows1250
+gnu/java/nio/charset/Windows1251
+gnu/java/nio/charset/Windows1252
+gnu/java/nio/charset/Windows1253
+gnu/java/nio/charset/Windows1254
+gnu/java/nio/charset/Windows1257
+gnu/java/nio/charset/ISO_8859_2
+gnu/java/nio/charset/ISO_8859_4
+gnu/java/nio/charset/ISO_8859_5
+gnu/java/nio/charset/ISO_8859_7
+gnu/java/nio/charset/ISO_8859_9
+gnu/java/nio/charset/ISO_8859_13
+gnu/java/nio/charset/ISO_8859_15
+gnu/java/nio/charset/KOI_8
+
 EOF
 
     if (( ! RVM_WITH_CLASSPATH_0_10 )); then
