@@ -3430,6 +3430,7 @@ java/nio/charset/CharsetEncoder
 java/nio/charset/CharsetDecoder
 java/nio/charset/Charset
 java/nio/charset/CodingErrorAction
+java/nio/charset/CoderResult
 java/nio/ByteOrder
 java/nio/ByteBuffer
 java/nio/ByteBufferImpl
