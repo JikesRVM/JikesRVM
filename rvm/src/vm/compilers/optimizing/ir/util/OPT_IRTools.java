@@ -420,11 +420,6 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * <em> Precondition </em>: There is an edge in the control flow graph 
    * from * in -> out.
    *
-   * <p> TODO: write a cleaner version of this and put it in OPT_IRTools.java
-   * Once we explicitly link phi operands to basic blocks, we won't have
-   * to muck with the internals of the control flow graph to implement
-   * this function.
-   *
    * @param in the source of the control flow edge
    * @param out the sink of the control flow edge
    * @param ir the governing IR
