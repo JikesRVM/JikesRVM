@@ -284,7 +284,6 @@ public class VM extends VM_Properties
     //-#elif RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
     //-#else
-    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_CVS_HEAD
     /** This one absolutely requires that we have a working Application/System
         class loader, or at least a returnable one.  That, in turn, requires
         lots of things be set up for Jar.  */
@@ -292,6 +291,10 @@ public class VM extends VM_Properties
     //-#endif
 
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
+    runClassInitializer("java.nio.charset.CharsetEncoder");
+    runClassInitializer("java.nio.charset.CharsetDecoder");
+    runClassInitializer("java.nio.charset.CharsetCoderResult");
+
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
     runClassInitializer("java.lang.Math"); /* Load in the javalang library, so
                                               that Math's native trig functions
