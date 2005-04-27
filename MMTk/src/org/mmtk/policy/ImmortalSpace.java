@@ -36,7 +36,12 @@ public final class ImmortalSpace extends Space
    * Class variables
    */
   static final Word GC_MARK_BIT_MASK = Word.one();
-  public static Word immortalMarkState = Word.zero(); // when GC off, the initialization value
+
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+  private Word markState = Word.zero(); // when GC off, the initialization value
 
   /****************************************************************************
    *
@@ -143,6 +148,9 @@ public final class ImmortalSpace extends Space
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
 
+  /** @return the current mark state */
+  public final Word getMarkState() throws InlinePragma { return markState; }
+
   /****************************************************************************
    *
    * Object header manipulations
@@ -203,13 +211,13 @@ public final class ImmortalSpace extends Space
    */
   public final ObjectReference traceObject(ObjectReference object) 
     throws InlinePragma {
-    if (testAndMark(object, immortalMarkState)) 
+    if (testAndMark(object, markState)) 
       Plan.enqueue(object);
     return object;
   }
 
-  public static void postAlloc(ObjectReference object) throws InlinePragma {
-    writeMarkBit (object, immortalMarkState);
+  public void postAlloc(ObjectReference object) throws InlinePragma {
+    writeMarkBit(object, markState);
   }
 
   /**
@@ -218,11 +226,10 @@ public final class ImmortalSpace extends Space
    * collections.
    */
   public void prepare() { 
-    immortalMarkState = GC_MARK_BIT_MASK.sub(immortalMarkState);
+    markState = GC_MARK_BIT_MASK.sub(markState);
   }
 
-  public void release() { 
-  }
+  public void release() {}
 
   /**
    * Release an allocated page or pages.  In this case we do nothing
@@ -249,7 +256,7 @@ public final class ImmortalSpace extends Space
    *         the current mark state).  While all immortal objects are live,
    *         some may be unreachable.
    */
-  public static boolean isReachable(ObjectReference object) {
-    return (ObjectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(immortalMarkState));
+  public boolean isReachable(ObjectReference object) {
+    return (ObjectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
   }
 }

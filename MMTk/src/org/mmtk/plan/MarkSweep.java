@@ -153,7 +153,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
     switch (allocator) {
     case       ALLOC_MS: msSpace.initializeHeader(ref); return;
     case      ALLOC_LOS: loSpace.initializeHeader(ref); return;
-    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(ref); return;
+    case ALLOC_IMMORTAL: immortalSpace.postAlloc(ref); return;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
     }
@@ -305,8 +305,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void globalPrepare() {
     msSpace.prepare();
-    immortalSpace.prepare();
-    loSpace.prepare();
+    commonGlobalPrepare();
   }
 
   /**
@@ -319,7 +318,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void threadLocalPrepare(int count) {
     ms.prepare();
-    los.prepare();
+    commonLocalPrepare();
   }
 
   /**
@@ -334,7 +333,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
-    los.release();
+    commonLocalRelease();
   }
 
   /**
@@ -347,9 +346,8 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void globalRelease() {
     // release each of the collected regions
-    loSpace.release();
     msSpace.release();
-    immortalSpace.release();
+    commonGlobalRelease();
     int available = getTotalPages() - getPagesReserved();
 
     progress = (available > availablePreGC) && (available > exceptionReserve);

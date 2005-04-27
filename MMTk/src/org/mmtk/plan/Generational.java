@@ -201,7 +201,7 @@ public abstract class Generational extends StopTheWorldGC
     switch (allocator) {
     case  ALLOC_NURSERY: return;
     case   ALLOC_MATURE: maturePostAlloc(object); return;
-    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(object); return;
+    case ALLOC_IMMORTAL: immortalSpace.postAlloc(object); return;
     case      ALLOC_LOS: loSpace.initializeHeader(object); return;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 
@@ -377,10 +377,9 @@ public abstract class Generational extends StopTheWorldGC
       if (fullHeapGC) fullHeapTime.start();
       if (Stats.gatheringStats()) fullHeap.set();
       // prepare each of the collected regions
-      loSpace.prepare();
-      immortalSpace.prepare();
+      commonGlobalPrepare();
       globalMaturePrepare();
-
+      
       // we can throw away the remsets for a full heap GC
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
@@ -396,12 +395,14 @@ public abstract class Generational extends StopTheWorldGC
    * In this case, it means flushing the remsets, rebinding the
    * nursery, and if a full heap collection, preparing the mature
    * space and LOS.
+   *
+   * @return true if non-plan-specific spaces should be prepared
    */
   protected final void threadLocalPrepare(int count) {
     nursery.rebind(nurserySpace);
     if (fullHeapGC || IGNORE_REMSET) {
+      commonLocalPrepare();
       threadLocalMaturePrepare(count);
-      los.prepare();
       // we can throw away remsets for a full heap GC
       remset.resetLocal();  
       arrayRemset.resetLocal();
@@ -440,7 +441,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected final void threadLocalRelease(int count) {
     if (fullHeapGC || IGNORE_REMSET) { 
-      los.release();
+      commonLocalRelease();
       threadLocalMatureRelease(count);
     }
     remset.flushLocal(); // flush any remset entries collected during GC
@@ -462,9 +463,8 @@ public abstract class Generational extends StopTheWorldGC
     nurserySpace.release();
     remsetPool.clearDeque(1); // flush any remset entries collected during GC
     if (fullHeapGC || IGNORE_REMSET) {
-      loSpace.release();
+      commonGlobalRelease();
       globalMatureRelease();
-      immortalSpace.release();
       if (fullHeapGC) fullHeapTime.stop();
     }
     fullHeapGC = (getPagesAvail() < nurserySize.getMinNursery());

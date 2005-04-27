@@ -65,7 +65,7 @@ public class SemiSpace extends SemiSpaceBase implements Uninterruptible {
     throws InlinePragma {
     switch (allocator) {
     case  ALLOC_DEFAULT: return;
-    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(object); return;
+    case ALLOC_IMMORTAL: immortalSpace.postAlloc(object); return;
     case      ALLOC_LOS: loSpace.initializeHeader(object); return;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");

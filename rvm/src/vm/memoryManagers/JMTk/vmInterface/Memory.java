@@ -65,6 +65,26 @@ public class Memory
   }
 
   /**
+   * Global preparation for a collection.
+   */
+  public static void globalPrepareVMSpace() { bootSpace.prepare(); }
+
+  /**
+   * Thread-local preparation for a collection.
+   */
+  public static void localPrepareVMSpace() {}
+
+  /**
+   * Thread-local post-collection work.
+   */
+  public static void localReleaseVMSpace() {}
+
+  /**
+   * Global post-collection work.
+   */
+  public static void globalReleaseVMSpace() { bootSpace.release(); }
+
+  /**
    * Sets the range of addresses associated with a heap.
    *
    * @param id the heap identifier

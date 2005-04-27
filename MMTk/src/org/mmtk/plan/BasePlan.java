@@ -658,7 +658,7 @@ public abstract class BasePlan
   public boolean isReachable(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isImmortal(object)) {
-      return ImmortalSpace.isReachable(object);
+      return immortalSpace.isReachable(object);
     }
       if (Assert.VERIFY_ASSERTIONS)
         Assert.fail("BasePlan.isReachable given object from unknown space");

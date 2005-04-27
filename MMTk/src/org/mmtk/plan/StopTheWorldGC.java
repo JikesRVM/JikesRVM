@@ -21,6 +21,7 @@ import org.mmtk.vm.Plan;
 import org.mmtk.vm.Scanning;
 import org.mmtk.vm.Statistics;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.Memory;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -271,6 +272,18 @@ public abstract class StopTheWorldGC extends BasePlan
   }
 
   /**
+   * Perform global prepare operations with respect to spaces that are
+   * common to all subclasses.  This code is conditionally called by
+   * subclasses (for example, a generational collector may call this
+   * only when performing whole heap collection).
+   */
+  protected final void commonGlobalPrepare() {
+    loSpace.prepare();
+    immortalSpace.prepare(); 
+    Memory.globalPrepareVMSpace();
+  }
+
+  /**
    * Perform operations with <i>thread-local</i> scope in preparation
    * for a collection.  This is called by <code>prepare()</code> which
    * will ensure that <i>all threads</i> execute this.<p>
@@ -292,6 +305,17 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     if (verbose.getValue() >= 4) Log.writeln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
+  }
+
+  /**
+   * Perform localprepare operations with respect to spaces that are
+   * common to all subclasses.  This code is conditionally called by
+   * subclasses (for example, a generational collector may call this
+   * only when performing whole heap collection).
+   */
+  protected final void commonLocalPrepare() {
+    los.prepare();
+    Memory.localPrepareVMSpace();
   }
 
   /**
@@ -343,6 +367,18 @@ public abstract class StopTheWorldGC extends BasePlan
   }
 
   /**
+   * Perform global release operations with respect to spaces that are
+   * common to all subclasses.  This code is conditionally called by
+   * subclasses (for example, a generational collector may call this
+   * only when performing whole heap collection).
+   */
+  protected final void commonGlobalRelease() {
+    loSpace.release();
+    immortalSpace.release();
+    Memory.globalReleaseVMSpace();
+  }
+
+  /**
    * Perform operations with <i>thread-local</i> scope to release
    * resources after a collection.  This is called by
    * <code>release()</code> which will ensure that <i>all threads</i>
@@ -355,6 +391,17 @@ public abstract class StopTheWorldGC extends BasePlan
     rootLocations.reset();
     interiorRootLocations.reset();
     threadLocalRelease(order);
+  }
+
+  /**
+   * Perform local release operations with respect to spaces that are
+   * common to all subclasses.  This code is conditionally called by
+   * subclasses (for example, a generational collector may call this
+   * only when performing whole heap collection).
+   */
+  protected final void commonLocalRelease() { 
+    los.release();
+    Memory.localReleaseVMSpace();
   }
 
   /**

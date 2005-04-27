@@ -317,8 +317,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   protected final void globalPrepare() {
     nurserySpace.prepare(true);
     msSpace.prepare();
-    immortalSpace.prepare();
-    loSpace.prepare();
+    commonGlobalPrepare();
   }
 
   /**
@@ -332,7 +331,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   protected final void threadLocalPrepare(int count) {
     nursery.reset();
     ms.prepare();
-    los.prepare();
+    commonLocalPrepare();
   }
 
   /**
@@ -346,7 +345,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
-    los.release();
+    commonLocalRelease();
   }
 
   /**
@@ -360,9 +359,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   protected final void globalRelease() {
     // release each of the collected regions
     nurserySpace.release();
-    loSpace.release();
     msSpace.release();
-    immortalSpace.release();
+    commonGlobalRelease();
     if (getPagesReserved() + required >= getTotalPages()) {
       progress = false;
     } else

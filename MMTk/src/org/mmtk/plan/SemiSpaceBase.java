@@ -257,8 +257,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
     // prepare each of the collected regions
     copySpace0.prepare(hi);
     copySpace1.prepare(!hi);
-    immortalSpace.prepare();
-    loSpace.prepare();
+    commonGlobalPrepare();
   }
 
   /**
@@ -272,7 +271,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   protected void threadLocalPrepare(int count) {
     // rebind the semispace bump pointer to the appropriate semispace.
     ss.rebind(((hi) ? copySpace1 : copySpace0)); 
-    los.prepare();
+    commonLocalPrepare();
   }
 
   /**
@@ -286,7 +285,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * LOS).
    */
   protected void threadLocalRelease(int count) {
-    los.release();
+    commonLocalRelease();
   }
 
   /**
@@ -299,9 +298,8 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    */
   protected void globalRelease() {
     // release each of the collected regions
-    loSpace.release();
     (hi ? copySpace0 : copySpace1).release();
-    immortalSpace.release();
+    commonGlobalRelease();
     progress = (getPagesReserved() + required < getTotalPages());
   }
 

@@ -17,7 +17,6 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Memory;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
@@ -26,6 +25,7 @@ import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Memory;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Statistics;
 
@@ -310,6 +310,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     nurserySpace.prepare(true);
     rcSpace.prepare();
     immortalSpace.prepare();
+    Memory.globalPrepareVMSpace();
   }
 
   /**
@@ -323,6 +324,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   protected final void threadLocalPrepare(int count) {
     rc.prepare(verboseTiming.getValue() && count==1);
     nursery.rebind(nurserySpace);
+    Memory.localPrepareVMSpace();
   }
 
   /**
@@ -337,6 +339,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     rc.release(this, count);
+    Memory.localReleaseVMSpace();
   }
 
   /**
@@ -351,6 +354,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     nurserySpace.release();
     rcSpace.release();
     immortalSpace.release();
+    Memory.globalReleaseVMSpace();
     if (verbose.getValue() > 2) rc.printStats();
     progress = (getPagesReserved() + required < getTotalPages());
     previousMetaDataPages = metaDataSpace.committedPages();
