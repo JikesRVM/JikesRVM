@@ -377,10 +377,6 @@ public class VM extends VM_Properties
     VM_QuickCompiler.fullyBootedVM();
     //-#endif
 
-    // Allow profile information to be read in from a file
-    // 
-    VM_EdgeCounts.boot();
-
     // Initialize compiler that compiles dynamically loaded classes.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Initializing runtime compiler");
@@ -436,6 +432,10 @@ public class VM extends VM_Properties
         lots of things be set up for Jar.  */
     runClassInitializer("java.lang.ClassLoader$StaticData");
     //-#endif
+
+    // Allow profile information to be read in from a file
+    // 
+    VM_EdgeCounts.boot();
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
