@@ -448,10 +448,8 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = msSpace.reservedPages();
-    pages += loSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
-    pages += metaDataSpace.reservedPages();
+    int pages = getCommonPagesReserved();
+    pages += msSpace.reservedPages();
     return pages;
   }
 
@@ -461,7 +459,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages available for allocation.
    */
   protected static final int getPagesAvail() {
-    return getTotalPages() - msSpace.reservedPages() - loSpace.reservedPages() - immortalSpace.reservedPages();
+    return getTotalPages() - getPagesUsed();
   }
 
 

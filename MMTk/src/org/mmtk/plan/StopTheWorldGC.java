@@ -405,6 +405,17 @@ public abstract class StopTheWorldGC extends BasePlan
   }
 
   /**
+   * Return the number of pages reserved for use by the common spaces,
+   * given the pending allocation.
+   *
+   * @return The number of pages reserved for use by the common
+   * spaces, given the pending allocation.
+   */
+  protected static final int getCommonPagesReserved() {
+    return loSpace.reservedPages() + immortalSpace.reservedPages() + metaDataSpace.reservedPages();
+  }
+
+  /**
    * Process all GC work.  This method iterates until all work queues
    * are empty.
    */

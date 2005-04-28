@@ -478,10 +478,8 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = (hi ? copySpace1 : copySpace0).reservedPages();
-    pages += loSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
-    pages += metaDataSpace.reservedPages();
+    int pages = getCommonPagesReserved();
+    pages += (hi ? copySpace1 : copySpace0).reservedPages();
     return pages;
   }
 
@@ -493,8 +491,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * all future allocation is to the semi-space</i>.
    */
   protected static final int getPagesAvail() {
-    int semispaceTotal = getTotalPages() - loSpace.reservedPages() 
-      - immortalSpace.reservedPages();
+      int semispaceTotal = getTotalPages() - getCommonPagesReserved();
     return (semispaceTotal>>1) - (hi ? copySpace1 : copySpace0).reservedPages();
   }
 

@@ -667,11 +667,9 @@ public abstract class Generational extends StopTheWorldGC
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = nurserySpace.reservedPages();
+    int pages = getCommonPagesReserved();
+    pages += nurserySpace.reservedPages();
     pages += activeMatureSpace.reservedPages();
-    pages += loSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
-    pages += metaDataSpace.reservedPages();
     return pages;
   }
 
@@ -684,7 +682,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected static final int getPagesAvail() {
     int copyReserved = nurserySpace.reservedPages();
-    int nonCopyReserved = loSpace.reservedPages() + immortalSpace.reservedPages() + metaDataSpace.reservedPages();
+    int nonCopyReserved = getCommonPagesReserved();
     if (Plan.COPY_MATURE())
       copyReserved += activeMatureSpace.reservedPages();
     else

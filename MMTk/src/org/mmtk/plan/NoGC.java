@@ -428,9 +428,8 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = defaultSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
-    pages += metaDataSpace.reservedPages();
+    int pages = getCommonPagesReserved();
+    pages += defaultSpace.reservedPages();
     return pages;
   }
 

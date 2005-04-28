@@ -498,10 +498,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = nurserySpace.reservedPages();
-    pages += msSpace.reservedPages();
-    pages += loSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
+    int pages = getCommonPagesReserved();
+    pages += nurserySpace.reservedPages();
     return pages;
   }
 
@@ -514,7 +512,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    */
   protected static final int getPagesAvail() {
     int nurseryPages = getTotalPages() - msSpace.reservedPages() 
-      - immortalSpace.reservedPages() - loSpace.reservedPages();
+      - getCommonPagesReserved();
     return (nurseryPages>>1) - nurserySpace.reservedPages();
   }
 
