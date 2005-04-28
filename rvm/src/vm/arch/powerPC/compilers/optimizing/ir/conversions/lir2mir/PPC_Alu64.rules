@@ -82,9 +82,15 @@ EMIT(MIR_Binary.mutate(P(p), PPC64_SLD, Binary.getResult(P(p)),               \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:      LONG_SHL(LONG_USHR(r,INT_CONSTANT),INT_CONSTANT)
-10
+(VLR(p) <= VR(p)) ? 10 : INFINITE
 EMIT_INSTRUCTION
 USHR_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), IC(Binary.getVal2(PL(p))),      \
+               IC(Binary.getVal2(P(p))));
+
+r:      LONG_USHR(LONG_SHL(r,INT_CONSTANT),INT_CONSTANT)
+(VLR(p) <= VR(p)) ? 10 : INFINITE
+EMIT_INSTRUCTION
+SHL_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), IC(Binary.getVal2(PL(p))),      \
                IC(Binary.getVal2(P(p))));
 
 #####
