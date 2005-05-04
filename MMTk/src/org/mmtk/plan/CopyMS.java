@@ -500,6 +500,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   protected static final int getPagesUsed() {
     int pages = getCommonPagesReserved();
     pages += nurserySpace.reservedPages();
+    pages += msSpace.reservedPages();
     return pages;
   }
 
