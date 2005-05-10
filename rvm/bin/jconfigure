@@ -769,10 +769,10 @@ function rationalize_classpath_version () {
     local -i sum
     let "sum=(  RVM_WITH_CLASSPATH_0_10 + RVM_WITH_CLASSPATH_0_11 \
 	      + RVM_WITH_CLASSPATH_0_12 + RVM_WITH_CLASSPATH_0_13 \
-	      + RVM_WITH_CLASSPATH_0_14 \
+	      + RVM_WITH_CLASSPATH_0_14 + RVM_WITH_CLASSPATH_0_15 \
 	      + RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
-	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, RVM_WITH_CLASSPATH_0_14, and RVM_WITH_CLASSPATH_CVS_HEAD is defined.  Your configuration files are inconsistent."
+	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, RVM_WITH_CLASSPATH_0_14, RVM_WITH_CLASSPATH_0_15, and RVM_WITH_CLASSPATH_CVS_HEAD is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
 	exit 2
     fi
@@ -789,6 +789,7 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_0_12=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_13=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_14=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_15=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -1328,6 +1329,7 @@ declare -i RVM_WITH_CLASSPATH_0_11=0
 declare -i RVM_WITH_CLASSPATH_0_12=0
 declare -i RVM_WITH_CLASSPATH_0_13=0
 declare -i RVM_WITH_CLASSPATH_0_14=0
+declare -i RVM_WITH_CLASSPATH_0_15=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
