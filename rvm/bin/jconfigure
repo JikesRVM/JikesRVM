@@ -524,7 +524,7 @@ function on_host_set_JIKES_test_Jikes_version () {
 				# running "Hello, World" works.
 		unregressed=0   # Regression tests run by Dave Grove on Linux/IA32.
 		jikes_dependency_flag= # +U triggers a Jikes assertion.
-		JIKES_WARNING_FLAGS=-nowarn
+		JIKES_WARNING_FLAGS='+Pno-shadow +Pno-switchcheck'
 		;;
 	    
 	    "") croak_nonusage "I did not get any version message from the Jikes java-to-byte-code compiler; something may be badly wrong.  I tried using this invocation of Jikes:
