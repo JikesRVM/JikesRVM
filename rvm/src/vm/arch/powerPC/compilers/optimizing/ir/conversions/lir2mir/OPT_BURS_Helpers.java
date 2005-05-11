@@ -531,21 +531,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int x = shift1.value;
     int y = shift2.value;
     if (x <= y) {
-      //-#if RVM_FOR_64_ADDR
-      EMIT(MIR_RotateAndMask.create(PPC64_RLDICL, def, left, 
-                                    IC(64 - (y - x)), IC(y), IC(63))); 
-      //-#elif RVM_FOR_32_ADDR
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
                                     IC((32 - (y - x)) & 0x1f), 
                                     IC(y), IC(31))); 
-      //-#endif
     } else {
-      //-#if RVM_FOR_64_ADDR
-      if (VM.VerifyAssertions) VM._assert(false);
-      //-#elif RVM_FOR_32_ADDR
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
                                     IC(x - y), IC(y), IC(31 - (x - y))));
-      //-#endif
     }
   }
 
@@ -557,21 +548,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int x = shift1.value;
     int y = shift2.value;
     if (x <= y) {
-      //-#if RVM_FOR_64_ADDR
-      EMIT(MIR_RotateAndMask.create(PPC64_RLDICR, def, left, 
-                                    IC(y - x), IC(0), IC(63 - y))); 
-      //-#elif RVM_FOR_32_ADDR
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
                                     IC(y - x), IC(0), IC(31 - y))); 
-      //-#endif
     } else {
-      //-#if RVM_FOR_64_ADDR
-      if (VM.VerifyAssertions) VM._assert(false);
-      //-#elif RVM_FOR_32_ADDR
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
                                     IC((32 - (x - y)) & 0x1f), 
                                     IC(x - y), IC(31 - y)));
-      //-#endif
     }
   }
 
