@@ -40,7 +40,7 @@ public abstract class PrintLN {
    * external memory accesses. */
   // largest power of 10 representable as a Java integer.
   // (max int is            2147483647)
-  final int max_int_pow10 = 1000000000;
+  final static int max_int_pow10 = 1000000000;
 
   public void print(int n) {
     boolean suppress_leading_zero = true;

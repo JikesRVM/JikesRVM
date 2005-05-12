@@ -97,8 +97,8 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
     // Before requesting the (first) map entry, lets make sure we
     // will need it.  If the reg/spill list is empty, we don't
     // need a map slot, i.e., no references are live at this instruction
-    OPT_RegSpillListEnumerator enum = irMapElem.regSpillListEnumerator();
-    if (enum.hasMoreElements()) {
+    OPT_RegSpillListEnumerator rslEnum = irMapElem.regSpillListEnumerator();
+    if (rslEnum.hasMoreElements()) {
 
       // For efficiency we create our own bit map and then set the
       // appropriate array value
@@ -112,9 +112,9 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
       // the first time we get the register mask, the 2nd time we get
       // the spills
       // process the register
-      while (enum.hasMoreElements()) {
+      while (rslEnum.hasMoreElements()) {
         OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
-            enum.nextElement();
+            rslEnum.nextElement();
         if (elem.isSpill()) {
           numSpills++;
         } else {
@@ -142,10 +142,10 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
       int spillIndex = 0;
       // Now we need to walk the list again to process the spills.
       // first, get a fresh enumerator
-      enum = irMapElem.regSpillListEnumerator();
-      while (enum.hasMoreElements()) {
+      rslEnum = irMapElem.regSpillListEnumerator();
+      while (rslEnum.hasMoreElements()) {
         OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
-            enum.nextElement();
+            rslEnum.nextElement();
         if (elem.isSpill()) {
           spillArray[spillIndex++] = elem.getSpill();
         }

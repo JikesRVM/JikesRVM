@@ -411,14 +411,14 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * this method typically looks at the memory operand, if any, and
    * checks whether that is a byte.  This does not work for the
    * size-converting moves (MOVSX and MOVZX), and those instructions
-   * use the operator convention that $b on the end of the operator
+   * use the operator convention that __b on the end of the operator
    * name means operate upon byte data.
    *
    * @param inst the instruction being queried
    * @return true if inst operates upon byte data
    */
   static boolean isByte(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("$b") != -1)
+    if (inst.operator.toString().indexOf("__b") != -1)
       return true;
 
     for(int i = 0; i < inst.getNumberOfOperands(); i++) {
@@ -436,14 +436,14 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * this method typically looks at the memory operand, if any, and
    * checks whether that is a word.  This does not work for the
    * size-converting moves (MOVSX and MOVZX), and those instructions
-   * use the operator convention that $w on the end of the operator
+   * use the operator convention that __w on the end of the operator
    * name means operate upon word data.
    *
    * @param inst the instruction being queried
    * @return true if inst operates upon word data
    */
   static boolean isWord(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("$w") != -1)
+    if (inst.operator.toString().indexOf("__w") != -1)
       return true;
 
     for(int i = 0; i < inst.getNumberOfOperands(); i++) {
@@ -460,7 +460,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * opt compiler does not represent the size of register data, so
    * this method typically looks at the memory operand, if any, and
    * checks whether that is a byte.  This method also recognizes 
-   * the operator convention that $q on the end of the operator
+   * the operator convention that __q on the end of the operator
    * name means operate upon quad data; no operator currently uses
    * this convention.
    *
@@ -468,7 +468,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @return true if inst operates upon quad data
    */
   static boolean isQuad(OPT_Instruction inst) {
-    if (inst.operator.toString().indexOf("$q") != -1)
+    if (inst.operator.toString().indexOf("__q") != -1)
       return true;
 
     for(int i = 0; i < inst.getNumberOfOperands(); i++) {
@@ -561,9 +561,9 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         break;
       default:
         budget -= 3; // 2 bytes opcode + 1 byte modr/m
-        for (OPT_OperandEnumeration enum = inst.getRootOperands();
-             enum.hasMoreElements();) {
-          OPT_Operand op = enum.next();
+        for (OPT_OperandEnumeration opEnum = inst.getRootOperands();
+             opEnum.hasMoreElements();) {
+          OPT_Operand op = opEnum.next();
           budget -= operandCost(op, false);
         }
         break;

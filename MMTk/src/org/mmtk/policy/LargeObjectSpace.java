@@ -235,7 +235,7 @@ public final class LargeObjectSpace extends Space
     throws InlinePragma {
     if (testAndMark(object, markState)) {
       internalMarkObject(object);
-      Plan.getInstance().enqueue(object);
+      Plan.enqueue(object);
     }
     return object;
   }

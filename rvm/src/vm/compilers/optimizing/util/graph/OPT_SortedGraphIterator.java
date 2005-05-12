@@ -156,8 +156,8 @@ public class OPT_SortedGraphIterator {
     // check that next node has only 1 predecessor
     if (!nextNode.hasOneIn()) return false;
     // now check that the predecessor is current node
-    Enumeration enum = nextNode.getInNodes();
-    return enum.nextElement() == currentNode;
+    Enumeration inEnum = nextNode.getInNodes();
+    return inEnum.nextElement() == currentNode;
   }
 
   /**
@@ -176,8 +176,8 @@ public class OPT_SortedGraphIterator {
     // check that next node has only 1 successor
     if (!nextNode.hasOneOut()) return  false;
     // now check that the successor is current node
-    Enumeration enum = nextNode.getOutNodes();
-    return enum.nextElement() == currentNode;
+    Enumeration outEnum = nextNode.getOutNodes();
+    return outEnum.nextElement() == currentNode;
   }
 
   /**

@@ -398,8 +398,8 @@ public final class OPT_IR implements OPT_Operators {
    */
   public void resetBasicBlockMap() {
     basicBlockMap = new OPT_BasicBlock[getMaxBasicBlockNumber()+1] ;
-    for (Enumeration enum = cfg.nodes(); enum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock) enum.nextElement();
+    for (Enumeration bbEnum = cfg.nodes(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = (OPT_BasicBlock) bbEnum.nextElement();
       basicBlockMap[block.getNumber()] = block;
     }
   }
@@ -441,9 +441,9 @@ public final class OPT_IR implements OPT_Operators {
     protected BitSetBBEnum(OPT_IR ir, OPT_BitVector bits) {
       stack = new java.util.Stack();
       int size = bits.length();
-      Enumeration enum = ir.getBasicBlocks();
-      for ( ; enum.hasMoreElements(); ) {
-        OPT_BasicBlock block = (OPT_BasicBlock) enum.nextElement();
+      Enumeration bbEnum = ir.getBasicBlocks();
+      for ( ; bbEnum.hasMoreElements(); ) {
+        OPT_BasicBlock block = (OPT_BasicBlock) bbEnum.nextElement();
         int number = block.getNumber();
         if (number < size && bits.get(number)) stack.push(block);
       }

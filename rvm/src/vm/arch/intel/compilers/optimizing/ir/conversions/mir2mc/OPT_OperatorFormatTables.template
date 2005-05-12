@@ -53,7 +53,7 @@ class OPT_OperatorFormatTables {
     static {
 	String key = "OP.SYMBOL".substring(5);
 	operators.add( key );
-	int suffix = key.indexOf( '$' );
+	int suffix = key.indexOf( "__" );
 	if (suffix != -1) key = key.substring(0, suffix);
 	formats.put( key, "OP.INSTRUCTION_FORMAT");
     }  

@@ -47,19 +47,19 @@ public final class Scan implements Uninterruptible {
    * pointer fields are enumerated, not the TIB.
    *
    * @param object The object to be scanned.
-   * @param enum the Enumerate object through which the callback
+   * @param _enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(ObjectReference object, Enumerate enum) 
+  public static void enumeratePointers(ObjectReference object, Enumerate _enum) 
     throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
         Address slot = type.getSlot(object, i);
-        enum.enumeratePointerLocation(slot);
+        _enum.enumeratePointerLocation(slot);
       }
     } else
-      Scanning.enumeratePointers(object, enum);
+      Scanning.enumeratePointers(object, _enum);
   }
 }

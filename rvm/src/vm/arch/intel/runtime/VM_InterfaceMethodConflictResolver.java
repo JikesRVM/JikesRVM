@@ -95,10 +95,10 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
       Offset disp = VM_Entrypoints.hiddenSignatureIdField.getOffset();
       VM_ProcessorLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
       if (low < middle) {
-        asm.emitJCC_Cond_Label(asm.LT, bcIndices[(low+middle-1)/2]);
+        asm.emitJCC_Cond_Label(VM_Assembler.LT, bcIndices[(low+middle-1)/2]);
       }
       if (middle < high) {
-        asm.emitJCC_Cond_Label(asm.GT, bcIndices[(middle+1+high)/2]);
+        asm.emitJCC_Cond_Label(VM_Assembler.GT, bcIndices[(middle+1+high)/2]);
       }
       // invoke the method for middle.
       VM_Method target = targets[middle];

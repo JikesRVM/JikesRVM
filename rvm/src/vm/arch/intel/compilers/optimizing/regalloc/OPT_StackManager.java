@@ -181,7 +181,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     if (ir.compiledMethod.isSaveVolatile()) {
       // Record that we use every nonvolatile GPR
-      int numGprNv = phys.getNumberOfNonvolatileGPRs();
+      int numGprNv = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs();
       ir.compiledMethod.setNumberOfNonvolatileGPRs((short)numGprNv);
 
       // set the frame size
@@ -585,8 +585,8 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // Create a memory operand M representing the spill location.
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Operand M = null;
-    int type = phys.getPhysicalRegisterType(symb.register);
-    int size = phys.getSpillSize(type);
+    int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symb.register);
+    int size = OPT_PhysicalRegisterSet.getSpillSize(type);
 
     M = new OPT_StackLocationOperand(true, -location, (byte)size);
 
@@ -665,7 +665,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     if (s.hasMemoryOperand()) return true;
 
     // Check the architecture restrictions.
-    if (getRestrictions().mustBeInRegister(r,s)) return true;
+    if (OPT_RegisterRestrictions.mustBeInRegister(r,s)) return true;
     
     // Otherwise, everything is OK.
     return false;

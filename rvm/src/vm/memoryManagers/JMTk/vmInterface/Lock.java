@@ -227,9 +227,9 @@ public class Lock implements Uninterruptible {
    *  @param t  The {@link VM_Thread} we are interested in.
    */
   private static void writeThreadIdToLog(VM_Thread t) {
-    char[] buf = t.grabDumpBuffer();
+    char[] buf = VM_Thread.grabDumpBuffer();
     int len = t.dump(buf);
     Log.write(buf, len);
-    t.releaseDumpBuffer();
+    VM_Thread.releaseDumpBuffer();
   }
 }

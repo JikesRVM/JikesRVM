@@ -99,8 +99,8 @@ public class OPT_DominatorTree extends OPT_Tree {
 
     // allocate the tree and root node
     // Step 1: add all basic blocks to the tree as nodes
-    for (Enumeration enum = ir.cfg.nodes(); enum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock)enum.nextElement();
+    for (Enumeration bbEnum = ir.cfg.nodes(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
       // We treat the exit node as not being part of the CFG
       if (!forward || !block.isExit()) {
         addNode(block);
@@ -112,8 +112,8 @@ public class OPT_DominatorTree extends OPT_Tree {
 
     // Step 3: Walk the nodes, for each node create link with parent
     //   Leaf nodes have no links to add
-    for (Enumeration enum = ir.cfg.nodes(); enum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock)enum.nextElement();
+    for (Enumeration bbEnum = ir.cfg.nodes(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
       // skip the exit node
       if (forward && block.isExit()) {
         continue;

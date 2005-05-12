@@ -51,9 +51,9 @@ public class OPT_LiveSet {
       System.out.println("looking for " + item + " in " + this);
     }
     // simply linear search
-    OPT_LiveSetEnumerator enum = enumerator();
-    while (enum.hasMoreElements()) {
-      OPT_Register elem = ((OPT_RegisterOperand)enum.nextElement()).register;
+    OPT_LiveSetEnumerator lsEnum = enumerator();
+    while (lsEnum.hasMoreElements()) {
+      OPT_Register elem = ((OPT_RegisterOperand)lsEnum.nextElement()).register;
       if (item == elem) {
         if (debug) {
           System.out.println("found it, returning true");
@@ -126,8 +126,8 @@ public class OPT_LiveSet {
     if (additionList == null) {
       return  false;
     }
-    OPT_LiveSetEnumerator enum = additionList.enumerator();
-    if (!enum.hasMoreElements()) {
+    OPT_LiveSetEnumerator lsEnum = additionList.enumerator();
+    if (!lsEnum.hasMoreElements()) {
       return  false;
     }
     if (debug) {
@@ -140,11 +140,11 @@ public class OPT_LiveSet {
     if (first == null) {
       // current list is empty, just deep copy the passed list
       // handle the 1st element outside the loop
-      OPT_RegisterOperand newElem = (OPT_RegisterOperand)enum.nextElement();
+      OPT_RegisterOperand newElem = (OPT_RegisterOperand)lsEnum.nextElement();
       first = new OPT_LiveSetElement(newElem);
       OPT_LiveSetElement existingPtr = first;
-      while (enum.hasMoreElements()) {
-        newElem = (OPT_RegisterOperand)enum.nextElement();
+      while (lsEnum.hasMoreElements()) {
+        newElem = (OPT_RegisterOperand)lsEnum.nextElement();
         // copy additionList and add it to first list
         OPT_LiveSetElement elem = new OPT_LiveSetElement(newElem);
         existingPtr.setNext(elem);
@@ -215,8 +215,8 @@ public class OPT_LiveSet {
     // first make sure there is something to remove
     if (removalList == null)
       return;
-    OPT_LiveSetEnumerator enum = removalList.enumerator();
-    if (!enum.hasMoreElements())
+    OPT_LiveSetEnumerator lsEnum = removalList.enumerator();
+    if (!lsEnum.hasMoreElements())
       return;
     // if current list is empty, there is nothing to remove
     if (first == null)

@@ -29,7 +29,7 @@ implements OPT_Operators {
    * and return values.  We posit that the dynamic frequency of these
    * MOVES will be smaller than the frequency of an average move.
    */
-  private final boolean SYMBOLIC_SYMBOLIC_HEURISTIC = true;
+  private final static boolean SYMBOLIC_SYMBOLIC_HEURISTIC = true;
 
   /**
    * Set up register preferences based on instructions in an IR.

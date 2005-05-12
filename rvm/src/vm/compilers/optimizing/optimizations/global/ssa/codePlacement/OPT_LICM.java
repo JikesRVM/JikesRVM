@@ -113,7 +113,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
         || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode)
       return false;
     
-    if (ir.IRStage != ir.HIR
+    if (ir.IRStage != OPT_IR.HIR
         && ((  inst.isPEI())
             || inst.isThrow()
             || inst.isLoad()
@@ -268,7 +268,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    */
   private OPT_Instruction scheduleEarly(OPT_Instruction inst)
   {
-    OPT_Instruction earlyPos;
+    OPT_Instruction _earlyPos;
 
     if (getState(inst) >= early) return getEarlyPos (inst);
     
@@ -287,31 +287,31 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       return inst;
     }
     // dependencies via scalar operands
-    earlyPos = scheduleScalarDefsEarly(inst.getUses(),
+    _earlyPos = scheduleScalarDefsEarly(inst.getUses(),
                                        ir.firstInstructionInCodeOrder(), inst);
-    if (VM.VerifyAssertions) VM._assert (earlyPos != null);
+    if (VM.VerifyAssertions) VM._assert (_earlyPos != null);
     
     // memory dependencies
-    if (ir.IRStage == ir.HIR) {
-      earlyPos = scheduleHeapDefsEarly(ssad.getHeapUses(inst), earlyPos, inst);
-      if (VM.VerifyAssertions) VM._assert (earlyPos != null);
+    if (ir.IRStage == OPT_IR.HIR) {
+      _earlyPos = scheduleHeapDefsEarly(ssad.getHeapUses(inst), _earlyPos, inst);
+      if (VM.VerifyAssertions) VM._assert (_earlyPos != null);
     }
 
     /* don't put memory stores or PEIs on speculative path */
     if ((inst.isPEI() && !ir.options.LICM_IGNORE_PEI)
         || inst.isImplicitStore())
-      while (!postDominates (getBlock (inst), getBlock (earlyPos)))
-        earlyPos = dominanceSuccessor (earlyPos, inst);
+      while (!postDominates (getBlock (inst), getBlock (_earlyPos)))
+        _earlyPos = dominanceSuccessor (_earlyPos, inst);
 
-    setEarlyPos (inst, earlyPos);
+    setEarlyPos (inst, _earlyPos);
 
-    if (DEBUG && getBlock (earlyPos) != getBlock (inst)) {
-      VM.sysWrite ("new earlyBlock: "+ getBlock (earlyPos) +" for "
+    if (DEBUG && getBlock (_earlyPos) != getBlock (inst)) {
+      VM.sysWrite ("new earlyBlock: "+ getBlock (_earlyPos) +" for "
                    + getBlock (inst)+": "+inst+"\n");
     }
     
-    setBlock (inst, getBlock (earlyPos));
-    return earlyPos;    
+    setBlock (inst, getBlock (_earlyPos));
+    return _earlyPos;    
   }
 
   
@@ -324,15 +324,15 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     if (DEBUG) VM.sysWrite ("Schedule Late: "+inst+"\n");
     
     OPT_BasicBlock lateBlock = null;
-    int state = getState (inst);
-    if (state == late || state == done) return getBlock (inst);
+    int _state = getState (inst);
+    if (_state == late || _state == done) return getBlock (inst);
 
     setState (inst, late);
 
     if (ir.options.FREQ_FOCUS_EFFORT) {
-      OPT_BasicBlock origBlock = getOrigBlock (inst);
-      if (origBlock.getInfrequent())
-        return origBlock;
+      OPT_BasicBlock _origBlock = getOrigBlock (inst);
+      if (_origBlock.getInfrequent())
+        return _origBlock;
     }
     
     // explicitly INCLUDE instructions
@@ -345,7 +345,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     if (DEBUG) VM.sysWrite ("lateBlock1: "+ lateBlock +" for "+inst+"\n");
     
     // dependencies via heap operands
-    if (ir.IRStage == ir.HIR) {
+    if (ir.IRStage == OPT_IR.HIR) {
       lateBlock = scheduleHeapUsesLate (inst, lateBlock);
       if (DEBUG) VM.sysWrite ("lateBlock2: "+ lateBlock +" for "+inst+"\n");
     }
@@ -516,8 +516,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     while (e.hasMoreElements()) {
       OPT_Operand op = e.next();
       OPT_Instruction use = op.instruction;
-      OPT_BasicBlock block = useBlock (use, op);
-      lateBlock = commonDominator (block, lateBlock);
+      OPT_BasicBlock _block = useBlock (use, op);
+      lateBlock = commonDominator (_block, lateBlock);
     }
     return  lateBlock;
   }
@@ -543,8 +543,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
         //VM.sysWrite (" uhop: "+uhop+"\n");
         OPT_Instruction use = (OPT_Instruction) uhop.instruction;
         //VM.sysWrite ("use: "+use+"\n");
-        OPT_BasicBlock block = useBlock (use, uhop);
-        lateBlock = commonDominator (block, lateBlock);
+        OPT_BasicBlock _block = useBlock (use, uhop);
+        lateBlock = commonDominator (_block, lateBlock);
       }
     }
     return  lateBlock;
@@ -613,23 +613,23 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   OPT_BasicBlock upto(OPT_Instruction earlyPos, OPT_BasicBlock lateBlock,
                       OPT_Instruction inst) {
     
-    OPT_BasicBlock origBlock = getOrigBlock(inst);
+    OPT_BasicBlock _origBlock = getOrigBlock(inst);
     OPT_BasicBlock actBlock = lateBlock;
     OPT_BasicBlock bestBlock = lateBlock;
     OPT_BasicBlock earlyBlock = getBlock(earlyPos);
 
     if (VM.VerifyAssertions) {
       if (!dominator.dominates (earlyBlock.getNumber(), 
-                                origBlock.getNumber())
+                                _origBlock.getNumber())
           || !dominator.dominates (earlyBlock.getNumber(), 
                                    lateBlock.getNumber())) {
         OPT_SSA.printInstructions (ir);
-        VM.sysWrite ("> "+earlyBlock.getNumber()+", "+origBlock.getNumber()
+        VM.sysWrite ("> "+earlyBlock.getNumber()+", "+_origBlock.getNumber()
                      + ", "+lateBlock.getNumber()+"\n");
         VM.sysWrite (""+inst+"\n");
       }
       VM._assert (dominator.dominates (earlyBlock.getNumber(), 
-                                      origBlock.getNumber()));
+                                      _origBlock.getNumber()));
       VM._assert (dominator.dominates (earlyBlock.getNumber(), 
                                       lateBlock.getNumber()));
     }
@@ -637,7 +637,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       /* is the actual block better (less frequent)
          than the so far best block? */
       if (frequency (actBlock) < frequency (bestBlock)) {
-        if (DEBUG) VM.sysWrite ("going from "+frequency (origBlock)+" to "
+        if (DEBUG) VM.sysWrite ("going from "+frequency (_origBlock)+" to "
                                 +frequency (actBlock)+"\n");
         bestBlock = actBlock;
       }
@@ -648,7 +648,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       /* walk up the dominator tree for next candidate*/
       actBlock = dominator.getParent(actBlock);
     }
-    if (bestBlock == origBlock) return  null;
+    if (bestBlock == _origBlock) return  null;
     if (DEBUG) VM.sysWrite ("best Block: "+bestBlock+"\n");
     return bestBlock;
   }
@@ -665,11 +665,11 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    */
   void move(OPT_Instruction inst, OPT_BasicBlock to) {
 
-    OPT_BasicBlock origBlock = getOrigBlock (inst);
+    OPT_BasicBlock _origBlock = getOrigBlock (inst);
     OPT_Instruction cand = null;
     
     /* find a position within bestBlock */
-    if (dominator.dominates (origBlock.getNumber(), to.getNumber())) {
+    if (dominator.dominates (_origBlock.getNumber(), to.getNumber())) {
       // moved down, so insert in from
       OPT_Instruction last = null;
       OPT_InstructionEnumeration e = to.forwardInstrEnumerator();
@@ -697,11 +697,11 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     }
     
     if (DEBUG && moved.add(inst.operator))
-      VM.sysWrite("m(" + (ir.IRStage == ir.LIR ? "l" : "h") + ") " + 
+      VM.sysWrite("m(" + (ir.IRStage == OPT_IR.LIR ? "l" : "h") + ") " + 
                   inst.operator + "\n");
     if (verbose) {
-      VM.sysWrite(ir.IRStage == ir.LIR ? "%" : "#");
-      VM.sysWrite(" moving " + inst + " from " + origBlock + 
+      VM.sysWrite(ir.IRStage == OPT_IR.LIR ? "%" : "#");
+      VM.sysWrite(" moving " + inst + " from " + _origBlock + 
                   " to " + to + "\n" + "behind  " + cand + "\n");
       
     }
@@ -988,7 +988,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   {
     HashSet seen = new HashSet();
     OPT_Queue workList = new OPT_Queue();
-    int state = CL_NONE;
+    int _state = CL_NONE;
     int instUses = 0;
     
     seen.add (inst);
@@ -1029,9 +1029,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
           // only accept loop-invariant stores
           // conservatively estimate loop-invariance by header domination
           if (!inVariantLocation (y, block)) return CL_COMPLEX;
-          state |= CL_STORES_ONLY;
+          _state |= CL_STORES_ONLY;
         } else {
-          state |= CL_LOADS_ONLY;
+          _state |= CL_LOADS_ONLY;
         }
         OPT_HeapOperand[] ops = ssad.getHeapUses (y);
         for (int j = 0;  j < ops.length;  ++j) {
@@ -1046,11 +1046,11 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
         }
       }
     }
-    if (state == CL_STORES_ONLY
+    if (_state == CL_STORES_ONLY
         && ssad.getNumberOfUses (hop.value) != instUses)
       return CL_COMPLEX;
     
-    return state;
+    return _state;
   }
 
 

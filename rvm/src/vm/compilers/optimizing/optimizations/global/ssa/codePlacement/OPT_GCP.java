@@ -109,7 +109,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       }
       ir.desiredSSAOptions = new OPT_SSAOptions();
       // register in the IR the SSA properties we need for GCP
-      if (ir.IRStage == ir.LIR) {
+      if (ir.IRStage == OPT_IR.LIR) {
         ir.desiredSSAOptions.setScalarsOnly(true);
         ir.desiredSSAOptions.setBackwards(false);
         ir.desiredSSAOptions.setInsertUsePhis(false);
@@ -159,7 +159,7 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
       if (ir != null && !OPT_GCP.tooBig(ir)
           && !ir.hasReachableExceptionHandlers()
           && ir.actualSSAOptions != null) {
-        if (ir.IRStage == ir.LIR) {
+        if (ir.IRStage == OPT_IR.LIR) {
           ir.actualSSAOptions.setScalarsOnly(true);
           ir.actualSSAOptions.setBackwards(false);
           ir.actualSSAOptions.setInsertUsePhis(false);

@@ -405,7 +405,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
       // Use one CBS counter per processor (better for multi threaded apps)
 
-      if (ir.IRStage == ir.HIR) {
+      if (ir.IRStage == OPT_IR.HIR) {
         // NOT IMPLEMENTED
       }
       else {
@@ -424,7 +424,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     }
     else {
       // Use global counter
-      if (ir.IRStage == ir.HIR) {
+      if (ir.IRStage == OPT_IR.HIR) {
         OPT_Operand offsetOp = new OPT_AddressConstantOperand(VM_Entrypoints.globalCBSField.getOffset());
         load = GetStatic.create(GETSTATIC,cbsReg.copyRO(),offsetOp, new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
         bb.appendInstruction(load);
@@ -467,7 +467,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       bb.prependInstruction(store);
     }
     else {
-      if (ir.IRStage == ir.HIR) {
+      if (ir.IRStage == OPT_IR.HIR) {
         store = PutStatic.create(PUTSTATIC,cbsReg.copyRO(),new OPT_AddressConstantOperand(VM_Entrypoints.globalCBSField.getOffset()),
                                  new OPT_LocationOperand(VM_Entrypoints.globalCBSField));
         
@@ -520,7 +520,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     OPT_Instruction load = null;
     OPT_Instruction store = null;
 
-    if (ir.IRStage == ir.HIR) {
+    if (ir.IRStage == OPT_IR.HIR) {
       // Not tested
       OPT_Operand offsetOp = new OPT_AddressConstantOperand(VM_Entrypoints.cbsResetValueField.getOffset());
       load = GetStatic.create(GETSTATIC,cbsReg.copyRO(),offsetOp,

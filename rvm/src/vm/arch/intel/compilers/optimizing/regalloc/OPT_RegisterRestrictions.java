@@ -67,7 +67,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
             noteMustNotSpill(op.register);
           }
           break;
-        case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+        case IA32_MOVZX__B_opcode: case IA32_MOVSX__B_opcode:
           {
             OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
             if (MIR_Unary.getVal(s).isRegister()) {
@@ -76,7 +76,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
             }
           }
           break;
-        case IA32_SET$B_opcode:
+        case IA32_SET__B_opcode:
           { 
             if (MIR_Set.getResult(s).isRegister()) {
               OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
@@ -208,19 +208,19 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
           if (op.asRegister().register == r) return true;
         }
         break;
-      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+      case IA32_MOVZX__B_opcode: case IA32_MOVSX__B_opcode:
         {
           OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
           if (op.asRegister().register == r) return true;
         }
         break;
-      case IA32_MOVZX$W_opcode: case IA32_MOVSX$W_opcode:
+      case IA32_MOVZX__W_opcode: case IA32_MOVSX__W_opcode:
         { 
           OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
           if (op.asRegister().register == r) return true;
         }
         break;
-      case IA32_SET$B_opcode:
+      case IA32_SET__B_opcode:
         { 
           if (MIR_Set.getResult(s).isRegister()) {
             OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
@@ -267,7 +267,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
 
     // Look at 8-bit restrictions.
     switch (s.operator.opcode) {
-      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+      case IA32_MOVZX__B_opcode: case IA32_MOVSX__B_opcode:
         {
           if (MIR_Unary.getVal(s).isRegister()) {
             OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
@@ -277,7 +277,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
           }
         }
         break;
-      case IA32_SET$B_opcode:
+      case IA32_SET__B_opcode:
         { 
           if (MIR_Set.getResult(s).isRegister()) {
             OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();

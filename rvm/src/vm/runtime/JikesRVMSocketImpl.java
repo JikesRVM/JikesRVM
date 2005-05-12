@@ -537,7 +537,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
         break;
                 
       case -1 : // operation interrupted by timer tick - retry
-        Thread.currentThread().yield();
+        Thread.yield();
         break;
              
       case -2 :  // operation would have blocked

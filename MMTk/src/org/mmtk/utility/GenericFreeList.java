@@ -274,12 +274,12 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
 
   private static final int TOTAL_BITS = 32;
   private static final int UNIT_BITS = (TOTAL_BITS - 1);
-  private static final int MAX_UNITS = ((1<<UNIT_BITS) - 1) - 1;
-  private static final int NEXT_MASK = (1<<UNIT_BITS) - 1;
-  private static final int PREV_MASK = (1<<UNIT_BITS) - 1;
+  private static final int MAX_UNITS = (int)(((((long)1)<<UNIT_BITS) - 1) - 1);
+  private static final int NEXT_MASK = (int)((((long)1)<<UNIT_BITS) - 1);
+  private static final int PREV_MASK = (int)((((long)1)<<UNIT_BITS) - 1);
   private static final int FREE_MASK = 1<<(TOTAL_BITS-1);
   private static final int MULTI_MASK = 1<<(TOTAL_BITS-1);
-  private static final int SIZE_MASK = (1<<UNIT_BITS) - 1;
+  private static final int SIZE_MASK = (int)((((long)1)<<UNIT_BITS) - 1);
   
   // want the sentinels to be "used" & "single", and want first
   // sentinel to initially point to itself.

@@ -119,8 +119,8 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
         System.out.println("After up " + DF);
     }
     if (DEBUG) {
-      for (Enumeration enum = ir.cfg.nodes(); enum.hasMoreElements();) {
-        OPT_BasicBlock block = (OPT_BasicBlock)enum.nextElement();
+      for (Enumeration bbEnum = ir.cfg.nodes(); bbEnum.hasMoreElements();) {
+        OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
         if (block.isExit())
           continue;
         System.out.println(block + " DF: " + tree.getDominanceFrontier(block));

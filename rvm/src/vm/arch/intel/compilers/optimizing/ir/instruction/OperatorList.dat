@@ -981,28 +981,28 @@ move
 
 
 ####################
-IA32_MOVZX$B
+IA32_MOVZX__B
 MIR_Unary
 move
 
 
 
 ####################
-IA32_MOVSX$B
+IA32_MOVSX__B
 MIR_Unary
 move
 
 
 
 ####################
-IA32_MOVZX$W
+IA32_MOVZX__W
 MIR_Unary
 move
 
 
 
 ####################
-IA32_MOVSX$W
+IA32_MOVSX__W
 MIR_Unary
 move
 
@@ -1121,7 +1121,7 @@ AF_CF_OF_PF_SF_ZF
 CF
 
 ####################
-IA32_SET$B
+IA32_SET__B
 MIR_Set
 none
 
