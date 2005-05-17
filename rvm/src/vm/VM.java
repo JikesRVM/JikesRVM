@@ -189,7 +189,6 @@ public class VM extends VM_Properties
     String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
     VM_ClassLoader.boot();      // Wipe out cached application class loader
     VM_BootstrapClassLoader.boot(bootstrapClasses);
-    VM_ApplicationClassLoader2.boot(".");
 
     // Complete calculation of cycles to millsecond conversion factor
     // Must be done before any dynamic compilation occurs.
