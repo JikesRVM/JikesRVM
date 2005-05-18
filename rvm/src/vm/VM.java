@@ -204,7 +204,7 @@ public class VM extends VM_Properties
     // writer.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
-    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
+    //-#if RVM_WITH_CLASSPTAH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
     //-#else
     runClassInitializer("gnu.classpath.SystemProperties"); // only in 0.13 and later
     //-#endif
@@ -292,9 +292,10 @@ public class VM extends VM_Properties
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
     runClassInitializer("java.nio.charset.CharsetEncoder");
     runClassInitializer("java.nio.charset.CharsetDecoder");
-    runClassInitializer("java.nio.charset.CharsetCoderResult");
+    runClassInitializer("java.nio.charset.CoderResult");
 
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
     runClassInitializer("java.lang.Math"); /* Load in the javalang library, so
                                               that Math's native trig functions
                                               work.  Still can't use them
@@ -351,12 +352,13 @@ public class VM extends VM_Properties
 
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
+	System.loadLibrary("javaio");
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
+    runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
-    runClassInitializer("java.io.VMFile"); // Load libjavaio.so
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();

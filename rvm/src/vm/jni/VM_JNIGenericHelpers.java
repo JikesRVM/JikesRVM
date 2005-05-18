@@ -73,7 +73,14 @@ abstract class VM_JNIGenericHelpers {
    * @return a new Java String
    */
   static String createStringFromC(Address stringAddress) {
-    return new String(createByteArrayFromC(stringAddress));
+    byte[] tmp = createByteArrayFromC(stringAddress);
+    if (VM.fullyBooted) {
+      return new String(tmp);
+    } else {
+      // Can't do real Char encoding until VM is fully booted.
+      // All Strings encountered during booting must be ascii
+      return new String(tmp, 0);
+    }
   }
 
   /**  A JNI helper function, to set the value pointed to by a C pointer
