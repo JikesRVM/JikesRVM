@@ -116,10 +116,11 @@ public final class HPM_counters
     long l_value = value;
     int l_index = MAX_LONG_LENGTH-1;
     while (l_value > 0) {
-      int remainder = (int)(l_value - ((int)(l_value/10))*10);
+      //      int remainder = (int)(l_value - ((int)(l_value/10))*10);
+      int remainder = (int)(l_value - (l_value/10)*10);
       l_buffer[l_index] = (char)((int)'0' + remainder);
 
-      l_value = (int)(l_value/10);
+      l_value = l_value/10;
       l_index--;
     }
 
