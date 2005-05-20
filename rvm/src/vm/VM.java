@@ -345,16 +345,17 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
-    //-#if RVM_WITH_HPM
-    runClassInitializer("com.ibm.JikesRVM.Java2HPM");
-    VM_HardwarePerformanceMonitors.setUpHPMinfo();
-    //-#endif
-
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
 	System.loadLibrary("javaio");
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
+
+    //-#if RVM_WITH_HPM
+    runClassInitializer("com.ibm.JikesRVM.Java2HPM");
+    VM_HardwarePerformanceMonitors.setUpHPMinfo();
+    //-#endif
+
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
