@@ -607,9 +607,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
       // visit each successor, if it is a regular successor, add
       // it to "currentSet".  If it is a handler block, add it to
       // ExceptionBlockSummary.
-      for (OPT_BasicBlockEnumeration enum = block.getOut(); 
-          enum.hasMoreElements();) {
-        OPT_BasicBlock succ = (OPT_BasicBlock)enum.next();
+      for (OPT_BasicBlockEnumeration bbEnum = block.getOut(); 
+          bbEnum.hasMoreElements();) {
+        OPT_BasicBlock succ = (OPT_BasicBlock)bbEnum.next();
 
         // sometimes we may have a CFG edge to a handler, but no longer a
         //   PEI that can make the edge realizable.  Thus, we have two
@@ -730,9 +730,9 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
       // During this processing we should NOT include exception-catching
       // blocks, but instead remember them for use at execption-raising
       // statements in this block
-      for (OPT_BasicBlockEnumeration enum = block.getOut(); 
-          enum.hasMoreElements();) {
-        OPT_BasicBlock succ = (OPT_BasicBlock)enum.next();
+      for (OPT_BasicBlockEnumeration bbEnum = block.getOut(); 
+          bbEnum.hasMoreElements();) {
+        OPT_BasicBlock succ = (OPT_BasicBlock)bbEnum.next();
         if (succ.isExceptionHandlerBasicBlock()) {
           exceptionBlockSummary.add(bbLiveInfo[succ.getNumber()].getIn());
         } else {

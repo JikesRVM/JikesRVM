@@ -59,9 +59,9 @@ public final class OPT_GCIRMap {
     // IR-based maps are created, we actually count the
     // number of spills.
     int count = 0;
-    OPT_GCIRMapEnumerator enum = enumerator();
-    while (enum.hasMoreElements()) {
-      OPT_GCIRMapElement elem = (OPT_GCIRMapElement)enum.nextElement();
+    OPT_GCIRMapEnumerator GCIRMEnum = enumerator();
+    while (GCIRMEnum.hasMoreElements()) {
+      OPT_GCIRMapElement elem = (OPT_GCIRMapElement)GCIRMEnum.nextElement();
       count += elem.countNumSpillElements();
     }
     return count;
@@ -79,9 +79,9 @@ public final class OPT_GCIRMap {
 
     // construct register list
     OPT_LinkedList regList = new OPT_LinkedList();
-    OPT_LiveSetEnumerator enum = set.enumerator();
-    while (enum.hasMoreElements()) {
-      OPT_RegisterOperand regOp = (OPT_RegisterOperand)enum.nextElement();
+    OPT_LiveSetEnumerator lsEnum = set.enumerator();
+    while (lsEnum.hasMoreElements()) {
+      OPT_RegisterOperand regOp = (OPT_RegisterOperand)lsEnum.nextElement();
 
       // add this register to the regList, if it is a reference
       //  and not a physcial register

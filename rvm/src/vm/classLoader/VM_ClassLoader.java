@@ -27,9 +27,6 @@ public class VM_ClassLoader implements VM_Constants,
                                        VM_ClassLoaderConstants {
 
   final private static boolean DBG_APP_CL = false;
-  /** The GNU Classloaded failed for us, as of Classpath 0.13 + CVS head.   I
-   * have not attempted to debug it. */
-  final public static boolean USE_OLD_APP_CLASSLOADER = false;
   
   private static ClassLoader appCL;
 
@@ -51,7 +48,6 @@ public class VM_ClassLoader implements VM_Constants,
       if (DBG_APP_CL)
         VM.sysWriteln("VM_ClassLoader.stashApplicationRepositories: Wiping out my remembered appCL.");
     }
-    VM_ApplicationClassLoader2.setApplicationRepositories(classpath);
     applicationRepositories = classpath;
   }
 
@@ -126,12 +122,7 @@ public class VM_ClassLoader implements VM_Constants,
                       "Initializing Application ClassLoader, with" +
                       " repositories: `", r, "'...");
 
-      if (USE_OLD_APP_CLASSLOADER) {
-        appCL = new ApplicationClassLoader(r);
-      } else {
-        VM_ApplicationClassLoader2.setApplicationRepositories(r);
-        appCL = VM_ApplicationClassLoader2.getApplicationClassLoader();
-      }
+      appCL = new ApplicationClassLoader(r);
 
       if (VM_Properties.verboseBoot >= 1 || DBG_APP_CL)
         VM.sysWriteln("VM_ClassLoader.getApplicationClassLoader(): ...initialized Application classloader, to ", appCL.toString());
@@ -187,10 +178,6 @@ public class VM_ClassLoader implements VM_Constants,
     //
     applicationRepositories = "."; // Carried over.
     VM_BootstrapClassLoader.boot(bootstrapClasspath);
-    /* Don't need to initialize VM_ApplicationClassLoader2 when we're writing
-     * the boot image..  Not that it would
-     * hurt, though...*/
-    VM_ApplicationClassLoader2.boot(applicationRepositories);
 
     // create special method- and attribute- names
     //

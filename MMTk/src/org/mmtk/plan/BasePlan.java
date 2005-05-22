@@ -104,6 +104,8 @@ public abstract class BasePlan
   public static final int ALLOC_GCSPY = 3;
   public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
+  public static final int ALLOC_STACK = ALLOC_DEFAULT;
+  public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
   public static final int BASE_ALLOCATORS = 4;
 
   // Statistics
@@ -656,7 +658,7 @@ public abstract class BasePlan
   public boolean isReachable(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isImmortal(object)) {
-      return ImmortalSpace.isReachable(object);
+      return immortalSpace.isReachable(object);
     }
       if (Assert.VERIFY_ASSERTIONS)
         Assert.fail("BasePlan.isReachable given object from unknown space");

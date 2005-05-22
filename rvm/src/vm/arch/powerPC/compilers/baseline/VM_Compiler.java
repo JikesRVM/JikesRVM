@@ -2061,7 +2061,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     int firstCounter = edgeCounterIdx; // only used if options.EDGE_COUNTERS;
 
     popInt(T0);  // T0 is index
-    if (asm.fits(16, -low)) {
+    if (VM_Assembler.fits(16, -low)) {
       asm.emitADDI(T0, -low, T0);
     } else {
       asm.emitLVAL(T1, low);
@@ -2122,7 +2122,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     popInt(T0); // T0 is key
     for (int i=0; i<npairs; i++) {
       int match   = bcodes.getLookupSwitchValue(i);
-      if (asm.fits(match, 16)) {
+      if (VM_Assembler.fits(match, 16)) {
         asm.emitCMPI(T0, match);
       } else {
         asm.emitLVAL(T1, match);
@@ -3042,7 +3042,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitLAddrOffset(T0, T0, getEdgeCounterOffset());
 
       // Flip conditions so we can jump over the increment of the taken counter.
-      VM_ForwardReference fr = asm.emitForwardBC(asm.flipCode(cc));
+      VM_ForwardReference fr = asm.emitForwardBC(VM_Assembler.flipCode(cc));
 
       // Increment taken counter & jump to target
       incEdgeCounter(T0, T1, entry+VM_EdgeCounts.TAKEN);
@@ -3116,7 +3116,7 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitLIntX   (T2, T0, T1);                       
         asm.emitADDICr  (T2, T2, -1);
         asm.emitSTWX  (T2, T0, T1);
-        VM_ForwardReference fr2 = asm.emitForwardBC(asm.GT);
+        VM_ForwardReference fr2 = asm.emitForwardBC(VM_Assembler.GT);
         asm.emitLAddrToc (T0, VM_Entrypoints.invocationCounterTrippedMethod.getOffset());
         asm.emitMTCTR(T0);
         asm.emitLVAL(T0, id);

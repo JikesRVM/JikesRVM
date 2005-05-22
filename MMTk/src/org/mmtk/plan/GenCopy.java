@@ -287,7 +287,7 @@ public class GenCopy extends Generational implements Uninterruptible {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC || IGNORE_REMSET);
     if (IGNORE_REMSET && !fullHeapGC &&
         (Space.isInSpace(MS0, object) || Space.isInSpace(MS1, object))) {
-      CopySpace.markObject(object, ImmortalSpace.immortalMarkState);
+      CopySpace.markObject(object, immortalSpace.getMarkState());
       return object;
     } else
       return Space.getSpaceForObject(object).traceObject(object);
@@ -303,7 +303,7 @@ public class GenCopy extends Generational implements Uninterruptible {
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
                              int size) throws InlinePragma {
     CopySpace.clearGCBits(object);
-    if (IGNORE_REMSET) CopySpace.markObject(object, ImmortalSpace.immortalMarkState);
+    if (IGNORE_REMSET) CopySpace.markObject(object, immortalSpace.getMarkState());
   }
 
   /**

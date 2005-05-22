@@ -34,9 +34,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_NormalMethod athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
 
-  public static final VM_Field threadLocalValueMap = 
-    getField("Ljava/lang/ThreadLocal;", "valueMap", "Ljava/util/Map;");
-
   //-#if !RVM_WITH_OWN_JAVA_LANG_CLASS && RVM_WITH_CLASSPATH_0_10
   public static final VM_Field javaLangClassProtectionDomain =
     getField("Ljava/lang/Class;", "pd", "Ljava/security/ProtectionDomain;");

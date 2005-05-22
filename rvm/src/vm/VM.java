@@ -189,7 +189,6 @@ public class VM extends VM_Properties
     String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
     VM_ClassLoader.boot();      // Wipe out cached application class loader
     VM_BootstrapClassLoader.boot(bootstrapClasses);
-    VM_ApplicationClassLoader2.boot(".");
 
     // Complete calculation of cycles to millsecond conversion factor
     // Must be done before any dynamic compilation occurs.
@@ -205,7 +204,7 @@ public class VM extends VM_Properties
     // writer.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
-    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
+    //-#if RVM_WITH_CLASSPTAH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
     //-#else
     runClassInitializer("gnu.classpath.SystemProperties"); // only in 0.13 and later
     //-#endif
@@ -284,7 +283,6 @@ public class VM extends VM_Properties
     //-#elif RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
     //-#else
-    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_CVS_HEAD
     /** This one absolutely requires that we have a working Application/System
         class loader, or at least a returnable one.  That, in turn, requires
         lots of things be set up for Jar.  */
@@ -292,7 +290,12 @@ public class VM extends VM_Properties
     //-#endif
 
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
+    runClassInitializer("java.nio.charset.CharsetEncoder");
+    runClassInitializer("java.nio.charset.CharsetDecoder");
+    runClassInitializer("java.nio.charset.CoderResult");
+
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
     runClassInitializer("java.lang.Math"); /* Load in the javalang library, so
                                               that Math's native trig functions
                                               work.  Still can't use them
@@ -342,19 +345,21 @@ public class VM extends VM_Properties
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
+    // Run class intializers that require JNI
+    if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
+	System.loadLibrary("javaio");
+    runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
+    runClassInitializer("java.io.FileDescriptor");
+
     //-#if RVM_WITH_HPM
     runClassInitializer("com.ibm.JikesRVM.Java2HPM");
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
     //-#endif
 
-    // Run class intializers that require JNI
-    if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
-    runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
-    runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
+    runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
-    runClassInitializer("java.io.VMFile"); // Load libjavaio.so
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
@@ -373,10 +378,6 @@ public class VM extends VM_Properties
     //-#if RVM_WITH_QUICK_COMPILER
     VM_QuickCompiler.fullyBootedVM();
     //-#endif
-
-    // Allow profile information to be read in from a file
-    // 
-    VM_EdgeCounts.boot();
 
     // Initialize compiler that compiles dynamically loaded classes.
     //
@@ -433,6 +434,10 @@ public class VM extends VM_Properties
         lots of things be set up for Jar.  */
     runClassInitializer("java.lang.ClassLoader$StaticData");
     //-#endif
+
+    // Allow profile information to be read in from a file
+    // 
+    VM_EdgeCounts.boot();
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");

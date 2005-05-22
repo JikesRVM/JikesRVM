@@ -959,8 +959,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                                    OPT_ConditionOperand cond) {
     EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
     OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
-    EMIT(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
-    EMIT(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
+    EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
+    EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyD2U()));
   }
 
 
@@ -977,8 +977,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                                    OPT_Operand res, 
                                    OPT_ConditionOperand cond) {
     OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
-    EMIT(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
-    EMIT(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
+    EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
+    EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyD2U()));
   }
 
 
@@ -1327,9 +1327,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     EMIT(MIR_Move.create(IA32_MOV, R(getEAX()), oldValue));
     EMIT(MIR_CompareExchange.create(IA32_LOCK_CMPXCHG, R(getEAX()), 
                                            mo, (OPT_RegisterOperand)temp.copy())); 
-    EMIT(MIR_Set.create(IA32_SET$B, temp2, OPT_IA32ConditionOperand.EQ()));
+    EMIT(MIR_Set.create(IA32_SET__B, temp2, OPT_IA32ConditionOperand.EQ()));
     // need to zero-extend the result of the set
-    EMIT(MIR_Unary.create(IA32_MOVZX$B, result, temp2.copy()));
+    EMIT(MIR_Unary.create(IA32_MOVZX__B, result, temp2.copy()));
   }
 
 

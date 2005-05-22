@@ -524,7 +524,7 @@ function on_host_set_JIKES_test_Jikes_version () {
 				# running "Hello, World" works.
 		unregressed=0   # Regression tests run by Dave Grove on Linux/IA32.
 		jikes_dependency_flag= # +U triggers a Jikes assertion.
-		JIKES_WARNING_FLAGS=-nowarn
+		JIKES_WARNING_FLAGS='+Pno-shadow +Pno-switchcheck'
 		;;
 	    
 	    "") croak_nonusage "I did not get any version message from the Jikes java-to-byte-code compiler; something may be badly wrong.  I tried using this invocation of Jikes:
@@ -769,10 +769,10 @@ function rationalize_classpath_version () {
     local -i sum
     let "sum=(  RVM_WITH_CLASSPATH_0_10 + RVM_WITH_CLASSPATH_0_11 \
 	      + RVM_WITH_CLASSPATH_0_12 + RVM_WITH_CLASSPATH_0_13 \
-	      + RVM_WITH_CLASSPATH_0_14 \
+	      + RVM_WITH_CLASSPATH_0_14 + RVM_WITH_CLASSPATH_0_15 \
 	      + RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
-	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, RVM_WITH_CLASSPATH_0_14, and RVM_WITH_CLASSPATH_CVS_HEAD is defined.  Your configuration files are inconsistent."
+	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, RVM_WITH_CLASSPATH_0_14, RVM_WITH_CLASSPATH_0_15, and RVM_WITH_CLASSPATH_CVS_HEAD is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
 	exit 2
     fi
@@ -789,6 +789,7 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_0_12=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_13=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_14=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_15=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -1219,7 +1220,7 @@ if [[ ! -f  $f ]]; then
 fi
 # Current version of RVM
 declare -r CVS_TIMESTAMP="$(< $f)"
-declare -r JIKESRVM_VERSION="Jikes RVM 2.3.5"
+declare -r JIKESRVM_VERSION="Jikes RVM 2.3.6"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -1328,6 +1329,7 @@ declare -i RVM_WITH_CLASSPATH_0_11=0
 declare -i RVM_WITH_CLASSPATH_0_12=0
 declare -i RVM_WITH_CLASSPATH_0_13=0
 declare -i RVM_WITH_CLASSPATH_0_14=0
+declare -i RVM_WITH_CLASSPATH_0_15=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
@@ -1978,10 +1980,6 @@ EOF
 	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/security"
 	echo "$RVM_ROOT/rvm/src/vm/libSupport/java/util"
     fi
-    ## gnu.classpath.VMSystemProperties is used for Classpath 0.13 and
-    ## Classpath post-0.13-CVS-head.  It is now also used by earlier
-    ## versions, since we implement some functionality there that the
-    ## earlier interfaces call into.
     echo "$RVM_ROOT/rvm/src/vm/libSupport/gnu/classpath"
 
     # Add support for hardware performance monitors on PowerPC
@@ -3369,6 +3367,8 @@ java/util/Arrays
 java/util/HashMap
 java/util/HashSet
 java/util/Hashtable
+java/util/LinkedHashSet
+java/util/LinkedHashMap
 java/util/List
 java/util/ListResourceBundle
 java/util/PropertyResourceBundle
@@ -3395,6 +3395,7 @@ java/security/Permissions
 java/security/Principal
 gnu/java/locale/Calendar
 java/lang/reflect/InvocationTargetException
+gnu/java/util/DoubleEnumeration
 
     # ApplicationClassLoader
 com/ibm/JikesRVM/classloader/ApplicationClassLoader # Uses URLClassLoader
@@ -3423,6 +3424,43 @@ java/io/FileInputStream
 java/io/FileDescriptor
 java/io/VMFile
 gnu/java/nio/channels/FileChannelImpl
+
+    # Character conversion
+    # 
+java/nio/charset/Charset
+java/nio/charset/CharsetEncoder
+java/nio/charset/CharsetDecoder
+java/nio/charset/Charset
+java/nio/charset/CodingErrorAction
+java/nio/charset/CoderResult
+java/nio/ByteOrder
+java/nio/ByteBuffer
+java/nio/ByteBufferImpl
+java/nio/CharBuffer
+java/nio/CharBufferImpl
+gnu/java/nio/charset/Provider
+gnu/java/nio/charset/US_ASCII
+gnu/java/nio/charset/ISO_8859_1
+gnu/java/nio/charset/UTF_8
+gnu/java/nio/charset/UTF_16BE
+gnu/java/nio/charset/UTF_16LE
+gnu/java/nio/charset/UTF_16
+gnu/java/nio/charset/UnicodeLittle
+gnu/java/nio/charset/Windows1250
+gnu/java/nio/charset/Windows1251
+gnu/java/nio/charset/Windows1252
+gnu/java/nio/charset/Windows1253
+gnu/java/nio/charset/Windows1254
+gnu/java/nio/charset/Windows1257
+gnu/java/nio/charset/ISO_8859_2
+gnu/java/nio/charset/ISO_8859_4
+gnu/java/nio/charset/ISO_8859_5
+gnu/java/nio/charset/ISO_8859_7
+gnu/java/nio/charset/ISO_8859_9
+gnu/java/nio/charset/ISO_8859_13
+gnu/java/nio/charset/ISO_8859_15
+gnu/java/nio/charset/KOI_8
+
 EOF
 
     if (( ! RVM_WITH_CLASSPATH_0_10 )); then

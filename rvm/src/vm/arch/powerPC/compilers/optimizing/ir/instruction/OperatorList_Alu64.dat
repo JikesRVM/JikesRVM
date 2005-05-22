@@ -30,6 +30,22 @@ none
 (30<<26 | 0<<2)
 
 ####################
+PPC64_RLDICL
+MIR_RotateAndMask
+none
+
+
+(30<<26)
+
+####################
+PPC64_RLDICR
+MIR_RotateAndMask
+none
+
+
+(30<<26 | 1<<2)
+
+####################
 PPC64_SLD
 MIR_Binary
 none

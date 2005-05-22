@@ -607,7 +607,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
                                               OPT_Register r,
                                               OPT_Register symb) {
     OPT_PhysicalRegisterSet pool = ir.regpool.getPhysicalRegisterSet();
-    int type = pool.getPhysicalRegisterType(r);
+    int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(r);
     int spillLocation = OPT_RegisterAllocatorState.getSpill(r);
     if (spillLocation <= 0) {
       // no spillLocation yet assigned to the physical register.
@@ -1406,7 +1406,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   final OPT_Register allocateVolatileRegister(OPT_Register symbReg) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    int physType = phys.getPhysicalRegisterType(symbReg);
+    int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
     for (Enumeration e = phys.enumerateVolatiles(physType);
          e.hasMoreElements(); ) {
       OPT_Register realReg = (OPT_Register)e.nextElement();
@@ -1458,7 +1458,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   final OPT_Register allocateNonVolatileRegister(OPT_Register symbReg) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    int physType = phys.getPhysicalRegisterType(symbReg);
+    int physType = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symbReg);
     for (Enumeration e = phys.enumerateNonvolatilesBackwards(physType);
          e.hasMoreElements(); ) {
       OPT_Register realReg = (OPT_Register)e.nextElement();

@@ -41,9 +41,9 @@ final class OPT_LiveInterval {
       }
     }
 
-    OPT_LiveSetEnumerator enum = set.enumerator();
-    while (enum.hasMoreElements()) {
-      OPT_RegisterOperand regOp = (OPT_RegisterOperand) enum.nextElement();
+    OPT_LiveSetEnumerator lsEnum = set.enumerator();
+    while (lsEnum.hasMoreElements()) {
+      OPT_RegisterOperand regOp = (OPT_RegisterOperand) lsEnum.nextElement();
       createEndLiveRange(regOp.register, block, inst);
     }
   }

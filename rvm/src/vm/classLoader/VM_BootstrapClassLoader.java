@@ -260,7 +260,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
         }
       };
 
-      return (URL)getResourceInternal(name, findURL, false);
+    return (URL)getResourceInternal(name, findURL, false);
   }
 
   public Enumeration findResources(final String name) {

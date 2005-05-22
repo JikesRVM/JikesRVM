@@ -261,7 +261,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
     if (ir.compiledMethod.isSaveVolatile()) {
       // pretend we use all non-volatiles
-      nNonvolatileGPRS = phys.getNumberOfNonvolatileGPRs();
+      nNonvolatileGPRS = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs();
     }
 
     // 1. save the nonvolatile GPRs
@@ -616,13 +616,13 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     if (ir.compiledMethod.isSaveVolatile()) {
       // Record that we use every nonvolatile GPR
-      int numGprNv = phys.getNumberOfNonvolatileGPRs();
+      int numGprNv = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs();
       ir.compiledMethod.setNumberOfNonvolatileGPRs((short)numGprNv);
 
       // set the frame size
       frameSize += numGprNv * BYTES_IN_ADDRESS;
 
-      int numFprNv = phys.getNumberOfNonvolatileFPRs();
+      int numFprNv = OPT_PhysicalRegisterSet.getNumberOfNonvolatileFPRs();
       ir.compiledMethod.setNumberOfNonvolatileFPRs((short)numFprNv);
       frameSize += numFprNv * BYTES_IN_DOUBLE;
 

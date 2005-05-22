@@ -530,7 +530,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                 OPT_IntConstantOperand shift2) {
     int x = shift1.value;
     int y = shift2.value;
-    if (x < y) {
+    if (x <= y) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
                                     IC((32 - (y - x)) & 0x1f), 
                                     IC(y), IC(31))); 
@@ -547,7 +547,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                 OPT_IntConstantOperand shift2) {
     int x = shift1.value;
     int y = shift2.value;
-    if (x < y) {
+    if (x <= y) {
       EMIT(MIR_RotateAndMask.create(PPC_RLWINM, def, left, 
                                     IC(y - x), IC(0), IC(31 - y))); 
     } else {

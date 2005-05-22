@@ -46,7 +46,7 @@ final class OPT_MinimalBURS extends OPT_BURS {
       OPT_Instruction s = e.next();
       OPT_BURS_TreeNode tn = buildTree(s);
       burs.label(tn);
-      burs.mark(tn, /* goalnt */(byte)1);
+      OPT_BURS_STATE.mark(tn, /* goalnt */(byte)1);
       generateTree(tn, burs);
     }
   }
@@ -138,8 +138,8 @@ final class OPT_MinimalBURS extends OPT_BURS {
         // k has two children; use register labeling to
         // determine order that minimizes register pressure
         if (k.isSuperNodeRoot()) {
-          byte act = burs.action[k.rule(k.getNonTerminal())];
-          if ((act & burs.RIGHT_CHILD_FIRST) != 0) {
+          byte act = OPT_BURS_STATE.action[k.rule(k.getNonTerminal())];
+          if ((act & OPT_BURS_STATE.RIGHT_CHILD_FIRST) != 0) {
             // rule selected forces order of evaluation
             generateTree(child2, burs);
             generateTree(child1, burs);

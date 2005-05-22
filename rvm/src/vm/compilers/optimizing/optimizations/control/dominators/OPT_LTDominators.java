@@ -149,8 +149,8 @@ class OPT_LTDominators extends OPT_Stack {
 
     // Initialize each block with an empty set of predecessors and
     // a 0 for a semidominator
-    for (Enumeration enum = cfg.nodes(); enum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock)enum.nextElement();
+    for (Enumeration bbEnum = cfg.nodes(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
       // We don't compute a result for the exit node in the forward direction
       if (!forward || !block.isExit()) {
         block.scratchObject = new OPT_LTDominatorInfo(block);
@@ -209,13 +209,13 @@ class OPT_LTDominators extends OPT_Stack {
    * @param block the basic block of interest
    */
   private OPT_BasicBlockEnumeration getNextNodes(OPT_BasicBlock block) {
-    OPT_BasicBlockEnumeration enum;
+    OPT_BasicBlockEnumeration bbEnum;
     if (forward) {
-      enum = block.getOut();
+      bbEnum = block.getOut();
     } else {
-      enum = block.getIn();
+      bbEnum = block.getIn();
     }
-    return enum;
+    return bbEnum;
   }
 
   /**
@@ -224,13 +224,13 @@ class OPT_LTDominators extends OPT_Stack {
    * @param block the basic block of interest
    */
   private OPT_BasicBlockEnumeration getPrevNodes(OPT_BasicBlock block) {
-    OPT_BasicBlockEnumeration enum;
+    OPT_BasicBlockEnumeration bbEnum;
     if (forward) {
-      enum = block.getIn();
+      bbEnum = block.getIn();
     } else {
-      enum = block.getOut();
+      bbEnum = block.getOut();
     }
-    return enum;
+    return bbEnum;
   }
 
   /**
@@ -564,8 +564,8 @@ class OPT_LTDominators extends OPT_Stack {
       System.out.println("\n\n  Here's the Post-Dominator Info:");
     }
     
-    for (Enumeration enum = cfg.nodes(); enum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock)enum.nextElement();
+    for (Enumeration bbEnum = cfg.nodes(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
       // We don't compute a result for the exit node for forward direction
       if (!forward || !block.isExit()) {
         System.out.println("Dominators of " + block + ":" 
@@ -579,8 +579,8 @@ class OPT_LTDominators extends OPT_Stack {
    *  Print the result of the DFS numbering performed in Step 1
    */
   private void printDFSNumbers() {
-    for (Enumeration enum = cfg.nodes(); enum.hasMoreElements();) {
-      OPT_BasicBlock block = (OPT_BasicBlock)enum.nextElement();
+    for (Enumeration bbEnum = cfg.nodes(); bbEnum.hasMoreElements();) {
+      OPT_BasicBlock block = (OPT_BasicBlock)bbEnum.nextElement();
       // We don't compute a result for the exit node for forward direction
       if (forward && block.isExit()) {
         continue;

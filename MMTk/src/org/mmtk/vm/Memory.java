@@ -50,14 +50,33 @@ public class Memory {
   }
 
   /**
+   * Global preparation for a collection.
+   */
+  public static void globalPrepareVMSpace() {}
+
+  /**
+   * Thread-local preparation for a collection.
+   */
+  public static void localPrepareVMSpace() {}
+
+  /**
+   * Thread-local post-collection work.
+   */
+  public static void localReleaseVMSpace() {}
+
+  /**
+   * Global post-collection work.
+   */
+  public static void globalReleaseVMSpace() {}
+
+  /**
    * Sets the range of addresses associated with a heap.
    *
    * @param id the heap identifier
    * @param start the address of the start of the heap
    * @param end the address of the end of the heap
    */
-  public static void setHeapRange(int id, Address start, Address end) {
-  }
+  public static void setHeapRange(int id, Address start, Address end) {}
 
  /**
    * Maps an area of virtual memory.
@@ -100,16 +119,14 @@ public class Memory {
    * @param len Length in bytes of range to zero
    * Returned: nothing
    */
-  public static void zero(Address start, Extent len) {
-  }
+  public static void zero(Address start, Extent len) {}
 
   /**
    * Zero a range of pages of memory.
    * @param start Start of address range (must be a page address)
    * @param len Length in bytes of range (must be multiple of page size)
    */
-  public static void zeroPages(Address start, int len) {
-  }
+  public static void zeroPages(Address start, int len) {}
 
   /**
    * Logs the contents of an address and the surrounding memory to the
@@ -122,16 +139,13 @@ public class Memory {
    * included
    */
   public static void dumpMemory(Address start, int beforeBytes,
-                                int afterBytes) {
-  }
+                                int afterBytes) {}
 
   /*
    * Utilities from the VM class
    */
 
-  public static void sync() throws InlinePragma {
-  }
+  public static void sync() throws InlinePragma {}
 
-  public static void isync() throws InlinePragma {
-  }
+  public static void isync() throws InlinePragma {}
 }

@@ -75,10 +75,10 @@ public class Scanning implements Constants, Uninterruptible {
    * delegates, so this is never executed</b>.
    *
    * @param object The object to be scanned.
-   * @param enum the Enumerate object through which the callback
+   * @param _enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(ObjectReference object, Enumerate enum) 
+  public static void enumeratePointers(ObjectReference object, Enumerate _enum) 
     throws UninterruptiblePragma, InlinePragma {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
@@ -138,12 +138,12 @@ public class Scanning implements Constants, Uninterruptible {
    * pointer fields are enumerated, not the TIB.
    *
    * @param object The object to be scanned.
-   * @param enum the Enumerate object through which the callback
+   * @param _enum the Enumerate object through which the callback
    * is made
    */
-  private static void enumeratePointers(Object object, Enumerate enum) 
+  private static void enumeratePointers(Object object, Enumerate _enum) 
     throws UninterruptiblePragma, InlinePragma {
-    Scan.enumeratePointers(ObjectReference.fromObject(object), enum);
+    Scan.enumeratePointers(ObjectReference.fromObject(object), _enum);
   }
 
  /**

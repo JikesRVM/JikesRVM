@@ -317,8 +317,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   protected final void globalPrepare() {
     nurserySpace.prepare(true);
     msSpace.prepare();
-    immortalSpace.prepare();
-    loSpace.prepare();
+    commonGlobalPrepare();
   }
 
   /**
@@ -332,7 +331,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   protected final void threadLocalPrepare(int count) {
     nursery.reset();
     ms.prepare();
-    los.prepare();
+    commonLocalPrepare();
   }
 
   /**
@@ -346,7 +345,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
-    los.release();
+    commonLocalRelease();
   }
 
   /**
@@ -360,9 +359,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   protected final void globalRelease() {
     // release each of the collected regions
     nurserySpace.release();
-    loSpace.release();
     msSpace.release();
-    immortalSpace.release();
+    commonGlobalRelease();
     if (getPagesReserved() + required >= getTotalPages()) {
       progress = false;
     } else
@@ -500,10 +498,9 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = nurserySpace.reservedPages();
+    int pages = getCommonPagesReserved();
+    pages += nurserySpace.reservedPages();
     pages += msSpace.reservedPages();
-    pages += loSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
     return pages;
   }
 
@@ -516,7 +513,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    */
   protected static final int getPagesAvail() {
     int nurseryPages = getTotalPages() - msSpace.reservedPages() 
-      - immortalSpace.reservedPages() - loSpace.reservedPages();
+      - getCommonPagesReserved();
     return (nurseryPages>>1) - nurserySpace.reservedPages();
   }
 

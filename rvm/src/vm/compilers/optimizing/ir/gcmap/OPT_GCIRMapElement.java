@@ -81,10 +81,10 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
     int count = 0;
 
     // traverse the list and compute how many regs exist
-    OPT_RegSpillListEnumerator enum = regSpillListEnumerator();
-    while (enum.hasMoreElements()) {
+    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
+    while (rslEnum.hasMoreElements()) {
       OPT_RegSpillListElement elem = 
-        (OPT_RegSpillListElement) enum.nextElement();
+        (OPT_RegSpillListElement) rslEnum.nextElement();
       count++;
     }
     return count;
@@ -99,10 +99,10 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
     int count = 0;
 
     // traverse the list and compute how many regs exist
-    OPT_RegSpillListEnumerator enum = regSpillListEnumerator();
-    while (enum.hasMoreElements()) {
+    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
+    while (rslEnum.hasMoreElements()) {
       OPT_RegSpillListElement elem = 
-        (OPT_RegSpillListElement) enum.nextElement();
+        (OPT_RegSpillListElement) rslEnum.nextElement();
       if (!elem.isSpill()) {
         count++;
       }
@@ -117,10 +117,10 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   public final int countNumSpillElements() {
     int count = 0;
     // traverse the list and compute how many spills exist
-    OPT_RegSpillListEnumerator enum = regSpillListEnumerator();
-    while (enum.hasMoreElements()) {
+    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
+    while (rslEnum.hasMoreElements()) {
       OPT_RegSpillListElement elem = 
-        (OPT_RegSpillListElement) enum.nextElement();
+        (OPT_RegSpillListElement) rslEnum.nextElement();
       if (elem.isSpill()) {
         count++;
       }
@@ -135,10 +135,10 @@ public final class OPT_GCIRMapElement extends OPT_LinkedListElement {
   public String toString() {
     StringBuffer buf = new StringBuffer("");
     buf.append(" Instruction: " + inst.bcIndex + ", " + inst);
-    OPT_RegSpillListEnumerator enum = regSpillListEnumerator();
-    while (enum.hasMoreElements()) {
+    OPT_RegSpillListEnumerator rslEnum = regSpillListEnumerator();
+    while (rslEnum.hasMoreElements()) {
       OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
-          enum.nextElement();
+          rslEnum.nextElement();
       buf.append(elem + "  ");
     }
     buf.append("\n");

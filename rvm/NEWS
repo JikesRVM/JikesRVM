@@ -6,6 +6,27 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+*Jikes RVM 2.3.6 Release Notes (released on May 23, 2005)
+
+*Highlights 
+** Just like 2.3.5, this release of Jikes RVM does not work on OSX.  
+If you use Jikes RVM on OSX please help us fix it so subsequent
+releases will support OSX again.
+
+**The recommended version of GNU classpath for Jikes RVM 2.3.6 is 0.15.
+Classpath 0.14 is expected to still work.  
+Some older versions of classpath (0.10 and higher) might still work, 
+but have not been tested.  
+Subsequent releases of Jikes RVM will remove support for all versions of 
+GNU classpath prior to 0.15.
+
+** We have fixed defect 1189786 which represented a significant regression in 
+Jikes RVM 2.3.5. 
+
+** After source code cleanups, most jikes warnings are now enabled by default. 
+
+
+
 *Jikes RVM 2.3.5 Release Notes (released on April 8, 2005)
 *Highlights 
 ** This release of Jikes RVM does not work on OSX.  

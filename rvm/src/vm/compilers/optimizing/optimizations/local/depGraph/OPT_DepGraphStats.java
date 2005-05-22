@@ -41,19 +41,19 @@ class OPT_DepGraphStats implements OPT_Operators {
    */
   OPT_DepGraphStats(OPT_DepGraph dg, String bbName) {
     // First pass -- compute numNodes
-    int numNodes = 0;
+    int _numNodes = 0;
     boolean containsLoadOrStore = false;
     for (OPT_DepGraphNode n = (OPT_DepGraphNode)dg.firstNode(); 
         n != null; n = (OPT_DepGraphNode)n.getNext()) {
-      numNodes++;
+      _numNodes++;
       OPT_Instruction instr = n.instruction();
       if (instr.isImplicitStore() || instr.isImplicitLoad())
         containsLoadOrStore = true;
     }
-    OPT_DepGraphNode nodes[] = new OPT_DepGraphNode[numNodes];
-    int ECT[] = new int[numNodes];              // Earliest Completion Times
-    int totalTime = 0;
-    int critPathLength = 0;
+    OPT_DepGraphNode nodes[] = new OPT_DepGraphNode[_numNodes];
+    int ECT[] = new int[_numNodes];              // Earliest Completion Times
+    int _totalTime = 0;
+    int _critPathLength = 0;
     // Second pass -- compute times
     int i = 0;
     for (OPT_DepGraphNode n = (OPT_DepGraphNode)dg.firstNode(); n != null; 
@@ -82,15 +82,15 @@ class OPT_DepGraphStats implements OPT_Operators {
       }         // for ( e = ... )
       OPT_Instruction instr = n.instruction();
       int curTime = estimateExecutionTime(instr);
-      totalTime += curTime;
+      _totalTime += curTime;
       ECT[i] += curTime;
-      critPathLength = Math.max(critPathLength, ECT[i]);
+      _critPathLength = Math.max(_critPathLength, ECT[i]);
       i++;
     }           // for ( n = ... )
-    System.out.println("@@@@ BB " + bbName + "; totalTime = " + totalTime
+    System.out.println("@@@@ BB " + bbName + "; totalTime = " + _totalTime
         + "; containsLoadOrStore = " + containsLoadOrStore + 
         "; critPathLength = "
-        + critPathLength);
+        + _critPathLength);
   }
 
   /**

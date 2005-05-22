@@ -746,7 +746,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */ 
   public static byte[] newStack(int bytes, boolean immortal)
     throws InlinePragma, InterruptiblePragma {
-    if (!immortal || !VM.runningVM) {
+    if (!VM.runningVM) {
       return new byte[bytes];
     } else {
       VM_Array stackType = VM_Array.ByteArray;
@@ -757,7 +757,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       Object [] stackTib = stackType.getTypeInformationBlock();
 
       return (byte[]) allocateArray(bytes, width, headerSize, stackTib,
-                                    Plan.ALLOC_IMMORTAL, align, offset);
+                                    (immortal ? Plan.ALLOC_IMMORTAL_STACK : Plan.ALLOC_STACK),
+                                    align, offset);
     }
   }
 

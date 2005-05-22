@@ -68,7 +68,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     if (call.operator != CALL_SAVE_VOLATILE) {
       int FPRRegisterParams= countFPRParams(call);
       FPRRegisterParams = Math.min(FPRRegisterParams, 
-                                   phys.getNumberOfFPRParams());
+                                   OPT_PhysicalRegisterSet.getNumberOfFPRParams());
       call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,
                                               IC(FPRRegisterParams)));
     }
@@ -207,7 +207,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     // count the number FPR parameters in a pre-pass
     int FPRRegisterParams= countFPRParams(call);
     FPRRegisterParams = Math.min(FPRRegisterParams, 
-                                 phys.getNumberOfFPRParams());
+                                 OPT_PhysicalRegisterSet.getNumberOfFPRParams());
 
     // offset, in bytes, from the SP, for the next parameter slot on the
     // stack
@@ -229,7 +229,7 @@ final class OPT_CallingConvention extends OPT_IRTools
         nFPRParams++;
         int size = paramType.isFloatType() ? 4 : 8;
         parameterBytes -= size;
-        if (nFPRParams > phys.getNumberOfFPRParams()) {
+        if (nFPRParams > OPT_PhysicalRegisterSet.getNumberOfFPRParams()) {
           // pass the FP parameter on the stack
           OPT_Operand M =
             new OPT_StackLocationOperand(false, parameterBytes, size);
@@ -249,7 +249,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       } else {
         nGPRParams++;
         parameterBytes -= 4;
-        if (nGPRParams > phys.getNumberOfGPRParams()) {
+        if (nGPRParams > OPT_PhysicalRegisterSet.getNumberOfGPRParams()) {
           // Too many parameters to pass in registers.  Write the
           // parameter into the appropriate stack frame location.
           call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes + 4)));
@@ -304,7 +304,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_Instruction result = null;
 
     // add one to account for the processor register.  
-    int nToSave = phys.getNumberOfNonvolatileGPRs() + 1;
+    int nToSave = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
 
     // get the offset into the stack frame of where to stash the first
     // nonvolatile for this case.
@@ -343,7 +343,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_StackManager sm = (OPT_StackManager)ir.stackManager;
     
     // add one to account for the processor register.  
-    int nToSave = phys.getNumberOfNonvolatileGPRs() + 1;
+    int nToSave = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
 
     // get the offset into the stack frame of where to stash the first
     // nonvolatile for this case.
@@ -387,7 +387,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_Register ESP = phys.getESP();
     // count the number FPR parameters in a pre-pass
     int FPRRegisterParams= countFPRParams(call);
-    FPRRegisterParams = Math.min(FPRRegisterParams, phys.getNumberOfFPRParams());
+    FPRRegisterParams = Math.min(FPRRegisterParams, OPT_PhysicalRegisterSet.getNumberOfFPRParams());
     
     // walk over the parameters in reverse order
     // NOTE: All params to syscall are passed on the stack!
@@ -427,7 +427,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_StackManager sm = (OPT_StackManager)ir.stackManager;
     
     // add one to account for the processor register.  
-    int nToSave = phys.getNumberOfNonvolatileGPRs() + 1;
+    int nToSave = OPT_PhysicalRegisterSet.getNumberOfNonvolatileGPRs() + 1;
 
     sm.allocateSpaceForSysCall(nToSave);
   }
@@ -528,7 +528,7 @@ final class OPT_CallingConvention extends OPT_IRTools
 
     // count the number of FPR params in a pre-pass
     int FPRRegisterParams= countFPRParamsInPrologue(p);
-    FPRRegisterParams = Math.min(FPRRegisterParams, phys.getNumberOfFPRParams());
+    FPRRegisterParams = Math.min(FPRRegisterParams, OPT_PhysicalRegisterSet.getNumberOfFPRParams());
     ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight, FPRRegisterParams);
 
     // deal with each parameter
@@ -540,7 +540,7 @@ final class OPT_CallingConvention extends OPT_IRTools
         paramByteOffset -= size;
         // if optimizing, only define the register if it has uses
         if (!useDU || symbOp.register.useList != null) {
-          if (fprIndex < phys.getNumberOfFPRParams()) {
+          if (fprIndex < OPT_PhysicalRegisterSet.getNumberOfFPRParams()) {
             // insert a MOVE symbolic register = parameter
             // Note that if k FPRs are passed in registers, 
             // the 1st goes in F(k-1),
@@ -561,7 +561,7 @@ final class OPT_CallingConvention extends OPT_IRTools
         paramByteOffset -= 4;
         if (!useDU || symbOp.register.useList != null) {
           // t is object, 1/2 of a long, int, short, char, byte, or boolean
-          if (gprIndex < phys.getNumberOfGPRParams()) {
+          if (gprIndex < OPT_PhysicalRegisterSet.getNumberOfGPRParams()) {
             // to give the register allocator more freedom, we
             // insert two move instructions to get the physical into
             // the symbolic.  First a move from the physical to a fresh temp 

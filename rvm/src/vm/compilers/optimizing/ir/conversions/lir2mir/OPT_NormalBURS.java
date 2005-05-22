@@ -376,12 +376,12 @@ final class OPT_NormalBURS extends OPT_BURS {
         // k has two children; use register labeling to
         // determine order that minimizes register pressure
         if (k.isSuperNodeRoot()) {
-          byte act = burs.action[k.rule(k.getNonTerminal())];
-          if ((act & burs.LEFT_CHILD_FIRST) != 0) {
+          byte act = OPT_BURS_STATE.action[k.rule(k.getNonTerminal())];
+          if ((act & OPT_BURS_STATE.LEFT_CHILD_FIRST) != 0) {
             // rule selected forces order of evaluation
             generateTree(child1, burs);
             generateTree(child2, burs);
-          } else if ((act & burs.RIGHT_CHILD_FIRST) != 0) {
+          } else if ((act & OPT_BURS_STATE.RIGHT_CHILD_FIRST) != 0) {
             // rule selected forces order of evaluation
             generateTree(child2, burs);
             generateTree(child1, burs);

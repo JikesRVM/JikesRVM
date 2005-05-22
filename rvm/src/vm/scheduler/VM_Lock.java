@@ -125,7 +125,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
     l.ownerId = 0;
     Throwable rethrow = null;
     try {
-      t.yield(l.waiting, l.mutex); // thread-switching benign
+      VM_Thread.yield(l.waiting, l.mutex); // thread-switching benign
     } catch (Throwable thr) {
       rethrow = thr; // An InterruptedException. We'll rethrow it after regaining the lock on o.
     }
@@ -172,7 +172,7 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
     l.ownerId = 0;
     Throwable rethrow = null;
     try {
-      t.yield(l.waiting, l.mutex, VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex); // thread-switching benign
+      VM_Thread.yield(l.waiting, l.mutex, VM_Scheduler.wakeupQueue, VM_Scheduler.wakeupMutex); // thread-switching benign
     } catch (Throwable thr) {
         rethrow = thr;
     }

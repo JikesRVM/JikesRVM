@@ -499,7 +499,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
-      case PPC64_SLDI_opcode: //shorthand for RLDICR
+      case PPC64_SLDI_opcode: //shorthand via RLDICR
         {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
@@ -510,6 +510,44 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op3 = 63 - shift;
           int op3low = op3 & 0x1F;
           int op3high = (op3 & 0x20) >>> 5;
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+        
+      case PPC64_RLDICR_opcode:
+        {
+          int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
+          int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & SIXBIT_MASK; //shift
+          int op2low = op2 & 0x1F;
+          int op2high = (op2 & 0x20) >>> 5;
+          int op3 = MIR_RotateAndMask.getMaskEnd(p).value & SIXBIT_MASK; //mask
+          int op3low = op3 & 0x1F;
+          int op3high = (op3 & 0x20) >>> 5;
+          if (VM.VerifyAssertions) {
+            int op4 = MIR_RotateAndMask.getMaskBegin(p).value & SIXBIT_MASK;
+            VM._assert(op4 == 0);
+          }
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+         
+      case PPC64_RLDICL_opcode:
+        {
+          int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
+          int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & SIXBIT_MASK; //shift
+          int op2low = op2 & 0x1F;
+          int op2high = (op2 & 0x20) >>> 5;
+          int op3 = MIR_RotateAndMask.getMaskBegin(p).value & SIXBIT_MASK; //mask
+          int op3low = op3 & 0x1F;
+          int op3high = (op3 & 0x20) >>> 5;
+          if (VM.VerifyAssertions) {
+            int op4 = MIR_RotateAndMask.getMaskEnd(p).value & SIXBIT_MASK;
+            VM._assert(op4 == 63);
+          }
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }

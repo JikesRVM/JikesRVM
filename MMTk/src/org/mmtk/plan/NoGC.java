@@ -263,6 +263,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void globalPrepare() {
     Assert.fail("\nGC Triggered in NoGC Plan.  Have you set -X:gc:ignoreSystemGC=true?");
+    commonGlobalPrepare();
   }
 
   /**
@@ -275,6 +276,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void threadLocalPrepare(int count) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    commonLocalPrepare();
   }
 
   /**
@@ -289,6 +291,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void threadLocalRelease(int count) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    commonLocalRelease();
   }
 
   /**
@@ -301,6 +304,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   protected final void globalRelease() {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    commonGlobalRelease();
   }
 
 
@@ -424,9 +428,8 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * allocation, excluding space reserved for copying.
    */
   protected static final int getPagesUsed() {
-    int pages = defaultSpace.reservedPages();
-    pages += immortalSpace.reservedPages();
-    pages += metaDataSpace.reservedPages();
+    int pages = getCommonPagesReserved();
+    pages += defaultSpace.reservedPages();
     return pages;
   }
 

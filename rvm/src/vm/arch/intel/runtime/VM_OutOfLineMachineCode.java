@@ -149,7 +149,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitCMP_Reg_Imm     (T1, 0);                    // length == 0 ?
 
     int parameterLoopLabel = asm.getMachineCodeIndex();
-    VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);   // done? --> branch to end
+    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);   // done? --> branch to end
     asm.emitMOV_Reg_RegInd (T0, S0);                    // T0 <- Paramaters[i]
     asm.emitPUSH_Reg (T0);                              // mem[j++] <- Parameters[i]
     asm.emitADD_Reg_Imm (S0, WORDSIZE);                 // i++
@@ -167,7 +167,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitCMP_Reg_Imm (T1, 0);                        // length == 0 ?
 
     int fprsLoopLabel = asm.getMachineCodeIndex();
-    VM_ForwardReference fr2 = asm.forwardJcc(asm.EQ);   // done? --> branch to end
+    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.EQ);   // done? --> branch to end
     asm.emitSUB_Reg_Imm ( S0, 2 * WORDSIZE);            // i--
     asm.emitFLD_Reg_RegInd_Quad (FP0, S0);              // frp[fpr_sp++] <-FPRs[i]
     asm.emitSUB_Reg_Imm (T1, 2* WORDSIZE);              // length--
@@ -181,11 +181,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp (S0, S0, GPRS_FP_OFFSET);   // S0 <- GPRs
     asm.emitMOV_Reg_RegDisp (T1, S0, VM_ObjectModel.getArrayLengthOffset());    // T1 <- GPRs.length()
     asm.emitCMP_Reg_Imm (T1, 0);                        // length == 0 ?
-    VM_ForwardReference fr3 = asm.forwardJcc(asm.EQ);   // result 0 --> branch to end
+    VM_ForwardReference fr3 = asm.forwardJcc(VM_Assembler.EQ);   // result 0 --> branch to end
     asm.emitMOV_Reg_RegInd (T0, S0);                    // T0 <- GPRs[0]
     asm.emitADD_Reg_Imm (S0, WORDSIZE);                 // S0 += WORDSIZE
     asm.emitADD_Reg_Imm (T1, -1);                       // T1--
-    VM_ForwardReference fr4 = asm.forwardJcc(asm.EQ);   // result 0 --> branch to end
+    VM_ForwardReference fr4 = asm.forwardJcc(VM_Assembler.EQ);   // result 0 --> branch to end
     asm.emitMOV_Reg_RegInd (T1, S0);                    // T1 <- GPRs[1]
     fr3.resolve(asm);
     fr4.resolve(asm);
@@ -387,7 +387,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
                                               VM_Entrypoints.vpStatusField.getOffset());
 
     asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // still IN_NATIVE?
-    VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip over call to pthread yield
+    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip over call to pthread yield
 
     // blocked in native, do pthread yield
     asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
@@ -401,7 +401,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     VM_ProcessorLocalState.emitCompareAndExchangeField(asm, 
                                                        VM_Entrypoints.vpStatusField.getOffset(),
                                                        T1); // atomic compare-and-exchange
-    asm.emitJCC_Cond_Imm(asm.NE,retryLabel);
+    asm.emitJCC_Cond_Imm(VM_Assembler.NE,retryLabel);
                                                                         
     // status is now IN_JAVA (normal operation)
 

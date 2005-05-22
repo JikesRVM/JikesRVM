@@ -175,7 +175,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
     TraceGenerator.addTraceObject(object, allocator);
     switch (allocator) {
     case  ALLOC_DEFAULT: break;
-    case ALLOC_IMMORTAL: ImmortalSpace.postAlloc(object); break;
+    case ALLOC_IMMORTAL: immortalSpace.postAlloc(object); break;
     case      ALLOC_LOS: loSpace.initializeHeader(object); break;
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator"); 

@@ -1099,7 +1099,7 @@ public class GenerateAssembler {
      * one-to-one mapping in each each IA332_ opt operator represents
      * an IA32 opcde, so this method might seem useless.  However,
      * there are some special cases, notably for operand size.  In
-     * this case, an opt operator of the form ADD$B would mean use the
+     * this case, an opt operator of the form ADD__B would mean use the
      * ADD IA32 opcode with a byte operand size.  
      */
     private static Set getMatchingOperators(String lowLevelOpcode) {
@@ -1107,7 +1107,7 @@ public class GenerateAssembler {
         Set matchingOperators = new HashSet();
         while (e.hasNext()) {
             String o = (String) e.next();
-            if (o.equals(lowLevelOpcode) || o.startsWith(lowLevelOpcode+"$"))
+            if (o.equals(lowLevelOpcode) || o.startsWith(lowLevelOpcode+"__"))
                 matchingOperators.add( o );
         }
 

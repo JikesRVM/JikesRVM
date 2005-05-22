@@ -138,7 +138,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMOV_RegDisp_Imm (S0, VM_Entrypoints.JNIPendingExceptionField.getOffset(), 0);    // clear the current pending exception
 
     asm.emitCMP_Reg_Imm(EBX, 0);   // check for exception pending:  JNIPendingException = non zero
-    VM_ForwardReference fr = asm.forwardJcc(asm.EQ);            // Br if yes
+    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);            // Br if yes
 
     // if pending exception, discard the return value and current stack frame
     // then jump to athrow 
@@ -403,7 +403,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       if (types[argIndex].isReferenceType()) {
         asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
         asm.emitCMP_Reg_Imm(EBX, 0);
-        VM_ForwardReference beq = asm.forwardJcc(asm.EQ);
+        VM_ForwardReference beq = asm.forwardJcc(VM_Assembler.EQ);
         pushJNIref(asm);
         beq.resolve(asm);
         asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), EBX);
@@ -577,7 +577,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // load savedFP with the index to the last frame
     asm.emitMOV_Reg_RegDisp (EBX, S0, VM_Entrypoints.JNIRefsField.getOffset());          // ebx <- JNIRefs base
-    asm.emitMOV_Reg_RegIdx  (EBX, EBX, T1, asm.BYTE, Offset.zero());                                 // ebx <- (JNIRefs base + SavedFP index)
+    asm.emitMOV_Reg_RegIdx  (EBX, EBX, T1, VM_Assembler.BYTE, Offset.zero());                                 // ebx <- (JNIRefs base + SavedFP index)
     asm.emitMOV_RegDisp_Reg (S0, VM_Entrypoints.JNIRefsSavedFPField.getOffset(), EBX);   // JNIRefsSavedFP <- ebx
   }
   
@@ -684,7 +684,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, T0,
                                               VM_Entrypoints.vpStatusField.getOffset());
     asm.emitCMP_Reg_Imm (T0, VM_Processor.IN_NATIVE);      // jmp if still IN_NATIVE
-    VM_ForwardReference fr = asm.forwardJcc(asm.EQ);       // if so, skip 3 instructions
+    VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.EQ);       // if so, skip 3 instructions
 
     // blocked in native, do pthread yield
     asm.emitMOV_Reg_RegDisp(T0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T0<-bootrecord addr
@@ -699,7 +699,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     VM_ProcessorLocalState.emitCompareAndExchangeField(asm, 
                                                        VM_Entrypoints.vpStatusField.getOffset(),
                                                        T1); // atomic compare-and-exchange
-    asm.emitJCC_Cond_Imm(asm.NE,retryLabel);
+    asm.emitJCC_Cond_Imm(VM_Assembler.NE,retryLabel);
 
     // END of code sequence to change state from IN_NATIVE to IN_JAVA
 

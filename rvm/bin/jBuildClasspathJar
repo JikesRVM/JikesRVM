@@ -224,14 +224,7 @@ cd $SRC
 # This will only be needed if you are using a CVS release.
 if [[ ! -e $SRC/configure ]]; then
     echo >&2 "Setting up source tree"
-    if [[ `uname -m` = i686 ]]; then
-      aclocal
-    else
-      aclocal -I $RVM_ROOT/rvm/config/m4
-    fi
-    autoheader
-    automake
-    autoconf
+    ./autogen.sh
 fi
 
 function aix_cleanups() {

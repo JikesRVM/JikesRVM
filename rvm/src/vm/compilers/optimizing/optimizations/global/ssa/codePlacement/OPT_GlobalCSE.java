@@ -41,7 +41,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     dominator = ir.HIRInfo.dominatorTree;
     (new OPT_GlobalValueNumber()).perform(ir);
     valueNumbers = ir.HIRInfo.valueNumbers;
-    if (true || ir.IRStage == ir.LIR) {
+    if (true || ir.IRStage == OPT_IR.LIR) {
       if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
       OPT_DefUse.computeDU(ir);
       OPT_Simple.copyPropagation(ir);

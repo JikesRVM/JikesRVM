@@ -1231,7 +1231,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       }
 
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      int type = phys.getPhysicalRegisterType(r);
+      int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(r);
 
       // next attempt to allocate to a volatile
       if (!restrict.allVolatilesForbidden(r)) {
@@ -1277,7 +1277,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       }
 
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      int type = phys.getPhysicalRegisterType(symb);
+      int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symb);
 
       // next attempt to allocate to a volatile
       if (!restrict.allVolatilesForbidden(symb)) {
@@ -1940,7 +1940,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       OPT_Register r = ci.getRegister();
       OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      int type = phys.getPhysicalRegisterType(r);
+      int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(r);
       if (type == -1) {
         type = DOUBLE_REG;
       }
@@ -2497,7 +2497,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
               if (r.isPhysical() && r.isFloatingPoint() &&
                   s.operator() != DUMMY_DEF && 
                   s.operator() != DUMMY_USE) {
-                int n = phys.getFPRIndex(r);
+                int n = OPT_PhysicalRegisterSet.getFPRIndex(r);
                 if (fpStackOffset != 0) {
                   n += fpStackOffset;
                   rop.register = phys.getFPR(n);
@@ -2672,9 +2672,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                       sym_reg.getSpillAllocated()
                       );
       } else {
-
-        (new OPT_IRPrinter("PANIC")).dumpIR(ir, "PANIC");
-
+        dumpIR(ir, "PANIC");
         throw new RuntimeException("OPT_LinearScan PANIC in OSRMAP, "
                                        +sym_reg+" is not alive");
       }

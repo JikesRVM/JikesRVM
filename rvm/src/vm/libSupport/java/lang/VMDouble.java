@@ -13,6 +13,12 @@ import com.ibm.JikesRVM.VM_Magic;
  */
 final class VMDouble {
 
+  static {
+    //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_CVS_HEAD
+    initIDs();
+    //-#endif
+  };
+
   static long doubleToLongBits(double value) {
     long val = VM_Magic.doubleAsLongBits(value);
     long exponent = val & 0x7ff0000000000000L;
@@ -31,4 +37,10 @@ final class VMDouble {
   static double longBitsToDouble(long bits) {
     return VM_Magic.longBitsAsDouble(bits);
   }
+
+  public static native String toString(double d, boolean isFloat);
+
+  public static native void initIDs();
+
+  public static native double parseDouble(String str);
 }

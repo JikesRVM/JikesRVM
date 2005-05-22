@@ -177,8 +177,8 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
             // eliminate useless move
             p.remove(); 
           } else {
-            int i = phys.getFPRIndex(result.asRegister().register);   
-            int j = phys.getFPRIndex(value.asRegister().register);   
+            int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().register);   
+            int j = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().register);   
             if (i == 0) {
               MIR_XChng.mutate(p, IA32_FXCH, result, value);
             } else if (j == 0) {
@@ -295,8 +295,8 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
         // eliminate useless move
         s.remove(); 
       } else { 
-        int i = phys.getFPRIndex(result.asRegister().register);   
-        int j = phys.getFPRIndex(value.asRegister().register);   
+        int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().register);   
+        int j = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().register);   
         if (j == 0) {
           // We have FMOV Fi, F0
           // Expand as:
@@ -327,7 +327,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
         //        FLD M    (push M on FP stack).
         //        FSTP F(i+1)  (copy F0 to F(i+1) and pop register stack)
         if (VM.VerifyAssertions) VM._assert(result.isRegister());
-        int i = phys.getFPRIndex(result.asRegister().register);   
+        int i = OPT_PhysicalRegisterSet.getFPRIndex(result.asRegister().register);   
         s.insertBefore(MIR_Move.create(IA32_FLD,D(phys.getFPR(0)),value));
         MIR_Move.mutate(s,IA32_FSTP,D(phys.getFPR(i+1)),D(phys.getFPR(0)));
       }
@@ -336,7 +336,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
       if (VM.VerifyAssertions) VM._assert(value.isRegister());
       if (VM.VerifyAssertions) 
         VM._assert(result instanceof OPT_MemoryOperand);
-      int i = phys.getFPRIndex(value.asRegister().register);   
+      int i = OPT_PhysicalRegisterSet.getFPRIndex(value.asRegister().register);   
       if (i!=0) {
         // Expand as:
         //        FLD Fi    (push Fi on FP stack).

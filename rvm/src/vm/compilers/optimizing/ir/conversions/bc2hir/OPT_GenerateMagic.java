@@ -463,7 +463,7 @@ class OPT_GenerateMagic implements OPT_Operators,
       bc2ir.pushDual(op0.copyD2U());
     } else if (methodName == VM_MagicNames.getObjectType) {
       OPT_Operand val = bc2ir.popRef();
-      OPT_Operand guard = bc2ir.getGuard(val);
+      OPT_Operand guard = OPT_BC2IR.getGuard(val);
       if (guard == null) {
         // it's magic, so assume that it's OK....
         guard = new OPT_TrueGuardOperand(); 

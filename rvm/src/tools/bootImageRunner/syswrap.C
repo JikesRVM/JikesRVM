@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <jni.h>
 
+#include <string.h>
 #include <sys/poll.h>
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS

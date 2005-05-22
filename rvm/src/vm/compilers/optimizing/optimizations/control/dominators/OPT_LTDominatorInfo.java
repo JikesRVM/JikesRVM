@@ -34,7 +34,7 @@ class OPT_LTDominatorInfo {
   // block, otherwise, we'll skip the (redundant) 
   // initialization step for the block
   //  See OPT_LTDominators.DFS() for details
-  private OPT_BasicBlockEnumeration enum;
+  private OPT_BasicBlockEnumeration bbEnum;
 
   /**
    * @param block the basic block this info is associated with
@@ -48,7 +48,7 @@ class OPT_LTDominatorInfo {
     label = block;
     size = 1;
     child = null;
-    enum = null;
+    bbEnum = null;
   }
 
   /**
@@ -235,15 +235,15 @@ class OPT_LTDominatorInfo {
    * @return the basic block enumeration, could be null
    */
   public OPT_BasicBlockEnumeration getEnum() {
-    return enum;
+    return bbEnum;
   }
 
   /**
    * set the basic block enum field
-   * @param enum basic block enum
+   * @param bbEnum basic block enum
    */
-  public void setEnum(OPT_BasicBlockEnumeration enum) {
-    this.enum = enum;
+  public void setEnum(OPT_BasicBlockEnumeration bbEnum) {
+    this.bbEnum = bbEnum;
   }
 
   /**

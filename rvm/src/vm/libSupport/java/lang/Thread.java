@@ -40,7 +40,9 @@ public class Thread implements Runnable {
   private ClassLoader contextClassLoader = null;
     
   private volatile boolean isInterrupted;
-    
+
+  java.util.WeakHashMap locals = new java.util.WeakHashMap();
+  
   // Special constructor to create thread that has no parent.
   // Only for use by MainThread() constructor.
   // ugh. protected, should probably be default. fix this.
@@ -430,6 +432,9 @@ public class Thread implements Runnable {
   public static boolean holdsLock(Object obj) {
     return VM_Lock.owns(obj);
   }
-  
+
+  static java.util.Map getThreadLocals() {
+    return currentThread().locals;
+  }
 
 }

@@ -190,7 +190,7 @@ public final class OPT_Register {
   void cloneTo(OPT_Register reg, OPT_IR ir) {
     int newNumber = reg.number;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    if (newNumber < phys.getSize()) { 
+    if (newNumber < OPT_PhysicalRegisterSet.getSize()) { 
       number = newNumber;
       flags  = phys.get(number).flags;
     }
