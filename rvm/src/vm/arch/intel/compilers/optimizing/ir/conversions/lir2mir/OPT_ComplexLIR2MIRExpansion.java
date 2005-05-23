@@ -28,6 +28,9 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
          s != null; s = nextInstr) {
       switch (s.getOpcode()) {
+		case BOOLEAN_CMP_LONG_opcode:
+		  nextInstr = boolean_cmp_long(s, ir);
+		  break;
       case LONG_SHL_ACC_opcode:
         nextInstr = long_shl(s, ir);
         break;
@@ -268,6 +271,12 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       lt32BB.appendInstruction(MIR_BinaryAcc.create(IA32_SHR, R(hval), R(ecx)));
     }
     return nextInstr;
+  }
+
+
+  private static OPT_Instruction boolean_cmp_long(OPT_Instruction s, OPT_IR ir) {
+	 OPT_OptimizingCompilerException.TODO();
+	 return s; // keep jikes happy
   }
 
 

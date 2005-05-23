@@ -1230,6 +1230,27 @@ compare
 
 
 
+# Compare two int values (int register/contant operands) and put boolean result in register
+BOOLEAN_CMP_LONG
+BooleanCmp
+compare
+
+
+
+# Compare two float values (int register/contant operands) and put boolean result in register
+BOOLEAN_CMP_FLOAT
+BooleanCmp
+compare
+
+
+
+# Compare two float values (int register/contant operands) and put boolean result in register
+BOOLEAN_CMP_DOUBLE
+BooleanCmp
+compare
+
+
+
 # Load a singed byte
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the actual load instruction can except.

@@ -380,6 +380,8 @@ emitBinaryReg MOV \: 0x89 0x8B word
 
 emitBinaryReg CMPXCHG \<\-\> 0xB1 none 0x0F
 
+emitBinaryReg BT BT 0xA3 none 0x0F
+
 function emitCall() {
   acronym=$1
   rel8Code=$2

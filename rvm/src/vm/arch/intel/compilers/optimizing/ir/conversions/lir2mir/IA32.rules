@@ -714,6 +714,53 @@ stm:	BYTE_ASTORE(boolcmp, OTHER_OPERAND(r,riv))
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 EMIT(MIR_Set.mutate(P(p), IA32_SET__B, MO_AS(P(p),B_S,B), COND(consumeCOND())));
 
+#####
+# BOOLEAN_CMP_LONG
+#####
+r:	BOOLEAN_CMP_LONG(r,rlv)
+39
+EMIT_INSTRUCTION
+EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+
+boolcmp: BOOLEAN_CMP_LONG(r,rlv)
+13
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \
+EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+
+#####
+# BOOLEAN_CMP_FLOAT
+#####
+r:	BOOLEAN_CMP_FLOAT(r,r)
+39
+EMIT_INSTRUCTION
+BOOLEAN_CMP_DOUBLE(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)), \
+                  BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)));
+
+boolcmp: BOOLEAN_CMP_FLOAT(r,r)
+13
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(P(p))))); \
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(P(p)))));
+
+#####
+# BOOLEAN_CMP_DOUBLE
+#####
+r:	BOOLEAN_CMP_DOUBLE(r,r)
+39
+EMIT_INSTRUCTION
+BOOLEAN_CMP_DOUBLE(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)), \
+                  BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)));
+
+boolcmp: BOOLEAN_CMP_DOUBLE(r,r)
+13
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p))); \
+EMIT(CPOS(P(p), MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(P(p))))); \
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(P(p)))));
+
 ##################################
 # Conditional moves
 ##################################
@@ -818,24 +865,168 @@ EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r: FCMP_CMOV(r, OTHER_OPERAND(riv, any))
-(13 + 30)
-EMIT_INSTRUCTION
-EMIT(CPOS(P(p), MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(P(p))))); \
-EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(P(p))))); \
-CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
-         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
-
+#####
+# CMP_FCMOV
+#####
 r: CMP_FCMOV(r, OTHER_OPERAND(riv, any))
 (13 + 30)
 EMIT_INSTRUCTION
-throw new Error("TODO FCMP_CMOV");
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP,  CondMove.getVal1(P(p)), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
-r: FCMP_FCMOV(r, OTHER_OPERAND(riv, any))
-(13 + 30)
+r: CMP_FCMOV(r, OTHER_OPERAND(INT_CONSTANT, any))
+VRL(p) == 0 && EQ_NE(CondMove.getCond(P(p)))?(11 + 30):INFINITE
 EMIT_INSTRUCTION
-throw new Error("TODO FCMP_FCMOV");
+EMIT(MIR_Test.create(IA32_TEST, CondMove.getVal1(P(p)), CondMove.getVal1(P(p)).copy())); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
+# Because uload is only used for booleans (0/1) we can get away
+# with this for both signed and unsigned loads.
+r: CMP_FCMOV(load8, OTHER_OPERAND(INT_CONSTANT, any))
+FITS(CondMove.getVal2(P(p)), 8, (15 + 30))
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# We only use uload8 for boolean values, so if the IR is well-typed,
+# then r must contain either 0 or 1 and we can do this.
+r: CMP_FCMOV(uload8, OTHER_OPERAND(r, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# We only use uload8 for boolean values, so if the IR is well-typed,
+# then r must contain either 0 or 1 and we can do this.
+r: CMP_FCMOV(r, OTHER_OPERAND(uload8, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_FCMOV(sload16, OTHER_OPERAND(INT_CONSTANT, any))
+FITS(CondMove.getVal2(P(p)), 8, (15 + 30))
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_FCMOV(load32, OTHER_OPERAND(riv, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, consumeMO(), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_FCMOV(r, OTHER_OPERAND(load32, any))
+(15 + 30)
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, CondMove.getVal1(P(p)), consumeMO()))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# CMP_FCMOV((boolcmp, 0/1), tv, fv)
+r: CMP_FCMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
+VRL(p) == 0 && (CondMove.getCond(P(p)).isNOT_EQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), consumeCOND(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_FCMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
+VRL(p) == 0 && (CondMove.getCond(P(p)).isEQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), consumeCOND().flipCode(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_FCMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
+VRL(p) == 1 && (CondMove.getCond(P(p)).isEQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), consumeCOND(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: CMP_FCMOV(boolcmp, OTHER_OPERAND(INT_CONSTANT, any))
+VRL(p) == 1 && (CondMove.getCond(P(p)).isNOT_EQUAL())?(0 + 30):INFINITE
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), consumeCOND().flipCode(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# CMOV((cz, 0), tv ,fv); condition code already set
+r: CMP_FCMOV(cz, OTHER_OPERAND(INT_CONSTANT, any))
+isZERO(VRL(p), 30)
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# CMOV((szp, 0), tv ,fv); condition code already set
+r: CMP_FCMOV(szp, OTHER_OPERAND(INT_CONSTANT, any))
+isZERO(VRL(p), 30)
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+#####
+# FCMP_CMOV
+#####
+# Optimize for one operand already on the FP stack
+r: FCMP_CMOV(fp0, OTHER_OPERAND(r, any))
+30
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), CondMove.getVal2(P(p))))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_CMOV(pfp0, OTHER_OPERAND(r, any))
+35
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMIP, myFP0(), CondMove.getVal2(P(p))))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_CMOV(r, OTHER_OPERAND(r, any))
+p.child1.isREGISTERNode()?60:43
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(P(p))))); \
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(P(p))))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# Can't optimize cases: FCMP_CMOV(r, OTHER_OPERAND(fp0/pfp0, any)) or
+# for child2 being a register as flip operands may produce an invalid
+# FP comparison
+#####
+# FCMP_FCMOV
+#####
+# Optimize for one operand already on the FP stack
+r: FCMP_FCMOV(fp0, OTHER_OPERAND(r, any))
+30
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMI, F(getFPR(0)), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_FCMOV(pfp0, OTHER_OPERAND(r, any))
+35
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMIP, myFP0(), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_FCMOV(r, OTHER_OPERAND(r, any))
+p.child1.isREGISTERNode()?60:43
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(P(p))))); \
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(P(p))))); \
+CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# Can't optimize cases: FCMP_CMOV(r, OTHER_OPERAND(fp0/pfp0, any)) or
+# for child2 being a register as flip operands may produce an invalid
+# FP comparison
 ##################################
 # Basic Integer ALU operations 
 ##################################
@@ -3740,3 +3931,137 @@ stm:	YIELDPOINT_OSR(any, any)
 10
 EMIT_INSTRUCTION
 OSR(burs, P(p));
+
+# Find bit test instructions - bt base, offset
+# NB bit test sets the carry flag not the zero flag
+#   boolean_cmp_int
+#      int_and_acc             L
+#         register             LL <-- base
+#         int_shl_acc          LR
+#            int_move          LRL
+#               INT_CONSTANT 1 LRLL
+#            register          LRR  <-- offset
+#      INT_CONSTANT 0          R
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(r,INT_SHL_ACC(INT_MOVE(INT_CONSTANT),riv)), INT_CONSTANT)
+(VR(p) == 0) && (VLRLL(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PL(p)), BinaryAcc.getValue(PLR(p)))); \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+                                                  OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
+
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(r,INT_SHL_ACC(INT_MOVE(INT_CONSTANT),riv)), INT_CONSTANT)
+(VR(p) == 0) && (VLRLL(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+         OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PL(p)), BinaryAcc.getValue(PLR(p))));
+
+#   boolean_cmp_int
+#      int_and_acc             L
+#         int_shl_acc          LL
+#            int_move          LLL
+#               INT_CONSTANT 1 LLLL
+#            register          LLR <-- offset
+#         register             LR <-- base
+#      INT_CONSTANT 0          R
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_SHL_ACC(INT_MOVE(INT_CONSTANT),riv),r), INT_CONSTANT)
+(VR(p) == 0) && (VLLLL(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getValue(PL(p)), BinaryAcc.getValue(PLL(p)))); \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+                                                  OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
+
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_SHL_ACC(INT_MOVE(INT_CONSTANT),riv),r), INT_CONSTANT)
+(VR(p) == 0) && (VLLLL(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+         OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getValue(PL(p)), BinaryAcc.getValue(PLL(p))));
+
+#   boolean_cmp_int
+#      int_and_acc       L
+#         int_move       LL
+#            int_shr_acc LLL
+#               register LLLL <-- base
+#               register LLLR <-- offset
+#         INT_CONSTANT 1 LR
+#      INT_CONSTANT 0    R
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 0) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+                                                  OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
+
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 0) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+         OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));
+
+#   boolean_cmp_int
+#      int_and_acc       L
+#         int_move       LL
+#            int_shr_acc LLL
+#               register LLLL <-- base
+#               register LLLR <-- offset
+#         INT_CONSTANT 1 LR
+#      INT_CONSTANT 1    R
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
+                                                  OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
+
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
+         OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));
+
+#   boolean_cmp_int
+#      int_and_acc        L
+#         int_move        LL
+#            int_ushr_acc LLL
+#               register  LLLL <-- base
+#               register  LLLR <-- offset
+#         INT_CONSTANT 1  LR
+#      INT_CONSTANT 0     R
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 0) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+                                                  OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
+
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 0) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
+         OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));
+
+#   boolean_cmp_int
+#      int_and_acc        L
+#         int_move        LL
+#            int_ushr_acc LLL
+#               register  LLLL <-- base
+#               register  LLLR <-- offset
+#         INT_CONSTANT 1  LR
+#      INT_CONSTANT 1     R
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
+                                                  OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
+
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+(VR(p) == 1) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
+EMIT_INSTRUCTION
+pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
+         OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));

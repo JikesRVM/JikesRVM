@@ -32,9 +32,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     OPT_ConditionOperand ans = cc;
     if (VM.VerifyAssertions) {
       VM._assert(cc != null);
-      cc = null;
     }
-    return ans;
+	 cc = null;
+	 return ans;
   }
 
   // can an IV be the scale in a LEA instruction?
@@ -953,7 +953,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param cond   the condition operand
    */
   protected final void BOOLEAN_CMP_INT(OPT_Instruction s,
-                                   OPT_Operand res, 
+                                   OPT_RegisterOperand res, 
                                    OPT_Operand val1,
                                    OPT_Operand val2,
                                    OPT_ConditionOperand cond) {
@@ -974,9 +974,31 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param cond   the condition operand
    */
   protected final void BOOLEAN_CMP_INT(OPT_Instruction s,
-                                   OPT_Operand res, 
+                                   OPT_RegisterOperand res, 
                                    OPT_ConditionOperand cond) {
     OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
+    EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
+    EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyD2U()));
+  }
+
+
+  /**
+   * Expansion of BOOLEAN_CMP_DOUBLE
+   *
+   * @param s the instruction to copy position info from
+   * @param result the result operand
+   * @param val1   the first value
+   * @param val2   the second value
+   * @param cond   the condition operand
+   */
+  protected final void BOOLEAN_CMP_DOUBLE(OPT_Instruction s,
+														OPT_RegisterOperand res, 
+														OPT_ConditionOperand cond,
+														OPT_Operand val1,
+														OPT_Operand val2) {
+    OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
+	 EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(s))));
+	 EMIT(CPOS(s, MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(s))));
     EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
     EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyD2U()));
   }

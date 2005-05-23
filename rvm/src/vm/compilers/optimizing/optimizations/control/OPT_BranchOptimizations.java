@@ -597,6 +597,8 @@ public final class OPT_BranchOptimizations
    * of condition codes.
    * </ul>
    *
+   * @modified Ian Rogers
+   *
    * @param ir governing IR
    * @param bb basic block of cb
    * @param cb conditional branch instruction
@@ -618,20 +620,40 @@ public final class OPT_BranchOptimizations
     if (taken != null && hasCMTaboo(taken)) return false;
     if (notTaken != null && hasCMTaboo(notTaken)) return false;
 
-    // if we must generate FCMOV, make sure the condition code is OK
-    if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
-      if (!fpConditionOK(IfCmp.getCond(cb))) return false;
+    // if we must generate FCMP, make sure the condition code is OK
+	 OPT_ConditionOperand cond = IfCmp.getCond(cb);
+    if (cond.isFLOATINGPOINT()) {
+      if (!fpConditionOK(cond)) {
+		  // Condition not OK, but maybe if we flip the operands
+		  if(!fpConditionOK(cond.flipOperands())) {
+			 // still not ok so flip operands back and give up
+			 cond.flipOperands();
+			 return false;
+		  }
+		  else {
+			 // flip operands
+			 OPT_Operand val1 = IfCmp.getVal1(cb);
+			 OPT_Operand val2 = IfCmp.getVal2(cb);
+			 IfCmp.setVal1(cb, val2);
+			 IfCmp.setVal2(cb, val1);
+		  }
+		}
     }
+	 
+	 // Can only generate FMOV instructions for FP and unsigned int compares
+	 if(!cond.isFLOATINGPOINT() || !cond.isUNSIGNED()) {
+		if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
+		  return false;
+		}
+	 }
 
     // For now, do not generate CMOVs if the condition depends on
-    // floating-point compares, with troublesome NaN semantics
-    if (IfCmp.getVal1(cb).isRegister()) {
-      OPT_Register r = IfCmp.getVal1(cb).asRegister().register;
-      if (r.isFloatingPoint() || r.isLong()) return false;
-    } else if (IfCmp.getVal2(cb).isRegister()) { 
-      OPT_Register r = IfCmp.getVal2(cb).asRegister().register;
-      if (r.isFloatingPoint() || r.isLong()) return false;
-    }
+    // long compares
+    if ((IfCmp.getVal1(cb).isRegister() &&  IfCmp.getVal1(cb).asRegister().register.isLong()) ||
+		  (IfCmp.getVal2(cb).isRegister() &&  IfCmp.getVal2(cb).asRegister().register.isLong())) {
+		return false;
+	 }
+
     // Don't generate CMOVs for branches that can be folded.
     if (IfCmp.getVal1(cb).isConstant() && IfCmp.getVal2(cb).isConstant()) {
       return false;
@@ -661,14 +683,32 @@ public final class OPT_BranchOptimizations
   }
 
   /**
-   * Is a specified condition operand OK to transfer into an FCMOV
+   * Is a specified condition operand 'safe' to transfer into an FCMP
    * instruction?
    */
   private boolean fpConditionOK(OPT_ConditionOperand c) {
-    // For now, we never say it's OK to generate an FCMOV. 
-    // We don't have support yet in case either operand of the condition
-    // is a NaN.
-    return false;
+    // FCOMI sets ZF, PF, and CF as follows: 
+    // Compare Results      ZF     PF      CF
+    // left > right          0      0       0
+    // left < right          0      0       1
+    // left == right         1      0       0
+    // UNORDERED             1      1       1
+    switch(c.value) {
+    case OPT_ConditionOperand.CMPL_EQUAL:         return false; // (ZF == 1) but ordered
+    case OPT_ConditionOperand.CMPL_NOT_EQUAL:     return false; // (ZF == 0) but unordered
+    case OPT_ConditionOperand.CMPG_LESS:          return false; // (CF == 1) but ordered
+    case OPT_ConditionOperand.CMPG_GREATER_EQUAL: return false; // (CF == 0) but unordered
+    case OPT_ConditionOperand.CMPG_LESS_EQUAL:    return false; // (CF == 1 || ZF == 1) but ordered
+    case OPT_ConditionOperand.CMPG_GREATER:       return false; // (CF == 0 && ZF == 0) but unordered
+
+    case OPT_ConditionOperand.CMPL_GREATER:       return true; // (CF == 0 && ZF == 0) and ordered
+    case OPT_ConditionOperand.CMPL_LESS_EQUAL:    return true; // (CF == 1 || ZF == 1) and unordered
+    case OPT_ConditionOperand.CMPL_GREATER_EQUAL: return true; // (CF == 0) and ordered
+    case OPT_ConditionOperand.CMPL_LESS:          return true; // (CF == 1) and unordered
+	 default:
+      OPT_OptimizingCompilerException.UNREACHABLE();
+		return false; // keep jikes happy
+	 }
   }
 
   /**

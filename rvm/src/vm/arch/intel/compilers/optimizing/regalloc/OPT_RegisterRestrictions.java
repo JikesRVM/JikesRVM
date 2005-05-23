@@ -240,6 +240,16 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
           }
         }
         break;
+      case IA32_BT_opcode:
+        {
+			 // val2 of bit test must be either a constant or register
+          if (!MIR_Test.getVal2(s).isConstant()) {
+            if (MIR_Test.getVal2(s).isRegister()) {
+              if (MIR_Test.getVal2(s).asRegister().register == r) return true;
+				}
+			 }
+        }
+        break;
 
       default:
         break;

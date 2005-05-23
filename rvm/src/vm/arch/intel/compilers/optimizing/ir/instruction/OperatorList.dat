@@ -505,6 +505,13 @@ none
 AF_CF_OF_PF_SF_ZF
 
 
+####################
+IA32_BT
+MIR_Test
+none
+CF
+
+
 #########################################################
 # Used for special system calls.
 # NOTE: May indirectly be a PEI (due to callee), but the actual call itself
