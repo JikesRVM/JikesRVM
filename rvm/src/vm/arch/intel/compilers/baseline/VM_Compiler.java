@@ -891,39 +891,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert (ECX != T1);
     if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
-    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
-    // 2: pop low half into T0
-    // 3: pop high half into T1
-    // 4: ECX <- JTOC, copy the shift count
-    // 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-    // 6: branch to step 12 if results is zero
-    // the result is not zero --> the shift amount is greater than 32
-    // 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-    // 8: T1 <- T0, or replace the high half with the low half.  This accounts for the 32 bit shift
-    // 9: shift T1 left by ECX bits
-    // 10: T0 <- 0
-    // 11: branch to step 14
-    // 12: shift left double from T0 into T1 by ECX bits.  T0 is unaltered
-    // 13: shift left T0, the low half, also by ECX bits
-    // 14: push high half from T1
-    // 15: push the low half from T0
-    // 16: restore the JTOC
-    asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
+    asm.emitPOP_Reg (ECX);                  // shift amount (6 bits)
     asm.emitPOP_Reg (T0);                   // pop low half 
     asm.emitPOP_Reg (T1);                   // pop high half
-    asm.emitMOV_Reg_Reg (ECX, JTOC);
-    asm.emitAND_Reg_Imm (JTOC, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);
-    asm.emitXOR_Reg_Reg (ECX, JTOC);
-    asm.emitMOV_Reg_Reg (T1, T0);               // low replaces high
-    asm.emitSHL_Reg_Reg (T1, ECX);
-    asm.emitXOR_Reg_Reg (T0, T0);
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);          // shift high half (step 12)
-    asm.emitSHL_Reg_Reg (T0, ECX);                   // shift low half
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half (step 14)
+    asm.emitXOR_Reg_Reg (JTOC, JTOC);       // JTOC = 0
+    asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);  // shift high half
+    asm.emitSHL_Reg_Reg (T0, ECX);          // shift low half
+    asm.emitAND_Reg_Imm (ECX, 32);          // shift > 32bits ?
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, T0);   // T1 <- (shift > 32) ? T0 : T1
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, JTOC); // T0 <- (shift > 32) ? JTOC : T0
+    asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
@@ -936,41 +913,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert (ECX != T1);
     if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
-    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
-    // 2: pop low half into T0
-    // 3: pop high half into T1
-    // 4: ECX <- JTOC, copy the shift count
-    // 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-    // 6: branch to step 13 if results is zero
-    // the result is not zero --> the shift amount is greater than 32
-    // 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-    // 8: T0 <- T1, or replace the low half with the high half.  This accounts for the 32 bit shift
-    // 9: shift T0 right arithmetic by ECX bits
-    // 10: ECX <- 31
-    // 11: shift T1 right arithmetic by ECX=31 bits, thus exending the sigh
-    // 12: branch to step 15
-    // 13: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
-    // 14: shift right arithmetic T1, the high half, also by ECX bits
-    // 15: push high half from T1
-    // 16: push the low half from T0
-    // 17: restore JTOC
-    asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
+    asm.emitPOP_Reg (ECX);                  // shift amount (6 bits)
     asm.emitPOP_Reg (T0);                   // pop low half 
-    asm.emitPOP_Reg (T1);                   // pop high
-    asm.emitMOV_Reg_Reg (ECX, JTOC);
-    asm.emitAND_Reg_Imm (JTOC, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);
-    asm.emitXOR_Reg_Reg (ECX, JTOC);
-    asm.emitMOV_Reg_Reg (T0, T1);               // replace low with high
-    asm.emitSAR_Reg_Reg (T0, ECX);                   // and shift it
-    asm.emitMOV_Reg_Imm (ECX, 31);
-    asm.emitSAR_Reg_Reg (T1, ECX);                   // set high half
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half (step 13)
-    asm.emitSAR_Reg_Reg (T1, ECX);                   // shift high half
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half (step 15)
+    asm.emitPOP_Reg (T1);                   // pop high half
+    asm.emitMOV_Reg_Reg (JTOC, T1);
+    asm.emitSAR_Reg_Imm (JTOC, 31);         // JTOC = (high half) >> 31
+    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
+    asm.emitSAR_Reg_Reg (T1, ECX);          // shift low half
+    asm.emitAND_Reg_Imm (ECX, 32);          // shift > 32bits ?
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, T1);   // T0 <- (shift > 32) ? T1 : T0
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, JTOC); // T1 <- (shift > 32) ? JTOC : T1
+    asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
@@ -983,40 +936,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert (ECX != T1);
     if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
-    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
-    // 2: pop low half into T0
-    // 3: ECX <- JTOC, copy the shift count
-    // 4: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-    // 5: branch to step 11 if results is zero
-    // the result is not zero --> the shift amount is greater than 32
-    // 6: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-    // 7: pop high half into T0 replace the low half with the high 
-    //        half.  This accounts for the 32 bit shift
-    // 8: shift T0 right logical by ECX bits
-    // 9: T1 <- 0                        T1 is the high half
-    // 10: branch to step 14
-    // 11: pop high half into T1
-    // 12: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
-    // 13: shift right logical T1, the high half, also by ECX bits
-    // 14: push high half from T1
-    // 15: push the low half from T0
-    // 16: restore JTOC
-    asm.emitPOP_Reg(JTOC);                // original shift amount 6 bits
-    asm.emitPOP_Reg(T0);                  // pop low half 
-    asm.emitMOV_Reg_Reg(ECX, JTOC);
-    asm.emitAND_Reg_Imm(JTOC, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);
-    asm.emitXOR_Reg_Reg (ECX, JTOC);
-    asm.emitPOP_Reg (T0);                   // replace low with high
-    asm.emitSHR_Reg_Reg (T0, ECX);      // and shift it (count - 32)
-    asm.emitXOR_Reg_Reg (T1, T1);               // high <- 0
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPOP_Reg (T1);                   // high half (step 11)
-    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half
-    asm.emitSHR_Reg_Reg (T1, ECX);                   // shift high half
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half (step 14)
+    asm.emitPOP_Reg (ECX);                  // shift amount (6 bits)
+    asm.emitPOP_Reg (T0);                   // pop low half 
+    asm.emitPOP_Reg (T1);                   // pop high half
+    asm.emitXOR_Reg_Reg (JTOC, JTOC);       // JTOC = 0
+    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
+    asm.emitSHR_Reg_Reg (T1, ECX);          // shift low half
+    asm.emitAND_Reg_Imm (ECX, 32);          // shift > 32bits ?
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, T1);   // T0 <- (shift > 32) ? T1 : T0
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, JTOC); // T1 <- (shift > 32) ? JTOC : T1
+    asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
