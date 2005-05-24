@@ -18,6 +18,7 @@ import org.vmmagic.unboxed.*;
  * @author Anthony Cocchi
  * @author Dave Grove
  * @author Perry Cheng
+ * @author Ian Rogers
  */
 public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
 
@@ -1336,129 +1337,92 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the lcmp bytecode
    */
   protected final void emit_lcmp() {
-    asm.emitPOP_Reg(T0);        // the low half of value2
-    asm.emitPOP_Reg(S0);        // the high half of value2
-    asm.emitPOP_Reg(T1);        // the low half of value1
-    asm.emitSUB_Reg_Reg(T1, T0);        // subtract the low half of value2 from
-                                // low half of value1, result into T1
-    asm.emitPOP_Reg(T0);        // the high half of value 1
-    //  pop does not alter the carry register
-    asm.emitSBB_Reg_Reg(T0, S0);        // subtract the high half of value2 plus
-                                // borrow from the high half of value 1,
-                                // result in T0
-    asm.emitMOV_Reg_Imm(S0, -1);        // load -1 into S0
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LT); // result negative --> branch to end
-    asm.emitMOV_Reg_Imm(S0, 0);        // load 0 into S0
-    asm.emitOR_Reg_Reg(T0, T1);        // result 0 
-    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.EQ); // result 0 --> branch to end
-    asm.emitMOV_Reg_Imm(S0, 1);        // load 1 into S0
-    fr1.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);        // push result on stack
+    asm.emitPOP_Reg(T0);                // (S0:T0) = (high half value2: low half value2)
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T1);                // (..:T1) = (.. : low half of value1)
+    asm.emitSUB_Reg_Reg(T1, T0);        // T1 = T1 - T0
+    asm.emitPOP_Reg(T0);                // (T0:..) = (high half of value1 : ..)
+                                        // NB pop does not alter the carry register
+    asm.emitSBB_Reg_Reg(T0, S0);        // T0 = T0 - S0 - CF
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LT, S0); // S0 = (result -ve) ? 1 : 0
+    asm.emitOR_Reg_Reg(T0, T1);         // T0 = T0 | T1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.NE, T0); // T0 = (result zero) ? 0 : 1
+    asm.emitNEG_Reg(S0);                // S0 = (result -ve) ? -1 : 0
+    asm.emitOR_Reg_Reg(S0, T0);         // S0 = S0 | T0
+    asm.emitMOVSX_Reg_Reg_Byte(S0, S0); // Sign extend S0
+    asm.emitPUSH_Reg(S0);               // push result on stack
   }
 
   /**
    * Emit code to implement the fcmpl bytecode
    */
   protected final void emit_fcmpl() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                 // popping the stack
+    asm.emitXOR_Reg_Reg(T0, T0);                         // T0 <- 0
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, S0);     // S0 = (value1 > value2) ? 1 : 0
+    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = 0 - 0 - CF (i.e. (value1 < value2) || unordered  ? -1 : 0)
+    asm.emitOR_Reg_Reg(S0, T0);                          // S0 <- S0 | T0
+    asm.emitMOVSX_Reg_Reg_Byte(S0, S0);                  // Sign extend S0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(S0);                                // push result on stack
   }
 
   /**
    * Emit code to implement the fcmpg bytecode
    */
   protected final void emit_fcmpg() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                 // popping the stack
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.PE, S0);      // S0 = (value1 unordered value2) ? 1 : 0 (PF == 1)
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, T0);     // T0 = (value1 > value2) ? 1 : 0  (CF == 0 && ZF == 0)
+    asm.emitMOV_Reg_Reg(T1, S0);                         // T1 <- S0
+    asm.emitSBB_Reg_Imm(S0, 0);                          // S0 = 0/1 - 0 - CF  (i.e. value1 < value2 ? -1 : 0)
+    asm.emitOR_Reg_Reg(T0, T1);                          // T0 <- T0 | T1
+    asm.emitOR_Reg_Reg(T0, S0);                          // T0 <- T0 | S0
+    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);                  // Sign extend T0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(T0);                                // push result on stack
   }
 
   /**
    * Emit code to implement the dcmpl bytecode
    */
   protected final void emit_dcmpl() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                 // popping the stack
+    asm.emitXOR_Reg_Reg(T0, T0);                         // T0 <- 0
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, S0);     // S0 = (value1 > value2) ? 1 : 0
+    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = 0 - 0 - CF (i.e. (value1 < value2) || unordered  ? -1 : 0)
+    asm.emitOR_Reg_Reg(S0, T0);                          // S0 <- S0 | T0
+    asm.emitMOVSX_Reg_Reg_Byte(S0, S0);                  // Sign extend S0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(S0);                                // push result on stack
   }
 
   /**
    * Emit code to implement the dcmpg bytecode
    */
   protected final void emit_dcmpg() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                 // popping the stack
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.PE, S0);      // S0 = (value1 unordered value2) ? 1 : 0 (PF == 1)
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, T0);     // T0 = (value1 > value2) ? 1 : 0  (CF == 0 && ZF == 0)
+    asm.emitMOV_Reg_Reg(T1, S0);                         // T1 <- S0
+    asm.emitSBB_Reg_Imm(S0, 0);                          // S0 = 0/1 - 0 - CF  (i.e. value1 < value2 ? -1 : 0)
+    asm.emitOR_Reg_Reg(T0, T1);                          // T0 <- T0 | T1
+    asm.emitOR_Reg_Reg(T0, S0);                          // T0 <- T0 | S0
+    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);                  // Sign extend T0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(T0);                                // push result on stack
   }
 
 
