@@ -4,13 +4,10 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.options.*;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.scan.Scan;
@@ -18,6 +15,7 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
+import org.mmtk.vm.PlanConstants;
 import org.mmtk.vm.Scanning;
 import org.mmtk.vm.Statistics;
 import org.mmtk.vm.Collection;
@@ -175,7 +173,7 @@ public abstract class StopTheWorldGC extends BasePlan
 
     if (timekeeper) rootTime.start();
     Scanning.computeAllRoots(rootLocations, interiorRootLocations);
-    if (Plan.WITH_GCSPY) gcspyRoots(rootLocations, interiorRootLocations);
+    if (PlanConstants.WITH_GCSPY()) gcspyRoots(rootLocations, interiorRootLocations);
     if (timekeeper) rootTime.stop();
 
     // This should actually occur right before preCopyGC but
@@ -247,7 +245,7 @@ public abstract class StopTheWorldGC extends BasePlan
       }
     baseThreadLocalPrepare(order);
     Collection.rendezvous(4250);
-    if (Plan.MOVES_OBJECTS) {
+    if (PlanConstants.MOVES_OBJECTS()) {
       Scanning.preCopyGCInstances();
       Collection.rendezvous(4260);
       if (order == 1) Scanning.resetThreadCounter();
@@ -324,7 +322,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected final void release() {
     if (verbose.getValue() >= 4) Log.writeln("  Preparing all collector threads for termination");
     int order = Collection.rendezvous(4270);
-    if (Plan.WITH_GCSPY) gcspyPreRelease(); 
+    if (PlanConstants.WITH_GCSPY()) gcspyPreRelease(); 
     baseThreadLocalRelease(order);
     if (order == 1) {
       int count = 0;
@@ -477,7 +475,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param object The forwarded object to be scanned
    */
   protected void scanForwardedObject(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!PlanConstants.MOVES_OBJECTS());
   }
 
   /**
@@ -521,7 +519,7 @@ public abstract class StopTheWorldGC extends BasePlan
   /**
    * Print out statistics at the end of a GC
    */
-  private final void printPostStats() {
+  protected final void printPostStats() {
     if ((verbose.getValue() == 1) || (verbose.getValue() == 2)) {
       Log.write("-> ");
       Log.writeDec(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10));

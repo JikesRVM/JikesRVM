@@ -22,8 +22,8 @@ import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
+import org.mmtk.vm.PlanConstants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -58,15 +58,6 @@ public abstract class BasePlan
    *
    * Class variables
    */
-  public static final boolean NEEDS_WRITE_BARRIER = false;
-  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = false;
-  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
-  public static final boolean NEEDS_LINEAR_SCAN = false;
-  public static final boolean SUPPORTS_PARALLEL_GC = true;
-  public static final boolean MOVES_TIBS = false;
-  public static final boolean STEAL_NURSERY_GC_HEADER = false;
-  public static final boolean GENERATE_GC_TRACE = false;
-
   private static final int MAX_PLANS = 100;
   protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
@@ -81,6 +72,7 @@ public abstract class BasePlan
   private static int gcStatus = NOT_IN_GC; // shared variable
   protected static int exceptionReserve = 0;
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
+  protected static long timeCap = 0; // time within which this GC should finish
 
   // Spaces
   protected static final int IMMORTAL_MB = 32;
@@ -135,6 +127,8 @@ public abstract class BasePlan
   public static IgnoreSystemGC ignoreSystemGC;
   public static VerboseTiming verboseTiming;
   public static DummyEnum dummyEnum;
+  public static GCTimeCap gcTimeCap; 
+
 
   /****************************************************************************
    *
@@ -192,7 +186,7 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws InterruptiblePragma {
-    if (Plan.GENERATE_GC_TRACE) TraceGenerator.boot(Memory.HEAP_START());
+    if (PlanConstants.GENERATE_GC_TRACE()) TraceGenerator.boot(Memory.HEAP_START());
   }
 
   /**
@@ -296,7 +290,7 @@ public abstract class BasePlan
 
   /** 
    * Return the space into which an allocator is allocating.  The
-   * allocator, <code>a</code> may be assocaited with any plan
+   * allocator, <code>a</code> may be associated with any plan
    * instance.
    *
    * @param a An allocator
@@ -502,7 +496,7 @@ public abstract class BasePlan
    * forwarded.
    */
   public static void forwardObjectLocation(Address location) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!PlanConstants.MOVES_OBJECTS());
   }
 
   /**
@@ -518,7 +512,7 @@ public abstract class BasePlan
    * this method.
    */
   public static ObjectReference getForwardedReference(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!PlanConstants.MOVES_OBJECTS());
     return object;
   }
 
@@ -677,7 +671,7 @@ public abstract class BasePlan
    * @return The possibly moved reference.
    */
   public static ObjectReference followObject(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!PlanConstants.MOVES_OBJECTS());
     return ObjectReference.nullReference();
   }
   
@@ -885,6 +879,40 @@ public abstract class BasePlan
     return metaDataSpace;
   }
 
+  
+  /**
+   * Return the number of pages consumed by meta data.
+   *
+   * @return The number of pages consumed by meta data.
+   */
+  public static final int getMetaDataPagesUsed() {
+    return metaDataSpace.reservedPages();
+  }
+
+  /**
+   * Return the number of pages available for allocation.
+   * This is just a stub - any plan that uses this value
+   * should provide an implementation.
+   * 
+   * @return
+   */
+  public static int getPagesAvail() { 
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    return 0; 
+  }
+  
+  /**
+   * Return true if the object resides within the RC space
+   *
+   * @param object An object reference
+   * @return True if the object resides within the RC space
+   */
+  public static boolean isRCObject(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    return false;
+  }
+
+  
   /**
    * The VM is about to exit.  Perform any clean up operations.
    *
@@ -902,7 +930,7 @@ public abstract class BasePlan
     }
     if (verboseTiming.getValue()) printDetailedTiming(true);
     planExit(value);
-    if (Plan.GENERATE_GC_TRACE)
+    if (PlanConstants.GENERATE_GC_TRACE())
       TraceGenerator.notifyExit(value);
   }
 
@@ -923,6 +951,23 @@ public abstract class BasePlan
    */
   public static boolean initialized() {
     return initialized;
+  }
+
+  
+
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
+
+  /**
+   * Return the cycle time at which this GC should complete.
+   *
+   * @return The time cap for this GC (i.e. the time by which it
+   * should complete).
+   */
+  public static final long getTimeCap() {
+    return timeCap;
   }
 
   /****************************************************************************

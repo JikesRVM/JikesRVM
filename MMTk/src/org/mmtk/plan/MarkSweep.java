@@ -4,22 +4,16 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -51,10 +45,6 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = false;
-  public static final int GC_HEADER_BITS_REQUIRED = MarkSweepSpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_WORDS_REQUIRED = MarkSweepSpace.GC_HEADER_WORDS_REQUIRED;
-
   // GC state
   private static int msReservedPages;
   private static int availablePreGC;
@@ -458,7 +448,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    *
    * @return The number of pages available for allocation.
    */
-  protected static final int getPagesAvail() {
+  public static final int getPagesAvail() {
     return getTotalPages() - getPagesUsed();
   }
 

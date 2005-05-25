@@ -6,18 +6,13 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Collection;
 
 import org.vmmagic.unboxed.*;
@@ -55,9 +50,6 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = true;
-  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_WORDS_REQUIRED = CopySpace.GC_HEADER_WORDS_REQUIRED;
 
   // GC state
   protected static boolean hi = false; // True if allocing to "higher" semispace
@@ -323,9 +315,9 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
     if (object.isNull())
       return object;
     else if (Space.isInSpace(SS0, object))
-      return hi ? copySpace0.forwardAndScanObject(object) : object;
+      return hi ? CopySpace.forwardAndScanObject(object) : object;
     else if (Space.isInSpace(SS1, object))
-      return hi ? object: copySpace1.forwardAndScanObject(object);
+      return hi ? object: CopySpace.forwardAndScanObject(object);
     else
       return Space.getSpaceForObject(object).traceObject(object);
   }
@@ -490,7 +482,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */
-  protected static final int getPagesAvail() {
+  public static final int getPagesAvail() {
       int semispaceTotal = getTotalPages() - getCommonPagesReserved();
     return (semispaceTotal>>1) - (hi ? copySpace1 : copySpace0).reservedPages();
   }

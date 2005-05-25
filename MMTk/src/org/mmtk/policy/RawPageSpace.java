@@ -5,7 +5,6 @@
 
 package org.mmtk.policy;
 
-import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;

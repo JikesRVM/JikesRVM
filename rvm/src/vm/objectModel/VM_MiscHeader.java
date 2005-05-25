@@ -22,23 +22,16 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  * @modified <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
-public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
-
-  /*********************
-   * Support for GC Tracing; uses either 0 or 3 words of MISC HEADER
-   */
+public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_MiscHeaderConstants {
 
   private static final Offset MISC_HEADER_START = VM_JavaHeaderConstants.MISC_HEADER_OFFSET;
 
   /* offset from object ref to .oid field, in bytes */
-  static final Offset OBJECT_OID_OFFSET   = VM.CompileForGCTracing ? MISC_HEADER_START : Offset.zero();
+  static final Offset OBJECT_OID_OFFSET   = MISC_HEADER_START;
   /* offset from object ref to OBJECT_DEATH field, in bytes */
-  static final Offset OBJECT_DEATH_OFFSET = VM.CompileForGCTracing ? OBJECT_OID_OFFSET.add(BYTES_IN_ADDRESS) : Offset.zero();
+  static final Offset OBJECT_DEATH_OFFSET = OBJECT_OID_OFFSET.add(BYTES_IN_ADDRESS);
   /* offset from object ref to .link field, in bytes */
-  static final Offset OBJECT_LINK_OFFSET  = VM.CompileForGCTracing ? OBJECT_DEATH_OFFSET.add(BYTES_IN_ADDRESS) : Offset.zero();
-  /* amount by which tracing causes headers to grow */
-  static final int GC_TRACING_HEADER_WORDS = (VM.CompileForGCTracing ? 3 : 0);
-  static final int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS<<LOG_BYTES_IN_ADDRESS;
+  static final Offset OBJECT_LINK_OFFSET  = OBJECT_DEATH_OFFSET.add(BYTES_IN_ADDRESS);
 
   /////////////////////////
   // Support for YYY (an example of how to add a word to all objects)
@@ -47,11 +40,6 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
   // static final int YYY_DATA_OFFSET_1 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS : 0);
   // static final int YYY_DATA_OFFSET_2 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS + 4 : 0);
   // static final int YYY_HEADER_BYTES = (VM.YYY ? 8 : 0);
-
-  /**
-   * How many bytes are used by all misc header fields?
-   */
-  static final int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES;
 
   /**
    * How many available bits does the misc header want to use?

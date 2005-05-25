@@ -1,0 +1,1400 @@
+#
+# (C) Copyright Department of Computer Science,
+# Australian National University. 2002
+#
+# (C) Copyright Richard Jones, 2004
+# Computing Laboratory, University of Kent, Canterbury.
+#
+# $Id$
+#
+# @author Steve Blackburn
+# @author Richard Jones
+
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/GNUmakefile gcspy0.9/src/c/GNUmakefile
+*** /home/rej/downloads/gcspy0.9/src/c/GNUmakefile	2002-10-25 19:01:05.000000000 +0100
+--- gcspy0.9/src/c/GNUmakefile	2004-03-24 18:10:30.000000000 +0000
+***************
+*** 10,20 ****
+  ##
+  
+! UNAME=$(shell uname -p)
+! ifeq ($(UNAME), sparc)
+  	EXTRA_CC_FLAGS = -D_SPARC_
+  	EXTRA_LD_FLAGS = -lsocket
+  	DYNAMIC_FLAG = -G
+  endif
+! ifeq ($(UNAME), unknown)
+  	EXTRA_CC_FLAGS = -D_LINUX_
+  	EXTRA_LD_FLAGS = -lpthread
+--- 10,20 ----
+  ##
+  
+! UNAME=$(shell uname -s)
+! ifeq ($(UNAME), SunOS)
+  	EXTRA_CC_FLAGS = -D_SPARC_
+  	EXTRA_LD_FLAGS = -lsocket
+  	DYNAMIC_FLAG = -G
+  endif
+! ifeq ($(UNAME), Linux)
+  	EXTRA_CC_FLAGS = -D_LINUX_
+  	EXTRA_LD_FLAGS = -lpthread
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/evm_cms_driver.h gcspy0.9/src/c/include/evm_cms_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/evm_cms_driver.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/evm_cms_driver.h	2004-04-30 12:00:51.000000000 +0100
+***************
+*** 124,126 ****
+  	       unsigned event);
+  
+! #endif _EVM_CMS_DRIVER_H_
+--- 124,126 ----
+  	       unsigned event);
+  
+! #endif //_EVM_CMS_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/evm_fl_driver.h gcspy0.9/src/c/include/evm_fl_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/evm_fl_driver.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/evm_fl_driver.h	2004-04-30 12:01:08.000000000 +0100
+***************
+*** 77,79 ****
+  	      unsigned event);
+  
+! #endif _EVM_FL_DRIVER_H_
+--- 77,79 ----
+  	      unsigned event);
+  
+! #endif //_EVM_FL_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/evm_mc_driver.h gcspy0.9/src/c/include/evm_mc_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/evm_mc_driver.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/evm_mc_driver.h	2004-04-30 12:01:33.000000000 +0100
+***************
+*** 64,68 ****
+  mcDriverLimit (mc_driver_t *mcDriver,
+  	       char *limit);
+! #endif 0
+  
+  void
+--- 64,68 ----
+  mcDriverLimit (mc_driver_t *mcDriver,
+  	       char *limit);
+! #endif //0
+  
+  void
+***************
+*** 93,95 ****
+  	      unsigned event);
+  
+! #endif _EVM_MC_DRIVER_H_
+--- 93,95 ----
+  	      unsigned event);
+  
+! #endif //_EVM_MC_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/evm_ms_driver.h gcspy0.9/src/c/include/evm_ms_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/evm_ms_driver.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/evm_ms_driver.h	2004-04-30 12:01:44.000000000 +0100
+***************
+*** 70,74 ****
+  msDriverLimit (ms_driver_t *msDriver,
+  	       char *limit);
+! #endif 0
+  
+  void
+--- 70,74 ----
+  msDriverLimit (ms_driver_t *msDriver,
+  	       char *limit);
+! #endif //0
+  
+  void
+***************
+*** 105,107 ****
+  	      unsigned event);
+  
+! #endif _EVM_MS_DRIVER_H_
+--- 105,107 ----
+  	      unsigned event);
+  
+! #endif //_EVM_MS_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/evm_ss_driver.h gcspy0.9/src/c/include/evm_ss_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/evm_ss_driver.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/evm_ss_driver.h	2004-04-30 12:01:54.000000000 +0100
+***************
+*** 66,68 ****
+  	      unsigned event);
+  
+! #endif _EVM_SS_DRIVER_H_
+--- 66,68 ----
+  	      unsigned event);
+  
+! #endif //_EVM_SS_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_array_input.h gcspy0.9/src/c/include/gcspy_array_input.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_array_input.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_array_input.h	2004-04-30 12:02:04.000000000 +0100
+***************
+*** 19,21 ****
+  gcspy_arrayInputReadInt (char *buffer);
+  
+! #endif _GCSPY_ARRAY_INPUT_H_
+--- 19,21 ----
+  gcspy_arrayInputReadInt (char *buffer);
+  
+! #endif //_GCSPY_ARRAY_INPUT_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_array_output.h gcspy0.9/src/c/include/gcspy_array_output.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_array_output.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_array_output.h	2004-04-30 12:02:11.000000000 +0100
+***************
+*** 19,21 ****
+  gcspy_arrayOutputWriteInt (char *buffer, int v);
+  
+! #endif _GCSPY_ARRAY_OUTPUT_H_
+--- 19,21 ----
+  gcspy_arrayOutputWriteInt (char *buffer, int v);
+  
+! #endif //_GCSPY_ARRAY_OUTPUT_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_buffered_input.h gcspy0.9/src/c/include/gcspy_buffered_input.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_buffered_input.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_buffered_input.h	2004-04-30 12:02:21.000000000 +0100
+***************
+*** 89,91 ****
+  gcspy_bufferedInputClose(gcspy_buffered_input_t *input);
+  
+! #endif _GCSPY_BUFFERED_INPUT_H_
+--- 89,91 ----
+  gcspy_bufferedInputClose(gcspy_buffered_input_t *input);
+  
+! #endif //_GCSPY_BUFFERED_INPUT_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_buffered_output.h gcspy0.9/src/c/include/gcspy_buffered_output.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_buffered_output.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_buffered_output.h	2004-04-30 12:02:30.000000000 +0100
+***************
+*** 92,94 ****
+  			       gcspy_color_t *color);
+  
+! #endif _GCSPY_BUFFERED_OUTPUT_H_
+--- 92,94 ----
+  			       gcspy_color_t *color);
+  
+! #endif //_GCSPY_BUFFERED_OUTPUT_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_color_db.h gcspy0.9/src/c/include/gcspy_color_db.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_color_db.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_color_db.h	2004-04-30 12:02:35.000000000 +0100
+***************
+*** 74,76 ****
+  gcspy_colorDBDump (void);
+  
+! #endif _GCSPY_COLOR_DB_H_
+--- 74,76 ----
+  gcspy_colorDBDump (void);
+  
+! #endif //_GCSPY_COLOR_DB_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_command_stream.h gcspy0.9/src/c/include/gcspy_command_stream.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_command_stream.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_command_stream.h	2004-04-30 12:02:49.000000000 +0100
+***************
+*** 62,64 ****
+  			  gcspy_buffered_input_t *input);
+  
+! #endif _GCSPY_COMMAND_STREAM_H_
+--- 62,64 ----
+  			  gcspy_buffered_input_t *input);
+  
+! #endif //_GCSPY_COMMAND_STREAM_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_comm.h gcspy0.9/src/c/include/gcspy_comm.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_comm.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_comm.h	2004-04-30 12:02:55.000000000 +0100
+***************
+*** 88,90 ****
+  gcspy_clientClose(gcspy_comm_client_t *client);
+  
+! #endif _GCSPY_COMM_H_
+--- 88,90 ----
+  gcspy_clientClose(gcspy_comm_client_t *client);
+  
+! #endif //_GCSPY_COMM_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_d_utils.h gcspy0.9/src/c/include/gcspy_d_utils.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_d_utils.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_d_utils.h	2004-04-30 12:03:03.000000000 +0100
+***************
+*** 135,137 ****
+  		  int statsStructSize);
+  
+! #endif _GCSPY_D_UTILS_UTILS_H_
+--- 135,137 ----
+  		  int statsStructSize);
+  
+! #endif //_GCSPY_D_UTILS_UTILS_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_gc_driver.h gcspy0.9/src/c/include/gcspy_gc_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_gc_driver.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_gc_driver.h	2004-04-30 12:03:08.000000000 +0100
+***************
+*** 101,104 ****
+--- 101,110 ----
+  
+  void
++ gcspy_driverInitOutput (gcspy_gc_driver_t *driver);
++ 
++ void
++ gcspy_driverEndOutput (gcspy_gc_driver_t *driver);
++ 
++ void
+  gcspy_driverResize (gcspy_gc_driver_t *driver,
+  		    int tileNum);
+***************
+*** 184,186 ****
+  gcspy_driverEndComm (gcspy_gc_driver_t *driver);
+  
+! #endif _GCSPY_GC_DRIVER_H_
+--- 190,192 ----
+  gcspy_driverEndComm (gcspy_gc_driver_t *driver);
+  
+! #endif //_GCSPY_GC_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_gc_stream.h gcspy0.9/src/c/include/gcspy_gc_stream.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_gc_stream.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_gc_stream.h	2004-04-30 12:03:18.000000000 +0100
+***************
+*** 80,82 ****
+  		       gcspy_buffered_output_t *output);
+  
+! #endif _GCSPY_GC_STREAM_H_
+--- 80,82 ----
+  		       gcspy_buffered_output_t *output);
+  
+! #endif //_GCSPY_GC_STREAM_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_interpreter.h gcspy0.9/src/c/include/gcspy_interpreter.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_interpreter.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_interpreter.h	2004-04-30 12:03:25.000000000 +0100
+***************
+*** 100,102 ****
+  gcspy_intAuxInit (gcspy_int_aux_t *aux);
+  
+! #endif _GCSPY_INTERPRETER_H_
+--- 100,102 ----
+  gcspy_intAuxInit (gcspy_int_aux_t *aux);
+  
+! #endif //_GCSPY_INTERPRETER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_main_server.h gcspy0.9/src/c/include/gcspy_main_server.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_main_server.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_main_server.h	2004-04-30 12:03:31.000000000 +0100
+***************
+*** 113,115 ****
+  gcspy_mainServerWaitForClient (gcspy_main_server_t *server);
+  
+! #endif _GCSPY_MAIN_SERVER_H_
+--- 113,115 ----
+  gcspy_mainServerWaitForClient (gcspy_main_server_t *server);
+  
+! #endif //_GCSPY_MAIN_SERVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_shape_stream.h gcspy0.9/src/c/include/gcspy_shape_stream.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_shape_stream.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_shape_stream.h	2004-04-30 12:03:36.000000000 +0100
+***************
+*** 33,35 ****
+  gcspy_shapeStreamInit(gcspy_command_stream_t *stream);
+  
+! #endif _GCSPY_SHAPE_STREAM_H_
+--- 33,35 ----
+  gcspy_shapeStreamInit(gcspy_command_stream_t *stream);
+  
+! #endif //_GCSPY_SHAPE_STREAM_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_timer.h gcspy0.9/src/c/include/gcspy_timer.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_timer.h	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_timer.h	2004-04-30 12:03:41.000000000 +0100
+***************
+*** 22,24 ****
+  gcspy_getTime ();
+  
+! #endif _GCSPY_TIMER_H_
+--- 22,24 ----
+  gcspy_getTime ();
+  
+! #endif //_GCSPY_TIMER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/gcspy_utils.h gcspy0.9/src/c/include/gcspy_utils.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/gcspy_utils.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/gcspy_utils.h	2004-04-30 12:05:40.000000000 +0100
+***************
+*** 42,48 ****
+    }                                                                          \
+  } while (0)
+! #else GCSPY_ASSERT
+  #define gcspy_assert(_expr)
+! #endif GCSPY_ASSERT
+  
+  
+--- 42,48 ----
+    }                                                                          \
+  } while (0)
+! #else //GCSPY_ASSERT
+  #define gcspy_assert(_expr)
+! #endif //GCSPY_ASSERT
+  
+  
+***************
+*** 70,72 ****
+  gcspy_formatLargeNumber (unsigned int num);
+  
+! #endif _GCSPY_UTILS_H_
+--- 70,72 ----
+  gcspy_formatLargeNumber (unsigned int num);
+  
+! #endif //_GCSPY_UTILS_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/hs_class_driver.h gcspy0.9/src/c/include/hs_class_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/hs_class_driver.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/hs_class_driver.h	2004-04-30 12:04:03.000000000 +0100
+***************
+*** 91,93 ****
+  		   unsigned event);
+  
+! #endif _CLASS_DRIVER_H_
+--- 91,93 ----
+  		   unsigned event);
+  
+! #endif //_CLASS_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/hs_mc_driver.h gcspy0.9/src/c/include/hs_mc_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/hs_mc_driver.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/hs_mc_driver.h	2004-04-30 12:04:08.000000000 +0100
+***************
+*** 154,156 ****
+  		unsigned event);
+  
+! #endif _HS_MC_DRIVER_H_
+--- 154,156 ----
+  		unsigned event);
+  
+! #endif //_HS_MC_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/hs_perm_driver.h gcspy0.9/src/c/include/hs_perm_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/hs_perm_driver.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/hs_perm_driver.h	2004-04-30 12:04:17.000000000 +0100
+***************
+*** 124,126 ****
+  		  unsigned event);
+  
+! #endif _HS_PERM_DRIVER_H_
+--- 124,126 ----
+  		  unsigned event);
+  
+! #endif //_HS_PERM_DRIVER_H_
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/include/hs_ss_driver.h gcspy0.9/src/c/include/hs_ss_driver.h
+*** /home/rej/downloads/gcspy0.9/src/c/include/hs_ss_driver.h	2002-10-25 19:00:58.000000000 +0100
+--- gcspy0.9/src/c/include/hs_ss_driver.h	2004-04-30 12:04:22.000000000 +0100
+***************
+*** 106,108 ****
+  		unsigned event);
+  
+! #endif _HS_SS_DRIVER_H_
+--- 106,108 ----
+  		unsigned event);
+  
+! #endif //_HS_SS_DRIVER_H_
+Only in gcspy0.9/src/c: lib
+Only in gcspy0.9/src/c: obj
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/evm_mc_driver.c gcspy0.9/src/c/src/evm_mc_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/evm_mc_driver.c	2002-10-25 19:00:55.000000000 +0100
+--- gcspy0.9/src/c/src/evm_mc_driver.c	2004-04-30 12:07:39.000000000 +0100
+***************
+*** 226,230 ****
+    /*  gcspy_driverSummaryValue(driver, mcDriver->totalMarking); */
+    gcspy_driverSummaryEnd(driver);
+! #endif 0
+  
+  
+--- 226,230 ----
+    /*  gcspy_driverSummaryValue(driver, mcDriver->totalMarking); */
+    gcspy_driverSummaryEnd(driver);
+! #endif //0
+  
+  
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/evm_ms_driver.c gcspy0.9/src/c/src/evm_ms_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/evm_ms_driver.c	2002-10-25 19:00:55.000000000 +0100
+--- gcspy0.9/src/c/src/evm_ms_driver.c	2004-04-30 12:07:50.000000000 +0100
+***************
+*** 113,117 ****
+    msDriver->limit = limit;
+  }
+! #endif 0
+  
+  void
+--- 113,117 ----
+    msDriver->limit = limit;
+  }
+! #endif //0
+  
+  void
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/evm_ss_driver.c gcspy0.9/src/c/src/evm_ss_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/evm_ss_driver.c	2002-10-25 19:00:55.000000000 +0100
+--- gcspy0.9/src/c/src/evm_ss_driver.c	2004-04-30 12:08:04.000000000 +0100
+***************
+*** 132,136 ****
+    gcspy_driverSummaryValue(driver, ssDriver->totalRoots);
+    gcspy_driverSummaryEnd(driver);
+! #endif 0
+  
+  
+--- 132,136 ----
+    gcspy_driverSummaryValue(driver, ssDriver->totalRoots);
+    gcspy_driverSummaryEnd(driver);
+! #endif //0
+  
+  
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/gcspy_d_utils.c gcspy0.9/src/c/src/gcspy_d_utils.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/gcspy_d_utils.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/gcspy_d_utils.c	2004-04-30 12:08:45.000000000 +0100
+***************
+*** 37,41 ****
+      return 0;
+  }
+! #endif 0
+  
+  void
+--- 37,41 ----
+      return 0;
+  }
+! #endif //0
+  
+  void
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/gcspy_gc_driver.c gcspy0.9/src/c/src/gcspy_gc_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/gcspy_gc_driver.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/gcspy_gc_driver.c	2004-04-30 12:09:01.000000000 +0100
+***************
+*** 22,26 ****
+  #define gcspy_driver_get_tile_name(_driver, _tile) \
+    ( &((_driver)->tileNames[(_tile) * (GCSPY_GC_DRIVER_TILE_NAME_LEN + 1)]) )
+! #endif 0
+  
+  #define gcspy_driver_get_tile_name(_driver, _tile) \
+--- 22,26 ----
+  #define gcspy_driver_get_tile_name(_driver, _tile) \
+    ( &((_driver)->tileNames[(_tile) * (GCSPY_GC_DRIVER_TILE_NAME_LEN + 1)]) )
+! #endif //0
+  
+  #define gcspy_driver_get_tile_name(_driver, _tile) \
+***************
+*** 61,65 ****
+    }
+  }
+! #endif 0
+  
+  static void
+--- 61,65 ----
+    }
+  }
+! #endif //0
+  
+  static void
+***************
+*** 175,179 ****
+    strcpy(tileName, name);
+  }
+! #endif 0
+  
+  void
+--- 175,179 ----
+    strcpy(tileName, name);
+  }
+! #endif //0
+  
+  void
+***************
+*** 284,288 ****
+  /*************************************************************************/
+  
+! static void
+  gcspy_driverInitOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output = &driver->output;
+--- 284,288 ----
+  /*************************************************************************/
+  
+! void
+  gcspy_driverInitOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output = &driver->output;
+***************
+*** 293,297 ****
+  }
+  
+! static void
+  gcspy_driverEndOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output =
+--- 293,297 ----
+  }
+  
+! void
+  gcspy_driverEndOutput (gcspy_gc_driver_t *driver) {
+    gcspy_buffered_output_t *output =
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/gcspy_timer.c gcspy0.9/src/c/src/gcspy_timer.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/gcspy_timer.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/gcspy_timer.c	2004-04-30 12:10:00.000000000 +0100
+***************
+*** 15,19 ****
+  #ifdef _SPARC_
+  #include <unistd.h>
+! #endif _SPARC_
+  
+  #include "gcspy_timer.h"
+--- 15,19 ----
+  #ifdef _SPARC_
+  #include <unistd.h>
+! #endif //_SPARC_
+  
+  #include "gcspy_timer.h"
+***************
+*** 29,33 ****
+      }
+    }
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+--- 29,33 ----
+      }
+    }
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+***************
+*** 44,48 ****
+      nanosleep(&_interval, &_spec);
+    }
+! #endif _LINUX_
+  }
+  
+--- 44,48 ----
+      nanosleep(&_interval, &_spec);
+    }
+! #endif //_LINUX_
+  }
+  
+***************
+*** 54,58 ****
+      return ret;
+    }
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+--- 54,58 ----
+      return ret;
+    }
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+***************
+*** 67,70 ****
+      return diff;
+    }
+! #endif _LINUX_
+  }
+--- 67,70 ----
+      return diff;
+    }
+! #endif //_LINUX_
+  }
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/hs_class_driver.c gcspy0.9/src/c/src/hs_class_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/hs_class_driver.c	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/src/hs_class_driver.c	2004-04-30 12:12:42.000000000 +0100
+***************
+*** 84,88 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static int
+  classComp (const void *l, const void *r) {
+--- 84,88 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static int
+  classComp (const void *l, const void *r) {
+***************
+*** 109,113 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  static void
+--- 109,113 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  static void
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_evm_mc_driver.c gcspy0.9/src/c/src/test_evm_mc_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_evm_mc_driver.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/test_evm_mc_driver.c	2004-04-30 12:10:42.000000000 +0100
+***************
+*** 22,30 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+--- 22,30 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+***************
+*** 46,50 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 46,50 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 95,99 ****
+  #if 0
+        mcDriverLimit(&mcDriver, limit);
+! #endif 0
+        mcDriverSetEnd(&mcDriver, end);
+        mcDriverPromotion(&mcDriver, promStart, promEnd);
+--- 95,99 ----
+  #if 0
+        mcDriverLimit(&mcDriver, limit);
+! #endif //0
+        mcDriverSetEnd(&mcDriver, end);
+        mcDriverPromotion(&mcDriver, promStart, promEnd);
+***************
+*** 142,146 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 142,146 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 151,159 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 151,159 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 193,201 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 193,201 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_evm_ms_driver.c gcspy0.9/src/c/src/test_evm_ms_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_evm_ms_driver.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/test_evm_ms_driver.c	2004-04-30 12:10:52.000000000 +0100
+***************
+*** 23,31 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN      ( 64 * 1024 )
+--- 23,31 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN      ( 64 * 1024 )
+***************
+*** 50,54 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 50,54 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 126,130 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 126,130 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 135,143 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 135,143 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 187,195 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 187,195 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_evm_ss_driver.c gcspy0.9/src/c/src/test_evm_ss_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_evm_ss_driver.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/test_evm_ss_driver.c	2004-04-30 12:11:02.000000000 +0100
+***************
+*** 22,30 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN      ( 64 * 1024 )
+--- 22,30 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN      ( 64 * 1024 )
+***************
+*** 43,47 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 43,47 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 85,89 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 85,89 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 94,102 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 94,102 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 138,146 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 138,146 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_evm_ss_ms_driver.c gcspy0.9/src/c/src/test_evm_ss_ms_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_evm_ss_ms_driver.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/test_evm_ss_ms_driver.c	2004-04-30 12:11:14.000000000 +0100
+***************
+*** 23,31 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN      ( 64 * 1024 )
+--- 23,31 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN      ( 64 * 1024 )
+***************
+*** 130,134 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 130,134 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 158,162 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 158,162 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 167,175 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 167,175 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 223,231 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 223,231 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_hs_class_driver.c gcspy0.9/src/c/src/test_hs_class_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_hs_class_driver.c	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/src/test_hs_class_driver.c	2004-04-30 12:11:25.000000000 +0100
+***************
+*** 22,30 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+--- 22,30 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+***************
+*** 38,42 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 38,42 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 107,111 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 107,111 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 116,124 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 116,124 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 153,161 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 153,161 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_hs_mc_driver.c gcspy0.9/src/c/src/test_hs_mc_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_hs_mc_driver.c	2002-10-25 19:00:56.000000000 +0100
+--- gcspy0.9/src/c/src/test_hs_mc_driver.c	2004-04-30 12:11:36.000000000 +0100
+***************
+*** 22,30 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+--- 22,30 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+***************
+*** 44,48 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 44,48 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 99,103 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 99,103 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 108,116 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 108,116 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 151,159 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 151,159 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_hs_perm_driver.c gcspy0.9/src/c/src/test_hs_perm_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_hs_perm_driver.c	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/src/test_hs_perm_driver.c	2004-04-30 12:11:44.000000000 +0100
+***************
+*** 22,30 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+--- 22,30 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN      ( 128 * 1024 )
+***************
+*** 44,48 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 44,48 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 99,103 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 99,103 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 108,116 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 108,116 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 151,159 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 151,159 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/c/src/test_hs_ss_driver.c gcspy0.9/src/c/src/test_hs_ss_driver.c
+*** /home/rej/downloads/gcspy0.9/src/c/src/test_hs_ss_driver.c	2002-10-25 19:00:57.000000000 +0100
+--- gcspy0.9/src/c/src/test_hs_ss_driver.c	2004-04-30 12:11:52.000000000 +0100
+***************
+*** 22,30 ****
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif _LINUX_
+  
+  #define MAX_LEN       ( 64 * 1024 )
+--- 22,30 ----
+  #ifdef _SPARC_
+  #include <thread.h>
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+  #include <pthread.h>
+! #endif //_LINUX_
+  
+  #define MAX_LEN       ( 64 * 1024 )
+***************
+*** 44,48 ****
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif __cplusplus
+  static void *
+  mainLoop (void *arg) {
+--- 44,48 ----
+  #ifdef  __cplusplus
+  extern "C" {
+! #endif //__cplusplus
+  static void *
+  mainLoop (void *arg) {
+***************
+*** 141,145 ****
+  #ifdef  __cplusplus
+  }
+! #endif __cplusplus
+  
+  int
+--- 141,145 ----
+  #ifdef  __cplusplus
+  }
+! #endif //__cplusplus
+  
+  int
+***************
+*** 150,158 ****
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif _LINUX_
+  
+    gcspy_gc_driver_t *driver;
+--- 150,158 ----
+  #ifdef _SPARC_
+    thread_t tid;
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    pthread_t tid;
+! #endif //_LINUX_
+  
+    gcspy_gc_driver_t *driver;
+***************
+*** 190,198 ****
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif _SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif _LINUX_
+  
+    if (res != 0) {
+--- 190,198 ----
+  #ifdef _SPARC_
+    res = thr_create(NULL, 0, mainLoop, NULL, THR_BOUND, &tid);
+! #endif //_SPARC_
+  
+  #ifdef _LINUX_
+    res = pthread_create(&tid, NULL, mainLoop, NULL);
+! #endif //_LINUX_
+  
+    if (res != 0) {
+Only in gcspy0.9/src/cpp: bin
+Only in gcspy0.9/src/cpp: lib
+Only in gcspy0.9/src/cpp: obj
+Only in gcspy0.9/src/java: classes
+diff -r -C2 /home/rej/downloads/gcspy0.9/src/java/GNUmakefile gcspy0.9/src/java/GNUmakefile
+*** /home/rej/downloads/gcspy0.9/src/java/GNUmakefile	2002-10-25 19:01:05.000000000 +0100
+--- gcspy0.9/src/java/GNUmakefile	2004-03-24 18:10:32.000000000 +0000
+***************
+*** 10,23 ****
+  ##
+  
+! UNAME=$(shell uname -p)
+! ifeq ($(UNAME), unknown)
+  #	JDK = /usr/local/jdk1.2.2
+! 	JDK = /usr/local/jdk
+  endif
+! ifeq ($(UNAME), sparc)
+  	JDK = /usr/j2se
+  endif
+  
+! JAVAC = $(JDK)/bin/javac -classpath $(CLASSES_DIR)
+  
+  CLASSES_DIR=classes
+--- 10,23 ----
+  ##
+  
+! UNAME=$(shell uname -s)
+! ifeq ($(UNAME), Linux)
+  #	JDK = /usr/local/jdk1.2.2
+! 	JDK = /opt/j2sdk1.4.1
+  endif
+! ifeq ($(UNAME), SunOS)
+  	JDK = /usr/j2se
+  endif
+  
+! JAVAC = $(JDK)/bin/javac -classpath $(CLASSES_DIR):$(RVM_ROOT)/jai-1_1_2/lib/jai_core.jar
+  
+  CLASSES_DIR=classes

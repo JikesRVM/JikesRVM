@@ -5,8 +5,6 @@
  */
 package org.mmtk.utility.gcspy.drivers;
 
-import org.mmtk.policy.Space;
-import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.AbstractTile;
 import org.mmtk.utility.gcspy.Subspace;
 import org.mmtk.vm.gcspy.ServerSpace;

@@ -5,9 +5,6 @@
 package org.mmtk.policy;
 
 import org.mmtk.plan.RefCountBase;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.alloc.BlockAllocator;
-import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;

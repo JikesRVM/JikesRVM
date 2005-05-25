@@ -27,6 +27,7 @@ import org.mmtk.vm.Collection;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.Options;
 import org.mmtk.vm.Plan;
+import org.mmtk.vm.PlanConstants;
 import org.mmtk.vm.ReferenceGlue;
 import org.mmtk.vm.Scanning;
 import org.mmtk.vm.SynchronizedCounter;
@@ -79,7 +80,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * the corresponding writes are done.
    * AJG: Is this correct?
    */
-  public static final boolean NEEDS_WRITE_BARRIER = Plan.NEEDS_WRITE_BARRIER;
+  public static final boolean NEEDS_WRITE_BARRIER = PlanConstants.NEEDS_WRITE_BARRIER();
 
   /**
    * <code>true</code> if a write barrier for putstatic operations is
@@ -89,7 +90,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * AJG: Is this correct?
    */
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER
-    = Plan.NEEDS_PUTSTATIC_WRITE_BARRIER;
+    = PlanConstants.NEEDS_PUTSTATIC_WRITE_BARRIER();
 
   /* AJG: Not used. But will be. needed */
   /**
@@ -97,19 +98,19 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * requried.  Note: This field is not used.
    */
   public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER
-    = Plan.NEEDS_TIB_STORE_WRITE_BARRIER;
+    = PlanConstants.NEEDS_TIB_STORE_WRITE_BARRIER();
 
   /**
    * <code>true</code> if the memory manager moves objects. For
    * example, a copying collector will move objects.
    */
-  public static final boolean MOVES_OBJECTS = Plan.MOVES_OBJECTS;
+  public static final boolean MOVES_OBJECTS = PlanConstants.MOVES_OBJECTS();
 
   /**
    * <code>true</code> if the memory manager moves type information
    * blocks (TIBs).
    */
-  public static final boolean MOVES_TIBS = Plan.MOVES_TIBS;
+  public static final boolean MOVES_TIBS = PlanConstants.MOVES_TIBS();
 
   /**
    * <code>true</code> if checking of allocated memory to ensure it is
@@ -121,7 +122,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * <code>true</code> if the memory manager will generate a garbage
    * collection trace of the run.
    */
-  public static final boolean GENERATE_GC_TRACE = Plan.GENERATE_GC_TRACE;
+  public static final boolean GENERATE_GC_TRACE = PlanConstants.GENERATE_GC_TRACE();
 
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];
@@ -499,7 +500,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
       byte[] methBA = method.getDescriptor().toByteArray();
-      if (Plan.WITH_GCSPY) {
+      if (PlanConstants.WITH_GCSPY()) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
           return Plan.ALLOC_GCSPY;
@@ -525,7 +526,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     throws InterruptiblePragma {
     int allocator = Plan.ALLOC_DEFAULT;
     byte[] typeBA = type.getDescriptor().toByteArray();
-    if (Plan.WITH_GCSPY) {
+    if (PlanConstants.WITH_GCSPY()) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
                isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
         allocator = Plan.ALLOC_GCSPY;

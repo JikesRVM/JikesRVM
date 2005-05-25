@@ -11,10 +11,7 @@ import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.gcspy.drivers.ContiguousSpaceDriver;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.utility.gcspy.GCspy;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.scan.*;
-import org.mmtk.utility.options.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 
@@ -59,8 +56,6 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
    * Class variables
    */
 
-  // use a slightly more expensive hashing operation (no other effect) 
-  public static final boolean NEEDS_LINEAR_SCAN = true;
 
   // The event, BEFORE_COLLECTION or AFTER_COLLECTION
   private static final int BEFORE_COLLECTION = 0;

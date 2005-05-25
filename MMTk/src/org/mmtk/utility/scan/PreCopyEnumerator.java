@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class PreCopyEnumerator extends Enumerate 
+public class PreCopyEnumerator extends Enumerator 
   implements Uninterruptible {
   /**
    * Constructor (empty).

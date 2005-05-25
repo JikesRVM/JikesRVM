@@ -5,14 +5,6 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
-import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.utility.alloc.AllocAdvice;
-import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Log;
-import org.mmtk.utility.scan.*;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;

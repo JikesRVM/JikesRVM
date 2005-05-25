@@ -8,7 +8,6 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.VMConstants;
-import org.mmtk.vm.Assert;
 
 /**
  * MMTk follows the pattern set by Jikes RVM for defining sizes of

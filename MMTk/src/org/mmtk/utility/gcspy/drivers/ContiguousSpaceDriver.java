@@ -14,7 +14,6 @@ import org.mmtk.utility.gcspy.LinearScan;
 import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.Subspace;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Plan;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;

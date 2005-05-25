@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class RCSanityEnumerator extends Enumerate 
+public class RCSanityEnumerator extends Enumerator 
   implements Uninterruptible {
   private RefCountLocal rc;
 

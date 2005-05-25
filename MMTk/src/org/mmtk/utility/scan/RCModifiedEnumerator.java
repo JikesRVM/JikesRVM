@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class RCModifiedEnumerator extends Enumerate 
+public class RCModifiedEnumerator extends Enumerator 
   implements Uninterruptible {
 
   /**

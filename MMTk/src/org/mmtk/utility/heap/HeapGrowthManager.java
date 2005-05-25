@@ -8,6 +8,7 @@ import org.mmtk.plan.BasePlan;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+import org.mmtk.vm.PlanConstants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Statistics;
 
@@ -75,7 +76,8 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
    *      greater than the liveRatio for that column.</li>
    * </ul>
    */
-  private static final double[][] function = Plan.NEEDS_WRITE_BARRIER ? generationalFunction : nongenerationalFunction;
+  private static final double[][] function = PlanConstants.GENERATIONAL_HEAP_GROWTH() 
+    ? generationalFunction : nongenerationalFunction;
  
   private static long endLastMajorGC;
   private static double accumulatedGCTime;

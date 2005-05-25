@@ -4,9 +4,8 @@
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.utility.Conversions;
-
 import org.mmtk.vm.Plan;
+import org.mmtk.utility.Constants;
 
 /**
  * Force frequent collections after amounts of allocation.
@@ -22,7 +21,7 @@ public class StressFactor extends PagesOption {
   public StressFactor() {
     super("Stress Factor",
           "Force a collection after this much allocation",
-          Conversions.bytesToPagesUp(Integer.MAX_VALUE) - 1);
+          Integer.MAX_VALUE >>> Constants.LOG_BYTES_IN_PAGE );
   }
 
   /**

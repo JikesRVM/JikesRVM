@@ -5,27 +5,15 @@
 
 package org.mmtk.plan;
 
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
-import org.mmtk.policy.RefCountLOSLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.AllocAdvice;
-import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
-import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.deque.*;
-import org.mmtk.utility.heap.*;
-import org.mmtk.utility.options.*;
 import org.mmtk.utility.scan.*;
-import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Statistics;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Memory;
 
 import org.vmmagic.unboxed.*;
@@ -47,8 +35,6 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = false;
-  public static final int GC_HEADER_BITS_REQUIRED = RefCountSpace.LOCAL_GC_BITS_REQUIRED;
   private static final boolean INLINE_WRITE_BARRIER = WITH_COALESCING_RC;
 
   public static final int ALLOC_RC = ALLOC_DEFAULT;

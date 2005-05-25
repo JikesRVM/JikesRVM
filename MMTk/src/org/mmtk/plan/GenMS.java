@@ -4,7 +4,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
@@ -58,7 +57,7 @@ public class GenMS extends Generational implements Uninterruptible {
    *
    * Class variables
    */
-  protected static final boolean COPY_MATURE() { return false; }
+  protected static final boolean COPY_MATURE = false;
   
   // mature space
   private static MarkSweepSpace matureSpace= new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.5);

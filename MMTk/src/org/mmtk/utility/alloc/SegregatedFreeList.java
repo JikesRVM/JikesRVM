@@ -6,7 +6,6 @@ package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
@@ -75,7 +74,7 @@ public abstract class SegregatedFreeList extends Allocator
   private static final Extent LIVE_WORD_STRIDE = Extent.fromInt(1<<LOG_LIVE_WORD_STRIDE);
   private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.sub(1).toWord().not();
   private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
-  public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(NET_META_DATA_BYTES_PER_REGION);
+  public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(Extent.fromInt(NET_META_DATA_BYTES_PER_REGION));
   
   private static final Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;
 

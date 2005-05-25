@@ -5,7 +5,6 @@
  */
 package org.mmtk.utility.gcspy;
 
-import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**

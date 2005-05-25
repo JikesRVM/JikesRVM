@@ -6,13 +6,10 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.scan.MMType;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -59,7 +56,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    *
    * Class variables
    */
-  protected static final boolean COPY_MATURE() { return true; }
+  protected static final boolean COPY_MATURE = true;
 
   // GC state
   private static boolean hi = false; // True if copying to "higher" semispace 

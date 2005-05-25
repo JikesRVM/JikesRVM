@@ -6,7 +6,6 @@
 
 package org.mmtk.utility.scan;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Scanning;
@@ -50,7 +49,7 @@ public final class Scan implements Uninterruptible {
    * @param _enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(ObjectReference object, Enumerate _enum) 
+  public static void enumeratePointers(ObjectReference object, Enumerator _enum) 
     throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {

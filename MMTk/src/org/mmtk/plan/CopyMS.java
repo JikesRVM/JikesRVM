@@ -6,20 +6,15 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Collection;
 
 import org.vmmagic.unboxed.*;
@@ -59,10 +54,6 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = true;
-  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_WORDS_REQUIRED = CopySpace.GC_HEADER_WORDS_REQUIRED;
-
   // Allocators
   private static final int ALLOC_NURSERY = ALLOC_DEFAULT;
   private static final int ALLOC_MS = BASE_ALLOCATORS;
@@ -511,7 +502,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
-  protected static final int getPagesAvail() {
+  public static final int getPagesAvail() {
     int nurseryPages = getTotalPages() - msSpace.reservedPages() 
       - getCommonPagesReserved();
     return (nurseryPages>>1) - nurserySpace.reservedPages();

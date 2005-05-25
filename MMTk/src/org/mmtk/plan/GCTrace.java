@@ -8,22 +8,12 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.AllocAdvice;
-import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.SortTODSharedDeque;
-import org.mmtk.utility.scan.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Collection;
 
 import org.vmmagic.unboxed.*;
@@ -97,17 +87,14 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    *
    * Class variables
    */
-  public static final boolean NEEDS_WRITE_BARRIER = true;
-  public static final boolean GENERATE_GC_TRACE = true;
-
   /* GC state */
   private static boolean traceInducedGC = false; // True if trace triggered GC
   private static boolean deathScan = false;
   private static boolean finalDead = false;
 
   /* Spaces */
-  protected static RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
-  protected static final int TRACE = traceSpace.getDescriptor();
+  private static RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  private static int TRACE = traceSpace.getDescriptor();
 
   /****************************************************************************
    *

@@ -4,8 +4,6 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.BasePlan;
-import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.PageResource;
 import org.mmtk.utility.heap.SpaceDescriptor;

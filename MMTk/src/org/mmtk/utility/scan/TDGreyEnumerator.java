@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class TDGreyEnumerator extends Enumerate implements Uninterruptible {
+public class TDGreyEnumerator extends Enumerator implements Uninterruptible {
   private TrialDeletion td;
 
   /**

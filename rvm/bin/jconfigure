@@ -403,7 +403,6 @@ function setSomeFromPath () {
 ##
 ## We also set the following variables that are used elsewhere:
 ##    host_jikes_version   
-##    copy_MMTk_directories_too
 ##    jikes_dependency_flag
 ## and set the default value for the following configuration variable:
 ##    JIKES_WARNING_FLAGS
@@ -452,16 +451,6 @@ function on_host_set_JIKES_test_Jikes_version () {
 	local -i unregressed=0
 	local -r known_good="1.13, 1.18, 1.19, and 1.22"
 	case "$jikes_msg" in
-	    *"Version 1.13"*)
-		host_jikes_version=1.13 
-		bad_byte_code=0
-		    ## -nowarn is *way* too dangerous in 1.13, since it means not to 
-		    ## complain even if the input file doesn't exist!
-		JIKES_WARNING_FLAGS=
-		jikes_dependency_flag=+U
-		copy_MMTk_directories_too=1
-		;;
-
 	    *"Version 1.14"*)
 		host_jikes_version=1.14
 		bad_byte_code=1
@@ -998,12 +987,6 @@ declare javac_encoding_flag="-encoding iso-8859-1"
 
 
 
-## Set this to 1 if we find that the host is using Jikes 1.13, which does not
-## support the -sourcepath argument, or (TODO) if we're building with
-## some other compiler that also does not support -sourcepath. 
-declare -i copy_MMTk_directories_too=0
-
-    
 ## An alternative we can use if we are dealing with a complier other
 ## than Jikes.  TODO; currently unused.
 declare -i all_sources_are_top_level=0
@@ -1922,29 +1905,9 @@ EOF
 
     # Common memory manager components.
     #
-	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
+	$RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm
 EOF
-
-    if (( copy_MMTk_directories_too )); then
-	cleanFileList <<- EOF
-    ## These MMTk directories aren't preprocessed.
-    ## Keep them here as a comment so that you can uncomment this
-    ## if we should ever need to generate a more comprehensive source
-    ## list.
-	$RVM_ROOT/MMTk/src/org/mmtk/plan
-	$RVM_ROOT/MMTk/src/org/mmtk/policy
-	$RVM_ROOT/MMTk/src/org/mmtk/utility
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/alloc
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/deque
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/options
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
-	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
-EOF
-    fi
 
     cleanFileList <<- EOF
     # Local projects (template)
@@ -1954,12 +1917,13 @@ EOF
 
     # GCSpy specific classes
     if (( ${RVM_WITH_GCSPY} )); then
-	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy
-	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util
-	echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/gcspy/util/drivers
+	echo $RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm/gcspy/util/drivers
+	echo $RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm/gcspy/util
+	echo $RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm/gcspy
     else
-	:
-#	echo $RVM_ROOT/MMTk/src/org/mmtk/vm/gcspy
+	echo $RVM_ROOT/MMTk/ext/vm/stub/org/mmtk/vm/gcspy/util
+	echo $RVM_ROOT/MMTk/ext/vm/stub/org/mmtk/vm/gcspy/util/drivers
+	echo $RVM_ROOT/MMTk/ext/vm/stub/org/mmtk/vm/gcspy
     fi
 
     # standard library support
@@ -2890,6 +2854,10 @@ EOF
 
     if (( all_sources_are_top_level )); then
 	echo '    find . -name \*.java -print'
+	echo '    find ../MMTk.classes/mmtk -name \*.java -print'
+        if (( ! ${RVM_WITH_GCSPY} )); then
+            echo '    find ../MMTk.classes/vm/org/mmtk/vm/gcspy -name \*.java -print'
+        fi 
     else
 	echo '    echo "Dummy.java"'
 	if (( RVM_WITH_OPT_COMPILER )); then
@@ -2917,18 +2885,87 @@ EOF
 	    fi
 	EOF
 
-#    if [[ $host_jikes_version = 1.13 ]]; then
-    if (( copy_MMTk_directories_too )); then
 	cat <<- EOF
-	    ## Jikes 1.13 does not have a -sourcepath argument.  And if we copy
-	    ## the MMTk directories too, we do not need to use -sourcepath.
-	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g ${jikes_dependency_flag}  -classpath .:${ROOT_DIRECTORY_STR}/MMTk/src:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+build_mmtk() {
+  MMTK_SOURCE=\$1
+  MMTK_BUILD=\$2
+  MMTK_JAR=\$3
+
+  run rm -rf \$MMTK_BUILD
+  run mkdir \$MMTK_BUILD
+  (
+    chdir \$MMTK_BUILD
+
+    copy_source() {
+      SOURCE_TREE=\$1
+      COMPONENT=\$2
+      TARGET=\$MMTK_BUILD/\$COMPONENT
+      run mkdir \$TARGET
+
+      ( chdir \$SOURCE_TREE
+        \${FIND} . -type d ! -name CVS ! -name . | 
+          while read dir
+          do
+            run mkdir \$TARGET/\$dir
+          done
+        \${FIND} . -name "*.java" |
+          while read file
+          do
+            run cp \$file \$TARGET/\$file
+          done
+      )
+    }
+
+    copy_source \$MMTK_SOURCE/ext/vmmagic/stub vmmagic
+    copy_source \$MMTK_SOURCE/ext/vm/stub vm
+    ###copy_source \$MMTK_SOURCE/src mmtk
+    copy_source \$MMTK_SOURCE/src mmtk
+
+    \${HOST_JAVAC} -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
+
+    #
+    # Build mmtk.jar
+    #
+    chdir mmtk
+    \${FIND} . -name "*.class" | \$XARGS \${JAR} cf \$MMTK_JAR
+
+    #
+    # Remove .class files - required for when we determine the build image classes.
+    #
+    \${FIND} . -name "*.class" | \$XARGS rm
+
+  )
+}
 	EOF
-    else
+
 	cat <<- EOF
-	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g ${jikes_dependency_flag} -sourcepath .:${ROOT_DIRECTORY_STR}/MMTk/src -classpath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+        mmtk_build="build_mmtk ${ROOT_DIRECTORY_STR}/MMTk \$PWD/../MMTk.classes \$PWD/mmtk.jar"
 	EOF
+
+    cat <<- EOF
+    open_paren 'compiling mmtk'
+	    if tracing jbuild || tracing make || tracing; then
+	        cleanline
+	        echo "  "\${mmtk_build}
+	    fi
+	    if \${mmtk_build}; then
+	        close_paren 'mmtk compiled'
+	    else
+	        status=\$?
+	        close_paren 'compilation FAILED'
+		## Now that we invoke Jikes with a longer list of TOP_LEVEL_SOURCES,
+		## this message has grown Much Too Long.
+	        echo >&2 "\$ME: The Java compiler exited with status \${status}"
+	        echo >&2 "     Run \$ME -trace if you need more information"
+	        exit \$status
     fi
+
+EOF
+
+    cat <<- EOF
+	    jikes_invocation="$JIKES_STR $JIKES_WARNING_FLAGS -g ${jikes_dependency_flag} -sourcepath .:../MMTk.classes/mmtk -classpath .:rvmrt.jar -d . \$TOP_LEVEL_SOURCES"
+    
+EOF
 
     cat <<- EOF
 	    open_paren 'compiling classes'
@@ -3101,7 +3138,7 @@ EOF
 # 	generator_prefix="\$(dirname \$generator_source_file)"
 
 	chdir $SCRATCH_DIRECTORY_STR
-	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
 
 	eval run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
 	  -classpath \$cp \
@@ -3123,7 +3160,7 @@ EOF
 	   -ia $BOOTIMAGE_LOAD_ADDRESS \
 	   -out \$interface )
 	if [[ \$HOST_VM_TYPE == "JikesRVM" ]]; then
-#	    args=("-X:vmClasses=.:\$DONOR_RVM_BUILD/RVM.classes/jksvm.jar:\$DONOR_RVM_BUILD/RVM.classes/rvmrt.jar" "\${args[@]}")
+#	    args=("-X:vmClasses=.:\$DONOR_RVM_BUILD/RVM.classes/jksvm.jar:\$DONOR_RVM_BUILD/RVM.classes/rvmrt.jar:\$DONOR_RVM_BUILD/RVM.classes/mmtk.jar" "\${args[@]}")
 	    args=("\${args[@]}" -alternateRealityClasspath  "\$cp" )
 	    args=("\${args[@]}" -alternateRealityNativeLibDir  \
 					"$BUILD_DIRECTORY_STR" )
@@ -3237,7 +3274,7 @@ EOF
     # 
     # (2) Generate a list of primary classes (non-arrays, non compiler generated (Foo${bar})
     #     classes that will be included in the bootimage unless explicitly excluded.
-    
+    #    
     echo "    cd ${CLASSES_DIRECTORY_STR}"
     
     declare -i save_temps=0	# You might set save_temps=1 when debugging.
@@ -3251,6 +3288,10 @@ EOF
     # ${FIND}'s action defaults to -print if none is explicitly specified.
     if (( RVM_WITH_ALL_CLASSES )); then
         echo "    \${FIND} . -name '*.class'"
+	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@@' |sed 's@.class\$@@'"
+        if (( ! ${RVM_WITH_GCSPY} )); then
+            echo "    find ../MMTk.classes/vm/org/mmtk/vm/gcspy -name \*.class -print |sed 's@^../MMTk.classes/vm/@.@'"
+        fi 
     else
 	echo "    \$FIND . -name 'VM*.class'"
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
@@ -3259,7 +3300,13 @@ EOF
 	if (( RVM_WITH_OSR )); then
 	    echo "    \$FIND ./com/ibm/JikesRVM/OSR -name '*.class'"
         fi
+        if (( ${RVM_WITH_GCSPY} )); then
+	    :
+	else
+            echo "    find ../MMTk.classes/vm/org/mmtk/vm/gcspy -name \*.class -print |sed 's@^../MMTk.classes/vm/@.@'"
+        fi 
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
+	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@.@' "
 	echo "    \$FIND ./org/mmtk -name '*.class'"
 	echo "    \$FIND ./org/vmmagic -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
@@ -3661,6 +3708,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	    $JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	# Nuke leading "./" from the strings "find" prints out.
 	    \$FIND . -name '*.class' -print | $SED_STR 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
+	    $JAR_STR tf mmtk.jar | grep '.class\$' >> $PRIMORDIAL_CLASSES_STR.in-gnu-classpath
 	    > $PRIMORDIAL_CLASSES_STR # Create it clean
 #	DEBUGGING -- lets us test for junk in the RVM.primordials file:
 #	    echo fi > $PRIMORDIAL_CLASSES_STR
@@ -3852,7 +3900,7 @@ EOF
 	#
 	chdir $SCRATCH_DIRECTORY_STR
 
-	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
+	cp=.:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
 	run $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g \
 	   -classpath \$cp -bootclasspath \$cp \
 	   BootImageWriter.java
@@ -3872,7 +3920,7 @@ EOF
 	run mkdir -p ${UTIL_KLUDGE_STUBS_DIRECTORY_STR}
 	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' \
 		-f \$BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
-		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar \
+		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar \
 		RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR \
 		RVM_BOOTIMAGE=$BOOTIMAGE_STR \
 		RVM_BOOTIMAGE_COMPILER_ARGS="\$OPT_ARGS" \
@@ -4452,7 +4500,7 @@ function emitToolCompiler () {
 	        break # must be a regular argument or a flag we do not handle.
 	    fi
 	done
-	CPATH=\${EXTRA_CPATH-.}:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar
+	CPATH=\${EXTRA_CPATH-.}:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	
 	run exec $HOST_JAVAC_STR $JAVAC_WARNING_FLAGS -g -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"

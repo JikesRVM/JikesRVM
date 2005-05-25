@@ -7,26 +7,17 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
-import org.mmtk.policy.RefCountLOSLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
-import org.mmtk.utility.options.*;
-import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
-import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.Plan;
+import org.mmtk.vm.PlanConstants;
 import org.mmtk.vm.Statistics;
 
 import org.vmmagic.unboxed.*;
@@ -52,9 +43,6 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = true;
-  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final boolean STEAL_NURSERY_GC_HEADER = false;
 
   // GC state
   private static int previousMetaDataPages;  // meta-data pages after last GC
@@ -75,11 +63,6 @@ public class GenRC extends RefCountBase implements Uninterruptible {
 
   // allocators
   protected CopyLocal nursery;
-
-  // counters
-  private int incCounter;
-  private int decCounter;
-  private int modCounter;
 
   /****************************************************************************
    *
@@ -117,7 +100,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
-    if (STEAL_NURSERY_GC_HEADER
+    if (PlanConstants.STEAL_NURSERY_GC_HEADER()
         && allocator == ALLOC_NURSERY) {
       // this assertion is unguarded so will even fail in FastAdaptive!
       // we need to abstract the idea of stealing nursery header bytes,

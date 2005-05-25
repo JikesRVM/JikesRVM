@@ -14,7 +14,6 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TrialDeletion;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Lock;
 import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Statistics;

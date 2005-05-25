@@ -10,7 +10,6 @@ import org.mmtk.utility.gcspy.AbstractTile;
 import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.Subspace;
-import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Plan;

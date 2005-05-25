@@ -5,14 +5,10 @@
 package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.BlockAllocator;
-import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Memory;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.Plan;
-import org.mmtk.vm.Assert;
-
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

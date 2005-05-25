@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class TDScanEnumerator extends Enumerate implements Uninterruptible {
+public class TDScanEnumerator extends Enumerator implements Uninterruptible {
   private TrialDeletion td;
 
   /**

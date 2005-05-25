@@ -5,7 +5,6 @@
 
 package org.mmtk.plan;
 
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.LargeRCObjectLocal;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.RefCountLocal;
@@ -13,15 +12,10 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.Plan;
-
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -42,10 +36,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    *
    * Class variables
    */
-  public static final boolean NEEDS_WRITE_BARRIER = true;
-  public static final int GC_HEADER_WORDS_REQUIRED = RefCountSpace.GC_HEADER_WORDS_REQUIRED;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
-  public static final boolean SUPPORTS_PARALLEL_GC = false;
   protected static final boolean WITH_COALESCING_RC = true;
 
   // shared queues
@@ -55,7 +46,6 @@ public abstract class RefCountBase extends StopTheWorldGC
 
   // GC state
   protected static int required;  // how many pages must this GC yeild?
-  protected static long timeCap = 0; // time within which this GC should finish
 
   // Spaces
   protected static RefCountSpace rcSpace = new RefCountSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.6);
@@ -83,9 +73,6 @@ public abstract class RefCountBase extends StopTheWorldGC
   // counters
   protected static EventCounter wbFast;
   protected static EventCounter wbSlow;
-
-  // options
-  public static GCTimeCap gcTimeCap; 
 
 
  /****************************************************************************
@@ -263,15 +250,6 @@ public abstract class RefCountBase extends StopTheWorldGC
    * Space management
    */
 
-  /**
-   * Return the number of pages consumed by meta data.
-   *
-   * @return The number of pages consumed by meta data.
-   */
-  public static final int getMetaDataPagesUsed() {
-    return metaDataSpace.reservedPages();
-  }
-
   /****************************************************************************
    *
    * Pointer enumeration
@@ -329,20 +307,5 @@ public abstract class RefCountBase extends StopTheWorldGC
     if (object.isNull()) 
       return false;
     else return (Space.isInSpace(RC, object) || Space.isInSpace(LOS, object));
-  }
-
-  /****************************************************************************
-   *
-   * Miscellaneous
-   */
-
-  /**
-   * Return the cycle time at which this GC should complete.
-   *
-   * @return The time cap for this GC (i.e. the time by which it
-   * should complete).
-   */
-  public static final long getTimeCap() {
-    return timeCap;
   }
 }

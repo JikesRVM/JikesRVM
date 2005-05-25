@@ -7,7 +7,6 @@ package org.mmtk.utility.heap;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Memory;
-import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 

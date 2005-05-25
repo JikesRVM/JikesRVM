@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class RCDecEnumerator extends Enumerate implements Uninterruptible {
+public class RCDecEnumerator extends Enumerator implements Uninterruptible {
   /**
    * Enumerate a pointer.  In this case it is a decrement event.
    *

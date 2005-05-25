@@ -6,13 +6,10 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
-import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.CallSite;
-import org.mmtk.utility.Conversions;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
@@ -20,9 +17,8 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Plan;
+import org.mmtk.vm.PlanConstants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -64,11 +60,7 @@ public abstract class Generational extends StopTheWorldGC
    *
    * Class variables
    */
-  public static final boolean NEEDS_WRITE_BARRIER = true;
-  public static final boolean MOVES_OBJECTS = true;
-  public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_WORDS_REQUIRED = CopySpace.GC_HEADER_WORDS_REQUIRED;
-  public static final boolean IGNORE_REMSET = false;    // always do full trace
+  protected static final boolean IGNORE_REMSET = false;    // always do full trace
 
   // Global pool for shared remset queue
   private static SharedDeque arrayRemsetPool = new SharedDeque(metaDataSpace, 2);
@@ -317,9 +309,9 @@ public abstract class Generational extends StopTheWorldGC
     boolean metaDataFull = metaDataSpace.reservedPages() > META_DATA_FULL_THRESHOLD;
     if (mustCollect || heapFull || nurseryFull || metaDataFull) {
       required = space.reservedPages() - space.committedPages();
-      if (space == nurserySpace || (Plan.COPY_MATURE() && (space == activeMatureSpace)))
+      if (space == nurserySpace || (PlanConstants.COPY_MATURE() && (space == activeMatureSpace)))
         required = required<<1;  // must account for copy reserve
-      int nurseryYield = ((int)((float) nurserySpace.committedPages() * SURVIVAL_ESTIMATE))<<1;
+      int nurseryYield = ((int)(nurserySpace.committedPages() * SURVIVAL_ESTIMATE))<<1;
       fullHeapGC = mustCollect || (nurseryYield < required) || fullHeapGC;
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
@@ -655,7 +647,7 @@ public abstract class Generational extends StopTheWorldGC
   protected static final int getPagesReserved() {
     return getPagesUsed()
       + nurserySpace.reservedPages()
-      + (Plan.COPY_MATURE() ? activeMatureSpace.reservedPages() : 0);
+      + (PlanConstants.COPY_MATURE() ? activeMatureSpace.reservedPages() : 0);
   }
 
   /**
@@ -680,10 +672,10 @@ public abstract class Generational extends StopTheWorldGC
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
-  protected static final int getPagesAvail() {
+  public static final int getPagesAvail() {
     int copyReserved = nurserySpace.reservedPages();
     int nonCopyReserved = getCommonPagesReserved();
-    if (Plan.COPY_MATURE())
+    if (PlanConstants.COPY_MATURE())
       copyReserved += activeMatureSpace.reservedPages();
     else
       nonCopyReserved += activeMatureSpace.reservedPages();

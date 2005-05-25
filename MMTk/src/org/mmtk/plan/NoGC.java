@@ -4,20 +4,14 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.CallSite;
-import org.mmtk.utility.heap.*;
 import org.mmtk.utility.scan.MMType;
-import org.mmtk.utility.scan.Scan;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -37,9 +31,6 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    *
    * Class variables
    */
-  public static final boolean MOVES_OBJECTS = false;
-  public static final int GC_HEADER_BITS_REQUIRED = 0;
-  public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   // Allocators
   public static final int ALLOCATORS = BASE_ALLOCATORS;
@@ -440,7 +431,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */
-  protected static final int getPagesAvail() {
+  public static final int getPagesAvail() {
     return getTotalPages() - getPagesReserved();
   }
 
