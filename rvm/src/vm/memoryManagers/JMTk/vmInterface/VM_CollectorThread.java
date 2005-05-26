@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.ScanThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -128,12 +129,17 @@ public class VM_CollectorThread extends VM_Thread {
   private int       gcOrdinal;
 
   /** used by each CollectorThread when scanning stacks for references */
-  public final VM_GCMapIteratorGroup iteratorGroup = new VM_GCMapIteratorGroup();
-  
+  private final ScanThread threadScanner = new ScanThread();
+
   /** time waiting in rendezvous (milliseconds) */
   int timeInRendezvous;
   
   static boolean gcThreadRunning;
+
+  /** @return the thread scanner instance associated with this instance */
+  public final ScanThread getThreadScanner() throws UninterruptiblePragma 
+  { return threadScanner; }
+
 
   /***********************************************************************
    *
