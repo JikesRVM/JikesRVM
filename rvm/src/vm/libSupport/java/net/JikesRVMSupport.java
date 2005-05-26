@@ -26,11 +26,7 @@ public class JikesRVMSupport implements VM_SizeConstants {
   }
     
   public static InetAddress createInetAddress(int address, String hostname) {
-    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
-    return new InetAddress(toArrayForm(address), hostname, null);
-    //-#else
     return new InetAddress(toArrayForm(address), hostname);
-    //-#endif
   }
     
   public static int getFamily(InetAddress inetaddress) {

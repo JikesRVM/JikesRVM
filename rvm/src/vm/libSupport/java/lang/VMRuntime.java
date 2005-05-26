@@ -77,39 +77,19 @@ final class VMRuntime {
     VM.sysExit(status);
   }    
 
-  //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12 || RVM_WITH_CLASSPATH_0_13
-  static int nativeLoad(String libName) {
-    return VM_DynamicLibrary.load(libName);
-  }
-  //-#else
-  /** As of January 7, 2005, 0.13+ CVS Head.  <b>XXX TODO</b> We currently ignore the
+  /** <b>XXX TODO</b> We currently ignore the
    * <code>loader</code> parameter.
    * @param loader Ignored.  null means the bootstrap class loader.
    * @return nonzero on success, zero on failure. */
   static int nativeLoad(String libName, ClassLoader loader) {
     return VM_DynamicLibrary.load(libName);
   }
-  //-#endif
 
 
-  //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
-  //-#else
   /** Mangle a short-name to the file name (not the full pathname) for a
-   *  dynamically loadable library.  (Used only in Classpath 0.13 and later)
+   *  dynamically loadable library.
    */
   static String mapLibraryName(String libname) {
-    return nativeGetLibname(null, libname);
-  }
-  //-#endif
-
-  /** This method is used in Classpath 0.10, 0.11, and 0.12.
-   *  Classpath 0.13 and later use {@link #mapLibraryName} instead, which
-   *  calls this function for help. */
-  //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
-  //-#else
-  private
-    //-#endif
-    static String nativeGetLibname(String pathname, String libname) {
     String libSuffix;
     if (VM.BuildForLinux) {
       libSuffix = ".so";
@@ -118,10 +98,7 @@ final class VMRuntime {
     } else {
       libSuffix = ".a";
     }
-    if (pathname != null && !("".equals(pathname)))
-      return pathname + File.separator + "lib" + libname + libSuffix;
-    else
-      return "lib" + libname + libSuffix;
+    return "lib" + libname + libSuffix;
   }
 
   static Process exec(String[] cmd, String[] env, File dir) {
@@ -138,20 +115,4 @@ final class VMRuntime {
    * control-C)?  */ 
   static void enableShutdownHooks() {
   }
-
-
-  //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
-  /** VMRuntime.insertSystemProperties is used by Classpath versions through
-   *  Classpath  0.12.   Starting with Classpath 0.13, we use
-   *  gnu.classpath.VMSystemProperties.preInit and
-   *  gnu.classpath.VMSystemProperties.postInit.
-   *
-   */
-  static void insertSystemProperties(Properties p) {
-    VMSystemProperties.preInit(p);
-    VMSystemProperties.postInit(p);
-  }
-    
-  //-#endif
-  
 }

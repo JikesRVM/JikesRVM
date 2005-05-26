@@ -35,15 +35,7 @@ public class JikesRVMSupport {
     Class c = Class.create(type);
     setClassProtectionDomain(c, pd);
     return c;
-    //-#elif RVM_WITH_CLASSPATH_0_10
-    // Classpath 0.10 is the earliest acceptable version
-    /* Classpath 0.10 doesn't seem to have any way to actually set the
-       ProtectionDomain.  Ugly. */
-    Class c = new Class((Object) VMClass.create(type));
-    setClassProtectionDomain(c, pd);
-    return c;
     //-#else
-    // Classpath 0.11, 0.12, or later
     return new Class((Object) VMClass.create(type), pd);
     //-#endif
   }
@@ -64,14 +56,6 @@ public class JikesRVMSupport {
       GNU Classpath 0.11's implementation.  */
   public static void setClassProtectionDomain(Class c, ProtectionDomain pd) {
     c.pd = pd;
-  }
-  //-#elif RVM_WITH_CLASSPATH_0_10
-  /** However, under Classpath 0.10, we don't set the ProtectionDomain, and
-   * that might be necessary.  We have to use an ugly reflection hack, though,
-   * to use Classpath's java.lang.Class, since the field is private. */
-  public static void setClassProtectionDomain(Class c, ProtectionDomain pd) {
-    VM_Entrypoints.javaLangClassProtectionDomain
-      .setObjectValueUnchecked(c, pd);
   }
   //-#endif
 
@@ -98,16 +82,4 @@ public class JikesRVMSupport {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     return new Thread(vmdata, myName);
   }
-
-  //-#if RVM_WITH_CLASSPATH_0_12
-  public static void javaLangSystemEarlyInitializers() {
-    System.initLoadLibrary();
-    System.initProperties();
-  }
-
-  public static void javaLangSystemLateInitializers() {
-    System.initSystemClassLoader();
-    System.initSecurityManager();    // Includes getting the class loader.
-  }
-  //-#endif
 }

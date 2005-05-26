@@ -204,19 +204,10 @@ public class VM extends VM_Properties
     // writer.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
-    //-#if RVM_WITH_CLASSPTAH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
-    //-#else
-    runClassInitializer("gnu.classpath.SystemProperties"); // only in 0.13 and later
-    //-#endif
+    runClassInitializer("gnu.classpath.SystemProperties");
     
     runClassInitializer("java.lang.Runtime");
-    //-#if RVM_WITH_CLASSPATH_0_12
-    // Classpath 0.12
-    java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
-    //-#else  // 0.10, 0.11, 0.13, and post-0.13
-    // In 0.10 and 0.11, requires ClassLoader and ApplicationClassLoader
     runClassInitializer("java.lang.System"); 
-    //-#endif
     runClassInitializer("java.lang.Void");
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
@@ -260,7 +251,6 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.String");
     runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
-    runClassInitializer("java.security.Policy");
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
@@ -271,27 +261,10 @@ public class VM extends VM_Properties
      * Application Class Loader. */
     runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
 
-    // Calls System.getProperty().  However, the only thing it uses the
-    // property for is to set the default protection domain, and THAT is only
-    // used in defineClass.  So, since we haven't needed to call defineClass
-    // up to this point, we are OK deferring its proper re-initialization.
-    runClassInitializer("java.lang.ClassLoader"); 
-
-    /* Here, we lie and pretend to have a working app class loader, since we
-       need it in order to run other initializers properly! */
-    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
-    //-#elif RVM_WITH_CLASSPATH_0_12
-    java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
-    //-#else
-    /** This one absolutely requires that we have a working Application/System
-        class loader, or at least a returnable one.  That, in turn, requires
-        lots of things be set up for Jar.  */
     runClassInitializer("java.lang.ClassLoader$StaticData");
-    //-#endif
 
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
     runClassInitializer("java.nio.charset.CharsetEncoder");
-    runClassInitializer("java.nio.charset.CharsetDecoder");
     runClassInitializer("java.nio.charset.CoderResult");
 
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
@@ -301,12 +274,10 @@ public class VM extends VM_Properties
                                               work.  Still can't use them
                                               until JNI is set up. */ 
     runClassInitializer("java.util.SimpleTimeZone");
-    runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");
     runClassInitializer("java.util.GregorianCalendar");
     runClassInitializer("java.util.ResourceBundle");
-    runClassInitializer("java.util.zip.ZipEntry");
     runClassInitializer("java.util.zip.Inflater");
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
@@ -424,16 +395,7 @@ public class VM extends VM_Properties
     // tree yet. 
     // java.security.JikesRVMSupport.fullyBootedVM();
 
-    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
-    //-#elif RVM_WITH_CLASSPATH_0_12
-    java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
-    //-#else
-    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_CVS_HEAD
-    /** This one absolutely requires that we have a working Application/System
-        class loader, or at least a returnable one.  That, in turn, requires
-        lots of things be set up for Jar.  */
     runClassInitializer("java.lang.ClassLoader$StaticData");
-    //-#endif
 
     // Allow profile information to be read in from a file
     // 

@@ -34,12 +34,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_NormalMethod athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
 
-  //-#if !RVM_WITH_OWN_JAVA_LANG_CLASS && RVM_WITH_CLASSPATH_0_10
-  public static final VM_Field javaLangClassProtectionDomain =
-    getField("Ljava/lang/Class;", "pd", "Ljava/security/ProtectionDomain;");
-  //-#endif
-
-
   // Allocation-related entry points
   //
   public static final VM_NormalMethod resolvedNewScalarMethod  = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZIII)Ljava/lang/Object;");
@@ -278,19 +272,10 @@ public class VM_Entrypoints implements VM_Constants {
   //-#endif
 
   public static final VM_Field classLoaderDefinedPackages =
-    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
-    getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
-    //-#else
     getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
-    //-#endif
 
   public static final VM_Field classLoaderLoadedClasses =
-    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
-    getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/Map;");
-    //-#else 
-    // Classpath 0.12 and later:
     getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/HashMap;");
-    //-#endif
 
 
   static {
