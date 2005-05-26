@@ -650,7 +650,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static Address allocateSpace(Plan plan, int bytes, int align,
-                                          int offset, boolean copy,
+                                       int offset, boolean copy,
                                        int allocator, ObjectReference from)
                                           
     throws UninterruptiblePragma, InlinePragma {
@@ -664,7 +664,6 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     if (copy) {
       region = plan.allocCopy(from, bytes, align, offset);
       if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
-
     } else {
       region = plan.alloc(bytes, align, offset, allocator);
       if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
