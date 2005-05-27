@@ -104,12 +104,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    * Linux version inserts a RVM frame header right above JNI_SAVE_AREA. <p>
    * 
    * <pre>
+   *   |            | <- Native callee frame   (lower addresses)
+   *   | ......     |
    *   |------------|
    *   | fp         | <- Java to C glue frame (2)
    *   | lr         |
    *   | 0          | <- spill area, see VM_Compiler.getFrameSize
    *   | 1          |
-   *   |.......     |
+   *   | .......    |
    *   |------------| 
    *   | fp         | <- Java to C glue frame (1)
    *   | cmid       | 
@@ -117,13 +119,15 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   | padding    |
    *   | GC flag    |
    *   | Affinity   |
-   *   | ........   |
+   *   | .......    |
    *   |------------| 
    *   | fp         | <- Java caller frame
-   *   | mid        |
+   *   | lr         |
+   *   | cmid       |                        (higher addresses)
+   *   | .......    |
    * </pre>
    * 
-   * VM_Runtime.unwindNativeStackFrame will return a pointer to glue frame (1).
+   * VM_Runtime.unwindNativeStackFrame will return a pointer to glue frame (2).
    * The lr slot of frame (2) holds the address of out-of-line machine code 
    * which should be in bootimage, and GC shouldn't move this code. 
    * The VM_JNIGCIterator returns the lr of frame (2) as the result of 
@@ -156,11 +160,11 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);      
   
     //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    // buy mini frame (2)
+    // buy mini frame (1)
     asm.emitSTAddrU   (FP, -JNI_SAVE_AREA_SIZE, FP);
-    asm.emitLVAL  (S0, compiledMethodId);                // save jni method id at mini frame (2)
+    asm.emitLVAL  (S0, compiledMethodId);                // save jni method id at mini frame (1)
     asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-    // buy mini frame (1), the total size equals to frameSize
+    // buy mini frame (2), the total size equals to frameSize
     asm.emitSTAddrU   (FP, -frameSize + JNI_SAVE_AREA_SIZE, FP);
     //-#endif
         
@@ -184,7 +188,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // save current frame pointer in JNIEnv, JNITopJavaFP, which will be the frame
     // to start scanning this stack during GC, if top of stack is still executing in C
     //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    // for Linux, save mini (2) frame pointer, which has method id
+    // for Linux, save mini (1) frame pointer, which has method id
     asm.emitLAddr (PROCESSOR_REGISTER, 0, FP);
     asm.emitSTAddrOffset(PROCESSOR_REGISTER, S0, VM_Entrypoints.JNITopJavaFPField.getOffset());
     //-#elif RVM_WITH_POWEROPEN_ABI
@@ -279,6 +283,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     }
 
     // pop the glue stack frame, restore the Java caller frame
+    // On PowerPC Linux, this pops both mini frames (1) and (2) at once
     asm.emitADDI (FP,  +frameSize, FP);              // remove linkage area
 
     // C return value is already where caller expected it (T0/T1 or F0)
