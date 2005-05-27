@@ -2912,7 +2912,7 @@ build_mmtk() {
     # Build mmtk.jar
     #
     chdir mmtk
-    \${FIND} . -name "*.class" | \$XARGS \${JAR} cf \$MMTK_JAR
+    \${FIND} .  \\( -name "*.class" -o -name "*.java" \\) | \$XARGS \${JAR} cf \$MMTK_JAR
 
     #
     # Remove .class files - required for when we determine the build image classes.
