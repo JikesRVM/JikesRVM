@@ -114,8 +114,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   | .......    |
    *   |------------| 
    *   | fp         | <- Java to C glue frame (1)
-   *   | cmid       | 
    *   | lr         |
+   *   | cmid       | 
    *   | padding    |
    *   | GC flag    |
    *   | Affinity   |
