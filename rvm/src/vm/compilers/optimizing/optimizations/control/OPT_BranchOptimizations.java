@@ -19,6 +19,7 @@ import java.util.HashSet;
  * @author Dave Grove
  * @author Mauricio Serrano
  * @author Martin Trapp
+ * @author Ian Rogers
  */
 public final class OPT_BranchOptimizations
   extends OPT_BranchOptimizationDriver {
@@ -597,8 +598,6 @@ public final class OPT_BranchOptimizations
    * of condition codes.
    * </ul>
    *
-   * @modified Ian Rogers
-   *
    * @param ir governing IR
    * @param bb basic block of cb
    * @param cb conditional branch instruction
@@ -619,6 +618,17 @@ public final class OPT_BranchOptimizations
     // has a taboo instruction (eg., a PEI, store or divide).
     if (taken != null && hasCMTaboo(taken)) return false;
     if (notTaken != null && hasCMTaboo(notTaken)) return false;
+
+	 // Do not generate when we don't know the branch probability or
+	 // when branch probability is high. CMOVs reduce performance of
+	 // the out-of-order engine (Intel Optimization Guide -
+	 // Assembly/Compiler Coding Rule 2)
+	 OPT_BranchProfileOperand profile = IfCmp.getBranchProfile(cb);
+	 if(!VM.runningVM ||
+		 (profile.takenProbability >= OPT_BranchProfileOperand.LIKELY)||
+		 (profile.takenProbability <= OPT_BranchProfileOperand.UNLIKELY)) {
+		return false;
+	 }
 
     // if we must generate FCMP, make sure the condition code is OK
 	 OPT_ConditionOperand cond = IfCmp.getCond(cb);
@@ -645,13 +655,6 @@ public final class OPT_BranchOptimizations
 		if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
 		  return false;
 		}
-	 }
-
-    // For now, do not generate CMOVs if the condition depends on
-    // long compares
-    if ((IfCmp.getVal1(cb).isRegister() &&  IfCmp.getVal1(cb).asRegister().register.isLong()) ||
-		  (IfCmp.getVal2(cb).isRegister() &&  IfCmp.getVal2(cb).asRegister().register.isLong())) {
-		return false;
 	 }
 
     // Don't generate CMOVs for branches that can be folded.

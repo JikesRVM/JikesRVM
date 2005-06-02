@@ -4,6 +4,7 @@
 #//$Id$
 #
 # @author Dave Grove
+# @author Ian Rogers
 #
 # BURS rules for IA32
 #
@@ -717,17 +718,17 @@ EMIT(MIR_Set.mutate(P(p), IA32_SET__B, MO_AS(P(p),B_S,B), COND(consumeCOND())));
 #####
 # BOOLEAN_CMP_LONG
 #####
-r:	BOOLEAN_CMP_LONG(r,rlv)
-39
+r:	BOOLEAN_CMP_LONG(rlv,rlv)
+8*13
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion \
-BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)));
+BOOLEAN_CMP_LONG(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)), BooleanCmp.getCond(P(p)));
 
-boolcmp: BOOLEAN_CMP_LONG(r,rlv)
-13
+boolcmp: BOOLEAN_CMP_LONG(rlv,rlv)
+11*13
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+LONG_CMP(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p))); \
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, BooleanCmp.getResult(P(p)), IC(0))));
 
 #####
 # BOOLEAN_CMP_FLOAT
@@ -1027,6 +1028,15 @@ CMOV_FMOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGN
 # Can't optimize cases: FCMP_CMOV(r, OTHER_OPERAND(fp0/pfp0, any)) or
 # for child2 being a register as flip operands may produce an invalid
 # FP comparison
+#####
+# LCMP_CMOV
+#####
+r: LCMP_CMOV(r, OTHER_OPERAND(rlv, any))
+(8*13 + 30)
+EMIT_INSTRUCTION
+LCMP_CMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)),\
+          CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
 ##################################
 # Basic Integer ALU operations 
 ##################################
@@ -2082,7 +2092,7 @@ LONG_NEG(P(p), UnaryAcc.getResult(P(p)));
 r:	LONG_SHL_ACC(r, riv)
 20
 EMIT_INSTRUCTION
-EMIT(P(p)); // leave for complex expansion
+LONG_SHL(P(p));
 
 #####
 # LONG_SHR_ACC
@@ -2090,7 +2100,7 @@ EMIT(P(p)); // leave for complex expansion
 r:	LONG_SHR_ACC(r, riv)
 20
 EMIT_INSTRUCTION
-EMIT(P(p)); // leave for complex expansion
+LONG_SHR(P(p));
 
 #####
 # LONG_USHR_ACC
@@ -2098,7 +2108,7 @@ EMIT(P(p)); // leave for complex expansion
 r:	LONG_USHR_ACC(r, riv)
 20
 EMIT_INSTRUCTION
-EMIT(P(p)); // leave for complex expansion
+LONG_USHR(P(p));
 
 #####
 # LONG_AND_ACC
@@ -3771,9 +3781,9 @@ EMIT(P(p)); // OPT_ComplexLIR2MIRExpansion will handle rest of the work.
 # LONG_CMP
 #####
 r:	LONG_CMP(rlv,rlv)
-30
+10*13
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+LONG_CMP(P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
 #####
 # FLOAT_CMPL
@@ -3781,7 +3791,7 @@ EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 r:	FLOAT_CMPL(r,r)
 30
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+threeValueFPCmp(P(p));
 
 #####
 # FLOAT_CMPG
@@ -3789,7 +3799,7 @@ EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 r:	FLOAT_CMPG(r,r)
 30
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+threeValueFPCmp(P(p));
 
 #####
 # DOUBLE_CMPL
@@ -3797,7 +3807,7 @@ EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 r:	DOUBLE_CMPL(r,r)
 30
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+threeValueFPCmp(P(p));
 
 #####
 # DOUBLE_CMPG
@@ -3805,7 +3815,7 @@ EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
 r:	DOUBLE_CMPG(r,r)
 30
 EMIT_INSTRUCTION
-EMIT(P(p)); //  Leave for OPT_ComplexLIR2MIRExpansion
+threeValueFPCmp(P(p));
 
 #####
 # GOTO
@@ -3931,6 +3941,261 @@ stm:	YIELDPOINT_OSR(any, any)
 10
 EMIT_INSTRUCTION
 OSR(burs, P(p));
+
+# Find loads to merge
+# merge loads of the form:
+# (b[0] & 0xFF) | ((b[1] & 0xFF) << 8) | ((b[2] & 0xFF) << 16 ) | ((b[3] & 0xFF) << 24)
+#
+#   int_or_acc                              P
+#      int_move                             L
+#         int_or_acc                        LL
+#            int_or_acc                     LLL
+#               int_move                    LLLL
+#                  int_and_acc              LLLLL
+#                     byte_aload            LLLLLL
+#                        register           LLLLLLL
+#                        INT_CONSTANT 0     LLLLLLR
+#                     INT_CONSTANT 255      LLLLLR
+#               int_shl_acc                 LLLR
+#                  int_move                 LLLRL
+#                     int_and_acc           LLLRLL
+#                        byte_aload         LLLRLLL
+#                           register        LLLRLLLL
+#                           INT_CONSTANT 1  LLLRLLLR
+#                        INT_CONSTANT 255   LLLRLLR
+#                  INT_CONSTANT 8           LLLRR
+#            int_shl_acc                    LLR
+#               int_move                    LLRL
+#                  int_and_acc              LLRLL
+#                     byte_aload            LLRLLL
+#                        register           LLRLLLL
+#                        INT_CONSTANT 2     LLRLLLR
+#                     INT_CONSTANT 255      LLRLLR
+#               INT_CONSTANT 16             LLRR
+#      int_shl_acc                          R
+#         int_move                          RL
+#            int_and_acc                    RLL
+#               byte_aload                  RLLL
+#                  register                 RLLLL
+#                  INT_CONSTANT 3           RLLLR
+#               INT_CONSTANT 255            RLLR
+#         INT_CONSTANT 24                   RR
+load32: INT_OR_ACC(INT_MOVE(INT_OR_ACC(INT_OR_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT)),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)), INT_CONSTANT))),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT))
+(VLLLLLR(p) == 255) && (VLLLRLLR(p) == 255) && (VLLRLLR(p) == 255) && (VLLRLLR(p) == 255) && \
+(VRR(p) == 24) && (VLLRR(p) == 16) && (VLLLRR(p) == 8) && \
+(VLLLLLLR(p)+1 == VLLLRLLLR(p)) && (VLLLRLLLR(p)+1 == VLLRLLLR(p)) && (VLLRLLLR(p)+1 == VRLLLR(p)) && \
+ALoad.getArray(PLLLLLL(p)).similar(ALoad.getArray(PLLLRLLL(p))) && \
+ALoad.getArray(PLLLRLLL(p)).similar(ALoad.getArray(PLLRLLL(p))) && \
+ALoad.getArray(PLLRLLL(p)).similar(ALoad.getArray(PRLLL(p))) \
+? 0:INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_AL(PLLLLLL(p), B_S, DW));
+
+r: INT_OR_ACC(INT_MOVE(INT_OR_ACC(INT_OR_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT)),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)), INT_CONSTANT))),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT))
+(VLLLLLR(p) == 255) && (VLLLRLLR(p) == 255) && (VLLRLLR(p) == 255) && (VLLRLLR(p) == 255) && \
+(VRR(p) == 24) && (VLLRR(p) == 16) && (VLLLRR(p) == 8) && \
+(VLLLLLLR(p)+1 == VLLLRLLLR(p)) && (VLLLRLLLR(p)+1 == VLLRLLLR(p)) && (VLLRLLLR(p)+1 == VRLLLR(p)) && \
+ALoad.getArray(PLLLLLL(p)).similar(ALoad.getArray(PLLLRLLL(p))) && \
+ALoad.getArray(PLLLRLLL(p)).similar(ALoad.getArray(PLLRLLL(p))) && \
+ALoad.getArray(PLLRLLL(p)).similar(ALoad.getArray(PRLLL(p))) \
+? 15:INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_AL(PLLLLLL(p), B_S, DW)); \
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), consumeMO()));
+
+# merge loads of the form:
+# (b[0] & 0xFF) | ((b[1] & 0xFF) << 8) | ((b[2] & 0xFF) | ((b[3] & 0xFF) << 8)) << 16
+#
+#   int_or_acc                             P
+#      int_move                            L
+#         int_or_acc                       LL
+#            int_and_acc                   LLL
+#               byte_aload                 LLLL
+#                  register                LLLLL
+#                  INT_CONSTANT 0          LLLLR
+#               INT_CONSTANT 255           LLLR
+#            int_shl_acc                   LLR
+#               int_move                   LLRL
+#                  int_and_acc             LLRLL
+#                     byte_aload           LLRLLL
+#                        register          LLRLLLL
+#                        INT_CONSTANT 1    LLRLLLR
+#                     INT_CONSTANT 255     LLRLLR
+#               INT_CONSTANT 8             LLRR
+#      int_shl_acc                         R
+#         int_move                         RL
+#            int_or_acc                    RLL
+#               int_and_acc                RLLL
+#                  byte_aload              RLLLL
+#                     register             RLLLLL
+#                     INT_CONSTANT 2       RLLLLR
+#                  INT_CONSTANT 255        RLLLR
+#               int_shl_acc                RLLR
+#                  int_move                RLLRL
+#                     int_and_acc          RLLRLL
+#                        byte_aload        RLLRLLL
+#                           register       RLLRLLLL
+#                           INT_CONSTANT 3 RLLRLLLR
+#                        INT_CONSTANT 255  RLLRLLR
+#                  INT_CONSTANT 8          RLLRR
+#         INT_CONSTANT 16                  RR
+load32: INT_OR_ACC(INT_MOVE(INT_OR_ACC(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT))),INT_SHL_ACC(INT_MOVE(INT_OR_ACC(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT))),INT_CONSTANT))
+(VLLLR(p) == 255) && (VLLRLLR(p) == 255) && (VRLLLR(p) == 255) && (VRLLRLLR(p) == 255) && \
+(VLLRR(p) == 8) && (VRLLRR(p) == 8) && (VRR(p) == 16) && \
+(VLLLLR(p)+1 == VLLRLLLR(p)) && (VLLRLLLR(p)+1 == VRLLLLR(p)) && (VRLLLLR(p)+1 == VRLLRLLLR(p)) && \
+ALoad.getArray(PLLLL(p)).similar(ALoad.getArray(PLLRLLL(p))) && \
+ALoad.getArray(PLLRLLL(p)).similar(ALoad.getArray(PRLLLL(p))) && \
+ALoad.getArray(PRLLLL(p)).similar(ALoad.getArray(PRLLRLLL(p))) \
+? 28:INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_AL(PLLLL(p), B_S, DW));
+
+r: INT_OR_ACC(INT_MOVE(INT_OR_ACC(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT))),INT_SHL_ACC(INT_MOVE(INT_OR_ACC(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT))),INT_CONSTANT))
+(VLLLR(p) == 255) && (VLLRLLR(p) == 255) && (VRLLLR(p) == 255) && (VRLLRLLR(p) == 255) && \
+(VLLRR(p) == 8) && (VRLLRR(p) == 8) && (VRR(p) == 16) && \
+(VLLLLR(p)+1 == VLLRLLLR(p)) && (VLLRLLLR(p)+1 == VRLLLLR(p)) && (VRLLLLR(p)+1 == VRLLRLLLR(p)) && \
+ALoad.getArray(PLLLL(p)).similar(ALoad.getArray(PLLRLLL(p))) && \
+ALoad.getArray(PLLRLLL(p)).similar(ALoad.getArray(PRLLLL(p))) && \
+ALoad.getArray(PRLLLL(p)).similar(ALoad.getArray(PRLLRLLL(p))) \
+? 28:INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_AL(PLLLL(p), B_S, DW)); \
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), consumeMO()));
+
+# Find byte swaps:
+# byteswap of the form:
+# ((b[0] & 0xFF) << 24) | ((b[1] & 0xFF) << 16) | ((b[2] & 0xFF) << 8 ) | (b[3] & 0xFF)
+#
+#   int_or_acc
+#      int_move                              L
+#         int_or_acc                         LL
+#            int_or_acc                      LLL
+#               int_move                     LLLL
+#                  int_shl_acc               LLLLL
+#                     int_and_acc            LLLLLL
+#                        byte_aload          LLLLLLL
+#                           register         LLLLLLLL
+#                           INT_CONSTANT 0   LLLLLLLR
+#                        INT_CONSTANT 255    LLLLLLR
+#                     INT_CONSTANT 24        LLLLLR
+#               int_shl_acc                  LLLR
+#                  int_move                  LLLRL
+#                     int_and_acc            LLLRLL
+#                        byte_aload          LLLRLLL
+#                           register         LLLRLLLL
+#                           INT_CONSTANT 1   LLLRLLLR
+#                        INT_CONSTANT 255    LLLRLLR
+#                  INT_CONSTANT 16           LLLRR
+#            int_shl_acc                     LLR
+#               int_move                     LLRL
+#                  int_and_acc               LLRLL
+#                     byte_aload             LLRLLL
+#                        register            LLRLLLL
+#                        INT_CONSTANT 2      LLRLLLR
+#                     INT_CONSTANT 255       LLRLLR
+#               INT_CONSTANT 8               LLRR
+#      int_and_acc                           R
+#         byte_aload                         RL
+#            register                        RLL
+#            INT_CONSTANT 3                  RLR
+#         INT_CONSTANT 255                   RR
+r: INT_OR_ACC(INT_MOVE(INT_OR_ACC(INT_OR_ACC(INT_MOVE(INT_SHL_ACC(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT),INT_CONSTANT)),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT)),INT_SHL_ACC(INT_MOVE(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT))),INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT))
+(VLLLLLLR(p) == 255) && (VLLLRLLR(p) == 255) && (VLLRLLR(p) == 255) && (VRR(p) == 255) && \
+(VLLLLLR(p) == 24) && (VLLLRR(p) == 16) && (VLLRR(p) == 8) && \
+(VLLLLLLLR(p)+1 == VLLLRLLLR(p)) && (VLLLRLLLR(p)+1 == VLLRLLLR(p)) && (VLLRLLLR(p)+1 == VRLR(p)) && \
+ALoad.getArray(PLLLLLLL(p)).similar(ALoad.getArray(PLLLRLLL(p))) && \
+ALoad.getArray(PLLLRLLL(p)).similar(ALoad.getArray(PLLRLLL(p))) && \
+ALoad.getArray(PLLRLLL(p)).similar(ALoad.getArray(PRL(p))) \
+? 28:INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_AL(PLLLLLLL(p), B_S, DW)); \
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), consumeMO())); \
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p))));
+
+# byteswap of the form:
+# ((((b[0] & 0xFF) << 8) | (b[1] & 0xFF)) << 16) | ((b[2] & 0xFF) << 8 ) | (b[3] & 0xFF)
+#
+#   int_or_acc                              P
+#      int_move                             L
+#         int_shl_acc                       LL
+#            int_or_acc                     LLL
+#               int_move                    LLLL
+#                  int_shl_acc              LLLLL
+#                     int_and_acc           LLLLLL
+#                        byte_aload         LLLLLLL
+#                           register        LLLLLLLL
+#                           INT_CONSTANT 0  LLLLLLLR
+#                        INT_CONSTANT 255   LLLLLLR
+#                     INT_CONSTANT 8        LLLLLR
+#               int_and_acc                 LLLR
+#                  byte_aload               LLLRL
+#                     register              LLLRLL
+#                     INT_CONSTANT 1        LLLRLR
+#                  INT_CONSTANT 255         LLLRR
+#            INT_CONSTANT 16                LLR
+#      int_or_acc                           R
+#         int_move                          RL
+#            int_shl_acc                    RLL
+#               int_and_acc                 RLLL
+#                  byte_aload               RLLLL
+#                     register              RLLLLL
+#                     INT_CONSTANT 2        RLLLLR
+#                  INT_CONSTANT 255         RLLLR
+#               INT_CONSTANT 8              RLLR
+#         int_and_acc                       RR
+#            byte_aload                     RRL
+#               register                    RRLL
+#               INT_CONSTANT 3              RRLR
+#            INT_CONSTANT 255               RRR
+r: INT_OR_ACC(INT_MOVE(INT_SHL_ACC(INT_OR_ACC(INT_MOVE(INT_SHL_ACC(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT),INT_CONSTANT)),INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)),INT_CONSTANT)),INT_OR_ACC(INT_MOVE(INT_SHL_ACC(INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT),INT_CONSTANT)),INT_AND_ACC(BYTE_ALOAD(r,INT_CONSTANT),INT_CONSTANT)))
+(VLLLLLLR(p) == 255) && (VLLLRR(p) == 255) && (VRLLLR(p) == 255) && (VRRR(p) == 255) && \
+(VLLLLLR(p) == 8) && (VLLR(p) == 16) && (VRLLR(p) == 8) && \
+(VLLLLLLLR(p)+1 == VLLLRLR(p)) && (VLLLRLR(p)+1 == VRLLLLR(p)) && (VRLLLLR(p)+1 == VRRLR(p)) && \
+ALoad.getArray(PLLLLLLL(p)).similar(ALoad.getArray(PLLLRL(p))) && \
+ALoad.getArray(PLLLRL(p)).similar(ALoad.getArray(PRLLLL(p))) && \
+ALoad.getArray(PRLLLL(p)).similar(ALoad.getArray(PRRL(p))) \
+? 28:INFINITE
+EMIT_INSTRUCTION
+pushMO(MO_AL(PLLLLLLL(p), B_S, DW)); \
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), consumeMO())); \
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p))));
+
+# byteswap of the form:
+# ((x & 0xFF) << 24) | ((x & 0xFF00) << 8) | ((x & 0xFF0000) >> 8) | (x >>> 24)
+#
+#   int_or_acc                              P
+#      int_move                             L
+#         int_or_acc                        LL
+#            int_or_acc                     LLL
+#               int_move                    LLLL
+#                  int_shl_acc              LLLLL
+#                     int_and_acc           LLLLLL
+#                        register           LLLLLLL
+#                        INT_CONSTANT 255   LLLLLLR
+#                     INT_CONSTANT 24       LLLLLR
+#               int_shl_acc                 LLLR
+#                  int_and_acc              LLLRL
+#                     register              LLLRLL
+#                     INT_CONSTANT 65280    LLLRLR
+#                  INT_CONSTANT 8           LLLRR
+#            int_shr_acc                    LLR
+#               int_and_acc                 LLRL
+#                  register                 LLRLL
+#                  INT_CONSTANT 16711680    LLRLR
+#               INT_CONSTANT 8              LLRR
+#      int_ushr_acc                         R
+#         register                          RL
+#         INT_CONSTANT 24                   RR
+r: INT_OR_ACC(INT_MOVE(INT_OR_ACC(INT_OR_ACC(INT_MOVE(INT_SHL_ACC(INT_AND_ACC(r,INT_CONSTANT),INT_CONSTANT)),INT_SHL_ACC(INT_AND_ACC(r,INT_CONSTANT),INT_CONSTANT)),INT_SHR_ACC(INT_AND_ACC(r,INT_CONSTANT),INT_CONSTANT))),INT_USHR_ACC(r,INT_CONSTANT))
+(VLLLLLLR(p) == 0xFF) && (VLLLRLR(p) == 0xFF00) && (VLLRLR(p) == 0xFF0000) && \
+(VLLLLLR(p) == 24) && (VLLLRR(p) == 8) && (VLLRR(p) == 8) && (VRR(p) == 24) && \
+follow(BinaryAcc.getResult(PLLLLLL(p))).similar(follow(BinaryAcc.getResult(PLLLRL(p)))) && \
+follow(BinaryAcc.getResult(PLLLLLL(p))).similar(follow(BinaryAcc.getResult(PLLRL(p)))) && \
+follow(BinaryAcc.getResult(PLLLLLL(p))).similar(follow(BinaryAcc.getResult(PR(p)))) \
+? 26:INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), BinaryAcc.getClearValue(PLLLLLL(p)))); \
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p)).copyRO()));
 
 # Find bit test instructions - bt base, offset
 # NB bit test sets the carry flag not the zero flag

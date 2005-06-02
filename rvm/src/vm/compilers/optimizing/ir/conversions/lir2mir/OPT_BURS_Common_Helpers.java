@@ -142,32 +142,71 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
    protected final OPT_Instruction PL(OPT_BURS_TreeNode p) {
       return p.child1.getInstruction();
    }
-   protected final OPT_Instruction PR(OPT_BURS_TreeNode p) {
-      return p.child2.getInstruction();
-   }
-   protected final OPT_Instruction PLR(OPT_BURS_TreeNode p) {
-      return p.child1.child2.getInstruction();
-   }
-   protected final OPT_Instruction PRR(OPT_BURS_TreeNode p) {
-      return p.child2.child2.getInstruction();
-   }
    protected final OPT_Instruction PLL(OPT_BURS_TreeNode p) {
       return p.child1.child1.getInstruction();
-   }
-   protected final OPT_Instruction PRL(OPT_BURS_TreeNode p) {
-      return p.child2.child1.getInstruction();
    }
    protected final OPT_Instruction PLLL(OPT_BURS_TreeNode p) {
       return p.child1.child1.child1.getInstruction();
    }
+   protected final OPT_Instruction PLLLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLLLLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.child1.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLLLLLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.child1.child1.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLLRL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.child2.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLLRLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.child2.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLLRLLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child1.child2.child1.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLLRLLL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child2.child1.child1.child1.getInstruction();
+   }
    protected final OPT_Instruction PLLR(OPT_BURS_TreeNode p) {
       return p.child1.child1.child2.getInstruction();
+   }
+   protected final OPT_Instruction PLLRL(OPT_BURS_TreeNode p) {
+      return p.child1.child1.child2.child1.getInstruction();
+   }
+   protected final OPT_Instruction PLR(OPT_BURS_TreeNode p) {
+      return p.child1.child2.getInstruction();
+   }
+   protected final OPT_Instruction PR(OPT_BURS_TreeNode p) {
+      return p.child2.getInstruction();
+   }
+   protected final OPT_Instruction PRL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.getInstruction();
    }
    protected final OPT_Instruction PRLL(OPT_BURS_TreeNode p) {
       return p.child2.child1.child1.getInstruction();
    }
+   protected final OPT_Instruction PRLLL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PRLLLL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child1.child1.child1.getInstruction();
+   }
+   protected final OPT_Instruction PRLLRLLL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child1.child2.child1.child1.child1.getInstruction();
+   }
    protected final OPT_Instruction PRLR(OPT_BURS_TreeNode p) {
       return p.child2.child1.child2.getInstruction();
+   }
+   protected final OPT_Instruction PRLRL(OPT_BURS_TreeNode p) {
+      return p.child2.child1.child2.child1.getInstruction();
+   }
+   protected final OPT_Instruction PRR(OPT_BURS_TreeNode p) {
+      return p.child2.child2.getInstruction();
+   }
+   protected final OPT_Instruction PRRL(OPT_BURS_TreeNode p) {
+      return p.child2.child2.child1.getInstruction();
    }
 
    protected final int V(OPT_BURS_TreeNode p) {
@@ -176,26 +215,104 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
    protected final int VL(OPT_BURS_TreeNode p) {
       return ((OPT_BURS_IntConstantTreeNode)p.child1).value;
    }
-   protected final int VR(OPT_BURS_TreeNode p) {
-      return ((OPT_BURS_IntConstantTreeNode)p.child2).value;
-   }
-   protected final int VLR(OPT_BURS_TreeNode p) {
-      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2).value;
-   }
-   protected final int VRR(OPT_BURS_TreeNode p) {
-      return ((OPT_BURS_IntConstantTreeNode)p.child2.child2).value;
-   }
    protected final int VLL(OPT_BURS_TreeNode p) {
       return ((OPT_BURS_IntConstantTreeNode)p.child1.child1).value;
-   }
-   protected final int VRL(OPT_BURS_TreeNode p) {
-      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1).value;
    }
    protected final int VLLL(OPT_BURS_TreeNode p) {
       return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1).value;
    }
+   protected final int VLLLL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child1).value;
+   }
+   protected final int VLLLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child1.child1.child2).value;
+   }
+   protected final int VLLLLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child1.child1.child1.child2).value;
+   }
+   protected final int VLLLLLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child1.child1.child1.child1.child2).value;
+   }
+   protected final int VLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child2).value;
+   }
+   protected final int VLLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child1.child2).value;
+   }
+   protected final int VLLLRLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child2.child1.child1.child1.child2).value;
+   }
+   protected final int VLLLRLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child2.child1.child1.child2).value;
+	}
+   protected final int VLLLRLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child2.child1.child2).value;
+	}
+   protected final int VLLLRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child2.child2).value;
+   }
    protected final int VLLR(OPT_BURS_TreeNode p) {
       return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child2).value;
+   }
+   protected final int VLLRLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child2.child1.child2).value;
+   }
+   protected final int VLLRLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child2.child1.child1.child1.child2).value;
+   }
+   protected final int VLLRLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child2.child1.child1.child2).value;
+   }
+   protected final int VLLRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child2.child2).value;
+   }
+   protected final int VLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2).value;
+   }
+   protected final int VLRLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2.child1.child2).value;
+   }
+   protected final int VLRL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2.child1).value;
+   }
+   protected final int VLRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2.child2).value;
+   }
+   protected final int VLRLL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2.child1.child1).value;
+   }
+   protected final int VR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2).value;
+   }
+   protected final int VRL(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1).value;
+   }
+   protected final int VRLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1.child2).value;
+   }
+   protected final int VRLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1.child1.child2).value;
+   }
+   protected final int VRLLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1.child1.child1.child2).value;
+   }
+   protected final int VRLLRLLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1.child2.child1.child1.child1.child2).value;
+   }
+   protected final int VRLLRLLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1.child2.child1.child1.child2).value;
+   }
+   protected final int VRLLRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1.child2.child2).value;
+   }
+   protected final int VRLRLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child2.child1.child2).value;
+   }
+   protected final int VRLRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child2.child2).value;
+   }
+   protected final int VRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child2).value;
    }
    protected final int VRLL(OPT_BURS_TreeNode p) {
       return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child1).value;
@@ -203,13 +320,10 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
    protected final int VRLR(OPT_BURS_TreeNode p) {
       return ((OPT_BURS_IntConstantTreeNode)p.child2.child1.child2).value;
    }
-   protected final int VLRL(OPT_BURS_TreeNode p) {
-      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2.child1).value;
+   protected final int VRRLR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child2.child1.child2).value;
    }
-   protected final int VLLLL(OPT_BURS_TreeNode p) {
-      return ((OPT_BURS_IntConstantTreeNode)p.child1.child1.child1.child1).value;
-   }
-   protected final int VLRLL(OPT_BURS_TreeNode p) {
-      return ((OPT_BURS_IntConstantTreeNode)p.child1.child2.child1.child1).value;
+   protected final int VRRR(OPT_BURS_TreeNode p) {
+      return ((OPT_BURS_IntConstantTreeNode)p.child2.child2.child2).value;
    }
 }

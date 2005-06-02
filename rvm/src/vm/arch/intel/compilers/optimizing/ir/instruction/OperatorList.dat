@@ -346,6 +346,15 @@ compare
 
 
 
+# Move an integer value from one of two (register/constant) operands
+# to a register operand based on a long compare.  Values are
+# unchanged.
+LCMP_CMOV
+CondMove
+compare
+
+
+
 # Move a floating point value from one of two (register/constant)
 # operands to a register operand based on an integer compare.  Values
 # are unchanged.
@@ -503,6 +512,13 @@ IA32_AND
 MIR_BinaryAcc
 none
 AF_CF_OF_PF_SF_ZF
+
+
+####################
+IA32_BSWAP
+MIR_UnaryAcc
+none
+
 
 
 ####################
