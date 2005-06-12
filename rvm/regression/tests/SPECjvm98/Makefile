@@ -47,7 +47,7 @@ check:
 ifeq ($(MODE),PERFORMANCE)
 
 sanity:	$(WORKING)/spec $(WORKING)/props $(WORKING)/Makefile
-	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m20 -M20 -s100 $(TESTS)" OUT=$(OUT) sanity-check-rule
+	cd $(WORKING); $(MAKE) START_ARGS="-a -g -m10 -M10 -s100 $(TESTS)" OUT=$(OUT) sanity-check-rule
 
 do-gather-performance:
 	$(JAL_ROOT)/rvm/regression/tests/SPECjvm98/parseSPECmark $(OUT) >> $(PERF_LOG)
