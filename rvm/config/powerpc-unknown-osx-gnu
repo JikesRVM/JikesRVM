@@ -26,7 +26,10 @@ export RVM_FOR_OSX=1
 # used to be always set to one, but that seems unnecessary.  Yaay.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 ## This is the default anyway:
-# export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=0
+
+# Workaround suggested by Yuval Yarom.  syswrap.c doesn't currently compile
+# on OS X and is pretty linux-specific in any case, don't try to build it.
+export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 
 export BOOTIMAGE_LOAD_ADDRESS=0x31000000
 export MAXIMUM_MAPPABLE_ADDRESS=0x80000000
