@@ -70,28 +70,9 @@ done so (it is included in the standard SuSE Linux install, but not in
 the standard Red Hat Linux install).  You can 
 obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL};
 use the pre-build RPM file.
-If you're using SuSE Linux versions 8.2 through 9.1, Jikes~1.18 or 1.19 is on the install
-CD in the package {\tt jikes}.  SuSE Linux 9.2 comes with Jikes 1.21,
-which will not work; you'll have to manually download it.  
-
-We have had mixed experiences with different releases of the Jikes
-compiler. Versions 1.13 and 1.18 are known to work for building Jikes
-RVM. Versions 1.14 through 1.17, 1.20, 1.21, and 1.22 are known {\em not}\/ to
-work.  Version 1.19 has worked for many people, but we have had
-problems reported on OSX. 
-
-
-\begin{small}
-{\tt jikes-1.15} in
-particular --- installed by default with SuSE Linux 8.1 --- has a
-byte-code generation bug that will cause Jikes RVM to crash with an
-{\tt ArrayIndexOutOfBounds} exception.  Jikes 1.21 and 1.22 dump core
-with an assertion failure when they builds Jikes RVM.
-
-{\tt jikes-1.13}, as of the last
-time we tried it (September 28, 2004) works fine, and sometimes generates
-better error messages than {\tt jikes-1.18} and {\tt jikes-1.19}.
-\end{small}
+You will need at least Jikes version 1.22; older versions of Jikes
+will no longer compile recent versions of Jikes RVM and/or GNU
+classpath. 
 
 \item Download Jikes RVM from the \xlink{Jikes RVM
 download page}{\RVMDownloadURL}, and unpack it.   You can either
@@ -202,7 +183,7 @@ GNU make       & 3.79+    & \xlink{\tt \makeURL}{\makeURL}         \\
 GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\ 
 {\tt gcc}            & 2.95+    & \xlink{\tt \gccURL}{\gccURL}           \\
 {\tt unzip}          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
-Jikes\TMweb{} Compiler & 1.19, 1.18 or 1.13 & \xlink{\tt \jikesURL}{\jikesURL}       \\
+Jikes\TMweb{} Compiler & 1.22+ & \xlink{\tt \jikesURL}{\jikesURL}       \\
 Yacc or Bison &	{\it any} & \xlink{\tt \bisonURL}{\bisonURL} \\
 Xalan-Java \textit{(optional)} & {\it any}    \link{\SeeBelow}{xalan-why}  & \xlink{\tt \xalanURL}{\xalanURL} \\
 \hline
