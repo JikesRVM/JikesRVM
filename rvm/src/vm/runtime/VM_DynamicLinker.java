@@ -28,7 +28,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     DL_Helper.compileMethod(dl, targMethod);
-    VM_CodeArray code = targMethod.getCurrentInstructions();
+    VM_CodeArray code = targMethod.getCurrentEntryCodeArray();
     VM_Magic.dynamicBridgeTo(code);                   // restore parameters and invoke
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);  // does not return here
   }

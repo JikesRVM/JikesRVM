@@ -268,8 +268,9 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
       Address ip = thread.hardwareExceptionRegisters.ip;
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
-      compiledMethod.setObsolete( false );
-      ObjectReference code = ObjectReference.fromObject(compiledMethod.getInstructions());
+      compiledMethod.setObsolete(false);
+      Offset codeOffset = compiledMethod.getInstructionOffset(ip);
+      ObjectReference code = ObjectReference.fromObject(compiledMethod.codeArrayForOffset(codeOffset));
       Address ipLoc = thread.hardwareExceptionRegisters.getIPLocation();
       codeLocationsPush(code, ipLoc);
     }
@@ -368,10 +369,8 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     /* skip over traps */
     if (compiledMethodType == VM_CompiledMethod.TRAP) return false;
 
-    /* get the code associated with this frame */
-    VM_CodeArray codeArray = compiledMethod.getInstructions();
-    Offset offset = ip.diff(VM_Magic.objectAsAddress(codeArray));
-    checkCompiledMethodOffset(offset, codeArray, method);
+    /* get the code offset for this frame */
+    Offset offset = compiledMethod.getInstructionOffset(ip);
     
     /* initialize MapIterator for this frame */
     iterator = iteratorGroup.selectIterator(compiledMethod);
@@ -620,51 +619,6 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
       Address top_fp = thread.contextRegisters.getInnermostFramePointer();
       VM_Scheduler.dumpStack(top_ip, top_fp);
       VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
-    }
-  }
-
-  /**
-   * Check whether an offset into a compiled method looks reasonable.
-   *
-   * @param offset The offset between the IP and the start of the
-   * code for the compiled method
-   * @param codeArray The code for the compiled method
-   * @param method The method with which this code is associated
-   */
-  private void checkCompiledMethodOffset(Offset offset, VM_CodeArray codeArray,
-                                         VM_Method method) {
-    if (compiledMethodType != VM_CompiledMethod.JNI) {
-      Offset possibleLen = Offset.fromIntZeroExtend(codeArray.length() << LG_INSTRUCTION_WIDTH);
-      if (offset.sLT(Offset.zero()) || possibleLen.sLT(offset)) {
-        // We have an invalid offset
-        if (offset.sLT(Offset.zero())) {
-          Log.write("ScanThread: computed instruction offset is negative ");
-          Log.writeln(offset);
-        } else {
-          Log.writeln("ScanThread: computed instruction offset is too big");
-          Log.write("\toffset is"); Log.write(offset);
-          Log.write(" bytes of machine code for method "); 
-          Log.writeln(possibleLen);
-        }
-        Log.write("\tSupposed method: ");
-        printMethod(method);
-
-        Log.write("\n\tBase of its code array");
-        Log.writeln(ObjectReference.fromObject(codeArray));
-        Address ra = VM_Magic.objectAsAddress(codeArray).add(offset);
-        Log.write("\tCalculated actual return address is ");
-        Log.writeln(ra);
-        VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
-        if (realCM == null) {
-          Log.writeln("\tUnable to find compiled method corresponding to this return address");
-        } else {
-          Log.write("\tFound compiled method ");
-          printMethod(realCM.getMethod());
-          Log.writeln(" whose code contains this return address");
-        }
-        Log.writeln("Attempting to dump suspect stack and then exit\n");
-        VM_Scheduler.dumpStackAndDie(topFrame);
-      }
     }
   }
 

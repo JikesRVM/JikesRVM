@@ -58,7 +58,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       VM_Method found  = C.findVirtualMethod(sought.getName(), 
                                              sought.getDescriptor());
       if (found == null) throw new IncompatibleClassChangeError();
-      return found.getCurrentInstructions();
+      return found.getCurrentEntryCodeArray();
     }
   }
   
@@ -314,7 +314,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
       }
       if (vm.isStatic()) {
         vm.compile();
-        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
+        iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentEntryCodeArray();
       } else {
         iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (VM_CodeArray) tib[vm.getOffset().toInt()>>LOG_BYTES_IN_ADDRESS];
       }
@@ -360,9 +360,9 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
           if (map[i] == m) {
             if (VM.BuildForIndirectIMT) {
               VM_CodeArray[] IMT = (VM_CodeArray[])tib[TIB_IMT_TIB_INDEX];
-              IMT[i] = m.getCurrentInstructions();
+              IMT[i] = m.getCurrentEntryCodeArray();
             } else {
-              tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentInstructions();
+              tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentEntryCodeArray();
             }
             return; // all done -- a method is in at most 1 IMT slot
           }
@@ -381,7 +381,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
             for (int j=0; j<interfaceMethods.length; j++) {
               VM_Method im = interfaceMethods[j];
               if (im.getName() == name && im.getDescriptor() == desc) {
-                iTable[getITableIndex(I, name, desc)] = m.getCurrentInstructions();
+                iTable[getITableIndex(I, name, desc)] = m.getCurrentEntryCodeArray();
               }
             }
           }
@@ -453,12 +453,12 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
         int count = populationCount(slot);
         if (count == 0) {
           VM_Entrypoints.raiseAbstractMethodError.compile();
-          IMT[extSlot] = VM_Entrypoints.raiseAbstractMethodError.getCurrentInstructions();
+          IMT[extSlot] = VM_Entrypoints.raiseAbstractMethodError.getCurrentEntryCodeArray();
         } else if (count == 1) {
           VM_Method target = getSoleTarget(slot);
           if (target.isStatic()) {
             target.compile();
-            IMT[extSlot] = target.getCurrentInstructions();
+            IMT[extSlot] = target.getCurrentEntryCodeArray();
           } else {
             IMT[extSlot] = (VM_CodeArray) tib[target.getOffset().toInt()>>LOG_BYTES_IN_ADDRESS];
             if (klass.noIMTConflictMap == null) {

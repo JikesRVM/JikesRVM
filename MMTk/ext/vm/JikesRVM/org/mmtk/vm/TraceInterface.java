@@ -157,7 +157,7 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
         VM_CompiledMethod compiledMethod = 
           VM_CompiledMethods.getCompiledMethod(compiledMethodID);
         if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
-          ipOffset = (ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())));
+          ipOffset = compiledMethod.getInstructionOffset(ip);
           m = compiledMethod.getMethod();
           //-#if RVM_WITH_OPT_COMPILER
           if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
@@ -177,7 +177,7 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
                   allocCall = false;
                 if (j > 0)
                   bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, 
-                                                                 inlineEncoding);
+                                                                    inlineEncoding);
               }
               if (!allocCall)
                 break;

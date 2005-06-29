@@ -603,7 +603,7 @@ public class BootImageWriter extends BootImageWriterMessages
     int initProc = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID;
     VM_Thread startupThread = VM_Scheduler.processors[initProc].activeThread;
     byte[] startupStack = startupThread.stack;
-    VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
+    VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentEntryCodeArray();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
     bootRecord.spRegister  = bootImageAddress.add(BootImageMap.getImageOffset(startupStack).add(
@@ -1972,7 +1972,7 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod != null &&
           compiledMethod.isCompiled() && 
-          compiledMethod.getInstructions() == code)
+          compiledMethod.getEntryCodeArray() == code)
         return compiledMethod;
     }
     return null;

@@ -10,14 +10,15 @@ import org.vmmagic.unboxed.*;
 
 /**
  * A method that has been compiled into machine code by one of our compilers.
- * We implement VM_SynchronizedObject because we need to synchronized 
+ * We implement VM_SynchronizedObject because we need to synchronize
  * on the VM_CompiledMethod object as part of the invalidation protocol.
  * 
  * @author Bowen Alpern
  * @author Derek Lieber
  * @modified Steven Augart
  */
-public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_SizeConstants {
+public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
+                                                   VM_SizeConstants {
 
   /*
    * constants for compiler types
@@ -130,10 +131,29 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
 
   /**
    * Return the machine code for this compiled method
+   * @deprecated 
    */
   public final VM_CodeArray getInstructions() throws UninterruptiblePragma { 
     if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
     return instructions; 
+  }
+  
+  /**
+   * @return the VM_CodeArray to jump to to invoke this method (ie, 
+   *         code_array[0] contains the first instruction of the method's prologue).
+   */
+  public final VM_CodeArray getEntryCodeArray() throws UninterruptiblePragma {
+    if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
+    return instructions;
+  }
+
+  /**
+   * @return the number of machine instructions for compiled method; 
+   *         may be an overestimate if we have adding padding to machine code.
+   */
+  public final int numberOfInstructions() throws UninterruptiblePragma {
+    if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
+    return instructions.length();
   }
 
   /**
@@ -146,19 +166,28 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
     if (getCompilerType() == JNI || getCompilerType() == TRAP) {
       return Offset.zero();
     } else {
-      VM_CodeArray code = getInstructions();
-      Offset offset = ip.diff(VM_Magic.objectAsAddress(code));
-      if (VM.VerifyAssertions) {
-        int max = (code.length()+1)<< VM_Constants.LG_INSTRUCTION_WIDTH;
-        if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
-          VM.sysWrite(method);
-          VM.sysWriteln();
-          VM.sysWriteln(offset);
-          VM.sysWriteln(Offset.fromInt(max));
-          VM.sysWriteln(ip);
-          VM.sysWriteln(VM_Magic.objectAsAddress(code));
-          VM._assert(false);
+      Offset offset = ip.diff(VM_Magic.objectAsAddress(instructions));
+      int max = (instructions.length()+1)<< VM_Constants.LG_INSTRUCTION_WIDTH;
+      if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
+        Address instructionStart = VM_Magic.objectAsAddress(instructions);
+        VM.sysWriteln("\ngetInstructionOffset: ip is not within compiled code for method");
+        VM.sysWrite("\tsupposed method is ");
+        VM.sysWrite(method);
+        VM.sysWriteln();
+        VM.sysWriteln("\tcode for this method starts at ", instructionStart);
+        VM.sysWriteln("\t and has last valid return address of ", instructionStart.add(max));
+        VM.sysWriteln("The requested instruction address was ", ip);
+        VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ip);
+        if (realCM == null) {
+          VM.sysWriteln("\tUnable to find compiled method corresponding to this return address");
+        } else {
+          VM.sysWrite("\tFound compiled method ");
+          VM.sysWrite(realCM.getMethod());
+          VM.sysWriteln(" whose code contains this return address");
         }
+        VM.sysWriteln("Attempting to dump virtual machine state before exiting");
+        VM_Scheduler.dumpVirtualMachine();
+        VM.sysFail("Terminating VM due to invalid request for instruction offset");
       }
       // NOTE: we are absolutely positive that offset will fit in 32 bits
       // because we don't create VM_CodeArrays that are so massive it won't.
@@ -167,6 +196,41 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
     }
   }
 
+  /**
+   * Return the address of the instruction at offset offset in the method's instruction stream.
+   * @param offset the offset of the desired instruction (as returned by getInstructionOffset)
+   * @return Address of the specified instruction
+   */
+  public final Address getInstructionAddress(Offset offset) throws UninterruptiblePragma {
+    Address startAddress = VM_Magic.objectAsAddress(instructions);
+    return startAddress.add(offset);
+  }
+
+  /**
+   * Return the code array for this method that contains the given offset.
+   * @param offset the offset of the desired instruction (as returned by getInstructionOffset)
+   * @return VM_CodeArray that contains the specified instruction
+   */
+  public final VM_CodeArray codeArrayForOffset(Offset offset) {
+    return instructions;
+  }
+  
+  /**
+   * Does the code for the compiled method contain the given return address?
+   * @param ip a return address
+   * @return true if it belongs to this method's code, false otherwise.
+   */
+  public final boolean containsReturnAddress(Address ip) throws UninterruptiblePragma {
+    Address beg = VM_Magic.objectAsAddress(instructions);
+    Address end = beg.add(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
+
+    // note that "ip" points to a return site (not a call site)
+    // so the range check here must be "ip <= beg || ip >  end"
+    // and not                         "ip <  beg || ip >= end"
+    //
+    return !(ip.LE(beg) || ip.GT(end));
+  }
+  
   /**
    * Record that the compilation is complete.
    */

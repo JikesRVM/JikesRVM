@@ -1257,7 +1257,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
     // get instructions for method to be executed as thread startoff
     //
-    VM_CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentInstructions();
+    VM_CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentEntryCodeArray();
 
     VM.disableGC();
 

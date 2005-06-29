@@ -276,7 +276,7 @@ public class BuildJNIFunctionTable {
       String methodName = mths[i].getName().toString();
       int jniIndex = indexOf(names, methodName);
       if (jniIndex!=-1) {
-        functions[jniIndex] = mths[i].getCurrentCompiledMethod().getInstructions();
+        functions[jniIndex] = mths[i].getCurrentEntryCodeArray();
       } 
     }
     return functions;

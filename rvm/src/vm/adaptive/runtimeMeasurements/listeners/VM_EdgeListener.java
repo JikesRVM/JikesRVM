@@ -162,8 +162,7 @@ class VM_EdgeListener extends VM_ContextListener
       }
       return;
     }
-    Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
-    Offset callSite = returnAddress.diff(beginningOfMachineCode);
+    Offset callSite = callerCM.getInstructionOffset(returnAddress);
 
     if (DEBUG){ 
       VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");

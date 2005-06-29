@@ -497,7 +497,7 @@ public class VM extends VM_Properties
         clinit.compile();
         if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
         try {
-          VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
+          VM_Magic.invokeClassInitializer(clinit.getCurrentEntryCodeArray());
         } catch (Error e) {
           throw e;
         } catch (Throwable t) {
@@ -1429,11 +1429,4 @@ public class VM extends VM_Properties
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
-  /**
-   * Place to set breakpoints (called by compiled code).
-   */
-  public static void debugBreakpoint() throws NoInlinePragma, NoOptCompilePragma {
-    // no inline to make sure it doesn't disappear from callee
-    // no opt compile to force a full prologue sequence (easier for debugger to grok)
-  }
 }

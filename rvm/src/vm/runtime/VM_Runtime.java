@@ -856,9 +856,9 @@ public class VM_Runtime implements VM_Constants {
             // found an appropriate catch block
             if (VM.debugOOM)
               VM.sysWriteln("found one; delivering.");
-            Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-            exceptionDeliverer.deliverException(compiledMethod, 
-                                                methodStartAddress.add(catchBlockOffset), 
+            Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromInt(catchBlockOffset));
+            exceptionDeliverer.deliverException(compiledMethod,
+                                                catchBlockStart,
                                                 exceptionObject, 
                                                 exceptionRegisters);
             if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

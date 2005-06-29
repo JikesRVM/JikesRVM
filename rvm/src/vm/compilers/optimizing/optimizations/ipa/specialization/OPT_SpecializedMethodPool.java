@@ -41,7 +41,7 @@ public class OPT_SpecializedMethodPool {
    * Associate a particular compiled method with a specialized method id.
    */
   public static void storeSpecializedMethod (VM_CompiledMethod cm, int smid) {
-    specializedMethods[smid] = cm.getInstructions();
+    specializedMethods[smid] = cm.getEntryCodeArray();
   }
 
   /**

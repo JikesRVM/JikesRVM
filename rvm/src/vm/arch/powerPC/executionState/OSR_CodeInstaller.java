@@ -82,7 +82,7 @@ public class OSR_CodeInstaller implements VM_BaselineConstants {
 
     if (VM.VerifyAssertions) {
       Object jtocContent = VM_Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset());
-      VM._assert(jtocContent == cm.getInstructions());
+      VM._assert(jtocContent == cm.getEntryCodeArray());
     }   
     
     // load address of newInstructions from JTOC

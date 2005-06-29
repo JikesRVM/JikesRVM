@@ -85,14 +85,10 @@ public final class OSR_BaselineExecStateExtractor
 
     VM_NormalMethod fooM = (VM_NormalMethod)fooCM.getMethod();
 
-    // get the next bc index 
-    VM_CodeArray instructions = fooCM.getInstructions();
-
     VM.disableGC();
-    Address instr_beg = VM_Magic.objectAsAddress(instructions);
-    Address rowIP     = VM_Magic.objectAsAddress(stack).loadAddress(osrFPoff.add(STACKFRAME_RETURN_ADDRESS_OFFSET)); 
+    Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(osrFPoff.add(STACKFRAME_RETURN_ADDRESS_OFFSET)); 
+    Offset ipOffset = fooCM.getInstructionOffset(rowIP);
     VM.enableGC();
-    Offset ipOffset = rowIP.diff(instr_beg);
     
     // CAUTION: IP Offset should point to next instruction
     int bcIndex = fooCM.findBytecodeIndexForInstruction(ipOffset.add(INSTRUCTION_WIDTH));
@@ -102,7 +98,7 @@ public final class OSR_BaselineExecStateExtractor
       if (bcIndex == -1) {      
 
         VM.sysWriteln("osrFPoff = ", osrFPoff);
-        VM.sysWriteln("instr_beg = " + instr_beg);
+        VM.sysWriteln("instr_beg = ", VM_Magic.objectAsAddress(fooCM.getEntryCodeArray()));
 
         for (int i=(osrFPoff.toInt())-10; i<(osrFPoff.toInt())+10; i++)
           VM.sysWriteln("  stack["+i+"] = "+stack[i]);
@@ -173,7 +169,6 @@ public final class OSR_BaselineExecStateExtractor
                      startLocalOffset, 
                      localTypes,
                      fooCM,
-                     instructions,
                      LOCAL,
                      state);
 
@@ -182,7 +177,6 @@ public final class OSR_BaselineExecStateExtractor
                      stackOffset,
                      stackTypes,
                      fooCM,
-                     instructions,
                      STACK,
                      state);
 
@@ -201,7 +195,6 @@ public final class OSR_BaselineExecStateExtractor
                                        Offset   offset,
                                        byte[] types,
                                        VM_BaselineCompiledMethod compiledMethod,
-                                       VM_CodeArray instructions,
                                        int   kind,
                                        OSR_ExecutionState state) {
     int size = types.length;
@@ -259,12 +252,10 @@ public final class OSR_BaselineExecStateExtractor
       case ReturnAddressTypeCode: {
         VM.disableGC();
         Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(vOffset);
-        Address instr_beg = VM_Magic.objectAsAddress(instructions);  
+        Offset ipOffset = compiledMethod.getInstructionOffset(rowIP);
         VM.enableGC();
 
         vOffset = vOffset.sub(BYTES_IN_STACKSLOT);
-
-        Offset ipOffset = rowIP.diff(instr_beg);
 
         if (VM.TraceOnStackReplacement) {
           Offset ipIndex = ipOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();

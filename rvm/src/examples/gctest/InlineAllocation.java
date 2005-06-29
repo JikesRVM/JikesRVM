@@ -103,15 +103,15 @@ class InlineAllocation {
     VM_Method alloc4 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc4J);
 
     trivial.compile();
-    int trivialSize = trivial.getCurrentInstructions().length();
+    int trivialSize = trivial.getCurrentCompiledMethod().numberOfInstructions();
     alloc1.compile();
-    int alloc1Size = alloc1.getCurrentInstructions().length();
+    int alloc1Size = alloc1.getCurrentCompiledMethod().numberOfInstructions();
     alloc2.compile();
-    int alloc2Size = alloc2.getCurrentInstructions().length();
+    int alloc2Size = alloc2.getCurrentCompiledMethod().numberOfInstructions();
     alloc3.compile();
-    int alloc3Size = alloc3.getCurrentInstructions().length();
+    int alloc3Size = alloc3.getCurrentCompiledMethod().numberOfInstructions();
     alloc4.compile();
-    int alloc4Size = alloc4.getCurrentInstructions().length();
+    int alloc4Size = alloc4.getCurrentCompiledMethod().numberOfInstructions();
 
     // System.out.println("Trivial method is "+trivialSize);
     // System.out.println("Scalar allocation size is "+alloc1Size);
