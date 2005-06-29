@@ -12,25 +12,25 @@ class LargeAlloc {
   static int itemSize = 16 * 1024; 
   static int sizeCount = 10;
   static double sizeRatio = 1.5;
+  static double timeLimit = 120;
   public static byte [] junk;
 
   public static void main(String args[])  throws Throwable {
     boolean base = true;
-    if (args.length == 0)
+    if (args.length == 0) 
       System.out.println("No argument.  Assuming base");
     if (args[0].compareTo("opt") == 0 ||
-        args[0].compareTo("perf") == 0)
-      base = true;
+        args[0].compareTo("perf") == 0) {
+      base = false;
+      timeLimit = 600;
+    }
     allocSize = base ? 500 : 3000;
     runTest();
 
     System.exit(0);
   }
 
-  static double timeLimit = 300.0;
-
   public static void runTest() throws Throwable {
-
     System.out.println("LargeAlloc running with " + allocSize + " Mb of allocation");
     System.out.println("Run with verbose GC on and make sure space accounting is not leaking");
     System.out.println();
