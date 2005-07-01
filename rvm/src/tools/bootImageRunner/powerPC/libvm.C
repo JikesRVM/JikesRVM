@@ -1536,7 +1536,7 @@ extern VM_Address
 createJavaVM()
 {
     fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");
-    return -1;
+    return 1;
 }
 
 

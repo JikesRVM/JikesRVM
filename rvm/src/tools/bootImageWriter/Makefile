@@ -32,7 +32,7 @@ LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 ZIP_KLUDGE_CLASSES = java/util/zip/ZipConstants.class
 MAP_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map* java/util/AbstractMap*
 TREEMAP_KLUDGE_CLASSES = java/util/TreeMap* java/util/SortedMap* java/util/Iterator* java/util/TreeSet*
-LINKEDLIST_KLUDGE_CLASSES = java/util/LinkedList* java/util/List*
+LINKEDLIST_KLUDGE_CLASSES = java/util/LinkedList* java/util/List* java/util/AbstractCollection* java/util/AbstractList*
 BUNDLE_KLUDGE_CLASSES = java/util/ResourceBundle* java/util/Locale*
 ## the SystemProperties.class stub is only needed for Classpath
 ## versions 0.13 and later, but it does no harm to include it for 

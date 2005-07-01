@@ -72,7 +72,7 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 export GNU_MAKE=/usr/bin/make
 
 # path for jikes.
-export JIKES=/usr/local/bin/jikes  # v 1.18
+export JIKES=/usr/bin/jikes  # (v 1.22 in OS X 10.4, need to change for 10.3)
 
 # what C compilers should be used?
 export CC="/usr/bin/gcc -w -O -fno-common"
@@ -103,7 +103,6 @@ export GREP="/usr/bin/grep"
 export MD5SUM=md5sum
 export PS=/bin/ps
 export SED=/usr/bin/sed
-export WGET=wget
 export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
 
