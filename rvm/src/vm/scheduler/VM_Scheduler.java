@@ -591,14 +591,6 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
       dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     else
       dumpStack();
-
-//     VM.sysWrite("Here comes a Virtual Machine dump.  This can run to\n");
-    
-//     VM.sysWrite("thousands of lines, but it is sometimes useful.  Besides,\n");
-//     VM.sysWrite("you wouldn't have gotten here unless something were broken.\n");
-//     /* I'm open to taking this out; it was a marginal decision.  --Steve
-//        Augart */
-//     dumpVirtualMachine();
   }
 
   /**
@@ -762,9 +754,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   /**
    * Dump state of virtual machine.
    */ 
-  public static void dumpVirtualMachine() 
-    throws InterruptiblePragma
-  {
+  public static void dumpVirtualMachine() {
     VM_Processor processor;
     VM.sysWrite("\n-- Processors --\n");
     for (int i = 1; i <= numProcessors; ++i) {
@@ -806,6 +796,22 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
       if (locks[i] != null)
         locks[i].dump();
     VM.sysWrite("\n");
+
+    VM.sysWriteln("Dumping stack of active thread\n");
+    dumpStack();
+
+    
+    VM.sysWriteln("Attempting to dump the stack of all other live threads");
+    VM.sysWriteln("This is somewhat risky since if the thread is running we're going to be quite confused");
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    for (int i = 1; i < threads.length; ++i) {
+      VM_Thread thr = threads[i];
+      if (thr != null && thr != VM_Thread.getCurrentThread() && thr.isAlive) {
+        thr.dump();
+        dumpStack(thr.contextRegisters.getInnermostFramePointer());
+      }
+    }
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
   //---------------------------//

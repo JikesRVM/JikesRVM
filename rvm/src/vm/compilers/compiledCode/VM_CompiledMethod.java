@@ -211,7 +211,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    * @param offset the offset of the desired instruction (as returned by getInstructionOffset)
    * @return VM_CodeArray that contains the specified instruction
    */
-  public final VM_CodeArray codeArrayForOffset(Offset offset) {
+  public final VM_CodeArray codeArrayForOffset(Offset offset) throws UninterruptiblePragma {
     return instructions;
   }
   
