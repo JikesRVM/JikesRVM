@@ -86,7 +86,6 @@ else
     ./jbuild -nolink -nobooter || croak "\"./jbuild -nolink -nobooter\" in $RVM_BUILD failed."
 fi
 
-
 # status message
 echo -n "$ME: "
 
@@ -96,6 +95,9 @@ echo -n "$ME: "
 # be in dir such that the pathnames which find will produce will
 # match package names
 cd $RVM_BUILD/RVM.classes || croak "Unable to change directory to $RVM_BUILD/RVM.classes; something is badly broken."
+
+# extract MMTk from its jar so that we'll include javadoc for it as well.
+${HOST_JAR} xf mmtk.jar
 
 # Only generate javadoc for files that are actually really in this build
 for f in $($FIND . -name \*.java); do
