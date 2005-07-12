@@ -2901,9 +2901,11 @@ build_mmtk() {
       )
     }
 
+    #
+    # Copy MMTk's various sources to the MMTk build tree
+    #
     copy_source \$MMTK_SOURCE/ext/vmmagic/stub vmmagic
     copy_source \$MMTK_SOURCE/ext/vm/stub vm
-    ###copy_source \$MMTK_SOURCE/src mmtk
     copy_source \$MMTK_SOURCE/src mmtk
 
     \${HOST_JAVAC} -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
@@ -2920,6 +2922,10 @@ build_mmtk() {
     \${FIND} . -name "*.class" | \$XARGS rm
 
   )
+  status=\$?
+  if [ \$status != 0 ]
+  then exit \$status
+  fi
 }
 	EOF
 
