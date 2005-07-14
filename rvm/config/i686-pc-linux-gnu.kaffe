@@ -9,9 +9,7 @@
 #
 # This is the default file for writing the boot image with the Kaffe VM.
 #
-# IMPORTANT: You might need to modify this file to reflect your environment!
-#	To see how we do that at IBM Watson, take a look at
-#	 i686-pc-linux-gnu.kaffe.watson
+# IMPORTANT: You may need to modify this file to reflect your environment!
 #
 #    To learn about more of the fancy configuration options, read
 #		config/i686-pc-linux-gnu
@@ -47,8 +45,8 @@ export RVM_FOR_LINUX=1
 ## and for any Linux 2.2 kernel:
 # export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 
-export BOOTIMAGE_LOAD_ADDRESS=0x43000000
-export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
+export BOOTIMAGE_LOAD_ADDRESS=0x47000000
+export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 
 ##########
 # PART II: Where to find tools and resources on this target
