@@ -894,7 +894,7 @@ public abstract class BasePlan
    * This is just a stub - any plan that uses this value
    * should provide an implementation.
    * 
-   * @return
+   * @return the number of pages available for allocation
    */
   public static int getPagesAvail() { 
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
