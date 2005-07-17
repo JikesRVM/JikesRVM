@@ -25,7 +25,7 @@ import java.util.Enumeration;
  *  @author Stephen Fink
  *  @author Peter Sweeney
  */
-class VM_ControllerThread extends VM_Thread {
+public class VM_ControllerThread extends VM_Thread {
 
   public String toString() {
     return "VM_ControllerThread";
@@ -59,6 +59,8 @@ class VM_ControllerThread extends VM_Thread {
 
     // Bring up the logging system
     if (VM.LogAOSEvents) VM_AOSLogging.boot();
+    if (VM_Controller.options.ENABLE_ADVICE_GENERATION) 
+      VM_AOSGenerator.boot();
     if (VM.LogAOSEvents) VM_AOSLogging.controllerStarted();
 
     // Create measurement entities that are NOT related to 
@@ -72,6 +74,41 @@ class VM_ControllerThread extends VM_Thread {
       controllerInitDone();
       VM.sysWrite("\nAOS: In non-adaptive mode; controller thread exiting.\n");
       return; // controller thread exits.
+    }
+
+    if ((VM_Controller.options.ENABLE_REPLAY_COMPILE) 
+        ||(VM_Controller.options.ENABLE_PRECOMPILE)) { 
+      // if we want to do precompile, we need to initial optimization plans
+      // just allow the advice to be the max opt level 2
+      VM_Controller.options.MAX_OPT_LEVEL = 2;
+      if (VM_Controller.options.sampling()) {
+        // Create our set of standard optimization plans.
+        VM_Controller.recompilationStrategy.init();
+      } else if (VM_Controller.options.counters()) {
+        VM_InvocationCounts.init();
+      }
+      //-#if RVM_WITH_OSR
+      VM_Controller.osrOrganizer = new OSR_OrganizerThread();
+      VM_Controller.osrOrganizer.start();
+      //-#endif
+      createCompilationThread();
+      // We're running an AOS bootimage with a non-adaptive primary strategy. 
+      // We already set up any requested profiling infrastructure, so nothing
+      // left to do but exit.
+      controllerInitDone();
+      // to have a fair comparison, we need to create the data structures 
+      // of organizers
+      createOrganizerThreads();
+      VM.sysWrite("\nAOS: In replay mode; controller thread only runs for OSR inlining.\n");
+      while (true) {
+        if (VM_Controller.options.EARLY_EXIT &&
+            VM_Controller.options.EARLY_EXIT_TIME < VM_Controller.controllerClock) {
+          VM_Controller.stop();
+        }
+        Object event = VM_Controller.controllerInputQueue.deleteMin();
+        ((OSR_OnStackReplacementEvent)event).process();
+      }
+
     }
 
     // Initialize the CompilerDNA class
@@ -212,8 +249,11 @@ class VM_ControllerThread extends VM_Thread {
     }    
 
     //-#if RVM_WITH_OSR
-    VM_Controller.osrOrganizer = new OSR_OrganizerThread();
-    VM_Controller.osrOrganizer.start();
+    if ((!VM_Controller.options.ENABLE_REPLAY_COMPILE) 
+        &&(!VM_Controller.options.ENABLE_PRECOMPILE)) { 
+      VM_Controller.osrOrganizer = new OSR_OrganizerThread();
+      VM_Controller.osrOrganizer.start();
+    }
     //-#endif
   }
 

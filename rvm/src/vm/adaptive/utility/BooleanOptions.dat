@@ -11,6 +11,15 @@ DESCRIP
 ENABLE_RECOMPILATION -1 true
 Should the adaptive system recompile hot methods?
 
+ENABLE_ADVICE_GENERATION -1 false
+Do we need to generate advice file? 
+
+ENABLE_PRECOMPILE -1 false
+Should the adaptive system collect information for object reordering?
+
+ENABLE_REPLAY_COMPILE -1 false
+Should the adaptive system collect information for object reordering?
+
 GATHER_PROFILE_DATA -1 false
 Should profile data be gathered and reported at the end of the run?
 

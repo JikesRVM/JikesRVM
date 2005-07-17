@@ -713,6 +713,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
     OPT_Compiler.init(options);
 
+    VM_PreCompile.init();
     // when we reach here the OPT compiler is enabled.
     compilerEnabled = true;
 
@@ -833,26 +834,71 @@ public class VM_RuntimeCompiler implements VM_Constants,
         }
         //-#endif
       } else {
-        if (VM_Controller.options.BACKGROUND_RECOMPILATION) {
+        if ((VM_Controller.options.BACKGROUND_RECOMPILATION
+             && (!VM_Controller.options.ENABLE_REPLAY_COMPILE)
+             && (!VM_Controller.options.ENABLE_PRECOMPILE))
+            ) {
           // must be an inital compilation: compile with baseline compiler
+          // or if recompilation with OSR. 
           cm = baselineCompile(method);
           VM_ControllerMemory.incrementNumBase();
         } else {
-          // check to see if there is a compilation plan for this method.
-          VM_ControllerPlan plan = VM_ControllerMemory.findLatestPlan(method);
-          if (plan == null || plan.getStatus() != VM_ControllerPlan.IN_PROGRESS) {
-            // initial compilation or some other funny state: compile with baseline compiler
-            cm = baselineCompile(method);
-            VM_ControllerMemory.incrementNumBase();
-          } else {
-            cm = plan.doRecompile();
-            if (cm == null) {
-              // opt compilation aborted for some reason.
-              cm = baselineCompile(method);
+          if (VM_CompilerAdviceAttribute.hasAdvice()) {
+            VM_CompilerAdviceAttribute attr =
+              VM_CompilerAdviceAttribute.getCompilerAdviceInfo(method);
+            if (attr.getCompiler() != VM_CompiledMethod.OPT) {
+              cm=fallback(method);
+              if (VM.LogAOSEvents) {
+                VM_AOSLogging.recordCompileTime(cm, 0.0);
+              }
+              return cm;
             }
-          }           
+            int newCMID = -2;
+            OPT_CompilationPlan compPlan;
+            if (VM_Controller.options.counters()) {
+              // for invocation counter, we only use one optimization level
+              compPlan = VM_InvocationCounts.createCompilationPlan(method);
+            } else { 
+              // for now there is not two options for sampling, so
+              // we don't have to use: if (VM_Controller.options.sampling())
+              compPlan = VM_Controller.recompilationStrategy.createCompilationPlan(method, attr.getOptLevel(), null);
+            }
+            if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(compPlan); 
+            newCMID = recompileWithOpt(compPlan);
+            cm = newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
+            if (VM.LogAOSEvents) {
+              if (newCMID == -1) {
+                VM_AOSLogging.recompilationAborted(compPlan);
+              } else if (newCMID > 0) {
+                VM_AOSLogging.recompilationCompleted(compPlan);
+              }
+            }    
+            if (cm == null) { // if recompilation is aborted
+              cm = baselineCompile(method);
+              VM_ControllerMemory.incrementNumBase();
+            }
+          }  else {
+            // check to see if there is a compilation plan for this method.
+            VM_ControllerPlan plan = VM_ControllerMemory.findLatestPlan(method);
+            if (plan == null || plan.getStatus() != VM_ControllerPlan.IN_PROGRESS) {
+              // initial compilation or some other funny state: compile with baseline compiler
+              cm = baselineCompile(method);
+              VM_ControllerMemory.incrementNumBase();
+            } else {
+              cm = plan.doRecompile();
+              if (cm == null) {
+                // opt compilation aborted for some reason.
+                cm = baselineCompile(method);
+              }
+            }    
+          }       
         }
       }
+    }
+    if ((VM_Controller.options.ENABLE_ADVICE_GENERATION)
+       && (cm.getCompilerType() == VM_CompiledMethod.BASELINE)
+       && VM_Controller.enabled) {
+       VM_AOSGenerator.baseCompilationCompleted(cm);
     }
     if (VM.LogAOSEvents) {
       VM_AOSLogging.recordCompileTime(cm, 0.0);

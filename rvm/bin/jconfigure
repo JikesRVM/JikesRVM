@@ -3787,6 +3787,10 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	cat <<- EOF
 		[[C
 		[Ljava/util/HashSet;
+		Ljava/io/StreamTokenizer;
+		Ljava/io/LineNumberReader;
+		Ljava/io/FileReader;
+		Ljava/io/PushbackReader;
 	EOF
 	if (( RVM_WITH_ALL_CLASSES )); then
 	cat <<- EOF

@@ -104,9 +104,16 @@ public abstract class VM_MemberReference {
    * member reference.
    */
   public static VM_MemberReference parse(StringTokenizer parser) {
+    return parse(parser, false);
+  }
+
+  public static VM_MemberReference parse(StringTokenizer parser, boolean boot){
     try {
       parser.nextToken(); // discard <
       String clName = parser.nextToken();
+      if ((!clName.equals(VM_BootstrapClassLoader.myName)) && (boot)) {
+        return null;
+      }
       VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
       VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
       VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
@@ -117,7 +124,13 @@ public abstract class VM_MemberReference {
       } else if (clName.equals(ApplicationClassLoader.myName)) {
         cl = VM_ClassLoader.getApplicationClassLoader();
       } else {
-        return null;
+       try {
+          ClassLoader appCl = VM_ClassLoader.getApplicationClassLoader();
+          Class cls = (Class)appCl.loadClass(clName.substring(0, clName.indexOf('@')));
+          cl = (ClassLoader)cls.newInstance();
+        } catch (Exception ex) {
+          throw new InternalError("Unable to load class with custom class loader: " + ex);
+        }
       }
       VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
       return findOrCreate(tref, mn, md);

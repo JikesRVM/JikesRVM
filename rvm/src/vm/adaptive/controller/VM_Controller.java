@@ -278,6 +278,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     if (options.FINAL_REPORT_LEVEL >= 2) {
       VM_EdgeCounts.dumpCounts();
+      dcg.dumpGraph();
     }
 
     if (options.REPORT_INTERRUPT_STATS) {

@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  *
  * @author Matthew Arnold
  */
-abstract class VM_RecompilationStrategy {
+public abstract class VM_RecompilationStrategy {
 
   //------  Interface -------
 
@@ -31,7 +31,6 @@ abstract class VM_RecompilationStrategy {
     // Default behavior, do nothing.
     return null;
   }
-
 
   /**
    * A hot call edge has been passed to the controller by an organizer
@@ -99,7 +98,7 @@ abstract class VM_RecompilationStrategy {
    * @param optLevel The opt-level to recompile at 
    * @param instPlan The instrumentation plan
    */
-  OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, 
+  public OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, 
                                             int optLevel,
                                             OPT_InstrumentationPlan instPlan) {
 

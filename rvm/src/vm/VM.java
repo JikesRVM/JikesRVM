@@ -401,6 +401,10 @@ public class VM extends VM_Properties
     // 
     VM_EdgeCounts.boot();
 
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    VM_CompilerAdvice.postBoot();
+    //-#endif
+
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.

@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.*;
+
 /**
  * Maintain statistic information about on stack replacement events
  *
@@ -85,10 +86,31 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
         // the compilation plan.
     boolean recmplsucc = false;
     if (VM_Controller.enabled) {
-      VM_ControllerPlan ctrlplan = VM_ControllerMemory.findMatchingPlan(mostRecentlyCompiledMethod);
-      if (ctrlplan != null) {
-        OPT_CompilationPlan cmplplan= ctrlplan.getCompPlan();
-        
+      OPT_CompilationPlan cmplplan=null;
+      if ((VM_Controller.options.ENABLE_REPLAY_COMPILE
+           || VM_Controller.options.ENABLE_PRECOMPILE) 
+          && VM_CompilerAdviceAttribute.hasAdvice()) {
+        VM_CompilerAdviceAttribute attr =
+          VM_CompilerAdviceAttribute.getCompilerAdviceInfo(state.meth);
+        if (VM.VerifyAssertions) {
+          VM._assert(attr.getCompiler() == VM_CompiledMethod.OPT);
+        }
+        int newCMID = -2;
+        if (VM_Controller.options.counters()) {
+          // for invocation counter, we only use one optimization level
+          cmplplan = VM_InvocationCounts.createCompilationPlan(state.meth);
+        } else { 
+          // for now there is not two options for sampling, so
+          // we don't have to use: if (VM_Controller.options.sampling())
+          cmplplan = VM_Controller.recompilationStrategy.createCompilationPlan(state.meth, attr.getOptLevel(), null);
+        }
+      } else {
+        VM_ControllerPlan ctrlplan = VM_ControllerMemory.findMatchingPlan(mostRecentlyCompiledMethod);
+        if (ctrlplan != null) {
+          cmplplan= ctrlplan.getCompPlan();
+        }
+      }
+      if (cmplplan != null) {
         if (VM.VerifyAssertions) {VM._assert(cmplplan.getMethod() == state.meth);}
         
         // for invalidated method, we donot perform OSR guarded inlining anymore.

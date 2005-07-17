@@ -61,6 +61,18 @@ public final class VM_InvocationCounts {
   }
 
   /**
+   * Create the compilation plan according to the default set 
+   * of <optimization plan, options> pairs
+   */
+  public static OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method) {
+    return new OPT_CompilationPlan(method, _optPlan, null, _options);
+  }
+
+  public static OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, VM_AOSInstrumentationPlan instPlan) {
+    return new OPT_CompilationPlan(method, _optPlan, instPlan, _options);
+  }
+
+  /**
    *  Initialize the recompilation strategy.
    *
    *  Note: This uses the command line options to set up the
