@@ -756,10 +756,10 @@ function rationalize_classpath_version () {
 
     ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
     local -i sum
-    let "sum=( RVM_WITH_CLASSPATH_0_15 \
+    let "sum=( RVM_WITH_CLASSPATH_0_15 + RVM_WITH_CLASSPATH_0_17 \
 	      + RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
-	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_0_15, and RVM_WITH_CLASSPATH_CVS_HEAD is defined.  Your configuration files are inconsistent."
+	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_<version> is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
 	exit 2
     fi
@@ -772,6 +772,7 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_/!d'			\
 			-e '/=0$/d'					\
 			-e '/^RVM_WITH_CLASSPATH_0_15=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_17=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -1301,6 +1302,7 @@ declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 ## Classpath versions that might work with Jikes RVM.
 ## See $RVM_ROOT/rvm/config/classpath-version for the gory details.
 declare -i RVM_WITH_CLASSPATH_0_15=0
+declare -i RVM_WITH_CLASSPATH_0_17=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
