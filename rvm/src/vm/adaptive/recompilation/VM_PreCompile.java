@@ -4,6 +4,7 @@
  * University of Texas at Austin 2005
  * All rights reserved.
  */
+//$Id$
 
 package com.ibm.JikesRVM.adaptive;
 
