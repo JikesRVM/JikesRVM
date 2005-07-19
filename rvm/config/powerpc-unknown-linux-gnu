@@ -37,6 +37,8 @@ export MAXIMUM_MAPPABLE_ADDRESS=0x80000000
 # involved; therefore it has been factored out into a separate file.
 . $RVM_ROOT/rvm/config/classpath-version
 
+# TODO: below we give JIKES the cmd line arg -target 1.3 because this is a 1.3 JDK.
+#       When we find a working 1.4 Linux/ppc JDK unkludge the JIKES definition
 export HOST_JAVA_HOME=/usr/lib/j2se/1.3
 
 # the JDK java executable
@@ -61,7 +63,8 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 export GNU_MAKE="/usr/bin/make"
 
 # path for the Jikes java-to-byte-code compiler
-export JIKES=/usr/bin/jikes
+# Given -target 1.3 argument because we are using Blackdown 1.3 for HOST_JAVA_HOME
+export JIKES="/usr/bin/jikes -target 1.3"
 
 # what C compilers should be used?
 export CC="/usr/bin/gcc -w -g -O -Wa,-mppc -fPIC"
