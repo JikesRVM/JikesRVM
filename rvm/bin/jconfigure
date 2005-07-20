@@ -3966,7 +3966,7 @@ function emitCheckIfIAmTheTarget () {
 	    echo "    exit $Exit_Status_Run_Linker"
 	    echo 'fi'
 	elif (( RVM_FOR_IA32 )); then
-	    echo "if [[ \$(uname -m) != i686 ]]; then"
+	    echo "if [[ \$(uname -m) != i686 && \$(uname -m) != x86_64 ]]; then"
 	    echo '    echo "Please run me on Linux IA32"'
 	    echo '    trap "" EXIT'
 	    echo "    exit $Exit_Status_Run_Linker"
