@@ -31,7 +31,7 @@ import java.util.Iterator;
    the Opt compiler is used
  * </ul>
  *
- * @author: Xianglong Huang
+ * @author Xianglong Huang
  * @version $Revision$
  * @date $Date$
  *
@@ -160,7 +160,7 @@ public class VM_CompilerAdviceAttribute {
    * <code>getCompilerAdviceInfo()</code>.
    *
    * @param compilerAdviceList A list of compiler advice attributes
-   * @see VM_CompilerAdviceAttribute.getCompilerAdviceInfo
+   * @see #getCompilerAdviceInfo
    */
   public static void registerCompilerAdvice(List compilerAdviceList) {
     // do nothing for empty list
@@ -186,8 +186,7 @@ public class VM_CompilerAdviceAttribute {
    * @param offset The bytecode offset of the site
    * @return Attribute advice for that site or null if none is found.
    */
-  public static VM_CompilerAdviceAttribute getCompilerAdviceInfo(
-                                             VM_Method method) {
+  public static VM_CompilerAdviceAttribute getCompilerAdviceInfo(VM_Method method) {
     tempAttr.className  = method.getDeclaringClass().getDescriptor();
     tempAttr.methodName = method.getName();
     tempAttr.methodSig  = method.getDescriptor();

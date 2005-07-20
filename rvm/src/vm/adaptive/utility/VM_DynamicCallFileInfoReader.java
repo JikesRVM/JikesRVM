@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
  * </ul>
  *
- * @author: Xianglong Huang
+ * @author Xianglong Huang
  * @version $Revision$
  * @date $Date$
  *

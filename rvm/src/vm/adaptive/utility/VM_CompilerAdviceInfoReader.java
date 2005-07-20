@@ -39,13 +39,12 @@ import java.util.NoSuchElementException;
    if compiler is optimizing compiler</li>
  * </ul>
  *
- * @author: Xianglong Huang
+ * @author Xianglong Huang
  * @version $Revision$
  * @date $Date$
  *
  * @see VM_CompilerAdvice
  * @see VM_CompilerAdviceAttribute
- * @see VM_CompilerInfo
  */
 class VM_CompilerAdviceInfoReader {
 
