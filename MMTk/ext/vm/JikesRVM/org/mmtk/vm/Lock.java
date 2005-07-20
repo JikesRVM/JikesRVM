@@ -1,7 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2002, 2004
  */
-//$Id$
 
 package org.mmtk.vm;
 
@@ -34,6 +33,8 @@ import org.mmtk.utility.Log;
  * also fetchAndIncremented.
  * 
  * This implementation relies on there being less than 1<<32 waiters.
+ *
+ * $Id$
  * 
  * @author Perry Cheng
  * @version $Revision$

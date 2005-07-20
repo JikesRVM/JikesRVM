@@ -4,20 +4,23 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.RefCountBase;
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.refcount.RCBase;
+import org.mmtk.plan.refcount.RCBaseLocal;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.scan.*;
+import org.mmtk.utility.options.Options;
+import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TrialDeletion;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Plan;
-import org.mmtk.vm.Statistics;
+
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.Statistics;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -109,21 +112,21 @@ public final class RefCountLocal extends SegregatedFreeList
    */
   static {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(LAZY_SWEEP);
-    oldRootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    oldRootPool = new SharedDeque(Plan.metaDataSpace, 1);
     oldRootPool.newClient();
 
     if (RefCountSpace.RC_SANITY_CHECK) {
-      incSanityRootsPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      incSanityRootsPool = new SharedDeque(Plan.metaDataSpace, 1);
       incSanityRootsPool.newClient();
-      sanityWorkQueuePool = new SharedDeque(Plan.getMetaDataRPA(), 2);
+      sanityWorkQueuePool = new SharedDeque(Plan.metaDataSpace, 2);
       sanityWorkQueuePool.newClient();
-      checkSanityRootsPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      checkSanityRootsPool = new SharedDeque(Plan.metaDataSpace, 1);
       checkSanityRootsPool.newClient();
-      sanityImmortalPoolA = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityImmortalPoolA = new SharedDeque(Plan.metaDataSpace, 1);
       sanityImmortalPoolA.newClient();
-      sanityImmortalPoolB = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityImmortalPoolB = new SharedDeque(Plan.metaDataSpace, 1);
       sanityImmortalPoolB.newClient();
-      sanityLastGCPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityLastGCPool = new SharedDeque(Plan.metaDataSpace, 1);
       sanityLastGCPool.newClient();
     }
 
@@ -177,7 +180,7 @@ public final class RefCountLocal extends SegregatedFreeList
       sanityImmortalSetB = new ObjectReferenceDeque("immortal set B", sanityImmortalPoolB);
       sanityLastGCSet = new ObjectReferenceDeque("last GC set", sanityLastGCPool);
     }
-    if (RefCountBase.REF_COUNT_CYCLE_DETECTION)
+    if (RCBase.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this);
   }
 
@@ -211,12 +214,12 @@ public final class RefCountLocal extends SegregatedFreeList
    * Prepare for a collection.
    */
   public final void prepare(boolean time) { 
-    if (RefCountSpace.RC_SANITY_CHECK && !Plan.noFinalizer.getValue()) 
+    if (RefCountSpace.RC_SANITY_CHECK && !Options.noFinalizer.getValue()) 
       Assert.fail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
 
     flushFreeLists();
     if (RefCountSpace.INC_DEC_ROOT) {
-      if (Plan.verbose.getValue() > 2)
+      if (Options.verbose.getValue() > 2)
         processRootBufsAndCount(); 
       else
         processRootBufs();
@@ -230,8 +233,8 @@ public final class RefCountLocal extends SegregatedFreeList
    * @param count The ordinal number of the plan instance performing
    * this operation
    */
-  public final void release(RefCountBase plan, int count) {
-    boolean timekeeper = (Plan.verboseTiming.getValue() && count == 1);
+  public final void release(RCBaseLocal plan, boolean primary) {
+    boolean timekeeper = (Options.verboseTiming.getValue() && primary);
     flushFreeLists();
     Collection.rendezvous(4400);
     if (!RefCountSpace.INC_DEC_ROOT) {
@@ -243,16 +246,16 @@ public final class RefCountLocal extends SegregatedFreeList
     if (timekeeper) decTime.stop();
     Collection.rendezvous(4410);
     sweepBlocks();
-    if (RefCountBase.REF_COUNT_CYCLE_DETECTION) {
+    if (RCBase.REF_COUNT_CYCLE_DETECTION) {
       if (timekeeper) cdTime.start();
-      if (cycleDetector.collectCycles(count, timekeeper)) 
+      if (cycleDetector.collectCycles(primary, timekeeper)) 
         processDecBufs(plan);
       if (timekeeper) cdTime.stop();
     }
     Collection.rendezvous(4420);
     if (RefCountSpace.RC_SANITY_CHECK) checkSanityTrace();
     if (!RefCountSpace.INC_DEC_ROOT) {
-      if (Plan.verbose.getValue() > 2) 
+      if (Options.verbose.getValue() > 2) 
         processRootBufsAndCount(); 
       else 
         processRootBufs();
@@ -263,7 +266,7 @@ public final class RefCountLocal extends SegregatedFreeList
   /**
    * Process the decrement buffers
    */
-  private final void processDecBufs(RefCountBase plan) {
+  private final void processDecBufs(RCBaseLocal plan) {
     ObjectReference tgt = ObjectReference.nullReference();
     long tc = Plan.getTimeCap();
     long remaining =  tc - Statistics.cycles();
@@ -287,7 +290,7 @@ public final class RefCountLocal extends SegregatedFreeList
    *
    * @param plan The plan instance performing this operation
    */
-  private final void processOldRootBufs(RefCountBase plan) {
+  private final void processOldRootBufs(RCBaseLocal plan) {
     ObjectReference object;
     while (!(object = oldRootSet.pop()).isNull()) {
       if (!RefCountSpace.isLiveRC(object))
@@ -344,12 +347,12 @@ public final class RefCountLocal extends SegregatedFreeList
    * @param object The object whose count is to be decremented
    * @param plan The plan instance performing this operation
    */
-  public final void decrement(ObjectReference object, RefCountBase plan) 
+  public final void decrement(ObjectReference object, RCBaseLocal plan) 
     throws InlinePragma {
     int state = RefCountSpace.decRC(object);
     if (state == RefCountSpace.DEC_KILL)
       release(object, plan);
-    else if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
+    else if (RCBase.REF_COUNT_CYCLE_DETECTION && 
              state == RefCountSpace.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
@@ -366,12 +369,12 @@ public final class RefCountLocal extends SegregatedFreeList
    * @param object The object to be released
    * @param plan The plan instance performing this operation
    */
-  private final void release(ObjectReference object, RefCountBase plan) 
+  private final void release(ObjectReference object, RCBaseLocal plan) 
     throws InlinePragma {
     // this object is now dead, scan it for recursive decrement
     if (RefCountSpace.RC_SANITY_CHECK) rcLiveObjects--;
     Scan.enumeratePointers(object, plan.decEnum);
-    if (!RefCountBase.REF_COUNT_CYCLE_DETECTION ||
+    if (!RCBase.REF_COUNT_CYCLE_DETECTION ||
         !RefCountSpace.isBuffered(object)) 
       free(object);
   }
@@ -446,15 +449,15 @@ public final class RefCountLocal extends SegregatedFreeList
     sanityLiveObjects = 0;
     ObjectReference object;
     while (!(object = sanityImmortalSetA.pop()).isNull()) {
-      Plan.getInstance().checkSanityTrace(object, Address.zero());
+      RCBase.local().checkSanityTrace(object, Address.zero());
       sanityImmortalSetB.push(object);
     }
     while (!(object = incSanityRoots.pop()).isNull()) {
-      Plan.getInstance().incSanityTrace(object, Address.zero(), true);
+      RCBase.local().incSanityTrace(object, Address.zero(), true);
       checkSanityRoots.push(object);
     }
     while (!(object = sanityWorkQueue.pop1().toObjectReference()).isNull()) {
-      Plan.getInstance().incSanityTrace(object, sanityWorkQueue.pop2(), false);
+      RCBase.local().incSanityTrace(object, sanityWorkQueue.pop2(), false);
     }
   }
 
@@ -472,16 +475,16 @@ public final class RefCountLocal extends SegregatedFreeList
       RefCountSpace.checkOldObject(object);
     }
     while (!(object = sanityImmortalSetB.pop()).isNull()) {
-      Plan.getInstance().checkSanityTrace(object, Address.zero());
+      RCBase.local().checkSanityTrace(object, Address.zero());
       sanityImmortalSetA.push(object);
     }
     while (!(object = checkSanityRoots.pop()).isNull()) {
       if (Statistics.getCollectionCount() == 1) checkForImmortal(object);
-      Plan.getInstance().checkSanityTrace(object, Address.zero());
+      RCBase.local().checkSanityTrace(object, Address.zero());
     }
     while (!(object = sanityWorkQueue.pop1().toObjectReference()).isNull()) {
       if (Statistics.getCollectionCount() == 1) checkForImmortal(object);
-      Plan.getInstance().checkSanityTrace(object, sanityWorkQueue.pop2());
+      RCBase.local().checkSanityTrace(object, sanityWorkQueue.pop2());
     }
     if (rcLiveObjects != sanityLiveObjects) {
       Log.write("live mismatch: "); Log.write(rcLiveObjects); 
@@ -537,7 +540,7 @@ public final class RefCountLocal extends SegregatedFreeList
     Log.write(incCounter); Log.write(" incs, ");
     Log.write(decCounter); Log.write(" decs, ");
     Log.write(rootCounter); Log.write(" roots");
-    if (RefCountBase.REF_COUNT_CYCLE_DETECTION) {
+    if (RCBase.REF_COUNT_CYCLE_DETECTION) {
       Log.write(", "); 
       Log.write(purpleCounter);Log.write(" purple");
     }

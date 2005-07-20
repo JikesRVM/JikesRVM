@@ -5,9 +5,11 @@
 
 package org.mmtk.policy;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.FreeListPageResource;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -106,7 +108,8 @@ public final class RawPageSpace extends Space
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
-  public final ObjectReference traceObject(ObjectReference object) 
+  public final ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return ObjectReference.nullReference();

@@ -4,14 +4,18 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.policy.RefCountLocal;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.utility.deque.*;
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Plan;
+
+import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Statistics;
 
 import org.vmmagic.unboxed.*;
@@ -126,21 +130,21 @@ public final class TrialDeletion extends CycleDetector
    * Initialization
    */
   static {
-    workPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    workPool = new SharedDeque(Plan.metaDataSpace, 1);
     workPool.newClient();
-    blackPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    blackPool = new SharedDeque(Plan.metaDataSpace, 1);
     blackPool.newClient();
-    unfilteredPurplePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    unfilteredPurplePool = new SharedDeque(Plan.metaDataSpace, 1);
     unfilteredPurplePool.newClient();
-    maturePurplePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    maturePurplePool = new SharedDeque(Plan.metaDataSpace, 1);
     maturePurplePool.newClient();
-    filteredPurplePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    filteredPurplePool = new SharedDeque(Plan.metaDataSpace, 1);
     filteredPurplePool.newClient();
-    cyclePoolA = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    cyclePoolA = new SharedDeque(Plan.metaDataSpace, 1);
     cyclePoolA.newClient();
-    cyclePoolB = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    cyclePoolB = new SharedDeque(Plan.metaDataSpace, 1);
     cyclePoolB.newClient();
-    freePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    freePool = new SharedDeque(Plan.metaDataSpace, 1);
     freePool.newClient();
 
     greyTime = new Timer("cd-grey", false, true);
@@ -173,21 +177,21 @@ public final class TrialDeletion extends CycleDetector
     unfilteredPurpleBuffer.insert(object);
   }
 
-  public final boolean collectCycles(int count, boolean timekeeper) {
+  public final boolean collectCycles(boolean primary, boolean timekeeper) {
     collectedCycles = false;
-    if (count == 1 && shouldFilterPurple()) {
+    if (primary && shouldFilterPurple()) {
       long filterStart = Statistics.cycles();
       long finishTarget = Plan.getTimeCap();
       long remaining = finishTarget - filterStart;
       long targetTime = filterStart+(remaining/FILTER_TIME_FRACTION);
 
-      long gcTimeCap = Statistics.millisToCycles(Plan.gcTimeCap.getMilliseconds());
+      long gcTimeCap = Statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
       if (remaining > gcTimeCap/FILTER_TIME_FRACTION ||
           RefCountSpace.RC_SANITY_CHECK) {
         filterPurpleBufs(targetTime);
         processFreeBufs();
         if (shouldCollectCycles()) {
-          if (Plan.verbose.getValue() > 0) { 
+          if (Options.verbose.getValue() > 0) { 
             Log.write("(CD "); 
             Log.flush();
           }
@@ -201,13 +205,13 @@ public final class TrialDeletion extends CycleDetector
             remaining = finishTarget - Statistics.cycles();
           }
           flushFilteredPurpleBufs();
-          if (Plan.verbose.getValue() > 0) {
+          if (Options.verbose.getValue() > 0) {
             Log.write(Statistics.cyclesToMillis(Statistics.cycles() - cycleStart));
             Log.write(" ms)");
           }
         }
       }
-      lastPurplePages = Plan.getMetaDataPagesUsed();
+      lastPurplePages = ActivePlan.global().getMetaDataPagesUsed();
     }
     return collectedCycles;
   }
@@ -249,7 +253,7 @@ public final class TrialDeletion extends CycleDetector
    * @return True if cycle collection should be invoked
    */
   private final boolean shouldCollectCycles() {
-    return shouldAct(cycleTriggerThreshold.getPages());
+    return shouldAct(Options.cycleTriggerThreshold.getPages());
   }
 
   /**
@@ -260,7 +264,7 @@ public final class TrialDeletion extends CycleDetector
    * @return True if the unfiltered purple buffer should be filtered
    */
   private final boolean shouldFilterPurple() {
-    return shouldAct(cycleFilterThreshold.getPages());
+    return shouldAct(Options.cycleFilterThreshold.getPages());
   }
 
   /**
@@ -273,9 +277,9 @@ public final class TrialDeletion extends CycleDetector
     if (RefCountSpace.RC_SANITY_CHECK) return true;
 
     final int LOG_WRIGGLE = 2;
-    int slack = log2((int) Plan.getPagesAvail()/thresholdPages);
+    int slack = log2((int) ActivePlan.global().getPagesAvail()/thresholdPages);
     int mask = (1<<slack)-1;
-    boolean rtn = (slack <= LOG_WRIGGLE) && ((Plan.gcCount() & mask) == mask);
+    boolean rtn = (slack <= LOG_WRIGGLE) && ((Stats.gcCount() & mask) == mask);
     return rtn;
   }
   private final int log2(int value) {
@@ -301,7 +305,7 @@ public final class TrialDeletion extends CycleDetector
   private final int filterPurpleBufs(ObjectReferenceDeque src, 
                                      ObjectReferenceDeque tgt, long timeCap) {
     int purple = 0;
-    int limit = cycleMetaDataLimit.getPages() <<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
+    int limit = Options.cycleMetaDataLimit.getPages() <<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
     ObjectReference object = ObjectReference.nullReference();
     src.flushLocal();
     do {
@@ -438,7 +442,7 @@ public final class TrialDeletion extends CycleDetector
   }
   public final void enumerateGrey(ObjectReference object)
     throws InlinePragma {
-    if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object)) {
+    if (RCBase.isRCObject(object) && !RefCountSpace.isGreen(object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isLiveRC(object));
       RefCountSpace.unsyncDecRC(object);
       workQueue.push(object);
@@ -477,7 +481,7 @@ public final class TrialDeletion extends CycleDetector
   }
   public final void enumerateScan(ObjectReference object) 
     throws InlinePragma {
-    if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object))
+    if (RCBase.isRCObject(object) && !RefCountSpace.isGreen(object))
       workQueue.push(object);
   }
   private final void scanBlack(ObjectReference object)
@@ -494,7 +498,7 @@ public final class TrialDeletion extends CycleDetector
   }
   public final void enumerateScanBlack(ObjectReference object)
     throws InlinePragma {
-    if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object)) {
+    if (RCBase.isRCObject(object) && !RefCountSpace.isGreen(object)) {
       RefCountSpace.unsyncIncRC(object);
       if (!RefCountSpace.isBlack(object))
         blackQueue.push(object);
@@ -525,9 +529,9 @@ public final class TrialDeletion extends CycleDetector
   }
   public final void enumerateCollect(ObjectReference object) 
     throws InlinePragma {
-    if (Plan.isRCObject(object)) {
+    if (RCBase.isRCObject(object)) {
       if (RefCountSpace.isGreen(object))
-        Plan.getInstance().addToDecBuf(object); 
+        RCBase.local().addToDecBuf(object); 
       else
         workQueue.push(object);
     }

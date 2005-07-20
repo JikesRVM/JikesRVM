@@ -5,8 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.vm.Plan;
-import org.mmtk.vm.PlanConstants;
+import org.mmtk.vm.ActivePlan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -24,13 +23,13 @@ import com.ibm.JikesRVM.BootImageInterface;
  * @author Perry Cheng
  */
 public final class VM_AllocatorHeader implements VM_Constants {
-  public static final boolean STEAL_NURSERY_GC_HEADER = PlanConstants.STEAL_NURSERY_GC_HEADER();
+  public static final boolean STEAL_NURSERY_GC_HEADER = false;
   // not supported during expected transition to new object model.
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
-  public static final boolean NEEDS_LINEAR_SCAN = PlanConstants.NEEDS_LINEAR_SCAN();
+  public static final boolean NEEDS_LINEAR_SCAN = ActivePlan.constraints().needsLinearScan();
 
-  public static final int REQUESTED_BITS = PlanConstants.GC_HEADER_BITS_REQUIRED();
-  public static final int NUM_BYTES_HEADER = PlanConstants.GC_HEADER_WORDS_REQUIRED()<<LOG_BYTES_IN_WORD;
+  public static final int REQUESTED_BITS = ActivePlan.constraints().gcHeaderBits();
+  public static final int NUM_BYTES_HEADER = ActivePlan.constraints().gcHeaderWords() << LOG_BYTES_IN_WORD;
 
   /**
    * Override the boot-time initialization method here, so that
@@ -41,7 +40,7 @@ public final class VM_AllocatorHeader implements VM_Constants {
                                       Object[] tib, int size, boolean isScalar)
     throws InterruptiblePragma {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    Word status = Plan.getBootTimeAvailableBits(ref, 
+    Word status = ActivePlan.global().setBootTimeGCBits(ref, 
       ObjectReference.fromObject(tib), size, Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }

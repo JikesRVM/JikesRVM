@@ -50,8 +50,9 @@ public class ReferenceGlue {
   /**
    * Scan through the list of references with the specified semantics.
    * @param semantics the number representing the semantics
+   * @param True if it is safe to only scan new references.
    */
-  public static void scanReferences(int semantics) {
+  public static void scanReferences(int semantics, boolean nursery) {
   }
 
   /**

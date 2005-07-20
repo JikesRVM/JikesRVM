@@ -35,7 +35,7 @@ public abstract class AbstractTile implements  Uninterruptible {
    *
    * Instance variables
    */
-  
+
   private byte control_; // The value of the control for this tile
 
 
@@ -80,7 +80,7 @@ public abstract class AbstractTile implements  Uninterruptible {
    */
   public static boolean controlIsSeparator (byte val) {
     return (val & CONTROL_SEPARATOR) != 0;
-  }  
+  }
 
   /**
    * Initialise the value of a control
@@ -130,7 +130,7 @@ public abstract class AbstractTile implements  Uninterruptible {
 
   /**
    * Set the control value in each tile in a region
-   * 
+   *
    * @param tiles The tiles to set
    * @param tag The control tag
    * @param start The start index of the region

@@ -7,11 +7,12 @@
 //$Id$
 package org.mmtk.utility;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Plan;
-import org.mmtk.vm.Strings;
+
+import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
+import org.mmtk.vm.Strings;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -742,7 +743,7 @@ public class Log implements Constants, Uninterruptible {
 
   private static Log getLog() {
     if (Assert.runningVM())
-      return Plan.getInstance().getLog();
+      return ActivePlan.local().getLog();
     else
       return log;
   }

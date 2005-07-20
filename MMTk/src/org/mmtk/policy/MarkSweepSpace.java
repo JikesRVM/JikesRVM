@@ -4,10 +4,10 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Plan;
+
 import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.pragma.*;
@@ -215,13 +215,12 @@ public final class MarkSweepSpace extends Space
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final ObjectReference traceObject(ObjectReference object)
+  public final ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object)
     throws InlinePragma {
     if (testAndMark(object, markState)) {
-      if (Stats.GATHER_MARK_CONS_STATS)
-        Plan.mark.inc(ObjectModel.getSizeWhenCopied(object));
       MarkSweepLocal.liveObject(object);
-      Plan.enqueue(object);
+      trace.enqueue(object);
     }
     return object;
   }
@@ -259,7 +258,7 @@ public final class MarkSweepSpace extends Space
   public final void postCopy(ObjectReference object) 
     throws InlinePragma {
     writeMarkBit(object);      // TODO one of these two is redundant!
-        MarkSweepLocal.liveObject(object);
+    MarkSweepLocal.liveObject(object);
   }
   /**
    * Perform any required initialization of the GC portion of the header.

@@ -4,11 +4,13 @@
  */
 package org.mmtk.utility.heap;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Lock;
-import org.mmtk.vm.Plan;
 import org.mmtk.utility.options.ProtectOnRelease;
+import org.mmtk.utility.options.Options;
+
+import org.mmtk.vm.Lock;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -41,7 +43,6 @@ abstract public class PageResource implements Constants, Uninterruptible {
 
   static private Lock classLock;
   static private long cumulativeCommitted = 0;
-  protected static ProtectOnRelease protectOnRelease;
 
 
   /****************************************************************************
@@ -67,7 +68,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    */
   static {
     classLock = new Lock("PageResource");
-    protectOnRelease = new ProtectOnRelease();
+    Options.protectOnRelease = new ProtectOnRelease();
   }
 
   /**

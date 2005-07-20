@@ -1,7 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 package org.mmtk.vm;
 
@@ -14,6 +13,8 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A counter that supports atomic increment and reset.
+ *
+ * $Id$
  *
  * @author Perry Cheng
  */

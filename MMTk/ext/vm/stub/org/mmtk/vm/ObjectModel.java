@@ -30,9 +30,10 @@ public class ObjectModel {
    * allow the plan to perform any post copy actions.
    *
    * @param from the address of the object to be copied
+   * @param from The allocator to use.
    * @return the address of the new object
    */
-  public static ObjectReference copy(ObjectReference from) {
+  public static ObjectReference copy(ObjectReference from, int allocator) {
     return null;
   }
 

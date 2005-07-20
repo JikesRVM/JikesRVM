@@ -4,13 +4,14 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.RefCountBase;
+import org.mmtk.plan.refcount.RCBase;
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -231,13 +232,14 @@ public final class RefCountSpace extends Space
    * @param object The object encountered in the trace
    * @param root True if the object is referenced directly from a root
    */
-  public final ObjectReference traceObject(ObjectReference object)
+  public final ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object)
     throws InlinePragma {
     if (INC_DEC_ROOT) {
       incRC(object);
-      Plan.getInstance().addToRootSet(object);
+      RCBase.local().addToRootSet(object);
     } else if (setRoot(object)) {
-      Plan.getInstance().addToRootSet(object);
+      RCBase.local().addToRootSet(object);
     }
     return object;
   }
@@ -312,7 +314,8 @@ public final class RefCountSpace extends Space
   public static void makeLogged(ObjectReference object)
     throws UninterruptiblePragma, InlinePragma {
     Word value = ObjectModel.readAvailableBitsWord(object);
-    Assert._assert(value.and(LOGGING_MASK).NE(LOGGED));
+    if (Assert.VERIFY_ASSERTIONS) 
+      Assert._assert(value.and(LOGGING_MASK).NE(LOGGED));
     ObjectModel.writeAvailableBitsWord(object, value.and(LOGGING_MASK.not()));
   }
 
@@ -324,7 +327,8 @@ public final class RefCountSpace extends Space
   public static void makeUnlogged(ObjectReference object)
     throws UninterruptiblePragma, InlinePragma {
     Word value = ObjectModel.readAvailableBitsWord(object);
-    Assert._assert(value.and(LOGGING_MASK).EQ(LOGGED));
+    if (Assert.VERIFY_ASSERTIONS) 
+      Assert._assert(value.and(LOGGING_MASK).EQ(LOGGED));
     ObjectModel.writeAvailableBitsWord(object, value.or(UNLOGGED));
   }
 
@@ -346,7 +350,7 @@ public final class RefCountSpace extends Space
                                       boolean initialInc) throws InlinePragma {
     // all objects are birthed with an RC of INCREMENT
     int initialValue =  (initialInc) ? INCREMENT : 0;
-    if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
+    if (RCBase.REF_COUNT_CYCLE_DETECTION && 
         ObjectModel.isAcyclic(typeRef))
       initialValue |= GREEN;
     object.toAddress().store(initialValue, RC_HEADER_OFFSET);
@@ -361,6 +365,16 @@ public final class RefCountSpace extends Space
   public static boolean isLiveRC(ObjectReference object) 
     throws UninterruptiblePragma, InlinePragma {
     return object.toAddress().loadInt(RC_HEADER_OFFSET) >= LIVE_THRESHOLD;
+  }
+  
+  /**
+   * Is the object live?
+   * 
+   * @param object The object reference.
+   * @return True if the object is live.
+   */
+  public boolean isLive(ObjectReference object) {
+    return isLiveRC(object);
   }
 
   /**
@@ -399,8 +413,9 @@ public final class RefCountSpace extends Space
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
-      Assert._assert(newValue <= INCREMENT_LIMIT);
-      if (RefCountBase.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
+      if (Assert.VERIFY_ASSERTIONS) 
+        Assert._assert(newValue <= INCREMENT_LIMIT);
+      if (RCBase.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!object.toAddress().attempt(oldValue, newValue, RC_HEADER_OFFSET));
   }
 
@@ -429,7 +444,7 @@ public final class RefCountSpace extends Space
       newValue = oldValue - INCREMENT;
       if (newValue < LIVE_THRESHOLD)
         rtn = DEC_KILL;
-      else if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
+      else if (RCBase.REF_COUNT_CYCLE_DETECTION && 
                ((newValue & COLOR_MASK) < PURPLE)) { // if not purple or green
         rtn = ((newValue & BUFFERED_MASK) == 0) ? DEC_BUFFER : DEC_PURPLE;
         newValue = (newValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
@@ -479,7 +494,8 @@ public final class RefCountSpace extends Space
     throws UninterruptiblePragma, InlinePragma {
     int rcv = object.toAddress().loadInt(RC_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1);
     int sanityRCV = object.toAddress().loadInt(RC_SANITY_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1);
-    Assert._assert(sanityRCV == 0);
+    if (Assert.VERIFY_ASSERTIONS) 
+      Assert._assert(sanityRCV == 0);
     if (sanityRCV == 0 && rcv != 0) {
       Assert.fail("");
     }
@@ -738,7 +754,8 @@ public final class RefCountSpace extends Space
   }
   public static void makeGrey(ObjectReference object) 
     throws UninterruptiblePragma, InlinePragma {
-    Assert._assert(getHiRCColor(object) != GREEN);
+    if (Assert.VERIFY_ASSERTIONS) 
+      Assert._assert(getHiRCColor(object) != GREEN);
     changeRCLoColor(object, GREY);
   }
   private static void changeRCLoColor(ObjectReference object, int color)

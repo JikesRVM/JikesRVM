@@ -6,7 +6,7 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.utility.deque.*;
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Constants;
 
@@ -42,10 +42,20 @@ public class Scanning implements Constants {
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(ObjectReference object) 
+  public static void scanObject(TraceLocal trace, ObjectReference object) 
 {
   }
-  
+
+  /**
+   * Delegated precopying of a object's children, processing each pointer field
+   * encountered. <b>Jikes RVM never delegates, so this is never
+   * executed</b>.
+   *
+   * @param trace The trace object to use for precopying.
+   * @param object The object to be scanned.
+   */
+  public static void precopyChildren(TraceLocal trace, ObjectReference object) {}
+
   /**
    * Delegated enumeration of the pointers in an object, calling back
    * to a given plan for each pointer encountered. <b>Jikes RVM never
@@ -83,19 +93,9 @@ public class Scanning implements Constants {
    * reset so that load balancing parallel GC can share the work of
    * scanning threads.
    */
-  public static void preCopyGCInstances() {
+  public static void preCopyGCInstances(TraceLocal trace) {
   }
  
-  /**
-   * Enumerate the pointers in an object, calling back to a given plan
-   * for each pointer encountered. <i>NOTE</i> that only the "real"
-   * pointer fields are enumerated, not the TIB.
-   *
-   * @param object The object to be scanned.
-   * @param enum the Enumerate object through which the callback
-   * is made
-   */
-
  /**
    * Computes all roots.  This method establishes all roots for
    * collection and places them in the root values, root locations and
@@ -110,12 +110,9 @@ public class Scanning implements Constants {
    * balancing parallel GC can share the work of scanning threads.
    * </ul>
    *
-   * @param rootLocations set to store addresses containing roots
-   * @param interiorRootLocations set to store addresses containing
-   * return adddresses, or <code>null</code> if not required
+   * @param The trace to use for computing roots.
    */
-  public static void computeAllRoots(AddressDeque rootLocations,
-                                     AddressPairDeque interiorRootLocations) {
+  public static void computeAllRoots(TraceLocal trace) {
   }
 
 }

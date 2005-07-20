@@ -2,7 +2,7 @@
  * 
  * (C) Copyright IBM Corp. 2001
  *
- * $Id$
+ * $Id$ 
  */
 package org.mmtk.vm;
 
@@ -45,10 +45,17 @@ import java.lang.ref.PhantomReference;
  * Based on previous ReferenceProcessor.java, which was loosely based
  * on Finalizer.java
  * 
+ * As an optimization for generational collectors, each reference type
+ * maintains two queues: a nursery queue and the main queue. 
+ * 
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
 public class ReferenceGlue implements Uninterruptible {
+  /********************************************************************
+   * Class fields 
+   */
+  
   /**
    * <code>true</code> if the references are implemented as heap
    * objects (rather than in a table, for example).  In this context
@@ -60,20 +67,29 @@ public class ReferenceGlue implements Uninterruptible {
 
   private static Lock lock = new Lock("ReferenceProcessor");
 
-  private static ReferenceGlue softReferenceProcessor =
+  private static final ReferenceGlue softReferenceProcessor =
     new ReferenceGlue(ReferenceProcessor.SOFT_SEMANTICS);
-  private static ReferenceGlue weakReferenceProcessor =
+  private static final ReferenceGlue weakReferenceProcessor =
     new ReferenceGlue(ReferenceProcessor.WEAK_SEMANTICS);
-  private static ReferenceGlue phantomReferenceProcessor =
+  private static final ReferenceGlue phantomReferenceProcessor =
     new ReferenceGlue(ReferenceProcessor.PHANTOM_SEMANTICS);
 
   // Debug flags
   private static final boolean TRACE = false;
 
+  /*************************************************************************
+   * Instance fields
+   */
   private Address waitingListHead = Address.zero();
+  private Address nurseryListHead = Address.zero();
+  private int countOnMatureList = 0;
   private int countOnWaitingList = 0;
   private int semantics;
 
+  /**
+   * Constructor
+   * @param semantics Soft, phantom or weak
+   */
   private ReferenceGlue(int semantics) {
     this.semantics = semantics;
   }
@@ -96,8 +112,8 @@ public class ReferenceGlue implements Uninterruptible {
     }
     
     lock.acquire();
-    setNextReferenceAsAddress(VM_Magic.objectAsAddress(ref), waitingListHead);
-    waitingListHead = VM_Magic.objectAsAddress(ref);
+    setNextReferenceAsAddress(VM_Magic.objectAsAddress(ref), nurseryListHead);
+    nurseryListHead = VM_Magic.objectAsAddress(ref);
     countOnWaitingList += 1;    
     lock.release();
   }
@@ -106,61 +122,96 @@ public class ReferenceGlue implements Uninterruptible {
    * Scan through the list of references. Calls ReferenceProcessor's
    * processReference method for each reference and builds a new
    * list of those references still active.
+   * 
+   * Depending on the value of <code>nursery</code>, we will either
+   * scan all references, or just those created since the last scan.
+   * 
+   * @param nursery Scan only the newly created references
    */
-  private void scanReferences()
+  private void scanReferences(boolean nursery)
     throws LogicallyUninterruptiblePragma {
-    Address reference = waitingListHead;
+    Address reference;
     Address prevReference = Address.zero();
     Address newHead = Address.zero();
     int waiting = 0;
+    
+    if (!nursery) {
+      /* Process the mature reference list */
       
+      reference = waitingListHead;
+      while (!reference.isZero()) {
+        Address newReference =
+          ReferenceProcessor.processReference(reference, semantics);
+        if (!newReference.isZero()) {
+          /*
+           * Update 'next' pointer of the previous reference in the
+           * linked list of waiting references.
+           */
+          if (!prevReference.isZero()) {
+            setNextReferenceAsAddress(prevReference, newReference);
+          }
+          waiting += 1;
+          prevReference = newReference;
+          if (newHead.isZero())
+            newHead = newReference;
+        }
+        reference = getNextReferenceAsAddress(reference);
+      }
+      if (!prevReference.isZero()) {
+        setNextReferenceAsAddress(prevReference, Address.zero());
+      }
+      waitingListHead = newHead;
+      countOnMatureList = waiting;
+    }
+
+    /* Process the reference nursery, putting survivors on the main list */
+    reference = nurseryListHead;
+    waiting = countOnMatureList;
     while (!reference.isZero()) {
       Address newReference =
         ReferenceProcessor.processReference(reference, semantics);
+      reference = getNextReferenceAsAddress(reference);
       if (!newReference.isZero()) {
         /*
-         * Update 'next' pointer of the previous reference in the
-         * linked list of waiting references.
+         * Put the reference onto the main 'tenured' queue
          */
-        if (!prevReference.isZero()) {
-          setNextReferenceAsAddress(prevReference, newReference);
-        }
+        setNextReferenceAsAddress(newReference, waitingListHead);
+        waitingListHead = VM_Magic.objectAsAddress(newReference);
         waiting += 1;
-        prevReference = newReference;
-        if (newHead.isZero())
-          newHead = newReference;
       }
-      reference = getNextReferenceAsAddress(reference);
     }
-    if (!prevReference.isZero()) {
-      setNextReferenceAsAddress(prevReference, Address.zero());
-    }
-    countOnWaitingList = waiting;
-    waitingListHead = newHead;
+    nurseryListHead = Address.zero();
+
+    countOnMatureList = countOnWaitingList = waiting;
   }
 
   /**
    * Scan through the list of references with the specified semantics.
+   * 
    * @param semantics the number representing the semantics
+   * @param nursery Scan only the newly created references
    */
-  public static void scanReferences(int semantics) {
-    if (VM.VerifyAssertions)
-      VM._assert(ReferenceProcessor.SOFT_SEMANTICS <= semantics
-                           &&
-                           semantics <= ReferenceProcessor.PHANTOM_SEMANTICS);
+  public static final void scanReferences(int semantics, boolean nursery) {
+    if (VM.VerifyAssertions) {
+      VM._assert(ReferenceProcessor.SOFT_SEMANTICS <= semantics &&
+                 semantics <= ReferenceProcessor.PHANTOM_SEMANTICS);
+    }
     if (TRACE) {
       VM.sysWriteln("Starting ReferenceGlue.scanReferences(",
                     ReferenceProcessor.semanticStrings[semantics], ")");
     }
     switch (semantics) {
     case ReferenceProcessor.SOFT_SEMANTICS:
-      softReferenceProcessor.scanReferences();
+      //VM.sysWriteln("Scanning soft references, nursery = ",nursery);
+      softReferenceProcessor.scanReferences(nursery);
       break;
     case ReferenceProcessor.WEAK_SEMANTICS:
-      weakReferenceProcessor.scanReferences();
+      //VM.sysWriteln("Scanning weak references, nursery = ",nursery);
+      weakReferenceProcessor.scanReferences(nursery);
       break;
     case ReferenceProcessor.PHANTOM_SEMANTICS:
-      phantomReferenceProcessor.scanReferences();
+      //VM.sysWriteln("Scanning phantom references, nursery = ",nursery);
+      phantomReferenceProcessor.scanReferences(nursery);
       break;
     }
     if (TRACE) {
@@ -260,11 +311,16 @@ public class ReferenceGlue implements Uninterruptible {
    * Statistics and debugging
    */
 
-  public static int countWaitingSoftReferences() {
-    return softReferenceProcessor.countOnWaitingList;
-  }
-
-  public static int countWaitingWeakReferences() {
-    return weakReferenceProcessor.countOnWaitingList;
+  public static int countWaitingReferences(int semantics) {
+    switch (semantics) {
+    case ReferenceProcessor.SOFT_SEMANTICS:
+      return softReferenceProcessor.countOnWaitingList;
+    case ReferenceProcessor.WEAK_SEMANTICS:
+      return weakReferenceProcessor.countOnWaitingList;
+    case ReferenceProcessor.PHANTOM_SEMANTICS:
+      return phantomReferenceProcessor.countOnWaitingList;
+    }
+    
+    return -1;
   }
 }

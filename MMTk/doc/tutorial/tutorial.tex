@@ -1,0 +1,361 @@
+\documentclass[textsize=14pt]{article}
+
+\oddsidemargin 0.0in
+
+\textwidth 6.5in
+
+\newcommand{\cmd}[1]{\texttt{\# #1}}
+\newcommand{\env}[1]{\texttt{\$#1}}
+\newcommand{\shline}[1]{\texttt{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\textsf{#1}}
+\newcommand{\menu}[0]{?}
+
+\setlength{\parindent}{0em} \setlength{\parskip}{1em}
+\begin{document}
+
+\section{A Simple MMTk Tutorial}
+
+\textbf{Steve Blackburn}
+
+The goal of this tutorial is to provide a basic introduction to
+MMTk. It is a walk-through of the process of building an
+incrementally more advanced collector.
+
+The tutorial is nothing more than a step by step guide, and does not
+provide detailed documentation. We feel that taking this slice
+through MMTk is an efficient way help people rapidly become
+productive in the MMTk environment.
+
+It is estimated that blindly following the steps of the tutorial
+should take around half a day. The amount of time to really
+understand MMTk is highly variable, depending both on knowledge of
+memory management techniques and programming experience.
+
+\subsection{Preliminaries}
+
+Getting MMTk and Jikes RVM and Eclipse working.
+
+\begin{itemize}
+\item Download Jikes RVM version 2.3.7 or later (see the Jikes RVM
+home page and userguide).
+
+\item Make sure you can build and run a BaseBaseNoGC configuration
+(see the Jikes RVM userguide).
+
+\item Open MMTk in Eclipse (see Eclipse documentation for further
+information)
+\begin{enumerate}
+    \item Start Eclipse. If prompted provide a workspace directory
+    somewhere in your home directory (not RVM\_ROOT or its
+    descendants).
+    \item Select File \menu{} Import...
+    \item Choose `Existing Project into Workspace'
+    \item Browse to the directory where your MMTk tree
+    sits (\file{\env{RVM\_ROOT}/MMTk}).
+    \item Select Finish.
+    \item Switch to the Java perspective.
+\end{enumerate}
+\end{itemize}
+
+\subsection{Adding the Tutorial collector}
+
+The goal is to create a tutorial collector. In order to achieve
+this, we will use the NoGC collector in MMTk as a template.
+
+\begin{itemize}
+\item \textbf{Add a new Jikes RVM configuration.} \\
+    For the Tutorial GC, we use the NoGC configuration as a
+    template.
+    \begin{enumerate}
+    \item Copy the GC configuration file \\
+    \cmd{cd \$RVM\_ROOT/config/build/gc} \\
+    \cmd{cp NoGC Tutorial}
+
+    \item Edit \file{Tutorial}, changing the line: \\
+    \shline{export RVM\_WITH\_JMTK\_PLAN="org.mmtk.plan.nogc.NoGC"} \\ to \\
+    \shline{export RVM\_WITH\_JMTK\_PLAN="org.mmtk.plan.tutorial.Tutorial"}
+
+    \item Copy the build configuration file. \\
+    \cmd{cd \$RVM\_ROOT/config/build} \\
+    \cmd{cp BaseBaseNoGC BaseBaseTutorial}
+
+    \item Edit \file{BaseBaseTutorial}, changing the line: \\
+    \shline{. \$1/gc/NoGC} \\ to \\
+    \shline{. \$1/gc/Tutorial}
+
+    \end{enumerate}
+
+\item \textbf{Create the Tutorial package within MMTk (using Eclipse) by cloning NoGC.}
+    \begin{enumerate}
+    \item Copy the \code{org.mmtk.plan.nogc} package, renaming it to
+    \code{org.mmtk.plan.tutorial}. (Highlight the \code{org.mmtk.plan.nogc} package, and
+    select Edit\menu{}Copy followed by Edit\menu{}Paste.)
+
+    \item Rename each of the classes within the new tutorial package,
+    replacing the substring `NoGC' with `Tutorial'. (Use Eclipse's
+    rename facility (File\menu{}Rename...) with its default options (update
+    references) to do this automatically, one class at a time).  If you
+    look inside any of the renamed classes you should find that they are
+    properly renamed, with new class names, constructors etc. replacing
+    `NoGC' with `Tutorial' throughout.
+    \end{enumerate}
+
+\item \textbf{Make sure you can build and run the new
+    BaseBaseTutorial configuration.} \\
+    It should behave \emph{exactly} the same as the BaseBaseNoGC
+    configuration (it should fail with an out of memory error as
+    soon as it has exhausted the maximum heap size specified on
+    the command line with -Xms). To run the SPECjvm98 jess benchmark,
+    for example:
+    \begin{enumerate}
+        \item \cmd{cd} to a directory containing SPECjvm98
+        \item \cmd{rvm -Xmx25M -Xms25M -X:gc:verbose=3 -X:gc:ignoreSystemGC=true SpecApplication \_202\_jess}
+    \end{enumerate}
+    The above will set the minimum (\code{-Xms25M}) and maximum (\code{-Xmx25M}) heap size
+    to 25MB in which to run the benchmark, and will produce verbose (\code{-X:gc:verbose=3}) GC
+    messages. In order to run for longer, we tell MMTk to ignore calls to \code{System.gc()} (\code{-X:gc:ignoreSystemGC=true}).
+    The rest of the command line arguments are specific to
+    SPECjvm98. For a full list of command line arguments run
+    \cmd{rvm -X:gc}, and for default values, run \cmd{rvm
+    -X:gc:printOptions}.
+
+\item \textbf{Change the Tutorial plan to use a MarkSweep garbage collector.}
+    It currently uses a bump pointer allocator and does not perform
+    collection.
+    \begin{enumerate}
+    \item Use a free list allocator instead of a bump-pointer
+    \begin{enumerate}
+        \item In \code{TutorialConstraints}, update GC header requirements:
+        \begin{itemize}
+        \item \code{gcHeaderBits()} should return
+        \code{MarkSweepSpace.LOCAL\_GC\_BITS\_REQUIRED}
+        \item \code{gcHeaderWords()} should return
+        \code{MarkSweepSpace.GC\_HEADER\_WORDS\_REQUIRED}
+        \item Add the appropriate import statement.
+        \end{itemize}
+
+        \item In \code{Tutorial}, replace the \code{ImmortalSpace} with a
+        \code{MarkSweepSpace}:
+        \begin{itemize}
+            \item change the appropriate import statement
+            \item change the type of \code{defSpace} and change the constructor
+            appropriately.
+            \item rename \code{defSpace} to \code{msSpace} (right-click, Refactor\menu{}Rename...)
+            \item rename \code{DEF} to \code{MARK\_SWEEP} (right-click, Refactor\menu{}Rename...)
+            \item at this point \code{TutorialLocal} will be broken (for a moment...)
+        \end{itemize}
+
+        \item In \code{TutorialLocal}, replace the \code{ImmortalLocal} (a bump
+        pointer) with a \code{MarkSweepLocal} (a free-list allocator):
+        \begin{itemize}
+            \item change the appropriate import statement
+            \item change the type of \code{def} and change the constructor appropriately.
+            \item rename \code{def} to \code{ms} (right-click, Refactor?Rename...)
+            \item add an extra argument to \code{alloc()}: \code{ms.alloc(bytes, align, offset,
+            false);} because the free list allocator needs to know whether the allocation
+            is occuring during GC (since alloc is never called during GC, we just pass the
+            value false).
+        \end{itemize}
+
+        \item Fix \code{postAlloc()} to initialize the mark-sweep header:
+        \begin{itemize}
+            \item add the following clause: \\
+            \code{if (allocator == Tutorial.ALLOC\_DEFAULT) \\
+            Tutorial.msSpace.initializeHeader(ref);}
+        \end{itemize}
+
+
+        \item With these changes, Tutorial should now work, just as it did before,
+        only exercising a free list (mark-sweep) allocator rather than a bump pointer
+        (immortal) allocator. Create a BaseBaseTutorial build, and test your system to
+        ensure it performs just as it did before.  You may notice that its
+        memory is exhausted slightly earlier because the free list allocator
+        is slightly less efficient in space utilization than the bump
+        pointer allocator.
+    \end{enumerate}
+
+
+
+    \item \textbf{Perform mark-and-sweep collection whenever the heap is exhausted}
+    \begin{enumerate}
+
+        \item In \code{Tutorial.poll()}, first insert a guard to
+        ensure collections are not triggered at the wrong times:
+        \begin{itemize}
+            \item \code{if (collectionsInitiated > 0 || !initialized || space ==
+            metaDataSpace) \\ return false;}
+        \end{itemize}
+
+        \item Then in \code{Tutorial.poll()}, trigger a collection when the heap is exhausted:
+        \begin{itemize}
+            \item Remove the \code{Assert} statement.
+            \item Add the following: \\
+                \code{if (getPagesReserved() > getTotalPages()) \{ \\
+                   Collection.triggerCollection(Collection.RESOURCE\_GC\_TRIGGER);
+                   \\
+                   return true; \\ \} }
+            \item Add the appropriate import statement.
+        \end{itemize}
+
+        \item In \code{Tutorial}, add global collection phases:
+        \begin{itemize}
+            \item Make \code{Tutorial} extend \code{StopTheWorld} rather than \code{Plan}.
+            \item Remove the \code{Assert} call in \code{Tutorial.collectionPhase()}
+            \item Using the commented template in
+            \code{Tutorial.collectionPhase()}, set the following
+            within the clause for
+            \code{phaseId == PREPARE}
+            \begin{itemize}
+                \item[] \code{super.collectionPhase(phaseId);}
+                \item[] \code{trace.prepare();}
+                \item[] \code{msSpace.prepare();}
+                \item[] \code{return;}
+            \end{itemize}
+            \item Within the clause for \code{phaseId == RELEASE}
+            \begin{itemize}
+                \item[] \code{trace.release();}
+                \item[] \code{msSpace.release();}
+                \item[] \code{super.collectionPhase(phaseId);}
+                \item[] \code{return;}
+            \end{itemize}
+            \item Ensure that the default fall through (to
+            \code{StopTheWorld} is uncommented.
+        \end{itemize}
+
+        \item In \code{TutorialLocal}, add local collection phases:
+        \begin{itemize}
+            \item Make \code{TutorialLocal} extend \code{StopTheWorldLocal} rather than \code{PlanLocal}.
+            \item Remove the \code{collect()} method in
+            \code{TutorialLocal}
+            \item Remove the \code{Assert} call in
+            \code{TutorialLocal.collectionPhase()}.
+            \item Using the commented template in \code{TutorialLocal.collectionPhase()} (being careful to replace \code{NoGC} with \code{Tutorial} in
+            , set the following within the clause for
+            \code{phaseId == Tutorial.PREPARE}
+            \begin{itemize}
+                \item[] \code{super.collectionPhase(phaseId, participating, primary);}
+                \item[] \code{trace.prepare();}
+                \item[] \code{ms.prepare();}
+                \item[] \code{return;}
+            \end{itemize}
+            \item Within the clause for \code{phaseId == Tutorial.BEGIN\_CLOSURE}
+            \begin{itemize}
+                \item[] \code{trace.startTrace());}
+                \item[] \code{trace.prepare();}
+            \end{itemize}
+            \item Within the clause for \code{phaseId == Tutorial.COMPLETE\_CLOSURE}
+            \begin{itemize}
+                \item[] \code{trace.completeTrace());}
+                \item[] \code{trace.prepare();}
+            \end{itemize}
+            \item Within the clause for \code{phaseId == Tutorial.RELEASE}
+            \begin{itemize}
+                \item[] \code{trace.release();}
+                \item[] \code{ms.release();}
+                \item[] \code{super.collectionPhase(phaseId, participating, primary);}
+                \item[] \code{return;}
+            \end{itemize}
+            \item Ensure that the default fall through (to
+            \code{StopTheWorldLocal} is uncommented.
+        \end{itemize}
+
+    \end{enumerate}
+
+    \item With these changes, Tutorial should now work correctly as a
+    mark-sweep collector, allocating with a free list allocator and
+    collecting the heap each time it is exhausted. Create a
+    BaseBaseTutorial build, and test your system to ensure it performs
+    correctly.  You should find that it correctly performs
+    collections (this will only be visible if you have set the
+    \code{-X:gc:verbose} flag appropriately).
+
+    \end{enumerate}
+\end{itemize}
+
+
+%4. Extend the Tutorial plan to create a "copy-MS" collector, which
+%allocates into a copying nursery and at collection time, copies
+%nursery survivors     into a mark-sweep space.  This plan does not
+%require a write barrier (it is not strictly generational, as it will
+%collect the whole heap each time         the heap is full).  It
+%could be extended with a write barrier, allowing the nursery to be
+%collected in isolation. Such a collector would be a
+%generational mark-sweep collector, similar to GenMS. Explanation of
+%nursery, nursery survivors.
+%
+%Add a copying nursery In TutorialConstraints, override the
+%movesObjects() method to return true, reflecting that we are now
+%building a copying collector: public boolean movesObjects() { return
+%true; } In Tutorial, add a nursery space Create a new space,
+%nurserySpace, of type CopySpace, and make it and msSpace each share
+%0.3 of the available heap (change from 0.6).  The new copy space
+%will initially be 'from-space', so provide false as the final
+%(additional) argument to the CopySpace constructor. In the
+%constructor argument change the string value to something like
+%"nurserySpace".
+%
+%add the appropriate import statement
+%
+%Add a new space descriptor, NURSERY initialized with
+%nurserySpace.getDescriptor(); Add nurserySpace to the prepare and
+%release phases of collectionPhase(), passing the flag true to the
+%prepare phase, indicating that the nursery is treated as
+%'from-space' during the collection. Fix accounting to account for
+%this new space:  Add nurserySpace to the equation in getPagesUsed(),
+%add a method to override getCopyReserve() which returns
+%nurserySpace.reservedPages(), and add a method to override
+%getPagesAvail(), returning ((getTotalPages() - getPagesUsed())>>1),
+%which allows for a copy reserve on the assumption that future
+%allocation will go to the nursery and in the worst case will need to
+%be copied. In TutorialLocal, add a nursery allocator. Add an
+%instance of CopyLocal calling it nursery... the constructor argument
+%would be Tutorial.nurserySpace
+%
+%Change alloc() to allocate into nursery... return
+%nursery.alloc(bytesm align, offset);
+%
+%Remove mark-sweep initialization in postAlloc(), undoing step 3.1.4
+%above, since no special post allocation initialization is required.
+%Override allocCopy() with a new method which allocates into ms when
+%the allocator is ALLOC_DEFAULT, passing
+%Tutorial.msSpace.inMSCollection() as the final argument to
+%ms.alloc().  Calls to allocCopy() with other allocator values should
+%fall through to super.allocCopy(). Override postCopy() with a new
+%method which does the following (the following is currently
+%necessary, but can be considered to be a design bug, which we hope
+%to fix soon):
+%     Tutorial.msSpace.writeMarkBit(ref);
+%     MarkSweepLocal.liveObject(ref);
+%Add nursery.reset() to the release phase of collectionPhase(). In
+%TutuorialLocal.getSpaceFromAllocator() add the statment if (a ==
+%nursery) return Tutorial.nurserySpace; In
+%TutorialLocal.getAllocatorFromSpace() add the statement if(space ==
+%Tutorial.nurserySpace) return nursery;
+%
+%In TutorialTraceLocal, add tracing mechanisms to accommodate the new
+%nursery. Add a clause to isLive() which calls
+%Tutorial.nurserySpace.isLive(object) if the object is in the nursery
+%space. Add a clause to traceObject(), which calls
+%Tutorial.nurserySpace.traceObject(this, object) if the object is in
+%the nursery space. Create a method that overrides precopyObject(),
+%which returns null for null objects, calls
+%Tutorial.nurserySpace.traceObject(this, object) if the object is in
+%the nursery space, and returns the object otherwise. (Note: The
+%precopyObject() is declared final in class TraceLocal, so we need to
+%remove the final keyword to enable overriding)
+%
+%Create a method that overrides willNotMove(), which returns
+%!Space.isInSpace(Tutorial.NURSERY, object); Create a method which
+%overrides getAllocator() which returns Tutorial.ALLOC_DEFAULT. With
+%these changes, Tutorial should now work correctly as a copy-MS
+%collector, allocating with a bump pointer, promoting into a
+%mark-sweep space, and collecting the heap each time it is exhausted.
+%Create a BaseBaseTutorial build, and test your system to ensure it
+%performs correctly.  You should find that it correctly performs
+%collections (this will only be visible if you have set the
+%-X:gc:verbose flag appropriately).  By reading the verbose GC output
+%you should see data being collected from and allocated to the
+%nursery and mark sweep spaces.
+%
+\end{document}

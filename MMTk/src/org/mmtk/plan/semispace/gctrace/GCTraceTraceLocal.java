@@ -1,0 +1,173 @@
+/*
+ * (C) Copyright Department of Computer Science,
+ * Australian National University. 2002
+ *
+ * (C) Copyright Department of Computer Science,
+ * University of Massachusetts, Amherst. 2003
+ */
+package org.mmtk.plan.semispace.gctrace;
+
+import org.mmtk.plan.Trace;
+import org.mmtk.plan.semispace.*;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.TraceGenerator;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
+/**
+ * This plan has been modified slightly to perform the processing necessary
+ * for GC trace generation.  To maximize performance, it attempts to remain
+ * as faithful as possible to semiSpace/Plan.java.
+ *
+ * The generated trace format is as follows:
+ *    B 345678 12
+ *      (Object 345678 was created in the boot image with a size of 12 bytes)
+ *    U 59843 234 47298
+ *      (Update object 59843 at the slot at offset 234 to refer to 47298)
+ *    S 1233 12345
+ *      (Update static slot 1233 to refer to 12345)
+ *    T 4567 78924
+ *      (The TIB of 4567 is set to refer to 78924)
+ *    D 342789
+ *      (Object 342789 became unreachable)
+ *    A 6860 24 346648 3
+ *      (Object 6860 was allocated, requiring 24 bytes, with fp 346648 on
+ *        thread 3; this allocation has perfect knowledge)
+ *    a 6884 24 346640 5
+ *      (Object 6864 was allocated, requiring 24 bytes, with fp 346640 on
+ *        thread 5; this allocation DOES NOT have perfect knowledge)
+ *    I 6860 24 346648 3
+ *      (Object 6860 was allocated into immortal space, requiring 24 bytes,
+ *        with fp 346648 on thread 3; this allocation has perfect knowledge)
+ *    i 6884 24 346640 5
+ *      (Object 6864 was allocated into immortal space, requiring 24 bytes,
+ *        with fp 346640 on thread 5; this allocation DOES NOT have perfect
+ *        knowledge)
+ *    48954->[345]LObject;:blah()V:23   Ljava/lang/Foo;
+ *      (Citation for: a) where the was allocated, fp of 48954,
+ *         at the method with ID 345 -- or void Object.blah() -- and bytecode
+ *         with offset 23; b) the object allocated is of type java.lang.Foo)
+ *    D 342789 361460
+ *      (Object 342789 became unreachable after 361460 was allocated)
+ *
+ * This class implements a simple semi-space collector. See the Jones
+ * & Lins GC book, section 2.2 for an overview of the basic
+ * algorithm. This implementation also includes a large object space
+ * (LOS), and an uncollected "immortal" space.<p>
+ *
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  Instances of Plan map 1:1 to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods allow fast, unsychronized access to Plan utilities such as
+ * allocation and collection.  Each instance rests on static resources
+ * (such as memory and virtual memory resources) which are "global"
+ * and therefore "static" members of Plan.  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance proprties of this plan.
+ *
+ * $Id$
+ *
+ * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Perry Cheng
+ * @author Daniel Frampton
+ * @author Robin Garner
+ * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
+ *
+ * @version $Revision$
+ * @date $Date$
+ */
+public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterruptible {
+  
+  /**
+   * Constructor
+   * 
+   * @param trace The global trace to use.
+   */
+  public GCTraceTraceLocal(Trace trace) {
+    super(trace);
+  }
+
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
+
+  /**
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies (such as those needed for trace generation)
+   * and taking the appropriate actions.
+   *
+   * @param object The object reference to be traced.  In certain
+   * cases, this should <i>NOT</i> be an interior pointer.
+   * @return The possibly moved reference.
+   */
+  public ObjectReference traceObject(ObjectReference object)
+    throws InlinePragma {
+    if (object.isNull()) return object;
+    if (GCTrace.deathScan) {
+      TraceGenerator.propagateDeathTime(object);
+      return object;
+    } else {
+      TraceGenerator.rootEnumerate(object);
+      return object;
+    }
+  }
+
+  /**
+   * Ensure that the referenced object will not move during a collection
+   * by 'precopying' it at the beginning.
+   * 
+   * @param object The object to ensure will not move.
+   */
+  public ObjectReference precopyObject(ObjectReference object) 
+    throws InlinePragma {
+    return object; // Will be reported as a root seperately.
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.
+   */
+  public final ObjectReference getForwardedReference(ObjectReference object) {
+    return object; // Nothing moves during tracing
+  }
+
+  /**
+   * Return true if <code>obj</code> is a live object.
+   *
+   * @param object The object in question
+   * @return True if <code>obj</code> is a live object.
+   */
+  public final boolean isLive(ObjectReference object) {
+    return !object.isNull();
+  }
+
+ /**
+   * Return true if <code>obj</code> is a reachable object.
+   *
+   * @param obj The object in question
+   * @return True if <code>obj</code> is a reachable object;
+   * unreachable objects may still be live, however
+   */
+  public boolean isReachable(ObjectReference object) {
+    if (GCTrace.finalDead) return false;
+    if (object.isNull()) return false;
+    return Space.getSpaceForObject(object).isReachable(object);
+  }
+
+  /**
+   * Is this object guaranteed not to move during the collection.
+   * 
+   * @param object The object to check.
+   * @return True if the object is guaranteed not to move.
+   */
+  public boolean willNotMove(ObjectReference object) {
+    return true;
+  }
+}

@@ -1,3 +1,4 @@
    export RVM_WITH_JMTK_INLINE_PLAN=1
+   export RVM_WITH_JMTK_PLAN="org.mmtk.plan.semispace.gctrace.GCTrace"
    export RVM_WITH_GCTRACE=1
 

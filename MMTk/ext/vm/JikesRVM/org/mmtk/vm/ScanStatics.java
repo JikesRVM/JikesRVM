@@ -5,6 +5,7 @@
 
 package org.mmtk.vm;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.deque.AddressDeque;
 import org.mmtk.utility.Constants;
 import com.ibm.JikesRVM.VM_Statics;
@@ -36,8 +37,8 @@ public class ScanStatics implements Constants {
    * all GC threads in parallel, with each doing a portion of the
    * JTOC.
    */
-  public static void scanStatics (AddressDeque rootLocations) 
-    throws UninterruptiblePragma {
+  public static void scanStatics (TraceLocal trace) 
+    throws UninterruptiblePragma, InlinePragma {
 
     int numSlots = VM_Statics.getNumberOfSlots();
     Address slots = VM_Statics.getSlots();
@@ -50,16 +51,16 @@ public class ScanStatics implements Constants {
     ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     start = (ct.getGCOrdinal() - 1) * chunkSize;
 
-    while ( start < numSlots ) {
+    while (start < numSlots) {
       end = start + chunkSize;
       if (end > numSlots)
         end = numSlots;  // doing last segment of JTOC
-      for ( slot=start; slot<end; slot+=refSlotSize ) {
-        if ( VM_Statics.isReference(slot) ) {
+      for (slot=start; slot<end; slot+=refSlotSize) {
+        if (VM_Statics.isReference(slot)) {
           // slot contains a ref of some kind.  call collector specific
           // processPointerField, passing address of reference
           //
-          rootLocations.push(slots.add(VM_Statics.slotAsOffset(slot)));
+          trace.addRootLocation(slots.add(VM_Statics.slotAsOffset(slot)));
         }
       }  // end of for loop
       start = start + stride;

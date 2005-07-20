@@ -5,9 +5,11 @@
 
 package org.mmtk.utility;
 
+import org.mmtk.plan.TraceLocal;
+
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Plan;
 import org.mmtk.vm.Lock;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -160,20 +162,22 @@ public class Finalizer implements Uninterruptible {
   /**
    * Scan the array for objects which have become finalizable and move
    * them to the Finalizable class
+   * 
+   * @trace The trace instance to use.
    */
-  public final static int moveToFinalizable () {
+  public final static int moveToFinalizable (TraceLocal trace) {
     int cursor = 0;
     int newFinalizeCount = 0;
 
     while (cursor < candidateEnd) {
       Address cand = candidate.get(cursor);
-      boolean isFinalizable = Plan.isFinalizable(cand.toObjectReference());
+      boolean isFinalizable = trace.readyToFinalize(cand.toObjectReference());
       if (isFinalizable) { // object died, enqueue for finalization
         candidate.set(cursor, Address.zero());
-        addLive(Plan.retainFinalizable(cand.toObjectReference()));
+        addLive(trace.retainForFinalize(cand.toObjectReference()));
         newFinalizeCount++;
       } else {             // live beforehand but possibly moved
-        candidate.set(cursor, Plan.getForwardedReference(cand.toObjectReference()).toAddress());
+        candidate.set(cursor, trace.getForwardedFinalizable(cand.toObjectReference()).toAddress());
       }
       cursor++;
     }
@@ -182,7 +186,24 @@ public class Finalizer implements Uninterruptible {
     return newFinalizeCount;
   }  // moveToFinalizable
 
+  /**
+   * Scan the array for objects which have become finalizable and move
+   * them to the Finalizable class
+   * 
+   * @param trace The trace object to use for forwarding.
+   */
+  public final static void forward(TraceLocal trace) throws InlinePragma {
+    int cursor = 0;
 
+    while (cursor < candidateEnd) {
+      Address cand = candidate.get(cursor);
+      candidate.set(cursor,
+        trace.getForwardedFinalizable(cand.toObjectReference()).toAddress());
+      cursor++;
+    }
+  }
+
+  
   // methods for statistics and debugging
 
   static int countHasFinalizer() {

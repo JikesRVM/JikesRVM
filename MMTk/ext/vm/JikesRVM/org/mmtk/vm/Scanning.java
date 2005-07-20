@@ -6,11 +6,14 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Constants;
+import org.mmtk.vm.ObjectModel;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Scheduler;
@@ -33,11 +36,10 @@ public class Scanning implements Constants, Uninterruptible {
    *
    * Class variables
    */
+  private static final boolean TRACE_PRECOPY = false; // DEBUG
 
   /** Counter to track index into thread table for root tracing.  */
   private static SynchronizedCounter threadCounter = new SynchronizedCounter();
-  /** An enumerator used to forward root objects */
-  private static PreCopyEnumerator preCopyEnum;
 
   /***********************************************************************
    *
@@ -53,7 +55,6 @@ public class Scanning implements Constants, Uninterruptible {
    * This is called from MM_Interface.
    */
   public static final void init() throws InterruptiblePragma {
-    preCopyEnum = new PreCopyEnumerator();
   }
 
   /**
@@ -63,7 +64,20 @@ public class Scanning implements Constants, Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(ObjectReference object) 
+  public static void scanObject(TraceLocal trace, ObjectReference object) 
+    throws UninterruptiblePragma, InlinePragma {
+    // Never reached
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
+  
+  /**
+   * Delegated precopying of a object's children, processing each pointer field
+   * encountered. <b>Jikes RVM never delegates, so this is never
+   * executed</b>.
+   *
+   * @param object The object to be scanned.
+   */
+  public static void precopyChildren(TraceLocal trace, ObjectReference object) 
     throws UninterruptiblePragma, InlinePragma {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
@@ -75,7 +89,7 @@ public class Scanning implements Constants, Uninterruptible {
    * delegates, so this is never executed</b>.
    *
    * @param object The object to be scanned.
-   * @param _enum the Enumerator object through which the callback
+   * @param _enum the Enumerator object through which the trace
    * is made
    */
   public static void enumeratePointers(ObjectReference object, Enumerator _enum) 
@@ -104,46 +118,88 @@ public class Scanning implements Constants, Uninterruptible {
    * are computed the same instances are explicitly scanned and
    * included in the set of roots.  The existence of this method
    * allows the actions of calculating roots and forwarding GC
-   * instances to be decoupled. The <code>threadCounter</code> must be
-   * reset so that load balancing parallel GC can share the work of
-   * scanning threads.
+   * instances to be decoupled. 
+   * 
+   * The thread table is scanned in parallel by each processor, by striding
+   * through the table at a gap of chunkSize*numProcs.  Feel free to adjust
+   * chunkSize if you want to tune a parallel collector.
+   * 
+   * Explicitly no-inlined to prevent over-inlining of collectionPhase.
+   * 
+   * TODO Experiment with specialization to remove virtual dispatch ?
    */
-  public static void preCopyGCInstances() {
-    /* pre-copy all thread objects in parallel */
-    if (Collection.rendezvous(4201) == 1) /* one thread forwards the threads object */
-      enumeratePointers(VM_Scheduler.threads, preCopyEnum);
-    Collection.rendezvous(4202);
-    while (true) {
-      int threadIndex = threadCounter.increment();
-      if (threadIndex >= VM_Scheduler.threads.length) break;
-      VM_Thread thread = VM_Scheduler.threads[threadIndex];
-      if (thread != null) {
-        enumeratePointers(thread, preCopyEnum);
-        enumeratePointers(thread.contextRegisters, preCopyEnum);
-        enumeratePointers(thread.hardwareExceptionRegisters, preCopyEnum);
-        if (thread.jniEnv != null) {
-          // Right now, jniEnv are Java-visible objects (not C-visible)
-          // if (VM.VerifyAssertions)
-          //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
-          enumeratePointers(thread.jniEnv, preCopyEnum);
-        }
+  public static void preCopyGCInstances(TraceLocal trace) 
+  throws NoInlinePragma {
+    int chunkSize = 2;
+    int threadIndex, start, end, stride;
+    VM_CollectorThread ct;
+    
+    stride = chunkSize * VM_CollectorThread.numCollectors();
+    ct = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+    start = (ct.getGCOrdinal() - 1) * chunkSize;
+    
+    int numThreads = VM_Scheduler.threadHighWatermark+1;
+    if (TRACE_PRECOPY)
+      VM.sysWriteln(ct.getGCOrdinal()," preCopying ",numThreads," threads");
+    
+    ObjectReference threadTable = ObjectReference.fromObject(VM_Scheduler.threads);
+    while (start < numThreads) {
+      end = start + chunkSize;
+      if (end > numThreads)
+        end = numThreads;      // End of the table - partial chunk
+      if (TRACE_PRECOPY) {
+        VM.sysWriteln(ct.getGCOrdinal()," Chunk start",start);
+        VM.sysWriteln(ct.getGCOrdinal()," Chunk end  ",end);
       }
-    }    
-    Collection.rendezvous(4203);
+      for (threadIndex = start; threadIndex < end; threadIndex++) {
+        VM_Thread thread = VM_Scheduler.threads[threadIndex];
+        if (thread != null) {
+          /* Copy the thread object - use address arithmetic to get the address 
+           * of the array entry */
+          if (TRACE_PRECOPY) {
+            VM.sysWriteln(ct.getGCOrdinal()," Forwarding thread ",threadIndex);
+            VM.sysWrite(ct.getGCOrdinal()," Old address ");
+            VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
+          }
+          Address threadTableSlot = threadTable.toAddress().add(threadIndex<<LOG_BYTES_IN_ADDRESS);
+          if (Assert.VERIFY_ASSERTIONS) 
+            Assert._assert(ObjectReference.fromObject(thread).toAddress().EQ(
+                threadTableSlot.loadObjectReference().toAddress()),
+            "Thread table address arithmetic is wrong!");
+          trace.precopyObjectLocation(threadTableSlot);
+          thread = VM_Scheduler.threads[threadIndex];  // reload  it - it just moved!
+          if (TRACE_PRECOPY) {
+            VM.sysWrite(ct.getGCOrdinal()," New address ");
+            VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
+          }
+          precopyChildren(trace,thread);
+          precopyChildren(trace,thread.contextRegisters);
+          precopyChildren(trace,thread.hardwareExceptionRegisters);
+          if (thread.jniEnv != null) {
+            // Right now, jniEnv are Java-visible objects (not C-visible)
+            // if (VM.VerifyAssertions)
+            //   VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
+            precopyChildren(trace,thread.jniEnv);
+          }
+        }
+      } // end of for loop
+      start = start + stride;
+    }
   }
+  
  
   /**
-   * Enumerate the pointers in an object, calling back to a given plan
+   * Enumerator the pointers in an object, calling back to a given plan
    * for each pointer encountered. <i>NOTE</i> that only the "real"
    * pointer fields are enumerated, not the TIB.
    *
    * @param object The object to be scanned.
-   * @param _enum the Enumerate object through which the callback
+   * @param _enum the Enumerator object through which the trace
    * is made
    */
-  private static void enumeratePointers(Object object, Enumerator _enum) 
+  private static void precopyChildren(TraceLocal trace, Object object) 
     throws UninterruptiblePragma, InlinePragma {
-    Scan.enumeratePointers(ObjectReference.fromObject(object), _enum);
+    Scan.precopyChildren(trace,ObjectReference.fromObject(object));
   }
 
  /**
@@ -159,31 +215,31 @@ public class Scanning implements Constants, Uninterruptible {
    * <li> The <code>threadCounter</code> must be reset so that load
    * balancing parallel GC can share the work of scanning threads.
    * </ul>
+   * 
+   * TODO rewrite to avoid the per-thread synchronization, like precopy.
    *
    * @param rootLocations set to store addresses containing roots
    * @param interiorRootLocations set to store addresses containing
    * return adddresses, or <code>null</code> if not required
    */
-  public static void computeAllRoots(AddressDeque rootLocations,
-                                     AddressPairDeque interiorRootLocations) {
-    AddressPairDeque codeLocations = MM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
-    
+  public static void computeAllRoots(TraceLocal trace) {
+    boolean processCodeLocations = MM_Interface.MOVES_OBJECTS;
      /* scan statics */
-    ScanStatics.scanStatics(rootLocations);
+    ScanStatics.scanStatics(trace);
  
     /* scan all threads */
     while (true) {
       int threadIndex = threadCounter.increment();
-      if (threadIndex >= VM_Scheduler.threads.length) break;
+      if (threadIndex > VM_Scheduler.threadHighWatermark) break;
       
       VM_Thread thread = VM_Scheduler.threads[threadIndex];
       if (thread == null) continue;
       
       /* scan the thread (stack etc.) */
-      ScanThread.scanThread(thread, rootLocations, codeLocations);
+      ScanThread.scanThread(thread, trace, processCodeLocations);
 
       /* identify this thread as a root */
-      rootLocations.push(VM_Magic.objectAsAddress(VM_Scheduler.threads).add(threadIndex<<LOG_BYTES_IN_ADDRESS));
+      trace.addRootLocation(VM_Magic.objectAsAddress(VM_Scheduler.threads).add(threadIndex<<LOG_BYTES_IN_ADDRESS));
     }
     Collection.rendezvous(4200);
   }

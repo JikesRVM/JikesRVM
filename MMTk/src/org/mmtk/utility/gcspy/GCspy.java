@@ -4,12 +4,12 @@
  */
 package org.mmtk.utility.gcspy;
 
-import org.mmtk.vm.Plan;
+import org.mmtk.plan.semispace.gcspy.SSGCspy;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
 import org.vmmagic.pragma.*;
 
-/** 
+/**
  * This class implements collector-independent GCspy functionality to start
  * the GCspy server.
  *
@@ -33,14 +33,10 @@ public class GCspy implements Uninterruptible {
    * Initialization
    */
 
-  public static GCspyPort gcspyPort;
-  public static GCspyWait gcspyWait; 
-  public static GCspyTileSize gcspyTilesize;
-
   public static void createOptions() throws InterruptiblePragma {
-    gcspyPort = new GCspyPort();
-    gcspyWait = new GCspyWait(); 
-    gcspyTilesize = new GCspyTileSize();
+    Options.gcspyPort = new GCspyPort();
+    Options.gcspyWait = new GCspyWait();
+    Options.gcspyTileSize = new GCspyTileSize();
   }
 
   /**
@@ -48,7 +44,7 @@ public class GCspy implements Uninterruptible {
    * command-line arguments are available.  Note that allocation must
    * be supported prior to this point because the runtime
    * infrastructure may require allocation in order to parse the
-   * command line arguments.  
+   * command line arguments.
    */
   public static void postBoot() { }
 
@@ -58,7 +54,7 @@ public class GCspy implements Uninterruptible {
    * @return the GCspy port number
    */
   public static int getGCspyPort() {
-    return gcspyPort.getValue();
+    return Options.gcspyPort.getValue();
   }
 
   /**
@@ -67,7 +63,7 @@ public class GCspy implements Uninterruptible {
    * @return whether the VM should wait for the visualiser to connect
    */
   public static boolean getGCspyWait() {
-    return gcspyWait.getValue();
+    return Options.gcspyWait.getValue();
   }
 
   /**
@@ -80,7 +76,7 @@ public class GCspy implements Uninterruptible {
     Log.write(", wait=");
     Log.writeln(getGCspyWait());
     if (port > 0) {
-      Plan.startGCspyServer(port, getGCspyWait());
+      SSGCspy.startGCspyServer(port, getGCspyWait());
       Log.writeln("gcspy thread booted");
     }
   }

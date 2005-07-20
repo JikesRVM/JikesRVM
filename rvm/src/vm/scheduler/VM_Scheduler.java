@@ -77,6 +77,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   //-#endif
 
   static int                  threadAllocationIndex; // place to start searching threads[] for next free slot
+  public static int           threadHighWatermark; // highest thread index allocated 
   static int                  numActiveThreads;    // number of threads running or waiting to run
   static int                  numDaemons;          // number of "daemon" threads, in the java sense
   static VM_ProcessorLock     threadCreationMutex; // guard for serializing access to fields above

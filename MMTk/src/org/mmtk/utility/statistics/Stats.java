@@ -5,9 +5,11 @@
 
 package org.mmtk.utility.statistics;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.PrintPhaseStats;
-import org.mmtk.vm.Plan;
+
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
@@ -39,7 +41,6 @@ public class Stats implements Uninterruptible {
   static int phase = 0;
   static private int gcCount = 0;
   static boolean gatheringStats = false;
-  static PrintPhaseStats printPhaseStats;
 
   /****************************************************************************
    *
@@ -54,7 +55,7 @@ public class Stats implements Uninterruptible {
    */
   static {
     counter = new Counter[MAX_COUNTERS];
-    printPhaseStats = new PrintPhaseStats();
+    Options.printPhaseStats = new PrintPhaseStats();
   }
 
   /**
@@ -135,7 +136,7 @@ public class Stats implements Uninterruptible {
    * Print out statistics
    */
   public static void printStats() {
-    if (printPhaseStats.getValue())
+    if (Options.printPhaseStats.getValue())
       printPhases();
     printTotals();
   }

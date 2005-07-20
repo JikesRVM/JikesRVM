@@ -10,6 +10,8 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.PlanLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
@@ -21,13 +23,11 @@ import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.options.*;
-import org.mmtk.utility.TraceGenerator;
+import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.Options;
-import org.mmtk.vm.Plan;
-import org.mmtk.vm.PlanConstants;
 import org.mmtk.vm.ReferenceGlue;
 import org.mmtk.vm.Scanning;
 import org.mmtk.vm.SynchronizedCounter;
@@ -56,8 +56,6 @@ import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
 
-import org.mmtk.utility.gcspy.GCspy;
-
 /**
  * The interface that the JMTk memory manager presents to the Jikes
  * research virtual machine.
@@ -80,7 +78,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * the corresponding writes are done.
    * AJG: Is this correct?
    */
-  public static final boolean NEEDS_WRITE_BARRIER = PlanConstants.NEEDS_WRITE_BARRIER();
+  public static final boolean NEEDS_WRITE_BARRIER 
+    = SelectedPlanConstraints.get().needsWriteBarrier();
 
   /**
    * <code>true</code> if a write barrier for putstatic operations is
@@ -90,27 +89,27 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * AJG: Is this correct?
    */
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER
-    = PlanConstants.NEEDS_PUTSTATIC_WRITE_BARRIER();
+    = SelectedPlanConstraints.get().needsStaticWriteBarrier();
 
   /* AJG: Not used. But will be. needed */
   /**
    * <code>true</code> if a write barrier for TIB store operations is
    * requried.  Note: This field is not used.
    */
-  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER
-    = PlanConstants.NEEDS_TIB_STORE_WRITE_BARRIER();
+  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
 
   /**
    * <code>true</code> if the memory manager moves objects. For
    * example, a copying collector will move objects.
    */
-  public static final boolean MOVES_OBJECTS = PlanConstants.MOVES_OBJECTS();
+  public static final boolean MOVES_OBJECTS 
+    = SelectedPlanConstraints.get().movesObjects();
 
   /**
    * <code>true</code> if the memory manager moves type information
    * blocks (TIBs).
    */
-  public static final boolean MOVES_TIBS = PlanConstants.MOVES_TIBS();
+  public static final boolean MOVES_TIBS = false;
 
   /**
    * <code>true</code> if checking of allocated memory to ensure it is
@@ -122,7 +121,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * <code>true</code> if the memory manager will generate a garbage
    * collection trace of the run.
    */
-  public static final boolean GENERATE_GC_TRACE = PlanConstants.GENERATE_GC_TRACE();
+  public static final boolean GENERATE_GC_TRACE 
+    = SelectedPlanConstraints.get().generateGCTrace(); 
 
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];
@@ -164,7 +164,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     LazyMmapper.boot(BOOT_IMAGE_START, BOOT_IMAGE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
-    Plan.boot();
+    ActivePlan.global().boot();
     SynchronizedCounter.boot();
     Monitor.boot();
   }
@@ -193,14 +193,14 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * which is necessarily after the basic allocator boot).
    */
   public static void postBoot() throws InterruptiblePragma {
-    Plan.postBoot();
+    ActivePlan.global().postBoot();
   }
 
   /**
    * Notify the MM that the host VM is now fully booted.
    */
   public static void fullyBootedVM() throws InterruptiblePragma {
-    Plan.fullyBooted();
+    ActivePlan.global().fullyBooted();
     Lock.fullyBooted();
     Barrier.fullyBooted();
   }
@@ -233,7 +233,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                           int locationMetadata)
     throws InlinePragma {
     ObjectReference src = ObjectReference.fromObject(ref);
-    Plan.getInstance().writeBarrier(src,
+    SelectedPlanLocal.get().writeBarrier(src,
                                     src.toAddress().add(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
@@ -273,7 +273,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     throws InlinePragma {
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS);
-    Plan.getInstance().writeBarrier(array,
+    SelectedPlanLocal.get().writeBarrier(array,
                                     array.toAddress().add(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
@@ -301,7 +301,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                               Object tgt, Offset tgtOffset,
                                               int bytes) 
     throws InlinePragma {
-    return Plan.getInstance().writeBarrier(ObjectReference.fromObject(src),
+    return SelectedPlanLocal.get().writeBarrier(ObjectReference.fromObject(src),
                                                srcOffset,
                                            ObjectReference.fromObject(tgt),
                                                tgtOffset, bytes);
@@ -382,7 +382,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * External call to force a garbage collection.
    */
   public static final void gc() throws InterruptiblePragma {
-    if (!Plan.ignoreSystemGC.getValue())
+    if (!org.mmtk.utility.options.Options.ignoreSystemGC.getValue())
       Collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 
@@ -500,7 +500,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
       byte[] methBA = method.getDescriptor().toByteArray();
-      if (PlanConstants.WITH_GCSPY()) {
+      if (SelectedPlanConstraints.get().withGCspy()) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
           return Plan.ALLOC_GCSPY;
@@ -526,7 +526,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     throws InterruptiblePragma {
     int allocator = Plan.ALLOC_DEFAULT;
     byte[] typeBA = type.getDescriptor().toByteArray();
-    if (PlanConstants.WITH_GCSPY()) {
+    if (SelectedPlanConstraints.get().withGCspy()) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
                isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
         allocator = Plan.ALLOC_GCSPY;
@@ -560,8 +560,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
   public static Object allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset)
     throws UninterruptiblePragma, InlinePragma {
-    Plan plan = Plan.getInstance();
-    allocator = Plan.checkAllocator(size, align, allocator);
+    SelectedPlanLocal plan = SelectedPlanLocal.get();
+    allocator = plan.checkAllocator(size, align, allocator);
     Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     plan.postAlloc(ObjectReference.fromObject(result), 
@@ -588,7 +588,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                      int allocator,
                                      int align, int offset) 
     throws UninterruptiblePragma, InlinePragma {
-    Plan plan = Plan.getInstance();
+    SelectedPlanLocal plan = SelectedPlanLocal.get();
 
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
@@ -596,7 +596,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       Assert.failWithOutOfMemoryError();
     }
     int size = elemBytes + headerSize;
-    allocator = Plan.checkAllocator(size, align, allocator);
+    allocator = plan.checkAllocator(size, align, allocator);
     Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
@@ -615,8 +615,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param allocator The MMTk allocator to be used for this allocation
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  private static Address allocateSpace(Plan plan, int bytes, int align,
-                                          int offset, int allocator)
+  private static Address allocateSpace(SelectedPlanLocal plan, int bytes, 
+                                       int align, int offset, int allocator)
     throws UninterruptiblePragma, InlinePragma {
     return allocateSpace(plan, bytes, align, offset, false, allocator, null);
   }
@@ -631,10 +631,11 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param from The source object from which this is to be copied
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  public static Address allocateSpace(Plan plan, int bytes, int align,
-                                      int offset, ObjectReference from)
+  public static Address allocateSpace(SelectedPlanLocal plan, int bytes, 
+                                      int align, int offset, int allocator,
+                                      ObjectReference from)
     throws UninterruptiblePragma, InlinePragma {
-    return allocateSpace(plan, bytes, align, offset, true, 0, from);
+    return allocateSpace(plan, bytes, align, offset, true, allocator, from);
   }
 
   /** 
@@ -649,8 +650,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param from The source object from which to copy (if copying)
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  private static Address allocateSpace(Plan plan, int bytes, int align,
-                                       int offset, boolean copy,
+  private static Address allocateSpace(SelectedPlanLocal plan, int bytes, 
+                                       int align, int offset, boolean copy,
                                        int allocator, ObjectReference from)
                                           
     throws UninterruptiblePragma, InlinePragma {
@@ -662,11 +663,15 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
      */
     Address region;
     if (copy) {
-      region = plan.allocCopy(from, bytes, align, offset);
+      region = plan.allocCopy(from, bytes, align, offset, allocator);
+      /* TODO
       if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
+      */
     } else {
       region = plan.alloc(bytes, align, offset, allocator);
+      /* TODO
       if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
+      */
     }
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 
@@ -871,29 +876,6 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * Tracing
    */
 
-  /**
-   * Processes an object during the tracing phase of a collection.
-   *
-   * @param object the object to be processed
-   * @return The object after processing (it may have been moved in
-   * the course of processing).
-   */
-  public static ObjectReference processPtrValue(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma { 
-    return Plan.traceObject(object);
-  }
-
-  /**
-   * Processes an object during the tracing phase of a collection.
-   *
-   * @param location the address of a reference to the object to be
-   * processed
-   */
-  public static void processPtrLocation(Address location)
-    throws UninterruptiblePragma, InlinePragma { 
-    Plan.traceObjectLocation(location, false);
-  }
-
   /***********************************************************************
    *
    * Heap size and heap growth
@@ -1006,7 +988,10 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * Start the GCspy server
    */
   public static void startGCspyServer() throws InterruptiblePragma {
+    /*
+      TODO
     GCspy.startGCspyServer();
+    */
   }
 
  /***********************************************************************

@@ -27,15 +27,16 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 abstract public class AbstractDriver implements Uninterruptible {
+  static int nextServerSpaceId = 0;
   // The tiles
   protected int blockSize;                      // tile size
   protected int allTileNum;                     // total number of tiles
-  
+
   protected ServerSpace space;                  // The GCspy space abstraction
-  
+
   /**
    * Count number of tiles in an address range
-   * 
+   *
    * @param start The start of the range
    * @param end The end of the range
    * @param tileSize The size of each tile
@@ -49,7 +50,7 @@ abstract public class AbstractDriver implements Uninterruptible {
 
   /**
    * Count number of tiles in an address range
-   * 
+   *
    * @param extent The extent of the range
    * @param tileSize The size of each tile
    * @return The number of tiles in this range
@@ -58,14 +59,14 @@ abstract public class AbstractDriver implements Uninterruptible {
     int diff = extent.toInt();
     return countTileNum(diff, tileSize);
   }
- 
+
  private int countTileNum (int diff, int tileSize) {
     int tiles = diff / tileSize;
     if ( (diff % tileSize) != 0 )
       ++tiles;
     return tiles;
   }
- 
+
   /**
    * Setup tile names
    *
@@ -73,18 +74,17 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param numTiles the number of tiles to name
    */
   public void setTilenames(Subspace subspace, int numTiles) {
-    int tile = 0;
     Address start = subspace.getStart();
     int first = subspace.getFirstIndex();
     int bs = subspace.getBlockSize();
 
     for (int i = 0; i < numTiles; ++i) {
-      if (subspace.indexInRange(i)) 
-        space.setTilename(i, start.add((i - first) * bs), 
+      if (subspace.indexInRange(i))
+        space.setTilename(i, start.add((i - first) * bs),
                              start.add((i + 1 - first) * bs));
     }
   }
- 
+
   /**
    * The "typical" number of objects in each tile
    *
@@ -96,26 +96,26 @@ abstract public class AbstractDriver implements Uninterruptible {
     // VM-dependent class
     return blockSize / ServerInterpreter.computeHeaderSize();
   }
-  
+
   /**
    * Should we transmit data to the visualiser?
-   * 
+   *
    * @param event The current event
    * @return true if we should transmit
    */
   public boolean shouldTransmit(int event) {
     return ServerInterpreter.shouldTransmit(event);
   }
-    
+
   /**
    * Set the control value in each tile in a region
-   * 
+   *
    * @param tiles an array of tiles
    * @param tag The control tag
    * @param start The start index of the region
    * @param len The number of tiles in the region
    */
-  public void controlValues (AbstractTile[] tiles, byte tag, int start, 
+  public void controlValues (AbstractTile[] tiles, byte tag, int start,
                              int len) {
     for (int i = start; i < (start+len); ++i) {
       if (AbstractTile.controlIsBackground(tag) ||
@@ -126,7 +126,7 @@ abstract public class AbstractDriver implements Uninterruptible {
       tiles[i].addControl(tag);
     }
   }
-  
+
   /**
    * Collectors typically call this method to update GCspy stats
    * @param obj the reference to the object found
@@ -152,7 +152,7 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param obj the reference to the object found
    */
   public void traceObject(Address obj) { traceObject(obj, true); }
-                    
+
   /**
    * Collectors typically call this method to update GCspy stats
    * @param obj the reference to the object found
@@ -198,7 +198,7 @@ abstract public class AbstractDriver implements Uninterruptible {
     if (tiles[index].usedSpace > max) {
       Log.write("Treadmill.traceObject: usedSpace too high at ");
       Log.write(index);
-      Log.write(": "); Log.write(tiles[index].usedSpace); 
+      Log.write(": "); Log.write(tiles[index].usedSpace);
       Log.write(", max="); Log.write(max);
       Log.write(" in ");
       Log.writeln(err);
@@ -217,9 +217,9 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param start the starting address
    * @param length the lenght to distribute
    */
-   public static void distributeSpace(AbstractTile[] tiles, 
+   public static void distributeSpace(AbstractTile[] tiles,
                                Subspace subspace,
-                               int blockSize, 
+                               int blockSize,
                                int streamID,
                                Address start,
                                int length) {
@@ -229,10 +229,10 @@ abstract public class AbstractDriver implements Uninterruptible {
      if (Assert.VERIFY_ASSERTIONS) Assert._assert(remainder <= blockSize);
      if (length <= remainder) {  // fits in this tile
        tiles[index].addSpace(streamID, length);
-       //checkspace(index, length, "traceObject fits in first tile"); 
+       //checkspace(index, length, "traceObject fits in first tile");
      } else {
        tiles[index].addSpace(streamID, remainder);
-       //checkspace(index, remainder, "traceObject remainder put in first tile");  
+       //checkspace(index,remainder,"traceObject remainder put in first tile");
        length -= remainder;
        index++;
        while (length >= blockSize) {
@@ -242,14 +242,14 @@ abstract public class AbstractDriver implements Uninterruptible {
          index++;
        }
        tiles[index].addSpace(streamID, length);
-       //checkspace(index, length, "traceObject last tile"); 
+       //checkspace(index, length, "traceObject last tile");
      }
    }
 
   /**
    * Send space info and end communication
    * This simply sends the size of the current space.
-   * Drivers that want to send something more complex than 
+   * Drivers that want to send something more complex than
    *  "Current Size: <size>\n"
    * must override this method.
    *
@@ -258,8 +258,14 @@ abstract public class AbstractDriver implements Uninterruptible {
   protected void sendSpaceInfoAndEndComm(Offset size) {
     //    - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
     Address tmp = Util.formatSize("Current Size: %s\n", 128, size.toInt());
-    space.spaceInfo(tmp); 
+    space.spaceInfo(tmp);
     space.endComm();
     Util.free(tmp);
   }
+
+  /**
+   * Called by GCspy drivers
+   * @return a unique space ID
+   */
+  public static int getNextServerSpaceId() { return nextServerSpaceId++; }
 }

@@ -48,6 +48,16 @@ public class Plan extends SemiSpaceGCspy implements Uninterruptible {
    */
 
   /**
+   * <code>true</code> if built with GCSpy
+   */
+  public static final boolean WITH_GCSPY =
+    //-#if RVM_WITH_GCSPY
+    true;
+    //-#else
+    false;
+    //-#endif
+
+  /**
    * Gets the plan instance associated with the current processor.
    *
    * @return the plan instance for the current processor

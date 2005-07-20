@@ -15,6 +15,8 @@ import org.vmmagic.pragma.UninterruptiblePragma;
  *
  * Enumerations are case sensitive.
  *
+ * $Id$
+ *
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -32,20 +34,20 @@ public class EnumOption extends Option {
    * @param description The purpose of the option.
    * @param values A mapping of int to string for the enum.
    * @param defaultValue The default value of the option.
-   */ 
-  protected EnumOption(String name, String description, 
-                       String[] values, int defaultValue) { 
+   */
+  protected EnumOption(String name, String description,
+                       String[] values, int defaultValue) {
     super(ENUM_OPTION, name, description);
     this.values = values;
     this.value = this.defaultValue = defaultValue;
   }
-  
+
   /**
    * Search for a string in the enumeration.
    *
    * @return The index of the passed string.
-   */ 
-  private int findValue(String string) { 
+   */
+  private int findValue(String string) {
     for(int i=0;i<values.length;i++) {
       if (values[i].equals(string)) {
         return i;
@@ -92,8 +94,8 @@ public class EnumOption extends Option {
   }
 
   /**
-   * Update the value of the option, echoing the change if the echoOptions 
-   * option is set. This method also calls the validate method to allow 
+   * Update the value of the option, echoing the change if the echoOptions
+   * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
    *
    * @param value The new value for the option.
@@ -101,7 +103,7 @@ public class EnumOption extends Option {
   public void setValue(int value) {
     int oldValue = this.value;
     this.value = value;
-    if (echoOptions.getValue()) {
+    if (Options.echoOptions.getValue()) {
       Log.write("Option '");
       Log.write(this.getKey());
       Log.write("' set ");
@@ -115,7 +117,7 @@ public class EnumOption extends Option {
   /**
    * Look up the value for a string and update the value of the option
    * accordingly, echoing the change if the echoOptions option is set.
-   * This method also calls the validate method to allow subclasses to 
+   * This method also calls the validate method to allow subclasses to
    * perform any required validation.
    *
    * @param value The new value for the option.

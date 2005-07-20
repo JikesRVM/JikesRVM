@@ -115,28 +115,38 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
           }
         }
       }
-      // (2) We may have created some dead code; remove it
-      while (haveBlock()) {
-        OPT_BasicBlock curr = popBlock();
-        if (curr.scratch != 0) continue; // set in push block; avoid processing block twice!
-        if (DEBUG) VM.sysWrite("Checking to see if block "+curr+" is dead\n");
-        if (curr.hasZeroIn() ||
-            (curr.hasOneIn() && curr.pointsIn(curr))) {
-          // block is dead.
-          curr.scratch = 0xdeadbeef;
-          if (DEBUG) VM.sysWrite("\tremoving dead block "+curr+"\n");
-          for (OPT_BasicBlockEnumeration e = curr.getOut();
+      // (2) perform a Depth-first search of the control flow graph,
+      //     and remove any nodes we have made unreachable 
+      removeUnreachableCode(ir);
+    }
+
+
+    /**
+     * Remove unreachable code
+     *
+     * @param ir the IR to optimize
+     */
+    private final void removeUnreachableCode(OPT_IR ir) {
+      OPT_BasicBlock entry = ir.cfg.entry();
+      ir.cfg.clearDFS();
+      entry.sortDFS();
+      for (OPT_BasicBlock node = entry; node != null;) {
+        // save it now before removeFromCFGAndCodeOrder nulls it out!!!
+        OPT_BasicBlock nextNode = (OPT_BasicBlock)node.getNext();
+        if (!node.dfsVisited()) {
+          for (OPT_BasicBlockEnumeration e = node.getOut();
                e.hasMoreElements(); ) {
             OPT_BasicBlock target = e.next();
-            if (target != curr && !target.isExit()) {
-              OPT_SSA.purgeBlockFromPHIs(curr, target);
-              pushBlock(target);
+            if (target != node && !target.isExit() && target.dfsVisited()) {
+              OPT_SSA.purgeBlockFromPHIs(node, target);
             }
           }
-          ir.cfg.removeFromCFGAndCodeOrder(curr);
+          ir.cfg.removeFromCFGAndCodeOrder(node);
         }
+        node = nextNode;
       }
     }
+
 
     /**
      * Return the basic block that s's block will goto if s is not taken.
@@ -162,7 +172,6 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         // there is no longer an edge from source to target;
         // update any PHIs in target to reflect this.
         OPT_SSA.purgeBlockFromPHIs(source, deadBB);
-        pushBlock(deadBB);
       }
     }
 
@@ -185,35 +194,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         // there is no longer an edge from source to target;
         // update any PHIs in target to reflect this.
         OPT_SSA.purgeBlockFromPHIs(source, deadBB);
-        pushBlock(deadBB);
       }
     }
-
-
-    /*
-     * Support for maintaining a work list of possibly unreachable blocks
-     */
-    private static class BL {
-      OPT_BasicBlock block;
-      BL next;
-      BL(OPT_BasicBlock b, BL n) {
-        block = b;
-        next = n;
-      }
-    }
-    private BL modBlocks;
-    private void pushBlock(OPT_BasicBlock bb) {
-      bb.scratch = 0;
-      modBlocks = new BL(bb, modBlocks);
-    }
-    private boolean haveBlock() {
-      return modBlocks != null;
-    }
-    private OPT_BasicBlock popBlock() {
-      OPT_BasicBlock tmp = modBlocks.block;
-      modBlocks = modBlocks.next;
-      return tmp;
-    }
-
   }
 }

@@ -4,11 +4,13 @@
  */
 package org.mmtk.utility.heap;
 
+import org.mmtk.utility.options.Options;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Memory;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -141,7 +143,7 @@ public final class MonotonePageResource extends PageResource
       Assert._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
     if (ZERO_ON_RELEASE) 
       Memory.zero(first, bytes);
-    if (protectOnRelease.getValue())
+    if (Options.protectOnRelease.getValue())
       LazyMmapper.protect(first, pages);
   }
 }

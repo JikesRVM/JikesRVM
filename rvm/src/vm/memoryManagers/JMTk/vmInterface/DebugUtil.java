@@ -9,7 +9,6 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.LazyMmapper;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Plan;
 import org.mmtk.vm.Memory;
 
 import org.vmmagic.unboxed.*;
@@ -102,13 +101,14 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
       return false;
     }
     if (MM_Interface.MOVES_OBJECTS) {
-      if (Plan.isForwardedOrBeingForwarded(ref)) {
         /*
-         * TODO: actually follow forwarding pointer
-         * (need to bound recursion when things are broken!!)
-         */
+      TODO: Work out how to check if forwarded
+      if (Plan.isForwardedOrBeingForwarded(ref)) {
+        // TODO: actually follow forwarding pointer
+        // (need to bound recursion when things are broken!!)
         return true; 
       }
+      */
     }
     
     Object[] tib = VM_ObjectModel.getTIB(ref);

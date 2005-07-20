@@ -4,11 +4,14 @@
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.plan.BasePlan;
+import org.mmtk.plan.Plan;
 
 /**
- * Provide an lower and upper bound on nursery size. This option is not intended to
- * be created directly, but via NurserySize.
+ * Provide an lower and upper bound on nursery size.
+ *
+ * This option is not intended to be created directly, but via NurserySize.
+ *
+ * $Id$
  *
  * @author Daniel Frampton
  * @version $Revision$
@@ -24,15 +27,15 @@ public class FixedNursery extends PagesOption {
   public FixedNursery(BoundedNursery boundedNursery) {
     super("Fixed Nursery",
           "Fix the minimum and maximum size of the nursery to this value",
-          BasePlan.DEFAULT_MIN_NURSERY);
-    this.boundedNursery = boundedNursery; 
+          Plan.DEFAULT_MIN_NURSERY);
+    this.boundedNursery = boundedNursery;
   }
 
   /**
    * Nursery can not be empty.
-   */ 
+   */
   protected void validate() {
-    failIf(value <= 0, "Can not have an empty nursery"); 
+    failIf(value <= 0, "Can not have an empty nursery");
     // Update upper bound.
     boundedNursery.setBytes(this.getBytes());
   }

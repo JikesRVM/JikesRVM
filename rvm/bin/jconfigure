@@ -1250,14 +1250,9 @@ declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via Op
 declare -i RVM_WITH_HPM=0
 
 ## Memory Allocators and Garbage Collector options (JMTk)
-declare -i RVM_WITH_SEMI_SPACE=0
-declare -i RVM_WITH_MARK_SWEEP=0
-declare -i RVM_WITH_GEN_COPY=0
-declare -i RVM_WITH_GEN_MS=0
-declare -i RVM_WITH_GEN_RC=0
-declare -i RVM_WITH_COPY_MS=0
-declare -i RVM_WITH_REF_COUNT=0
-declare -i RVM_WITH_NO_GC=0
+declare RVM_WITH_JMTK_PLAN=""
+declare RVM_WITH_JMTK_PLANLOCAL=""
+declare RVM_WITH_JMTK_PLANCONSTRAINTS=""
 declare -i RVM_WITH_GCSPY=0
 declare -i RVM_WITH_GCTRACE=0
 
@@ -1558,6 +1553,9 @@ else				# Linux/x86; Linux/ppc32
     RVM_WITH_SVR4_ABI=1
 fi
 
+# create 1 to 3 class name mapping for MMTk
+RVM_WITH_JMTK_PLANLOCAL=${RVM_WITH_JMTK_PLAN}Local
+RVM_WITH_JMTK_PLANCONSTRAINTS=${RVM_WITH_JMTK_PLAN}Constraints
 
 ## Setting JAVA_PREPROCESSOR_DEFINITIONS:
 ## We keep this variable with a newline-separated list of definitions.
@@ -3723,14 +3721,12 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/classloader/VM_Type;
 	[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;
 	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;
+	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/SelectedPlanLocal;
 	[Lorg/mmtk/vm/SynchronizedCounter;
-	[Lorg/mmtk/vm/Plan;
+	[Lorg/mmtk/plan/Phase;
 	[Lorg/mmtk/policy/Space;
 	[Lorg/mmtk/utility/statistics/Stats;
 	[Lorg/mmtk/utility/statistics/Counter;
-	[Lorg/mmtk/utility/statistics/EventCounter;
-	[Lorg/mmtk/utility/statistics/LongCounter;
-	[Lorg/mmtk/utility/statistics/SizeCounter;
 	[Lorg/mmtk/utility/statistics/Timer;
 	[Lorg/mmtk/utility/options/Option;
 	[Lorg/mmtk/utility/scan/MMType;

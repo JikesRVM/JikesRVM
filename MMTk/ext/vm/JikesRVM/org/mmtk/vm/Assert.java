@@ -60,7 +60,7 @@ public class Assert implements Uninterruptible {
    * @param cond the condition to be checked
    */
   public static void _assert(boolean cond) throws InlinePragma {
-    if (VERIFY_ASSERTIONS) VM._assert(cond);
+    VM._assert(cond);
   }
 
 
@@ -70,10 +70,8 @@ public class Assert implements Uninterruptible {
   public static final boolean VerifyAssertions = VM.VerifyAssertions;
 
   public static void _assert(boolean cond, String s) throws InlinePragma {
-    if (VERIFY_ASSERTIONS) {
-      if (!cond) VM.sysWriteln(s);
-      VM._assert(cond);
-    }
+    if (!cond) VM.sysWriteln(s);
+    VM._assert(cond);
   }
 
   public static final void dumpStack() {

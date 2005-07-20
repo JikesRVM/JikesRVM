@@ -4,10 +4,11 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.MonotonePageResource;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Plan;
+
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
@@ -206,12 +207,14 @@ public final class ImmortalSpace extends Space
    * for subsequent processing. The object is marked as (an atomic)
    * side-effect of checking whether already marked.
    *
+   * @param trace The trace being conducted.
    * @param object The object to be traced.
    */
-  public final ObjectReference traceObject(ObjectReference object) 
+  public final ObjectReference traceObject(TraceLocal trace, 
+                                           ObjectReference object) 
     throws InlinePragma {
     if (testAndMark(object, markState)) 
-      Plan.enqueue(object);
+      trace.enqueue(object);
     return object;
   }
 

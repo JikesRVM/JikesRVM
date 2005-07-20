@@ -6,6 +6,8 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.plan.PlanLocal;
+
 /**
  * $Id$ 
  *
@@ -133,15 +135,16 @@ public class Collection {
    * @return <code>true</code> if the plan is not participating,
    * <code>false</code> otherwise
    */
-  public static boolean isNonParticipating(Plan plan) {
-return false;  }
+  public static boolean isNonParticipating(PlanLocal plan) {
+    return false;  
+  }
 
   /**
    * Prepare a plan that is not participating in a collection.
    *
    * @param p the plan to prepare
    */
-  public static void prepareNonParticipating(Plan p) {
+  public static void prepareNonParticipating(PlanLocal p) {
     /*
      * The collector threads of processors currently running threads
      * off in JNI-land cannot run.
@@ -154,7 +157,7 @@ return false;  }
    *
    * @param p the plan to prepare
    */
-  public static void prepareParticipating (Plan p) {
+  public static void prepareParticipating (PlanLocal p) {
   }
 
   /**

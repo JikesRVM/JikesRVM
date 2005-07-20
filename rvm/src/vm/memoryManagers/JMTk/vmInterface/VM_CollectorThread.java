@@ -5,8 +5,11 @@
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.PlanLocal;
 import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.vm.Plan;
+import org.mmtk.utility.options.Options;
+import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.ScanThread;
 
@@ -336,7 +339,7 @@ public class VM_CollectorThread extends VM_Thread {
 
       /* actually perform the GC... */
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
-      if (isActive) Plan.getInstance().collect(); // gc
+      if (isActive) ActivePlan.local().collect(); // gc
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       gcBarrier.rendezvous(5200);
@@ -345,9 +348,10 @@ public class VM_CollectorThread extends VM_Thread {
         long elapsedCycles = VM_Time.cycles() - startCycles;
         HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
       }
-      if (gcOrdinal == 1 && Plan.isLastGCFull()) {
+      if (gcOrdinal == 1 && ActivePlan.global().isLastGCFull()) {
         boolean heapSizeChanged = false;
-        if (Plan.variableSizeHeap.getValue() && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
+        if (Options.variableSizeHeap.getValue() && 
+            handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
           // Don't consider changing the heap size if gc was forced by System.gc()
           heapSizeChanged = HeapGrowthManager.considerHeapSize();
         }

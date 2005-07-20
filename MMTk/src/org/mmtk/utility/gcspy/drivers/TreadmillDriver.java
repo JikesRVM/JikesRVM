@@ -12,7 +12,6 @@ import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.Subspace;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Plan;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
@@ -24,36 +23,35 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple driver for the MMTk LargeObjectSpace.
  *
- * $Id$ 
+ * $Id$
  *
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public class TreadmillDriver extends AbstractDriver 
+public class TreadmillDriver extends AbstractDriver
   implements Uninterruptible {
 
   private static final int LOS_USED_SPACE_STREAM = 0;   // stream IDs
   private static final int LOS_OBJECTS_STREAM   = 1;
-  private static final int BUFSIZE = 128;               // scratch buffer size
 
   /**
    * Representation of a tile
    *
    * We count the number of objects in each tile and the space they use
    */
-  class Tile extends AbstractTile 
+  class Tile extends AbstractTile
     implements  Uninterruptible {
     short objects;
     int usedSpace;
-    
+
     /**
      * Create a new tile with statistics zeroed
      */
     public Tile() {
       zero();
     }
-    
+
     /**
      * Zero a tile's statistics
      */
@@ -62,14 +60,14 @@ public class TreadmillDriver extends AbstractDriver
       objects = 0;
       usedSpace = 0;
     }
-    
+
     /**
      * Add some space
      */
     public void addSpace(int id, int size) {
       usedSpace += size;
     }
-  
+
   }
 
   // The streams
@@ -78,7 +76,7 @@ public class TreadmillDriver extends AbstractDriver
 
 
   private Tile[] tiles;                 // the space's tiles
-  private Subspace subspace;                    
+  private Subspace subspace;
 
   // Overall statistics
   private int totalObjects = 0;         // total number of objects allocated
@@ -88,10 +86,10 @@ public class TreadmillDriver extends AbstractDriver
   private LargeObjectSpace lospace;     // the large object space
   private int threshold;
 
-  
+
   /**
    * Create a new driver for this collector
-   * 
+   *
    * @param name The name of this driver
    * @param lospace the large object space for this allocator
    * @param blockSize The tile size
@@ -103,7 +101,7 @@ public class TreadmillDriver extends AbstractDriver
                          int blockSize,
                          int threshold,
                          boolean mainSpace) {
-    
+
     this.lospace = lospace;
     this.threshold = threshold;
     Address start = lospace.getStart();
@@ -119,18 +117,18 @@ public class TreadmillDriver extends AbstractDriver
     for(int i = 0; i < maxTileNum; i++)
       tiles[i] = new Tile();
 
-    subspace = new Subspace(start, start, 0, blockSize, 0); 
+    subspace = new Subspace(start, start, 0, blockSize, 0);
     allTileNum = 0;
-    
+
     // Set the block label
     String tmp = (blockSize < 1024) ?
                    "Block Size: " + blockSize + " bytes\n":
                    "Block Size: " + (blockSize / 1024) + " bytes\n";
 
-    
+
     // Create a single GCspy Space
     space = new ServerSpace(
-                    Plan.getNextServerSpaceId(),/* space id */
+                    getNextServerSpaceId(),     /* space id */
                     name,                       /* server name */
                     "MMTk LargeObjectSpace",    /* driver (space) name */
                     "Block ",                   /* space title */
@@ -140,10 +138,10 @@ public class TreadmillDriver extends AbstractDriver
                     "UNUSED",                   /* the label for unused blocks */
                     mainSpace                   /* main space */ );
     setTilenames(subspace, 0);
-   
+
 
     // Initialise the Space's 2 Streams
-    usedSpaceStream 
+    usedSpaceStream
            = new Stream(
                      space,                                     /* the space */
                      LOS_USED_SPACE_STREAM,                     /* space ID */
@@ -162,18 +160,18 @@ public class TreadmillDriver extends AbstractDriver
 
 
    objectsStream = new Stream(
-                     space, 
+                     space,
                      LOS_OBJECTS_STREAM,
                      StreamConstants.SHORT_TYPE,
                      "Objects stream",
-                     0, 
-                     (int)(blockSize/threshold),
-                     0, 
                      0,
-                     "No. of objects = ", 
+                     (int)(blockSize/threshold),
+                     0,
+                     0,
+                     "No. of objects = ",
                      " objects",
                      StreamConstants.PRESENTATION_PLUS,
-                     StreamConstants.PAINT_STYLE_ZERO, 
+                     StreamConstants.PAINT_STYLE_ZERO,
                      0,
                      Color.Green);
 
@@ -181,18 +179,18 @@ public class TreadmillDriver extends AbstractDriver
     // Initialise the statistics
     zero();
   }
-                      
-   
+
+
   /**
    * Zero tile stats
    */
   public void zero () {
-    for (int i = 0; i < tiles.length; i++) 
+    for (int i = 0; i < tiles.length; i++)
       tiles[i].zero();
     totalObjects = 0;
     totalUsedSpace = 0;
   }
-  
+
   /**
    * Set the current range of LOSpace
    * @param start the start of the space
@@ -203,7 +201,7 @@ public class TreadmillDriver extends AbstractDriver
     int required = countTileNum(start, end, blockSize);
 
     // Reset the subspace
-    //if (required != current) { 
+    //if (required != current) {
       subspace.reset(start, end, 0, required);
       //Log.write("TreadmillDriver: reset subspace, start=", start);
       //Log.write(" end=", end);
@@ -215,17 +213,17 @@ public class TreadmillDriver extends AbstractDriver
     //}
   }
    */
-   
+
 
   /**
    * Update the tile statistics
    * In this case, we are accounting for super-page objects, rather than
    * simply for the object they contain.
-   * 
+   *
    * @param addr The address of the superpage
    */
   public void traceObject(Address addr) {
-    
+
     int index = subspace.getIndex(addr);
     int length = lospace.getSize(addr).toInt();
 
@@ -242,16 +240,16 @@ public class TreadmillDriver extends AbstractDriver
     totalObjects++;
     tiles[index].objects++;
     totalUsedSpace += length;
-    distributeSpace(tiles, subspace, subspace.getBlockSize(), 
+    distributeSpace(tiles, subspace, subspace.getBlockSize(),
                     LOS_USED_SPACE_STREAM, addr, length);
     Address tmp = addr.add(length);
     if (tmp.GT(maxAddr)) maxAddr = tmp;
   }
-  
+
 
   /**
    * Finish a transmission
-   * 
+   *
    * @param event The event
    */
   public void finish (int event) {
@@ -261,10 +259,10 @@ public class TreadmillDriver extends AbstractDriver
     }
   }
 
-  
+
   /**
    * Send the data for an event
-   * 
+   *
    * @param event The event
    */
   private void send (int event) {
@@ -281,18 +279,18 @@ public class TreadmillDriver extends AbstractDriver
       space.resize(allTileNum);
       setTilenames(subspace, allTileNum);
     }
-    
+
     // start the communication
     space.startComm();
-    int numTiles = allTileNum;   
+    int numTiles = allTileNum;
     //Log.writeln("TreadmillDriver: sending, allTileNum=", numTiles);
-    
+
    // (1) Used Space stream
    // send the stream data
     space.stream(LOS_USED_SPACE_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
       //checkspace(i, 0, "send");
-      if (Assert.VERIFY_ASSERTIONS) 
+      if (Assert.VERIFY_ASSERTIONS)
         if (tiles[i].usedSpace > subspace.getBlockSize()) {
           Log.write("Bad value for TreadmillDriver Used Space stream: ");
           Log.write(tiles[i].usedSpace);
@@ -302,7 +300,7 @@ public class TreadmillDriver extends AbstractDriver
       space.streamIntValue(tiles[i].usedSpace);
     }
     space.streamEnd();
-    // send the summary data 
+    // send the summary data
     space.summary(LOS_USED_SPACE_STREAM, 2 /*items to send*/);
     space.summaryValue(totalUsedSpace);
     space.summaryValue(subspace.getEnd().diff(subspace.getStart()).toInt());
@@ -311,7 +309,7 @@ public class TreadmillDriver extends AbstractDriver
     // (2) Objects stream
     space.stream(LOS_OBJECTS_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
-      if (Assert.VERIFY_ASSERTIONS) 
+      if (Assert.VERIFY_ASSERTIONS)
         if (tiles[i].objects > subspace.getBlockSize()/threshold) {
           Log.write("Bad value for TreadmillDriver Objects stream: ");
           Log.write(tiles[i].usedSpace);
@@ -324,15 +322,15 @@ public class TreadmillDriver extends AbstractDriver
     space.summary(LOS_OBJECTS_STREAM, 1);
     space.summaryValue(totalObjects);
     space.summaryEnd();
-   
+
     // send the control info
     // all of space is USED
     controlValues(tiles, AbstractTile.CONTROL_USED,
                   subspace.getFirstIndex(),
                   subspace.getBlockNum());
 
-    space.controlEnd(numTiles, tiles);     
-    
+    space.controlEnd(numTiles, tiles);
+
     // send the space info
     Offset size = subspace.getEnd().diff(subspace.getStart());
     sendSpaceInfoAndEndComm(size);

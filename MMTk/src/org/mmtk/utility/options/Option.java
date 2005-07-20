@@ -7,7 +7,7 @@ package org.mmtk.utility.options;
 import org.mmtk.vm.Options;
 
 /**
- * The abstract base class for all options. This class also has 
+ * The abstract base class for all options. This class also has
  * the static interfaces to access the options system to set
  * option values.
  *
@@ -21,7 +21,9 @@ import org.mmtk.vm.Options;
  * takes the name and creates a VM style name, such as mapping
  * "No Finalizer" to noFinalizer. The VM may not remove any letters
  * when performing this mapping but may remove spaces and change
- * the case of any character. 
+ * the case of any character.
+ *
+ * $Id$
  *
  * @author Daniel Frampton
  * @version $Revision$
@@ -31,16 +33,14 @@ public abstract class Option {
   // options registry
   private static Option head;
   private static Option tail;
-  protected static EchoOptions echoOptions;
 
   /**
    * Initialize the options system so that options can be created.
-   * This also creates the first option that can be used to echo 
+   * This also creates the first option that can be used to echo
    * the setting of options to the console to assist debugging.
    */
   static {
     head = tail = null;
-    echoOptions = new EchoOptions();
   }
 
   // Option types
@@ -52,7 +52,7 @@ public abstract class Option {
   public static final int PAGES_OPTION        = 6;
   public static final int MICROSECONDS_OPTION = 7;
   public static final int FLOAT_OPTION        = 8;
-  public static final int DOUBLE_OPTION       = 9; 
+  public static final int DOUBLE_OPTION       = 9;
 
   /**
    * Using the VM determined key, look up the corresponding option,
@@ -75,7 +75,7 @@ public abstract class Option {
   /**
    * Return the first option. This can be used with the getNext method to
    * iterate through the options.
-   * 
+   *
    * @return The first option, or null if no options exist.
    */
   public static Option getFirst() {
@@ -90,14 +90,14 @@ public abstract class Option {
   private Option next;
 
   /**
-   * Construct a new option. This also calls the VM to map the option's 
+   * Construct a new option. This also calls the VM to map the option's
    * name into a unique option key and links it onto the option list.
    *
    * @param type The option type as defined in this class.
    * @param name The unique name of the option.
    * @param description A short description of the option and purpose.
    */
-  protected Option(int type, String name, String description) { 
+  protected Option(int type, String name, String description) {
     this.type = type;
     this.name = name;
     this.description = description;
@@ -115,8 +115,8 @@ public abstract class Option {
    *
    * @return The key.
    */
-  public String getKey() { 
-    return this.key; 
+  public String getKey() {
+    return this.key;
   }
 
   /**
@@ -126,18 +126,18 @@ public abstract class Option {
    */
   public Option getNext() {
     return this.next;
-  } 
- 
-  /** 
+  }
+
+  /**
    * Return the name for the option.
    *
    * @return The option name.
    */
-  public String getName() { 
-    return this.name; 
+  public String getName() {
+    return this.name;
   }
 
-  /** 
+  /**
    * Return the option description.
    *
    * @return The option description.
@@ -146,17 +146,17 @@ public abstract class Option {
     return this.description;
   }
 
-  /** 
+  /**
    * Return the type of the option.
    *
    * @return The option type.
    */
-  public int getType() { 
-    return this.type; 
+  public int getType() {
+    return this.type;
   }
 
   /**
-   * This is a validation method that can be implemented by leaf option 
+   * This is a validation method that can be implemented by leaf option
    * classes to provide additional validation. This should not be implemented
    * at other levels within the heirarchy to avoid confusion. The validate
    * method works against the current value of the option (post-set).
@@ -166,9 +166,9 @@ public abstract class Option {
   /**
    * A fatal error occurred during the setting of an option. This method
    * calls into the VM and is required to cause the system to stop.
-   * 
+   *
    * @param message The error message associated with the failure.
-   */ 
+   */
   protected void fail(String message) {
     Options.fail(this, message);
   }
@@ -186,9 +186,9 @@ public abstract class Option {
   /**
    * A non-fatal error occurred during the setting of an option. This method
    * calls into the VM and shall not cause the system to stop.
-   * 
+   *
    * @param message The message associated with the warning.
-   */ 
+   */
   protected void warn(String message) {
     Options.warn(this, message);
   }

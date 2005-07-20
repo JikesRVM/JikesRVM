@@ -6,6 +6,7 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Constants;
 

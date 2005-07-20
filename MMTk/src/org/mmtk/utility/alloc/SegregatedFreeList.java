@@ -9,7 +9,9 @@ import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.ObjectModel;
-import org.mmtk.utility.options.*;
+import org.mmtk.utility.options.Options;
+import org.mmtk.utility.options.FragmentationStats;
+import org.mmtk.utility.options.VerboseFragmentationStats;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -83,9 +85,6 @@ public abstract class SegregatedFreeList extends Allocator
   protected static int[] blockHeaderSize;
   protected static int[] cellsInBlock;
 
-  protected static FragmentationStats fragmentationStats;
-  protected static VerboseFragmentationStats verboseFragmentationStats;
-
   public static final boolean FRAGMENTATION_CHECK = false;
   protected static final boolean FRAG_VERBOSE = false;
   protected static int bytesAlloc;
@@ -111,8 +110,8 @@ public abstract class SegregatedFreeList extends Allocator
    */
 
   static {
-    fragmentationStats = new FragmentationStats();
-    verboseFragmentationStats = new VerboseFragmentationStats();  
+    Options.fragmentationStats = new FragmentationStats();
+    Options.verboseFragmentationStats = new VerboseFragmentationStats();  
   }
 
   /**

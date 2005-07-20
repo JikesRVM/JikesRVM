@@ -154,13 +154,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Process the TIB field during copyingGC
-   */
-  public static void gcProcessTIB(ObjectReference ref) {
-    MM_Interface.processPtrLocation(ref.toAddress().add(TIB_OFFSET));
-  }
-
-  /**
    * how many bytes are needed when the scalar object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Class type) {

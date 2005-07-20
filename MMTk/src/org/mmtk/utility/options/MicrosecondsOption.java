@@ -11,6 +11,8 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 /**
  * A time option that stores values at a microsecond granularity.
  *
+ * $Id$
+ *
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -26,8 +28,8 @@ public class MicrosecondsOption extends Option {
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultUs The default value of the option (usec).
-   */ 
-  protected MicrosecondsOption(String name, String desc, int defaultUs) { 
+   */
+  protected MicrosecondsOption(String name, String desc, int defaultUs) {
     super(MICROSECONDS_OPTION, name, desc);
     this.value = this.defaultValue = defaultUs;
   }
@@ -69,16 +71,16 @@ public class MicrosecondsOption extends Option {
   }
 
   /**
-   * Update the value of the option, echoing the change if the echoOptions 
+   * Update the value of the option, echoing the change if the echoOptions
    * option is set. An error occurs if the value is negative, and then the
-   * validate method is called to allow subclasses to perform any additional 
+   * validate method is called to allow subclasses to perform any additional
    * validation.
    *
    * @param value The new value for the option.
    */
   public void setMicroseconds(int value) {
     int oldValue = this.value;
-    if (echoOptions.getValue()) {
+    if (Options.echoOptions.getValue()) {
       Log.write("Option '");
       Log.write(this.getKey());
       Log.write("' set ");

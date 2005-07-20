@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedPlanLocal;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -44,47 +45,49 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @param from the address of the object to be copied
    * @return the address of the new object
    */
-  public static ObjectReference copy(ObjectReference from)
+  public static ObjectReference copy(ObjectReference from, int allocator)
     throws InlinePragma {
     Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     
     if (type.isClassType())
-      return copyScalar(from, tib, type.asClass());
+      return copyScalar(from, tib, type.asClass(), allocator);
     else
-      return copyArray(from, tib, type.asArray());
+      return copyArray(from, tib, type.asArray(), allocator);
   }
 
   private static ObjectReference copyScalar(ObjectReference from, Object[] tib,
-                                       VM_Class type)
+                                       VM_Class type, int allocator)
     throws InlinePragma {
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
-    Plan plan = Plan.getInstance();
+    SelectedPlanLocal plan = SelectedPlanLocal.get();
+    allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
-                                                   from);
+                                                allocator, from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
-    plan.postCopy(to, ObjectReference.fromObject(tib), bytes);
+    plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     MMType mmType = (MMType) type.getMMType();
     mmType.profileCopy(bytes);
     return to;
   }
 
   private static ObjectReference copyArray(ObjectReference from, Object[] tib,
-                                      VM_Array type)
+                                      VM_Array type, int allocator)
     throws InlinePragma {
     int elements = VM_Magic.getArrayLength(from);
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
-    Plan plan = Plan.getInstance();
+    SelectedPlanLocal plan = SelectedPlanLocal.get();
+    allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
-                                                   from);
+                                                allocator, from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
-    plan.postCopy(to, ObjectReference.fromObject(tib), bytes);
+    plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     if (type == VM_Type.CodeArrayType) {
       // sync all moved code arrays to get icache and dcache in sync
       // immediately.

@@ -1,10 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
 
 package org.mmtk.vm;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.Constants;
@@ -72,6 +72,8 @@ import org.vmmagic.pragma.*;
  * collector, the pointer into the object must be adjusted so it now
  * points into the newly copied object.<p>
  *
+ * $Id$
+ *
  * @author Stephen Smith
  * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
@@ -102,8 +104,8 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    */
   private final VM_GCMapIteratorGroup iteratorGroup = new VM_GCMapIteratorGroup();
   private VM_GCMapIterator iterator;
-  private AddressDeque rootLocations;
-  private AddressPairDeque codeLocations;
+  private TraceLocal trace;
+  private boolean processCodeLocations;
   private VM_Thread thread;
   private Address ip, fp, prevFp, initialIPLoc, topFrame;
   private VM_CompiledMethod compiledMethod;
@@ -124,11 +126,11 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * @param codeLocations The deque into which interior pointers
    * associted with code pointers are to be placed
    */
-  public static void scanThread(VM_Thread thread, AddressDeque rootLocations, 
-                                AddressPairDeque codeLocations) {
+  public static void scanThread(VM_Thread thread, TraceLocal trace, 
+                                boolean processCodeLocations) {
     /* get the gprs associated with this thread */
     Address gprs = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
-    scanThread(thread, rootLocations, codeLocations, gprs, Address.zero());
+    scanThread(thread, trace, processCodeLocations, gprs, Address.zero());
   }
 
   /**
@@ -146,8 +148,8 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * @param topFrame The top frame of the stack being scanned, or zero
    * if this is to be inferred from the thread (normally the case).
    */
-  public static void scanThread(VM_Thread thread, AddressDeque rootLocations, 
-                                AddressPairDeque codeLocations, 
+  public static void scanThread(VM_Thread thread, TraceLocal trace, 
+                                boolean processCodeLocations, 
                                 Address gprs, Address topFrame) {
     /* establish ip and fp for the stack to be scanned */
     Address ip, fp, initialIPLoc;
@@ -165,7 +167,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     ScanThread scanner = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getThreadScanner();
 
     /* scan the stack */
-    scanner.startScan(rootLocations, codeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
+    scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
   }
 
   /**
@@ -189,12 +191,12 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * @param fp The frame pointer for the top frame of the stack we're
    * about to scan.
    */
-  private void startScan(AddressDeque rootLocations, 
-                         AddressPairDeque codeLocations,
+  private void startScan(TraceLocal trace, 
+                         boolean processCodeLocations,
                          VM_Thread thread, Address gprs, Address ip,
                          Address fp, Address initialIPLoc, Address topFrame) {
-    this.rootLocations = rootLocations;
-    this.codeLocations = codeLocations;
+    this.trace = trace;
+    this.processCodeLocations = processCodeLocations;
     this.thread = thread;
     this.failed = false;
     this.ip = ip;
@@ -264,13 +266,12 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * performing the scan.
    */
   private void getHWExceptionRegisters(int verbosity) {
-    if (codeLocations != null && thread.hardwareExceptionRegisters.inuse) {
+    if (processCodeLocations && thread.hardwareExceptionRegisters.inuse) {
       Address ip = thread.hardwareExceptionRegisters.ip;
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
       compiledMethod.setObsolete(false);
-      Offset codeOffset = compiledMethod.getInstructionOffset(ip);
-      ObjectReference code = ObjectReference.fromObject(compiledMethod.codeArrayForOffset(codeOffset));
+      ObjectReference code = ObjectReference.fromObject(compiledMethod.getInstructions());
       Address ipLoc = thread.hardwareExceptionRegisters.getIPLocation();
       codeLocationsPush(code, ipLoc);
     }
@@ -298,7 +299,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
         if (!failed) failed = true;
       }    
     }
-    codeLocations.push(code.toAddress(), ipLoc);
+    trace.addInteriorRootLocation(code, ipLoc);
   }
 
   /***********************************************************************
@@ -325,7 +326,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     scanFrameForObjects(verbosity);
     
     /* scan the frame for pointers to code */
-    if (codeLocations != null) processFrameForCode(verbosity);
+    if (processCodeLocations) processFrameForCode(verbosity);
     
     iterator.cleanupPointers();
     
@@ -361,6 +362,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     /* establish the compiled method */
     compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
     compiledMethod.setObsolete(false);  // keeps code object alive
+
     VM_Method method = compiledMethod.getMethod();
     compiledMethodType = compiledMethod.getCompilerType();
     
@@ -369,8 +371,10 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     /* skip over traps */
     if (compiledMethodType == VM_CompiledMethod.TRAP) return false;
 
-    /* get the code offset for this frame */
-    Offset offset = compiledMethod.getInstructionOffset(ip);
+    /* get the code associated with this frame */
+    VM_CodeArray codeArray = compiledMethod.getInstructions();
+    Offset offset = ip.diff(VM_Magic.objectAsAddress(codeArray));
+    checkCompiledMethodOffset(offset, codeArray, method);
     
     /* initialize MapIterator for this frame */
     iterator = iteratorGroup.selectIterator(compiledMethod);
@@ -404,7 +408,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
       if (verbosity >= 3) dumpRef(refaddr, verbosity);
-      rootLocations.push(refaddr);
+      trace.addRootLocation(refaddr);
     }
   }
 
@@ -527,7 +531,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     VM_GCMapIterator iterator = iteratorGroup.getJniIterator();
     Address refaddr =  iterator.getNextReferenceAddress();
     while(!refaddr.isZero()) {
-      rootLocations.push(refaddr);
+      trace.addRootLocation(refaddr);
       refaddr = iterator.getNextReferenceAddress();
     }
     //-#else
@@ -554,15 +558,15 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * but we can't move the native stack. 
    */
   private void assertImmovable() {
-    VM._assert(Plan.willNotMove(ObjectReference.fromObject(thread.stack)));
-    VM._assert(Plan.willNotMove(ObjectReference.fromObject(thread)));
-    VM._assert(Plan.willNotMove(ObjectReference.fromObject(thread.stack)));
-    VM._assert(thread.jniEnv == null || Plan.willNotMove(ObjectReference.fromObject(thread.jniEnv)));
-    VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || Plan.willNotMove(ObjectReference.fromObject(thread.jniEnv.refsArray())));
-    VM._assert(Plan.willNotMove(ObjectReference.fromObject(thread.contextRegisters)));
-    VM._assert(Plan.willNotMove(ObjectReference.fromObject(thread.contextRegisters.gprs)));
-    VM._assert(Plan.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters)));
-    VM._assert(Plan.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters.gprs)));
+    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.stack)));
+    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread)));
+    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.stack)));
+    VM._assert(thread.jniEnv == null || trace.willNotMove(ObjectReference.fromObject(thread.jniEnv)));
+    VM._assert(thread.jniEnv == null || thread.jniEnv.refsArray() == null || trace.willNotMove(ObjectReference.fromObject(thread.jniEnv.refsArray())));
+    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.contextRegisters)));
+    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.contextRegisters.gprs)));
+    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters)));
+    VM._assert(trace.willNotMove(ObjectReference.fromObject(thread.hardwareExceptionRegisters.gprs)));
   }
 
   /**
@@ -619,6 +623,51 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
       Address top_fp = thread.contextRegisters.getInnermostFramePointer();
       VM_Scheduler.dumpStack(top_ip, top_fp);
       VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
+    }
+  }
+
+  /**
+   * Check whether an offset into a compiled method looks reasonable.
+   *
+   * @param offset The offset between the IP and the start of the
+   * code for the compiled method
+   * @param codeArray The code for the compiled method
+   * @param method The method with which this code is associated
+   */
+  private void checkCompiledMethodOffset(Offset offset, VM_CodeArray codeArray,
+                                         VM_Method method) {
+    if (compiledMethodType != VM_CompiledMethod.JNI) {
+      Offset possibleLen = Offset.fromIntZeroExtend(codeArray.length() << LG_INSTRUCTION_WIDTH);
+      if (offset.sLT(Offset.zero()) || possibleLen.sLT(offset)) {
+        // We have an invalid offset
+        if (offset.sLT(Offset.zero())) {
+          Log.write("ScanThread: computed instruction offset is negative ");
+          Log.writeln(offset);
+        } else {
+          Log.writeln("ScanThread: computed instruction offset is too big");
+          Log.write("\toffset is"); Log.write(offset);
+          Log.write(" bytes of machine code for method "); 
+          Log.writeln(possibleLen);
+        }
+        Log.write("\tSupposed method: ");
+        printMethod(method);
+
+        Log.write("\n\tBase of its code array");
+        Log.writeln(ObjectReference.fromObject(codeArray));
+        Address ra = VM_Magic.objectAsAddress(codeArray).add(offset);
+        Log.write("\tCalculated actual return address is ");
+        Log.writeln(ra);
+        VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
+        if (realCM == null) {
+          Log.writeln("\tUnable to find compiled method corresponding to this return address");
+        } else {
+          Log.write("\tFound compiled method ");
+          printMethod(realCM.getMethod());
+          Log.writeln(" whose code contains this return address");
+        }
+        Log.writeln("Attempting to dump suspect stack and then exit\n");
+        VM_Scheduler.dumpStackAndDie(topFrame);
+      }
     }
   }
 

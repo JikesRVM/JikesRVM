@@ -4,15 +4,17 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.PageResource;
 import org.mmtk.utility.heap.SpaceDescriptor;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Plan;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -446,14 +448,14 @@ public abstract class Space implements Constants, Uninterruptible {
     /* First check page budget and poll if necessary */
     if (!pr.reservePages(pages)) {
       /* Need to poll, either fixing budget or requiring GC */
-      if (Plan.getInstance().poll(false, this))
+      if (ActivePlan.global().poll(false, this))
         return Address.zero(); // GC required, return failure
     }
     
     /* Page budget is OK, so try to acquire specific pages in virtual memory */
     Address rtn = pr.getNewPages(pages);
     if (rtn.isZero())
-      Plan.getInstance().poll(true, this); // Failed, so force a GC
+      ActivePlan.global().poll(true, this); // Failed, so force a GC
 
     return rtn;
   }
@@ -553,11 +555,34 @@ public abstract class Space implements Constants, Uninterruptible {
    * Trace an object as part of a collection and return the object,
    * which may have been forwarded (if a copying collector).
    * 
+   * @param The trace being conducted.
    * @param object
    * @return The object, forwarded, if appropriate
    */
-  abstract public ObjectReference traceObject(ObjectReference object); 
+  abstract public ObjectReference traceObject(TraceLocal trace, 
+                                              ObjectReference object); 
 
+  
+  /**
+   * Has the object in this space been reached during the current collection.
+   * This is used for GC Tracing.
+   * 
+   * @param object The object reference.
+   * @return True if the object is reachable.
+   */
+  public boolean isReachable(ObjectReference object) {
+    return isLive(object);
+  }
+  
+  
+  /**
+   * Is the object in this space alive? 
+   * 
+   * @param object The object reference.
+   * @return True if the object is live.
+   */
+  abstract public boolean isLive(ObjectReference object);
+  
   /**
    * Align an address to a space chunk
    *

@@ -46,10 +46,10 @@ public class Subspace implements  Uninterruptible {
    * @param blockSize The size of tiles in this subspace
    * @param blockNum The number of tiles in this subspace
    */
-  public Subspace (Address start, 
-                Address end, 
-                int firstIndex, 
-                int blockSize, 
+  public Subspace (Address start,
+                Address end,
+                int firstIndex,
+                int blockSize,
                 int blockNum) {
      reset(start, end, firstIndex, blockSize, blockNum);
   }
@@ -63,10 +63,10 @@ public class Subspace implements  Uninterruptible {
    * @param blockSize The size of tiles in this subspace
    * @param blockNum The number of tiles in this subspace
    */
-  private void reset (Address start, 
-                      Address end, 
-                      int firstIndex, 
-                      int blockSize, 
+  private void reset (Address start,
+                      Address end,
+                      int firstIndex,
+                      int blockSize,
                       int blockNum) {
     reset(start, end, firstIndex, blockNum);
     blockSize_ = blockSize;
@@ -82,9 +82,9 @@ public class Subspace implements  Uninterruptible {
    * @param firstIndex The index of the first tile of the subspace
    * @param blockNum The number of tiles in this subspace
    */
-  public void reset (Address start, 
-                     Address end, 
-                     int firstIndex, 
+  public void reset (Address start,
+                     Address end,
+                     int firstIndex,
                      int blockNum) {
     start_ = start;
     end_ = end;
@@ -104,7 +104,7 @@ public class Subspace implements  Uninterruptible {
     end_ = end;
     blockNum_ = blockNum;
   }
-  
+
   /**
    * Reset a new subspace
    *
@@ -115,22 +115,22 @@ public class Subspace implements  Uninterruptible {
     firstIndex_ = firstIndex;
     blockNum_ = blockNum;
   }
-  
+
 
   /**
    * Is index in range?
-   * 
+   *
    * @param index The index of the tile
    * @return true if this tile lies in this subspace
    */
   public boolean indexInRange (int index) {
-    return index >= firstIndex_ && 
+    return index >= firstIndex_ &&
            index < firstIndex_ + blockNum_;
   }
 
   /**
    * Is address in range?
-   * 
+   *
    * @param addr An address
    * @return true if this address is in a tile in this subspace
    */
@@ -139,9 +139,9 @@ public class Subspace implements  Uninterruptible {
   }
 
 
-  /** 
+  /**
    * Get tile index from address
-   * 
+   *
    * @param addr The address
    * @return The index of the tile holding this address
    */
@@ -198,9 +198,9 @@ public class Subspace implements  Uninterruptible {
   public int spaceRemaining(Address addr) {
     int nextIndex = getIndex(addr) + 1;
     Address nextTile = start_.add(blockSize_ * (nextIndex - firstIndex_));
-    return nextTile.diff(addr).toInt();      
+    return nextTile.diff(addr).toInt();
   }
-  
+
   /**
    * Dump a representation of the subspace
    */

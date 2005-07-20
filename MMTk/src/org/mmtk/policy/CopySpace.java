@@ -4,11 +4,12 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Plan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -188,67 +189,31 @@ public final class CopySpace extends Space
   }
 
   /**
-   * Trace an object under a copying collection policy.
-   * If the object is already copied, the copy is returned.
-   * Otherwise, a copy is created and returned.
-   * In either case, the object will be marked on return.
-   *
-   * @param object The object to be traced.
-   * @return The forwarded object.
-   */
-  public final ObjectReference traceObject(ObjectReference object) 
-    throws InlinePragma {
-    if (fromSpace)
-    return forwardObject(object, true);
-    else
-      return object;
-  }
-
-  /**
    * Mark an object as having been traversed.
    *
    * @param object The object to be marked
    * @param markState The sense of the mark bit (flips from 0 to 1)
    */
-  public static void markObject(ObjectReference object, Word markState) 
-    throws InlinePragma {
-    if (testAndMark(object, markState)) Plan.enqueue(object);
+  public static void markObject(TraceLocal trace, ObjectReference object, 
+                                Word markState) throws InlinePragma {
+    if (testAndMark(object, markState))
+      trace.enqueue(object);
   }
 
   /**
-   * Forward an object.
+   * Trace an object under a copying collection policy.
+   * If the object is already copied, the copy is returned.
+   * Otherwise, a copy is created and returned.
+   * In either case, the object will be marked on return.
    *
+   * @param trace The trace being conducted.
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
-  public static ObjectReference forwardObject(ObjectReference object) 
+  public ObjectReference traceObject(TraceLocal trace, ObjectReference object)
     throws InlinePragma {
-    return forwardObject(object, false);
-  }
-
-  /**
-   * Forward an object and enqueue it for scanning
-   *
-   * @param object The object to be forwarded.
-   * @return The forwarded object.
-   */
-  public static ObjectReference forwardAndScanObject(ObjectReference object) 
-    throws InlinePragma {
-    return forwardObject(object, true);
-  }
-
-  /**
-   * Forward an object.  If the object has not already been forwarded,
-   * then conditionally enqueue it for scanning.
-   *
-   * @param object The object to be forwarded.
-   * @param scan If <code>true</code>, then enqueue the object for
-   * scanning if the object was previously unforwarded.
-   * @return The forwarded object.
-   */
-  private static ObjectReference forwardObject(ObjectReference object,
-                                               boolean scan) 
-    throws InlinePragma {
+    if (!fromSpace) return object;
+    
     Word forwardingPtr = attemptToForward(object);
 
     // Somebody else got to it first.
@@ -262,19 +227,27 @@ public final class CopySpace extends Space
 
     // We are the designated copier
     //
-    ObjectReference newObject = ObjectModel.copy(object);
+    ObjectReference newObject = ObjectModel.copy(object, trace.getAllocator());
     setForwardingPointer(object, newObject);
-    if (scan) {
-      Plan.enqueue(newObject);       // Scan it later
-    } else {
-      Plan.enqueueForwardedUnscannedObject(newObject);
-    }
+    trace.enqueue(newObject);       // Scan it later
+    
     return newObject;
   }
 
 
   public final boolean isLive(ObjectReference object) {
     return isForwarded(object);
+  }
+  
+  /**
+   * Has the object in this space been reached during the current collection.
+   * This is used for GC Tracing.
+   * 
+   * @param object The object reference.
+   * @return True if the object is reachable.
+   */
+  public final boolean isReachable(ObjectReference object) {
+    return !fromSpace || isForwarded(object);
   }
 
 
