@@ -2,6 +2,7 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
+//$Id$
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import com.ibm.JikesRVM.VM_Processor;
