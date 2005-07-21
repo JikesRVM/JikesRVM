@@ -18,6 +18,7 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Barrier;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
+import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
@@ -988,10 +989,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * Start the GCspy server
    */
   public static void startGCspyServer() throws InterruptiblePragma {
-    /*
-      TODO
     GCspy.startGCspyServer();
-    */
   }
 
  /***********************************************************************

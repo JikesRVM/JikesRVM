@@ -83,7 +83,7 @@ public class SSGCspy extends SS implements Uninterruptible {
    * @param wait Whether to wait
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
-  public static final void startGCspyServer(int port, boolean wait)
+  public final void startGCspyServer(int port, boolean wait)
     throws InterruptiblePragma {
     String eventNames[] = {"Before collection",
                            "Semispace copied",

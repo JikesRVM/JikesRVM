@@ -115,7 +115,8 @@ public class SSGCspyLocal extends SSLocal implements Uninterruptible {
       reportSpaces();
       */
 
-      if (SSGCspy.hi) {
+      if ((event == SSGCspy.BEFORE_COLLECTION && !SSGCspy.hi) || 
+          (event != SSGCspy.BEFORE_COLLECTION && SSGCspy.hi)) {
         scannedSpace = SSGCspy.copySpace1;
         otherSpace = SSGCspy.copySpace0;
         driver = SSGCspy.ss1Driver;

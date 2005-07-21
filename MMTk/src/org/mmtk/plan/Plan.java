@@ -601,4 +601,14 @@ public abstract class Plan implements Uninterruptible, Constants {
    */
   public abstract boolean poll(boolean mustCollect, Space space);
 
+  /**
+   * Start GC spy server.
+   *
+   * @param port The port to listen on,
+   * @param wait Should we wait for a client to connect? 
+   */
+  public void startGCspyServer(int port, boolean wait) throws InterruptiblePragma {
+    Assert.fail("startGCspyServer called on non GCspy plan");
+  }
+
 }
