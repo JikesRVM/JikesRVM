@@ -86,6 +86,21 @@ public final class VM_PartialCallGraph implements VM_Decayable,
    *         given caller bytecodeIndex pair.
    */
   public VM_WeightedCallTargets getCallTargets(VM_Method caller, int bcIndex) {
+    VM_MethodReference callerRef=caller.getMemberRef().asMethodReference();
+    VM_UnResolvedWeightedCallTargets unresolvedTargets = (VM_UnResolvedWeightedCallTargets)unresolvedCallGraph.get(new VM_UnResolvedCallSite(callerRef, bcIndex));
+    if (unresolvedTargets != null) {
+      final VM_Method fCaller= caller;
+      final int fBcIndex=bcIndex;
+      final VM_PartialCallGraph pg=this;
+      unresolvedTargets.visitTargets(new VM_UnResolvedWeightedCallTargets.Visitor() {
+          public void visit(VM_MethodReference calleeRef, double weight) {
+            VM_Method callee = calleeRef.getResolvedMember();
+            if (callee != null) {
+              pg.incrementEdge(fCaller, fBcIndex, callee, (float)weight);
+            }
+          }
+        });
+    }
     return getCallTargets(new VM_CallSite(caller, bcIndex));
   }
 
