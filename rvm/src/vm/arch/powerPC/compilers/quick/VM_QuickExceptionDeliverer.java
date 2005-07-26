@@ -61,8 +61,7 @@ class VM_QuickExceptionDeliverer extends VM_ExceptionDeliverer
     VM_QuickCompiledMethod qcm = (VM_QuickCompiledMethod)compiledMethod;
     if (method.isSynchronized()) { 
       Address ip = registers.getInnermostInstructionAddress();
-      Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-      Offset instr = ip.diff(base);
+      Offset instr = compiledMethod.getInstructionOffset(ip);
       Offset lockOffset = ((VM_QuickCompiledMethod)compiledMethod).getLockAcquisitionOffset();
       if (instr.sGT(lockOffset)) { // we actually have the lock, so must unlock it.
         Object lock;

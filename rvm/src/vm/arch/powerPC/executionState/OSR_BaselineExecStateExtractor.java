@@ -73,11 +73,9 @@ public final class OSR_BaselineExecStateExtractor
     VM_NormalMethod fooM = (VM_NormalMethod)fooCM.getMethod();
 
     // get the next bc index 
-    VM_CodeArray instructions = fooCM.getInstructions();
-
     VM.disableGC();
     Address rowIP     = VM_Magic.objectAsAddress(stack).loadAddress(methFPoff.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
-    Offset ipOffset = rowIP.diff(VM_Magic.objectAsAddress(instructions));
+    Offset ipOffset = fooCM.getInstructionOffset(rowIP);
     VM.enableGC();
 
     // CAUTION: IP Offset should point to next instruction
@@ -149,7 +147,6 @@ public final class OSR_BaselineExecStateExtractor
                      startLocalOffset, 
                      localTypes,
                      fooCM,
-                     instructions,
                      LOCAL,
                      state);
 
@@ -158,7 +155,6 @@ public final class OSR_BaselineExecStateExtractor
                      stackOffset,
                      stackTypes,
                      fooCM,
-                     instructions,
                      STACK,
                      state);
 
@@ -177,7 +173,6 @@ public final class OSR_BaselineExecStateExtractor
                                        Offset   offset,
                                        byte[] types,
                                        VM_BaselineCompiledMethod compiledMethod,
-                                       VM_CodeArray instructions,
                                        int   kind,
                                        OSR_ExecutionState state) {
     int size = types.length;
@@ -229,7 +224,7 @@ public final class OSR_BaselineExecStateExtractor
       case ReturnAddressTypeCode: {
         VM.disableGC();
         Address rowIP = VM_Magic.objectAsAddress(stack).loadAddress(vOffset.sub(BYTES_IN_ADDRESS));
-        Offset ipOffset = rowIP.diff(VM_Magic.objectAsAddress(instructions));
+        Offset ipOffset = compiledMethod.getInstructionOffset(rowIP);
         VM.enableGC();
 
         vOffset = vOffset.sub(BYTES_IN_STACKSLOT);

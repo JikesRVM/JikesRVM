@@ -2130,7 +2130,7 @@ public class BootImageWriter extends BootImageWriterMessages
       if (compiledMethod != null) {
         VM_Method m = compiledMethod.getMethod();
         if (m != null && compiledMethod.isCompiled()) {
-          VM_CodeArray instructions = compiledMethod.getInstructions();
+          VM_CodeArray instructions = compiledMethod.getEntryCodeArray();
           Address code = BootImageMap.getImageAddress(bootImageAddress, instructions.getBacking());
           out.println(".     .          code     " + VM.addressAsHexString(code) +
                       "          " + compiledMethod.getMethod());
