@@ -556,7 +556,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * which may have been forwarded (if a copying collector).
    * 
    * @param The trace being conducted.
-   * @param object
+   * @param object The object to trace
    * @return The object, forwarded, if appropriate
    */
   abstract public ObjectReference traceObject(TraceLocal trace, 

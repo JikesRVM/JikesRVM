@@ -25,7 +25,7 @@ public class RCSanityEnumerator extends Enumerator
   /**
    * Constructor.
    *
-   * @param plan The plan instance with respect to which the
+   * @param rc The plan instance with respect to which the
    * enumeration will occur.
    */
   public RCSanityEnumerator(RefCountLocal rc) {

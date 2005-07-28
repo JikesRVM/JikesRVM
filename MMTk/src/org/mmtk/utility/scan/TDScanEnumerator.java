@@ -25,7 +25,7 @@ public class TDScanEnumerator extends Enumerator implements Uninterruptible {
   /**
    * Constructor.
    *
-   * @param plan The plan instance with respect to which the
+   * @param td The trial deletion instance with respect to which the
    * enumeration will occur.
    */
   public TDScanEnumerator(TrialDeletion td) {
@@ -35,7 +35,7 @@ public class TDScanEnumerator extends Enumerator implements Uninterruptible {
   /**
    * Enumerate a pointer.  In this case it is a scan event.
    *
-   * @param location The address of the field being enumerated.
+   * @param objLoc The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address objLoc) throws InlinePragma {
     td.enumerateScan(objLoc.loadObjectReference());

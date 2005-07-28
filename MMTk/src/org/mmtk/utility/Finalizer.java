@@ -163,7 +163,7 @@ public class Finalizer implements Uninterruptible {
    * Scan the array for objects which have become finalizable and move
    * them to the Finalizable class
    * 
-   * @trace The trace instance to use.
+   * @param trace The trace instance to use.
    */
   public final static int moveToFinalizable (TraceLocal trace) {
     int cursor = 0;

@@ -371,9 +371,7 @@ public final class TrialDeletion extends CycleDetector
    * and thus applying temporary decrements to each of the object's
    * decendents.
    *
-   * @param markGreyTimeCap The time by which we must stop marking
-   * grey.
-   * @param src The source of purple objects which are to be marked
+   * @param timeCap The time by which we must stop marking
    * grey.
    */
   private final boolean doMarkGreyPhase(long timeCap) {

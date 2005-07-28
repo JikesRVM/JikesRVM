@@ -151,7 +151,7 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
  /**
    * Return true if <code>obj</code> is a reachable object.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if <code>obj</code> is a reachable object;
    * unreachable objects may still be live, however
    */

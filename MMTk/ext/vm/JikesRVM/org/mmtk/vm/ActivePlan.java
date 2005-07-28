@@ -37,7 +37,7 @@ public final class ActivePlan implements Uninterruptible {
    *
    * FIXME: Possible race in allocation of ids. Should be synchronized.
    *
-   * @param planLocal The PlanLocal to register
+   * @param local The PlanLocal to register
    * @return The unique Plan id.
    */
   public static final int registerLocal(PlanLocal local) throws InterruptiblePragma {

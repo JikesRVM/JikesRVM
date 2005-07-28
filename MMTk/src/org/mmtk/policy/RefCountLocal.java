@@ -161,7 +161,9 @@ public final class RefCountLocal extends SegregatedFreeList
    *
    * @param space The ref count space with which this local thread is
    * associated.
-   * @param plan The plan with which this local thread is associated.
+   * @param los The large object allocator
+   * @param dec The decBuffer
+   * @param root The rootSet buffer.
    */
   public RefCountLocal(RefCountSpace space, LargeRCObjectLocal los, 
                        ObjectReferenceDeque dec, ObjectReferenceDeque root) {
@@ -230,8 +232,7 @@ public final class RefCountLocal extends SegregatedFreeList
    * Finish up after a collection.
    *
    * @param plan The plan instance performing this operation
-   * @param count The ordinal number of the plan instance performing
-   * this operation
+   * @param primary Is this the thread to use for single-threaded work?
    */
   public final void release(RCBaseLocal plan, boolean primary) {
     boolean timekeeper = (Options.verboseTiming.getValue() && primary);

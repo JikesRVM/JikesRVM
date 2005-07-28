@@ -169,7 +169,8 @@ public class GCTraceLocal extends SSLocal implements Uninterruptible {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param locationMetadata an int that encodes the source location
+   * @param metaDataA an int that encodes the source location
+   * @param metaDataB an int that encodes the source location
    * being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */

@@ -193,9 +193,8 @@ public class Scanning implements Constants, Uninterruptible {
    * for each pointer encountered. <i>NOTE</i> that only the "real"
    * pointer fields are enumerated, not the TIB.
    *
+   * @param trace The trace object to use to report precopy objects.
    * @param object The object to be scanned.
-   * @param _enum the Enumerator object through which the trace
-   * is made
    */
   private static void precopyChildren(TraceLocal trace, Object object) 
     throws UninterruptiblePragma, InlinePragma {
@@ -218,9 +217,7 @@ public class Scanning implements Constants, Uninterruptible {
    * 
    * TODO rewrite to avoid the per-thread synchronization, like precopy.
    *
-   * @param rootLocations set to store addresses containing roots
-   * @param interiorRootLocations set to store addresses containing
-   * return adddresses, or <code>null</code> if not required
+   * @param trace The trace object to use to report root locations.
    */
   public static void computeAllRoots(TraceLocal trace) {
     boolean processCodeLocations = MM_Interface.MOVES_OBJECTS;

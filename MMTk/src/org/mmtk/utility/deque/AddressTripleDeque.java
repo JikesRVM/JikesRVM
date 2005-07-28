@@ -60,7 +60,7 @@ public class AddressTripleDeque extends LocalDeque implements Constants, Uninter
    *
    * @param addr1 the first value to be pushed onto the address queue
    * @param addr2 the second value to be pushed onto the address queue
-   * @param addr2 the third address to be pushed onto the address queue
+   * @param addr3 the third address to be pushed onto the address queue
    */
   public final void push(Address addr1, Address addr2, Address addr3){
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr1.isZero());

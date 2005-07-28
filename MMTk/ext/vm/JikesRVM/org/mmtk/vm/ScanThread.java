@@ -121,8 +121,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * Scan a thread, placing the addresses of pointers into supplied buffers.
    *
    * @param thread The thread to be scanned
-   * @param rootLocations The deque into which object references are
-   * to be placed
+   * @param trace The trace instance to use for reporting references.
    * @param codeLocations The deque into which interior pointers
    * associted with code pointers are to be placed
    */
@@ -139,8 +138,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * structure.
    *
    * @param thread The thread to be scanned
-   * @param rootLocations The deque into which object references are
-   * to be placed
+   * @param trace The trace instance to use for reporting references.
    * @param codeLocations The deque into which interior pointers
    * associted with code pointers are to be placed
    * @param gprs The general purpose registers associated with the
@@ -180,9 +178,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    * The various state associated with stack scanning is captured by
    * instance variables of this type, which are initialized here.
    *
-   * @param rootLocations set in which to store addresses containing roots
-   * @param codeLocations set in which to store addresses containing
-   * return addresses (if null, skip)
+   * @param trace The trace instance to use for reporting locations.
    * @param thread VM_Thread for the thread whose stack is being scanned
    * @param gprs The general purpose registers associated with the
    * stack being scanned (normally extracted from the thread).

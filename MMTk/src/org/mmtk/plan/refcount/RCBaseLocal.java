@@ -91,12 +91,12 @@ public abstract class RCBaseLocal extends StopTheWorldLocal
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.  This exists
-   * to support {@link PlanLocal#getOwnAllocator(Allocator)}.<p>
+   * to support {@link org.mmtk.plan.PlanLocal#getOwnAllocator(Allocator)}.<p>
    *
    * Note that we override <code>los</code>, so we must account for it
    * here (rather than in our superclass).
    *
-   * @see PlanLocal#getOwnAllocator(Allocator)
+   * @see org.mmtk.plan.PlanLocal#getOwnAllocator(Allocator)
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    * <code>null</code> if there is no space associated with
@@ -111,12 +111,12 @@ public abstract class RCBaseLocal extends StopTheWorldLocal
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
-   * to support {@link PlanLocal#getOwnAllocator(Allocator)}.<p>
+   * to support {@link org.mmtk.plan.PlanLocal#getOwnAllocator(Allocator)}.<p>
    *
    * Note that we override <code>los</code>, so we must account for it
    * here (rather than in our superclass).
    *
-   * @see PlanLocal#getOwnAllocator(Allocator)
+   * @see org.mmtk.plan.PlanLocal#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
