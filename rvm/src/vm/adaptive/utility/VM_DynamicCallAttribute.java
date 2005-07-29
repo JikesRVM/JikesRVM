@@ -81,9 +81,6 @@ class VM_DynamicCallAttribute {
    *
    * @see VM_DynamicCallInfoReader
    */
-//      new VM_DynamicCallAttribute(callercls, callermth, callersig, callerSize,
-//                                  bci, calleecls, calleemth, calleesig, 
-//                                  calleeSize, weight);
   public VM_DynamicCallAttribute(VM_Atom callerClassName, VM_Atom callerName,
                                  VM_Atom callerSig, int callerSize,
                                  int bci,

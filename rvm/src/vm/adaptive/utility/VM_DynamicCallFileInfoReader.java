@@ -38,7 +38,6 @@ import java.util.ArrayList;
  * @date $Date$
  *
  * @see VM_CompilerAdvice
- * @see VM_DynamicCallAttribute
  */
 public class VM_DynamicCallFileInfoReader {
 
