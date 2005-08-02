@@ -1,0 +1,6 @@
+prototype                          -test-list nightly-tests-extended
+BaseBaseCopyMS                     -test-list nightly-tests
+BaseBaseMarkSweep                  -test-list nightly-tests
+BaseBaseSemiSpace                  -test-list nightly-tests
+BaseBaseGenCopy                    -test-list nightly-tests
+BaseBaseCopyMSUP                   -test-list nightly-tests-short
