@@ -7,8 +7,19 @@ This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
 *Jikes RVM 2.3.7 Release Notes (future...)
-**Highlights 
-OS X is working again
+
+*Highlights 
+** OS X is working again.
+
+** Major MMTk Refactoring.
+The most significant refactoring to MMTk since the initial release has 
+been completed. The MMTk Plan class hierarchy has been split to more 
+clearly distinguish global and local state, and move toward a more natural 
+Java style. This has involved substantial changes to the plan hierarchy,
+which is now structured a set of subpackages under org.mmtk.plan. For more 
+information on the MMTk refactoring please refer to the tutorial and 
+cheatsheet in the MMTk/doc directory, both of which are intended to 
+assist with users migrating collectors to the new release.
 
 **Other Notes:
 **Bug Fixes:
