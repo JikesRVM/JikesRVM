@@ -76,7 +76,7 @@ public final class CopyMSTraceLocal extends TraceLocal
       return CopyMS.nurserySpace.traceObject(this, object);
     if (Space.isInSpace(CopyMS.MARK_SWEEP, object))
       return CopyMS.msSpace.traceObject(this, object);
-    return Space.getSpaceForObject(object).traceObject(this, object);
+    return super.traceObject(object);
   }
 
 

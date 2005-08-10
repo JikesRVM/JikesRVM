@@ -232,8 +232,16 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object) {
-    return Space.getSpaceForObject(object).traceObject(this, object);
+  public ObjectReference traceObject(ObjectReference object) throws InlinePragma {
+    if (Space.isInSpace(Plan.VM,object)) 
+      return Plan.vmSpace.traceObject(this,object);
+    if (Space.isInSpace(Plan.IMMORTAL,object)) 
+      return Plan.immortalSpace.traceObject(this,object);
+    if (Space.isInSpace(Plan.LOS,object))
+      return Plan.loSpace.traceObject(this,object);
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(false, "No special case for space in traceObject");
+    return null;
   }
 
 

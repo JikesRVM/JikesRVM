@@ -69,6 +69,6 @@ public final class MSTraceLocal extends TraceLocal implements Uninterruptible {
     if (object.isNull()) return object;
     if (Space.isInSpace(MS.MARK_SWEEP, object))
       return MS.msSpace.traceObject(this, object);
-    return Space.getSpaceForObject(object).traceObject(this, object);
+    return super.traceObject(object);
   }
 }

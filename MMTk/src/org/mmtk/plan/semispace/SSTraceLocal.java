@@ -72,8 +72,7 @@ public class SSTraceLocal extends TraceLocal implements Uninterruptible {
       return SS.copySpace0.traceObject(this,object);
     if (Space.isInSpace(SS.SS1, object))
       return SS.copySpace1.traceObject(this,object);
-    // TODO - should this be super.traceObject() ?
-    return Space.getSpaceForObject(object).traceObject(this,object);
+    return super.traceObject(object);
   }
 
   /**
