@@ -6,10 +6,11 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.3.7 Release Notes (future...)
+*Jikes RVM 2.4.0 Release Notes (released on August 11, 2005)
 
 *Highlights 
 ** OS X is working again.
+Support for running Jikes RVM on OS X has been restored.
 
 ** Major MMTk Refactoring.
 The most significant refactoring to MMTk since the initial release has 
@@ -21,13 +22,13 @@ information on the MMTk refactoring please refer to the tutorial and
 cheatsheet in the MMTk/doc directory, both of which are intended to 
 assist with users migrating collectors to the new release.
 
-**Other Notes:
-**Bug Fixes:
+**The recommended version of GNU classpath for Jikes RVM 2.4.0 is 0.17.
+Classpath 0.15 is expected to still work, but has not been tested.
 
-Discuss status of "ldd bug"
-
-
-
+** Support for compiler replay
+Contribution of compiler replay.  Compiler replay is an experimental 
+methodology that eliminates memory allocation and mutator variations due
+to non-deterministic sampling and adaptive optimizations.
 
 
 *Jikes RVM 2.3.6 Release Notes (released on May 23, 2005)
