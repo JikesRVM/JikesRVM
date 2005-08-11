@@ -4,11 +4,13 @@
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.plan.BasePlan;
+import org.mmtk.plan.Plan;
 
 /**
  * Provide an upper bound on nursery size. This option is not intended to
  * be created directly, but via NurserySize.
+ *
+ * $Id$
  *
  * @author Daniel Frampton
  * @version $Revision$
@@ -16,18 +18,18 @@ import org.mmtk.plan.BasePlan;
  */
 public class BoundedNursery extends PagesOption {
   /**
-   * Create the option. 
+   * Create the option.
    */
   public BoundedNursery() {
-    super("Bounded Nursery", 
+    super("Bounded Nursery",
           "Bound the maximum size of the nursery to this value",
-          BasePlan.DEFAULT_MAX_NURSERY);
+          Plan.DEFAULT_MAX_NURSERY);
   }
 
   /**
    * Nursery can not be empty.
-   */ 
+   */
   protected void validate() {
-    failIf(value <= 0, "Can not have an empty nursery"); 
+    failIf(value <= 0, "Can not have an empty nursery");
   }
 }

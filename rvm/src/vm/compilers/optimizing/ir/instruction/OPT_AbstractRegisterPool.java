@@ -301,6 +301,8 @@ public abstract class OPT_AbstractRegisterPool {
       result = makeTemp(VM_TypeReference.Float);
     } else if (op instanceof OPT_DoubleConstantOperand) {
       result = makeTemp(VM_TypeReference.Double);
+    } else if (op instanceof OPT_AddressConstantOperand) {
+      result = makeTemp(VM_TypeReference.Address);
     } else {
       result = null;
       OPT_OptimizingCompilerException.UNREACHABLE("unknown operand type: "+op);

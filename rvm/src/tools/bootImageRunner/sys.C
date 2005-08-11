@@ -2741,10 +2741,9 @@ extern "C" int
 sysNetSocketPort(int fd)
 {
     sockaddr_in info;
-#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
+#if defined RVM_FOR_AIX
     int len;
-#endif
-#ifdef RVM_FOR_LINUX
+#else
     socklen_t len;
 #endif
 
@@ -2771,12 +2770,7 @@ extern "C" int
 sysNetSocketSndBuf(int fd)
 {
     int val = 0;
-#if defined RVM_FOR_OSX
-    int len;
-#endif
-#if defined RVM_FOR_AIX || defined RVM_FOR_LINUX
     socklen_t len;
-#endif
 
     len = sizeof(int);
     if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) == -1)
@@ -2801,10 +2795,9 @@ extern "C" int
 sysNetSocketLocalAddress(int fd)
 {
     sockaddr_in info;
-#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
+#if defined RVM_FOR_AIX
     int len;
-#endif
-#ifdef RVM_FOR_LINUX
+#else
     socklen_t len;
 #endif
 
@@ -2831,10 +2824,9 @@ extern "C" int
 sysNetSocketFamily(int fd)
 {
     sockaddr_in info;
-#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
+#if defined RVM_FOR_AIX
     int len;
-#endif
-#ifdef RVM_FOR_LINUX
+#else
     socklen_t len;
 #endif
 
@@ -3002,10 +2994,9 @@ sysNetSocketAccept(int fd, void *connectionObject)
     int interruptsThisTime = 0;
     int connectionFd = -1;
     sockaddr_in info;
-#if (defined RVM_FOR_AIX || defined RVM_FOR_OSX)
+#if defined RVM_FOR_AIX
     int len;
-#endif
-#ifdef RVM_FOR_LINUX
+#else
     socklen_t len;
 #endif
 

@@ -109,14 +109,10 @@ class MainThread extends Thread {
     //
     VM_Callbacks.notifyStartup();
 
-    // dummy call for debugger to find the main method
-    // (needed for the default option of stopping in the main method on start up)
-    VM.debugBreakpoint();
-
     launched = true;
     if (dbg) VM.sysWriteln("[MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
-    VM_Magic.invokeMain(mainArgs, mainMethod.getCurrentCompiledMethod().getInstructions());
+    VM_Magic.invokeMain(mainArgs, mainMethod.getCurrentEntryCodeArray());
     if (dbg) VM.sysWriteln("  MainThread.run(): \"main\" method completed.]");
   }
 }

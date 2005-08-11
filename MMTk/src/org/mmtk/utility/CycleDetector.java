@@ -17,16 +17,12 @@ import org.vmmagic.pragma.*;
 abstract class CycleDetector implements Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  protected static CycleFilterThreshold cycleFilterThreshold;
-  protected static CycleMetaDataLimit cycleMetaDataLimit;
-  protected static CycleTriggerThreshold cycleTriggerThreshold;
-
   static {
-    cycleFilterThreshold = new CycleFilterThreshold();
-    cycleMetaDataLimit = new CycleMetaDataLimit();
-    cycleTriggerThreshold = new CycleTriggerThreshold();
+    Options.cycleFilterThreshold = new CycleFilterThreshold();
+    Options.cycleMetaDataLimit = new CycleMetaDataLimit();
+    Options.cycleTriggerThreshold = new CycleTriggerThreshold();
   }
 
-  abstract boolean collectCycles(int count, boolean time);
+  abstract boolean collectCycles(boolean primary, boolean time);
   abstract void possibleCycleRoot(ObjectReference object);
 }

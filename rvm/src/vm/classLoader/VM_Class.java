@@ -1328,14 +1328,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         if (method.isPrivate() && method.getDeclaringClass() != this) {
           typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB
         } else {
-          typeInformationBlock[slot] = method.getCurrentInstructions();
+          typeInformationBlock[slot] = method.getCurrentEntryCodeArray();
         }
       }
 
       // compile <init> methods and put their addresses into jtoc
       for (int i = 0, n = constructorMethods.length; i < n; ++i) {
         VM_Method method = constructorMethods[i];
-        VM_Statics.setSlotContents(method.getOffset(), method.getCurrentInstructions());
+        VM_Statics.setSlotContents(method.getOffset(), method.getCurrentEntryCodeArray());
       }
 
       // compile static methods and put their addresses into jtoc
@@ -1345,7 +1345,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         // This also avoids putting <clinit>s in the bootimage.
         VM_Method method = staticMethods[i];
         if (!method.isClassInitializer()) {
-          VM_Statics.setSlotContents(method.getOffset(), method.getCurrentInstructions());
+          VM_Statics.setSlotContents(method.getOffset(), method.getCurrentEntryCodeArray());
         }
       }
     }
@@ -1405,7 +1405,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for "+this+"]\n");
 
       try {
-        VM_Magic.invokeClassInitializer(cm.getInstructions());
+        VM_Magic.invokeClassInitializer(cm.getEntryCodeArray());
       } catch (Error e) {
         throw e;
       } catch (Throwable t) {
@@ -1532,7 +1532,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass() == this);
     if (VM.VerifyAssertions) VM._assert(isResolved());
     if (VM.VerifyAssertions) VM._assert(m.isStatic() || m.isObjectInitializer());
-    VM_Statics.setSlotContents(m.getOffset(), m.getCurrentInstructions());
+    VM_Statics.setSlotContents(m.getOffset(), m.getCurrentEntryCodeArray());
   }
 
 
@@ -1549,7 +1549,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM._assert(vm == m);
     }
     int index = m.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
-    typeInformationBlock[index] = m.getCurrentInstructions();
+    typeInformationBlock[index] = m.getCurrentEntryCodeArray();
     VM_InterfaceInvocation.updateTIBEntry(this, m);
   }
 

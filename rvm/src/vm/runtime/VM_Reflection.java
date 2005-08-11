@@ -102,7 +102,7 @@ public class VM_Reflection implements VM_Constants {
     
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
 
-    VM_CodeArray code = cm.getInstructions();
+    VM_CodeArray code = cm.getEntryCodeArray();
     VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, 
                                            FPRs, Spills);
     

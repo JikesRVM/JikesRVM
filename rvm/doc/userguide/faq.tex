@@ -227,11 +227,12 @@ If it does not, then you have a bad version of \texttt{glibc}.   You
 can use \texttt{objdump} to perform disassembly.
 
 \subsubsection{Which version of {\tt jikes} should I use?}
-At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.19
-to compile the RVM source on Linux\Rweb{} and AIX\TMweb. Previously we
-were using version 1.18 and before that version 1.13. Version 1.14
-through 1.17 do not entirely work with Jikes RVM.\@ For versions of
-Jikes RVM before 2.2.0, you must use jikes 1.13.
+At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.22
+to compile the RVM source on Linux\Rweb{} and AIX\TMweb. At least this 
+version of jikes is required for Jikes RVM versions 2.3.5 and higher.
+Previously we were using version 1.18 and before that version
+1.13. Version 1.14 through 1.17 do not entirely work with Jikes RVM.\@
+For versions of Jikes RVM before 2.2.0, you must use jikes 1.13. 
 
 \subsubsection{Has anybody thought about incremental boot image writing?}%
 \index{incremental boot image writing}%

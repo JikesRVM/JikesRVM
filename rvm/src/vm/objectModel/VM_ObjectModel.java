@@ -223,13 +223,6 @@ public final class VM_ObjectModel implements Uninterruptible,
   }
 
   /**
-   * Process the TIB field during copyingGC
-   */
-  public static void gcProcessTIB(ObjectReference ref) {
-    VM_JavaHeader.gcProcessTIB(ref);
-  }
-
- /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {

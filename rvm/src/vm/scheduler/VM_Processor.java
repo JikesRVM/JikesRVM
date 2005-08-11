@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import org.mmtk.vm.Plan;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedPlanLocal;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.*;
  */
 public final class VM_Processor 
 //-#if RVM_WITH_JMTK_INLINE_PLAN
-extends Plan 
+extends SelectedPlanLocal
 //-#endif
 implements Uninterruptible, VM_Constants {
 
@@ -491,7 +491,7 @@ implements Uninterruptible, VM_Constants {
   //-#endif
 
   //-#if !RVM_WITH_JMTK_INLINE_PLAN
-  public final Plan mmPlan = new Plan();
+  public final SelectedPlanLocal mmPlan = new SelectedPlanLocal();
   //-#endif
 
   // More GC fields
@@ -741,7 +741,7 @@ implements Uninterruptible, VM_Constants {
   // PPC baseline compiler
   private double scratchStorage;
 
-  public void dumpProcessorState() throws InterruptiblePragma {
+  public void dumpProcessorState() throws LogicallyUninterruptiblePragma /* GACK --dave */ {
     VM.sysWrite("Processor "); 
     VM.sysWriteInt(id);
     if (this == VM_Processor.getCurrentProcessor()) VM.sysWrite(" (me)");

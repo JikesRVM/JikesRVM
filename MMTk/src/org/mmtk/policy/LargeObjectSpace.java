@@ -4,11 +4,12 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.Constants;
+
 import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Plan;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -226,16 +227,18 @@ public final class LargeObjectSpace extends Space
    * marked as (an atomic) side-effect of checking whether already
    * marked.
    *
+   * @param trace The trace being conducted.
    * @param object The object to be traced.
    * @return The object (there is no object forwarding in this
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final ObjectReference traceObject(ObjectReference object)
+  public final ObjectReference traceObject(TraceLocal trace,
+                                           ObjectReference object)
     throws InlinePragma {
     if (testAndMark(object, markState)) {
       internalMarkObject(object);
-      Plan.enqueue(object);
+      trace.enqueue(object);
     }
     return object;
   }

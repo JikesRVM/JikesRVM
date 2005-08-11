@@ -311,22 +311,35 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), tv.clear());
           return tv.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
         }
-        if (tv.isIntConstant() && fv.isIntConstant()) {
+        if (tv.isIntConstant() && fv.isIntConstant() && !CondMove.getCond(s).isFLOATINGPOINT()) {
           int itv = tv.asIntConstant().value;
           int ifv = fv.asIntConstant().value;
-          if (itv == 1 && ifv == 0) {
-            BooleanCmp.mutate(s, BOOLEAN_CMP_INT, CondMove.getClearResult(s),
-                              CondMove.getClearVal1(s), CondMove.getClearVal2(s),
-                              CondMove.getClearCond(s), new OPT_BranchProfileOperand());
-            return REDUCED;
-          }
-          if (itv == 0 && ifv == 1) {
-            BooleanCmp.mutate(s, BOOLEAN_CMP_INT, CondMove.getClearResult(s),
-                              CondMove.getClearVal1(s), CondMove.getClearVal2(s),
-                              CondMove.getClearCond(s).flipCode(), new OPT_BranchProfileOperand());
-            return REDUCED;
-          }
-        }
+			 OPT_Operator op = null;
+			 if(val1.isLong()) {
+				op = BOOLEAN_CMP_LONG;
+			 }
+			 else if(val1.isFloat()) {
+				op = BOOLEAN_CMP_FLOAT;
+			 }
+			 else if(val1.isDouble()) {
+				op = BOOLEAN_CMP_DOUBLE;
+			 }
+			 else {
+				op = BOOLEAN_CMP_INT;
+			 }
+			 if (itv == 1 && ifv == 0) {
+				BooleanCmp.mutate(s, op, CondMove.getClearResult(s),
+										CondMove.getClearVal1(s), CondMove.getClearVal2(s),
+										CondMove.getClearCond(s), new OPT_BranchProfileOperand());
+				return REDUCED;
+			 }
+			 if (itv == 0 && ifv == 1) {
+				BooleanCmp.mutate(s, op, CondMove.getClearResult(s),
+										CondMove.getClearVal1(s), CondMove.getClearVal2(s),
+										CondMove.getClearCond(s).flipCode(), new OPT_BranchProfileOperand());
+				return REDUCED;
+			 }
+		  }
       }
       return UNCHANGED;
     case LONG_COND_MOVE_opcode:

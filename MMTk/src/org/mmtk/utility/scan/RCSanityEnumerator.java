@@ -18,14 +18,14 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class RCSanityEnumerator extends Enumerate 
+public class RCSanityEnumerator extends Enumerator 
   implements Uninterruptible {
   private RefCountLocal rc;
 
   /**
    * Constructor.
    *
-   * @param plan The plan instance with respect to which the
+   * @param rc The plan instance with respect to which the
    * enumeration will occur.
    */
   public RCSanityEnumerator(RefCountLocal rc) {

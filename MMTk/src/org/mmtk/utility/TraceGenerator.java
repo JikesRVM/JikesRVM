@@ -4,15 +4,21 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.semispace.gctrace.GCTrace;
+import org.mmtk.plan.semispace.gctrace.GCTraceLocal;
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.deque.*;
-import org.mmtk.utility.scan.*;
-import org.mmtk.vm.TraceInterface;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Plan;
-import org.mmtk.vm.Collection;
+import org.mmtk.utility.deque.*;
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.TraceRate;
+import org.mmtk.utility.scan.*;
+
+import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
+import org.mmtk.vm.Collection;
+import org.mmtk.vm.TraceInterface;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -30,6 +36,10 @@ public final class TraceGenerator
 
   public final static String Id = "$Id$"; 
 
+  private static final GCTraceLocal local() {
+    return (GCTraceLocal)ActivePlan.local();
+  }
+  
   /***********************************************************************
    *
    * Class variables
@@ -39,7 +49,7 @@ public final class TraceGenerator
   public  static final boolean MERLIN_ANALYSIS = true;
 
   /* include the notion of build-time allocation to our list of allocators */
-  private static final int ALLOC_BOOT = Plan.ALLOCATORS;
+  private static final int ALLOC_BOOT = GCTrace.ALLOCATORS;
   private static final int ALLOCATORS = ALLOC_BOOT + 1;
 
   /* Fields for tracing */
@@ -54,12 +64,10 @@ public final class TraceGenerator
   private static SortTODObjectReferenceStack worklist;     // Objs to process
   private static Word    agePropagate;  // Death time propagating
 
-  private static TraceRate traceRate;
-
   static {
     traceBusy = false;
     lastGC = Word.fromInt(4);
-    traceRate = new TraceRate();
+    Options.traceRate = new TraceRate();
   }
 
 
@@ -221,13 +229,13 @@ public final class TraceGenerator
     /* Assert that this isn't the result of tracing */
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
 
-    boolean gcAllowed = TraceInterface.gcEnabled() && Plan.initialized()
+    boolean gcAllowed = TraceInterface.gcEnabled() && Plan.isInitialized()
       && !Plan.gcInProgress();
     /* Test if it is time/possible for an exact allocation. */
     Word oid = TraceInterface.getOID(ref);
     Word allocType;
     if (gcAllowed 
-        && (oid.GE(lastGC.add(Word.fromInt(traceRate.getValue())))))
+        && (oid.GE(lastGC.add(Word.fromInt(Options.traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
     else
       allocType = TRACE_ALLOC;
@@ -285,7 +293,7 @@ public final class TraceGenerator
         /* Start at the top of each linked list */
         while (!thisRef.isNull()) {
           /* Add the unreachable objects onto the worklist. */
-          if (!Plan.getInstance().isReachable(thisRef))
+          if (!getTraceLocal().isReachable(thisRef))
             worklist.push(thisRef);
           thisRef = TraceInterface.getLink(thisRef);
         }
@@ -302,8 +310,8 @@ public final class TraceGenerator
       while (!thisRef.isNull()) {
         ObjectReference nextRef = TraceInterface.getLink(thisRef);
         /* Maintain reachable objects on the linked list of allocated objects */
-        if (Plan.getInstance().isReachable(thisRef)) {
-          thisRef = Plan.followObject(thisRef);
+        if (getTraceLocal().isReachable(thisRef)) {
+          thisRef = getTraceLocal().getForwardedReference(thisRef);
           TraceInterface.setLink(thisRef, prevRef);
           prevRef = thisRef;
         } else {
@@ -348,11 +356,11 @@ public final class TraceGenerator
     /* If this death time is more accurate, set it. */
     if (TraceInterface.getDeathTime(ref).LT(agePropagate)) {
       /* If we should add the object for further processing. */
-      if (!Plan.getInstance().isReachable(ref)) {
+      if (!getTraceLocal().isReachable(ref)) {
         TraceInterface.setDeathTime(ref, agePropagate);
         worklist.push(ref);
       } else {
-        TraceInterface.setDeathTime(Plan.followObject(ref), agePropagate);
+        TraceInterface.setDeathTime(getTraceLocal().getForwardedReference(ref), agePropagate);
       }
     }
   }
@@ -375,10 +383,15 @@ public final class TraceGenerator
         /* Set the "new" dead age. */
         agePropagate = currentAge;
         /* Scan the object, pushing the survivors */
-        Scan.scanObject(ref);
+        Scan.scanObject(getTraceLocal(), ref);
       }
       /* Get the next object to process */
       ref = worklist.pop();
     }
   }
+  
+  private static final TraceLocal getTraceLocal() {
+    return ActivePlan.local().getCurrentTrace();
+  }
+  
 }

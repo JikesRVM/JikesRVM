@@ -480,8 +480,8 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    */
   public final void applyCodePatches(VM_CompiledMethod cm) throws InterruptiblePragma {
     if (patchMap != null) {
-      VM_CodeArray code = cm.getInstructions();
       for (int idx=0; idx<patchMap.length; idx += 2) {
+        VM_CodeArray code = cm.codeArrayForOffset(Offset.fromIntZeroExtend(patchMap[idx]));
         //-#if RVM_FOR_IA32  
         VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
         //-#endif

@@ -19,13 +19,13 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class TDScanBlackEnumerator extends Enumerate implements Uninterruptible {
+public class TDScanBlackEnumerator extends Enumerator implements Uninterruptible {
   private TrialDeletion td;
 
   /**
    * Constructor.
    *
-   * @param plan The plan instance with respect to which the
+   * @param td The trial deletion instance with respect to which the
    * enumeration will occur.
    */
   public TDScanBlackEnumerator(TrialDeletion td) {
@@ -35,7 +35,7 @@ public class TDScanBlackEnumerator extends Enumerate implements Uninterruptible 
   /**
    * Enumerate a pointer.  In this case it is a scan black event.
    *
-   * @param location The address of the field being enumerated.
+   * @param objLoc The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address objLoc) 
     throws InlinePragma {

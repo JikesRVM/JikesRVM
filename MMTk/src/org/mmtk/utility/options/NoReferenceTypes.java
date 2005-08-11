@@ -7,6 +7,8 @@ package org.mmtk.utility.options;
 /**
  * Should reference type processing be disabled?
  *
+ * $Id$
+ *
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -16,7 +18,7 @@ public class NoReferenceTypes extends BooleanOption {
    * Create the option.
    */
   public NoReferenceTypes() {
-    super("No Reference Types", 
+    super("No Reference Types",
           "Should reference type processing be disabled?",
           false);
   }

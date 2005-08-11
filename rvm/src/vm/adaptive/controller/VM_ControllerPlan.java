@@ -210,7 +210,9 @@ public final class VM_ControllerPlan {
         VM_AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
       }
     }
-    
+    if (VM_Controller.options.ENABLE_ADVICE_GENERATION && (newCMID != -1)) {
+        VM_AOSGenerator.reCompilationWithOpt(cp);
+    }    
     return cm;
   }
 

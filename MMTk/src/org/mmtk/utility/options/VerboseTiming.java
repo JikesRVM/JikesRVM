@@ -7,6 +7,8 @@ package org.mmtk.utility.options;
 /**
  * Should we display detailed breakdown of where GC time is spent?
  *
+ * $Id$
+ *
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -16,7 +18,7 @@ public class VerboseTiming extends BooleanOption {
    * Create the option.
    */
   public VerboseTiming() {
-    super("Verbose Timing", 
+    super("Verbose Timing",
           "Should we display detailed breakdown of where GC time is spent?",
           false);
   }

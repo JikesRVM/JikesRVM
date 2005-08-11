@@ -11,9 +11,9 @@ import org.vmmagic.pragma.*;
 
 /**
  * Color.java
- * 
+ *
  * Cut-down implementation of java.awt.Color sufficient to provide
- * the server side (Stream) with colours 
+ * the server side (Stream) with colours
  *
  * $Id$
  *
@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class Color implements  Uninterruptible {
-    
+
   /**
    * Some gcspy standard colours (taken from gcspy_color_db.c).
    */
@@ -46,18 +46,18 @@ public class Color implements  Uninterruptible {
   private short r_;     // red component
   private short g_;     // green component
   private short b_;     // blue component
-  
+
   /**
    * Constructor for crude RGB colour model
-   * 
+   *
    * @param r red component
    * @param g green component
    * @param b blue component
    */
-  public Color (short r, short g, short b) {    
+  public Color (short r, short g, short b) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert((0 <= r) && (r <= 255) &&
                            (0 <= g) && (g <= 255) &&
-                           (0 <= b) && (b <= 255));   
+                           (0 <= b) && (b <= 255));
     this.r_ = r;
     this.g_ = g;
     this.b_ = b;
@@ -65,7 +65,7 @@ public class Color implements  Uninterruptible {
 
   /**
    * Constructor for crude RGB colour model
-   * 
+   *
    * @param r red component
    * @param g green component
    * @param b blue component
@@ -73,25 +73,25 @@ public class Color implements  Uninterruptible {
   private Color (int r, int g, int b) {
     this((short) r, (short) g, (short) b);
   }
-  
+
 
   /**
    * Red component
-   * 
+   *
    * @return the red component
    */
   public short getRed() { return r_; }
-  
+
   /**
    * Green component
-   * 
+   *
    * @return the green component
    */
   public short getGreen() { return g_; }
-  
+
   /**
    * Blue component
-   * 
+   *
    * @return the blue component
    */
   public short getBlue() { return b_; }

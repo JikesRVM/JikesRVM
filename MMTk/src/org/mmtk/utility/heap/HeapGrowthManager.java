@@ -4,11 +4,13 @@
 //$Id$
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.BasePlan;
+import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Plan;
+import org.mmtk.utility.options.Options;
+
+import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Statistics;
 
 import org.vmmagic.pragma.*;
@@ -75,7 +77,9 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
    *      greater than the liveRatio for that column.</li>
    * </ul>
    */
-  private static final double[][] function = Plan.NEEDS_WRITE_BARRIER ? generationalFunction : nongenerationalFunction;
+  private static final double[][] function = 
+    ActivePlan.constraints().generational() 
+    ? generationalFunction : nongenerationalFunction;
  
   private static long endLastMajorGC;
   private static double accumulatedGCTime;
@@ -163,7 +167,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     if (newSize.NE(oldSize)) {
       // Heap size is going to change
       currentHeapSize = newSize;
-      if (BasePlan.verbose.getValue() >= 2) { 
+      if (Options.verbose.getValue() >= 2) { 
         Log.write("GC Message: Heap changed from "); Log.writeDec(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
         Log.write("KB to "); Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
         Log.writeln("KB"); 
@@ -203,7 +207,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
     
-    if (BasePlan.verbose.getValue() > 2) {
+    if (Options.verbose.getValue() > 2) {
       Log.write("Live ratio "); Log.writeln(liveRatio);
       Log.write("GCLoad     "); Log.writeln(gcLoad);
     }
@@ -245,7 +249,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
       function[gcLoadAbove][liveRatioUnder] - function[gcLoadUnder][liveRatioUnder];
     factor += (gcLoadFraction * gcLoadDelta);
 
-    if (BasePlan.verbose.getValue() > 2) {
+    if (Options.verbose.getValue() > 2) {
       Log.write("Heap adjustment factor is ");
       Log.writeln(factor);
     }

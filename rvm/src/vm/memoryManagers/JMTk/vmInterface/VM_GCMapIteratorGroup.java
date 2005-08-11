@@ -97,8 +97,8 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
    * <p>
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
-  public void newStackWalk(VM_Thread thread) throws UninterruptiblePragma {
-    Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
+  public void newStackWalk(VM_Thread thread, Address registerLocation) 
+    throws UninterruptiblePragma {
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation);
       registerLocation = registerLocation.add(BYTES_IN_ADDRESS);

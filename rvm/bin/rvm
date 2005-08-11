@@ -62,5 +62,4 @@ checkenv RVM_BUILD
 
 [[ -f ${bin_dir}/runrvm ]] || croak_nonusage "Can't find the program $bin_dir/runrvm.  Are you sure your RVM_ROOT variable is set correctly?"
 # Pass these along as parameters to runrvm.
-#. "${mydir}/runrvm" "$HOME" "$RVM_ROOT" "$RVM_BUILD" "$@"
 . "${bin_dir}/runrvm" "$HOME" "$RVM_ROOT" "$RVM_BUILD" "$@"

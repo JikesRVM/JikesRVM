@@ -354,19 +354,19 @@ public abstract class VM_Method extends VM_Member {
   //------------------------------------------------------------------//
 
   /**
-   * Get the current instructions for the given method.
+   * Get the code array that corresponds to the entry point (prologue) for the method.
    */
-  public final synchronized VM_CodeArray getCurrentInstructions() {
+  public final synchronized VM_CodeArray getCurrentEntryCodeArray() {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {
-      return currentCompiledMethod.getInstructions();
+      return currentCompiledMethod.getEntryCodeArray();
     } else if (!VM.writingBootImage || isNative()) {
       if (!isStatic() && !isObjectInitializer() && !isPrivate()) {
         // A non-private virtual method.
         if (declaringClass.isJavaLangObjectType() ||
             declaringClass.getSuperClass().findVirtualMethod(getName(), getDescriptor()) == null) {
           // The root method of a virtual method family can use the lazy method invoker directly.
-          return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentInstructions();
+          return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentEntryCodeArray();
         } else {
           // All other virtual methods in the family must generate unique stubs to
           // ensure correct operation of the method test (guarded inlining of virtual calls).
@@ -375,11 +375,11 @@ public abstract class VM_Method extends VM_Member {
       } else {
         // We'll never to a method test against this method.
         // Therefore we can use the lazy method invoker directly.
-        return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentInstructions();
+        return VM_Entrypoints.lazyMethodInvokerMethod.getCurrentEntryCodeArray();
       }
     } else {
       compile(); 
-      return currentCompiledMethod.getInstructions();
+      return currentCompiledMethod.getEntryCodeArray();
     }
   }
 

@@ -380,6 +380,8 @@ emitBinaryReg MOV \: 0x89 0x8B word
 
 emitBinaryReg CMPXCHG \<\-\> 0xB1 none 0x0F
 
+emitBinaryReg BT BT 0xA3 none 0x0F
+
 function emitCall() {
   acronym=$1
   rel8Code=$2
@@ -628,6 +630,19 @@ emitUnaryAcc INC ++ none 0xFE 0x0 byte
 emitUnaryAcc NEG - none 0xF6 0x3 byte 
 emitUnaryAcc NOT \~ none 0xF6 0x2 byte
 
+emitBSWAP() {
+	cat >> $FILENAME <<EOF
+    // BSWAP reg
+    public final void emitBSWAP_Reg(byte reg) {
+	int miStart = mi;
+	setMachineCodes(mi++, (byte) 0x0F);
+	setMachineCodes(mi++, (byte) (0xC8+reg));
+	if (lister != null) lister.R(miStart, "bswap", reg);
+    }
+EOF
+}
+
+emitBSWAP
 
 emitMD() {
     acronym=$1

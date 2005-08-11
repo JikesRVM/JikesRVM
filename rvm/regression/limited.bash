@@ -43,7 +43,7 @@ EOF
 function list_recursive_kids () {
     if type pstree &> /dev/null; then
 	# Extract just the numbers and make them into a newline-separated list.
-	pstree -p "$@" | sed -e 's/[^0-9]\+/ /g' -e 's/  //g' -e 's/  //g' -e 's/^ //' -e 's/ $//' -e '/^$/d' | tr ' ' '\n'
+	pstree -U -p "$@" | sed -e 's/[^0-9]\+/ /g' -e 's/  //g' -e 's/  //g' -e 's/^ //' -e 's/ $//' -e '/^$/d' | tr ' ' '\n'
     else
 	show_process_table | awk -f $allkids_awk "$@"
     fi

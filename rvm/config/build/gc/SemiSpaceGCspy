@@ -1,3 +1,4 @@
    export RVM_WITH_JMTK_INLINE_PLAN=1
+   export RVM_WITH_JMTK_PLAN="org.mmtk.plan.semispace.gcspy.SSGCspy"
    export RVM_WITH_SEMI_SPACE_GC_SPY=1
 

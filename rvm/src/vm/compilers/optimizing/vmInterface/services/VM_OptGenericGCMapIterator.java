@@ -106,7 +106,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       if (instructionOffset.sLT(Offset.zero())) {
         VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
       } else {
-        Offset possibleLen = Offset.fromIntZeroExtend(cm.getInstructions().length() << VM.LG_INSTRUCTION_WIDTH);
+        Offset possibleLen = Offset.fromIntZeroExtend(cm.numberOfInstructions() << VM.LG_INSTRUCTION_WIDTH);
         if (possibleLen.sLT(instructionOffset)) {
           VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
           VM.sysWriteln("offset is", instructionOffset);
@@ -122,8 +122,8 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
       VM.sysWrite("Supposed method: ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getInstructions()));
-      Address ra = VM_Magic.objectAsAddress(cm.getInstructions()).add(instructionOffset);
+      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getEntryCodeArray()));
+      Address ra = cm.getInstructionAddress(instructionOffset);
       VM.sysWriteln("Calculated actual return address is ", ra);
       VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
       if (realCM == null) {

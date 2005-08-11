@@ -356,7 +356,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     asm.emitLAddr (S1, 0, FP);
     asm.emitMFLR  (T0);
     //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    // save return address of JNI method in mini frame (2)
+    // save return address of JNI method in mini frame (1)
     asm.emitSTAddr(T0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, S1);
     //-#endif
     //-#if RVM_WITH_POWEROPEN_ABI
@@ -398,7 +398,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     int label1 = asm.getMachineCodeIndex();
     asm.emitLAddr (S0, 0, FP);                            // get previous frame
     //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
-    // mimi (1) FP -> mimi(2) FP -> java caller
+    // mini frame (2) FP -> mini frame (1) FP -> java caller
     asm.emitLAddr (S0, 0, S0);
     //-#endif
     asm.emitLAddr (PROCESSOR_REGISTER, - JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment

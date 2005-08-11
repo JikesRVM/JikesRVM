@@ -856,9 +856,9 @@ public class VM_Runtime implements VM_Constants {
             // found an appropriate catch block
             if (VM.debugOOM)
               VM.sysWriteln("found one; delivering.");
-            Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-            exceptionDeliverer.deliverException(compiledMethod, 
-                                                methodStartAddress.add(catchBlockOffset), 
+            Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromInt(catchBlockOffset));
+            exceptionDeliverer.deliverException(compiledMethod,
+                                                catchBlockStart,
                                                 exceptionObject, 
                                                 exceptionRegisters);
             if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -951,7 +951,7 @@ public class VM_Runtime implements VM_Constants {
     if (VM.BuildForPowerPC) {
       if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
         // for SVR4 convention, a Java-to-C frame has two mini frames,
-        // stop before the mini frame 1 whose ip is in VM (out of line machine
+        // stop at mini frame (2) whose saved ip is in VM (out of line machine
         // code), in the case of sentinel fp, it has to return the callee's fp
         // because GC ScanThread uses it to get return address and so on.
         if (MM_Interface.addressInVM(ip)) {

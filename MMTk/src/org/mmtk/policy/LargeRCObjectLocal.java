@@ -6,9 +6,6 @@ package org.mmtk.policy;
 
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
-import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
-import org.mmtk.utility.Treadmill;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -103,8 +100,6 @@ public final class LargeRCObjectLocal extends LargeObjectAllocator
    * system.  In this case it is just the underlying superpage header
    * size.
    *
-   * @param sizeClass The size class of the cells contained by this
-   * superpage.
    * @return The size of the per-superpage header required by this
    * system.
    */

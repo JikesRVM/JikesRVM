@@ -65,7 +65,6 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
     VM.sysWrite(prefix);
     for (VM_Thread t = head; t != null; t = t.next) {
       VM.sysWrite(t.getIndex());
-      //VM.sysWrite(getWaitDescription(t));
       dumpWaitDescription(t);
     }
     VM.sysWrite("\n");

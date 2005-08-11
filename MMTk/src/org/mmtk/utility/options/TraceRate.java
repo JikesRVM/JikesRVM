@@ -8,12 +8,15 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**
  * The granularity of the trace being produced.
- * 
+ *
+ * $Id$
+ *
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
  */
-public class TraceRate extends IntOption implements org.mmtk.utility.Constants {
+public class TraceRate extends IntOption
+  implements org.mmtk.utility.Constants {
   /**
    * Create the option.
    */
@@ -24,20 +27,20 @@ public class TraceRate extends IntOption implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Return the appropriate value. 
+   * Return the appropriate value.
    *
    * @return the trace rate.
    */
   public int getValue() throws UninterruptiblePragma {
-    return (this.value < BYTES_IN_ADDRESS) 
-      ? 1 
+    return (this.value < BYTES_IN_ADDRESS)
+      ? 1
       : (this.value >> LOG_BYTES_IN_ADDRESS);
   }
 
   /**
    * Trace rate must be positive.
-   */ 
+   */
   protected void validate() {
-    failIf(value <= 0, "Can not have a negative trace rate"); 
+    failIf(value <= 0, "Can not have a negative trace rate");
   }
 }

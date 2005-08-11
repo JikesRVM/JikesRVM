@@ -18,6 +18,7 @@ import org.vmmagic.unboxed.*;
  * @author Anthony Cocchi
  * @author Dave Grove
  * @author Perry Cheng
+ * @author Ian Rogers
  */
 public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
 
@@ -891,39 +892,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert (ECX != T1);
     if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
-    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
-    // 2: pop low half into T0
-    // 3: pop high half into T1
-    // 4: ECX <- JTOC, copy the shift count
-    // 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-    // 6: branch to step 12 if results is zero
-    // the result is not zero --> the shift amount is greater than 32
-    // 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-    // 8: T1 <- T0, or replace the high half with the low half.  This accounts for the 32 bit shift
-    // 9: shift T1 left by ECX bits
-    // 10: T0 <- 0
-    // 11: branch to step 14
-    // 12: shift left double from T0 into T1 by ECX bits.  T0 is unaltered
-    // 13: shift left T0, the low half, also by ECX bits
-    // 14: push high half from T1
-    // 15: push the low half from T0
-    // 16: restore the JTOC
-    asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
+    asm.emitPOP_Reg (ECX);                  // shift amount (6 bits)
     asm.emitPOP_Reg (T0);                   // pop low half 
     asm.emitPOP_Reg (T1);                   // pop high half
-    asm.emitMOV_Reg_Reg (ECX, JTOC);
-    asm.emitAND_Reg_Imm (JTOC, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);
-    asm.emitXOR_Reg_Reg (ECX, JTOC);
-    asm.emitMOV_Reg_Reg (T1, T0);               // low replaces high
-    asm.emitSHL_Reg_Reg (T1, ECX);
-    asm.emitXOR_Reg_Reg (T0, T0);
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);          // shift high half (step 12)
-    asm.emitSHL_Reg_Reg (T0, ECX);                   // shift low half
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half (step 14)
+    asm.emitXOR_Reg_Reg (JTOC, JTOC);       // JTOC = 0
+    asm.emitSHLD_Reg_Reg_Reg(T1, T0, ECX);  // shift high half
+    asm.emitSHL_Reg_Reg (T0, ECX);          // shift low half
+    asm.emitAND_Reg_Imm (ECX, 32);          // shift > 32bits ?
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, T0);   // T1 <- (shift > 32) ? T0 : T1
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, JTOC); // T0 <- (shift > 32) ? JTOC : T0
+    asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
@@ -936,41 +914,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert (ECX != T1);
     if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
-    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
-    // 2: pop low half into T0
-    // 3: pop high half into T1
-    // 4: ECX <- JTOC, copy the shift count
-    // 5: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-    // 6: branch to step 13 if results is zero
-    // the result is not zero --> the shift amount is greater than 32
-    // 7: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-    // 8: T0 <- T1, or replace the low half with the high half.  This accounts for the 32 bit shift
-    // 9: shift T0 right arithmetic by ECX bits
-    // 10: ECX <- 31
-    // 11: shift T1 right arithmetic by ECX=31 bits, thus exending the sigh
-    // 12: branch to step 15
-    // 13: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
-    // 14: shift right arithmetic T1, the high half, also by ECX bits
-    // 15: push high half from T1
-    // 16: push the low half from T0
-    // 17: restore JTOC
-    asm.emitPOP_Reg (JTOC);                 // original shift amount 6 bits
+    asm.emitPOP_Reg (ECX);                  // shift amount (6 bits)
     asm.emitPOP_Reg (T0);                   // pop low half 
-    asm.emitPOP_Reg (T1);                   // pop high
-    asm.emitMOV_Reg_Reg (ECX, JTOC);
-    asm.emitAND_Reg_Imm (JTOC, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);
-    asm.emitXOR_Reg_Reg (ECX, JTOC);
-    asm.emitMOV_Reg_Reg (T0, T1);               // replace low with high
-    asm.emitSAR_Reg_Reg (T0, ECX);                   // and shift it
-    asm.emitMOV_Reg_Imm (ECX, 31);
-    asm.emitSAR_Reg_Reg (T1, ECX);                   // set high half
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half (step 13)
-    asm.emitSAR_Reg_Reg (T1, ECX);                   // shift high half
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half (step 15)
+    asm.emitPOP_Reg (T1);                   // pop high half
+    asm.emitMOV_Reg_Reg (JTOC, T1);
+    asm.emitSAR_Reg_Imm (JTOC, 31);         // JTOC = (high half) >> 31
+    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
+    asm.emitSAR_Reg_Reg (T1, ECX);          // shift low half
+    asm.emitAND_Reg_Imm (ECX, 32);          // shift > 32bits ?
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, T1);   // T0 <- (shift > 32) ? T1 : T0
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, JTOC); // T1 <- (shift > 32) ? JTOC : T1
+    asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
@@ -983,40 +937,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (VM.VerifyAssertions) VM._assert (ECX != T0); // ECX is constrained to be the shift count
     if (VM.VerifyAssertions) VM._assert (ECX != T1);
     if (VM.VerifyAssertions) VM._assert (ECX != JTOC);
-    // 1: pop shift amount into JTOC (JTOC must be restored at the end)
-    // 2: pop low half into T0
-    // 3: ECX <- JTOC, copy the shift count
-    // 4: JTOC <- JTOC & 32 --> if 0 then shift amount is less than 32
-    // 5: branch to step 11 if results is zero
-    // the result is not zero --> the shift amount is greater than 32
-    // 6: ECX <- ECX XOR JTOC   --> ECX is orginal shift amount minus 32
-    // 7: pop high half into T0 replace the low half with the high 
-    //        half.  This accounts for the 32 bit shift
-    // 8: shift T0 right logical by ECX bits
-    // 9: T1 <- 0                        T1 is the high half
-    // 10: branch to step 14
-    // 11: pop high half into T1
-    // 12: shift right double from T1 into T0 by ECX bits.  T1 is unaltered
-    // 13: shift right logical T1, the high half, also by ECX bits
-    // 14: push high half from T1
-    // 15: push the low half from T0
-    // 16: restore JTOC
-    asm.emitPOP_Reg(JTOC);                // original shift amount 6 bits
-    asm.emitPOP_Reg(T0);                  // pop low half 
-    asm.emitMOV_Reg_Reg(ECX, JTOC);
-    asm.emitAND_Reg_Imm(JTOC, 32);
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.EQ);
-    asm.emitXOR_Reg_Reg (ECX, JTOC);
-    asm.emitPOP_Reg (T0);                   // replace low with high
-    asm.emitSHR_Reg_Reg (T0, ECX);      // and shift it (count - 32)
-    asm.emitXOR_Reg_Reg (T1, T1);               // high <- 0
-    VM_ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPOP_Reg (T1);                   // high half (step 11)
-    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);          // shift low half
-    asm.emitSHR_Reg_Reg (T1, ECX);                   // shift high half
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(T1);                   // push high half (step 14)
+    asm.emitPOP_Reg (ECX);                  // shift amount (6 bits)
+    asm.emitPOP_Reg (T0);                   // pop low half 
+    asm.emitPOP_Reg (T1);                   // pop high half
+    asm.emitXOR_Reg_Reg (JTOC, JTOC);       // JTOC = 0
+    asm.emitSHRD_Reg_Reg_Reg(T0, T1, ECX);  // shift high half
+    asm.emitSHR_Reg_Reg (T1, ECX);          // shift low half
+    asm.emitAND_Reg_Imm (ECX, 32);          // shift > 32bits ?
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T0, T1);   // T0 <- (shift > 32) ? T1 : T0
+    asm.emitCMOV_Cond_Reg_Reg(VM_Assembler.NE, T1, JTOC); // T1 <- (shift > 32) ? JTOC : T1
+    asm.emitPUSH_Reg(T1);                   // push high half
     asm.emitPUSH_Reg(T0);                   // push low half
     // restore JTOC
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
@@ -1407,129 +1337,92 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to implement the lcmp bytecode
    */
   protected final void emit_lcmp() {
-    asm.emitPOP_Reg(T0);        // the low half of value2
-    asm.emitPOP_Reg(S0);        // the high half of value2
-    asm.emitPOP_Reg(T1);        // the low half of value1
-    asm.emitSUB_Reg_Reg(T1, T0);        // subtract the low half of value2 from
-                                // low half of value1, result into T1
-    asm.emitPOP_Reg(T0);        // the high half of value 1
-    //  pop does not alter the carry register
-    asm.emitSBB_Reg_Reg(T0, S0);        // subtract the high half of value2 plus
-                                // borrow from the high half of value 1,
-                                // result in T0
-    asm.emitMOV_Reg_Imm(S0, -1);        // load -1 into S0
-    VM_ForwardReference fr1 = asm.forwardJcc(VM_Assembler.LT); // result negative --> branch to end
-    asm.emitMOV_Reg_Imm(S0, 0);        // load 0 into S0
-    asm.emitOR_Reg_Reg(T0, T1);        // result 0 
-    VM_ForwardReference fr2 = asm.forwardJcc(VM_Assembler.EQ); // result 0 --> branch to end
-    asm.emitMOV_Reg_Imm(S0, 1);        // load 1 into S0
-    fr1.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);        // push result on stack
+    asm.emitPOP_Reg(T0);                // (S0:T0) = (high half value2: low half value2)
+    asm.emitPOP_Reg(S0);
+    asm.emitPOP_Reg(T1);                // (..:T1) = (.. : low half of value1)
+    asm.emitSUB_Reg_Reg(T1, T0);        // T1 = T1 - T0
+    asm.emitPOP_Reg(T0);                // (T0:..) = (high half of value1 : ..)
+                                        // NB pop does not alter the carry register
+    asm.emitSBB_Reg_Reg(T0, S0);        // T0 = T0 - S0 - CF
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LT, S0); // S0 = (result -ve) ? 1 : 0
+    asm.emitOR_Reg_Reg(T0, T1);         // T0 = T0 | T1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.NE, T0); // T0 = (result zero) ? 0 : 1
+    asm.emitNEG_Reg(S0);                // S0 = (result -ve) ? -1 : 0
+    asm.emitOR_Reg_Reg(S0, T0);         // S0 = S0 | T0
+    asm.emitMOVSX_Reg_Reg_Byte(S0, S0); // Sign extend S0
+    asm.emitPUSH_Reg(S0);               // push result on stack
   }
 
   /**
    * Emit code to implement the fcmpl bytecode
    */
   protected final void emit_fcmpl() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                 // popping the stack
+    asm.emitXOR_Reg_Reg(T0, T0);                         // T0 <- 0
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, S0);     // S0 = (value1 > value2) ? 1 : 0
+    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = 0 - 0 - CF (i.e. (value1 < value2) || unordered  ? -1 : 0)
+    asm.emitOR_Reg_Reg(S0, T0);                          // S0 <- S0 | T0
+    asm.emitMOVSX_Reg_Reg_Byte(S0, S0);                  // Sign extend S0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(S0);                                // push result on stack
   }
 
   /**
    * Emit code to implement the fcmpg bytecode
    */
   protected final void emit_fcmpg() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd(FP0, SP);                     // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp(FP0, SP, ONE_SLOT);          // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                 // popping the stack
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.PE, S0);      // S0 = (value1 unordered value2) ? 1 : 0 (PF == 1)
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, T0);     // T0 = (value1 > value2) ? 1 : 0  (CF == 0 && ZF == 0)
+    asm.emitMOV_Reg_Reg(T1, S0);                         // T1 <- S0
+    asm.emitSBB_Reg_Imm(S0, 0);                          // S0 = 0/1 - 0 - CF  (i.e. value1 < value2 ? -1 : 0)
+    asm.emitOR_Reg_Reg(T0, T1);                          // T0 <- T0 | T1
+    asm.emitOR_Reg_Reg(T0, S0);                          // T0 <- T0 | S0
+    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);                  // Sign extend T0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(T0);                                // push result on stack
   }
 
   /**
    * Emit code to implement the dcmpl bytecode
    */
   protected final void emit_dcmpl() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                 // popping the stack
+    asm.emitXOR_Reg_Reg(T0, T0);                         // T0 <- 0
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, S0);     // S0 = (value1 > value2) ? 1 : 0
+    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = 0 - 0 - CF (i.e. (value1 < value2) || unordered  ? -1 : 0)
+    asm.emitOR_Reg_Reg(S0, T0);                          // S0 <- S0 | T0
+    asm.emitMOVSX_Reg_Reg_Byte(S0, S0);                  // Sign extend S0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(S0);                                // push result on stack
   }
 
   /**
    * Emit code to implement the dcmpg bytecode
    */
   protected final void emit_dcmpg() {
-    VM_ForwardReference fr1,fr2,fr3;
-    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);        // copy value1 into FPU
-    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                        // copy value2 into FPU
-    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                // popping the stack
-    if (VM.VerifyAssertions) VM._assert(S0 != EAX);                        // eax is used by FNSTSW
-    asm.emitXOR_Reg_Reg(S0, S0);                        // S0 <- 0
-    asm.emitFUCOMPP();                        // compare and pop FPU *2
-    asm.emitFNSTSW();                     // move FPU flags into (E)AX
-    asm.emitSAHF();                       // store AH into flags
-    fr1 = asm.forwardJcc(VM_Assembler.EQ);        // branch if ZF set (eq. or unord.)
-    // ZF not set ->  neither equal nor unordered
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr2 = asm.forwardJcc(VM_Assembler.LLT);        // branch if CF set (val2 < val1)
-    asm.emitMOV_Reg_Imm(S0, -1);                        // load -1 into S0
-    fr1.resolve(asm);                        // ZF set (equal or unordered)
-    fr3 = asm.forwardJcc(VM_Assembler.LGE);        // branch if CF not set (not unordered)
-    asm.emitMOV_Reg_Imm(S0, 1);                        // load 1 into S0
-    fr3.resolve(asm);
-    fr2.resolve(asm);
-    asm.emitPUSH_Reg(S0);                        // push result on stack
+    asm.emitFLD_Reg_RegInd_Quad(FP0, SP);                // Setup value2 into FP1,
+    asm.emitFLD_Reg_RegDisp_Quad(FP0, SP, TWO_SLOTS);    // value1 into FP0
+    asm.emitADD_Reg_Imm(SP, 4*WORDSIZE);                 // popping the stack
+    asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                   // compare and pop FPU *1
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.PE, S0);      // S0 = (value1 unordered value2) ? 1 : 0 (PF == 1)
+    asm.emitSET_Cond_Reg_Byte(VM_Assembler.LGT, T0);     // T0 = (value1 > value2) ? 1 : 0  (CF == 0 && ZF == 0)
+    asm.emitMOV_Reg_Reg(T1, S0);                         // T1 <- S0
+    asm.emitSBB_Reg_Imm(S0, 0);                          // S0 = 0/1 - 0 - CF  (i.e. value1 < value2 ? -1 : 0)
+    asm.emitOR_Reg_Reg(T0, T1);                          // T0 <- T0 | T1
+    asm.emitOR_Reg_Reg(T0, S0);                          // T0 <- T0 | S0
+    asm.emitMOVSX_Reg_Reg_Byte(T0, T0);                  // Sign extend T0
+    asm.emitFSTP_Reg_Reg(FP0, FP0);                      // pop FPU*1
+    asm.emitPUSH_Reg(T0);                                // push result on stack
   }
 
 

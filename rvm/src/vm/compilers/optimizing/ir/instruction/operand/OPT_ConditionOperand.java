@@ -362,6 +362,30 @@ public final class OPT_ConditionOperand extends OPT_Operand {
   }
 
   /**
+   * Convert this floating point compare to the equivalent unsigned
+   * integer compare. Used during IA-32 BURS - NB this doesn't respect
+   * ordered/unordered operation, so it should only be used when it's
+   * safe to.
+   */
+  public OPT_ConditionOperand translateUNSIGNED() {
+    switch(value) {
+	 case CMPL_EQUAL:         value = SAME;         break;
+	 case CMPL_GREATER:       value = HIGHER;       break;
+	 case CMPG_LESS:          value = LOWER;        break;
+	 case CMPL_GREATER_EQUAL: value = HIGHER_EQUAL; break;
+	 case CMPG_LESS_EQUAL:    value = LOWER_EQUAL;  break;
+	 case CMPL_NOT_EQUAL:     value = NOT_SAME;     break;
+	 case CMPL_LESS:          value = LOWER;        break;
+	 case CMPG_GREATER_EQUAL: value = HIGHER_EQUAL; break;
+	 case CMPG_GREATER:       value = HIGHER;       break;
+	 case CMPL_LESS_EQUAL:    value = LOWER_EQUAL;  break;
+    default:
+      throw new OPT_OptimizingCompilerException("invalid condition " + this);
+    }
+	 return this;
+  }
+
+  /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
    * 
    * @return a copy of <code>this</code>

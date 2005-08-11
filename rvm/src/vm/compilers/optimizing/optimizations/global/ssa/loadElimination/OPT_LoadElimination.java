@@ -38,7 +38,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
   static final boolean DEBUG = false;
 
   public final boolean shouldPerform(OPT_Options options) {
-    return options.LOAD_ELIMINATION;  
+    return options.LOAD_ELIMINATION;
   }
 
   public final String getName() {
@@ -61,6 +61,16 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
      * @param ir the governing IR
      */
     final public void perform(OPT_IR ir) {
+
+      // Horrible kludge to work around defect 1213816.
+      // Disable load elimination on IA32 for a specific method in _227_mtrt that
+      // causes some piece of our intel backend to go awry and generate code
+      // that causes the program to hang.
+      if (VM.BuildForIA32 && ir.method.toString().indexOf("spec.benchmarks._205_raytrace.OctNode.Intersect") != -1) {
+		  if (ir.options.PRINT_METHOD) VM.sysWriteln("OPT_LoadElimination disabled to kludge around defect 1213816");
+		  return;
+	  }
+
 
       if (ir.desiredSSAOptions.getAbort()) return;
 

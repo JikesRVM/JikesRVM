@@ -32,7 +32,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
   static final int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
   static final int GC_HEADER_BYTES = VM_AllocatorHeader.NUM_BYTES_HEADER;
-  static final int MISC_HEADER_BYTES = VM_MiscHeader.NUM_BYTES_HEADER;
+  static final int MISC_HEADER_BYTES = VM_MiscHeaderConstants.NUM_BYTES_HEADER;
   static final int OTHER_HEADER_BYTES = GC_HEADER_BYTES + MISC_HEADER_BYTES;
 
   static final Offset ARRAY_LENGTH_OFFSET = Offset.fromIntSignExtend(-ARRAY_LENGTH_BYTES);

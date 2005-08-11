@@ -5,7 +5,7 @@
 //$Id$
 package org.mmtk.utility.scan;
 
-import org.mmtk.vm.Plan;
+import org.mmtk.plan.refcount.RCBase;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $date: $
  */
-public class RCModifiedEnumerator extends Enumerate 
+public class RCModifiedEnumerator extends Enumerator 
   implements Uninterruptible {
 
   /**
@@ -29,6 +29,6 @@ public class RCModifiedEnumerator extends Enumerate
    * @param location The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address location) throws InlinePragma {
-    Plan.getInstance().enumerateModifiedPointerLocation(location);
+    RCBase.local().enumerateModifiedPointerLocation(location);
   }
 }

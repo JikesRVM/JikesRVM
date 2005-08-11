@@ -1,0 +1,321 @@
+\documentclass[10pt]{article}
+
+\usepackage{listings}
+\newcommand{\code}[1]{\lstinline!#1!}
+
+\title{Guide to the MMTk refactoring}
+\author{Robin Garner\\Daniel Frampton}
+
+\begin{document}
+
+\lstset{language=Java, basicstyle=\ttfamily\small}
+
+\maketitle
+
+\section{Introduction}
+
+This is a guide to the recent MMTk refactoring, intended to help people
+who have existing MMTk plans to refactor these plans to fit the new
+structure. 
+
+\section{The new structure}
+
+The most obvious change is that an MMTk plan has now been split into 3
+or more classes.  The main aim of this refactoring is to enable the
+use of instance methods for methods that used to be static, and hence
+make better use of inheritance to structure a plan.
+
+Previously, system-global data was kept in static fields of a plan,
+and thread-local data in instance fields of a plan.  Now, the
+separation has become stronger by separating thread-local data into a
+separate class hierarchy.  
+
+\subsection{Collection}
+
+The mechanism used for performing garbage collection has become much
+more general.  Each (global and local) plan class now provides a
+method called \code{collectionPhase}, which takes an integer parameter
+\code{phaseId}.  The \code{StopTheWorld} class defines the phases for
+a stop-the-world collection, and processes them sequentially at each
+garbage collection, calling the \code{collectionPhase} method of the
+plan for each phase.  This method follows a common pattern, and for
+some phases, the plan will perform actions required by this layer, and
+then delegate to the super-class, while for the remaining phases it
+will simply delegate to the superclass. This is considerably more
+flexible than the \code{threadLocalPrepare} etc methods provided by
+the old system.
+
+Collection phases are represented by a \code{Phase} object that
+specifies a timer name and whether the phase has local and/or global
+components, and in which order they are executed.  
+
+\subsection{Tracing}
+
+The core of most garbage collections is the operation of tracing the
+heap.  This has been separated into a separate class hierarchy,
+allowing collectors such as the generational collectors to create
+separate nursery and full-heap trace classes rather than have complex
+methods that behave differently in the different cases.
+
+As a consequence, policy and VM interface classes that participate in
+tracing now also take \code{TraceLocal} parameters.
+
+\subsection{Interfacing with the VM}
+
+The most visible change in the interface is that the \code{Plan} class
+has been replaced with three classes: \code{ActivePlan},
+\code{ActivePlanLocal} and \code{ActivePlanConstraints}.  These classes
+extend the corresponding selected plan class in much the same
+way as the old \code{Plan} class.
+
+Selecting the plan at build time is now done by substituting a value
+rather than by a long series of boolean options.  For example,
+\code{rvm/config/build/gc/SemiSpace} now has,
+\begin{lstlisting}
+   export RVM_WITH_JMTK_PLAN="org.mmtk.plan.semispace.SS"
+\end{lstlisting} 
+and the various \code{ActivePlan} classes construct their superclass
+names according to the naming scheme outlined below.
+
+Code that needs to access the global or local plan instances can call
+methods of ActivePlan to locate the correct object.
+
+\section{Refactoring an existing plan}
+
+This section describes in outline how to fit an existing plan into the
+new structure.  It goes though the process of changing the existing
+MarkSweep collector to work in the new structure.
+
+\begin{enumerate}
+\item Create a package for the plan.  For example, the marksweep collector now
+  lives in the package \code{org.mmtk.plan.marksweep}.
+
+\item Create 4 classes,
+  \begin{itemize}
+  \item The global class, in this case \code{MS}, which will extend
+  \code{StopTheWorld} in the case of a full-heap collector, or
+  \code{Gen} for a classic generational collector.
+
+  \item The local class, eg \code{MSLocal}, which will extend
+  \code{StopTheWorldLocal} or \code{GenLocal} respectively.  The name
+  of the class must be constructed by appending 'Local' to the global
+  class name for the build process to work.
+
+  \item A constraints class, eg \code{MSConstraints}, extending
+  the appropriate Constraints superclass, (again, the naming scheme is
+  mandatory) and
+
+  \item One or more trace classes, eg \code{MSTraceLocal}, extending
+  \code{TraceLocal} or any other trace classes that may
+  be necessary for the collector.  For example, generational
+  collectors define a \code{MatureTraceLocal} class, and inherit a
+  \code{NurseryTraceLocal} class from the \code{generational} package.
+  The naming scheme for trace classes is not mandatory.
+  \end{itemize}
+
+\end{enumerate}
+
+Now start moving fields and methods from the original source file to
+the appropriate new class.
+
+\subsection{The Global Class}
+\begin{enumerate}
+\item Move constant definitions (eg \code{ALLOC_MS}) to the global
+  class, as well as space definitions and the corresponding space
+  descriptors.  Generally every static field of the old class will
+  become a static field of the new global class.
+
+\item Create an instance field in the global class, like this
+\begin{lstlisting}
+  public final Trace msTrace;
+\end{lstlisting}
+
+
+This is the global trace object, where the shared queues used during
+tracing etc are held.  The constructor for the global trace class
+should create the instance.
+
+\item Create a minimal global collectionPhase method, and include the
+  contents of the existing globalPrepare() and globalRelease() methods.
+\begin{lstlisting}
+  public final void collectionPhase(int phaseId) 
+      throws InlinePragma {
+    if (phaseId == PREPARE) {
+      super.collectionPhase(phaseId);
+      // contents of the globalPrepare() method
+      return;
+    }
+    if (phaseId == RELEASE) {
+      // contents of the globalRelease() method
+      super.collectionPhase(phaseId);
+      return;
+    }
+    super.collectionPhase(phaseId);
+  }
+\end{lstlisting}
+  Note that PREPARE should probably delegate to super before doing
+  plan-specific things, and RELEASE afterwards.  The available
+  collection phases are defined in \code{StopTheWorld}.
+
+\item Copy the \code{poll} method across.  This will probably require
+  no changes.
+
+\item Add any necessary accounting methods.  At a minimum,
+  getPagesUsed should add in the contribution of any spaces defined 
+  in this level of the plan hierarchy, eg
+\begin{lstlisting}
+  public int getPagesUsed() {
+    return (msSpace.reservedPages() + super.getPagesUsed());
+  }
+\end{lstlisting}
+  Note that \code{getPagesReserved} (in \code{Plan}) is now 
+  expressed in terms of \code{getPagesUsed} and
+  \code{getCopyReserve}.  These methods are all instance methods.
+\end{enumerate}
+
+This is probably all that is required for the global plan class.
+
+\subsection{The Local Class}
+\begin{enumerate}
+\item Define a convenience method in the Local class called global(),
+  like this
+\begin{lstlisting}
+  private static final MS global() throws InlinePragma {
+    return (MS)ActivePlan.global();
+  }
+\end{lstlisting}
+
+
+\item Move allocator definitions to the new local class.
+
+\item Define a \code{TraceLocal} object like this
+\begin{lstlisting}
+  private MSTraceLocal trace;
+\end{lstlisting}
+initialised in the constructor like
+\begin{lstlisting}
+    trace = new MSTraceLocal(global().msTrace);
+\end{lstlisting}
+and define a method
+\begin{lstlisting}
+  public final TraceLocal getCurrentTrace() {
+    return trace;
+  }
+\end{lstlisting}
+to return the current trace.  A plan with more than one trace method
+will need this method to select the correct one---for example a
+generational plan should return either the nursery or full-heap trace
+object as required.
+
+\item Copy the allocation methods \code{alloc}, \code{postAlloc} (and
+  for copying collectors 
+  \code{allocCopy} and \code{postCopy}) to the local class.  The body
+  of the methods should be changed so that the spaces defined at this
+  level of the plan hierarchy are handled, and then delegate to
+  super, eg
+\begin{lstlisting}
+  public Address alloc(int bytes, int align, int offset, int allocator)
+    throws InlinePragma {
+    if (allocator == MS.ALLOC_DEFAULT) {
+      return ms.alloc(bytes, align, offset, false);
+    }
+    return super.alloc(bytes, align, offset, allocator);
+  }
+\end{lstlisting}
+
+  \code{allocCopy} and \code{postCopy} now also take an allocator
+  as a parameter.  Non-copying plans no longer need to provide 
+  \code{allocCopy} and \code{postCopy}.
+
+\item Create a collectionPhase method - this takes 2 more parameters
+  than the global equivalent.
+\begin{lstlisting}
+  public final void collectionPhase(int phaseId, boolean participating,
+                                    boolean primary)
+    throws InlinePragma {
+    if (phaseId == MS.PREPARE) {
+      super.collectionPhase(phaseId, participating, primary);
+      // Contents of threadLocalPrepare()
+      trace.prepare();
+      return;
+    }    
+    if (phaseId == MS.START_CLOSURE) {
+      trace.startTrace();
+      return;
+    }
+
+    if (phaseId == MS.COMPLETE_CLOSURE) {
+      trace.completeTrace();
+      return;
+    }
+
+    if (phaseId == MS.RELEASE) {
+      // Contents of threadLocalRelease()
+      trace.release();
+      super.collectionPhase(phaseId, participating, primary);
+      return;
+    }
+  super.collectionPhase(phaseId, participating, primary);
+  }
+\end{lstlisting}
+  The \code{primary} flag is used to distinguish one processor in case
+  certain work needs to be done once only, but in a thread-local
+  context.  Use this flag instead of adding additional rendezvous
+  points and checking the arrival index.
+
+\item Override \code{getSpaceFromAllocator} and
+  \code{getAllocatorFromSpace}.  These should look something like
+\begin{lstlisting}
+  public Space getSpaceFromAllocator(Allocator a) {
+    if (a == ms) return MS.msSpace;
+    return super.getSpaceFromAllocator(a);
+  }
+\end{lstlisting}
+
+  ie they handle spaces defined at this level, and then delegate.
+
+\end{enumerate}
+
+\subsection{The Trace Class}
+
+\begin{enumerate}
+\item The constructor should look like this
+\begin{lstlisting}
+  public MSTraceLocal(Trace trace) {
+    super(trace);
+  }
+\end{lstlisting}
+
+\item Copy the \code{isLive} method to the trace class, make it an
+  instance method, and simplify it to reflect the standard pattern of
+  handling local stuff and delegating to super.  
+
+\item Copy the \code{traceObject} method across and make it an
+  instance method.  Note that the \code{traceObject} method in a
+  policy now takes a TraceLocal as its first parameter.
+
+\item A copying collector requires a precopyObject method, and should
+  override the willNotMove method.
+
+\end{enumerate}
+
+\subsection{The Constraints Class}
+
+The \code{Constraints} class simply renames the existing
+\code{Constants} class, and brings the method naming into line with
+standards.  
+
+This class exists so that the host VM can discover certain static
+properties of the current MMTk plan without introducing additional
+class initialization dependencies.
+
+\subsection{Generational collectors}
+
+A \code{Global} class for a generational collector must provide a
+\code{activeMatureSpace()} method, and a \code{Local} class must
+provide a \code{getFullHeapTrace()} method, but is structurally no
+different to a full-heap collector.
+
+ 
+
+\end{document}

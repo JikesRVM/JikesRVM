@@ -50,8 +50,6 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
    * system.  In this case it is just the underlying superpage header
    * size.
    *
-   * @param sizeClass The size class of the cells contained by this
-   * superpage.
    * @return The size of the per-superpage header required by this
    * system.
    */

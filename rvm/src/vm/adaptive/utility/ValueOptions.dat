@@ -38,8 +38,24 @@ V LOGFILE_NAME String \"AOSLog.txt\" lf
 Name of log file
 
 
+V COMPILATION_ADVICE_FILE_OUTPUT String \"aosadvice.ca\" cafo
+Name of advice file
+
+
+V DYNAMIC_CALL_FILE_OUTPUT String \"aosadvice.dc\" dcfo
+Name of dynamic call graph file
+
+
 V COMPILER_DNA_FILE_NAME String \"\" dna
 Name of compiler DNA file (no name ==> use default DNA).  Discussed in a comment at the head of VM_CompilerDNA.java
+
+
+V COMPILER_ADVICE_FILE_INPUT String null cafi
+File containing information about the methods to Opt compile
+
+
+V DYNAMIC_CALL_FILE_INPUT String null dcfi
+File containing information about the hot call sites
 
 
 V LOGGING_LEVEL int 0

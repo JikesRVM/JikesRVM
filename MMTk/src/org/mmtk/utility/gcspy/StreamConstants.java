@@ -45,7 +45,7 @@ public interface StreamConstants {
 
   public static final int NAME_LEN                     = 40;
   public static final int PRESENTATION_PLAIN           =  0;
-  public static final int PRESENTATION_PLUS            =  1; 
+  public static final int PRESENTATION_PLUS            =  1;
   public static final int PRESENTATION_MAX_VAR         =  2;
   public static final int PRESENTATION_PERCENT         =  3;
   public static final int PRESENTATION_PERCENT_VAR     =  4;

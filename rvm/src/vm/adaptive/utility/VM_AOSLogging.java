@@ -740,6 +740,23 @@ public class VM_AOSLogging {
   // OSR-related code
   ////////////////////////////////////////////////////////////////
 
+  /**
+   * This method logs the successful completion of an adaptively 
+   * selected recompilation
+   * @param plan the OPT_Compilation plan being executed.
+   */
+  public static void compileAllMethodsCompleted() {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized (log) {
+        log.println(VM_Controller.controllerClock +"  Compiled all methods finished. ");
+      }
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // OSR-related code
+  ////////////////////////////////////////////////////////////////
+
   //-#if RVM_WITH_OSR
   public static void recordOSRRecompilationDecision(VM_ControllerPlan plan) {
     OPT_CompilationPlan cplan = plan.getCompPlan();

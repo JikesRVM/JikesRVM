@@ -9,7 +9,9 @@ import org.mmtk.utility.Log;
 import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**
- * An option with a simple double precision floating point value. 
+ * An option with a simple double precision floating point value.
+ *
+ * $Id$
  *
  * @author Daniel Frampton
  * @version $Revision$
@@ -26,8 +28,8 @@ public class DoubleOption extends Option {
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultValue The default value of the option.
-   */ 
-  protected DoubleOption(String name, String desc, double defaultValue) { 
+   */
+  protected DoubleOption(String name, String desc, double defaultValue) {
     super(DOUBLE_OPTION, name, desc);
     this.value = this.defaultValue = defaultValue;
   }
@@ -51,8 +53,8 @@ public class DoubleOption extends Option {
   }
 
   /**
-   * Update the value of the option, echoing the change if the echoOptions 
-   * option is set. This method also calls the validate method to allow 
+   * Update the value of the option, echoing the change if the echoOptions
+   * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
    *
    * @param value The new value for the option.
@@ -60,7 +62,7 @@ public class DoubleOption extends Option {
   public void setValue(double value) {
     double oldValue = this.value;
     this.value = value;
-    if (echoOptions.getValue()) {
+    if (Options.echoOptions.getValue()) {
       Log.write("Option '");
       Log.write(this.getKey());
       Log.write("' set ");

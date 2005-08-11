@@ -81,7 +81,7 @@ final class VM_ProcessorQueue implements Uninterruptible {
   /**
    * dump the vp queue
    */ 
-  void dump () throws InterruptiblePragma {
+  void dump () {
     VM.sysWrite("Virtual Processor Dead Queue\n");
     for (VM_Processor p = head; p != null; p = p.next)
       p.dumpProcessorState();

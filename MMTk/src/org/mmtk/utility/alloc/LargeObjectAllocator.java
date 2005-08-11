@@ -6,9 +6,6 @@
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.LargeObjectSpace;
-import org.mmtk.utility.*;
-import org.mmtk.utility.heap.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;

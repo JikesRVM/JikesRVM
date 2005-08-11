@@ -4,12 +4,13 @@
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.utility.Conversions;
-
-import org.mmtk.vm.Plan;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.Constants;
 
 /**
  * Force frequent collections after amounts of allocation.
+ *
+ * $Id$
  *
  * @author Daniel Frampton
  * @version $Revision$
@@ -22,14 +23,14 @@ public class StressFactor extends PagesOption {
   public StressFactor() {
     super("Stress Factor",
           "Force a collection after this much allocation",
-          Conversions.bytesToPagesUp(Integer.MAX_VALUE) - 1);
+          Integer.MAX_VALUE >>> Constants.LOG_BYTES_IN_PAGE);
   }
 
   /**
    * Ensure that the value is sensible.
    */
   public void validate() {
-    failIf(this.value < Plan.DEFAULT_POLL_FREQUENCY, 
+    failIf(this.value < Plan.DEFAULT_POLL_FREQUENCY,
            "Stress Factor must be at least equal to plan's poll frequency");
   }
 }

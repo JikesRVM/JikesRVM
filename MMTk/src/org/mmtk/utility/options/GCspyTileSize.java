@@ -4,10 +4,10 @@
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.plan.BasePlan;
-
 /**
  * GCspy Tile Size.
+ *
+ * $Id$
  *
  * @author Daniel Frampton
  * @version $Revision$

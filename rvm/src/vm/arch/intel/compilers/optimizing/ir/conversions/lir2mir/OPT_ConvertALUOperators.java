@@ -168,7 +168,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       // BURS doesn't really care, so consolidate to reduce rule space
       case INT_COND_MOVE_opcode: 
       case REF_COND_MOVE_opcode:
-        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : CMP_CMOV;
+        s.operator = CondMove.getCond(s).isFLOATINGPOINT() ? FCMP_CMOV : (CondMove.getVal1(s).isLong() ? LCMP_CMOV : CMP_CMOV);
         break;
       case FLOAT_COND_MOVE_opcode:
       case DOUBLE_COND_MOVE_opcode:

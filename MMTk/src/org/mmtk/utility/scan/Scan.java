@@ -6,9 +6,9 @@
 
 package org.mmtk.utility.scan;
 
-import org.mmtk.vm.Assert;
+import org.mmtk.plan.TraceLocal;
+
 import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Plan;
 import org.mmtk.vm.Scanning;
 
 import org.vmmagic.unboxed.*;
@@ -29,16 +29,35 @@ public final class Scan implements Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(ObjectReference object) throws InlinePragma {
+  public static void scanObject(TraceLocal trace,
+                                ObjectReference object) throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
         Address slot = type.getSlot(object, i);
-        Plan.traceObjectLocation(slot);
+        trace.traceObjectLocation(slot);
       }
     } else
-      Scanning.scanObject(object);
+      Scanning.scanObject(trace, object);
+  }
+
+  /**
+   * Scan a object, pre-copying each child object encountered.
+   *
+   * @param object The object to be scanned.
+   */
+  public static void precopyChildren(TraceLocal trace, ObjectReference object)
+      throws InlinePragma {
+    MMType type = ObjectModel.getObjectType(object);
+    if (!type.isDelegated()) {
+      int references = type.getReferences(object);
+      for (int i = 0; i < references; i++) {
+        Address slot = type.getSlot(object, i);
+        trace.precopyObjectLocation(slot);
+      }
+    } else
+      Scanning.precopyChildren(trace, object);
   }
 
   /**
@@ -50,7 +69,7 @@ public final class Scan implements Uninterruptible {
    * @param _enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(ObjectReference object, Enumerate _enum) 
+  public static void enumeratePointers(ObjectReference object, Enumerator _enum) 
     throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {

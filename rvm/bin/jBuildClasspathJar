@@ -204,7 +204,12 @@ if [[ ! -e $SRC/TODO ]]; then
     mkdir -p $DEST_DIR
     cd $DEST_DIR
     
-    $WGET --passive-ftp $RVM_CLASSPATH_URL -Oclasspath.tar.gz
+    # use curl if we have it
+    if [[ -e `type -p curl` ]]; then
+        curl $RVM_CLASSPATH_URL -oclasspath.tar.gz
+    else
+        $WGET --passive-ftp $RVM_CLASSPATH_URL -Oclasspath.tar.gz
+    fi
     $GNU_TAR xzf classpath.tar.gz
     rm classpath.tar.gz
     mv classpath-* classpath

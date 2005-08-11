@@ -1257,7 +1257,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
     // get instructions for method to be executed as thread startoff
     //
-    VM_CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentInstructions();
+    VM_CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentEntryCodeArray();
 
     VM.disableGC();
 
@@ -1348,6 +1348,9 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
           *  explicit write barrier.
           */
          threadSlot = index;
+         if (threadSlot > VM_Scheduler.threadHighWatermark) {
+           VM_Scheduler.threadHighWatermark = threadSlot;
+         }
          if (MM_Interface.NEEDS_WRITE_BARRIER)
            MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, 
                                                threadSlot, this);
@@ -1384,7 +1387,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
                                           threadSlot, null);
     VM_Magic.setObjectAtOffset(VM_Scheduler.threads, 
                                Offset.fromIntZeroExtend(threadSlot << LOG_BYTES_IN_ADDRESS), null);
-    VM_Scheduler.threadAllocationIndex = threadSlot;
+    if (threadSlot < VM_Scheduler.threadAllocationIndex)
+      VM_Scheduler.threadAllocationIndex = threadSlot;
     // ensure trap if we ever try to "become" this thread again
     if (VM.VerifyAssertions) threadSlot = -1; 
   }

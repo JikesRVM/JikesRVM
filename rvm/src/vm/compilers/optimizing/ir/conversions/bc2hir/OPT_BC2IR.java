@@ -1686,16 +1686,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             VM._assert(false, "unexpected receiver");
           }
           VM_Type type = tr.peekResolvedType();
-          if (type != null && type.isResolved() && type.isClassType() && target != null) {
-            if (type == target.getDeclaringClass()) {
-              if (isPreciseType) {
-                methOp.refine(target, true);
-              }
-            } else {
-              VM_Method vmeth = OPT_ClassLoaderProxy.lookupMethod(type.asClass(), ref);
-              if (vmeth != null && vmeth != target) {
-                methOp.refine(vmeth, isPreciseType);
-              }
+          if (type != null && type.isResolved() && type.isClassType()) {
+            VM_Method vmeth = target;
+            if (target == null || type != target.getDeclaringClass()) {
+              vmeth = OPT_ClassLoaderProxy.lookupMethod(type.asClass(), ref);
+            }
+            if (vmeth != null) {
+              methOp.refine(vmeth, isPreciseType || type.asClass().isFinal());
             }
           }
 

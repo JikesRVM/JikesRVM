@@ -14,9 +14,7 @@ import com.ibm.JikesRVM.VM_Magic;
 final class VMDouble {
 
   static {
-    //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_CVS_HEAD
     initIDs();
-    //-#endif
   };
 
   static long doubleToLongBits(double value) {
