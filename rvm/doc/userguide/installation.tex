@@ -21,9 +21,6 @@ running Eclipse on Jikes RVM}%
 
 Red~Hat\TMboth{} Linux\Rboth{} for Intel\Rboth{} IA-32 and AMD\Rboth{} x86-32 has emerged as the 
 primary platform for Jikes\TMweb{} RVM.\@ 
-%% %% No longer true for me --Steve Augart, 28 September 2004
-%% SuSE\Rboth{} Linux is also in daily use
-%% by one of the Jikes RVM core team members.
 If you have either a developer or full install of Red~Hat
 Linux~7.3 or later, your system has almost everything you need
 to run Jikes RVM.\@  The following instructions describe how to install
@@ -40,9 +37,9 @@ For versions of Jikes RVM prior to 2.2.2, we recommend
 the Blackdown VM, v1.3.1.  You can download the Blackdown VMs from 
 \xlink{{\tt \BlackdownURL}}{\BlackdownURL}, or, if you have SuSE
 Linux~8.2, install the RPMs {\tt Black\-downJa\-va2-JRE} and {\tt java2}. 
-It is possible to use other 1.3 or 1.4 JVMs to build Jikes RVM;
+It is possible to use other 1.4 JVMs to build Jikes RVM;
 however, building Jikes RVM is a good way to find bugs in a JVM.\@
-Making a {\tt Full} build of Jikes RVM will make most JVMs exit abnormally.
+Making a {\tt Full} build of Jikes RVM will make many JVMs exit abnormally.
 
 \index{Kaffe Virtual Machine}%
 Starting with Jikes RVM version 2.3.2 you can also use the Kaffe
@@ -84,22 +81,13 @@ hereinafter call the location of the unpacked RVM distribution {\tt
 \index{GNU Classpath: Java class libraries}%
 \index{Classpath, GNU: Java class libraries}%
 \item You will need version \classpathversion{} of the GNU
-Classpath libraries.\footnote{0.10 and 0.11 also work; you'll have to
-  set the configuration variable {\tt RVM\_WITH\_CLASSPATH\_0\_10=1} or
-  {\tt RVM\_WITH\_CLASSPATH\_0\_11=1} to use them, as appropriate.}
-If you're running on OSX, you will probably encounter some trouble
-while building Classpath 0.12; on that platform, Classpath 0.10 builds
-just fine. 
+Classpath libraries.
 
 The Jikes RVM build process can automatically download, 
-configure, and build the appropriate version of Classpath for you, on
-platforms other than OSX.
-
+configure, and build the appropriate version of Classpath for you.
 This has historically sometimes led to confusion on the part of the
-person installing Jikes RVM.\@  
-%% We expect to have these glitches ironed
-%% out before the next release.  
-If you have any difficulty, look \AtManualClasspathRootDiscussion{}
+person installing Jikes RVM. If you have any difficulty, look
+\AtManualClasspathRootDiscussion{} 
 
 \item Edit a configuration file so that it fits your machine.  One of
 the {\tt i686-pc-linux} files in {\tt \$RVM\_\-ROOT/rvm/config} will probably be
@@ -192,24 +180,20 @@ Xalan-Java \textit{(optional)} & {\it any}    \link{\SeeBelow}{xalan-why}  & \xl
 
 {\tt wget} & {\it any}    \link{\SeeBelow}{wget-why}  & \xlink{\tt \wgetURL}{\wgetURL} \\
 
-%% \hline \hline \multicolumn{3}{|c|}{\em If automatically Building GNU
-%%         Classpath from CVS (the default until October~2003)} \\ \hline
-%% {\tt automake}       & 1.6.3+ \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \automakeURL}{\automakeURL} \\
-%% {\tt cvs}            & {\it any}    \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \cvsURL}{\cvsURL} \\
-%% {\tt autoconf}       & 2.53+  \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \autoconfURL}{\autoconfURL} \\
 \hline \hline \multicolumn{3}{|c|}{\em Linux/x86-32}                      \\ \hline
 kernel         & 2.4+ \SeeBelow{} & \xlink{\tt \linuxKernelURL}{\linuxKernelURL} \\
-JDK            & Blackdown 1.3.1 or 1.4.1 or 1.4.2 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
+JDK            & Blackdown 1.4.1 or 1.4.2 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
 glibc          & 2.2+ \SeeBelow & \xlink{\tt \glibcURL}{\glibcURL} \\ 
 \hline \hline \multicolumn{3}{|c|}{\em AIX\TMweb{}/PowerPC\TMweb{}}                     \\ \hline
 
-AIX            & 4.3+     & %   \center{---}                      
+AIX            & 5.X+     & %   \center{---}                      
 \\
-JDK            & IBM\Rweb{} DK 1.3.0 or 1.4.0 or 1.4.2 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ 
-\hline \hline \multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
-JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
-\hline \hline \multicolumn{3}{|c|}{\em Mac OS X}                     \\ \hline
+JDK            & IBM\Rweb{} DK 1.4.0 or 1.4.2 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ 
 
+\hline \hline \multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
+JDK            & IBM DK 1.3.0 (cannot build 'Full' bootimages)   & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
+
+\hline \hline \multicolumn{3}{|c|}{\em Mac OS X}                     \\ \hline
 \texttt{dlcompat} library & 2003-06-29 or later
 & \xlink{\texttt{http://www.o\-pendar\-win.org/\-pro\-jects/\-dl\-compat/}}{http://www.opendarwin.org/projects/dlcompat/} \\
 \texttt{August2003gccUpdater.dmg} & \textit{n/a} & Apple Developer Connection web site        \\
@@ -236,32 +220,16 @@ installation} below}[\textit{Mac OS~X is further discussed in subsection~\Ref{},
 \T Jikes RVM}, on page~\pageref{prereq-table}:
 \T
 \begin{itemize}
-%% \begin{Label}{auto-and-cvs}
-%% \item \texttt{automake}, \texttt{autoconf}, and \texttt{cvs}
-%% are only required \link{to build the GNU Classpath libaries 
-%%         from GNU Classpath's CVS}{manual-classpath-root}.  This is an
-%% obscure option, intended mainly for classpath hackers.
-%% If you instead \link{download a GNU Classpath tarball release}{manual-classpath-root}
-%% via FTP (we recommend this), or let the \jrvm{} build process retrieve and build
-%% GNU Classpath for you, then you don't need
-%% these.\texonly{  Look \AtManualClasspathRootDiscussion{ before
-%%  you make your decision}}
-%% \end{Label}
 
 \begin{Label}{wget-why}
-%% As of this writing (October 16, 2003), the version of 
-\item {\tt jBuildClasspathJar} %% available through the CVS head now 
+\item {\tt jBuildClasspathJar} 
 uses \texttt{wget} to retrieve GNU Classpath's tarball via FTP.\@   If
 you \link{retrieve Classpath yourself}{manual-classpath-root} then you
 won't need \texttt{wget}.
 
-%% If this continues
-%% to work, then the Jikes RVM build process won't require {\tt
-%%   automake}, \texttt{autoconf}, or \texttt{cvs}.
 \end{Label}
 
 \begin{Label}{xalan-why}
-%% As of this writing (October 16, 2003), the version of 
 \item The Xalan-Java XSLT processor and the Xerces XML processor are an
 optional
 part of the Jikes RVM run-time library.  If you are using any programs
@@ -335,14 +303,15 @@ library sources; and the tools needed to build Jikes RVM.\@
 \index{configurations}%
 Jikes RVM can be configured in various ways.  Multiple versions of the system,
 corresponding to \link{different configurations}{configs}, can be generated from 
-one working directory.   \texonly{See Section~\ref{configs} (page~\pageref{configs}) for information about the various configurations.}
+one working directory.   \texonly{See Section~\ref{configs}
+(page~\pageref{configs}) for information about the various
+configurations.} 
 
-The Jikes RVM {\em boot image\index{boot image}} and other files generated during the 
-configuration process
-are stored in a {\em build directory\index{build directory}},
- which is logically separate from the working directory.   Each
-distinct configuration of \jrvm{} you build will have its own 
-{\em build directory}. 
+The Jikes RVM {\em boot image\index{boot image}} and other files
+generated during the configuration process are stored in a {\em build
+directory\index{build directory}}, which is logically separate from
+the working directory.  Each distinct configuration of \jrvm{} you
+build will have its own {\em build directory}.
 
 To install Jikes RVM  you must do the following:
 \begin{enumerate}
@@ -617,12 +586,6 @@ viability, \texttt{jbuild} will exit with non-zero (error) status.
 
 \subsubsection{Mac OS X}\label{OSX-install}
 
-{\em As reported in defect 1151244, Jikes RVM does not currently build
-on OS~X.  Jikes RVM version 2.3.4 was the last release that worked on
-this platform.  If you are an OS~X user, please help us fix the build
-problems so that we can make another release of Jikes RVM that
-once again supports OX~X.}
-
 \begin{enumerate}
 
 \item As of OS~X~10.3, Apple's developer tools include the Jikes
@@ -631,14 +594,6 @@ can try building without installing any special libraries etc.\ at
 all; it will probably work just fine. You will still need to install
 \texttt{wget} if you want automatically retrieve GNU Classpath. If GNU
 Classpath fails to compile, see below for more information.
-
-\item
-If you want to build Jikes RVM for Mac OS~X, you will need to patch
-your copy of GNU Classpath with the patch file located
-in \texttt{\$RVM\_\-ROOT/\-rvm/\-etc/\-gnu-classpath-on-mac-osx.patch}.
-
-\item Classpath 0.12 does not seem to build on OSX; Classpath 0.10
-builds just fine.
 
 \item
 One of the \xlink{\texttt{jikesrvm-researchers} readers contributed

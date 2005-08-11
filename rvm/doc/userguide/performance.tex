@@ -49,6 +49,47 @@ thread and synchronization implementation do not play well with
 others. 
 \end{itemize}
 
+\index{compiler replay}
+\subsection{Compiler Replay}
+The compiler-replay methodology is deterministic and eliminates
+memory allocation and mutator variations due to non-deterministic
+application of the adaptive compiler.  We need this latter methodology
+because the non-determinism of the adaptive compilation system
+makes it a difficult platform for detailed performance studies.  For
+example, we cannot determine if a variation is due to the system
+change being studied or just a different application of the adaptive
+compiler. The information we record and use are hot methods and blocks
+information. We also record dynamic call graph with calling frequency
+on each edge for inlining decisions.
+
+Here is how to use it:
+\begin{enumerate}
+\item Generate the profile information, using the following command
+line arguments:
+\begin{verbatim}
+For edge profile:
+-X:base:edge_counters=true
+-X:base:edge_counter_file=my_edge_counter_file
+
+For adaptive compilation profile:
+-X:aos:enable_advice_generation=true
+-X:aos:cafo=my_compiler_advice_file
+
+For dynamic call graph profile (used by adaptive inlining):
+-X:aos:dcfo=my_dynamic_call_graph_file
+-X:aos:final_report_level=2
+\end{verbatim}
+
+\item Use the profile you generated for compiler replay, using the
+following command line arguments:
+\begin{verbatim}
+-X:aos:enable_replay_compile=true
+-X:vm:edgeCounterFile=my_edge_counter_file
+-X:aos:cafi=my_compiler_advice_file
+-X:aos:dcfi=my_dynamic_call_graph_file
+\end{verbatim}
+\end{enumerate}
+
 \subsection{Jikes RVM is really slow! What am I doing wrong?}
 
 Perhaps you are not seeing stellar Jikes\TMweb{} RVM performance.
