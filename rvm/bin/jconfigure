@@ -1197,7 +1197,7 @@ if [[ ! -f  $f ]]; then
 fi
 # Current version of RVM
 declare -r CVS_TIMESTAMP="$(< $f)"
-declare -r JIKESRVM_VERSION="Jikes RVM 2.4.0"
+declare -r JIKESRVM_VERSION="Jikes RVM 2.4.0+CVS"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
