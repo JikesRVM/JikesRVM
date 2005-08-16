@@ -2176,13 +2176,13 @@ szpr:	INT_2USHORT(r)
 23
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), Unary.getVal(P(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), IC(0xFFFF)));
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)).copyRO(), IC(0xFFFF)));
 
 szpr:	INT_2USHORT(load32)
 25
 EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), consumeMO())); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), IC(0xFFFF)));
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)).copyRO(), IC(0xFFFF)));
 
 stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(riv,riv))
 15
@@ -4112,7 +4112,7 @@ ALoad.getArray(PLLRLLL(p)).similar(ALoad.getArray(PRL(p))) \
 EMIT_INSTRUCTION
 pushMO(MO_AL(PLLLLLLL(p), B_S, DW)); \
 EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), consumeMO())); \
-EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p))));
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p)).copyRO()));
 
 # byteswap of the form:
 # ((((b[0] & 0xFF) << 8) | (b[1] & 0xFF)) << 16) | ((b[2] & 0xFF) << 8 ) | (b[3] & 0xFF)
@@ -4160,7 +4160,7 @@ ALoad.getArray(PRLLLL(p)).similar(ALoad.getArray(PRRL(p))) \
 EMIT_INSTRUCTION
 pushMO(MO_AL(PLLLLLLL(p), B_S, DW)); \
 EMIT(MIR_Move.create(IA32_MOV, BinaryAcc.getResult(P(p)), consumeMO())); \
-EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p))));
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_BSWAP, BinaryAcc.getResult(P(p)).copyRO()));
 
 # byteswap of the form:
 # ((x & 0xFF) << 24) | ((x & 0xFF00) << 8) | ((x & 0xFF0000) >> 8) | (x >>> 24)
