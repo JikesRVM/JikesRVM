@@ -856,7 +856,7 @@ public class VM_Runtime implements VM_Constants {
             // found an appropriate catch block
             if (VM.debugOOM)
               VM.sysWriteln("found one; delivering.");
-            Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromInt(catchBlockOffset));
+            Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromIntSignExtend(catchBlockOffset));
             exceptionDeliverer.deliverException(compiledMethod,
                                                 catchBlockStart,
                                                 exceptionObject, 

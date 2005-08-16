@@ -186,7 +186,7 @@ public final class FreeListPageResource extends PageResource
   }
 
   public Address getHighWater() {
-    return start.add(Extent.fromInt(highWaterMark<<LOG_BYTES_IN_PAGE));
+    return start.add(Extent.fromIntSignExtend(highWaterMark<<LOG_BYTES_IN_PAGE));
   }
 
 

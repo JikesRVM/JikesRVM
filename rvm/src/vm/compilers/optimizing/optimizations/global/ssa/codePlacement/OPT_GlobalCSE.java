@@ -165,8 +165,8 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     
     if ((  inst.isAllocation())
         || inst.isDynamicLinkingPoint()
-        || inst.isLoad()
-        || inst.isStore()
+        || inst.isImplicitLoad()
+        || inst.isImplicitStore()
         || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode)
       return false;
     

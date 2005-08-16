@@ -124,7 +124,7 @@ public final class Options {
           ":gc:" + o.getKey() + "=" + value,
           value);
         if (pval < 0) return false;
-        ((PagesOption)o).setBytes(Extent.fromInt((int)pval));
+        ((PagesOption)o).setBytes(Extent.fromIntSignExtend((int)pval));
         return true;
       case Option.MICROSECONDS_OPTION:
         int mval = VM_CommandLineArgs.primitiveParseInt(value);

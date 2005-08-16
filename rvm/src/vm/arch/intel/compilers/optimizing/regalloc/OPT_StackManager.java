@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.HashSet;
@@ -132,7 +133,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     switch(type) {
       case FLOAT_VALUE: rOp = F(r); break;
       case DOUBLE_VALUE: rOp = D(r); break;
-      default: rOp = R(r); break;
+      default: rOp = new OPT_RegisterOperand(r, VM_TypeReference.Int); break;
     }
     OPT_StackLocationOperand spill = 
       new OPT_StackLocationOperand(true, -location, size);
@@ -158,7 +159,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     switch(type) {
       case FLOAT_VALUE: rOp = F(r); break;
       case DOUBLE_VALUE: rOp = D(r); break;
-      default: rOp = R(r); break;
+      default: rOp = new OPT_RegisterOperand(r, VM_TypeReference.Int); break;
     }
     OPT_StackLocationOperand spill = 
       new OPT_StackLocationOperand(true, -location, size);
@@ -317,12 +318,13 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
+      OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
+									VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
                            (byte)WORDSIZE, null, null);
 
     //    Trap if ESP <= active Thread Stack Limit
-    MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,R(ESP),M,
-                      OPT_IA32ConditionOperand.LE(),
+    MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
+							 M,OPT_IA32ConditionOperand.LE(),
                       OPT_TrapCodeOperand.StackOverflow());
   }
 
@@ -351,15 +353,19 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     //    ECX := active Thread Stack Limit
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
+      OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
+									VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
                            (byte)WORDSIZE, null, null);
-    plg.insertBefore(MIR_Move.create(IA32_MOV, R(ECX), M));
+    plg.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand((ECX), VM_TypeReference.Int), M));
 
     //    ECX += frame Size
     int frameSize = getFrameFixedSize();
-    plg.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ECX), IC(frameSize)));
+    plg.insertBefore(MIR_BinaryAcc.create(IA32_ADD, new OPT_RegisterOperand(ECX, VM_TypeReference.Int),
+														IC(frameSize)));
     //    Trap if ESP <= ECX
-    MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,R(ESP),R(ECX),
+    MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,
+							 new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
+							 new OPT_RegisterOperand(ECX, VM_TypeReference.Int),
                       OPT_IA32ConditionOperand.LE(),
                       OPT_TrapCodeOperand.StackOverflow());
   }
@@ -382,7 +388,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register ESP = phys.getESP(); 
     OPT_Register PR = phys.getPR();
     OPT_MemoryOperand fpHome = 
-      OPT_MemoryOperand.BD(R(PR),
+      OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
                            VM_Entrypoints.framePointerField.getOffset(),
                            (byte)WORDSIZE, null, null);
 
@@ -411,7 +417,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, fpHome));
 
       // 3. Set my frame pointer to current value of stackpointer
-      inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), R(ESP)));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), new OPT_RegisterOperand(ESP, VM_TypeReference.Int)));
 
       // 4. Store my compiled method id
       int cmid = ir.compiledMethod.getId();
@@ -421,7 +427,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       inst.insertBefore(MIR_UnaryNoRes.create(IA32_PUSH, fpHome));
 
       // 2. Set my frame pointer to current value of stackpointer
-      inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), R(ESP)));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, fpHome.copy(), new OPT_RegisterOperand(ESP, VM_TypeReference.Int)));
 
       // 3. Store my compiled method id
       int cmid = ir.compiledMethod.getId();
@@ -457,7 +463,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       OPT_Register nv = (OPT_Register)e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
-      inst.insertBefore(MIR_Move.create(IA32_MOV, M, R(nv)));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(nv, VM_TypeReference.Int)));
     }
   }
 
@@ -477,7 +483,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       OPT_Register nv = (OPT_Register)e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_Operand M = new OPT_StackLocationOperand(true, -offset, 4);
-      inst.insertBefore(MIR_Move.create(IA32_MOV, R(nv), M));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(nv, VM_TypeReference.Int), M));
     }
   }
 
@@ -519,7 +525,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileGPRLocation[i];
       OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
-      inst.insertBefore(MIR_Move.create(IA32_MOV, M, R(r)));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(r, VM_TypeReference.Int)));
     }
   }
   /**
@@ -538,7 +544,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileGPRLocation[i];
       OPT_Operand M = new OPT_StackLocationOperand(true, -location, 4);
-      inst.insertBefore(MIR_Move.create(IA32_MOV, R(r), M));
+      inst.insertBefore(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(r, VM_TypeReference.Int), M));
     }
   }
   /**
@@ -562,7 +568,8 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     OPT_MemoryOperand fpHome = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffset(),
+      OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),
+									VM_Entrypoints.framePointerField.getOffset(),
                            (byte)WORDSIZE, null, null);
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }
@@ -681,11 +688,12 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int delta = desiredOffset - ESPOffset;
     if (delta != 0) {
       if (canModifyEFLAGS(s)) {
-        s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), IC(delta)));
+        s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, new OPT_RegisterOperand(ESP, VM_TypeReference.Int), IC(delta)));
       } else {
         OPT_MemoryOperand M = 
-          OPT_MemoryOperand.BD(R(ESP),Offset.fromIntSignExtend(delta), (byte)4, null, null); 
-        s.insertBefore(MIR_Lea.create(IA32_LEA, R(ESP), M));
+          OPT_MemoryOperand.BD(new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
+										 Offset.fromIntSignExtend(delta), (byte)4, null, null); 
+        s.insertBefore(MIR_Lea.create(IA32_LEA, new OPT_RegisterOperand(ESP, VM_TypeReference.Int), M));
       }
       ESPOffset = desiredOffset;
     }
@@ -825,7 +833,8 @@ public final class OPT_StackManager extends OPT_GenericStackManager
           offset -= ESPOffset;
           byte size = sop.getSize();
           OPT_MemoryOperand M = 
-            OPT_MemoryOperand.BD(R(ESP),Offset.fromIntSignExtend(offset),
+            OPT_MemoryOperand.BD(new OPT_RegisterOperand(ESP, VM_TypeReference.Int),
+											Offset.fromIntSignExtend(offset),
                                  size, null, null); 
           s.replaceOperand(op, M);
         } else if (op instanceof OPT_MemoryOperand) {

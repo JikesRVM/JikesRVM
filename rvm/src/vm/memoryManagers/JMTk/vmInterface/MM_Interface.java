@@ -910,7 +910,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     // This can be undoable if the current thread doesn't cause 'em
     // all to exit.
     // if (VM.VerifyAssertions && growSize < 0) VM._assert(false);
-    HeapGrowthManager.overrideGrowHeapSize(Extent.fromInt(growSize));
+    HeapGrowthManager.overrideGrowHeapSize(Extent.fromIntSignExtend(growSize));
   }
 
   

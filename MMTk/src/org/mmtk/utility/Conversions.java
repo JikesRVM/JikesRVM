@@ -125,9 +125,9 @@ public class Conversions implements Constants, Uninterruptible {
       Assert._assert(val >= MIN_INT && val <= MAX_INT);
     }
     if (bytes.sGE(Offset.zero()))
-      return bytesToPagesUp(bytes.toInt());
+      return bytesToPagesUp(Extent.fromIntSignExtend(bytes.toInt()));
     else
-      return -bytesToPagesUp(-bytes.toInt());
+      return -bytesToPagesUp(Extent.fromIntSignExtend(-bytes.toInt()));
   }
   
   public static Address mmapChunksToAddress(int chunk) {

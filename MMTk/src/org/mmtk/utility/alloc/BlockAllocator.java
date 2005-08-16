@@ -59,7 +59,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   private static final int LOG_BYTE_COVERAGE = LOG_MIN_BLOCK - LOG_BYTES_IN_BLOCK_META;
   public static final int META_DATA_BYTES_PER_REGION = 1<<(EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_BYTE_COVERAGE);
 
-  public static final Extent META_DATA_EXTENT = Extent.fromInt(META_DATA_BYTES_PER_REGION);
+  public static final Extent META_DATA_EXTENT = Extent.fromIntSignExtend(META_DATA_BYTES_PER_REGION);
 
   /****************************************************************************
    *

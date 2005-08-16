@@ -73,10 +73,10 @@ public abstract class SegregatedFreeList extends Allocator
   private static final int LIVE_BYTES_PER_REGION = 1<<(EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_LIVE_COVERAGE);
   private static final Word WORD_SHIFT_MASK = Word.one().lsh(LOG_BITS_IN_WORD).sub(Extent.one());
   private static final int LOG_LIVE_WORD_STRIDE = LOG_LIVE_COVERAGE + LOG_BYTES_IN_WORD;
-  private static final Extent LIVE_WORD_STRIDE = Extent.fromInt(1<<LOG_LIVE_WORD_STRIDE);
+  private static final Extent LIVE_WORD_STRIDE = Extent.fromIntSignExtend(1<<LOG_LIVE_WORD_STRIDE);
   private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.sub(1).toWord().not();
   private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
-  public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(Extent.fromInt(NET_META_DATA_BYTES_PER_REGION));
+  public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
   
   private static final Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;
 
@@ -598,7 +598,7 @@ public abstract class SegregatedFreeList extends Allocator
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
       Address block = firstBlock.get(sizeClass);
       clearBucketList();
-      Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
       while (!block.isZero()) {
         /* first check to see if block is completely free and if possible
          * free the entire block */
@@ -762,7 +762,7 @@ public abstract class SegregatedFreeList extends Allocator
    * Clear all live bits
    */
   public static final void zeroLiveBits(Address start, Address end) {
-    Extent bytes = Extent.fromInt(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
+    Extent bytes = Extent.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
     while (start.LT(end)) {
       Address metadata = EmbeddedMetaData.getMetaDataBase(start).add(SegregatedFreeList.META_DATA_OFFSET);
       Memory.zero(metadata, bytes);
@@ -827,9 +827,9 @@ public abstract class SegregatedFreeList extends Allocator
   protected final Address makeFreeListFromLiveBits(Address block, 
                                                       int sizeClass)
     throws InlinePragma {
-    Extent cellBytes = Extent.fromInt(cellSize[sizeClass]);
+    Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
     Address cellCursor = block.add(blockHeaderSize[sizeClass]);
-    Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
     Address end = block.add(blockSize);
     Address nextFree = Address.zero();
     Address nextCellCursor = cellCursor.add(cellBytes);

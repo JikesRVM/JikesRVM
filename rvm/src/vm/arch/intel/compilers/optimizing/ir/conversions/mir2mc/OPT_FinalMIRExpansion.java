@@ -65,20 +65,21 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
           // calculate address to which to jump, and store it
           // on the top of the stack
           OPT_Register regS = MIR_LowTableSwitch.getIndex(p).register;
-          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL, R(regS), IC(2)));
+          nextBlock.appendInstruction(MIR_BinaryAcc.create(IA32_SHL, new OPT_RegisterOperand(regS, VM_TypeReference.Int),
+																			  IC(2)));
           nextBlock.appendInstruction(MIR_BinaryAcc.create
-                                      (IA32_ADD, R(regS), 
-                                       OPT_MemoryOperand.I(R(phys.getESP()),
+                                      (IA32_ADD, new OPT_RegisterOperand(regS, VM_TypeReference.Int), 
+                                       OPT_MemoryOperand.I(new OPT_RegisterOperand(phys.getESP(), VM_TypeReference.Int),
                                                            (byte)4,null,null)));
-          nextBlock.appendInstruction(MIR_Move.create(IA32_MOV, R(regS), 
+          nextBlock.appendInstruction(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(regS, VM_TypeReference.Int), 
                                                       OPT_MemoryOperand.I
-                                                      (R(regS),(byte)4,null,
+                                                      (new OPT_RegisterOperand(regS, VM_TypeReference.Int),(byte)4,null,
                                                        null)));
           nextBlock.appendInstruction(MIR_BinaryAcc.create
                                       (IA32_ADD, 
-                                       OPT_MemoryOperand.I(R(phys.getESP()),
+                                       OPT_MemoryOperand.I(new OPT_RegisterOperand(phys.getESP(), VM_TypeReference.Int),
                                                            (byte)4,null,null),
-                                       R(regS))); 
+                                       new OPT_RegisterOperand(regS, VM_TypeReference.Int))); 
           // ``return'' to mangled return address
           nextBlock.appendInstruction(MIR_Return.create(IA32_RET, IC(0), null, null));
 
@@ -147,7 +148,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
               // we can't get it back here.
             }
             OPT_MemoryOperand mo = 
-              OPT_MemoryOperand.BD(R(phys.getPR()),
+              OPT_MemoryOperand.BD(new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int),
                                    VM_Entrypoints.arrayIndexTrapParamField.getOffset(),
                                    (byte)4, 
                                    null, 
@@ -387,7 +388,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
     Offset tsr = VM_Entrypoints.takeYieldpointField.getOffset();
-    OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
+    OPT_MemoryOperand M = OPT_MemoryOperand.BD(new OPT_RegisterOperand(PR, VM_TypeReference.Int),tsr,(byte)4,null,null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, ypCond,
                                                       yieldpoint.makeJumpTarget(),

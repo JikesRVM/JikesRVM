@@ -83,7 +83,7 @@ final class OPT_CallingConvention extends OPT_IRTools
         OPT_MethodOperand mo = MIR_Call.getMethod(call);
         if (mo.isInterface()) {
           VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
-          OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(phys.getPR()), 
+          OPT_MemoryOperand M = OPT_MemoryOperand.BD(new OPT_RegisterOperand(phys.getPR(), VM_TypeReference.Int), 
                                                      VM_Entrypoints.hiddenSignatureIdField.getOffset(), 
                                                      (byte)WORDSIZE, null, null);
           call.insertBefore(MIR_Move.create(IA32_MOV,M,IC(sig.getId())));
@@ -316,7 +316,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       OPT_Register r = (OPT_Register)e.nextElement();
       OPT_Operand M = 
         new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
-      call.insertBefore(MIR_Move.create(IA32_MOV, M, R(r)));
+      call.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(r, VM_TypeReference.Int)));
       location += WORDSIZE;
     }
     
@@ -324,7 +324,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_Register PR = phys.getPR();
     OPT_Operand M = 
       new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
-    call.insertBefore(MIR_Move.create(IA32_MOV, M, R(PR)));
+    call.insertBefore(MIR_Move.create(IA32_MOV, M, new OPT_RegisterOperand(PR, VM_TypeReference.Int)));
   }
   /**
    * Restore all nonvolatile registers after a syscall.  
@@ -355,7 +355,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       OPT_Register r = (OPT_Register)e.nextElement();
       OPT_Operand M = 
         new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
-      call.insertAfter(MIR_Move.create(IA32_MOV, R(r), M));
+      call.insertAfter(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(r, VM_TypeReference.Int), M));
       location += WORDSIZE;
     }
     
@@ -363,7 +363,7 @@ final class OPT_CallingConvention extends OPT_IRTools
     OPT_Register PR = phys.getPR();
     OPT_Operand M = 
       new OPT_StackLocationOperand(true, -location, (byte)WORDSIZE);
-    call.insertAfter(MIR_Move.create(IA32_MOV, R(PR), M));
+    call.insertAfter(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(PR, VM_TypeReference.Int), M));
   }
 
   /**

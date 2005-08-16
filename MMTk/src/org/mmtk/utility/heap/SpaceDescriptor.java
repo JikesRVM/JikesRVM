@@ -135,7 +135,7 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    */
   public static Address getStart(int descriptor) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(isContiguous(descriptor));
-    Word mantissa = Word.fromInt(descriptor>>>VM_MANTISSA_SHIFT);
+    Word mantissa = Word.fromIntSignExtend(descriptor>>>VM_MANTISSA_SHIFT);
     int exponent = (descriptor & VM_EXPONENT_MASK)>>>VM_EXPONENT_SHIFT;
     return mantissa.lsh(VM_BASE_EXPONENT+exponent).toAddress();
   }

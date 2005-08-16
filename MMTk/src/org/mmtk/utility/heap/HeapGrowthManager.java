@@ -160,7 +160,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     Extent reserved = Plan.reservedMemory();
     double liveRatio = reserved.toLong() / ((double) currentHeapSize.toLong());
     double ratio = computeHeapChangeRatio(liveRatio);
-    Extent newSize = Word.fromInt((int)(ratio * (double) (oldSize.toLong()>>LOG_BYTES_IN_MBYTE))).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // do arith in MB to avoid overflow
+    Extent newSize = Word.fromIntSignExtend((int)(ratio * (double) (oldSize.toLong()>>LOG_BYTES_IN_MBYTE))).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // do arith in MB to avoid overflow
     if (newSize.LT(reserved)) newSize = reserved;
     newSize = newSize.add(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
     if (newSize.GT(maxHeapSize)) newSize = maxHeapSize;

@@ -1207,8 +1207,8 @@ EMIT(MIR_UnaryAcc.mutate(P(p), IA32_NEG, MO_AS(P(p), DW_S, DW)));
 szpr:	INT_SHL_ACC(r, r)
 23
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(P(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)),  R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(P(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)),  new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 szpr:	INT_SHL_ACC(r, INT_CONSTANT)
 13
@@ -1219,8 +1219,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)), BinaryAcc.g
 stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -1230,8 +1230,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_S(P(p), DW), BinaryAcc.getValue(PL(
 stm:	INT_ASTORE(INT_SHL_ACC(INT_ALOAD(r,riv),r),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(INT_SHL_ACC(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -1244,8 +1244,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, MO_AS(P(p), DW_S, DW), BinaryAcc.getVa
 szpr:	INT_SHR_ACC(r, r)
 23
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(P(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(P(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 szpr:	INT_SHR_ACC(r, INT_CONSTANT)
 13
@@ -1256,8 +1256,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, BinaryAcc.getResult(P(p)), BinaryAcc.g
 stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_STORE(INT_SHR_ACC(INT_LOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -1267,8 +1267,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_S(P(p), DW), BinaryAcc.getValue(PL(
 stm:	INT_ASTORE(INT_SHR_ACC(INT_ALOAD(r,riv),r),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_AS(P(p), DW_S, DW), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(INT_SHR_ACC(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -1281,8 +1281,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SAR, MO_AS(P(p), DW_S, DW), BinaryAcc.getVa
 szpr:	INT_USHR_ACC(r, r)
 23
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(P(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(P(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 szpr:	INT_USHR_ACC(r, INT_CONSTANT)
 13
@@ -1293,8 +1293,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, BinaryAcc.getResult(P(p)), BinaryAcc.g
 stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_STORE(INT_USHR_ACC(INT_LOAD(riv,riv), INT_CONSTANT),OTHER_OPERAND(riv, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -1304,8 +1304,8 @@ EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_S(P(p), DW), BinaryAcc.getValue(PL(
 stm:	INT_ASTORE(INT_USHR_ACC(INT_ALOAD(r,riv),r),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 27)
 EMIT_INSTRUCTION
-EMIT(MIR_Move.create(IA32_MOV, R(getECX()), BinaryAcc.getValue(PL(p)))); \
-EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), DW_S, DW), R(getECX())));
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getECX(), VM_TypeReference.Int), BinaryAcc.getValue(PL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHR, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(getECX(), VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(INT_USHR_ACC(INT_ALOAD(r,riv), INT_CONSTANT),OTHER_OPERAND(r, riv))
 ARRAY_ADDRESS_EQUAL(P(p), PLL(p), 17)
@@ -2352,19 +2352,19 @@ r:	LONG_2INT(r)
 13
 EMIT_INSTRUCTION
 OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(P(p))).register); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), R(lh)));
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), new OPT_RegisterOperand(lh, VM_TypeReference.Int)));
 
 stm:	INT_STORE(LONG_2INT(r), OTHER_OPERAND(riv,riv))
 15
 EMIT_INSTRUCTION
 OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).register); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), R(lh)));
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), new OPT_RegisterOperand(lh, VM_TypeReference.Int)));
 
 stm:	INT_ASTORE(LONG_2INT(r), OTHER_OPERAND(r,riv))
 15
 EMIT_INSTRUCTION
 OPT_Register lh = regpool.getSecondReg(R(Unary.getVal(PL(p))).register); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), R(lh)));
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), new OPT_RegisterOperand(lh, VM_TypeReference.Int)));
 
 r:	LONG_2INT(load64)
 15
@@ -2792,21 +2792,23 @@ NOFLAGS
 r:	LONG_MOVE(r)
 23
 EMIT_INSTRUCTION
-OPT_Register res1 = Move.getResult(P(p)).register;               \
-OPT_Register res2 = regpool.getSecondReg(res1);          \
-OPT_Register val1 = Move.getVal(P(p)).asRegister().register;     \
-OPT_Register val2 = regpool.getSecondReg(val1);          \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), R(val1)));         \
-EMIT(MIR_Move.create(IA32_MOV, R(res2), R(val2)));
+OPT_Register res1 = Move.getResult(P(p)).register;           \
+OPT_Register res2 = regpool.getSecondReg(res1);              \
+OPT_Register val1 = Move.getVal(P(p)).asRegister().register; \
+OPT_Register val2 = regpool.getSecondReg(val1);              \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(res1, VM_TypeReference.Int), \
+                     new OPT_RegisterOperand(val1, VM_TypeReference.Int)));               \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(res2, VM_TypeReference.Int),       \
+                     new OPT_RegisterOperand(val2, VM_TypeReference.Int)));
 
 r:	LONG_MOVE(LONG_CONSTANT)
 21
 EMIT_INSTRUCTION
-OPT_Register res1 = Move.getResult(P(p)).register;                \
-OPT_Register res2 = regpool.getSecondReg(res1);           \
-OPT_LongConstantOperand val = LC(Move.getVal(P(p)));               \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, R(res1), IC(val.upper32()))); \
-EMIT(MIR_Move.create(IA32_MOV, R(res2), IC(val.lower32())));
+OPT_Register res1 = Move.getResult(P(p)).register;   \
+OPT_Register res2 = regpool.getSecondReg(res1);      \
+OPT_LongConstantOperand val = LC(Move.getVal(P(p))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, new OPT_RegisterOperand(res1, VM_TypeReference.Int), IC(val.upper32()))); \
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(res2, VM_TypeReference.Int), IC(val.lower32())));
 
 ##################################
 # Loads (memory to register moves)
@@ -2817,7 +2819,7 @@ EMIT(MIR_Move.create(IA32_MOV, R(res2), IC(val.lower32())));
 r:	GET_CURRENT_PROCESSOR
 15
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Nullary.getResult(P(p)), R(getESI())));
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Nullary.getResult(P(p)), new OPT_RegisterOperand(getESI(), VM_TypeReference.Int)));
 
 #####
 # GET_JTOC
@@ -3061,7 +3063,7 @@ r:	LONG_LOAD(riv, riv)
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hres = Load.getResult(P(p)); \
-OPT_RegisterOperand lres = R(regpool.getSecondReg(hres.register)); \
+OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.register), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_L(P(p), DW, DW).copy()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_L(P(p), DW)));
 
@@ -3072,7 +3074,7 @@ r:	LONG_ALOAD(r, riv)
 30
 EMIT_INSTRUCTION
 OPT_RegisterOperand hres = ALoad.getResult(P(p)); \
-OPT_RegisterOperand lres = R(regpool.getSecondReg(hres.register)); \
+OPT_RegisterOperand lres = new OPT_RegisterOperand(regpool.getSecondReg(hres.register), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, hres, MO_AL(P(p), QW_S, DW, DW).copy()))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, lres, MO_AL(P(p), QW_S, DW)));
 
@@ -3349,8 +3351,8 @@ stm:	BYTE_STORE(load8, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = regpool.getInteger(); \
-EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), R(tmp)));
+EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), consumeMO()))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), B), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
 
 #####
 # BYTE_ASTORE
@@ -3366,8 +3368,8 @@ stm:	BYTE_ASTORE(load8, OTHER_OPERAND(r, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = regpool.getInteger(); \
-EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), R(tmp)));
+EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), consumeMO()))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), B_S, B), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
 
 #####
 # SHORT_STORE
@@ -3383,8 +3385,8 @@ stm:	SHORT_STORE(load16, OTHER_OPERAND(riv, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = regpool.getInteger(); \
-EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), R(tmp)));
+EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), consumeMO()))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), W), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
 
 #####
 # SHORT_ASTORE
@@ -3400,8 +3402,8 @@ stm:	SHORT_ASTORE(load16, OTHER_OPERAND(r, riv))
 25
 EMIT_INSTRUCTION
 OPT_Register tmp = regpool.getInteger(); \
-EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, R(tmp), consumeMO()))); \
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), R(tmp)));
+EMIT(CPOS(PL(p), MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(tmp, VM_TypeReference.Int), consumeMO()))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), new OPT_RegisterOperand(tmp, VM_TypeReference.Int)));
 
 #####
 # INT_STORE
@@ -3502,8 +3504,8 @@ EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_AS(P(p), DW_S, DW), myFP0()));
 stm:	LONG_STORE(r, OTHER_OPERAND(riv, riv))
 30
 EMIT_INSTRUCTION
-OPT_RegisterOperand hval = R(Store.getValue(P(p))); \
-OPT_RegisterOperand lval = R(regpool.getSecondReg(hval.register)); \
+OPT_RegisterOperand hval = (OPT_RegisterOperand)Store.getValue(P(p)); \
+OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.register), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_S(P(p), DW, DW).copy(), hval))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), lval));
 
@@ -3520,8 +3522,8 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_S(P(p), DW), IC(val.lower32())));
 stm:	LONG_ASTORE(r, OTHER_OPERAND(r, riv))
 30
 EMIT_INSTRUCTION
-OPT_RegisterOperand hval = R(AStore.getValue(P(p))); \
-OPT_RegisterOperand lval = R(regpool.getSecondReg(hval.register)); \
+OPT_RegisterOperand hval = (OPT_RegisterOperand)AStore.getValue(P(p)); \
+OPT_RegisterOperand lval = new OPT_RegisterOperand(regpool.getSecondReg(hval.register), VM_TypeReference.Int); \
 EMIT(CPOS(P(p), MIR_Move.create(IA32_MOV, MO_AS(P(p), QW_S, DW, DW).copy(), hval))); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), lval));
 
@@ -3845,10 +3847,10 @@ stm:	RETURN(r)
 13
 EMIT_INSTRUCTION
 OPT_RegisterOperand ret = R(Return.getVal(P(p)));            \
-OPT_RegisterOperand ret2 = null;	                     \
+OPT_RegisterOperand ret2 = null;	                            \
 if (ret.type.isLongType()) {                                 \
   ret.type = VM_TypeReference.Int;                           \
-  ret2 = R(regpool.getSecondReg(ret.register));              \
+  ret2 = new OPT_RegisterOperand(regpool.getSecondReg(ret.register), VM_TypeReference.Int); \
 }                                                            \
 EMIT(MIR_Return.mutate(P(p), IA32_RET, null, ret, ret2)); 
 

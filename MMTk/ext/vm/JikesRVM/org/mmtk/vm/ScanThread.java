@@ -267,7 +267,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
       compiledMethod.setObsolete(false);
-      ObjectReference code = ObjectReference.fromObject(compiledMethod.getInstructions());
+      ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
       Address ipLoc = thread.hardwareExceptionRegisters.getIPLocation();
       codeLocationsPush(code, ipLoc);
     }
@@ -424,7 +424,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    */
   private void processFrameForCode(int verbosity) {
     /* get the code object associated with this frame */
-    ObjectReference code = ObjectReference.fromObject(compiledMethod.getInstructions());
+    ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
     
     pushFrameIP(code, verbosity);
     scanFrameForCode(code, verbosity);
@@ -649,7 +649,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     Log.write("--- fp = ");
     Log.write(fp);
     if (compiledMethod.isCompiled()) {
-        ObjectReference codeBase = ObjectReference.fromObject(compiledMethod.getInstructions());
+        ObjectReference codeBase = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
         Log.write("     code base = ");
         Log.write(codeBase);
         Log.write("     code offset = ");

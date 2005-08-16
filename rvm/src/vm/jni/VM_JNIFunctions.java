@@ -5285,7 +5285,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
       for (int i = 0; i < nmethods; i++) {
         String methodString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress());
         VM_Atom methodName = VM_Atom.findOrCreateAsciiAtom(methodString);
-        String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS)));
+        String sigString = VM_JNIHelpers.createStringFromC(curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS)));
         VM_Atom sigName  = VM_Atom.findOrCreateAsciiAtom(sigString);
         
         // Find the target method
@@ -5296,7 +5296,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
           return -1;
         } 
         methods[i] = (VM_NativeMethod)meth;
-        symbols.set(i, curMethod.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS * 2)));
+        symbols.set(i, curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS * 2)));
         curMethod = curMethod.add(3 * BYTES_IN_ADDRESS);
       }
 

@@ -55,7 +55,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       VM_Field f = VM_Entrypoints.framePointerField;
       OPT_RegisterOperand pr = null;
       if (VM.dedicatedESI) {
-        pr = OPT_IRTools.R(phys.getESI());
+        pr = new OPT_RegisterOperand(phys.getESI(), VM_TypeReference.Int);
       } else {
         pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
         bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
@@ -75,7 +75,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       } else {
         OPT_RegisterOperand pr = null;
         if (VM.dedicatedESI) {
-          pr = OPT_IRTools.R(phys.getESI());
+          pr = new OPT_RegisterOperand(phys.getESI(), VM_TypeReference.Int);
         } else {
           pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
           bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 

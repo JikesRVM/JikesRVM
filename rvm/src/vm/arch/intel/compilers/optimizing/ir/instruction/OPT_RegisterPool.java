@@ -46,10 +46,9 @@ public class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Ope
       return new OPT_IntConstantOperand(jtoc.toInt());
     } else {
       OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.IntArray);
-      s.insertBefore(Unary.create(GET_JTOC, res, 
-                                  OPT_IRTools.
-                                  R(ir.regpool.getPhysicalRegisterSet().
-                                    getPR())));
+		OPT_RegisterOperand pr = new OPT_RegisterOperand(ir.regpool.getPhysicalRegisterSet().getPR(),
+																		 VM_TypeReference.Int);
+      s.insertBefore(Unary.create(GET_JTOC, res, pr));
       return res.copyD2U();
     }
   }

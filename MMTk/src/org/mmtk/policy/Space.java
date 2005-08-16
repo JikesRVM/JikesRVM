@@ -156,7 +156,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   Space(String name, boolean movable, boolean immortal, int mb) {
     this(name, movable, immortal, heapCursor, 
-         Word.fromInt(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
+         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
     heapCursor = heapCursor.add(extent);
     if (heapCursor.GT(heapLimit)) {
       Log.write("Out of virtual address space allocating \"");
@@ -207,7 +207,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   Space(String name, boolean movable, boolean immortal, int mb, boolean top) {
     this(name, movable, immortal, 
-         Word.fromInt(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
+         Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
   }
 
   /**
@@ -388,7 +388,7 @@ public abstract class Space implements Constants, Uninterruptible {
           SpaceDescriptor.isContiguousHi(descriptor))
         return addr.GE(start);
       else {
-        Extent size = Word.fromInt(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
+        Extent size = Word.fromIntSignExtend(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
         Address end = start.add(size);
         return addr.GE(start) && addr.LT(end);
       }
@@ -628,7 +628,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   private static Extent getFracAvailable(float frac) {
     long bytes = (long) (frac * AVAILABLE_BYTES.toLong());
-    Word mb = Word.fromInt((int) (bytes >> LOG_BYTES_IN_MBYTE));
+    Word mb = Word.fromIntSignExtend((int) (bytes >> LOG_BYTES_IN_MBYTE));
     Extent rtn = mb.lsh(LOG_BYTES_IN_MBYTE).toExtent();
     return chunkAlign(rtn, false);
   }
