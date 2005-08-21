@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import java.util.Vector;
+import java.util.ArrayList;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
@@ -89,10 +89,10 @@ public class OPT_OptimizationPlanner {
       initializeMasterPlan();
     }
 
-    Vector temp = new Vector(masterPlan.length);
+    ArrayList temp = new ArrayList();
     for (int i = 0; i < masterPlan.length; i++) {
       if (masterPlan[i].shouldPerform(options)) {
-        temp.addElement(masterPlan[i]);
+        temp.add(masterPlan[i]);
       }
     }
     if (VM.writingBootImage)
@@ -115,7 +115,7 @@ public class OPT_OptimizationPlanner {
    * that will normally execute.
    */
   private static void initializeMasterPlan() {
-    Vector temp = new Vector();
+    ArrayList temp = new ArrayList();
     BC2HIR(temp);    
     HIROptimizations(temp);
     HIR2LIR(temp);
@@ -125,18 +125,13 @@ public class OPT_OptimizationPlanner {
   }
 
   /**
-   * Convert the Vector to an array of elements.
-   * <p> Note: The conversion to an [] is not quite as silly as it seems.
-   * Vectors are synchronized, thus if we left our plan as a Vector,
-   * we'd be serializing opt compilation.
+   * Convert the ArrayList to an array of elements.
    * TODO: this is a bad name (finalize), isn't it?
    */
-  private static OPT_OptimizationPlanElement[] finalize(Vector v) {
-    OPT_OptimizationPlanElement[] p = new OPT_OptimizationPlanElement[v.size()];
-    for (int i = 0; i < v.size(); i++) {
-      p[i] = (OPT_OptimizationPlanElement)v.elementAt(i);
-    }
-    return p;
+  private static OPT_OptimizationPlanElement[] finalize(ArrayList planElementList) {
+    OPT_OptimizationPlanElement[] p = new OPT_OptimizationPlanElement[planElementList.size()];
+	 planElementList.toArray(p);
+	 return p;
   }
 
   /**
@@ -145,7 +140,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void BC2HIR(Vector p) {
+  private static void BC2HIR(ArrayList p) {
     composeComponents(p, "Convert Bytecodes to HIR", new Object[] {
                       // Generate HIR from bytecodes
                       new OPT_ConvertBCtoHIR(),
@@ -178,7 +173,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void HIROptimizations(Vector p) {
+  private static void HIROptimizations(ArrayList p) {
     // Various large-scale CFG transformations.
     // Do these very early in the pipe so that all HIR opts can benefit.
     composeComponents(p, "CFG Transformations", new Object[] {
@@ -250,7 +245,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void SSAinHIR(Vector p) {
+  private static void SSAinHIR(ArrayList p) {
     composeComponents
       (p, "SSA", new Object[] { 
        // Use the LST to estimate basic block frequency from branch probabilities
@@ -330,7 +325,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void SSAinLIR(Vector p) {
+  private static void SSAinLIR(ArrayList p) {
     composeComponents(p, "SSA", new Object[] {
                       // Use the LST to estimate basic block frequency from branch probabilities
                       new OPT_OptimizationPlanCompositeElement
@@ -390,7 +385,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void HIR2LIR(Vector p) {
+  private static void HIR2LIR(ArrayList p) {
     composeComponents(p, "Convert HIR to LIR", new Object[] {
                       // Optional printing of final HIR
                       new OPT_IRPrinter("Final HIR") {
@@ -427,7 +422,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void LIROptimizations(Vector p) {
+  private static void LIROptimizations(ArrayList p) {
     // SSA meta-phase
     SSAinLIR(p);
     // Perform local copy propagation for a factored basic block.
@@ -469,7 +464,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void LIR2MIR(Vector p) {
+  private static void LIR2MIR(ArrayList p) {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
                       // Split very large basic blocks into smaller ones.
                       new OPT_SplitBasicBlock(), 
@@ -500,7 +495,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void MIROptimizations(Vector p) {
+  private static void MIROptimizations(ArrayList p) {
     // NullCheck combining and validation operand removal.
     addComponent(p, new OPT_NullCheckCombining());
 
@@ -529,7 +524,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void MIR2MC(Vector p) {
+  private static void MIR2MC(ArrayList p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_ConvertMIRtoMC());
   }
@@ -544,7 +539,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void LIR2MIR(Vector p) {
+  private static void LIR2MIR(ArrayList p) {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
                       // Optional printing of final LIR
                       new OPT_IRPrinter("Final LIR") {
@@ -573,7 +568,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void MIROptimizations(Vector p) {
+  private static void MIROptimizations(ArrayList p) {
     ////////////////////
     // MIR OPTS(1) (before register allocation)
     ////////////////////
@@ -624,7 +619,7 @@ public class OPT_OptimizationPlanner {
    * 
    * @param p the plan under construction
    */
-  private static void MIR2MC(Vector p) {
+  private static void MIR2MC(ArrayList p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_IRPrinter("Final MIR") {
                  public boolean shouldPerform(OPT_Options options) {
@@ -635,15 +630,15 @@ public class OPT_OptimizationPlanner {
   //-#endif
 
   // Helper functions for constructing the masterPlan.
-  protected static void addComponent(Vector p, OPT_CompilerPhase e) {
+  protected static void addComponent(ArrayList p, OPT_CompilerPhase e) {
     addComponent(p, new OPT_OptimizationPlanAtomicElement(e));
   }
 
   /**
    * Add an optimization plan element to a vector.
    */
-  protected static void addComponent(Vector p, OPT_OptimizationPlanElement e) {
-    p.addElement(e);
+  protected static void addComponent(ArrayList p, OPT_OptimizationPlanElement e) {
+    p.add(e);
   }
 
   /**
@@ -652,7 +647,7 @@ public class OPT_OptimizationPlanner {
    * @param name the name for this composition
    * @param es   the array of composed elements
    */
-  protected static void composeComponents(Vector p, String name, Object[] es) {
-    p.addElement(OPT_OptimizationPlanCompositeElement.compose(name, es));
+  protected static void composeComponents(ArrayList p, String name, Object[] es) {
+    p.add(OPT_OptimizationPlanCompositeElement.compose(name, es));
   }
 }

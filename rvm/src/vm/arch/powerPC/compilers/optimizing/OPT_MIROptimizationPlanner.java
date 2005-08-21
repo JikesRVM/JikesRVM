@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.Vector;
+import  java.util.ArrayList;
 
 /**
  * This class specifies the order in which OPT_CompilerPhases are
@@ -22,7 +22,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
   /**
    * Initialize the "master plan" for the PowerPC backend of the opt compiler.
    */
-  static void intializeMasterPlan(Vector temp) {
+  static void intializeMasterPlan(ArrayList temp) {
     LIR2MIR(temp);
     MIROptimizations(temp);
     MIR2MC(temp);
@@ -34,7 +34,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void LIR2MIR(Vector p) {
+  private static void LIR2MIR(ArrayList p) {
     composeComponents(p, "Convert LIR to MIR", new Object[] {
       // Optional printing of final LIR
       new OPT_IRPrinter("Final LIR") {
@@ -63,7 +63,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void MIROptimizations(Vector p) {
+  private static void MIROptimizations(ArrayList p) {
     ////////////////////
     // MIR OPTS(1) (before register allocation)
     ////////////////////
@@ -106,7 +106,7 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    * 
    * @param p the plan under construction
    */
-  private static void MIR2MC(Vector p) {
+  private static void MIR2MC(ArrayList p) {
     // MANDATORY: Final assembly
     addComponent(p, new OPT_IRPrinter("Final MIR") {
         public boolean shouldPerform(OPT_Options options) {

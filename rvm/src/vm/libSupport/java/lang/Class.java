@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import java.net.URL;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.ibm.JikesRVM.classloader.*;
@@ -105,7 +105,7 @@ public final class Class implements java.io.Serializable {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Class[0];
     
-    Vector publicClasses = new Vector();
+    ArrayList publicClasses = new ArrayList();
     for (Class c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
       VM_TypeReference[] declaredClasses 
@@ -121,10 +121,9 @@ public final class Class implements java.io.Serializable {
         }
       }
     }
-    
-    Class[] ans = new Class[publicClasses.size()];
-    publicClasses.copyInto(ans);
-    return ans;
+    Class result[] = new Class[publicClasses.size()];
+	 result = (Class[]) publicClasses.toArray(result);
+    return result;
   }
 
   public ClassLoader getClassLoader() {

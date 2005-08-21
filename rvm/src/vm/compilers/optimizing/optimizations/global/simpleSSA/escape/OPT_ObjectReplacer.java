@@ -42,15 +42,15 @@ public class OPT_ObjectReplacer
    * Perform the transformation
    */
   public void transform () {
-    // store the object's fields in a Vector
-    fields = getFieldsAsVector(klass);
+    // store the object's fields in a ArrayList
+    fields = getFieldsAsArrayList(klass);
     // create a scalar for each field. initialize the scalar to 
     // default values before the object's def
     OPT_RegisterOperand[] scalars = new OPT_RegisterOperand[fields.size()];
     OPT_RegisterOperand def = reg.defList;
     OPT_Instruction defI = def.instruction;
     for (int i = 0; i < fields.size(); i++) {
-      VM_Field f = (VM_Field)fields.elementAt(i);
+      VM_Field f = (VM_Field)fields.get(i);
       OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(f.getType());
       scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
       scalars[i].type = f.getType();
@@ -81,17 +81,17 @@ public class OPT_ObjectReplacer
   /**
    * the fields of the object
    */
-  private Vector fields;        
+  private ArrayList fields;        
 
   /** 
-   * Returns a Vector<VM_Field>, holding the fields of the object
+   * Returns a ArrayList<VM_Field>, holding the fields of the object
    * @param klass the type of the object
    */
-  private static Vector getFieldsAsVector (VM_Class klass) {
+  private static ArrayList getFieldsAsArrayList (VM_Class klass) {
     VM_Field[] f = klass.getInstanceFields();
-    Vector v = new Vector();
+    ArrayList v = new ArrayList();
     for (int i = 0; i < f.length; i++) {
-      v.addElement(f[i]);
+      v.add(f[i]);
     }
     return  v;
   }

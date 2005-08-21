@@ -11,9 +11,8 @@ import com.ibm.JikesRVM.adaptive.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.opt.*;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -844,7 +843,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
     // The register containing the counter value to check
     cbsReg = ir.regpool.makeTempInt();
 
-    Vector v = new Vector();
+    ArrayList intrumentationOperations = new ArrayList();
     for (OPT_BasicBlockEnumeration allBB = ir.getBasicBlocks(); 
          allBB.hasMoreElements(); ) {
       OPT_BasicBlock bb = allBB.next();
@@ -856,14 +855,14 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
 
         // If it's an instrumentation operation, remember the instruction 
         if (isInstrumentationInstruction(i))
-          v.add(i);
+          intrumentationOperations.add(i);
       }
     }
 
     // for each instrumentation operation.
-    Enumeration e = v.elements();
-    while (e.hasMoreElements()) {
-      OPT_Instruction i = (OPT_Instruction)e.nextElement();
+    Iterator itr = intrumentationOperations.iterator();
+    while (itr.hasNext()) {
+      OPT_Instruction i = (OPT_Instruction)itr.next();
 
       OPT_BasicBlock bb = i.getBasicBlock();
       conditionalizeInstrumentationOperation(ir,i,bb);

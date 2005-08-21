@@ -7,8 +7,8 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.adaptive.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /** 
  * The following OPT phase inserts counters on all instructions in the
@@ -51,7 +51,7 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
 
      // Create a vector of basic blocks up front because the blocks
      // are modified as we iterate below.
-     Vector bbList = new Vector();
+     ArrayList bbList = new ArrayList();
      for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
           bbe.hasMoreElements(); ) {
        OPT_BasicBlock bb = bbe.next();
@@ -59,14 +59,14 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
      }
      
      // Iterate through the basic blocks
-     for (Enumeration e = bbList.elements();
-          e.hasMoreElements(); ) {
-       OPT_BasicBlock bb = (OPT_BasicBlock) e.nextElement();
+     for (Iterator itr = bbList.iterator();
+          itr.hasNext(); ) {
+       OPT_BasicBlock bb = (OPT_BasicBlock) itr.next();
        
        // Add instructions to vector so enumeration doesn't mess
        // things up.  There is probably a better way to do this, but
        // it doesn't matter because this is a debugging phase.
-       Vector iList = new Vector();
+       ArrayList iList = new ArrayList();
        OPT_Instruction i = bb.firstInstruction();
        while (i!=null && i!=bb.lastInstruction()) {
          iList.add(i);
@@ -74,9 +74,9 @@ class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
        }
        
        // Iterate through all the instructions in this block.
-       for (Enumeration instructions = iList.elements();
-            instructions.hasMoreElements();) {
-         i = (OPT_Instruction) instructions.nextElement();
+       for (Iterator instructions = iList.iterator();
+            instructions.hasNext();) {
+         i = (OPT_Instruction) instructions.next();
 
          // Skip dangerous instructions
          if (i.operator() == LABEL ||

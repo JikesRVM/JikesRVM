@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * Generated from a template.
@@ -137,24 +137,24 @@ $$$$ END FOREACH
    /**
     * Latencies to other classes
     */
-   private Vector latencies;
+   private ArrayList latencies;
 
    // Returns latency lookup in the hashtable for a given operator class.
    // For internal use only.
    private Object latObj(OPT_OperatorClass opclass) {
       int latsize = latencies.size();
       Object latObj = null;
-      if (latsize > opclass.id) latObj = latencies.elementAt(opclass.id);
+      if (latsize > opclass.id) latObj = latencies.get(opclass.id);
 
       // walk through backwards, since any_insn (most general) is first
-      Vector opcrc = opclass.rclasses;
+      ArrayList opcrc = opclass.rclasses;
       for (int i = opcrc.size(); latObj == null && i > 0; i--) {
-         OPT_OperatorClass rc = (OPT_OperatorClass) opcrc.elementAt(i - 1);
-         if (latsize > rc.id) latObj = latencies.elementAt(rc.id);
+         OPT_OperatorClass rc = (OPT_OperatorClass) opcrc.get(i - 1);
+         if (latsize > rc.id) latObj = latencies.get(rc.id);
       }
 
       for (int i = rclasses.size(); latObj == null && i > 0; i--) {
-         OPT_OperatorClass rc = (OPT_OperatorClass) rclasses.elementAt(i - 1);
+         OPT_OperatorClass rc = (OPT_OperatorClass) rclasses.get(i - 1);
          latObj = rc.latObj(opclass);
       }
 
@@ -167,7 +167,7 @@ $$$$ END FOREACH
     * @param opClass operator class
     */
    public void setOpClass(OPT_OperatorClass opClass) {
-      rclasses.addElement(opClass);
+      rclasses.add(opClass);
    }
 
    /**
@@ -187,8 +187,16 @@ $$$$ END FOREACH
     * @param latency desired latency
     */
    public final void setLatency(OPT_OperatorClass opclass, int latency) {
-      if (latencies.size() <= opclass.id) latencies.setSize(opclass.id+1);
-      latencies.setElementAt(new Integer(latency), opclass.id);
+      int latencies_size = latencies.size();
+      if (opclass.id < latencies_size) {
+         latencies.set(opclass.id, new Integer(latency));
+      }
+      else {
+         for(; latencies_size < opclass.id; latencies_size++) {
+            latencies.add(null);
+         }
+         latencies.add(new Integer(latency));
+      }
    }
 
    /**
@@ -264,7 +272,7 @@ $$$$ END FOREACH
    /**
     * Resource Classes used by this Operator Class
     */
-   Vector rclasses;
+   ArrayList rclasses;
 
    /**
     * Resource Usage Masks
@@ -274,8 +282,8 @@ $$$$ END FOREACH
    // For internal use only.
    private OPT_OperatorClass(int _id) {
       id = _id;
-      rclasses = new Vector();
-      latencies = new Vector();
+      rclasses = new ArrayList();
+      latencies = new ArrayList();
    }
 
    // For internal use only.
@@ -333,10 +341,10 @@ $$$$ END FOREACH
          if (p.start + p.duration > maxlen)
             maxlen = p.start + p.duration;
       }
-      rclasses.addElement(any_insn);
+      rclasses.add(any_insn);
       for (int i = 0; i < N; i++)
          if (rss[i] != null)
-            rclasses.addElement(rss[i]);
+            rclasses.add(rss[i]);
       masks = new int[size][];
       for (int i = 0; i < size; i++)
          masks[i] = new int[maxlen];

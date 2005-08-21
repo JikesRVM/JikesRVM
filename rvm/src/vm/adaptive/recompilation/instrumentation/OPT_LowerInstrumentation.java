@@ -8,8 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.adaptive.*;
 
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 /** 
  *  This phase takes converts "instrumentation instructions" that were
@@ -60,11 +60,12 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
       //bb.printExtended();
     }
     
-    Vector vector = new Vector();
+    ArrayList instrumentedInstructions = new ArrayList();
     
-    // Go through all instructions and find the instrumented ones.
-    // We put them in a vector and expand them later because if we
-    // expanded them on the fly we mess up the enumeration.
+    // Go through all instructions and find the instrumented ones.  We
+    // put them in instrumentedInstructions and expand them later
+    // because if we expanded them on the fly we mess up the
+    // enumeration.
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
          bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
@@ -73,7 +74,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
       while (i!=null && i!=bb.lastInstruction()) {
         
         if (i.operator() == INSTRUMENTED_EVENT_COUNTER) {
-          vector.add(i);
+          instrumentedInstructions.add(i);
         }
         i = i.nextInstructionInCodeOrder();
       }
@@ -81,9 +82,9 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
     
     // Now go through the instructions and "lower" them by calling
     // the counter manager to convert them into real instructions
-    Enumeration e = vector.elements();
-    while (e.hasMoreElements()) {
-      OPT_Instruction i = (OPT_Instruction) e.nextElement();
+    Iterator itr = instrumentedInstructions.iterator();
+    while (itr.hasNext()) {
+      OPT_Instruction i = (OPT_Instruction) itr.next();
       
       // Have the counter manager for this data convert this into the
       // actual counting code.  For now, we'll hard code the counter
