@@ -168,7 +168,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   }
 
   /**
-   * Find the VM_Field that this field reference refers to using
+   * Find the VM_Method that this field reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.
    */
