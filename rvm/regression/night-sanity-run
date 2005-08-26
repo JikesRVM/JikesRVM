@@ -398,8 +398,8 @@ fi
 ## Check that files contain an @author tag, a CVS Id tag, 
 ## and a Copyright notice. 
 ##
-# Only run on one machine: currently the AIX nightly run machine.
-if [[ ${NS_OS}.${NS_BITS} = 'AIX.32' ]]; then
+# Only run on one machine: currently rvmx86lnx64
+if [[ ${NS_OS}.$(NS_ARCH}.${NS_BITS} = 'Linux.x86_64.32' ]]; then
     export CHECK_DIR=$RVM_ROOT/results
 
     # Check files
@@ -411,26 +411,18 @@ if [[ ${NS_OS}.${NS_BITS} = 'AIX.32' ]]; then
 
     if [[ -s $CHECK_DIR/noAuthor.rvm ]]; then
 	cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     $RESULT_MAILING_LIST
-#  else
-#   echo " " | mail -s "no files without an @author tag"     pfs 
     fi
 
     if [[ -s $CHECK_DIR/noId.rvm ]]; then
 	cat $CHECK_DIR/noId.rvm       | mail -s "files without a CVS Id tag"       $RESULT_MAILING_LIST
-#  else
-#    echo " " | mail -s "no files without a CVS Id tag"       pfs 
     fi
 
     if [[ -s $CHECK_DIR/noCopyright.rvm ]]; then
 	cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" $RESULT_MAILING_LIST
-#  else
-#    echo " " | mail -s "no files without a Copyright notice" pfs 
     fi
 
     if [[ -s $CHECK_DIR/tabChars.rvm ]]; then
 	cat $CHECK_DIR/tabChars.rvm| mail -s "files with embedded TAB characters" $RESULT_MAILING_LIST
-#  else
-#    echo " " | mail -s "no files with embedded TAB characters" pfs 
     fi
 fi
 
