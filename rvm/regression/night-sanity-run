@@ -399,7 +399,7 @@ fi
 ## and a Copyright notice. 
 ##
 # Only run on one machine: currently rvmx86lnx64
-if [[ ${NS_OS}.$(NS_ARCH}.${NS_BITS} = 'Linux.x86_64.32' ]]; then
+if [[ ${NS_OS}.${NS_ARCH}.${NS_BITS} = 'Linux.x86_64.32' ]]; then
     export CHECK_DIR=$RVM_ROOT/results
 
     # Check files
