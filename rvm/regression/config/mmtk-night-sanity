@@ -1,0 +1,23 @@
+prototype                          -test-list nightly-tests-extended
+prototype-opt                      -test-list nightly-tests
+development                        -test-list nightly-tests-extended
+development                        -nobuild -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
+production                         -test-list nightly-tests
+BaseBaseCopyMS                     -test-list nightly-tests
+BaseBaseMarkSweep                  -test-list nightly-tests
+BaseBaseSemiSpace                  -test-list nightly-tests
+BaseBaseGenCopy                    -test-list nightly-tests
+BaseBaseCopyMSUP                   -test-list nightly-tests-short
+FullAdaptiveCopyMS                 -test-list nightly-tests
+FullAdaptiveMarkSweep              -test-list nightly-tests
+ExtremeAssertionsOptAdaptiveCopyMS -test-list nightly-tests-short
+BaseBaseGenMS -test-list mmtk-sanity-tests
+BaseBaseGenRC -test-list mmtk-sanity-tests
+BaseBaseNoGC -test-list mmtk-nogc-sanity-tests
+BaseBaseRefCount -test-list mmtk-sanity-tests
+BaseBaseUPSemiSpace -test-list mmtk-sanity-tests
+FullAdaptiveGenCopy -test-list mmtk-sanity-tests
+FastAdaptiveGenRC -test-list mmtk-sanity-tests
+FastAdaptiveNoGC -test-list mmtk-nogc-sanity-tests
+FastAdaptiveRefCount -test-list mmtk-sanity-tests
+FullAdaptiveSemiSpace -test-list mmtk-sanity-tests
