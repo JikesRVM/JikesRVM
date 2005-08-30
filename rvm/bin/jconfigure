@@ -802,12 +802,12 @@ function rationalize_single_virtual_processor () {
 	      || ( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT > 0 ) ))
         then
 	    (( quiet_warnings )) || show_mesg >&2 "WARNING: You are configuring for AIX, which has a working libc that never needs single virtual processor support; however, at least one of the RVM*SINGLE_VIRTUAL_PROCESSOR* variables is turned on.  This makes no sense."
-	fi
-	if (( ! jconfigure_do_not_override )); then
-	    show_mesg >&2 "  I'm turning them off and continuing.  If you are absoutely certain you want to do this (you don't want to), then look at the source code for rvm/bin/jconfigure to see how to disable this behavior."
-	    RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
-	    RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=0
-	    return;			# done
+	    if (( ! jconfigure_do_not_override )); then
+		show_mesg >&2 "  I'm turning them off and continuing.  If you are absoutely certain you want to do this (you don't want to), then look at the source code for rvm/bin/jconfigure to see how to disable this behavior."
+		RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+		RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=0
+		return;			# done
+	    fi
 	fi
     fi
 
