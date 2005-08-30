@@ -225,6 +225,18 @@ public class VM_AOSLogging {
   }
 
   /**
+   * Call this method when one run of the application begins
+   */
+  public static void recompilingAllDynamicallyLoadedMethods() {
+    if (VM_Controller.options.LOGGING_LEVEL >= 1) {
+      synchronized (log) {
+        log.println(getTime() 
+                    +" Recompiling all dynamically loaded methods");
+      }
+    }
+  }
+
+  /**
    * Dumps lots of controller stats to the log file
    */
   public static void printControllerStats() {
