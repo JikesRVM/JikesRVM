@@ -127,6 +127,19 @@ public final class GenRCTraceLocal extends TraceLocal
    *
    * @param object The object reference to be traced.  This is <i>NOT</i>
    * an interior pointer.
+   * @return The possibly moved reference.
+   */
+  public final ObjectReference traceObject(ObjectReference object) {
+    return traceObject(object,false);
+  }
+
+  /**
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param object The object reference to be traced.  This is <i>NOT</i>
+   * an interior pointer.
    * @param root True if this reference to <code>object</code> was held
    * in a root.
    * @return The possibly moved reference.
