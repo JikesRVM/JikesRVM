@@ -37,23 +37,28 @@ public final class VM_RecompilationManager {
                                " because it has no compiledMethod\n");
       } else {
         VM_Method meth = cpMeth.getMethod();
-        if (meth.getDeclaringClass().isResolved()) {
-          if (meth.getDeclaringClass().isInBootImage()) {
-            if (DEBUG) VM.sysWrite("Not recompiling bootimage method "+meth+
-                                   "("+cmid+")\n");
-          } else {
-            if (meth.isAbstract()) {
-              if (DEBUG) VM.sysWrite("Not recompiling abstract method "+meth+"("+cmid+")\n");
-            } else if (meth.isNative()) {
-              if (DEBUG) VM.sysWrite("Not recompiling native method "+meth+"("+cmid+")\n");
-            } else {
-              if (DEBUG||report) VM.sysWrite("Recompiling "+meth+"("+cmid+") ");
-              recompile((VM_NormalMethod)meth);
-              if (DEBUG||report) VM.sysWrite("...done\n");
-            }
-          }
+        if (DEBUG) VM.sysWrite("numMethods: "+ numMethods +", Inspecting cpMethod "+ cpMeth+ ", method: "+cpMeth.getMethod()+ "("+cmid+")\n");
+        if (cpMeth.getCompilerType() == VM_CompiledMethod.TRAP) {
+          if (DEBUG) VM.sysWrite("Not recompiling compiled method "+cpMeth+"("+cmid+") because it a TRAP, i.e. has no source code\n");
         } else {
-          if (DEBUG) VM.sysWrite("Class not resolved"+meth+"("+cmid+")\n");
+          if (meth.getDeclaringClass().isResolved()) {
+            if (meth.getDeclaringClass().isInBootImage()) {
+              if (DEBUG) VM.sysWrite("Not recompiling bootimage method "+meth+
+                                     "("+cmid+")\n");
+            } else {
+              if (meth.isAbstract()) {
+                if (DEBUG) VM.sysWrite("Not recompiling abstract method "+meth+"("+cmid+")\n");
+              } else if (meth.isNative()) {
+                if (DEBUG) VM.sysWrite("Not recompiling native method "+meth+"("+cmid+")\n");
+              } else {
+                if (DEBUG||report) VM.sysWrite("Recompiling "+meth+"("+cmid+") ");
+                recompile((VM_NormalMethod)meth);
+                if (DEBUG||report) VM.sysWrite("...done\n");
+              }
+            }
+          } else {
+            if (DEBUG) VM.sysWrite("Class not resolved"+meth+"("+cmid+")\n");
+          }
         }
       }
     }
