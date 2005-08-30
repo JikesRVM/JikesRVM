@@ -44,6 +44,14 @@ import java.util.Enumeration;
  * <li> AppRunComplete    - called after the application completes a run
  *                          (many applications have several runs --- needs
  *                          application support)
+ * <li> RecompileAllDynamicallyLoadedMethods - called when the application
+ *                          wants to recompile all methods that were previously
+ *                          dynamically compiled.  Could be useful for 
+ *                          studying the the impact of how much of
+ *                          class hierarchy being loaded effects compilation
+ *                          performance 
+ *                          (application must call this explicitly for anything
+ *                           to happen)
  * </ul>
  *
  * @author Igor Pechtchanski
@@ -1012,6 +1020,59 @@ public final class VM_Callbacks {
     }
   }
 
+  /**
+   * Interface for requesting VM to recompile all previously dynamically compiled methods 
+   */
+  public static interface RecompileAllDynamicallyLoadedMethodsMonitor {
+    /**
+     * Notify the monitor that the application has requested the recompile
+     */
+    public void notifyRecompileAll();
+  }
+
+  /**
+   * Recompile all callback list.
+   */
+  private static CallbackList recompileAllCallbacks = null;
+  private static Object recompileAllLock = new VM_Synchronizer();
+
+  /**
+   * Register a callback for when the application requests to recompile all
+   *  dynamically loaded classes
+   * @param cb the object to notify when event happens
+   */
+  public static void addRecompileAllDynamicallyLoadedMethodsMonitor(RecompileAllDynamicallyLoadedMethodsMonitor cb) {
+    synchronized (recompileAllLock) {
+      if (TRACE_ADDMONITOR || TRACE_RECOMPILE_ALL) {
+        VM.sysWrite("adding recompile all monitor: ");
+        VM.sysWrite(getClass(cb));
+        VM.sysWrite("\n");
+      }
+      recompileAllCallbacks = new CallbackList(cb, recompileAllCallbacks);
+    }
+  }
+
+  /**
+   * Notify the callback manager that the application requested a recompile all
+   * Will return once all the callbacks are invoked.
+   */
+  public static void recompileAllDynamicallyLoadedMethods() {
+    synchronized (recompileAllLock) {
+      if (recompileAllCallbacks == null) return;
+      if (TRACE_RECOMPILE_ALL) {
+        VM.sysWriteln("invoking the recompile all monitor");
+      }
+      for (CallbackList l = recompileAllCallbacks; l != null; l = l.next) {
+        if (TRACE_RECOMPILE_ALL) {
+          VM.sysWrite("    ");
+          VM.sysWrite(VM_Callbacks.getClass(l.callback));
+          VM.sysWrite("\n");
+        }
+        ((RecompileAllDynamicallyLoadedMethodsMonitor) l.callback).notifyRecompileAll();
+      }
+    }
+  }
+
   ////////////////////
   // IMPLEMENTATION //
   ////////////////////
@@ -1052,6 +1113,7 @@ public final class VM_Callbacks {
   private final static boolean TRACE_APP_RUN_COMPLETE  = false;
   private final static boolean TRACE_APP_START         = false;
   private final static boolean TRACE_APP_COMPLETE      = false;
+  private final static boolean TRACE_RECOMPILE_ALL     = false;
 
   /**
    * Return class name of the object.
