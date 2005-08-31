@@ -122,8 +122,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    *
    * @param thread The thread to be scanned
    * @param trace The trace instance to use for reporting references.
-   * @param codeLocations The deque into which interior pointers
-   * associted with code pointers are to be placed
+   * @param processCodeLocations Should code locations be processed?
    */
   public static void scanThread(VM_Thread thread, TraceLocal trace, 
                                 boolean processCodeLocations) {
@@ -139,8 +138,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    *
    * @param thread The thread to be scanned
    * @param trace The trace instance to use for reporting references.
-   * @param codeLocations The deque into which interior pointers
-   * associted with code pointers are to be placed
+   * @param processCodeLocations Should code locations be processed?
    * @param gprs The general purpose registers associated with the
    * stack being scanned (normally extracted from the thread).
    * @param topFrame The top frame of the stack being scanned, or zero

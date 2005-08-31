@@ -555,7 +555,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * Trace an object as part of a collection and return the object,
    * which may have been forwarded (if a copying collector).
    * 
-   * @param The trace being conducted.
+   * @param trace The trace being conducted.
    * @param object The object to trace
    * @return The object, forwarded, if appropriate
    */

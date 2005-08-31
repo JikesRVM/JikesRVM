@@ -229,8 +229,8 @@ public final class RefCountSpace extends Space
    * graph.  If this reference is from a root, perform an increment
    * and add the object to the root set.
    *
+   * @param trace The trace being conducted.
    * @param object The object encountered in the trace
-   * @param root True if the object is referenced directly from a root
    */
   public final ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object)
