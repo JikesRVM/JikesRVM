@@ -46,7 +46,8 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
       new OPT_MutateSplits(),
       // Instruction Selection
       new OPT_ConvertLIRtoMIR(), 
-      // For now, always print the Initial MIR
+
+      // Optional printing of initial MIR
       new OPT_IRPrinter("Initial MIR") {
         public boolean shouldPerform(OPT_Options options) {
           return options.PRINT_MIR;
@@ -62,9 +63,6 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void MIROptimizations(ArrayList p) {
-    // NullCheck combining and validation operand removal.
-    addComponent(p, new OPT_NullCheckCombining());
-
     // Register Allocation
     composeComponents(p, "Register Mapping", new Object[] {
       new OPT_MIRSplitRanges(),

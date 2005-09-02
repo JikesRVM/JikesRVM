@@ -69,8 +69,6 @@ class OPT_MIROptimizationPlanner extends OPT_OptimizationPlanner {
     ////////////////////
     // INSTRUCTION SCHEDULING (PRE-PASS --- PRIOR TO REGISTER ALLOCATION)
     addComponent(p, new OPT_PrePassScheduler());
-    // NullCheck combining and validation operand removal.
-    addComponent(p, new OPT_NullCheckCombining());
     ////////////////////
     // GCMapping part1 and RegisterAllocation
     ////////////////////

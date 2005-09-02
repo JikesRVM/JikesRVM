@@ -40,8 +40,13 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
         // Stage 5: Handle complex operators 
         //          (those that expand to multiple basic blocks of MIR).
-        new OPT_OptimizationPlanAtomicElement(new ComplexOperators())
-        });
+        new OPT_OptimizationPlanAtomicElement(new ComplexOperators()),
+
+        // Stage 6: Use validation operands to do null check combining,
+        //          and then finish the removal off all validation
+        //          operands (they are not present in the MIR).
+        new OPT_OptimizationPlanAtomicElement(new OPT_NullCheckCombining())
+    });
   }
 
   /**
