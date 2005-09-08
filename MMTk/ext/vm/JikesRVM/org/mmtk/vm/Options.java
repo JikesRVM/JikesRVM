@@ -104,11 +104,6 @@ public final class Options {
         float fval = VM_CommandLineArgs.primitiveParseFloat(value);
         ((FloatOption)o).setValue(fval);
         return true;
-      case Option.LONG_OPTION:
-      case Option.DOUBLE_OPTION:
-        // Not supported yet
-        // XXX DF: Implement when required.
-        return false;
       case Option.STRING_OPTION:
         ((StringOption)o).setValue(value);
         return true;
@@ -201,7 +196,6 @@ public final class Options {
         switch (o.getType()) {
           case Option.INT_OPTION:          VM.sysWrite("int     "); break;
           case Option.FLOAT_OPTION:        VM.sysWrite("float   "); break;
-          case Option.LONG_OPTION:         VM.sysWrite("long    "); break;
           case Option.MICROSECONDS_OPTION: VM.sysWrite("usec    "); break;
           case Option.PAGES_OPTION:        VM.sysWrite("bytes   "); break;
           case Option.STRING_OPTION:       VM.sysWrite("string  "); break;
@@ -274,9 +268,6 @@ public final class Options {
             break;
           case Option.FLOAT_OPTION:
             VM.sysWriteln(((FloatOption)o).getValue()); 
-            break;
-          case Option.LONG_OPTION:
-            VM.sysWriteln(((LongOption)o).getValue()); 
             break;
           case Option.MICROSECONDS_OPTION:
             VM.sysWrite(((MicrosecondsOption)o).getMicroseconds()); 
