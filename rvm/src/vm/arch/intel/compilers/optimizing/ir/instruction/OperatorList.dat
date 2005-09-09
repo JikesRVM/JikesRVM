@@ -674,7 +674,7 @@ C0_C1_C2_C3
 
 ####################
 IA32_FFREE
-MIR_UnaryAcc
+MIR_Nullary
 none
 C0_C1_C2_C3
 

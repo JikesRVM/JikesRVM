@@ -101,7 +101,7 @@ public final class OPT_MIRBranchOptimizations
         // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
         return false;
       }
-      OPT_BranchOperand top = MIR_Branch.getTarget(targetInst);
+      OPT_BranchOperand top = (OPT_BranchOperand)MIR_Branch.getTarget(targetInst).copy();
       MIR_Branch.setTarget(g, top);
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;

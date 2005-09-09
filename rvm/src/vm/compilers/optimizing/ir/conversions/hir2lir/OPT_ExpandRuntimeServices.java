@@ -73,7 +73,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
           // shield BC2IR from address constants
           OPT_RegisterOperand tmp = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
           inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
-          tib = tmp;
+          tib = tmp.copyRO();
         }
         VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
         Call.mutate6(inst, CALL, New.getClearResult(inst), 
@@ -121,7 +121,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
           // shield BC2IR from address constants
           OPT_RegisterOperand tmp = ir.regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
           inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
-          tib = tmp;
+          tib = tmp.copyRO();
         }
         VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
         Call.mutate7(inst, CALL, NewArray.getClearResult(inst),  
@@ -257,7 +257,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 
       case PUTFIELD_opcode: {
         if (MM_Interface.NEEDS_WRITE_BARRIER) {
-          OPT_LocationOperand loc = PutField.getClearLocation(inst);
+          OPT_LocationOperand loc = PutField.getLocation(inst);
           VM_FieldReference field = loc.getFieldRef();
           if (!field.getFieldContentsType().isPrimitiveType()) {
             VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;

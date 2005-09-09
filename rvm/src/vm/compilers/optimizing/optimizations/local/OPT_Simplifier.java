@@ -308,7 +308,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
         OPT_Operand tv = CondMove.getTrueValue(s);
         OPT_Operand fv = CondMove.getFalseValue(s);
         if (tv.similar(fv)) {
-          Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), tv.clear());
+          Move.mutate(s, INT_MOVE, CondMove.getClearResult(s), tv);
           return tv.isConstant() ? MOVE_FOLDED : MOVE_REDUCED;
         }
         if (tv.isIntConstant() && fv.isIntConstant() && !CondMove.getCond(s).isFLOATINGPOINT()) {

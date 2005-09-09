@@ -478,7 +478,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     if (val2 instanceof OPT_IntConstantOperand) {
       OPT_RegisterOperand temp = regpool.makeTempInt();
       EMIT(MIR_Move.create(IA32_MOV, temp, val2));
-      val2 = temp;
+      val2 = temp.copyRO();
     }
     EMIT(MIR_Divide.mutate(s, IA32_IDIV, new OPT_RegisterOperand(getEDX(), VM_TypeReference.Int),
 									new OPT_RegisterOperand(getEAX(), VM_TypeReference.Int), 
@@ -1801,7 +1801,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     OPT_RegisterOperand newIndex = regpool.makeTempInt(); 
     EMIT(MIR_Move.create(IA32_MOV, newIndex, LowTableSwitch.getIndex(s))); 
     int number = LowTableSwitch.getNumberOfTargets(s);
-    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex, number*2));
+    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), number*2));
     for (int i=0; i<number; i++) {
       MIR_LowTableSwitch.setTarget(s2,i,LowTableSwitch.getTarget(s,i));
       MIR_LowTableSwitch.setBranchProfile(s2,i,LowTableSwitch.getBranchProfile(s,i));

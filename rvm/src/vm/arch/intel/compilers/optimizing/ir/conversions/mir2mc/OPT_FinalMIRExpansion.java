@@ -113,6 +113,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
           // split the basic block right before the IA32_TRAPIF
           OPT_BasicBlock thisBlock = p.getBasicBlock();
           OPT_BasicBlock trap = thisBlock.createSubBlock(p.bcIndex,ir,0f);
+          thisBlock.insertOut(trap);
           OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p,ir);
           OPT_TrapCodeOperand tc = MIR_TrapIf.getClearTrapCode(p);
           p.remove();
@@ -273,7 +274,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 
     for (int i=nSave; i<fpStackHeight; i++) {
       OPT_Register f = phys.getFPR(i);
-      s.insertBefore(MIR_UnaryAcc.create(IA32_FFREE,D(f)));
+      s.insertBefore(MIR_Nullary.create(IA32_FFREE,D(f)));
     }
 
     // Remove the FCLEAR.

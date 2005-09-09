@@ -86,7 +86,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
           NullCheck.getRef(n).asRegister().register) {
         s.remove();
         TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s), 
-            TypeCheck.getClearType(s), NullCheck.getGuardResult(n));
+                         TypeCheck.getClearType(s), NullCheck.getGuardResult(n).copy());
         n.insertFront(s);
         return  true;
       }

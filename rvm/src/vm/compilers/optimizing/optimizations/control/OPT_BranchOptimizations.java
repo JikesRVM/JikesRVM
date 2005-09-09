@@ -142,7 +142,7 @@ public final class OPT_BranchOptimizations
         // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
         return false;
       }
-      Goto.setTarget(g, Goto.getTarget(targetInst));
+      Goto.setTarget(g, (OPT_BranchOperand)Goto.getTarget(targetInst).copy());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -289,7 +289,7 @@ public final class OPT_BranchOptimizations
         // This happens in VM_GCUtil in some systems due to a while(true) {} 
         return false;
       }
-      IfCmp.setTarget(cb, Goto.getTarget(targetInst));
+      IfCmp.setTarget(cb, (OPT_BranchOperand)Goto.getTarget(targetInst).copy());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -362,7 +362,7 @@ public final class OPT_BranchOptimizations
     if (Goto.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
-      InlineGuard.setTarget(cb, Goto.getTarget(targetInst));
+      InlineGuard.setTarget(cb, (OPT_BranchOperand)Goto.getTarget(targetInst).copy());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -399,7 +399,7 @@ public final class OPT_BranchOptimizations
       if (Goto.conforms(target1Inst)) {
         // conditional branch to unconditional branch.
         // change conditional branch target to latter's target
-        IfCmp2.setTarget1(cb, Goto.getTarget(target1Inst));
+        IfCmp2.setTarget1(cb, (OPT_BranchOperand)Goto.getTarget(target1Inst).copy());
         bb.recomputeNormalOut(ir); // fix CFG
         return true;
       }
@@ -420,7 +420,7 @@ public final class OPT_BranchOptimizations
       if (Goto.conforms(target2Inst)) {
         // conditional branch to unconditional branch.
         // change conditional branch target to latter's target
-        IfCmp2.setTarget2(cb, Goto.getTarget(target2Inst));
+        IfCmp2.setTarget2(cb, (OPT_BranchOperand)Goto.getTarget(target2Inst).copy());
         bb.recomputeNormalOut(ir); // fix CFG
         return true;
       }
@@ -1111,7 +1111,7 @@ public final class OPT_BranchOptimizations
       // Cases 1) and 2)
       if (tv == 0)
         condition = condition.flipCode();
-      booleanCompareHelper(cb, t, val1, val2, condition);
+      booleanCompareHelper(cb, t, val1.copy(), val2.copy(), condition);
       cb.insertAfter(Return.create(RETURN, t.copyD2U()));
     } else {      // (ti.operator() == INT_MOVE)
       // make sure each of the target blocks only does the move
@@ -1137,7 +1137,7 @@ public final class OPT_BranchOptimizations
       // Cases 3) and 4)
       if (tv == 0)
         condition = condition.flipCode();
-      booleanCompareHelper(cb, t, val1, val2, condition);
+      booleanCompareHelper(cb, t.copyRO(), val1.copy(), val2.copy(), condition);
       OPT_Instruction next = cb.nextInstructionInCodeOrder();
       if (next.operator() == GOTO)
         Goto.setTarget(next, jb.makeJumpTarget()); 

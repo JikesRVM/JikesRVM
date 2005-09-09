@@ -232,7 +232,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
           //       to blow it all away as soon as this loop is done.
           for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
             int index = use.getIndexInInstruction();
-            use.instruction.putOperand(index, rhs);
+            use.instruction.putOperand(index, rhs.copy());
           }
         } else {
           throw new OPT_OptimizingCompilerException("OPT_Simple.copyPropagation: unexpected operand type");
