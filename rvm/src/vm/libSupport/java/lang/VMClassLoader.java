@@ -24,13 +24,28 @@ import com.ibm.JikesRVM.VM;     // for VM.sysWrite()
  */
 final class VMClassLoader {
 
+  //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_017
+  //-#else
+  private static HashMap loadedClasses = new HashMap();
+  //-#endif
+  
   static final Class defineClass(ClassLoader cl, String name, 
                                  byte[] data, int offset, int len,
                                  ProtectionDomain pd) 
     throws ClassFormatError 
   {
     VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
-    return vmType.createClassForType(pd);
+    Class ans = vmType.createClassForType(pd);
+    //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_017
+    //-#else
+    HashMap mapForCL = (HashMap)loadedClasses.get(cl);
+    if (mapForCL == null) {
+      mapForCL = new HashMap();
+      loadedClasses.put(cl, mapForCL);
+    }
+    mapForCL.put(name, ans);
+    //-#endif
+    return ans;
   }
 
   static final Class defineClass(ClassLoader cl, String name,
@@ -126,4 +141,15 @@ final class VMClassLoader {
                     (cl == null ? "NULL" : cl.toString() ));
     return cl;
   }
+
+
+  //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_017
+  //-#else
+  static Class findLoadedClass(ClassLoader cl, String name) {
+    HashMap mapForCL = (HashMap)loadedClasses.get(cl);
+    if (mapForCL == null) return null;
+    return (Class)mapForCL.get(name);
+  }
+  //-#endif
+
 }
