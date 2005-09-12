@@ -1,4 +1,4 @@
-## Currently we recommend GNU Classpath 0.17 for all platforms. 
+## Currently we recommend GNU Classpath 0.18 for all platforms. 
 ## This and is the only release of Classpath with which Jikes RVM is 
 ## reguarly tested.  If you try an older version that is still mentioned
 ## in this file, and it no longer works, please let us know so that we 
@@ -13,8 +13,8 @@ sum=$(( ${RVM_WITH_CLASSPATH_0_15-0} + \
 if (( sum == 0 )); then
     ## If you don't want to use the default version of GNU Classpath for your
     # platform them you must set one of the variables above to override.
-    export RVM_WITH_CLASSPATH_0_17=1
-    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.17.tar.gz
+    export RVM_WITH_CLASSPATH_0_18=1
+    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.18.tar.gz
 fi
 
 ## CLASSPATH_INSTALLATION
@@ -61,4 +61,3 @@ fi
 ##  that the  variable WGET has a rational value.  (It's only used to
 ## retrieve GNU Classpath, so you can ignore it otherwise.)
 export WGET="/usr/bin/wget"
-
