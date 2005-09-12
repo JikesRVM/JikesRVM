@@ -6,15 +6,18 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.4.1 Release Notes (released on ??)
+*Jikes RVM 2.4.1 Release Notes (released on September 13, 2005)
 
 *Highlights 
+**The recommended version of GNU classpath for Jikes RVM 2.4.1 is 0.18.
+Classpath 0.17 is expected to still work, Classpath 0.15 may still
+work, but has not been tested. 
+
 ** Support for triggering recompilation of dynamically loaded methods
 It is now possible for an application running on Jikes RVM to request
 that the system recompile all dynamically loaded methods at any point
 in the application.  This can be accomplished by a new VM_Callbacks
 method.  Details are in the user's guide.
-
 
 *Jikes RVM 2.4.0 Release Notes (released on August 11, 2005)
 
