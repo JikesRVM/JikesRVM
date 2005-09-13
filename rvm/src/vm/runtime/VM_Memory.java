@@ -532,7 +532,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
                                 int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
-    return VM_SysCall.sysMMapErrno(address,Extent.fromInt(size), prot, flags, fd, offset);
+    return VM_SysCall.sysMMapErrno(address,Extent.fromIntSignExtend(size), prot, flags, fd, offset);
   }
 
   /**

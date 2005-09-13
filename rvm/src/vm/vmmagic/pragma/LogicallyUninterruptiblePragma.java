@@ -26,7 +26,11 @@ import com.ibm.JikesRVM.classloader.*;
  * <ul>
  * Extreme care must be exercised when using this pragma since it supresses 
  * the checking of uninterruptibility.
- * 
+ * <p>
+ * Use of this pragma is being phased out since it lumps together two
+ * possible special cases. Use either UnPreemptiblePragma or
+ * UninterrpibleNoWarn instead. See also defect 1147447 for more context.
+ * for the
  * @deprecated
  * @author Dave Grove
  */

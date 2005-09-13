@@ -757,7 +757,7 @@ function rationalize_classpath_version () {
     ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
     local -i sum
     let "sum=( RVM_WITH_CLASSPATH_0_15 + RVM_WITH_CLASSPATH_0_17 \
-	      + RVM_WITH_CLASSPATH_CVS_HEAD)"
+	      + RVM_WITH_CLASSPATH_0_18 + RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
 	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_<version> is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
@@ -773,6 +773,7 @@ function rationalize_classpath_version () {
 			-e '/=0$/d'					\
 			-e '/^RVM_WITH_CLASSPATH_0_15=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_17=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_18=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -802,12 +803,12 @@ function rationalize_single_virtual_processor () {
 	      || ( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT > 0 ) ))
         then
 	    (( quiet_warnings )) || show_mesg >&2 "WARNING: You are configuring for AIX, which has a working libc that never needs single virtual processor support; however, at least one of the RVM*SINGLE_VIRTUAL_PROCESSOR* variables is turned on.  This makes no sense."
-	fi
-	if (( ! jconfigure_do_not_override )); then
-	    show_mesg >&2 "  I'm turning them off and continuing.  If you are absoutely certain you want to do this (you don't want to), then look at the source code for rvm/bin/jconfigure to see how to disable this behavior."
-	    RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
-	    RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=0
-	    return;			# done
+	    if (( ! jconfigure_do_not_override )); then
+		show_mesg >&2 "  I'm turning them off and continuing.  If you are absoutely certain you want to do this (you don't want to), then look at the source code for rvm/bin/jconfigure to see how to disable this behavior."
+		RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+		RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=0
+		return;			# done
+	    fi
 	fi
     fi
 
@@ -1197,7 +1198,7 @@ if [[ ! -f  $f ]]; then
 fi
 # Current version of RVM
 declare -r CVS_TIMESTAMP="$(< $f)"
-declare -r JIKESRVM_VERSION="Jikes RVM 2.4.0"
+declare -r JIKESRVM_VERSION="Jikes RVM 2.4.1"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -1298,6 +1299,7 @@ declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 ## See $RVM_ROOT/rvm/config/classpath-version for the gory details.
 declare -i RVM_WITH_CLASSPATH_0_15=0
 declare -i RVM_WITH_CLASSPATH_0_17=0
+declare -i RVM_WITH_CLASSPATH_0_18=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 

@@ -217,18 +217,49 @@ public abstract class VM_MemberReference {
   }
 
   /**
+   * @return the VM_Member this reference resolves to if it is already known
+   * or null if it cannot be resolved without risking class loading.
+   */
+  public final VM_Member peekResolvedMember() {
+    if (isFieldReference()) {
+      return this.asFieldReference().peekResolvedField();
+    } else {
+      return this.asMethodReference().peekResolvedMethod();
+    }
+  }
+
+  /**
+   * Force resolution and return the resolved member.
+   * Will cause classloading if necessary
+   */
+  public final VM_Member resolveMember() {
+    if (isFieldReference()) {
+      return this.asFieldReference().resolve();
+    } else {
+      return this.asMethodReference().resolve();
+    }
+  }
+  
+  
+  /**
    * Is dynamic linking code required to access "this" member when 
    * referenced from "that" method?
    */ 
   public final boolean needsDynamicLink(VM_Method that) {
-    if (type == that.getMemberRef().getType()) {
+    VM_Member resolvedThis = this.peekResolvedMember();
+
+    if (resolvedThis == null) {
+      // can't tell because we haven't resolved the member reference
+      // sufficiently to even know exactly where it is declared.
+      return true;
+    }
+    VM_Class thisClass = resolvedThis.getDeclaringClass();
+
+    if (thisClass == that.getDeclaringClass()) {
       // Intra-class references don't need to be compiled with dynamic linking
       // because they execute *after* class has been loaded/resolved/compiled.
       return false;
     }
-
-    VM_Class thisClass = (VM_Class)type.peekResolvedType();
-    if (thisClass == null) return true; // thisClass isn't loaded yet.
     
     if (thisClass.isInitialized()) {
       // No dynamic linking code is required to access this member
@@ -251,7 +282,6 @@ public abstract class VM_MemberReference {
       // linking code because all boot image classes are explicitly 
       // loaded/resolved/compiled and have had their static initializers 
       // run by the boot image writer.
-      if (!thisClass.isResolved()) VM.sysWrite("unresolved: \"" + this + "\" referenced from \"" + that + "\"\n");
       if (VM.VerifyAssertions) VM._assert(thisClass.isResolved());
       return false;
     }

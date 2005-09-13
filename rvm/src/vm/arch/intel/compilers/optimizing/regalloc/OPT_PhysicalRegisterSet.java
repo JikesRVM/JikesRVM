@@ -592,7 +592,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * An enumerator for use by the physical register utilities.
    */
-  class PhysicalRegisterEnumeration implements Enumeration {
+  final static class PhysicalRegisterEnumeration implements Enumeration {
     private int start;
     private int end;
     private int index;
@@ -611,7 +611,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
   /**
    * An enumerator for use by the physical register utilities.
    */
-  class RangeEnumeration implements Enumeration {
+  final class RangeEnumeration implements Enumeration {
     private int start;
     private int end;
     private int index;

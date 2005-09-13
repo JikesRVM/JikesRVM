@@ -95,6 +95,7 @@ public class OPT_LinkedList {
       return  null;
     OPT_LinkedListElement result = start;
     start = result.next;
+    if (start == null) end = null; // list is now empty
     result.next = null;
     return  result;
   }

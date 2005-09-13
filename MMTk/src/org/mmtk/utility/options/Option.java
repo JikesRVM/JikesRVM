@@ -48,11 +48,9 @@ public abstract class Option {
   public static final int STRING_OPTION       = 2;
   public static final int ENUM_OPTION         = 3;
   public static final int INT_OPTION          = 4;
-  public static final int LONG_OPTION         = 5;
   public static final int PAGES_OPTION        = 6;
   public static final int MICROSECONDS_OPTION = 7;
   public static final int FLOAT_OPTION        = 8;
-  public static final int DOUBLE_OPTION       = 9;
 
   /**
    * Using the VM determined key, look up the corresponding option,

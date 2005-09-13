@@ -116,8 +116,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     if (ir.IRStage != OPT_IR.HIR
         && ((  inst.isPEI())
             || inst.isThrow()
-            || inst.isLoad()
-            || inst.isStore()))
+            || inst.isImplicitLoad()
+            || inst.isImplicitStore()))
         return false;
 
     switch (inst.operator.opcode) {

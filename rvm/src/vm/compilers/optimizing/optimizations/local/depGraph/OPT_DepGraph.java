@@ -156,8 +156,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
       }
 
       // (2) Add edges due to memory
-      boolean isStore = p.isStore();
-      boolean isLoad = p.isLoad();
+      boolean isStore = p.isImplicitStore();
+      boolean isLoad = p.isImplicitLoad();
       if (isStore || isLoad) {
         // If readsKill then add memory model memory dependence from prior load
         // NOTE: In general alias relationships are not transitive and therefore
@@ -166,7 +166,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
           for (OPT_DepGraphNode lnode = lastLoadNode; 
                lnode != null;
                lnode = (OPT_DepGraphNode) lnode.getPrev()) {
-            if (lnode.instruction().isLoad() &&
+            if (lnode.instruction().isImplicitLoad() &&
                 OPT_LocationOperand.mayBeAliased(getLocation(p),
                                                  getLocation(lnode.instruction()))) {
               lnode.insertOutEdge(pnode, MEM_READS_KILL);
@@ -180,7 +180,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
         for (OPT_DepGraphNode snode = lastStoreNode; 
              snode != null;
              snode = (OPT_DepGraphNode) snode.getPrev()) {
-          if (snode.instruction().isStore() && 
+          if (snode.instruction().isImplicitStore() && 
               OPT_LocationOperand.mayBeAliased(getLocation(p),
                                                getLocation(snode.instruction())))  {
             snode.insertOutEdge(pnode, isStore?MEM_OUTPUT:MEM_TRUE);
@@ -246,8 +246,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
       }
 
       // (2) Add edges due to memory
-      boolean isStore = p.isStore();
-      boolean isLoad = p.isLoad();
+      boolean isStore = p.isImplicitStore();
+      boolean isLoad = p.isImplicitLoad();
       if (isStore) {
         if (lastExceptionNode != null) {
           pnode.insertOutEdge(lastExceptionNode, EXCEPTION_MS);
@@ -259,7 +259,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
         for (OPT_DepGraphNode snode = lastStoreNode; 
              snode != null;
              snode = (OPT_DepGraphNode)snode.getNext()) {
-          if (snode.instruction().isStore() &&
+          if (snode.instruction().isImplicitStore() &&
               OPT_LocationOperand.mayBeAliased(getLocation(p),
                                                getLocation(snode.instruction()))) {
             pnode.insertOutEdge(snode, MEM_ANTI);
@@ -300,7 +300,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
       if (lastGCBarrier != null) {
         lastGCBarrier.insertOutEdge(pnode, CONTROL);
       }
-      if (lastAcquire != null && p.isLoad()) {
+      if (lastAcquire != null && p.isImplicitLoad()) {
         lastAcquire.insertOutEdge(pnode, CONTROL);
       }
       OPT_Operator pop = p.operator();
@@ -334,7 +334,7 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
       if (lastGCBarrier != null) {
         pnode.insertOutEdge(lastGCBarrier, CONTROL);
       }
-      if (lastRelease != null  && p.isStore()) {
+      if (lastRelease != null  && p.isImplicitStore()) {
         pnode.insertOutEdge(lastRelease, CONTROL);
       }
       OPT_Operator pop = p.operator();

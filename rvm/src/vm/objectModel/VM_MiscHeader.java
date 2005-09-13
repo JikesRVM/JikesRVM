@@ -60,8 +60,8 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
   private static Word prevAddress;
 
   static {
-    oid = Word.fromInt(4);
-    time = Word.fromInt(4);
+    oid = Word.fromIntSignExtend(4);
+    time = Word.fromIntSignExtend(4);
     prevAddress = Word.zero();
   }
 
@@ -80,8 +80,8 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
       Address ref = VM_Magic.objectAsAddress(obj); 
       ref.store(oid, OBJECT_OID_OFFSET);
       ref.store(time, OBJECT_DEATH_OFFSET);
-      oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
-                                    >> LOG_BYTES_IN_ADDRESS));
+      oid = oid.add(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) 
+														 >> LOG_BYTES_IN_ADDRESS));
     }
   }
 
@@ -102,8 +102,8 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
       bootImage.setAddressWord(ref.add(OBJECT_DEATH_OFFSET), time);
       bootImage.setAddressWord(ref.add(OBJECT_LINK_OFFSET), prevAddress);
       prevAddress = ref.toWord();
-      oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
-                                    >> LOG_BYTES_IN_ADDRESS));
+      oid = oid.add(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) 
+														 >> LOG_BYTES_IN_ADDRESS));
     }
   }
 

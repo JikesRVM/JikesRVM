@@ -106,8 +106,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     // update the method summary to note whether the return value
     // may escape
     boolean foundEscapingReturn = false;
-    for (Enumeration e = enumerateReturnValues(ir); e.hasMoreElements();) {
-      OPT_Operand op = (OPT_Operand)e.nextElement();
+    for (Iterator itr = iterateReturnValues(ir); itr.hasNext();) {
+      OPT_Operand op = (OPT_Operand)itr.next();
       if (op == null)
         continue;
       if (op.isRegister()) {
@@ -577,21 +577,21 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
   }
 
   /**
-   * Return an enumeration of the operands that serve as return
-   * values in an IR
+   * Return an iterator over the operands that serve as return values
+   * in an IR
    *
    * <p> TODO: Move this utility elsewhere
    */
-  private static Enumeration enumerateReturnValues (OPT_IR ir) {
-    Vector v = new Vector();
+  private static Iterator iterateReturnValues (OPT_IR ir) {
+    ArrayList returnValues = new ArrayList();
     for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       if (Return.conforms(s)) {
-        v.addElement(Return.getVal(s));
+        returnValues.add(Return.getVal(s));
       }
     }
-    return  v.elements();
+    return  returnValues.iterator();
   }
 
   /**

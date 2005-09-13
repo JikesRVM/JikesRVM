@@ -72,10 +72,10 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
 
   // Offsets are relative to the node (not the payload)
   //
-  private static final Offset PREV_OFFSET = Offset.fromInt(0 * BYTES_IN_ADDRESS);
-  private static Offset NEXT_OFFSET = Offset.fromInt(1 * BYTES_IN_ADDRESS);
-  private static Offset LIST_OFFSET = Offset.fromInt(2 * BYTES_IN_ADDRESS);
-  private static Offset HEADER_SIZE = Offset.fromInt(3 * BYTES_IN_ADDRESS);
+  private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(0 * BYTES_IN_ADDRESS);
+  private static Offset NEXT_OFFSET = Offset.fromIntSignExtend(1 * BYTES_IN_ADDRESS);
+  private static Offset LIST_OFFSET = Offset.fromIntSignExtend(2 * BYTES_IN_ADDRESS);
+  private static Offset HEADER_SIZE = Offset.fromIntSignExtend(3 * BYTES_IN_ADDRESS);
 
   private static final Word nodeMask;
   static {

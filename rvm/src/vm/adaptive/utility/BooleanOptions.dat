@@ -50,3 +50,6 @@ Enable easy insertion of (debugging) counters in opt recompiled code.
 REPORT_INTERRUPT_STATS -1 false
 Report stats related to timer interrupts and AOS listeners on exit
 
+DISABLE_RECOMPILE_ALL_METHODS -1 false
+Disable the ability for an app to request all methods to be recompiled 
+

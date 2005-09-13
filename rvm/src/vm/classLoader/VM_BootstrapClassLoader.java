@@ -75,17 +75,12 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
          * bootstrapClassLoader.loadedClasses      = new HashMap();
          */
         VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader, new HashMap());
+        //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_0_17
         VM_Entrypoints.classLoaderLoadedClasses.setObjectValueUnchecked(bootstrapClassLoader, new HashMap());
         if (DBG)
           VM.sysWriteln("VM_BootstrapClassLoader.boot(): loadedClasses is: ", VM_Entrypoints.classLoaderLoadedClasses.getObjectValueUnchecked(bootstrapClassLoader) == null ? "NULL" : "set");
         
-        // We probably should really do something like the following, but we
-        // don't, since there's no point in priming the cache -- this is
-        // run time:
-        //      for key in loaded {
-        //        add an entry to loadedClasses, use VM_Type.getClassForType.
-        //      }
-
+        //-#endif
       } catch (Exception e) {
         VM.sysFail("Failed to setup bootstrap class loader");
       }

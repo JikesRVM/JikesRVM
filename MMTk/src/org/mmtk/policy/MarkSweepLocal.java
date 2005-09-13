@@ -237,11 +237,11 @@ public final class MarkSweepLocal extends SegregatedFreeList
    */
   private final int markedCells(Address block, int sizeClass)
     throws InlinePragma {
-    Extent cellBytes = Extent.fromInt(cellSize[sizeClass]);
+    Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
     Address cellCursor = block.add(blockHeaderSize[sizeClass]);
     Address nextCellCursor = cellCursor.add(cellBytes);
     Address markCursor = alignToLiveStride(cellCursor);
-    Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
     Address end = block.add(blockSize);
     boolean marked = false;
     int markCount = 0;

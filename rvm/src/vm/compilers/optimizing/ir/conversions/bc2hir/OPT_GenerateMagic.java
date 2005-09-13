@@ -754,17 +754,17 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new OPT_AddressConstantOperand(Address.zero())));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
-      cmpHelper(bc2ir,gc,cond,op0);
+      cmpHelper(bc2ir,gc,cond,op0.copyRO());
     } else if (methodName == VM_MagicNames.wordIsZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new OPT_AddressConstantOperand(Address.zero())));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
-      cmpHelper(bc2ir,gc,cond, op0);
+      cmpHelper(bc2ir,gc,cond, op0.copyRO());
     } else if (methodName == VM_MagicNames.wordIsMax) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new OPT_AddressConstantOperand(Address.max())));
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
-      cmpHelper(bc2ir,gc,cond, op0);
+      cmpHelper(bc2ir,gc,cond, op0.copyRO());
     } else if (methodName == VM_MagicNames.wordEQ) {
       OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
       cmpHelper(bc2ir,gc,cond,null);

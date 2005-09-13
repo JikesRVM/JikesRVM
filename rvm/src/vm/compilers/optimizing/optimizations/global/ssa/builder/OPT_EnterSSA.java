@@ -227,7 +227,6 @@ implements OPT_Operators, OPT_Constants {
               }
             } 
             if (copyNeeded) {
-              boolean copyRequested = false;
               OPT_BasicBlockEnumeration out = 
                 block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {

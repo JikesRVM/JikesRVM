@@ -555,7 +555,7 @@ public final class OPT_GenerationContext
     OPT_RegisterOperand guard = (OPT_RegisterOperand)_ncGuards.get(ref);
     if (guard == null) {
       guard = temps.makeTempValidation();
-      _ncGuards.put(ref, guard);
+      _ncGuards.put(ref, guard.copyRO());
     }
     return guard;
   }
@@ -683,7 +683,7 @@ public final class OPT_GenerationContext
       OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
       methodOp.setIsNonReturningCall(true); // Used to keep cfg correct
       s = Call.create2(CALL, null, new OPT_AddressConstantOperand(target.getOffset()),
-                       methodOp, lockObject, ceo);
+                       methodOp, lockObject, ceo.copyD2U());
       appendInstruction(rethrow, s, RUNTIME_SERVICES_BCI);
 
       cfg.insertBeforeInCodeOrder(epilogue, rethrow);

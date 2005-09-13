@@ -233,7 +233,7 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     }
   }
 
-  private static Field getJDKField(VM_Field field) 
+  private static Field getJDKField(VM_Field field)
     throws NoSuchFieldException {
     try {
       String cn = field.getDeclaringClass().toString();
@@ -247,6 +247,6 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       return f;
     } catch (ClassNotFoundException e) {
       throw new NoSuchFieldException(field.toString());
-    }
+	 }
   }
 }

@@ -126,16 +126,16 @@ public class VM_CompilerAdviceAttribute {
   /**
    * Constructor
    *
-   * @param className The name of the class for the compiler site
+   * @param className  The name of the class for the compiler site
    * @param methodName The name of the method for the compiler site
-   * @param methodSig The signature of the method for the compiler site
+   * @param methodSig  The signature of the method for the compiler site
    * @param compiler   The ID of the compiler to use for this method
-   * @param compiler   The optimization level if using Opt compiler
+   * @param optLevel   The optimization level if using Opt compiler
    *
    * @see VM_CompilerAdviceInfoReader
    */
   public VM_CompilerAdviceAttribute(VM_Atom className, VM_Atom methodName,
-				    VM_Atom methodSig, int  compiler, 
+                                    VM_Atom methodSig, int  compiler, 
                                     int optLevel) {
     this.className  = className;
     this.methodName = methodName;
@@ -183,7 +183,6 @@ public class VM_CompilerAdviceAttribute {
    * attribute or null if none is found for that method and offset.
    *
    * @param method The method containing the site in question
-   * @param offset The bytecode offset of the site
    * @return Attribute advice for that site or null if none is found.
    */
   public static VM_CompilerAdviceAttribute getCompilerAdviceInfo(VM_Method method) {

@@ -94,7 +94,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
             machinecodes.set(bi, machinecodes.get(bi) | targetOffset & LI_MASK);
             break;
           case PPC_DATA_LABEL_opcode:
-            machinecodes.set(bi, targetOffset & LI_MASK);
+            machinecodes.set(bi, targetOffset);
             break;
           // Since resolveBranch and patch already check the range
           // of target offset, and will fail if it is out of range

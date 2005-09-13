@@ -4992,7 +4992,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               for (OPT_BasicBlockEnumeration preds = p.block.getIn(); preds.hasMoreElements();) {
                 OPT_BasicBlock pred = preds.next();
                 if (pred == block) continue;
-                injectMove(pred, mopTmp, mop);
+                injectMove(pred, mopTmp.copyRO(), mop);
               }
               p.stackState.replaceFromTop(i, mopTmp.copy());
               if (generated) {
@@ -5010,7 +5010,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               OPT_RegisterOperand sopTmp = gc.temps.makeTemp(sop);
               if (DBG_STACK || DBG_SELECTED) db("incoming stack has constant operand "+sop);
               injectMove(block, sopTmp, sop);
-              sop = sopTmp;
+              sop = sopTmp.copyRO();
             }
           }
 
@@ -5022,7 +5022,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             // must insert move at end of block to get register #s to match
             OPT_RegisterOperand temp = rsop.copyRO();
             temp.setRegister(rmop.register);
-            injectMove(block, temp, rsop);
+            injectMove(block, temp, rsop.copyRO());
           }
           OPT_Operand meet = OPT_Operand.meet(rmop, rsop, rmop.register);
           if (DBG_STACK || DBG_SELECTED) db("Meet of "+rmop+" and "+rsop+" is "+ meet);

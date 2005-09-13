@@ -728,7 +728,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
 
       // Create the out set by unioning the successors' in sets.
       // During this processing we should NOT include exception-catching
-      // blocks, but instead remember them for use at execption-raising
+      // blocks, but instead remember them for use at exception-raising
       // statements in this block
       for (OPT_BasicBlockEnumeration bbEnum = block.getOut(); 
           bbEnum.hasMoreElements();) {

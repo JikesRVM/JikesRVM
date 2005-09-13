@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_EdgeCounts;
 import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_RecompilationManager; 
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -25,7 +26,8 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
                                       VM_Callbacks.AppStartMonitor,
                                       VM_Callbacks.AppCompleteMonitor,
                                       VM_Callbacks.AppRunStartMonitor,
-                                      VM_Callbacks.AppRunCompleteMonitor {
+                                      VM_Callbacks.AppRunCompleteMonitor, 
+                                      VM_Callbacks.RecompileAllDynamicallyLoadedMethodsMonitor {
 
   /**
    * Signals when the options and (optional) logging mechanism are enabled
@@ -165,6 +167,11 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     VM_Callbacks.addAppRunStartMonitor(controller);
     VM_Callbacks.addAppRunCompleteMonitor(controller);
 
+    // make sure the user hasn't explicitly prohibited this functionality
+    if (!options.DISABLE_RECOMPILE_ALL_METHODS) {
+      VM_Callbacks.addRecompileAllDynamicallyLoadedMethodsMonitor(controller);
+    }
+
     booted=true;
   }
 
@@ -220,6 +227,17 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
       VM_AOSLogging.appRunComplete(app, run);
       VM_AOSLogging.recordRecompAndThreadStats();
     }
+  }
+
+  /**
+   * Called when the application wants to recompile all dynamically
+   *  loaded methods.  This can be expensive!
+   */
+  public void notifyRecompileAll() {
+    if (VM.LogAOSEvents) {
+      VM_AOSLogging.recompilingAllDynamicallyLoadedMethods();
+    }
+    VM_RecompilationManager.recompileAllDynamicallyLoadedMethods(false);
   }
 
   // Create the ControllerThread

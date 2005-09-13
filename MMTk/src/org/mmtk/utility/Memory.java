@@ -192,7 +192,7 @@ public class Memory implements Uninterruptible, Constants {
     throws NoInlinePragma {
     if (Assert.VERIFY_ASSERTIONS) assertAligned(bytes);
     for (int i=0; i < bytes; i += BYTES_IN_INT) 
-      if (start.loadInt(Offset.fromInt(i)) != value) {
+      if (start.loadInt(Offset.fromIntSignExtend(i)) != value) {
         if (verbose) {
           Log.prependThreadId();
           Log.write("Memory range does not contain only value ");

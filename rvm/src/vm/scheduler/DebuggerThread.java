@@ -7,7 +7,7 @@ package com.ibm.JikesRVM;
 import java.lang.reflect.Method;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.vmmagic.unboxed.*;
 
@@ -224,43 +224,39 @@ class DebuggerThread extends VM_Thread {
   //           String[N] -> N tokens of input
   //
   private static String[] readTokens() {
-    String line = new String();
+    StringBuffer line = new StringBuffer();
     int    bb = VM_FileSystem.readByte(STDIN);
 
     if (bb < 0)
       return null;
     
     for ( ; bb >= 0 && bb != '\n'; bb = VM_FileSystem.readByte(STDIN))
-      line += (char)bb;
+      line.append((char)bb);
 
-    Vector tokens = new Vector();
+    ArrayList tokens = new ArrayList();
     for (int i = 0, n = line.length(); i < n; ++i) {
       char ch = line.charAt(i);
          
       if (isLetter(ch) || isDigit(ch)) {
-        String alphaNumericToken = new String();
+        StringBuffer alphaNumericToken = new StringBuffer();
         while (isLetter(ch) || isDigit(ch)) {
-          alphaNumericToken += ch;
+          alphaNumericToken.append(ch);
           if (++i == n) break;
           ch = line.charAt(i);
         }
         --i;
-        tokens.addElement(alphaNumericToken);
+        tokens.add(alphaNumericToken.toString());
         continue;
       }
 
       if (ch != ' ' && ch != '\r' && ch != '\t') {
-        String symbol = new String();
-        symbol += ch;
-        tokens.addElement(symbol);
+        tokens.add(Character.toString(ch));
         continue;
       }
     }
-      
-    String[] results = new String[tokens.size()];
-    for (int i = 0, n = results.length; i < n; ++i)
-      results[i] = (String)tokens.elementAt(i);
-    return results;
+    String result[] = new String[tokens.size()];
+	 tokens.toArray(result);
+    return result;
   }
 
    private static boolean isDigit(char ch) {

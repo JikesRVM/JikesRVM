@@ -6,18 +6,17 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import java.util.Vector;
+import java.util.ArrayList;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
 
 /**
  * This class specifies the order in which OPT_CompilerPhases are
- * executed during opt compilation of a method.
- * The methods BC2IR, HIROptimizations, SSA, HIR2LIR, LIROptimizations,
- * LIR2MIR, MIROptimizations, and MIR2MC each specify the elements
- * that make up the main compilation stages.
+ * executed during the HIR and LIR phase of the opt compilation of a method.
  *
+ * @see OPT_MIROptimizationPlanner
+ * 
  * @author Stephen Fink
  * @author Dave Grove
  * @author Michael Hind
@@ -89,10 +88,10 @@ public class OPT_OptimizationPlanner {
       initializeMasterPlan();
     }
 
-    Vector temp = new Vector(masterPlan.length);
+    ArrayList temp = new ArrayList();
     for (int i = 0; i < masterPlan.length; i++) {
       if (masterPlan[i].shouldPerform(options)) {
-        temp.addElement(masterPlan[i]);
+        temp.add(masterPlan[i]);
       }
     }
     if (VM.writingBootImage)
@@ -115,7 +114,7 @@ public class OPT_OptimizationPlanner {
    * that will normally execute.
    */
   private static void initializeMasterPlan() {
-    Vector temp = new Vector();
+    ArrayList temp = new ArrayList();
     BC2HIR(temp);    
     HIROptimizations(temp);
     HIR2LIR(temp);
@@ -125,18 +124,13 @@ public class OPT_OptimizationPlanner {
   }
 
   /**
-   * Convert the Vector to an array of elements.
-   * <p> Note: The conversion to an [] is not quite as silly as it seems.
-   * Vectors are synchronized, thus if we left our plan as a Vector,
-   * we'd be serializing opt compilation.
+   * Convert the ArrayList to an array of elements.
    * TODO: this is a bad name (finalize), isn't it?
    */
-  private static OPT_OptimizationPlanElement[] finalize(Vector v) {
-    OPT_OptimizationPlanElement[] p = new OPT_OptimizationPlanElement[v.size()];
-    for (int i = 0; i < v.size(); i++) {
-      p[i] = (OPT_OptimizationPlanElement)v.elementAt(i);
-    }
-    return p;
+  private static OPT_OptimizationPlanElement[] finalize(ArrayList planElementList) {
+    OPT_OptimizationPlanElement[] p = new OPT_OptimizationPlanElement[planElementList.size()];
+	 planElementList.toArray(p);
+	 return p;
   }
 
   /**
@@ -145,7 +139,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void BC2HIR(Vector p) {
+  private static void BC2HIR(ArrayList p) {
     composeComponents(p, "Convert Bytecodes to HIR", new Object[] {
                       // Generate HIR from bytecodes
                       new OPT_ConvertBCtoHIR(),
@@ -178,7 +172,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void HIROptimizations(Vector p) {
+  private static void HIROptimizations(ArrayList p) {
     // Various large-scale CFG transformations.
     // Do these very early in the pipe so that all HIR opts can benefit.
     composeComponents(p, "CFG Transformations", new Object[] {
@@ -250,7 +244,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void SSAinHIR(Vector p) {
+  private static void SSAinHIR(ArrayList p) {
     composeComponents
       (p, "SSA", new Object[] { 
        // Use the LST to estimate basic block frequency from branch probabilities
@@ -330,7 +324,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void SSAinLIR(Vector p) {
+  private static void SSAinLIR(ArrayList p) {
     composeComponents(p, "SSA", new Object[] {
                       // Use the LST to estimate basic block frequency from branch probabilities
                       new OPT_OptimizationPlanCompositeElement
@@ -390,7 +384,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void HIR2LIR(Vector p) {
+  private static void HIR2LIR(ArrayList p) {
     composeComponents(p, "Convert HIR to LIR", new Object[] {
                       // Optional printing of final HIR
                       new OPT_IRPrinter("Final HIR") {
@@ -427,7 +421,7 @@ public class OPT_OptimizationPlanner {
    *
    * @param p the plan under construction
    */
-  private static void LIROptimizations(Vector p) {
+  private static void LIROptimizations(ArrayList p) {
     // SSA meta-phase
     SSAinLIR(p);
     // Perform local copy propagation for a factored basic block.
@@ -459,191 +453,16 @@ public class OPT_OptimizationPlanner {
     //-#endif
   }
 
-  //-#if RVM_FOR_IA32
-  ////////////////////////////////////////////////////////////////
-  // Plan elements for the IA32 backend
-  ////////////////////////////////////////////////////////////////
-  /** 
-   * This method defines the optimization plan elements that
-   * are to be performed to convert LIR to IA32 MIR.
-   *
-   * @param p the plan under construction
-   */
-  private static void LIR2MIR(Vector p) {
-    composeComponents(p, "Convert LIR to MIR", new Object[] {
-                      // Split very large basic blocks into smaller ones.
-                      new OPT_SplitBasicBlock(), 
-                      // Optional printing of final LIR
-                      new OPT_IRPrinter("Final LIR") {
-                      public boolean shouldPerform(OPT_Options options) {
-                      return options.PRINT_FINAL_LIR;
-                      }
-                      }, 
-                      // Convert from 3-operand to 2-operand ALU ops.
-                      new OPT_ConvertALUOperators(), 
-                      // Change operations that split live ranges to moves
-                      new OPT_MutateSplits(),
-                      // Instruction Selection
-                      new OPT_ConvertLIRtoMIR(), 
-                      // For now, always print the Initial MIR
-                      new OPT_IRPrinter("Initial MIR") {
-                      public boolean shouldPerform(OPT_Options options) {
-                      return options.PRINT_MIR;
-                      }
-                      }
-                      });
-  }
-
-  /** 
-   * This method defines the optimization plan elements that
-   * are to be performed on IA32 MIR.
-   *
-   * @param p the plan under construction
-   */
-  private static void MIROptimizations(Vector p) {
-    // NullCheck combining and validation operand removal.
-    addComponent(p, new OPT_NullCheckCombining());
-
-    // Register Allocation
-    composeComponents(p, "Register Mapping", new Object[] {
-                      new OPT_MIRSplitRanges(),
-                      // MANDATORY: Expand calling convention
-                      new OPT_ExpandCallingConvention(),
-                      // MANDATORY: Insert defs/uses due to floating-point stack
-                      new OPT_ExpandFPRStackConvention(),
-                      // MANDATORY: Perform Live analysis and create GC maps
-                      new OPT_LiveAnalysis(true, false),
-                      // MANDATORY: Perform register allocation
-                      new OPT_RegisterAllocator(),
-                      // MANDATORY: Add prologue and epilogue
-                      new OPT_PrologueEpilogueCreator(),
-                      });
-    // Peephole branch optimizations
-    addComponent(p, new OPT_MIRBranchOptimizations(1));
-  }
-
-  /** 
-   * This method defines the optimization plan elements that
-   * are to be performed to convert IA32 MIR into
-   * ready-to-execute machinecode (and associated mapping tables).
-   *
-   * @param p the plan under construction
-   */
-  private static void MIR2MC(Vector p) {
-    // MANDATORY: Final assembly
-    addComponent(p, new OPT_ConvertMIRtoMC());
-  }
-
-  //-#elif RVM_FOR_POWERPC
-  /////////////////////////////////////////////////////////////////////
-  // Plan elements for the PowerPC backend
-  /////////////////////////////////////////////////////////////////////
-  /** 
-   * This method defines the optimization plan elements that
-   * are to be performed to convert LIR to PowerPC MIR.
-   *
-   * @param p the plan under construction
-   */
-  private static void LIR2MIR(Vector p) {
-    composeComponents(p, "Convert LIR to MIR", new Object[] {
-                      // Optional printing of final LIR
-                      new OPT_IRPrinter("Final LIR") {
-                      public boolean shouldPerform(OPT_Options options) {
-                      return options.PRINT_FINAL_LIR;
-                      }
-                      }, 
-                      // Split very large basic blocks into smaller ones.
-                      new OPT_SplitBasicBlock(), 
-                      // Change operations that split live ranges to moves
-                      new OPT_MutateSplits(),
-                      // Instruction selection
-                      new OPT_ConvertLIRtoMIR(), 
-                      // Optional printing of initial MIR
-                      new OPT_IRPrinter("Initial MIR") {
-                      public boolean shouldPerform(OPT_Options options) {
-                      return options.PRINT_MIR;
-                      }
-                      }
-                      });
-  }
-
-  /** 
-   * This method defines the optimization plan elements that
-   * are to be performed on PowerPC MIR.
-   *
-   * @param p the plan under construction
-   */
-  private static void MIROptimizations(Vector p) {
-    ////////////////////
-    // MIR OPTS(1) (before register allocation)
-    ////////////////////
-    // INSTRUCTION SCHEDULING (PRE-PASS --- PRIOR TO REGISTER ALLOCATION)
-    addComponent(p, new OPT_PrePassScheduler());
-    // NullCheck combining and validation operand removal.
-    addComponent(p, new OPT_NullCheckCombining());
-    ////////////////////
-    // GCMapping part1 and RegisterAllocation
-    ////////////////////
-
-    composeComponents(p, "Register Mapping", new Object[] {
-                      // MANDATORY: Expand calling convention
-                      new OPT_ExpandCallingConvention(),
-                      // Use the LST to estimate basic block frequency from branch probabilities
-                      new OPT_OptimizationPlanCompositeElement("Basic Block Frequency Estimation", new Object[] {
-                                                               new OPT_BuildLST(),
-                                                               new OPT_EstimateBlockFrequencies()
-                                                               }) {
-                                                                public boolean shouldPerform(OPT_Options options) {
-                                                                  return options.blockCountSpillCost();
-                                                               }},
-                      // MANDATORY: Perform Live analysis and create GC maps
-                      new OPT_LiveAnalysis(true, false),
-                      // MANDATORY: Perform register allocation
-                      new OPT_RegisterAllocator(),
-                      // MANDATORY: Add prologue and epilogue
-                      new OPT_PrologueEpilogueCreator(),
-                      });
-    ////////////////////
-    // MIR OPTS(2) (after register allocation)
-    // NOTE: GCMapping part 1 has created the GC maps already.
-    //       From now until the end of compilation, we cannot change
-    //       the set of live references at a GC point 
-    //       without updating the GCMaps.
-    //       Effectively this means that we can only do the 
-    //       most trivial optimizations from
-    //       here on out without having to some potentially complex bookkeeping.
-    ////////////////////
-    // Peephole branch optimizations
-    addComponent(p, new OPT_MIRBranchOptimizations(1));
-  }
-
-  /** 
-   * This method defines the optimization plan elements that
-   * are to be performed to convert PowerPC MIR into
-   * ready-to-execute machinecode (and associated mapping tables).
-   * 
-   * @param p the plan under construction
-   */
-  private static void MIR2MC(Vector p) {
-    // MANDATORY: Final assembly
-    addComponent(p, new OPT_IRPrinter("Final MIR") {
-                 public boolean shouldPerform(OPT_Options options) {
-                 return options.PRINT_FINAL_MIR; } 
-                 });
-    addComponent(p, new OPT_ConvertMIRtoMC());
-  }
-  //-#endif
-
   // Helper functions for constructing the masterPlan.
-  protected static void addComponent(Vector p, OPT_CompilerPhase e) {
+  protected static void addComponent(ArrayList p, OPT_CompilerPhase e) {
     addComponent(p, new OPT_OptimizationPlanAtomicElement(e));
   }
 
   /**
    * Add an optimization plan element to a vector.
    */
-  protected static void addComponent(Vector p, OPT_OptimizationPlanElement e) {
-    p.addElement(e);
+  protected static void addComponent(ArrayList p, OPT_OptimizationPlanElement e) {
+    p.add(e);
   }
 
   /**
@@ -652,7 +471,7 @@ public class OPT_OptimizationPlanner {
    * @param name the name for this composition
    * @param es   the array of composed elements
    */
-  protected static void composeComponents(Vector p, String name, Object[] es) {
-    p.addElement(OPT_OptimizationPlanCompositeElement.compose(name, es));
+  protected static void composeComponents(ArrayList p, String name, Object[] es) {
+    p.add(OPT_OptimizationPlanCompositeElement.compose(name, es));
   }
 }
