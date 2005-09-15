@@ -239,28 +239,27 @@ implements OPT_Operators, OPT_Constants {
       }
     }
     // having determine where copies should be inserted, now insert them.
-    Iterator copies = needed.iterator();
-    while (copies.hasNext()) {
-      OPT_Pair copy = (OPT_Pair)copies.next();
-      OPT_BasicBlock inBlock = (OPT_BasicBlock)copy.first;
-      OPT_RegisterOperand registerOp = (OPT_RegisterOperand)copy.second;
-      VM_TypeReference type = registerOp.type;
-      OPT_Register register = registerOp.register;
-      OPT_Register temp = ir.regpool.getReg(register);
-      inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register, 
-                                                             temp, type));
-      OPT_LiveAnalysis.BBLiveElement inl = live.getLiveInfo(inBlock);
-      inl.gen().add(new OPT_RegisterOperand(temp, type));
-      inl.in().add(new OPT_RegisterOperand(temp, type));
-      OPT_BasicBlockEnumeration outBlocks = inBlock.getIn();
-      while (outBlocks.hasMoreElements()) {
-        OPT_BasicBlock outBlock = outBlocks.next();
-        OPT_Instruction x = OPT_SSA.makeMoveInstruction(ir, temp, register, 
-                                                        type);
-        OPT_SSA.addAtEnd(ir, outBlock, x, true);
-        OPT_LiveAnalysis.BBLiveElement ol = live.getLiveInfo(outBlock);
-        ol.BBKillSet().add(new OPT_RegisterOperand(temp, type));
+    if (!needed.isEmpty()) {
+      for (Iterator copies = needed.iterator(); copies.hasNext(); ) {
+        OPT_Pair copy = (OPT_Pair)copies.next();
+        OPT_BasicBlock inBlock = (OPT_BasicBlock)copy.first;
+        OPT_RegisterOperand registerOp = (OPT_RegisterOperand)copy.second;
+        VM_TypeReference type = registerOp.type;
+        OPT_Register register = registerOp.register;
+        OPT_Register temp = ir.regpool.getReg(register);
+        inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register, 
+                                                               temp, type));
+        OPT_BasicBlockEnumeration outBlocks = inBlock.getIn();
+        while (outBlocks.hasMoreElements()) {
+          OPT_BasicBlock outBlock = outBlocks.next();
+          OPT_Instruction x = OPT_SSA.makeMoveInstruction(ir, temp, register, 
+                                                          type);
+          OPT_SSA.addAtEnd(ir, outBlock, x, true);
+        }
       }
+      // Recompute liveness information.  You might be tempted to incrementally
+      // update it, but it's tricky, so resist.....do the obvious, but easy thing!
+      prepare();
     }
   }
 
