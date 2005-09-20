@@ -75,7 +75,7 @@ export GNU_MAKE=/usr/bin/make
 export JIKES=/usr/bin/jikes  # (v 1.22 in OS X 10.4, need to change for 10.3)
 
 # what C compilers should be used?
-export CC="/usr/bin/gcc -w -O -fno-common"
+export CC="/usr/bin/gcc -O -fno-common"
 
 # what C++ compilers should be used?
 export CPLUS="/usr/bin/g++ -fno-common"

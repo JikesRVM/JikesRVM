@@ -4104,11 +4104,11 @@ EOF
 cat <<- EOF
 	## OSX requires that JNI libraries end in .jnilib, 
 	## Also, the classpath builder, 
-	## on OSX, generates the files with the suffix ".so".  
+	## on OSX, generates the files with the suffix ".dylib".  
 	## We transform one to the other.
-	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so
+	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.dylib
 	do
-	    oldbase="\$(basename \${_library} .so)"
+	    oldbase="\$(basename \${_library} .dylib)"
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
