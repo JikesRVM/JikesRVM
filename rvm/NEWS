@@ -6,7 +6,16 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.4.1 Release Notes (released on September 13, 2005)
+*Jikes RVM 2.4.2 Release Notes (Future....)
+**Highlights
+**Other Notes
+**Bug Fixes
+
+**Internal Changes
+
+
+
+*Jikes RVM 2.4.1 Release Notes (released on September 15, 2005)
 
 *Highlights 
 **The recommended version of GNU classpath for Jikes RVM 2.4.1 is 0.18.
