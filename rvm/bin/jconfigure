@@ -4418,6 +4418,39 @@ EOF
 	EOF
     fi
 
+   ## Report error when boot image load address conflicts with dynamic
+   ## libraries linked against the booter (see bug 1224191)
+
+   ## Errors only generated when not cross-compiling
+   if [ ${RVM_HOST_CONFIG} == ${RVM_TARGET_CONFIG} ] && (( RVM_FOR_LINUX )); then
+      cat <<- EOF
+
+      ## Report error when boot image load address conflicts with dynamic
+      ## libraries linked against the booter (see bug 1224191)
+
+      ## Check we have all the executables to run this check
+      if [ -x \`which ldd\` ] && [ -x \`which grep\` ] && [ -x \`which grep\` ] && [ -x \`which tr\` ] && [ -x \`which sed\` ]; then
+         ## Remove trailing "0x" for bc
+         BOOTIMAGE_LOAD_ADDRESS=\`echo ${BOOTIMAGE_LOAD_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
+         ## Iterate over all libraries linked against JikesRVM
+         for i in \`ldd $BOOTER_STR | grep -v "linux-gate"|tr 'a-f' 'A-F'|sed -e's/.*0x\([A-F0-9]*\)./\1/g'\`; do
+            ## use bc to perform hex comparison
+            COMPARISON=\`echo "ibase=16; \$i > \${BOOTIMAGE_LOAD_ADDRESS}"|bc\`
+            if [ \${COMPARISON} == "1" ]; then
+               echo "!!!!!!!!!!!!!!!!!!!!!!";
+               echo "! Load address error !";
+               echo "!!!!!!!!!!!!!!!!!!!!!!";
+               echo "Please modify the  value of BOOTIMAGE_LOAD_ADDRESS in RVM_{HOST,TARGET}_CONFIG files.";
+               echo "The value has to be greater than 0x\$i.";
+               echo "Having modified the value re-run jconfigure and then re-run jbuild.";
+               echo;
+               exit 1;
+            fi;
+         done;
+      fi
+EOF
+   fi
+
     cat <<- EOF
 	# We "echo" "(booter linked)", not "echo -n", since we want the last
 	# line of jbuild to give us a total number of seconds on a line
