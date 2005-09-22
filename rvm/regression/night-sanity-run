@@ -172,9 +172,7 @@ if [[ $do_measure_compilation == 1 ]]; then
    $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
 fi
 
-# Archive result files and performance results
-
-
+# Archive nightly results; kept for 1 week on sanity machine
 function archiveResults() {
     if [[ ! -d $ARCHIVE ]]; then
 	echo "$ME: No archive directory named $ARCHIVE exists;" \
@@ -204,36 +202,19 @@ function archiveResults() {
 	    return $status;
 	fi
     fi >> $VERBOSE_LOG 2>&1
-
-    # NOTE: this sequence won't work on sourceforge.
-    #       Explore hosting night sanity archives on an academic partner's
-    #       machine and using utility id scp/ssh to push it there.
-#     echo "sending tar to dW" >> $VERBOSE_LOG 2>&1
-#     if ! cd $RVM_ROOT/sanityResults; then
-# 	echo  "No directory or trouble with $RVM_ROOT/sanityResults; won't send tar to dW." | tee -a $RUN_LOG $VERBOSE_LOG >> $MSG;
-# 	return
-#     fi
-#     local -i trouble=0
-#     TRANSFER_FILE_NAME=$filename || trouble=1
-#     cp $tarfile $TRANSFER_FILE_NAME || trouble=1
-#     $CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
-#     $CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
-#     rm -f $TRANSFER_FILE_NAME || trouble=1
-#     grep -v $TRANSFER_FILE_NAME < CVS/Entries > CVS/Entries.tmp || trouble=1
-#     mv -f CVS/Entries.tmp CVS/Entries || trouble=1
-#     if (( trouble )); then
-# 	echo "$ME: Sending the tar to DeveloperWorks failed; trouble!" \
-# 	    | tee -a $RUN_LOG $VERBOSE_LOG $MSG >&2
-#     fi
-#     cd $RVM_ROOT
-#     return $trouble;
-    return 1;
 }
 
 declare -i archived=0
 
 if (( do_archive == 1 )); then
   archiveResults && archived=1
+fi
+
+echo "  Sanity tests were specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
+if [ ! $perf_cfg ]; then
+    echo "  No performance tests were specified." >> $MSG
+else
+    echo -n "  Performance tests were specified in $CONFIG_DIR/$perf_cfg" >> $MSG
 fi
 
 # determine how many ran, failed, and passed, then build a summary line
@@ -248,8 +229,8 @@ if (( numran == 0 )); then
     echo -e "There was probably an error in building the boot images.\n\n" 
     have_boot_images=0
 else
-    # Build the summary line
-    echo -e "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n"
+    # High level summary of results
+    echo -e "Ran \t\t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n"
     have_boot_images=1
 fi  >> $MSG
 
@@ -268,7 +249,19 @@ else
 
 fi >> $MSG
 
-# Print some details on the failures
+# Summarize performance results
+if [[ $perf_cfg ]] && [[ -f $PERF_LOG ]]; then
+    echo -e "\n\nPerformance Summary" >> $MSG
+    $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk ${PERF_LOG}
+
+    # Print verbose performance data for SPECjvm98
+    echo ""
+    echo SPECjvm98 Performance Details
+    echo -----------------------------
+    $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 ${PERF_LOG}
+fi >> $MSG
+
+# Failure details
 if (( numfailed > 0 )); then
     echo ""
     echo Failure Details
@@ -280,58 +273,12 @@ if (( numfailed > 0 )); then
     $RUN_LOG  
 fi >> $MSG
 
+# Javadoc error details
 if (( numjavadocErrors > 0 )) && (( numjavadocErrors < 50 )); then 
     echo
     echo Javadoc Errors
     echo --------------
     grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq
-fi >> $MSG
-
-if (( archived )); then
-    # Describe where the archive information can be found
-    echo -e "\nOutput of this run is normally available (for one week) at:" 
-    echo "http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/$TRANSFER_FILE_NAME"
-fi >> $MSG
-echo "  Sanity tests are specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
-
-## Report on performance results.
-
-declare -i have_perf_log=0
-declare -i have_useful_perf_log	# Do we have a PERF_LOG that we can make good use of?
-
-if [[ -f $PERF_LOG ]]; then
-    have_perf_log=1
-fi
-
-if [ ! "$perf_cfg" ]; then
-    echo "  No performance tests were run, because our caller
-     didn't specify any performance configuration file to use."
-    have_useful_perf_log=0
-elif (( ! have_boot_images )); then
-    # just skip this section entirely; we've already complained
-    :;				# do nothing
-    have_useful_perf_log=0
-else
-    echo -n "  Performance tests are specified in $CONFIG_DIR/$perf_cfg"
-    if (( ! have_perf_log )); then
-	have_useful_perf_log=0
-	echo -e ",  but no performance tests were run; maybe the build failed?" 
-    else
-	have_useful_perf_log=1
-	echo "."
-    fi
-fi >> ${MSG}
-
-# Grab the bottom line performance and place it in a more visible place
-if (( have_useful_perf_log )); then
-    echo -e "\n\nPerformance Summary" >> $MSG
-    $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk ${PERF_LOG}
-
-    # Print verbose performance data for SPECjvm98
-    echo ""
-    echo SPECjvm98 Performance Details
-    echo -----------------------------
-    $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 ${PERF_LOG}
 fi >> $MSG
 
 function compResults () {
