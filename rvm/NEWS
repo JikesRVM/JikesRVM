@@ -10,6 +10,7 @@ on October 14, 2001,
 **Highlights
 **Other Notes
 **Bug Fixes
+*** defect 1293619: Null Pointer Exception in VM_TypeReference
 
 **Internal Changes
 
