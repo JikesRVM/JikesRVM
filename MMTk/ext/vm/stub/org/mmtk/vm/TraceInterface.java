@@ -26,7 +26,7 @@ public final class TraceInterface {
   /**
    * Returns if the VM is ready for a garbage collection.
    *
-   * @return True if the RVM is ready for GC, false otherwise.
+   * @return True if the VM is ready for GC, false otherwise.
    */
   public static final boolean gcEnabled() {
     return false;

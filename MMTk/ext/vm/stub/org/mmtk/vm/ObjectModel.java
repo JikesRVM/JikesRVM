@@ -38,20 +38,6 @@ public class ObjectModel {
   }
 
   /**
-   * Allocate an array object, using the given array as an example of
-   * the required type.
-   *
-   * @param array an array of the type to be allocated
-   * @param allocator which allocation scheme/area JMTk should
-   * allocation the memory from.
-   * @param length the number of elements in the array to be allocated
-   * @return the initialzed array object
-   */
-  public static Object cloneArray(Object [] array, int allocator, int length) {
-    return null;
-  }
-
-  /**
    * Return the size required to copy an object
    *
    * @param object The object whose size is to be queried
@@ -95,8 +81,13 @@ public class ObjectModel {
     return null;
   }
 
-  public static int getArrayLength(ObjectReference object) 
-    throws InlinePragma {
+  /**
+   * Get the length of an array object.
+   * 
+   * @param object address of the object
+   * @return The array length, in elements
+   */
+  public static int getArrayLength(ObjectReference object) {
     return 0;
   }
   /**
@@ -177,7 +168,6 @@ public class ObjectModel {
    *
    * @return the offset, relative the object reference address
    */
-  /* AJG: Should this be a variable rather than method? */
   public static Offset GC_HEADER_OFFSET() {
     return Offset.zero();
   }
@@ -188,8 +178,7 @@ public class ObjectModel {
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
-  public static Address objectStartRef(ObjectReference object)
-    {
+  public static Address objectStartRef(ObjectReference object) {
     return null;
   }
 

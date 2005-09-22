@@ -99,21 +99,6 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     return to;
   }
 
-  /**
-   * Allocate an array object, using the given array as an example of
-   * the required type.
-   *
-   * @param array an array of the type to be allocated
-   * @param allocator which allocation scheme/area JMTk should
-   * allocation the memory from.
-   * @param length the number of elements in the array to be allocated
-   * @return the initialzed array object
-   */
-  public static Object cloneArray(Object [] array, int allocator, int length)
-      throws UninterruptiblePragma {
-    return MM_Interface.cloneArray(array, allocator, length);
-  }
-
   /*
   public static Object addressAsObject(ObjectReference object)
     throws InlinePragma {

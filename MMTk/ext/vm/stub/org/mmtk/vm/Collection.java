@@ -24,22 +24,35 @@ public class Collection {
    * Class variables
    */
 
-  /** An unknown GC trigger reason.  Signals a logic bug. */ 
+  /** 
+   * An unknown GC trigger reason.  Signals a logic bug. 
+   */ 
   public static final int UNKNOWN_GC_TRIGGER = 0;  
-  /** Externally triggered garbage collection (eg call to System.gc())  */
+  
+  /** 
+   * Externally triggered garbage collection (eg call to System.gc()) 
+   */
   public static final int EXTERNAL_GC_TRIGGER = 1;
-  /** Resource triggered garbage collection.  For example, an
-      allocation request would take the number of pages in use beyond
-      the number available. */
+  
+  /** 
+   * Resource triggered garbage collection.  For example, an
+   * allocation request would take the number of pages in use beyond
+   * the number available. 
+   */
   public static final int RESOURCE_GC_TRIGGER = 2;
+  
   /**
    * Internally triggered garbage collection.  For example, the memory
    * manager attempting another collection after the first failed to
    * free space.
    */
   public static final int INTERNAL_GC_TRIGGER = 3;
-  /** The number of garbage collection trigger reasons. */
+  
+  /** 
+   * The number of garbage collection trigger reasons. 
+   */
   public static final int TRIGGER_REASONS = 4;
+  
   /** Short descriptions of the garbage collection trigger reasons. */
   private static final String[] triggerReasons = {
     "unknown",
@@ -57,33 +70,13 @@ public class Collection {
    */
   public static final double OUT_OF_MEMORY_THRESHOLD = 0.98;
 
-  /***********************************************************************
-   *
-   * Initialization
-   */
-
-  /**
-   * Initialization that occurs at <i>build</i> time.  The values of
-   * statics at the completion of this routine will be reflected in
-   * the boot image.  Any objects referenced by those statics will be
-   * transitively included in the boot image.
-   *
-   * This is called from MM_Interface.
-   */
-  public static final void init() {
-  }
-
-  /**
-   * An enumerator used to forward root objects
-   */
   /**
    * Triggers a collection.
    *
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
-  public static final void triggerCollection(int why) {
-  }
+  public static final void triggerCollection(int why) {}
 
   /**
    * Triggers a collection without allowing for a thread switch.  This is needed
@@ -92,16 +85,13 @@ public class Collection {
    * @param why the reason why a collection was triggered.  0 to
    * <code>TRIGGER_REASONS - 1</code>.
    */
-  public static final void triggerCollectionNow(int why) {
-  }
+  public static final void triggerCollectionNow(int why) {}
 
   /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
-  public static final void triggerAsyncCollection()
-    {
-  }
+  public static final void triggerAsyncCollection() {}
 
   /**
    * Determine whether a collection cycle has fully completed (this is
@@ -114,18 +104,6 @@ public class Collection {
  public static final boolean noThreadsInGC() {
    return false; 
  }
-
-  /**
-   * Check for memory exhaustion, possibly throwing an out of memory
-   * exception and/or triggering another GC.
-   *
-   * @param why Why the collection was triggered
-   * @param async True if this collection was asynchronously triggered.
-   */
-  private static final void checkForExhaustion(int why, boolean async)
-    {
-    
-  }
 
   /**
    * Checks whether a plan instance is eligible to participate in a
@@ -142,23 +120,22 @@ public class Collection {
   /**
    * Prepare a plan that is not participating in a collection.
    *
+   * In JikesRVM, these are the collector threads of processors 
+   * currently running threads off in JNI-land.
+   * 
    * @param p the plan to prepare
    */
-  public static void prepareNonParticipating(PlanLocal p) {
-    /*
-     * The collector threads of processors currently running threads
-     * off in JNI-land cannot run.
-     */
-  }
+  public static void prepareNonParticipating(PlanLocal p) {}
 
   /**
-   * Set a collector thread's so that a scan of its stack
-   * will start at VM_CollectorThread.run
+   * Prepare a local plan instance for collection.  
+   * 
+   * Ok JikesRVM, this sets a collector thread's so that a 
+   * scan of its stack will start at VM_CollectorThread.run
    *
    * @param p the plan to prepare
    */
-  public static void prepareParticipating (PlanLocal p) {
-  }
+  public static void prepareParticipating (PlanLocal p) {}
 
   /**
    * Rendezvous with all other processors, returning the rank
@@ -179,6 +156,5 @@ public class Collection {
    * idle).  Should be called at the end of GC after moveToFinalizable
    * has been called, and before mutators are allowed to run.
    */
-  public static void scheduleFinalizerThread () {
-  }
+  public static void scheduleFinalizerThread () {}
 }

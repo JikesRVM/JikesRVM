@@ -19,11 +19,18 @@ package org.mmtk.vm;
 public class Strings {
   /**
    * Primitive parsing facilities for strings
+   * @param value String to parse
+   * @return the integer equivalent of <code>value</code>
    */
   public static int parseInt(String value) {
     return 0;
   }
 
+  /**
+   * Parse a floating-point number
+   * @param value The string to parse
+   * @return The floating point representation of <code>value</code>
+   */
   public static float parseFloat(String value) {
     return (float)0;
   }
@@ -34,8 +41,7 @@ public class Strings {
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
-  public static void write(char [] c, int len) {
-  }
+  public static void write(char [] c, int len) {}
 
   /**
    * Log a thread identifier and a message.
@@ -43,8 +49,7 @@ public class Strings {
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
-  public static void writeThreadId(char [] c, int len) {
-  }
+  public static void writeThreadId(char [] c, int len) {}
 
 
   /**
@@ -62,9 +67,7 @@ public class Strings {
    * @return the number of characters copied.
    */
   public static int copyStringToChars(String src, char [] dst,
-                                      int dstBegin, int dstEnd)
-    {
-
+                                      int dstBegin, int dstEnd) {
     return 0;
   }
 }

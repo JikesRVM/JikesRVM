@@ -105,8 +105,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal
     }
     logMessage(5, "clearing array remset");
     while (!arrayRemset.isEmpty()) {
-      Address start = arrayRemset.pop1();
-      Address guard = arrayRemset.pop2();
+      arrayRemset.pop1();
+      arrayRemset.pop2();
     }
   }
 
