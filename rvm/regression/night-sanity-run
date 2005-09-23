@@ -230,7 +230,7 @@ if (( numran == 0 )); then
     have_boot_images=0
 else
     # High level summary of results
-    echo -e "Ran \t\t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n"
+    echo -e "\nRan \t\t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n"
     have_boot_images=1
 fi  >> $MSG
 
