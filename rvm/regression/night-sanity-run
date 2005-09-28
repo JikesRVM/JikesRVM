@@ -214,7 +214,7 @@ echo "Sanity tests were specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
 if [ ! $perf_cfg ]; then
     echo "No performance tests were specified." >> $MSG
 else
-    echo -n "Performance tests were specified in $CONFIG_DIR/$perf_cfg" >> $MSG
+    echo "Performance tests were specified in $CONFIG_DIR/$perf_cfg" >> $MSG
 fi
 
 # determine how many ran, failed, and passed, then build a summary line
