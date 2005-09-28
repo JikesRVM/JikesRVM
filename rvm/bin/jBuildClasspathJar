@@ -209,7 +209,7 @@ if [[ ! -e $SRC/TODO ]]; then
     if [[ -e `type -p curl` ]]; then
         curl $RVM_CLASSPATH_URL -oclasspath.tar.gz
     else
-        /usr/gnu/bin/wget --passive-ftp $RVM_CLASSPATH_URL -Oclasspath.tar.gz
+        $WGET --passive-ftp $RVM_CLASSPATH_URL -Oclasspath.tar.gz
     fi
     $GNU_TAR xzf classpath.tar.gz
     rm classpath.tar.gz
