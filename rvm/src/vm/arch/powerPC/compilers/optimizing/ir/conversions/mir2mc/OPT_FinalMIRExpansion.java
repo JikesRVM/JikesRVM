@@ -156,6 +156,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR), 
                                  OPT_PowerPCConditionOperand.NOT_EQUAL(), 
                                  yieldpoint.makeJumpTarget());
+				p.getBasicBlock().insertOut(yieldpoint);
             conditionalBranchCount++;
           }
           break;
@@ -178,6 +179,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR), 
                                  OPT_PowerPCConditionOperand.GREATER(), 
                                  yieldpoint.makeJumpTarget());
+				p.getBasicBlock().insertOut(yieldpoint);
             conditionalBranchCount++;
           }
           break;
@@ -200,6 +202,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             MIR_CondCall.mutate0(p, PPC_BCL, null, null, I(TSR), 
                 OPT_PowerPCConditionOperand.NOT_EQUAL(), 
                 yieldpoint.makeJumpTarget());
+				p.getBasicBlock().insertOut(yieldpoint);
             conditionalBranchCount++;
           }
           break;

@@ -533,7 +533,7 @@ implements OPT_Operators, OPT_Constants {
       if (excludeGuards && symbolics[r].isValidation()) continue;
       if (DEBUG) System.out.println("Inserting phis for register " + r);
       if (DEBUG) System.out.println("Start iterated frontier...");
-      OPT_BitVector needsPhi = OPT_DominanceFrontier. getIteratedDominanceFrontier(ir, defs[r]);
+      OPT_BitVector needsPhi = OPT_DominanceFrontier.getIteratedDominanceFrontier(ir, defs[r]);
       removePhisThatDominateAllDefs(needsPhi, ir, defs[r]);
       if (DEBUG) System.out.println("Done.");
 

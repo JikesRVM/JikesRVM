@@ -56,7 +56,7 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
 
   public boolean similar(OPT_Operand op) {
     return (op instanceof OPT_PowerPCTrapOperand) && 
-        (((OPT_ConditionOperand)op).value == value);
+        (((OPT_PowerPCTrapOperand)op).value == value);
   }
 
   /**

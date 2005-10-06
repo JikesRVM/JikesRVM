@@ -115,10 +115,10 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
           OPT_BasicBlock trap = thisBlock.createSubBlock(p.bcIndex,ir,0f);
           thisBlock.insertOut(trap);
           OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p,ir);
+			 thisBlock.insertOut(trap);
           OPT_TrapCodeOperand tc = MIR_TrapIf.getClearTrapCode(p);
           p.remove();
           nextBlock.firstInstruction().setmcOffset(-1); 
-
           // add code to thisBlock to conditionally jump to trap
           OPT_Instruction cmp = MIR_Compare.create(IA32_CMP, 
                                                    MIR_TrapIf.getVal1(p), 

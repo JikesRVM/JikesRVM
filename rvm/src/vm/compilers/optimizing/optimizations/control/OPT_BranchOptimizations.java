@@ -494,7 +494,7 @@ public final class OPT_BranchOptimizations
   private void flipConditionalBranch (OPT_Instruction cb) {
     // get the trailing GOTO instruction
     OPT_Instruction g = cb.nextInstructionInCodeOrder();
-    OPT_BranchOperand gTarget = Goto.getTarget(g);
+    OPT_BranchOperand gTarget = (OPT_BranchOperand)(Goto.getTarget(g).copy());
     // now flip the test and set the new target
     IfCmp.setCond(cb, IfCmp.getCond(cb).flipCode());
     IfCmp.setTarget(cb, gTarget);

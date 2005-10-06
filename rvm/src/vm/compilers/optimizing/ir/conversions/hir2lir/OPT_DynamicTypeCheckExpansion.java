@@ -74,7 +74,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       myBlock.insertOut(falseBranch);
       ir.cfg.linkInCodeOrder(myBlock, instanceOfBlock);
       OPT_RegisterOperand RHStib = getTIB(s, ir, ref, oldGuard.copyRO());
-      return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, 
+      return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, 
                                         trueBranch, falseBranch, oldGuard, bp);
     } else {
       // Not a branching pattern
@@ -98,7 +98,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       nullCaseBB.insertOut(nextBB);
       ir.cfg.addLastInCodeOrder(nullCaseBB);
       OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard.copyD2U());
-      return generateValueProducingTypeCheck(s, ir, ref, LHStype, RHStib, 
+      return generateValueProducingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, 
                                              result);
     }
   }
@@ -139,7 +139,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_BasicBlock fallThroughBB = fallThroughBB(s, ir);
       OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
       if (branchCondition) {
-        return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, branchBB, 
+        return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, branchBB, 
                                           fallThroughBB, oldGuard,
                                           IfCmp.getClearBranchProfile(next).flip());
       } else {
@@ -150,7 +150,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     } else {
       // Not a branching pattern
       OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
-      return generateValueProducingTypeCheck(s, ir, ref, LHStype, RHStib, 
+      return generateValueProducingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, 
                                              result);
     }
   }
@@ -193,7 +193,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     raiseError.copyPosition(s);
     failBlock.appendInstruction(raiseError);
     OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard.copyD2U());
-    return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, succBlock, 
+    return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, succBlock, 
                                       failBlock, null, OPT_BranchProfileOperand.never());
   }
 
@@ -223,7 +223,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     raiseError.copyPosition(s);
     failBlock.appendInstruction(raiseError);
     OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
-    return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, succBlock, 
+    return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, succBlock, 
                                       failBlock, null, OPT_BranchProfileOperand.never());
   }
 
@@ -287,7 +287,6 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                  OPT_BranchProfileOperand.never());
     return s;
   }
-
 
   /**
    * Expand an object array store check into the LIR sequence that 
@@ -475,7 +474,6 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     return callHelper(call, ir);
   }
 
-
   /** 
    * Generate a value-producing dynamic type check.
    * This routine assumes that the CFG and code order are 
@@ -537,7 +535,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                              OPT_ConditionOperand.GREATER(),
                                              new OPT_BranchProfileOperand()));
             s.insertBefore(Binary.create(INT_AND, result.copyD2D(), 
-                                         result.copyD2U(), boundscheck));
+                                         result.copyD2U(), boundscheck.copyD2U()));
           }
           OPT_Instruction continueAt = s.prevInstructionInCodeOrder();
           s.remove();
@@ -582,7 +580,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                OPT_ConditionOperand.GREATER(),
                                                new OPT_BranchProfileOperand()));
               s.insertBefore(Binary.create(INT_AND, result.copyD2D(), 
-                                           result.copyD2U(), boundscheck));
+                                           result.copyD2U(), boundscheck.copyD2U()));
             }
             OPT_Instruction continueAt = s.prevInstructionInCodeOrder();
             s.remove();
@@ -850,7 +848,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                           ((OPT_BranchProfileOperand)falseProb.copy()).flip(),
                           OPT_ConditionOperand.LESS(), 
                           falseBlock.makeJumpTarget(),
-                          falseProb);
+                          (OPT_BranchProfileOperand)falseProb.copy());
           continueAt.insertBefore(dimTest);
           OPT_BasicBlock testBlock = 
             mainBlock.splitNodeWithLinksAt(dimTest, ir);

@@ -359,7 +359,7 @@ public class OPT_Inliner implements OPT_Operators,
 
             OPT_Instruction cmp = IfCmp.create(INT_IFCMP,
                                                parent.temps.makeTempValidation(),
-                                               t, new OPT_IntConstantOperand(0),
+                                               t.copyD2U(), new OPT_IntConstantOperand(0),
                                                OPT_ConditionOperand.EQUAL(),
                                                testFailed.makeJumpTarget(),
                                                OPT_BranchProfileOperand.unlikely());
