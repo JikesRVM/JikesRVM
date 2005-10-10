@@ -557,6 +557,9 @@ public final class OPT_GenerationContext
       guard = temps.makeTempValidation();
       _ncGuards.put(ref, guard.copyRO());
     }
+	 else {
+		guard = guard.copyRO();
+	 }
     return guard;
   }
 

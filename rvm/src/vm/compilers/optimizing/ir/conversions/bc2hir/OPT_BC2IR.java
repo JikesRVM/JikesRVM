@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 import com.ibm.JikesRVM.adaptive.*;
-import java.util.*;
+import java.util.ArrayList;
 //-#endif
 
 import org.vmmagic.pragma.*;
@@ -160,6 +160,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private int runoff;
 
   /**
+	* Was something inlined?
+	*/
+  private boolean inlinedSomething;
+
+  /**
    *  Debugging with method_to_print. Switch following 2
    *  to both be non-final. Set DBG_SELECTIVE to true
    *  DBG_SELECTED will then be true when the method matches.
@@ -279,7 +284,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // Construct initial code order, commit to recursive inlines, 
     // insert any synthetic blocks.
     if (DBG_BB || DBG_SELECTED) db("doing final pass over basic blocks: " + printBlocks());
-    blocks.finalPass();
+    blocks.finalPass(inlinedSomething);
   }
 
   // pops the length off the stack
@@ -3352,7 +3357,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                   (rop.scratchObject instanceof OPT_RegisterOperand)
                   || (rop.scratchObject instanceof OPT_TrueGuardOperand));
       }
-      return (OPT_Operand)rop.scratchObject;
+		if(rop.scratchObject == null) {
+		  return null;
+		}
+		else {
+		  return ((OPT_Operand)rop.scratchObject).copy();
+		}
     }
     if (VM.VerifyAssertions)
       VM._assert(op instanceof OPT_StringConstantOperand);
@@ -4359,6 +4369,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       OPT_Inliner.execute(inlDec, gc, 
                           currentBBLE.block.exceptionHandlers, callSite);
     
+
+	 inlinedSomething = true;
     // TODO: We're currently not keeping track if any of the 
     // enclosing exception handlers are actually reachable from 
     // this inlined callee.  
@@ -4436,7 +4448,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /* create an OSR Barrier instruction at the current position.
    */
   private OPT_Instruction _createOsrBarrier() {
-    LinkedList livevars = new LinkedList();
+    ArrayList livevars = new ArrayList();
  
     /* for local variables, we have to use helper to make a register. */
     /* ltypes and stypes should be the full length
@@ -4471,7 +4483,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     int stacknum = stack.getSize();
     byte[] stypes = new byte[stacknum];
  
-    /* the variabel on stack can be used directly ? */
+    /* the variable on stack can be used directly ? */
     int num_lstacks = 0;
     for (int i=0, n=stack.getSize(); i<n; i++) {
       OPT_Operand op = stack.peekAt(i);
@@ -4481,7 +4493,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         if (op.isRegister()) {
           livevars.add(op.asRegister().copyU2U());
         } else {
-          livevars.add(op);
+          livevars.add(op.copy());
         }
 
         num_lstacks++;
@@ -4553,9 +4565,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      */
     OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
     appendInstruction(Move.create(LONG_MOVE, t, op));
-    t.copyD2U();
  
-    return t;
+    return t.copyD2U();
   }
  
   /* special process for long/double constants */
@@ -4565,9 +4576,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      */
     OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
     appendInstruction(Move.create(DOUBLE_MOVE, t, op));
-    t.copyD2U();
  
-    return t;
+    return t.copyD2U();
   }
  
   /* make a temporary register, and create a move instruction
@@ -4590,7 +4600,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
  
     OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
-    t.copyD2U();
  
     byte tcode = op.getType().getName().parseForTypeCode();
  
@@ -4621,8 +4630,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return null;
     }
  
-    appendInstruction(Move.create(operator, t, op));
-    return t;
+    appendInstruction(Move.create(operator, t, op.copy()));
+    return t.copyD2U();
   }
 
 
@@ -4940,7 +4949,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               temp.setInheritableFlags(rop);
               setGuard(temp, getGuard(rop));
               OPT_Instruction move = 
-                Move.create(OPT_IRTools.getMoveOp(rop.type), temp, rop);
+                Move.create(OPT_IRTools.getMoveOp(rop.type), temp, rop.copyRO());
               move.bcIndex = RECTIFY_BCI;
               move.position = gc.inlineSequence;
               block.appendInstructionRespectingTerminalBranch(move);
@@ -4992,7 +5001,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               for (OPT_BasicBlockEnumeration preds = p.block.getIn(); preds.hasMoreElements();) {
                 OPT_BasicBlock pred = preds.next();
                 if (pred == block) continue;
-                injectMove(pred, mopTmp.copyRO(), mop);
+                injectMove(pred, mopTmp.copyRO(), mop.copy());
               }
               p.stackState.replaceFromTop(i, mopTmp.copy());
               if (generated) {
@@ -5107,7 +5116,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * NOTE: Only some CFG edges are created here..... 
      * we're mainly just patching together a code linearization.
      */
-    void finalPass() {
+    void finalPass(boolean inlinedSomething) {
       TreeEnumerator e = TreeEnumerator.enumFromRoot(root);
       OPT_BasicBlock cop = gc.prologue;
       BasicBlockLE curr = getEntry();
@@ -5252,10 +5261,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       // If the epilogue was unreachable, remove it from the code order and cfg
       // and set gc.epilogue to null.
+		boolean removedSomethingFromCodeOrdering = inlinedSomething;
       if (gc.epilogue.hasZeroIn()) {
         if (DBG_FLATTEN || DBG_CFG)
           db("Deleting unreachable epilogue " + gc.epilogue);
         gc.cfg.removeFromCodeOrder(gc.epilogue);
+		  removedSomethingFromCodeOrdering = true;
 
         // remove the node from the graph AND adjust its edge info
         gc.epilogue.remove();
@@ -5267,8 +5278,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       // if gc has an unlockAndRethrow block that was not used, then remove it
       if (gc.unlockAndRethrow != null && gc.unlockAndRethrow.hasZeroIn()) {
         gc.cfg.removeFromCFGAndCodeOrder(gc.unlockAndRethrow);
-        gc.enclosingHandlers.remove( gc.unlockAndRethrow );
+		  removedSomethingFromCodeOrdering = true;
+		  gc.enclosingHandlers.remove( gc.unlockAndRethrow );
       }
+		// if we removed a basic block then we should compact the node numbering
+		if(removedSomethingFromCodeOrdering) {
+		  gc.cfg.compactNodeNumbering();
+		}
 
       if (DBG_FLATTEN) {
         db("Current Code order for " + gc.method + "\n");
