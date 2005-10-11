@@ -61,6 +61,17 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
    */
   private static class TuneUpPreparation extends OPT_CompilerPhase {
 
+	 /**
+	  * Compiler phases necessary to re-build dominators and dominance
+	  * frontier
+	  */
+	 OPT_CompilerPhase dominators, frontier;
+
+	 TuneUpPreparation () {
+		dominators = new OPT_DominatorsPhase(true);
+		frontier = new OPT_DominanceFrontier();
+	 }
+
     public final boolean shouldPerform(OPT_Options options) {
       return  options.SSA;
     }
@@ -78,6 +89,10 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
       ir.desiredSSAOptions.setScalarsOnly(true);
       ir.desiredSSAOptions.setBackwards(false);
       ir.desiredSSAOptions.setInsertUsePhis(false);
+		if(!ir.HIRInfo.dominatorsAreComputed) {
+		  dominators.perform(ir);
+		  frontier.perform(ir);
+		}
     }
   }
 }

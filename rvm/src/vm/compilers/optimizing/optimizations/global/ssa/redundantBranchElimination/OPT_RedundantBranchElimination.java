@@ -101,7 +101,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
               if (taken == notTaken) continue; // both go to same block, so we don't know anything!
               if (notTaken.hasOneIn() && dt.dominates(notTaken, candBB)) {
                 if (DEBUG) VM.sysWrite(candTest + " is dominated by not-taken branch of "+poss+"\n");
-                removeCondBranch(candBB, candTest, ir);
+                removeCondBranch(candBB, candTest, ir, poss);
                 cc.removeVertex(gvns.valueGraph.getVertex(candTest));
                 break;
               }
@@ -127,6 +127,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * @param ir the IR to optimize
      */
     private final void removeUnreachableCode(OPT_IR ir) {
+		boolean removedCode = false;
       OPT_BasicBlock entry = ir.cfg.entry();
       ir.cfg.clearDFS();
       entry.sortDFS();
@@ -142,9 +143,15 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
             }
           }
           ir.cfg.removeFromCFGAndCodeOrder(node);
+			 removedCode = true;
         }
         node = nextNode;
       }
+		if(removedCode) {
+		  ir.cfg.compactNodeNumbering();
+		  ir.HIRInfo.dominatorTree = null;
+		  ir.HIRInfo.dominatorsAreComputed = false;
+		}
     }
 
 
@@ -160,11 +167,20 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
 
     /**
      * Remove cb from source, updating PHI nodes to maintain SSA form.
+	  *
+	  * @param source basic block containing cb
+	  * @param cb conditional branch to remove
+	  * @param ir containing IR
+	  * @param di branch that dominates cb
      */
     private void removeCondBranch(OPT_BasicBlock source,
                                   OPT_Instruction cb,
-                                  OPT_IR ir) {
+                                  OPT_IR ir,
+											 OPT_Instruction di) {
       if (DEBUG) VM.sysWrite("Eliminating definitely not-taken branch "+cb+"\n");
+		if(IfCmp.conforms(cb) && IfCmp.hasGuardResult(cb)) {
+		  cb.insertBefore(Move.create(GUARD_MOVE, IfCmp.getGuardResult(cb), IfCmp.getGuardResult(di).copy()));
+		}
       OPT_BasicBlock deadBB = cb.getBranchTarget();
       cb.remove();
       source.recomputeNormalOut(ir);
