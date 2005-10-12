@@ -7,7 +7,9 @@ package com.ibm.JikesRVM.opt.ir;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 
 import org.vmmagic.pragma.*;
 
@@ -119,6 +121,19 @@ public final class OPT_IR implements OPT_Operators {
    * on SSA form.
    */
   public OPT_SSAOptions actualSSAOptions; 
+
+  /**
+	* Are we in SSA form?
+   */
+  public boolean inSSAForm() {
+	 return (actualSSAOptions != null) && actualSSAOptions.getScalarValid();
+  }
+  /**
+	* Are we in SSA form that's broken awaiting re-entry?
+   */
+  public boolean inSSAFormAwaitingReEntry() {
+	 return (actualSSAOptions != null) && !actualSSAOptions.getScalarValid();
+  }
 
   /**
    * The root {@link OPT_GenerationContext generation context}
@@ -622,232 +637,465 @@ public final class OPT_IR implements OPT_Operators {
    * NB: this is expensive -- be sure to guard invocations with 
    * debugging flags. 
    * 
-   * The following invariants are checked:
-   * <ul>
-   * <li> All links in the code order of basic blocks are well formed.
-   * <li> All links in the intra-block instruction lists are well formed.
-   * <li> All links in the control flow graph are well formed.
-   * <li> All blocks in the control flow graph are also in the code order.
-   * <li> All blocks in the code order are also in the control flow graph.
-   * <li> All non-parameter symbolic registers that appear as a use in 
-   *      some instruction also are defined by some instruction.
-   * <li> No symbolic register is used to hold more than 1 of the four
-   *      kinds of values: int (includes references), long, float, and double.
-   * </ul>
-   * 
    * @param where    phrase identifying invoking  compilation phase
    * @param checkCFG should the CFG invariants be checked
    *                 (they can become invalid in "late" MIR).
    */
   public void verify(String where, boolean checkCFG) {
-    // First, verify that the basic blocks are properly chained together
-    // and that each basic block's instruction list is properly constructed.
-    {
-      OPT_BasicBlock cur = cfg.firstInCodeOrder();
-      OPT_BasicBlock prev = null;
-      while (cur != null) {
-        if (cur.getPrev() != prev) {
-          verror(where, 
-                 "Prev link of "+cur+" does not point to "+prev);
-        }
+	 // Check basic block and the containing instruction construction
+	 verifyBBConstruction(where);
 
-        // Verify cur's start and end instructions
-        OPT_Instruction s = cur.start;
-        OPT_Instruction e = cur.end;
-        if (s == null) {
-          verror(where, 
-                 "Bblock "+cur+" has null start instruction");
-        }
-        if (e == null) {
-          verror(where, 
-                 "Bblock "+cur+" has null end instruction");
-        }
-        
-        // cur has start and end instructions, 
-        // make sure that they are locally ok.
-        if (!s.isBbFirst()) {
-          verror(where, 
-                 "Instr "+s+" is first instr of "+cur+" but is not BB_FIRST");
-        }
-        if (s.getBasicBlock() != cur) {
-          verror(where, 
-                 "Instr "+s+" is first instr of "+cur+
-                 " but points to BBlock "+s.getBasicBlock());
-        }
-        if (!e.isBbLast()) {
-          verror(where, 
-                 "Instr "+e+" is last instr of "+cur+" but is not BB_LAST");
-        }
-        if (e.getBasicBlock() != cur) {
-          verror(where, 
-                 "Instr "+e+" is last instr of "+cur+
-                 " but points to BBlock "+e.getBasicBlock());
-        }
-        
-        // Now check the integrity of the block's instruction list
-        if (s.getPrev() != null) {
-          verror(where, "Instr "+s+
-                 " is the first instr of "+cur+" but has a predecessor "
-                 +s.getPrev());
-        }
-        if (e.getNext() != null) {
-          verror(where, "Instr "+s+
-                 " is the last instr of "+cur+" but has a successor "
-                 +e.getNext());
-        }
-        OPT_Instruction pp = s;
-        OPT_Instruction p = s.getNext();
-        boolean foundBranch = false;
-        while (p != e) {
-          if (p == null) {
-            verror(where, "Fell off the instruction list in "
-                   +cur+" before finding "+e);
-          }
-          if (p.getPrev() != pp) {
-            verror(where, "Instr "+pp+" has next "+p
-                   +" but "+p+" has prev "+p.getPrev());
-          }
-          if (!p.isBbInside()) {
-            verror(where, "Instr "+p+
-                   " should be inside "+cur+" but is not BBInside");
-          }
-          if (foundBranch && !p.isBranch()) {
-            printInstructions();
-            verror(where, "Non branch "+p+" after branch "+pp+" in "+cur);
-          }
-          if (p.isBranch() && p.operator() != LOWTABLESWITCH) {
-            foundBranch = true;
-            if (p.isUnconditionalBranch() && p.getNext() != e) {
-              printInstructions();
-              verror(where, "Unconditional branch "+p+
-                     " does not end its basic block "+cur);
-            }
-          }
-          pp = p;
-          p = p.getNext();
-        }       
-        if (p.getPrev() != pp) {
-          verror(where, "Instr "+pp+" has next "
-                 +p+" but "+p+" has prev "+p.getPrev());
-        }
-
-        // initialize the mark bit for the bblist test below
-        cur.scratch = 0;
-
-        prev = cur;
-        cur = (OPT_BasicBlock)cur.getNext();
-      }
-    }
-
-    // Check that the CFG links are well formed
-    final int inBBListMarker = 999;  // actual number is insignificant
     if (checkCFG) {
-      final boolean VERIFY_CFG_EDGES = false;
-      java.util.HashSet origOutSet = null;
-      if (VERIFY_CFG_EDGES) origOutSet = new java.util.HashSet();
+		// Check CFG invariants
+		verifyCFG(where);
+	 }
 
-      for (OPT_BasicBlock cur = cfg.firstInCodeOrder();
-           cur != null;
-           cur = (OPT_BasicBlock)cur.getNext()) {
-
-        // Check incoming edges
-        for (OPT_BasicBlockEnumeration e = cur.getIn(); 
-             e.hasMoreElements(); ) {
-          OPT_BasicBlock pred = e.next();
-          if (!pred.pointsOut(cur)) {
-            verror(where, pred+
-                   " is an inEdge of "+cur+" but "+cur+
-                   " is not an outEdge of "+pred);
-          }
-        }
-
-        // Check outgoing edges
-        for (OPT_BasicBlockEnumeration e =cur.getOut();
-             e.hasMoreElements(); ) {
-          OPT_BasicBlock succ = e.next();
-          if (!succ.pointsIn(cur)) {
-            verror(where, succ+
-                   " is an outEdge of "+cur+" but "+cur+
-                   " is not an inEdge of "+succ);
-          }
-          // Remember the original out edges for CFG edge verification
-          if (VERIFY_CFG_EDGES && IRStage<=LIR) origOutSet.add(succ);
-        }
-
-
-        if (VERIFY_CFG_EDGES && IRStage <= LIR) {
-          // Next, check that the CFG links are semantically correct
-          // (ie that the CFG links and branch instructions agree)
-          // This done by calling recomputeNormalOut() and confirming
-          // that nothing changes.
-          cur.recomputeNormalOut(this);
-          
-          // Confirm outgoing edges didn't change
-          for (OPT_BasicBlockEnumeration e =cur.getOut();
-               e.hasMoreElements(); ) {
-            OPT_BasicBlock succ = e.next();
-            if (!origOutSet.contains(succ) &&
-                !succ.isExit() // Sometimes recomput is conservative in adding edge to exit
-                               // because it relies soley on the mayThrowUncaughtException
-                               // flag.
-                ) {
-              cur.printExtended();
-              verror(where, "An edge in the cfg was incorrect.  " + 
-                     succ+ " was not originally an out edge of " + cur + 
-                     " but it was after calling recomputeNormalOut()" );
-            }
-            origOutSet.remove(succ); // we saw it, so remove it
-          }
-          // See if there were any edges that we didn't see the second
-          // time around
-          if (!origOutSet.isEmpty()) {
-            OPT_BasicBlock missing = 
-              (OPT_BasicBlock) origOutSet.iterator().next();
-
-            cur.printExtended();
-            verror(where, "An edge in the cfg was incorrect.  " +
-                   missing + " was originally an out edge of " + cur + 
-                   " but not after calling recomputeNormalOut()");
-          }
-        }
-
-        // mark this block because it is the bblist
-        cur.scratch = inBBListMarker;
-      }
-      
-      // Check to make sure that all blocks connected 
-      // (via a CFG edge) to a block
-      // that is in the bblist are also in the bblist
-      for (OPT_BasicBlock cur = cfg.firstInCodeOrder();
-           cur != null;
-           cur = (OPT_BasicBlock)cur.getNext()) {
-        for (OPT_BasicBlockEnumeration e = cur.getIn(); 
-             e.hasMoreElements(); ) {
-          OPT_BasicBlock pred = e.next();
-          if (pred.scratch != inBBListMarker) {
-            verror(where, "In Method "+ method.getName() +", "
-                   + pred+" is an inEdge of "+cur+
-                   " but it is not in the CFG!");
-          }
-        }
-        for (OPT_BasicBlockEnumeration e = cur.getOut(); 
-             e.hasMoreElements();) {
-          OPT_BasicBlock succ = e.next();
-          if (succ.scratch != inBBListMarker) {
-            // the EXIT block is never in the BB list
-            if (succ != cfg.exit()) { 
-              verror(where, "In Method "+ method.getName() +", "+ succ+
-                     " is an outEdge of "+cur+" but it is not in the CFG!");
-            }
-          }
-        }
-      }
-    } // end CFG sanity check
-
-    if (IRStage<MIR) {
+    if (IRStage < MIR) {
+		// In HIR or LIR:
+		// Simple def-use tests
       verifyRegisterDefs(where);
+
+		// Verify registers aren't in use for 2 different types
       verifyRegisterTypes(where);
     }
+
+	 if(PARANOID) {
+		// Follow CFG checking use follows def (ultra-expensive)
+		verifyUseFollowsDef(where); 
+
+		// Simple sanity checks on instructions
+		verifyInstructions(where); 
+	 }
+
+     // Make sure CFG is in fit state for dominators
+     // TODO: Enable this check; currently finds some broken IR
+     //       that we need to fix.
+     // verifyAllBlocksAreReachable(where);
+  }
+
+  /**
+   * Verify basic block construction from the basic block and
+   * instruction information.
+   * 
+   * @param where    phrase identifying invoking  compilation phase
+   */
+  private void verifyBBConstruction(String where) {
+    // First, verify that the basic blocks are properly chained together
+    // and that each basic block's instruction list is properly constructed.
+	 OPT_BasicBlock cur = cfg.firstInCodeOrder();
+	 OPT_BasicBlock prev = null;
+	 while (cur != null) {
+		if (cur.getPrev() != prev) {
+		  verror(where, 
+					"Prev link of "+cur+" does not point to "+prev);
+		}
+
+		// Verify cur's start and end instructions
+		OPT_Instruction s = cur.start;
+		OPT_Instruction e = cur.end;
+		if (s == null) {
+		  verror(where, 
+					"Bblock "+cur+" has null start instruction");
+		}
+		if (e == null) {
+		  verror(where, 
+					"Bblock "+cur+" has null end instruction");
+		}
+        
+		// cur has start and end instructions, 
+		// make sure that they are locally ok.
+		if (!s.isBbFirst()) {
+		  verror(where, 
+					"Instr "+s+" is first instr of "+cur+" but is not BB_FIRST");
+		}
+		if (s.getBasicBlock() != cur) {
+		  verror(where, 
+					"Instr "+s+" is first instr of "+cur+
+					" but points to BBlock "+s.getBasicBlock());
+		}
+		if (!e.isBbLast()) {
+		  verror(where, 
+					"Instr "+e+" is last instr of "+cur+" but is not BB_LAST");
+		}
+		if (e.getBasicBlock() != cur) {
+		  verror(where, 
+					"Instr "+e+" is last instr of "+cur+
+					" but points to BBlock "+e.getBasicBlock());
+		}
+        
+		// Now check the integrity of the block's instruction list
+		if (s.getPrev() != null) {
+		  verror(where, "Instr "+s+
+					" is the first instr of "+cur+" but has a predecessor "
+					+s.getPrev());
+		}
+		if (e.getNext() != null) {
+		  verror(where, "Instr "+s+
+					" is the last instr of "+cur+" but has a successor "
+					+e.getNext());
+		}
+		OPT_Instruction pp = s;
+		OPT_Instruction p = s.getNext();
+		boolean foundBranch = false;
+		while (p != e) {
+		  if (p == null) {
+			 verror(where, "Fell off the instruction list in "
+					  +cur+" before finding "+e);
+		  }
+		  if (p.getPrev() != pp) {
+			 verror(where, "Instr "+pp+" has next "+p
+					  +" but "+p+" has prev "+p.getPrev());
+		  }
+		  if (!p.isBbInside()) {
+			 verror(where, "Instr "+p+
+					  " should be inside "+cur+" but is not BBInside");
+		  }
+		  if (foundBranch && !p.isBranch()) {
+			 printInstructions();
+			 verror(where, "Non branch "+p+" after branch "+pp+" in "+cur);
+		  }
+		  if (p.isBranch() && p.operator() != LOWTABLESWITCH) {
+			 foundBranch = true;
+			 if (p.isUnconditionalBranch() && p.getNext() != e) {
+				printInstructions();
+				verror(where, "Unconditional branch "+p+
+						 " does not end its basic block "+cur);
+			 }
+		  }
+		  pp = p;
+		  p = p.getNext();
+		}       
+		if (p.getPrev() != pp) {
+		  verror(where, "Instr "+pp+" has next "
+					+p+" but "+p+" has prev "+p.getPrev());
+		}
+
+		// initialize the mark bit for the bblist test below
+		cur.scratch = 0;
+
+		prev = cur;
+		cur = (OPT_BasicBlock)cur.getNext();      
+    }
+  }
+
+  /**
+   * Verify control flow graph construction
+   * 
+   * @param where    phrase identifying invoking  compilation phase
+   */
+  private void verifyCFG(String where) {
+    // Check that the CFG links are well formed
+    final int inBBListMarker = 999;  // actual number is insignificant
+	 final boolean VERIFY_CFG_EDGES = false;
+	 java.util.HashSet origOutSet = null;
+	 if (VERIFY_CFG_EDGES) origOutSet = new java.util.HashSet();
+
+	 for (OPT_BasicBlock cur = cfg.firstInCodeOrder();
+			cur != null;
+			cur = (OPT_BasicBlock)cur.getNext()) {
+
+		// Check incoming edges
+		for (OPT_BasicBlockEnumeration e = cur.getIn(); 
+			  e.hasMoreElements(); ) {
+		  OPT_BasicBlock pred = e.next();
+		  if (!pred.pointsOut(cur)) {
+			 verror(where, pred+
+					  " is an inEdge of "+cur+" but "+cur+
+					  " is not an outEdge of "+pred);
+		  }
+		}
+
+		// Check outgoing edges
+		for (OPT_BasicBlockEnumeration e =cur.getOut();
+			  e.hasMoreElements(); ) {
+		  OPT_BasicBlock succ = e.next();
+		  if (!succ.pointsIn(cur)) {
+			 verror(where, succ+
+					  " is an outEdge of "+cur+" but "+cur+
+					  " is not an inEdge of "+succ);
+		  }
+		  // Remember the original out edges for CFG edge verification
+		  if (VERIFY_CFG_EDGES && IRStage<=LIR) origOutSet.add(succ);
+		}
+
+
+		if (VERIFY_CFG_EDGES && IRStage <= LIR) {
+		  // Next, check that the CFG links are semantically correct
+		  // (ie that the CFG links and branch instructions agree)
+		  // This done by calling recomputeNormalOut() and confirming
+		  // that nothing changes.
+		  cur.recomputeNormalOut(this);
+          
+		  // Confirm outgoing edges didn't change
+		  for (OPT_BasicBlockEnumeration e =cur.getOut();
+				 e.hasMoreElements(); ) {
+			 OPT_BasicBlock succ = e.next();
+			 if (!origOutSet.contains(succ) &&
+				  !succ.isExit() // Sometimes recomput is conservative in adding edge to exit
+				  // because it relies soley on the mayThrowUncaughtException
+				  // flag.
+				  ) {
+				cur.printExtended();
+				verror(where, "An edge in the cfg was incorrect.  " + 
+						 succ+ " was not originally an out edge of " + cur + 
+						 " but it was after calling recomputeNormalOut()" );
+			 }
+			 origOutSet.remove(succ); // we saw it, so remove it
+		  }
+		  // See if there were any edges that we didn't see the second
+		  // time around
+		  if (!origOutSet.isEmpty()) {
+			 OPT_BasicBlock missing = 
+				(OPT_BasicBlock) origOutSet.iterator().next();
+
+			 cur.printExtended();
+			 verror(where, "An edge in the cfg was incorrect.  " +
+					  missing + " was originally an out edge of " + cur + 
+					  " but not after calling recomputeNormalOut()");
+		  }
+		}
+
+		// mark this block because it is the bblist
+		cur.scratch = inBBListMarker;
+	 }
+      
+	 // Check to make sure that all blocks connected 
+	 // (via a CFG edge) to a block
+	 // that is in the bblist are also in the bblist
+	 for (OPT_BasicBlock cur = cfg.firstInCodeOrder();
+			cur != null;
+			cur = (OPT_BasicBlock)cur.getNext()) {
+		for (OPT_BasicBlockEnumeration e = cur.getIn(); 
+			  e.hasMoreElements(); ) {
+		  OPT_BasicBlock pred = e.next();
+		  if (pred.scratch != inBBListMarker) {
+			 verror(where, "In Method "+ method.getName() +", "
+					  + pred+" is an inEdge of "+cur+
+					  " but it is not in the CFG!");
+		  }
+		}
+		for (OPT_BasicBlockEnumeration e = cur.getOut(); 
+			  e.hasMoreElements();) {
+		  OPT_BasicBlock succ = e.next();
+		  if (succ.scratch != inBBListMarker) {
+			 // the EXIT block is never in the BB list
+			 if (succ != cfg.exit()) { 
+				verror(where, "In Method "+ method.getName() +", "+ succ+
+						 " is an outEdge of "+cur+" but it is not in the CFG!");
+			 }
+		  }
+		}
+	 }
+  }
+
+  /**
+   * Verify that every instruction:
+	* <ul>
+	* <li>1) has operands that back reference it</li>
+	* <li>2) is valid for its position in the basic block</li>
+	* <li>3) if we are MIR, has no guard operands {@see OPT_NullCheckCombining}</li>
+	* </ul>
+   * 
+   * @param where    phrase identifying invoking  compilation phase
+   */
+  private void verifyInstructions(String where) {
+    Enumeration bbEnum = cfg.nodes();
+	 while(bbEnum.hasMoreElements()) {
+      OPT_BasicBlock block = (OPT_BasicBlock) bbEnum.nextElement();
+		OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(this, block);
+		boolean startingInstructionsPassed = false;
+		while (instructions.hasMoreElements()) {
+		  OPT_Instruction instruction = instructions.next();
+		  // Perform (1) and (3)
+		  OPT_IREnumeration.AllUsesEnum useOperands = new OPT_IREnumeration.AllUsesEnum(this, instruction);
+		  while (useOperands.hasMoreElements()) {
+			 OPT_Operand use = useOperands.next();
+			 if(use.instruction != instruction) {
+				verror(where, "In block " + block + " for instruction " + instruction +
+						 " the back link in the use of operand " + use +
+						 " is invalid and references " + use.instruction);
+			 }
+			 if((IRStage >= MIR) && (use.isRegister()) && (use.asRegister().register.isValidation())) {
+				verror(where, "In block " + block + " for instruction " + instruction +
+						 " the use operand " + use + " is invalid as it is a validation register and this IR is in MIR form");
+			 }
+		  }
+		  OPT_IREnumeration.AllDefsEnum defOperands = new OPT_IREnumeration.AllDefsEnum(this, instruction);
+		  while (defOperands.hasMoreElements()) {
+			 OPT_Operand def = defOperands.next();
+			 if(def.instruction != instruction) {
+				verror(where, "In block " + block + " for instruction " + instruction +
+						 " the back link in the def of operand " + def +
+						 " is invalid and references " + def.instruction);
+			 }
+			 if((IRStage >= MIR) && (def.isRegister()) && (def.asRegister().register.isValidation())) {
+				verror(where, "In block " + block + " for instruction " + instruction +
+						 " the def operand " + def + " is invalid as it is a validation register and this IR is in MIR form");
+			 }
+		  }
+		  // Perform (2)
+		  // test for starting instructions
+		  if(startingInstructionsPassed == false) {
+			 if(Label.conforms(instruction)) {
+				continue;
+			 }
+			 if(Phi.conforms(instruction)) {
+				if((!inSSAForm())&&(!inSSAFormAwaitingReEntry())){
+				  verror(where, "Phi node encountered but SSA not computed");
+				}
+				continue;
+			 }
+			 startingInstructionsPassed = true;
+		  }
+		  // main instruction location test
+		  switch(instruction.operator().opcode) {
+			 // Label and phi nodes must be at the start of a BB
+		  case PHI_opcode:
+		  case LABEL_opcode:
+			 verror(where, "Unexpected instruction in the middle of a basic block " + instruction);
+			 // BBend, Goto, IfCmp, TableSwitch, Return, Trap and Athrow
+			 // must all appear at the end of a basic block
+		  case INT_IFCMP_opcode:
+		  case INT_IFCMP2_opcode:
+		  case LONG_IFCMP_opcode:
+		  case FLOAT_IFCMP_opcode:
+		  case DOUBLE_IFCMP_opcode:
+		  case REF_IFCMP_opcode:
+			 instruction = instructions.next();
+			 if((Goto.conforms(instruction) == false) &&
+				 (BBend.conforms(instruction) == false) &&
+				 (MIR_Branch.conforms(instruction) == false)
+				 ) {
+				verror(where, "Unexpected instruction after IFCMP " + instruction);
+			 }
+			 if(Goto.conforms(instruction)||
+				 MIR_Branch.conforms(instruction)
+				 ) {
+				instruction = instructions.next();
+				if(BBend.conforms(instruction) == false) {
+				  verror(where, "Unexpected instruction after GOTO/MIR_BRANCH " + instruction);
+				}
+			 }
+			 if(instructions.hasMoreElements()) {
+				verror(where, "Unexpected instructions after BBEND " + instructions.next());
+			 }
+			 break;
+		  case TABLESWITCH_opcode:
+		  case LOOKUPSWITCH_opcode:
+		  case ATHROW_opcode:
+		  case RETURN_opcode:
+		  case TRAP_opcode:
+		  case GOTO_opcode:
+			 OPT_Instruction next = instructions.next();
+			 if(BBend.conforms(next) == false) {
+				verror(where, "Unexpected instruction after " + instruction + "\n" + next);
+			 }
+			 if(instructions.hasMoreElements()) {
+				verror(where, "Unexpected instructions after BBEND " + instructions.next());
+			 }
+			 break;
+		  case BBEND_opcode:
+			 if(instructions.hasMoreElements()) {
+				verror(where, "Unexpected instructions after BBEND " + instructions.next());
+			 }
+			 break;
+		  default:
+		  }
+		}
+    }
+  }
+
+  /**
+   * Verify that every block in the CFG is reachable as failing to do
+   * so will cause OPT_EnterSSA.insertPhiFunctions to possibly access
+   * elements in OPT_DominanceFrontier.getIteratedDominanceFrontier
+   * and then OPT_DominanceFrontier.getDominanceFrontier that aren't
+   * defined. Also verify that blocks reached over an exception out
+   * edge are not also reachable on normal out edges as this will
+   * confuse liveness analysis.
+   * 
+   * @param where    phrase identifying invoking  compilation phase
+   */
+  private void verifyAllBlocksAreReachable(String where) {
+	 OPT_BitVector reachableNormalBlocks = new OPT_BitVector(cfg.numberOfNodes());
+	 OPT_BitVector reachableExceptionBlocks = new OPT_BitVector(cfg.numberOfNodes());
+	 resetBasicBlockMap();
+	 verifyAllBlocksAreReachable(where, cfg.entry(), reachableNormalBlocks, reachableExceptionBlocks, false);
+	 boolean hasUnreachableBlocks = false;
+	 StringBuffer unreachablesString = new StringBuffer();
+	 for(int j=0; j < cfg.numberOfNodes(); j++) {
+		if((reachableNormalBlocks.get(j) == false) &&
+			(reachableExceptionBlocks.get(j) == false)){
+		  hasUnreachableBlocks = true;
+		  if(basicBlockMap[j] != null) {
+			 basicBlockMap[j].printExtended();
+		  }
+		  unreachablesString.append(" BB"+j);
+		}
+	 }
+	 if(hasUnreachableBlocks) {
+		verror(where, "Unreachable blocks in the CFG which will confuse dominators:"+unreachablesString);
+	 }
+  }
+
+  /**
+   * Verify that every block in the CFG is reachable as failing to do
+   * so will cause OPT_EnterSSA.insertPhiFunctions to possibly access
+   * elements in OPT_DominanceFrontier.getIteratedDominanceFrontier
+   * and then OPT_DominanceFrontier.getDominanceFrontier that aren't
+   * defined. Also verify that blocks reached over an exception out
+   * edge are not also reachable on normal out edges as this will
+   * confuse liveness analysis.
+	*
+	* @param where location of verify in compilation
+	* @param definedVariables variables already defined on this path
+	* @param currBB the current BB to work on
+	* @param visitedNormalBBs the blocks already visited (to avoid cycles) on normal out edges
+	* @param visitedExceptionalBBs the blocks already visited (to avoid cycles) on exceptional out edges
+	* @param fromExceptionEdges 	should paths from exceptions be validated?
+	*/
+  private void verifyAllBlocksAreReachable(String where,
+														 OPT_BasicBlock curBB,
+														 OPT_BitVector visitedNormalBBs,
+														 OPT_BitVector visitedExceptionalBBs,
+														 boolean fromExceptionEdge)
+  {
+	 // Set visited information
+	 if (fromExceptionEdge) {
+		visitedExceptionalBBs.set(curBB.getNumber());
+	 }
+	 else {
+		visitedNormalBBs.set(curBB.getNumber());
+	 }
+
+	 // Recurse to next BBs
+	 OPT_BasicBlockEnumeration outBlocks = curBB.getNormalOut();
+	 while(outBlocks.hasMoreElements()) {
+		OPT_BasicBlock out = outBlocks.next();
+		if(visitedNormalBBs.get(out.getNumber()) == false) {
+		  verifyAllBlocksAreReachable(where, out, visitedNormalBBs, visitedExceptionalBBs, false);
+		}
+	 }
+	 outBlocks = curBB.getExceptionalOut();
+	 while(outBlocks.hasMoreElements()) {
+		OPT_BasicBlock out = outBlocks.next();
+		if(visitedExceptionalBBs.get(out.getNumber()) == false) {
+		  verifyAllBlocksAreReachable(where, out, visitedNormalBBs, visitedExceptionalBBs, true);
+		}
+		if(visitedNormalBBs.get(out.getNumber()) == true) {
+		  curBB.printExtended();
+		  out.printExtended();
+		  verror(where, "Basic block " + curBB + " reaches " + out +
+					" by normal and exceptional out edges thereby breaking a liveness analysis assumption.");
+		}
+	 }
+	 if(curBB.mayThrowUncaughtException()) {
+		visitedExceptionalBBs.set(cfg.exit().getNumber());
+		if(!cfg.exit().isExit()) {
+		  cfg.exit().printExtended();
+		  verror(where, "The exit block is reachable by an exception edge and contains instructions.");
+		}
+	 }
   }
 
   /**
@@ -897,7 +1145,239 @@ public final class OPT_IR implements OPT_Operators {
     }
   }
 
+  /**
+	* Check whether uses follow definitions and that in SSA form
+	* variables aren't multiply defined
+	*/
+  private void verifyUseFollowsDef(String where) {
+	 // Create set of defined variables and add registers that will be
+	 // defined before entry to the IR
+	 HashSet definedVariables = new HashSet();
+	 // NB the last two args determine how thorough we're going to test
+	 // things
+	 verifyUseFollowsDef(where, definedVariables, cfg.entry(),
+								new OPT_BitVector(cfg.numberOfNodes()),
+								new ArrayList(),
+								5,   // <-- maximum number of basic blocks followed
+								true // <-- follow exception as well as normal out edges?
+								);
+  }
+
+  /**
+	* Check whether uses follow definitions and in SSA form that
+	* variables aren't multiply defined
+	*
+	* @param where location of verify in compilation
+	* @param definedVariables variables already defined on this path
+	* @param currBB the current BB to work on
+	* @param visitedBBs the blocks already visited (to avoid cycles)
+	* @param path a record of the path taken to reach this basic block
+	* @param traceExceptionEdges 	should paths from exceptions be validated?
+	*/
+  private void verifyUseFollowsDef(String where,
+											  HashSet definedVariables,
+											  OPT_BasicBlock curBB,
+											  OPT_BitVector visitedBBs,
+											  ArrayList path,
+											  int maxPathLength,
+											  boolean traceExceptionEdges)
+  {
+	 if (path.size() > maxPathLength){
+		return;
+	 }
+	 path.add(curBB);
+	 // Process instructions in block
+	 OPT_IREnumeration.AllInstructionsEnum instructions = new OPT_IREnumeration.AllInstructionsEnum(this, curBB);
+	 while (instructions.hasMoreElements()) {
+		OPT_Instruction instruction = instructions.next();
+		// Special phi handling case
+		if(Phi.conforms(instruction)) {
+		  if((!inSSAForm())&&(!inSSAFormAwaitingReEntry())){
+			 verror(where, "Phi node encountered but SSA not computed");
+		  }
+		  // Find predecessors that we have already visited
+		  for(int i=0; i < Phi.getNumberOfPreds(instruction); i++) {
+			 OPT_BasicBlock phi_pred = Phi.getPred(instruction, i).block;
+			 if(phi_pred.getNumber() > basicBlockMap.length) {
+				verror(where, "Phi predecessor not a valid basic block " + phi_pred);
+			 }
+			 if(visitedBBs.get(phi_pred.getNumber())) {
+				// This predecessor has been visited so the variable
+				// should be defined
+				Object variable = getVariableUse(where, Phi.getValue(instruction,i));
+				if((variable != null) && (definedVariables.contains(variable) == false)) {
+				  StringBuffer pathString = new StringBuffer();
+				  for(int j=0; j < path.size(); j++) {
+					 pathString.append(((OPT_BasicBlock)path.get(j)).getNumber());
+					 if(j < (path.size() - 1)) {
+						pathString.append("->");
+					 }
+				  }
+				  verror(where, "Use of " + variable +" before definition: " + instruction + "\npath: " + pathString);
+				}
+			 }
+		  }
+		}
+		// General use follows def test
+		else {
+		  OPT_IREnumeration.AllUsesEnum useOperands = new OPT_IREnumeration.AllUsesEnum(this, instruction);
+		  while (useOperands.hasMoreElements()) {
+			 Object variable = getVariableUse(where, useOperands.next());
+			 if((variable != null)&&(definedVariables.contains(variable) == false)) {
+				StringBuffer pathString = new StringBuffer();
+				for(int i=0; i < path.size(); i++) {
+				  pathString.append(((OPT_BasicBlock)path.get(i)).getNumber());
+				  if(i < (path.size() - 1)) {
+					 pathString.append("->");
+				  }
+				}
+				verror(where, "Use of " + variable +" before definition: " + instruction + "\npath: " + pathString);
+			 }
+		  }
+		}
+		// Add definitions to defined variables
+		OPT_IREnumeration.AllDefsEnum defOperands = new OPT_IREnumeration.AllDefsEnum(this, instruction);
+		while (defOperands.hasMoreElements()) {
+		  Object variable = getVariableDef(where, defOperands.next());
+		  // Check that a variable isn't defined twice when we believe we're in SSA form
+		  if (variable != null) {
+			 if((inSSAForm())&&(!inSSAFormAwaitingReEntry())){
+				if(definedVariables.contains(variable)) {
+				  verror(where, "Single assignment broken - multiple definitions of " + variable);
+				}
+			 }
+			 definedVariables.add(variable);
+		  }
+		}
+	 }
+	 // Recurse to next BBs
+	 visitedBBs.set(curBB.getNumber());
+	 OPT_BasicBlockEnumeration outBlocks;
+	 if(traceExceptionEdges) {
+		 outBlocks = curBB.getOut(); // <-- very slow
+	 }
+	 else {
+		outBlocks = curBB.getNormalOut();
+	 }
+	 while(outBlocks.hasMoreElements()) {
+		OPT_BasicBlock out = outBlocks.next();
+		if(visitedBBs.get(out.getNumber()) == false) {
+		  verifyUseFollowsDef(where, new HashSet(definedVariables), out, new OPT_BitVector(visitedBBs),
+									 new ArrayList(path), maxPathLength, traceExceptionEdges);
+		  visitedBBs.set(out.getNumber());
+		}
+	 }
+  }
+
+  /**
+	* Get the variable used by this operand
+	*
+	* @param where the verification location
+	* @param operand the operand to pull a variable from
+	* @return null if the variable should be ignored otherwise the variable
+	*/
+  private Object getVariableUse(String where, OPT_Operand operand) {
+	 if(operand.isConstant() ||
+		 (operand instanceof OPT_ConditionOperand) ||
+		 operand.isStringConstant() ||
+		 operand.isType() ||
+		 operand.isMethod() ||
+		 operand.isBranch() ||
+		 (operand instanceof OPT_BranchProfileOperand) ||
+		 operand.isLocation() ||
+		 operand.isStackLocation() ||
+		 operand.isMemory() ||
+		 (operand instanceof OPT_TrapCodeOperand) ||
+		 //-#if RVM_FOR_IA32
+		 (operand instanceof OPT_IA32ConditionOperand) ||
+		 (operand instanceof OPT_BURSManagedFPROperand)
+		 //-#else
+		 (operand instanceof OPT_PowerPCConditionOperand) ||
+		 (operand instanceof OPT_PowerPCTrapOperand)
+		 //-#endif
+		 ) {
+		return null;
+	 }
+	 else if (operand.isRegister()) {
+		OPT_Register register = operand.asRegister().register;
+		// ignore physical registers
+		return (register.isPhysical()) ? null : register;  
+	 }
+	 else if (operand.isBlock()) {
+		Enumeration blocks = cfg.nodes();
+		while(blocks.hasMoreElements()) {
+		  if(operand.asBlock().block == blocks.nextElement()) {
+			 return null;
+		  }
+		}
+		verror(where, "Basic block not found in CFG for BasicBlockOperand: " + operand);
+		return null; // keep jikes quiet
+	 }
+	 else if(operand instanceof OPT_HeapOperand) {
+		if (actualSSAOptions.getHeapValid() == false) {
+		  return null;
+		}
+		OPT_HeapVariable variable = ((OPT_HeapOperand)operand).getHeapVariable();
+		if(variable.getNumber() > 0) {
+		  return variable;
+		}
+		else {
+		  // definition 0 comes in from outside the IR
+		  return null;
+		}
+	 }
+	 else {
+		verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
+		return null; // keep jikes quiet
+	 }
+  }
+  /**
+	* Get the variable defined by this operand
+	*
+	* @param where the verification location
+	* @param operand the operand to pull a variable from
+	* @return null if the variable should be ignored otherwise the variable
+	*/
+  private Object getVariableDef(String where, OPT_Operand operand) {
+	 if (operand.isRegister()) {
+		OPT_Register register = operand.asRegister().register;
+		// ignore physical registers
+		return (register.isPhysical()) ? null : register;  
+	 }
+	 else if(operand instanceof OPT_HeapOperand) {
+		if (actualSSAOptions.getHeapValid() == false) {
+		  return null;
+		}
+		return ((OPT_HeapOperand)operand).getHeapVariable();
+	 }
+	 //-#if RVM_FOR_IA32
+	 else if(operand instanceof OPT_BURSManagedFPROperand) {
+		return new Integer(((OPT_BURSManagedFPROperand)operand).regNum);
+	 }
+	 //-#endif
+	 else if(operand.isStackLocation() ||
+				operand.isMemory()
+				) {
+		// it would be nice to handle these but they have multiple
+		// constituent parts :-(
+		return null;
+	 }
+	 else {
+		verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
+		return null; // keep jikes quiet
+	 }
+  }
+
+
+  /**
+	* Generate error
+	*
+   * @param where    phrase identifying invoking  compilation phase
+	* @param msg      error message
+	*/
   private void verror(String where, String msg) throws NoInlinePragma {
+	 OPT_CompilerPhase.dumpIR(this, "Verify: "+where + ": " + method);
+	 VM.sysWriteln("VERIFY: " + where + " " + msg);
     throw new OPT_OptimizingCompilerException("VERIFY: "+where, msg);
   }
 }

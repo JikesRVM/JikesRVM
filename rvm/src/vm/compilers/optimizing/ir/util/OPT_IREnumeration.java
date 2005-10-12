@@ -4,7 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 import org.vmmagic.pragma.*;
+import java.util.Enumeration;
 
 /**
  * This class is not meant to be instantiated.
@@ -189,6 +191,269 @@ public abstract class OPT_IREnumeration {
     };
   }
   
+  /**
+	* This class implements an {@link OPT_InstructionEnumeration} over
+	* all instructions for a basic block. This enumeration includes
+	* explicit instructions in the IR and implicit phi instructions for
+	* heap variables, which are stored only in this lookaside
+	* structure.
+	* @see OPT_SSADictionary
+	* @author Ian Rogers
+	*/
+  public static final class AllInstructionsEnum implements OPT_InstructionEnumeration {
+	 /**
+	  * An enumeration of the explicit instructions in the IR for a
+	  * basic block
+	  */
+	 private OPT_InstructionEnumeration explicitInstructions;
+
+	 /**
+	  * An enumeration of the implicit instructions in the IR for a
+	  * basic block.  These instructions appear only in the SSA
+	  * dictionary lookaside structure.
+	  */
+	 private Enumeration implicitInstructions;
+
+	 /**
+	  * The label instruction for the basic block - the label is
+	  * special as we want it to appear in the enumeration before the
+	  * implicit SSA instructions
+	  */
+	 private OPT_Instruction labelInstruction;
+
+	 /**
+	  * Construct an enumeration for all instructions, both implicit and
+	  * explicit in the IR, for a given basic block
+	  *
+	  * @param block the basic block whose instructions this enumerates
+	  */
+	 public AllInstructionsEnum(OPT_IR ir, OPT_BasicBlock block) {
+		explicitInstructions = block.forwardInstrEnumerator();
+		if(ir.inSSAForm()) {
+		  implicitInstructions = ir.HIRInfo.SSADictionary.getHeapPhiInstructions(block);
+		}
+		labelInstruction = explicitInstructions.next();
+	 }
+    
+	 /**
+	  * Are there more elements in the enumeration?
+	  *
+	  * @return true or false
+	  */
+	 public boolean hasMoreElements () {
+		return  (((implicitInstructions != null) && implicitInstructions.hasMoreElements()) ||
+					explicitInstructions.hasMoreElements());
+	 }
+
+	 /**
+	  * Get the next instruction in the enumeration
+	  *
+	  * @return the next instruction
+	  */
+	 public OPT_Instruction next () {
+		if (labelInstruction != null) {
+		  OPT_Instruction temp = labelInstruction;
+		  labelInstruction = null;
+		  return  temp;
+		}
+		else if ((implicitInstructions != null) && implicitInstructions.hasMoreElements()) {
+		  return (OPT_Instruction)implicitInstructions.nextElement();
+		}
+		else {
+		  return explicitInstructions.next();
+		}
+	 }
+
+	 /**
+	  * Get the next instruction in the enumeration
+	  *
+	  * @return the next instruction
+	  */
+	 public Object nextElement () {
+		return next();
+	 }
+  }
+  /**
+	* This class implements an {@link OPT_OperandEnumeration}. It used
+	* for holding the definitions of a particular instruction and being
+	* used as an enumeration for iterating over. It differs from other
+	* {@link OPT_OperandEnumeration} as it iterates over both implicit
+	* and explicit operands.
+	* @see OPT_SSADictionary
+	* @author Ian Rogers
+	*/
+  public static final class AllDefsEnum implements OPT_OperandEnumeration, OPT_Operators {
+	 /**
+	  * Enumeration of non-heap operands defined by the instruction
+	  */
+	 private OPT_OperandEnumeration instructionOperands;
+	 /**
+	  * Array of heap operands defined by the instruction
+	  */
+	 private OPT_HeapOperand[] heapOperands;
+	 /**
+	  * Current heap operand we're upto for the enumeration
+	  */
+	 private int curHeapOperand;
+	 /**
+	  * Implicit definitions from the operator
+	  */
+	 private OPT_PhysicalDefUse.PDUEnumeration implicitDefs;
+	 /**
+	  * Defining instruction
+	  */
+	 private OPT_Instruction instr;
+
+	 /**
+	  * Construct/initialize object    
+	  *
+	  * @param ir    Containing IR
+	  * @param instr Instruction to get definitions for
+	  */
+	 public AllDefsEnum (OPT_IR ir, OPT_Instruction instr) {
+		this.instr = instr;
+		instructionOperands = instr.getDefs();
+		if(instr.operator().getNumberOfImplicitDefs() > 0) {
+		  implicitDefs = OPT_PhysicalDefUse.enumerate(instr.operator().implicitDefs, ir);
+		}
+		if (ir.inSSAForm()) {
+		  if (instr.operator != PHI) {
+			 // Phi instructions store the heap SSA in the actual
+			 // instruction
+			 heapOperands = ir.HIRInfo.SSADictionary.getHeapDefs(instr);
+		  }
+		}
+	 }
+	 /**
+	  * Are there any more elements in the enumeration
+	  */
+	 public boolean hasMoreElements() {
+		return ((instructionOperands.hasMoreElements()) ||
+				  ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
+				  ((implicitDefs != null) && (implicitDefs.hasMoreElements()))
+				  );
+	 }
+	 /**
+	  * Next element in the enumeration
+	  */
+	 public OPT_Operand next () {
+		if (instructionOperands.hasMoreElements() == true){
+		  return instructionOperands.next();
+		}
+		else {
+		  if ((implicitDefs != null) && implicitDefs.hasMoreElements()) {
+			 OPT_RegisterOperand rop = new OPT_RegisterOperand((OPT_Register)implicitDefs.nextElement(), VM_TypeReference.Int);
+			 rop.instruction = instr;
+			 return rop;
+		  }
+		  else {
+			 if (curHeapOperand >= heapOperands.length) {
+				fail("Regular and heap operands exhausted");
+			 }
+			 OPT_HeapOperand result = heapOperands[curHeapOperand];
+			 curHeapOperand++;
+			 return result;
+		  }
+		}
+	 }
+	 /**
+	  * Next element in the enumeration
+	  */
+	 public Object nextElement () {
+		return next();
+	 }
+  }
+  /**
+	* This class implements an {@link OPT_OperandEnumeration}. It used
+	* for holding the uses of a particular instruction and being used
+	* as an enumeration for iterating over. It differs from other
+	* {@link OPT_OperandEnumeration} as it iterates over both implicit
+	* and explicit operands.
+	* @see OPT_SSADictionary
+	* @author Ian Rogers
+	*/
+  public static final class AllUsesEnum implements OPT_OperandEnumeration, OPT_Operators {
+	 /**
+	  * Enumeration of non-heap operands defined by the instruction
+	  */
+	 private OPT_OperandEnumeration instructionOperands;
+	 /**
+	  * Array of heap operands defined by the instruction
+	  */
+	 private OPT_HeapOperand[] heapOperands;
+	 /**
+	  * Current heap operand we're upto for the enumeration
+	  */
+	 private int curHeapOperand;
+	 /**
+	  * Implicit uses from the operator
+	  */
+	 private OPT_PhysicalDefUse.PDUEnumeration implicitUses;
+	 /**
+	  * Defining instruction
+	  */
+	 private OPT_Instruction instr;
+
+	 /**
+	  * Construct/initialize object    
+	  *
+	  * @param ir    Containing IR
+	  * @param instr Instruction to get uses for
+	  */
+	 public AllUsesEnum (OPT_IR ir, OPT_Instruction instr) {
+		this.instr = instr;
+		instructionOperands = instr.getUses();
+		if(instr.operator().getNumberOfImplicitUses() > 0) {
+		  implicitUses = OPT_PhysicalDefUse.enumerate(instr.operator().implicitUses, ir);
+		}
+		if(ir.inSSAForm()) {
+		  if (instr.operator != PHI) {
+			 // Phi instructions store the heap SSA in the actual
+			 // instruction
+			 heapOperands = ir.HIRInfo.SSADictionary.getHeapUses(instr);
+		  }
+		}
+	 }
+	 /**
+	  * Are there any more elements in the enumeration
+	  */
+	 public boolean hasMoreElements() {
+		return ((instructionOperands.hasMoreElements()) ||
+				  ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
+				  ((implicitUses != null) && (implicitUses.hasMoreElements()))
+				  );
+	 }
+	 /**
+	  * Next element in the enumeration
+	  */
+	 public OPT_Operand next () {
+		if (instructionOperands.hasMoreElements() == true){
+		  return instructionOperands.next();
+		}
+		else {
+		  if ((implicitUses != null) && implicitUses.hasMoreElements()) {
+			 OPT_RegisterOperand rop = new OPT_RegisterOperand((OPT_Register)implicitUses.nextElement(), VM_TypeReference.Int);
+			 rop.instruction = instr;
+			 return rop;
+		  }
+		  else {
+			 if (curHeapOperand >= heapOperands.length) {
+				fail("Regular and heap operands exhausted");
+			 }
+			 OPT_HeapOperand result = heapOperands[curHeapOperand];
+			 curHeapOperand++;
+			 return result;
+		  }
+		}
+	 }
+	 /**
+	  * Next element in the enumeration
+	  */
+	 public Object nextElement () {
+		return next();
+	 }
+  }
+
   private static final void fail(String msg) throws java.util.NoSuchElementException, 
                                                     NoInlinePragma {
     throw new java.util.NoSuchElementException(msg);
