@@ -77,16 +77,6 @@ public abstract class OPT_Operand {
   public OPT_Instruction instruction;
 
   /**
-   * clear the {@link #instruction} field (done when moving the 
-   * operand from one instruction to another
-   * @return <code>this</code>
-   */
-  public final OPT_Operand clear() { 
-    instruction = null; 
-    return this;
-  }
-
-  /**
    * Is the operand an {@link OPT_RegisterOperand}?
    * 
    * @return <code>true</code> if <code>this</code> is an

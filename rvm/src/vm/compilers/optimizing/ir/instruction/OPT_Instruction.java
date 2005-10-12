@@ -1793,6 +1793,7 @@ public final class OPT_Instruction
     OPT_Operand o = ops[i];
     if (o != null)
       o.instruction = null;
+	 ops[i] = null;
     return o;
   }
 
@@ -1817,6 +1818,17 @@ public final class OPT_Instruction
       }
       op.instruction = this;
       ops[i] = op;
+		if(op instanceof OPT_MemoryOperand) {
+		  OPT_MemoryOperand mOp = op.asMemory();
+		  op = mOp.loc;
+		  if(op != null) op.instruction = this;
+		  op = mOp.guard;
+		  if(op != null) op.instruction = this;
+		  op = mOp.base;
+		  if(op != null) op.instruction = this;
+		  op = mOp.index;
+		  if(op != null) op.instruction = this;
+		}
     }
   }
   private OPT_Operand outOfLineCopy(OPT_Operand op) throws NoInlinePragma {
@@ -1895,6 +1907,37 @@ public final class OPT_Instruction
   protected void clearLinks() {
     next = null;
     prev = null;
+  }
+
+  /**
+	* Are two instructions similar, i.e. having the same operator and
+	* the same number of similar operands?
+	* @param similarInstr instruction to compare against
+	* @return true if they are similar
+	*/
+  public boolean similar(OPT_Instruction similarInstr) {
+	 if(similarInstr.operator != operator) {
+		return false;
+	 }
+	 else {
+		int num_operands = getNumberOfOperands();
+		if (similarInstr.getNumberOfOperands() != num_operands) {
+		  return false;
+		}
+		else {
+		  for (int i = 0; i < num_operands; i++) {
+		    OPT_Operand op1 = getOperand(i);
+		    OPT_Operand op2 = similarInstr.getOperand(i);
+		    if ((op1 == null) && (op2 == null)) {
+				return true;
+		    }
+		    if (op1.similar(op2) == false) {
+				return false;
+		    }
+		  }
+		  return true;
+		}
+	 }
   }
 
   /**

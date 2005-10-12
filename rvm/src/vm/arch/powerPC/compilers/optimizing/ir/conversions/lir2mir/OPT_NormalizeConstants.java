@@ -94,7 +94,6 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
             } else if (use instanceof OPT_LongConstantOperand) {
               if ((!VM.BuildFor64Addr)){
                 OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
-                use.clear();
                 s.insertBefore(Move.create(LONG_MOVE, rop, use));
                 s.putOperand(idx, rop.copyD2U());
               }
