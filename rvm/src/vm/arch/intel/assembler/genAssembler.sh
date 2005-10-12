@@ -55,16 +55,16 @@ function emitBinaryReg() {
      * [dstReg<<dstScale + dstDisp] ${opStr}= ${code} srcReg
      * </PRE>
      *
-     * @param srcReg the source register
      * @param dstIndex the destination index register
      * @param dstScale the destination shift amount
      * @param dstDisp the destination displacement
+     * @param srcReg the source register
      */
-    public final void emit${acronym}_RegOff_Reg${ext}(byte dstIndex, short scale, Offset dstDisp, byte srcReg) {
+    public final void emit${acronym}_RegOff_Reg${ext}(byte dstIndex, short dstScale, Offset dstDisp, byte srcReg) {
 	int miStart = mi; ${prefix}
 	setMachineCodes(mi++, (byte) ${rmrCode});
-	emitRegOffRegOperands(dstIndex, scale, dstDisp, srcReg);
-	if (lister != null) lister.RFDR(miStart, "${acronym}", dstIndex, scale, dstDisp, srcReg);
+	emitRegOffRegOperands(dstIndex, dstScale, dstDisp, srcReg);
+	if (lister != null) lister.RFDR(miStart, "${acronym}", dstIndex, dstScale, dstDisp, srcReg);
     }
 
     // [dstDisp] ${opStr}= $code srcReg 
