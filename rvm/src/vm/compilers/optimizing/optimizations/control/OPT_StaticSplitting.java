@@ -60,6 +60,11 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
     while (haveCandidates()) {
       splitCandidate(nextCandidate(), ir);
     }
+
+	 // (3) If something was split optimize the CFG
+	 if (needCleanup) {
+		ir.cfg.compactNodeNumbering();
+	 }
   }
 
   /**

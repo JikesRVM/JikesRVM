@@ -126,8 +126,8 @@ public class OPT_ObjectReplacer
           int index = fields.indexOf(f);
           VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
-          OPT_Instruction i = Move.create(moveOp, scalars[index], 
-              PutField.getValue(inst));
+          OPT_Instruction i = Move.create(moveOp, scalars[index].copyRO(), 
+														PutField.getClearValue(inst));
           inst.insertBefore(i);
           OPT_DefUse.removeInstructionAndUpdateDU(inst);
           OPT_DefUse.updateDUForNewInstruction(i);
@@ -142,7 +142,7 @@ public class OPT_ObjectReplacer
           VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
           OPT_Instruction i = Move.create(moveOp, GetField.getClearResult(inst), 
-              scalars[index]);
+														scalars[index].copyRO());
           inst.insertBefore(i);
           OPT_DefUse.removeInstructionAndUpdateDU(inst);
           OPT_DefUse.updateDUForNewInstruction(i);
