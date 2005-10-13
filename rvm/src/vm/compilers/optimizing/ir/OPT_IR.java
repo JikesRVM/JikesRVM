@@ -890,13 +890,13 @@ public final class OPT_IR implements OPT_Operators {
 
   /**
    * Verify that every instruction:
-	* <ul>
-	* <li>1) has operands that back reference it</li>
-	* <li>2) is valid for its position in the basic block</li>
-	* <li>3) if we are MIR, has no guard operands {@see OPT_NullCheckCombining}</li>
-	* </ul>
+   * <ul>
+   * <li>1) has operands that back reference it</li>
+   * <li>2) is valid for its position in the basic block</li>
+   * <li>3) if we are MIR, has no guard operands</li>
+   * </ul>
    * 
-   * @param where    phrase identifying invoking  compilation phase
+   * @param where phrase identifying invoking  compilation phase
    */
   private void verifyInstructions(String where) {
     Enumeration bbEnum = cfg.nodes();
@@ -1048,17 +1048,16 @@ public final class OPT_IR implements OPT_Operators {
    * confuse liveness analysis.
 	*
 	* @param where location of verify in compilation
-	* @param definedVariables variables already defined on this path
-	* @param currBB the current BB to work on
+	* @param curBB the current BB to work on
 	* @param visitedNormalBBs the blocks already visited (to avoid cycles) on normal out edges
 	* @param visitedExceptionalBBs the blocks already visited (to avoid cycles) on exceptional out edges
-	* @param fromExceptionEdges 	should paths from exceptions be validated?
+	* @param fromExceptionEdge should paths from exceptions be validated?
 	*/
   private void verifyAllBlocksAreReachable(String where,
-														 OPT_BasicBlock curBB,
-														 OPT_BitVector visitedNormalBBs,
-														 OPT_BitVector visitedExceptionalBBs,
-														 boolean fromExceptionEdge)
+                                           OPT_BasicBlock curBB,
+                                           OPT_BitVector visitedNormalBBs,
+                                           OPT_BitVector visitedExceptionalBBs,
+                                           boolean fromExceptionEdge)
   {
 	 // Set visited information
 	 if (fromExceptionEdge) {
@@ -1169,7 +1168,7 @@ public final class OPT_IR implements OPT_Operators {
 	*
 	* @param where location of verify in compilation
 	* @param definedVariables variables already defined on this path
-	* @param currBB the current BB to work on
+	* @param curBB the current BB to work on
 	* @param visitedBBs the blocks already visited (to avoid cycles)
 	* @param path a record of the path taken to reach this basic block
 	* @param traceExceptionEdges 	should paths from exceptions be validated?
