@@ -197,7 +197,7 @@ public abstract class OPT_IREnumeration {
 	* explicit instructions in the IR and implicit phi instructions for
 	* heap variables, which are stored only in this lookaside
 	* structure.
-	* @see OPT_SSADictionary
+	* @see com.ibm.JikesRVM.opt.OPT_SSADictionary
 	* @author Ian Rogers
 	*/
   public static final class AllInstructionsEnum implements OPT_InstructionEnumeration {
@@ -279,7 +279,7 @@ public abstract class OPT_IREnumeration {
 	* used as an enumeration for iterating over. It differs from other
 	* {@link OPT_OperandEnumeration} as it iterates over both implicit
 	* and explicit operands.
-	* @see OPT_SSADictionary
+	* @see com.ibm.JikesRVM.opt.OPT_SSADictionary
 	* @author Ian Rogers
 	*/
   public static final class AllDefsEnum implements OPT_OperandEnumeration, OPT_Operators {
@@ -369,7 +369,7 @@ public abstract class OPT_IREnumeration {
 	* as an enumeration for iterating over. It differs from other
 	* {@link OPT_OperandEnumeration} as it iterates over both implicit
 	* and explicit operands.
-	* @see OPT_SSADictionary
+	* @see com.ibm.JikesRVM.opt.OPT_SSADictionary
 	* @author Ian Rogers
 	*/
   public static final class AllUsesEnum implements OPT_OperandEnumeration, OPT_Operators {
