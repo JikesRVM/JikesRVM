@@ -191,7 +191,6 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * expand its buffer if it becomes full. 
    *
    * @param bytecodeSize initial machine code buffer size.
-   * @param shouldPrint whether to dump generated machine code.
    */
   public VM_Assembler (int bytecodeSize) {
     this(bytecodeSize, false);
@@ -219,7 +218,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @param bytecodeSize initial machine code buffer size.
    * @param shouldPrint whether to dump generated machine code.
-   * @param compiler VM_Compiler instance that this assembler is associated with;
+   * @param comp VM_Compiler instance that this assembler is associated with;
    *	             currently ignored on IA32.
    */
   public VM_Assembler (int bytecodeSize, boolean shouldPrint, VM_Compiler comp) {
@@ -556,7 +555,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @see #emitRegDispRegOperands
    *
    * @param reg1 the r/m operand
-   * @param the other register or extended opcode
+   * @param reg2 the other register or extended opcode
    */
   private void emitRegIndirectRegOperands(byte reg1, byte reg2) {
       if (reg1 == EBP) {
@@ -636,7 +635,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *  Generate the smallest-byte-first IA32 encoding of 32 bit
    * immediates into the generated code.
    *
-   * @param imm the immediate to generate.
+   * @param disp the displacement to generate.
    */
   private void emitImm32(Offset disp) {
       if (VM.VerifyAssertions) VM._assert(fits(disp,32));

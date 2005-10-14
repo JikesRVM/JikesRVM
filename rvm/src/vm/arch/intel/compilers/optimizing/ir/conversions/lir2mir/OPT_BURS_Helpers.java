@@ -1311,16 +1311,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Expansion of BOOLEAN_CMP_INT
    *
    * @param s the instruction to copy position info from
-   * @param result the result operand
+   * @param res the result operand
    * @param val1   the first value
    * @param val2   the second value
    * @param cond   the condition operand
    */
   protected final void BOOLEAN_CMP_INT(OPT_Instruction s,
-                                   OPT_RegisterOperand res, 
-                                   OPT_Operand val1,
-                                   OPT_Operand val2,
-                                   OPT_ConditionOperand cond) {
+                                       OPT_RegisterOperand res, 
+                                       OPT_Operand val1,
+                                       OPT_Operand val2,
+                                       OPT_ConditionOperand cond) {
     EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
     OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
     EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
@@ -1334,12 +1334,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * ALU op.
    *
    * @param s the instruction to copy position info from
-   * @param result the result operand
+   * @param res the result operand
    * @param cond   the condition operand
    */
   protected final void BOOLEAN_CMP_INT(OPT_Instruction s,
-                                   OPT_RegisterOperand res, 
-                                   OPT_ConditionOperand cond) {
+                                       OPT_RegisterOperand res, 
+                                       OPT_ConditionOperand cond) {
     OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
     EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, temp, COND(cond))));
     EMIT(MIR_Unary.mutate(s, IA32_MOVZX__B, res, temp.copyD2U()));
@@ -1350,16 +1350,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Expansion of BOOLEAN_CMP_DOUBLE
    *
    * @param s the instruction to copy position info from
-   * @param result the result operand
-   * @param val1   the first value
-   * @param val2   the second value
-   * @param cond   the condition operand
+   * @param res the result operand
+   * @param val1 the first value
+   * @param val2 the second value
+   * @param cond the condition operand
    */
   protected final void BOOLEAN_CMP_DOUBLE(OPT_Instruction s,
-														OPT_RegisterOperand res, 
-														OPT_ConditionOperand cond,
-														OPT_Operand val1,
-														OPT_Operand val2) {
+                                          OPT_RegisterOperand res, 
+                                          OPT_ConditionOperand cond,
+                                          OPT_Operand val1,
+                                          OPT_Operand val2) {
     OPT_RegisterOperand temp = regpool.makeTemp(VM_TypeReference.Boolean);
 	 EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, D(getFPR(0)), CondMove.getVal1(s))));
 	 EMIT(CPOS(s, MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), CondMove.getVal2(s))));
@@ -1371,16 +1371,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Expansion of BOOLEAN_CMP_LONG
    *
    * @param s the instruction to copy position info from
-   * @param result the result operand
-   * @param val1   the first value
-   * @param val2   the second value
-   * @param cond   the condition operand
+   * @param res the result operand
+   * @param val1 the first value
+   * @param val2 the second value
+   * @param cond the condition operand
    */
   protected final void BOOLEAN_CMP_LONG(OPT_Instruction s,
-													 OPT_RegisterOperand res, 
-													 OPT_Operand val1,
-													 OPT_Operand val2,
-													 OPT_ConditionOperand cond) {
+                                        OPT_RegisterOperand res, 
+                                        OPT_Operand val1,
+                                        OPT_Operand val2,
+                                        OPT_ConditionOperand cond) {
 	 // Long comparison is a subtraction:
 	 // <, >= : easy to compute as SF !=/== OF
 	 // >, <= : flipOperands and treat as a </>=
@@ -1434,20 +1434,20 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Generate a long compare and cmov
    *
    * @param s the instruction to copy position info from
-   * @param result the result of the conditional move
-   * @param val1   the first value
-   * @param val2   the second value
+   * @param res the result of the conditional move
+   * @param val1 the first value
+   * @param val2 the second value
    * @param cond the condition operand
-   * @param trueVal the value to move to result if cond is true
-   * @param falseVal the value to move to result if cond is not true
+   * @param trueValue the value to move to result if cond is true
+   * @param falseValue the value to move to result if cond is not true
    */
   protected final void LCMP_CMOV(OPT_Instruction s,
-											OPT_RegisterOperand result,
-											OPT_Operand val1,
-											OPT_Operand val2,
-											OPT_ConditionOperand cond,
-											OPT_Operand trueValue,
-											OPT_Operand falseValue) {
+                                 OPT_RegisterOperand result,
+                                 OPT_Operand val1,
+                                 OPT_Operand val2,
+                                 OPT_ConditionOperand cond,
+                                 OPT_Operand trueValue,
+                                 OPT_Operand falseValue) {
 	 // Long comparison is a subtraction:
 	 // <, >= : easy to compute as SF !=/== OF
 	 // >, <= : flipOperands and treat as a </>=
@@ -1519,8 +1519,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param s the instruction to copy position info from
    * @param result the result of the conditional move
    * @param cond the condition operand
-   * @param trueVal the value to move to result if cond is true
-   * @param falseVal the value to move to result if cond is not true
+   * @param trueValue the value to move to result if cond is true
+   * @param falseValue the value to move to result if cond is not true
    */
   protected final void CMOV_MOV(OPT_Instruction s,
                                 OPT_RegisterOperand result,
@@ -1590,8 +1590,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * @param s the instruction to copy position info from
    * @param result the result of the conditional move
    * @param cond the condition operand
-   * @param trueVal the value to move to result if cond is true
-   * @param falseVal the value to move to result if cond is not true
+   * @param trueValue the value to move to result if cond is true
+   * @param falseValue the value to move to result if cond is not true
    */
   protected final void CMOV_FMOV(OPT_Instruction s,
                                 OPT_RegisterOperand result,

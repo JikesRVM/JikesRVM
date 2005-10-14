@@ -94,7 +94,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit the code to implement the spcified magic.
-   * @param body        method magic occurred in
    * @param magicMethod desired magic
    */
   protected final boolean emit_Magic(VM_MethodReference magicMethod) {
@@ -1866,7 +1865,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement a getfield
-   * @param method   the method this bytecode is in
    * @param fieldRef the referenced field
    */
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
@@ -2041,7 +2039,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * Emit code to implement the invokeinterface bytecode
    * @param methodRef the referenced method
-   * @param count number of parameter words (see invokeinterface bytecode)
    */
   protected final void emit_invokeinterface(VM_MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
@@ -2146,7 +2143,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to allocate a scalar object
-   * @param method  the method this bytecode is compiled in
    * @param typeRef the VM_Class to instantiate
    */
   protected final void emit_resolved_new(VM_Class typeRef) {
@@ -2216,7 +2212,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to allocate a multi-dimensional array
    * @param typeRef the type reference to instantiate
    * @param dimensions the number of dimensions
-   * @param dictionaryId, the dictionaryId of typeRef
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
     // Calculate the offset from FP on entry to newarray: 
@@ -2267,7 +2262,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement the checkcast bytecode
-   * @param typeRef the LHS type
+   * @param type the LHS type
    */
   protected final void emit_checkcast_resolvedClass(VM_Type type) {
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
@@ -2278,7 +2273,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement the checkcast bytecode
-   * @param typeRef the LHS type
+   * @param type the LHS type
    */
   protected final void emit_checkcast_final(VM_Type type) {
     asm.emitPUSH_RegInd (SP);                        // duplicate the object ref on the stack
@@ -2300,7 +2295,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement the instanceof bytecode
-   * @param typeRef the LHS type
+   * @param type the LHS type
    */
   protected final void emit_instanceof_resolvedClass(VM_Type type) {
     asm.emitPUSH_Imm(type.getId());
@@ -2311,7 +2306,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   /**
    * Emit code to implement the instanceof bytecode
-   * @param typeRef the LHS type
+   * @param type the LHS type
    */
   protected final void emit_instanceof_final(VM_Type type) {
     asm.emitPUSH_Imm(type.getTibOffset().toInt());  
@@ -2616,7 +2611,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * with SP pointing to the last parameter.
    * Also, this method is called before the generation of an explicit method call.
    * @param method is the method to be called.
-   * @param hasThisParameter is the method virtual?
+   * @param hasThisParam is the method virtual?
    */
   private final void genParameterRegisterLoad (VM_MethodReference method, boolean hasThisParam) {
     int max = NUM_PARAMETER_GPRS + NUM_PARAMETER_FPRS;

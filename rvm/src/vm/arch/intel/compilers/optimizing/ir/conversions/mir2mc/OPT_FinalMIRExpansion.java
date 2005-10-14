@@ -265,7 +265,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
    * expand an FCLEAR pseudo-insruction using FFREEs.
    *
    * @param s the instruction to expand
-   * @param phys controlling physical register set
+   * @param ir the containing IR
    */
   private static void expandFClear(OPT_Instruction s, OPT_IR ir) {
     int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
