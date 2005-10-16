@@ -1434,7 +1434,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Generate a long compare and cmov
    *
    * @param s the instruction to copy position info from
-   * @param res the result of the conditional move
+   * @param result the result of the conditional move
    * @param val1 the first value
    * @param val2 the second value
    * @param cond the condition operand
