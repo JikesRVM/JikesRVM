@@ -11,6 +11,11 @@
 #
 CaffeineMark_HOME=$(BENCHMARK_ROOT)/CaffeineMark-3.0
 
+#
+# Dacapo
+#
+Dacapo_HOME=$(BENCHMARK_ROOT)/dacapo
+Dacapo_JARS=$(BENCHMARK_ROOT)/dacapo/dacapo-beta051009.jar
 
 #
 # JLex
