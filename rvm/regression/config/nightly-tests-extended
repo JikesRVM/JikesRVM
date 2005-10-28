@@ -11,6 +11,7 @@ xerces
 xalan
 soot
 ipsixql
+dacapo
 SPECjvm98 
 SPECjbb2000 
 utf8
