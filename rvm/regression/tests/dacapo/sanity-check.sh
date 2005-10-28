@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# (C) Copyright Australian National University, 2005
+#
 # Sanity check a dacapo run by testing the input file against the
 # number of benchmarks run
 #
