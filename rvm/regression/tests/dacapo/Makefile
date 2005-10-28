@@ -43,6 +43,6 @@ $(TESTS): %: $(WORKING)/Makefile
 
 
 check:
-	@ $(JAL_ROOT)/rvm/regression/tests/dacapo/sanity-check.sh $(OUT) $(TESTS)
+	@ $(JAL_ROOT)/rvm/regression/tests/dacapo/sanity-check2.sh $(OUT) $(TESTS)
 
 
