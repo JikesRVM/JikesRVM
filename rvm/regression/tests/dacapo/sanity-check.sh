@@ -3,6 +3,10 @@
 # Sanity check a dacapo run by testing the input file against the
 # number of benchmarks run
 #
+# $Id$
+#
+# @author Robin Garner
+#
 
 RESULTFILE=$1
 shift
