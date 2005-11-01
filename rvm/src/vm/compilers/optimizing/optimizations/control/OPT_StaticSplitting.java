@@ -35,7 +35,11 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
 
   private static final boolean DEBUG = false;
   private static final int MAX_COST = 10; // upper bound on instructions duplicated
+  private OPT_BranchOptimizations branchOpts;
 
+  protected OPT_StaticSplitting() {
+	 branchOpts = new OPT_BranchOptimizations(-1,false,false);
+  }
   public String getName () { return  "Static Splitting"; }
   public boolean shouldPerform (OPT_Options options) {
     return options.STATIC_SPLITTING;
@@ -63,7 +67,7 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
 
 	 // (3) If something was split optimize the CFG
 	 if (needCleanup) {
-		ir.cfg.compactNodeNumbering();
+		branchOpts.perform(ir);
 	 }
   }
 

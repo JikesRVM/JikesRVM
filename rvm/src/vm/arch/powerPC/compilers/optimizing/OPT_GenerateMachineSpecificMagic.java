@@ -96,7 +96,7 @@ class OPT_GenerateMachineSpecificMagic
                                           new OPT_AddressConstantOperand(Offset.fromIntSignExtend(STACKFRAME_FRAME_POINTER_OFFSET)),
                                           null));
       bc2ir.appendInstruction(Binary.create(REF_ADD, val, 
-                                            callerFP,
+                                            callerFP.copyRO(),
                                             new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {

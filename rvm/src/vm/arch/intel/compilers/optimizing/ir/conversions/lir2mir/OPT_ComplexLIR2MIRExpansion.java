@@ -304,6 +304,9 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     }
 
     // Translate condition operand respecting IA32 FCOMI
+	 OPT_Instruction fcomi = s.prevInstructionInCodeOrder();
+	 OPT_Operand val1 = MIR_Compare.getVal1(fcomi);
+	 OPT_Operand val2 = MIR_Compare.getVal2(fcomi);
     OPT_ConditionOperand c = IfCmp.getCond(s);
     OPT_BranchOperand target = IfCmp.getTarget(s);
     OPT_BranchProfileOperand branchProfile = IfCmp.getBranchProfile(s);
@@ -324,7 +327,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     case OPT_ConditionOperand.CMPL_EQUAL:
       if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
       // Check whether val1 and val2 operands are the same
-      if (!IfCmp.getVal1(s).similar(IfCmp.getVal2(s))) {
+      if (!val1.similar(val2)) {
         s.insertBefore(MIR_CondBranch2.create(IA32_JCC2, 
                                               OPT_IA32ConditionOperand.PE(),  // PF == 1
                                               testFailed,
@@ -332,7 +335,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                               OPT_IA32ConditionOperand.EQ(),  // ZF == 1
                                               target,
                                               branchProfile));
-        s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+        s.insertBefore(MIR_Branch.create(IA32_JMP, (OPT_BranchOperand)(testFailed.copy())));
       }
       else {
         // As val1 == val2 result of compare must be == or UNORDERED
@@ -360,7 +363,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                             OPT_IA32ConditionOperand.LLT(), // CF == 1
                                             target,
                                             branchProfile));
-      s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
+      s.insertBefore(MIR_Branch.create(IA32_JMP, (OPT_BranchOperand)(testFailed.copy())));
       break;
     case OPT_ConditionOperand.CMPL_GREATER_EQUAL:
       if (VM.VerifyAssertions) VM._assert(!c.branchIfUnordered());
@@ -376,7 +379,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                             testFailed,
                                             new OPT_BranchProfileOperand(0f),
                                             OPT_IA32ConditionOperand.LGT(), // ZF == 0 and CF == 0
-                                            testFailed,
+                                            (OPT_BranchOperand)(testFailed.copy()),
                                             branchProfile));
       s.insertBefore(MIR_Branch.create(IA32_JMP, target));
       break;
@@ -385,13 +388,13 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     case OPT_ConditionOperand.CMPL_NOT_EQUAL:
       if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
       // Check whether val1 and val2 operands are the same
-      if (!IfCmp.getVal1(s).similar(IfCmp.getVal2(s))) {
+      if (!val1.similar(val2)) {
         s.insertBefore(MIR_CondBranch2.create(IA32_JCC2,
                                               OPT_IA32ConditionOperand.PE(),  // PF == 1
                                               target,
                                               new OPT_BranchProfileOperand(0f),
                                               OPT_IA32ConditionOperand.NE(),  // ZF == 0
-                                              target,
+                                              (OPT_BranchOperand)(target.copy()),
                                               branchProfile));
         s.insertBefore(MIR_Branch.create(IA32_JMP, testFailed));
       }
@@ -421,7 +424,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                             OPT_IA32ConditionOperand.LLT(), // CF == 1
                                             testFailed,
                                             branchProfile));
-      s.insertBefore(MIR_Branch.create(IA32_JMP, target));
+      s.insertBefore(MIR_Branch.create(IA32_JMP, (OPT_BranchOperand)(target.copy())));
       break;
     case OPT_ConditionOperand.CMPG_GREATER:
       if (VM.VerifyAssertions) VM._assert(c.branchIfUnordered());
@@ -430,7 +433,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
                                             target,
                                             new OPT_BranchProfileOperand(0f),
                                             OPT_IA32ConditionOperand.LGT(), // ZF == 0 and CF == 0
-                                            target,
+                                            (OPT_BranchOperand)(target.copy()),
                                             branchProfile));
       s.insertBefore(MIR_Branch.create(IA32_JMP,testFailed));
       break;

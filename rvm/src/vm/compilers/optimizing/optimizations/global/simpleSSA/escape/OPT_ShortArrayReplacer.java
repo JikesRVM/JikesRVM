@@ -63,7 +63,7 @@ public class OPT_ShortArrayReplacer
     OPT_Instruction defI = def.instruction;
     OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(elementType.getTypeRef());
     for (int i = 0; i < size; i++) {
-      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
+      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue.copy());
     }
     // now remove the def
     if (DEBUG)

@@ -217,6 +217,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             // because this will be the GC point.
             MIR_Call.mutate0(p, PPC_BL, null, null, 
                              yieldpoint.makeJumpTarget());
+				p.getBasicBlock().insertOut(yieldpoint);
           }
           instructionCount++;
           break;

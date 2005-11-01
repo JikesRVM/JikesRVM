@@ -1500,13 +1500,20 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Used in the expansion of trees where INT_IFCMP is a root
    * 
    * @param s the ifcmp instruction 
+	* @param guardResult the guard result of the ifcmp
    * @param val1 the first value operand
    * @param val2 the second value operand
    * @param cond the condition operand
    */
   protected final void IFCMP(OPT_Instruction s,
+									  OPT_RegisterOperand guardResult,
                              OPT_Operand val1, OPT_Operand val2,
                              OPT_ConditionOperand cond) {
+	 if(VM.VerifyAssertions) {
+		// We only need make sure the guard information is correct when
+		// validating, the null check combining phase removes all guards
+		EMIT(CPOS(s, Move.create(GUARD_MOVE, guardResult, new OPT_TrueGuardOperand())));	 
+	 }
     EMIT(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
     EMIT(MIR_CondBranch.mutate(s, IA32_JCC, COND(cond),
                                       IfCmp.getTarget(s), 

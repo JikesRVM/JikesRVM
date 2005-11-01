@@ -318,8 +318,8 @@ EMIT_INSTRUCTION
    int c = IV(Move.getVal(PR(p)));                                        \
    EMIT(MIR_Binary.create(PPC_ORI, Binary.getResult(P(p)),                    \
                           R(Binary.getVal1(P(p))), ANDI(c, 0xffff)));         \
-   EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)),             \
-                          Binary.getResult(P(p)), SRI(c, 16)));               \
+   EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)).copyRO(),    \
+                          Binary.getResult(P(p)).copyRO(), SRI(c, 16)));      \
 }
 
 #####
@@ -348,8 +348,8 @@ r:	REF_MOVE(ADDRESS_CONSTANT)
 22
 EMIT_INSTRUCTION
 {                                                                             \
-   EMIT(MIR_Unary.create(PPC_LDIS, Move.getResult(P(p)), CAU16(AV(Move.getVal(P(p))))));        \
-   EMIT(MIR_Binary.mutate(P(p), PPC_ADDI, Move.getResult(P(p)),               \
-                          Move.getResult(P(p)), CAL16(AV(Move.getVal(P(p))))));                 \
+   EMIT(MIR_Unary.create(PPC_LDIS, Move.getResult(P(p)), CAU16(AV(Move.getVal(P(p))))));   \
+   EMIT(MIR_Binary.mutate(P(p), PPC_ADDI, Move.getResult(P(p)).copyRO(),                   \
+                          Move.getResult(P(p)).copyRO(), CAL16(AV(Move.getVal(P(p))))));   \
 }
 

@@ -961,6 +961,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
   public final void appendInstructionRespectingTerminalBranchOrPEI(OPT_Instruction i) {
     OPT_Instruction s = end;
     while (s.getPrev().operator().isBranch() || 
+	    s.getPrev().operator().isThrow() || 
            (s.getPrev().isPEI() && 
             getApplicableExceptionalOut(s.getPrev()).hasMoreElements())) {
       s = s.getPrev();

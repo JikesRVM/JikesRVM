@@ -984,7 +984,13 @@ public final class OPT_IR implements OPT_Operators {
 		  case LOOKUPSWITCH_opcode:
 		  case ATHROW_opcode:
 		  case RETURN_opcode:
-		  case TRAP_opcode:
+			 // TODO: Traps should be at the end of basic blocks but
+			 // OPT_Simplify reduces instructions to traps not respecting
+			 // this. Uses of OPT_Simplify should eliminate unreachable
+			 // instructions when an instruction not at the end of a
+			 // basic block is reduced into a trap. When this happens
+			 // please uncomment the next line:
+			 //case TRAP_opcode:
 		  case GOTO_opcode:
 			 OPT_Instruction next = instructions.next();
 			 if(BBend.conforms(next) == false) {
@@ -1200,9 +1206,9 @@ public final class OPT_IR implements OPT_Operators {
 			 if(phi_pred.getNumber() > basicBlockMap.length) {
 				verror(where, "Phi predecessor not a valid basic block " + phi_pred);
 			 }
-			 if(visitedBBs.get(phi_pred.getNumber())) {
-				// This predecessor has been visited so the variable
-				// should be defined
+			 if((curBB != phi_pred) && path.contains(phi_pred)) {
+				// This predecessor has been visited on this path so the
+				// variable should be defined
 				Object variable = getVariableUse(where, Phi.getValue(instruction,i));
 				if((variable != null) && (definedVariables.contains(variable) == false)) {
 				  StringBuffer pathString = new StringBuffer();
@@ -1287,6 +1293,9 @@ public final class OPT_IR implements OPT_Operators {
 		 operand.isStackLocation() ||
 		 operand.isMemory() ||
 		 (operand instanceof OPT_TrapCodeOperand) ||
+		 //-#if RVM_WITH_OSR
+		 (operand instanceof OPT_InlinedOsrTypeInfoOperand) ||
+		 //-#endif
 		 //-#if RVM_FOR_IA32
 		 (operand instanceof OPT_IA32ConditionOperand) ||
 		 (operand instanceof OPT_BURSManagedFPROperand)

@@ -45,8 +45,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         // Stage 6: Use validation operands to do null check combining,
         //          and then finish the removal off all validation
         //          operands (they are not present in the MIR).
-        new OPT_OptimizationPlanAtomicElement(new OPT_NullCheckCombining())
-    });
+        new OPT_OptimizationPlanAtomicElement(new OPT_NullCheckCombining() {
+																public void perform(OPT_IR ir) {
+																  super.perform(ir);
+																  // ir now contains well formed MIR.
+																  ir.IRStage = OPT_IR.MIR;
+																  ir.MIRInfo = new OPT_MIRInfo(ir);
+																}
+															 })
+			 });
   }
 
   /**
@@ -404,9 +411,6 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
     public final void perform (OPT_IR ir) {
       OPT_ComplexLIR2MIRExpansion.convert(ir);
-      // ir now contains well formed MIR.
-      ir.IRStage = OPT_IR.MIR;
-      ir.MIRInfo = new OPT_MIRInfo(ir);
     }
   }
 }
