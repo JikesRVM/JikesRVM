@@ -2492,7 +2492,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                                        VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Unary.create(operator, t, val);
-    byte simp = OPT_Simplifier.simplify(s);
+    byte simp = OPT_Simplifier.simplify(gc.temps, s);
     if ((simp == OPT_Simplifier.MOVE_FOLDED) ||
         (simp == OPT_Simplifier.MOVE_REDUCED)) {
       gc.temps.release(t);
@@ -2509,7 +2509,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                                            VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Unary.create(operator, t, val);
-    byte simp = OPT_Simplifier.simplify(s);
+    byte simp = OPT_Simplifier.simplify(gc.temps, s);
     if ((simp == OPT_Simplifier.MOVE_FOLDED) ||
         (simp == OPT_Simplifier.MOVE_REDUCED)) {
       gc.temps.release(t);
@@ -2527,7 +2527,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                                         VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Binary.create(operator, t, op1, op2);
-    byte simp = OPT_Simplifier.simplify(s);
+    byte simp = OPT_Simplifier.simplify(gc.temps, s);
     if ((simp == OPT_Simplifier.MOVE_FOLDED) ||
         (simp == OPT_Simplifier.MOVE_REDUCED)) {
       gc.temps.release(t);
@@ -2546,7 +2546,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                                                VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
-    byte simp = OPT_Simplifier.simplify(s);
+    byte simp = OPT_Simplifier.simplify(gc.temps, s);
     if ((simp == OPT_Simplifier.MOVE_FOLDED) ||
         (simp == OPT_Simplifier.MOVE_REDUCED)) {
       gc.temps.release(t);
@@ -2564,7 +2564,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                                              VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Binary.create(operator, t, op1, op2);
-    byte simp = OPT_Simplifier.simplify(s);
+    byte simp = OPT_Simplifier.simplify(gc.temps, s);
     if ((simp == OPT_Simplifier.MOVE_FOLDED) ||
         (simp == OPT_Simplifier.MOVE_REDUCED)) {
       gc.temps.release(t);
@@ -2583,7 +2583,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                                                    VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
-    byte simp = OPT_Simplifier.simplify(s);
+    byte simp = OPT_Simplifier.simplify(gc.temps, s);
     if ((simp == OPT_Simplifier.MOVE_FOLDED) ||
         (simp == OPT_Simplifier.MOVE_REDUCED)) {
       gc.temps.release(t);

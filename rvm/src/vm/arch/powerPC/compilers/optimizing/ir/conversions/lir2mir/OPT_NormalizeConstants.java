@@ -108,7 +108,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
       // in normalized form. This reduces the number of cases we have to 
       // worry about (and does last minute constant folding on the off chance
       // we've missed an opportunity...)
-      OPT_Simplifier.simplify(s);
+      OPT_Simplifier.simplify(ir.regpool, s);
       
       switch (s.getOpcode()) {
         //////////

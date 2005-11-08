@@ -96,10 +96,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
    * doing peephole optimizations of branches
    * is the job of a separate module.
    *
+   * @param regpool register pool in case simplification requires a temporary register
    * @param s the instruction to simplify
    * @return one of UNCHANGED, MOVE_FOLDED, MOVE_REDUCED, TRAP_REDUCED, REDUCED
    */
-  public static byte simplify(OPT_Instruction s) {
+  public static byte simplify(OPT_AbstractRegisterPool regpool, OPT_Instruction s) {
     switch (s.getOpcode()) {
       ////////////////////
       // GUARD operations
@@ -204,7 +205,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           return REDUCED;
         } else if (ref.isStringConstant()) {
           s.operator = CHECKCAST_NOTNULL;
-          return simplify(s);
+          return simplify(regpool, s);
         } else {
           VM_TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
           VM_TypeReference rhsType = ref.getType();
@@ -244,7 +245,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           return MOVE_FOLDED;
         } else if (ref.isStringConstant()) {
           s.operator = INSTANCEOF_NOTNULL;
-          return simplify(s);
+          return simplify(regpool, s);
         }
         VM_TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
         VM_TypeReference rhsType = ref.getType();
@@ -633,6 +634,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                           GuardedBinary.getClearVal1(s));
               return MOVE_REDUCED;
             }
+            // x / c == x >> (log c) if c is power of 2
+            int power = PowerOf2(val2);
+            if (power != -1) {
+              Binary.mutate(s, INT_SHR, GuardedBinary.getClearResult(s), 
+                            GuardedBinary.getClearVal1(s), IC(power));
+              return REDUCED;
+            }
           }
         }
       }
@@ -664,13 +672,54 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
               Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
-            }
-            // x * c == x << (log c) if c is power of 2
-            int power = PowerOf2(val2);
-            if (power != -1) {
-              Binary.mutate(s, INT_SHL, Binary.getClearResult(s), 
-                            Binary.getClearVal1(s), IC(power));
-              return REDUCED;
+            }	    
+            // try to reduce x*c into shift and adds, but only if cost is cheap
+            if (s.getPrev() != null) {
+              // don't attempt to reduce if this instruction isn't
+              // part of a well-formed sequence
+              int cost = 0;
+              for(int i=1; i < 32; i++) {
+                if((val2 & (1 << i)) != 0) {
+                  // each 1 requires a shift and add
+                  cost++;
+                }
+              }
+              if (cost < 5) {
+                // generate shift and adds
+                OPT_RegisterOperand val1Operand = Binary.getClearVal1(s).asRegister();
+                OPT_RegisterOperand resultOperand = regpool.makeTempInt();
+                OPT_Instruction move;
+                if ((val2 & 1) == 1) {
+                  // result = val1 * 1
+                  move = Move.create(INT_MOVE, resultOperand, val1Operand);
+                } else {
+                  // result = 0
+                  move = Move.create(INT_MOVE, resultOperand, new OPT_IntConstantOperand(0));
+                }
+                move.copyPosition(s);
+                s.insertBefore(move);
+                for(int i=1; i < 32; i++) {
+                  if((val2 & (1 << i)) != 0) {
+                    OPT_RegisterOperand tempInt = regpool.makeTempInt();
+                    OPT_Instruction shift = Binary.create(INT_SHL,
+                                                          tempInt,
+                                                          val1Operand.copyRO(),
+                                                          new OPT_IntConstantOperand(i)
+                                                          );
+                    shift.copyPosition(s);
+                    s.insertBefore(shift);
+                    OPT_Instruction add = Binary.create(INT_ADD,
+                                                        resultOperand.copyRO(),
+                                                        resultOperand.copyRO(),
+                                                        tempInt.copyRO()
+                                                        );
+                    add.copyPosition(s);
+                    s.insertBefore(add);
+                  }
+                }
+                Move.mutate(s, INT_MOVE, Binary.getClearResult(s), resultOperand.copyRO());
+                return REDUCED;
+              }
             }
           }
         }

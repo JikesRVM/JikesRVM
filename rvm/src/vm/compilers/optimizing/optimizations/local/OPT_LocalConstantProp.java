@@ -71,7 +71,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
                 }
               }
             }
-            if (didSomething) OPT_Simplifier.simplify(s);
+            if (didSomething) OPT_Simplifier.simplify(ir.regpool, s);
           }
           // KILL
           for (OPT_OperandEnumeration e = s.getDefs();

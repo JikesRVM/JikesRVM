@@ -518,7 +518,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); s != null; 
         s = s.nextInstructionInCodeOrder()) {
       byte code = 0;
-      OPT_Simplifier.simplify(s);
+      OPT_Simplifier.simplify(ir.regpool, s);
       // If something was reduced (as opposed to folded) then its uses may 
       // be different. This happens so infrequently that it's cheaper to 
       // handle it by  recomputing the DU from

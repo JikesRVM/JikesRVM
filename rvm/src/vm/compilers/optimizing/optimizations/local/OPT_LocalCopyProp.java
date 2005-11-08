@@ -79,7 +79,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
                 }
               }
             }
-            if (didSomething) OPT_Simplifier.simplify(s);
+            if (didSomething) OPT_Simplifier.simplify(ir.regpool, s);
           }
           // KILL
           boolean killPhysicals = s.isTSPoint() || s.operator().implicitDefs != 0;
