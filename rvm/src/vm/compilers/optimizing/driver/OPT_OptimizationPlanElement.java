@@ -43,6 +43,11 @@ public abstract class OPT_OptimizationPlanElement {
   public abstract void perform (OPT_IR ir);
 
   /**
+   * @return a String which is the name of the phase.
+   */
+  public abstract String getName();
+
+  /**
    * This method is called to initialize the optimization plan support
    *  measuring compilation.
    */

@@ -38,6 +38,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
    * @param ir IR to convert
    */
   static void convert (OPT_IR ir, OPT_Options options) {
+	 boolean didArrayStoreCheck = false;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); 
          s != null; 
          s = s.nextInstructionInCodeOrder()) {
@@ -169,10 +170,12 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 
       case OBJARRAY_STORE_CHECK_opcode:
         s = OPT_DynamicTypeCheckExpansion.arrayStoreCheck(s, ir, true);
+        didArrayStoreCheck = true;
         break;
 
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
         s = OPT_DynamicTypeCheckExpansion.arrayStoreCheck(s, ir, false);
+        didArrayStoreCheck = true;
         break;
 
       case CHECKCAST_opcode:
@@ -286,8 +289,13 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         break;
       }
     }
+    // Eliminate possible redundant trap block from array store checks
+    if(didArrayStoreCheck) {
+      branchOpts.perform(ir, true);
+    }
   }
 
+  private static OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
 
   /**
    * Expand a tableswitch.

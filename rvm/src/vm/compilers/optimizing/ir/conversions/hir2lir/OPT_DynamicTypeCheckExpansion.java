@@ -143,7 +143,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                           fallThroughBB, oldGuard,
                                           IfCmp.getClearBranchProfile(next).flip());
       } else {
-        return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, 
+        return generateBranchingTypeCheck(s, ir, ref.copy(), LHStype, RHStib, 
                                           fallThroughBB, branchBB, oldGuard,
                                           IfCmp.getClearBranchProfile(next));
       }
@@ -446,7 +446,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
           } else {
             curBlock.appendInstruction(ALoad.create(USHORT_ALOAD, refCandidate, 
                                                     rhsSuperclassIds, 
-                                                    lhsElemDepth, loc, TG()));
+                                                    lhsElemDepth.copyRO(), loc, TG()));
           }
           curBlock.appendInstruction(IfCmp.create(INT_IFCMP, guardResult.copyRO(),
                                                   refCandidate.copyD2U(), 
@@ -719,6 +719,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                            OPT_ConditionOperand.LESS_EQUAL(), 
                            falseBlock.makeJumpTarget(),
                            OPT_BranchProfileOperand.unlikely());
+				if (oldGuard != null)
+				  oldGuard = oldGuard.copyD2D();
             continueAt.insertBefore(lengthCheck);
             OPT_BasicBlock oldBlock = continueAt.getBasicBlock();
             oldBlock.splitNodeWithLinksAt(lengthCheck, ir);
@@ -766,6 +768,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                              OPT_ConditionOperand.LESS(), 
                              falseBlock.makeJumpTarget(),
                              OPT_BranchProfileOperand.unlikely());
+				  if (oldGuard != null) 
+					 oldGuard = oldGuard.copyD2D();
               continueAt.insertBefore(lengthCheck);
               OPT_BasicBlock oldBlock = continueAt.getBasicBlock();
               oldBlock.splitNodeWithLinksAt(lengthCheck, ir);
@@ -829,6 +833,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                        OPT_ConditionOperand.EQUAL(), 
                        trueBlock.makeJumpTarget(),
                        new OPT_BranchProfileOperand());
+		  if (oldGuard != null)
+			 oldGuard = oldGuard.copyD2D();
         continueAt.insertBefore(shortcircuit);
         OPT_BasicBlock myBlock = shortcircuit.getBasicBlock();
         OPT_BasicBlock mainBlock = 
@@ -849,6 +855,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                           OPT_ConditionOperand.LESS(), 
                           falseBlock.makeJumpTarget(),
                           (OPT_BranchProfileOperand)falseProb.copy());
+			 if (oldGuard != null)
+				oldGuard = oldGuard.copyD2D();
           continueAt.insertBefore(dimTest);
           OPT_BasicBlock testBlock = 
             mainBlock.splitNodeWithLinksAt(dimTest, ir);

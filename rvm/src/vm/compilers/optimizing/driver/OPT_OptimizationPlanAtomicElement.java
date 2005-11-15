@@ -85,6 +85,13 @@ public final class OPT_OptimizationPlanAtomicElement extends
   }
 
   /**
+   * @return a String which is the name of the phase.
+   */
+  public String getName() {
+	 return myPhase.getName();
+  }
+
+  /**
    * Generate (to the sysWrite stream) a report of the
    * time spent performing this element of the optimization plan. 
    *

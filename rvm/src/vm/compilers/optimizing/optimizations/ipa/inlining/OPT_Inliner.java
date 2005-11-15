@@ -353,7 +353,7 @@ public class OPT_Inliner implements OPT_Operators,
             OPT_RegisterOperand t = parent.temps.makeTempInt();
             OPT_Instruction test = InstanceOf.create(INSTANCEOF_NOTNULL, t,
                                                      new OPT_TypeOperand(target.getDeclaringClass().getTypeRef()),
-                                                     receiver);
+                                                     receiver.copyU2U());
             test.copyPosition(callSite);
             lastIfBlock.appendInstruction(test);
 
