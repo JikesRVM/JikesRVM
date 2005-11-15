@@ -14,8 +14,8 @@ sum=$(( ${RVM_WITH_CLASSPATH_0_15-0} + \
 if (( sum == 0 )); then
     ## If you don't want to use the default version of GNU Classpath for your
     # platform them you must set one of the variables above to override.
-    export RVM_WITH_CLASSPATH_0_18=1
-    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.18.tar.gz
+    export RVM_WITH_CLASSPATH_0_19=1
+    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.19.tar.gz
 fi
 
 ## CLASSPATH_INSTALLATION
