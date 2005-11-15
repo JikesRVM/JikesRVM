@@ -757,7 +757,8 @@ function rationalize_classpath_version () {
     ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
     local -i sum
     let "sum=( RVM_WITH_CLASSPATH_0_15 + RVM_WITH_CLASSPATH_0_17 \
-	      + RVM_WITH_CLASSPATH_0_18 + RVM_WITH_CLASSPATH_CVS_HEAD)"
+	      + RVM_WITH_CLASSPATH_0_18 + RVM_WITH_CLASSPATH_0_19 \
+	      + RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
 	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_<version> is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
@@ -774,6 +775,7 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_0_15=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_17=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_18=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_19=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -1300,6 +1302,7 @@ declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 declare -i RVM_WITH_CLASSPATH_0_15=0
 declare -i RVM_WITH_CLASSPATH_0_17=0
 declare -i RVM_WITH_CLASSPATH_0_18=0
+declare -i RVM_WITH_CLASSPATH_0_19=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
