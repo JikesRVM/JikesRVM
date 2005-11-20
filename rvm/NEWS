@@ -6,14 +6,22 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.4.2 Release Notes (Future....)
+*Jikes RVM 2.4.2 Release Notes (released on November 21, 2005)
 **Highlights
-**Other Notes
+**The recommended version of GNU classpath for Jikes RVM 2.4.2 is 0.19.
+Classpath 0.18 is expected to still work, Classpath 0.15 and 0.17 may
+still work, but have not been tested. 
+
+** RunSanityTest support for DaCapo benchmark suite. DaCapo is now included
+in the nightly Jikes RVM regression tests.  We continue to solicit
+contributions of more RunSanityTest harnesses for additional benchmarks. 
+
+** Numerous bug fixes in the opt compiler to better maintain IR invariants
+during. Contributed by Ian Rogers.
+
 **Bug Fixes
 *** defect 1293619: Null Pointer Exception in VM_TypeReference
-
-**Internal Changes
-
+*** Minor fixes for OS X builds.
 
 
 *Jikes RVM 2.4.1 Release Notes (released on September 15, 2005)
