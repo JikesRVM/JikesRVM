@@ -27,8 +27,7 @@ public final class Options {
    * @param o The option that was being set.
    * @param message The error message.
    */
-  public static void fail(Option o, String message) {
-  }
+  public static void fail(Option o, String message) {}
 
   /**
    * Warning during option processing.
@@ -36,6 +35,5 @@ public final class Options {
    * @param o The option that was being set.
    * @param message The warning message.
    */
-  public static void warn(Option o, String message) {
-  }
+  public static void warn(Option o, String message) {}
 }

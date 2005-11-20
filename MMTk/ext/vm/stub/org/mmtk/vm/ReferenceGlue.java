@@ -15,26 +15,7 @@ import java.lang.ref.PhantomReference;
 
 /**
  * This class manages SoftReferences, WeakReferences, and
- * PhantomReferences. When a java/lang/ref/Reference object is created,
- * its address is added to a list of pending reference objects of the
- * appropriate type. An address is used so the reference will not stay
- * alive during gc if it isn't in use elsewhere the mutator. During
- * gc, the various lists are processed in the proper order to
- * determine if any Reference objects are ready to be enqueued or
- * whether referents that have died should be kept alive until the
- * Reference is explicitly cleared. The ReferenceProcessor class drives
- * this processing and uses this class, via VM_Interface, to scan
- * the lists of pending reference objects.
- *
- * Elsewhere, there is a distinguished Finalizer thread which enqueues
- * itself on the VM_Scheduler finalizerQueue.  At the end of gc, if
- * needed and if any Reference queue is not empty, the finalizer
- * thread is scheduled to be run when gc is completed. This thread
- * calls Reference.enqueue() to make the actual notifcation to the
- * user program that the object state has changed.
- *
- * Based on previous ReferenceProcessor.java, which was loosely based
- * on Finalizer.java
+ * PhantomReferences. 
  * 
  * @author Chris Hoffmann
  * @modified Andrew Gray
@@ -52,8 +33,7 @@ public class ReferenceGlue {
    * @param semantics the number representing the semantics
    * @param True if it is safe to only scan new references.
    */
-  public static void scanReferences(int semantics, boolean nursery) {
-  }
+  public static void scanReferences(int semantics, boolean nursery) {}
 
   /**
    * Put this Reference object on its ReferenceQueue (if it has one)
@@ -81,25 +61,19 @@ public class ReferenceGlue {
    * Add a reference to the list of soft references.
    * @param ref the SoftReference to add
    */
-  public static void addSoftCandidate(SoftReference ref)
-    {
-  }
+  public static void addSoftCandidate(SoftReference ref) {}
 
   /**
    * Add a reference to the list of weak references.
    * @param ref the WeakReference to add
    */
-  public static void addWeakCandidate(WeakReference ref)
-    {
-  }
+  public static void addWeakCandidate(WeakReference ref) {}
   
   /**
    * Add a reference to the list of phantom references.
    * @param ref the PhantomReference to add
    */
-  public static void addPhantomCandidate(PhantomReference ref)
-    {
-  }
+  public static void addPhantomCandidate(PhantomReference ref) {}
   
   /***********************************************************************
    *
@@ -122,14 +96,15 @@ public class ReferenceGlue {
    * @param addr the address of the reference
    * @param referent the referent address
    */
-  public static void setReferent(Address addr, ObjectReference referent) {
-  }
+  public static void setReferent(Address addr, ObjectReference referent) {}
   
-  public static int countWaitingSoftReferences() {
-    return 0;
-  }
-
-  public static int countWaitingWeakReferences() {
+  /**
+   * Return the number of references of the given semantics.
+   * 
+   * @param semantics The reference semantics
+   * @return The number of waiting references of that type
+   */
+  public static int countWaitingReferences(int semantics) {
     return 0;
   }
 }

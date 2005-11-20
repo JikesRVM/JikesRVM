@@ -90,7 +90,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     for (OPT_InstructionEnumeration instrs = ir.forwardInstrEnumerator();
          instrs.hasMoreElements();) {
       OPT_Instruction s = instrs.next(); 
-      OPT_Simplifier.simplify(s);
+      OPT_Simplifier.simplify(ir.regpool, s);
     }
 
     if (OPTIMIZE) {

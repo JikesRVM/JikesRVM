@@ -13,19 +13,28 @@ package org.mmtk.vm;
  */
 public final class SynchronizedCounter {
 
-  public static void boot() {
-  }
-
+  /**
+   * Reset the counter to 0, returning its previous value.
+   * @return The value of the counter, prior to reset.
+   */
   public int reset() {
     return 0;
   }
 
-  // Returns the value before the add
-  //
+  /**
+   * Adds 1 to the counter.
+   * 
+   * @return the value before the add
+   */
   public int increment() {
     return 0;
   }
 
+  /**
+   * Peek at the counter
+   * 
+   * @return The current value of the counter.
+   */
   public int peek () {
     return 0;
   }

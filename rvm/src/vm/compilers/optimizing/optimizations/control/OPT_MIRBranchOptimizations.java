@@ -182,7 +182,7 @@ public final class OPT_MIRBranchOptimizations
         // This happens in VM_GCUtil in some systems due to a while(true) {} 
         return false;
       }
-      MIR_CondBranch.setTarget(cb, MIR_Branch.getTarget(targetInst));
+      MIR_CondBranch.setTarget(cb, (OPT_BranchOperand)(MIR_Branch.getTarget(targetInst).copy()));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }

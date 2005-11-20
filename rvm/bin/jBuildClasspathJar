@@ -19,6 +19,7 @@
 ## ZIP_CMD
 ## AR
 ## CC
+## CPLUS
 ## FIND
 ## AR_FLAGS
 ## RVM_ROOT
@@ -254,7 +255,7 @@ if [[ ! -e $BUILD/lib/glibj.zip ]]; then
     mkdir -p $BUILD
     echo "Configuring for $system_type"
     cd $BUILD
-    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS eval ../classpath/configure --enable-jni $JIKES_ARG $(classpath_configure_args)
+    CXX=$CPLUS CC=$CC FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS eval ../classpath/configure --enable-jni $JIKES_ARG $(classpath_configure_args)
     if (( AIX )); then
 	aix_cleanups
     fi

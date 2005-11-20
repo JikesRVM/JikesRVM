@@ -757,7 +757,8 @@ function rationalize_classpath_version () {
     ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
     local -i sum
     let "sum=( RVM_WITH_CLASSPATH_0_15 + RVM_WITH_CLASSPATH_0_17 \
-	      + RVM_WITH_CLASSPATH_0_18 + RVM_WITH_CLASSPATH_CVS_HEAD)"
+	      + RVM_WITH_CLASSPATH_0_18 + RVM_WITH_CLASSPATH_0_19 \
+	      + RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
 	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_<version> is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
@@ -774,6 +775,7 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_0_15=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_17=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_18=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_19=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -1198,7 +1200,7 @@ if [[ ! -f  $f ]]; then
 fi
 # Current version of RVM
 declare -r CVS_TIMESTAMP="$(< $f)"
-declare -r JIKESRVM_VERSION="Jikes RVM 2.4.1"
+declare -r JIKESRVM_VERSION="Jikes RVM 2.4.2"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -1300,6 +1302,7 @@ declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 declare -i RVM_WITH_CLASSPATH_0_15=0
 declare -i RVM_WITH_CLASSPATH_0_17=0
 declare -i RVM_WITH_CLASSPATH_0_18=0
+declare -i RVM_WITH_CLASSPATH_0_19=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
@@ -4104,11 +4107,11 @@ EOF
 cat <<- EOF
 	## OSX requires that JNI libraries end in .jnilib, 
 	## Also, the classpath builder, 
-	## on OSX, generates the files with the suffix ".so".  
+	## on OSX, generates the files with the suffix ".dylib".  
 	## We transform one to the other.
-	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so
+	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.dylib
 	do
-	    oldbase="\$(basename \${_library} .so)"
+	    oldbase="\$(basename \${_library} .dylib)"
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
@@ -4417,6 +4420,42 @@ EOF
 	    \$GCSPY_LIBS \${CCLIBS} \$ALL_HPM_LIBS
 	EOF
     fi
+
+   ## Report error when boot image load address conflicts with dynamic
+   ## libraries linked against the booter (see bug 1224191)
+
+   ## Errors only generated when not cross-compiling
+   if [ ${RVM_HOST_CONFIG} == ${RVM_TARGET_CONFIG} ] && (( RVM_FOR_LINUX )); then
+      cat <<- EOF
+
+      ## Report error when boot image load address conflicts with dynamic
+      ## libraries linked against the booter (see bug 1224191)
+
+      ## Check we have all the executables to run this check
+      if [ -x \`which ldd\` ] && [ -x \`which tr\` ] && [ -x \`which sed\` ]; then
+         ## Remove trailing "0x" for bc
+         BOOTIMAGE_LOAD_ADDRESS=\`echo ${BOOTIMAGE_LOAD_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
+         MAXIMUM_MAPPABLE_ADDRESS=\`echo ${MAXIMUM_MAPPABLE_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
+         ## Iterate over all libraries linked against JikesRVM
+         for i in \`ldd $BOOTER_STR |tr 'a-f' 'A-F'|sed -e's/.*0x\([A-F0-9]*\)./\1/g'\`; do
+            ## use bc to perform hex comparison
+            COMPARISON=\`echo "ibase=16; \$i > \${BOOTIMAGE_LOAD_ADDRESS} && \$i < \${MAXIMUM_MAPPABLE_ADDRESS}"|bc\`
+            if [ \${COMPARISON} == "1" ]; then
+               echo "!!!!!!!!!!!!!!!!!!!!!!";
+               echo "! Load address error !";
+               echo "!!!!!!!!!!!!!!!!!!!!!!";
+               echo "Please modify the address layout parameters BOOTIMAGE_LOAD_ADDRESS and/or"
+               echo "MAXIMUM_MAPPABLE_ADDRESS in the RVM_{HOST,TARGET}_CONFIG files."
+               echo "Either BOOTIMAGE_LOAD_ADDRESS must be greater than 0x\$i or"
+               echo "MAXIMUM_MAPPABLE_ADDRESS must be less than \$i."
+               echo "Having modified the value re-run jconfigure and then re-run jbuild.";
+               echo;
+               exit 1;
+            fi;
+         done;
+      fi
+EOF
+   fi
 
     cat <<- EOF
 	# We "echo" "(booter linked)", not "echo -n", since we want the last

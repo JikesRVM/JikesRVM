@@ -691,7 +691,7 @@ class OPT_GenerateMagic implements OPT_Operators,
       if (VM.BuildFor64Addr && o2.isInt()){
         OPT_RegisterOperand op1 = gc.temps.makeTemp(resultType);
         bc2ir.appendInstruction(Unary.create(INT_2ADDRSigExt, op1, o2));
-        bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, op1));
+        bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, op1.copyD2U()));
       } else {
         bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, o2));
       }

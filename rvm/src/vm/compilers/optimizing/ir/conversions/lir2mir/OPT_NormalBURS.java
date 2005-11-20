@@ -85,7 +85,6 @@ final class OPT_NormalBURS extends OPT_BURS {
         OPT_Operand op = uses.next();
         if (op == null) continue;
 
-        op.clear();
         // Set child = OPT_BURS_TreeNode for operand op
         OPT_BURS_TreeNode child;
         if (op instanceof OPT_RegisterOperand) {

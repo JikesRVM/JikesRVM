@@ -23,9 +23,40 @@ import org.vmmagic.pragma.*;
  */
 public class Memory {
 
+  /**
+   * @return The lowest address in the heap.
+   */
   public static Address HEAP_START() { return Address.zero(); }
+  
+  /**
+   * @return The highest address in the heap.
+   */
   public static Address HEAP_END() { return Address.zero(); }
+  
+  /**
+   * Allows for the VM to reserve space between HEAP_START()
+   * and AVAILABLE_START() for its own purposes.  MMTk should
+   * expect to encounter objects in this range, but may not 
+   * allocate in this range.
+   * 
+   * MMTk expects the virtual address space between AVAILABLE_START()
+   * and AVAILABLE_END() to be contiguous and unmapped.
+   * 
+   * @return The low bound of the memory that MMTk can allocate.
+   */
   public static Address AVAILABLE_START() { return Address.zero(); }
+
+  /**
+   * Allows for the VM to reserve space between HEAP_END()
+   * and AVAILABLE_END() for its own purposes.  MMTk should
+   * expect to encounter objects in this range, but may not 
+   * allocate in this range.
+   * 
+   * MMTk expects the virtual address space between AVAILABLE_START()
+   * and AVAILABLE_END() to be contiguous and unmapped.
+   * 
+   * @return The high bound of the memory that MMTk can allocate.
+   */
   public static Address AVAILABLE_END() { return Address.zero(); }
 
 
@@ -33,17 +64,7 @@ public class Memory {
    * Return the space associated with/reserved for the VM.  In the
    * case of Jikes RVM this is the boot image space.<p>
    *
-   * The boot image space must be mapped at the start of available
-   * virtual memory, hence we use the constructor that requests the
-   * lowest address in the address space.  The address space awarded
-   * to this space depends on the order in which the request is made.
-   * If this request is not the first request for virtual memory then
-   * the Space allocator will die with an error stating that the
-   * request could not be satisfied.  The remedy is to ensure it is
-   * initialized first.
-   *
-   * @return The space managed by the virtual machine.  In this case,
-   * the boot image space is returned.
+   * @return The space managed by the virtual machine.  
    */
   public static ImmortalSpace getVMSpace() {
     return null;
@@ -141,11 +162,17 @@ public class Memory {
   public static void dumpMemory(Address start, int beforeBytes,
                                 int afterBytes) {}
 
-  /*
-   * Utilities from the VM class
+  /**
+   * Wait for preceeding cache flush/invalidate instructions to complete 
+   * on all processors.  Ensures that all memory writes before this
+   * point are visible to all processors.
    */
-
   public static void sync() throws InlinePragma {}
 
+  /**
+   * Wait for all preceeding instructions to complete and discard any 
+   * prefetched instructions on this processor.  Also prevents the 
+   * compiler from performing code motion across this point.
+   */ 
   public static void isync() throws InlinePragma {}
 }

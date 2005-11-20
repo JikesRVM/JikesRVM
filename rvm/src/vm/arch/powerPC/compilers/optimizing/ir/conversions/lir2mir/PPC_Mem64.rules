@@ -29,7 +29,7 @@ EMIT_INSTRUCTION
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
    EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),         \
-                                 Move.getResult(PR(p)), CAL16(val),           \
+                                 Move.getResult(PR(p)).copyRO(), CAL16(val),  \
 				 Load.getLocation(P(p)),                      \
                                  Load.getGuard(P(p))));                      \
 }
@@ -76,7 +76,7 @@ EMIT_INSTRUCTION
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
    EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),     \
-                                  Move.getResult(PRR(p)), CAL16(val),         \
+                                  Move.getResult(PRR(p)).copyRO(), CAL16(val),\
 				  Store.getLocation(P(p)),                    \
                                   Store.getGuard(P(p))));                    \
 }

@@ -62,11 +62,11 @@ public class OPT_SSAOptions {
     return  heapTypes;
   }
 
-  final boolean getHeapValid () {
+  public final boolean getHeapValid () {
     return  heapValid;
   }
 
-  final boolean getScalarValid () {
+  public final boolean getScalarValid () {
     return  scalarValid;
   }
 

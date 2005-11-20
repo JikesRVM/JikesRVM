@@ -45,8 +45,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         // Stage 6: Use validation operands to do null check combining,
         //          and then finish the removal off all validation
         //          operands (they are not present in the MIR).
-        new OPT_OptimizationPlanAtomicElement(new OPT_NullCheckCombining())
-    });
+        new OPT_OptimizationPlanAtomicElement(new OPT_NullCheckCombining() {
+																public void perform(OPT_IR ir) {
+																  super.perform(ir);
+																  // ir now contains well formed MIR.
+																  ir.IRStage = OPT_IR.MIR;
+																  ir.MIRInfo = new OPT_MIRInfo(ir);
+																}
+															 })
+			 });
   }
 
   /**
@@ -222,9 +229,9 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           
         case FLOAT_2LONG_opcode:
           { 
+            if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
             OPT_Operand val = Unary.getClearVal(s);
             if (VM.BuildForPowerPC) {
-              if (VM.BuildFor64Addr) break;
               // NOTE: must move constants out of sysCall before we expand it.
               //       otherwise we'll have the wrong value in the JTOC register when
               //       we try to load the constant from the JTOC!
@@ -241,9 +248,9 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           
         case DOUBLE_2LONG_opcode:
           { 
+            if (VM.BuildForPowerPC && VM.BuildFor64Addr) break; // don't reduce operator -- leave for BURS
             OPT_Operand val = Unary.getClearVal(s);
             if (VM.BuildForPowerPC) {
-              if (VM.BuildFor64Addr) break;
               // NOTE: must move constants out of sysCall before we expand it.
               //       otherwise we'll have the wrong value in the JTOC register when
               //       we try to load the constant from the JTOC!
@@ -404,9 +411,6 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
     public final void perform (OPT_IR ir) {
       OPT_ComplexLIR2MIRExpansion.convert(ir);
-      // ir now contains well formed MIR.
-      ir.IRStage = OPT_IR.MIR;
-      ir.MIRInfo = new OPT_MIRInfo(ir);
     }
   }
 }

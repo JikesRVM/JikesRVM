@@ -149,7 +149,9 @@ public class VM_TypeReference implements VM_SizeConstants {
     // classes must use the bootstrap classloader.  Force that here so we don't
     // have to worry about it anywhere else in the VM.
     ClassLoader bootstrapCL = VM_BootstrapClassLoader.getBootstrapClassLoader();
-    if (cl != bootstrapCL) {
+    if (cl == null) {
+      cl = bootstrapCL;
+    } else if (cl != bootstrapCL) {
       if (tn.isClassDescriptor()) {
         if (tn.isBootstrapClassDescriptor()) {
           cl = bootstrapCL;

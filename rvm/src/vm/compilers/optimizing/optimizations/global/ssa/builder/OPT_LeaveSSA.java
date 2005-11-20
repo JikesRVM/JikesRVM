@@ -65,11 +65,13 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
   final public void perform(OPT_IR ir) {
     this.ir = ir;
     translateFromSSA(ir);
+
+	 // reset ir.SSADictionary 
+	 ir.HIRInfo.SSADictionary = null;
+	 // reset ssa options
+	 ir.actualSSAOptions = null;
+
     branchOpts.perform(ir, true);
-    // reset ir.SSADictionary 
-    ir.HIRInfo.SSADictionary = null;
-    // reset ssa options
-    ir.actualSSAOptions = null;
   }
 
   /**
@@ -358,12 +360,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
         OPT_Instruction ci = null;
         
         // insert copy operation required to remove phi
-        if (c.source instanceof OPT_NullConstantOperand) {
-          if (tt.isReferenceType()) {
-            ci = OPT_SSA.makeMoveInstruction(ir, r, (OPT_ConstantOperand)c.source);
-          }
-        } 
-        else if (c.source instanceof OPT_ConstantOperand) {
+		  if (c.source instanceof OPT_ConstantOperand) {
           if (c.source instanceof OPT_UnreachableOperand) {
             ci = null;
           } else {

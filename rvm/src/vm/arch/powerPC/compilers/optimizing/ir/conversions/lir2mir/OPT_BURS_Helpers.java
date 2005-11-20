@@ -890,11 +890,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
         EMIT(MIR_Binary.create(PPC_SRWI, I(t), one, IC(BITS_IN_INT - 1)));
                   //-#if RVM_FOR_64_ADDR
         t1 = regpool.getAddress();
-                  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one)); 
+		  EMIT(MIR_Unary.create(PPC64_EXTSW, A(t1), one.copyRO())); 
         EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), A(t1), 
                                IC(value - 1)));
-                  //-#else
-        EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one, 
+		  //-#else
+        EMIT(MIR_Binary.create(PPC_SUBFIC, A(zero), one.copyRO(), 
                                IC(value - 1)));
                   //-#endif
         EMIT(MIR_Unary.create(PPC_ADDZE, def, I(t)));
@@ -1828,6 +1828,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (loc != null) {
       loc = (OPT_LocationOperand)loc.copy();
     }
+    if (guard != null) {
+      guard = guard.copy();
+    }
     inst = MIR_Load.create(PPC_LWZ, I(defLow), left.copyU2U(), 
                            IC(imm + 4), loc, guard);
     inst.copyPosition(s);
@@ -1855,10 +1858,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     if (loc != null) {
       loc = (OPT_LocationOperand)loc.copy();
     }
+    if (guard != null) {
+      guard = guard.copy();
+    }
     inst = MIR_Load.create(PPC_LWZ, I(defLow), 
                            right.copyD2U(), 
                            IC(OPT_Bits.PPCMaskLower16(value) + 4), 
-                           loc, guard);
+                           loc);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1877,8 +1883,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(inst);
     OPT_RegisterOperand kk = regpool.makeTempInt();
     EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), IC(4)));
-    if (loc != null)
+    if (loc != null){
       loc = (OPT_LocationOperand)loc.copy();
+	 }
+    if (guard != null) {
+      guard = guard.copy();
+    }
     inst = MIR_Load.create(PPC_LWZX, I(defLow), left.copyU2U(), 
                            kk.copyD2U(), loc, guard);
     inst.copyPosition(s);
@@ -1900,8 +1910,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                                             left, IC(imm), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
-    if (loc != null)
+    if (loc != null) {
       loc = (OPT_LocationOperand)loc.copy();
+	 }
+    if (guard != null) {
+      guard = guard.copy();
+    }
     inst = MIR_Store.create(PPC_STW, I(defLow), 
                             left.copyU2U(), 
                             IC(imm + 4), loc, 
@@ -1929,8 +1943,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                        loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
-    if (loc != null)
+    if (loc != null){
       loc = (OPT_LocationOperand)loc.copy();
+	 }
+    if (guard != null) {
+      guard = guard.copy();
+    }
     inst = MIR_Store.create(PPC_STW, I(defLow), right.copyD2U(), 
                             IC(OPT_Bits.PPCMaskLower16(value) + 4), loc, guard);
     inst.copyPosition(s);
@@ -1951,8 +1969,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(inst);
     OPT_RegisterOperand kk = regpool.makeTempInt();
     EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), IC(4)));
-    if (loc != null)
+    if (loc != null){
       loc = (OPT_LocationOperand)loc.copy();
+	 }
+    if (guard != null) {
+      guard = guard.copy();
+    }
     inst = MIR_Store.create(PPC_STWX, I(defLow), 
                             left.copyU2U(), 
                             kk.copyD2U(), loc, 
@@ -2015,7 +2037,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_RegisterOperand newIndex = regpool.makeTempInt(); 
     EMIT(MIR_Move.create(PPC_MOVE, newIndex, LowTableSwitch.getIndex(s))); 
     int number = LowTableSwitch.getNumberOfTargets(s);
-    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex, number*2));
+    OPT_Instruction s2 = CPOS(s,MIR_LowTableSwitch.create(MIR_LOWTABLESWITCH, newIndex.copyRO(), number*2));
     for (int i=0; i<number; i++) {
       MIR_LowTableSwitch.setTarget(s2,i,LowTableSwitch.getTarget(s,i));
       MIR_LowTableSwitch.setBranchProfile(s2,i,LowTableSwitch.getBranchProfile(s,i));

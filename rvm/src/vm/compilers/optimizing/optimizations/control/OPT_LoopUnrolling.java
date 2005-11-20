@@ -709,27 +709,26 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
                                         int depth)
   {
     if (depth <= 0) return false;
-    if (op instanceof OPT_ConstantOperand) return true;
-    if (op instanceof OPT_RegisterOperand) {
-      boolean invariant = true;
+    else if (op instanceof OPT_ConstantOperand) return true;
+    else if (op instanceof OPT_RegisterOperand) {
       OPT_Register reg = ((OPT_RegisterOperand)op).register;
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
-      while (defs.hasMoreElements()) {
-        OPT_Instruction inst = defs.next().instruction;
-        if (OPT_CFGTransformations.inLoop (inst.getBasicBlock(), nloop)) {
-          if (Move.conforms (inst)) {
-            invariant &= loopInvariant (Move.getVal(inst), nloop, depth - 1);
-          } else if (inst.operator.opcode == ARRAYLENGTH_opcode) {
-            invariant &= loopInvariant (GuardedUnary.getVal(inst),nloop,depth);
-          } else {
-            invariant = false;
-          }
-        }
-        if (!invariant) break;
-      }
-      return invariant;
+		// if no definitions of this register (very strange) give up
+		if(defs.hasMoreElements() == false) return false;
+		OPT_Instruction inst = defs.next().instruction;
+		// if multiple definitions of a register give up as follow may
+		// fail to give the correct invariant
+		if(defs.hasMoreElements() == true) return false;
+		if (OPT_CFGTransformations.inLoop (inst.getBasicBlock(), nloop) == false) {
+		  return true;
+		}
+		else {
+		  return false;
+		}
     }
-    return false;
+	 else {
+		return false;
+	 }
   }
   
   private static boolean printDefs (OPT_Operand op, OPT_BitVector nloop,

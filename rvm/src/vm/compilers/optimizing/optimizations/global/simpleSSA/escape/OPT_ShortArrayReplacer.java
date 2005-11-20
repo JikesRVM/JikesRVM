@@ -63,7 +63,7 @@ public class OPT_ShortArrayReplacer
     OPT_Instruction defI = def.instruction;
     OPT_Operand defaultValue = OPT_IRTools.getDefaultOperand(elementType.getTypeRef());
     for (int i = 0; i < size; i++) {
-      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue);
+      scalars[i] = OPT_IRTools.moveIntoRegister(ir.regpool, defI, defaultValue.copy());
     }
     // now remove the def
     if (DEBUG)
@@ -124,8 +124,8 @@ public class OPT_ShortArrayReplacer
       case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:case REF_ALOAD_opcode:
         {
           int index = ALoad.getIndex(inst).asIntConstant().value;
-          OPT_Instruction i = Move.create(moveOp, ALoad.getResult(inst), 
-              scalars[index]);
+          OPT_Instruction i = Move.create(moveOp, ALoad.getClearResult(inst), 
+														scalars[index].copyRO());
           inst.insertBefore(i);
           OPT_DefUse.removeInstructionAndUpdateDU(inst);
           OPT_DefUse.updateDUForNewInstruction(i);
@@ -136,8 +136,8 @@ public class OPT_ShortArrayReplacer
       case REF_ASTORE_opcode:
         {
           int index = AStore.getIndex(inst).asIntConstant().value;
-          OPT_Instruction i2 = Move.create(moveOp, scalars[index], 
-              AStore.getValue(inst));
+          OPT_Instruction i2 = Move.create(moveOp, scalars[index].copyRO(), 
+														 AStore.getClearValue(inst));
           inst.insertBefore(i2);
           OPT_DefUse.removeInstructionAndUpdateDU(inst);
           OPT_DefUse.updateDUForNewInstruction(i2);

@@ -28,8 +28,7 @@ public class Barriers {
    * @param index the index of the element to set
    * @param value the new value for the element
    */
-  public static void setArrayNoBarrier(char [] dst, int index, char value) {
-  }
+  public static void setArrayNoBarrier(char [] dst, int index, char value) {}
 
   /**
    * Perform the actual write of the write barrier.
@@ -43,9 +42,7 @@ public class Barriers {
    */
   public static void performWriteInBarrier(ObjectReference ref, Address slot, 
                                            ObjectReference target, Offset offset, 
-                                           int locationMetadata, int mode) 
-    {
-  }
+                                           int locationMetadata, int mode) {}
 
   /**
    * Atomically write a reference field of an object or array and return 

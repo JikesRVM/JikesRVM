@@ -274,15 +274,17 @@ public final class OPT_RegisterOperand extends OPT_Operand {
        for (reg = register; r > 0; reg = reg.getNext(),r--);
        s += ".."+reg;
     }
-    if (type != VM_TypeReference.VALIDATION_TYPE) {
-      s  = s + "("+type.getName();
-      if (isExtant())       s += ",x";
-      if (isDeclaredType()) s += ",d";
-      if (isPreciseType())  s += ",p";
-      if (isPositiveInt())  s += ",+";
-      s += ")";
-    } else {
-      s += "(GUARD)";
+    if (type != null) {
+      if (type != VM_TypeReference.VALIDATION_TYPE) {
+        s  = s + "("+type.getName();
+        if (isExtant())       s += ",x";
+        if (isDeclaredType()) s += ",d";
+        if (isPreciseType())  s += ",p";
+        if (isPositiveInt())  s += ",+";
+        s += ")";
+      } else {
+        s += "(GUARD)";
+      }
     }
     return s.toString();
   }

@@ -106,7 +106,7 @@ extends OPT_IRTools
    *
    * @param asm assembler object
    * @param offset of field in the <code>VM_Processor</code> object
-   * @param reg register containing value to exchange
+   * @param srcReg register containing value to exchange
    */
   public static void emitCompareAndExchangeField(VM_Assembler asm, Offset offset, byte srcReg) {
     asm.emitCMPXCHG_RegDisp_Reg(PROCESSOR_REGISTER, offset, srcReg);

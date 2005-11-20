@@ -22,8 +22,7 @@ public class Statistics {
    *
    * @return The number of collections that have occured.
    */
-  public static final int getCollectionCount()
-    {
+  public static final int getCollectionCount() {
     return 0;
   }
 

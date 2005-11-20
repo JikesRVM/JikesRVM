@@ -16,6 +16,9 @@ package org.mmtk.vm;
  * @date $Date$
  */
 public class Assert {
+  /**
+   * <code>true</code> if assertions should be verified
+   */
   public static final boolean VERIFY_ASSERTIONS = false;
 
 
@@ -35,6 +38,11 @@ public class Assert {
   public static void fail(String message) { 
   }
 
+  /**
+   * Exit the virtual machine.
+   * 
+   * @param rc Return code to exit with.
+   */
   public static void exit(int rc) {
   }
 
@@ -49,13 +57,18 @@ public class Assert {
 
 
   /**
-   * <code>true</code> if assertions should be verified
+   * Checks that the given condition is true.  If it is not, this
+   * method prints a message, does a traceback and exits.
+   *
+   * @param cond the condition to be checked
+   * @param message the message to print
    */
-  public static final boolean VerifyAssertions = false;
-
-  public static void _assert(boolean cond, String s) {
+  public static void _assert(boolean cond, String message) {
   }
 
+  /**
+   * Print a stack trace
+   */
   public static final void dumpStack() {
   }
 

@@ -22,34 +22,17 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 public class Scanning implements Constants {
-
-  /**
-   * Initialization that occurs at <i>build</i> time.  The values of
-   * statics at the completion of this routine will be reflected in
-   * the boot image.  Any objects referenced by those statics will be
-   * transitively included in the boot image.
-   *
-   * This is called from MM_Interface.
-   */
-  public static final void init() {
-
-  }
-
   /**
    * Delegated scanning of a object, processing each pointer field
-   * encountered. <b>Jikes RVM never delegates, so this is never
-   * executed</b>.
+   * encountered. 
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(TraceLocal trace, ObjectReference object) 
-{
-  }
+  public static void scanObject(TraceLocal trace, ObjectReference object) {}
 
   /**
    * Delegated precopying of a object's children, processing each pointer field
-   * encountered. <b>Jikes RVM never delegates, so this is never
-   * executed</b>.
+   * encountered. 
    *
    * @param trace The trace object to use for precopying.
    * @param object The object to be scanned.
@@ -58,17 +41,13 @@ public class Scanning implements Constants {
 
   /**
    * Delegated enumeration of the pointers in an object, calling back
-   * to a given plan for each pointer encountered. <b>Jikes RVM never
-   * delegates, so this is never executed</b>.
+   * to a given plan for each pointer encountered. 
    *
    * @param object The object to be scanned.
-   * @param enum the Enumerate object through which the callback
+   * @param e the Enumerator object through which the callback
    * is made
    */
-  public static void enumeratePointers(ObjectReference object, Enumerator e) 
-
-{
-  }
+  public static void enumeratePointers(ObjectReference object, Enumerator e) {}
 
   /**
    * Prepares for using the <code>computeAllRoots</code> method.  The
@@ -77,8 +56,7 @@ public class Scanning implements Constants {
    * parallel GC threads were not important, the thread counter could
    * simply be replaced by a for loop).
    */
-  public static void resetThreadCounter() {
-  }
+  public static void resetThreadCounter() {}
 
   /**
    * Pre-copy all potentially movable instances used in the course of
@@ -89,12 +67,9 @@ public class Scanning implements Constants {
    * are computed the same instances are explicitly scanned and
    * included in the set of roots.  The existence of this method
    * allows the actions of calculating roots and forwarding GC
-   * instances to be decoupled. The <code>threadCounter</code> must be
-   * reset so that load balancing parallel GC can share the work of
-   * scanning threads.
+   * instances to be decoupled. 
    */
-  public static void preCopyGCInstances(TraceLocal trace) {
-  }
+  public static void preCopyGCInstances(TraceLocal trace) {}
  
  /**
    * Computes all roots.  This method establishes all roots for
@@ -112,7 +87,6 @@ public class Scanning implements Constants {
    *
    * @param The trace to use for computing roots.
    */
-  public static void computeAllRoots(TraceLocal trace) {
-  }
+  public static void computeAllRoots(TraceLocal trace) {}
 
 }

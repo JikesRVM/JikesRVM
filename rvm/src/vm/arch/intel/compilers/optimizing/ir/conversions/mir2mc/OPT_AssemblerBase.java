@@ -484,8 +484,8 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * Given a forward branch instruction and its target,
    * determine (conservatively) if the relative offset to the
    * target is less than 127 bytes
-   * @param inst the branch instruction
-   * @param targetMC the value of the mcOffset of the target label
+   * @param start the branch instruction
+   * @param target the value of the mcOffset of the target label
    * @return true if the relative offset will be less than 127, false otherwise
    */
   protected boolean targetIsClose(OPT_Instruction start, int target) {

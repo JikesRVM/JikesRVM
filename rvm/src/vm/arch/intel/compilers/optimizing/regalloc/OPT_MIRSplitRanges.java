@@ -92,7 +92,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
   /**
    * Split the live ranges of all register operands of an instruction
    * @param s      the instruction to process
-   * @param map a mapping from symbolics to temporaries
+   * @param newMap a mapping from symbolics to temporaries
    * @param ir  the containing IR
    * @param rootOnly only consider root operands?
    */
@@ -139,7 +139,7 @@ class OPT_MIRSplitRanges extends OPT_CompilerPhase
   /**
    * Find or create a temporary register to cache a symbolic register.
    *
-   * @param r the symbolic register
+   * @param rOp the symbolic register
    * @param map a mapping from symbolics to temporaries
    * @param ir the governing IR
    */

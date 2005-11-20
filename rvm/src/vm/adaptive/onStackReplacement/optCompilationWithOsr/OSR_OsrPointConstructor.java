@@ -28,6 +28,17 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
   }
 
   /**
+	* Need to run branch optimizations after
+	*/
+  private OPT_BranchOptimizations branchOpts;
+  /**
+	* Constructor
+	*/
+  OSR_OsrPointConstructor() {
+	 branchOpts = new OPT_BranchOptimizations(-1,false,false);
+  }
+
+  /**
    * Goes through each instruction, reconstruct OsrPoint instructions.
    */
   public void perform(OPT_IR ir) {
@@ -58,6 +69,7 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
       verifyNoOsrBarriers(ir);
     }
 */
+		  branchOpts.perform(ir);
   }
 
   /* Iterates instructions, build a list of OsrPoint instructions. */
@@ -189,9 +201,12 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
             VM._assert(op != null);
           }
  
-          if (op instanceof OPT_RegisterOperand) {
-            op = ((OPT_RegisterOperand)op).copyU2U();
+          if (op.isRegister()) {
+            op = op.asRegister().copyU2U();
           }
+			 else {
+            op = op.copy();
+			 }
 
           OsrPoint.setElement(osr, opIndex, op);
           opIndex ++;

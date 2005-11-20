@@ -65,8 +65,8 @@ MIR_Divide
 
 # the IA32 "mul" format used by IA32_MUL and IA32_IMUL1
 MIR_Multiply
-0 2 1
-"DU Result1 OPT_Operand" "DU Result2 OPT_Operand" "U Value OPT_Operand" 
+1 1 1
+"D Result1 OPT_Operand" "DU Result2 OPT_Operand" "U Value OPT_Operand" 
 
 
 # The format used by the Intel CDQ instruction
