@@ -162,7 +162,19 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
         } else if (ref.isStringConstant()) {
           Move.mutate(s, GUARD_MOVE, NullCheck.getClearGuardResult(s), TG());
           return MOVE_FOLDED;
-        } 
+        } else if (ref.isAddressConstant()) {
+          if (ref.asAddressConstant().value.isZero()) {
+            Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s),
+                        OPT_TrapCodeOperand.NullPtr());
+            return TRAP_REDUCED;
+          } else {
+            // Make the slightly suspect assumption that all non-zero address
+            // constants are actually valid pointers. Not necessarily true,
+            // but unclear what else we can do.
+            Move.mutate(s, GUARD_MOVE, NullCheck.getClearGuardResult(s), TG());
+            return MOVE_FOLDED;
+          }
+        }
         return UNCHANGED;
       }
     case INT_ZERO_CHECK_opcode:
