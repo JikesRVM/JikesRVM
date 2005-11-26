@@ -9,6 +9,7 @@ import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.utility.statistics.Stats;
 
 import org.mmtk.vm.ActivePlan;
@@ -60,6 +61,8 @@ public abstract class GenLocal extends StopTheWorldLocal
   protected final AddressDeque traceRemset;
   protected final AddressPairDeque arrayRemset;
 
+  // Sanity checking
+  private GenSanityCheckerLocal sanityChecker;
 
   /**
    * Constructor
@@ -71,6 +74,7 @@ public abstract class GenLocal extends StopTheWorldLocal
     global().arrayRemsetPool.newClient();
     traceRemset = new AddressDeque("remset", global().remsetPool);
     nurseryTrace = new GenNurseryTraceLocal(global().nurseryTrace, this);
+    sanityChecker = new GenSanityCheckerLocal();
   }
 
   /****************************************************************************
@@ -202,6 +206,13 @@ public abstract class GenLocal extends StopTheWorldLocal
   public final TraceLocal getCurrentTrace() {
     if (global().gcFullHeap) return getFullHeapTrace();
     return nurseryTrace;
+  }
+  
+  /**
+   * @return Return the current sanity checker.
+   */
+  public SanityCheckerLocal getSanityChecker() {
+    return sanityChecker;
   }
 
   /**

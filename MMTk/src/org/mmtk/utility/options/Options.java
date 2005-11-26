@@ -39,6 +39,7 @@ public final class Options {
   public static NurserySize nurserySize;
   public static PrintPhaseStats printPhaseStats;
   public static ProtectOnRelease protectOnRelease;
+  public static SanityCheck sanityCheck;
   public static StressFactor stressFactor;
   public static TraceRate traceRate;
   public static VariableSizeHeap variableSizeHeap;

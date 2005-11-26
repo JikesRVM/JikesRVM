@@ -97,4 +97,23 @@ public final class ComplexPhase extends Phase
  
     if (order == 1 && timer != null) timer.stop();
   }
+  
+  /**
+   * Replace a phase. For example to replace a placeholder
+   * 
+   * @param oldId The phase to replace.
+   * @param newId The new phase.
+   */
+  public final void replacePhase(int oldId, int newId) {
+    for(int i=0; i<subPhases.length; i++) {
+      Phase p = getPhase(subPhases[i]);
+      if (p.getId() == oldId) {
+        // Replace
+        subPhases[i] = newId;
+      } else if (p instanceof ComplexPhase) {
+        // Recurse
+        ((ComplexPhase)p).replacePhase(oldId, newId);
+      }
+    }
+  }
 }

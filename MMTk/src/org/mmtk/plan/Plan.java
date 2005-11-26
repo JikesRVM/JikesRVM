@@ -14,6 +14,7 @@ import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
@@ -137,6 +138,7 @@ public abstract class Plan implements Uninterruptible, Constants {
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
     Options.variableSizeHeap = new VariableSizeHeap();
+    Options.sanityCheck = new SanityCheck();
   }
 
   /****************************************************************************
@@ -243,6 +245,13 @@ public abstract class Plan implements Uninterruptible, Constants {
   }
 
   private long lastStressPages = 0;
+
+  /**
+   * @return The current sanity checker.
+   */
+  public SanityChecker getSanityChecker() {
+    return null;
+  }
 
   /**
    * @return True is a stress test GC is required

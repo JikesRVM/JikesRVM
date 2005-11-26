@@ -9,6 +9,7 @@ import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
+import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
@@ -80,6 +81,13 @@ public abstract class PlanLocal implements Uninterruptible, Constants {
    * @return The current trace instance. 
    */
   public abstract TraceLocal getCurrentTrace();
+  
+  /**
+   * @return Return the current sanity checker.
+   */
+  public SanityCheckerLocal getSanityChecker() {
+    return null;
+  }
 
   /****************************************************************************
    * Allocation.

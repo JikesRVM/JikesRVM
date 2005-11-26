@@ -8,6 +8,7 @@ import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
 import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
@@ -37,6 +38,9 @@ import org.vmmagic.pragma.*;
 public abstract class StopTheWorldLocal extends PlanLocal
   implements Uninterruptible {
 
+  /* Basic sanity checker */
+  private SanityCheckerLocal sanityChecker = new SanityCheckerLocal();
+  
   /**
    * @return The active global plan as a <code>StopTheWorld</code>
    * instance.
@@ -52,6 +56,14 @@ public abstract class StopTheWorldLocal extends PlanLocal
   public void collect() {
     Phase.delegatePhase(global().collection);
   }
+
+  /**
+   * @return The current sanity checker. 
+   */
+  public SanityCheckerLocal getSanityChecker() {
+    return sanityChecker;  
+  }
+
 
   /** 
    * Perform a (local) collection phase. 
@@ -146,6 +158,11 @@ public abstract class StopTheWorldLocal extends PlanLocal
 
     if (phaseId == StopTheWorld.COMPLETE) {
       // Nothing to do
+      return;
+    }
+    
+    if (Options.sanityCheck.getValue() &&
+        getSanityChecker().collectionPhase(phaseId, primary)) {
       return;
     }
 
