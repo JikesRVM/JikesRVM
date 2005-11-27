@@ -46,7 +46,7 @@ public final class SanityDataTable extends SimpleHashtable
   /**
    * Create a new data table of a specified size.
    * 
-   * @param space The space to acquire the data structure from.
+   * @param rps The space to acquire the data structure from.
    * @param logSize The log of the number of table entries. 
    */
   public SanityDataTable(RawPageSpace rps, int logSize) {

@@ -50,10 +50,10 @@ public class SS extends StopTheWorld implements Uninterruptible {
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.35, false);
+  public static CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.32, false);
   
   /** One of the two semi spaces that alternate roles at each collection */
-  public static CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.35, true);
+  public static CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.32, true);
   
   public static final int SS0 = copySpace0.getDescriptor();
   public static final int SS1 = copySpace1.getDescriptor();

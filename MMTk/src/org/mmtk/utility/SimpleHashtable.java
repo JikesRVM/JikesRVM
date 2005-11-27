@@ -55,9 +55,9 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Create a new data table of a specified size.
    * 
-   * @param space The space to acquire the data structure from.
+   * @param rps The space to acquire the data structure from.
    * @param logSize The log of the number of table entries. 
-   * @param entrySize The size of each entry.
+   * @param es The size of each entry.
    */
   protected SimpleHashtable(RawPageSpace rps, int logSize, Extent es) {
     mask = Word.fromInt((1 << logSize) - 1);
@@ -98,7 +98,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * 
    * If create is true, the return is guaranteed to be non-null.
    * 
-   * @param ref The object to find the entry for.
+   * @param key The key used to lookup.
    * @param create Create a new entry if not found.
    * @return A pointer to the reference or null.
    */
@@ -130,7 +130,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Compute the hashtable index for a given object.
    * 
-   * @param ref The object.
+   * @param key The key.
    * @return The index. 
    */
   private final int computeHash(Word key) throws InlinePragma {
@@ -150,7 +150,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Does the passed object have an entry in the table?
    * 
-   * @param object The object to find an entry for
+   * @param key The key to find an entry for
    * @return True if there is an entry for that object.
    */
   public final boolean contains(Word key) {
@@ -194,7 +194,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Given a key, return a pointer to the payload.
    * 
-   * @param entry The entry
+   * @param key The key 
    * @return The object reference.
    */
   public final Address getPayloadAddress(Word key) {
