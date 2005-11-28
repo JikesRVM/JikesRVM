@@ -1,2 +1,4 @@
 *.java
 *.class
+*.c
+*.h
