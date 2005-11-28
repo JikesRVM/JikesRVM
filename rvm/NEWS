@@ -6,6 +6,16 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+
+*Jikes RVM 2.4.3 Release Notes (future)
+** Highlights
+*** Simple GC sanity checking tool added to MMTk. Contact: Daniel Frampton.
+
+** Bug fixes
+** Other Notes
+
+
+
 *Jikes RVM 2.4.2 Release Notes (released on November 21, 2005)
 **Highlights
 **The recommended version of GNU classpath for Jikes RVM 2.4.2 is 0.19.
