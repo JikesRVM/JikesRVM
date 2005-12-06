@@ -10,6 +10,15 @@ on October 14, 2001,
 *Jikes RVM 2.4.3 Release Notes (future)
 ** Highlights
 *** Simple GC sanity checking tool added to MMTk. Contact: Daniel Frampton.
+*** Loop Versioning optimization in the opt compiler 
+    contributed by Ian Rogers and Jisheng Zhao. 
+    Loop versioning replicates loop bodies and removes from one of
+    those loop bodies runtime exceptions that can be explicitly
+    tested. The phase runs as an SSA optimisation so as only to
+    consider true dependencies. To capture the loop structure the
+    phase uses an annotated LST node. The annotations capture
+    information about the initial and terminal loop iterator values,
+    as well as the loop iterator instructions.
 
 ** Bug fixes
 ** Other Notes
