@@ -13,7 +13,7 @@ import java.util.*;
  * @author Dave Grove
  * @author Mauricio J. Serrano
  */
-final class OPT_LSTNode extends OPT_SpaceEffGraphNode {
+class OPT_LSTNode extends OPT_SpaceEffGraphNode {
 
   /**
    * Basic block which is the loop head
@@ -44,6 +44,19 @@ final class OPT_LSTNode extends OPT_SpaceEffGraphNode {
 
   OPT_LSTNode(OPT_BasicBlock bb) {
     header = bb;
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param node for copying
+   */
+  protected OPT_LSTNode(OPT_LSTNode node) {
+    header         = node.header;
+    loop           = node.loop;
+    depth          = node.depth;
+    loopMultiplier = node.loopMultiplier;
+    loopExits      = node.loopExits;
   }
 
   OPT_BasicBlock getHeader() {

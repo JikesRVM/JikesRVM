@@ -100,6 +100,9 @@ Asume PEIs do not throw or state is not observable
 TURN_WHILES_INTO_UNTILS 2 false unwhile
 Turn whiles into untils
 
+LOOP_VERSIONING -1 false loop_versioning
+Loop versioning
+
 HANDLER_LIVENESS 2 false
 Store liveness for handlers to improve dependence graph at PEIs
 

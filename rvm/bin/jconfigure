@@ -1791,6 +1791,7 @@ EOF
 	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/expressionFolding
 	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
 	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loopAnalysis
 	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/redundantBranchElimination
 	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
 	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/inlining

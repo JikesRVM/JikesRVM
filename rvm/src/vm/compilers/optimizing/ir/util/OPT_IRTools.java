@@ -429,7 +429,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
                                                 OPT_BasicBlock out, 
                                                 OPT_IR ir) {
     // 1. Create the new basic block
-    OPT_BasicBlock bb = in.createSubBlock(-1, ir);
+    OPT_BasicBlock bb = in.createSubBlock(out.firstInstruction().bcIndex, ir);
     
     // 2. Splice the new basic block into the code order
     OPT_BasicBlock next = in.nextBasicBlockInCodeOrder();

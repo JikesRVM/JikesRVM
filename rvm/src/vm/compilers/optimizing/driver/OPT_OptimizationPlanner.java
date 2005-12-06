@@ -292,6 +292,8 @@ public class OPT_OptimizationPlanner {
         new OPT_SSATuneUp(), 
         // Global Code Placement,
         new OPT_GCP(), 
+        // Loop versioning
+        new OPT_LoopVersioning(),
         // Leave SSA 
         new OPT_LeaveSSA() })     {
           public boolean shouldPerform(OPT_Options options) {
