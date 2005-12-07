@@ -1,5 +1,5 @@
 /*
- * Ian Rogers, The University of Manchester 2003 - 2005
+ * (C) Copyright Ian Rogers, The University of Manchester 2003 - 2005
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
