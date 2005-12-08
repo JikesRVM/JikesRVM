@@ -280,7 +280,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase implements OPT_O
   /**
 	* The main entry point
 	*
-	* @param ir the IR to process
+	* @param _ir the IR to process
 	*/
   final public void perform(OPT_IR _ir) {
 	 ir = _ir;
@@ -1241,7 +1241,6 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase implements OPT_O
 	* its result by a fixed amount
 	*
 	* @param op operand to chase arraylength opcode to
-	* @param array length ref or null if this instruction isn't a
 	* constant value from an array length
 	*/
   private OPT_Operand getConstantAdjustedArrayLengthRef(OPT_Operand op) {
@@ -1270,7 +1269,6 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase implements OPT_O
 	* that adjust the array length result by a constant amount
 	*
 	* @param op operand to chase arraylength opcode to
-	* @param distance from array length
 	*/
   private int getConstantAdjustedArrayLengthDistance(OPT_Operand op) {
 	 OPT_Instruction opInstr = OPT_AnnotatedLSTNode.definingInstruction(op);
@@ -1447,7 +1445,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase implements OPT_O
   /**
 	* Put the optimized loop's iterator register into the hash set
 	*
-	* @param iterator register
+	* @param reg register
 	*/
   private void setOptimizedLoop(OPT_Register reg) {
 	 loopRegisterSet.add(reg);
@@ -1457,7 +1455,7 @@ public final class OPT_LoopVersioning extends OPT_CompilerPhase implements OPT_O
 	* Check whether the loop that contain such iterator register had
 	* been optimized
 	*
-	* @param iterator register
+	* @param reg register
 	* @return the test result
 	*/
   private boolean isOptimizedLoop(OPT_Register reg) {

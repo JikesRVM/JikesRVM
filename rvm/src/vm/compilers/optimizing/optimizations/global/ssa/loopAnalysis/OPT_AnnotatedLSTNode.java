@@ -443,7 +443,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
 	* Is this operand a fixed distance from the phi iterator?
 	*
 	* @param op the operand to test
-	* @result is it a fixed distance
+	* @return whether or not it is a fixed distance
 	*/
   boolean isFixedDistanceFromPhiIterator(OPT_Operand op) {
 	 if(op.similar(phiLoopIterator)) {
@@ -466,7 +466,7 @@ final class OPT_AnnotatedLSTNode extends OPT_LSTNode implements OPT_Operators{
 	* Get fixed distance from the phi iterator
 	*
 	* @param op the operand to test
-	* @result the fixed distance
+	* @return the fixed distance
 	*/
   int getFixedDistanceFromPhiIterator(OPT_Operand op) {
 	 if(op.similar(phiLoopIterator)) {
