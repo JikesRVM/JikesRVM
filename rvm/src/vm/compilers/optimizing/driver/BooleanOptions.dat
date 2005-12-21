@@ -142,9 +142,6 @@ Should we treat all monitorenter/monitorexit bytecodes as nops?
 STATIC_STATS -1 false
 Should we dump out compile-time statistics for basic blocks?
 
-FIXED_JTOC -1 VM.BuildForIA32
-Exploit knowledge that the value of JTOC is a constant?
-
 CODE_PATCH_NOP -1 false
 Should all patch point be (unsafely) eliminated (at initial HIR)?
 

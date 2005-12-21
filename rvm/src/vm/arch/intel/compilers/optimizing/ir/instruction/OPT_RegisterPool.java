@@ -32,24 +32,17 @@ public class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Ope
   }
 
   /**
-   * Inject an instruction to load the JTOC from
-   * the processor register and return an OPT_RegisterOperand
-   * that contains the result of said load.
+   * Return a constant operand that is the base address of the JTOC.
+   * TODO: This really should be returning an OPT_AddressConstantOperand,
+   *       but that causes rippling changes in BURS that are larger
+   *       than I want to deal with right now. --dave 12/20/2005.
    * 
    * @param  ir  the containing IR
    * @param s    the instruction to insert the load operand before
    * @return     a register operand that holds the JTOC
    */ 
   public OPT_Operand makeJTOCOp(OPT_IR ir, OPT_Instruction s) {
-    if (ir.options.FIXED_JTOC) {
-      Address jtoc = VM_Magic.getTocPointer();
-      return new OPT_IntConstantOperand(jtoc.toInt());
-    } else {
-      OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.IntArray);
-		OPT_RegisterOperand pr = new OPT_RegisterOperand(ir.regpool.getPhysicalRegisterSet().getPR(),
-																		 VM_TypeReference.Int);
-      s.insertBefore(Unary.create(GET_JTOC, res, pr));
-      return res.copyD2U();
-    }
+    Address jtoc = VM_Magic.getTocPointer();
+    return new OPT_IntConstantOperand(jtoc.toInt());
   }
 }
