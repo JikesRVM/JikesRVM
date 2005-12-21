@@ -21,6 +21,7 @@ on October 14, 2001,
     as well as the loop iterator instructions.
 
 ** Bug fixes
+*** defect 1240267: remove FIXED_JTOC option
 ** Other Notes
 
 
