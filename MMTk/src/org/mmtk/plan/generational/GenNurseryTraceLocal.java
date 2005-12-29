@@ -31,7 +31,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
   *
   * Instance fields.
   */
-  private final WriteBuffer remset;
+  private final WriteBuffer remset; 
   private final AddressDeque traceRemset;
   private final AddressPairDeque arrayRemset;
 
@@ -95,6 +95,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
       traceObjectLocation(loc, false);
     }
     logMessage(5, "processing array remset");
+    arrayRemset.flushLocal();
     while (!arrayRemset.isEmpty()) {
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
@@ -102,10 +103,6 @@ public final class GenNurseryTraceLocal extends TraceLocal
         traceObjectLocation(start, false);
         start = start.add(BYTES_IN_ADDRESS);
       }
-    }
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(traceRemset.isEmpty());
-      Assert._assert(arrayRemset.isEmpty());
     }
   }
 

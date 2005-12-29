@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
  */
 public abstract class GenLocal extends StopTheWorldLocal
   implements Uninterruptible {
-
+  
   /**
    * @return The active global plan as a <code>Gen</code> instance.
    */
