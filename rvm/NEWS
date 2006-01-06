@@ -10,6 +10,7 @@ on October 14, 2001,
 *Jikes RVM 2.4.3 Release Notes (future)
 ** Highlights
 *** Simple GC sanity checking tool added to MMTk. Contact: Daniel Frampton.
+
 *** Loop Versioning optimization in the opt compiler 
     contributed by Ian Rogers and Jisheng Zhao. 
     Loop versioning replicates loop bodies and removes from one of
@@ -19,6 +20,9 @@ on October 14, 2001,
     phase uses an annotated LST node. The annotations capture
     information about the initial and terminal loop iterator values,
     as well as the loop iterator instructions.
+
+*** The optimizing compiler's Local CSE pass now exploits commutativity,
+    patch contributed by Bernardo Pastorelli.
 
 ** Bug fixes
 *** defect 1240267: remove FIXED_JTOC option
