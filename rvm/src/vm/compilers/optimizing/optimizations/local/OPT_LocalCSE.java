@@ -769,9 +769,11 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
           return false;
         if (isTernary() && !op3.similar(ae.op3))
           return false;
-        if (isBinary() && !op2.similar(ae.op2))
-          return false;
-        return op1.similar(ae.op1);
+        if (!isBinary())
+          return op1.similar(ae.op1);
+        if (op1.similar(ae.op1) && op2.similar(ae.op2))
+          return true;
+        return isCommutative() && op1.similar(ae.op2) && op2.similar(ae.op1);
       }
     }
 
@@ -817,6 +819,13 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     public final boolean isBoundsCheck () {
       return BoundsCheck.conforms(opr) 
         || (TrapIf.conforms(opr) && ((OPT_TrapCodeOperand)op3).isArrayBounds());
+    }
+    
+    /**
+     * Is this expression commutative?
+     */
+    public final boolean isCommutative () {
+      return opr.isCommutative();
     }
   }
 }

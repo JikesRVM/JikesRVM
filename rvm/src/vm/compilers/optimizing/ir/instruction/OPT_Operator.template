@@ -322,6 +322,8 @@ $$$$ END IF
   static final private int fpPop        = 0x00200000; 
   // operator pushs floating-point stack before performing defs
   static final private int fpPush       = 0x00400000; 
+  // operator is commutative
+  static final private int commutative  = 0x00800000; 
 
   /**
    * Does the operator represent a simple move (the value is unchanged) 
@@ -655,6 +657,16 @@ $$$$ END IF
    */
   public final boolean isFpPush() {
     return (traits & fpPush) != 0;
+  }
+
+  /**
+   * Is the operator commutative?
+   * 
+   * @return <code>true</code> if the operator is commutative.
+   *         or <code>false</code> if not.
+   */
+  public final boolean isCommutative() {
+    return (traits & commutative) != 0;
   }
 
 

@@ -619,7 +619,7 @@ none
 # the result in a register operand.
 REF_ADD
 Binary
-none
+commutative
 
 
 
@@ -627,7 +627,7 @@ none
 # the result in a register operand.
 INT_ADD
 Binary
-none
+commutative
 
 
 
@@ -635,7 +635,7 @@ none
 # the result in a register operand.
 LONG_ADD
 Binary
-none
+commutative
 
 
 
@@ -643,7 +643,7 @@ none
 # the result in a register operand.
 FLOAT_ADD
 Binary
-none
+commutative
 
 
 
@@ -651,7 +651,7 @@ none
 # the result in a register operand.
 DOUBLE_ADD
 Binary
-none
+commutative
 
 
 
@@ -699,7 +699,7 @@ none
 # the result in a register operand.
 INT_MUL
 Binary
-none
+commutative
 
 
 
@@ -707,7 +707,7 @@ none
 # the result in a register operand.
 LONG_MUL
 Binary
-none
+commutative
 
 
 
@@ -715,7 +715,7 @@ none
 # the result in a register operand.
 FLOAT_MUL
 Binary
-none
+commutative
 
 
 
@@ -723,7 +723,7 @@ none
 # the result in a register operand.
 DOUBLE_MUL
 Binary
-none
+commutative
 
 
 
@@ -927,56 +927,56 @@ none
 # put bitwise and of two (register/constant) word operands into a register operand
 REF_AND
 Binary
-none
+commutative
 
 
 
 # put bitwise and of two (register/constant) int operands into a register operand
 INT_AND
 Binary
-none
+commutative
 
 
 
 # put bitwise and of two (register/constant) long operands into a register operand
 LONG_AND
 Binary
-none
+commutative
 
 
 
 # put bitwise or of two (register/constant) int operands into a register operand
 REF_OR
 Binary
-none
+commutative
 
 
 
 # put bitwise or of two (register/constant) int operands into a register operand
 INT_OR
 Binary
-none
+commutative
 
 
 
 # put bitwise or of two (register/constant) long operands into a register operand
 LONG_OR
 Binary
-none
+commutative
 
 
 
 # put bitwise xor of two (register/constant) int operands into a register operand
 REF_XOR
 Binary
-none
+commutative
 
 
 
 # put bitwise xor of two (register/constant) int operands into a register operand
 INT_XOR
 Binary
-none
+commutative
 
 
 
@@ -1004,7 +1004,7 @@ none
 # put bitwise xor of two (register/constant) long operands into a register operand
 LONG_XOR
 Binary
-none
+commutative
 
 
 
