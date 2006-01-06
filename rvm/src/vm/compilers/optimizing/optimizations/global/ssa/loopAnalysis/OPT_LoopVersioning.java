@@ -95,7 +95,7 @@ import java.util.Enumeration;
  *             astore t2_1, l1, t1_1, g6_1
  *   }
  *   goto successor_to_loops
- * sub_optimal_loop:
+ * optimal_loop:
  *   for (int t1_2=0; t1_2 &lt; 100; t1_2++) {
  *      g1_2 = true_guard
  *      g2_2 = true_guard
