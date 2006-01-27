@@ -11,6 +11,14 @@ on October 14, 2001,
 ** Highlights
 *** Simple GC sanity checking tool added to MMTk. Contact: Daniel Frampton.
 
+*** The RVM bootimage is now generated into two separate files, one for
+    code and one for data.  These files are mapped separately into distinct
+    address ranges.  As a result of this change, instead of defining 
+    BOOTIMAGE_LOAD_ADDRESS in your config file, you must define 
+    BOOTIMAGE_DATA_ADDRESS and BOOTIMAGE_CODE_ADDRESS. 
+    All the default configu files (rvm/config/*) have been updated, 
+    but if you have local copies of these files, you will need to update them.
+
 *** Loop Versioning optimization in the opt compiler 
     contributed by Ian Rogers and Jisheng Zhao. 
     Loop versioning replicates loop bodies and removes from one of
