@@ -31,9 +31,9 @@ import org.vmmagic.pragma.*;
 public class Memory 
   implements Constants, VM_HeapLayoutConstants, Uninterruptible {
 
-  public static Address HEAP_START() { return BOOT_IMAGE_START; }
+  public static Address HEAP_START() { return BOOT_IMAGE_DATA_START; }
   public static Address HEAP_END() { return MAXIMUM_MAPPABLE; }
-  public static Address AVAILABLE_START() { return BOOT_IMAGE_END; }
+  public static Address AVAILABLE_START() { return BOOT_IMAGE_CODE_END; }
   public static Address AVAILABLE_END() { return MAXIMUM_MAPPABLE; }
 
   private static ImmortalSpace bootSpace;

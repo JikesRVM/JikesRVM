@@ -81,21 +81,21 @@ public class BootImageMap extends BootImageWriterMessages
     Object jdkObject;
 
     /**
-     * Offset of corresponding rvm object in bootimage, in bytes
+     * Address of corresponding rvm object in bootimage
      * (OBJECT_NOT_ALLOCATED --> hasn't been written to image yet)
      */
-    Offset imageOffset;
+    Address imageAddress;
 
     /**
      * Constructor.
      * @param objectId unique id
      * @param jdkObject the JDK object
-     * @param imageOffset the offset of the object in the bootimage
+     * @param imageAddress the address of the object in the bootimage
      */
-    public Entry(Address objectId, Object jdkObject, Offset imageOffset) {
-      this.objectId    = objectId;
-      this.jdkObject   = jdkObject;
-      this.imageOffset = imageOffset;
+    public Entry(Address objectId, Object jdkObject, Address imageAddress) {
+      this.objectId     = objectId;
+      this.jdkObject    = jdkObject;
+      this.imageAddress = imageAddress;
     }
   }
 
@@ -111,7 +111,7 @@ public class BootImageMap extends BootImageWriterMessages
     keyToEntry      = new Hashtable(5000);
     objectIdToEntry = new ArrayList(5000);
     // predefine "null" object
-    objectIdToEntry.add(nullEntry = new Entry(newId(), null, Offset.zero()));
+    objectIdToEntry.add(nullEntry = new Entry(newId(), null, Address.zero()));
     // slot 0 reserved for "null" object entry
   }
 
@@ -124,7 +124,7 @@ public class BootImageMap extends BootImageWriterMessages
     if (jdkObject == null)
       return nullEntry;
 
-    Key   key   = new Key(jdkObject);
+    Key key   = new Key(jdkObject);
     Entry entry = (Entry) keyToEntry.get(key);
     if (entry == null) {
       entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
@@ -149,25 +149,16 @@ public class BootImageMap extends BootImageWriterMessages
    * @param jdkObject JDK object
    * @return offset of corresponding rvm object within bootimage, in bytes
    */
-  public static Offset getImageOffset(Object jdkObject) {
+  public static Address getImageAddress(Object jdkObject, boolean fatalIfNotFound) {
     BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
-    if (mapEntry.imageOffset.EQ(OBJECT_NOT_ALLOCATED))
-      fail(jdkObject + " is not in bootimage");
-    return mapEntry.imageOffset;
-  }
-
-  /**
-   * Get bootimage address of an object.
-   * @param bootImageAddress the starting address of the bootimage
-   * @param jdkObject JDK object
-   * @return address of corresponding rvm object within bootimage, in bytes
-   *         or 0 if not present
-   */
-  public static Address getImageAddress(Address bootImageAddress, Object jdkObject) {
-    BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
-    if (mapEntry.imageOffset.EQ(OBJECT_NOT_ALLOCATED))
-      return Address.zero();
-    return bootImageAddress.add(mapEntry.imageOffset);
+    if (mapEntry.imageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
+      if (fatalIfNotFound) {
+        fail(jdkObject + " is not in bootimage");
+      } else {
+        return Address.zero();
+      }
+    }
+    return mapEntry.imageAddress;
   }
 }
 

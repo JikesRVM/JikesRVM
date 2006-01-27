@@ -27,8 +27,9 @@ static const int SYSLOGFILE_INDEX              = SX_INDEX+1;
 #else
 static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
 #endif /* RVM_WITH_FLEXIBLE_STACK_SIZES */
-static const int BOOTIMAGE_FILE_INDEX          = SYSLOGFILE_INDEX+1;
-static const int VM_INDEX                      = BOOTIMAGE_FILE_INDEX+1;
+static const int BOOTIMAGE_CODE_FILE_INDEX     = SYSLOGFILE_INDEX+1;
+static const int BOOTIMAGE_DATA_FILE_INDEX     = BOOTIMAGE_CODE_FILE_INDEX+1;
+static const int VM_INDEX                      = BOOTIMAGE_DATA_FILE_INDEX+1;
 static const int GC_INDEX                      = VM_INDEX+1;
 static const int AOS_INDEX                     = GC_INDEX+1;
 static const int IRC_INDEX                     = AOS_INDEX+1;
@@ -55,7 +56,8 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-Xsx",
 #endif
    "-X:sysLogfile=",
-   "-X:i=",
+   "-X:ic=",
+   "-X:id=",
    "-X:vm",
    "-X:gc",
    "-X:aos",
@@ -84,7 +86,8 @@ static const char* nonStandardUsage[] = {
    "    -Xsx<number><unit>       Maximum Java thread stack size",
 #endif
    "    -X:sysLogfile=<filename> Write standard error message to <filename>",
-   "    -X:i=<filename>          Read boot image from <filename>",
+   "    -X:ic=<filename>         Read boot image code from <filename>",
+   "    -X:id=<filename>         Read boot image data from <filename>",
    "    -X:vm:<option>           Pass <option> to virtual machine",
    "          :help              Print usage choices for -X:vm",
    "    -X:gc:<option>           Pass <option> on to GC subsystem",

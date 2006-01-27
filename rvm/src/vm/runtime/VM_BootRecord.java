@@ -122,9 +122,11 @@ public class VM_BootRecord {
   /**
    * address at which image is to be loaded into memory
    */
-  public Address bootImageStart;
-  public Address bootImageEnd;
-
+  public Address bootImageDataStart;
+  public Address bootImageDataEnd;
+  public Address bootImageCodeStart;
+  public Address bootImageCodeEnd;
+  
   /**
    * initial size of heap
    */

@@ -148,7 +148,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(BootImageInterface bootImage, Offset refOffset, 
+  public static void setTIB(BootImageInterface bootImage, Address refOffset, 
                             Address tibAddr, VM_Type type) throws InterruptiblePragma {
     bootImage.setAddressWord(refOffset.add(TIB_OFFSET), tibAddr.toWord());
   }
@@ -542,8 +542,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Non-atomic write of word containing available bits
    */
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
-                                            Offset ref, Word val) throws InterruptiblePragma {
-    bootImage.setAddressWord(STATUS_OFFSET.add(ref), val);
+                                            Address ref, Word val) throws InterruptiblePragma {
+    bootImage.setAddressWord(ref.add(STATUS_OFFSET), val);
   }
 
   /**
@@ -743,10 +743,11 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param tib  The TIB of the instance being created
    * @param size The number of bytes allocated by the GC system for this object.
    */
-  public static Offset initializeScalarHeader(BootImageInterface bootImage,
-                                           Offset ptr, Object[] tib, int size)
+  public static Address initializeScalarHeader(BootImageInterface bootImage,
+                                               Address ptr, Object[] tib,
+                                               int size)
     throws InterruptiblePragma {
-    Offset ref = ptr.add(OBJECT_REF_OFFSET);
+    Address ref = ptr.add(OBJECT_REF_OFFSET);
     return ref;
   }
 
@@ -772,10 +773,11 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param size the number of bytes allocated by the GC system for this object.
    * @return Document ME TODO XXX
    */
-  public static Offset initializeArrayHeader(BootImageInterface bootImage, Offset ptr, 
-                                          Object[] tib, int size) throws InterruptiblePragma {
-    Offset ref = ptr.add(OBJECT_REF_OFFSET);
-    // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
+  public static Address initializeArrayHeader(BootImageInterface bootImage,
+                                              Address ptr, 
+                                              Object[] tib, int size) throws InterruptiblePragma {
+    Address ref = ptr.add(OBJECT_REF_OFFSET);
+    // (TIB set by BootImageWriter; array length set by VM_ObjectModel)
     return ref;
   }
 

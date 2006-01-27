@@ -213,8 +213,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public Word setBootTimeGCBits(Offset ref, ObjectReference typeRef,
-                                       int size, Word status)
+  public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
+                                int size, Word status)
     throws InlinePragma {
     return status; // nothing to do (no bytes of GC header)
   }

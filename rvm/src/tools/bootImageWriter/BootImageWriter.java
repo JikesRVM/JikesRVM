@@ -39,7 +39,8 @@ import org.vmmagic.unboxed.*;
  *    -detailed                print detailed info on traversed objects
  *                                  (double-increment "verbose")
  *    -demographics            show summary of how boot space is used
- *    -ia <addr>               address where boot image starts
+ *    -ca <addr>               address where code portion of boot image starts
+ *    -da <addr>               address where data portion of boot image starts
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
  *    -profile                 time major phases of bootimage writing
@@ -51,7 +52,6 @@ import org.vmmagic.unboxed.*;
  * reflection)
  *
  * @modified Steven Augart 16 Mar 2004  Fixes to bootstrap under Kaffe
-
  */
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
@@ -160,13 +160,25 @@ public class BootImageWriter extends BootImageWriterMessages
   private static final boolean INSTANCE_FIELD = false;
 
   /**
-   * The absolute address at which the bootImage is going to be loaded.
+   * The absolute address at which the data portion of the
+   * bootImage is going to be loaded.
    */
-  public static Address bootImageAddress = Address.zero();
+  public static Address bootImageDataAddress = Address.zero();
 
-  public static Address getBootImageAddress()  {
-    if (bootImageAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
-    return bootImageAddress;
+  /**
+   * The absolute address at which the code portion of the
+   * bootImage is going to be loaded.
+   */
+  public static Address bootImageCodeAddress = Address.zero();
+
+  public static Address getBootImageDataAddress()  {
+    if (bootImageDataAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+    return bootImageDataAddress;
+  }
+
+  public static Address getBootImageCodeAddress()  {
+    if (bootImageCodeAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+    return bootImageCodeAddress;
   }
 
   /**
@@ -291,7 +303,8 @@ public class BootImageWriter extends BootImageWriterMessages
   public static void main(String args[]) 
     throws Exception
   {
-    String   bootImageName         = null;
+    String   bootImageCodeName     = null;
+    String   bootImageDataName     = null;
     String   bootImageMapName      = null;
     Vector   bootImageTypeNames    = null;
     String   bootImageTypeNamesFile = null;
@@ -311,11 +324,18 @@ public class BootImageWriter extends BootImageWriterMessages
     // Process command line directives.
     //
     for (int i = 0; i < args.length; ++i) {
-      // name of image file
-      if (args[i].equals("-o")) {
+      // name of code image file
+      if (args[i].equals("-oc")) {
         if (++i >= args.length)
-          fail("argument syntax error: Got a -o flag without a following image file name");
-        bootImageName = args[i];
+          fail("argument syntax error: Got a -oc flag without a following data image file name");
+        bootImageCodeName = args[i];
+        continue;
+      }
+      // name of data image file
+      if (args[i].equals("-od")) {
+        if (++i >= args.length)
+          fail("argument syntax error: Got a -od flag without a following data image file name");
+        bootImageDataName = args[i];
         continue;
       }
       // name of map file
@@ -325,11 +345,18 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImageMapName = args[i];
         continue;
       }
-      // image address
-      if (args[i].equals("-ia")) {
+      // image code start address
+      if (args[i].equals("-ca")) {
         if (++i >= args.length)
-          fail("argument syntax error: Got a -ia flag without a following image address");
-        bootImageAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
+          fail("argument syntax error: Got a -ca flag without a following image address");
+        bootImageCodeAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
+        continue;
+      }
+      // image data start address
+      if (args[i].equals("-da")) {
+        if (++i >= args.length)
+          fail("argument syntax error: Got a -da flag without a following image address");
+        bootImageDataAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
         continue;
       }
       // file containing names of types to be placed into bootimage
@@ -409,8 +436,11 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     // Check command line directives for correctness.
     //
-    if (bootImageName == null)
-      fail("please specify \"-o <boot-image-filename>\"");
+    if (bootImageCodeName == null)
+      fail("please specify \"-o <boot-image-code-filename>\"");
+
+    if (bootImageDataName == null)
+      fail("please specify \"-o <boot-image-data-filename>\"");
 
     if (bootImageTypeNamesFile == null)
       fail("please specify \"-n <boot-image-type-names-filename>\"");
@@ -421,11 +451,14 @@ public class BootImageWriter extends BootImageWriterMessages
     if (bootImageRepositoriesAtExecutionTime == null)
       bootImageRepositoriesAtExecutionTime = bootImageRepositoriesAtBuildTime;
 
-    if (bootImageAddress.isZero())
-      fail("please specify boot-image address with \"-ia <addr>\"");
-    if (!(bootImageAddress.toWord().and(Word.fromIntZeroExtend(0x00FFFFFF)).isZero()))
+    if (bootImageDataAddress.isZero())
+      fail("please specify boot-image address with \"-da <addr>\"");
+    if (!(bootImageDataAddress.toWord().and(Word.fromIntZeroExtend(0x00FFFFFF)).isZero()))
       fail("please specify a boot-image address that is a multiple of 0x01000000");
-    // MM_Interface.checkBootImageAddress(bootImageAddress);
+    if (bootImageCodeAddress.isZero())
+      fail("please specify boot-image address with \"-ca <addr>\"");
+    if (!(bootImageCodeAddress.toWord().and(Word.fromIntZeroExtend(0x00FFFFFF)).isZero()))
+      fail("please specify a boot-image address that is a multiple of 0x01000000");
 
     //
     // Initialize the bootimage.
@@ -519,12 +552,13 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     if (verbose >= 1) say("copying boot record");
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    Offset bootRecordImageOffset = Offset.zero();
+    Address bootRecordImageAddress = Address.zero();
     try {
       // copy just the boot record
-      bootRecordImageOffset = copyToBootImage(bootRecord, true, Offset.max(), null); 
-      if (bootRecordImageOffset.EQ(OBJECT_NOT_PRESENT))
+      bootRecordImageAddress = copyToBootImage(bootRecord, true, Address.max(), null); 
+      if (bootRecordImageAddress.EQ(OBJECT_NOT_PRESENT)) {
         fail("can't copy boot record");
+      }
     } catch (IllegalAccessException e) {
       fail("can't copy boot record: "+e);
     }
@@ -533,17 +567,18 @@ public class BootImageWriter extends BootImageWriterMessages
     // Next, copy the jtoc.
     //
     if (verbose >= 1) say("copying jtoc");
-    Offset jtocImageOffset = Offset.zero();
+    Address jtocImageAddress = Address.zero();
     try {
-      jtocImageOffset = copyToBootImage(VM_Statics.getSlotsAsIntArray(), false, Offset.max(), null);
-      if (jtocImageOffset.EQ(OBJECT_NOT_PRESENT))
+      jtocImageAddress = copyToBootImage(VM_Statics.getSlotsAsIntArray(), false, Address.max(), null);
+      if (jtocImageAddress.EQ(OBJECT_NOT_PRESENT)) {
         fail("can't copy jtoc");
+      }
     } catch (IllegalAccessException e) {
       fail("can't copy jtoc: "+e);
     }
 
-    if (bootImageAddress.add(jtocImageOffset).NE(bootRecord.tocRegister))
-      fail("mismatch in JTOC placement "+VM.addressAsHexString(bootImageAddress.add(jtocImageOffset))+" != "+ VM.addressAsHexString(bootRecord.tocRegister));
+    if (jtocImageAddress.NE(bootRecord.tocRegister))
+      fail("mismatch in JTOC placement "+VM.addressAsHexString(jtocImageAddress)+" != "+ VM.addressAsHexString(bootRecord.tocRegister));
 
     //
     // Now, copy all objects reachable from jtoc, replacing each object id
@@ -576,14 +611,15 @@ public class BootImageWriter extends BootImageWriterMessages
 
         if (verbose >= 2) traceContext.push(jdkObject.getClass().getName(),
                                             getRvmStaticFieldName(jtocOff));
-        Offset imageOffset = copyToBootImage(jdkObject, false, Offset.max(), VM_Statics.getSlotsAsIntArray());
-        if (imageOffset.EQ(OBJECT_NOT_PRESENT)) {
+        Address imageAddress = copyToBootImage(jdkObject, false, Address.max(), VM_Statics.getSlotsAsIntArray());
+        if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
           // object not part of bootimage: install null reference
           if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-          bootImage.setNullAddressWord(jtocOff.add(jtocImageOffset)); // jtoc is int[]!
-        } else
-          bootImage.setAddressWord(jtocImageOffset.add(jtocOff), // jtoc is int[]!
-                                   bootImageAddress.add(imageOffset).toWord());
+          bootImage.setNullAddressWord(jtocImageAddress.add(jtocOff));
+        } else {
+          bootImage.setAddressWord(jtocImageAddress.add(jtocOff),
+                                   imageAddress.toWord());
+        }
         if (verbose >= 2) traceContext.pop();
       }
     } catch (IllegalAccessException e) {
@@ -606,24 +642,25 @@ public class BootImageWriter extends BootImageWriterMessages
     VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentEntryCodeArray();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
-    bootRecord.spRegister  = bootImageAddress.add(BootImageMap.getImageOffset(startupStack).add(
-                                                          startupStack.length));
-    bootRecord.ipRegister  = bootImageAddress.add(BootImageMap.getImageOffset(startupCode.getBacking()));
+    bootRecord.spRegister  = BootImageMap.getImageAddress(startupStack, true).add(startupStack.length);
+    bootRecord.ipRegister  = BootImageMap.getImageAddress(startupCode.getBacking(), true);
 
     bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
 
-    bootRecord.bootImageStart = bootImageAddress;
-    bootRecord.bootImageEnd   = bootImageAddress.add(bootImage.getSize());
+    bootRecord.bootImageDataStart = bootImageDataAddress;
+    bootRecord.bootImageDataEnd   = bootImageDataAddress.add(bootImage.getDataSize());
+    bootRecord.bootImageCodeStart = bootImageCodeAddress;
+    bootRecord.bootImageCodeEnd   = bootImageCodeAddress.add(bootImage.getCodeSize());
 
     // Update field of boot record now by re-copying
     //
     if (verbose >= 1) say("re-copying boot record (and its TIB)");
     try {
-      Offset newBootRecordImageOffset = copyToBootImage(bootRecord, false, bootRecordImageOffset, null); 
-      if (!newBootRecordImageOffset.EQ(bootRecordImageOffset)) {
-        VM.sysWriteln("bootRecordImageOffset = ", bootRecordImageOffset);
-        VM.sysWriteln("newBootRecordImageOffset = ", newBootRecordImageOffset);
-        VM._assert(newBootRecordImageOffset.EQ(bootRecordImageOffset));
+      Address newBootRecordImageAddress = copyToBootImage(bootRecord, false, bootRecordImageAddress, null); 
+      if (!newBootRecordImageAddress.EQ(bootRecordImageAddress)) {
+        VM.sysWriteln("bootRecordImageOffset = ", bootRecordImageAddress);
+        VM.sysWriteln("newBootRecordImageOffset = ", newBootRecordImageAddress);
+        VM._assert(newBootRecordImageAddress.EQ(bootRecordImageAddress));
       }
     } catch (IllegalAccessException e) {
       fail("unable to update boot record: "+e);
@@ -644,7 +681,7 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     if (profile) startTime = System.currentTimeMillis();
     try {
-      bootImage.write(bootImageName);
+      bootImage.write(bootImageCodeName, bootImageDataName);
     } catch (IOException e) {
       fail("unable to write bootImage: "+e);
     }
@@ -892,14 +929,14 @@ public class BootImageWriter extends BootImageWriterMessages
       VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
       VM_Class rvmBRType = getRvmType(bootRecord.getClass()).asClass();
       VM_Array intArrayType =  VM_Array.getPrimitiveArrayType(10);
-      Offset brOffset = bootImage.allocateStorage(rvmBRType.getInstanceSize(), 
-                                               VM_ObjectModel.getAlignment(rvmBRType), 
-                                               VM_ObjectModel.getOffsetForAlignment(rvmBRType));
-      Offset jtocOffset = bootImage.allocateStorage(intArrayType.getInstanceSize(0),
-                                                 VM_ObjectModel.getAlignment(intArrayType),
-                                                 VM_ObjectModel.getOffsetForAlignment(intArrayType));
+      Address brAddress = bootImage.allocateDataStorage(rvmBRType.getInstanceSize(), 
+                                                        VM_ObjectModel.getAlignment(rvmBRType), 
+                                                        VM_ObjectModel.getOffsetForAlignment(rvmBRType));
+      Address jtocAddress = bootImage.allocateDataStorage(intArrayType.getInstanceSize(0),
+                                                          VM_ObjectModel.getAlignment(intArrayType),
+                                                          VM_ObjectModel.getOffsetForAlignment(intArrayType));
       bootImage.resetAllocator();
-      bootRecord.tocRegister = bootImageAddress.add(jtocOffset).add(intArrayType.getInstanceSize(0));
+      bootRecord.tocRegister = jtocAddress.add(intArrayType.getInstanceSize(0));
 
       //
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
@@ -1256,24 +1293,25 @@ public class BootImageWriter extends BootImageWriterMessages
    * are references) from host jdk address space into image.
    *
    * @param jdkObject object to be copied
-   * @param if allocOnly is true, the TIB and other reference fields are not recursively copied
-   * @param if overwriteOffset is > 0, then copy object to given address
+   * @param allocOnly if allocOnly is true, the TIB and other reference fields are not recursively copied
+   * @param overwriteAddress if !overwriteAddress.isMax(), then copy object to given address
    *
    * @return offset of copied object within image, in bytes
    *         (OBJECT_NOT_PRESENT --> object not copied:
    *            it's not part of bootimage)
    */
-  private static Offset copyToBootImage(Object jdkObject, 
-                                     boolean allocOnly, Offset overwriteOffset, 
-                                     Object parentObject)
+  private static Address copyToBootImage(Object jdkObject, 
+                                         boolean allocOnly,
+                                         Address overwriteAddress,
+                                         Object parentObject)
     throws IllegalAccessException
     {
       //
       // Return object if it is already copied and not being overwritten
       //
       BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
-      if ((!mapEntry.imageOffset.EQ(OBJECT_NOT_ALLOCATED)) && overwriteOffset.isMax())
-        return mapEntry.imageOffset;
+      if ((!mapEntry.imageAddress.EQ(OBJECT_NOT_ALLOCATED)) && overwriteAddress.isMax())
+        return mapEntry.imageAddress;
 
       if (verbose >= 2) depth++;
 
@@ -1298,8 +1336,8 @@ public class BootImageWriter extends BootImageWriterMessages
         // allocate space in image
         //
         int arrayCount       = Array.getLength(jdkObject);
-        Offset arrayImageOffset = (overwriteOffset.isMax()) ? bootImage.allocateArray(rvmArrayType, arrayCount) : overwriteOffset;
-        mapEntry.imageOffset = arrayImageOffset;
+        Address arrayImageAddress = (overwriteAddress.isMax()) ? bootImage.allocateArray(rvmArrayType, arrayCount) : overwriteAddress;
+        mapEntry.imageAddress = arrayImageAddress;
 
         if (verbose >= 2) {
           if (depth == depthCutoff) 
@@ -1338,43 +1376,43 @@ public class BootImageWriter extends BootImageWriterMessages
           if (rvmElementType.equals(VM_Type.BooleanType)) {
             boolean values[] = (boolean[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setByte(arrayImageOffset.add(i), values[i] ? 1 : 0);
+              bootImage.setByte(arrayImageAddress.add(i), values[i] ? 1 : 0);
           }
           else if (rvmElementType.equals(VM_Type.ByteType)) {
             byte values[] = (byte[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setByte(arrayImageOffset.add(i), values[i]);
+              bootImage.setByte(arrayImageAddress.add(i), values[i]);
           }
           else if (rvmElementType.equals(VM_Type.CharType)) {
             char values[] = (char[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setHalfWord(arrayImageOffset.add(i << LOG_BYTES_IN_CHAR), values[i]);
+              bootImage.setHalfWord(arrayImageAddress.add(i << LOG_BYTES_IN_CHAR), values[i]);
           }
           else if (rvmElementType.equals(VM_Type.ShortType)) {
             short values[] = (short[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setHalfWord(arrayImageOffset.add(i << LOG_BYTES_IN_SHORT), values[i]);
+              bootImage.setHalfWord(arrayImageAddress.add(i << LOG_BYTES_IN_SHORT), values[i]);
           }
           else if (rvmElementType.equals(VM_Type.IntType)) {
             int values[] = (int[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setFullWord(arrayImageOffset.add(i << LOG_BYTES_IN_INT), values[i]);
+              bootImage.setFullWord(arrayImageAddress.add(i << LOG_BYTES_IN_INT), values[i]);
           }
           else if (rvmElementType.equals(VM_Type.LongType)) {
             long values[] = (long[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setDoubleWord(arrayImageOffset.add(i << LOG_BYTES_IN_LONG), values[i]);
+              bootImage.setDoubleWord(arrayImageAddress.add(i << LOG_BYTES_IN_LONG), values[i]);
           }
           else if (rvmElementType.equals(VM_Type.FloatType)) {
             float values[] = (float[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setFullWord(arrayImageOffset.add(i << LOG_BYTES_IN_FLOAT),
+              bootImage.setFullWord(arrayImageAddress.add(i << LOG_BYTES_IN_FLOAT),
                                     Float.floatToIntBits(values[i]));
           }
           else if (rvmElementType.equals(VM_Type.DoubleType)) {
             double values[] = (double[]) jdkObject;
             for (int i = 0; i < arrayCount; ++i)
-              bootImage.setDoubleWord(arrayImageOffset.add(i << LOG_BYTES_IN_DOUBLE),
+              bootImage.setDoubleWord(arrayImageAddress.add(i << LOG_BYTES_IN_DOUBLE),
                                       Double.doubleToLongBits(values[i]));
           } 
           else
@@ -1388,14 +1426,14 @@ public class BootImageWriter extends BootImageWriterMessages
               if (values[i] != null) {
                 if (verbose >= 2) traceContext.push(values[i].getClass().getName(),
                                                     jdkClass.getName(), i);
-                Offset imageOffset = copyToBootImage(values[i], allocOnly, Offset.max(), jdkObject);
-                if (imageOffset.EQ(OBJECT_NOT_PRESENT)) {
+                Address imageAddress = copyToBootImage(values[i], allocOnly, Address.max(), jdkObject);
+                if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
                   // object not part of bootimage: install null reference
                   if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-                  bootImage.setNullAddressWord(arrayImageOffset.add(i << LOG_BYTES_IN_ADDRESS));
+                  bootImage.setNullAddressWord(arrayImageAddress.add(i << LOG_BYTES_IN_ADDRESS));
                 } else {
-                  bootImage.setAddressWord(arrayImageOffset.add(i << LOG_BYTES_IN_ADDRESS),
-                                           bootImageAddress.add(imageOffset).toWord());
+                  bootImage.setAddressWord(arrayImageAddress.add(i << LOG_BYTES_IN_ADDRESS),
+                                           imageAddress.toWord());
                 }
                 if (verbose >= 2) traceContext.pop();
               }
@@ -1407,42 +1445,42 @@ public class BootImageWriter extends BootImageWriterMessages
           if (verbose >= 2) depth--;
           AddressArray addrArray = (AddressArray) jdkObject;
           Object backing = addrArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
         if (rvmType == VM_Type.ObjectReferenceArrayType) {
           if (verbose >= 2) depth--;
           ObjectReferenceArray orArray = (ObjectReferenceArray) jdkObject;
           Object backing = orArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
         if (rvmType == VM_Type.OffsetArrayType) {
           if (verbose >= 2) depth--;
           OffsetArray addrArray = (OffsetArray) jdkObject;
           Object backing = addrArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
         if (rvmType == VM_Type.WordArrayType) {
           if (verbose >= 2) depth--;
           WordArray addrArray = (WordArray) jdkObject;
           Object backing = addrArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
         if (rvmType == VM_Type.ExtentArrayType) {
           if (verbose >= 2) depth--;
           ExtentArray addrArray = (ExtentArray) jdkObject;
           Object backing = addrArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
         if (rvmType == VM_Type.CodeArrayType) {
           if (verbose >= 2) depth--;
           VM_CodeArray codeArray = (VM_CodeArray) jdkObject;
           Object backing = codeArray.getBacking();
-          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteAddress, parentObject);
         }
 
         if (rvmType.isMagicType()) {
@@ -1454,8 +1492,8 @@ public class BootImageWriter extends BootImageWriterMessages
         // allocate space in image
         //
         VM_Class rvmScalarType = rvmType.asClass();
-        Offset scalarImageOffset = (overwriteOffset.isMax()) ? bootImage.allocateScalar(rvmScalarType) : overwriteOffset;
-        mapEntry.imageOffset = scalarImageOffset;
+        Address scalarImageAddress = (overwriteAddress.isMax()) ? bootImage.allocateScalar(rvmScalarType) : overwriteAddress;
+        mapEntry.imageAddress = scalarImageAddress;
 
         if (verbose >= 2) {
           if (depth == depthCutoff) 
@@ -1479,9 +1517,9 @@ public class BootImageWriter extends BootImageWriterMessages
         for (int i = 0, n = rvmFields.length; i < n; ++i) {
           VM_Field rvmField       = rvmFields[i];
           VM_TypeReference rvmFieldType   = rvmField.getType();
-          Offset   rvmFieldOffset = scalarImageOffset.add(rvmField.getOffset());
-          String   rvmFieldName   = rvmField.getName().toString();
-          Field    jdkFieldAcc    = getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
+          Address rvmFieldAddress = scalarImageAddress.add(rvmField.getOffset());
+          String  rvmFieldName    = rvmField.getName().toString();
+          Field   jdkFieldAcc     = getJdkFieldAccessor(jdkType, i, INSTANCE_FIELD);
 
           if (jdkFieldAcc == null) {
             if (verbose >= 2) traceContext.push(rvmFieldType.toString(),
@@ -1490,47 +1528,47 @@ public class BootImageWriter extends BootImageWriterMessages
             if (verbose >= 2) traceContext.pop();
             if (rvmFieldType.isPrimitiveType())
               switch (rvmField.getType().getSize()) {
-                case 4: bootImage.setFullWord(rvmFieldOffset, 0);       break;
-                case 8: bootImage.setDoubleWord(rvmFieldOffset, 0L);    break;
+                case 4: bootImage.setFullWord(rvmFieldAddress, 0);       break;
+                case 8: bootImage.setDoubleWord(rvmFieldAddress, 0L);    break;
                 default:fail("unexpected field type: " + rvmFieldType); break;
               }
             else
-              bootImage.setNullAddressWord(rvmFieldOffset);
+              bootImage.setNullAddressWord(rvmFieldAddress);
             continue;
           }
 
           if (rvmFieldType.isPrimitiveType()) {
             // field is logical or numeric type
             if (rvmFieldType.isBooleanType()) {
-              bootImage.setFullWord(rvmFieldOffset,
+              bootImage.setFullWord(rvmFieldAddress,
                                     jdkFieldAcc.getBoolean(jdkObject) ? 1 : 0);
             } else if (rvmFieldType.isByteType()) {
-              bootImage.setFullWord(rvmFieldOffset,
+              bootImage.setFullWord(rvmFieldAddress,
                                     jdkFieldAcc.getByte(jdkObject));
             } else if (rvmFieldType.isCharType()) {
-              bootImage.setFullWord(rvmFieldOffset,
+              bootImage.setFullWord(rvmFieldAddress,
                                     jdkFieldAcc.getChar(jdkObject));
             } else if (rvmFieldType.isShortType()) {
-              bootImage.setFullWord(rvmFieldOffset,
+              bootImage.setFullWord(rvmFieldAddress,
                                     jdkFieldAcc.getShort(jdkObject));
             } else if (rvmFieldType.isIntType()) {
               try {
-                bootImage.setFullWord(rvmFieldOffset,
+                bootImage.setFullWord(rvmFieldAddress,
                                       jdkFieldAcc.getInt(jdkObject));
               } catch (IllegalArgumentException ex) {
                 System.err.println( "type " + rvmScalarType + ", field " + rvmField);
                 throw ex;
               }
             } else if (rvmFieldType.isLongType()) {
-              bootImage.setDoubleWord(rvmFieldOffset,
+              bootImage.setDoubleWord(rvmFieldAddress,
                                       jdkFieldAcc.getLong(jdkObject));
             } else if (rvmFieldType.isFloatType()) {
               float f = jdkFieldAcc.getFloat(jdkObject);
-              bootImage.setFullWord(rvmFieldOffset,
+              bootImage.setFullWord(rvmFieldAddress,
                                     Float.floatToIntBits(f));
             } else if (rvmFieldType.isDoubleType()) {
               double d = jdkFieldAcc.getDouble(jdkObject);
-              bootImage.setDoubleWord(rvmFieldOffset,
+              bootImage.setDoubleWord(rvmFieldAddress,
                                       Double.doubleToLongBits(d));
             } else if (rvmFieldType.equals(VM_TypeReference.Address) ||
                        rvmFieldType.equals(VM_TypeReference.Word) ||
@@ -1539,7 +1577,7 @@ public class BootImageWriter extends BootImageWriterMessages
               Object o = jdkFieldAcc.get(jdkObject);
               String msg = " instance field " + rvmField.toString();
               boolean warn = rvmFieldType.equals(VM_TypeReference.Address);
-              bootImage.setAddressWord(rvmFieldOffset, getWordValue(o, msg, warn));
+              bootImage.setAddressWord(rvmFieldAddress, getWordValue(o, msg, warn));
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
             }
@@ -1551,14 +1589,13 @@ public class BootImageWriter extends BootImageWriterMessages
               if (verbose >= 2) traceContext.push(value.getClass().getName(),
                                                   jdkClass.getName(),
                                                   jdkFieldAcc.getName());
-              Offset imageOffset = copyToBootImage(value, allocOnly, Offset.max(), jdkObject);
-              if (imageOffset.EQ(OBJECT_NOT_PRESENT)) {
+              Address imageAddress = copyToBootImage(value, allocOnly, Address.max(), jdkObject);
+              if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
                 // object not part of bootimage: install null reference
                 if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-                bootImage.setNullAddressWord(rvmFieldOffset);
+                bootImage.setNullAddressWord(rvmFieldAddress);
               } else
-                bootImage.setAddressWord(rvmFieldOffset,
-                                         bootImageAddress.add(imageOffset).toWord());
+                bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord());
               if (verbose >= 2) traceContext.pop();
             }
           }
@@ -1572,39 +1609,50 @@ public class BootImageWriter extends BootImageWriterMessages
       if (!allocOnly) {
 
         if (verbose >= 2) traceContext.push("", jdkObject.getClass().getName(), "tib");
-        Offset tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), allocOnly, Offset.max(), jdkObject);
+        Address tibImageAddress = copyToBootImage(rvmType.getTypeInformationBlock(), allocOnly, Address.max(), jdkObject);
         if (verbose >= 2) traceContext.pop();
-        if (tibImageOffset.EQ(OBJECT_NOT_ALLOCATED))
+        if (tibImageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
           fail("can't copy tib for " + jdkObject);
-        Address tibAddress = bootImageAddress.add(tibImageOffset);
-        VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, tibAddress, rvmType);
+        }
+        VM_ObjectModel.setTIB(bootImage, mapEntry.imageAddress, tibImageAddress, rvmType);
       }
 
       if (verbose >= 2) depth--;
 
-      return mapEntry.imageOffset;
+      return mapEntry.imageAddress;
     }
 
 
-  private static Offset copyMagicArrayToBootImage(Object jdkObject, 
-                                               VM_Array rvmArrayType,
-                                               boolean allocOnly, 
-                                               Offset overwriteOffset, 
-                                               Object parentObject) 
+  private static Address copyMagicArrayToBootImage(Object jdkObject, 
+                                                   VM_Array rvmArrayType,
+                                                   boolean allocOnly, 
+                                                   Address overwriteAddress,
+                                                   Object parentObject) 
     throws IllegalAccessException {
     //
     // Return object if it is already copied and not being overwritten
     //
     BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
-    if ((!mapEntry.imageOffset.EQ(OBJECT_NOT_ALLOCATED)) && overwriteOffset.isMax())
-      return mapEntry.imageOffset;
+    if ((!mapEntry.imageAddress.EQ(OBJECT_NOT_ALLOCATED)) && overwriteAddress.isMax())
+      return mapEntry.imageAddress;
 
     if (verbose >= 2) depth++;
     
+    VM_Type rvmElementType = rvmArrayType.getElementType();
+
     // allocate space in image
     int arrayCount       = Array.getLength(jdkObject);
-    Offset arrayImageOffset = (overwriteOffset.isMax()) ? bootImage.allocateArray(rvmArrayType, arrayCount) : overwriteOffset;
-    mapEntry.imageOffset = arrayImageOffset;
+    Address arrayImageAddress;
+    if (overwriteAddress.isMax()) {
+      if (rvmElementType.equals(VM_Type.CodeType)) {
+        arrayImageAddress = bootImage.allocateCode(rvmArrayType, arrayCount);
+      } else {
+        arrayImageAddress = bootImage.allocateArray(rvmArrayType, arrayCount);
+      }
+    } else {
+      arrayImageAddress = overwriteAddress;
+    }
+    mapEntry.imageAddress = arrayImageAddress;
 
     if (verbose >= 2) {
       if (depth == depthCutoff) 
@@ -1621,23 +1669,22 @@ public class BootImageWriter extends BootImageWriterMessages
     }
 
     // copy array elements from host jdk address space into image
-    VM_Type rvmElementType = rvmArrayType.getElementType();
     if (rvmElementType.equals(VM_Type.CodeType)) {
       if (VM.BuildForIA32) {
         byte values[] = (byte[]) jdkObject;
         for (int i = 0; i < arrayCount; ++i)
-          bootImage.setByte(arrayImageOffset.add(i), values[i]);
+          bootImage.setByte(arrayImageAddress.add(i), values[i]);
       } else {
         int values[] = (int[]) jdkObject;
         for (int i = 0; i < arrayCount; ++i)
-          bootImage.setFullWord(arrayImageOffset.add(i << LOG_BYTES_IN_INT), values[i]);
+          bootImage.setFullWord(arrayImageAddress.add(i << LOG_BYTES_IN_INT), values[i]);
       }
     } else if (rvmElementType.equals(VM_Type.AddressType)) {
       Address values[] = (Address[]) jdkObject;
       for (int i=0; i<arrayCount; i++) {
         Address addr = values[i];
         String msg = "Address array element";
-        bootImage.setAddressWord(arrayImageOffset.add(i << LOG_BYTES_IN_ADDRESS), 
+        bootImage.setAddressWord(arrayImageAddress.add(i << LOG_BYTES_IN_ADDRESS), 
                                  getWordValue(addr, msg, true));
       }
     } else if (rvmElementType.equals(VM_Type.ObjectReferenceType)) {
@@ -1645,7 +1692,7 @@ public class BootImageWriter extends BootImageWriterMessages
       for (int i=0; i<arrayCount; i++) {
         ObjectReference or = values[i];
         String msg = "ObjectReference array element";
-        bootImage.setAddressWord(arrayImageOffset.add(i << LOG_BYTES_IN_ADDRESS), 
+        bootImage.setAddressWord(arrayImageAddress.add(i << LOG_BYTES_IN_ADDRESS), 
                                  getWordValue(or, msg, true));
       }
     } else if (rvmElementType.equals(VM_Type.WordType)) {
@@ -1653,7 +1700,7 @@ public class BootImageWriter extends BootImageWriterMessages
       for (int i = 0; i < arrayCount; i++) {
         String msg = "Word array element ";
         Word addr = values[i];
-        bootImage.setAddressWord(arrayImageOffset.add(i << LOG_BYTES_IN_ADDRESS),
+        bootImage.setAddressWord(arrayImageAddress.add(i << LOG_BYTES_IN_ADDRESS),
                                  getWordValue(addr, msg, false));
       }
     } else if (rvmElementType.equals(VM_Type.OffsetType)) {
@@ -1661,7 +1708,7 @@ public class BootImageWriter extends BootImageWriterMessages
       for (int i = 0; i < arrayCount; i++) {
         String msg = "Offset array element " + i;
         Offset addr = values[i];
-        bootImage.setAddressWord(arrayImageOffset.add(i << LOG_BYTES_IN_ADDRESS),
+        bootImage.setAddressWord(arrayImageAddress.add(i << LOG_BYTES_IN_ADDRESS),
                                  getWordValue(addr, msg, false));
       }
     } else if (rvmElementType.equals(VM_Type.ExtentType)) {
@@ -1669,7 +1716,7 @@ public class BootImageWriter extends BootImageWriterMessages
       for (int i = 0; i < arrayCount; i++) {
         String msg = "Extent array element ";
         Extent addr = values[i];
-        bootImage.setAddressWord(arrayImageOffset.add(i << LOG_BYTES_IN_ADDRESS),
+        bootImage.setAddressWord(arrayImageAddress.add(i << LOG_BYTES_IN_ADDRESS),
                                  getWordValue(addr, msg, false));
       }
     } else {
@@ -1679,17 +1726,16 @@ public class BootImageWriter extends BootImageWriterMessages
     // copy object's TIB into image, if it's not there already
     if (!allocOnly) {
       if (verbose >= 2) traceContext.push("", jdkObject.getClass().getName(), "tib");
-      Offset tibImageOffset = copyToBootImage(rvmArrayType.getTypeInformationBlock(), allocOnly, Offset.max(), jdkObject);
+      Address tibImageAddress = copyToBootImage(rvmArrayType.getTypeInformationBlock(), allocOnly, Address.max(), jdkObject);
       if (verbose >= 2) traceContext.pop();
-      if (tibImageOffset.EQ(OBJECT_NOT_ALLOCATED))
+      if (tibImageAddress.EQ(OBJECT_NOT_ALLOCATED))
         fail("can't copy tib for " + jdkObject);
-      Address tibAddress = bootImageAddress.add(tibImageOffset);
-      VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, tibAddress, rvmArrayType);
+      VM_ObjectModel.setTIB(bootImage, mapEntry.imageAddress, tibImageAddress, rvmArrayType);
     }
 
     if (verbose >= 2) depth--;
     
-    return mapEntry.imageOffset;
+    return mapEntry.imageAddress;
   }
 
   private static final int OBJECT_HEADER_SIZE = 8;
@@ -2004,6 +2050,11 @@ public class BootImageWriter extends BootImageWriterMessages
     out.println("#! /bin/bash");
     out.println("# This is a method address map, for use with the ``dbx'' debugger.");
     out.println("# To sort by \"code\" address, type \"bash <name-of-this-file>\".");
+    out.println("# Bootimage data: "+Integer.toHexString(BOOT_IMAGE_DATA_START.toInt())
+                +"..."+Integer.toHexString(BOOT_IMAGE_DATA_START.toInt()+bootImage.getDataSize()));
+    out.println("# Bootimage code: "+Integer.toHexString(BOOT_IMAGE_CODE_START.toInt())
+                +"..."+Integer.toHexString(BOOT_IMAGE_CODE_START.toInt()+bootImage.getCodeSize()));
+                                                            
     out.println();
     out.println("(/bin/grep 'code     0x' | /bin/sort -k 4.3,4) << EOF-EOF-EOF");
     out.println();
@@ -2082,25 +2133,25 @@ public class BootImageWriter extends BootImageWriterMessages
 
         case VM_Statics.STRING_LITERAL: 
           category = "literal";
-          contents = VM.addressAsHexString(getReferenceAddr(jtocOff)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
           details  = "\"" + ((String) BootImageMap.getObject(getIVal(jtocOff))).replace('\n', ' ') +"\"";
           break;
           
         case VM_Statics.REFERENCE_FIELD:
           category = "field  ";
-          contents = VM.addressAsHexString(getReferenceAddr(jtocOff)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
           details  = getRvmStaticFieldName(jtocOff);
           break;
 
         case VM_Statics.METHOD:
           category = "code   ";
-          contents = VM.addressAsHexString(getReferenceAddr(jtocOff)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
           VM_CompiledMethod m = findMethodOfCode(BootImageMap.getObject(getIVal(jtocOff)));
           details = m == null ? "<?>" : m.getMethod().toString();
           break;
 
         case VM_Statics.TIB:
-          contents = VM.addressAsHexString(getReferenceAddr(jtocOff)) + pad;
+          contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
           category = "tib    ";
           VM_Type type = findTypeOfTIBSlot(jtocOff);
           details = (type == null) ? "?" : type.toString();
@@ -2131,7 +2182,7 @@ public class BootImageWriter extends BootImageWriterMessages
         VM_Method m = compiledMethod.getMethod();
         if (m != null && compiledMethod.isCompiled()) {
           VM_CodeArray instructions = compiledMethod.getEntryCodeArray();
-          Address code = BootImageMap.getImageAddress(bootImageAddress, instructions.getBacking());
+          Address code = BootImageMap.getImageAddress(instructions.getBacking(), true);
           out.println(".     .          code     " + VM.addressAsHexString(code) +
                       "          " + compiledMethod.getMethod());
         }
@@ -2154,7 +2205,7 @@ public class BootImageWriter extends BootImageWriterMessages
     return ival;
   }
 
-  private static Address getReferenceAddr(Offset jtocOff) {
+  private static Address getReferenceAddr(Offset jtocOff, boolean fatalIfNotFound) {
     int ival = getIVal(jtocOff);
     Address addr = Address.fromIntZeroExtend(ival);
     if (ival != 0) {
@@ -2172,7 +2223,7 @@ public class BootImageWriter extends BootImageWriterMessages
       } else if (jdkObject instanceof WordArray) {
         jdkObject = ((WordArray)jdkObject).getBacking();
       }
-      addr = BootImageMap.getImageAddress(bootImageAddress, jdkObject);
+      addr = BootImageMap.getImageAddress(jdkObject, fatalIfNotFound);
     }
     return addr;
   }

@@ -178,6 +178,12 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
   }
 
   public static boolean addrInBootImage(Address addr) {
-    return (addr.GE(BOOT_IMAGE_START) && addr.LT(BOOT_IMAGE_END));
+    if (addr.GE(BOOT_IMAGE_DATA_START) && addr.LT(BOOT_IMAGE_DATA_END)) {
+      return true;
+    }
+    if (addr.GE(BOOT_IMAGE_CODE_START) && addr.LT(BOOT_IMAGE_CODE_END)) {
+      return true;
+    }
+    return false;
   }
 } 

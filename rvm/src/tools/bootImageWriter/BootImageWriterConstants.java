@@ -5,7 +5,7 @@
 //$Id$
 
 import com.ibm.JikesRVM.*;
-import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Address;
 
 /**
  * Manifest constants for bootimage writer.
@@ -16,16 +16,16 @@ import org.vmmagic.unboxed.Offset;
 public interface BootImageWriterConstants extends VM_Constants {
 
   /**
-   * Offset to associate with objects that haven't yet been placed into image.
-   * Any offset that's outside image will do.
+   * Address to associate with objects that haven't yet been placed into image.
+   * Any Address that's unaligned will do.
    */
-  public static final Offset OBJECT_NOT_ALLOCATED = Offset.fromIntSignExtend(0xeeeeeee1);
+  public static final Address OBJECT_NOT_ALLOCATED = Address.fromIntSignExtend(0xeeeeeee1);
 
   /**
-   * Offset to associate with objects that are not to be placed into image.
-   * Any offset that's outside image will do.
+   * Address to associate with objects that are not to be placed into image.
+   * Any Address that's unaligned will do.
    */
-  public static final Offset OBJECT_NOT_PRESENT = Offset.fromIntSignExtend(0xeeeeeee2);
+  public static final Address OBJECT_NOT_PRESENT = Address.fromIntSignExtend(0xeeeeeee2);
 
   /**
    * Starting index for objects in VM_TypeDictionary.

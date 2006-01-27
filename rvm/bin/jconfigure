@@ -1116,8 +1116,10 @@ EXCLUDED_CLASSES_STR="${BUILD_DIRECTORY_STR}/RVM.exclusions"
 
 # Place to put bootimage.
 #
-BOOTIMAGE="${BUILD_DIRECTORY}/RVM.image"
-BOOTIMAGE_STR="${BUILD_DIRECTORY_STR}/RVM.image"
+BOOTIMAGE_CODE="${BUILD_DIRECTORY}/RVM.code.image"
+BOOTIMAGE_CODE_STR="${BUILD_DIRECTORY_STR}/RVM.code.image"
+BOOTIMAGE_DATA="${BUILD_DIRECTORY}/RVM.data.image"
+BOOTIMAGE_DATA_STR="${BUILD_DIRECTORY_STR}/RVM.data.image"
 
 # Place to put bootimage map.
 #
@@ -1576,7 +1578,9 @@ RVM_WITH_JMTK_PLANCONSTRAINTS=${RVM_WITH_JMTK_PLAN}Constraints
 
 ## Remember, these numbers (BOOTIMAGE_LOAD_ADDRESS, MAXIMUM_MAPPABLE_ADDRESS) 
 ## are for the TARGET:
-JAVA_PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=${BOOTIMAGE_LOAD_ADDRESS}"
+JAVA_PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_CODE_ADDRESS=${BOOTIMAGE_CODE_ADDRESS}"
+JAVA_PREPROCESSOR_DEFINITIONS="${JAVA_PREPROCESSOR_DEFINITIONS}
+-DBOOTIMAGE_DATA_ADDRESS=${BOOTIMAGE_DATA_ADDRESS}"
 JAVA_PREPROCESSOR_DEFINITIONS="${JAVA_PREPROCESSOR_DEFINITIONS}
 -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
 CLEANUP='/bin/rm -f ${tmpf-}'	# used by EXIT trap.
@@ -1629,7 +1633,8 @@ CLEANUP=":"
 
 ## And set any more C preprocessor definitions we need to.
 C_PREPROCESSOR_DEFINITIONS="${C_PREPROCESSOR_DEFINITIONS}
--DRVM_BOOTIMAGE=${BOOTIMAGE_STR}" # We do our usual bad job of dealing with embedded spaces here.
+-DRVM_BOOTIMAGE_CODE=${BOOTIMAGE_CODE_STR}
+-DRVM_BOOTIMAGE_DATA=${BOOTIMAGE_DATA_STR}" 
 
 if (( HAS_DLCOMPAT )); then
     C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
@@ -3154,7 +3159,8 @@ EOF
 	declare -a args=( -Xmx200M \
 	   -classpath \$cp		\
 	   \${generator_class} \
-	   -ia $BOOTIMAGE_LOAD_ADDRESS \
+	   -da $BOOTIMAGE_DATA_ADDRESS \
+	   -ca $BOOTIMAGE_CODE_ADDRESS \
 	   -out \$interface )
 	if [[ \$HOST_VM_TYPE == "JikesRVM" ]]; then
 #	    args=("-X:vmClasses=.:\$DONOR_RVM_BUILD/RVM.classes/jksvm.jar:\$DONOR_RVM_BUILD/RVM.classes/rvmrt.jar:\$DONOR_RVM_BUILD/RVM.classes/mmtk.jar" "\${args[@]}")
@@ -3211,7 +3217,7 @@ function emitImageLinker () {
 
 	function clean_primordials() {
 	    rm -f $PRIMORDIAL_CLASSES_STR $EXCLUDED_CLASSES_STR \
-			$BOOTIMAGE_STR $BOOTIMAGE_MAP_STR
+			$BOOTIMAGE_CODE_STR $BOOTIMAGE_DATA_STR $BOOTIMAGE_MAP_STR
 	    echo -n "(primordials cleaned) "
 	    
 	}
@@ -3839,7 +3845,7 @@ EOF
     BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$BOOTIMAGE_WRITER_TRACE_FLAG"
 
     BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS"
-    IMAGE_ADDRESS_ARG="-ia $BOOTIMAGE_LOAD_ADDRESS"
+    IMAGE_ADDRESS_ARG="-da $BOOTIMAGE_DATA_ADDRESS -ca $BOOTIMAGE_CODE_ADDRESS"
 
     if (( GENERATE_MAP )); then
 	BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -m $BOOTIMAGE_MAP_STR"
@@ -3915,13 +3921,14 @@ EOF
 		-f \$BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
 		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar \
 		RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR \
-		RVM_BOOTIMAGE=$BOOTIMAGE_STR \
+		RVM_BOOTIMAGE_CODE=$BOOTIMAGE_CODE_STR \
+		RVM_BOOTIMAGE_DATA=$BOOTIMAGE_DATA_STR \
 		RVM_BOOTIMAGE_COMPILER_ARGS="\$OPT_ARGS" \
 		RVM_BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS" \
 		IMAGE_ADDRESS_ARG="$IMAGE_ADDRESS_ARG" \
 		SCRATCH_DIR=$SCRATCH_DIRECTORY_STR \
 		STUBS_DIR=$UTIL_KLUDGE_STUBS_DIRECTORY_STR \
-		$BOOTIMAGE_STR
+		bootimage
 
 	trap '' EXIT
 
@@ -4435,19 +4442,19 @@ EOF
       ## Check we have all the executables to run this check
       if [ -x \`which ldd\` ] && [ -x \`which tr\` ] && [ -x \`which sed\` ]; then
          ## Remove trailing "0x" for bc
-         BOOTIMAGE_LOAD_ADDRESS=\`echo ${BOOTIMAGE_LOAD_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
+         BOOTIMAGE_DATA_ADDRESS=\`echo ${BOOTIMAGE_DATA_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
          MAXIMUM_MAPPABLE_ADDRESS=\`echo ${MAXIMUM_MAPPABLE_ADDRESS}|tr 'a-f' 'A-F'|sed -e's/0x\([A-F0-9]*\)/\1/g'\`;
          ## Iterate over all libraries linked against JikesRVM
          for i in \`ldd $BOOTER_STR |tr 'a-f' 'A-F'|sed -e's/.*0x\([A-F0-9]*\)./\1/g'\`; do
             ## use bc to perform hex comparison
-            COMPARISON=\`echo "ibase=16; \$i > \${BOOTIMAGE_LOAD_ADDRESS} && \$i < \${MAXIMUM_MAPPABLE_ADDRESS}"|bc\`
+            COMPARISON=\`echo "ibase=16; \$i > \${BOOTIMAGE_DATA_ADDRESS} && \$i < \${MAXIMUM_MAPPABLE_ADDRESS}"|bc\`
             if [ \${COMPARISON} == "1" ]; then
                echo "!!!!!!!!!!!!!!!!!!!!!!";
                echo "! Load address error !";
                echo "!!!!!!!!!!!!!!!!!!!!!!";
-               echo "Please modify the address layout parameters BOOTIMAGE_LOAD_ADDRESS and/or"
+               echo "Please modify the address layout parameters BOOTIMAGE_DATA_ADDRESS and/or"
                echo "MAXIMUM_MAPPABLE_ADDRESS in the RVM_{HOST,TARGET}_CONFIG files."
-               echo "Either BOOTIMAGE_LOAD_ADDRESS must be greater than 0x\$i or"
+               echo "Either BOOTIMAGE_DATA_ADDRESS must be greater than 0x\$i or"
                echo "MAXIMUM_MAPPABLE_ADDRESS must be less than \$i."
                echo "Having modified the value re-run jconfigure and then re-run jbuild.";
                echo;
@@ -4812,7 +4819,7 @@ emitInstaller() {
 	dest="\$1"
 	run mkdir -p \$dest
 	shopt -s  nullglob
-	run cp *.a *.so environment.target $BOOTIMAGE_STR $BOOTER_STR \$dest
+	run cp *.a *.so environment.target $BOOTIMAGE_CODE_STR $BOOTIMAGE_DATA_STR $BOOTER_STR \$dest
 	shopt -u nullglob
 	run mkdir -p \$dest/RVM.classes
 	run cp RVM.classes/*.jar \$dest/RVM.classes

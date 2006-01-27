@@ -162,7 +162,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
   public static final void boot(VM_BootRecord theBootRecord)
     throws InterruptiblePragma {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
-    LazyMmapper.boot(BOOT_IMAGE_START, BOOT_IMAGE_SIZE);
+    LazyMmapper.boot(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
+    LazyMmapper.boot(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
     ActivePlan.global().boot();
