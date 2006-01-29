@@ -809,10 +809,17 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             return MOVE_FOLDED;
           } else {
             // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
-            if (val2 == 1) {                  // x % 1 == 0
+            if ((val2 == 1)||(val2 == -1)) {             // x % 1 == 0
               Move.mutate(s, INT_MOVE, GuardedBinary.getClearResult(s), 
                           IC(0));
               return MOVE_FOLDED;
+            }
+            // x % c == x & (c-1) if c is power of 2
+            int power = PowerOf2(val2);
+            if (power != -1) {
+              Binary.mutate(s, INT_AND, GuardedBinary.getClearResult(s), 
+                            GuardedBinary.getClearVal1(s), IC(val2-1));
+              return REDUCED;
             }
           }
         }
