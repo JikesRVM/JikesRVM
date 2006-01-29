@@ -34,6 +34,8 @@ on October 14, 2001,
 
 ** Bug fixes
 *** defect 1240267: remove FIXED_JTOC option
+*** defect 1411486: Bug in IA32 BT (Bit Test) instruction
+
 ** Other Notes
 
 
