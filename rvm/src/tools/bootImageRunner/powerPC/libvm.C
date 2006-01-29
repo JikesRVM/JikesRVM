@@ -32,22 +32,7 @@
 #include <string.h>             // among other things, provides strsignal()
 #include <assert.h>
 #include <sys/mman.h>
-#include <sys/shm.h>
 #define SIGNAL_STACKSIZE (16 * 1024)    // in bytes
-
-/* There are several ways to allocate large areas of virtual memory:
-
-   1. malloc() is simplest, but doesn't allow a choice of address, thus
-      requiring address relocation of the boot image.  Unsupported. 
-
-   2. mmap() is simple to use but, on AIX, uses 2x amount of physical memory
-      requested (per Al Chang) 
-
-   3. shmat() doesn't have the 2x problem, but is limited to 256M per
-      allocation on AIX 4.1 (unlimited on 4.3) 
-
-   [--DL] 
-*/
 
 #ifdef RVM_FOR_LINUX
 #include <asm/cache.h>
@@ -68,7 +53,6 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
-#define USE_MMAP 1 // choose mmap() for Linux --SB
 #define NGPRS 32
 // Linux on PPC does not save FPRs - is this true still?
 #define NFPRS  32
@@ -92,7 +76,6 @@ struct linux_sigregs {
 #endif
 
 #ifdef RVM_FOR_AIX
-#define USE_MMAP 1 // choose shmat() otherwise --DL
 #include <sys/cache.h>
 #include <sys/context.h>
 extern "C" char *sys_siglist[];
@@ -1098,8 +1081,6 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
     // allocate memory regions in units of system page size
     //
     void    *bootRegion = 0;
-   
-#if USE_MMAP
     bootRegion = mmap((void *) targetAddress, *roundedImageSize,
 		      PROT_READ | PROT_WRITE | PROT_EXEC,
               MAP_FIXED | MAP_PRIVATE, 
@@ -1119,22 +1100,6 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
 	(void) munmap(bootRegion, *roundedImageSize);
 	return (void*)1;
     }
-#else
-    int id1 = shmget(IPC_PRIVATE, *roundedImageSize, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
-    if (id1 == -1) {
-        fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", Me, errno);
-        return (void*)1;
-    }
-    bootRegion = shmat(id1, (const void *) targetAddress, 0);
-    if (bootRegion == (void *)-1) {
-        fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", Me, errno);
-        return (void*)1;
-    }
-    if (shmctl(id1, IPC_RMID, 0)) {  // free shmid to avoid persistence
-        fprintf(SysErrorFile, "%s: shmctl failed (errno=%d)\n", Me, errno);
-        return (void*)1;
-    }
-#endif
 
     return bootRegion;
 }  
