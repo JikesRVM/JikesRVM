@@ -528,6 +528,27 @@ none
 CF
 
 
+####################
+IA32_BTC
+MIR_Test
+none
+CF
+
+
+####################
+IA32_BTR
+MIR_Test
+none
+CF
+
+
+####################
+IA32_BTS
+MIR_Test
+none
+CF
+
+
 #########################################################
 # Used for special system calls.
 # NOTE: May indirectly be a PEI (due to callee), but the actual call itself

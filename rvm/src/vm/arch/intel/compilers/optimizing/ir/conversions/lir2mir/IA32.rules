@@ -4264,16 +4264,15 @@ EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getValue(PL(p)), BinaryAcc.getValu
 
 #   boolean_cmp_int
 #      int_and_acc       L
-#         int_move       LL
-#            int_shr_acc LLL
-#               register LLLL <-- base
-#               register LLLR <-- offset
+#         int_shr_acc    LL
+#            register    LLL <-- base
+#            register    LLR <-- offset
 #         INT_CONSTANT 1 LR
 #      INT_CONSTANT 0    R
-r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_SHR_ACC(r,riv),INT_CONSTANT),INT_CONSTANT)
 (VR(p) == 0) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p)))); \
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
                                                   OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
 
@@ -4282,20 +4281,19 @@ boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
          OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p))));
 
 #   boolean_cmp_int
 #      int_and_acc       L
-#         int_move       LL
-#            int_shr_acc LLL
-#               register LLLL <-- base
-#               register LLLR <-- offset
+#         int_shr_acc    LL
+#            register    LLL <-- base
+#            register    LLR <-- offset
 #         INT_CONSTANT 1 LR
 #      INT_CONSTANT 1    R
-r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_SHR_ACC(r,riv),INT_CONSTANT),INT_CONSTANT)
 (VR(p) == 1) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p)))); \
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
                                                   OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
 
@@ -4304,48 +4302,46 @@ boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_SHR_ACC(r,riv)),INT_CONSTANT),
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
          OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p))));
 
 #   boolean_cmp_int
 #      int_and_acc        L
-#         int_move        LL
-#            int_ushr_acc LLL
-#               register  LLLL <-- base
-#               register  LLLR <-- offset
+#         int_ushr_acc    LL
+#            register     LLL <-- base
+#            register     LLR <-- offset
 #         INT_CONSTANT 1  LR
 #      INT_CONSTANT 0     R
-r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_USHR_ACC(r,riv),INT_CONSTANT),INT_CONSTANT)
 (VR(p) == 0) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p)))); \
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
                                                   OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
 
-boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_USHR_ACC(r,riv),INT_CONSTANT),INT_CONSTANT)
 (VR(p) == 0) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.EQUAL ? \
          OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p))));
 
 #   boolean_cmp_int
 #      int_and_acc        L
-#         int_move        LL
-#            int_ushr_acc LLL
-#               register  LLLL <-- base
-#               register  LLLR <-- offset
+#         int_ushr_acc    LL
+#            register     LLL <-- base
+#            register     LLR <-- offset
 #         INT_CONSTANT 1  LR
 #      INT_CONSTANT 1     R
-r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+r:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_USHR_ACC(r,riv),INT_CONSTANT),INT_CONSTANT)
 (VR(p) == 1) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 39:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p)))); \
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p)))); \
 BOOLEAN_CMP_INT(P(p), BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
                                                   OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER());
 
-boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_MOVE(INT_USHR_ACC(r,riv)),INT_CONSTANT),INT_CONSTANT)
+boolcmp:	BOOLEAN_CMP_INT(INT_AND_ACC(INT_USHR_ACC(r,riv),INT_CONSTANT),INT_CONSTANT)
 (VR(p) == 1) && (VLR(p) == 1) && EQ_NE(BooleanCmp.getCond(P(p)))? 13:INFINITE
 EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p)).value == OPT_ConditionOperand.NOT_EQUAL ? \
          OPT_ConditionOperand.HIGHER_EQUAL() : OPT_ConditionOperand.LOWER()); \
-EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLLL(p)), BinaryAcc.getValue(PLLL(p))));
+EMIT(MIR_Test.mutate(PL(p),IA32_BT, BinaryAcc.getResult(PLL(p)), BinaryAcc.getValue(PLL(p))));

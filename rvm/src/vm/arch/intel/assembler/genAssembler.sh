@@ -153,16 +153,19 @@ function emitBinaryImmWordOrDouble() {
   imm8Code=$4
   imm32Code=$5
   immExtOp=$6
-  size=$7
+  sizeOrPrefix=$7
   local ext=
   local code=
   local prefix=
-  if [ x$size = xword ]; then
+  if [ x$sizeOrPrefix = xword ]; then
     ext=_Word
     code=" (word) "
     emitImm=emitImm16  
     prefix="
             setMachineCodes(mi++, (byte) 0x66);"
+  elif [ x$sizeOrPrefix != x ]; then
+    prefix="
+            setMachineCodes(mi++, (byte) $sizeOrPrefix);"
   else
     emitImm=emitImm32
   fi
@@ -175,15 +178,31 @@ function emitBinaryImmWordOrDouble() {
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegRegOperands(dstReg, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
+EOF
+  if [ x$eaxOpcode != xnone ]; then
+  cat >> $FILENAME <<EOF
         } else if (dstReg == EAX) {
 	    setMachineCodes(mi++, (byte) $eaxOpcode);
 	    ${emitImm}(imm);
+EOF
+  fi
+  if [ x$imm32Code = xnone ]; then
+  cat >> $FILENAME <<EOF
+	} else {
+	    throw new InternalError("Data too large for ${acronym} instruction");
+	}
+EOF
+  else
+  cat >> $FILENAME <<EOF
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegRegOperands(dstReg, (byte) ${immExtOp});
 	    ${emitImm}(imm);
 	}
+EOF
+  fi
+  cat >> $FILENAME <<EOF
         if (lister != null) lister.RI(miStart, "${acronym}", dstReg, imm);
     }
 
@@ -195,12 +214,24 @@ function emitBinaryImmWordOrDouble() {
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegDispRegOperands(dstReg, disp, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
+EOF
+  if [ x$imm32Code = xnone ]; then
+  cat >> $FILENAME <<EOF
+	} else {
+	    throw new InternalError("Data too large for ${acronym} instruction");
+	}
+EOF
+  else
+  cat >> $FILENAME <<EOF
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegDispRegOperands(dstReg, disp, (byte) ${immExtOp});
 	    ${emitImm}(imm);
 	}
+EOF
+  fi
+  cat >> $FILENAME <<EOF
 	if (lister != null) lister.RDI(miStart, "${acronym}", dstReg, disp, imm);
     }
 		
@@ -212,12 +243,24 @@ function emitBinaryImmWordOrDouble() {
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegOffRegOperands(dstIndex, scale, dstDisp, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
+EOF
+  if [ x$imm32Code = xnone ]; then
+  cat >> $FILENAME <<EOF
+	} else {
+	    throw new InternalError("Data too large for ${acronym} instruction");
+	}
+EOF
+  else
+  cat >> $FILENAME <<EOF
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegOffRegOperands(dstIndex, scale, dstDisp, (byte) ${immExtOp});
 	    emitImm32(imm);
 	}
+EOF
+  fi
+  cat >> $FILENAME <<EOF
 	if (lister != null) lister.RFDI(miStart, "${acronym}", dstIndex, scale, dstDisp, imm);
     }
 		
@@ -229,12 +272,24 @@ function emitBinaryImmWordOrDouble() {
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitAbsRegOperands(dstDisp, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
+EOF
+  if [ x$imm32Code = xnone ]; then
+  cat >> $FILENAME <<EOF
+	} else {
+	    throw new InternalError("Data too large for ${acronym} instruction");
+	}
+EOF
+  else
+  cat >> $FILENAME <<EOF
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitAbsRegOperands(dstDisp, (byte) ${immExtOp});
 	    emitImm32(imm);
 	}
+EOF
+  fi
+  cat >> $FILENAME <<EOF
 	if (lister != null) lister.RAI(miStart, "${acronym}", dstDisp, imm);
     }
 		
@@ -246,12 +301,24 @@ function emitBinaryImmWordOrDouble() {
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitSIBRegOperands(dstBase, dstIndex, scale, dstDisp, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
+EOF
+  if [ x$imm32Code = xnone ]; then
+  cat >> $FILENAME <<EOF
+	} else {
+	    throw new InternalError("Data too large for ${acronym} instruction");
+	}
+EOF
+  else
+  cat >> $FILENAME <<EOF
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitSIBRegOperands(dstBase, dstIndex, scale, dstDisp, (byte) ${immExtOp});
 	    emitImm32(imm);
 	}
+EOF
+  fi
+  cat >> $FILENAME <<EOF
 	if (lister != null) lister.RXDI(miStart, "${acronym}", dstBase, dstIndex, scale, dstDisp, imm);
     }
 		
@@ -263,12 +330,24 @@ function emitBinaryImmWordOrDouble() {
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegIndirectRegOperands(dstReg, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
+EOF
+  if [ x$imm32Code = xnone ]; then
+  cat >> $FILENAME <<EOF
+	} else {
+	    throw new InternalError("Data too large for ${acronym} instruction");
+	}
+EOF
+  else
+  cat >> $FILENAME <<EOF
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegIndirectRegOperands(dstReg, (byte) ${immExtOp});
 	    ${emitImm}(imm);
 	}
+EOF
+  fi
+  cat >> $FILENAME <<EOF
 	if (lister != null) lister.RNI(miStart, "${acronym}", dstReg, imm);
     }
 		
@@ -380,7 +459,21 @@ emitBinaryReg MOV \: 0x89 0x8B word
 
 emitBinaryReg CMPXCHG \<\-\> 0xB1 none 0x0F
 
-emitBinaryReg BT BT 0xA3 none 0x0F
+function emitBT() {
+  acronym=$1
+  opStr=$2
+  rmrCode=$3
+  immExtOp=$4
+  prefix=0x0F
+  immCode=0xBA
+  emitBinaryReg $acronym $opStr $rmrCode none $prefix
+  emitBinaryImmWordOrDouble $acronym $opStr none $immCode none $immExtOp 0x0F
+}
+
+emitBT BT BT 0xA3 0x4
+emitBT BTC BTC 0xBB 0x7
+emitBT BTR BTR 0xB3 0x6
+emitBT BTS BTS 0xAB 0x5
 
 function emitCall() {
   acronym=$1
