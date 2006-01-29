@@ -699,28 +699,6 @@ static void*
 mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
              unsigned *roundedImageSize) {
     
-/* Note: You probably always want to use MMAP_COPY_ON_WRITE.
-   <p>
-   On my sample
-   machine (IBM Thinkpad T23), using MMAP_COPY_ON_WRITE we can run "Hello
-   World" a lot faster.  These results are the averages after a settling-down
-   period for the disk cache to fill up.  They are even more dramatic without
-   the settling-down period:
-
-		    With MMAP_COPY_ON_WRITE		Old Way
-   BaseBaseCopyMS:      0.875 seconds			1.4 seconds
-   FastAdaptiveCopyMS:	0.237 seconds			2.0   seconds
-
-   The only disadvantage I can see here is that with copy-on-write, it means
-   that if somebody rewrites the boot image file while you're running from that
-   boot image, you will lose big.  However, we never did perform any boot
-   image locking, so that if somebody had rewritten the boot image while you
-   were loading it, you would have had the same problem.  Of course, now the
-   window of vulnerability is much wider than two seconds; it's the entire run
-   time of the program. */
-
-#define MMAP_COPY_ON_WRITE
-
     /* open and mmap the image file. 
      * create bootRegion
      */
@@ -740,7 +718,6 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
 
 
     void *bootRegion = 0;
-#ifdef MMAP_COPY_ON_WRITE
     bootRegion = mmap((void*)targetAddress, *roundedImageSize,
 		      PROT_READ | PROT_WRITE | PROT_EXEC,
 		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
@@ -760,38 +737,10 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
 	(void) munmap(bootRegion, *roundedImageSize);
 	return 0;
     }
-#else
-    // allocate region 1 and 2
-    bootRegion = mmap((void *) targetAddress, *roundedImageSize,
-                       PROT_READ | PROT_WRITE | PROT_EXEC,
-                       MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
 
-    if (bootRegion == (void *) -1) {
-        fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", Me, errno);
-        return 0;
-    }
-
-    /* read image into memory segment */
-    int cnt = fread (bootRegion, 1, actualImageSize, fin);
-    if (cnt < 0 || (unsigned) cnt != actualImageSize) {
-        fprintf(SysErrorFile, "%s: read failed (errno=%d)\n", Me, errno);
-        return 0;
-    }
-
-    if (actualImageSize % 4 != 0) {
-        fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n",
-                 Me, actualImageSize);
-        return 0;
-    }
-
-#endif
-
-#ifdef MMAP_COPY_ON_WRITE
     /* Quoting from the Linux mmap(2) manual page:
        "closing the file descriptor does not unmap the region."
     */
-#endif
-
     if (fclose (fin) != 0) {
         fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", Me, errno);
         return 0;
