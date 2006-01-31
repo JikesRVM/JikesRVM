@@ -245,6 +245,11 @@ address1reg:	INT_ADD_ACC(r, INT_CONSTANT)
 EMIT_INSTRUCTION
 pushAddress(BinaryAcc.getResult(P(p)), null, B_S, Offset.fromIntSignExtend(VR(p)));
 
+address1reg:	INT_MOVE(r)
+0
+EMIT_INSTRUCTION
+pushAddress(R(Move.getVal(P(p))), null, B_S, Offset.zero());
+
 address:	INT_ADD_ACC(r, r)
 0
 EMIT_INSTRUCTION
@@ -327,6 +332,11 @@ r:	INT_ADD_ACC(address, INT_CONSTANT)
 EMIT_INSTRUCTION
 augmentAddress(BinaryAcc.getValue(P(p))); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, BinaryAcc.getResult(P(p)), consumeAddress(DW, null, null)));
+
+r:	INT_MOVE(address)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Lea.mutate(P(p), IA32_LEA, Move.getResult(P(p)), consumeAddress(DW, null, null)));
 
 ##################################
 # Materialization of FP constants
@@ -1214,6 +1224,13 @@ szpr:	INT_SHL_ACC(r, INT_CONSTANT)
 13
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_SHL, BinaryAcc.getResult(P(p)), BinaryAcc.getValue(P(p))));
+
+# Are shifts being used to mask out lower bits?
+szpr:	INT_SHL_ACC(INT_MOVE(INT_SHR_ACC(r, INT_CONSTANT)), INT_CONSTANT)
+(VR(p) == VLLR(p)) ? 23 : INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(PLL(p), IA32_MOV, BinaryAcc.getResult(P(p)), BinaryAcc.getResult(PLL(p)))); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)), new OPT_IntConstantOperand(0xffffffff << VR(p))));
 
 ### Memory operands ### 
 stm:	INT_STORE(INT_SHL_ACC(INT_LOAD(riv,riv),r),OTHER_OPERAND(riv, riv))
