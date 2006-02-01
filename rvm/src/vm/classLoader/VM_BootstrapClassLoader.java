@@ -72,15 +72,8 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
          * This would be the following, if the fields weren't final:
          *
          * bootstrapClassLoader.definedPackages    = new HashMap();
-         * bootstrapClassLoader.loadedClasses      = new HashMap();
          */
         VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader, new HashMap());
-        //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_0_17
-        VM_Entrypoints.classLoaderLoadedClasses.setObjectValueUnchecked(bootstrapClassLoader, new HashMap());
-        if (DBG)
-          VM.sysWriteln("VM_BootstrapClassLoader.boot(): loadedClasses is: ", VM_Entrypoints.classLoaderLoadedClasses.getObjectValueUnchecked(bootstrapClassLoader) == null ? "NULL" : "set");
-        
-        //-#endif
       } catch (Exception e) {
         VM.sysFail("Failed to setup bootstrap class loader");
       }

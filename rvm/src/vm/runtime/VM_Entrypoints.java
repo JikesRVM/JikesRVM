@@ -274,14 +274,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field classLoaderDefinedPackages =
     getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/HashMap;");
 
-  //-#if RVM_WITH_CLASSPATH_0_15 || RVM_WITH_CLASSPATH_0_17
-  public static final VM_Field classLoaderLoadedClasses =
-    getField("Ljava/lang/ClassLoader;", "loadedClasses", "Ljava/util/HashMap;");
-  //-#endif
-  
-
   static {
-
     // Don't mark the following as runtime serivce methods;
     // they are included in VM_Entrypoints for other reasons
     // than being called under-the-covers from generated code.

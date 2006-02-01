@@ -5,9 +5,7 @@
 ## can remove it.  
 ##
 
-sum=$(( ${RVM_WITH_CLASSPATH_0_15-0} + \
-	${RVM_WITH_CLASSPATH_0_17-0} + \
-	${RVM_WITH_CLASSPATH_0_18-0} + \
+sum=$(( ${RVM_WITH_CLASSPATH_0_18-0} + \
 	${RVM_WITH_CLASSPATH_0_19-0} + \
 	${RVM_WITH_CLASSPATH_0_20-0} + \
         ${RVM_WITH_CLASSPATH_CVS_HEAD-0} ))
