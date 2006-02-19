@@ -9,6 +9,10 @@ on October 14, 2001,
 
 *Jikes RVM 2.4.3 Release Notes (future)
 ** Highlights
+** The recommended version of GNU classpath for Jikes RVM 2.4.3 is 0.20.
+   Classpath 0.19 and 0.18 are likely to still work, but have not been tested.
+   Support for all version of GNU classpath prior to 0.18 has been removed.
+
 *** Simple GC sanity checking tool added to MMTk. Contact: Daniel Frampton.
 
 *** The RVM bootimage is now generated into two separate files, one for
@@ -27,7 +31,9 @@ on October 14, 2001,
     consider true dependencies. To capture the loop structure the
     phase uses an annotated LST node. The annotations capture
     information about the initial and terminal loop iterator values,
-    as well as the loop iterator instructions.
+    as well as the loop iterator instructions. This phase is currently
+    disabled by default until we can fix bugs in the optimizing compiler
+    that it exposes.
 
 *** The optimizing compiler's Local CSE pass now exploits commutativity,
     patch contributed by Bernardo Pastorelli.
