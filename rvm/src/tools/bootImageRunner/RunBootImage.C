@@ -472,8 +472,12 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             SysTraceFd = fileno(ftmp);
             continue;
         }
-        if (strnequal(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
-            bootFilename = token + 5;
+        if (strnequal(token, nonStandardArgs[BOOTIMAGE_CODE_FILE_INDEX], 6)) {
+            bootCodeFilename = token + 6;
+            continue;
+        }
+        if (strnequal(token, nonStandardArgs[BOOTIMAGE_DATA_FILE_INDEX], 6)) {
+            bootDataFilename = token + 6;
             continue;
         }
         int mainlen = strlen(nonStandardArgs[SINGLE_VIRTUAL_PROCESSOR_INDEX]);
@@ -691,7 +695,8 @@ main(int argc, const char **argv)
                "maxStackSize %lu\n"
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
                "rvm_singleVirtualProcessor %d\n"
-               "bootFileName |%s|\nlib_verbose %d\n",
+               "bootCodeFileName |%s|\nbootDataFileName |%s|\n"
+               "lib_verbose %d\n",
                (unsigned long) initialHeapSize, 
                (unsigned long) maximumHeapSize, 
 #ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
@@ -700,18 +705,17 @@ main(int argc, const char **argv)
                (unsigned long) maximumStackSize,
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
                rvm_singleVirtualProcessor,
-               bootFilename, lib_verbose);
+               bootCodeFilename, bootDataFilename,
+               lib_verbose);
     }
 
-    if (!bootFilename) {
-#define STRINGIZE(x) #x
-#ifdef RVM_BOOTIMAGE
-        bootFilename = STRINGIZE(RVM_BOOTIMAGE);
-#endif
+    if (!bootCodeFilename) {
+        fprintf(SysTraceFile, "%s: please specify name of boot image code file using \"-X:ic=<filename>\"\n", Me);
+        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
-    if (!bootFilename) {
-        fprintf(SysTraceFile, "%s: please specify name of boot image file using \"-i<filename>\"\n", Me);
+    if (!bootDataFilename) {
+        fprintf(SysTraceFile, "%s: please specify name of boot image data file using \"-X;id=<filename>\"\n", Me);
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 

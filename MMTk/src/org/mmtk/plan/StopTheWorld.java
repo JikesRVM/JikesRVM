@@ -9,10 +9,12 @@ import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.Scanning;
 
+import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Memory;
 
@@ -69,11 +71,36 @@ public abstract class StopTheWorld extends Plan
   public static final int RELEASE             = new SimplePhase("release",                        Phase.GLOBAL_LAST,  true).getId();
   public static final int COMPLETE            = new SimplePhase("complete",  null,                Phase.GLOBAL_LAST,  true).getId();
 
+  /* Sanity placeholder */
+  public static final int SANITY_PLACEHOLDER  = new SimplePhase("sanity-placeholder", null,       Phase.PLACEHOLDER       ).getId();
+  
+  /* Sanity phases */
+  public static final int SANITY_PREPARE      = new SimplePhase("sanity-prepare",     null,       Phase.GLOBAL_FIRST      ).getId();
+  public static final int SANITY_ROOTS        = new SimplePhase("sanity-roots",       null,       Phase.GLOBAL_LAST       ).getId();
+  public static final int SANITY_CHECK        = new SimplePhase("sanity",             null,       Phase.LOCAL_ONLY        ).getId();
+  public static final int SANITY_RELEASE      = new SimplePhase("sanity-release",     null,       Phase.GLOBAL_LAST       ).getId();
+  public static final int SANITY_FORWARD      = new SimplePhase("sanity-forward",     null,       Phase.LOCAL_ONLY        ).getId();
+  
+  /* Sanity forwarding piggy-back */
+  private static final int sanityForwardPhase = new ComplexPhase("sanity-forward-cf", null, new int[] {
+      FORWARD,
+      SANITY_FORWARD,
+  }).getId();
+  
+  /* Sanity check phase sequence */
+  private static final int sanityPhase = new ComplexPhase("sanity-check", null, new int[] {
+      SANITY_PREPARE,
+      SANITY_ROOTS,
+      SANITY_CHECK,
+      SANITY_RELEASE
+  }).getId();
+  
   /**
    * Start the collection, including preparation for any collected spaces.
    */
   private static final int initPhase = new ComplexPhase("init", new int[] {
       INITIATE,
+      SANITY_PLACEHOLDER,
       PREPARE,
       PRECOPY}).getId();
 
@@ -108,22 +135,57 @@ public abstract class StopTheWorld extends Plan
    */
   private static final int finishPhase = new ComplexPhase("finish", new int[] {
       RELEASE,
+      SANITY_PLACEHOLDER,
       COMPLETE}).getId();
 
   /**
    * This is the phase that is executed to perform a collection.
    */
-  public Phase collection = new ComplexPhase("collection", null, new int[] {
+  public ComplexPhase collection = new ComplexPhase("collection", null, new int[] {
       initPhase,
       rootClosurePhase,
       refTypeClosurePhase,
       forwardPhase,
       finishPhase});
 
+  /* Basic GC sanity checker */  
+  private SanityChecker sanityChecker = new SanityChecker();
+  
   /****************************************************************************
    * Collection
    */
+  
+  /**
+   * The boot method is called early in the boot process before any
+   * allocation.
+   */
+  public void postBoot() throws InterruptiblePragma {
+    super.postBoot();
+    
+    if (Options.sanityCheck.getValue()) {
+      if (getSanityChecker() == null || 
+          ActivePlan.local().getSanityChecker() == null) {
+        Log.writeln("Collector does not support sanity checking!");
+      } else {
+        Log.writeln("Collection sanity checking enabled.");
+        collection.replacePhase(SANITY_PLACEHOLDER, sanityPhase);
+        collection.replacePhase(FORWARD, sanityForwardPhase);
+      }
+    }
+  }
+  
+  /**
+   * @return Return the current sanity checker.
+   */
+  public SanityChecker getSanityChecker() {
+    return sanityChecker;
+  }
 
+  /**
+   * Perform a (global) collection phase.
+   * 
+   * @param phaseId The unique of the phase to perform. 
+   */
   public void collectionPhase(int phaseId) throws InlinePragma {
     if (phaseId == INITIATE) {
       if (Stats.gatheringStats()) {
@@ -160,6 +222,11 @@ public abstract class StopTheWorld extends Plan
         Stats.endGC();
         printPostStats();
       }
+      return;
+    }
+
+    if (Options.sanityCheck.getValue() &&
+        getSanityChecker().collectionPhase(phaseId)) {
       return;
     }
 

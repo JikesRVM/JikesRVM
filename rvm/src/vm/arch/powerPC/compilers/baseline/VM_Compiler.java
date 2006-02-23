@@ -2061,7 +2061,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     int firstCounter = edgeCounterIdx; // only used if options.EDGE_COUNTERS;
 
     popInt(T0);  // T0 is index
-    if (VM_Assembler.fits(16, -low)) {
+    if (VM_Assembler.fits(-low, 16)) {
       asm.emitADDI(T0, -low, T0);
     } else {
       asm.emitLVAL(T1, low);

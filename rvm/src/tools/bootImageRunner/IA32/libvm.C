@@ -66,7 +66,10 @@ const char **JavaArgs;
 int JavaArgc;
 
 /* global; startup configuration option with default values */
-const char *bootFilename = 0;
+const char *bootCodeFilename = 0;
+
+/* global; startup configuration option with default values */
+const char *bootDataFilename = 0;
 
 /* Emit trace information? */
 int lib_verbose = 0;
@@ -691,6 +694,63 @@ softwareSignalHandler(int signo,
 }
 
 
+
+static void*
+mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
+             unsigned *roundedImageSize) {
+    
+    /* open and mmap the image file. 
+     * create bootRegion
+     */
+    FILE *fin = fopen (fileName, "r");
+    if (!fin) {
+        fprintf(SysTraceFile, "%s: can't find bootimage file\"%s\"\n", Me, fileName);
+        return 0;
+    }
+
+    /* measure image size */
+    if (lib_verbose)
+        fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, fileName);
+    fseek (fin, 0L, SEEK_END);
+    unsigned actualImageSize = ftell(fin);
+    *roundedImageSize = pageRoundUp(actualImageSize);
+    fseek (fin, 0L, SEEK_SET);
+
+
+    void *bootRegion = 0;
+    bootRegion = mmap((void*)targetAddress, *roundedImageSize,
+		      PROT_READ | PROT_WRITE | PROT_EXEC,
+		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
+		      fileno(fin), 0);
+    if (bootRegion == (void *) MAP_FAILED) {
+        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %s\n", 
+		Me, errno, strerror(errno));
+        return 0;
+    }
+    if (bootRegion != targetAddress) {
+	fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
+			     " got %p instead.  This should never happen.",
+		Me, bootRegion, targetAddress);
+	/* Don't check the return value.  This is insane already.
+	 * If we weren't part of a larger runtime system, I'd abort at this
+	 * point.  */
+	(void) munmap(bootRegion, *roundedImageSize);
+	return 0;
+    }
+
+    /* Quoting from the Linux mmap(2) manual page:
+       "closing the file descriptor does not unmap the region."
+    */
+    if (fclose (fin) != 0) {
+        fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", Me, errno);
+        return 0;
+    }
+    return bootRegion;
+}
+
+
+
+
 /* Returns 1 upon any errors.   Never returns except to report an error. */
 int
 createVM(int UNUSED vmInSeparateThread)
@@ -704,111 +764,35 @@ createVM(int UNUSED vmInSeparateThread)
         fprintf(SysTraceFile, "IA32 linux build\n");
     }
 
-/* Note: You probably always want to use MMAP_COPY_ON_WRITE.
-   <p>
-   On my sample
-   machine (IBM Thinkpad T23), using MMAP_COPY_ON_WRITE we can run "Hello
-   World" a lot faster.  These results are the averages after a settling-down
-   period for the disk cache to fill up.  They are even more dramatic without
-   the settling-down period:
-
-		    With MMAP_COPY_ON_WRITE		Old Way
-   BaseBaseCopyMS:      0.875 seconds			1.4 seconds
-   FastAdaptiveCopyMS:	0.237 seconds			2.0   seconds
-
-   The only disadvantage I can see here is that with copy-on-write, it means
-   that if somebody rewrites the boot image file while you're running from that
-   boot image, you will lose big.  However, we never did perform any boot
-   image locking, so that if somebody had rewritten the boot image while you
-   were loading it, you would have had the same problem.  Of course, now the
-   window of vulnerability is much wider than two seconds; it's the entire run
-   time of the program. */
-
-#define MMAP_COPY_ON_WRITE
-
-    /* open and mmap the image file. 
-     * create bootRegion
-     */
-    FILE *fin = fopen (bootFilename, "r");
-    if (!fin) {
-        fprintf(SysTraceFile, "%s: can't find bootimage \"%s\"\n", Me, bootFilename);
+    unsigned roundedDataRegionSize;
+    void *bootDataRegion = mapImageFile(bootDataFilename,
+                                        bootImageDataAddress,
+                                        false,
+                                        &roundedDataRegionSize);
+    if (bootDataRegion != bootImageDataAddress)
         return 1;
-    }
 
-    /* measure image size */
-    if (lib_verbose)
-        fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, bootFilename);
-    fseek (fin, 0L, SEEK_END);
-    unsigned actualImageSize = ftell(fin);
-    unsigned roundedImageSize = pageRoundUp(actualImageSize);
-    fseek (fin, 0L, SEEK_SET);
-
-
-    void *bootRegion = 0;
-#ifdef MMAP_COPY_ON_WRITE
-    bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
-		      PROT_READ | PROT_WRITE | PROT_EXEC,
-		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
-		      fileno(fin), 0);
-    if (bootRegion == (void *) MAP_FAILED) {
-        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %s\n", 
-		Me, errno, strerror(errno));
+    unsigned roundedCodeRegionSize;
+    void *bootCodeRegion = mapImageFile(bootCodeFilename,
+                                        bootImageCodeAddress,
+                                        true,
+                                        &roundedCodeRegionSize);
+    if (bootCodeRegion != bootImageCodeAddress)
         return 1;
-    }
-    if (bootRegion != (void *) bootImageAddress) {
-	fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
-			     " got %p instead.  This should never happen.",
-		Me, bootRegion, bootImageAddress);
-	/* Don't check the return value.  This is insane already.
-	 * If we weren't part of a larger runtime system, I'd abort at this
-	 * point.  */
-	(void) munmap(bootRegion, roundedImageSize);
-	return 1;
-    }
-#else
-    // allocate region 1 and 2
-    bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
-                       PROT_READ | PROT_WRITE | PROT_EXEC,
-                       MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
-
-    if (bootRegion == (void *) -1) {
-        fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-
-    /* read image into memory segment */
-    int cnt = fread (bootRegion, 1, actualImageSize, fin);
-    if (cnt < 0 || (unsigned) cnt != actualImageSize) {
-        fprintf(SysErrorFile, "%s: read failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-
-    if (actualImageSize % 4 != 0) {
-        fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n",
-                 Me, actualImageSize);
-        return 1;
-    }
-
-#endif
-
-#ifdef MMAP_COPY_ON_WRITE
-    /* Quoting from the Linux mmap(2) manual page:
-       "closing the file descriptor does not unmap the region."
-    */
-#endif
-
-    if (fclose (fin) != 0) {
-        fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-
+    
 
     /* validate contents of boot record */
-    bootRecord = (VM_BootRecord *) bootRegion;
+    bootRecord = (VM_BootRecord *) bootDataRegion;
 
-    if (bootRecord->bootImageStart != (unsigned) bootRegion) {
+    if (bootRecord->bootImageDataStart != (unsigned) bootDataRegion) {
         fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
-                 Me, bootRecord->bootImageStart, (unsigned) bootRegion);
+                Me, bootRecord->bootImageDataStart, (unsigned) bootDataRegion);
+        return 1;
+    }
+
+    if (bootRecord->bootImageCodeStart != (unsigned) bootCodeRegion) {
+        fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
+                Me, bootRecord->bootImageCodeStart, (unsigned) bootCodeRegion);
         return 1;
     }
 
@@ -849,8 +833,10 @@ createVM(int UNUSED vmInSeparateThread)
     bootRecord->stackGrowIncrement = stackGrowIncrement;
     bootRecord->maximumStackSize = maximumStackSize;
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
-    bootRecord->bootImageStart   = (int) bootRegion;
-    bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
+    bootRecord->bootImageDataStart   = (int) bootDataRegion;
+    bootRecord->bootImageDataEnd     = (int) bootDataRegion + roundedDataRegionSize;
+    bootRecord->bootImageCodeStart   = (int) bootCodeRegion;
+    bootRecord->bootImageCodeEnd     = (int) bootCodeRegion + roundedCodeRegionSize;
     bootRecord->verboseBoot      = verboseBoot;
     bootRecord->singleVirtualProcessor = rvm_singleVirtualProcessor;
   
@@ -858,10 +844,14 @@ createVM(int UNUSED vmInSeparateThread)
     setLinkage(bootRecord);
     if (lib_verbose) {
         fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
-        fprintf(SysTraceFile, "   bootImageStart:       0x%08x\n", 
-                bootRecord->bootImageStart);
-        fprintf(SysTraceFile, "   bootImageEnd:         0x%08x\n", 
-                bootRecord->bootImageEnd);
+        fprintf(SysTraceFile, "   bootImageDataStart:   0x%08x\n", 
+                bootRecord->bootImageDataStart);
+        fprintf(SysTraceFile, "   bootImageDataEnd:     0x%08x\n", 
+                bootRecord->bootImageDataEnd);
+        fprintf(SysTraceFile, "   bootImageCodeStart:   0x%08x\n", 
+                bootRecord->bootImageCodeStart);
+        fprintf(SysTraceFile, "   bootImageCodeEnd:     0x%08x\n", 
+                bootRecord->bootImageCodeEnd);
         fprintf(SysTraceFile, "   initialHeapSize:      0x%08x\n", 
                 bootRecord->initialHeapSize);
         fprintf(SysTraceFile, "   maximumHeapSize:      0x%08x\n", 

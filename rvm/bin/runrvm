@@ -133,8 +133,9 @@ setup_xalan			# Set xalan_cp and  xalan_property
 declare -r os_version="$(uname -r)"
 declare -r os_name="$(uname -s)"
 declare -a sys_args
-sys_args=("-X:i=$rvm_build/RVM.image" \
-		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar${RVM_BOOTCLASSPATH_APPEND:+:}${RVM_BOOTCLASSPATH_APPEND-}${xalan_cp:+:}${xalan_cp}" \
+sys_args=("-X:ic=$rvm_build/RVM.code.image" \
+          "-X:id=$rvm_build/RVM.data.image" \
+          "-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar${RVM_BOOTCLASSPATH_APPEND:+:}${RVM_BOOTCLASSPATH_APPEND-}${xalan_cp:+:}${xalan_cp}" \
 		$xalan_property						\
 		"-Duser.timezone=$(date +%Z)"				\
 		"-Drvm.root=$rvm_root"					\

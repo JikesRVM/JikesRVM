@@ -101,7 +101,7 @@ else
    host_mem_size_arg := 	   -Xmx$(HOST_MEM_MAX)
 endif
 
-$(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
+bootimage: $(UTIL_KLUDGE_JAR)
 ifeq (${HOST_VM_TYPE},Kaffe)
 	$(RM) $(phony_home_dir)/.kafferc
 	$(CP) dot-kafferc $(phony_home_dir)/.kafferc
@@ -116,7 +116,8 @@ endif
 	   BootImageWriter\
 	   -classpath $(RVM_REPOSITORIES) \
 	   -n $(RVM_BOOTIMAGE_CLASSES) \
-	   -o $(RVM_BOOTIMAGE) \
+	   -oc $(RVM_BOOTIMAGE_CODE) \
+	   -od $(RVM_BOOTIMAGE_DATA) \
 	   $(RVM_BOOTIMAGE_COMPILER_ARGS) \
 	   $(RVM_BOOTIMAGE_WRITER_ARGS) \
 	   $(IMAGE_ADDRESS_ARG)

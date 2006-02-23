@@ -26,8 +26,8 @@ import java.util.*;
 public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   private static final boolean DEBUG = false;
 
-  private OPT_LSTNode rootNode;
-  private final java.util.HashMap loopMap = new java.util.HashMap(); // bb -> OPT_LSTNode of innermost loop containing bb
+  protected OPT_LSTNode rootNode;
+  private java.util.HashMap loopMap; // bb -> OPT_LSTNode of innermost loop containing bb
 
   /**
    * The main entry point
@@ -122,10 +122,22 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
    */
 
   /**
+	* Copying constructor
+	*
+	* @param graph to copy
+	*/
+  protected OPT_LSTGraph(OPT_LSTGraph graph) {
+	 rootNode = graph.rootNode;
+	 loopMap = graph.loopMap;
+  }
+
+  /**
    * Constructor, it creates the LST graph
    * @param  ir the IR
    */
   private OPT_LSTGraph(OPT_IR ir) {
+	 loopMap = new java.util.HashMap();
+
     OPT_ControlFlowGraph cfg = ir.cfg;
     OPT_BasicBlock entry = ir.cfg.entry();
 

@@ -286,7 +286,7 @@ ${funcname:+in the shell function \"}${funcname}${funcname:+\"}";
     fi	
     if (( xited > 128 )); then
 	local -i signo
-	let signo=(xited - 128);
+	let signo=$(xited - 128);
 	show_mesg >&2 "The command was killed by signal # ${signo}"
     fi
     show_mesg >&2 "Aborting execution."; 
@@ -321,7 +321,7 @@ CLEANUP=":"
 function signalled() {
     local -i xitstatus=$?
     local -i signum
-#    let signum=(xitstatus - 128)
+#    let signum=$(xitstatus - 128)
 #    show_mesg >&2 "Got hit with signal # $signum.  Exiting abruptly."  
     show_mesg >&2 "Got hit with a signal while running in a Bash builtin.  Exiting abruptly."  
 #    Cleaning up..."; 
@@ -469,7 +469,7 @@ function check_bash_version() {
     fi
     if (( retcode == 2 )); then
 	show_mesg "Trouble may be on the way; I will not be able to do any sanity checking for a known good Bash version.  Please report this complete error message to the Jikes RVM project."
-	echo "  BASH_VERSINFO=(${BASH_VERSINFO[*]})"
+	echo "  BASH_VERSINFO=\$(${BASH_VERSINFO[*]})"
 	echo "  BASH_VERSION='${BASH_VERSION}'"  
     fi >&2
     if (( retcode > 0 )); then

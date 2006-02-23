@@ -32,22 +32,7 @@
 #include <string.h>             // among other things, provides strsignal()
 #include <assert.h>
 #include <sys/mman.h>
-#include <sys/shm.h>
 #define SIGNAL_STACKSIZE (16 * 1024)    // in bytes
-
-/* There are several ways to allocate large areas of virtual memory:
-
-   1. malloc() is simplest, but doesn't allow a choice of address, thus
-      requiring address relocation of the boot image.  Unsupported. 
-
-   2. mmap() is simple to use but, on AIX, uses 2x amount of physical memory
-      requested (per Al Chang) 
-
-   3. shmat() doesn't have the 2x problem, but is limited to 256M per
-      allocation on AIX 4.1 (unlimited on 4.3) 
-
-   [--DL] 
-*/
 
 #ifdef RVM_FOR_LINUX
 #include <asm/cache.h>
@@ -68,7 +53,6 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
-#define USE_MMAP 1 // choose mmap() for Linux --SB
 #define NGPRS 32
 // Linux on PPC does not save FPRs - is this true still?
 #define NFPRS  32
@@ -92,7 +76,6 @@ struct linux_sigregs {
 #endif
 
 #ifdef RVM_FOR_AIX
-#define USE_MMAP 0 // choose shmat() otherwise --DL
 #include <sys/cache.h>
 #include <sys/context.h>
 extern "C" char *sys_siglist[];
@@ -1060,7 +1043,8 @@ static void *bootThreadCaller(void *);
 
 // A startup configuration option with default values.
 // Declared in bootImageRunner.h
-const char *bootFilename     = 0;
+const char *bootDataFilename     = 0;
+const char *bootCodeFilename     = 0;
 
 // The name of the program that will load and run the RVM.
 // Declared in bootImageRunner.h
@@ -1073,142 +1057,84 @@ pageRoundUp(size_t size)
     return (size + pageSize - 1) / pageSize * pageSize;
 }
 
-// static unsigned 
-// min(unsigned a, unsigned b) 
-// {
-//     return (a < b) ? a : b;
-// }
-
-// static unsigned 
-// max(unsigned a, unsigned b) 
-// {
-//     return (a > b) ? a : b;
-// }
-
-int 
-createVM(int vmInSeparateThread) 
-{
-    // arguments processing moved to runboot.c
-
-    // don't buffer trace or error message output
-    //
-    setbuf(SysErrorFile, NULL);
-    setbuf(SysTraceFile, NULL);
-   
+static void*
+mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
+             size_t *roundedImageSize) {
     // open image file
     //
-    FILE *fin = fopen(bootFilename, "r");
+    FILE *fin = fopen(fileName, "r");
     if (!fin) {
-        fprintf(SysTraceFile, "%s: can't find boot image \"%s\"\n", Me, bootFilename);
-        return 1;
+        fprintf(SysTraceFile, "%s: can't find boot image \"%s\"\n", Me, fileName);
+        return (void*)1;
     }
 
     // measure image size
     //
     if (lib_verbose) 
-        fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, bootFilename);
+        fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, fileName);
     fseek(fin, 0L, SEEK_END);
     size_t actualImageSize = ftell(fin);
-    size_t roundedImageSize = pageRoundUp(actualImageSize);
+    *roundedImageSize = pageRoundUp(actualImageSize);
     fseek(fin, 0L, SEEK_SET);
    
 
     // allocate memory regions in units of system page size
     //
     void    *bootRegion = 0;
-   
-#if USE_MMAP
-/* Note: You probably always want to use MMAP_COPY_ON_WRITE.
-   <p>
-   On my sample
-   machine (IBM Thinkpad T23), using MMAP_COPY_ON_WRITE we can run "Hello
-   World" a lot faster.  These results are the averages after a settling-down
-   period for the disk cache to fill up.  They are even more dramatic without
-   the settling-down period:
-
-		    With MMAP_COPY_ON_WRITE		Old Way
-   BaseBaseCopyMS:      0.875 seconds			1.4 seconds
-   FastAdaptiveCopyMS:	0.237 seconds			2.0   seconds
-
-   The only disadvantage I can see here is that with copy-on-write, it means
-   that if somebody rewrites the boot image file while you're running from that
-   boot image, you will lose big.  However, we never did perform any boot
-   image locking, so that if somebody had rewritten the boot image while you
-   were loading it, you would have had the same problem.  Of course, now the
-   window of vulnerability is much wider than two seconds; it's the entire run
-   time of the program. */
-
-#define MMAP_COPY_ON_WRITE
-#ifdef MMAP_COPY_ON_WRITE
-    bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
+    bootRegion = mmap((void *) targetAddress, *roundedImageSize,
 		      PROT_READ | PROT_WRITE | PROT_EXEC,
-		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
+              MAP_FIXED | MAP_PRIVATE, 
 		      fileno(fin), 0);
     if (bootRegion == (void *) MAP_FAILED) {
         fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %e\n", 
 		Me, errno, errno);
-        return 1;
+        return (void*)1;
     }
-    if (bootRegion != (void *) bootImageAddress) {
+    if (bootRegion != (void *) targetAddress) {
 	fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
 			     " got %p instead.  This should never happen.",
-		bootRegion, bootImageAddress);
+		bootRegion, targetAddress);
 	/* Don't check the return value.  This is insane already.
 	 * If we weren't part of a larger runtime system, I'd abort at this
 	 * point.  */
-	(void) munmap(bootRegion, roundedImageSize);
-	return 1;
-    }
-#else
-    bootRegion = mmap((void *) bootImageAddress, roundedImageSize,
-                      PROT_READ | PROT_WRITE | PROT_EXEC, 
-                      MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
-    if (bootRegion == (void *)-1) {
-        fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-#endif
-#else
-    int id1 = shmget(IPC_PRIVATE, roundedImageSize, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
-    if (id1 == -1) {
-        fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-    bootRegion = shmat(id1, (const void *) bootImageAddress, 0);
-    if (bootRegion == (void *)-1) {
-        fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-    if (shmctl(id1, IPC_RMID, 0)) {  // free shmid to avoid persistence
-        fprintf(SysErrorFile, "%s: shmctl failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-#endif
-
-#ifndef MMAP_COPY_ON_WRITE
-    // read image into memory segment
-    //
-    int cnt = fread(bootRegion, 1, actualImageSize, fin);
-   
-    if (cnt < 0 || (unsigned) cnt != actualImageSize) {
-        fprintf(SysErrorFile, "%s: read of boot image failed (errno=%d)\n", Me, errno);
-        return 1;
+	(void) munmap(bootRegion, *roundedImageSize);
+	return (void*)1;
     }
 
-    if (actualImageSize % 4 != 0) {  //Kris V: % 8 for 64_bit platforms
-        fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n", Me, actualImageSize);
-        return 1;
-    }
-   
-    if (fclose(fin) != 0) {
-        fprintf(SysErrorFile, "%s: close of boot image failed (errno=%d)\n", Me, errno);
-        return 1;
-    }
-#endif
-  
-    // fetch contents of boot record which is at beginning of boot image
+    return bootRegion;
+}  
+
+
+
+int 
+createVM(int vmInSeparateThread) 
+{
+    // don't buffer trace or error message output
     //
-    theBootRecord               = (VM_BootRecord *) bootRegion;
+    setbuf(SysErrorFile, NULL);
+    setbuf(SysTraceFile, NULL);
+   
+    size_t roundedDataRegionSize;
+
+    void *bootDataRegion = mapImageFile(bootDataFilename,
+                                        bootImageDataAddress,
+                                        false,
+                                        &roundedDataRegionSize);
+    if (bootDataRegion != bootImageDataAddress)
+        return 1;
+
+    size_t roundedCodeRegionSize;
+    void *bootCodeRegion = mapImageFile(bootCodeFilename,
+                                        bootImageCodeAddress,
+                                        true,
+                                        &roundedCodeRegionSize);
+    if (bootCodeRegion != bootImageCodeAddress)
+        return 1;
+    
+
+    // fetch contents of boot record which is at beginning of data portion of boot image
+    //
+    theBootRecord               = (VM_BootRecord *) bootDataRegion;
     VM_BootRecord& bootRecord   = *theBootRecord;
    
 
@@ -1234,14 +1160,18 @@ createVM(int vmInSeparateThread)
         return 1;
     }
 
-    void * compiled_for =  (void *) bootRecord.bootImageStart;
-    void * loaded_at = bootRegion;
-    if (compiled_for !=  loaded_at) {
-        fprintf(SysErrorFile, "%s: image load error: image was compiled for address " FMTrvmPTR " but loaded at " FMTrvmPTR "\n", 
-                Me, rvmPTR_ARG(compiled_for), rvmPTR_ARG(loaded_at));
+    if (bootRecord.bootImageDataStart != (VM_Address)bootDataRegion) {
+        fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
+                Me, bootRecord.bootImageDataStart, (unsigned) bootDataRegion);
         return 1;
     }
-  
+
+    if (bootRecord.bootImageCodeStart != (VM_Address)bootCodeRegion) {
+        fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
+                Me, bootRecord.bootImageCodeStart, (unsigned) bootCodeRegion);
+        return 1;
+    }
+
     // remember jtoc location for later use by trap handler - but jtoc might change
     //
     VmToc = bootRecord.tocRegister;
@@ -1255,8 +1185,10 @@ createVM(int vmInSeparateThread)
     bootRecord.stackGrowIncrement = stackGrowIncrement;
     bootRecord.maximumStackSize = maximumStackSize;
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
-    bootRecord.bootImageStart   = (VM_Address) bootRegion;
-    bootRecord.bootImageEnd     = (VM_Address) bootRegion + roundedImageSize;
+    bootRecord.bootImageDataStart   = (VM_Address) bootDataRegion;
+    bootRecord.bootImageDataEnd     = (VM_Address) bootDataRegion + roundedDataRegionSize;
+    bootRecord.bootImageCodeStart   = (VM_Address) bootCodeRegion;
+    bootRecord.bootImageCodeEnd     = (VM_Address) bootCodeRegion + roundedCodeRegionSize;
     bootRecord.verboseBoot      = verboseBoot;
     bootRecord.singleVirtualProcessor = rvm_singleVirtualProcessor;
   
@@ -1279,8 +1211,10 @@ createVM(int vmInSeparateThread)
    
     if (lib_verbose) {
         fprintf(SysTraceFile, "%s: boot record contents:\n", Me);
-        fprintf(SysTraceFile, "   bootImageStart:       " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageStart));
-        fprintf(SysTraceFile, "   bootImageEnd:         " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageEnd));
+        fprintf(SysTraceFile, "   bootImageDataStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataStart));
+        fprintf(SysTraceFile, "   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
+        fprintf(SysTraceFile, "   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
+        fprintf(SysTraceFile, "   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
         assert(sizeof bootRecord.initialHeapSize == 4);
         fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialHeapSize));
         assert(sizeof bootRecord.maximumHeapSize == 4);
@@ -1327,8 +1261,7 @@ createVM(int vmInSeparateThread)
         fprintf(SysErrorFile, "%s: sigfillset or sigdelset failed (errno=%d)\n", Me, errno);
         return 1;
     }
-#endif
-#if (defined RVM_FOR_OSX)
+#elif (defined RVM_FOR_OSX)
     struct sigaltstack stackInfo;
     if ((stackInfo.ss_sp = (char*)malloc(SIGSTKSZ)) == NULL) {
         fprintf(SysErrorFile, "%s: malloc failed (errno=%d)\n", Me, errno);
@@ -1439,7 +1372,7 @@ createVM(int vmInSeparateThread)
     // written out to main memory so that it will be seen by icache when
     // instructions are fetched back
     //
-    sysSyncCache(bootRegion, roundedImageSize);
+    sysSyncCache(bootCodeRegion, roundedCodeRegionSize);
 
 #ifdef RVM_FOR_AIX
     if (lib_verbose) 

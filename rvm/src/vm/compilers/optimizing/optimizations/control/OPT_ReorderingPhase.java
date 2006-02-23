@@ -287,7 +287,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
           if (nextChoice == null) {
             if (DEBUG) VM.sysWriteln("First reachable candidate "+cand);
             nextChoice = cand;
-          } else if (cand.inWeight < nextChoice.inWeight ||
+          } else if (cand.inWeight > nextChoice.inWeight ||
                      (cand.inWeight == nextChoice.inWeight && 
                       cand.placedWeight > nextChoice.placedWeight)) {
             if (DEBUG) VM.sysWriteln(cand + " is a better choice than "+nextChoice);

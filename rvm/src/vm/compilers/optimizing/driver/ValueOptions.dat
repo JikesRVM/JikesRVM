@@ -78,10 +78,6 @@ Selection of spilling heuristic
 "BRAINDEAD_SPILL_COST brainDeadSpillCost brainDead" \
 "BLOCK_COUNT_SPILL_COST blockCountSpillCost blockCount"
 
-S METHOD_TO_WRITE String
-Write class file from HIR for this method
-
-
 V INFREQUENT_THRESHOLD float 0.01f
 Cumulative threshold which defines the set of infrequent basic blocks
 

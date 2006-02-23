@@ -99,7 +99,8 @@ user_args=("$@")
 ## set these before checking user args, for some odd reason).
 
 declare -a sys_args
-sys_args=("-X:i=$rvm_build/RVM.image" \
+sys_args=("-X:ic=$rvm_build/RVM.code.image" \
+		"-X:id=$rvm_build/RVM.data.image" \
 		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\

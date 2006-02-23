@@ -25,7 +25,8 @@ export RVM_FOR_AIX=1
 # SMP support is always ok on AIX.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
-export BOOTIMAGE_LOAD_ADDRESS=0x30000000
+export BOOTIMAGE_DATA_ADDRESS=0x30000000
+export BOOTIMAGE_CODE_ADDRESS=0x34000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000
 
 # Hardware performance monitor api available in AIX5.1 (bos.pmapi)

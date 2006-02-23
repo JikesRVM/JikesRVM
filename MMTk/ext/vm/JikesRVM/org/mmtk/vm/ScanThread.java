@@ -668,21 +668,19 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
    */
   private void dumpStackFrame(int verbosity) {
     Address start,end;
-//-#if RVM_FOR_IA32
-    if (prevFp.isZero()) {
-      start = fp.sub(20*BYTES_IN_ADDRESS);
-      Log.writeln("--- 20 words of stack frame with fp = ", fp);
+    if (VM.BuildForIA32) {
+      if (prevFp.isZero()) {
+        start = fp.sub(20*BYTES_IN_ADDRESS);
+        Log.writeln("--- 20 words of stack frame with fp = ", fp);
+      } else {
+        start = prevFp;    // start at callee fp
+      }
+      end = fp;            // end at fp
+    } else {
+      start = fp;                         // start at fp
+      end = fp.loadAddress();   // stop at callers fp
     }
-    else {
-      start = prevFp;    // start at callee fp
-    }
-    end = fp;            // end at fp
-//-#endif
-//-#if RVM_FOR_POWERPC
-    start = fp;                         // start at fp
-    end = fp.loadAddress();   // stop at callers fp
-//-#endif
-
+      
     for (Address loc = start; loc.LT(end); loc = loc.add(BYTES_IN_ADDRESS)) {
       Log.write(loc); Log.write(" (");
       Log.write(loc.diff(start));

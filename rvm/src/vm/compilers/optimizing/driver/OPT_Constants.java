@@ -30,6 +30,7 @@ public interface OPT_Constants {
   //-#if RVM_WITH_OSR
   final int OSR_PROLOGUE = -15;
   //-#endif
+  final int SYNTH_LOOP_VERSIONING_BCI = -16;
 
   // The following are used as trinary return values in OptCompiler code
   public final byte NO = 0;

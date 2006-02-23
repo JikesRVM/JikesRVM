@@ -178,7 +178,7 @@ public abstract class Phase implements Uninterruptible, Constants {
    * @param id The phase identifier.
    * @return The Phase instance.
    */
-  protected Phase getPhase(int id) {
+  public static Phase getPhase(int id) {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(id < phaseId, "Phase ID unknown");
       Assert._assert(phases[id] != null, "Uninitialised phase");

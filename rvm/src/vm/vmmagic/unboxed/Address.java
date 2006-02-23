@@ -333,7 +333,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    */
   public Offset diff(Address addr2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Address(value - addr2.value).toWord().toOffset();
+    return new Offset(value - addr2.value);
   }
 
 

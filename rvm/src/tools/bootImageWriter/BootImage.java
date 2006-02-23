@@ -32,14 +32,24 @@ public class BootImage extends BootImageWriterMessages
   private boolean littleEndian;
 
   /**
-   * The actual boot image
+   * The data portion of the actual boot image
    */
-  private byte[] bootImage;
+  private byte[] bootImageData;
 
   /**
-   * Offset of next free word, in bytes
+   * The code portion of the actual boot image
    */
-  private Offset freeOffset = Offset.zero();
+  private byte[] bootImageCode;
+
+  /**
+   * Offset of next free data word, in bytes
+   */
+  private Offset freeDataOffset = Offset.zero();
+
+  /**
+   * Offset of next free code word, in bytes
+   */
+  private Offset freeCodeOffset = Offset.zero();
 
   /**
    * Number of objects appearing in bootimage
@@ -62,7 +72,8 @@ public class BootImage extends BootImageWriterMessages
    * @param t turn tracing on?
    */
   BootImage(boolean ltlEndian, boolean t) {
-    bootImage = new byte[BOOT_IMAGE_SIZE];
+    bootImageData = new byte[BOOT_IMAGE_DATA_SIZE];
+    bootImageCode = new byte[BOOT_IMAGE_CODE_SIZE];
     littleEndian = ltlEndian;
     trace = t;
   }
@@ -72,37 +83,53 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param imageFileName the name of the image file
    */
-  public void write(String imageFileName) throws IOException {
+  public void write(String imageCodeFileName, String imageDataFileName) throws IOException {
     if (trace) {
       say((numObjects / 1024)   + "k objects");
       say((numAddresses / 1024) + "k non-null object references");
       say(numNulledReferences + " references nulled because they are "+
           "non-jdk fields or point to non-bootimage objects");
       say((VM_Statics.getNumberOfSlots() / 1024) + "k jtoc slots");
-      say((getSize() / 1024) + "k image");
-      say("writing " + imageFileName);
+      say((getDataSize() / 1024) + "k data in image");
+      say((getCodeSize() / 1024) + "k code in image");
+      say("writing " + imageDataFileName);
     }
-    FileOutputStream out = new FileOutputStream(imageFileName);
-    out.write(bootImage, 0, getSize());
-    out.flush();
-    out.close();
+    FileOutputStream dataOut = new FileOutputStream(imageDataFileName);
+    dataOut.write(bootImageData, 0, getDataSize());
+    dataOut.flush();
+    dataOut.close();
+    if (trace) {
+      say("writing " + imageCodeFileName);
+    }
+    FileOutputStream codeOut = new FileOutputStream(imageCodeFileName);
+    codeOut.write(bootImageCode, 0, getCodeSize());
+    codeOut.flush();
+    codeOut.close();
   }
 
   /**
-   * Get image size, in bytes.
+   * Get image data size, in bytes.
    * @return image size
    */
-  public int getSize() {
-    return freeOffset.toInt();
+  public int getDataSize() {
+    return freeDataOffset.toInt();
+  }
+
+  /**
+   * Get image code size, in bytes.
+   * @return image size
+   */
+  public int getCodeSize() {
+    return freeCodeOffset.toInt();
   }
 
   /**
    * Allocate a scalar object.
    *
    * @param klass VM_Class object of scalar being allocated
-   * @return offset of object within bootimage, in bytes
+   * @return address of object within bootimage
    */
-  public Offset allocateScalar(VM_Class klass) {
+  public Address allocateScalar(VM_Class klass) {
     numObjects++;
     klass.bootCount++;
     klass.bootBytes += klass.getInstanceSize();
@@ -114,13 +141,27 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param array VM_Array object of array being allocated.
    * @param numElements number of elements
-   * @return offset of object within bootimage, in bytes
+   * @return address of object within bootimage
    */
-  public Offset allocateArray(VM_Array array, int numElements) {
+  public Address allocateArray(VM_Array array, int numElements) {
     numObjects++;
     array.bootCount++;
     array.bootBytes += array.getInstanceSize(numElements);
     return VM_ObjectModel.allocateArray(this, array, numElements);
+  }
+
+  /**
+   * Allocate an array object.
+   *
+   * @param array VM_Array object of array being allocated.
+   * @param numElements number of elements
+   * @return address of object within bootimage
+   */
+  public Address allocateCode(VM_Array array, int numElements) {
+    numObjects++;
+    array.bootCount++;
+    array.bootBytes += array.getInstanceSize(numElements);
+    return VM_ObjectModel.allocateCode(this, array, numElements);
   }
 
   /**
@@ -131,18 +172,40 @@ public class BootImage extends BootImageWriterMessages
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
    */
-  public Offset allocateStorage(int size, int align, int offset) {
-    freeOffset = MM_Interface.alignAllocation(freeOffset, align, offset);
+  public Address allocateDataStorage(int size, int align, int offset) {
+    freeDataOffset = MM_Interface.alignAllocation(freeDataOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
-      VM._assert(freeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
+      VM._assert(freeDataOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeDataOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
-    Offset lowAddr = freeOffset;
-    freeOffset = freeOffset.add(size);
-    if (freeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_SIZE)))
-      fail("bootimage full (need at least " + size + " more bytes)");
+    Offset lowAddr = freeDataOffset;
+    freeDataOffset = freeDataOffset.add(size);
+    if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
+      fail("bootimage full (need at least " + size + " more bytes for data)");
+
+    return BOOT_IMAGE_DATA_START.add(lowAddr);
+  }
+
+  /**
+   * Allocate space in bootimage. Moral equivalent of 
+   * memory managers allocating raw storage at runtime.
+   *
+   * @param size the number of bytes to allocate
+   * @param align the alignment requested; must be a power of 2.
+   * @param offset the offset at which the alignment is desired.
+   */
+  public Address allocateCodeStorage(int size, int align, int offset) {
+    freeCodeOffset = MM_Interface.alignAllocation(freeCodeOffset, align, offset);
+    if (VM.ExtremeAssertions) {
+      VM._assert(freeCodeOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeCodeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
+    }
+    Offset lowAddr = freeCodeOffset;
+    freeCodeOffset = freeCodeOffset.add(size);
+    if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
+      fail("bootimage full (need at least " + size + " more bytes for data)");
     
-    return lowAddr;
+    return BOOT_IMAGE_CODE_START.add(lowAddr);
   }
 
   /**
@@ -152,110 +215,136 @@ public class BootImage extends BootImageWriterMessages
    * actual address can be computed early in the build process.
    */
   public void resetAllocator() {
-    freeOffset = Offset.zero();
+    freeDataOffset = Offset.zero();
+    freeCodeOffset = Offset.zero();
   }
 
   /**
    * Fill in 1 byte of bootimage.
    *
-   * @param offset offset of target from start of image, in bytes
+   * @param address address of target
    * @param value value to write
    */
-  public void setByte(Offset offset, int value) {
-    bootImage[offset.toInt()] = (byte) value;
+  public void setByte(Address address, int value) {
+    int idx;
+    byte[] data;
+    if (address.GE(BOOT_IMAGE_CODE_START) && address.LE(BOOT_IMAGE_CODE_END)) {
+      idx = address.diff(BOOT_IMAGE_CODE_START).toInt();
+      data = bootImageCode;
+    } else {
+      idx = address.diff(BOOT_IMAGE_DATA_START).toInt();
+      data = bootImageData;
+    }
+    data[idx] = (byte) value;
   }
 
   /**
    * Fill in 2 bytes of bootimage.
    *
-   * @param offset offset of target from start of image, in bytes
+   * @param address address of target
    * @param value value to write
    */
-  public void setHalfWord(Offset off, int value) {
-    int offset = off.toInt();
+  public void setHalfWord(Address address, int value) {
+    int idx = address.diff(BOOT_IMAGE_DATA_START).toInt();
     if (littleEndian) {
-      bootImage[offset++] = (byte) (value);
-      bootImage[offset  ] = (byte) (value >>  8);
+      bootImageData[idx++] = (byte) (value);
+      bootImageData[idx  ] = (byte) (value >>  8);
     } else {
-      bootImage[offset++] = (byte) (value >>  8);
-      bootImage[offset  ] = (byte) (value);
+      bootImageData[idx++] = (byte) (value >>  8);
+      bootImageData[idx  ] = (byte) (value);
     }
   }
 
   /**
    * Fill in 4 bytes of bootimage, as numeric.
    *
-   * @param offset offset of target from start of image, in bytes
+   * @param address address of target
    * @param value value to write
    */
-  public void setFullWord(Offset off, int value) {
-    int offset = off.toInt();
-    if (littleEndian) {
-      bootImage[offset++] = (byte) (value);
-      bootImage[offset++] = (byte) (value >>  8);
-      bootImage[offset++] = (byte) (value >> 16);
-      bootImage[offset  ] = (byte) (value >> 24);
+  public void setFullWord(Address address, int value) {
+    int idx;
+    byte[] data;
+    if (address.GE(BOOT_IMAGE_CODE_START) && address.LE(BOOT_IMAGE_CODE_END)) {
+      idx = address.diff(BOOT_IMAGE_CODE_START).toInt();
+      data = bootImageCode;
     } else {
-      bootImage[offset++] = (byte) (value >> 24);
-      bootImage[offset++] = (byte) (value >> 16);
-      bootImage[offset++] = (byte) (value >>  8);
-      bootImage[offset  ] = (byte) (value);
+      idx = address.diff(BOOT_IMAGE_DATA_START).toInt();
+      data = bootImageData;
+    }
+    if (littleEndian) {
+      data[idx++] = (byte) (value);
+      data[idx++] = (byte) (value >>  8);
+      data[idx++] = (byte) (value >> 16);
+      data[idx  ] = (byte) (value >> 24);
+    } else {
+      data[idx++] = (byte) (value >> 24);
+      data[idx++] = (byte) (value >> 16);
+      data[idx++] = (byte) (value >>  8);
+      data[idx  ] = (byte) (value);
     }
   }
 
   /**
    * Fill in 4/8 bytes of bootimage, as object reference.
    *
-   * @param offset offset of target from start of image, in bytes
+   * @param address address of target
    * @param value value to write
    */
-  public void setAddressWord(Offset offset, Word value) {
+  public void setAddressWord(Address address, Word value) {
 //-#if RVM_FOR_32_ADDR
-    setFullWord(offset, value.toInt());
+    setFullWord(address, value.toInt());
     numAddresses++;
 //-#endif
 //-#if RVM_FOR_64_ADDR
-    setDoubleWord(offset, value.toLong());
+    setDoubleWord(address, value.toLong());
     numAddresses++;
 //-#endif
   }
 
   /**
-   * Fill in 4 bytes of bootimage, as null object reference.
+   * Fill in 4/8 bytes of bootimage, as null object reference.
    *
-   * @param offset offset of target from start of image, in bytes
+   * @param address address of target
    */
-  public void setNullAddressWord(Offset offset) {
-    setAddressWord(offset, Word.zero());
+  public void setNullAddressWord(Address address) {
+    setAddressWord(address, Word.zero());
     numNulledReferences += 1;
   }
 
   /**
    * Fill in 8 bytes of bootimage.
    *
-   * @param offset offset of target from start of image, in bytes
+   * @param address address of target
    * @param value value to write
    */
-  public void setDoubleWord(Offset off, long value) {
-    int offset = off.toInt();
-    if (littleEndian) {
-      bootImage[offset++] = (byte) (value);
-      bootImage[offset++] = (byte) (value >>  8);
-      bootImage[offset++] = (byte) (value >> 16);
-      bootImage[offset++] = (byte) (value >> 24);
-      bootImage[offset++] = (byte) (value >> 32);
-      bootImage[offset++] = (byte) (value >> 40);
-      bootImage[offset++] = (byte) (value >> 48);
-      bootImage[offset  ] = (byte) (value >> 56);
+  public void setDoubleWord(Address address, long value) {
+    int idx;
+    byte[] data;
+    if (address.GE(BOOT_IMAGE_CODE_START) && address.LE(BOOT_IMAGE_CODE_END)) {
+      idx = address.diff(BOOT_IMAGE_CODE_START).toInt();
+      data = bootImageCode;
     } else {
-      bootImage[offset++] = (byte) (value >> 56);
-      bootImage[offset++] = (byte) (value >> 48);
-      bootImage[offset++] = (byte) (value >> 40);
-      bootImage[offset++] = (byte) (value >> 32);
-      bootImage[offset++] = (byte) (value >> 24);
-      bootImage[offset++] = (byte) (value >> 16);
-      bootImage[offset++] = (byte) (value >>  8);
-      bootImage[offset  ] = (byte) (value);
+      idx = address.diff(BOOT_IMAGE_DATA_START).toInt();
+      data = bootImageData;
+    }
+    if (littleEndian) {
+      data[idx++] = (byte) (value);
+      data[idx++] = (byte) (value >>  8);
+      data[idx++] = (byte) (value >> 16);
+      data[idx++] = (byte) (value >> 24);
+      data[idx++] = (byte) (value >> 32);
+      data[idx++] = (byte) (value >> 40);
+      data[idx++] = (byte) (value >> 48);
+      data[idx  ] = (byte) (value >> 56);
+    } else {
+      data[idx++] = (byte) (value >> 56);
+      data[idx++] = (byte) (value >> 48);
+      data[idx++] = (byte) (value >> 40);
+      data[idx++] = (byte) (value >> 32);
+      data[idx++] = (byte) (value >> 24);
+      data[idx++] = (byte) (value >> 16);
+      data[idx++] = (byte) (value >>  8);
+      data[idx  ] = (byte) (value);
     }
   }
 

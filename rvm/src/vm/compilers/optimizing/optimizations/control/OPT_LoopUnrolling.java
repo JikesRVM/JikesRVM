@@ -28,8 +28,9 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   }
 
   public boolean shouldPerform (OPT_Options options) {
-    if (options.getOptLevel() < 2) return false;
-    return options.UNROLL_LOG >= 1;
+	 return ((options.getOptLevel() >= 2) &&
+            (options.UNROLL_LOG >= 1) &&
+				(options.LOOP_VERSIONING == false));
   }
   
   private OPT_IR ir = null;
@@ -56,7 +57,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     ir.setInstructionScratchWord(0);
 
     unrollLoops(ir);
-    
+
     OPT_CFGTransformations.splitCriticalEdges(ir);
     ir.cfg.compactNodeNumbering();
   }

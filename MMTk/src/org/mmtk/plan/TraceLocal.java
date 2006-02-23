@@ -182,6 +182,14 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
     throws InlinePragma {
     interiorRootLocations.push(object.toAddress(), location);
   }
+  
+  /**
+   * Flush the local buffers of the root deques.
+   */
+  public final void flushRoots() {
+    rootLocations.flushLocal();
+    interiorRootLocations.flushLocal();      
+  }
 
    /**
    * Is the specified object live?

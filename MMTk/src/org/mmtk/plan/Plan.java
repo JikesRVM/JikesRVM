@@ -14,6 +14,7 @@ import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
+import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
@@ -137,6 +138,7 @@ public abstract class Plan implements Uninterruptible, Constants {
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
     Options.variableSizeHeap = new VariableSizeHeap();
+    Options.sanityCheck = new SanityCheck();
   }
 
   /****************************************************************************
@@ -211,8 +213,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public Word setBootTimeGCBits(Offset ref, ObjectReference typeRef,
-                                       int size, Word status)
+  public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
+                                int size, Word status)
     throws InlinePragma {
     return status; // nothing to do (no bytes of GC header)
   }
@@ -243,6 +245,13 @@ public abstract class Plan implements Uninterruptible, Constants {
   }
 
   private long lastStressPages = 0;
+
+  /**
+   * @return The current sanity checker.
+   */
+  public SanityChecker getSanityChecker() {
+    return null;
+  }
 
   /**
    * @return True is a stress test GC is required

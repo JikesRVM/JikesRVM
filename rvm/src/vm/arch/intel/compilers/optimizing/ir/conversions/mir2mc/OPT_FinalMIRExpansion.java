@@ -357,8 +357,6 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
                                        OPT_IR ir,
                                        VM_Method meth,
                                        OPT_IA32ConditionOperand ypCond) {
-    if (VM.VerifyAssertions) VM._assert(ir.options.FIXED_JTOC);
-
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)
@@ -401,9 +399,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
    */
   private static void expandUnconditionalYieldpoint(OPT_Instruction s,
                                                     OPT_IR ir,
-                                                    VM_Method meth) {
-    if (VM.VerifyAssertions) VM._assert(ir.options.FIXED_JTOC);
-
+                                                    VM_Method meth) { 
     // split the basic block after the yieldpoint, create a new
     // block at the end of the IR to hold the yieldpoint,
     // remove the yieldpoint (to prepare to out it in the new block at the end)

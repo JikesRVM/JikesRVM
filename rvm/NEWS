@@ -6,6 +6,43 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+
+*Jikes RVM 2.4.3 Release Notes (released February 24, 2006)
+** Highlights
+*** The recommended version of GNU classpath for Jikes RVM 2.4.3 is 0.20.
+   Classpath 0.19 and 0.18 are likely to still work, but have not been tested.
+   Support for all version of GNU classpath prior to 0.18 has been removed.
+
+*** Simple GC sanity checking tool added to MMTk. Contact: Daniel Frampton.
+
+*** The RVM bootimage is now generated into two separate files, one for
+    code and one for data.  These files are mapped separately into distinct
+    address ranges.  As a result of this change, instead of defining 
+    BOOTIMAGE_LOAD_ADDRESS in your config file, you must define 
+    BOOTIMAGE_DATA_ADDRESS and BOOTIMAGE_CODE_ADDRESS. 
+    All the default configu files (rvm/config/*) have been updated, 
+    but if you have local copies of these files, you will need to update them.
+
+*** Loop Versioning optimization in the opt compiler 
+    contributed by Ian Rogers and Jisheng Zhao. 
+    Loop versioning replicates loop bodies and removes from one of
+    those loop bodies runtime exceptions that can be explicitly
+    tested. The phase runs as an SSA optimization so as only to
+    consider true dependencies. To capture the loop structure the
+    phase uses an annotated LST node. The annotations capture
+    information about the initial and terminal loop iterator values,
+    as well as the loop iterator instructions. This phase is currently
+    disabled by default until we can fix bugs in the optimizing compiler
+    that it exposes.
+
+*** The optimizing compiler's Local CSE pass now exploits commutativity,
+    patch contributed by Bernardo Pastorelli.
+
+** Bug fixes
+*** defect 1240267: remove FIXED_JTOC option
+*** defect 1411486: Bug in IA32 BT (Bit Test) instruction
+
+
 *Jikes RVM 2.4.2 Release Notes (released on November 21, 2005)
 **Highlights
 **The recommended version of GNU classpath for Jikes RVM 2.4.2 is 0.19.

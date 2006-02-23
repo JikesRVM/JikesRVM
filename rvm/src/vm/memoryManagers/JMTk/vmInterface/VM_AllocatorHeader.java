@@ -36,7 +36,7 @@ public final class VM_AllocatorHeader implements VM_Constants {
    * the core JMTk code doesn't need to know about the 
    * BootImageInterface type.
    */
-  public static void initializeHeader(BootImageInterface bootImage, Offset ref,
+  public static void initializeHeader(BootImageInterface bootImage, Address ref,
                                       Object[] tib, int size, boolean isScalar)
     throws InterruptiblePragma {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);

@@ -179,4 +179,13 @@ public final class SimplePhase extends Phase
 
     if (primary && timer != null) timer.stop();
   }
+  
+  /**
+   * Change the ordering of the phase. This can be used, for example,
+   * to realise a placeholder phase at runtime.
+   * 
+   * @param ordering The new ordering.
+   */
+  public void changeOrdering(int ordering) {
+  }
 }

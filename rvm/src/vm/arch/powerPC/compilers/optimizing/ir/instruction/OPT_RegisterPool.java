@@ -41,7 +41,7 @@ public class OPT_RegisterPool extends OPT_GenericRegisterPool {
   }
 
   /**
-   * Get a temporary that represents the JTOC register (as an INT)
+   * Get a temporary that represents the JTOC register (as an Address)
    * 
    * @param ir  
    * @param s  

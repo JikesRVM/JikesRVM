@@ -69,19 +69,8 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
                methodName == VM_MagicNames.getTocPointer) {
       VM_TypeReference t = (methodName == VM_MagicNames.getJTOC ? VM_TypeReference.IntArray : VM_TypeReference.Address);
       OPT_RegisterOperand val = gc.temps.makeTemp(t);
-      if (gc.options.FIXED_JTOC) {
-        OPT_AddressConstantOperand addr = new OPT_AddressConstantOperand(VM_Magic.getTocPointer());
-        bc2ir.appendInstruction(Move.create(REF_MOVE, val, addr));
-      } else {
-        OPT_RegisterOperand pr = null;
-        if (VM.dedicatedESI) {
-          pr = new OPT_RegisterOperand(phys.getESI(), VM_TypeReference.Int);
-        } else {
-          pr = gc.temps.makeTemp(VM_TypeReference.VM_Processor);
-          bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
-        }
-        bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr.copy()));
-      }
+      OPT_AddressConstantOperand addr = new OPT_AddressConstantOperand(VM_Magic.getTocPointer());
+      bc2ir.appendInstruction(Move.create(REF_MOVE, val, addr));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {
       // nothing required on Intel

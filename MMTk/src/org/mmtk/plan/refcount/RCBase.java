@@ -120,8 +120,8 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public Word setBootTimeGCBits(Offset ref, ObjectReference typeRef,
-                                              int size, Word status)
+  public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
+                                int size, Word status)
     throws UninterruptiblePragma, InlinePragma {
     if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);
     return status;

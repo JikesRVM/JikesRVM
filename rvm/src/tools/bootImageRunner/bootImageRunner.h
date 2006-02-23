@@ -47,7 +47,8 @@ extern int lib_verbose;		// libvm.C
 
 // command line arguments
 // startup configuration option with default values
-extern const char *bootFilename;	/* Defined in libvm.C */
+extern const char *bootDataFilename;	/* Defined in libvm.C */
+extern const char *bootCodeFilename;	/* Defined in libvm.C */
 // name of program that will load and run RVM
 extern char *Me;		// Defined in libvm.C
 

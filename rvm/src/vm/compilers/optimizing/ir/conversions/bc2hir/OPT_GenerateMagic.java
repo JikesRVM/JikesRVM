@@ -104,7 +104,7 @@ class OPT_GenerateMagic implements OPT_Operators,
         ? new OPT_AddressConstantOperand(Address.zero())
         : bc2ir.popAddress();
 
-      OPT_Operand val = bc2ir.pop();
+      OPT_Operand val = bc2ir.pop(storeType);
       OPT_Operand base = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(getOperator(storeType, STORE_OP), 
                                            val, base, offset, null));
