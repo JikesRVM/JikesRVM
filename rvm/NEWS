@@ -7,9 +7,9 @@ This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
 
-*Jikes RVM 2.4.3 Release Notes (future)
+*Jikes RVM 2.4.3 Release Notes (released February 24, 2006)
 ** Highlights
-** The recommended version of GNU classpath for Jikes RVM 2.4.3 is 0.20.
+*** The recommended version of GNU classpath for Jikes RVM 2.4.3 is 0.20.
    Classpath 0.19 and 0.18 are likely to still work, but have not been tested.
    Support for all version of GNU classpath prior to 0.18 has been removed.
 
@@ -27,7 +27,7 @@ on October 14, 2001,
     contributed by Ian Rogers and Jisheng Zhao. 
     Loop versioning replicates loop bodies and removes from one of
     those loop bodies runtime exceptions that can be explicitly
-    tested. The phase runs as an SSA optimisation so as only to
+    tested. The phase runs as an SSA optimization so as only to
     consider true dependencies. To capture the loop structure the
     phase uses an annotated LST node. The annotations capture
     information about the initial and terminal loop iterator values,
@@ -41,9 +41,6 @@ on October 14, 2001,
 ** Bug fixes
 *** defect 1240267: remove FIXED_JTOC option
 *** defect 1411486: Bug in IA32 BT (Bit Test) instruction
-
-** Other Notes
-
 
 
 *Jikes RVM 2.4.2 Release Notes (released on November 21, 2005)
