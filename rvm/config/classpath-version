@@ -13,6 +13,8 @@ sum=$(( ${RVM_WITH_CLASSPATH_0_18-0} + \
 if (( sum == 0 )); then
     ## If you don't want to use the default version of GNU Classpath for your
     # platform them you must set one of the variables above to override.
+    # NOTE to core team: if you change the default version of classpath here, 
+    #      also change it in doc/userguide.tex
     export RVM_WITH_CLASSPATH_0_20=1
     export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.20.tar.gz
 fi
