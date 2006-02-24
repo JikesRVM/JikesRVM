@@ -213,8 +213,9 @@ static bool systemExiting = false;
 extern "C" void
 sysExit(int value)
 {
-    if (value != 0)
+    if (lib_verbose & value != 0) {
         fprintf(SysErrorFile, "%s: exit %d\n", Me, value);
+    }
 
     fflush(SysErrorFile);
     fflush(SysTraceFile);
