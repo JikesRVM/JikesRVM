@@ -6,6 +6,12 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+*Jikes RVM 2.4.4 Release Notes (future)
+** Highlights
+** Bug fixes
+** Other Notes
+*** There is now an x86_64-pc-linux-gnu config file for build Jikes RVM.
+
 
 *Jikes RVM 2.4.3 Release Notes (released February 24, 2006)
 ** Highlights
