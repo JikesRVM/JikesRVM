@@ -43,8 +43,8 @@ export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 ## and for any Linux 2.2 kernel:
 # export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 
-export BOOTIMAGE_DATA_ADDRESS=0x47000000
-export BOOTIMAGE_CODE_ADDRESS=0x4B000000
+export BOOTIMAGE_DATA_ADDRESS=0x60000000
+export BOOTIMAGE_CODE_ADDRESS=0x64000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 
 ##########
@@ -55,6 +55,9 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 # its guesses in "RVM_BUILD/environment.host".  (This particular file
 # doesn't use those features, though, since they won't work if
 # you're doing a cross-build.)
+#
+# Useful command to specify Jikes RVM compiler options in a file:
+# ./jconfigure -DOPT_ARGS="\\\`cat \$RVM_ROOT/rvm/bin/bc-opts\\\`" <build>
 ########## 
 
 # Selection of GNU Classpath version is platform independent and fairly
@@ -71,9 +74,12 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 HOST_VM_TYPE=Sun
 
 # Root of JDK installation.
-[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/lib/j2se/1.4"
+[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/lib/jvm/java-1.4.2"
 
 # the JDK java executable
+# useful arguments:
+# For Sun JVMs: extra compilation speed: -server
+# For IBM JVMs: Better exception information: -Djava.compiler=NONE
 export HOST_VM_RT="$HOST_JAVA_HOME/jre/bin/java"
 
 # 1.4.x JDKs on Linux seem to require that LD_LIBRARY_PATH be set to include
@@ -88,7 +94,7 @@ export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/
 export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
 
 # the JDK javac executable
-export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac"
+export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac -source 1.4 -target 1.4"
 
 # the JDK jar executable
 export JAR="$HOST_JAVA_HOME/bin/jar"
@@ -129,12 +135,12 @@ export JIKES=/usr/bin/jikes
 ## We don't usually set -Wundef since Bison's "bison.simple" file refers to
 ## preprocessor macros that are not defined.
 
-# export CC="/usr/bin/gcc -pipe -ggdb3 -O -fPIC -W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization"
-export CC="gcc -w -pipe -ggdb3 -O -fPIC"
+# export CC="/usr/bin/gcc -pipe -ggdb3 -O -fPIC -W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization -m32"
+export CC="gcc -w -pipe -ggdb3 -O -fPIC -m32"
 
 ## What C++ compiler should be used?
-# export CPLUS='/usr/bin/g++ -pipe -ggdb3 -fPIC -W -Wall  -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -O'
-export CPLUS="g++ -w -pipe -ggdb3 -O -fPIC"
+# export CPLUS='/usr/bin/g++ -pipe -ggdb3 -fPIC -W -Wall  -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wno-float-equal -Wmissing-format-attribute -Wno-unreachable-code -Wdisabled-optimization -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -O -m32'
+export CPLUS="g++ -w -pipe -ggdb3 -O -fPIC -m32"
 
 
 # how to link a shared C++ library (possibly also recompile one 
