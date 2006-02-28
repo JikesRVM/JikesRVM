@@ -799,7 +799,7 @@ timeSlicerThreadMain(void *arg)
         sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     } 
 
-    int ns = (int)arg;
+    long ns = (long) arg;
 #ifdef DEBUG_SYS
     fprintf(SysErrorFile, "time slice interval %dns\n", ns);
 #endif
@@ -2503,9 +2503,9 @@ sysShmctl(int shmid, int command)
 extern "C" void *
 sysMMap(char *start , size_t length ,
         int protection , int flags ,
-        int fd , long long offset)
+        int fd , off_t offset)
 {
-   return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
+   return mmap(start, (size_t)(length), protection, flags, fd, offset);
 }
 
 // Same as mmap, but with more debugging support.
@@ -2514,9 +2514,9 @@ sysMMap(char *start , size_t length ,
 extern "C" void *
 sysMMapErrno(char *start , size_t length ,
 	     int protection , int flags ,
-	     int fd , long long offset)
+	     int fd , off_t offset)
 {
-  void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
+  void* res = mmap(start, (size_t)(length), protection, flags, fd, offset);
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
     fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",

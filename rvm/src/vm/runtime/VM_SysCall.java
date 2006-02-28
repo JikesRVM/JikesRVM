@@ -93,11 +93,11 @@ public class VM_SysCall implements Uninterruptible {
 
   // mmap - memory mapping
   public static Address sysMMap(Address start, Extent length, int protection,
-                                   int flags, int fd, long offset) { 
+                                   int flags, int fd, Offset offset) { 
     return null; 
   }
   public static Address sysMMapErrno(Address start, Extent length, int protection,
-                                        int flags, int fd, long offset) { 
+                                        int flags, int fd, Offset offset) { 
     return null; 
   }
   public static int sysMUnmap(Address start, Extent length) {

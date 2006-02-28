@@ -494,6 +494,11 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
     return val.toWord().and(pagesizeMask).isZero();
   }
 
+  public static boolean isPageMultiple(Offset val) {
+    Word pagesizeMask = Word.fromIntZeroExtend(getPagesize() - 1);
+    return val.toWord().and(pagesizeMask).isZero();
+  }
+
   public static boolean isPageAligned(Address addr) {
     Word pagesizeMask = Word.fromIntZeroExtend(getPagesize() - 1);
     return addr.toWord().and(pagesizeMask).isZero();
@@ -529,7 +534,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @return Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static Address mmap(Address address, int size, 
-                                int prot, int flags, int fd, long offset) {
+                                int prot, int flags, int fd, Offset offset) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
     return VM_SysCall.sysMMapErrno(address,Extent.fromIntSignExtend(size), prot, flags, fd, offset);
@@ -547,7 +552,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
     int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
-    return VM_SysCall.sysMMapErrno(address,size,prot,flag,fd,0);
+    return VM_SysCall.sysMMapErrno(address,size,prot,flag,fd,Offset.zero());
   }
 
   /**
@@ -561,7 +566,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
   public static Address mmap(Address address, Extent size, int prot, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapErrno(address,size,prot,flags,-1,0);
+    return VM_SysCall.sysMMapErrno(address,size,prot,flags,-1,Offset.zero());
   }
 
   /**
@@ -575,7 +580,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
       VM._assert(isPageAligned(address) && isPageMultiple(size));
     int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
     int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
-    return VM_SysCall.sysMMapErrno(address, size, prot, flag, -1, 0);
+    return VM_SysCall.sysMMapErrno(address, size, prot, flag, -1, Offset.zero());
   }
 
   /**
@@ -587,7 +592,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
     if (VM.VerifyAssertions) VM._assert(isPageMultiple(size));
     int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
     int flag = MAP_ANONYMOUS | MAP_PRIVATE;
-    return VM_SysCall.sysMMapErrno(Address.zero(), size, prot, flag, -1, 0);
+    return VM_SysCall.sysMMapErrno(Address.zero(), size, prot, flag, -1, Offset.zero());
   }
 
   /**

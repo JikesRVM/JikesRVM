@@ -1161,14 +1161,14 @@ createVM(int vmInSeparateThread)
     }
 
     if (bootRecord.bootImageDataStart != (VM_Address)bootDataRegion) {
-        fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
-                Me, bootRecord.bootImageDataStart, (unsigned) bootDataRegion);
+        fprintf(SysErrorFile, "%s: image load error: built for " FMTrvmPTR " but loaded at " FMTrvmPTR "\n",
+                Me, bootRecord.bootImageDataStart, bootDataRegion);
         return 1;
     }
 
     if (bootRecord.bootImageCodeStart != (VM_Address)bootCodeRegion) {
-        fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
-                Me, bootRecord.bootImageCodeStart, (unsigned) bootCodeRegion);
+        fprintf(SysErrorFile, "%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
+                Me, bootRecord.bootImageCodeStart, bootCodeRegion);
         return 1;
     }
 
