@@ -1288,15 +1288,6 @@ declare -i RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 
-# Should we use our own version of java.lang.Class, and ignore GNU
-# Classpath's implementation?  The old default was to have this set;
-# the new default is to use the GNU Classpath version of
-# java.lang.Class (which requires our new helper implementation
-# java.lang.VMClass).  
-# NOTE: currently doesn't work to use classpath + VMClass.
-#       revert to old default until it works again.
-declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
-
 ## Classpath versions that might work with Jikes RVM.
 ## See $RVM_ROOT/rvm/config/classpath-version for the gory details.
 declare -i RVM_WITH_CLASSPATH_0_18=0
@@ -2761,10 +2752,6 @@ EOF
 	fi
 EOF
 
-    if (( ! RVM_WITH_OWN_JAVA_LANG_CLASS )); then
-	echo "rm -f ${CLASSES_DIRECTORY_STR}/java/lang/Class.java"
-    fi
-
     cat <<- EOF
 	# Remember if any new (or modified) source files were discovered.
 	#
@@ -3565,13 +3552,6 @@ java/security/AllPermissionCollection
 java/lang/RuntimePermission
 EOF
     
-    if (( ! RVM_WITH_OWN_JAVA_LANG_CLASS )); then
-	cat <<- EOF
-	java/lang/reflect/Modifier
-EOF
-    fi
-
-
     # the application class loader uses jar classes (which can be loaded or not)
 
     if (( RVM_WITH_ALL_CLASSES )) || (( RVM_WITH_JAR_CLASSES)); then

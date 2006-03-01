@@ -1,4 +1,3 @@
-//-#if RVM_WITH_OWN_JAVA_LANG_CLASS
 /*
  * (C) Copyright IBM Corp 2002, 2003, 2005
  */
@@ -828,4 +827,3 @@ public final class Class implements java.io.Serializable {
   }
 }
 
-//-#endif
