@@ -1,4 +1,4 @@
-## Currently we recommend GNU Classpath 0.18 for all platforms. 
+## Currently we recommend GNU Classpath 0.90 for all platforms. 
 ## This and is the only release of Classpath with which Jikes RVM is 
 ## reguarly tested.  If you try an older version that is still mentioned
 ## in this file, and it no longer works, please let us know so that we 
@@ -16,8 +16,8 @@ if (( sum == 0 )); then
     # platform them you must set one of the variables above to override.
     # NOTE to core team: if you change the default version of classpath here, 
     #      also change it in doc/userguide.tex
-    export RVM_WITH_CLASSPATH_0_20=1
-    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.20.tar.gz
+    export RVM_WITH_CLASSPATH_0_90=1
+    export RVM_CLASSPATH_URL=ftp://ftp.gnu.org/gnu/classpath/classpath-0.90.tar.gz
 fi
 
 ## CLASSPATH_INSTALLATION
