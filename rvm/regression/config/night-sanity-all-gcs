@@ -10,13 +10,13 @@ BaseBaseMarkSweep                  -test-list nightly-tests
 BaseBaseSemiSpace                  -test-list nightly-tests
 BaseBaseGenCopy                    -test-list nightly-tests
 BaseBaseGenMS                      -test-list nightly-tests
-BaseBaseGenRC                      -test-list nightly-tests
-BaseBaseRefCount                   -test-list nightly-tests
+BaseBaseGenRC                      -test-list nightly-tests-short
+BaseBaseRefCount                   -test-list nightly-tests-short
 BaseBaseNoGC                       -test-list mmtk-nogc-sanity-tests
 FullAdaptiveCopyMS                 -test-list nightly-tests
 FullAdaptiveMarkSweep              -test-list nightly-tests
 FullAdaptiveSemiSpace              -test-list nightly-tests
 FullAdaptiveGenCopy                -test-list nightly-tests
-FullAdaptiveGenRC                  -test-list nightly-tests
-FullAdaptiveRefCount               -test-list nightly-tests
+FullAdaptiveGenRC                  -test-list nightly-tests-short
+FullAdaptiveRefCount               -test-list nightly-tests-short
 FullAdaptiveNoGC                   -test-list mmtk-nogc-sanity-tests

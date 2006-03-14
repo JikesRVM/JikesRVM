@@ -249,18 +249,6 @@ else
 
 fi >> $MSG
 
-# Summarize performance results
-if [[ $perf_cfg ]] && [[ -f $PERF_LOG ]]; then
-    echo -e "\n\nPerformance Summary" >> $MSG
-    $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk ${PERF_LOG}
-
-    # Print verbose performance data for SPECjvm98
-    echo ""
-    echo SPECjvm98 Performance Details
-    echo -----------------------------
-    $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 ${PERF_LOG}
-fi >> $MSG
-
 # Failure details
 if (( numfailed > 0 )); then
     echo ""
@@ -271,6 +259,18 @@ if (( numfailed > 0 )); then
 	-e "s/\/.*tests\///"		\
 	-e "s/You are NOT sane/Failed/" \
     $RUN_LOG  
+fi >> $MSG
+
+# Summarize performance results
+if [[ $perf_cfg ]] && [[ -f $PERF_LOG ]]; then
+    echo -e "\n\nPerformance Summary" >> $MSG
+    $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk ${PERF_LOG}
+
+    # Print verbose performance data for SPECjvm98
+    echo ""
+    echo SPECjvm98 Performance Details
+    echo -----------------------------
+    $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 ${PERF_LOG}
 fi >> $MSG
 
 # Javadoc error details
