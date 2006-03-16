@@ -86,7 +86,7 @@ HTTPClient_HOME=$(BENCHMARK_ROOT)/WebServer/HTTPClient
 #
 # Java Grande Forum Benchmarks v2.0
 #
-JGF_HOME=/$(BENCHMARK_ROOT)/JavaGrandeForum
+JGF_HOME=$(BENCHMARK_ROOT)/JavaGrandeForum/v2.0
 
 #
 # Soot v1.2.5

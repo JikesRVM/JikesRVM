@@ -18,6 +18,7 @@ ALL_CLASSES	= jgfutil/JGFInstrumentor \
                   jgfutil/JGFSection1 \
                   jgfutil/JGFSection2 \
                   jgfutil/JGFSection3 \
+                  jgfutil/JGFTimer \
                   JGFAll \
                   JGFArithBench \
                   JGFAssignBench \
