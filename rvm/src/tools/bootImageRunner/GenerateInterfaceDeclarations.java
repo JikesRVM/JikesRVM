@@ -641,6 +641,8 @@ class GenerateInterfaceDeclarations {
     pln("VM_Processor_reportedTimerTicks_offset = ", offset);
     offset = VM_Entrypoints.activeThreadField.getOffset();
     pln("VM_Processor_activeThread_offset = ", offset);
+    offset = VM_Entrypoints.vpStatusField.getOffset();
+    pln("VM_Processor_vpStatus_offset = ", offset);
     offset = VM_Entrypoints.threadIdField.getOffset();
     pln("VM_Processor_threadId_offset = ", offset);
     //-#if RVM_FOR_IA32

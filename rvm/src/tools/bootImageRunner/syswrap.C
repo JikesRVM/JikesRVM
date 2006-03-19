@@ -24,6 +24,7 @@
 
 #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 # include <pthread.h>
+# include <errno.h>
 #endif
 #include <unistd.h>
 #include <stdlib.h>
@@ -492,3 +493,66 @@ Java_com_ibm_JikesRVM_jni_VM_1JNIFunctions_createJavaVM(JNIEnv *, jclass)
     return createJavaVM();
 }
 
+#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+// Wrapper for pthread_mutex_lock
+// If the lock can't be obtained then yield and try again
+int pthread_mutex_lock(pthread_mutex_t *mutex)
+{
+  int err;
+  if (VERBOSE_WRAPPERS)
+	 printf("Calling pthread_lock wrapper\n");
+  err = pthread_mutex_trylock(mutex);
+  if(err == EBUSY) {
+    JNIEnv *env;
+	 jclass thread_class;
+	 jmethodID thread_yield_mth;
+
+    GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
+	 thread_class = env->FindClass ("java/lang/Thread");
+	 thread_yield_mth = env->GetStaticMethodID (thread_class, "yield", "()V");	 
+	 do {
+		env->CallStaticVoidMethod (thread_class,
+											thread_yield_mth);
+		err = pthread_mutex_trylock(mutex);
+	 }	while(err == EBUSY);
+  }
+}
+
+// Wrapper for pthread_cond_wait
+// If the cond wait is exceeds the timeout then yield and try again
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
+{
+  struct timeval now;
+  struct timespec timeout;
+  int err;
+
+  if (VERBOSE_WRAPPERS)
+	 printf("Calling pthread_cond_wait wrapper\n");
+
+  // timeout of 1second from now
+  gettimeofday(&now, NULL);
+  timeout.tv_sec = now.tv_sec + 1;
+  timeout.tv_nsec = now.tv_usec * 1000;
+
+  err = pthread_cond_timedwait(cond, mutex, &timeout); 
+  if (err == ETIMEDOUT) { /* timeout */ 
+    JNIEnv *env;
+	 jclass thread_class;
+	 jmethodID thread_yield_mth;
+
+    GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
+	 thread_class = env->FindClass ("java/lang/Thread");
+	 thread_yield_mth = env->GetStaticMethodID (thread_class, "yield", "()V");	 
+	 do {
+		env->CallStaticVoidMethod (thread_class,
+                                   thread_yield_mth);
+		// timeout of 1second later
+		gettimeofday(&now, NULL);
+		timeout.tv_sec = now.tv_sec + 1;
+		timeout.tv_nsec = now.tv_usec * 1000;
+		err = err = pthread_cond_timedwait(cond, mutex, &timeout); 
+	 }	while(err == ETIMEDOUT);
+  }
+  return err;
+}
+#endif
