@@ -8,9 +8,15 @@ on October 14, 2001,
 
 *Jikes RVM 2.4.5 Release Notes (future)
 ** Highlights
+*** Classpath 0.90 or better is now required.
+
 *** Summarize changes in AWT status.
 
 ** Bug fixes
+1442437: to match Sun behavior, java.lang.Class.newInstance now passes 
+         through exceptions instead of wrapping in InstantiationExceptions.
+	 NOTE: This requires classpath 0.90 or better.
+
 ** Other Notes
 
 
