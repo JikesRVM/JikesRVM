@@ -106,31 +106,33 @@ fi
 ## What args do we give to classpath's "configure" command?
 function classpath_configure_args () {
     if (( AIX )); then
-	## AIX does not come with pkg-config or glib by default.  So, if 
-	## someone is doing a default AIX build, we'll disable them.
-	##
-	## The GTk peers won't do any good without select hijacking, 
-	## in any case. 
-	echo "  --disable-gtk-peer CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D__ppc__'"
-	return;
+        ## AIX does not come with pkg-config or glib by default.  So, if 
+        ## someone is doing a default AIX build, we'll disable them.
+        ##
+        ## The GTk peers won't do any good without select hijacking, 
+        ## in any case. 
+        echo "  --disable-gtk-peer CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D__ppc__'"
+        return;
     fi
-   # Enable AWT support using gtk peers if gtk appears to be installed
-   # and this isn't an X86_64 build
-    if ! [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
-	echo "  --disable-gtk-peer"
-    else
+
+    # Enable AWT support using gtk peers if gtk appears to be installed
+    # and this isn't an X86_64 build
+    if [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]] || [[ -e /opt/gnome/include/gtk-2.0/gtk/gtk.h ]]; then
         if [ `uname -p` = "x86_64" ]; then
-		      echo "  --disable-gtk-peer"
-	     else
+	    echo "  --disable-gtk-peer"
+	else
             echo "  --enable-gtk-peer"
         fi
+    else
+	echo "  --disable-gtk-peer"
     fi
-	# Disable the ALSA sound library for x86_64 builds. This hides a
-	# bug for libtool in classpath where a 32bit address space
-	# compilation gets linked against the 64bit ALSA libraries.
-	 if [ `uname -p` = "x86_64" ]; then
-		  echo "  --disable-alsa"
-	 fi
+
+    # Disable the ALSA sound library for x86_64 builds. This hides a
+    # bug for libtool in classpath where a 32bit address space
+    # compilation gets linked against the 64bit ALSA libraries.
+    if [ `uname -p` = "x86_64" ]; then
+        echo "  --disable-alsa"
+    fi
 }
 
 
