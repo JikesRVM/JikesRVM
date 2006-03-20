@@ -613,13 +613,8 @@ public final class Class implements java.io.Serializable {
     Object obj = VM_Runtime.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
-    try {
-      VM_Reflection.invoke(defaultConstructor, obj, null);
-    } catch (Throwable e) {
-      InstantiationException ex = new InstantiationException();
-      ex.initCause(e);
-      throw ex;
-    }
+    VM_Reflection.invoke(defaultConstructor, obj, null);
+
     return obj;
   }
 
