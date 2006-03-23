@@ -1537,7 +1537,21 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
 			 // Generate values for consts trying to avoid zero extending the set__b result
 			 // result = cond ? 1 : 0
 			 EMIT(CPOS(s,MIR_Set.create(IA32_SET__B, result.copyRO(), COND(cond))));
-			 if(((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
+
+			 if ((true_const - false_const) == 1){
+			     // result = (cond ? 1 : 0) + false_const
+			     EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+			     EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+			 }
+
+			 else if ((false_const - true_const) == 1){
+			     // result = (cond ? -1 : 0) + false_const
+			     EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+			     EMIT(CPOS(s,MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+			     EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+			 }
+			 
+			 else if(((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
 				// result = cond ? 0 : -1
 				// result = (cond ? 0 : -1) & (false_const - true__const)
 				// result = ((cond ? 0 : -1) & (false_const - true_const)) + true_const
