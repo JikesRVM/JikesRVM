@@ -18,6 +18,8 @@ on October 14, 2001,
 	 NOTE: This requires classpath 0.90 or better.
 
 ** Other Notes
+*** IA32 BURS improvement for special case of COND_MOV contibuted by
+    Garrett Kolpin
 
 
 
