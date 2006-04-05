@@ -20,7 +20,8 @@ on October 14, 2001,
 ** Other Notes
 *** IA32 BURS improvement for special case of COND_MOV contibuted by
     Garrett Kolpin
-
+*** Improvements to OPT_Simplifier to catch a number of additional cases 
+    contributed by Ian Rogers
 
 
 *Jikes RVM 2.4.4 Release Notes (released March 15, 2006)
