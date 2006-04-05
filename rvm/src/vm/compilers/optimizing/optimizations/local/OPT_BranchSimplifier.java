@@ -45,37 +45,34 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
       } else if (IfCmp.conforms(s)) {
         OPT_RegisterOperand guard = IfCmp.getGuardResult (s);
         OPT_Operand val1 = IfCmp.getVal1(s);
-        if (val1.isConstant()) {
-          OPT_Operand val2 = IfCmp.getVal2(s);
-          if (val2.isConstant()) {
-            // constant fold
-            int cond = IfCmp.getCond(s).evaluate(val1, val2);
-            if (cond == OPT_ConditionOperand.TRUE) {  // branch taken
-              insertTrueGuard (s, guard);
-              Goto.mutate(s, GOTO, IfCmp.getTarget(s));
-              removeBranchesAfterGotos(bb);
-            } else if (cond == OPT_ConditionOperand.FALSE) {  // branch taken
-              // branch not taken
-              insertTrueGuard (s, guard);
-              s.remove();
-            }
-            else
-              VM.sysFail("comparison irreducible");
-            // hack. Just start over since Enumeration has changed.
-            branches = bb.enumerateBranchInstructions();
-            bb.recomputeNormalOut(ir);
-            didSomething = true;
-            continue;
-          } else {
-            // Canonicalize by making second argument the constant
-            IfCmp.setVal1(s, val2);
-            IfCmp.setVal2(s, val1);
-            IfCmp.setCond(s, IfCmp.getCond(s).flipOperands());
-
-          }
+		  OPT_Operand val2 = IfCmp.getVal2(s);
+		  {
+			 int cond = IfCmp.getCond(s).evaluate(val1, val2);
+			 if (cond != OPT_ConditionOperand.UNKNOWN) {
+				// constant fold
+				if (cond == OPT_ConditionOperand.TRUE) {  // branch taken
+				  insertTrueGuard (s, guard);
+				  Goto.mutate(s, GOTO, IfCmp.getTarget(s));
+				  removeBranchesAfterGotos(bb);
+				} else {
+				  // branch not taken
+				  insertTrueGuard (s, guard);
+				  s.remove();
+				}
+				// hack. Just start over since Enumeration has changed.
+				branches = bb.enumerateBranchInstructions();
+				bb.recomputeNormalOut(ir);
+				didSomething = true;
+				continue;
+			 }
+		  }
+		  if (val1.isConstant() && !val2.isConstant()) {
+			 // Canonicalize by making second argument the constant
+			 IfCmp.setVal1(s, val2);
+			 IfCmp.setVal2(s, val1);
+			 IfCmp.setCond(s, IfCmp.getCond(s).flipOperands());
         }
 
-        OPT_Operand val2 = IfCmp.getVal2(s);
         if (val2.isIntConstant()) {
           // Tricks to get compare against zero.
           int value = ((OPT_IntConstantOperand)val2).value;
@@ -101,48 +98,75 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
       } else if (IfCmp2.conforms(s)) {
         OPT_RegisterOperand guard = IfCmp2.getGuardResult (s);
         OPT_Operand val1 = IfCmp2.getVal1(s);
-        if (val1.isConstant()) {
-          OPT_Operand val2 = IfCmp2.getVal2(s);
-          if (val2.isConstant()) {
-            // constant fold
-            int cond1 = IfCmp2.getCond1(s).evaluate(val1, val2);
-            int cond2 = IfCmp2.getCond2(s).evaluate(val1, val2);
-            if (cond1 == OPT_ConditionOperand.TRUE) {
-              // target 1 taken
-              insertTrueGuard (s, guard);
-              Goto.mutate(s, GOTO, IfCmp2.getTarget1(s));
-              removeBranchesAfterGotos(bb);
-            } else if (cond2 == OPT_ConditionOperand.TRUE) {
-              // target 2 taken
-              insertTrueGuard (s, guard);
-              Goto.mutate(s, GOTO, IfCmp2.getTarget2(s));
-              removeBranchesAfterGotos(bb);
-            } else if (cond1 != OPT_ConditionOperand.UNKNOWN &&
-                       cond2 != OPT_ConditionOperand.UNKNOWN) {
-              // not taken
-              insertTrueGuard (s, guard);
-              s.remove();
-            }
-            else 
-              VM.sysFail("comparison irreducible");
-            // hack. Just start over since Enumeration has changed.
-            branches = bb.enumerateBranchInstructions();
-            bb.recomputeNormalOut(ir);
-            didSomething = true;
-          } else {
-            // Canonicalize by making second argument the constant
-            IfCmp2.setVal1(s, val2);
-            IfCmp2.setVal2(s, val1);
-            IfCmp2.setCond1(s, IfCmp2.getCond1(s).flipOperands());
-            IfCmp2.setCond2(s, IfCmp2.getCond2(s).flipOperands());
-          }
-        }
+		  OPT_Operand val2 = IfCmp2.getVal2(s);
+		  int cond1 = IfCmp2.getCond1(s).evaluate(val1, val2);
+		  int cond2 = IfCmp2.getCond2(s).evaluate(val1, val2);
+		  if (cond1 == OPT_ConditionOperand.TRUE) {
+			 // target 1 taken
+			 insertTrueGuard (s, guard);
+			 Goto.mutate(s, GOTO, IfCmp2.getTarget1(s));
+			 removeBranchesAfterGotos(bb);
+		  } else if ((cond1 == OPT_ConditionOperand.FALSE) &&
+						 (cond2 == OPT_ConditionOperand.TRUE)) {
+			 // target 2 taken
+			 insertTrueGuard (s, guard);
+			 Goto.mutate(s, GOTO, IfCmp2.getTarget2(s));
+			 removeBranchesAfterGotos(bb);
+		  } else if ((cond1 == OPT_ConditionOperand.FALSE) &&
+						 (cond2 == OPT_ConditionOperand.FALSE)) {
+			 // not taken
+			 insertTrueGuard (s, guard);
+			 s.remove();
+		  } else if ((cond1 == OPT_ConditionOperand.FALSE) &&
+						 (cond2 == OPT_ConditionOperand.UNKNOWN)) {
+			 // target 1 not taken, simplify test to ifcmp
+			 IfCmp.mutate(s, INT_IFCMP, guard,
+							  val1, val2, IfCmp2.getCond2(s),
+							  IfCmp2.getTarget2(s),
+							  IfCmp2.getBranchProfile2(s));
+		  } else if ((cond1 == OPT_ConditionOperand.UNKNOWN) &&
+						 (cond2 == OPT_ConditionOperand.FALSE)) {
+			 // target 1 taken possibly, simplify test to ifcmp
+			 IfCmp.mutate(s, INT_IFCMP, guard,
+							  val1, val2, IfCmp2.getCond1(s),
+							  IfCmp2.getTarget1(s),
+							  IfCmp2.getBranchProfile1(s));
+		  } else if ((cond1 == OPT_ConditionOperand.UNKNOWN) &&
+						 (cond2 == OPT_ConditionOperand.TRUE)) {
+			 // target 1 taken possibly, simplify first test to ifcmp and
+			 // insert goto after
+			 s.insertAfter(Goto.create(GOTO, IfCmp2.getTarget2(s)));
+			 IfCmp.mutate(s, INT_IFCMP, guard,
+							  val1, val2, IfCmp2.getCond1(s),
+							  IfCmp2.getTarget1(s),
+							  IfCmp2.getBranchProfile1(s));
+			 removeBranchesAfterGotos(bb);
+		  } else {
+			 if (val1.isConstant() && !val2.isConstant()) {
+				// Canonicalize by making second argument the constant
+				IfCmp2.setVal1(s, val2);
+				IfCmp2.setVal2(s, val1);
+				IfCmp2.setCond1(s, IfCmp2.getCond1(s).flipOperands());
+				IfCmp2.setCond2(s, IfCmp2.getCond2(s).flipOperands());
+			 }
+			 // we did no optimisation, just continue			 
+			 continue;
+		  }
+		  // hack. Just start over since Enumeration has changed.
+		  branches = bb.enumerateBranchInstructions();
+		  bb.recomputeNormalOut(ir);
+		  didSomething = true;
+		  continue;
       } else if (LookupSwitch.conforms(s)) {
         OPT_Operand val = LookupSwitch.getValue(s);
-        if (val.isConstant()) {
+		  int numMatches = LookupSwitch.getNumberOfMatches(s);
+		  if (numMatches == 0) {
+			 // Can only goto default
+          Goto.mutate(s, GOTO, LookupSwitch.getDefault(s));
+		  } else if (val.isConstant()) {
+			 // lookup value is constant
           int value = ((OPT_IntConstantOperand)val).value;
           OPT_BranchOperand target = LookupSwitch.getDefault(s);
-          int numMatches = LookupSwitch.getNumberOfMatches(s);
           for (int i=0; i<numMatches; i++) {
             if (value == LookupSwitch.getMatch(s, i).value) {
               target = LookupSwitch.getTarget(s, i);
@@ -150,25 +174,51 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
             }
           }
           Goto.mutate(s, GOTO, target);
-          removeBranchesAfterGotos(bb);
-          bb.recomputeNormalOut(ir);
-          didSomething = true;
-        }
+		  } else if (numMatches == 1) {
+			 // only 1 match, simplify to ifcmp
+			 OPT_BranchOperand defaultTarget = LookupSwitch.getDefault(s);
+			 IfCmp.mutate(s, INT_IFCMP, ir.regpool.makeTempValidation(),
+							  val, LookupSwitch.getMatch(s, 0), OPT_ConditionOperand.EQUAL(),
+							  LookupSwitch.getTarget(s, 0),
+							  LookupSwitch.getBranchProfile(s, 0));
+          s.insertAfter(Goto.create(GOTO, defaultTarget));
+		  } else {
+			 // no optimisation, just continue
+			 continue;
+		  }
+		  // hack. Just start over since Enumeration has changed.		  
+		  branches = bb.enumerateBranchInstructions();
+		  removeBranchesAfterGotos(bb);
+		  bb.recomputeNormalOut(ir);
+		  didSomething = true;
       } else if (TableSwitch.conforms(s)) {
         OPT_Operand val = TableSwitch.getValue(s);
+		  int low = TableSwitch.getLow(s).value;
+		  int high = TableSwitch.getHigh(s).value;
         if (val.isConstant()) {
           int value = ((OPT_IntConstantOperand)val).value;
           OPT_BranchOperand target = TableSwitch.getDefault(s);
-          int low = TableSwitch.getLow(s).value;
-          int high = TableSwitch.getHigh(s).value;
           if (value >= low && value <= high) {
             target = TableSwitch.getTarget(s, value - low);
           }
           Goto.mutate(s, GOTO, target);
-          removeBranchesAfterGotos(bb);
-          bb.recomputeNormalOut(ir);
-          didSomething = true;
-        }
+        } else if (low == high) {
+			 // only 1 match, simplify to ifcmp
+			 OPT_BranchOperand defaultTarget = TableSwitch.getDefault(s);
+			 IfCmp.mutate(s, INT_IFCMP, ir.regpool.makeTempValidation(),
+							  val, new OPT_IntConstantOperand(low), OPT_ConditionOperand.EQUAL(),
+							  TableSwitch.getTarget(s, 0),
+							  TableSwitch.getBranchProfile(s, 0));
+          s.insertAfter(Goto.create(GOTO, defaultTarget));
+		  } else {
+			 // no optimisation, just continue
+			 continue;
+		  }
+		  // hack. Just start over since Enumeration has changed.
+		  branches = bb.enumerateBranchInstructions();
+		  removeBranchesAfterGotos(bb);
+		  bb.recomputeNormalOut(ir);
+		  didSomething = true;
       } else if (InlineGuard.conforms(s)) {
         OPT_Operand val = InlineGuard.getValue(s);
         if (val.isNullConstant()) {
