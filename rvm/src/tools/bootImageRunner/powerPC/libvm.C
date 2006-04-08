@@ -1215,17 +1215,12 @@ createVM(int vmInSeparateThread)
         fprintf(SysTraceFile, "   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
         fprintf(SysTraceFile, "   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
         fprintf(SysTraceFile, "   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
-        assert(sizeof bootRecord.initialHeapSize == 4);
-        fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialHeapSize));
-        assert(sizeof bootRecord.maximumHeapSize == 4);
-        fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumHeapSize));
+        fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
+        fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
 #ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-        assert(sizeof bootRecord.initialStackSize == 4);
-        fprintf(SysTraceFile, "   initialStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialStackSize));
-        assert(sizeof bootRecord.stackGrowIncrement == 4);
-        fprintf(SysTraceFile, "   stackGrowIncrement:   " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.stackGrowIncrement));
-        assert(sizeof bootRecord.maximumStackSize == 4);
-        fprintf(SysTraceFile, "   maximumStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumStackSize));
+        fprintf(SysTraceFile, "   initialStackSize:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialStackSize));
+        fprintf(SysTraceFile, "   stackGrowIncrement:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.stackGrowIncrement));
+        fprintf(SysTraceFile, "   maximumStackSize:     " FMTrvmPTR "\n",   rvmPTR_ARG(bootRecord.maximumStackSize));
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
         fprintf(SysTraceFile, "   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
         fprintf(SysTraceFile, "   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
