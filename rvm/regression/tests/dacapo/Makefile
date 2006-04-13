@@ -14,6 +14,10 @@ include		$(JAL_ROOT)/rvm/regression/Local.rules
 
 HEAPSIZE=150
 
+START_NAME=Harness
+
+include		$(JAL_ROOT)/rvm/regression/Make.rules
+
 # 
 # We know that batik and chart both fail - add them into the list
 # when classpath problems are fixed.
@@ -21,28 +25,21 @@ HEAPSIZE=150
 #TESTS	= antlr batik bloat chart fop hsqldb jython pmd ps xalan
 TESTS	= antlr bloat fop hsqldb jython pmd ps xalan
 
-DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
-#BENCH_SOURCE_PATH=$(DRIVER_SOURCE_PATH)
-#BENCH_CLASS_PATH=
-START_NAME=Harness
-START_ARGS=$(TESTS)
-
-sanity: 
-	$(MAKE) sanity-check-rule
-
-include		$(JAL_ROOT)/rvm/regression/Make.rules
-
 Harness.class : $(JARFILE)
 	:
 
-do-gather-performance:
-	 @$(AWK) -f $(JAL_ROOT)/rvm/regression/tests/dacapo/perf.awk $(OUT) >> $(PERF_LOG)
-
-$(TESTS): %: $(WORKING)/Makefile
-        cd $(WORKING); $(MAKE) START_ARGS="$@" OUT=$(OUT).$@ do-sanity-check-rule
+$(WORKING)/Makefile:	$(WORKING) $(JAL_ROOT)/rvm/regression/tests/dacapo/Makefile
+ifneq ($(WORKING),.)
+	cp -f $(JAL_ROOT)/rvm/regression/tests/dacapo/Makefile $(WORKING)/Makefile
+endif
 
 
 check:
-	@ $(JAL_ROOT)/rvm/regression/tests/dacapo/sanity-check2.sh $(OUT) $(TESTS)
+	@ $(JAL_ROOT)/rvm/regression/tests/dacapo/sanity-check2.sh $(OUT) $(START_ARGS)
 
 
+$(TESTS): %: $(WORKING)/Makefile
+	cd $(WORKING); $(MAKE) START_ARGS="$@" OUT=$(OUT).$@ do-sanity-check-rule
+
+sanity:	$(TESTS)
+	@$(MAKE) START_NAME="DaCapo" do-sanity-finish
