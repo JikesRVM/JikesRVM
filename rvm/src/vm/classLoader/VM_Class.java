@@ -173,6 +173,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     return (modifiers & ACC_SUPER) != 0; 
   }
 
+  /**
+   * Not present in source code file?
+   */
+  public boolean isSynthetic() {
+    return (modifiers & SYNTHETIC) != 0;
+  }
+
   public int getModifiers() {
     return modifiers & APPLICABLE_TO_CLASSES;
   }
@@ -894,10 +901,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // Class attributes
       if (attName == VM_ClassLoader.sourceFileAttributeName && attLength == 2) {
         sourceName = getUtf(input.readUnsignedShort());
-        continue;
       }
-
-      if (attName == VM_ClassLoader.innerClassesAttributeName) {
+		else if (attName == VM_ClassLoader.innerClassesAttributeName) {
         // Parse InnerClasses attribute, and use the information to populate
         // the list of declared member classes.  We do this so we can 
         // support the java.lang.Class.getDeclaredClasses() 
@@ -929,10 +934,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
             modifiers |= innerClassAccessFlags;
           }
         }
-        continue;
       }
-
-      input.skipBytes(attLength);
+		// Member attributes
+		else if (attName == VM_ClassLoader.syntheticAttributeName) {
+		  modifiers |= SYNTHETIC;
+		}
+		else {
+		  input.skipBytes(attLength);
+		}
     }
 
     state = CLASS_LOADED;

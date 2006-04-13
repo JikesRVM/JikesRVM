@@ -68,6 +68,10 @@ public final class Method extends AccessibleObject implements Member {
     return JikesRVMSupport.typesToClasses(method.getParameterTypes());
   }
 
+  public boolean isSynthetic() {
+	 return method.isSynthetic();
+  }
+
   public Class getReturnType() {
     return method.getReturnType().resolve().getClassForType();
   }

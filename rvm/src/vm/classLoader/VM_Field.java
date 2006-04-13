@@ -44,6 +44,8 @@ public final class VM_Field extends VM_Member {
       int     attLength = input.readInt();
       if (attName == VM_ClassLoader.constantValueAttributeName) {
         cvi = input.readUnsignedShort();
+		} else if (attName == VM_ClassLoader.syntheticAttributeName) {
+		  modifiers |= SYNTHETIC;
       } else {
         // all other attributes are boring...
         input.skipBytes(attLength);
@@ -100,6 +102,13 @@ public final class VM_Field extends VM_Member {
    */ 
   public final boolean isTransient() throws UninterruptiblePragma {
     return (modifiers & ACC_TRANSIENT) != 0;
+  }
+
+  /**
+   * Not present in source code file?
+   */
+  public boolean isSynthetic() {
+    return (modifiers & SYNTHETIC) != 0;
   }
 
   /**

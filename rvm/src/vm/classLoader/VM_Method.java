@@ -105,6 +105,8 @@ public abstract class VM_Method extends VM_Member {
             tmp_exceptionTypes[j] = declaringClass.getTypeRef(input.readUnsignedShort());
           }
         }
+		} else if (attName == VM_ClassLoader.syntheticAttributeName) {
+		  modifiers |= SYNTHETIC;
       } else {
         // all other method attributes are boring
         input.skipBytes(attLength);
@@ -215,6 +217,13 @@ public abstract class VM_Method extends VM_Member {
    */
   public final boolean isAbstract() throws UninterruptiblePragma {
     return (modifiers & ACC_ABSTRACT) != 0;
+  }
+
+  /**
+   * Not present in source code file?
+   */
+  public boolean isSynthetic() {
+    return (modifiers & SYNTHETIC) != 0;
   }
 
   /**

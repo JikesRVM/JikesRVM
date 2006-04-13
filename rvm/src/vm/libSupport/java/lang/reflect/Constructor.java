@@ -71,6 +71,10 @@ public final class Constructor extends AccessibleObject implements Member {
     return getName().hashCode();
   }
 
+  public boolean isSynthetic() {
+	 return constructor.isSynthetic();
+  }
+
   public Object newInstance(Object args[]) throws InstantiationException, 
                                                   IllegalAccessException, 
                                                   IllegalArgumentException, 

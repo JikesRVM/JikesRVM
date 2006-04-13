@@ -135,6 +135,10 @@ public final class Field extends AccessibleObject implements Member {
     return code1 ^ code2;
   }
 
+  public boolean isSynthetic() {
+	 return field.isSynthetic();
+  }
+
   public void set(Object object, Object value) 
     throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object);

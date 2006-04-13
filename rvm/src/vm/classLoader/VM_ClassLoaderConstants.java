@@ -19,14 +19,18 @@ interface VM_ClassLoaderConstants {
   static final int ACC_PROTECTED    = 0x00000004;  //   X      X      X (applicable to inner classes)
   static final int ACC_STATIC       = 0x00000008;  //   X      X      X (applicable to inner classes)
   static final int ACC_FINAL        = 0x00000010;  //   X      X      X
-  static final int ACC_SYNCHRONIZED = 0x00000020;  //   -      -      X  <- same value as ACC_SPECIAL
+  static final int ACC_SYNCHRONIZED = 0x00000020;  //   -      -      X  <- same value as ACC_SUPER
   static final int ACC_SUPER        = 0x00000020;  //   X      -      -  <- same value as ACC_SYNCHRONIZED
   static final int ACC_VOLATILE     = 0x00000040;  //   -      X      -
+  static final int BRIDGE           = 0x00000040;  //   -      -      X  <- same value as ACC_VOLATILE
   static final int ACC_TRANSIENT    = 0x00000080;  //   -      X      -
+  static final int VARARGS          = 0x00000080;  //   -      -      X  <- same value as ACC_TRANSIENT
   static final int ACC_NATIVE       = 0x00000100;  //   -      -      X
   static final int ACC_INTERFACE    = 0x00000200;  //   X      -      -
   static final int ACC_ABSTRACT     = 0x00000400;  //   X      -      X
   static final int ACC_STRICT       = 0x00000800;  //   -      -      X
+  static final int SYNTHETIC        = 0x00001000;  //   X      X      X
+  static final int ENUM             = 0x00004000;  //   X      X      -
 
   static final int APPLICABLE_TO_FIELDS = (ACC_PUBLIC | 
                                            ACC_PRIVATE |
@@ -34,7 +38,9 @@ interface VM_ClassLoaderConstants {
                                            ACC_STATIC | 
                                            ACC_FINAL |
                                            ACC_VOLATILE |
-                                           ACC_TRANSIENT);
+                                           ACC_TRANSIENT |
+                                           SYNTHETIC |
+                                           ENUM);
 
   static final int APPLICABLE_TO_METHODS = (ACC_PUBLIC | 
                                             ACC_PRIVATE | 
@@ -42,16 +48,21 @@ interface VM_ClassLoaderConstants {
                                             ACC_STATIC | 
                                             ACC_FINAL | 
                                             ACC_SYNCHRONIZED | 
+                                            BRIDGE |
+                                            VARARGS |
                                             ACC_NATIVE | 
                                             ACC_ABSTRACT | 
-                                            ACC_STRICT);
+                                            ACC_STRICT |
+														  SYNTHETIC);
 
   static final int APPLICABLE_TO_CLASSES = (ACC_PUBLIC | 
                                             ACC_PRIVATE | 
                                             ACC_FINAL | 
                                             ACC_SUPER | 
                                             ACC_INTERFACE | 
-                                            ACC_ABSTRACT);
+                                            ACC_ABSTRACT |
+                                            SYNTHETIC |
+                                            ENUM);
 
   // Possible states of a class description.
   //
