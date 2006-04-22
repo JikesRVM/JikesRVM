@@ -60,7 +60,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   protected static final boolean debug = false;
   protected static final boolean verbose= false;
-  protected static boolean verboseDebug = false;
+  protected static final boolean verboseDebug = false;
 
   /**
    * Perform some architecture-specific initialization.
@@ -606,7 +606,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   private ScratchRegister createScratchBefore(OPT_Instruction s, 
                                               OPT_Register r,
                                               OPT_Register symb) {
-    OPT_PhysicalRegisterSet pool = ir.regpool.getPhysicalRegisterSet();
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(r);
     int spillLocation = OPT_RegisterAllocatorState.getSpill(r);
     if (spillLocation <= 0) {

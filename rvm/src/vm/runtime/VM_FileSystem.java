@@ -161,9 +161,9 @@ public class VM_FileSystem {
    *    be avoided)
    */
   private static boolean blockingReadHack(int fd) throws InlinePragma {
-    if (fd >= 3 || standardFdIsNonblocking[fd])
+	 if (fd >= 3 || standardFdIsNonblocking[fd])
       return true;
-
+	 
     VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
     return isFdReady(waitData.readFds[0]);
   }
@@ -181,7 +181,7 @@ public class VM_FileSystem {
    *    be avoided)
    */
   private static boolean blockingWriteHack(int fd) throws InlinePragma {
-    if (fd >= 3 || standardFdIsNonblocking[fd])
+	 if (fd >= 3 || standardFdIsNonblocking[fd])
       return true;
 
     VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);

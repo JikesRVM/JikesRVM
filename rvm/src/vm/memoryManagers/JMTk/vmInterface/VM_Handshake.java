@@ -50,7 +50,7 @@ public class VM_Handshake {
    *
    * Class variables
    */
-  public static int verbose = 0;
+  public static final int verbose = 0;
   static final int LOCKOUT_GC_WORD = 0x0CCCCCCC;
   
   /***********************************************************************

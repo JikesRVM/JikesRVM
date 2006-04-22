@@ -324,7 +324,6 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    * @return estimate of future execution time to be spent in this method
    */
   double futureTimeForMethod(VM_HotMethodEvent hme) {
-    VM_AOSOptions opts = VM_Controller.options;
     double numSamples = hme.getNumSamples();
     double timePerSample = (double)VM.interruptQuantum;
     if (!VM.UseEpilogueYieldPoints) {

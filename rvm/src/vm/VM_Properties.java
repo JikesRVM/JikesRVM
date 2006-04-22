@@ -122,5 +122,5 @@ public class VM_Properties extends VM_Options {
   //-#endif
 
   /** How much farther? */
-  public static int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;
+  public static final int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;
 }

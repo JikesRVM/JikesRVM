@@ -56,7 +56,7 @@ public class JikesRVMSupport {
         if (expectedType.isLongType()) return arg;
       } else if (arg instanceof java.lang.Float) {
         if (expectedType.isFloatType()) return arg;
-        if (expectedType.isDoubleType()) return new Double(((java.lang.Integer)arg).floatValue());
+        if (expectedType.isDoubleType()) return new Double(((java.lang.Float)arg).floatValue());
       } else if (arg instanceof java.lang.Double) {
         if (expectedType.isDoubleType()) return arg;
       }

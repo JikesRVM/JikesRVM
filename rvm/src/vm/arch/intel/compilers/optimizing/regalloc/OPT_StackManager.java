@@ -126,7 +126,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
   final void insertSpillBefore(OPT_Instruction s, OPT_Register r,
                                byte type, int location) {
 
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
     OPT_RegisterOperand rOp;
@@ -152,7 +151,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    */
   final void insertUnspillBefore(OPT_Instruction s, OPT_Register r, 
                                  byte type, int location) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
     OPT_RegisterOperand rOp;
@@ -262,8 +260,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * and add epilogue code.
    */ 
   void cleanUpAndInsertEpilogue() {
-
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
@@ -493,7 +489,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * @param inst the first instruction after the prologue.  
    */
   private void saveFloatingPointState(OPT_Instruction inst) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
     inst.insertBefore(MIR_FSave.create(IA32_FNSAVE, M));
   }
@@ -504,7 +499,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    * @param inst the return instruction after the epilogue.  
    */
   private void restoreFloatingPointState(OPT_Instruction inst) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Operand M = new OPT_StackLocationOperand(true, -fsaveLocation, 4);
     inst.insertBefore(MIR_FSave.create(IA32_FRSTOR, M));
   }
@@ -554,7 +548,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    */
   private void insertEpilogue(OPT_Instruction ret) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet(); 
-    OPT_Register ESP = phys.getESP(); 
     OPT_Register PR = phys.getPR();
 
     // 1. Restore any saved registers
@@ -590,7 +583,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int location = OPT_RegisterAllocatorState.getSpill(symb.register);
 
     // Create a memory operand M representing the spill location.
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Operand M = null;
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(symb.register);
     int size = OPT_PhysicalRegisterSet.getSpillSize(type);
@@ -733,7 +725,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // first attempt to mutate the move into a noop
     if (mutateMoveToNop(s)) return;
 
-    OPT_Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
     OPT_Operand result = MIR_Move.getResult(s);
     OPT_Operand val = MIR_Move.getValue(s);
     if (result instanceof OPT_StackLocationOperand) {

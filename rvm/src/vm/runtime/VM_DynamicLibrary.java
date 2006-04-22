@@ -63,7 +63,7 @@ public class VM_DynamicLibrary {
       throw new UnsatisfiedLinkError();
     }
 
-    libName = new String(libraryName);
+    libName = libraryName;
 
     if (VM.verboseJNI) {
       VM.sysWriteln("[Loaded native library: "+libName+"]");

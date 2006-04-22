@@ -72,7 +72,6 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
               if (activeGuard != null && 
                   (Binary.getVal1(instr) == activeGuard || 
                    Binary.getVal2(instr) == activeGuard)) {
-                remaining |= (activeGuard == null);
                 activeGuard = null;
               }
             } else if (op == NULL_CHECK) {

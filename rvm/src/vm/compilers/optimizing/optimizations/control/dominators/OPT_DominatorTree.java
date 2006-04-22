@@ -248,7 +248,6 @@ public class OPT_DominatorTree extends OPT_Tree {
    * @param b the basic block
    */
   private void addNode(OPT_BasicBlock b) {
-    OPT_LTDominatorInfo info = (OPT_LTDominatorInfo)b.scratchObject;
     OPT_DominatorTreeNode node = new OPT_DominatorTreeNode(b);
     dominatorInfoMap[b.getNumber()] = node;
   }

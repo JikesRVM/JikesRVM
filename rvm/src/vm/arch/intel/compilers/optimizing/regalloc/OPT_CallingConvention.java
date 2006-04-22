@@ -212,7 +212,6 @@ final class OPT_CallingConvention extends OPT_IRTools
     // offset, in bytes, from the SP, for the next parameter slot on the
     // stack
     int parameterBytes = 0;
-    OPT_Register ESP = phys.getESP();
 
     // Require ESP to be at bottom of frame before a call,
     call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
@@ -384,11 +383,6 @@ final class OPT_CallingConvention extends OPT_IRTools
     int parameterBytes = 0;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    OPT_Register ESP = phys.getESP();
-    // count the number FPR parameters in a pre-pass
-    int FPRRegisterParams= countFPRParams(call);
-    FPRRegisterParams = Math.min(FPRRegisterParams, OPT_PhysicalRegisterSet.getNumberOfFPRParams());
-    
     // walk over the parameters in reverse order
     // NOTE: All params to syscall are passed on the stack!
     int numParams = MIR_Call.getNumberOfParams(call); 
@@ -423,7 +417,6 @@ final class OPT_CallingConvention extends OPT_IRTools
    * For now, we naively save/restore all nonvolatiles.
    */
   public static void allocateSpaceForSysCall(OPT_IR ir) {
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_StackManager sm = (OPT_StackManager)ir.stackManager;
     
     // add one to account for the processor register.  

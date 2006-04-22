@@ -501,7 +501,6 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      byte[] methBA = method.getDescriptor().toByteArray();
       if (SelectedPlanConstraints.get().withGCspy()) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
             isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {

@@ -664,7 +664,6 @@ implements OPT_Operators, OPT_Constants {
     * @param symbolicRegisters mapping from integer to symbolic registers
     */
     private void renameSymbolicRegisters(OPT_Register[] symbolicRegisters) {
-      OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
       int n = ir.getNumberOfSymbolicRegisters();
       Stack[] S = new Stack[n + 1];
       for (int i = 0; i < S.length; i++) {
@@ -695,7 +694,6 @@ implements OPT_Operators, OPT_Constants {
    */
   private void search(OPT_BasicBlock X, Stack[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
-    OPT_SSADictionary dictionary = ir.HIRInfo.SSADictionary;
     for (OPT_InstructionEnumeration ie = 
          X.forwardInstrEnumerator(); ie.hasMoreElements();) {
       OPT_Instruction A = ie.next();

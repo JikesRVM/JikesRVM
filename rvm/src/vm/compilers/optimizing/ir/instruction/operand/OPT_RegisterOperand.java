@@ -286,7 +286,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
         s += "(GUARD)";
       }
     }
-    return s.toString();
+    return s;
   }
 
 }

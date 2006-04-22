@@ -45,7 +45,7 @@ public class VM_StackTrace implements VM_Constants {
 
       Upped the former constant 50 to 100, per a discussion with Perry Cheng.
       --Steven Augart */
-  public static int elideAfterThisManyFrames = 100;
+  public static final int elideAfterThisManyFrames = 100;
   
   /**
    * The compiled methods that comprise the trace

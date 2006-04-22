@@ -546,7 +546,6 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     if (!options.SIMPLE_ESCAPE_IPA)
       return;
     // do not perform for unloaded methods
-    VM_Class c = m.getDeclaringClass();
     OPT_MethodSummary summ = OPT_SummaryDatabase.findMethodSummary(m);
     if (summ != null) {
       // do not attempt to perform escape analysis recursively

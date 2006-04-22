@@ -144,7 +144,7 @@ public final class VM_Field extends VM_Member {
       if (type.isIntType())      return new Integer(getIntValueUnchecked(obj));
       if (type.isShortType())    return new Short(getShortValueUnchecked(obj));
       if (type.isByteType())     return new Byte(getByteValueUnchecked(obj));
-      if (type.isBooleanType())  return new Boolean(getBooleanValueUnchecked(obj));
+      if (type.isBooleanType())  return Boolean.valueOf(getBooleanValueUnchecked(obj));
       return null;
     }
   }

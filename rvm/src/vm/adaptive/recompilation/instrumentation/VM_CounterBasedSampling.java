@@ -31,12 +31,12 @@ public final class VM_CounterBasedSampling implements Uninterruptible, VM_Consta
     * Holds the value that is used to reset the global counter after
     * a sample is taken.
     */
-   public static int resetValue=100;
+  static int resetValue=100;
 
    /**
     *  The global counter.
     */
-   public static int globalCounter=resetValue; 
+  static int globalCounter=resetValue; 
 
   /**
    * Perform at system boot.

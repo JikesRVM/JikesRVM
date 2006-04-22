@@ -102,13 +102,13 @@ public class VM_CollectorThread extends VM_Thread {
   public final static boolean MEASURE_WAIT_TIMES = false;
   
   /** array of size 1 to count arriving collector threads */
-  public static int[]  participantCount;
+  final static int[]  participantCount;
 
   /** maps processor id to assoicated collector thread */
-  public static VM_CollectorThread[] collectorThreads; 
+  static VM_CollectorThread[] collectorThreads; 
   
   /** number of collections */
-  public static int collectionCount;
+  static int collectionCount;
   
   /**
    * The VM_Handshake object that contains the state of the next or
@@ -116,7 +116,7 @@ public class VM_CollectorThread extends VM_Thread {
    * detecting a need for a collection, and passed to the collect
    * method when requesting a collection.
    */
-  public static VM_Handshake handshake;
+  public final static VM_Handshake handshake;
 
   /** Use by collector threads to rendezvous during collection */
   public static SynchronizationBarrier gcBarrier;

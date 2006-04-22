@@ -175,7 +175,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
                                                  OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
-    OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
+	 // OPT_RegisterOperand A = Binary.getVal1(s).asRegister(); - unused
     int c = getIntValue(Binary.getVal2(s));
     if (s.operator == INT_SUB) c = -c;
 
@@ -198,7 +198,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
                                                   OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
-    OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
+    // OPT_RegisterOperand A = Binary.getVal1(s).asRegister(); - unused
     long c = Binary.getVal2(s).asLongConstant().value;
     if (s.operator == LONG_SUB) c = -c;
 
@@ -221,7 +221,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
                                                   OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
-    OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
+    // OPT_RegisterOperand A = Binary.getVal1(s).asRegister(); - unused
 
     // A = B + d
     OPT_RegisterOperand B = Binary.getVal1(def).asRegister();

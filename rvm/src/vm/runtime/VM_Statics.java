@@ -292,7 +292,7 @@ public class VM_Statics implements VM_Constants {
     } 
          
     int offset = slot << LOG_BYTES_IN_INT;
-    if ((slot > 2000 && slot < 2100 && false) || VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
+    if (VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
     return offset;
   }
 
