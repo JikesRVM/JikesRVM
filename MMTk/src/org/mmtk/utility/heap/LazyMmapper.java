@@ -32,8 +32,8 @@ public final class LazyMmapper implements Constants, Uninterruptible {
    *
    */
 
-  public static boolean verbose = false;
-  public static Lock lock = new Lock("LazyMapper");
+  public static final boolean verbose = false;
+  public static final Lock lock = new Lock("LazyMapper");
 
   // There is a monotonicity assumption so that only updates require lock acquisition.
   //

@@ -711,7 +711,6 @@ public class Log implements Constants, Uninterruptible {
   private static void writeHex(Word w, int bytes) {
     int hexDigits = bytes * (1 << LOG_HEX_DIGITS_IN_BYTE);
     int nextDigit;
-    char [] intBuffer = getIntBuffer();
 
     write(HEX_PREFIX);
 

@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
  */
 public final class Barrier implements Uninterruptible {
 
-  public static int verbose = 0;
+  public static final int verbose = 0;
 
   // The value of target is one more than the number of threads we expect to arrive.
   // It is one greater to allow safely updating the currentCounter value.

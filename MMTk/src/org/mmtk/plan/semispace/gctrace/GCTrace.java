@@ -90,9 +90,9 @@ public class GCTrace extends SS implements Uninterruptible {
    */
 
   /* Spaces */
-  public static RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
   
-  public static int TRACE = traceSpace.getDescriptor();
+  public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */
   public static boolean traceInducedGC = false; // True if trace triggered GC

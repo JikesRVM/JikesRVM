@@ -40,7 +40,7 @@ public class TreadmillDriver extends AbstractDriver
    *
    * We count the number of objects in each tile and the space they use
    */
-  class Tile extends AbstractTile
+  static class Tile extends AbstractTile
     implements  Uninterruptible {
     short objects;
     int usedSpace;

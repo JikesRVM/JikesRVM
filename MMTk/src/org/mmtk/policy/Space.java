@@ -56,7 +56,7 @@ public abstract class Space implements Constants, Uninterruptible {
   private static Address AVAILABLE_START = chunkAlign(Memory.AVAILABLE_START(), false);
   private static Address AVAILABLE_END = chunkAlign(Memory.AVAILABLE_END(), true);
   private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().sub(AVAILABLE_START.toWord()).toExtent();
-  public static Address HEAP_END = chunkAlign(Memory.HEAP_END(), false);
+  public static final Address HEAP_END = chunkAlign(Memory.HEAP_END(), false);
 
   public static final int LOG_BYTES_IN_CHUNK = 22;
   public static final int BYTES_IN_CHUNK = 1<<LOG_BYTES_IN_CHUNK;

@@ -227,7 +227,6 @@ public class BumpPointer extends Allocator
   private void scanRegion(LinearScan scanner, Address start) 
     throws InlinePragma {
     /* Get the end of this region */
-    Address end = start.add(REGION_LIMIT_OFFSET).loadAddress();
     Address dataEnd = start.add(DATA_END_OFFSET).loadAddress();
 
     /* dataEnd = zero represents the current region. */

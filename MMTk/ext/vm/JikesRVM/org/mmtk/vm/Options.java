@@ -123,7 +123,6 @@ public final class Options {
         return true;
       case Option.MICROSECONDS_OPTION:
         int mval = VM_CommandLineArgs.primitiveParseInt(value);
-        mval = mval; 
         ((MicrosecondsOption)o).setMicroseconds(mval);
         return true;
     }

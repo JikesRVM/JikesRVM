@@ -53,7 +53,7 @@ public class Lock implements Uninterruptible {
   // Debugging
   private static final boolean REPORT_SLOW = true;
   private static int TIMEOUT_CHECK_FREQ = 1000; 
-  public static int verbose = 0; // show who is acquiring and releasing the locks
+  public static final int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
 
   // Core Instance fields

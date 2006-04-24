@@ -63,8 +63,6 @@ public class ReferenceGlue implements Uninterruptible {
    */
   public static final boolean REFERENCES_ARE_OBJECTS = true;
 
-  private static boolean clearSoftReferences = false;
-
   private static Lock lock = new Lock("ReferenceProcessor");
 
   private static final ReferenceGlue softReferenceProcessor =

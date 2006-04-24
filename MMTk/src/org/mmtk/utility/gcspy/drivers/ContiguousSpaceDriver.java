@@ -47,7 +47,7 @@ public class ContiguousSpaceDriver extends AbstractDriver
    *
    * We only count the number of objects in each tile and the space they use
    */
-  class Tile extends AbstractTile implements  Uninterruptible {
+  static class Tile extends AbstractTile implements  Uninterruptible {
 
     short scalarObjects;
     int scalarUsedSpace;

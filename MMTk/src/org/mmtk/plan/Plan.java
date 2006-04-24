@@ -116,7 +116,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   public static final int LOS      = loSpace.getDescriptor();
 
   /** Timer that counts total time */
-  public static Timer totalTime = new Timer("time");
+  public static final Timer totalTime = new Timer("time");
 
   /** Support for time-limited GCs */
   protected static long timeCap;

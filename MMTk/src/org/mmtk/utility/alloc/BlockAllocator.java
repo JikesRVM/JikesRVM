@@ -567,7 +567,6 @@ public final class BlockAllocator implements Constants, Uninterruptible {
           first = false;
         Log.write(block);
       }
-      prev = block;
       block = getNextBlock(block);
       Log.flush();
     }

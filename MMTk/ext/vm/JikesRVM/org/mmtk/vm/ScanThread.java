@@ -357,7 +357,6 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
     compiledMethod.setObsolete(false);  // keeps code object alive
 
-    VM_Method method = compiledMethod.getMethod();
     compiledMethodType = compiledMethod.getCompilerType();
     
     if (verbosity >= 1) printMethodHeader();
