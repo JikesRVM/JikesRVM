@@ -89,8 +89,8 @@ extern "C" char *sys_siglist[];
 
 
 // #define PTRS_X_WITHOUT_PUNCTUATION
-// #define PTRS_VIA_PERCENT_P
-#define PTRS_X_WITH_PUNCTUATION
+#define PTRS_VIA_PERCENT_P
+//#define PTRS_X_WITH_PUNCTUATION
 #define  __STDC_FORMAT_MACROS
 /* A uintptr_t is an integral type guaranteed to be able to represent any 
    pointer to void (void *)
