@@ -321,7 +321,8 @@ public class VM extends VM_Properties
 	System.loadLibrary("javaio");
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
-
+    runClassInitializer("java.util.jar.JarFile");
+    
     //-#if RVM_WITH_HPM
     runClassInitializer("com.ibm.JikesRVM.Java2HPM");
     VM_HardwarePerformanceMonitors.setUpHPMinfo();

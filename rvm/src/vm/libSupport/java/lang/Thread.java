@@ -437,4 +437,48 @@ public class Thread implements Runnable {
     return currentThread().locals;
   }
 
+  /* Classpath 0.91 fixes */
+
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* field exists to avoid build problems with classpath 0.91
+	*/
+  UncaughtExceptionHandler exceptionHandler;
+
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public void setUncaughtExceptionHandler(UncaughtExceptionHandler h) {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public UncaughtExceptionHandler getUncaughtExceptionHandler() {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler h) {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler() {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* interface exists to avoid build problems with classpath 0.91
+	*/
+  public interface UncaughtExceptionHandler
+  {
+    void uncaughtException(Thread thr, Throwable exc);
+  }
 }

@@ -64,7 +64,7 @@ public final class Class implements java.io.Serializable {
   Object[] signers;
 
   public boolean desiredAssertionStatus() {
-    throw new VM_UnimplementedError();
+    return true; // TODO: assertion status support isn't yet present
   }
   
   public static Class forName(String typeName) throws ClassNotFoundException {
