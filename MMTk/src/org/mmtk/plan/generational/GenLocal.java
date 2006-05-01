@@ -204,7 +204,7 @@ public abstract class GenLocal extends StopTheWorldLocal
   }
 
   public final TraceLocal getCurrentTrace() {
-    if (global().gcFullHeap) return getFullHeapTrace();
+    if (global().collectMatureSpace()) return getFullHeapTrace();
     return nurseryTrace;
   }
   
