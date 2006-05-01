@@ -1,8 +1,9 @@
-/* VMClassLoader.java -- Reference implementation of native interface
+/* VMClassLoader.java
    required by ClassLoader
    Copyright (C) 1998, 2001, 2002, 2004, 2005, 2006 Free Software Foundation
-
-This file is part of GNU Classpath.
+   $Id$
+   
+This file is modified from that of GNU Classpath.
 
 GNU Classpath is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
