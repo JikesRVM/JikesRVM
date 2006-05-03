@@ -241,13 +241,15 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
         // Algorithm: find the total loopExitWeight, then distribute prob and weight
         //            in ratio to the exit weight for each exit.
         //            Effectively we are treating the nested loop as an n-way branch to its loop exits.
-        float exitWeight = computeLoopExitWeight(other);
+        target.setScratchFlag();
+	float exitWeight = computeLoopExitWeight(other);
         for (Iterator i = other.loopExits.iterator(); i.hasNext();) {
           OPT_LSTNode.Edge exit = (OPT_LSTNode.Edge)i.next();
           float myWeight = exit.source.getExecutionFrequency() * exit.probability;
           float myFraction = myWeight/exitWeight;
           processEdge(n, source, exit.target, prob * myFraction, weight);
         }
+	target.clearScratchFlag();
       }
     } else {
       n.addLoopExit(source, target, prob);
