@@ -697,7 +697,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     throws UninterruptiblePragma, InlinePragma {
     Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(),
                                        MIN_ALIGNMENT);
-    return Allocator.alignAllocation(region, align, offset).toWord().toOffset();
+    return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
   }
 
   /**

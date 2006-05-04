@@ -119,4 +119,11 @@ public interface Constants {
    * memory. This value must be a power of 2.
    */
   static final int MAX_BYTES_PADDING = VMConstants.MAX_BYTES_PADDING();
+  
+  /**
+   * The VM will add at most this value minus BYTES_IN_INT bytes of
+   * padding to the front of an object that it places in a region of
+   * memory. This value must be a power of 2.
+   */
+  static final int ALIGNMENT_VALUE = VMConstants.ALIGNMENT_VALUE();
 }

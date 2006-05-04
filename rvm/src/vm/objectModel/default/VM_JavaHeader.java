@@ -87,6 +87,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /** How many bits to shift to get the thin lock? */
   public static final int THIN_LOCK_SHIFT    = ADDRESS_BASED_HASHING ? 10 : 12;
 
+  /** The alignment value **/
+  public static final int ALIGNMENT_VALUE   = VM_JavaHeaderConstants.ALIGNMENT_VALUE;
+  public static final int LOG_MIN_ALIGNMENT = VM_JavaHeaderConstants.LOG_MIN_ALIGNMENT;
+
   static {
     if (VM.VerifyAssertions) {
       VM._assert(VM_MiscHeader.REQUESTED_BITS + VM_AllocatorHeader.REQUESTED_BITS <= NUM_AVAILABLE_BITS);
@@ -240,22 +244,14 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   public static ObjectReference getObjectFromStartAddress(Address start) {
     if (VM.VerifyAssertions) VM._assert(OTHER_HEADER_BYTES == 0);
 
-    Address obj = start.add(OBJECT_REF_OFFSET); 
-
-    if (!VM.BuildFor64Addr) {
-      Object tib = VM_Magic.getObjectAtOffset(obj, TIB_OFFSET);
-  
-      // only two possible misses, and if there isnt an object this is ok?
-      if (tib == null) {
-        obj = obj.add(BYTES_IN_ADDRESS);
-        tib = VM_Magic.getObjectAtOffset(obj, TIB_OFFSET);
-        if (tib == null) {
-          obj = obj.add(BYTES_IN_ADDRESS);
-        }
+    if (start.loadInt() == ALIGNMENT_VALUE) {
+      start = start.add(BYTES_IN_INT);
+      if (start.loadInt() == ALIGNMENT_VALUE) {
+        return ObjectReference.nullReference();
       }
     }
 
-    return obj.toObjectReference(); 
+    return start.add(OBJECT_REF_OFFSET).toObjectReference(); 
   }
 
   /**
@@ -283,22 +279,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   private static ObjectReference getNextObject(ObjectReference obj, int size) {
     if (VM.VerifyAssertions) VM._assert(OTHER_HEADER_BYTES == 0);
     
-    Address next = obj.toAddress().add(size);
-    
-    if (!VM.BuildFor64Addr) {
-      Object tib = VM_Magic.getObjectAtOffset(next, TIB_OFFSET); 
-   
-     // only one possible miss, and if there isnt an object this is ok? 
-      if (tib == null) {
-        next = next.add(BYTES_IN_ADDRESS);
-        tib = VM_Magic.getObjectAtOffset(next, TIB_OFFSET); 
-        if (tib == null) {
-          next = next.add(BYTES_IN_ADDRESS);
-        } 
-      } 
-    }
-   
-    return next.toObjectReference();
+    return getObjectFromStartAddress(obj.toAddress().add(size).sub(OBJECT_REF_OFFSET));
   }
  
   /**

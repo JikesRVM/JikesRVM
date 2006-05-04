@@ -230,15 +230,17 @@ public class BumpPointer extends Allocator
     Address dataEnd = start.add(DATA_END_OFFSET).loadAddress();
 
     /* dataEnd = zero represents the current region. */
+    Address oldCursor = cursor;
     Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
     ObjectReference current =
       ObjectModel.getObjectFromStartAddress(start.add(DATA_START_OFFSET));
 
-    while (ObjectModel.refToAddress(current).LT(currentLimit)) {
+    while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
       ObjectReference next = ObjectModel.getNextObject(current);
       scanner.scan(current);  // Scan this object.
       current = next;
     }
+    
   }
 
   /**

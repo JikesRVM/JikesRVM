@@ -173,6 +173,8 @@ public class BootImage extends BootImageWriterMessages
    * @param offset the offset at which the alignment is desired.
    */
   public Address allocateDataStorage(int size, int align, int offset) {
+    size = roundAllocationSize(size);
+    Offset unalignedOffset = freeDataOffset;
     freeDataOffset = MM_Interface.alignAllocation(freeDataOffset, align, offset);
     if (VM.ExtremeAssertions) {
       VM._assert(freeDataOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
@@ -183,9 +185,18 @@ public class BootImage extends BootImageWriterMessages
     if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
 
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.add(unalignedOffset), 
+                                    lowAddr.sub(unalignedOffset).toWord().toExtent());
     return BOOT_IMAGE_DATA_START.add(lowAddr);
   }
 
+  /**
+   * Round a size in bytes up to the next value of MIN_ALIGNMENT 
+   */
+  private int roundAllocationSize(int size) {
+    return size + ((-size) & ((1 << VM_JavaHeader.LOG_MIN_ALIGNMENT) - 1));
+  } 
+  
   /**
    * Allocate space in bootimage. Moral equivalent of 
    * memory managers allocating raw storage at runtime.
@@ -195,6 +206,8 @@ public class BootImage extends BootImageWriterMessages
    * @param offset the offset at which the alignment is desired.
    */
   public Address allocateCodeStorage(int size, int align, int offset) {
+    size = roundAllocationSize(size);
+    Offset unalignedOffset = freeCodeOffset;
     freeCodeOffset = MM_Interface.alignAllocation(freeCodeOffset, align, offset);
     if (VM.ExtremeAssertions) {
       VM._assert(freeCodeOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
@@ -204,6 +217,9 @@ public class BootImage extends BootImageWriterMessages
     freeCodeOffset = freeCodeOffset.add(size);
     if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
+
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.add(unalignedOffset), 
+                                    lowAddr.sub(unalignedOffset).toWord().toExtent());
     
     return BOOT_IMAGE_CODE_START.add(lowAddr);
   }

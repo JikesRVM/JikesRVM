@@ -753,6 +753,18 @@ public final class VM_ObjectModel implements Uninterruptible,
   }
 
   /**
+   * Fill an alignment gap with the alignment value 
+   */
+  public static void fillAlignmentGap(BootImageInterface bootImage,
+                                      Address address, Extent size) throws InterruptiblePragma {
+    while(size.GT(Extent.zero())) {
+      bootImage.setFullWord(address, VM_JavaHeader.ALIGNMENT_VALUE);
+      address = address.add(BYTES_IN_INT);
+      size = size.sub(BYTES_IN_INT);
+    }
+  } 
+  
+  /**
    * For low level debugging of GC subsystem. 
    * Dump the header word(s) of the given object reference.
    * @param ptr the object reference whose header should be dumped 

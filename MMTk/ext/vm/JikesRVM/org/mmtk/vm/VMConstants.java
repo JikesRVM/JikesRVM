@@ -6,6 +6,7 @@
 package org.mmtk.vm;
 
 import com.ibm.JikesRVM.VM_SizeConstants;
+import com.ibm.JikesRVM.VM_JavaHeader;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -47,7 +48,7 @@ public class VMConstants {
   }
   /** @return The log base two of the minimum allocation alignment */
   public static final byte LOG_MIN_ALIGNMENT() throws InlinePragma { 
-    return VM_SizeConstants.LOG_BYTES_IN_INT;
+    return VM_JavaHeader.LOG_MIN_ALIGNMENT;
   }
   /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
   public static final byte MAX_ALIGNMENT_SHIFT() throws InlinePragma { 
@@ -57,5 +58,11 @@ public class VMConstants {
   public static final int MAX_BYTES_PADDING() throws InlinePragma { 
     return VM_SizeConstants.BYTES_IN_DOUBLE; 
   }
+  
+  /** @return The value to store in alignment holes */
+  public static final int ALIGNMENT_VALUE() throws InlinePragma { 
+    return VM_JavaHeader.ALIGNMENT_VALUE;
+  }
+
 }
 

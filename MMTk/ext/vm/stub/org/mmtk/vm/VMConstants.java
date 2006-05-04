@@ -47,5 +47,8 @@ public class VMConstants {
   
   /** @return The maximum number of bytes of padding to prepend to an object */
   public static final int MAX_BYTES_PADDING() { return 1; }
+
+  /** @return The value to store in alignment holes */
+  public static final int ALIGNMENT_VALUE() { return 0; }
 }
 

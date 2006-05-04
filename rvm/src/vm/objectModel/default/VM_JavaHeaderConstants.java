@@ -21,8 +21,11 @@ import org.vmmagic.unboxed.*;
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
-  static final int TIB_BYTES = BYTES_IN_ADDRESS;
-  static final int STATUS_BYTES = BYTES_IN_ADDRESS;
+  static final int TIB_BYTES         = BYTES_IN_ADDRESS;
+  static final int STATUS_BYTES      = BYTES_IN_ADDRESS;
+
+  static final int ALIGNMENT_VALUE   = 0xdeadbeef;
+  static final int LOG_MIN_ALIGNMENT = LOG_BYTES_IN_INT;
 
   /* we use 64 bits for the length on a 64 bit architecture as this makes 
      the other words 8-byte aligned, and the header has to be 8-byte aligned. */

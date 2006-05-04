@@ -71,7 +71,8 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @return The aligned up address.
    */
   final public static Address alignAllocation(Address region, int alignment, 
-                                             int offset, int knownAlignment)
+                                             int offset, int knownAlignment, 
+                                             boolean fillAlignmentGap)
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(knownAlignment >= MIN_ALIGNMENT);
@@ -91,7 +92,40 @@ public abstract class Allocator implements Constants, Uninterruptible {
     Word mask  = Word.fromIntSignExtend(alignment-1);
     Word negOff= Word.fromIntSignExtend(-offset);
     Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+
+    if (fillAlignmentGap && ALIGNMENT_VALUE != 0) {
+      if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
+        // At most a single hole
+        if (!delta.isZero()) {
+          region.store(ALIGNMENT_VALUE);
+          region = region.add(delta);
+        }
+        return region;
+      } else {
+        while (delta.toWord().GT(Word.zero())) {
+          region.store(ALIGNMENT_VALUE);
+          region = region.add(BYTES_IN_INT);
+          delta = delta.sub(BYTES_IN_INT);
+        }
+        return region;
+      }
+    }
+
     return region.add(delta);
+  }
+  
+  /**
+   * Fill the specified region with the alignment value.
+   * 
+   * @param start The start of the region.
+   * @param end A pointer past the end of the region.
+   */
+  final public static void fillAlignmentGap(Address start, Address end)
+    throws InlinePragma {
+    while (start.LT(end)) {
+      start.store(ALIGNMENT_VALUE);
+      start = start.add(BYTES_IN_INT);
+    }
   }
 
   /**
@@ -108,7 +142,24 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static Address alignAllocation(Address region, int alignment, 
                                              int offset) 
     throws InlinePragma {
-    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT);
+    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, true);
+  }
+  
+  /**
+   * Aligns up an allocation request. The allocation request accepts a
+   * region, that must be at least particle aligned, an alignment
+   * request (some power of two number of particles) and an offset (a
+   * number of particles).
+   *
+   * @param region The region to align up.
+   * @param alignment The requested alignment
+   * @param offset The offset from the alignment 
+   * @return The aligned up address.
+   */ 
+  final public static Address alignAllocationNoFill(Address region, int alignment, 
+                                             int offset) 
+    throws InlinePragma {
+    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, false);
   }
 
   /**
