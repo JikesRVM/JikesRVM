@@ -722,7 +722,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
               // don't attempt to reduce if this instruction isn't
               // part of a well-formed sequence
               int cost = 0;
-              for(int i=1; i < 32; i++) {
+              for(int i=1; i < BITS_IN_INT; i++) {
                 if((val2 & (1 << i)) != 0) {
                   // each 1 requires a shift and add
                   cost++;
@@ -742,7 +742,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                 }
                 move.copyPosition(s);
                 s.insertBefore(move);
-                for(int i=1; i < 32; i++) {
+                for(int i=1; i < BITS_IN_INT; i++) {
                   if((val2 & (1 << i)) != 0) {
                     OPT_RegisterOperand tempInt = regpool.makeTempInt();
                     OPT_Instruction shift = Binary.create(INT_SHL,
@@ -888,7 +888,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }
-            if (val2 >= 32) {                  // x << 32 == 0
+            if (val2 >= BITS_IN_INT) {                  // x << 32 == 0
               Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                           IC(0));
               return MOVE_FOLDED;
@@ -972,7 +972,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }
-            if (val2 >= 32) {                  // x >>> 32 == 0
+            if (val2 >= BITS_IN_INT) {                  // x >>> 32 == 0
               Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                           IC(0));
               return MOVE_FOLDED;
@@ -1098,7 +1098,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }
-            if (val2 >= 32) {                  // x << 32 == 0
+            if (val2 >= BITS_IN_ADDRESS) {                  // x << 32 == 0
               Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
                           IC(0));
               return MOVE_FOLDED;
@@ -1230,7 +1230,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }
-            if (val2 >= 32) {                  // x >>> 32 == 0
+            if (val2 >= BITS_IN_ADDRESS) {                  // x >>> 32 == 0
               Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
                           IC(0));
               return MOVE_FOLDED;
@@ -1538,7 +1538,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }
-            if (val2 >= 64) {                  // x << 64 == 0
+            if (val2 >= BITS_IN_LONG) {                  // x << 64 == 0
               Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
                           LC(0));
               return MOVE_FOLDED;
@@ -1624,7 +1624,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }
-            if (val2 >= 64) {                  // x >>> 64 == 0
+            if (val2 >= BITS_IN_LONG) {                  // x >>> 64 == 0
               Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), 
                           LC(0));
               return MOVE_FOLDED;
