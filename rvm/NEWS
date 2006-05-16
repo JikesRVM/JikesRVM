@@ -10,7 +10,13 @@ on October 14, 2001,
 ** Highlights
 *** Classpath 0.90 or better is now required.
 
-*** Summarize changes in AWT status.
+*** Classpath AWT and Swing tests now run with the Jikes RVM. We have changed
+    from using the portable native sync code, and addressed issues with M-to-N
+    threading.
+
+*** We can now load and run Java 1.5.0 Java class files. Support includes
+    building the Jikes RVM using a 1.5.0 javac compiler and running the
+    SPEC JBB 2005 benchmark.
 
 ** Bug fixes
 1442437: to match Sun behavior, java.lang.Class.newInstance now passes 
