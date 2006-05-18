@@ -1687,8 +1687,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             isExtant = true;
             isPreciseType = true;
             tr = VM_TypeReference.JavaLangString;
+          } else if (receiver.isClassConstant()) {
+            isExtant = true;
+            isPreciseType = true;
+            tr = VM_TypeReference.JavaLangClass;
           } else if (VM.VerifyAssertions) {
-            VM._assert(false, "unexpected receiver");
+            VM._assert(false, "unexpected receiver " + receiver);
           }
           VM_Type type = tr.peekResolvedType();
           if (type != null && type.isResolved() && type.isClassType()) {
@@ -2787,6 +2791,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return  OPT_ClassLoaderProxy.getLongFromConstantPool(declaringClass, index);
     case VM_Statics.DOUBLE_LITERAL:
       return  OPT_ClassLoaderProxy.getDoubleFromConstantPool(declaringClass, index);
+    case VM_Statics.CLASS_LITERAL:
+      return  OPT_ClassLoaderProxy.getClassFromConstantPool(declaringClass, index);
     default:
       VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));
       return  null;
@@ -3226,11 +3232,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private VM_TypeReference getRefTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
-    // op must be a RegisterOperand or StringConstantOperand
-    if (op instanceof OPT_StringConstantOperand)
-      return VM_TypeReference.JavaLangString; 
-    else 
-      return op.asRegister().type;
+	 return op.getType();
   }
 
   //// HELPER FUNCTIONS FOR ASSERTION VERIFICATION
@@ -3309,10 +3311,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                   (rop.scratchObject instanceof OPT_RegisterOperand) || 
                   (rop.scratchObject instanceof OPT_TrueGuardOperand));
       return rop.scratchObject != null;
-    } else if (op instanceof OPT_StringConstantOperand) {
-      return true;
     } else {
-      return false;
+		return op.isStringConstant() || op.isClassConstant();
     }
   }
 
@@ -3365,7 +3365,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 		}
     }
     if (VM.VerifyAssertions)
-      VM._assert(op instanceof OPT_StringConstantOperand);
+      VM._assert(op.isStringConstant() || op.isClassConstant());
     return new OPT_TrueGuardOperand();
   }
 

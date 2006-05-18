@@ -109,7 +109,7 @@ public final class VM_QuickReferenceMaps implements VM_BaselineConstants, Uninte
     buildBB.generateStackSnapshots(method);
     
     byteToBlockMap = buildBB.byteToBlockMap;
-    stackSnapshots = buildBB.stackSnapshots;
+    stackSnapshots = VM_BuildBB.stackSnapshots;
     basicBlocks    = buildBB.basicBlocks;
     MCLocations   = new byte[byteToBlockMap.length+1][];
     byteToGCIndex = new int[byteToBlockMap.length];

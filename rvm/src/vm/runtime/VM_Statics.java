@@ -87,13 +87,14 @@ public class VM_Statics implements VM_Constants {
   public static final byte LONG_LITERAL         = 0x03 | WIDE_TAG;
   public static final byte DOUBLE_LITERAL       = 0x04 | WIDE_TAG;
   public static final byte STRING_LITERAL       = 0x05 | REFERENCE_TAG;
+  public static final byte CLASS_LITERAL        = 0x06 | REFERENCE_TAG;
 
-  public static final byte REFERENCE_FIELD      = 0x06 | REFERENCE_TAG;
-  public static final byte NUMERIC_FIELD        = 0x07;
-  public static final byte WIDE_NUMERIC_FIELD   = 0x08 | WIDE_TAG;
+  public static final byte REFERENCE_FIELD      = 0x07 | REFERENCE_TAG;
+  public static final byte NUMERIC_FIELD        = 0x08;
+  public static final byte WIDE_NUMERIC_FIELD   = 0x09 | WIDE_TAG;
 
-  public static final byte METHOD               = 0x09 | REFERENCE_TAG;
-  public static final byte TIB                  = 0x0a | REFERENCE_TAG;
+  public static final byte METHOD               = 0x0a | REFERENCE_TAG;
+  public static final byte TIB                  = 0x0b | REFERENCE_TAG;
 
   public static final byte CONTINUATION         = 0x0f;  // the upper half of a wide-field
 
@@ -144,6 +145,10 @@ public class VM_Statics implements VM_Constants {
    */
   private static HashMap stringLiterals = new HashMap();
 
+  /**
+   * Mapping from class literals to the jtoc slot that contains them.
+   */
+  private static HashMap classLiterals = new HashMap();
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
@@ -253,6 +258,46 @@ public class VM_Statics implements VM_Constants {
       return (String)getSlotContentsAsObject(Offset.fromIntSignExtend(offiv));
     }
     return null;
+  }
+
+  /**
+	* Find or allocate a slot in the jtoc for a class literal
+	* @param typeReferenceID the type reference ID for the class
+	* @return the offset of slot that was allocated
+	*/
+  public static synchronized int findOrCreateClassLiteral(int typeReferenceID) {
+	 Integer literal = new Integer(typeReferenceID);
+    Integer off = (Integer)classLiterals.get(literal);
+    if (off != null) return off.intValue();
+	 VM_Class type = (VM_Class)VM_TypeReference.getTypeRef(typeReferenceID).resolve();
+    Class classValue;
+	 if (VM.runningVM) {
+		classValue = type.getClassForType();
+	 } else {
+		classValue = null;
+		VM.deferClassObjectCreation(type);
+	 }
+    int newOff = allocateSlot(CLASS_LITERAL);
+    classLiterals.put(literal, new Integer(newOff));
+    Offset offset = Offset.fromIntSignExtend(newOff);
+    setSlotContents(offset, classValue);
+    return newOff;
+  }
+
+  /**
+	* Class objects can't be created at boot image write time so fix
+	* class literals at the start of VM.boot
+	* @param vm_class the class to fix
+	*/
+  public static void fixClassLiteral(VM_Class vm_class) {
+	 Integer literal = new Integer(vm_class.getTypeRef().getId());
+    Integer off = (Integer)classLiterals.get(literal);
+    if (off != null) {
+		// there is a JTOC slot for this class literal so fix it
+		Class classValue = vm_class.getClassForType();
+		Offset offset = Offset.fromIntSignExtend(off.intValue());
+		setSlotContents(offset, classValue);
+	 }
   }
 
   /**

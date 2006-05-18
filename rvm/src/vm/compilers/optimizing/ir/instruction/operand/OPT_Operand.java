@@ -165,6 +165,17 @@ public abstract class OPT_Operand {
   }
 
   /**
+   * Is the operand an {@link OPT_ClassConstantOperand}?
+   * 
+   * @return <code>true</code> if <code>this</code> is an
+   *         <code>instanceof</code> an {@link OPT_ClassConstantOperand}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isClassConstant() { 
+    return this instanceof OPT_ClassConstantOperand; 
+  }
+
+  /**
    * Is the operand an {@link OPT_NullConstantOperand}?
    * 
    * @return <code>true</code> if <code>this</code> is an
@@ -328,6 +339,15 @@ public abstract class OPT_Operand {
   }
 
   /**
+   * Cast to an {@link OPT_ClassConstantOperand}.
+   * 
+   * @return <code>this</code> cast as an {@link OPT_ClassConstantOperand}
+   */
+  public final OPT_ClassConstantOperand asClassConstant() { 
+    return (OPT_ClassConstantOperand)this; 
+  }
+
+  /**
    * Cast to an {@link OPT_NullConstantOperand}.
    * 
    * @return <code>this</code> cast as an {@link OPT_NullConstantOperand}
@@ -415,9 +435,9 @@ public abstract class OPT_Operand {
    *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isIntLike() {
-    return isIntConstant() || 
-      (isRegister() && asRegister().type.isIntLikeType());
+  public boolean isIntLike() {
+    // default to false and then override in subclasses
+    return false;
   }
 
   /**
@@ -427,9 +447,9 @@ public abstract class OPT_Operand {
    *         is an int as defined by {@link VM_TypeReference#isIntType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isInt() {
-    return isIntConstant() || 
-      (isRegister() && asRegister().type.isIntType());
+  public boolean isInt() {
+    // default to false and then override in subclasses
+    return false;
   }
 
   /**
@@ -439,9 +459,9 @@ public abstract class OPT_Operand {
    *         is a long as defined by {@link VM_TypeReference#isLongType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isLong() {
-    return isLongConstant() || 
-      (isRegister() && asRegister().type.isLongType());
+  public boolean isLong() {
+    // default to false and then override in subclasses
+    return false;
   }
 
   /**
@@ -451,9 +471,9 @@ public abstract class OPT_Operand {
    *         is a float as defined by {@link VM_TypeReference#isFloatType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isFloat() {
-    return isFloatConstant() || 
-      (isRegister() && asRegister().type.isFloatType());
+  public boolean isFloat() {
+    // default to false and then override in subclasses
+    return false;
   }
 
   /**
@@ -463,9 +483,9 @@ public abstract class OPT_Operand {
    *         is a double as defined by {@link VM_TypeReference#isDoubleType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isDouble() {
-    return isDoubleConstant() || 
-      (isRegister() && asRegister().type.isDoubleType());
+  public boolean isDouble() {
+    // default to false and then override in subclasses
+    return false;
   }
 
   /**
@@ -475,9 +495,9 @@ public abstract class OPT_Operand {
    *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isRef() {
-    return isStringConstant() || isNullConstant() ||
-           (isRegister() && asRegister().type.isReferenceType());
+  public boolean isRef() {
+    // default to false and then override in subclasses
+    return false;
   }
 
   /**
@@ -487,20 +507,21 @@ public abstract class OPT_Operand {
    *         is an address as defined by {@link VM_TypeReference#isWordType}
    *         or <code>false</code> if it is not.
    */
-  public final boolean isAddress() {
-    return isAddressConstant() || (isRegister() && asRegister().type.isWordType());
+  public boolean isAddress() {
+    // default to false and then override in subclasses
+    return false;
   }
+
   /**
    * Does the operand definitely represent <code>null</code>?
    * 
    * @return <code>true</code> if the operand definitely represents
    *         <code>null</code> or <code>false</code> if it does not.
    */
-  public final boolean isDefinitelyNull() {
-    return isNullConstant() || 
-      (isRegister() && asRegister().type == VM_TypeReference.NULL_TYPE);
+  public boolean isDefinitelyNull() {
+    // default to false and then override in subclasses
+    return false;
   }
-
 
   /**
    * Return a new operand that is semantically equivalent to <code>this</code>.
@@ -520,36 +541,16 @@ public abstract class OPT_Operand {
    */
   public abstract boolean similar(OPT_Operand op);
 
-
   /**
    * Return the {@link VM_TypeReference} of the value represented by the operand.
    * 
-   * @return the type of the value represented by the operand.
+   * @return the type of the value represented by the operand
    */
-  public final VM_TypeReference getType() {
-    if (isRegister())
-      return asRegister().type;
-    if (isType())
-      return VM_TypeReference.VM_Type;
-    if (isIntConstant()) 
-      return ((OPT_IntConstantOperand) this).getSpeculativeType();
-    if (isAddressConstant())
-      return VM_TypeReference.Address;
-    if (isNullConstant())
-      return VM_TypeReference.NULL_TYPE;
-    if (isStringConstant())
-      return VM_TypeReference.JavaLangString;
-    if (isFloatConstant())
-      return VM_TypeReference.Float;
-    if (isLongConstant())
-      return VM_TypeReference.Long;
-    if (isDoubleConstant())
-      return VM_TypeReference.Double;
-    if (isTrueGuard())
-      return VM_TypeReference.VALIDATION_TYPE;
-    throw new OPT_OptimizingCompilerException("unknown operand type: "+this);
+  public VM_TypeReference getType() {
+    // by default throw OPT_OptimizingCompilerException as not all
+    // operands have a type.
+    throw new OPT_OptimizingCompilerException("Getting the type for this operand has no defined meaning: " + this);
   }
-
   
   /**
    * Return the index of the operand in its containing instruction (SLOW).

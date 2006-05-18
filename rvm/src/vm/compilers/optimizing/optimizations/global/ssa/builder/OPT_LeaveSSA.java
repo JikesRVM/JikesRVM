@@ -69,9 +69,11 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
 	 // reset ir.SSADictionary 
 	 ir.HIRInfo.SSADictionary = null;
 	 // reset ssa options
-	 ir.actualSSAOptions = null;
+    ir.actualSSAOptions = null;
 
     branchOpts.perform(ir, true);
+
+	 ir.HIRInfo.dominatorsAreComputed = false;
   }
 
   /**
@@ -506,6 +508,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     // 1. re-compute dominator tree in case of control flow changes
     OPT_LTDominators.perform(ir, true, true);
     OPT_DominatorTree dom = new OPT_DominatorTree(ir, true);
+
     // 2. compute liveness
     OPT_LiveAnalysis live = 
       new OPT_LiveAnalysis(false,  // don't create GC maps

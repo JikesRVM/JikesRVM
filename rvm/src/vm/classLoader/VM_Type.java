@@ -421,7 +421,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     // object must be explictly loaded at start up of the runtime.  
     // See VM.boot(). This test for runtime can be removed 
     // once the bootImageWriter has been rewritten to properly load classes.
-    if (classForType == null && VM.runningVM) {
+    if (classForType == null) {
+      if (!VM.runningVM) {
+        throw new Error("It is not possible to get the class associated with a type " +
+                        "before booting (ie in the boot image writer) "+
+                        "as the JDK version of java.lang.Class will be used instead " +
+                        "of our own");
+      }
       // ensure that we resolve the VM_Class before creating a 
       // java.lang.Class object for it.  Doing it here frees us from having
       // to check it all over the reflection code. 

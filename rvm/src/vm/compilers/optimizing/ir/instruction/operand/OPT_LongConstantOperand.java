@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 import com.ibm.JikesRVM.opt.OPT_Bits;
 import org.vmmagic.unboxed.Offset;
 
@@ -46,6 +47,24 @@ public final class OPT_LongConstantOperand extends OPT_ConstantOperand {
   public OPT_LongConstantOperand(long v, Offset i) {
     value = v;
     offset = i;
+  }
+
+  /**
+   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * 
+   * @return VM_TypeReference.Long
+   */
+  public final VM_TypeReference getType() {
+	 return VM_TypeReference.Long;	 
+  }
+
+  /**
+   * Does the operand represent a value of the long data type?
+   * 
+   * @return <code>true</code>
+   */
+  public final boolean isLong() {
+    return true;
   }
 
   /**

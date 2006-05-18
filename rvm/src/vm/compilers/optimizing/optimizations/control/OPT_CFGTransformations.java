@@ -48,6 +48,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     
     dom.perform(ir);
     ir.cfg.compactNodeNumbering();
+    ir.HIRInfo.dominatorsAreComputed = false; // compacting the node numbering destroys the dominator info
   }
 
   /**
@@ -60,7 +61,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     return  options.TURN_WHILES_INTO_UNTILS;
   }
 
-  /**O
+  /**
    * Returns the name of the phase.
    */
   public String getName() {

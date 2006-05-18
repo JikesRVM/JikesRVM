@@ -44,7 +44,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Used to assign ids.  Id 0 is not used.
    */
-  private static int nextId = 1; 
+  private static int nextId = -1; 
   
   public static final VM_TypeReference Void    = findOrCreate("V");
   public static final VM_TypeReference Boolean = findOrCreate("Z");
@@ -173,13 +173,13 @@ public class VM_TypeReference implements VM_SizeConstants {
     VM_TypeReference key = new VM_TypeReference(cl, tn);
     VM_TypeReference val = (VM_TypeReference)dictionary.get(key);
     if (val != null)  return val;
-    key.id = nextId++;
-    if (key.id == types.length) {
+    key.id = nextId--;
+    if ((-key.id) == types.length) {
       VM_TypeReference[] tmp = new VM_TypeReference[types.length + 500];
       System.arraycopy(types, 0, tmp, 0, types.length);
       types = tmp;
     }
-    types[key.id] = key;
+    types[-key.id] = key;
     dictionary.put(key, key);
     return key;
   }
@@ -194,7 +194,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   }
 
   public static VM_TypeReference getTypeRef(int id) throws UninterruptiblePragma {
-    return types[id];
+    return types[-id];
   }
 
   /**

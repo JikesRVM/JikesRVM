@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.opt.OPT_Bits;
 import org.vmmagic.unboxed.*;
 import com.ibm.JikesRVM.VM_SizeConstants;
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 
 /**
  * Represents an address constant operand.
@@ -50,7 +51,25 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
     return new OPT_AddressConstantOperand(value);
   }
 
-  /*
+  /**
+   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * 
+   * @return VM_TypeReference.Address
+   */
+  public final VM_TypeReference getType() {
+	 return VM_TypeReference.Address;
+  }
+
+  /**
+   * Does the operand represent a value of the address data type?
+   * 
+   * @return <code>true</code>
+   */
+  public final boolean isAddress() {
+	 return true;
+  }
+
+  /**
    * Are two operands semantically equivalent?
    *
    * @param op other operand

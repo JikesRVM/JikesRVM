@@ -627,9 +627,11 @@ class OPT_ValueGraph implements OPT_Operators {
       name = op;
     } else if (op instanceof OPT_UnreachableOperand) {
       name = op;
+    } else if (op instanceof OPT_ClassConstantOperand) {
+      name = op.asClassConstant().value;
     } else {
       throw  new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand");
+          "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand: " + op);
     }
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {

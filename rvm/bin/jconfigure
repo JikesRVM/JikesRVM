@@ -3518,7 +3518,6 @@ echo "java/lang/SecurityManager"
     # class loading from zip files
     #
 java/util/zip/ZipFile
-java/util/zip/ZipFile
 java/util/zip/ZipEntry
 java/util/zip/Inflater
 java/util/zip/InflaterInputStream
@@ -3553,6 +3552,26 @@ java/security/Permission
 java/security/AllPermission
 java/security/AllPermissionCollection
 java/lang/RuntimePermission
+EOF
+
+cat <<EOF
+# New for 1.5
+java/lang/StringBuilder
+java/util/WeakHashMap-1
+java/util/Hashtable-1
+java/util/Hashtable-2
+java/util/Hashtable-3
+java/util/Hashtable-4
+java/util/HashMap-1
+java/util/HashMap-2
+java/util/HashMap-3
+java/util/HashMap\\\$HashEntry
+java/util/HashMap\\\$HashIterator
+gnu/java/security/provider/Gnu
+gnu/java/nio/charset/Provider-1
+java/nio/charset/CoderResult-1
+java/nio/charset/CoderResult-2
+java/util/zip/ZipFile-1
 EOF
     
     # the application class loader uses jar classes (which can be loaded or not)

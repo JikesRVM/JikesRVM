@@ -3142,7 +3142,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       asm.emitLAddrOffset(S0, S0, getEdgeCounterOffset());
 
       // Flip conditions so we can jump over the increment of the taken counter.
-      VM_ForwardReference fr = asm.emitForwardBC(asm.flipCode(cc));
+      VM_ForwardReference fr = asm.emitForwardBC(VM_Assembler.flipCode(cc));
 
       // Increment taken counter & jump to target
       incEdgeCounter(S0, S1, entry+VM_EdgeCounts.TAKEN);
@@ -4358,7 +4358,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     if (isInterruptible) {
       VM_ForwardReference fr;
       // yield if takeYieldpoint is non-zero.
-      asm.emitLInt(S0, PROCESSOR_REGISTER, VM_Entrypoints.takeYieldpointField.getOffset());
+		asm.emitLIntOffset(S0, PROCESSOR_REGISTER, VM_Entrypoints.takeYieldpointField.getOffset());
       asm.emitCMPI(S0, 0); 
       if (whereFrom == VM_Thread.PROLOGUE) {
         // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
@@ -5076,6 +5076,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       assignRegisters(0,  FLOAT_TYPE);
       asm.emitLFStoc(sro0,  offset, S0);
       break;
+    case VM_Statics.CLASS_LITERAL:
     case VM_Statics.STRING_LITERAL:
       assignRegisters(0,  OBJECT_TYPE);
       asm.emitLAddrToc(sro0,  offset);
@@ -5105,7 +5106,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     else
       pushType = LONG_TYPE;
     
-    Offset off = Offset.fromIntSignExtend(offset); 
+    Offset off = offset; 
     assignRegisters(0,  pushType);
     int flw0 = getTempRegister(DOUBLE_TYPE);
     asm.emitLFDtoc(flw0,  off, S0);
@@ -7119,7 +7120,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     int firstCounter = edgeCounterIdx; // only used if options.EDGE_COUNTERS;
 
     // sri0 is index
-    if (asm.fits(16, -low)) {
+    if (VM_Assembler.fits(16, -low)) {
       asm.emitADDI(fxw0, -low, sri0);
     } else {
       asm.emitLVAL(S0, low);
@@ -7193,7 +7194,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     // sri0 is key
     for (int i=0; i<npairs; i++) {
       int match   = bcodes.getLookupSwitchValue(i);
-      if (asm.fits(match, 16)) {
+      if (VM_Assembler.fits(match, 16)) {
         asm.emitCMPI(sri0, match);
       } else {
         asm.emitLVAL(S0, match);
@@ -7485,17 +7486,17 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     assignRegisters(1, javaStackType);
     switch (javaStackType) {
     case FLOAT_TYPE:
-      asm.emitLFS (sro0, fieldOffset, sri0);
+      asm.emitLFS (sro0, fieldOffset.toInt(), sri0);
       break;
     case DOUBLE_TYPE:
-      asm.emitLFD (sro0, fieldOffset, sri0);
+      asm.emitLFD (sro0, fieldOffset.toInt(), sri0);
       break;
     case LONG_TYPE:
-      asm.emitLIntoffset(sro0+1, sri0, fieldOffset.add(4));
-      asm.emitLIntoffset(sro0, sri0, fieldOffset);
+      asm.emitLIntOffset(sro0+1, sri0, fieldOffset.add(4));
+      asm.emitLIntOffset(sro0, sri0, fieldOffset);
       break;
     default:
-      asm.emitLIntoffset (sro0, sri0, fieldOffset);
+      asm.emitLIntOffset (sro0, sri0, fieldOffset);
       break;
     }
     cleanupRegisters();

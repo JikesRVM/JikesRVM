@@ -127,6 +127,9 @@ function classpath_configure_args () {
 	echo "  --disable-gtk-peer"
     fi
 
+    # Disable building the mozilla plugin
+    echo " --disable-plugin"
+
     # Disable the ALSA sound library for x86_64 builds. This hides a
     # bug for libtool in classpath where a 32bit address space
     # compilation gets linked against the 64bit ALSA libraries.

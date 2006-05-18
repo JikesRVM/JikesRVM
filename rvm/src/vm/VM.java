@@ -318,7 +318,7 @@ public class VM extends VM_Properties
 
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
-	System.loadLibrary("javaio");
+    System.loadLibrary("javaio");
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
@@ -452,7 +452,7 @@ public class VM extends VM_Properties
   private static VM_Class[] classObjects = new VM_Class[0];
   /**
    * Called by the compilers when compiling a static synchronized method
-   * during bootimage writing.
+   * or a class literal during bootimage writing.
    */
   public static void deferClassObjectCreation(VM_Class c) throws InterruptiblePragma {
     for (int i=0; i<classObjects.length; i++) {
@@ -465,8 +465,8 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Create the java.lang.Class objects needed for 
-   * static synchronized methods in the bootimage.
+   * Create the java.lang.Class objects needed for static synchronized
+   * methods in the bootimage and/or string literals in the JTOC.
    */
   private static void createClassObjects() throws InterruptiblePragma {
     for (int i=0; i<classObjects.length; i++) {
@@ -474,6 +474,7 @@ public class VM extends VM_Properties
         VM.sysWriteln(classObjects[i].toString()); 
       }
       classObjects[i].getClassForType();
+      VM_Statics.fixClassLiteral(classObjects[i]);
     }
   }
 

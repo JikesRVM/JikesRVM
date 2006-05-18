@@ -30,7 +30,7 @@ HOST_MEM_MAX=400M
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
 ZIP_KLUDGE_CLASSES = java/util/zip/ZipConstants.class
-MAP_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map* java/util/AbstractMap*
+MAP_KLUDGE_CLASSES = java/util/HashMap* java/util/HashSet* java/util/Map* java/util/AbstractMap* java/util/LinkedHashMap*
 TREEMAP_KLUDGE_CLASSES = java/util/TreeMap* java/util/SortedMap* java/util/Iterator* java/util/TreeSet*
 LINKEDLIST_KLUDGE_CLASSES = java/util/LinkedList* java/util/List* java/util/AbstractCollection* java/util/AbstractList*
 BUNDLE_KLUDGE_CLASSES = java/util/ResourceBundle* java/util/Locale*

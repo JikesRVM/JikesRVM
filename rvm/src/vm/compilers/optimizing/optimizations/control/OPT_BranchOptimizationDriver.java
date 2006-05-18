@@ -79,8 +79,8 @@ public abstract class OPT_BranchOptimizationDriver
     }
     if (didSomething)
       maximizeBasicBlocks(ir);
-    if (renumber)
-      ir.cfg.compactNodeNumbering();
+
+    ir.cfg.compactNodeNumbering();
 
     if (ir.IRStage < OPT_IR.MIR) {
       ir.pruneExceptionalOut();

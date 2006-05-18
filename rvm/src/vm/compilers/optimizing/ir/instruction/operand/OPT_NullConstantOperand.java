@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
 
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
+
 /**
  * This operand represents the null constant.
  * 
@@ -19,6 +21,33 @@ public final class OPT_NullConstantOperand extends OPT_ConstantOperand {
    */
   public OPT_Operand copy() {
     return new OPT_NullConstantOperand();
+  }
+
+  /**
+   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * 
+   * @return VM_TypeReference.NULL_TYPE
+   */
+  public final VM_TypeReference getType() {
+	 return VM_TypeReference.NULL_TYPE;
+  }
+
+  /**
+   * Does the operand represent a value of the reference data type?
+   * 
+   * @return <code>true</code>
+   */
+  public final boolean isRef() {
+	 return true;
+  }
+
+  /**
+   * Does the operand definitely represent <code>null</code>?
+   * 
+   * @return <code>true</code>
+   */
+  public final boolean isDefinitelyNull() {
+	 return true;
   }
 
   /**

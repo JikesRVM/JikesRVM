@@ -2137,6 +2137,12 @@ public class BootImageWriter extends BootImageWriterMessages
           details  = "\"" + ((String) BootImageMap.getObject(getIVal(jtocOff))).replace('\n', ' ') +"\"";
           break;
           
+        case VM_Statics.CLASS_LITERAL: 
+          category = "literal";
+          contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
+          details  = "\"" + BootImageMap.getObject(getIVal(jtocOff)) + "\"";
+          break;
+
         case VM_Statics.REFERENCE_FIELD:
           category = "field  ";
           contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;

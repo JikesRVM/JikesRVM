@@ -49,6 +49,16 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
               s.putOperand(idx, rop.copyD2U());
+            } else if (use instanceof OPT_ClassConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangClass);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_ClassConstantOperand cc = (OPT_ClassConstantOperand)use;
+              Offset offset = cc.offset;
+              if (offset.isZero())
+                throw new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset.toInt()), loc));
+              s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
               OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);

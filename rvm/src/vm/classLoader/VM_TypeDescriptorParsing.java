@@ -156,8 +156,16 @@ public abstract class VM_TypeDescriptorParsing
         continue;
       }
       /* We have a character that is not the first one of a Java identifier */
-      if (!Character.isJavaIdentifierPart(c))
+      if (!Character.isJavaIdentifierPart(c) && (c != '-'))
         return false;
+      // for Jikes 1.22, the -target 1.5 option causes anonymous
+      // classes to be named <class name>-<num> instead of
+      // <class name>$<num>. isJavaIdentifierPart will return false
+      // for a '-' in this situation which means compiling the
+      // Jikes RVM with jikes with -target 1.5 won't work. You can
+      // add "&& (c != '-')" to the test above to avoid this
+      // problem
+
       /* And on we go around the loop */
     }
     // Must not finish by needing the start of another identifier.

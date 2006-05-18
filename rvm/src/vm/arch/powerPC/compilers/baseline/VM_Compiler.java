@@ -613,11 +613,11 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to load a 32 bit constant
-   * (which may be a String and thus really 64 bits on 64 bit platform!)
+   * (which may be a reference and thus really 64 bits on 64 bit platform!)
    * @param offset JTOC offset of the constant 
    */
   protected final void emit_ldc(Offset offset) {
-    if (VM_Statics.getSlotDescription(VM_Statics.offsetAsSlot(offset)) == VM_Statics.STRING_LITERAL){
+    if (VM_Statics.isReference(VM_Statics.offsetAsSlot(offset))){
       asm.emitLAddrToc(T0, offset);
       pushAddr(T0);
     } else {
