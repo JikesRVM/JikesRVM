@@ -3557,21 +3557,23 @@ EOF
 cat <<EOF
 # New for 1.5
 java/lang/StringBuilder
-java/util/WeakHashMap-1
-java/util/Hashtable-1
-java/util/Hashtable-2
-java/util/Hashtable-3
-java/util/Hashtable-4
-java/util/HashMap-1
-java/util/HashMap-2
-java/util/HashMap-3
+java/util/WeakHashMap\\\$1
+java/util/Hashtable\\\$1
+java/util/Hashtable\\\$2
+java/util/Hashtable\\\$3
+java/util/Hashtable\\\$4
+java/util/HashMap\\\$1
+java/util/HashMap\\\$2
+java/util/HashMap\\\$3
 java/util/HashMap\\\$HashEntry
 java/util/HashMap\\\$HashIterator
 gnu/java/security/provider/Gnu
-gnu/java/nio/charset/Provider-1
-java/nio/charset/CoderResult-1
-java/nio/charset/CoderResult-2
-java/util/zip/ZipFile-1
+gnu/java/nio/charset/Provider\\\$1
+java/nio/charset/CoderResult\\\$1
+java/nio/charset/CoderResult\\\$2
+java/util/zip/ZipFile\\\$1
+gnu/java/net/loader/URLStreamHandlerCache
+gnu/java/nio/VMChannel
 EOF
     
     # the application class loader uses jar classes (which can be loaded or not)

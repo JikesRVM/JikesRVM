@@ -156,7 +156,7 @@ public abstract class VM_TypeDescriptorParsing
         continue;
       }
       /* We have a character that is not the first one of a Java identifier */
-      if (!Character.isJavaIdentifierPart(c) && (c != '-'))
+      if (!Character.isJavaIdentifierPart(c))
         return false;
       // for Jikes 1.22, the -target 1.5 option causes anonymous
       // classes to be named <class name>-<num> instead of
