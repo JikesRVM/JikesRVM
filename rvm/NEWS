@@ -8,7 +8,7 @@ on October 14, 2001,
 
 *Jikes RVM 2.4.5 Release Notes (future)
 ** Highlights
-*** Classpath 0.90 or better is now required.
+*** Classpath 0.90 (or .91?) or better is now required.
 
 *** Classpath AWT and Swing tests now run with the Jikes RVM. We have changed
     from using the portable native sync code, and addressed issues with M-to-N
