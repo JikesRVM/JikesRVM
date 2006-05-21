@@ -1,7 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//VM_Callbacks.java
 //$Id$
 package com.ibm.JikesRVM;
 
