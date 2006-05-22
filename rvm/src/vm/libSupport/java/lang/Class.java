@@ -16,7 +16,6 @@ import java.lang.reflect.Modifier;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import com.ibm.JikesRVM.classloader.*;
 

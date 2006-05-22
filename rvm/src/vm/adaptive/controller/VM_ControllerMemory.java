@@ -9,8 +9,15 @@ import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
-import java.util.*;
+
+import com.ibm.JikesRVM.util.VM_HashMap;
+
 import java.io.PrintStream;
+
+import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.ListIterator;
+
 
 /**
  *  This class records decisions taken by the controller.  It will remember
@@ -26,7 +33,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  This is a hashtable of controller plans indexed by VM_Method.  
    *  Each method can have a list of such plans associated with.
    */
-  private static final HashMap table = new HashMap();
+  private static final VM_HashMap table = new VM_HashMap();
 
   /**
    * Number of times controller is awoken and did nothing.

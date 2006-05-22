@@ -5,8 +5,8 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.util.VM_HashMap;
 import org.vmmagic.pragma.*;
-import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -32,7 +32,7 @@ public abstract class VM_MemberReference {
   /**
    * Used to canonicalize memberReferences
    */
-  private static HashMap dictionary = new HashMap();
+  private static VM_HashMap dictionary = new VM_HashMap();
 
   /**
    * Dictionary of all VM_MemberReference instances.

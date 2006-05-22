@@ -5,8 +5,10 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.util.*;
 import com.ibm.JikesRVM.classloader.*;
-import  java.util.*;
+import java.util.Iterator;
+
 
 /**
  * This class holds the dependencies that define invalidation
@@ -124,18 +126,19 @@ public final class OPT_InvalidationDatabase {
    * A mapping from VM_Method to MethodSet: holds the set of methods which
    * depend on a particular method being "final"
    */
-  private HashMap nonOverriddenHash = new HashMap();                                   
+  private VM_HashMap nonOverriddenHash = new VM_HashMap();
+  
   /**
    * A mapping from VM_Class to MethodSet: holds the set of methods which
    * depend on a particular class being "final"
    */
-  private HashMap noSubclassHash = new HashMap();                     
+  private VM_HashMap noSubclassHash = new VM_HashMap();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database.
    * If none found, create one.
    */
-  private MethodSet findOrCreateMethodSet (HashMap hash, Object key) {
+  private MethodSet findOrCreateMethodSet (VM_HashMap hash, Object key) {
     MethodSet result = (MethodSet)hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
@@ -152,7 +155,7 @@ public final class OPT_InvalidationDatabase {
     /**
      * a set of cmids (Integers)
      */ 
-    HashSet methods = new HashSet();  
+    VM_HashSet methods = new VM_HashSet();  
 
     MethodSet (Object key) {
       this.key = key;

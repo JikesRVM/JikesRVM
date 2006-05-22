@@ -8,7 +8,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import com.ibm.JikesRVM.classloader.*;
-import java.util.HashMap;
+import com.ibm.JikesRVM.util.*;
 
 /**
  * The static fields and methods comprising a running virtual machine image.
@@ -123,32 +123,32 @@ public class VM_Statics implements VM_Constants {
   /**
    * Mapping from int literals to the jtoc slot that contains them.
    */
-  private static HashMap intLiterals = new HashMap();
+  private static VM_HashMap intLiterals = new VM_HashMap();
 
   /**
    * Mapping from float literals to the jtoc slot that contains them.
    */
-  private static HashMap floatLiterals = new HashMap();
+  private static VM_HashMap floatLiterals = new VM_HashMap();
 
   /**
    * Mapping from long literals to the jtoc slot that contains them.
    */
-  private static HashMap longLiterals = new HashMap();
+  private static VM_HashMap longLiterals = new VM_HashMap();
 
   /**
    * Mapping from double literals to the jtoc slot that contains them.
    */
-  private static HashMap doubleLiterals = new HashMap();
+  private static VM_HashMap doubleLiterals = new VM_HashMap();
 
   /**
    * Mapping from string literals to the jtoc slot that contains them.
    */
-  private static HashMap stringLiterals = new HashMap();
+  private static VM_HashMap stringLiterals = new VM_HashMap();
 
   /**
    * Mapping from class literals to the jtoc slot that contains them.
    */
-  private static HashMap classLiterals = new HashMap();
+  private static VM_HashMap classLiterals = new VM_HashMap();
 
   /**
    * Conversion from JTOC slot index to JTOC offset.

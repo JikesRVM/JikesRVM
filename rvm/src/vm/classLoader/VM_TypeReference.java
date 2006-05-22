@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.*;
 import org.vmmagic.pragma.*;
-import java.util.HashMap;
+import com.ibm.JikesRVM.util.VM_HashMap;
 
 /**
  * A class to represent the reference in a class file to some 
@@ -34,7 +34,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Used to canonicalize TypeReferences
    */
-  private static HashMap dictionary = new HashMap();
+  private static VM_HashMap dictionary = new VM_HashMap();
 
   /**
    * Dictionary of all VM_TypeReference instances.

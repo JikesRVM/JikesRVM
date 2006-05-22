@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import java.util.HashMap;
+import com.ibm.JikesRVM.util.*;
 import java.util.Iterator;
 import org.vmmagic.unboxed.*;
 
@@ -20,7 +20,7 @@ public class VM_DynamicLibrary {
   /**
    * Currently loaded dynamic libraries.
    */
-  private static HashMap dynamicLibraries = new HashMap();
+  private static VM_HashMap dynamicLibraries = new VM_HashMap();
 
   /**
    * The name of the library

@@ -5,8 +5,8 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.util.*;
 import com.ibm.JikesRVM.classloader.*;
-import  java.util.*;
 
 /**
  * Class that holds class and method summary information
@@ -58,7 +58,7 @@ public class OPT_SummaryDatabase {
 
   /** Implementation */
   private static final boolean DEBUG = false;
-  private static java.util.HashMap hash = new java.util.HashMap();
+  private static VM_HashMap hash = new VM_HashMap();
 
 }
 
