@@ -42,7 +42,7 @@ package java.lang;
 
 import gnu.classpath.Configuration;
 import gnu.classpath.SystemProperties;
-//-#if RVM_WITH_CLASSPATH_CVS_HEAD
+//-#if !RVM_WITH_CLASSPATH_0_90
 import gnu.java.lang.InstrumentationImpl;
 //-#endif
 
@@ -50,7 +50,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-//-#if RVM_WITH_CLASSPATH_CVS_HEAD
+//-#if !RVM_WITH_CLASSPATH_0_90
 import java.lang.instrument.Instrumentation;
 //-#endif
 import java.net.MalformedURLException;
@@ -93,7 +93,7 @@ final class VMClassLoader
   /** packages loaded by the bootstrap class loader */
   static final HashMap definedPackages = new HashMap();
 
-  //-#if RVM_WITH_CLASSPATH_CVS_HEAD
+  //-#if !RVM_WITH_CLASSPATH_0_90
   /**
    * Converts the array string of native package names to
    * Packages. The packages are then put into the
@@ -463,14 +463,14 @@ final class VMClassLoader
     return (Class)mapForCL.get(name);
   }
 
-  //-#if RVM_WITH_CLASSPATH_CVS_HEAD
+  //-#if !RVM_WITH_CLASSPATH_0_90
   /**
    * The Instrumentation object created by the vm when agents are defined.
    */
   static final Instrumentation instrumenter = null;
   //-#endif
 
-  //-#if RVM_WITH_CLASSPATH_CVS_HEAD
+  //-#if !RVM_WITH_CLASSPATH_0_90
   /**
    * Call the transformers of the possible Instrumentation object. This
    * implementation assumes the instrumenter is a
