@@ -19,6 +19,23 @@ import java.util.*;
 class OPT_IndexPropagationSystem extends OPT_DF_System
 implements OPT_Operators {
 
+  /**
+   * The governing IR.
+   */
+  private final OPT_IR ir;
+  /**
+   * Heap Array SSA lookaside information for the IR.
+   */
+  private final OPT_SSADictionary ssa;
+  /**
+   * Results of global value numbering
+   */
+  private final OPT_GlobalValueNumberState valueNumbers;
+  /**
+   * object representing the MEET operator
+   */
+  private final static MeetOperator MEET = new MeetOperator();
+
   /** 
    * Set up the system of dataflow equations.
    * @param _ir the IR
@@ -29,23 +46,6 @@ implements OPT_Operators {
     valueNumbers = ir.HIRInfo.valueNumbers;
     setupEquations();
   }
-
-  /**
-   * The governing IR.
-   */
-  OPT_IR ir;
-  /**
-   * Heap Array SSA lookaside information for the IR.
-   */
-  OPT_SSADictionary ssa;
-  /**
-   * Results of global value numbering
-   */
-  OPT_GlobalValueNumberState valueNumbers;
-  /**
-   * object representing the MEET operator
-   */
-  MeetOperator MEET = new MeetOperator();
 
   /**
    * Create an OPT_DF_LatticeCell corresponding to an OPT_HeapVariable
@@ -76,14 +76,14 @@ implements OPT_Operators {
       OPT_DF_LatticeCell c = (OPT_DF_LatticeCell)e.next();
       if (c instanceof ObjectCell) {
         ObjectCell c1 = (ObjectCell)c;
-        OPT_HeapVariable key = c1.key;
+        OPT_HeapVariable key = c1.getKey();
         if (key.isExposedOnEntry()) {
           c1.setBOTTOM();
         }
       } 
       else {
         ArrayCell c1 = (ArrayCell)c;
-        OPT_HeapVariable key = c1.key;
+        OPT_HeapVariable key = c1.getKey();
         if (key.isExposedOnEntry()) {
           c1.setBOTTOM();
         }
@@ -454,7 +454,7 @@ implements OPT_Operators {
   /**
    * Represents a MEET function (intersection) over Cells.
    */
-  class MeetOperator extends OPT_DF_Operator {
+  static class MeetOperator extends OPT_DF_Operator {
 
     /**
      * @return "MEET"
@@ -632,7 +632,7 @@ implements OPT_Operators {
     /**
      * The value number used in the dataflow equation.
      */
-    int valueNumber;
+    private final int valueNumber;
 
     /**
      * @return a String representation
@@ -695,11 +695,11 @@ implements OPT_Operators {
    * lattice cell to indicate that element at address v is
    * available, and doesn't kill any available indices
    */
-  class UpdateUseObjectOperator extends OPT_DF_Operator {
+  static class UpdateUseObjectOperator extends OPT_DF_Operator {
     /**
      * The value number used in the dataflow equation.
      */
-    int valueNumber;
+    private final int valueNumber;
 
     /**
      * @return "UPDATE-USE"
@@ -762,7 +762,7 @@ implements OPT_Operators {
     /**
      * The value number pair used in the dataflow equation.
      */
-    OPT_ValueNumberPair v = new OPT_ValueNumberPair();
+    private final OPT_ValueNumberPair v;
 
     /**
      * @return "UPDATE-DEF"
@@ -776,8 +776,7 @@ implements OPT_Operators {
      * @param     v2 first value number in the pari
      */
     UpdateDefArrayOperator(int v1, int v2) {
-      v.v1 = v1;
-      v.v2 = v2;
+      v = new OPT_ValueNumberPair(v1, v2);
     }
 
     /**
@@ -830,11 +829,11 @@ implements OPT_Operators {
    * lattice cell to indicate that element at array v1 index v2 is
    * available, and doesn't kill any available indices
    */
-  class UpdateUseArrayOperator extends OPT_DF_Operator {
+  static class UpdateUseArrayOperator extends OPT_DF_Operator {
     /**
      * The value number pair used in the dataflow equation.
      */
-    OPT_ValueNumberPair v = new OPT_ValueNumberPair();
+    private final OPT_ValueNumberPair v;
 
     /**
      * @return "UPDATE-USE"
@@ -847,8 +846,7 @@ implements OPT_Operators {
      * @param     v2 second value number in the pair
      */
     UpdateUseArrayOperator(int v1, int v2) {
-      v.v1 = v1;
-      v.v2 = v2;
+      v = new OPT_ValueNumberPair(v1, v2);
     }
 
     /**
