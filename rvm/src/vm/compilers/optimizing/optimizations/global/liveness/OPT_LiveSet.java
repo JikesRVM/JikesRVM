@@ -273,7 +273,7 @@ public class OPT_LiveSet {
    * removes the passed reg from the set
    * @param item the registerOperand holding the register of interest
    */
-  public void remove(OPT_RegisterOperand item) {
+  void remove(OPT_RegisterOperand item) {
     if (debug) {
       System.out.println("\tOPT_LiveSet.remove (item) called with reg "
           + item);
