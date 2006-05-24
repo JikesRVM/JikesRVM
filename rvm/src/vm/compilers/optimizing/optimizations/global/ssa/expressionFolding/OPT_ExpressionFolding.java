@@ -18,9 +18,10 @@ import org.vmmagic.unboxed.Address;
  * @author Stephen Fink
  */
 class OPT_ExpressionFolding implements OPT_Operators {
-  static final boolean DEBUG = false;
+  /** Generate verbose debug output? */
+  private static final boolean DEBUG = false;
 
-  static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
+  private static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
 
   /** 
    * Perform the transformation.
