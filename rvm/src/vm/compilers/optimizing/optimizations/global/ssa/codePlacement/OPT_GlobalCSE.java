@@ -4,8 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
-
-import  java.util.*;
+import  java.util.HashMap;
+import  java.util.Enumeration;
 import  com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -14,9 +14,31 @@ import  com.ibm.JikesRVM.opt.ir.*;
  * @author Martin Trapp
  * @modified Stephen Fink
  */
-class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
+final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
-  public boolean verbose = false;
+  /** Output debug messages */
+  public boolean verbose = true;
+  /** Cache of IR being processed by this phase */
+  private OPT_IR ir;
+  /**
+   * Cache of dominator tree that should be computed prior to this
+   * phase
+   */
+  private OPT_DominatorTree dominator;
+  /**
+   */
+  private final HashMap avail;
+  /**
+   */
+  private OPT_GlobalValueNumberState valueNumbers;
+
+
+  /**
+   * Constructor
+   */
+  OPT_GlobalCSE() {
+    avail = new HashMap();
+  }
 
   /**
    * Redefine shouldPerform so that none of the subphases will occur
@@ -41,23 +63,17 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     dominator = ir.HIRInfo.dominatorTree;
     (new OPT_GlobalValueNumber()).perform(ir);
     valueNumbers = ir.HIRInfo.valueNumbers;
-    if (true || ir.IRStage == OPT_IR.LIR) {
-      if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
-      OPT_DefUse.computeDU(ir);
-      OPT_Simple.copyPropagation(ir);
-      OPT_DefUse.computeDU(ir);
-      GlobalCSE(ir.firstBasicBlockInCodeOrder());
-      if (VM.VerifyAssertions) {
-        VM._assert(avail.size() == 0, avail.toString());
-      }
-      ir.actualSSAOptions.setScalarValid(false);
+    if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
+    OPT_DefUse.computeDU(ir);
+    OPT_Simple.copyPropagation(ir);
+    OPT_DefUse.computeDU(ir);
+    GlobalCSE(ir.firstBasicBlockInCodeOrder());
+    if (VM.VerifyAssertions) {
+      VM._assert(avail.size() == 0, avail.toString());
     }
+    ir.actualSSAOptions.setScalarValid(false);
   }
   
-  private OPT_IR ir;
-  private static java.util.HashMap avail = new java.util.HashMap();
-  private OPT_GlobalValueNumberState valueNumbers;
-
   /**
    * Do a global CSE for all instructions of block b using the given
    * value numbers 
@@ -148,7 +164,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * Get the result operand of the instruction
    * @param inst
    */
-  OPT_RegisterOperand getResult (OPT_Instruction inst) {
+  private OPT_RegisterOperand getResult (OPT_Instruction inst) {
     if (ResultCarrier.conforms(inst))
       return  ResultCarrier.getResult(inst);
     if (GuardResultCarrier.conforms(inst))
@@ -161,7 +177,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * should this instruction be cse'd  ?
    * @param inst
    */
-  boolean shouldCSE (OPT_Instruction inst) {
+  private boolean shouldCSE (OPT_Instruction inst) {
     
     if ((  inst.isAllocation())
         || inst.isDynamicLinkingPoint()
@@ -290,6 +306,4 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     }
     return false;
   }
-
-  private OPT_DominatorTree dominator;
 }
