@@ -98,43 +98,51 @@ public abstract class StopTheWorld extends Plan
   /**
    * Start the collection, including preparation for any collected spaces.
    */
-  private static final int initPhase = new ComplexPhase("init", new int[] {
+  protected static final int initPhase = new ComplexPhase("init", new int[] {
       INITIATE,
       SANITY_PLACEHOLDER,
-      PREPARE,
-      PRECOPY}).getId();
+      }).getId();
 
   /**
    * Perform the initial determination of liveness from the roots.
    */
-  private static final int rootClosurePhase = new ComplexPhase("initial-closure", null, new int[] {
+  protected static final int rootClosurePhase = new ComplexPhase("initial-closure", null, new int[] {
+      PREPARE,
+      PRECOPY,
       ROOTS,
       START_CLOSURE}).getId();
 
   /**
-   *  Complete closure including referece types and finalizable objects.
+   *  Complete closure including reference types and finalizable objects.
    */
-  private static final int refTypeClosurePhase = new ComplexPhase("refType-closure", null, new int[] {
+  protected static final int refTypeClosurePhase = new ComplexPhase("refType-closure", null, new int[] {
       SOFT_REFS,    COMPLETE_CLOSURE,
       WEAK_REFS,
       FINALIZABLE,  COMPLETE_CLOSURE,
       WEAK_TRACK_REFS,
       PHANTOM_REFS}).getId();
-
-  /**
+  
+    /**
    * Ensure that all references in the system are correct.
    */
-  private static final int forwardPhase = new ComplexPhase("forward-all", null, new int[] {
+  protected static final int forwardPhase = new ComplexPhase("forward-all", null, new int[] {
       /* Finish up */
       FORWARD,
       FORWARD_REFS,
       FORWARD_FINALIZABLE}).getId();
 
   /**
+   *  Complete closure including reference types and finalizable objects.
+   */
+  protected static final int completeClosurePhase = new ComplexPhase("refType-closure", null, new int[] {
+      RELEASE,
+      }).getId();
+
+
+  /**
    * The collection scheme - this is a small tree of complex phases.
    */
-  private static final int finishPhase = new ComplexPhase("finish", new int[] {
-      RELEASE,
+  protected static final int finishPhase = new ComplexPhase("finish", new int[] {
       SANITY_PLACEHOLDER,
       COMPLETE}).getId();
 
@@ -146,6 +154,7 @@ public abstract class StopTheWorld extends Plan
       rootClosurePhase,
       refTypeClosurePhase,
       forwardPhase,
+      completeClosurePhase,
       finishPhase});
 
   /* Basic GC sanity checker */  

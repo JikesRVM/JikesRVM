@@ -9,6 +9,7 @@ import org.mmtk.plan.TraceLocal;
 
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -197,8 +198,8 @@ public class Finalizer implements Uninterruptible {
 
     while (cursor < candidateEnd) {
       Address cand = candidate.get(cursor);
-      candidate.set(cursor,
-        trace.getForwardedFinalizable(cand.toObjectReference()).toAddress());
+      ObjectReference newCandidate = trace.getForwardedFinalizable(cand.toObjectReference()); 
+      candidate.set(cursor, newCandidate.toAddress());
       cursor++;
     }
   }

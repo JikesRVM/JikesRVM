@@ -8,6 +8,7 @@ package org.mmtk.vm;
 
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.alloc.Allocator;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
@@ -99,17 +100,69 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     return to;
   }
 
-  /*
-  public static Object addressAsObject(ObjectReference object)
+  /**
+   * Copy an object to be pointer to by the to address. This is required 
+   * for delayed-copy collectors such as compacting collectors. During the 
+   * collection, MMTk reserves a region in the heap for an object as per
+   * requirements found from ObjectModel and then asks ObjectModel to 
+   * determine what the object's reference will be post-copy.
+   * 
+   * @param from the address of the object to be copied
+   * @param to The target location.
+   * @param region The start (or an address less than) the region that was reserved for this object.
+   * @return Address The address past the end of the copied object
+   */
+  public static Address copyTo(ObjectReference from, ObjectReference to, Address region)
     throws InlinePragma {
-    return ObjectReference.toObject(object);
+    Object[] tib = VM_ObjectModel.getTIB(from);
+    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    int bytes;
+    
+    boolean copy = (from != to);
+    
+    if (copy) {
+      if (type.isClassType()) {
+        VM_Class classType = type.asClass();
+        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, classType);
+        VM_ObjectModel.moveObject(from, to, bytes, false, classType);
+      } else {
+      VM_Array arrayType = type.asArray();
+        int elements = VM_Magic.getArrayLength(from);
+        bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, arrayType, elements);
+        VM_ObjectModel.moveObject(from, to, bytes, false, arrayType);
+      }
+    } else {
+      bytes = getCurrentSize(to);
+    }
+    
+    Address start = VM_ObjectModel.objectStartRef(to);
+    Allocator.fillAlignmentGap(region, start);
+    
+    return start.add(bytes);
   }
 
-  public static Address objectAsRef(Object object) throws InlinePragma {
-    return ObjectReference.fromObject(object);
+  /**
+   * Return the reference that an object will be refered to after it is copied
+   * to the specified region. Used in delayed-copy collectors such as compacting
+   * collectors.
+   *
+   * @param from The object to be copied.
+   * @param to The region to be copied to.
+   * @return The resulting reference.
+   */
+  public static ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
+    return ObjectReference.fromObject(VM_ObjectModel.getReferenceWhenCopiedTo(from, to));
   }
-  */
-
+  
+  /**
+   * Gets a pointer to the address just past the end of the object.
+   * 
+   * @param object The objecty.
+   */
+  public static Address getObjectEndAddress(ObjectReference object) {
+    return VM_ObjectModel.getObjectEndAddress(object);
+  }
+  
   /**
    * Return the size required to copy an object
    *
@@ -119,7 +172,39 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
   public static int getSizeWhenCopied(ObjectReference object) {
     return VM_ObjectModel.bytesRequiredWhenCopied(object);
   }
-    
+  
+  /**
+   * Return the alignment requirement for a copy of this object
+   *
+   * @param object The object whose size is to be queried
+   * @return The alignment required for a copy of <code>obj</code>
+   */
+  public static int getAlignWhenCopied(ObjectReference object) {
+    Object[] tib = VM_ObjectModel.getTIB(object);
+    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    if (type.isArrayType()) {
+      return VM_ObjectModel.getAlignment(type.asArray(), object);
+    } else {
+      return VM_ObjectModel.getAlignment(type.asClass(), object);
+    }
+  }
+  
+  /**
+   * Return the alignment offset requirements for a copy of this object
+   *
+   * @param object The object whose size is to be queried
+   * @return The alignment offset required for a copy of <code>obj</code>
+   */
+  public static int getAlignOffsetWhenCopied(ObjectReference object) {
+    Object[] tib = VM_ObjectModel.getTIB(object);
+    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    if (type.isArrayType()) {
+      return VM_ObjectModel.getOffsetForAlignment(type.asArray(), object);
+    } else {
+      return VM_ObjectModel.getOffsetForAlignment(type.asClass(), object);
+    }
+  }
+  
   /**
    * Return the size used by an object
    *
@@ -314,3 +399,4 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     return (MMType) vmType.getMMType();
   }
 }
+

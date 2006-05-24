@@ -76,6 +76,44 @@ public class ReferenceProcessor implements Uninterruptible {
       Log.writeln("Ending ReferenceProcessor.traverse()");
     }
   }
+  
+  /**
+   * Forward a reference object.
+   * 
+   * @param reference The reference to forward
+   * @return The forwarded reference
+   */
+  public static Address forwardReference(Address reference) {
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(!reference.isZero());
+      Assert._assert(ReferenceGlue.REFERENCES_ARE_OBJECTS);
+    }
+    
+    TraceLocal trace = ActivePlan.local().getCurrentTrace();
+    
+    ObjectReference referent = ReferenceGlue.getReferent(reference);
+    
+    if (TRACE) {
+      Log.write("+++ old reference: "); Log.writeln(reference);
+      Log.write("    old referent:  "); Log.writeln(referent);
+    }
+    
+    referent = trace.getForwardedReferent(referent);
+    ReferenceGlue.setReferent(reference, referent);
+
+
+    
+    if (ReferenceGlue.REFERENCES_ARE_OBJECTS) {
+      reference = trace.getForwardedReference(reference.toObjectReference()).toAddress();
+    }
+
+    if (TRACE) {
+      Log.write("    new reference: "); Log.writeln(reference);
+      Log.write("    new referent:  "); Log.writeln(referent);
+    }
+
+    return reference;
+  }
 
   /**
    * Process a reference with the specified semantics.
@@ -104,7 +142,7 @@ public class ReferenceProcessor implements Uninterruptible {
     } else {
       /* Otherwise... */
       if (ReferenceGlue.REFERENCES_ARE_OBJECTS)
-        newReference = trace.getForwardedReferent(reference.toObjectReference()).toAddress();
+        newReference = trace.getForwardedReference(reference.toObjectReference()).toAddress();
       else
         newReference = reference;
       ObjectReference oldReferent = ReferenceGlue.getReferent(reference);
@@ -250,7 +288,12 @@ public class ReferenceProcessor implements Uninterruptible {
    * Forward references.
    */
   public static void forwardReferences() {
-    //  TODO: ReferenceGlue.forwardReferences(trace);
-    Assert._assert(false);
+    if (TRACE) {
+      Log.writeln("Starting ReferenceProcessor.forwardReferences()");
+    }
+    ReferenceGlue.forwardReferences();
+    if (TRACE) {
+      Log.writeln("Ending ReferenceProcessor.forwardReferences()");
+    }
   }
 }

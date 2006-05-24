@@ -1177,7 +1177,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     // record offsets of those instance fields that contain references
     //
-    referenceOffsets = new int[referenceFieldCount];
+    referenceOffsets = MM_Interface.newReferenceOffsetArray(referenceFieldCount);
     for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
       VM_Field field = instanceFields[i];
       if (field.getType().isReferenceType())

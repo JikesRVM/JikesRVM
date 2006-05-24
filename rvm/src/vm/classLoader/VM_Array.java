@@ -45,6 +45,11 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   private final VM_Type elementType;
   
   /**
+   * The log of the element size for this array type.
+   */
+  private final int logElementSize;
+  
+  /**
    * The VM_Type object for the innermost element of this array type.
    */
   private final VM_Type innermostElementType;
@@ -101,7 +106,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return log base 2 of array element size
    */
   public final int getLogElementSize() throws UninterruptiblePragma {
-    if (this == VM_Type.CodeArrayType) {
+    return logElementSize;
+  }
+	  
+  /**
+   * Calculate the size, in bytes, of an array element, log base 2.
+   * @return log base 2 of array element size
+   */
+  private final int computeLogElementSize() {
+    if (elementType.getTypeRef().equals(VM_TypeReference.Code)) {
       return LG_INSTRUCTION_WIDTH;
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
@@ -185,6 +198,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     super(typeRef);
     depth = 1;
     this.elementType = elementType;
+    this.logElementSize = computeLogElementSize();
     if (elementType.isArrayType()) {
       innermostElementType = elementType.asArray().getInnermostElementType();
     } else {

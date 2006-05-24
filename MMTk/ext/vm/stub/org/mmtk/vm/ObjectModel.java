@@ -36,7 +36,37 @@ public class ObjectModel {
   public static ObjectReference copy(ObjectReference from, int allocator) {
     return null;
   }
+  
+  /**
+   * Copy an object to be pointer to by the to address. This is required 
+   * for delayed-copy collectors such as compacting collectors. During the 
+   * collection, MMTk reserves a region in the heap for an object as per
+   * requirements found from ObjectModel and then asks ObjectModel to 
+   * determine what the object's reference will be post-copy.
+   * 
+   * @param from the address of the object to be copied
+   * @param to The target location.
+   * @param region The start of the region that was reserved for this object
+   * @return Address The address past the end of the copied object
+   */
+  public static Address copyTo(ObjectReference from, ObjectReference to, Address region) {
+    return null;
+  }
 
+  /**
+   * Return the reference that an object will be refered to after it is copied
+   * to the specified region. Used in delayed-copy collectors such as compacting
+   * collectors.
+   *
+   * @param from The object to be copied.
+   * @param to The region to be copied to.
+   * @return The resulting reference.
+   */
+  public static ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
+    return null;
+  }
+  
+  
   /**
    * Return the size required to copy an object
    *
@@ -46,6 +76,27 @@ public class ObjectModel {
   public static int getSizeWhenCopied(ObjectReference object) {
     return 0;
   }
+  
+  /**
+   * Return the alignment requirement for a copy of this object
+   *
+   * @param object The object whose size is to be queried
+   * @return The alignment required for a copy of <code>obj</code>
+   */
+  public static int getAlignWhenCopied(ObjectReference object) {
+    return 0;
+  }
+  
+  /**
+   * Return the alignment offset requirements for a copy of this object
+   *
+   * @param object The object whose size is to be queried
+   * @return The alignment offset required for a copy of <code>obj</code>
+   */
+  public static int getAlignOffsetWhenCopied(ObjectReference object) {
+    return 0;
+  }
+  
     
   /**
    * Return the size used by an object
@@ -70,6 +121,16 @@ public class ObjectModel {
   public static ObjectReference getObjectFromStartAddress(Address start) {
     return null;
   }
+  
+  /**
+   * Gets a pointer to the address just past the end of the object.
+   * 
+   * @param object The objecty.
+   */
+  public static Address getObjectEndAddress(ObjectReference object) {
+    return null;
+  }
+  
   
   /**
    * Get the type descriptor for an object.
@@ -212,5 +273,9 @@ public class ObjectModel {
    */
   public static MMType getObjectType(ObjectReference object) {
     return null;
+  }
+  
+  public static void dumpRef(ObjectReference object) {
+    
   }
 }

@@ -507,8 +507,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
           return Plan.ALLOC_GCSPY;
         }
       }
-      if (isPrefix("Lorg/mmtk/", clsBA) 
-          || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
+      if (isPrefix("Lorg/mmtk/", clsBA) ||
+          isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
     }
@@ -536,6 +536,10 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
         isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
+      allocator = Plan.ALLOC_IMMORTAL;
+    if (ActivePlan.constraints().needsImmortalTypeInfo() && 
+        (isPrefix("Lcom/ibm/JikesRVM/classloader/VM_Class", typeBA) ||
+         isPrefix("Lcom/ibm/JikesRVM/classloader/VM_Array", typeBA)))
       allocator = Plan.ALLOC_IMMORTAL;
     return allocator;
   }
@@ -766,6 +770,31 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                     (immortal ? Plan.ALLOC_IMMORTAL_STACK : Plan.ALLOC_STACK),
                                     align, offset);
     }
+  }
+
+
+  /**
+   * Allocate a reference offset array
+   * 
+   * @param size The size of the array
+   */
+  public static int[] newReferenceOffsetArray(int size)
+    throws InlinePragma, InterruptiblePragma {
+    if (!VM.runningVM) {
+      return new int[size];
+    }
+    
+    VM_Array arrayType = VM_Array.IntArray;
+    int headerSize = VM_ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = VM_ObjectModel.getAlignment(arrayType);
+    int offset = VM_ObjectModel.getOffsetForAlignment(arrayType);
+    int width  = arrayType.getLogElementSize();
+    Object [] arrayTib = arrayType.getTypeInformationBlock();
+
+    return (int[]) allocateArray(size, width, headerSize, arrayTib,
+                                 (ActivePlan.constraints().needsImmortalTypeInfo() ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT),
+                                 align, offset);
+					      
   }
 
   /**

@@ -5,9 +5,9 @@
 
 package org.mmtk.utility.alloc;
 
+import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
 
@@ -62,16 +62,16 @@ public class BumpPointer extends Allocator
    */	
   
   // Chunk size defines slow path periodicity.
-  private static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
-  private static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).sub(Word.one());	
+  protected static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
+  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).sub(Word.one());	
 
   // Offsets into header
-  private static final Offset REGION_LIMIT_OFFSET = Offset.zero();
-  private static final Offset NEXT_REGION_OFFSET = REGION_LIMIT_OFFSET.add(BYTES_IN_ADDRESS);
-  private static final Offset DATA_END_OFFSET = NEXT_REGION_OFFSET.add(BYTES_IN_ADDRESS);
+  protected static final Offset REGION_LIMIT_OFFSET = Offset.zero();
+  protected static final Offset NEXT_REGION_OFFSET = REGION_LIMIT_OFFSET.add(BYTES_IN_ADDRESS);
+  protected static final Offset DATA_END_OFFSET = NEXT_REGION_OFFSET.add(BYTES_IN_ADDRESS);
 
   // Data must start particle-aligned.
-  private static final Offset DATA_START_OFFSET   = alignAllocation(
+  protected static final Offset DATA_START_OFFSET   = alignAllocationNoFill(
       Address.zero().add(DATA_END_OFFSET.add(BYTES_IN_ADDRESS)), 
       MIN_ALIGNMENT, 0).toWord().toOffset();
  
@@ -79,12 +79,12 @@ public class BumpPointer extends Allocator
    *
    *	 Instance variables
    */	
-  private Address cursor;        // insertion point
-  private Address limit;         // current sentinal for bump pointer
-  private Space space;           // space this bump pointer is associated with
-  private Address initialRegion; // first contigious region
-  private boolean allowScanning; // linear scanning is permitted if true
-  private Address region;        // current contigious region
+  protected Address cursor;        // insertion point
+  protected Address limit;         // current sentinal for bump pointer
+  protected Space space;           // space this bump pointer is associated with
+  protected Address initialRegion; // first contigious region
+  protected final boolean allowScanning; // linear scanning is permitted if true
+  protected Address region;        // current contigious region
 
 
   /**
@@ -158,6 +158,23 @@ public class BumpPointer extends Allocator
    */
   final protected Address allocSlowOnce(int bytes, int align, int offset, 
                                         boolean inGC) {
+    /* Check if we already have a chunk to use */
+    if (allowScanning && !region.isZero()) {
+      Address nextRegion = region.loadAddress(NEXT_REGION_OFFSET);
+      if (!nextRegion.isZero()) {
+        region.add(DATA_END_OFFSET).store(cursor);
+        region = nextRegion;
+        cursor = nextRegion.add(DATA_START_OFFSET);
+        limit = nextRegion.loadAddress(REGION_LIMIT_OFFSET);
+        nextRegion.store(Address.zero(), DATA_END_OFFSET);
+        Memory.zero(cursor, limit.diff(cursor).toWord().toExtent().add(BYTES_IN_ADDRESS));
+        
+        ((MarkCompactSpace)space).reusePages(Conversions.bytesToPages(limit.diff(region).add(BYTES_IN_ADDRESS)));
+        
+        return alloc(bytes, align, offset);
+      }
+    }
+    
     /* Aquire space, chunk aligned, that can accomodate the request */
     Extent chunkSize = Word.fromIntZeroExtend(bytes).add(CHUNK_MASK)
                        .and(CHUNK_MASK.not()).toExtent();
@@ -264,5 +281,28 @@ public class BumpPointer extends Allocator
       Log.write(" region = "); Log.write(region);
     }
     Log.write(" limit = "); Log.writeln(limit);
+  }
+  
+  public void showRegions() {
+    Address current = initialRegion;
+    
+    Log.writeln("REGION      LIMIT      DATAEND");
+    Log.writeln("=========== ========== ==========");
+    Log.write(current);
+    
+    while(!current.isZero()) {
+      Log.write(" ");
+      Log.write(current.loadAddress(REGION_LIMIT_OFFSET));
+      Log.write(" ");
+      Log.writeln(current.loadAddress(DATA_END_OFFSET));
+      current = current.loadAddress(NEXT_REGION_OFFSET);
+      Log.write(current);
+    }
+    
+    Log.writeln();
+    Log.write("REGION: ");Log.write(region);
+    Log.write(" CURSOR: ");Log.write(cursor);
+    Log.write(" LIMIT: ");Log.writeln(limit);
+    
   }
 }

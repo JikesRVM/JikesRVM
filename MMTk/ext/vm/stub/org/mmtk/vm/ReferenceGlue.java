@@ -36,6 +36,12 @@ public class ReferenceGlue {
   public static void scanReferences(int semantics, boolean nursery) {}
 
   /**
+   * Scan through all references and forward. Only called when references
+   * are objects.
+   */
+  public static void forwardReferences() {}
+
+  /**
    * Put this Reference object on its ReferenceQueue (if it has one)
    * when its referent is no longer sufficiently reachable. The
    * definition of "reachable" is defined by the semantics of the

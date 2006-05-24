@@ -108,10 +108,11 @@ public final class SanityChecker implements Uninterruptible, Constants {
       trace.release();
       sanityTable.releaseTable();
    
-      Log.writeln("roots\tobjects\tdangling");
+      Log.writeln("roots\tobjects\trefs\tnull");
       Log.write(rootReferenceCount);Log.write("\t");
       Log.write(liveObjectCount);Log.write("\t");
-      Log.writeln(danglingReferenceCount);
+      Log.write(referenceCount);Log.write("\t");
+      Log.writeln(nullReferenceCount);
       
       Log.write("========================================");
       Log.writeln("========================================");

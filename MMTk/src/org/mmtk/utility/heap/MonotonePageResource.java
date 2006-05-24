@@ -120,6 +120,31 @@ public final class MonotonePageResource extends PageResource
     releasePages();
     unlock();
   }
+  
+  /**
+   * Notify that several pages are no longer in use.
+   *
+   * @param pages The number of pages
+   */
+  public final void unusePages(int pages) {
+    lock();
+    reserved -= pages;
+    committed -= pages;
+    unlock();
+  }
+
+  /**
+   * Notify that previously unused pages are in use again.
+   * 
+   * @param pages The number of pages
+   */
+  public final void reusePages(int pages) {
+    lock();
+    reserved += pages;
+    committed += pages;
+    unlock();
+  }
+
 
   /**
    * Release all pages associated with this page resource, optionally

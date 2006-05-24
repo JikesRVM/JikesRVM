@@ -223,6 +223,34 @@ public final class VM_ObjectModel implements Uninterruptible,
   }
 
   /**
+   * Get the pointer just past an object 
+   */
+  public static Address getObjectEndAddress(Object obj) {
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+    if (type.isClassType()) {
+      return getObjectEndAddress(obj, type.asClass());
+    } else {
+      int numElements = VM_Magic.getArrayLength(obj);
+      return getObjectEndAddress(obj, type.asArray(), numElements);
+    }
+  }
+  
+  /**
+   * Get the pointer just past an object 
+   */
+  public static Address getObjectEndAddress(Object object, VM_Class type) {
+    return VM_JavaHeader.getObjectEndAddress(object, type);
+  }
+  
+  /**
+   * Get the pointer just past an object 
+   */
+  public static Address getObjectEndAddress(Object object, VM_Array type, int elements) {
+    return VM_JavaHeader.getObjectEndAddress(object, type, elements);
+  }
+
+  /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
@@ -273,6 +301,19 @@ public final class VM_ObjectModel implements Uninterruptible,
     return VM_JavaHeader.getNextObject(obj, type, numElements);
   }
  
+
+  /**       
+   * how many bytes are used by the object?
+   */       
+  public static Object getReferenceWhenCopiedTo(Object obj, Address to) {
+    Object[] tib = getTIB(obj);
+    VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
+    if (type.isClassType()) {
+      return getReferenceWhenCopiedTo(obj, to, type.asClass());
+    } else {
+      return getReferenceWhenCopiedTo(obj, to, type.asArray());
+    }
+  }
 
   /**       
    * how many bytes are used by the object?
@@ -336,6 +377,36 @@ public final class VM_ObjectModel implements Uninterruptible,
   public static Address objectStartRef(ObjectReference obj) 
     throws InlinePragma {
     return VM_JavaHeader.objectStartRef(obj);
+  }
+
+  /**
+   * Get the reference of an object after copying to a specified region.
+   */
+  public static Object getReferenceWhenCopiedTo(Object obj, Address region, VM_Class type) {
+    return VM_JavaHeader.getReferenceWhenCopiedTo(obj, region, type);
+  }
+
+  /**
+   * Get the reference of an object after copying to a specified region.
+   */
+  public static Object getReferenceWhenCopiedTo(Object obj, Address region, VM_Array type) {
+    return VM_JavaHeader.getReferenceWhenCopiedTo(obj, region, type);
+  }
+
+  /**
+   * Copy a scalar object to the given raw storage address
+   */
+  public static Object moveObject(Object fromObj, Object toObj,
+                                  int numBytes, boolean noGCHeader, VM_Class type) {
+    return VM_JavaHeader.moveObject(fromObj, toObj, numBytes, noGCHeader, type);
+  }
+
+  /**
+   * Copy an array object to the given raw storage address
+   */
+  public static Object moveObject(Object fromObj, Object toObj,
+                                  int numBytes, boolean noGCHeader, VM_Array type) {
+    return VM_JavaHeader.moveObject(fromObj, toObj, numBytes, noGCHeader, type);
   }
 
   /**
@@ -682,6 +753,17 @@ public final class VM_ObjectModel implements Uninterruptible,
     return ref;
   }
 
+  /**
+   * Fill an alignment gap with the alignment value 
+   */
+  public static void fillAlignmentGap(BootImageInterface bootImage,
+                                      Address address, Extent size) throws InterruptiblePragma {
+    while(size.GT(Extent.zero())) {
+      bootImage.setFullWord(address, VM_JavaHeader.ALIGNMENT_VALUE);
+      address = address.add(BYTES_IN_INT);
+      size = size.sub(BYTES_IN_INT);
+    }
+  } 
 
   /**
    * Initialize raw storage with low memory word ptr of size bytes
@@ -752,18 +834,6 @@ public final class VM_ObjectModel implements Uninterruptible,
     return ref;
   }
 
-  /**
-   * Fill an alignment gap with the alignment value 
-   */
-  public static void fillAlignmentGap(BootImageInterface bootImage,
-                                      Address address, Extent size) throws InterruptiblePragma {
-    while(size.GT(Extent.zero())) {
-      bootImage.setFullWord(address, VM_JavaHeader.ALIGNMENT_VALUE);
-      address = address.add(BYTES_IN_INT);
-      size = size.sub(BYTES_IN_INT);
-    }
-  } 
-  
   /**
    * For low level debugging of GC subsystem. 
    * Dump the header word(s) of the given object reference.
