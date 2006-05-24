@@ -15,25 +15,25 @@ final class OPT_GVCongruenceClass {
   /**
    * A label representing a property of this congruence class.
    */
-  Object label;
+  private final Object label;
   /**
    * A value number representing this congruence class.
    */
-  int valueNumber;
+  private final int valueNumber;
   /**
    * How many vertices in this congruence class represent parameters?
    */
-  int nParameter;            
+  private int nParameter;            
   /**
    * The set of vertices in this congruence class
    */
-  HashSet vertices = new HashSet(1);
+  private final HashSet vertices;
 
   /**
    * A representative of the congruence class
    *   - saves having to find one
    */
-  OPT_ValueGraphVertex  representativeV;
+  private OPT_ValueGraphVertex  representativeV;
   
   /**
    * Create a congruence class with a given representative value number
@@ -44,6 +44,7 @@ final class OPT_GVCongruenceClass {
   OPT_GVCongruenceClass (int valueNumber, Object label) {
     this.valueNumber = valueNumber;
     this.label = label;
+    vertices = new HashSet(1);
   }
 
   public Object getLabel () {

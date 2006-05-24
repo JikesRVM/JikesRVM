@@ -10,17 +10,18 @@ package com.ibm.JikesRVM.opt;
  * @author Stephen Fink
  */
 class OPT_ValueNumberPair {
-  int v1;       // the value number of an array pointer
-  int v2;       // the value number of an array index
-
-  OPT_ValueNumberPair() {
-  }
-
+  /** the value number of an array pointer */
+  final int v1;
+  /** the value number of an array index */
+  final int v2;
+  
+  /** Construct a pair from the given arguments */
   OPT_ValueNumberPair(int v1, int v2) {
     this.v1 = v1;
     this.v2 = v2;
   }
 
+  /** Copy a pair */
   OPT_ValueNumberPair(OPT_ValueNumberPair p) {
     this.v1 = p.v1;
     this.v2 = p.v2;

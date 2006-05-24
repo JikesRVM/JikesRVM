@@ -9,8 +9,8 @@ package com.ibm.JikesRVM.opt;
  *
  * @author Dave Grove
  */
-class OPT_ValueGraphParamLabel {
-  int paramNum;
+final class OPT_ValueGraphParamLabel {
+  private final int paramNum;
   
   OPT_ValueGraphParamLabel(int pn) {
     paramNum = pn;

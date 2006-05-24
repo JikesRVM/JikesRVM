@@ -15,12 +15,12 @@ import  java.util.*;
  *
  * @author Stephen Fink
  */
-class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
-  Object name;        // the name of the variable defined by this node
-  Object label;       // the name of the operator that does the definition
-  int valueNumber;    // integer value number
-  OPT_ValueGraphVertex[] targets;   // operand vertices, in order
-  int arity;                        // number of operands needed
+final class OPT_ValueGraphVertex extends OPT_SpaceEffGraphNode {
+  private final Object name;  // the name of the variable defined by this node
+  private Object label;       // the name of the operator that does the definition
+  private int valueNumber;    // integer value number
+  private OPT_ValueGraphVertex[] targets;   // operand vertices, in order
+  private int arity;                        // number of operands needed
 
   OPT_ValueGraphVertex (Object name) {
     this.name = name;

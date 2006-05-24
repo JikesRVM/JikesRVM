@@ -15,7 +15,8 @@ import java.util.*;
  * @author Stephen Fink
  */
 class OPT_GlobalValueNumber extends OPT_CompilerPhase {
-  static final boolean DEBUG = false;
+  /** Print verbose debugging output? */
+  private static final boolean DEBUG = false;
 
   /**
    * Return the name of this phase.
@@ -49,7 +50,7 @@ class OPT_GlobalValueNumber extends OPT_CompilerPhase {
     //
     // compute global value numbers
     OPT_GlobalValueNumberState gvn = new OPT_GlobalValueNumberState(ir);
-    gvn.globalValueNumber();
+
     if (DEBUG)
       gvn.printValueNumbers();
     ir.HIRInfo.valueNumbers = gvn;
