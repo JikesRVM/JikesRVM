@@ -265,7 +265,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return true iff the two sets are different
      */
     public static boolean setsDiffer(int[] set1, int[] set2) {
-      return !Arrays.equals(set1, set2);
+      if ((set1 != null) && (set2 != null)) {
+        Arrays.sort(set1);      
+        Arrays.sort(set2);
+        return !Arrays.equals(set1, set2);
+      }
+      else {
+        return set1 == set2;
+      }
     }
   }
 
@@ -475,7 +482,14 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      */
     public static boolean setsDiffer(OPT_ValueNumberPair[] set1, 
                                       OPT_ValueNumberPair[] set2) {
-      return !Arrays.equals(set1, set2);
+      if ((set1 != null) && (set2 != null)) {
+        Arrays.sort(set1);      
+        Arrays.sort(set2);
+        return !Arrays.equals(set1, set2);
+      }
+      else {
+        return set1 == set2;
+      }
     }
   }
 }

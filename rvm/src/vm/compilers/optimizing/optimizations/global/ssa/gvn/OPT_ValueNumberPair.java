@@ -9,7 +9,7 @@ package com.ibm.JikesRVM.opt;
  *
  * @author Stephen Fink
  */
-class OPT_ValueNumberPair {
+class OPT_ValueNumberPair implements Comparable {
   /** the value number of an array pointer */
   final int v1;
   /** the value number of an array index */
@@ -43,13 +43,20 @@ class OPT_ValueNumberPair {
   }
 
   // total order over OPT_ValueNumberPairs
-  public boolean greaterThan(OPT_ValueNumberPair p) {
+  public int compareTo(Object o) {
+    OPT_ValueNumberPair p = (OPT_ValueNumberPair)o;
     if (v1 > p.v1)
-      return  true;
-    if (v1 < p.v1)
-      return  false;
+      return  1;
+    else if (v1 < p.v1)
+      return  -1;
     // v1 == p.v1
-    return  (v2 > p.v2);
+    else if(v2 > p.v2)
+      return 1;
+    else if(v2 < p.v2)
+      return -1;
+    // v2 == p.v2
+    else
+      return 0;
   }
 }
 
