@@ -56,7 +56,7 @@ final class OPT_FieldDatabase extends VM_HashMap {
     boolean allMethodsAreAnalyzed() {
       
       if (cachedAllAnalyzed) return true;
-      for (java.util.Iterator i = summaries.values().iterator(); i.hasNext(); ) {
+      for (java.util.Iterator i = summaries.valueIterator(); i.hasNext(); ) {
         FieldWriterInfo info = (FieldWriterInfo)i.next();
         if (!info.isAnalyzed()) return false;
       }
@@ -69,7 +69,7 @@ final class OPT_FieldDatabase extends VM_HashMap {
     VM_TypeReference getConcreteType() {
       if (cachedConcreteType != null) return cachedConcreteType;
       VM_TypeReference result = null;
-      for (java.util.Iterator i = summaries.values().iterator(); i.hasNext(); ) {
+      for (java.util.Iterator i = summaries.valueIterator(); i.hasNext(); ) {
         FieldWriterInfo info = (FieldWriterInfo)i.next();
         if (!info.isAnalyzed()) return null;
         if (info.isBottom()) return null;

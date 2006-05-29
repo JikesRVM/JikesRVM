@@ -132,7 +132,7 @@ public class VM_DynamicLibrary {
    * @return the address of the symbol of Address.zero() if it cannot be resolved
    */
   public static synchronized Address resolveSymbol(String symbol) {
-    for (Iterator i = dynamicLibraries.values().iterator(); i.hasNext();) {
+    for (Iterator i = dynamicLibraries.valueIterator(); i.hasNext();) {
       VM_DynamicLibrary lib = (VM_DynamicLibrary)i.next();
       Address symbolAddress = lib.getSymbol(symbol);
       if (!symbolAddress.isZero()) {

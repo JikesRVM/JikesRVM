@@ -333,7 +333,7 @@ public final class VM_ControllerMemory implements VM_Constants {
     int totalRecompsAtLevel2 = 0;
 
     // traverse table and give a summary of all actions that have occurred
-    for (Iterator it = table.keySet().iterator(); it.hasNext();) {
+    for (Iterator it = table.keyIterator(); it.hasNext();) {
       VM_Method meth = (VM_Method) it.next();
       LinkedList planList = (LinkedList) table.get(meth);
 

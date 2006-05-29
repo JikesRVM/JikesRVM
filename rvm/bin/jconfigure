@@ -3786,11 +3786,14 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/VM_CompiledMethod;
 	[Lcom/ibm/JikesRVM/VM_DynamicLibrary;
 
+	[Lcom/ibm/JikesRVM/util/VM_HashMap\$Bucket;
+
 	[Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature; # For fast interface method invoker
 
 	[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix; # For command-line argument processing
 	EOF
     if (( RVM_WITH_OPT_COMPILER )); then
+
 	cat <<- EOF
 		[[C
 		[Ljava/util/HashSet;

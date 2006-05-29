@@ -4,29 +4,45 @@
 //$Id$
 package com.ibm.JikesRVM.util;
 
+import java.util.Iterator;
 
 /**
- * Stripped down implementation of HashMap data structure for use
+ * Stripped down implementation of HashSet for use
  * by core parts of the JikesRVM runtime.
  *
- * While developing; have a bogus impl by simply subclassing java.util.HashSet
- * This won't actually fix anything, but enables me to see how widely used this
- * data structure is going to need to be and what API I have to support on it.
- *
- * TODO: This should be a final class; rewrite subclasses to let us do that.
- * 
+ * TODO: Make this more space efficient by implementing it directly
+ *       instead of creating a silly HashMap to back it.
  * @author Dave Grove
  */
-public class VM_HashSet extends java.util.HashSet {
+public final class VM_HashSet {
 
+  private final VM_HashMap map;
+  
   public VM_HashSet() {
-    super();
+    map = new VM_HashMap();
   }
 
   public VM_HashSet(int size) {
-    super(size);
+    map = new VM_HashMap(size);
   }
-  
+
+  public void add(Object o) {
+    map.put(o, null);
+  }
+
+  public void remove(Object o) {
+    map.remove(o);
+  }
+
+  public Iterator iterator() {
+    return map.keyIterator();
+  }
+
+  public void addAll(VM_HashSet c) {
+    for (Iterator it = c.iterator(); it.hasNext(); ) {
+      add(it.next());
+    }
+  }
 }
 
 
