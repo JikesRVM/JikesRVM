@@ -77,6 +77,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(knownAlignment >= MIN_ALIGNMENT);
       Assert._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
+      Assert._assert(!(fillAlignmentGap && region.isZero()));
       Assert._assert(alignment <= MAX_ALIGNMENT);
       Assert._assert(offset >= 0);
       Assert._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
@@ -122,9 +123,16 @@ public abstract class Allocator implements Constants, Uninterruptible {
    */
   final public static void fillAlignmentGap(Address start, Address end)
     throws InlinePragma {
-    while (start.LT(end)) {
-      start.store(ALIGNMENT_VALUE);
-      start = start.add(BYTES_IN_INT);
+    if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
+      // At most a single hole
+      if (!end.diff(start).isZero()) {
+        start.store(ALIGNMENT_VALUE);
+      }
+    } else {
+      while (start.LT(end)) {
+        start.store(ALIGNMENT_VALUE);
+	start = start.add(BYTES_IN_INT);
+      }
     }
   }
 

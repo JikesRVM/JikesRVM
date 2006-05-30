@@ -134,10 +134,11 @@ public class BumpPointer extends Allocator
    */
   final public Address alloc(int bytes, int align, int offset) 
     throws InlinePragma {
-    Address oldCursor = alignAllocation(cursor, align, offset);
+    Address oldCursor = alignAllocationNoFill(cursor, align, offset);
     Address newCursor = oldCursor.add(bytes);
       if (newCursor.GT(limit))
       return allocSlow(bytes, align, offset);
+    fillAlignmentGap(cursor, oldCursor);
     cursor = newCursor;
     return oldCursor;
   }
@@ -281,28 +282,5 @@ public class BumpPointer extends Allocator
       Log.write(" region = "); Log.write(region);
     }
     Log.write(" limit = "); Log.writeln(limit);
-  }
-  
-  public void showRegions() {
-    Address current = initialRegion;
-    
-    Log.writeln("REGION      LIMIT      DATAEND");
-    Log.writeln("=========== ========== ==========");
-    Log.write(current);
-    
-    while(!current.isZero()) {
-      Log.write(" ");
-      Log.write(current.loadAddress(REGION_LIMIT_OFFSET));
-      Log.write(" ");
-      Log.writeln(current.loadAddress(DATA_END_OFFSET));
-      current = current.loadAddress(NEXT_REGION_OFFSET);
-      Log.write(current);
-    }
-    
-    Log.writeln();
-    Log.write("REGION: ");Log.write(region);
-    Log.write(" CURSOR: ");Log.write(cursor);
-    Log.write(" LIMIT: ");Log.writeln(limit);
-    
   }
 }
