@@ -1481,14 +1481,19 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
             // optimization: 
             // if the field is final and either initialized or
-            // in the bootimage, then get the value at compile time.
+            // we're writing the bootimage and in an RVM bootimage class,
+            // then get the value at compile time. We restrict to RVM bootimage classes
+            // to avoid problems with different impls of java.* classes between bootimage
+            // writing and runtime.
             // TODO: applying this optimization to Floats or Doubles 
             //       causes problems.  Figure out why and fix it!
             if (!fieldType.isDoubleType() && !fieldType.isFloatType()) {
               if (field.isFinal()) {
                 VM_Class declaringClass = field.getDeclaringClass();
                 if (declaringClass.isInitialized() ||
-                    (VM.writingBootImage && declaringClass.isInBootImage())) {
+                    (VM.writingBootImage &&
+                     declaringClass.isInBootImage() &&
+                     declaringClass.getDescriptor().isRVMDescriptor())) {
                   try {
                     if (fieldType.isPrimitiveType()) {
                       OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
