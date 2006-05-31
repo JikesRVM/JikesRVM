@@ -3638,8 +3638,6 @@ EOF
 	cat <<- EOF
 java/util/Enumeration
 java/util/Dictionary
-java/util/TreeMap
-java/util/TreeSet
 java/util/Stack
 
 com/ibm/JikesRVM/opt/ir/OPT_CallSiteTreeNode
