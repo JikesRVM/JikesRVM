@@ -13,7 +13,6 @@ import java.util.StringTokenizer;
 import java.io.*;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
-import java.util.Hashtable;
 import java.security.ProtectionDomain;
 
 /**
