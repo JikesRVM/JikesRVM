@@ -7,6 +7,7 @@ ExtremeAssertionsOptAdaptiveCopyMS -test-list nightly-tests-short
 BaseBaseCopyMS                     -test-list nightly-tests
 BaseBaseCopyMSUP                   -test-list nightly-tests-short
 BaseBaseMarkSweep                  -test-list nightly-tests
+BaseBaseMarkCompact                -test-list nightly-tests
 BaseBaseSemiSpace                  -test-list nightly-tests
 BaseBaseGenCopy                    -test-list nightly-tests
 BaseBaseGenMS                      -test-list nightly-tests
@@ -15,6 +16,7 @@ BaseBaseRefCount                   -test-list nightly-tests-short
 BaseBaseNoGC                       -test-list mmtk-nogc-sanity-tests
 FullAdaptiveCopyMS                 -test-list nightly-tests
 FullAdaptiveMarkSweep              -test-list nightly-tests
+FullAdaptiveMarkCompact            -test-list nightly-tests
 FullAdaptiveSemiSpace              -test-list nightly-tests
 FullAdaptiveGenCopy                -test-list nightly-tests
 FullAdaptiveGenRC                  -test-list nightly-tests-short
