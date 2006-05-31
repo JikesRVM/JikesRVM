@@ -44,6 +44,10 @@ public class VM_HashMap {
     }
   }
 
+  public final int size() {
+    return numElems;
+  }
+  
   public final Object get(Object key) {
     if (STAGING) {
       return map.get(key);
@@ -147,7 +151,11 @@ public class VM_HashMap {
   }
 
   private final int bucketIndex(Object key, int divisor) {
-    return (key.hashCode() & 0x7fffffff) % divisor;
+    if (key == null) {
+      return 0;
+    } else {
+      return (key.hashCode() & 0x7fffffff) % divisor;
+    }
   }
   
   private static final class Bucket {
