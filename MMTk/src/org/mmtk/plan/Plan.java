@@ -479,7 +479,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * defined as not in use).
    */
   public static final Extent freeMemory() {
-    return totalMemory().sub(usedMemory());
+    return totalMemory().minus(usedMemory());
   }
 
   /**

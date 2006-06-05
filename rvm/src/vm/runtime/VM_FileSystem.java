@@ -314,7 +314,7 @@ public class VM_FileSystem {
     int read = 0;
     for (;;) {
       int rc = VM_SysCall.sysReadBytes(fd,
-                                       VM_Magic.objectAsAddress(buf).add(off),
+                                       VM_Magic.objectAsAddress(buf).plus(off),
                                        cnt);
 
       if (rc == 0) {
@@ -410,7 +410,7 @@ public class VM_FileSystem {
     int written = 0;
     for (;;) {
       int rc = VM_SysCall.sysWriteBytes(fd, 
-                                        VM_Magic.objectAsAddress(buf).add(off),
+                                        VM_Magic.objectAsAddress(buf).plus(off),
                                         cnt);
       if (rc >= 0) {
         // Write succeeded, perhaps partially

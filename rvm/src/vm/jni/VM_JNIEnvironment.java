@@ -283,7 +283,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
     while (jniRefOffset>= 0) {
       VM.sysWrite(jniRefOffset);
       VM.sysWrite(" ");
-      VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
+      VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).plus(jniRefOffset));
       VM.sysWrite(" ");
       MM_Interface.dumpRef(JNIRefs.get(jniRefOffset >>> LOG_BYTES_IN_ADDRESS).toObjectReference());
       jniRefOffset -= BYTES_IN_ADDRESS;

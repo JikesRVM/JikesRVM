@@ -1,5 +1,5 @@
 /*
- * (C) Copyright Australian National University. 2004
+ *(C) Copyright Australian National University. 2004
  */
 //$Id$
 package org.vmmagic.unboxed;
@@ -26,7 +26,7 @@ public final class Offset {
     return null;
   }
 
-  public static Offset zero () {
+  public static Offset zero() {
     return null;
   }
 
@@ -34,11 +34,11 @@ public final class Offset {
     return null;
   }
 
-  public int toInt () {
+  public int toInt() {
     return 0;
   }
 
-  public long toLong () {
+  public long toLong() {
     return 0L;
   }
 
@@ -46,39 +46,39 @@ public final class Offset {
     return null;
   }
 
-  public Offset add (int byteSize) {
+  public Offset plus(int byteSize) {
     return null;
   }
 
-  public Offset sub (int byteSize) {
+  public Offset minus(int byteSize) {
     return null;
   }
 
-  public Offset sub (Offset off2) {
+  public Offset minus(Offset off2) {
     return null;
   }
 
-  public boolean EQ (Offset off2) {
+  public boolean EQ(Offset off2) {
     return false;
   }
 
-  public boolean NE (Offset off2) {
+  public boolean NE(Offset off2) {
     return false;
   }
 
-  public boolean sLT (Offset off2) {
+  public boolean sLT(Offset off2) {
     return false;
   }
 
-  public boolean sLE (Offset off2) {
+  public boolean sLE(Offset off2) {
     return false;
   }
 
-  public boolean sGT (Offset off2) {
+  public boolean sGT(Offset off2) {
     return false;
   }
 
-  public boolean sGE (Offset off2) {
+  public boolean sGE(Offset off2) {
     return false;
   }
 

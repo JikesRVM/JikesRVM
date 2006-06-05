@@ -248,7 +248,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
-  public Address add(int v) throws UninterruptibleNoWarnPragma {
+  public Address plus(int v) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + v);
   }
@@ -261,7 +261,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
-  public Address add(Offset offset) throws UninterruptibleNoWarnPragma {
+  public Address plus(Offset offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + offset.toWord().toAddress().value);
   }
@@ -275,7 +275,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @return An {@link Address} instance that reflects the result
    * of the addition.
    */
-  public Address add(Extent extent) throws UninterruptibleNoWarnPragma {
+  public Address plus(Extent extent) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value + extent.toWord().toAddress().value);
   }
@@ -289,7 +289,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
-  public Address sub(int v) throws UninterruptibleNoWarnPragma {
+  public Address minus(int v) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - v);
   }
@@ -303,7 +303,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
-  public Address sub(Offset offset) throws UninterruptibleNoWarnPragma {
+  public Address minus(Offset offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - offset.toWord().toAddress().value);
   }
@@ -317,7 +317,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @return An {@link Address} instance that reflects the result
    * of the subtraction.
    */
-  public Address sub(Extent extent) throws UninterruptibleNoWarnPragma {
+  public Address minus(Extent extent) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Address(value - extent.toWord().toAddress().value);
   }

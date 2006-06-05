@@ -1015,12 +1015,12 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     //       +-------------------+---------------+
     //        ^newStack           ^newFP          ^newTop
     //
-    Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length);
-    Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length);
+    Address myTop   = VM_Magic.objectAsAddress(myStack).plus(myStack.length);
+    Address newTop  = VM_Magic.objectAsAddress(newStack).plus(newStack.length);
 
     Address myFP    = VM_Magic.getFramePointer();
     Offset  myDepth = myTop.diff(myFP);
-    Address newFP   = newTop.sub(myDepth);
+    Address newFP   = newTop.minus(myDepth);
 
     // The frame pointer addresses the top of the frame on powerpc and 
     // the bottom
@@ -1044,7 +1044,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     //
     myThread.stack      = newStack;
     myThread.stackLimit = 
-      VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD);
+      VM_Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD);
     VM_Processor.getCurrentProcessor().activeThreadStackLimit =
       myThread.stackLimit;
     
@@ -1076,7 +1076,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     }
     if (!contextRegisters.getInnermostFramePointer().isZero())
       adjustStack(stack, contextRegisters.getInnermostFramePointer(), delta);
-    stackLimit = stackLimit.add(delta);
+    stackLimit = stackLimit.plus(delta);
   }
 
   /**
@@ -1091,7 +1091,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
     // adjust FP
     //
-    Address newFP = registers.getInnermostFramePointer().add(delta);
+    Address newFP = registers.getInnermostFramePointer().plus(delta);
     Address ip = registers.getInnermostInstructionAddress();
     registers.setInnermost(ip, newFP);
     if (traceAdjustments) {
@@ -1105,7 +1105,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
       //-#if RVM_FOR_IA32
       Word old = registers.gprs.get(ESP);
-      registers.gprs.set(ESP, old.add(delta));
+      registers.gprs.set(ESP, old.plus(delta));
       if (traceAdjustments) {
         VM.sysWrite(" esp =");
         VM.sysWrite(registers.gprs.get(ESP));
@@ -1135,7 +1135,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       // adjust FP save area
       //
-      VM_Magic.setCallerFramePointer(fp, VM_Magic.getCallerFramePointer(fp).add(delta));
+      VM_Magic.setCallerFramePointer(fp, VM_Magic.getCallerFramePointer(fp).plus(delta));
       if (traceAdjustments) {
         VM.sysWrite(" fp=", fp.toWord());
       }
@@ -1168,16 +1168,16 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     byte[]     myStack  = myThread.stack;
 
-    Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length);
-    Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length);
+    Address myTop   = VM_Magic.objectAsAddress(myStack).plus(myStack.length);
+    Address newTop  = VM_Magic.objectAsAddress(newStack).plus(newStack.length);
     Address myFP    = VM_Magic.getFramePointer();
     Offset myDepth  = myTop.diff(myFP);
-    Address newFP   = newTop.sub(myDepth);
+    Address newFP   = newTop.minus(myDepth);
 
     // before copying, make sure new stack isn't too small
     //
     if (VM.VerifyAssertions)
-      VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
+      VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).plus(STACK_SIZE_GUARD)));
     
     VM_Memory.memcopy(newFP, myFP, myDepth.toWord().toExtent());
     
@@ -1253,7 +1253,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     //
     if (trace) VM_Scheduler.trace("VM_Thread", "create");
       
-    stackLimit = VM_Magic.objectAsAddress(stack).add(STACK_SIZE_GUARD);
+    stackLimit = VM_Magic.objectAsAddress(stack).plus(STACK_SIZE_GUARD);
 
     // get instructions for method to be executed as thread startoff
     //
@@ -1264,7 +1264,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     // initialize thread registers
     //
     Address ip = VM_Magic.objectAsAddress(instructions);
-    Address sp = VM_Magic.objectAsAddress(stack).add(stack.length);
+    Address sp = VM_Magic.objectAsAddress(stack).plus(stack.length);
     Address fp = STACKFRAME_SENTINEL_FP;
 
 //-#if RVM_FOR_IA32 
@@ -1272,12 +1272,12 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     // initialize thread stack as if "startoff" method had been called
     // by an empty baseline-compiled "sentinel" frame with one local variable
     //
-    sp = sp.sub(STACKFRAME_HEADER_SIZE);                   // last word of header
-    fp = sp.sub(BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
+    sp = sp.minus(STACKFRAME_HEADER_SIZE);                   // last word of header
+    fp = sp.minus(BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
     VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
-    sp = sp.sub(BYTES_IN_ADDRESS);                                 // allow for one local
+    sp = sp.minus(BYTES_IN_ADDRESS);                                 // allow for one local
     contextRegisters.gprs.set(ESP, sp);
     contextRegisters.gprs.set(VM_BaselineConstants.JTOC,
                               VM_Magic.objectAsAddress(VM_Magic.getJTOC()));
@@ -1288,10 +1288,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
 
     // align stack frame
     int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
-    fp = VM_Memory.alignDown(sp.sub(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
-    fp.add(STACKFRAME_FRAME_POINTER_OFFSET).store(STACKFRAME_SENTINEL_FP);
-    fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET).store(ip); // need to fix
-    fp.add(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
+    fp = VM_Memory.alignDown(sp.minus(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
+    fp.plus(STACKFRAME_FRAME_POINTER_OFFSET).store(STACKFRAME_SENTINEL_FP);
+    fp.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET).store(ip); // need to fix
+    fp.plus(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
         
     contextRegisters.gprs.set(FRAME_POINTER, fp);
     contextRegisters.ip  = ip;

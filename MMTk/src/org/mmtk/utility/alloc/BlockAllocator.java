@@ -50,10 +50,10 @@ public final class BlockAllocator implements Constants, Uninterruptible {
 
   // metadata
   private static final Offset PREV_OFFSET = Offset.zero();
-  private static final Offset NEXT_OFFSET = PREV_OFFSET.add(BYTES_IN_ADDRESS);
-  private static final Offset SC_OFFSET = NEXT_OFFSET.add(BYTES_IN_ADDRESS);
-  private static final Offset IU_OFFSET = SC_OFFSET.add(BYTES_IN_SHORT);
-  private static final Offset FL_META_OFFSET = IU_OFFSET.add(BYTES_IN_SHORT);
+  private static final Offset NEXT_OFFSET = PREV_OFFSET.plus(BYTES_IN_ADDRESS);
+  private static final Offset SC_OFFSET = NEXT_OFFSET.plus(BYTES_IN_ADDRESS);
+  private static final Offset IU_OFFSET = SC_OFFSET.plus(BYTES_IN_SHORT);
+  private static final Offset FL_META_OFFSET = IU_OFFSET.plus(BYTES_IN_SHORT);
   private static final int LOG_BYTES_IN_BLOCK_META = LOG_BYTES_IN_ADDRESS + 2;
   private static final int BLOCK_META_SIZE = 1<<LOG_BYTES_IN_BLOCK_META;
   private static final int LOG_BYTE_COVERAGE = LOG_MIN_BLOCK - LOG_BYTES_IN_BLOCK_META;
@@ -209,15 +209,15 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   private final void populatePage(Address start, int blockSizeClass) {
     resetInUseCount(start);
     int blockSize = blockSize(blockSizeClass);
-    Address end = start.add(BYTES_IN_PAGE);
-    Address block = start.add(blockSize);
+    Address end = start.plus(BYTES_IN_PAGE);
+    Address block = start.plus(blockSize);
     Address next = freeList.get(blockSizeClass);
     while (block.LT(end)) {
       setNextBlock(block, next);
       if (!next.isZero())
         setPrevBlock(next, block);
       next = block;
-      block = block.add(blockSize);
+      block = block.plus(blockSize);
     }
     freeList.set(blockSizeClass, next);
     setPrevBlock(next, Address.zero());
@@ -357,7 +357,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   public static final void setFreeListMeta(Address address, 
                                            Address value) 
     throws InlinePragma {
-    getMetaAddress(address).add(FL_META_OFFSET).store(value);
+    getMetaAddress(address).plus(FL_META_OFFSET).store(value);
   }
   
   /**
@@ -371,7 +371,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */
   public static final Address getFreeListMeta(Address address) 
     throws InlinePragma {
-    return getMetaAddress(address).add(FL_META_OFFSET).loadAddress();
+    return getMetaAddress(address).plus(FL_META_OFFSET).loadAddress();
   }
   
   /**
@@ -481,7 +481,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   private static final Address getMetaAddress(Address address,
                                               Offset offset) 
     throws InlinePragma {
-    return EmbeddedMetaData.getMetaDataBase(address).add(EmbeddedMetaData.getMetaDataOffset(address, LOG_BYTE_COVERAGE, LOG_BYTES_IN_BLOCK_META)).add(offset);
+    return EmbeddedMetaData.getMetaDataBase(address).plus(EmbeddedMetaData.getMetaDataOffset(address, LOG_BYTE_COVERAGE, LOG_BYTES_IN_BLOCK_META)).plus(offset);
   }
 
   /****************************************************************************
@@ -499,7 +499,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */
   private Address unlinkSubPageBlocks(Address block, int blockSizeClass) {
     Address start = Conversions.pageAlign(block); 
-    Address end = start.add(BYTES_IN_PAGE);
+    Address end = start.plus(BYTES_IN_PAGE);
     int blockSize = blockSize(blockSizeClass);
     Address head = freeList.get(blockSizeClass);
     block = start;
@@ -510,7 +510,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
         head = next;
       }
       unlinkBlock(block);
-      block = block.add(blockSize);
+      block = block.plus(blockSize);
     }
     return start;
   }

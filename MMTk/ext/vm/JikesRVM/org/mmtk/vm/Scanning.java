@@ -161,7 +161,7 @@ public class Scanning implements Constants, Uninterruptible {
             VM.sysWrite(ct.getGCOrdinal()," Old address ");
             VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
           }
-          Address threadTableSlot = threadTable.toAddress().add(threadIndex<<LOG_BYTES_IN_ADDRESS);
+          Address threadTableSlot = threadTable.toAddress().plus(threadIndex<<LOG_BYTES_IN_ADDRESS);
           if (Assert.VERIFY_ASSERTIONS) 
             Assert._assert(ObjectReference.fromObject(thread).toAddress().EQ(
                 threadTableSlot.loadObjectReference().toAddress()),
@@ -236,7 +236,7 @@ public class Scanning implements Constants, Uninterruptible {
       ScanThread.scanThread(thread, trace, processCodeLocations);
 
       /* identify this thread as a root */
-      trace.addRootLocation(VM_Magic.objectAsAddress(VM_Scheduler.threads).add(threadIndex<<LOG_BYTES_IN_ADDRESS));
+      trace.addRootLocation(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS));
     }
     Collection.rendezvous(4200);
   }

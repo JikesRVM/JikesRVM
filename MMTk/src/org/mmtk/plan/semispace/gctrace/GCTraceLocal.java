@@ -204,13 +204,13 @@ public class GCTraceLocal extends SSLocal implements Uninterruptible {
                               ObjectReference dst, Offset dstOffset, int bytes) {
     /* These names seem backwards, but are defined to be compatable with the
      * previous writeBarrier method. */
-    Address slot = dst.toAddress().add(dstOffset);
-    Address tgtLoc = src.toAddress().add(srcOffset);
+    Address slot = dst.toAddress().plus(dstOffset);
+    Address tgtLoc = src.toAddress().plus(srcOffset);
     for (int i = 0; i < bytes; i += BYTES_IN_ADDRESS) {
       ObjectReference tgt = tgtLoc.loadObjectReference();
       TraceGenerator.processPointerUpdate(false, dst, slot, tgt);
-      slot = slot.add(BYTES_IN_ADDRESS);
-      tgtLoc = tgtLoc.add(BYTES_IN_ADDRESS);
+      slot = slot.plus(BYTES_IN_ADDRESS);
+      tgtLoc = tgtLoc.plus(BYTES_IN_ADDRESS);
     }
     return false;
   }

@@ -228,7 +228,7 @@ public final class ImmortalSpace extends Space
    * collections.
    */
   public void prepare() { 
-    markState = GC_MARK_BIT_MASK.sub(markState);
+    markState = GC_MARK_BIT_MASK.minus(markState);
   }
 
   public void release() {}

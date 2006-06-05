@@ -180,7 +180,7 @@ public final class LargeObjectSpace extends Space
    *
    */
   public void prepare() { 
-    markState = MARK_BIT_MASK.sub(markState);
+    markState = MARK_BIT_MASK.minus(markState);
     inTreadmillCollection = true;
   }
 

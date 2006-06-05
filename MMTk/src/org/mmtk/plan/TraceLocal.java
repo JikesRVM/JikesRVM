@@ -127,7 +127,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
         Assert._assert(false);
       }
     }
-    return newObject.toAddress().add(offset);
+    return newObject.toAddress().plus(offset);
   }
 
   /**

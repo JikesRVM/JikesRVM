@@ -101,7 +101,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
       Address guard = arrayRemset.pop2();
       while (start.LT(guard)) {
         traceObjectLocation(start, false);
-        start = start.add(BYTES_IN_ADDRESS);
+        start = start.plus(BYTES_IN_ADDRESS);
       }
     }
   }

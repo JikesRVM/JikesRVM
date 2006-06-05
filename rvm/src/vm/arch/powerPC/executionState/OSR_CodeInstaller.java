@@ -32,7 +32,7 @@ public class OSR_CodeInstaller implements VM_BaselineConstants {
 
     // we are going to dynamically generate some code recover 
     // register values from the stack frame.
-    int foomid = VM_Magic.getIntAtOffset(stack, fooFPOffset.add(STACKFRAME_METHOD_ID_OFFSET));
+    int foomid = VM_Magic.getIntAtOffset(stack, fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
 
     VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();

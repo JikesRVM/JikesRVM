@@ -80,8 +80,8 @@ public class Memory implements Uninterruptible, Constants {
       assertAligned(start);
       assertAligned(bytes);
     }
-    Address end = start.add(bytes);
-    for (Address addr = start; addr.LT(end); addr = addr.add(BYTES_IN_INT)) 
+    Address end = start.plus(bytes);
+    for (Address addr = start; addr.LT(end); addr = addr.plus(BYTES_IN_INT)) 
       addr.store(0);
   }
 
@@ -98,8 +98,8 @@ public class Memory implements Uninterruptible, Constants {
       assertAligned(start);
       assertAligned(bytes);
     }
-    Address end = start.add(bytes);
-    for (Address addr = start; addr.LT(end); addr = addr.add(BYTES_IN_INT)) 
+    Address end = start.plus(bytes);
+    for (Address addr = start; addr.LT(end); addr = addr.plus(BYTES_IN_INT)) 
       addr.store(value);
   }
 
@@ -198,8 +198,8 @@ public class Memory implements Uninterruptible, Constants {
           Log.write("Memory range does not contain only value ");
           Log.writeln(value);
           Log.write("Non-zero range: "); Log.write(start);
-          Log.write(" .. "); Log.writeln(start.add(bytes));
-          Log.write("First bad value at "); Log.writeln(start.add(i));
+          Log.write(" .. "); Log.writeln(start.plus(bytes));
+          Log.write("First bad value at "); Log.writeln(start.plus(i));
           dumpMemory(start, 0, bytes);
         }
         return false;

@@ -42,9 +42,9 @@ public class VM_MultianewarrayHelper {
     //
     int[] numElements = new int[numDimensions];
     VM.disableGC();
-    Address argp = VM_Magic.getFramePointer().add(argOffset);
+    Address argp = VM_Magic.getFramePointer().plus(argOffset);
     for (int i = 0; i < numDimensions; ++i) {
-        argp = argp.sub(4);
+        argp = argp.minus(4);
         numElements[i] = argp.loadInt();
     }
     VM.enableGC();

@@ -31,11 +31,11 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
 
     // reset sp to "empty expression stack" state
     //
-    Address sp = fp.add(VM_Compiler.getEmptyStackOffset(method));
+    Address sp = fp.plus(VM_Compiler.getEmptyStackOffset(method));
     
     // push exception object as argument to catch block
     //
-    sp = sp.sub(BYTES_IN_ADDRESS);
+    sp = sp.minus(BYTES_IN_ADDRESS);
     sp.store(VM_Magic.objectAsAddress(exceptionObject));
     registers.gprs.set(SP, sp);
 
@@ -55,7 +55,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too. 
     if (!myThread.hardwareExceptionRegisters.inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).add(STACK_SIZE_GUARD);
+      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).plus(STACK_SIZE_GUARD);
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     }
 
@@ -79,15 +79,15 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
         if (method.isStatic()) {
           lock = method.getDeclaringClass().getClassForType();
         } else {
-          lock = VM_Magic.addressAsObject(fp.add(VM_Compiler.getFirstLocalOffset(method)).loadAddress());
+          lock = VM_Magic.addressAsObject(fp.plus(VM_Compiler.getFirstLocalOffset(method)).loadAddress());
         }
         VM_ObjectModel.genericUnlock(lock);
       }
     }
     // Restore nonvolatile registers used by the baseline compiler.
     if (VM.VerifyAssertions) VM._assert(VM_Compiler.SAVED_GPRS == 2);
-    registers.gprs.set(JTOC, fp.add(VM_Compiler.JTOC_SAVE_OFFSET).loadWord());
-    registers.gprs.set(EBX, fp.add(VM_Compiler.EBX_SAVE_OFFSET).loadWord());
+    registers.gprs.set(JTOC, fp.plus(VM_Compiler.JTOC_SAVE_OFFSET).loadWord());
+    registers.gprs.set(EBX, fp.plus(VM_Compiler.EBX_SAVE_OFFSET).loadWord());
     
     registers.unwindStackFrame();
   }

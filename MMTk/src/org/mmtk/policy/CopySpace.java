@@ -43,7 +43,7 @@ public final class CopySpace extends Space
 
   private static final Word GC_MARK_BIT_MASK = Word.one();
   private static final Word GC_FORWARDED        = Word.one().lsh(1);  // ...10
-  private static final Word GC_BEING_FORWARDED  = Word.one().lsh(2).sub(Word.one());  // ...11
+  private static final Word GC_BEING_FORWARDED  = Word.one().lsh(2).minus(Word.one());  // ...11
   private static final Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
 
   /****************************************************************************

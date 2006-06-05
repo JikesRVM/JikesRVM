@@ -164,7 +164,7 @@ public final class MarkSweepSpace extends Space
    *
    */
   public void prepare() { 
-    markState = MARK_BIT_MASK.sub(markState);
+    markState = MARK_BIT_MASK.minus(markState);
     
     MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     inMSCollection = true;

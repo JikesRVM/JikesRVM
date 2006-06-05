@@ -93,7 +93,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     //
     Address callers_fp = this.framePtr.loadAddress();
     //-#if RVM_WITH_POWEROPEN_ABI
-    jniSavedReturnAddr       = callers_fp.sub(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
+    jniSavedReturnAddr       = callers_fp.minus(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
     //-#endif
     //-#if RVM_WITH_SVR4_ABI || RVM_WITH_MACH_O_ABI
     // ScanThread calls getReturnAddressLocation() to get this stack frame
@@ -105,7 +105,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // this forces saved non volatile regs to be restored from save area
     // where those containing refs have been relocated if necessary
     //
-    callers_fp.sub(JNI_GC_FLAG_OFFSET).store(1);
+    callers_fp.minus(JNI_GC_FLAG_OFFSET).store(1);
   }
   
   // return (address of) next ref in the current "frame" on the
@@ -115,7 +115,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   //
   public Address getNextReferenceAddress() {
     if (jniNextRef > jniFramePtr) {
-      Address ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
+      Address ref_address = VM_Magic.objectAsAddress(jniRefs).plus(jniNextRef);
       jniNextRef = jniNextRef - BYTES_IN_ADDRESS;
       if (verbose > 0) VM.sysWriteln("JNI iterator returning JNI ref: ", ref_address);
       return ref_address;
@@ -133,11 +133,11 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     
     // set register locations for non-volatiles to point to registers saved in
     // the JNI transition frame at a fixed negative offset from the callers FP.
-    Address registerLocation = this.framePtr.loadAddress().sub(JNI_RVM_NONVOLATILE_OFFSET);
+    Address registerLocation = this.framePtr.loadAddress().minus(JNI_RVM_NONVOLATILE_OFFSET);
 
     for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR - 1; --i) {
       registerLocations.set(i, registerLocation);
-      registerLocation = registerLocation.sub(BYTES_IN_ADDRESS);
+      registerLocation = registerLocation.minus(BYTES_IN_ADDRESS);
     }
 
     if (verbose > 1) VM.sysWriteln("JNI iterator returning 0");

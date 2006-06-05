@@ -342,7 +342,7 @@ public class ContiguousSpaceDriver extends AbstractDriver
     Address addr = obj.toAddress();
 
     if (Assert.VERIFY_ASSERTIONS) {
-      if(addr.LT(lastAddress.add(lastSize))) {
+      if(addr.LT(lastAddress.plus(lastSize))) {
         Log.write("ContiguousSpaceDriver finds addresses going backwards: ");
         Log.write("last="); Log.write(lastAddress);
         Log.write("last size="); Log.write(lastSize);

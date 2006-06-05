@@ -54,10 +54,10 @@ public interface VM_BaselineConstants extends VM_Constants {
 
   static final int SAVED_GPRS       = 2; // EDI(JTOC) and EBX are nonvolatile registers used by baseline compiler
   static final Offset JTOC_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET);
-  static final Offset EBX_SAVE_OFFSET  = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET).sub(4);
+  static final Offset EBX_SAVE_OFFSET  = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET).minus(4);
   static final Offset T0_SAVE_OFFSET   = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET) ;
-  static final Offset T1_SAVE_OFFSET   = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET).sub(4);
-  static final Offset FPU_SAVE_OFFSET  = T1_SAVE_OFFSET.sub(FPU_STATE_SIZE);
+  static final Offset T1_SAVE_OFFSET   = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET).minus(4);
+  static final Offset FPU_SAVE_OFFSET  = T1_SAVE_OFFSET.minus(FPU_STATE_SIZE);
 
 }
 

@@ -92,27 +92,27 @@ public abstract class Allocator implements Constants, Uninterruptible {
     // May require an alignment
     Word mask  = Word.fromIntSignExtend(alignment-1);
     Word negOff= Word.fromIntSignExtend(-offset);
-    Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+    Offset delta = negOff.minus(region.toWord()).and(mask).toOffset();
 
     if (fillAlignmentGap && ALIGNMENT_VALUE != 0) {
       if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
         // At most a single hole
         if (!delta.isZero()) {
           region.store(ALIGNMENT_VALUE);
-          region = region.add(delta);
+          region = region.plus(delta);
         }
         return region;
       } else {
         while (delta.toWord().GT(Word.zero())) {
           region.store(ALIGNMENT_VALUE);
-          region = region.add(BYTES_IN_INT);
-          delta = delta.sub(BYTES_IN_INT);
+          region = region.plus(BYTES_IN_INT);
+          delta = delta.minus(BYTES_IN_INT);
         }
         return region;
       }
     }
 
-    return region.add(delta);
+    return region.plus(delta);
   }
   
   /**
@@ -131,7 +131,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
     } else {
       while (start.LT(end)) {
         start.store(ALIGNMENT_VALUE);
-	start = start.add(BYTES_IN_INT);
+	start = start.plus(BYTES_IN_INT);
       }
     }
   }

@@ -30,11 +30,11 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
 
     // reset sp to "empty expression stack" state
     //
-    Address sp = fp.add(VM_Compiler.getEmptyStackOffset(method));
+    Address sp = fp.plus(VM_Compiler.getEmptyStackOffset(method));
 
     // push exception object as argument to catch block
     //
-    sp = sp.sub(BYTES_IN_ADDRESS);
+    sp = sp.minus(BYTES_IN_ADDRESS);
     sp.store(VM_Magic.objectAsAddress(exceptionObject));
 
     // set address at which to resume executing frame
@@ -67,7 +67,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
         } else {
           Address fp = registers.getInnermostFramePointer();
           int offset = VM_Compiler.getFirstLocalOffset(method);
-          lock = VM_Magic.addressAsObject(fp.add(offset).loadAddress());
+          lock = VM_Magic.addressAsObject(fp.plus(offset).loadAddress());
         }
         VM_ObjectModel.genericUnlock(lock);
       }

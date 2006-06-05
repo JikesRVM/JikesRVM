@@ -63,16 +63,16 @@ public class BumpPointer extends Allocator
   
   // Chunk size defines slow path periodicity.
   protected static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
-  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).sub(Word.one());	
+  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());	
 
   // Offsets into header
   protected static final Offset REGION_LIMIT_OFFSET = Offset.zero();
-  protected static final Offset NEXT_REGION_OFFSET = REGION_LIMIT_OFFSET.add(BYTES_IN_ADDRESS);
-  protected static final Offset DATA_END_OFFSET = NEXT_REGION_OFFSET.add(BYTES_IN_ADDRESS);
+  protected static final Offset NEXT_REGION_OFFSET = REGION_LIMIT_OFFSET.plus(BYTES_IN_ADDRESS);
+  protected static final Offset DATA_END_OFFSET = NEXT_REGION_OFFSET.plus(BYTES_IN_ADDRESS);
 
   // Data must start particle-aligned.
   protected static final Offset DATA_START_OFFSET   = alignAllocationNoFill(
-      Address.zero().add(DATA_END_OFFSET.add(BYTES_IN_ADDRESS)), 
+      Address.zero().plus(DATA_END_OFFSET.plus(BYTES_IN_ADDRESS)), 
       MIN_ALIGNMENT, 0).toWord().toOffset();
  
   /****************************************************************************
@@ -135,7 +135,7 @@ public class BumpPointer extends Allocator
   final public Address alloc(int bytes, int align, int offset) 
     throws InlinePragma {
     Address oldCursor = alignAllocationNoFill(cursor, align, offset);
-    Address newCursor = oldCursor.add(bytes);
+    Address newCursor = oldCursor.plus(bytes);
       if (newCursor.GT(limit))
       return allocSlow(bytes, align, offset);
     fillAlignmentGap(cursor, oldCursor);
@@ -163,21 +163,21 @@ public class BumpPointer extends Allocator
     if (allowScanning && !region.isZero()) {
       Address nextRegion = region.loadAddress(NEXT_REGION_OFFSET);
       if (!nextRegion.isZero()) {
-        region.add(DATA_END_OFFSET).store(cursor);
+        region.plus(DATA_END_OFFSET).store(cursor);
         region = nextRegion;
-        cursor = nextRegion.add(DATA_START_OFFSET);
+        cursor = nextRegion.plus(DATA_START_OFFSET);
         limit = nextRegion.loadAddress(REGION_LIMIT_OFFSET);
         nextRegion.store(Address.zero(), DATA_END_OFFSET);
-        Memory.zero(cursor, limit.diff(cursor).toWord().toExtent().add(BYTES_IN_ADDRESS));
+        Memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
         
-        ((MarkCompactSpace)space).reusePages(Conversions.bytesToPages(limit.diff(region).add(BYTES_IN_ADDRESS)));
+        ((MarkCompactSpace)space).reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
         
         return alloc(bytes, align, offset);
       }
     }
     
     /* Aquire space, chunk aligned, that can accomodate the request */
-    Extent chunkSize = Word.fromIntZeroExtend(bytes).add(CHUNK_MASK)
+    Extent chunkSize = Word.fromIntZeroExtend(bytes).plus(CHUNK_MASK)
                        .and(CHUNK_MASK.not()).toExtent();
     Address start = space.acquire(Conversions.bytesToPages(chunkSize));
 
@@ -185,7 +185,7 @@ public class BumpPointer extends Allocator
 
     if (!allowScanning) { // simple allocator
       if (start.NE(limit)) cursor = start;
-      limit = start.add(chunkSize);
+      limit = start.plus(chunkSize);
     } else                // scannable allocator
       updateMetaData(start, chunkSize);
 
@@ -204,18 +204,18 @@ public class BumpPointer extends Allocator
       /* this is the first allocation */
       initialRegion = start;
       region = start;
-      cursor = region.add(DATA_START_OFFSET);
-    } else if (limit.add(BYTES_IN_ADDRESS).NE(start) 
-        || region.diff(start.add(size)).toWord().toExtent()
+      cursor = region.plus(DATA_START_OFFSET);
+    } else if (limit.plus(BYTES_IN_ADDRESS).NE(start) 
+        || region.diff(start.plus(size)).toWord().toExtent()
         .GT(maximumRegionSize())) {
       /* non contiguous or over-size, initialize new region */
-      region.add(NEXT_REGION_OFFSET).store(start);
-      region.add(DATA_END_OFFSET).store(cursor);
+      region.plus(NEXT_REGION_OFFSET).store(start);
+      region.plus(DATA_END_OFFSET).store(cursor);
       region = start;
-      cursor = start.add(DATA_START_OFFSET);
+      cursor = start.plus(DATA_START_OFFSET);
     }
-    limit = start.add(size.sub(BYTES_IN_ADDRESS)); // skip over region limit
-    region.add(REGION_LIMIT_OFFSET).store(limit);
+    limit = start.plus(size.minus(BYTES_IN_ADDRESS)); // skip over region limit
+    region.plus(REGION_LIMIT_OFFSET).store(limit);
   }
 
   /**
@@ -232,7 +232,7 @@ public class BumpPointer extends Allocator
     Address start = initialRegion;
     while(!start.isZero()) {      
       scanRegion(scanner, start); 	                   // Scan this region
-      start = start.add(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
+      start = start.plus(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
     }
   }
 
@@ -245,13 +245,13 @@ public class BumpPointer extends Allocator
   private void scanRegion(LinearScan scanner, Address start) 
     throws InlinePragma {
     /* Get the end of this region */
-    Address dataEnd = start.add(DATA_END_OFFSET).loadAddress();
+    Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
 
     /* dataEnd = zero represents the current region. */
     Address oldCursor = cursor;
     Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
     ObjectReference current =
-      ObjectModel.getObjectFromStartAddress(start.add(DATA_START_OFFSET));
+      ObjectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
 
     while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
       ObjectReference next = ObjectModel.getNextObject(current);

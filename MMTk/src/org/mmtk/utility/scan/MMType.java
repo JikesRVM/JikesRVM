@@ -83,9 +83,9 @@ public final class MMType implements Constants, Uninterruptible {
   Address getSlot(ObjectReference object, int reference) throws InlinePragma {
     Address addr = object.toAddress();
     if (isReferenceArray)
-      return addr.add(arrayOffset).add(reference << LOG_BYTES_IN_ADDRESS);
+      return addr.plus(arrayOffset).plus(reference << LOG_BYTES_IN_ADDRESS);
     else
-      return addr.add(offsets[reference]);
+      return addr.plus(offsets[reference]);
   }
 
   /**

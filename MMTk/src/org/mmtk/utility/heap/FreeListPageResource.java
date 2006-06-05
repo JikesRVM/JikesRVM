@@ -121,7 +121,7 @@ public final class FreeListPageResource extends PageResource
           highWaterMark = pageOffset;     
         }
       }
-      Address rtn = start.add(Conversions.pagesToBytes(pageOffset));
+      Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
       LazyMmapper.ensureMapped(rtn, pages);
       Memory.zero(rtn, Conversions.pagesToBytes(pages));
       unlock();
@@ -171,9 +171,9 @@ public final class FreeListPageResource extends PageResource
     if (metaDataPagesPerRegion > 0) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
       Extent size = extent.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toExtent();
-      Address cursor = start.add(size);
+      Address cursor = start.plus(size);
       while (cursor.GT(start)) {
-        cursor = cursor.sub(EmbeddedMetaData.BYTES_IN_REGION);
+        cursor = cursor.minus(EmbeddedMetaData.BYTES_IN_REGION);
         int unit = cursor.diff(start).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
         int tmp = freeList.alloc(metaDataPagesPerRegion, unit);
         if (Assert.VERIFY_ASSERTIONS) Assert._assert(tmp == unit);
@@ -186,7 +186,7 @@ public final class FreeListPageResource extends PageResource
   }
 
   public Address getHighWater() {
-    return start.add(Extent.fromIntSignExtend(highWaterMark<<LOG_BYTES_IN_PAGE));
+    return start.plus(Extent.fromIntSignExtend(highWaterMark<<LOG_BYTES_IN_PAGE));
   }
 
 

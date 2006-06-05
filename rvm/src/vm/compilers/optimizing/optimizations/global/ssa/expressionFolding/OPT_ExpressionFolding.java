@@ -161,9 +161,9 @@ class OPT_ExpressionFolding implements OPT_Operators {
 
   private static OPT_AddressConstantOperand addConstantValues(boolean neg1, OPT_Operand op1, boolean neg2, OPT_Operand op2) {
     Address a = getAddressValue(op1);
-    if (neg1) a = Address.zero().sub(a.toWord().toOffset()); //negate op1
-    if (neg2) a = a.sub(getAddressValue(op2).toWord().toOffset()); //sub op2
-    else a = a.add(getAddressValue(op2).toWord().toOffset()); //add op2
+    if (neg1) a = Address.zero().minus(a.toWord().toOffset()); //negate op1
+    if (neg2) a = a.minus(getAddressValue(op2).toWord().toOffset()); //sub op2
+    else a = a.plus(getAddressValue(op2).toWord().toOffset()); //add op2
     return new OPT_AddressConstantOperand(a);
   }
   

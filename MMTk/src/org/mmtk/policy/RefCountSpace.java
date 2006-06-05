@@ -49,15 +49,15 @@ public final class RefCountSpace extends Space
   /** How many bytes are used by all GC header fields? */
   public static final int GC_HEADER_WORDS_REQUIRED = (RC_SANITY_CHECK) ? 2 : 1;
   protected static final Offset RC_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET();
-  protected static final Offset RC_SANITY_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET().add(BYTES_IN_ADDRESS);
+  protected static final Offset RC_SANITY_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET().plus(BYTES_IN_ADDRESS);
 
 
   /* Mask bits to signify the start/finish of logging an object */
-  private static final Word LOGGING_MASK = Word.one().lsh(2).sub(Word.one()); //...00011
+  private static final Word LOGGING_MASK = Word.one().lsh(2).minus(Word.one()); //...00011
   private static final int      LOG_BIT = 0;
   private static final Word       LOGGED = Word.zero();
   public static final Word     UNLOGGED = Word.one();
-  private static final Word BEING_LOGGED = Word.one().lsh(2).sub(Word.one()); //...00011
+  private static final Word BEING_LOGGED = Word.one().lsh(2).minus(Word.one()); //...00011
 
   public static final int DEC_KILL = 0;    // dec to zero RC --> reclaim obj
   public static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd

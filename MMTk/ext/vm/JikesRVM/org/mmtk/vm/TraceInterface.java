@@ -125,7 +125,7 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
        of the object. */
     Offset offset = slot.diff(src.toAddress());
     if (isScalar)
-      return offset.sub(getHeaderEndOffset());
+      return offset.minus(getHeaderEndOffset());
     else
       return offset;
   }

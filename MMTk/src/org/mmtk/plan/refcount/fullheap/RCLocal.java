@@ -285,8 +285,8 @@ public class RCLocal extends RCBaseLocal
         coalescingWriteBarrierSlow(dst);
       return false;
     } else {
-      Address s = src.toAddress().add(srcOffset);
-      Address d = dst.toAddress().add(dstOffset);
+      Address s = src.toAddress().plus(srcOffset);
+      Address d = dst.toAddress().plus(dstOffset);
       while (bytes > 0) {
         ObjectReference tgt = s.loadObjectReference();
         ObjectReference old;
@@ -295,8 +295,8 @@ public class RCLocal extends RCBaseLocal
         } while (!d.attempt(old, tgt));
         if (RC.isRCObject(old)) decBuffer.push(old);
         if (RC.isRCObject(tgt)) RefCountSpace.incRC(tgt);
-        s = s.add(BYTES_IN_ADDRESS);
-        d = d.add(BYTES_IN_ADDRESS);
+        s = s.plus(BYTES_IN_ADDRESS);
+        d = d.plus(BYTES_IN_ADDRESS);
         bytes -= BYTES_IN_ADDRESS;
       }
       return true;

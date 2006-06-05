@@ -89,7 +89,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
   protected final Address uncheckedDequeue() 
     throws InlinePragma{
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
-    head = head.sub(BYTES_IN_ADDRESS);
+    head = head.minus(BYTES_IN_ADDRESS);
     return head.loadAddress();
   }
 
@@ -108,7 +108,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
 
     // If the tail has entries...
     if (tail.NE(tailBufferEnd)) {
-      head = normalizeTail(arity).add(BYTES_IN_ADDRESS);
+      head = normalizeTail(arity).plus(BYTES_IN_ADDRESS);
       tail = Deque.TAIL_INITIAL_VALUE;
       tailBufferEnd = Deque.TAIL_INITIAL_VALUE;
       // Return that we acquired more entries

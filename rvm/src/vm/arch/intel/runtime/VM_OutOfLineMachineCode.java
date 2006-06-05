@@ -121,7 +121,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
       gprs--;
       asm.emitMOV_RegDisp_Reg(SP, offset, T); 
       T = T1;
-      offset=offset.sub(WORDSIZE);
+      offset=offset.minus(WORDSIZE);
     }
 
     if (gprs > 0)
@@ -326,7 +326,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     // Restore the GPRs except for S0, PR, and SP 
     // (restored above and then modified by pushing registers.ip!)
     Offset off = Offset.zero();
-    for (byte i= 0; i < NUM_GPRS; i++, off=off.add(WORDSIZE)) {
+    for (byte i= 0; i < NUM_GPRS; i++, off=off.plus(WORDSIZE)) {
       if (i != S0 && i != ESI && i != SP) {
         asm.emitMOV_Reg_RegDisp(i, S0, off);
       }

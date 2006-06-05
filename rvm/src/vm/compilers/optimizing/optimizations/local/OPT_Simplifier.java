@@ -1030,7 +1030,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           if (op1.isConstant()) {
             // BOTH CONSTANTS: FOLD
             Address val1 = getAddressValue(op1);
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.add(val2.toWord().toOffset())));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.plus(val2.toWord().toOffset())));
             return MOVE_FOLDED;
           } else {
             // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
@@ -1190,7 +1190,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           if (op1.isConstant()) {
             // BOTH CONSTANTS: FOLD
             Address val1 = getAddressValue(op1);
-            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.sub(val2.toWord().toOffset())));
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.minus(val2.toWord().toOffset())));
             return MOVE_FOLDED;
           } else {
             // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
@@ -1205,7 +1205,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             // x - c = x + -c
             // prefer adds, since some architectures have addi but not subi
             Binary.mutate(s, REF_ADD, Binary.getClearResult(s), 
-                          Binary.getClearVal1(s), AC(Address.zero().sub(val2.toWord().toOffset())));
+                          Binary.getClearVal1(s), AC(Address.zero().minus(val2.toWord().toOffset())));
             return REDUCED;
           }
         }

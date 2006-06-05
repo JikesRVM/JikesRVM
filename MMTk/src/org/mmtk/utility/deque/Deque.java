@@ -37,13 +37,13 @@ class Deque implements Constants, Uninterruptible {
     return buf.toWord().and(BUFFER_MASK.not()).toAddress();
   }
   protected final Address bufferEnd(Address buf) throws InlinePragma {
-    return bufferStart(buf).add(USABLE_BUFFER_BYTES);
+    return bufferStart(buf).plus(USABLE_BUFFER_BYTES);
   }
   protected final Address bufferFirst(Address buf) throws InlinePragma {
     return bufferStart(buf);
   }
   protected final Address bufferLast(Address buf, int arity) throws InlinePragma {
-    return bufferStart(buf).add(bufferLastOffset(arity));
+    return bufferStart(buf).plus(bufferLastOffset(arity));
   }
   protected final Address bufferLast(Address buf) throws InlinePragma {
     return bufferLast(buf, 1);
@@ -61,7 +61,7 @@ class Deque implements Constants, Uninterruptible {
   protected static final int PAGES_PER_BUFFER = 1<<LOG_PAGES_PER_BUFFER;
   private static final int LOG_BUFFER_SIZE = (LOG_BYTES_IN_PAGE + LOG_PAGES_PER_BUFFER);
   protected static final int BUFFER_SIZE = 1<<LOG_BUFFER_SIZE;
-  protected static final Word BUFFER_MASK = Word.one().lsh(LOG_BUFFER_SIZE).sub(Word.one());
+  protected static final Word BUFFER_MASK = Word.one().lsh(LOG_BUFFER_SIZE).minus(Word.one());
   protected static final int NEXT_FIELD_OFFSET = BYTES_IN_ADDRESS;
   protected static final int META_DATA_SIZE = 2*BYTES_IN_ADDRESS;
   protected static final int USABLE_BUFFER_BYTES = BUFFER_SIZE-META_DATA_SIZE;

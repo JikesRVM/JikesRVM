@@ -94,7 +94,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
    */
   public int locateGCPoint(Offset machCodeOffset, VM_Method method)  {
 
-    machCodeOffset = machCodeOffset.sub(1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
+    machCodeOffset = machCodeOffset.minus(1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
 
     if (VM.TraceStkMaps) {
@@ -112,7 +112,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     // get the first possible location
     for (int i = 0; i < mapCount; i++) {
       // get an initial non zero distance
-      distance = machCodeOffset.sub(MCSites[i]);
+      distance = machCodeOffset.minus(MCSites[i]);
       if (distance.sGE(Offset.zero())) {
         index = i;
         break;
@@ -120,7 +120,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     }
     // scan to find any better location ie closer to the site
     for(int i = index+1; i < mapCount; i++) {
-      Offset dist =  machCodeOffset.sub(MCSites[i]);
+      Offset dist =  machCodeOffset.minus(MCSites[i]);
       if (dist.sLT(Offset.zero())) continue;
       if (dist.sLE(distance)) {
         index = i;
@@ -136,11 +136,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       VM.sysWrite(referenceMaps[index]);
       VM.sysWrite( "\n");
       if (index - 1 >= 0) {
-        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index-1])); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset.minus(MCSites[index-1])); VM.sysWrite("\n");
       }
-      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index  ])); VM.sysWrite("\n");
+      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset.minus(MCSites[index  ])); VM.sysWrite("\n");
       if (index + 1 < MCSites.length) {
-        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index+1])); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset.minus(MCSites[index+1])); VM.sysWrite("\n");
       }
     }
 
@@ -774,7 +774,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     // from the unusual map and the frame - get the location of the jsr invoker
     //
     int jsrAddressOffset = unusualMap.getReturnAddressOffset();
-    Address callerAddress = frameAddress.add(jsrAddressOffset).loadAddress();
+    Address callerAddress = frameAddress.plus(jsrAddressOffset).loadAddress();
     // NOTE: -4 is subtracted when the map is determined ie locateGCpoint
 
     // from the invoker address and the code base address - get the machine
@@ -821,7 +821,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       //
       VM_UnusualMaps thisMap = jsrInfo.unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
-      Address nextCallerAddress = frameAddress.add(thisJsrAddressOffset).loadAddress();
+      Address nextCallerAddress = frameAddress.plus(thisJsrAddressOffset).loadAddress();
       Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 

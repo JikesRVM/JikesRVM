@@ -760,8 +760,8 @@ public final class VM_ObjectModel implements Uninterruptible,
                                       Address address, Extent size) throws InterruptiblePragma {
     while(size.GT(Extent.zero())) {
       bootImage.setFullWord(address, VM_JavaHeader.ALIGNMENT_VALUE);
-      address = address.add(BYTES_IN_INT);
-      size = size.sub(BYTES_IN_INT);
+      address = address.plus(BYTES_IN_INT);
+      size = size.minus(BYTES_IN_INT);
     }
   } 
 
@@ -802,7 +802,7 @@ public final class VM_ObjectModel implements Uninterruptible,
     int offset = getOffsetForAlignment(array);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
-    bootImage.setFullWord(ref.add(getArrayLengthOffset()), numElements);
+    bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;
@@ -828,7 +828,7 @@ public final class VM_ObjectModel implements Uninterruptible,
     int offset = getOffsetForAlignment(array);
     Address ptr = bootImage.allocateCodeStorage(size, align, offset);
     Address ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
-    bootImage.setFullWord(ref.add(getArrayLengthOffset()), numElements);
+    bootImage.setFullWord(ref.plus(getArrayLengthOffset()), numElements);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;

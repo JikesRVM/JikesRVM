@@ -88,7 +88,7 @@ public class LocalDeque extends LocalQueue
     throws InlinePragma {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
-    head = head.add(BYTES_IN_ADDRESS);
+    head = head.plus(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 

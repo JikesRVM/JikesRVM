@@ -242,7 +242,7 @@ class GenerateInterfaceDeclarations {
     Offset current = Offset.fromIntSignExtend(startOffset);
     for(int i = 0; current.sLT(fields[0].f.getOffset()); i++) {
       pln("  uint32_t    headerPadding" + i + ";\n");
-      current=current.add(4); 
+      current=current.plus(4); 
     }
     
     for (int i = 0; i<fields.length; i++) {
@@ -251,9 +251,9 @@ class GenerateInterfaceDeclarations {
       Offset offset = field.getOffset();
       String name = field.getName().toString();
       // Align by blowing 4 bytes if needed
-      if (needsAlign && current.add(4).EQ(offset)) {
+      if (needsAlign && current.plus(4).EQ(offset)) {
           pln("  uint32_t    padding" + i + ";");
-          current=current.add(4);
+          current=current.plus(4);
       }
       if (!current.EQ(offset)) { 
         p("current = ", current);
@@ -261,23 +261,23 @@ class GenerateInterfaceDeclarations {
         pln(" are neither identical not differ by 4");
       }
       if (t.isIntType()) {
-        current=current.add(4);
+        current=current.plus(4);
         p("   uint32_t " + name + ";\n");
       } else if (t.isLongType()) {
-        current=current.add(8);
+        current=current.plus(8);
         p("   uint64_t " + name + ";\n");
       } else if (t.isWordType()) {
         p("   VM_Address " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
         p("   VM_Address * " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
         p("   unsigned int * " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else if (t.isReferenceType()) {
         p("   JavaObject_t " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else {
         System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
         throw new RuntimeException("unexpected field type");

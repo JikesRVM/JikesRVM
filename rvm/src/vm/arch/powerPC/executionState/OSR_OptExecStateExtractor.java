@@ -53,10 +53,10 @@ public final class OSR_OptExecStateExtractor
 
     if (VM.VerifyAssertions) {
       int foocmid = VM_Magic.getIntAtOffset(stack, 
-                                methFPoff.add(STACKFRAME_METHOD_ID_OFFSET));
+                                methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       if (foocmid != cmid) {
-        for (Offset o =osrFPoff; o.sGE(methFPoff.sub(2*BYTES_IN_ADDRESS)); o=o.sub(BYTES_IN_ADDRESS)) {
-          VM.sysWriteHex(VM_Magic.objectAsAddress(stack).add(o));
+        for (Offset o =osrFPoff; o.sGE(methFPoff.minus(2*BYTES_IN_ADDRESS)); o=o.minus(BYTES_IN_ADDRESS)) {
+          VM.sysWriteHex(VM_Magic.objectAsAddress(stack).plus(o));
           VM.sysWrite(" : "); VM.sysWriteHex(VM_Magic.getWordAtOffset(stack, o).toAddress()); VM.sysWriteln();
         }
         
@@ -80,7 +80,7 @@ public final class OSR_OptExecStateExtractor
      */
     // get the next machine code offset of the real method
     VM.disableGC();
-    Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
+    Address methFP = VM_Magic.objectAsAddress(stack).plus(methFPoff);
     Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
@@ -97,7 +97,7 @@ public final class OSR_OptExecStateExtractor
 
     {
       int bufCMID = VM_Magic.getIntAtOffset(stack,
-                                 osrFPoff.add(STACKFRAME_METHOD_ID_OFFSET));
+                                 osrFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       VM_CompiledMethod bufCM = 
         VM_CompiledMethods.getCompiledMethod(bufCMID);
 
@@ -163,7 +163,7 @@ public final class OSR_OptExecStateExtractor
 
     VM_OptCompiledMethod tsfromCM = (VM_OptCompiledMethod)cm;
     
-    Offset nvArea = osrFPoff.add(tsfromCM.getUnsignedNonVolatileOffset());
+    Offset nvArea = osrFPoff.plus(tsfromCM.getUnsignedNonVolatileOffset());
     
     WordArray gprs = registers.gprs;
     double[] fprs = registers.fprs;
@@ -184,7 +184,7 @@ public final class OSR_OptExecStateExtractor
     for (int i=LAST_SCRATCH_GPR;
          i >= FIRST_VOLATILE_GPR;
          i--) {
-      lastVoffset = lastVoffset.sub(BYTES_IN_STACKSLOT);
+      lastVoffset = lastVoffset.minus(BYTES_IN_STACKSLOT);
       gprs.set(i, VM_Magic.objectAsAddress(stack).loadWord(lastVoffset));
     }
             
@@ -194,17 +194,17 @@ public final class OSR_OptExecStateExtractor
            i<=LAST_NONVOLATILE_GPR;
            i++) {
         gprs.set(i, VM_Magic.objectAsAddress(stack).loadWord(nvArea));
-        nvArea = nvArea.add(BYTES_IN_STACKSLOT);
+        nvArea = nvArea.plus(BYTES_IN_STACKSLOT);
       }
     }
 
     // recover CR, XER, and CTR
     cr  = VM_Magic.getIntAtOffset(stack, nvArea);
-    nvArea = nvArea.add(BYTES_IN_STACKSLOT);
+    nvArea = nvArea.plus(BYTES_IN_STACKSLOT);
     xer = VM_Magic.getIntAtOffset(stack, nvArea);
-    nvArea = nvArea.add(BYTES_IN_STACKSLOT);
+    nvArea = nvArea.plus(BYTES_IN_STACKSLOT);
     ctr = VM_Magic.getWordAtOffset(stack, nvArea);
-    nvArea = nvArea.add(BYTES_IN_STACKSLOT);
+    nvArea = nvArea.plus(BYTES_IN_STACKSLOT);
 
     /*
     // it should be aligned ready
@@ -220,7 +220,7 @@ public final class OSR_OptExecStateExtractor
          i++) {
       long lbits = VM_Magic.getLongAtOffset(stack, nvArea);
       fprs[i] = VM_Magic.longBitsAsDouble(lbits);
-      nvArea = nvArea.add(BYTES_IN_DOUBLE);
+      nvArea = nvArea.plus(BYTES_IN_DOUBLE);
     }   
 
     // convert addresses in registers to references 
@@ -464,7 +464,7 @@ public final class OSR_OptExecStateExtractor
     // ASSUMING, spill offset is offset to FP in bytes.
     } else if (vtype == SPILL) {
 
-      Offset offset = fpOffset.add(value + BYTES_IN_STACKSLOT - BYTES_IN_INT);
+      Offset offset = fpOffset.plus(value + BYTES_IN_STACKSLOT - BYTES_IN_INT);
       return VM_Magic.getIntAtOffset(stack, offset);
 
     } else {
@@ -496,8 +496,8 @@ public final class OSR_OptExecStateExtractor
       // it is on FOO's stackframe.
       // ASSUMING, spill offset is offset to FP in bytes.
       } else if (vtype == SPILL) {
-        long lvalue = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.add(valueHigh))) << 32;
-        return (lvalue | (((long)VM_Magic.getIntAtOffset(stack, fpOffset.add(valueLow))) & 0x0FFFFFFFFL));
+        long lvalue = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.plus(valueHigh))) << 32;
+        return (lvalue | (((long)VM_Magic.getIntAtOffset(stack, fpOffset.plus(valueLow))) & 0x0FFFFFFFFL));
       }
 
     } else if (VM.BuildFor64Addr) {
@@ -511,7 +511,7 @@ public final class OSR_OptExecStateExtractor
       // it is on FOO's stackframe.
       // ASSUMING, spill offset is offset to FP in bytes.
       } else if (vtype == SPILL) {
-        return VM_Magic.getLongAtOffset(stack, fpOffset.add(valueLow));
+        return VM_Magic.getLongAtOffset(stack, fpOffset.plus(valueLow));
       }
     } 
      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -526,7 +526,7 @@ public final class OSR_OptExecStateExtractor
     if (vtype == PHYREG) {
       return registers.fprs[value];
     } else if (vtype == SPILL) {
-      long lbits = VM_Magic.getLongAtOffset(stack, fpOffset.add(value));
+      long lbits = VM_Magic.getLongAtOffset(stack, fpOffset.plus(value));
       return VM_Magic.longBitsAsDouble(lbits);
     } else {
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -546,7 +546,7 @@ public final class OSR_OptExecStateExtractor
     } else if (vtype == PHYREG) {
       return registers.objs[value];
     } else if (vtype == SPILL) {
-      return VM_Magic.getObjectAtOffset(stack, fpOffset.add(value));
+      return VM_Magic.getObjectAtOffset(stack, fpOffset.plus(value));
     } else {
       VM.sysWrite("fatal error : ( vtype = "+vtype+" )\n");
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -561,7 +561,7 @@ public final class OSR_OptExecStateExtractor
     VM.enableGC();
 
     int cmid = VM_Magic.getIntAtOffset(stack, 
-                 fpOffset.add(STACKFRAME_METHOD_ID_OFFSET));
+                 fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
     VM_OptCompiledMethod cm = 
       (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
 
@@ -570,7 +570,7 @@ public final class OSR_OptExecStateExtractor
     VM.sysWrite("   first NV GPR "+cm.getFirstNonVolatileGPR()+"\n");
     VM.sysWrite("   first NV FPR "+cm.getFirstNonVolatileFPR()+"\n");
 
-    for (int i=0; fpOffset.sLT(upOffset); i+=BYTES_IN_STACKSLOT, fpOffset = fpOffset.add(BYTES_IN_STACKSLOT)) {
+    for (int i=0; fpOffset.sLT(upOffset); i+=BYTES_IN_STACKSLOT, fpOffset = fpOffset.plus(BYTES_IN_STACKSLOT)) {
       Word content = VM_Magic.getWordAtOffset(stack, fpOffset);
       VM.sysWrite("    0x");
       VM.sysWrite(content);
@@ -584,7 +584,7 @@ public final class OSR_OptExecStateExtractor
     int cmid = STACKFRAME_SENTINEL_FP.toInt();
     do {
       cmid = VM_Magic.getIntAtOffset(stack, 
-                                       fpOffset.add(STACKFRAME_METHOD_ID_OFFSET));
+                                       fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
       if (cmid == INVISIBLE_METHOD_ID) {
         VM.sysWriteln(" invisible method ");
       } else {
@@ -593,7 +593,7 @@ public final class OSR_OptExecStateExtractor
       }
       VM.disableGC();
       Address callerfp = VM_Magic.objectAsAddress(stack).loadAddress(
-                               fpOffset.add(STACKFRAME_FRAME_POINTER_OFFSET));
+                               fpOffset.plus(STACKFRAME_FRAME_POINTER_OFFSET));
       fpOffset = callerfp.diff(VM_Magic.objectAsAddress(stack));
       VM.enableGC();
     } while (cmid != STACKFRAME_SENTINEL_FP.toInt());

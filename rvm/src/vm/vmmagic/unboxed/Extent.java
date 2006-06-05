@@ -110,22 +110,22 @@ public final class Extent implements Uninterruptible {
     return new Word(value);
   }
 
-  public Extent add (int byteSize) throws UninterruptibleNoWarnPragma {
+  public Extent plus(int byteSize) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value + byteSize);
   }
 
-  public Extent sub (int byteSize) throws UninterruptibleNoWarnPragma {
-    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new Extent(value - byteSize);
-  }
-
-  public Extent add (Extent byteSize) throws UninterruptibleNoWarnPragma {
+  public Extent plus(Extent byteSize) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value + byteSize.value);
   }
 
-  public Extent sub (Extent byteSize) throws UninterruptibleNoWarnPragma {
+  public Extent minus(int byteSize) throws UninterruptibleNoWarnPragma {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return new Extent(value - byteSize);
+  }
+
+  public Extent minus(Extent byteSize) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value - byteSize.value);
   }

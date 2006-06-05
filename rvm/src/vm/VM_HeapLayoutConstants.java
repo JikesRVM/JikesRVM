@@ -47,9 +47,9 @@ public interface VM_HeapLayoutConstants {
   public static final int BOOT_IMAGE_CODE_SIZE = 24<<20;
 
   /** The address of the end of the data section of the boot image. */
-  public static final Address BOOT_IMAGE_DATA_END = BOOT_IMAGE_DATA_START.add(BOOT_IMAGE_DATA_SIZE);
+  public static final Address BOOT_IMAGE_DATA_END = BOOT_IMAGE_DATA_START.plus(BOOT_IMAGE_DATA_SIZE);
   /** The address of the end of the code section of the boot image. */
-  public static final Address BOOT_IMAGE_CODE_END = BOOT_IMAGE_CODE_START.add(BOOT_IMAGE_CODE_SIZE);
+  public static final Address BOOT_IMAGE_CODE_END = BOOT_IMAGE_CODE_START.plus(BOOT_IMAGE_CODE_SIZE);
   /** The address of the end of the boot image. */
   public static final Address BOOT_IMAGE_END = BOOT_IMAGE_CODE_END;
 

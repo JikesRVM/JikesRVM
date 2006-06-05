@@ -45,7 +45,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
 
     VM.disableGC();
 
-    Address fp = VM_Magic.objectAsAddress(stack).add(osrFPoff);
+    Address fp = VM_Magic.objectAsAddress(stack).plus(osrFPoff);
     Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){

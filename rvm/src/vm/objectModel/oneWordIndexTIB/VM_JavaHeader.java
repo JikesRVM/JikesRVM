@@ -72,7 +72,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       }
     }      
     int offset = (tibWord & TIB_MASK) >>> (TIB_SHIFT - 2);
-    return VM_Magic.addressAsObjectArray(VM_Magic.getTocPointer().add(offset).loadAddress());
+    return VM_Magic.addressAsObjectArray(VM_Magic.getTocPointer().plus(offset).loadAddress());
   }
   
   /**

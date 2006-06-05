@@ -177,17 +177,17 @@ public class BootImage extends BootImageWriterMessages
     Offset unalignedOffset = freeDataOffset;
     freeDataOffset = MM_Interface.alignAllocation(freeDataOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeDataOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeDataOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
       VM._assert(freeDataOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeDataOffset;
-    freeDataOffset = freeDataOffset.add(size);
+    freeDataOffset = freeDataOffset.plus(size);
     if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
 
-    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.add(unalignedOffset), 
-                                    lowAddr.sub(unalignedOffset).toWord().toExtent());
-    return BOOT_IMAGE_DATA_START.add(lowAddr);
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset), 
+                                    lowAddr.minus(unalignedOffset).toWord().toExtent());
+    return BOOT_IMAGE_DATA_START.plus(lowAddr);
   }
 
   /**
@@ -210,18 +210,18 @@ public class BootImage extends BootImageWriterMessages
     Offset unalignedOffset = freeCodeOffset;
     freeCodeOffset = MM_Interface.alignAllocation(freeCodeOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeCodeOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeCodeOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
       VM._assert(freeCodeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeCodeOffset;
-    freeCodeOffset = freeCodeOffset.add(size);
+    freeCodeOffset = freeCodeOffset.plus(size);
     if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
 
-    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.add(unalignedOffset), 
-                                    lowAddr.sub(unalignedOffset).toWord().toExtent());
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset), 
+                                    lowAddr.minus(unalignedOffset).toWord().toExtent());
     
-    return BOOT_IMAGE_CODE_START.add(lowAddr);
+    return BOOT_IMAGE_CODE_START.plus(lowAddr);
   }
 
   /**

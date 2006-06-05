@@ -279,8 +279,8 @@ public abstract class GenLocal extends StopTheWorldLocal
                                     int bytes) throws InlinePragma {
     // We can ignore when src is in old space, right?
     if (dst.toAddress().LT(Gen.NURSERY_START))
-      arrayRemset.insert(dst.toAddress().add(dstOffset),
-                         dst.toAddress().add(dstOffset.add(bytes)));
+      arrayRemset.insert(dst.toAddress().plus(dstOffset),
+                         dst.toAddress().plus(dstOffset.plus(bytes)));
     return false;
   }
 

@@ -80,8 +80,8 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   private static final Word nodeMask;
   static {
     Word mask = Word.one();
-    while (mask.LT(HEADER_SIZE.add(MAX_BYTES_PADDING).toWord())) mask = mask.lsh(1);
-    nodeMask = mask.sub(Word.one()).not();
+    while (mask.LT(HEADER_SIZE.plus(MAX_BYTES_PADDING).toWord())) mask = mask.lsh(1);
+    nodeMask = mask.minus(Word.one()).not();
   }
 
   public final Object getOwner() {
@@ -101,11 +101,11 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   }
 
   static public final Address nodeToPayload(Address node) throws InlinePragma {
-    return node.add(HEADER_SIZE);
+    return node.plus(HEADER_SIZE);
   }
 
   static public final Address payloadToNode(Address payload) throws InlinePragma {
-    return payload.sub(HEADER_SIZE);
+    return payload.minus(HEADER_SIZE);
   }
 
   static public final Address midPayloadToNode(Address payload) throws InlinePragma {

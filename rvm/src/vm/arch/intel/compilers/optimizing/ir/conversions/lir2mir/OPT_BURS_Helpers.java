@@ -175,7 +175,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   private OPT_MemoryOperand loadFromJTOC(Offset offset) {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
-    return OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset),
+    return OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset),
                                (byte)4, loc, guard);
   }
 
@@ -324,7 +324,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     EMIT(MIR_BinaryAcc.create(IA32_SUB, result.copy(), new OPT_RegisterOperand(subtractee, VM_TypeReference.Int)));
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
-    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.maxintField.getOffset()),
+    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(VM_Entrypoints.maxintField.getOffset()),
                             QW, null, null);
     EMIT(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MAX_VALUE; myFP1 = value
@@ -337,7 +337,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                                     OPT_IA32ConditionOperand.LLT()));
     
     // Compare myFP0 with (double)Integer.MIN_VALUE
-    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.minintField.getOffset()),
+    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(VM_Entrypoints.minintField.getOffset()),
                             QW, null, null);
     EMIT(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MIN_VALUE; myFP1 = value

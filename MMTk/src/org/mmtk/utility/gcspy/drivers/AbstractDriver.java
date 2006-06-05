@@ -80,8 +80,8 @@ abstract public class AbstractDriver implements Uninterruptible {
 
     for (int i = 0; i < numTiles; ++i) {
       if (subspace.indexInRange(i))
-        space.setTilename(i, start.add((i - first) * bs),
-                             start.add((i + 1 - first) * bs));
+        space.setTilename(i, start.plus((i - first) * bs),
+                             start.plus((i + 1 - first) * bs));
     }
   }
 
@@ -174,7 +174,7 @@ abstract public class AbstractDriver implements Uninterruptible {
    * @param extent the extent of the space
    */
   public void setRange(Address start, Extent extent) {
-    setRange(start, start.add(extent));
+    setRange(start, start.plus(extent));
   }
 
   /**

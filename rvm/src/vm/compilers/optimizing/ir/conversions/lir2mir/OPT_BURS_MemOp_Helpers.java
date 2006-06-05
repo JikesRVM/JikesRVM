@@ -93,7 +93,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       }
     } else {
       int disp = ((OPT_IntConstantOperand)op).value;
-      AddrStack.displacement = AddrStack.displacement.add(disp);
+      AddrStack.displacement = AddrStack.displacement.plus(disp);
     }
   }
   protected final void combineAddresses() {
@@ -122,7 +122,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
         throw new OPT_OptimizingCompilerException("two scaled registers in address");
       }
     }
-    AddrStack.displacement = AddrStack.displacement.add(tmp.displacement);
+    AddrStack.displacement = AddrStack.displacement.plus(tmp.displacement);
   }
   protected final OPT_MemoryOperand consumeAddress(byte size, 
                                          OPT_LocationOperand loc,
@@ -242,13 +242,13 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
                                        OPT_Operand guard) {
     if (base instanceof OPT_IntConstantOperand) {
       if (offset instanceof OPT_IntConstantOperand) {
-        return MO_D(disp.add(IV(base)+IV(offset)), size, loc, guard);
+        return MO_D(disp.plus(IV(base)+IV(offset)), size, loc, guard);
       } else {
-        return MO_BD(offset, disp.add(IV(base)), size, loc, guard);
+        return MO_BD(offset, disp.plus(IV(base)), size, loc, guard);
       }
     } else {
       if (offset instanceof OPT_IntConstantOperand) {
-        return MO_BD(base, disp.add(IV(offset)), size, loc, guard);
+        return MO_BD(base, disp.plus(IV(offset)), size, loc, guard);
       } else {
         return MO_BID(base, offset, disp, size, loc, guard);
       }
@@ -262,7 +262,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
                                              OPT_LocationOperand loc,
                                              OPT_Operand guard) {
     if (index instanceof OPT_IntConstantOperand) {
-      return MO_BD(base, disp.add(IV(index)<<scale), size, loc, guard);
+      return MO_BD(base, disp.plus(IV(index)<<scale), size, loc, guard);
     } else {
       return new OPT_MemoryOperand(R(base), R(index), scale, 
                                    disp, size, loc, guard);
@@ -319,7 +319,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       Offset offset = fc.offset;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
-        return MO_D(offset.add(IV(base)), DW, loc, TG());
+        return MO_D(offset.plus(IV(base)), DW, loc, TG());
       } else {
         return MO_BD(Binary.getVal1(s), offset, DW, loc, TG());
       }
@@ -328,7 +328,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       Offset offset = dc.offset;
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
-        return MO_D(offset.add(IV(base)), QW, loc, TG());
+        return MO_D(offset.plus(IV(base)), QW, loc, TG());
       } else {
         return MO_BD(Binary.getVal1(s), dc.offset, QW, loc, TG());
       }

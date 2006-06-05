@@ -71,10 +71,10 @@ public abstract class SegregatedFreeList extends Allocator
   private static final int BYTES_PER_LIVE_WORD = 1<<(LOG_BIT_COVERAGE+LOG_BITS_IN_WORD);
   private static final int LOG_LIVE_COVERAGE = LOG_BIT_COVERAGE + LOG_BITS_IN_BYTE;
   private static final int LIVE_BYTES_PER_REGION = 1<<(EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_LIVE_COVERAGE);
-  private static final Word WORD_SHIFT_MASK = Word.one().lsh(LOG_BITS_IN_WORD).sub(Extent.one());
+  private static final Word WORD_SHIFT_MASK = Word.one().lsh(LOG_BITS_IN_WORD).minus(Extent.one());
   private static final int LOG_LIVE_WORD_STRIDE = LOG_LIVE_COVERAGE + LOG_BYTES_IN_WORD;
   private static final Extent LIVE_WORD_STRIDE = Extent.fromIntSignExtend(1<<LOG_LIVE_WORD_STRIDE);
-  private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.sub(1).toWord().not();
+  private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.minus(1).toWord().not();
   private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
   public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
   
@@ -281,10 +281,10 @@ public abstract class SegregatedFreeList extends Allocator
     installNewBlock(block, sizeClass);
 
     int cellExtent = cellSize[sizeClass];
-    Address cursor = block.add(blockHeaderSize[sizeClass]);
+    Address cursor = block.plus(blockHeaderSize[sizeClass]);
     int blockSize = BlockAllocator.blockSize(blockSizeClass[sizeClass]);
     int useableBlockSize = blockSize - blockHeaderSize[sizeClass];
-    Address sentinel = block.add(blockSize);
+    Address sentinel = block.plus(blockSize);
     Address lastCell = Address.zero();
     int cellCount = 0;
 
@@ -292,10 +292,10 @@ public abstract class SegregatedFreeList extends Allocator
     Memory.zero(cursor, Extent.fromIntZeroExtend(useableBlockSize));
 
     // construct the free list
-    while (cursor.add(cellExtent).LE(sentinel)) {
+    while (cursor.plus(cellExtent).LE(sentinel)) {
       setNextCell(cursor, lastCell); 
       lastCell = cursor;
-      cursor = cursor.add(cellExtent);
+      cursor = cursor.plus(cellExtent);
       cellCount++;
     }
 
@@ -764,9 +764,9 @@ public abstract class SegregatedFreeList extends Allocator
   public static final void zeroLiveBits(Address start, Address end) {
     Extent bytes = Extent.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
     while (start.LT(end)) {
-      Address metadata = EmbeddedMetaData.getMetaDataBase(start).add(SegregatedFreeList.META_DATA_OFFSET);
+      Address metadata = EmbeddedMetaData.getMetaDataBase(start).plus(SegregatedFreeList.META_DATA_OFFSET);
       Memory.zero(metadata, bytes);
-      start = start.add(EmbeddedMetaData.BYTES_IN_REGION);
+      start = start.plus(EmbeddedMetaData.BYTES_IN_REGION);
     }
   }
 
@@ -802,7 +802,7 @@ public abstract class SegregatedFreeList extends Allocator
     int liveWords = 0;
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(alignToLiveStride(block).EQ(block));
     Address cursor = getLiveWordAddress(block);
-    Address sentinel = getLiveWordAddress(block.add(blockSize.sub(1)));
+    Address sentinel = getLiveWordAddress(block.plus(blockSize.minus(1)));
     while (cursor.LE(sentinel)) {
       Word live = cursor.loadWord();
       if (!live.isZero()) {
@@ -811,7 +811,7 @@ public abstract class SegregatedFreeList extends Allocator
         else
           return 1;
       }
-      cursor = cursor.add(BYTES_IN_WORD);
+      cursor = cursor.plus(BYTES_IN_WORD);
     }
     return liveWords;
   }
@@ -828,11 +828,11 @@ public abstract class SegregatedFreeList extends Allocator
                                                       int sizeClass)
     throws InlinePragma {
     Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
-    Address cellCursor = block.add(blockHeaderSize[sizeClass]);
+    Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
     Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
-    Address end = block.add(blockSize);
+    Address end = block.plus(blockSize);
     Address nextFree = Address.zero();
-    Address nextCellCursor = cellCursor.add(cellBytes);
+    Address nextCellCursor = cellCursor.plus(cellBytes);
     Address liveCursor = alignToLiveStride(cellCursor);
     Address liveWordCursor = getLiveWordAddress(liveCursor);
     boolean isLive = false;
@@ -842,19 +842,19 @@ public abstract class SegregatedFreeList extends Allocator
         for (int i=0; i < BITS_IN_WORD; i++) {
           if (!(live.and(Word.one().lsh(i)).isZero()))
             isLive = true;
-          liveCursor = liveCursor.add(BYTES_PER_LIVE_BIT);
+          liveCursor = liveCursor.plus(BYTES_PER_LIVE_BIT);
           if (liveCursor.GE(nextCellCursor)) {
             if (!isLive) {
               free(cellCursor, block, sizeClass, nextFree);
               nextFree = cellCursor;
             }
             cellCursor = nextCellCursor;
-            nextCellCursor = nextCellCursor.add(cellBytes);
+            nextCellCursor = nextCellCursor.plus(cellBytes);
             isLive = false;
           }
         }
       } else {
-        liveCursor = liveCursor.add(BYTES_PER_LIVE_WORD);
+        liveCursor = liveCursor.plus(BYTES_PER_LIVE_WORD);
         while (liveCursor.GE(nextCellCursor)) {
           //      while (nextCellCursor.LT(liveCursor)) {
           if (!isLive) {
@@ -862,11 +862,11 @@ public abstract class SegregatedFreeList extends Allocator
             nextFree = cellCursor;
           }
           cellCursor = nextCellCursor;
-          nextCellCursor = nextCellCursor.add(cellBytes);
+          nextCellCursor = nextCellCursor.plus(cellBytes);
           isLive = false;
         }
       }
-      liveWordCursor = liveWordCursor.add(BYTES_IN_WORD);
+      liveWordCursor = liveWordCursor.plus(BYTES_IN_WORD);
     }
     return nextFree;
   }
@@ -907,7 +907,7 @@ public abstract class SegregatedFreeList extends Allocator
   protected static final Address getLiveWordAddress(Address address)
     throws InlinePragma {
     Address rtn = EmbeddedMetaData.getMetaDataBase(address);
-    return rtn.add(META_DATA_OFFSET).add(EmbeddedMetaData.getMetaDataOffset(address, LOG_LIVE_COVERAGE, LOG_BYTES_IN_WORD));
+    return rtn.plus(META_DATA_OFFSET).plus(EmbeddedMetaData.getMetaDataOffset(address, LOG_LIVE_COVERAGE, LOG_BYTES_IN_WORD));
   }
 
   /****************************************************************************

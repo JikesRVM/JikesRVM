@@ -88,7 +88,7 @@ public class TraceBuffer extends LocalQueue
       /* For speed and efficiency, we will actually process the data buffer by 
          buffer and not by dequeue-ing each entry. */
       while (!bufferOffset(head).isZero()) {
-        head = head.sub(BYTES_IN_ADDRESS);
+        head = head.minus(BYTES_IN_ADDRESS);
         Word val = head.loadWord();
         if (traceState.EQ(TRACE_NEW_RECORD)) {
           if (val.EQ(TRACE_GCSTART)) {

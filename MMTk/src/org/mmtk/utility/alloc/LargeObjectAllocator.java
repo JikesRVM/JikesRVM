@@ -99,7 +99,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
     int pages = (maxbytes + BYTES_IN_PAGE - 1) >>LOG_BYTES_IN_PAGE;
     Address sp = space.acquire(pages);
     if (sp.isZero()) return sp;
-    Address cell = sp.add(header);
+    Address cell = sp.plus(header);
     return cell;
   }
 

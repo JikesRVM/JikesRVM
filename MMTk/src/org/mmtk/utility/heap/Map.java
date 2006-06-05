@@ -66,17 +66,17 @@ public class Map implements Constants, Uninterruptible {
                             Space space) throws InterruptiblePragma {
     Extent e = Extent.zero();
     while (e.LT(extent)) {
-      int index = hashAddress(start.add(e));
+      int index = hashAddress(start.plus(e));
       if (descriptorMap[index] != 0) {
         Log.write("Conflicting virtual address request for space \"");
         Log.write(space.getName()); Log.write("\" at ");
-        Log.writeln(start.add(e));
+        Log.writeln(start.plus(e));
         Space.printVMMap();
         Assert.fail("exiting");
       }
       descriptorMap[index] = descriptor;
       spaceMap[index] = space;
-      e = e.add(Space.BYTES_IN_CHUNK);
+      e = e.plus(Space.BYTES_IN_CHUNK);
     }
   }
 

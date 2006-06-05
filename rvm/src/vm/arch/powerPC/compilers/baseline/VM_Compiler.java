@@ -1554,7 +1554,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       popInt(T0);               // TO is X  (an int)
       asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
       asm.emitSTFDoffset(F0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset());
-      asm.emitSTWoffset (T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().add(4));
+      asm.emitSTWoffset (T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().plus(4));
       asm.emitCMPI  (T0,  0);                // is X < 0
       VM_ForwardReference fr = asm.emitForwardBC(GE);
       asm.emitLIntOffset (T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset());
@@ -1632,7 +1632,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       pushLowDoubleAsInt(F0);
     } else {
       asm.emitSTFDoffset(F0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset());
-      asm.emitLIntOffset(T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().add(4));
+      asm.emitLIntOffset(T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().plus(4));
       pushInt       (T0);
     }
     VM_ForwardReference fr2 = asm.emitForwardB();
@@ -4107,7 +4107,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       } // else no-op
     } else if (methodName == VM_MagicNames.wordFromLong) {
       discardSlot();
-    } else if (methodName == VM_MagicNames.wordAdd) {
+    } else if (methodName == VM_MagicNames.wordPlus) {
       if (VM.BuildFor64Addr && (methodToBeCalled.getParameterTypes()[0] == VM_TypeReference.Int)){
         popInt(T0);
       } else {
@@ -4116,7 +4116,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1);
       asm.emitADD (T2, T1, T0);
       pushAddr(T2);
-    } else if (methodName == VM_MagicNames.wordSub ||
+    } else if (methodName == VM_MagicNames.wordMinus ||
                methodName == VM_MagicNames.wordDiff) {
       if (VM.BuildFor64Addr && (methodToBeCalled.getParameterTypes()[0] == VM_TypeReference.Int)){
         popInt(T0);

@@ -39,7 +39,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
   //
   public static void ensureMapped(Address start, int pages) {
     int startChunk = Conversions.addressToMmapChunksDown(start);
-    int endChunk = Conversions.addressToMmapChunksUp(start.add(Conversions.pagesToBytes(pages)));
+    int endChunk = Conversions.addressToMmapChunksUp(start.plus(Conversions.pagesToBytes(pages)));
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) continue;
       Address mmapStart = Conversions.mmapChunksToAddress(chunk);
@@ -159,7 +159,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
 
   public static void boot (Address bootStart, int bootSize) {
     int startChunk = Conversions.addressToMmapChunksDown(bootStart);
-    int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
+    int endChunk = Conversions.addressToMmapChunksDown(bootStart.plus(bootSize));
     for (int i=startChunk; i<=endChunk; i++)
       mapped[i] = MAPPED;
   }

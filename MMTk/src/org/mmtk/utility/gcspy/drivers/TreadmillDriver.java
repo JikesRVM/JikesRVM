@@ -242,7 +242,7 @@ public class TreadmillDriver extends AbstractDriver
     totalUsedSpace += length;
     distributeSpace(tiles, subspace, subspace.getBlockSize(),
                     LOS_USED_SPACE_STREAM, addr, length);
-    Address tmp = addr.add(length);
+    Address tmp = addr.plus(length);
     if (tmp.GT(maxAddr)) maxAddr = tmp;
   }
 

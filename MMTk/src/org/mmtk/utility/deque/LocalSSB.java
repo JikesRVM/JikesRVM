@@ -117,7 +117,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    */
   protected final void uncheckedTailInsert(Address value) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
-    tail = tail.sub(BYTES_IN_ADDRESS);
+    tail = tail.minus(BYTES_IN_ADDRESS);
     tail.store(value);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
@@ -137,11 +137,11 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
   protected final Address normalizeTail(int arity) {
     Address src = tail;
     Address tgt = bufferFirst(tail);
-    Address last = tgt.add(bufferLastOffset(arity).sub(bufferOffset(tail)));
+    Address last = tgt.plus(bufferLastOffset(arity).minus(bufferOffset(tail)));
     while(tgt.LE(last)) {
       tgt.store(src.loadAddress());
-      src = src.add(BYTES_IN_ADDRESS);
-      tgt = tgt.add(BYTES_IN_ADDRESS);
+      src = src.plus(BYTES_IN_ADDRESS);
+      tgt = tgt.plus(BYTES_IN_ADDRESS);
     }
     return last;
   }
@@ -154,7 +154,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * @return The sentinel offset value for a buffer of the given arity.
    */
   protected final Offset bufferSentinel(int arity) throws InlinePragma {
-    return bufferLastOffset(arity).add(BYTES_IN_ADDRESS);
+    return bufferLastOffset(arity).plus(BYTES_IN_ADDRESS);
   }
 
   /****************************************************************************
@@ -173,7 +173,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
     if (tail.NE(Deque.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }
-    tail = queue.alloc().add(bufferSentinel(arity));
+    tail = queue.alloc().plus(bufferSentinel(arity));
     tailBufferEnd = tail;
     Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
@@ -191,8 +191,8 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
       last = normalizeTail(arity);
     } else {
       // a full tail buffer
-      last = tail.add(bufferLastOffset(arity));
+      last = tail.plus(bufferLastOffset(arity));
     }
-    queue.enqueue(last.add(BYTES_IN_ADDRESS), arity, true);
+    queue.enqueue(last.plus(BYTES_IN_ADDRESS), arity, true);
   }
 }

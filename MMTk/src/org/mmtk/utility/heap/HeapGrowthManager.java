@@ -130,7 +130,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
    * @param size number of bytes to grow the heap
    */
   public static void overrideGrowHeapSize(Extent size) {
-    currentHeapSize = currentHeapSize.add(size);
+    currentHeapSize = currentHeapSize.plus(size);
   }
   
   /**
@@ -162,7 +162,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     double ratio = computeHeapChangeRatio(liveRatio);
     Extent newSize = Word.fromIntSignExtend((int)(ratio * (double) (oldSize.toLong()>>LOG_BYTES_IN_MBYTE))).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // do arith in MB to avoid overflow
     if (newSize.LT(reserved)) newSize = reserved;
-    newSize = newSize.add(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
+    newSize = newSize.plus(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
     if (newSize.GT(maxHeapSize)) newSize = maxHeapSize;
     if (newSize.NE(oldSize)) {
       // Heap size is going to change

@@ -141,7 +141,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
         deltaIns = (b3 << 8) | b4;
       }
       bcIndex += deltaBC;
-      instrIndex = instrIndex.add(deltaIns);
+      instrIndex = instrIndex.plus(deltaIns);
       if (instrIndex.sGE(instructionIndex))
         break;
       candidateIndex = bcIndex;

@@ -156,7 +156,7 @@ public class Subspace implements  Uninterruptible {
    * @return The address of the start of the tile
    */
   public Address getAddress(int index) {
-    return start_.add(index - firstIndex_ * blockSize_);
+    return start_.plus(index - firstIndex_ * blockSize_);
   }
 
   /**
@@ -197,7 +197,7 @@ public class Subspace implements  Uninterruptible {
    */
   public int spaceRemaining(Address addr) {
     int nextIndex = getIndex(addr) + 1;
-    Address nextTile = start_.add(blockSize_ * (nextIndex - firstIndex_));
+    Address nextTile = start_.plus(blockSize_ * (nextIndex - firstIndex_));
     return nextTile.diff(addr).toInt();
   }
 

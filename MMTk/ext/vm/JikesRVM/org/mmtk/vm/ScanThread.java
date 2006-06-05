@@ -669,7 +669,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     Address start,end;
     if (VM.BuildForIA32) {
       if (prevFp.isZero()) {
-        start = fp.sub(20*BYTES_IN_ADDRESS);
+        start = fp.minus(20*BYTES_IN_ADDRESS);
         Log.writeln("--- 20 words of stack frame with fp = ", fp);
       } else {
         start = prevFp;    // start at callee fp
@@ -680,7 +680,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
       end = fp.loadAddress();   // stop at callers fp
     }
       
-    for (Address loc = start; loc.LT(end); loc = loc.add(BYTES_IN_ADDRESS)) {
+    for (Address loc = start; loc.LT(end); loc = loc.plus(BYTES_IN_ADDRESS)) {
       Log.write(loc); Log.write(" (");
       Log.write(loc.diff(start));
       ObjectReference value = loc.loadObjectReference();

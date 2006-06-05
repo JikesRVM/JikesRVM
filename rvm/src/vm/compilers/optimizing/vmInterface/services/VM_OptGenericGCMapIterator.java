@@ -446,7 +446,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       ref2 = ref1;
     }
 
-    for (Address i = ref1.add(BYTES_IN_ADDRESS); i.LT(ref2); i = i.add(BYTES_IN_ADDRESS)) {
+    for (Address i = ref1.plus(BYTES_IN_ADDRESS); i.LT(ref2); i = i.plus(BYTES_IN_ADDRESS)) {
       Address ptr = i.loadAddress();
       if (DEBUG) {
         VM.sysWrite(" Inspecting Spill: ");

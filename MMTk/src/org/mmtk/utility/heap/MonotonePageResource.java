@@ -53,7 +53,7 @@ public final class MonotonePageResource extends PageResource
                               Extent bytes) {
     super(pageBudget, space, start);
     this.cursor = start;
-    this.sentinel = start.add(bytes);
+    this.sentinel = start.plus(bytes);
   }
 
   /**
@@ -95,7 +95,7 @@ public final class MonotonePageResource extends PageResource
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(contiguous);
     lock();
     Extent bytes = Conversions.pagesToBytes(pages);
-    Address tmp = cursor.add(bytes);
+    Address tmp = cursor.plus(bytes);
     if (tmp.GT(sentinel)) {
       unlock();
       return Address.zero();

@@ -138,7 +138,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     Address start = VM_ObjectModel.objectStartRef(to);
     Allocator.fillAlignmentGap(region, start);
     
-    return start.add(bytes);
+    return start.plus(bytes);
   }
 
   /**

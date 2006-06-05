@@ -37,7 +37,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   private static Word roundDown(Word value, int logBase) {
-    Word mask = Word.one().lsh(logBase).sub(Word.one()).not();
+    Word mask = Word.one().lsh(logBase).minus(Word.one()).not();
     return value.and(mask);
   }
 
@@ -51,7 +51,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   public static int bytesToMmapChunksUp(Extent bytes) {
-    return bytes.add(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toInt();
+    return bytes.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toInt();
   }
 
   public static int pagesToMmapChunksUp(int pages) {
@@ -79,7 +79,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   public static int addressToMmapChunksUp (Address addr) {
-    Word chunk = addr.add(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
+    Word chunk = addr.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
     return chunk.toInt();
   }
 
@@ -110,7 +110,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
   
   public static int bytesToPagesUp(Extent bytes) {
-    return bytes.add(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }
   
   public static int bytesToPages(Extent bytes) {

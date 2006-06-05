@@ -101,7 +101,7 @@ public class VM extends VM_Properties
     //
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
-    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
+    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).plus(STACK_SIZE_GUARD);
     currentThread.isBootThread = true;
     
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
@@ -1384,7 +1384,7 @@ public class VM extends VM_Properties
 
     // 1.
     //
-    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED)
+    if (VM_Magic.getFramePointer().minus(STACK_SIZE_GCDISABLED)
         .LT(myThread.stackLimit) 
         && !myThread.hasNativeStackFrame()) 
       {

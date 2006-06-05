@@ -54,7 +54,7 @@ public final class OSR_OptExecStateExtractor
 
     if (VM.VerifyAssertions) {
       int foocmid = VM_Magic.getIntAtOffset(stack, 
-                                            methFPoff.add(STACKFRAME_METHOD_ID_OFFSET));
+                                            methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       if (foocmid != cmid) {
         VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
         VM.sysWriteln("unmatch method, it should be "+cm.getMethod());
@@ -82,7 +82,7 @@ public final class OSR_OptExecStateExtractor
 
     // get the next machine code offset of the real method
     VM.disableGC();
-    Address osrFP = VM_Magic.objectAsAddress(stack).add(osrFPoff);
+    Address osrFP = VM_Magic.objectAsAddress(stack).plus(osrFPoff);
     Address nextIP = VM_Magic.getReturnAddress(osrFP);
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
@@ -99,7 +99,7 @@ public final class OSR_OptExecStateExtractor
 
     {
       int bufCMID = VM_Magic.getIntAtOffset(stack,
-                                            osrFPoff.add(STACKFRAME_METHOD_ID_OFFSET));
+                                            osrFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
       VM_CompiledMethod bufCM = 
         VM_CompiledMethods.getCompiledMethod(bufCMID);
 
@@ -190,7 +190,7 @@ public final class OSR_OptExecStateExtractor
              i >= firstNonVolatile; 
              i--) {
       gprs.set(NONVOLATILE_GPRS[i], 
-               VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.sub(nonVolatileOffset)));
+               VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(nonVolatileOffset)));
       nonVolatileOffset -= BYTES_IN_STACKSLOT;
     }
 
@@ -200,7 +200,7 @@ public final class OSR_OptExecStateExtractor
              i >= 0;
              i --) {
       gprs.set(VOLATILE_GPRS[i], 
-               VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.sub(volatileOffset)));
+               VM_Magic.objectAsAddress(stack).loadWord(osrFPoff.minus(volatileOffset)));
       volatileOffset -= BYTES_IN_STACKSLOT;
     }
 
@@ -461,7 +461,7 @@ public final class OSR_OptExecStateExtractor
     // ASSUMING, spill offset is offset to FP in bytes.
     } else if (vtype == SPILL) {
 
-      return VM_Magic.getIntAtOffset(stack, fpOffset.sub(value));
+      return VM_Magic.getIntAtOffset(stack, fpOffset.minus(value));
 
     } else {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -492,8 +492,8 @@ public final class OSR_OptExecStateExtractor
       // it is on FOO's stackframe.
       // ASSUMING, spill offset is offset to FP in bytes.
       } else if (vtype == SPILL) {
-        long lvalue = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.sub(valueHigh))) << 32;
-        return (lvalue | (((long)VM_Magic.getIntAtOffset(stack, fpOffset.sub(valueLow))) & 0x0FFFFFFFFL));
+        long lvalue = ((long)VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueHigh))) << 32;
+        return (lvalue | (((long)VM_Magic.getIntAtOffset(stack, fpOffset.minus(valueLow))) & 0x0FFFFFFFFL));
       }
 
     } else if (VM.BuildFor64Addr) {
@@ -507,7 +507,7 @@ public final class OSR_OptExecStateExtractor
       // it is on FOO's stackframe.
       // ASSUMING, spill offset is offset to FP in bytes.
       } else if (vtype == SPILL) {
-        return VM_Magic.getLongAtOffset(stack, fpOffset.sub(valueLow));
+        return VM_Magic.getLongAtOffset(stack, fpOffset.minus(valueLow));
       }
     } 
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
@@ -524,7 +524,7 @@ public final class OSR_OptExecStateExtractor
 
     } else if (vtype == SPILL) {
 
-      long lbits = VM_Magic.getLongAtOffset(stack, fpOffset.sub(value));
+      long lbits = VM_Magic.getLongAtOffset(stack, fpOffset.minus(value));
       return VM_Magic.longBitsAsDouble(lbits);
       //KV:TODO: why not use getDoubleAtOffset ???
 
@@ -548,7 +548,7 @@ public final class OSR_OptExecStateExtractor
       return registers.objs[value];
 
     } else if (vtype == SPILL) {
-      return VM_Magic.getObjectAtOffset(stack, fpOffset.sub(value));
+      return VM_Magic.getObjectAtOffset(stack, fpOffset.minus(value));
     
     } else {
       VM.sysWrite("fatal error : ( vtype = "+vtype+" )\n");
@@ -563,7 +563,7 @@ public final class OSR_OptExecStateExtractor
     VM.enableGC();
     Offset upOffset = upper.diff(VM_Magic.objectAsAddress(stack));
 
-    int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.add(STACKFRAME_METHOD_ID_OFFSET));
+    int cmid = VM_Magic.getIntAtOffset(stack, fpOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
     VM_OptCompiledMethod cm = 
       (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
 
@@ -576,8 +576,8 @@ public final class OSR_OptExecStateExtractor
     VM.sysWriteln(" NV area offset ",nonVolatileOffset);
     VM.sysWriteln("   first NV GPR ",firstNonVolatile);
 
-    Address aFP = VM_Magic.objectAsAddress(stack).add(fpOffset);
-    for (Address a = aFP.add(nonVolatileOffset); a.GE(aFP); a = a.sub(BYTES_IN_STACKSLOT)) {
+    Address aFP = VM_Magic.objectAsAddress(stack).plus(fpOffset);
+    for (Address a = aFP.plus(nonVolatileOffset); a.GE(aFP); a = a.minus(BYTES_IN_STACKSLOT)) {
       Word content = a.loadWord();
       VM.sysWriteHex(a);
       VM.sysWrite("  ");
@@ -597,7 +597,7 @@ public final class OSR_OptExecStateExtractor
   private static void walkOnStack(byte[] stack, Offset fpOffset) {
     VM.disableGC();
     
-    Address fp = VM_Magic.objectAsAddress(stack).add(fpOffset);
+    Address fp = VM_Magic.objectAsAddress(stack).plus(fpOffset);
         
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int cmid = VM_Magic.getCompiledMethodID(fp);
@@ -612,7 +612,7 @@ public final class OSR_OptExecStateExtractor
         VM.sysWriteln(cm.getMethod().toString());
                 
         VM.disableGC();
-        fp = VM_Magic.objectAsAddress(stack).add(fpOffset);
+        fp = VM_Magic.objectAsAddress(stack).plus(fpOffset);
         if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {
           fp = VM_Runtime.unwindNativeStackFrame(fp);
         }

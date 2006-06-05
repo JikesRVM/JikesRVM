@@ -375,7 +375,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
-      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset), (byte)4, loc, guard);
+      OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte)4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
                      OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
@@ -418,7 +418,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
-      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset), (byte)4, loc, guard);
+      OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset), (byte)4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
                      OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);

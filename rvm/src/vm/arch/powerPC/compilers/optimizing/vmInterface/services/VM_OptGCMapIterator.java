@@ -57,7 +57,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     if (frameOffset >= 0) {
 
       // get to the nonVol area
-      Address nonVolArea = framePtr.add(frameOffset);
+      Address nonVolArea = framePtr.plus(frameOffset);
       
       // update non-volatiles that were saved
       int first = compiledMethod.getFirstNonVolatileGPR();
@@ -66,25 +66,25 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
         Address location = nonVolArea;
         for (int i = first; i <= LAST_GCMAP_REG; i++) {
           registerLocations.set(i, location);
-          location = location.add(BYTES_IN_ADDRESS);
+          location = location.plus(BYTES_IN_ADDRESS);
         }
       }
       
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the save area for volatiles
-        Address location = nonVolArea.sub(SAVE_VOL_SIZE);
+        Address location = nonVolArea.minus(SAVE_VOL_SIZE);
         
         // Walk the saved volatiles, updating registerLocations array
         for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
           registerLocations.set(i, location);
-          location = location.add(BYTES_IN_ADDRESS);
+          location = location.plus(BYTES_IN_ADDRESS);
         }
         
         // Walk the saved scratch, updating registerLocations array
         for (int i = FIRST_SCRATCH_GPR; i <= LAST_SCRATCH_GPR; i++) {
           registerLocations.set(i, location);
-          location = location.add(BYTES_IN_ADDRESS);
+          location = location.plus(BYTES_IN_ADDRESS);
         }
       }
     }
@@ -98,7 +98,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @return the resulting stack location
    */
   Address getStackLocation(Address framePtr, int offset) {
-    return framePtr.add(offset);
+    return framePtr.plus(offset);
   }
 
   /** 
@@ -106,7 +106,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @return the first spill location
    */
   Address getFirstSpillLoc() {
-    return framePtr.add(SPILL_DISTANCE_FROM_FP);
+    return framePtr.plus(SPILL_DISTANCE_FROM_FP);
   }
 
   /** 
@@ -148,9 +148,9 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     int nonVolOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (nonVolOffset != 0) {
       if (compiledMethod.isSaveVolatile()) {
-        lastSpill = framePtr.add(nonVolOffset - BYTES_IN_ADDRESS - SAVE_VOL_SIZE);
+        lastSpill = framePtr.plus(nonVolOffset - BYTES_IN_ADDRESS - SAVE_VOL_SIZE);
       } else {
-        lastSpill = framePtr.add(nonVolOffset - BYTES_IN_ADDRESS);
+        lastSpill = framePtr.plus(nonVolOffset - BYTES_IN_ADDRESS);
       }
       // If the above computation is less than firstSpill, there are no spills
       if (lastSpill.LT(firstSpill)) {

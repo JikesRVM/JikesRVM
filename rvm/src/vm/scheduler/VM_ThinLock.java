@@ -92,7 +92,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
             continue minor; // contention, possibly spurious, try again
           }
           if (id.EQ(threadId)) { // this thread has o locked already
-            Word changed = old.toAddress().add(TL_LOCK_COUNT_UNIT).toWord(); // update count
+            Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord(); // update count
             if (changed.and(TL_LOCK_COUNT_MASK).isZero()) { // count wrapped around (most unlikely), make heavy lock
               while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
                 if (VM_Processor.getCurrentProcessor().threadSwitchingEnabled())
@@ -178,7 +178,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
       }
       // more than one lock
       // decrement recursion count
-      Word changed = old.toAddress().sub(TL_LOCK_COUNT_UNIT).toWord(); 
+      Word changed = old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord(); 
       if (VM_Magic.attemptWord(o, lockOffset, old, changed)) {
         return; // unlock succeeds
       }

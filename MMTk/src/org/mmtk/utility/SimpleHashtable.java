@@ -61,7 +61,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    */
   protected SimpleHashtable(RawPageSpace rps, int logSize, Extent es) {
     mask = Word.fromInt((1 << logSize) - 1);
-    entrySize = es.add(BYTES_IN_WORD);
+    entrySize = es.plus(BYTES_IN_WORD);
     size = Extent.fromInt((1 << logSize) * entrySize.toInt());
     base = Address.zero();
     space = rps;
@@ -144,7 +144,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @return An address to the entry.
    */
   private final Address getEntry(int index) throws InlinePragma {
-    return base.add(Extent.fromInt(index * entrySize.toInt()));
+    return base.plus(Extent.fromInt(index * entrySize.toInt()));
   }
   
   /**
@@ -162,7 +162,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * the table is empty.
    */
   public final Address getFirst() {
-    return getNext(base.sub(entrySize));
+    return getNext(base.minus(entrySize));
   }
   
   /**
@@ -173,10 +173,10 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @return The next entry or null.
    */
   public final Address getNext(Address curr) {
-    Address entry = curr.add(entrySize);
-    while(entry.LT(base.add(size))) {
+    Address entry = curr.plus(entrySize);
+    while(entry.LT(base.plus(size))) {
       if (!entry.loadWord().isZero()) return entry;
-      entry = entry.add(entrySize);
+      entry = entry.plus(entrySize);
     }
     return Address.zero();
   }
@@ -188,7 +188,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @return The object reference.
    */
   public static Address getPayloadAddress(Address entry) {
-    return entry.add(DATA_OFFSET);
+    return entry.plus(DATA_OFFSET);
   }
   
   /**
@@ -201,7 +201,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
     Address entry = getEntry(key, false);
     if (entry.isZero()) return Address.zero();
     
-    return entry.add(DATA_OFFSET);
+    return entry.plus(DATA_OFFSET);
   }
   
   

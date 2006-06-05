@@ -55,7 +55,7 @@ public abstract class Space implements Constants, Uninterruptible {
   private static Address HEAP_START = chunkAlign(Memory.HEAP_START(), true);
   private static Address AVAILABLE_START = chunkAlign(Memory.AVAILABLE_START(), false);
   private static Address AVAILABLE_END = chunkAlign(Memory.AVAILABLE_END(), true);
-  private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().sub(AVAILABLE_START.toWord()).toExtent();
+  private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
   public static final Address HEAP_END = chunkAlign(Memory.HEAP_END(), false);
 
   public static final int LOG_BYTES_IN_CHUNK = 22;
@@ -130,14 +130,14 @@ public abstract class Space implements Constants, Uninterruptible {
     }
     this.extent = bytes;
 
-    Memory.setHeapRange(index, start, start.add(bytes));
+    Memory.setHeapRange(index, start, start.plus(bytes));
     createDescriptor(false);
     Map.insert(start, extent, descriptor, this);
 
     if (DEBUG) {
       Log.write(name); Log.write(" ");
       Log.write(start); Log.write(" ");
-      Log.write(start.add(extent)); Log.write(" ");
+      Log.write(start.plus(extent)); Log.write(" ");
       Log.writeln(bytes.toWord());
     }
   }
@@ -157,11 +157,11 @@ public abstract class Space implements Constants, Uninterruptible {
   Space(String name, boolean movable, boolean immortal, int mb) {
     this(name, movable, immortal, heapCursor, 
          Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
-    heapCursor = heapCursor.add(extent);
+    heapCursor = heapCursor.plus(extent);
     if (heapCursor.GT(heapLimit)) {
       Log.write("Out of virtual address space allocating \"");
       Log.write(name); Log.write("\" at ");
-      Log.write(heapCursor.sub(extent)); Log.write(" (");
+      Log.write(heapCursor.minus(extent)); Log.write(" (");
       Log.write(heapCursor); Log.write(" > ");
       Log.write(heapLimit); Log.writeln(")");
       Assert.fail("exiting");
@@ -184,7 +184,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   Space(String name, boolean movable, boolean immortal, float frac) {
     this(name, movable, immortal, heapCursor, getFracAvailable(frac));
-    heapCursor = heapCursor.add(extent);
+    heapCursor = heapCursor.plus(extent);
   }
 
   /**
@@ -253,7 +253,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   private Space(String name, boolean movable, boolean immortal, Extent bytes,
                 boolean top) {
-    this(name, movable, immortal, (top) ? HEAP_END.sub(bytes) : HEAP_START, 
+    this(name, movable, immortal, (top) ? HEAP_END.minus(bytes) : HEAP_START, 
          bytes);
     if (top) {  // request for the top of available memory
       if (heapLimit.NE(HEAP_END)) {
@@ -262,7 +262,7 @@ public abstract class Space implements Constants, Uninterruptible {
         Log.writeln(heapLimit);
         Assert.fail("exiting");
       }
-      heapLimit = heapLimit.sub(extent);
+      heapLimit = heapLimit.minus(extent);
     } else {   // request for the bottom of available memory
       if (heapCursor.GT(HEAP_START)) {
         Log.write("Unable to satisfy virtual address space request \"");
@@ -270,7 +270,7 @@ public abstract class Space implements Constants, Uninterruptible {
         Log.writeln(heapCursor);
         Assert.fail("exiting");
       }
-      heapCursor = heapCursor.add(extent);
+      heapCursor = heapCursor.plus(extent);
     }
   }
 
@@ -389,7 +389,7 @@ public abstract class Space implements Constants, Uninterruptible {
         return addr.GE(start);
       else {
         Extent size = Word.fromIntSignExtend(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
-        Address end = start.add(size);
+        Address end = start.plus(size);
         return addr.GE(start) && addr.LT(end);
       }
     }
@@ -503,7 +503,7 @@ public abstract class Space implements Constants, Uninterruptible {
       Space space = spaces[i];
       Log.write(space.name); Log.write(" ");
       Log.write(space.start); Log.write("->");
-      Log.writeln(space.start.add(space.extent.sub(1))); 
+      Log.writeln(space.start.plus(space.extent.minus(1))); 
     }
   }
 
@@ -591,7 +591,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * it will rounded up.
    */
   private static final Address chunkAlign(Address addr, boolean down) {
-    if (!down) addr = addr.add(BYTES_IN_CHUNK - 1);
+    if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
     return addr.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toAddress();
   }
 
@@ -603,7 +603,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * it will rounded up.
    */
   private static final Extent chunkAlign(Extent bytes, boolean down) {
-    if (!down) bytes = bytes.add(BYTES_IN_CHUNK - 1);
+    if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
     return bytes.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toExtent();
   }
 
@@ -616,7 +616,7 @@ public abstract class Space implements Constants, Uninterruptible {
     if (shared) 
       descriptor = SpaceDescriptor.createDescriptor();
     else
-      descriptor = SpaceDescriptor.createDescriptor(start, start.add(extent));
+      descriptor = SpaceDescriptor.createDescriptor(start, start.plus(extent));
   }
   
   /**

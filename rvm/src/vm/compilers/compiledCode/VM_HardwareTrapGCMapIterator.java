@@ -35,7 +35,7 @@ public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator impleme
     Address registerLocation = VM_Magic.objectAsAddress(thread.hardwareExceptionRegisters.gprs);
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation);
-      registerLocation = registerLocation.add(BYTES_IN_ADDRESS);
+      registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
     }
     return Address.zero();
   }

@@ -236,7 +236,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     throws InlinePragma {
     ObjectReference src = ObjectReference.fromObject(ref);
     SelectedPlanLocal.get().writeBarrier(src,
-                                    src.toAddress().add(offset),
+                                    src.toAddress().plus(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
                                         locationMetadata,
@@ -255,7 +255,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     if (VM.VerifyAssertions) VM._assert(false);
 //     Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
 //     VM_Interface.getPlan().writeBarrier(jtoc,
-//                                         jtoc.add(offset),
+//                                         jtoc.plus(offset),
 //                                         VM_Magic.objectAsAddress(value),
 //                                         PUTSTATIC_WRITE_BARRIER);
   }
@@ -276,7 +276,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS);
     SelectedPlanLocal.get().writeBarrier(array,
-                                    array.toAddress().add(offset),
+                                    array.toAddress().plus(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
                                         0, // don't know metadata

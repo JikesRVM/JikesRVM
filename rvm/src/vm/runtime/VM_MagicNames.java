@@ -151,8 +151,8 @@ public class VM_MagicNames {
   public static final VM_Atom wordToAddress                 = VM_Atom.findOrCreateAsciiAtom("toAddress");
   public static final VM_Atom wordToOffset                  = VM_Atom.findOrCreateAsciiAtom("toOffset");
   public static final VM_Atom wordToExtent                  = VM_Atom.findOrCreateAsciiAtom("toExtent");
-  public static final VM_Atom wordAdd                       = VM_Atom.findOrCreateAsciiAtom("add");
-  public static final VM_Atom wordSub                       = VM_Atom.findOrCreateAsciiAtom("sub");
+  public static final VM_Atom wordPlus                      = VM_Atom.findOrCreateAsciiAtom("plus");
+  public static final VM_Atom wordMinus                     = VM_Atom.findOrCreateAsciiAtom("minus");
   public static final VM_Atom wordDiff                      = VM_Atom.findOrCreateAsciiAtom("diff");
   public static final VM_Atom wordEQ                        = VM_Atom.findOrCreateAsciiAtom("EQ");
   public static final VM_Atom wordNE                        = VM_Atom.findOrCreateAsciiAtom("NE");

@@ -104,25 +104,25 @@ public abstract class SortSharedDeque extends SharedDeque
    *  @param end End address of the range to be sorted
    */
   private final void insertionSort(Address begin, Address end) {
-    Address rPtr = begin.sub(BYTES_IN_ADDRESS);
+    Address rPtr = begin.minus(BYTES_IN_ADDRESS);
     Address lPtr;
 
     while (rPtr.GE(end)) {
       Address rSlot = rPtr.loadAddress();
       Word rKey = getKey(rSlot);
-      lPtr = rPtr.add(BYTES_IN_ADDRESS);
+      lPtr = rPtr.plus(BYTES_IN_ADDRESS);
       while (lPtr.LE(begin)) {
         Address lSlot = lPtr.loadAddress();
         Word lKey = getKey(lSlot);
         if (lKey.GT(rKey)) {
-          lPtr.sub(BYTES_IN_ADDRESS).store(lSlot);
-          lPtr = lPtr.add(BYTES_IN_ADDRESS);
+          lPtr.minus(BYTES_IN_ADDRESS).store(lSlot);
+          lPtr = lPtr.plus(BYTES_IN_ADDRESS);
         }
         else
           break;
       }
-      lPtr.sub(BYTES_IN_ADDRESS).store(rSlot);
-      rPtr = rPtr.sub(BYTES_IN_ADDRESS);
+      lPtr.minus(BYTES_IN_ADDRESS).store(rSlot);
+      rPtr = rPtr.minus(BYTES_IN_ADDRESS);
     }
   }
 
@@ -209,7 +209,7 @@ public abstract class SortSharedDeque extends SharedDeque
         if (travKey.LT(rmin))
           rmin = travKey;
         /* Move to the next entry. */
-        travPtr = travPtr.add(BYTES_IN_ADDRESS);
+        travPtr = travPtr.plus(BYTES_IN_ADDRESS);
         /* If at end of remset block, move to next block */
         if (travPtr.EQ(endOfBlock)) {
           travLink = getPrev(travPtr);
@@ -240,7 +240,7 @@ public abstract class SortSharedDeque extends SharedDeque
           stopPtr = stopLink;
           endOfBlock = bufferStart(stopPtr);
         }
-        stopPtr = stopPtr.sub(BYTES_IN_ADDRESS);
+        stopPtr = stopPtr.minus(BYTES_IN_ADDRESS);
       }
       if (stopPtr.EQ(travPtr))
         break;
@@ -263,7 +263,7 @@ public abstract class SortSharedDeque extends SharedDeque
       pushOnStack(endLinkAddr);
       pushOnStack(endAddr);
       pushOnStack(stopLink);
-      pushOnStack(stopPtr.sub(BYTES_IN_ADDRESS));
+      pushOnStack(stopPtr.minus(BYTES_IN_ADDRESS));
     }
     /* if max value is not equal to the min value in the left partition,
        (not all slots are identical) push the left partition on to the stack */
@@ -305,7 +305,7 @@ public abstract class SortSharedDeque extends SharedDeque
           max = startKey;
         if (startKey.LT(min))
           min = startKey;
-        startPtr = startPtr.add(BYTES_IN_ADDRESS);
+        startPtr = startPtr.plus(BYTES_IN_ADDRESS);
       }
       endOfBlock = getPrev(startPtr);
     }
@@ -317,7 +317,7 @@ public abstract class SortSharedDeque extends SharedDeque
       pushOnStack(tail);
       pushOnStack(bufferStart(tail));
       pushOnStack(startPtr);
-      pushOnStack(startPtr.sub(BYTES_IN_ADDRESS));
+      pushOnStack(startPtr.minus(BYTES_IN_ADDRESS));
     }
   }
 
@@ -361,7 +361,7 @@ public abstract class SortSharedDeque extends SharedDeque
           Word key = getKey(slot);
           if (Assert.VERIFY_ASSERTIONS) Assert._assert(key.LE(prevKey));
           prevKey = key;
-          buf = buf.add(BYTES_IN_ADDRESS);
+          buf = buf.plus(BYTES_IN_ADDRESS);
         }
         end = getPrev(end);
         buf = bufferStart(end);

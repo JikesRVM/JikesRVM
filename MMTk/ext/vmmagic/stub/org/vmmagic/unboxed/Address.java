@@ -170,7 +170,7 @@ public final class Address {
    * @return An <code>Address</code> instance that reflects the result
    * of the addition.
    */
-  public Address add(int v)  {
+  public Address plus(int v)  {
     return null;
   }
 
@@ -182,7 +182,7 @@ public final class Address {
    * @return An <code>Address</code> instance that reflects the result
    * of the addition.
    */
-  public Address add(Offset offset)  {
+  public Address plus(Offset offset)  {
     return null;
   }
 
@@ -195,7 +195,7 @@ public final class Address {
    * @return An <code>Address</code> instance that reflects the result
    * of the addition.
    */
-  public Address add(Extent extent)  {
+  public Address plus(Extent extent)  {
     return null;
   }
 
@@ -208,7 +208,7 @@ public final class Address {
    * @return An <code>Address</code> instance that reflects the result
    * of the subtraction.
    */
-  public Address sub(int v)  {
+  public Address minus(int v)  {
     return null;
   }
 
@@ -221,7 +221,7 @@ public final class Address {
    * @return An <code>Address</code> instance that reflects the result
    * of the subtraction.
    */
-  public Address sub(Offset offset)  {
+  public Address minus(Offset offset)  {
     return null;
   }
 
@@ -234,7 +234,7 @@ public final class Address {
    * @return An <code>Address</code> instance that reflects the result
    * of the subtraction.
    */
-  public Address sub(Extent extent)  {
+  public Address minus(Extent extent)  {
     return null;
   }
 

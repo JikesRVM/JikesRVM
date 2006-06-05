@@ -55,8 +55,8 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
     /* Loop through active regions or until the last region */
     Address start = initialRegion;
     Address allocStart = initialRegion;
-    Address allocEnd = initialRegion.add(REGION_LIMIT_OFFSET).loadAddress();
-    Address allocCursor = allocStart.add(DATA_START_OFFSET);
+    Address allocEnd = initialRegion.plus(REGION_LIMIT_OFFSET).loadAddress();
+    Address allocCursor = allocStart.plus(DATA_START_OFFSET);
 
     /* Keep track of which regions are being used */
     int oldPages = 0;
@@ -64,15 +64,15 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
 
     while(!start.isZero()) {      
       /* Get the end of this region */
-      Address end = start.add(REGION_LIMIT_OFFSET).loadAddress();
-      Address dataEnd = start.add(DATA_END_OFFSET).loadAddress();
-      Address nextRegion = start.add(NEXT_REGION_OFFSET).loadAddress();
-      oldPages += Conversions.bytesToPages(end.diff(start).add(BYTES_IN_ADDRESS));
+      Address end = start.plus(REGION_LIMIT_OFFSET).loadAddress();
+      Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
+      Address nextRegion = start.plus(NEXT_REGION_OFFSET).loadAddress();
+      oldPages += Conversions.bytesToPages(end.diff(start).plus(BYTES_IN_ADDRESS));
 
       /* dataEnd = zero represents the current region. */
       Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
       ObjectReference current =
-        ObjectModel.getObjectFromStartAddress(start.add(DATA_START_OFFSET));
+        ObjectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
       
       while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
         ObjectReference next = ObjectModel.getNextObject(current);
@@ -85,14 +85,14 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
           if (copyTo.toAddress().GT(allocEnd) || copyTo.toAddress().LT(allocStart)) {
             // changed regions.
             
-            Memory.zero(allocCursor, allocEnd.diff(allocCursor).toWord().toExtent().add(BYTES_IN_ADDRESS));
+            Memory.zero(allocCursor, allocEnd.diff(allocCursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
              
             allocStart.store(allocCursor, DATA_END_OFFSET);
-            allocStart = allocStart.add(NEXT_REGION_OFFSET).loadAddress();
-            allocEnd = allocStart.add(REGION_LIMIT_OFFSET).loadAddress();
-            allocCursor = allocStart.add(DATA_START_OFFSET);
+            allocStart = allocStart.plus(NEXT_REGION_OFFSET).loadAddress();
+            allocEnd = allocStart.plus(REGION_LIMIT_OFFSET).loadAddress();
+            allocCursor = allocStart.plus(DATA_START_OFFSET);
             
-            newPages += Conversions.bytesToPages(allocEnd.diff(allocStart).add(BYTES_IN_ADDRESS));
+            newPages += Conversions.bytesToPages(allocEnd.diff(allocStart).plus(BYTES_IN_ADDRESS));
             
             if (Assert.VERIFY_ASSERTIONS) {
               Assert._assert(allocCursor.LT(allocEnd) && allocCursor.GE(allocStart));
@@ -109,7 +109,7 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
       }
       start = nextRegion;
     }
-    Extent zeroBytes = allocEnd.diff(allocCursor).toWord().toExtent().add(BYTES_IN_ADDRESS);
+    Extent zeroBytes = allocEnd.diff(allocCursor).toWord().toExtent().plus(BYTES_IN_ADDRESS);
     Memory.zero(allocCursor, zeroBytes);
     
     allocStart.store(Address.zero(), DATA_END_OFFSET);
@@ -125,8 +125,8 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
     while(!allocStart.isZero()) {
       allocStart.store(Address.zero(), DATA_END_OFFSET);
       if (Assert.VERIFY_ASSERTIONS) {
-        Address low = allocStart.add(DATA_START_OFFSET);
-        Extent size = allocStart.loadAddress(REGION_LIMIT_OFFSET).diff(allocStart).toWord().toExtent().sub(2 * BYTES_IN_ADDRESS);
+        Address low = allocStart.plus(DATA_START_OFFSET);
+        Extent size = allocStart.loadAddress(REGION_LIMIT_OFFSET).diff(allocStart).toWord().toExtent().minus(2 * BYTES_IN_ADDRESS);
         Memory.zero(low, size);
       }
       allocStart = allocStart.loadAddress(NEXT_REGION_OFFSET);
@@ -144,18 +144,18 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
     /* Loop through active regions or until the last region */
     Address start = initialRegion;
     Address allocStart = initialRegion;
-    Address allocDataEnd = initialRegion.add(DATA_END_OFFSET).loadAddress();
+    Address allocDataEnd = initialRegion.plus(DATA_END_OFFSET).loadAddress();
     Address allocLimit = (allocDataEnd.isZero() ? cursor : allocDataEnd);
-    Address allocCursor = start.add(DATA_START_OFFSET);
+    Address allocCursor = start.plus(DATA_START_OFFSET);
     
     while(!start.isZero()) {      
       /* Get the end of this region */
-      Address dataEnd = start.add(DATA_END_OFFSET).loadAddress();
+      Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
 
       /* dataEnd = zero represents the current region. */
       Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
       ObjectReference current =
-        ObjectModel.getObjectFromStartAddress(start.add(DATA_START_OFFSET));
+        ObjectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
       
       while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
         ObjectReference next = ObjectModel.getNextObject(current);
@@ -173,11 +173,11 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
           
           boolean sameRegion = allocStart.EQ(start);
           
-          if (!sameRegion && allocCursor.add(size).GT(allocLimit)) {
-            allocStart = allocStart.add(NEXT_REGION_OFFSET).loadAddress();
-            allocDataEnd = allocStart.add(DATA_END_OFFSET).loadAddress();
+          if (!sameRegion && allocCursor.plus(size).GT(allocLimit)) {
+            allocStart = allocStart.plus(NEXT_REGION_OFFSET).loadAddress();
+            allocDataEnd = allocStart.plus(DATA_END_OFFSET).loadAddress();
             allocLimit = (allocDataEnd.isZero() ? cursor : allocDataEnd);
-            allocCursor = Allocator.alignAllocationNoFill(allocStart.add(DATA_START_OFFSET), align, offset);
+            allocCursor = Allocator.alignAllocationNoFill(allocStart.plus(DATA_START_OFFSET), align, offset);
           }
           
           ObjectReference target = ObjectModel.getReferenceWhenCopiedTo(current, allocCursor);
@@ -186,7 +186,7 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
             allocCursor = ObjectModel.getObjectEndAddress(current);
           } else {
             MarkCompactSpace.setForwardingPointer(current, target);
-            allocCursor = allocCursor.add(size);
+            allocCursor = allocCursor.plus(size);
           }
         }
         current = next;
@@ -194,7 +194,7 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
       if (dataEnd.isZero()) {
         break;
       }
-      start = start.add(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
+      start = start.plus(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
     }
   }
   

@@ -152,7 +152,7 @@ public final class TraceGenerator
    */
   public static final void boot(Address bootStart) {
     Word nextOID = TraceInterface.getOID();
-    ObjectReference trav = TraceInterface.getBootImageLink().add(bootStart.toWord().toOffset()).toObjectReference();
+    ObjectReference trav = TraceInterface.getBootImageLink().plus(bootStart.toWord().toOffset()).toObjectReference();
     objectLinks.set(ALLOC_BOOT, trav);
     /* Loop through all the objects within boot image */
     while (!trav.isNull()) {
@@ -161,12 +161,12 @@ public final class TraceGenerator
       /* Add the boot image object to the trace. */
       trace.push(TRACE_BOOT_ALLOC);
       trace.push(thisOID);
-      trace.push(nextOID.sub(thisOID).lsh(LOG_BYTES_IN_ADDRESS));
+      trace.push(nextOID.minus(thisOID).lsh(LOG_BYTES_IN_ADDRESS));
       nextOID = thisOID;
       /* Move to the next object & adjust for starting address of 
          the bootImage */
       if (!next.isNull()) {
-        next = next.toAddress().add(bootStart.toWord().toOffset()).toObjectReference();
+        next = next.toAddress().plus(bootStart.toWord().toOffset()).toObjectReference();
         TraceInterface.setLink(trav, next);
       }
       trav = next;
@@ -235,7 +235,7 @@ public final class TraceGenerator
     Word oid = TraceInterface.getOID(ref);
     Word allocType;
     if (gcAllowed 
-        && (oid.GE(lastGC.add(Word.fromInt(Options.traceRate.getValue())))))
+        && (oid.GE(lastGC.plus(Word.fromInt(Options.traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
     else
       allocType = TRACE_ALLOC;
