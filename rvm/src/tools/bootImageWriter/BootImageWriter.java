@@ -669,10 +669,10 @@ public class BootImageWriter extends BootImageWriterMessages
     //-#if RVM_WITH_GCTRACE
     /* Set the values in fields updated during the build process */
     Offset prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
-    bootImage.setAddressWord(jtocImageOffset.plus(prevAddrOffset), 
+    bootImage.setAddressWord(jtocImageAddress.plus(prevAddrOffset), 
                              VM_MiscHeader.getBootImageLink().toWord());
     Offset oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
-    bootImage.setAddressWord(jtocImageOffset.plus(oIDOffset), 
+    bootImage.setAddressWord(jtocImageAddress.plus(oIDOffset), 
                              VM_MiscHeader.getOID());
     //-#endif
 
