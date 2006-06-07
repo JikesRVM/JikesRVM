@@ -255,7 +255,7 @@ public class VM extends VM_Properties
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     runClassInitializer("java.net.URLClassLoader"); 
-
+    
     /* Used if we start up Jikes RVM with the -jar argument; that argument
      * means that we need a working -jar before we can return an
      * Application Class Loader. */
@@ -322,7 +322,7 @@ public class VM extends VM_Properties
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
-    
+     
     //-#if RVM_WITH_HPM
     runClassInitializer("com.ibm.JikesRVM.Java2HPM");
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
@@ -332,7 +332,8 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
-
+    runClassInitializer("java.lang.VMClassLoader");
+ 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
 
