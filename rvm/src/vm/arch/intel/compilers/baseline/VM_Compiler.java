@@ -2047,25 +2047,32 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     resolvedMethod = methodRef.peekInterfaceMethod();
 
     // (1) Emit dynamic type checking sequence if required to do so inline.
-    if (!methodRef.isMiranda() && (VM.BuildForIMTInterfaceInvocation || 
-        (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables))) {
-      if (resolvedMethod == null) {
-        // Can't successfully resolve it at compile time.
-        // Call uncommon case typechecking routine to do the right thing when this code actually executes.
-        asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                       // "this" object
-        asm.emitPUSH_Imm(methodRef.getId());                                    // dict id of target
-        VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
-        asm.emitPUSH_Reg(S0);
-        genParameterRegisterLoad(2);                                            // pass 2 parameter word
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
+    if (VM.BuildForIMTInterfaceInvocation || 
+        (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
+      if (methodRef.isMiranda()) {
+        // TODO: It's not entirely clear that we can just assume that
+        //       the class actually implements the interface.
+        //       However, we don't know what interface we need to be checking
+        //       so there doesn't appear to be much else we can do here.
       } else {
-        asm.emitMOV_Reg_RegDisp (T0, JTOC, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
-        asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                                 // "this" object
-        asm.emitPUSH_RegDisp(T0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX << 2));                                    // type of the interface method
-        VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
-        asm.emitPUSH_Reg(S0);
-        genParameterRegisterLoad(2);                                          // pass 2 parameter word
-        asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
+        if (resolvedMethod == null) {
+          // Can't successfully resolve it at compile time.
+          // Call uncommon case typechecking routine to do the right thing when this code actually executes.
+          asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                       // "this" object
+          asm.emitPUSH_Imm(methodRef.getId());                                    // dict id of target
+          VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
+          asm.emitPUSH_Reg(S0);
+          genParameterRegisterLoad(2);                                            // pass 2 parameter word
+          asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
+        } else {
+          asm.emitMOV_Reg_RegDisp (T0, JTOC, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
+          asm.emitMOV_Reg_RegDisp (T1, SP, Offset.fromIntZeroExtend((count-1) << 2));                                 // "this" object
+          asm.emitPUSH_RegDisp(T0, Offset.fromIntZeroExtend(TIB_TYPE_INDEX << 2));                                    // type of the interface method
+          VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
+          asm.emitPUSH_Reg(S0);
+          genParameterRegisterLoad(2);                                          // pass 2 parameter word
+          asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
+        }
       }
     }
 

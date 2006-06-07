@@ -2552,24 +2552,31 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (VM.BuildForIMTInterfaceInvocation || 
         (VM.BuildForITableInterfaceInvocation && 
          VM.DirectlyIndexedITables)) {
-      if (resolvedMethod == null) {
-        // Can't successfully resolve it at compile time.
-        // Call uncommon case typechecking routine to do the right thing when this code actually executes.
-        asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
-        asm.emitMTCTR(T0);
-        asm.emitLVAL(T0, methodRef.getId());            // id of method reference we are trying to call
-        peekAddr(T1, count-1);           // the "this" object
-        VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
-        asm.emitBCCTRL();                 // throw exception, if link error
+      if (methodRef.isMiranda()) {
+        // TODO: It's not entirely clear that we can just assume that
+        //       the class actually implements the interface.
+        //       However, we don't know what interface we need to be checking
+        //       so there doesn't appear to be much else we can do here.
       } else {
-        // normal case.  Not a ghost ref.
-        asm.emitLAddrToc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
-        asm.emitMTCTR(T0);
-        asm.emitLAddrToc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
-        asm.emitLAddr(T0, TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0);                   // type of the interface method
-        peekAddr(T1, count-1);                        // the "this" object
-        VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
-        asm.emitBCCTRL();                              // throw exception, if link error
+        if (resolvedMethod == null) {
+          // Can't successfully resolve it at compile time.
+          // Call uncommon case typechecking routine to do the right thing when this code actually executes.
+          asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
+          asm.emitMTCTR(T0);
+          asm.emitLVAL(T0, methodRef.getId());            // id of method reference we are trying to call
+          peekAddr(T1, count-1);           // the "this" object
+          VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
+          asm.emitBCCTRL();                 // throw exception, if link error
+        } else {
+          // normal case.  Not a ghost ref.
+          asm.emitLAddrToc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
+          asm.emitMTCTR(T0);
+          asm.emitLAddrToc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
+          asm.emitLAddr(T0, TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0);                   // type of the interface method
+          peekAddr(T1, count-1);                        // the "this" object
+          VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
+          asm.emitBCCTRL();                              // throw exception, if link error
+        }
       }
     }
     // (2) Emit interface invocation sequence.
