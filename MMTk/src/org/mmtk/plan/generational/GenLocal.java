@@ -163,7 +163,7 @@ public abstract class GenLocal extends StopTheWorldLocal
 
     if (phaseId == Gen.PREPARE) {
       nursery.rebind(Gen.nurserySpace);
-      if (global().collectMatureSpace()) {
+      if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, participating,primary);
         remset.resetLocal();
         arrayRemset.resetLocal();
@@ -190,7 +190,7 @@ public abstract class GenLocal extends StopTheWorldLocal
     }
 
     if (phaseId == Gen.RELEASE) {
-      if (global().collectMatureSpace()) {
+      if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, participating, primary);
       } else {
         nurseryTrace.release();
@@ -204,7 +204,7 @@ public abstract class GenLocal extends StopTheWorldLocal
   }
 
   public final TraceLocal getCurrentTrace() {
-    if (global().collectMatureSpace()) return getFullHeapTrace();
+    if (global().traceFullHeap()) return getFullHeapTrace();
     return nurseryTrace;
   }
   

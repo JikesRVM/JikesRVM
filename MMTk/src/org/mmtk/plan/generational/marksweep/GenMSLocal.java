@@ -201,7 +201,7 @@ public abstract class GenMSLocal extends GenLocal implements Uninterruptible {
   public void collectionPhase(int phaseId, boolean participating,
                               boolean primary)
     throws NoInlinePragma {
-    if (global().collectMatureSpace()) {
+    if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE) {
         super.collectionPhase(phaseId, participating, primary);
         matureTrace.prepare();

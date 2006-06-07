@@ -75,7 +75,7 @@ public class GenMS extends Gen implements Uninterruptible {
    * Perform a (global) collection phase.
    */
   public final void collectionPhase(int phaseId) throws InlinePragma {
-    if (collectMatureSpace()) {
+    if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
         matureTrace.prepare();

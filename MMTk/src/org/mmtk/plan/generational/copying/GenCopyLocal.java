@@ -209,7 +209,7 @@ public class GenCopyLocal extends GenLocal implements Uninterruptible {
    */
   public void collectionPhase(int phaseId, boolean participating, 
                               boolean primary) {
-    if (global().collectMatureSpace()) {
+    if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE) {
         super.collectionPhase(phaseId, participating, primary);
         if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());       

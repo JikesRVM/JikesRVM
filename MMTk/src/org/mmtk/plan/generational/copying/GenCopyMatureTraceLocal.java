@@ -48,7 +48,7 @@ public class GenCopyMatureTraceLocal extends GenMatureTraceLocal implements Unin
    * @return The possibly moved reference.
    */
   public final ObjectReference traceObject(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(global().collectMatureSpace());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(global().traceFullHeap());
     if (object.isNull()) return object;
 
     if (Space.isInSpace(GenCopy.MS0, object)) 

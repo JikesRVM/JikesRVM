@@ -136,7 +136,7 @@ public class GenCopy extends Gen implements Uninterruptible {
    * @param phaseId Collection phase to process
    */
   public void collectionPhase(int phaseId) throws InlinePragma {
-    if (collectMatureSpace()) {
+    if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
         hi = !hi;         // flip the semi-spaces

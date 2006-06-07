@@ -133,7 +133,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
       lastGCFullHeap = gcFullHeap;
-      if (collectMatureSpace()) {
+      if (traceFullHeap()) {
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
@@ -151,7 +151,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       nurserySpace.release();
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
-      if (collectMatureSpace()) {
+      if (traceFullHeap()) {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
@@ -271,9 +271,10 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   }
 
   /**
-   * @return True if we should trace the mature space during collection.
+   * @return True if we should trace the whole heap during collection. True if
+   *         we're ignorning remsets or if we're doing a full heap GC.
    */
-  public final boolean collectMatureSpace() {
+  public final boolean traceFullHeap() {
     return IGNORE_REMSETS || gcFullHeap;
   }
 
