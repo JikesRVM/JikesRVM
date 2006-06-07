@@ -188,30 +188,32 @@ public final class TraceGenerator
                                           ObjectReference src,
                                           Address slot, ObjectReference tgt)
     throws NoInlinePragma {
-    /* Assert that this isn't the result of tracing */
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
+    // The trace can be busy only if this is a pointer update as a result of
+    //   the garbage collection needed by tracing.  For the moment, we will
+    //   not report these updates.
+    if (!traceBusy) {
+      /* Process the old target potentially becoming unreachable when needed. */
+      if (MERLIN_ANALYSIS) {
+        ObjectReference oldTgt = slot.loadObjectReference();
+        if (!oldTgt.isNull())
+          TraceInterface.updateDeathTime(oldTgt);
+      }
 
-    /* Process the old target potentially becoming unreachable, when needed. */
-    if (MERLIN_ANALYSIS) {
-      ObjectReference oldTgt = slot.loadObjectReference();
-      if (!oldTgt.isNull())
-        TraceInterface.updateDeathTime(oldTgt);
+      traceBusy = true;
+      /* Add the pointer store to the trace */
+      Offset traceOffset = TraceInterface.adjustSlotOffset(isScalar, src, slot);
+      if (isScalar)
+        trace.push(TRACE_FIELD_SET);
+      else
+        trace.push(TRACE_ARRAY_SET);
+      trace.push(TraceInterface.getOID(src));
+      trace.push(traceOffset.toWord());
+      if (tgt.isNull())
+        trace.push(Word.zero());
+      else
+        trace.push(TraceInterface.getOID(tgt));
+      traceBusy = false;
     }
-
-    traceBusy = true;
-    /* Add the pointer store to the trace */
-    Offset traceOffset = TraceInterface.adjustSlotOffset(isScalar, src, slot);
-    if (isScalar)
-      trace.push(TRACE_FIELD_SET);
-    else
-      trace.push(TRACE_ARRAY_SET);
-    trace.push(TraceInterface.getOID(src));
-    trace.push(traceOffset.toWord());
-    if (tgt.isNull())
-      trace.push(Word.zero());
-    else
-      trace.push(TraceInterface.getOID(tgt));
-    traceBusy = false;
   }
 
   /**
@@ -237,12 +239,15 @@ public final class TraceGenerator
     if (gcAllowed 
         && (oid.GE(lastGC.plus(Word.fromInt(Options.traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
-    else
+    else {
       allocType = TRACE_ALLOC;
+    }
+    /* Add the allocation into the trace. */
+    traceBusy = true;
     /* Perform the necessary work for death times. */
     if (allocType.EQ(TRACE_EXACT_ALLOC)) {
       if (MERLIN_ANALYSIS) {
-        lastGC = TraceInterface.getOID();
+        lastGC = TraceInterface.getOID(ref);
         TraceInterface.updateTime(lastGC);
         Collection.triggerCollectionNow(Collection.INTERNAL_GC_TRIGGER);
       } else {
@@ -250,8 +255,6 @@ public final class TraceGenerator
         lastGC = TraceInterface.getOID(ref);
       }
     }
-    /* Add the allocation into the trace. */
-    traceBusy = true;
     Address fp = TraceInterface.skipOwnFramesAndDump(typeRef);
     if (isImmortal && allocType.EQ(TRACE_EXACT_ALLOC))
       trace.push(TRACE_EXACT_IMMORTAL_ALLOC);

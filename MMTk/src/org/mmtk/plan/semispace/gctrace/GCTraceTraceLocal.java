@@ -11,6 +11,7 @@ import org.mmtk.plan.Trace;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.TraceGenerator;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -74,7 +75,7 @@ import org.vmmagic.pragma.*;
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
+ * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
  *
  * @version $Revision$
  * @date $Date$
@@ -107,12 +108,17 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
   public ObjectReference traceObject(ObjectReference object)
     throws InlinePragma {
     if (object.isNull()) return object;
-    if (GCTrace.deathScan) {
+    if (GCTrace.traceInducedGC) {
+      /* We are performing a root scan following an allocation. */
+      TraceGenerator.rootEnumerate(object);
+      return object;
+    } else if (GCTrace.deathScan) {
+      /* We are performing the last scan before program termination. */
       TraceGenerator.propagateDeathTime(object);
       return object;
     } else {
-      TraceGenerator.rootEnumerate(object);
-      return object;
+      /* *gasp* We are actually performing garbage collection */
+      return super.traceObject(object);
     }
   }
 
@@ -124,18 +130,38 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    */
   public ObjectReference precopyObject(ObjectReference object) 
     throws InlinePragma {
-    return object; // Will be reported as a root seperately.
+    if (object.isNull()) return object;
+    if (GCTrace.traceInducedGC) {
+      /* We are performing a root scan following an allocation. */
+      TraceGenerator.rootEnumerate(object);
+      return object;
+    } else if (GCTrace.deathScan) {
+      /* We are performing the last scan before program termination. */
+      TraceGenerator.propagateDeathTime(object);
+      return object;
+    } else {
+      return super.precopyObject(object);
+    }
   }
 
+    
   /**
-   * If the object in question has been forwarded, return its
-   * forwarded value.<p>
-   *
+   * If the referenced object has moved, return the new location. 
+   * 
+   * Some copying collectors will need to override this method.
+   * 
    * @param object The object which may have been forwarded.
-   * @return The forwarded value for <code>object</code>.
+   * @return The new location of <code>object</code>. 
    */
-  public final ObjectReference getForwardedReference(ObjectReference object) {
-    return object; // Nothing moves during tracing
+  public ObjectReference getForwardedReference(ObjectReference object) 
+  throws InlinePragma {
+    if (object.isNull()) return object;
+    if (SS.hi && Space.isInSpace(SS.SS0, object)) {
+      return SS.copySpace0.traceObject(this, object);
+    } else if (!SS.hi && Space.isInSpace(SS.SS1, object)) {
+      return SS.copySpace1.traceObject(this, object);
+    }
+    return object;
   }
 
   /**
@@ -145,7 +171,9 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    * @return True if <code>obj</code> is a live object.
    */
   public final boolean isLive(ObjectReference object) {
-    return !object.isNull();
+      if (object.isNull()) return false;
+      else if (GCTrace.traceInducedGC) return true;
+      else return super.isLive(object);
   }
 
  /**
@@ -157,8 +185,11 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    */
   public boolean isReachable(ObjectReference object) {
     if (GCTrace.finalDead) return false;
-    if (object.isNull()) return false;
-    return Space.getSpaceForObject(object).isReachable(object);
+    else if (object.isNull()) return false;
+    else {
+      Space space = Space.getSpaceForObject(object);
+      return space.isReachable(object);
+    }
   }
 
   /**
@@ -168,6 +199,7 @@ public final class GCTraceTraceLocal extends SSTraceLocal implements Uninterrupt
    * @return True if the object is guaranteed not to move.
    */
   public boolean willNotMove(ObjectReference object) {
-    return true;
+    if (GCTrace.traceInducedGC) return true;
+    else return super.willNotMove(object);
   }
 }

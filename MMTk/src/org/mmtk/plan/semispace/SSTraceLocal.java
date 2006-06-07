@@ -84,12 +84,11 @@ public class SSTraceLocal extends TraceLocal implements Uninterruptible {
   public ObjectReference precopyObject(ObjectReference object)
     throws InlinePragma {
     if (object.isNull()) return object;
-    else if (Space.isInSpace(SS.SS0, object))
+    if (Space.isInSpace(SS.SS0, object))
       return SS.copySpace0.traceObject(this,object);
-    else if (Space.isInSpace(SS.SS1, object))
+    if (Space.isInSpace(SS.SS1, object))
       return SS.copySpace1.traceObject(this,object);
-    else
-      return object;
+    return object;
   }
 
   /**

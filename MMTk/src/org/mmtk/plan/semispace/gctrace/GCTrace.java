@@ -12,6 +12,7 @@ import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SortTODSharedDeque;
 import org.mmtk.utility.TraceGenerator;
+import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Collection;
@@ -77,7 +78,7 @@ import org.vmmagic.pragma.*;
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
- * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
+ * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
  *
  * @version $Revision$
  * @date $Date$
@@ -105,22 +106,22 @@ public class GCTrace extends SS implements Uninterruptible {
    */
 
   /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).  This is where key <i>global</i>
-   * instances are allocated.  These instances will be incorporated
-   * into the boot image by the build process.
+   * Constructor
    */
-  static {
+  public GCTrace() {
     SortTODSharedDeque workList = new SortTODSharedDeque(traceSpace, 1);
     SortTODSharedDeque traceBuf = new SortTODSharedDeque(traceSpace, 1); 
     TraceGenerator.init(workList, traceBuf);
   }
 
   /**
-   * Constructor
+   * The postBoot method is called by the runtime immediately after
+   * command-line arguments are available. 
    */
-  public GCTrace() {}
-
+  public void postBoot() throws InterruptiblePragma {
+    Options.noFinalizer.setValue(true);
+  }
+  
   /**
    * The planExit method is called at RVM termination to allow the
    * trace process to finish.
@@ -130,6 +131,7 @@ public class GCTrace extends SS implements Uninterruptible {
     finalDead = true;
     traceInducedGC = false;
     deathScan = true;
+    TraceGenerator.notifyExit(value);
   }
 
   /**
@@ -160,10 +162,13 @@ public class GCTrace extends SS implements Uninterruptible {
    */
   public boolean poll(boolean mustCollect, Space space) 
     throws LogicallyUninterruptiblePragma {
-    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace)
+    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace || space == traceSpace)
       return false;
+    
     mustCollect |= stressTestGCRequired();
-    if (mustCollect || getPagesReserved() > getTotalPages()) {
+  
+    boolean heapFull = getPagesReserved() > getTotalPages();
+    if (mustCollect || heapFull) {
       required = space.reservedPages() - space.committedPages();
       if (space == copySpace0 || space == copySpace1)
         required = required<<1; // must account for copy reserve
@@ -180,28 +185,26 @@ public class GCTrace extends SS implements Uninterruptible {
    */
   
   public void collectionPhase(int phaseId) {
-    if (traceInducedGC && phaseId == PREPARE) {
-      // Do Nothing
-      return;
-    }
-    
     if (phaseId == RELEASE) {
-      if (!traceInducedGC) {
+      if (traceInducedGC) {
+        /* Clean up following a trace-induced scan */
         progress = true;
         deathScan = false;
       } else {
-        /* Perform the death time calculations */
+        /* Finish the collection by calculating the unreachable times */
         deathScan = true;
         TraceGenerator.postCollection();
         deathScan = false;
-        /* release each of the collected regions */
+        /* Perform the semispace collections. */
         super.collectionPhase(phaseId);
       }
-      return;
+    } else if (!traceInducedGC ||
+               (phaseId == INITIATE) ||
+               (phaseId == ROOTS) ||
+               (phaseId == COMPLETE)) {
+      /* Performing normal GC; sponge off of parent's work. */
+      super.collectionPhase(phaseId);
     }
-    
-    // Delegate up.
-    super.collectionPhase(phaseId);
   }
   
   

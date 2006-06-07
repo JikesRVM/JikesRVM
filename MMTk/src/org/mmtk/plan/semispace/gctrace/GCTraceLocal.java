@@ -7,14 +7,25 @@
  */
 package org.mmtk.plan.semispace.gctrace;
 
+import org.mmtk.plan.*;
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.CopyLocal;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.alloc.AllocAdvice;
+import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.scan.*;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.semispace.*;
+import org.mmtk.plan.StopTheWorldLocal;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Barriers;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
+
 
 /**
  * This plan has been modified slightly to perform the processing necessary
@@ -81,8 +92,8 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class GCTraceLocal extends SSLocal implements Uninterruptible {
-
-  GCTraceTraceLocal inducedTrace = new GCTraceTraceLocal(global().ssTrace);
+  // allocators
+  protected final GCTraceTraceLocal inducedTrace;
   
   /**
    * @return The active global plan as a <code>GCTrace</code> instance.
@@ -94,7 +105,9 @@ public class GCTraceLocal extends SSLocal implements Uninterruptible {
   /**
    * Constructor
    */
-  public GCTraceLocal() {}
+  public GCTraceLocal() {
+    inducedTrace = new GCTraceTraceLocal(global().ssTrace);
+  }
 
   /****************************************************************************
    *
@@ -115,8 +128,8 @@ public class GCTraceLocal extends SSLocal implements Uninterruptible {
   throws InlinePragma {
     /* Make the trace generator aware of the new object. */
     TraceGenerator.addTraceObject(object, allocator);
-    
-    super.postAlloc(object, typeRef, bytes, allocator);
+
+    super.postAlloc(object,typeRef,bytes,allocator);
     
     /* Now have the trace process aware of the new allocation. */
     GCTrace.traceInducedGC = TraceGenerator.MERLIN_ANALYSIS;
@@ -130,26 +143,31 @@ public class GCTraceLocal extends SSLocal implements Uninterruptible {
    */
   
   public void collectionPhase(int phaseId, boolean participating, boolean primary) {
-    if(GCTrace.traceInducedGC) {
-      if (phaseId == GCTrace.PREPARE || 
-          phaseId == GCTrace.RELEASE) {
-        // Do nothing.
-        return;
+    if (phaseId == GCTrace.START_CLOSURE) {
+      inducedTrace.startTrace();
+    } else if (phaseId == GCTrace.COMPLETE_CLOSURE) {
+      inducedTrace.completeTrace();
+    } else if (phaseId == GCTrace.RELEASE) {
+      inducedTrace.release();
+      if (!GCTrace.traceInducedGC) {
+        super.collectionPhase(phaseId, participating, primary);        
       }
-      
-      if (phaseId == GCTrace.START_CLOSURE) {
-        inducedTrace.startTrace();
-        return;
+    } else if (phaseId == SS.PREPARE) {
+      if (!GCTrace.traceInducedGC) {
+        // rebind the semispace bump pointer to the appropriate semispace.
+        ss.rebind(SS.toSpace());
       }
-      
-      if (phaseId == GCTrace.COMPLETE_CLOSURE) {
-        inducedTrace.completeTrace();
-        return;
-      }
+      super.collectionPhase(phaseId, participating, primary);
+    } else if ( !GCTrace.traceInducedGC ||
+                ( (phaseId != StopTheWorld.SOFT_REFS) &&
+                  (phaseId != StopTheWorld.WEAK_REFS) &&
+                  (phaseId != StopTheWorld.PHANTOM_REFS) &&
+                  (phaseId != StopTheWorld.FORWARD_REFS) &&
+                  (phaseId != StopTheWorld.FORWARD_FINALIZABLE) &&
+                  (phaseId != StopTheWorld.FINALIZABLE) )) {
+      // Delegate up.
+      super.collectionPhase(phaseId, participating, primary);
     }
-    
-    // Delegate up.
-    super.collectionPhase(phaseId, participating, primary);
   }
 
   /****************************************************************************
@@ -219,6 +237,6 @@ public class GCTraceLocal extends SSLocal implements Uninterruptible {
    * @return The current trace instance
    */
   public TraceLocal getCurrentTrace() {
-    return GCTrace.traceInducedGC ? inducedTrace : trace;
+    return inducedTrace;
   }
 }
