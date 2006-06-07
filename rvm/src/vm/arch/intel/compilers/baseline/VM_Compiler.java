@@ -2047,8 +2047,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     resolvedMethod = methodRef.peekInterfaceMethod();
 
     // (1) Emit dynamic type checking sequence if required to do so inline.
-    if (VM.BuildForIMTInterfaceInvocation || 
-        (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
+    if (!methodRef.isMiranda() && (VM.BuildForIMTInterfaceInvocation || 
+        (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables))) {
       if (resolvedMethod == null) {
         // Can't successfully resolve it at compile time.
         // Call uncommon case typechecking routine to do the right thing when this code actually executes.
