@@ -62,8 +62,6 @@ public final class MarkCompactSpace extends Space
    * before consulting the plan
    * @param frac The size of the space in virtual memory, as a
    * fraction of all available virtual memory
-   * @param fromSpace The does this instance start life as from-space
-   * (or to-space)?
    */
   public MarkCompactSpace(String name, int pageBudget, float frac) {
     super(name, true, false, frac);
@@ -235,7 +233,6 @@ public final class MarkCompactSpace extends Space
    * during GC Returns true if marking was done.
    *
    * @param object The object to be marked
-   * @param value The value to store in the mark bit
    */
   public static boolean testAndMark(ObjectReference object) 
     throws InlinePragma {
@@ -254,7 +251,6 @@ public final class MarkCompactSpace extends Space
    * during GC Returns true if marking was done.
    *
    * @param object The object to be marked
-   * @param value The value to store in the mark bit
    */
   public static boolean isMarked(ObjectReference object) 
     throws InlinePragma {
@@ -268,7 +264,6 @@ public final class MarkCompactSpace extends Space
    * during GC Returns true if marking was done.
    *
    * @param object The object to be marked
-   * @param value The value to store in the mark bit
    */
   private static boolean testAndClearMark(ObjectReference object) 
     throws InlinePragma {
@@ -288,7 +283,6 @@ public final class MarkCompactSpace extends Space
    * during GC Returns true if marking was done.
    *
    * @param object The object to be marked
-   * @param value The value to store in the mark bit
    */
   public static boolean toBeCompacted(ObjectReference object) 
     throws InlinePragma {
@@ -302,7 +296,6 @@ public final class MarkCompactSpace extends Space
    * during GC Returns true if marking was done.
    *
    * @param object The object to be marked
-   * @param value The value to store in the mark bit
    */
   public static void clearMark(ObjectReference object) 
     throws InlinePragma {
