@@ -117,7 +117,8 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
   
   /**
    * LHSclass is an interface that RHS class must implement.
-   * Raises an IncompatibaleClassChangeError if RHStib does not implement LHSclass
+   * Raises an IncompatibleClassChangeError if RHStib does not
+   * implement LHSclass.
    * 
    * @param LHSclass an class (should be an interface)
    * @param RHStib the TIB of an object that must implement LHSclass
