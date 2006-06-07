@@ -55,6 +55,8 @@ final class VMClassLoader
   /** packages loaded by the bootstrap class loader */
   private static final VM_HashMap definedPackages = new VM_HashMap();
 
+  private static final VM_HashMap bootjars = new VM_HashMap();
+    
   //-#if !RVM_WITH_CLASSPATH_0_90
   static
   {
@@ -125,8 +127,6 @@ final class VMClassLoader
       return (URL)e.nextElement();
     return null;
   }
-
-  private static final VM_HashMap bootjars = new VM_HashMap();
   
   static Enumeration getResources(String name)
   {
