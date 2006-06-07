@@ -1641,11 +1641,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             if (generated) break; // all done.
           }
 
-          // A non-magical invokevirtual.  Create call instruction.
-          boolean unresolved = ref.needsDynamicLink(bcodes.method());
-          VM_Method target = ref.peekResolvedMethod();
-          OPT_MethodOperand methOp = OPT_MethodOperand.VIRTUAL(ref, target);
-
           //-#if RVM_WITH_OSR
           /* just create an osr barrier right before _callHelper
            * changes the states of locals and stacks.
@@ -1654,66 +1649,123 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             lastOsrBarrier = _createOsrBarrier();
           }
           //-#endif
+          
+          if (ref.isMiranda()) {
+            // An invokevirtual that is really an invokeinterface.
+            VM_Method resolvedMethod = null;
 
-          s = _callHelper(ref, methOp);
+            s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, null));
+            OPT_RegisterOperand receiver = Call.getParam(s, 0).asRegister();
+            VM_Class receiverType = (VM_Class)receiver.type.peekResolvedType();
+            // null check on this parameter of call
+            clearCurrentGuard();
+            if (do_NullCheck(receiver)) {
+              // call will always raise null pointer exception
+              s = null; 
+              break; 
+            }
+            Call.setGuard(s, getCurrentGuard());
 
-          // Handle possibility of dynamic linking. Must be done before null_check!
-          if (unresolved) {
-            OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
-            appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
-            Call.setAddress(s, offsetrop);
-            rectifyStateWithErrorHandler();
-          } else {
-            if (VM.VerifyAssertions) VM._assert(target != null);
-            Call.setAddress(s, new OPT_AddressConstantOperand(target.getOffset()));
-          }
-
-          // null check receiver
-          OPT_Operand receiver = Call.getParam(s, 0);
-          clearCurrentGuard();
-          if (do_NullCheck(receiver)) {
-            // call will always raise null pointer exception
-            s = null; 
-            break; 
-          }
-          Call.setGuard(s, getCurrentGuard());
-
-          // Use compile time type of receiver to try reduce the number of targets.
-          // If we succeed, we'll update meth and s's method operand.
-          boolean isExtant = false;
-          boolean isPreciseType = false;
-          VM_TypeReference tr = null;
-          if (receiver.isRegister()) {
-            OPT_RegisterOperand rop = receiver.asRegister();
-            isExtant = rop.isExtant();
-            isPreciseType = rop.isPreciseType();
-            tr = rop.type;
-          } else if (receiver.isStringConstant()) {
-            isExtant = true;
-            isPreciseType = true;
-            tr = VM_TypeReference.JavaLangString;
-          } else if (receiver.isClassConstant()) {
-            isExtant = true;
-            isPreciseType = true;
-            tr = VM_TypeReference.JavaLangClass;
-          } else if (VM.VerifyAssertions) {
-            VM._assert(false, "unexpected receiver " + receiver);
-          }
-          VM_Type type = tr.peekResolvedType();
-          if (type != null && type.isResolved() && type.isClassType()) {
-            VM_Method vmeth = target;
-            if (target == null || type != target.getDeclaringClass()) {
-              vmeth = OPT_ClassLoaderProxy.lookupMethod(type.asClass(), ref);
+            // Attempt to resolve the interface call to a particular virtual method.
+            // This is independent of whether or not the static type of the receiver is 
+            // known to implement the interface and it is not that case that being able
+            // to prove one implies the other.
+            VM_Method vmeth = null;
+            if (receiverType != null && receiverType.isInitialized() && !receiverType.isInterface()) {
+              vmeth = OPT_ClassLoaderProxy.lookupMethod(receiverType, ref);
             }
             if (vmeth != null) {
-              methOp.refine(vmeth, isPreciseType || type.asClass().isFinal());
+              VM_MethodReference vmethRef = vmeth.getMemberRef().asMethodReference();
+              OPT_MethodOperand mop = OPT_MethodOperand.VIRTUAL(vmethRef, vmeth);
+              if (receiver.isPreciseType()) {
+                mop.refine(vmeth, true);
+              }
+              Call.setMethod(s, mop);
+              boolean unresolved = vmethRef.needsDynamicLink(bcodes.method());
+              if (unresolved) {
+                OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
+                appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+                Call.setAddress(s, offsetrop);
+                rectifyStateWithErrorHandler();
+              } else {
+                Call.setAddress(s, new OPT_AddressConstantOperand(vmeth.getOffset()));
+              }
+
+            
+              // Attempt to inline virtualized call.
+              if (maybeInlineMethod(shouldInline(s, receiver.isExtant()), s)) {
+                return;
+              }
+            }
+            
+          } else {
+            // A normal invokevirtual.  Create call instruction.
+            boolean unresolved = ref.needsDynamicLink(bcodes.method());
+            VM_Method target = ref.peekResolvedMethod();
+            OPT_MethodOperand methOp = OPT_MethodOperand.VIRTUAL(ref, target);
+
+            s = _callHelper(ref, methOp);
+
+            // Handle possibility of dynamic linking.
+            // Must be done before null_check!
+            if (unresolved) {
+              OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
+              appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+              Call.setAddress(s, offsetrop);
+              rectifyStateWithErrorHandler();
+            } else {
+              if (VM.VerifyAssertions) VM._assert(target != null);
+              Call.setAddress(s, new OPT_AddressConstantOperand(target.getOffset()));
+            }
+
+            // null check receiver
+            OPT_Operand receiver = Call.getParam(s, 0);
+            clearCurrentGuard();
+            if (do_NullCheck(receiver)) {
+              // call will always raise null pointer exception
+              s = null; 
+              break; 
+            }
+            Call.setGuard(s, getCurrentGuard());
+
+            // Use compile time type of receiver to try reduce the number
+            // of targets.
+            // If we succeed, we'll update meth and s's method operand.
+            boolean isExtant = false;
+            boolean isPreciseType = false;
+            VM_TypeReference tr = null;
+            if (receiver.isRegister()) {
+              OPT_RegisterOperand rop = receiver.asRegister();
+              isExtant = rop.isExtant();
+              isPreciseType = rop.isPreciseType();
+              tr = rop.type;
+            } else if (receiver.isStringConstant()) {
+              isExtant = true;
+              isPreciseType = true;
+              tr = VM_TypeReference.JavaLangString;
+            } else if (receiver.isClassConstant()) {
+              isExtant = true;
+              isPreciseType = true;
+              tr = VM_TypeReference.JavaLangClass;
+            } else if (VM.VerifyAssertions) {
+              VM._assert(false, "unexpected receiver " + receiver);
+            }
+            VM_Type type = tr.peekResolvedType();
+            if (type != null && type.isResolved() && type.isClassType()) {
+              VM_Method vmeth = target;
+              if (target == null || type != target.getDeclaringClass()) {
+                vmeth = OPT_ClassLoaderProxy.lookupMethod(type.asClass(), ref);
+              }
+              if (vmeth != null) {
+                methOp.refine(vmeth, isPreciseType || type.asClass().isFinal());
+              }
+            }
+
+            // Consider inlining it. 
+            if (maybeInlineMethod(shouldInline(s, isExtant), s)) {
+              return;
             }
           }
-
-          // Consider inlining it. 
-          if (maybeInlineMethod(shouldInline(s, isExtant), s)) {
-            return;
-          } 
 
           // noninlined CALL must be treated as potential throw of anything
           rectifyStateWithExceptionHandlers(); 
@@ -1830,8 +1882,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           OPT_RegisterOperand receiver = Call.getParam(s, 0).asRegister();
           VM_Class receiverType = (VM_Class)receiver.type.peekResolvedType();
           // null check on this parameter of call
-          // TODO: Strictly speaking we need to do dynamic linking of the interface
-          //       type BEFORE we do the null check. FIXME.
+          // TODO: Strictly speaking we need to do dynamic linking of the
+          //       interface type BEFORE we do the null check. FIXME.
           clearCurrentGuard();
           if (do_NullCheck(receiver)) {
             // call will always raise null pointer exception
