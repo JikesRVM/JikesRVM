@@ -1438,9 +1438,7 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
             if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
             if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
             emit_invokeinterface(methodRef); 
-        }
-        else {
-
+        } else {
 	        if (methodRef.needsDynamicLink(method)) {
 	          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef);
 	          emit_unresolved_invokevirtual(methodRef);
