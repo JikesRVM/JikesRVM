@@ -230,7 +230,7 @@ public final class MarkCompactSpace extends Space
 
   /**
    * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
+   * during GC. Returns true if marking was done.
    *
    * @param object The object to be marked
    */
@@ -247,10 +247,9 @@ public final class MarkCompactSpace extends Space
   }
   
   /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
+   * Is this object marked?
    *
-   * @param object The object to be marked
+   * @param object The object to check 
    */
   public static boolean isMarked(ObjectReference object) 
     throws InlinePragma {
@@ -260,10 +259,9 @@ public final class MarkCompactSpace extends Space
   }
   
   /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
+   * Clear the mark bit, returning if the object was marked before the call.
    *
-   * @param object The object to be marked
+   * @param object The object to clear 
    */
   private static boolean testAndClearMark(ObjectReference object) 
     throws InlinePragma {
@@ -279,10 +277,9 @@ public final class MarkCompactSpace extends Space
   
   
   /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
+   * Used to determine if an object is going to be compacted during GC.
    *
-   * @param object The object to be marked
+   * @param object The object to check
    */
   public static boolean toBeCompacted(ObjectReference object) 
     throws InlinePragma {
@@ -292,10 +289,9 @@ public final class MarkCompactSpace extends Space
   }
   
   /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
+   * Unconditionally clear the mark bit of the object.
    *
-   * @param object The object to be marked
+   * @param object The object to clear
    */
   public static void clearMark(ObjectReference object) 
     throws InlinePragma {
