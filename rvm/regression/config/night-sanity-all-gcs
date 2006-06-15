@@ -22,3 +22,4 @@ FullAdaptiveGenCopy                -test-list nightly-tests
 FullAdaptiveGenRC                  -test-list nightly-tests-short
 FullAdaptiveRefCount               -test-list nightly-tests-short
 FullAdaptiveNoGC                   -test-list mmtk-nogc-sanity-tests
+FullAdaptiveGCTrace                -test-list mmtk-gctrace-sanity-tests
