@@ -1,6 +1,7 @@
 /*
  * (C) Copyright Jikes RVM project
  */
+
 //$Id$
 
 /**
