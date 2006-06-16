@@ -10,7 +10,6 @@ on October 14, 2001,
 ** Highlights
 *** Classpath 0.90 or 0.91 is required. By default, 0.91 is used.
 
-
 *** Classpath AWT and Swing tests now run with the Jikes RVM. We have changed
     from using the portable native sync code, and addressed issues with M-to-N
     threading.
