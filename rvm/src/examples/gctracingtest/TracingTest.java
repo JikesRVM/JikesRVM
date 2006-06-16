@@ -1,3 +1,11 @@
+/*
+ * (C) Copyright Jikes RVM project
+ */
+//$Id$
+
+/**
+ * @author Matther Hertz
+ */
 public class TracingTest {
   public static Integer[] arr;
   
