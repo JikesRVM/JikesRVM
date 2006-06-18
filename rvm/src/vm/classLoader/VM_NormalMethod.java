@@ -16,6 +16,7 @@ import org.vmmagic.pragma.*;
  * @author Stephen Fink
  * @author Dave Grove
  * @author Derek Lieber
+ * @modified Ian Rogers
  */
 public final class VM_NormalMethod 
   extends VM_Method 
@@ -137,7 +138,9 @@ public final class VM_NormalMethod
   //-#endif
 
   /**
-   * @param dc the VM_Class object of the class that declared this field
+   * Construct a normal Java bytecode method's information
+   *
+   * @param dc the VM_TypeReference object of the class that declared this field
    * @param mr the canonical memberReference for this member.
    * @param mo modifiers associated with this member.
    * @param et exceptions thrown by this method.
@@ -146,18 +149,27 @@ public final class VM_NormalMethod
    * @param bc the bytecodes of this method
    * @param eMap the exception handler map for this method
    * @param lm the line number map for this method
+   * @param constantPool the constantPool for this method
+   * @param rvan array of runtime visible annotations
+   * @param rivan optional array of runtime invisible annotations
+   * @param rvpan array of runtime visible paramter annotations
+   * @param rivpan optional array of runtime invisible paramter annotations
+   * @param ad annotation default value for that appears in annotation classes
    */
-  VM_NormalMethod(VM_Class dc, VM_MemberReference mr,
+  VM_NormalMethod(VM_TypeReference dc, VM_MemberReference mr,
                   int mo, VM_TypeReference[] et, int lw, int ow, byte[] bc,
-                  VM_ExceptionHandlerMap eMap, int[] lm) 
+                  VM_ExceptionHandlerMap eMap, int[] lm,
+                  int constantPool[], VM_Annotation rvan[],
+                  VM_Annotation rivan[], VM_Annotation rvpan[],
+                  VM_Annotation rivpan[], Object ad) 
   {
-    super(dc, mr, mo, et);
+    super(dc, mr, mo, et, rvan, rivan, rvpan, rivpan, ad);
     localWords = lw;
     operandWords = ow;
     bytecodes = bc;
     exceptionHandlerMap = eMap;
     lineNumberMap = lm;
-    computeSummary();
+    computeSummary(constantPool);
   }
 
   /**
@@ -212,7 +224,7 @@ public final class VM_NormalMethod
     if (VM.VerifyAssertions) VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode)
                                         && (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
     int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << BITS_IN_BYTE) | (bytecodes[bcIndex + 2] & 0xFF);
-    dynamicLink.set(declaringClass.getMethodRef(constantPoolIndex), bytecode);
+    dynamicLink.set(getDeclaringClass().getMethodRef(constantPoolIndex), bytecode);
   }
 
   /**
@@ -477,7 +489,7 @@ public final class VM_NormalMethod
    * This method computes a summary of interesting method characteristics 
    * and stores an encoding of the summary as an int.
    */
-  private void computeSummary() {
+  private void computeSummary(int constantPool[]) {
     int calleeSize = 0;
     if (isSynchronized()) {
       summary |= HAS_SYNCH;
@@ -586,7 +598,7 @@ public final class VM_NormalMethod
       case JBC_invokevirtual:case JBC_invokespecial:
       case JBC_invokestatic:   
         // Special case VM_Magic's as being cheaper.
-        VM_MethodReference meth = bcodes.getMethodReference();
+        VM_MethodReference meth = bcodes.getMethodReference(constantPool);
         if (meth.getType().isMagicType()) {
           summary |= HAS_MAGIC;
           calleeSize += MAGIC_COST;

@@ -46,46 +46,46 @@ import org.vmmagic.unboxed.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstants {
+public abstract class VM_Type extends VM_AnnotatedElement implements VM_ClassLoaderConstants, VM_SizeConstants {
 
   /*
    * We hold on to a number of special types here for easy access.
    */
-  public static VM_Type VoidType;
-  public static VM_Type BooleanType;
-  public static VM_Type ByteType;
-  public static VM_Type ShortType;
-  public static VM_Type IntType;
-  public static VM_Type LongType;
-  public static VM_Type FloatType;
-  public static VM_Type DoubleType;
-  public static VM_Type CharType;
-  public static VM_Type JavaLangObjectType;
+  public static VM_Primitive VoidType;
+  public static VM_Primitive BooleanType;
+  public static VM_Primitive ByteType;
+  public static VM_Primitive ShortType;
+  public static VM_Primitive IntType;
+  public static VM_Primitive LongType;
+  public static VM_Primitive FloatType;
+  public static VM_Primitive DoubleType;
+  public static VM_Primitive CharType;
+  public static VM_Class JavaLangObjectType;
   public static VM_Array JavaLangObjectArrayType;
-  public static VM_Type JavaLangClassType;
-  public static VM_Type JavaLangThrowableType; 
-  public static VM_Type NativeBridgeType;
-  public static VM_Type JavaLangStringType;    
+  public static VM_Class JavaLangClassType;
+  public static VM_Class JavaLangThrowableType; 
+  public static VM_Class NativeBridgeType;
+  public static VM_Class JavaLangStringType;    
   public static VM_Class JavaLangCloneableType; 
   public static VM_Class JavaIoSerializableType; 
-  public static VM_Type MagicType;             
-  public static VM_Type WordType;             
+  public static VM_Class MagicType;             
+  public static VM_Primitive WordType;             
   public static VM_Array WordArrayType;             
-  public static VM_Type AddressType;             
+  public static VM_Primitive AddressType;             
   public static VM_Array AddressArrayType;             
-  public static VM_Type ObjectReferenceType;             
+  public static VM_Class ObjectReferenceType;             
   public static VM_Array ObjectReferenceArrayType;             
-  public static VM_Type OffsetType;             
+  public static VM_Primitive OffsetType;             
   public static VM_Array OffsetArrayType;             
-  public static VM_Type ExtentType;             
+  public static VM_Primitive ExtentType;             
   public static VM_Array ExtentArrayType;             
-  public static VM_Type CodeType;
+  public static VM_Primitive CodeType;
   public static VM_Array CodeArrayType;
-  public static VM_Type UninterruptibleType;   
-  public static VM_Type UnpreemptibleType;   
-  public static VM_Type SynchronizedObjectType;   
-  public static VM_Type DynamicBridgeType;     
-  public static VM_Type SaveVolatileType;      
+  public static VM_Class UninterruptibleType;   
+  public static VM_Class UnpreemptibleType;   
+  public static VM_Class SynchronizedObjectType;   
+  public static VM_Class DynamicBridgeType;     
+  public static VM_Class SaveVolatileType;      
 
   private static int nextId = 1;
   private static VM_Type[] types = new VM_Type[1000];
@@ -156,15 +156,22 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    */
   protected boolean acyclic;       
 
-
   /**
    * Create an instance of a {@link VM_Type}
-   * @param tr   The canonical type reference for this type.
+   * @param typeRef The canonical type reference for this type.
+   * @param runtimeVisibleAnnotations array of runtime visible
+   * annotations
+   * @param runtimeInvisibleAnnotations optional array of runtime
+   * invisible annotations
    */
-  protected VM_Type(VM_TypeReference tr) {
-    this.typeRef = tr;
+  protected VM_Type(VM_TypeReference typeRef,
+                    VM_Annotation runtimeVisibleAnnotations[],
+                    VM_Annotation runtimeInvisibleAnnotations[])
+  {
+    super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
+    this.typeRef = typeRef;
     this.state = CLASS_VACANT;
-    this.dimension = tr.getDimensionality();
+    this.dimension = typeRef.getDimensionality();
     this.tibOffset = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.id = nextId(this);
 
@@ -537,49 +544,64 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   }
          
   static void init() {
-    VoidType    = VM_TypeReference.Void.resolve();
-    BooleanType = VM_TypeReference.Boolean.resolve();
-    ByteType    = VM_TypeReference.Byte.resolve();
-    ShortType   = VM_TypeReference.Short.resolve();
-    IntType     = VM_TypeReference.Int.resolve();
-    LongType    = VM_TypeReference.Long.resolve();
-    FloatType   = VM_TypeReference.Float.resolve();
-    DoubleType  = VM_TypeReference.Double.resolve();
-    CharType    = VM_TypeReference.Char.resolve();
-
-    CodeType = VM_TypeReference.Code.resolve();
+    // Primitive types
+    VoidType    = VM_TypeReference.Void.resolve().asPrimitive();
+    BooleanType = VM_TypeReference.Boolean.resolve().asPrimitive();
+    ByteType    = VM_TypeReference.Byte.resolve().asPrimitive();
+    ShortType   = VM_TypeReference.Short.resolve().asPrimitive();
+    IntType     = VM_TypeReference.Int.resolve().asPrimitive();
+    LongType    = VM_TypeReference.Long.resolve().asPrimitive();
+    FloatType   = VM_TypeReference.Float.resolve().asPrimitive();
+    DoubleType  = VM_TypeReference.Double.resolve().asPrimitive();
+    CharType    = VM_TypeReference.Char.resolve().asPrimitive();
+    // Jikes RVM primitives
+    AddressType = VM_TypeReference.Address.resolve().asPrimitive();
+    WordType    = VM_TypeReference.Word.resolve().asPrimitive();
+    OffsetType  = VM_TypeReference.Offset.resolve().asPrimitive();
+    ExtentType  = VM_TypeReference.Extent.resolve().asPrimitive();
+    CodeType    = VM_TypeReference.Code.resolve().asPrimitive();
+    // Jikes RVM classes
+    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve().asClass();
+    MagicType           = VM_TypeReference.Magic.resolve().asClass();
+    UninterruptibleType =
+      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                    VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Uninterruptible;")
+                                    ).resolve().asClass();
+    UnpreemptibleType =
+      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                    VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Unpreemptible;")
+                                    ).resolve().asClass();
+    SynchronizedObjectType =
+      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")
+                                    ).resolve().asClass();
+    DynamicBridgeType =
+      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;")
+                                    ).resolve().asClass();
+    SaveVolatileType =
+      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")
+                                    ).resolve().asClass();
+    NativeBridgeType      =
+      VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")
+                                    ).resolve().asClass();
+    // Array types
     CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();
-
-    JavaLangObjectType = VM_TypeReference.JavaLangObject.resolve();
-    JavaLangObjectArrayType = (VM_Array)VM_TypeReference.JavaLangObjectArray.resolve();
-    JavaLangClassType = VM_TypeReference.JavaLangClass.resolve();
-    JavaLangThrowableType = VM_TypeReference.JavaLangThrowable.resolve();
-    JavaLangStringType = VM_TypeReference.JavaLangString.resolve();
-    JavaLangCloneableType = (VM_Class)VM_TypeReference.JavaLangCloneable.resolve();
-    JavaIoSerializableType = (VM_Class)VM_TypeReference.JavaIoSerializable.resolve();
-    MagicType = VM_TypeReference.Magic.resolve();
-    UninterruptibleType   = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                          VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Uninterruptible;")).resolve();
-    UnpreemptibleType     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                          VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Unpreemptible;")).resolve();
-    SynchronizedObjectType= VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")).resolve();
-    DynamicBridgeType     = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicBridge;")).resolve();
-    SaveVolatileType      = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;")).resolve();
-    NativeBridgeType      = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(),
-                                                          VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/jni/VM_NativeBridge;")).resolve();
-    WordType = VM_TypeReference.Word.resolve();
     WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
-    AddressType = VM_TypeReference.Address.resolve();
     AddressArrayType = VM_TypeReference.AddressArray.resolve().asArray();
-    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve();
     ObjectReferenceArrayType = VM_TypeReference.ObjectReferenceArray.resolve().asArray();
-    OffsetType = VM_TypeReference.Offset.resolve();
     OffsetArrayType = VM_TypeReference.OffsetArray.resolve().asArray();
-    ExtentType = VM_TypeReference.Extent.resolve();
     ExtentArrayType = VM_TypeReference.ExtentArray.resolve().asArray();
+    // Java clases
+    JavaLangObjectType      = VM_TypeReference.JavaLangObject.resolve().asClass();
+    JavaLangObjectArrayType = VM_TypeReference.JavaLangObjectArray.resolve().asArray();
+    JavaLangClassType       = VM_TypeReference.JavaLangClass.resolve().asClass();
+    JavaLangThrowableType   = VM_TypeReference.JavaLangThrowable.resolve().asClass();
+    JavaLangStringType      = VM_TypeReference.JavaLangString.resolve().asClass();
+    JavaLangCloneableType   = VM_TypeReference.JavaLangCloneable.resolve().asClass();
+    JavaIoSerializableType  = VM_TypeReference.JavaIoSerializable.resolve().asClass();
     
     VM_Array.init();
   }

@@ -160,8 +160,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private int runoff;
 
   /**
-	* Was something inlined?
-	*/
+   * Was something inlined?
+   */
   private boolean inlinedSomething;
 
   /**
@@ -1450,7 +1450,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           // field resolution
           VM_FieldReference ref = bcodes.getFieldReference();
-          boolean unresolved = ref.needsDynamicLink(bcodes.method());
+          boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
           OPT_LocationOperand fieldOp = makeStaticFieldRef(ref);
           OPT_Operand offsetOp;
           VM_TypeReference fieldType = ref.getFieldContentsType();
@@ -1539,7 +1539,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           // field resolution
           VM_FieldReference ref = bcodes.getFieldReference();
-          boolean unresolved = ref.needsDynamicLink(bcodes.method());
+          boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
           OPT_LocationOperand fieldOp = makeStaticFieldRef(ref);
           OPT_Operand offsetOp;
           if (unresolved) {
@@ -1562,7 +1562,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           // field resolution
           VM_FieldReference ref = bcodes.getFieldReference();
-          boolean unresolved = ref.needsDynamicLink(bcodes.method());
+          boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
           OPT_LocationOperand fieldOp = makeInstanceFieldRef(ref);
           OPT_Operand offsetOp;
           VM_TypeReference fieldType = ref.getFieldContentsType();
@@ -1606,7 +1606,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           // field resolution
           VM_FieldReference ref = bcodes.getFieldReference();
-          boolean unresolved = ref.needsDynamicLink(bcodes.method());
+          boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
           OPT_LocationOperand fieldOp = makeInstanceFieldRef(ref);
           VM_TypeReference fieldType = ref.getFieldContentsType();
           OPT_Operand offsetOp;
@@ -1681,7 +1681,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                 mop.refine(vmeth, true);
               }
               Call.setMethod(s, mop);
-              boolean unresolved = vmethRef.needsDynamicLink(bcodes.method());
+              boolean unresolved = vmethRef.needsDynamicLink(bcodes.getMethod());
               if (unresolved) {
                 OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
                 appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
@@ -1700,7 +1700,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             
           } else {
             // A normal invokevirtual.  Create call instruction.
-            boolean unresolved = ref.needsDynamicLink(bcodes.method());
+            boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
             VM_Method target = ref.peekResolvedMethod();
             OPT_MethodOperand methOp = OPT_MethodOperand.VIRTUAL(ref, target);
 
@@ -1830,7 +1830,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           }
           
           // A non-magical invokestatic.  Create call instruction.
-          boolean unresolved = ref.needsDynamicLink(bcodes.method());
+          boolean unresolved = ref.needsDynamicLink(bcodes.getMethod());
           VM_Method target = ref.peekResolvedMethod();
           
           //-#if RVM_WITH_OSR
@@ -1970,7 +1970,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
               mop.refine(vmeth, true);
             }
             Call.setMethod(s, mop);
-            boolean unresolved = vmethRef.needsDynamicLink(bcodes.method());
+            boolean unresolved = vmethRef.needsDynamicLink(bcodes.getMethod());
             if (unresolved) {
               OPT_RegisterOperand offsetrop = gc.temps.makeTempOffset();
               appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
@@ -2836,7 +2836,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   public final OPT_Operand getConstantOperand(int index) {
     byte desc = bcodes.getConstantType(index);
-    VM_Class declaringClass = bcodes.declaringClass();
+    VM_Class declaringClass = bcodes.getDeclaringClass();
     switch (desc) {
     case VM_Statics.INT_LITERAL:
       return  OPT_ClassLoaderProxy.getIntFromConstantPool(declaringClass, index);
@@ -3289,7 +3289,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private VM_TypeReference getRefTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
-	 return op.getType();
+    return op.getType();
   }
 
   //// HELPER FUNCTIONS FOR ASSERTION VERIFICATION
@@ -3337,7 +3337,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + bcodes.declaringClass() + "."
+    VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "."
                 + gc.method.getName() + ":" + val + "\n");
   }
 
@@ -3369,7 +3369,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                   (rop.scratchObject instanceof OPT_TrueGuardOperand));
       return rop.scratchObject != null;
     } else {
-		return op.isStringConstant() || op.isClassConstant();
+      return op.isStringConstant() || op.isClassConstant();
     }
   }
 
@@ -3414,12 +3414,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                   (rop.scratchObject instanceof OPT_RegisterOperand)
                   || (rop.scratchObject instanceof OPT_TrueGuardOperand));
       }
-		if(rop.scratchObject == null) {
-		  return null;
-		}
-		else {
-		  return ((OPT_Operand)rop.scratchObject).copy();
-		}
+      if(rop.scratchObject == null) {
+        return null;
+      }
+      else {
+        return ((OPT_Operand)rop.scratchObject).copy();
+      }
     }
     if (VM.VerifyAssertions)
       VM._assert(op.isStringConstant() || op.isClassConstant());
@@ -4427,7 +4427,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
                           currentBBLE.block.exceptionHandlers, callSite);
     
 
-	 inlinedSomething = true;
+    inlinedSomething = true;
     // TODO: We're currently not keeping track if any of the 
     // enclosing exception handlers are actually reachable from 
     // this inlined callee.  
@@ -5318,12 +5318,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       // If the epilogue was unreachable, remove it from the code order and cfg
       // and set gc.epilogue to null.
-		boolean removedSomethingFromCodeOrdering = inlinedSomething;
+      boolean removedSomethingFromCodeOrdering = inlinedSomething;
       if (gc.epilogue.hasZeroIn()) {
         if (DBG_FLATTEN || DBG_CFG)
           db("Deleting unreachable epilogue " + gc.epilogue);
         gc.cfg.removeFromCodeOrder(gc.epilogue);
-		  removedSomethingFromCodeOrdering = true;
+        removedSomethingFromCodeOrdering = true;
 
         // remove the node from the graph AND adjust its edge info
         gc.epilogue.remove();
@@ -5335,13 +5335,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       // if gc has an unlockAndRethrow block that was not used, then remove it
       if (gc.unlockAndRethrow != null && gc.unlockAndRethrow.hasZeroIn()) {
         gc.cfg.removeFromCFGAndCodeOrder(gc.unlockAndRethrow);
-		  removedSomethingFromCodeOrdering = true;
-		  gc.enclosingHandlers.remove( gc.unlockAndRethrow );
+        removedSomethingFromCodeOrdering = true;
+        gc.enclosingHandlers.remove( gc.unlockAndRethrow );
       }
-		// if we removed a basic block then we should compact the node numbering
-		if(removedSomethingFromCodeOrdering) {
-		  gc.cfg.compactNodeNumbering();
-		}
+      // if we removed a basic block then we should compact the node numbering
+      if(removedSomethingFromCodeOrdering) {
+        gc.cfg.compactNodeNumbering();
+      }
 
       if (DBG_FLATTEN) {
         db("Current Code order for " + gc.method + "\n");
@@ -5367,7 +5367,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param val string to print
      */
    private final void db(String val) {
-      VM.sysWrite("IRGEN " + bcodes.declaringClass() + "."
+      VM.sysWrite("IRGEN " + bcodes.getDeclaringClass() + "."
                   + gc.method.getName() + ":" + val + "\n");
     }
 

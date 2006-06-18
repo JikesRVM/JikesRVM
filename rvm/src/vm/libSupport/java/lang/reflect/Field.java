@@ -4,6 +4,8 @@
 //$Id$
 package java.lang.reflect;
 
+import java.lang.annotation.Annotation;
+
 import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_Field;
 import com.ibm.JikesRVM.classloader.VM_TypeReference;
@@ -23,6 +25,7 @@ import com.ibm.JikesRVM.VM_Runtime;
  * @author Stephen Fink
  * @author Eugene Gluzberg
  * @author Dave Grove
+ * @modified Ian Rogers
  */
 public final class Field extends AccessibleObject implements Member {
 
@@ -136,7 +139,7 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   public boolean isSynthetic() {
-	 return field.isSynthetic();
+    return field.isSynthetic();
   }
 
   public void set(Object object, Object value) 
@@ -524,5 +527,9 @@ public final class Field extends AccessibleObject implements Member {
       field.setFloatValueUnchecked(object, (float)value);
     else
       throw new IllegalArgumentException("field type mismatch");
+  }
+
+  public Annotation[] getDeclaredAnnotations() {
+    return field.getDeclaredAnnotations();
   }
 }

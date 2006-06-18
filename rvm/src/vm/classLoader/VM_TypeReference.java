@@ -169,6 +169,18 @@ public class VM_TypeReference implements VM_SizeConstants {
         cl = bootstrapCL;
       }
     }
+    return findOrCreateInternal(cl, tn);
+  }
+
+  /**
+   * Find or create the canonical VM_TypeReference instance for
+   * the given pair without type descriptor parsing.
+   *
+   * @param cl the classloader (defining/initiating depending on usage)
+   * @param tn the name of the type
+   */
+  public static synchronized VM_TypeReference findOrCreateInternal (ClassLoader cl, VM_Atom tn) 
+  {
     // Next actually findOrCreate the type reference using the proper classloader.
     VM_TypeReference key = new VM_TypeReference(cl, tn);
     VM_TypeReference val = (VM_TypeReference)dictionary.get(key);
@@ -479,7 +491,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Has the field reference already been resolved into a target method?
    */
-  public final boolean isResolved() {
+  public final boolean isResolved() throws UninterruptiblePragma {
     return resolvedType != null;
   }
 

@@ -98,7 +98,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
    * @param tr   The canonical type reference for this primitive
    */
   VM_Primitive(VM_TypeReference tr) {
-    super(tr);
+    super(tr, null, null);
     depth = 0;
     acyclic = true;     // All primitives are inherently acyclic
 

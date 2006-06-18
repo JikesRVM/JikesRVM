@@ -108,7 +108,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public final int getLogElementSize() throws UninterruptiblePragma {
     return logElementSize;
   }
-	  
+
   /**
    * Calculate the size, in bytes, of an array element, log base 2.
    * @return log base 2 of array element size
@@ -195,7 +195,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param elementType the VM_Type object for the array's elements.
    */
   VM_Array(VM_TypeReference typeRef, VM_Type elementType) {
-    super(typeRef);
+    super(typeRef, null, null);
     depth = 1;
     this.elementType = elementType;
     this.logElementSize = computeLogElementSize();

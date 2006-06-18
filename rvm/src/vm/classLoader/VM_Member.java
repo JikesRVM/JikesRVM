@@ -17,12 +17,13 @@ import org.vmmagic.unboxed.Offset;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
+public abstract class VM_Member extends VM_AnnotatedElement implements VM_Constants, VM_ClassLoaderConstants {
 
   /**
-   * The VM_Class that declared this member.
+   * The class that declared this member, avaliable by calling
+   * getDeclaringClass once the class is loaded.
    */
-  protected final VM_Class declaringClass;
+  private final VM_TypeReference declaringClass;
 
   /**
    * The canonical VM_MemberReference for this member
@@ -43,30 +44,38 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
   /**
    * NOTE: Only {@link VM_Class} is allowed to create an instance of a VM_Member.
    * 
-   * @param declaringClass the VM_Class object of the class that declared this member
+   * @param declaringClass the VM_TypeReference object of the class that declared this member
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
+   * @param runtimeVisibleAnnotations array of runtime visible
+   * annotations
+   * @param runtimeInvisibleAnnotations optional array of runtime
+   * invisible annotations
    */
-  protected VM_Member(VM_Class declaringClass, VM_MemberReference memRef,
-                      int modifiers) {
+  protected VM_Member(VM_TypeReference declaringClass, VM_MemberReference memRef,
+                      int modifiers, VM_Annotation runtimeVisibleAnnotations[],
+                      VM_Annotation runtimeInvisibleAnnotations[])
+  {
+    super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
     this.declaringClass = declaringClass;
     this.memRef = memRef;
     this.modifiers = modifiers;
     this.offset = -1; // invalid value. Set to valid value during VM_Class.resolve()
   }
-   
+
   //--------------------------------------------------------------------//
-  //                         Section 0.                                 //
-  // The following are always available.                                //
+  //                         Section 1.                                 //
+  // The following are available after class loading.                   //
   //--------------------------------------------------------------------//
 
   /**
-   * Class that declared this field or method.
+   * Class that declared this field or method. Not available before
+   * the class is loaded.
    */ 
   public final VM_Class getDeclaringClass() throws UninterruptiblePragma { 
-    return declaringClass;
+    return declaringClass.peekResolvedType().asClass();
   }
-      
+
   /**
    * Canonical member reference for this member.
    */ 

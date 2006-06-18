@@ -7,6 +7,8 @@ package java.lang;
 import java.io.InputStream;
 import java.security.*;
 
+import java.lang.annotation.Annotation;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.JikesRVMSupport;
@@ -37,6 +39,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  * @author Eugene Gluzberg
  * @author Dave Grove
  * @modified Steven Augart
+ * @modified Ian Rogers
  */
 public final class Class implements java.io.Serializable {
   static final long serialVersionUID = 3206093459760846163L;
@@ -120,7 +123,7 @@ public final class Class implements java.io.Serializable {
       }
     }
     Class result[] = new Class[publicClasses.size()];
-	 result = (Class[]) publicClasses.toArray(result);
+    result = (Class[]) publicClasses.toArray(result);
     return result;
   }
 
@@ -818,6 +821,10 @@ public final class Class implements java.io.Serializable {
       System.arraycopy(coll, 0, ans, 0, n);
       return ans;
     }
+  }
+
+  public Annotation[] getDeclaredAnnotations() {
+    return type.getDeclaredAnnotations();
   }
 }
 

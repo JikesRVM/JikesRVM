@@ -4,6 +4,8 @@
 //$Id$
 package java.lang.reflect;
 
+import java.lang.annotation.Annotation;
+
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Magic;
@@ -21,6 +23,7 @@ import com.ibm.JikesRVM.VM_Runtime;
  * @author Eugene Gluzberg
  * @author Dave Grove
  * @modified Steven Augart
+ * @modified Ian Rogers
  */
 public final class Method extends AccessibleObject implements Member {
   final VM_Method method;
@@ -69,7 +72,7 @@ public final class Method extends AccessibleObject implements Member {
   }
 
   public boolean isSynthetic() {
-	 return method.isSynthetic();
+    return method.isSynthetic();
   }
 
   public Class getReturnType() {
@@ -192,5 +195,9 @@ public final class Method extends AccessibleObject implements Member {
     }
 
     return buf.toString();
+  }
+
+  public Annotation[] getDeclaredAnnotations() {
+    return method.getDeclaredAnnotations();
   }
 }

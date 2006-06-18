@@ -332,6 +332,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
+    runClassInitializer("com.ibm.JikesRVM.classloader.VM_Annotation");
     runClassInitializer("java.lang.VMClassLoader");
  
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
