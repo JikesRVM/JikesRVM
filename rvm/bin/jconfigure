@@ -3157,6 +3157,11 @@ EOF
 	    args=("\${args[@]}" -alternateRealityNativeLibDir  \
 					"$BUILD_DIRECTORY_STR" )
 	fi
+
+	if [[ \$HOST_VM_TYPE == "Sun" ]]; then
+	    args=(-Xbootclasspath/a:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar "\${args[@]}")
+	fi
+
 	run $HOST_VM_RT_STR "\${args[@]}"
 	echo -n '(wrote interface) '
 	trap '' EXIT
@@ -3343,7 +3348,10 @@ java/lang/reflect/Method
 java/lang/reflect/Member
 java/lang/reflect/Constructor
 java/lang/reflect/AccessibleObject
-
+    # annotation support
+    #
+java/lang/reflect/AnnotatedElement
+java/lang/annotation/Annotation
     # hardware runtime errors
     #
 java/lang/ArithmeticException
