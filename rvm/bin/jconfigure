@@ -542,7 +542,7 @@ This looks bad; I am giving up. The likely offending configuration file is  \"${
 
 
 function on_host_set_HOST_VM_variables () {
-        ## HOST_VM_TYPE: Valid working values: Sun, Kaffe
+        ## HOST_VM_TYPE: Valid working values: Sun, Kaffe, IBM-50
     ##			In-progress values: JikesRVM, gij
     : ${HOST_VM_TYPE=Sun}	# the default
 
@@ -572,6 +572,11 @@ function on_host_set_HOST_VM_variables () {
 
 	Sun)
 	    : ${HOST_JAVA_HOME?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=Sun, so you need to set HOST_JAVA_HOME too}
+	    export JAVAH=${HOST_JAVA_HOME}/bin/javah
+	    ;;
+
+	IBM-50)
+	    : ${HOST_JAVA_HOME?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=IBM-50, so you need to set HOST_JAVA_HOME too}
 	    export JAVAH=${HOST_JAVA_HOME}/bin/javah
 	    ;;
 
