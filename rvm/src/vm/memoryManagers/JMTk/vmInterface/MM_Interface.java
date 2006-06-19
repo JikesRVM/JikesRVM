@@ -11,7 +11,7 @@ import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.PlanLocal;
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.AllocAdvice;
 import org.mmtk.utility.alloc.Allocator;
@@ -235,7 +235,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                           int locationMetadata)
     throws InlinePragma {
     ObjectReference src = ObjectReference.fromObject(ref);
-    SelectedPlanLocal.get().writeBarrier(src,
+    SelectedMutatorContext.get().writeBarrier(src,
                                     src.toAddress().plus(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
@@ -275,7 +275,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     throws InlinePragma {
     ObjectReference array = ObjectReference.fromObject(ref);
     Offset offset = Offset.fromIntZeroExtend(index<<LOG_BYTES_IN_ADDRESS);
-    SelectedPlanLocal.get().writeBarrier(array,
+    SelectedMutatorContext.get().writeBarrier(array,
                                     array.toAddress().plus(offset),
                                     ObjectReference.fromObject(value),
                                         offset,
@@ -303,7 +303,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                               Object tgt, Offset tgtOffset,
                                               int bytes) 
     throws InlinePragma {
-    return SelectedPlanLocal.get().writeBarrier(ObjectReference.fromObject(src),
+    return SelectedMutatorContext.get().writeBarrier(ObjectReference.fromObject(src),
                                                srcOffset,
                                            ObjectReference.fromObject(tgt),
                                                tgtOffset, bytes);
@@ -565,11 +565,11 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
   public static Object allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset)
     throws UninterruptiblePragma, InlinePragma {
-    SelectedPlanLocal plan = SelectedPlanLocal.get();
-    allocator = plan.checkAllocator(size, align, allocator);
-    Address region = allocateSpace(plan, size, align, offset, allocator);
+    SelectedMutatorContext mutator = SelectedMutatorContext.get();
+    allocator = mutator.checkAllocator(size, align, allocator);
+    Address region = allocateSpace(mutator, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    plan.postAlloc(ObjectReference.fromObject(result), 
+    mutator.postAlloc(ObjectReference.fromObject(result), 
                    ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
@@ -593,7 +593,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                      int allocator,
                                      int align, int offset) 
     throws UninterruptiblePragma, InlinePragma {
-    SelectedPlanLocal plan = SelectedPlanLocal.get();
+    SelectedMutatorContext mutator = SelectedMutatorContext.get();
 
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
@@ -601,64 +601,58 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
       Assert.failWithOutOfMemoryError();
     }
     int size = elemBytes + headerSize;
-    allocator = plan.checkAllocator(size, align, allocator);
-    Address region = allocateSpace(plan, size, align, offset, allocator);
+    allocator = mutator.checkAllocator(size, align, allocator);
+    Address region = allocateSpace(mutator, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
-    plan.postAlloc(ObjectReference.fromObject(result), 
+    mutator.postAlloc(ObjectReference.fromObject(result), 
                    ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
   /** 
-   * Allocate space for a new object
+   * Allocate space for runtime allocation of an object
    *
-   * @param plan The plan instance to be used for this allocation
+   * @param mutator The mutator instance to be used for this allocation
    * @param bytes The size of the allocation in bytes
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
-   * @param allocator The MMTk allocator to be used for this allocation
+   * @param allocator The MMTk allocator to be used (if allocating)
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  private static Address allocateSpace(SelectedPlanLocal plan, int bytes, 
-                                       int align, int offset, int allocator)
+  private static Address allocateSpace(SelectedMutatorContext mutator,
+				       int bytes, int align, int offset,
+				       int allocator)
     throws UninterruptiblePragma, InlinePragma {
-    return allocateSpace(plan, bytes, align, offset, false, allocator, null);
+    // MMTk requests must be in multiples of MIN_ALIGNMENT
+    bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
+
+    /*
+     * Now make the request
+   */
+    Address region;
+    region = mutator.alloc(bytes, align, offset, allocator);
+    /* TODO
+       if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
+    */
+    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
+
+    return region;
   }
 
   /** 
-   * Allocate space for copying an object
+   * Allocate space for GC-time copying of an object
    *
-   * @param plan The plan instance to be used for this allocation
+   * @param collector The collector instance to be used for this allocation
    * @param bytes The size of the allocation in bytes
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
    * @param from The source object from which this is to be copied
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  public static Address allocateSpace(SelectedPlanLocal plan, int bytes, 
-                                      int align, int offset, int allocator,
-                                      ObjectReference from)
-    throws UninterruptiblePragma, InlinePragma {
-    return allocateSpace(plan, bytes, align, offset, true, allocator, from);
-  }
-
-  /** 
-   * Allocate space for an object
-   *
-   * @param plan The plan instance to be used for this allocation
-   * @param bytes The size of the allocation in bytes
-   * @param align The alignment requested; must be a power of 2.
-   * @param offset The offset at which the alignment is desired.
-   * @param copy Is this object a copy (true) or a new instance (false)?
-   * @param allocator The MMTk allocator to be used (if allocating)
-   * @param from The source object from which to copy (if copying)
-   * @return The first byte of a suitably sized and aligned region of memory.
-   */
-  private static Address allocateSpace(SelectedPlanLocal plan, int bytes, 
-                                       int align, int offset, boolean copy,
+  public static Address allocateSpace(SelectedCollectorContext collector,
+				      int bytes, int align, int offset,
                                        int allocator, ObjectReference from)
-                                          
     throws UninterruptiblePragma, InlinePragma {
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
@@ -667,17 +661,10 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
      * Now make the request
      */
     Address region;
-    if (copy) {
-      region = plan.allocCopy(from, bytes, align, offset, allocator);
+    region = collector.allocCopy(from, bytes, align, offset, allocator);
       /* TODO
       if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
       */
-    } else {
-      region = plan.alloc(bytes, align, offset, allocator);
-      /* TODO
-      if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
-      */
-    }
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 
     return region;

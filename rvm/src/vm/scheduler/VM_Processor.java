@@ -5,7 +5,8 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedPlanLocal;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedCollectorContext;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedMutatorContext;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -18,8 +19,8 @@ import org.vmmagic.unboxed.*;
  * @modified Peter F. Sweeney (added HPM support)
  */
 public final class VM_Processor 
-//-#if RVM_WITH_JMTK_INLINE_PLAN
-extends SelectedPlanLocal
+//-#if RVM_WITH_MMTK_INLINE_PLAN
+extends SelectedMutatorContext
 //-#endif
 implements Uninterruptible, VM_Constants {
 
@@ -490,8 +491,9 @@ implements Uninterruptible, VM_Constants {
   int arrayIndexTrapParam; 
   //-#endif
 
-  //-#if !RVM_WITH_JMTK_INLINE_PLAN
-  public final SelectedPlanLocal mmPlan = new SelectedPlanLocal();
+  public final SelectedCollectorContext collectorContext = new SelectedCollectorContext(this);
+  //-#if !RVM_WITH_MMTK_INLINE_PLAN
+  public final SelectedMutatorContext mutatorContext = new SelectedMutatorContext(this);
   //-#endif
 
   // More GC fields

@@ -6,7 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.PlanLocal;
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
 import org.mmtk.vm.ActivePlan;
@@ -339,7 +339,7 @@ public class VM_CollectorThread extends VM_Thread {
 
       /* actually perform the GC... */
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
-      if (isActive) ActivePlan.local().collect(); // gc
+      if (isActive) ActivePlan.collector().collect(); // gc
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       gcBarrier.rendezvous(5200);

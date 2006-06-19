@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public final class SelectedPlan extends
-//-#value RVM_WITH_JMTK_PLAN
+//-#value RVM_WITH_MMTK_PLAN
   implements Uninterruptible {
 
   public static final SelectedPlan singleton = new SelectedPlan();
