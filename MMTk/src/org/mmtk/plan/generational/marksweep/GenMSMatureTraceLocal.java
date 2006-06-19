@@ -4,7 +4,7 @@
  */
 package org.mmtk.plan.generational.marksweep;
 
-import org.mmtk.plan.generational.GenLocal;
+import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -31,7 +31,7 @@ public final class GenMSMatureTraceLocal extends GenMatureTraceLocal
   /**
    * Constructor
    */
-  public GenMSMatureTraceLocal(Trace global, GenLocal plan) {
+  public GenMSMatureTraceLocal(Trace global, GenCollector plan) {
     super(global, plan);
   }
 

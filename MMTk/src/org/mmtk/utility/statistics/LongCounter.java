@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
  * This abstract class implements a simple counter (counting some
  * integer (long) value for each phase).
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$

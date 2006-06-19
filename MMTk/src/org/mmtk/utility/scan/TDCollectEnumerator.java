@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
  * deletion cycle detector to perform transitive closure of its
  * "collect" phase.
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $date: $
  */

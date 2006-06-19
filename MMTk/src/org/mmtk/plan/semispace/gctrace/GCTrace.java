@@ -74,7 +74,7 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
@@ -224,8 +224,8 @@ public class GCTrace extends SS implements Uninterruptible {
   /**
    * @return the active PlanLocal as a GCTraceLocal
    */
-  public static final GCTraceLocal local() {
-    return ((GCTraceLocal)ActivePlan.local());
+  public static final GCTraceCollector local() {
+    return ((GCTraceCollector)ActivePlan.collector());
   }
   
   /**

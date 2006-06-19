@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  * This is a first cut implementation, with plenty of room for
  * improvement...
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */

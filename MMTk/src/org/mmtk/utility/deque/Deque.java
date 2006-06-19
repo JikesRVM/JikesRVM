@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
  * more efficient to dequeue buffers and, for example, enables sorting of
  * its contents.
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @modified <a href="http://www-ali.cs.umass.edu">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$

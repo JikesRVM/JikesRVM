@@ -6,7 +6,6 @@ package org.mmtk.utility;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.semispace.gctrace.GCTrace;
-import org.mmtk.plan.semispace.gctrace.GCTraceLocal;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -36,10 +35,6 @@ public final class TraceGenerator
 
   public final static String Id = "$Id$"; 
 
-  private static final GCTraceLocal local() {
-    return (GCTraceLocal)ActivePlan.local();
-  }
-  
   /***********************************************************************
    *
    * Class variables
@@ -91,13 +86,13 @@ public final class TraceGenerator
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
       worklist = new SortTODObjectReferenceStack(workListPool);
-      workListPool.newClient();
+      workListPool.newConsumer();
     }
 
     /* Trace objects */
     tracePool = trace_;
     trace = new TraceBuffer(tracePool);
-    tracePool.newClient();
+    tracePool.newConsumer();
     objectLinks = ObjectReferenceArray.create(Space.MAX_SPACES);
   }
 
@@ -394,7 +389,7 @@ public final class TraceGenerator
   }
   
   private static final TraceLocal getTraceLocal() {
-    return ActivePlan.local().getCurrentTrace();
+    return ActivePlan.collector().getCurrentTrace();
   }
   
 }

@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.*;
  * size class becomes the current block and its free list is used.  If
  * there are no more blocks the a new block is allocated.<p>
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -593,6 +593,8 @@ public abstract class SegregatedFreeList extends Allocator
 
   /**
    * Sweep all blocks for free objects. 
+   * 
+   * FIXME This is currently implemented by searching each *mutator* free list.  It needs to be per-collector, not per-mutator.
    */
   protected final void sweepBlocks() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {

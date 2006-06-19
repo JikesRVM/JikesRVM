@@ -54,7 +54,7 @@ import org.vmmagic.pragma.*;
  * closely mirrors the encoding of the above algorithm that appears in
  * Fig 2 of that paper.<p>
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -75,8 +75,6 @@ public final class TrialDeletion extends CycleDetector
   private static SharedDeque cyclePoolB;
   private static SharedDeque freePool;
 
-  private static boolean purpleBufferAisOpen = true;
-
   private static int lastPurplePages;
 
   private static final int  MARK_GREY = 0;
@@ -85,7 +83,6 @@ public final class TrialDeletion extends CycleDetector
   private static final int    COLLECT = 3;
 
   private static final int FILTER_TIME_FRACTION = 3;
-  private static final int MATURE_FILTER_TIME_FRACTION = 4;
   private static final int CYCLE_TIME_FRACTION = 6;
   private static final int MARK_GREY_TIME_FRACTION = 2;
 
@@ -123,7 +120,7 @@ public final class TrialDeletion extends CycleDetector
   private boolean collectedCycles = false;
   private int phase = MARK_GREY;
   private int visitCount = 0;
-  private int objectsProcessed = 0;
+
 
   /****************************************************************************
    *
@@ -131,21 +128,21 @@ public final class TrialDeletion extends CycleDetector
    */
   static {
     workPool = new SharedDeque(Plan.metaDataSpace, 1);
-    workPool.newClient();
+    workPool.newConsumer();
     blackPool = new SharedDeque(Plan.metaDataSpace, 1);
-    blackPool.newClient();
+    blackPool.newConsumer();
     unfilteredPurplePool = new SharedDeque(Plan.metaDataSpace, 1);
-    unfilteredPurplePool.newClient();
+    unfilteredPurplePool.newConsumer();
     maturePurplePool = new SharedDeque(Plan.metaDataSpace, 1);
-    maturePurplePool.newClient();
+    maturePurplePool.newConsumer();
     filteredPurplePool = new SharedDeque(Plan.metaDataSpace, 1);
-    filteredPurplePool.newClient();
+    filteredPurplePool.newConsumer();
     cyclePoolA = new SharedDeque(Plan.metaDataSpace, 1);
-    cyclePoolA.newClient();
+    cyclePoolA.newConsumer();
     cyclePoolB = new SharedDeque(Plan.metaDataSpace, 1);
-    cyclePoolB.newClient();
+    cyclePoolB.newConsumer();
     freePool = new SharedDeque(Plan.metaDataSpace, 1);
-    freePool.newClient();
+    freePool.newConsumer();
 
     greyTime = new Timer("cd-grey", false, true);
     scanTime = new Timer("cd-scan", false, true);
@@ -237,13 +234,6 @@ public final class TrialDeletion extends CycleDetector
     processFreeBufs();
     if (timekeeper) freeTime.stop();
     return abort;
-  }
-
-  private final long timePhase(long start, String phase) {
-    long end = Statistics.cycles();
-    Log.write(phase); Log.write(" ");
-    Log.write(Statistics.cyclesToMillis(end - start)); Log.write(" ms ");
-    return end;
   }
 
   /**
@@ -529,7 +519,7 @@ public final class TrialDeletion extends CycleDetector
     throws InlinePragma {
     if (RCBase.isRCObject(object)) {
       if (RefCountSpace.isGreen(object))
-        RCBase.local().addToDecBuf(object); 
+        RCBase.collector().addToDecBuf(object); 
       else
         workQueue.push(object);
     }

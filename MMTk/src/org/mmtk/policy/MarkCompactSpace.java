@@ -7,7 +7,6 @@ package org.mmtk.policy;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Constants;
-import org.mmtk.utility.Log;
 
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
@@ -230,7 +229,7 @@ public final class MarkCompactSpace extends Space
 
   /**
    * Used to mark boot image objects during a parallel scan of objects
-   * during GC. Returns true if marking was done.
+   * during GC Returns true if marking was done.
    *
    * @param object The object to be marked
    */
@@ -247,9 +246,10 @@ public final class MarkCompactSpace extends Space
   }
   
   /**
-   * Is this object marked?
+   * Used to mark boot image objects during a parallel scan of objects
+   * during GC Returns true if marking was done.
    *
-   * @param object The object to check 
+   * @param object The object to be marked
    */
   public static boolean isMarked(ObjectReference object) 
     throws InlinePragma {
@@ -259,9 +259,10 @@ public final class MarkCompactSpace extends Space
   }
   
   /**
-   * Clear the mark bit, returning if the object was marked before the call.
+   * Used to mark boot image objects during a parallel scan of objects
+   * during GC Returns true if marking was done.
    *
-   * @param object The object to clear 
+   * @param object The object to be marked
    */
   private static boolean testAndClearMark(ObjectReference object) 
     throws InlinePragma {
@@ -277,9 +278,10 @@ public final class MarkCompactSpace extends Space
   
   
   /**
-   * Used to determine if an object is going to be compacted during GC.
+   * Used to mark boot image objects during a parallel scan of objects
+   * during GC Returns true if marking was done.
    *
-   * @param object The object to check
+   * @param object The object to be marked
    */
   public static boolean toBeCompacted(ObjectReference object) 
     throws InlinePragma {
@@ -289,9 +291,10 @@ public final class MarkCompactSpace extends Space
   }
   
   /**
-   * Unconditionally clear the mark bit of the object.
+   * Used to mark boot image objects during a parallel scan of objects
+   * during GC Returns true if marking was done.
    *
-   * @param object The object to clear
+   * @param object The object to be marked
    */
   public static void clearMark(ObjectReference object) 
     throws InlinePragma {

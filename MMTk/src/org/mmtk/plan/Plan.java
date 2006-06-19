@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.*;
  * $Id$
  *
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -408,8 +408,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    * <code>a</code>.
    */
   public static final Space getSpaceFromAllocatorAnyLocal(Allocator a) {
-    for (int i = 0; i < ActivePlan.localCount(); i++) {
-      Space space = ActivePlan.local(i).getSpaceFromAllocator(a);
+    for (int i = 0; i < ActivePlan.collectorCount(); i++) {
+      Space space = ActivePlan.mutator(i).getSpaceFromAllocator(a);
       if (space != null)
         return space;
     }

@@ -29,6 +29,6 @@ public class RCModifiedEnumerator extends Enumerator
    * @param location The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address location) throws InlinePragma {
-    RCBase.local().enumerateModifiedPointerLocation(location);
+    RCBase.collector().enumerateModifiedPointerLocation(location);
   }
 }

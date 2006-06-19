@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.*;
  * Virtual memory space is taken from a VM resource, and pages
  * consumed by blocks are accounted for by a memory resource.
  * 
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */

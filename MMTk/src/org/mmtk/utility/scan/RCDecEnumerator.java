@@ -25,6 +25,6 @@ public class RCDecEnumerator extends Enumerator implements Uninterruptible {
    * @param location The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address location) throws InlinePragma {
-    RCBase.local().enumerateDecrementPointerLocation(location);
+    RCBase.collector().enumerateDecrementPointerLocation(location);
   }
 }

@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Ian Warrington
  * @version $Revision$
  * @date $Date$
@@ -54,7 +54,6 @@ public final class RefCountSpace extends Space
 
   /* Mask bits to signify the start/finish of logging an object */
   private static final Word LOGGING_MASK = Word.one().lsh(2).minus(Word.one()); //...00011
-  private static final int      LOG_BIT = 0;
   private static final Word       LOGGED = Word.zero();
   public static final Word     UNLOGGED = Word.one();
   private static final Word BEING_LOGGED = Word.one().lsh(2).minus(Word.one()); //...00011
@@ -237,9 +236,9 @@ public final class RefCountSpace extends Space
     throws InlinePragma {
     if (INC_DEC_ROOT) {
       incRC(object);
-      RCBase.local().addToRootSet(object);
+      RCBase.collector().addToRootSet(object);
     } else if (setRoot(object)) {
-      RCBase.local().addToRootSet(object);
+      RCBase.collector().addToRootSet(object);
     }
     return object;
   }
@@ -664,7 +663,6 @@ public final class RefCountSpace extends Space
   public static void unsyncDecRC(ObjectReference object)
     throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
-    int rtn;
     oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     newValue = oldValue - INCREMENT;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
@@ -731,10 +729,6 @@ public final class RefCountSpace extends Space
   public static boolean isGrey(ObjectReference object) 
     throws UninterruptiblePragma, InlinePragma {
     return getLoRCColor(object) == GREY;
-  }
-  private static int getRCColor(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
-    return COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
   }
   private static int getLoRCColor(ObjectReference object) 
     throws UninterruptiblePragma, InlinePragma {

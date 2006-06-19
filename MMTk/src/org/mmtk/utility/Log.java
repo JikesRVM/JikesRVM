@@ -742,7 +742,7 @@ public class Log implements Constants, Uninterruptible {
 
   private static Log getLog() {
     if (Assert.runningVM())
-      return ActivePlan.local().getLog();
+      return ActivePlan.collector().getLog();
     else
       return log;
   }

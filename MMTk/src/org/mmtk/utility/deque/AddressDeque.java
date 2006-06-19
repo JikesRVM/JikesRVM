@@ -13,7 +13,7 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */ 

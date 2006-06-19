@@ -9,7 +9,6 @@ import org.mmtk.plan.TraceLocal;
 
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Lock;
-import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -47,11 +46,6 @@ public class Finalizer implements Uninterruptible {
   private static ObjectReferenceArray live = ObjectReferenceArray.create(INITIAL_SIZE);
   private static int liveStart;                               // live[liveStart] .. live[liveEnd-1] are the non-null entries
   private static int liveEnd;
-
-  // Debug flags
-
-  private static final boolean  TRACE                   = false;
-  private static final boolean  TRACE_DETAIL            = false;
 
   //-----------//
   // interface //

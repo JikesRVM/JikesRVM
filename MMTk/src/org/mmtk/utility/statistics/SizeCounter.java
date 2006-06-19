@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
  * The counter is trivially composed from two event counters (one for
  * counting the number of events, the other for counting the volume).
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$

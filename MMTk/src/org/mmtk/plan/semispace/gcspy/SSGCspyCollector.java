@@ -5,7 +5,7 @@
 package org.mmtk.plan.semispace.gcspy;
 
 import org.mmtk.plan.semispace.SS;
-import org.mmtk.plan.semispace.SSLocal;
+import org.mmtk.plan.semispace.SSCollector;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.utility.alloc.BumpPointer;
@@ -13,6 +13,7 @@ import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.gcspy.drivers.ContiguousSpaceDriver;
 import org.mmtk.utility.gcspy.GCspy;
 
+import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 
@@ -20,30 +21,21 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class extends a simple semi-space collector to instrument it for
- * GCspy. It makes use of Daniel Frampton's LinearScan patches to allow
- * CopySpaces to be scanned linearly (rather than recording allocations
- * with an ObjectMap as in prior versions.<p>
+ * This class implements <i>per-collector thread</i> behavior and state for the
+ * <i>SSGCSpy</i> plan.<p>
+ * 
+ * @see SSGCspy for an overview of the GC-spy mechanisms.<p>
  *
- * See the Jones & Lins GC book, section 2.2 for an overview of the basic
- * algorithm. This implementation also includes a large object space
- * (LOS), and an uncollected "immortal" space.<p>
- *
- * All plans make a clear distinction between <i>global</i> and
- * <i>thread-local</i> activities.  Global activities must be
- * synchronized, whereas no synchronization is required for
- * thread-local activities.  Instances of Plan map 1:1 to "kernel
- * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
- * methods allow fast, unsychronized access to Plan utilities such as
- * allocation and collection.  Each instance rests on static resources
- * (such as memory and virtual memory resources) which are "global"
- * and therefore "static" members of Plan.  This mapping of threads to
- * instances is crucial to understanding the correctness and
- * performance proprties of this plan.
- *
+ * @see SSCollector
+ * @see SSGCSpy
+ * @see SSGCSpyMutator
+ * @see StopTheWorldCollector
+ * @see CollectorContext
+ * @see SimplePhase#delegatePhase
+ * 
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
@@ -52,7 +44,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSGCspyLocal extends SSLocal implements Uninterruptible {
+public class SSGCspyCollector extends SSCollector implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -142,9 +134,10 @@ public class SSGCspyLocal extends SSLocal implements Uninterruptible {
 
       // -- Handle the LargeObjectSpace --
       SSGCspy.losDriver.zero();
-      los.gcspyGatherData(event, SSGCspy.losDriver, false); // read fromspace
+      // FIXME This code needs to be part of the mutator, not the collector.  This hack should disappear with a refactoring. 
+      ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, false); // read fromspace
       if (event == SSGCspy.SEMISPACE_COPIED)
-        los.gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
+      	((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
 
       // -- Handle the immortal space --
       SSGCspy.immortalDriver.zero();

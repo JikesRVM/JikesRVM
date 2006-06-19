@@ -86,7 +86,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  *

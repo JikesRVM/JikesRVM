@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
  * overflows on inserts and pops (underflow actually) will always arise
  * when then cursor is buffer-size aligned.
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$

@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
  * This class encapsulates type-specific memory management information. 
  *
  * @author Andrew Gray
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */ 
@@ -35,8 +35,6 @@ public final class MMType implements Constants, Uninterruptible {
   private int copyBytes;                 
   private int scanCount;                 
   private int scanBytes;
-  private int bootCount;
-  private int bootBytes; 
   
   private static final boolean PROFILING_STATISTICS = false;
 

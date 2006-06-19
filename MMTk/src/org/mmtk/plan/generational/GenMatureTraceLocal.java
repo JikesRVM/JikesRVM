@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -36,16 +36,26 @@ public abstract class GenMatureTraceLocal extends TraceLocal
   private final AddressDeque traceRemset;
   private final AddressPairDeque arrayRemset;
   
+  /****************************************************************************
+  *
+  * Initialization
+  */
+ 
   /**
    * Constructor
    */
-  public GenMatureTraceLocal(Trace trace, GenLocal plan) {
+  public GenMatureTraceLocal(Trace trace, GenCollector plan) {
     super(trace);
     this.remset = plan.remset;
     this.traceRemset = plan.traceRemset;
     this.arrayRemset = plan.arrayRemset;
   }
 
+  /****************************************************************************
+  *
+  * Object processing and tracing
+  */
+ 
   /**
    * Is the specified object live?
    *
@@ -58,6 +68,21 @@ public abstract class GenMatureTraceLocal extends TraceLocal
       return Gen.nurserySpace.isLive(object);
     }
     return super.isLive(object);
+  }
+
+  /**
+   * Return true if this object is guaranteed not to move during this
+   * collection (i.e. this object is defintely not an unforwarded
+   * object).
+   *
+   * @param object
+   * @return True if this object is guaranteed not to move during this
+   * collection.
+   */
+  public boolean willNotMove(ObjectReference object) {
+    if (object.toAddress().GE(Gen.NURSERY_START))
+      return false;
+    return super.willNotMove(object);
   }
 
   /**
@@ -89,11 +114,6 @@ public abstract class GenMatureTraceLocal extends TraceLocal
     return Gen.ALLOC_MATURE;
   }
   
-  /****************************************************************************
-  *
-  * Object processing and tracing
-  */
- 
   /**
    * Process any remembered set entries.
    */
@@ -108,21 +128,6 @@ public abstract class GenMatureTraceLocal extends TraceLocal
       arrayRemset.pop1();
       arrayRemset.pop2();
     }
-  }
-
-  /**
-   * Return true if this object is guaranteed not to move during this
-   * collection (i.e. this object is defintely not an unforwarded
-   * object).
-   *
-   * @param object
-   * @return True if this object is guaranteed not to move during this
-   * collection.
-   */
-  public boolean willNotMove(ObjectReference object) {
-    if (object.toAddress().GE(Gen.NURSERY_START))
-      return false;
-    return super.willNotMove(object);
   }
 
 }

@@ -15,6 +15,8 @@ import org.vmmagic.pragma.*;
  * This class implements the global state of a simple sliding mark-compact 
  * collector.
  *
+ * FIXME Need algorithmic overview and references.
+ *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -47,15 +49,18 @@ public class MC extends StopTheWorld implements Uninterruptible {
   public static final int MARK_COMPACT = mcSpace.getDescriptor();
   
   /* Phases */
-  public static final int PREPARE_FORWARD     = new SimplePhase("fw-prepare", Phase.GLOBAL_FIRST, true).getId();
-  public static final int FORWARD_CLOSURE     = new SimplePhase("fw-closure", Phase.LOCAL_ONLY        ).getId();
-  public static final int RELEASE_FORWARD     = new SimplePhase("fw-release", Phase.GLOBAL_LAST,  true).getId();
+  public static final int PREPARE_FORWARD     = new SimplePhase("fw-prepare", Phase.GLOBAL_FIRST  ).getId();
+  public static final int FORWARD_CLOSURE     = new SimplePhase("fw-closure", Phase.COLLECTOR_ONLY).getId();
+  public static final int RELEASE_FORWARD     = new SimplePhase("fw-release", Phase.GLOBAL_LAST   ).getId();
 
-  public static final int CALCULATE_FP        = new SimplePhase("calc-fp",    Phase.LOCAL_ONLY        ).getId();
-  public static final int COMPACT             = new SimplePhase("compact",    Phase.LOCAL_ONLY        ).getId();
+  /* FIXME these two phases need to be made per-collector phases */	
+  public static final int CALCULATE_FP        = new SimplePhase("calc-fp",    Phase.MUTATOR_ONLY  ).getId();
+  public static final int COMPACT             = new SimplePhase("compact",    Phase.MUTATOR_ONLY  ).getId();
 
   /**
    * This is the phase that is executed to perform a mark-compact collection.
+   * 
+   * FIXME: Far too much duplication and inside knowledge of StopTheWorld
    */
   public ComplexPhase mcCollection = new ComplexPhase("collection", null, new int[] {
       initPhase,
@@ -64,9 +69,11 @@ public class MC extends StopTheWorld implements Uninterruptible {
       completeClosurePhase,
       CALCULATE_FP,
       PREPARE_FORWARD,
+      PREPARE_MUTATOR,
       ROOTS,
       forwardPhase,
       FORWARD_CLOSURE,
+  		RELEASE_MUTATOR,
       RELEASE_FORWARD,
       COMPACT,
       finishPhase});

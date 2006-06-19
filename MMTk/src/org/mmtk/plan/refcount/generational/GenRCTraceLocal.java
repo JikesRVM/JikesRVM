@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -36,15 +36,19 @@ public final class GenRCTraceLocal extends TraceLocal
     super(trace);
   }
 
-  private final GenRCLocal local() {
-    return (GenRCLocal)ActivePlan.local();
+//FIXME This is a consequence of zero collector/mutator separation in RC...
+//  private final GenRCCollector collector() {
+//    return (GenRCCollector)ActivePlan.collector();
+//  }
+  private final GenRCMutator collector() {
+    return (GenRCMutator)ActivePlan.mutator();
   }
 
   /**
    * Flush any remembered sets pertaining to the current collection.
    */
   protected void flushRememberedSets() {
-    local().processModBufs();
+    collector().processModBufs();
   }
   
   /****************************************************************************
@@ -148,7 +152,7 @@ public final class GenRCTraceLocal extends TraceLocal
                                                   boolean root) {
     if (object.isNull()) return object;
     if (RefCountSpace.RC_SANITY_CHECK && root)
-      local().rc.incSanityTraceRoot(object);
+      collector().rc.incSanityTraceRoot(object);
     if (Space.isInSpace(GenRC.NS, object)) {
       ObjectReference rtn = GenRC.nurserySpace.traceObject(this, object);
       // every incoming reference to the from-space object must inc the
@@ -156,9 +160,9 @@ public final class GenRCTraceLocal extends TraceLocal
       if (root) {
         if (RefCountSpace.INC_DEC_ROOT) {
           RefCountSpace.incRC(rtn);
-          local().addToRootSet(rtn);
+          collector().addToRootSet(rtn);
         } else if (RefCountSpace.setRoot(rtn)) {
-          local().addToRootSet(rtn);
+          collector().addToRootSet(rtn);
         }
       } else
         RefCountSpace.incRC(rtn);

@@ -7,7 +7,6 @@ package org.mmtk.plan.generational;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.deque.*;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -18,7 +17,7 @@ import org.vmmagic.unboxed.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -39,7 +38,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
   /**
    * Constructor
    */
-  public GenNurseryTraceLocal(Trace trace, GenLocal plan) {
+  public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
     super(trace);
     this.remset = plan.remset;
     this.traceRemset = plan.traceRemset;

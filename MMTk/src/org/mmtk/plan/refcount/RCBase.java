@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -38,15 +38,15 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean WITH_COALESCING_RC = true;
 
-  // Spaces
+  /* Spaces */
   public static RefCountSpace rcSpace = new RefCountSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
   public static final int RC = rcSpace.getDescriptor();
 
-  // Counters
+  /* Counters */
   public static EventCounter wbFast;
   public static EventCounter wbSlow;
 
-  // shared queues
+  /* shared queues */
   protected SharedDeque decPool;
   protected SharedDeque modPool;
   protected SharedDeque rootPool;
@@ -82,12 +82,12 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
     //  instantiate shared queues
     if (WITH_COALESCING_RC) {
       modPool = new SharedDeque(metaDataSpace, 1);
-      modPool.newClient();
+      modPool.newConsumer();
     }
     decPool = new SharedDeque(metaDataSpace, 1);
-    decPool.newClient();
+    decPool.newConsumer();
     rootPool = new SharedDeque(metaDataSpace, 1);
-    rootPool.newClient();
+    rootPool.newConsumer();
   }
 
 
@@ -146,7 +146,11 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
   /**
    * @return the active PlanLocal as an RCBaseLocal
    */
-  public static final RCBaseLocal local() {
-    return ((RCBaseLocal)ActivePlan.local());
+// FIXME This is a consequence of zero collector/mutator separation in RC...
+//  public static final RCBaseCollector collector() {
+//    return ((RCBaseCollector)ActivePlan.collector());
+//  }
+  public static final RCBaseMutator collector() {
+    return ((RCBaseMutator)ActivePlan.mutator());
   }
 }

@@ -116,7 +116,7 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
     
     if (phaseId == StopTheWorld.SANITY_FORWARD) {
       if (primary) {
-        TraceLocal trace = ActivePlan.local().getCurrentTrace();
+        TraceLocal trace = ActivePlan.collector().getCurrentTrace();
         global().getSanityTable().forwardTable(trace);
       }
       return true;

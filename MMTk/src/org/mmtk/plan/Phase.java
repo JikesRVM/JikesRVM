@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
  * The context an individual phase executes in may be global, local,
  * or an (ordered) combination of global and local.
  *
- * @see PlanLocal#collectionPhase
+ * @see CollectorContext#collectionPhase
  * @see Plan#collectionPhase
  *
  * Urgent TODO: Assess cost of rendezvous when running in parallel.
@@ -36,40 +36,32 @@ public abstract class Phase implements Uninterruptible, Constants {
   private static final Phase[] phases = new Phase[MAX_PHASES];
   private static short phaseId = 0;
 
-  /**
-   * If this bit is set then global work should happen first.
-   */
+  /** If this bit is set then global work should happen first. */
   protected static final int GLOBAL_FIRST_MASK = 1;
 
-  /**
-   * If this bit is set then local work should happen.
-   */
-  protected static final int LOCAL_MASK = 4;
+  /** If this bit is set then local collector work should happen. */
+  protected static final int COLLECTOR_MASK = 4;
 
-  /**
-   * If this bit is set then global work should happen last.
-   */
+  /** If this bit is set then local mutator work should happen. */
+  protected static final int MUTATOR_MASK = 8;
+
+  /** If this bit is set then global work should happen last. */
   protected static final int GLOBAL_LAST_MASK = 2;
 
-  /**
-   * A phase that only executes global actions (1. Plan).
-   */
+  /** A phase that only executes global actions (1. Plan). */
   public static final int GLOBAL_ONLY  = GLOBAL_FIRST_MASK;
   
-  /**
-   * A phase that executes global actions first (1. Plan, 2. PlanLocal).
-   */
-  public static final int GLOBAL_FIRST = GLOBAL_FIRST_MASK | LOCAL_MASK;
+  /** A phase that executes global actions first (1. Plan, 2. PlanLocal). */
+  public static final int GLOBAL_FIRST   = GLOBAL_FIRST_MASK | COLLECTOR_MASK;
   
-  /**
-   * A phase that executes global actions last (1. PlanLocal, 2. Plan).
-   */
-  public static final int GLOBAL_LAST  = GLOBAL_LAST_MASK | LOCAL_MASK;
+  /** A phase that executes global actions last (1. PlanLocal, 2. Plan). */
+  public static final int GLOBAL_LAST    = GLOBAL_LAST_MASK | COLLECTOR_MASK;
   
-  /**
-   * A phase that only executes local actions (1. PlanLocal).
-   */
-  public static final int LOCAL_ONLY   = LOCAL_MASK;
+  /** A phase that only executes local actions (1. PlanLocal). */
+  public static final int COLLECTOR_ONLY = COLLECTOR_MASK;
+
+  /** A phase that only executes local actions (1. PlanLocal). */
+  public static final int MUTATOR_ONLY   = MUTATOR_MASK;
   
   /**
    * A phase that currently does not execute. Is either designed to be 
@@ -140,7 +132,7 @@ public abstract class Phase implements Uninterruptible, Constants {
    * collectionPhase calls to be made to Plan and PlanLocal
    * 
    * @see Plan#collectionPhase
-   * @see PlanLocal#collectionPhase
+   * @see CollectorContext#collectionPhase
    * 
    * @param phaseId The identifier of the phase to execute.
    */
@@ -154,7 +146,7 @@ public abstract class Phase implements Uninterruptible, Constants {
    * collectionPhase calls to be made to Plan and PlanLocal
    * 
    * @see Plan
-   * @see PlanLocal
+   * @see CollectorContext
    * 
    * @param phase The phase to execute.
    */

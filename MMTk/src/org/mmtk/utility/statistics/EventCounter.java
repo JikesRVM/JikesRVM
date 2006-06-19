@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
  * This class implements a simple event counter (counting number
  * events that occur for each phase).
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$

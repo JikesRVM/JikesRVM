@@ -89,7 +89,7 @@ public class ReferenceProcessor implements Uninterruptible {
       Assert._assert(ReferenceGlue.REFERENCES_ARE_OBJECTS);
     }
     
-    TraceLocal trace = ActivePlan.local().getCurrentTrace();
+    TraceLocal trace = ActivePlan.collector().getCurrentTrace();
     
     ObjectReference referent = ReferenceGlue.getReferent(reference);
     
@@ -125,7 +125,7 @@ public class ReferenceProcessor implements Uninterruptible {
                                          int semantics) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!reference.isZero());
     
-    TraceLocal trace = ActivePlan.local().getCurrentTrace();
+    TraceLocal trace = ActivePlan.collector().getCurrentTrace();
     
     if (TRACE) {
       Log.write("+++ old reference: "); Log.writeln(reference);

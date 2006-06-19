@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -70,7 +70,6 @@ public abstract class Space implements Constants, Uninterruptible {
   private static final int MB_PAGES = 3;
 
   private static int spaceCount = 0;
-  private static int[] map;
   private static Space[] spaces = new Space[MAX_SPACES];
   private static Address heapCursor = HEAP_START;
   private static Address heapLimit = HEAP_END;

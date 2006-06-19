@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
  * @see SegregatedFreeList
  * @see MarkSweepSpace
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -51,7 +51,6 @@ public final class MarkSweepLocal extends SegregatedFreeList
 
   private static int lastBytesAlloc = 0;
   private static int MS_MUST_COLLECT_THRESHOLD = 1<<30;
-  private static long used[];
 
   /****************************************************************************
    *
@@ -168,8 +167,14 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * Finish up after a collection.
    *
    */
-  public void release() {
+  public final void releaseCollector() {
     sweepBlocks();                    // sweep the blocks
+   }  
+  /**
+   * Finish up after a collection.
+   *
+   */
+  public final void releaseMutator() {
     restoreFreeLists();
     if (Options.fragmentationStats.getValue())
       fragmentationStatistics(false);

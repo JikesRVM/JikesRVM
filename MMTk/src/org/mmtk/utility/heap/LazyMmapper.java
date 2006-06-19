@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements lazy mmapping of virtual memory.
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -136,15 +136,6 @@ public final class LazyMmapper implements Constants, Uninterruptible {
   final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE;   // the granularity VMResource operates at
   //TODO: 64-bit: this is not OK: value does not fit in int, but should, we do not want to create such big array
   final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
-
-  private static String chunkStateToString(byte state) {
-    switch (state) {
-    case UNMAPPED: return "UNMAPPED";
-    case MAPPED: return "MAPPED";
-    case PROTECTED: return "PROTECTED";
-    }
-    return "UNKNOWN";
-  }
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap

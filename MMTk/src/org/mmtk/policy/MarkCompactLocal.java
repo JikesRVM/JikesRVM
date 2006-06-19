@@ -6,12 +6,9 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.markcompact.MC;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.Log;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
-import org.mmtk.utility.statistics.Stats;
-import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.ObjectModel;
 
@@ -19,7 +16,6 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class implements unsynchronized (local) elements of a

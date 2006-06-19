@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -34,7 +34,9 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
     super(trace);
   }
 
-  private final RCLocal local() { return (RCLocal)ActivePlan.local(); }
+  // FIXME  The collector/mutator split in RC is completely broken
+//  private final RCCollector local() { return (RCCollector)ActivePlan.collector(); }
+  private final RCMutator local() { return (RCMutator)ActivePlan.mutator(); }
 
   /**
    * Flush any remembered sets pertaining to the current collection.

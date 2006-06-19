@@ -36,7 +36,7 @@ import org.vmmagic.pragma.*;
  * $Id$
  *
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -54,22 +54,24 @@ public abstract class StopTheWorld extends Plan
   private static final Timer finalizeTime = new Timer("finalize", false, true);
 
   /* Phases */
-  public static final int INITIATE            = new SimplePhase("initiate", null,                 Phase.GLOBAL_FIRST, true).getId();
-  public static final int PREPARE             = new SimplePhase("prepare",                        Phase.GLOBAL_FIRST, true).getId();
-  public static final int PRECOPY             = new SimplePhase("precopy",                        Phase.LOCAL_ONLY        ).getId();
+  public static final int INITIATE            = new SimplePhase("initiate", null,                 Phase.GLOBAL_FIRST  ).getId();
+  public static final int PREPARE_MUTATOR     = new SimplePhase("prepare-mutator",                Phase.MUTATOR_ONLY  ).getId();
+  public static final int PREPARE             = new SimplePhase("prepare",                        Phase.GLOBAL_FIRST  ).getId();
+  public static final int PRECOPY             = new SimplePhase("precopy",                        Phase.COLLECTOR_ONLY).getId();
   public static final int ROOTS               = new SimplePhase("root",                           Phase.GLOBAL_LAST       ).getId();
-  public static final int START_CLOSURE       = new SimplePhase("start-closure",    scanTime,     Phase.LOCAL_ONLY        ).getId();
-  public static final int SOFT_REFS           = new SimplePhase("soft-ref",         refTypeTime,  Phase.LOCAL_ONLY        ).getId();
-  public static final int COMPLETE_CLOSURE    = new SimplePhase("complete-closure", scanTime,     Phase.LOCAL_ONLY        ).getId();
-  public static final int WEAK_REFS           = new SimplePhase("weak-ref",         refTypeTime,  Phase.LOCAL_ONLY        ).getId();
-  public static final int FINALIZABLE         = new SimplePhase("finalize",         finalizeTime, Phase.LOCAL_ONLY        ).getId();
+  public static final int START_CLOSURE       = new SimplePhase("start-closure",    scanTime,     Phase.COLLECTOR_ONLY).getId();
+  public static final int SOFT_REFS           = new SimplePhase("soft-ref",         refTypeTime,  Phase.COLLECTOR_ONLY).getId();
+  public static final int COMPLETE_CLOSURE    = new SimplePhase("complete-closure", scanTime,     Phase.COLLECTOR_ONLY).getId();
+  public static final int WEAK_REFS           = new SimplePhase("weak-ref",         refTypeTime,  Phase.COLLECTOR_ONLY).getId();
+  public static final int FINALIZABLE         = new SimplePhase("finalize",         finalizeTime, Phase.COLLECTOR_ONLY).getId();
   public static final int WEAK_TRACK_REFS     = new SimplePhase("weak-track-ref",   refTypeTime,  Phase.PLACEHOLDER       ).getId();
-  public static final int PHANTOM_REFS        = new SimplePhase("phantom-ref",      refTypeTime,  Phase.LOCAL_ONLY        ).getId();
+  public static final int PHANTOM_REFS        = new SimplePhase("phantom-ref",      refTypeTime,  Phase.COLLECTOR_ONLY).getId();
   public static final int FORWARD             = new SimplePhase("forward",                        Phase.PLACEHOLDER       ).getId();
-  public static final int FORWARD_REFS        = new SimplePhase("forward-ref",      refTypeTime,  Phase.LOCAL_ONLY        ).getId();
-  public static final int FORWARD_FINALIZABLE = new SimplePhase("forward-finalize", finalizeTime, Phase.LOCAL_ONLY        ).getId();
-  public static final int RELEASE             = new SimplePhase("release",                        Phase.GLOBAL_LAST,  true).getId();
-  public static final int COMPLETE            = new SimplePhase("complete",  null,                Phase.GLOBAL_LAST,  true).getId();
+  public static final int FORWARD_REFS        = new SimplePhase("forward-ref",      refTypeTime,  Phase.COLLECTOR_ONLY).getId();
+  public static final int FORWARD_FINALIZABLE = new SimplePhase("forward-finalize", finalizeTime, Phase.COLLECTOR_ONLY).getId();
+  public static final int RELEASE             = new SimplePhase("release",                        Phase.GLOBAL_LAST   ).getId();
+  public static final int RELEASE_MUTATOR     = new SimplePhase("release-mutator",                Phase.MUTATOR_ONLY  ).getId();
+  public static final int COMPLETE            = new SimplePhase("complete",  null,                Phase.GLOBAL_LAST   ).getId();
 
   /* Sanity placeholder */
   public static final int SANITY_PLACEHOLDER  = new SimplePhase("sanity-placeholder", null,       Phase.PLACEHOLDER       ).getId();
@@ -77,9 +79,9 @@ public abstract class StopTheWorld extends Plan
   /* Sanity phases */
   public static final int SANITY_PREPARE      = new SimplePhase("sanity-prepare",     null,       Phase.GLOBAL_FIRST      ).getId();
   public static final int SANITY_ROOTS        = new SimplePhase("sanity-roots",       null,       Phase.GLOBAL_LAST       ).getId();
-  public static final int SANITY_CHECK        = new SimplePhase("sanity",             null,       Phase.LOCAL_ONLY        ).getId();
+  public static final int SANITY_CHECK        = new SimplePhase("sanity",             null,       Phase.COLLECTOR_ONLY        ).getId();
   public static final int SANITY_RELEASE      = new SimplePhase("sanity-release",     null,       Phase.GLOBAL_LAST       ).getId();
-  public static final int SANITY_FORWARD      = new SimplePhase("sanity-forward",     null,       Phase.LOCAL_ONLY        ).getId();
+  public static final int SANITY_FORWARD      = new SimplePhase("sanity-forward",     null,       Phase.COLLECTOR_ONLY        ).getId();
   
   /* Sanity forwarding piggy-back */
   private static final int sanityForwardPhase = new ComplexPhase("sanity-forward-cf", null, new int[] {
@@ -108,6 +110,7 @@ public abstract class StopTheWorld extends Plan
    */
   protected static final int rootClosurePhase = new ComplexPhase("initial-closure", null, new int[] {
       PREPARE,
+      PREPARE_MUTATOR,
       PRECOPY,
       ROOTS,
       START_CLOSURE}).getId();
@@ -135,6 +138,7 @@ public abstract class StopTheWorld extends Plan
    *  Complete closure including reference types and finalizable objects.
    */
   protected static final int completeClosurePhase = new ComplexPhase("refType-closure", null, new int[] {
+      RELEASE_MUTATOR,
       RELEASE,
       }).getId();
 
@@ -173,7 +177,7 @@ public abstract class StopTheWorld extends Plan
     
     if (Options.sanityCheck.getValue()) {
       if (getSanityChecker() == null || 
-          ActivePlan.local().getSanityChecker() == null) {
+          ActivePlan.collector().getSanityChecker() == null) {
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");

@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * $Id$ 
  *
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -198,8 +198,6 @@ public final class ImmortalSpace extends Space
                                                oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
-
-
 
   /**
    * Trace a reference to an object under an immortal collection

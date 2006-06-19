@@ -15,7 +15,7 @@ import org.vmmagic.pragma.*;
  * This class implements a simple boolean counter (counting number of
  * phases where some boolean event is true).
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$

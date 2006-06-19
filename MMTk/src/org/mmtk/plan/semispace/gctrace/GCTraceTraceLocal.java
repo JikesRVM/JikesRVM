@@ -11,7 +11,6 @@ import org.mmtk.plan.Trace;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.TraceGenerator;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -71,7 +70,7 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner

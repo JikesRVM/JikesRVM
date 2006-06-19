@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements basic statistics functionality
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$

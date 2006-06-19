@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
@@ -111,13 +111,13 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   public final void reset() {
-    setNumClientsWaiting(0);
+    setNumConsumersWaiting(0);
     setCompletionFlag(0);
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(head.isZero() && tail.isZero());
   }
 
-  public final void newClient() {
-    setNumClients(numClients + 1);
+  public final void newConsumer() {
+    setNumConsumers(numConsumers + 1);
   }
 
   final Address alloc() throws InlinePragma {
@@ -146,8 +146,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   private RawPageSpace rps;
   private int arity;
   private int completionFlag; //
-  private int numClients; //
-  private int numClientsWaiting; //
+  private int numConsumers; //
+  private int numConsumersWaiting; //
   protected Address head;
   protected Address tail;
   private int bufsenqueued;
@@ -161,8 +161,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
-        setNumClientsWaiting(numClientsWaiting + 1);
-        if (numClientsWaiting == numClients)
+        setNumConsumersWaiting(numConsumersWaiting + 1);
+        if (numConsumersWaiting == numConsumers)
           setCompletionFlag(1);
       }
     } else {
@@ -187,7 +187,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       }
       bufsenqueued--;
       if (waiting)
-        setNumClientsWaiting(numClientsWaiting - 1);
+        setNumConsumersWaiting(numConsumersWaiting - 1);
     }
     unlock();
     return rtn;
@@ -272,12 +272,12 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     completionFlag = flag;
   }
 
-  private final void setNumClients(int newNumClients) throws InlinePragma {
-      numClients = newNumClients;
+  private final void setNumConsumers(int newNumConsumers) throws InlinePragma {
+      numConsumers = newNumConsumers;
   }
 
-  private final void setNumClientsWaiting(int newNCW) throws InlinePragma {
-    numClientsWaiting = newNCW;
+  private final void setNumConsumersWaiting(int newNCW) throws InlinePragma {
+    numConsumersWaiting = newNCW;
   }
 
   private final void setHead(Address newHead) throws InlinePragma {

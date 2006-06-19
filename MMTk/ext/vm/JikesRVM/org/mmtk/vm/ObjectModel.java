@@ -20,7 +20,8 @@ import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedPlanLocal;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedMutatorContext;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedCollectorContext;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -28,7 +29,7 @@ import org.vmmagic.pragma.*;
 /**
  * $Id$ 
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  *
  * @version $Revision$
@@ -63,7 +64,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
-    SelectedPlanLocal plan = SelectedPlanLocal.get();
+    SelectedCollectorContext plan = SelectedCollectorContext.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
@@ -82,7 +83,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
-    SelectedPlanLocal plan = SelectedPlanLocal.get();
+    SelectedCollectorContext plan = SelectedCollectorContext.get();
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);

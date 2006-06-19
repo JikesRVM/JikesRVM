@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * $Id$
  *
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -59,11 +59,11 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    */
   public TraceLocal(Trace trace) {
     values = new ObjectReferenceDeque("value", trace.valuePool);
-    trace.valuePool.newClient();
+    trace.valuePool.newConsumer();
     rootLocations = new AddressDeque("rootLoc", trace.rootLocationPool);
-    trace.rootLocationPool.newClient();
+    trace.rootLocationPool.newConsumer();
     interiorRootLocations = new AddressPairDeque(trace.interiorRootPool);
-    trace.interiorRootPool.newClient();
+    trace.interiorRootPool.newConsumer();
   }
 
   /****************************************************************************

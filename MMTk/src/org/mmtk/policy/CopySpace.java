@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  * $Id$
  *
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author David Bacon
  * @author Steve Fink
  * @author Dave Grove

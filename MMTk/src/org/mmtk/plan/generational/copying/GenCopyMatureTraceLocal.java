@@ -1,6 +1,6 @@
 package org.mmtk.plan.generational.copying;
 
-import org.mmtk.plan.generational.GenLocal;
+import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner 
  * @version $Revision$
@@ -29,7 +29,7 @@ public class GenCopyMatureTraceLocal extends GenMatureTraceLocal implements Unin
   /**
    * Constructor
    */
-   public GenCopyMatureTraceLocal(Trace global, GenLocal plan) {
+   public GenCopyMatureTraceLocal(Trace global, GenCollector plan) {
      super(global, plan);
    }
    

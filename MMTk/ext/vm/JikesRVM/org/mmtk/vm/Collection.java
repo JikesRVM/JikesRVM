@@ -7,7 +7,8 @@
 package org.mmtk.vm;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.PlanLocal;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.MutatorContext;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -27,6 +28,8 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedCollectorContext;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedMutatorContext;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -34,7 +37,7 @@ import org.vmmagic.pragma.*;
 /**
  * $Id$ 
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  *
  * @version $Revision$
@@ -240,15 +243,33 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
   }
 
   /**
-   * Checks whether a plan instance is eligible to participate in a
-   * collection.
+	 * Checks whether a <code>CollectorContext</code> is eligible to participate in a
+	 * collection. This is a bit contrived in order to avoid a checkcast occuring
+	 * during GC.
    *
-   * @param plan the plan to check
-   * @return <code>true</code> if the plan is not participating,
+	 * @param collector the collector to check
+	 * @return <code>true</code> if the collector is not participating,
    * <code>false</code> otherwise
    */
-  public static boolean isNonParticipating(PlanLocal plan) {
-    VM_Processor vp = (VM_Processor)plan;
+	public static boolean isNonParticipating(CollectorContext collector) {
+		int collectorId = collector.getId();
+		VM_Processor vp = ActivePlan.selectedCollector(collectorId).getProcessor();
+		int vpStatus = vp.vpStatus;
+		return vpStatus == VM_Processor.BLOCKED_IN_NATIVE;
+	}
+	
+	/**
+	 * Checks whether a <code>MutatorContext</code> is eligible to participate in the mutator phase of a
+	 * collection. This is a bit contrived in order to avoid a checkcast occuring
+	 * during GC.
+	 *
+	 * @param mutator the mutator to check
+	 * @return <code>true</code> if the mutator is not participating,
+	 * <code>false</code> otherwise
+	 */
+	public static boolean isNonParticipating(MutatorContext mutator) {
+		int mutatorId = mutator.getId();
+		VM_Processor vp = ActivePlan.selectedMutator(mutatorId).getProcessor();
     int vpStatus = vp.vpStatus;
     return vpStatus == VM_Processor.BLOCKED_IN_NATIVE;
   }
@@ -258,12 +279,12 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
    *
    * @param p the plan to prepare
    */
-  public static void prepareNonParticipating(PlanLocal p) {
+	public static void prepareNonParticipating(CollectorContext p) {
     /*
      * The collector threads of processors currently running threads
      * off in JNI-land cannot run.
      */
-    VM_Processor vp = (VM_Processor) p;
+		VM_Processor vp = ((SelectedCollectorContext) p).getProcessor();
     int vpStatus = vp.vpStatus;
     if (VM.VerifyAssertions)
       VM._assert(vpStatus == VM_Processor.BLOCKED_IN_NATIVE);
@@ -283,8 +304,8 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
    *
    * @param p the plan to prepare
    */
-  public static void prepareParticipating (PlanLocal p) {
-    VM_Processor vp = (VM_Processor) p;
+	public static void prepareParticipating(CollectorContext p) {
+		VM_Processor vp = ((SelectedCollectorContext) p).getProcessor();
     if (VM.VerifyAssertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
     VM_Thread t = VM_Thread.getCurrentThread();
     Address fp = VM_Magic.getFramePointer();

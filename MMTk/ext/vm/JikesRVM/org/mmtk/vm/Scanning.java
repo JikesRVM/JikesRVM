@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
 /**
  * $Id$ 
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  *
  * @version $Revision$
@@ -240,5 +240,4 @@ public class Scanning implements Constants, Uninterruptible {
     }
     Collection.rendezvous(4200);
   }
-
 }

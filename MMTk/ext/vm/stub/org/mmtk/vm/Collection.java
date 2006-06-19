@@ -6,12 +6,13 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.plan.PlanLocal;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.MutatorContext;
 
 /**
  * $Id$ 
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  *
  * @version $Revision$
@@ -106,14 +107,27 @@ public class Collection {
  }
 
   /**
-   * Checks whether a plan instance is eligible to participate in a
+  * Checks whether a collector context instance is eligible to participate in a
    * collection.
    *
-   * @param plan the plan to check
-   * @return <code>true</code> if the plan is not participating,
+  * @param collector the collector context to check
+  * @return <code>true</code> if the collector is not participating,
    * <code>false</code> otherwise
    */
-  public static boolean isNonParticipating(PlanLocal plan) {
+ public static boolean isNonParticipating(CollectorContext collector) {
+   return false;  
+ }
+
+
+ /**
+  * Checks whether a mutator context instance is eligible to participate in a
+  * collection.
+  *
+  * @param mutator the mutator context to check
+  * @return <code>true</code> if the mutator context is not participating,
+  * <code>false</code> otherwise
+  */
+ public static boolean isNonParticipating(MutatorContext mutator) {
     return false;  
   }
 
@@ -125,7 +139,7 @@ public class Collection {
    * 
    * @param p the plan to prepare
    */
-  public static void prepareNonParticipating(PlanLocal p) {}
+  public static void prepareNonParticipating(CollectorContext p) {}
 
   /**
    * Prepare a local plan instance for collection.  
@@ -135,7 +149,7 @@ public class Collection {
    *
    * @param p the plan to prepare
    */
-  public static void prepareParticipating (PlanLocal p) {}
+  public static void prepareParticipating (CollectorContext p) {}
 
   /**
    * Rendezvous with all other processors, returning the rank

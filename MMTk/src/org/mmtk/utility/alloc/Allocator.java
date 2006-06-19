@@ -227,7 +227,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
         current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
-      current = ActivePlan.local().getOwnAllocator(current);
+      current = ActivePlan.mutator().getOwnAllocator(current);
     }
     Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");
     Log.write(bytes);

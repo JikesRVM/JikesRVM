@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
  *
  * $Id$
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -44,8 +44,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    *
    * Instance variables
    */
-  private LargeObjectSpace space;
-  public final Treadmill treadmill;  // per-processor
+  private final Treadmill treadmill;  // per-processor
 
   /****************************************************************************
    *
@@ -107,7 +106,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * Sweep through the large pages, releasing all superpages on the
    * "from space" treadmill.
    */
-  public final void sweepLargePages() {
+  private final void sweepLargePages() {
     while (true) {
       Address cell = treadmill.popFromSpace();
       if (cell.isZero()) break;
