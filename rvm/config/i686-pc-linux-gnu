@@ -65,10 +65,11 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 # Choose Sun for Sun, IBM and jrockit JVMs.
 # Choose Kaffe for the Kaffe JVM.
 # Choose JikesRVM for the Jikes RVM
+# Choose IBM-50 for IBM 5.0
 #  NB The Jikes RVM building itself does not work yet, due to trouble
 #  separating the namespaces of the Builder Jikes RVM and the Jikes
 #  RVM being built.
-HOST_VM_TYPE=Sun
+[[ ${HOST_VM_TYPE-} ]] || HOST_VM_TYPE=Sun
 
 # Root of JDK installation.
 [[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/lib/j2se/1.4"
