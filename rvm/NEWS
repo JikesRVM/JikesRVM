@@ -16,7 +16,8 @@ on October 14, 2001,
 
 *** We can now load and run Java 1.5.0 Java class files. Support includes
     building the Jikes RVM using a 1.5.0 javac compiler and running the
-    SPEC JBB 2005 benchmark.
+    SPEC JBB 2005 benchmark. Support for Java annotations is in place, but
+    true support is dependent on generics support.
 
 *** MMTk changes & refactors: Steve/Daniel/Robin?
 
