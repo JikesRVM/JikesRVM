@@ -144,13 +144,19 @@ public abstract class VM_AnnotatedElement implements AnnotatedElement {
    * Get the annotation implementing the specified class or null
    */
   public Annotation getAnnotation(Class annotationClass) {
-    throw new Error("TODO");
+    Annotation annotations[] = getDeclaredAnnotations();
+    for(int i=0; i<annotations.length; i++) {
+      if(annotations[i].annotationType() == annotationClass) {
+        return annotations[i];
+      }
+    }
+    return null;
   }
   /**
    * Is there an annotation of this type implemented on this annotated
    * element?
    */
   public boolean isAnnotationPresent(Class annotationClass) {
-    throw new Error("TODO");
+    return getAnnotation(annotationClass) == null;
   }
 }

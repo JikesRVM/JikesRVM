@@ -16,7 +16,8 @@ import java.lang.JikesRVMSupport;
 import java.util.Arrays;
 
 /**
- * Representation of an annotation on a TODO...
+ * Internal representation of an annotation. We synthetically create
+ * actual annotations {@see VM_Class}.
  *
  * @author Ian Rogers
  */
