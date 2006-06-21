@@ -73,7 +73,7 @@ public class MC extends StopTheWorld implements Uninterruptible {
       ROOTS,
       forwardPhase,
       FORWARD_CLOSURE,
-  		RELEASE_MUTATOR,
+      RELEASE_MUTATOR,
       RELEASE_FORWARD,
       COMPACT,
       finishPhase});

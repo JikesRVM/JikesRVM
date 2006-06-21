@@ -43,12 +43,12 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
-	/****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
   protected final CopyLocal ss;
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -60,7 +60,7 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
     ss = new CopyLocal(SS.copySpace0);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Mutator-time allocation
    */
@@ -68,10 +68,10 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
   /**
    * Allocate space (for an object)
    * 
-	 * @param bytes The size of the space to be allocated (in bytes)
-	 * @param align The requested alignment.
-	 * @param offset The alignment offset.
-	 * @param allocator The allocator number to be used for this allocation
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
+   * @param allocator The allocator number to be used for this allocation
    * @return The address of the first byte of the allocated region
    */
   public Address alloc(int bytes, int align, int offset, int allocator)
@@ -83,74 +83,74 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
   }
 
   /**
-	 * Perform post-allocation actions.  For many allocators none are
-	 * required.
+   * Perform post-allocation actions.  For many allocators none are
+   * required.
    * 
-	 * @param object The newly allocated object
-	 * @param typeRef The type reference for the instance being created
-	 * @param bytes The size of the space to be allocated (in bytes)
-	 * @param allocator The allocator number to be used for this allocation
+   * @param object The newly allocated object
+   * @param typeRef The type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param allocator The allocator number to be used for this allocation
    */
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
-			int bytes, int allocator)
-	throws InlinePragma {
-		if (allocator == SS.ALLOC_SS) return;
+      int bytes, int allocator)
+  throws InlinePragma {
+    if (allocator == SS.ALLOC_SS) return;
     super.postAlloc(object, typeRef, bytes, allocator);
   }
 
   /**
-	 * Return the space into which an allocator is allocating.  This
-	 * particular method will match against those spaces defined at this
-	 * level of the class hierarchy.  Subclasses must deal with spaces
-	 * they define and refer to superclasses appropriately.  This exists
-	 * to support {@link CollectorContext#getOwnAllocator(Allocator)}.
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link CollectorContext#getOwnAllocator(Allocator)}.
    * 
    * @see CollectorContext#getOwnAllocator(Allocator)
-	 * @param a An allocator
+   * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public final Space getSpaceFromAllocator(Allocator a) {
-		if (a == ss) return SS.toSpace();
+    if (a == ss) return SS.toSpace();
     return super.getSpaceFromAllocator(a);
   }
 
   /**
-	 * Return the allocator instance associated with a space
-	 * <code>space</code>, for this plan instance.  This exists
-	 * to support {@link CollectorContext#getOwnAllocator(Allocator)}.
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link CollectorContext#getOwnAllocator(Allocator)}.
    * 
    * @see CollectorContext#getOwnAllocator(Allocator)
-	 * @param space The space for which the allocator instance is desired.
-	 * @return The allocator instance associated with this plan instance
-	 * which is allocating into <code>space</code>, or <code>null</code>
-	 * if no appropriate allocator can be established.
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
    */
   public final Allocator getAllocatorFromSpace(Space space) {
-		if (space == SS.copySpace0 || space == SS.copySpace1) return ss;
+    if (space == SS.copySpace0 || space == SS.copySpace1) return ss;
     return super.getAllocatorFromSpace(space);
   }
 
   /**
-	 * Give the compiler/runtime statically generated alloction advice
-	 * which will be passed to the allocation routine at runtime.
+   * Give the compiler/runtime statically generated alloction advice
+   * which will be passed to the allocation routine at runtime.
    * 
-	 * @param type The type id of the type being allocated
-	 * @param bytes The size (in bytes) required for this object
-	 * @param callsite Information identifying the point in the code
-	 * where this allocation is taking place.
-	 * @param hint A hint from the compiler as to which allocator this
-	 * site should use.
-	 * @return Allocation advice to be passed to the allocation routine
-	 * at runtime
+   * @param type The type id of the type being allocated
+   * @param bytes The size (in bytes) required for this object
+   * @param callsite Information identifying the point in the code
+   * where this allocation is taking place.
+   * @param hint A hint from the compiler as to which allocator this
+   * site should use.
+   * @return Allocation advice to be passed to the allocation routine
+   * at runtime
    */
-	public final AllocAdvice getAllocAdvice(MMType type, int bytes, CallSite callsite, AllocAdvice hint) {
+  public final AllocAdvice getAllocAdvice(MMType type, int bytes, CallSite callsite, AllocAdvice hint) {
     return null;
   }
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Collection
    */
@@ -158,11 +158,11 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
   /**
    * Perform a per-mutator collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary Perform any single-threaded activities using this thread.
+   * @param phaseId The collection phase to perform
+   * @param primary Perform any single-threaded activities using this thread.
    */
-	public void collectionPhase(int phaseId, boolean primary)
-	throws InlinePragma {
+  public void collectionPhase(int phaseId, boolean primary)
+  throws InlinePragma {
     if (phaseId == SS.PREPARE_MUTATOR) {
       // rebind the allocation bump pointer to the appropriate semispace.
       ss.rebind(SS.toSpace());
@@ -178,8 +178,8 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
     super.collectionPhase(phaseId, primary);
   }
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Miscellaneous
    */

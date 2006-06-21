@@ -35,12 +35,12 @@ import org.vmmagic.pragma.*;
  */
 public class NoGCCollector extends CollectorContext implements Uninterruptible {
 
-	/************************************************************************
+  /************************************************************************
    * Instance fields
    */
   private final NoGCTraceLocal trace;
 
-	/************************************************************************
+  /************************************************************************
    * Initialization
    */
 
@@ -51,7 +51,7 @@ public class NoGCCollector extends CollectorContext implements Uninterruptible {
     trace = new NoGCTraceLocal(global().trace);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -66,32 +66,32 @@ public class NoGCCollector extends CollectorContext implements Uninterruptible {
   /**
    * Perform a per-collector collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary perform any single-threaded local activities.
+   * @param phaseId The collection phase to perform
+   * @param primary perform any single-threaded local activities.
    */
   public final void collectionPhase(int phaseId, boolean primary) {
     Assert.fail("GC Triggered in NoGC Plan.");
     /*
-		 if (phaseId == NoGC.PREPARE) {
-		 }
-		 
-		 if (phaseId == NoGC.BEGIN_CLOSURE) {
-		 trace.startTrace();
-		 return;
-		 }
-		 
-		 if (phaseId == NoGC.COMPLETE_CLOSURE) {
-		 trace.completeTrace();
-		 return;
-		 }
-		 
-		 if (phaseId == NoGC.RELEASE) {
-		 }
-		 super.collectionPhase(phaseId, participating, primary);
+     if (phaseId == NoGC.PREPARE) {
+     }
+     
+     if (phaseId == NoGC.BEGIN_CLOSURE) {
+     trace.startTrace();
+     return;
+     }
+     
+     if (phaseId == NoGC.COMPLETE_CLOSURE) {
+     trace.completeTrace();
+     return;
+     }
+     
+     if (phaseId == NoGC.RELEASE) {
+     }
+     super.collectionPhase(phaseId, participating, primary);
      */
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Miscellaneous
    */
@@ -102,5 +102,5 @@ public class NoGCCollector extends CollectorContext implements Uninterruptible {
   }
 
   /** @return The current trace instance. */
-	public final TraceLocal getCurrentTrace() { return trace; }
+  public final TraceLocal getCurrentTrace() { return trace; }
 }

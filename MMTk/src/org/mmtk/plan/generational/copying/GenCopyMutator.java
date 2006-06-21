@@ -42,18 +42,18 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class GenCopyMutator extends GenMutator implements Uninterruptible {
-	/******************************************************************
+  /******************************************************************
    * Instance fields
    */
 
   /**
-	 * The allocator for the copying mature space (the mutator may
-	 * "pretenure" objects into this space otherwise used only by
-	 * the collector)
+   * The allocator for the copying mature space (the mutator may
+   * "pretenure" objects into this space otherwise used only by
+   * the collector)
    */
   private CopyLocal mature;
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -65,7 +65,7 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
     mature = new CopyLocal(GenCopy.toSpace());
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Mutator-time allocation
    */
@@ -73,10 +73,10 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
   /**
    * Allocate space (for an object) in the specified space
    * 
-	 * @param bytes The size of the space to be allocated (in bytes)
-	 * @param align The requested alignment.
-	 * @param offset The alignment offset.
-	 * @param allocator The allocator to allocate from
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
+   * @param allocator The allocator to allocate from
    * @return The address of the first byte of the allocated region
    */
   public final Address alloc(int bytes, int align, int offset, int allocator)
@@ -90,54 +90,54 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
   /**
    * Perform post-allocation initialization of an object
    * 
-	 * @param object The newly allocated object
-	 * @param typeRef the type reference for the instance being created
-	 * @param allocator The allocator to allocate from
-	 * @param bytes The size of the space allocated (in bytes)
+   * @param object The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param allocator The allocator to allocate from
+   * @param bytes The size of the space allocated (in bytes)
    */
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
-			int bytes, int allocator) 
-	throws InlinePragma {
+      int bytes, int allocator) 
+  throws InlinePragma {
     // nothing to be done
-		if (allocator == GenCopy.ALLOC_MATURE) return;
+    if (allocator == GenCopy.ALLOC_MATURE) return;
     super.postAlloc(object, typeRef, bytes, allocator);
   }
 
   /**
-	 * Return the space into which an allocator is allocating.  This
-	 * particular method will match against those spaces defined at this
-	 * level of the class hierarchy.  Subclasses must deal with spaces
-	 * they define and refer to superclasses appropriately.  This exists
-	 * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
    * 
    * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
-	 * @param a An allocator
+   * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public final Space getSpaceFromAllocator(Allocator a) {
-		if (a == mature) return GenCopy.toSpace();
+    if (a == mature) return GenCopy.toSpace();
     return super.getSpaceFromAllocator(a);
   }
 
   /**
-	 * Return the allocator instance associated with a space
-	 * <code>space</code>, for this plan instance.  This exists
-	 * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
    * 
    * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
-	 * @param space The space for which the allocator instance is desired.
-	 * @return The allocator instance associated with this plan instance
-	 * which is allocating into <code>space</code>, or <code>null</code>
-	 * if no appropriate allocator can be established.
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
    */
   public final Allocator getAllocatorFromSpace(Space space) {
-		if (space == GenCopy.matureSpace0 || space == GenCopy.matureSpace1) return mature;
+    if (space == GenCopy.matureSpace0 || space == GenCopy.matureSpace1) return mature;
     return super.getAllocatorFromSpace(space);
   }
 
-	
+  
   /*****************************************************************************
    * 
    * Collection
@@ -146,15 +146,15 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
   /**
    * Execute a per-mutator collection phase.
    * 
-	 * @param phaseId The phase to execute.
-	 * @param primary True if this thread should peform local single-threaded
-	 * actions.
+   * @param phaseId The phase to execute.
+   * @param primary True if this thread should peform local single-threaded
+   * actions.
    */
   public void collectionPhase(int phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE) {
         super.collectionPhase(phaseId, primary);
-				if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());       
+        if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());       
       }
     }
     super.collectionPhase(phaseId, primary);

@@ -52,7 +52,7 @@ implements Uninterruptible {
   // Sanity checking
   private GenSanityCheckerLocal sanityChecker;
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -60,9 +60,9 @@ implements Uninterruptible {
   /**
    * Constructor
    * 
-	 * Note that the collector is a consumer of remsets, while the
-	 * mutator is a producer.  The <code>GenMutator</code> class is
-	 * responsible for construction of the WriteBuffer (producer).
+   * Note that the collector is a consumer of remsets, while the
+   * mutator is a producer.  The <code>GenMutator</code> class is
+   * responsible for construction of the WriteBuffer (producer).
    * @see GenMutator
    */
   public GenCollector() {
@@ -75,7 +75,7 @@ implements Uninterruptible {
     sanityChecker = new GenSanityCheckerLocal();
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -83,8 +83,8 @@ implements Uninterruptible {
   /**
    * Perform a per-collector collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary Use this thread for single-threaded local activities.
+   * @param phaseId The collection phase to perform
+   * @param primary Use this thread for single-threaded local activities.
    */
   public void collectionPhase(int phaseId, boolean primary)
       throws NoInlinePragma {
@@ -118,7 +118,7 @@ implements Uninterruptible {
     super.collectionPhase(phaseId, primary);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Miscellaneous
    */
@@ -129,7 +129,7 @@ implements Uninterruptible {
   }
 
   public final TraceLocal getCurrentTrace() {
-		if (global().traceFullHeap()) return getFullHeapTrace();
+    if (global().traceFullHeap()) return getFullHeapTrace();
     return nurseryTrace;
   }
 

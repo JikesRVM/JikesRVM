@@ -39,12 +39,12 @@ import org.vmmagic.unboxed.*;
  */
 public class NoGCMutator extends MutatorContext implements Uninterruptible {
 
-	/************************************************************************
+  /************************************************************************
    * Instance fields
    */
   private final ImmortalLocal def; // the default allocator
 
-	/************************************************************************
+  /************************************************************************
    * 
    * Initialization
    */
@@ -56,7 +56,7 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
     def = new ImmortalLocal(NoGC.defSpace);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Mutator-time allocation
    */
@@ -64,10 +64,10 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
   /**
    * Allocate memory for an object.
    * 
-	 * @param bytes The number of bytes required for the object.
-	 * @param align Required alignment for the object.
-	 * @param offset Offset associated with the alignment.
-	 * @param allocator The allocator associated with this request.
+   * @param bytes The number of bytes required for the object.
+   * @param align Required alignment for the object.
+   * @param offset Offset associated with the alignment.
+   * @param allocator The allocator associated with this request.
    * @return The address of the newly allocated memory.
    */
   public Address alloc(int bytes, int align, int offset, int allocator)
@@ -79,13 +79,13 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
   }
 
   /**
-	 * Perform post-allocation actions.  For many allocators none are
-	 * required.
+   * Perform post-allocation actions.  For many allocators none are
+   * required.
    * 
-	 * @param ref The newly allocated object
-	 * @param typeRef the type reference for the instance being created
-	 * @param bytes The size of the space to be allocated (in bytes)
-	 * @param allocator The allocator number to be used for this allocation
+   * @param ref The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param allocator The allocator number to be used for this allocation
    */
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
@@ -95,38 +95,38 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
   }
 
   /**
-	 * Return the space into which an allocator is allocating.  This
-	 * particular method will match against those spaces defined at this
-	 * level of the class hierarchy.  Subclasses must deal with spaces
-	 * they define and refer to superclasses appropriately.
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.
    * 
-	 * @param a An allocator
+   * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-		if (a == def) return NoGC.defSpace;
+    if (a == def) return NoGC.defSpace;
 
     // a does not belong to this plan instance
     return super.getSpaceFromAllocator(a);
   }
 
   /**
-	 * Return the allocator instance associated with a space
-	 * <code>space</code>, for this plan instance.
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.
    * 
-	 * @param space The space for which the allocator instance is desired.
-	 * @return The allocator instance associated with this plan instance
-	 * which is allocating into <code>space</code>, or <code>null</code>
-	 * if no appropriate allocator can be established.
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
    */
   public Allocator getAllocatorFromSpace(Space space) {
-		if (space == NoGC.defSpace) return def;
+    if (space == NoGC.defSpace) return def;
     return super.getAllocatorFromSpace(space);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -134,18 +134,18 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
   /**
    * Perform a per-mutator collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary perform any single-threaded local activities.
+   * @param phaseId The collection phase to perform
+   * @param primary perform any single-threaded local activities.
    */
   public final void collectionPhase(int phaseId, boolean primary) {
     Assert.fail("GC Triggered in NoGC Plan.");
     /*
-		 if (phaseId == NoGC.PREPARE_MUTATOR) {
-		 }
-		 
-		 if (phaseId == NoGC.RELEASE_MUTATOR) {
-		 }
-		 super.collectionPhase(phaseId, participating, primary);
+     if (phaseId == NoGC.PREPARE_MUTATOR) {
+     }
+     
+     if (phaseId == NoGC.RELEASE_MUTATOR) {
+     }
+     super.collectionPhase(phaseId, participating, primary);
      */
   }
 

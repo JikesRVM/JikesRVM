@@ -30,5 +30,5 @@ import org.mmtk.policy.LargeObjectLocal;
  * @date $Date$
  */
 public class SSGCspyMutator extends SSMutator {
-	public LargeObjectLocal getLOS() { return los; }
+  public LargeObjectLocal getLOS() { return los; }
 }

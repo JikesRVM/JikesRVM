@@ -41,14 +41,14 @@ import org.vmmagic.pragma.*;
 public abstract class StopTheWorldCollector extends CollectorContext
 implements Uninterruptible {
 
-	/****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
 
   /** Basic sanity checker */
   private SanityCheckerLocal sanityChecker = new SanityCheckerLocal();
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -60,12 +60,12 @@ implements Uninterruptible {
   /**
    * Perform a per-collector collection phase.
    * 
-	 * @param phaseId The unique phase identifier
-	 * @param primary Should this thread be used to execute any single-threaded
-	 * local operations?
+   * @param phaseId The unique phase identifier
+   * @param primary Should this thread be used to execute any single-threaded
+   * local operations?
    */
-	public void collectionPhase(int phaseId, boolean primary)
-	throws InlinePragma {
+  public void collectionPhase(int phaseId, boolean primary)
+  throws InlinePragma {
     if (phaseId == StopTheWorld.PREPARE) {
       // Nothing to do
       return;
@@ -85,15 +85,15 @@ implements Uninterruptible {
 
     if (phaseId == StopTheWorld.SOFT_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-				ReferenceProcessor.processSoftReferences(
-						global().isCurrentGCNursery());
+        ReferenceProcessor.processSoftReferences(
+            global().isCurrentGCNursery());
       return;
     }
 
     if (phaseId == StopTheWorld.WEAK_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-				ReferenceProcessor.processWeakReferences(
-						global().isCurrentGCNursery());
+        ReferenceProcessor.processWeakReferences(
+            global().isCurrentGCNursery());
       return;
     }
 
@@ -109,22 +109,22 @@ implements Uninterruptible {
 
     if (phaseId == StopTheWorld.PHANTOM_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-				ReferenceProcessor.processPhantomReferences(
-						global().isCurrentGCNursery());
+        ReferenceProcessor.processPhantomReferences(
+            global().isCurrentGCNursery());
       return;
     }
 
     if (phaseId == StopTheWorld.FORWARD_REFS) {
-			if (primary && !Options.noReferenceTypes.getValue() &&
-					ActivePlan.constraints().needsForwardAfterLiveness()) {
+      if (primary && !Options.noReferenceTypes.getValue() &&
+          ActivePlan.constraints().needsForwardAfterLiveness()) {
         ReferenceProcessor.forwardReferences();
       }
       return;
     }
 
     if (phaseId == StopTheWorld.FORWARD_FINALIZABLE) {
-			if (primary && !Options.noFinalizer.getValue() &&
-					ActivePlan.constraints().needsForwardAfterLiveness()) {
+      if (primary && !Options.noFinalizer.getValue() &&
+          ActivePlan.constraints().needsForwardAfterLiveness()) {
         Finalizer.forward(getCurrentTrace());
       }
       return;
@@ -140,17 +140,17 @@ implements Uninterruptible {
       return;
     }
 
-		if (Options.sanityCheck.getValue() &&
-				getSanityChecker().collectionPhase(phaseId, primary)) {
+    if (Options.sanityCheck.getValue() &&
+        getSanityChecker().collectionPhase(phaseId, primary)) {
       return;
     }
 
-		Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId)); 
+    Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId)); 
     Log.writeln(" not handled.");
     Assert.fail("Per-collector phase not handled!");
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Miscellaneous.
    */

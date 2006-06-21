@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  */
 public final class SimplePhase extends Phase
   implements Uninterruptible, Constants {
-	/****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
 
@@ -80,8 +80,8 @@ public final class SimplePhase extends Phase
   protected final void logPhase() {
     Log.write("simple [");
     if (globalFirst) Log.write("G");
-		if (perCollector) Log.write("C");
-		if (perMutator  ) Log.write("M");
+    if (perCollector) Log.write("C");
+    if (perMutator  ) Log.write("M");
     if (globalLast ) Log.write("G");
     Log.write("] phase ");
     Log.writeln(name);
@@ -119,13 +119,13 @@ public final class SimplePhase extends Phase
     }
 
     if (perCollector) { // Phase has a per-collector component
-			if (logDetails) Log.writeln("  per-collector...");
+      if (logDetails) Log.writeln("  per-collector...");
       collector.collectionPhase(id, primary);
       Collection.rendezvous(3000 + id);
     }
 
     if (perMutator) { // Phase has a per-mutator component
-			if (logDetails) Log.writeln("  per-mutator...");
+      if (logDetails) Log.writeln("  per-mutator...");
       /* iterate through all mutator contexts, worker-farmer */
       MutatorContext mutator = null;
       while ((mutator = ActivePlan.getNextMutator()) != null) {

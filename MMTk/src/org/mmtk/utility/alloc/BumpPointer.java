@@ -63,7 +63,7 @@ public class BumpPointer extends Allocator
 
   // Chunk size defines slow path periodicity.
   protected static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
-  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());	
+  protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());  
 
   // Offsets into header
   protected static final Offset REGION_LIMIT_OFFSET = Offset.zero();

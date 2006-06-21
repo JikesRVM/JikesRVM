@@ -155,7 +155,7 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
     return matureTrace;
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Miscellaneous
    */

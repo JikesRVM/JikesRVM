@@ -39,14 +39,14 @@ import org.vmmagic.unboxed.*;
  */
 public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptible {
 
-	/****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
 
   private MarkSweepLocal mature;
   private CopyLocal nursery;
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -59,20 +59,20 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
     nursery = new CopyLocal(CopyMS.nurserySpace);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Mutator-time allocation
    */
 
   /**
    * Allocate memory for an object. This class handles the default allocator
-	 * from the mark sweep space, and delegates everything else to the
-	 * superclass.
+   * from the mark sweep space, and delegates everything else to the
+   * superclass.
    * 
-	 * @param bytes The number of bytes required for the object.
-	 * @param align Required alignment for the object.
-	 * @param offset Offset associated with the alignment.
-	 * @param allocator The allocator associated with this request.
+   * @param bytes The number of bytes required for the object.
+   * @param align Required alignment for the object.
+   * @param offset Offset associated with the alignment.
+   * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
   public Address alloc(int bytes, int align, int offset, int allocator)
@@ -86,14 +86,14 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
   }
 
   /**
-	 * Perform post-allocation actions.  Initialize the object header for
-	 * objects in the mark-sweep space, and delegate to the superclass for
-	 * other objects.
-	 *
-	 * @param ref The newly allocated object
-	 * @param typeRef the type reference for the instance being created
-	 * @param bytes The size of the space to be allocated (in bytes)
-	 * @param allocator The allocator number to be used for this allocation
+   * Perform post-allocation actions.  Initialize the object header for
+   * objects in the mark-sweep space, and delegate to the superclass for
+   * other objects.
+   *
+   * @param ref The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param allocator The allocator number to be used for this allocation
    */
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
@@ -106,38 +106,38 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
   }
 
   /**
-	 * Return the space into which an allocator is allocating.  This
-	 * particular method will match against those spaces defined at this
-	 * level of the class hierarchy.  Subclasses must deal with spaces
-	 * they define and refer to superclasses appropriately.
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.
    * 
-	 * @param a An allocator
+   * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-		if (a == nursery) return CopyMS.nurserySpace;
-		if (a == mature) return CopyMS.msSpace;
+    if (a == nursery) return CopyMS.nurserySpace;
+    if (a == mature) return CopyMS.msSpace;
     return super.getSpaceFromAllocator(a);
   }
 
   /**
-	 * Return the allocator instance associated with a space
-	 * <code>space</code>, for this plan instance.
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.
    * 
-	 * @param space The space for which the allocator instance is desired.
-	 * @return The allocator instance associated with this plan instance
-	 * which is allocating into <code>space</code>, or <code>null</code>
-	 * if no appropriate allocator can be established.
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
    */
   public Allocator getAllocatorFromSpace(Space space) {
-		if (space == CopyMS.nurserySpace) return nursery;
-		if (space == CopyMS.msSpace) return mature;
+    if (space == CopyMS.nurserySpace) return nursery;
+    if (space == CopyMS.msSpace) return mature;
     return super.getAllocatorFromSpace(space);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -145,8 +145,8 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
   /**
    * Perform a per-mutator collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary Use this thread for single-threaded local activities.
+   * @param phaseId The collection phase to perform
+   * @param primary Use this thread for single-threaded local activities.
    */
   public final void collectionPhase(int phaseId, boolean primary)
       throws InlinePragma {

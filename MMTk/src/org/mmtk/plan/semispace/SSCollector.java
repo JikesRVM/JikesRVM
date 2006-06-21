@@ -43,14 +43,14 @@ import org.vmmagic.pragma.*;
  */
 public class SSCollector extends StopTheWorldCollector implements Uninterruptible {
 
-	/****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
 
   protected final SSTraceLocal trace;
   protected final CopyLocal ss;
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -63,24 +63,24 @@ public class SSCollector extends StopTheWorldCollector implements Uninterruptibl
     trace = new SSTraceLocal(global().ssTrace);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection-time allocation
    */
 
   /**
-	 * Allocate space for copying an object (this method <i>does not</i>
-	 * copy the object, it only allocates space)
+   * Allocate space for copying an object (this method <i>does not</i>
+   * copy the object, it only allocates space)
    * 
-	 * @param original A reference to the original object
-	 * @param bytes The size of the space to be allocated (in bytes)
-	 * @param align The requested alignment.
-	 * @param offset The alignment offset.
+   * @param original A reference to the original object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-	public Address allocCopy(ObjectReference original, int bytes,
-			int align, int offset, int allocator)
-	throws InlinePragma {
+  public Address allocCopy(ObjectReference original, int bytes,
+      int align, int offset, int allocator)
+  throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       Assert._assert(allocator == SS.ALLOC_SS);
@@ -92,17 +92,17 @@ public class SSCollector extends StopTheWorldCollector implements Uninterruptibl
   /**
    * Perform any post-copy actions.
    * 
-	 * @param object The newly allocated object
-	 * @param typeRef the type reference for the instance being created
-	 * @param bytes The size of the space to be allocated (in bytes)
+   * @param object The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
    */
   public void postCopy(ObjectReference object, ObjectReference typeRef,
-			int bytes, int allocator)
-	throws InlinePragma {
+      int bytes, int allocator)
+  throws InlinePragma {
     CopySpace.clearGCBits(object);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -110,11 +110,11 @@ public class SSCollector extends StopTheWorldCollector implements Uninterruptibl
   /**
    * Perform a per-collector collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary Perform any single-threaded activities using this thread.
+   * @param phaseId The collection phase to perform
+   * @param primary Perform any single-threaded activities using this thread.
    */
-	public void collectionPhase(int phaseId, boolean primary)
-	throws InlinePragma {
+  public void collectionPhase(int phaseId, boolean primary)
+  throws InlinePragma {
     if (phaseId == SS.PREPARE) {
       // rebind the copy bump pointer to the appropriate semispace.
       ss.rebind(SS.toSpace());
@@ -141,25 +141,25 @@ public class SSCollector extends StopTheWorldCollector implements Uninterruptibl
     super.collectionPhase(phaseId, primary);
   }
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Object processing and tracing
    */
 
   /**
-	 * Return true if the given reference is to an object that is within
-	 * one of the semi-spaces.
+   * Return true if the given reference is to an object that is within
+   * one of the semi-spaces.
    * 
-	 * @param object The object in question
-	 * @return True if the given reference is to an object that is within
-	 * one of the semi-spaces.
+   * @param object The object in question
+   * @return True if the given reference is to an object that is within
+   * one of the semi-spaces.
    */
   public static final boolean isSemiSpaceObject(ObjectReference object) {
     return Space.isInSpace(SS.SS0, object) || Space.isInSpace(SS.SS1, object);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Miscellaneous
    */

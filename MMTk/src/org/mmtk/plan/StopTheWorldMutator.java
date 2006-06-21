@@ -34,23 +34,23 @@ import org.vmmagic.pragma.*;
 public abstract class StopTheWorldMutator extends MutatorContext
 implements Uninterruptible {
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection.
    */
 
   /**
-	 * Perform a per-mutator collection phase.   This is executed by
-	 * one collector thread on behalf of a mutator thread.
+   * Perform a per-mutator collection phase.   This is executed by
+   * one collector thread on behalf of a mutator thread.
    * 
    * @see SimplePhase#delegatePhase
    * 
-	 * @param phaseId The unique phase identifier
-	 * @param primary Should this thread be used to execute any single-threaded
-	 * local operations?
+   * @param phaseId The unique phase identifier
+   * @param primary Should this thread be used to execute any single-threaded
+   * local operations?
    */
-	public void collectionPhase(int phaseId, boolean primary)
-	throws InlinePragma {
+  public void collectionPhase(int phaseId, boolean primary)
+  throws InlinePragma {
 
     if (phaseId == StopTheWorld.INITIATE_MUTATOR) {
       Collection.prepareMutator(this);
@@ -69,7 +69,7 @@ implements Uninterruptible {
       return;
     }
 
-		Log.write("Per-mutator phase \""); Phase.getPhase(phaseId).logPhase(); 
+    Log.write("Per-mutator phase \""); Phase.getPhase(phaseId).logPhase(); 
     Log.writeln("\" not handled.");
     Assert.fail("Per-mutator phase not handled!");
   }

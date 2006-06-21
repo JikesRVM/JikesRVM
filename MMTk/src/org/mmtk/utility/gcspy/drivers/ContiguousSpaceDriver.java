@@ -408,7 +408,7 @@ public class ContiguousSpaceDriver extends AbstractDriver
       // Presentation style is not PRESENTATION_PLUS so we can check
       if (Assert.VERIFY_ASSERTIONS)
         if (tiles[i].scalarUsedSpace > scalarUsedSpaceStream.getMaxValue()) {
-	  Log.write("Bad value for ContiguousSpaceDriver Scalar Used Space stream: ");
+    Log.write("Bad value for ContiguousSpaceDriver Scalar Used Space stream: ");
           Log.write(tiles[i].scalarUsedSpace);
           Log.writeln(" max=", scalarUsedSpaceStream.getMaxValue());
           // Assert._assert(false);
@@ -428,7 +428,7 @@ public class ContiguousSpaceDriver extends AbstractDriver
       // Presentation style is not PRESENTATION_PLUS so we can check
       if (Assert.VERIFY_ASSERTIONS)
         if (tiles[i].arrayUsedSpace > arrayUsedSpaceStream.getMaxValue()) {
-	  Log.write("Bad value for ContiguousSpaceDriver Array Used Space stream: ");
+    Log.write("Bad value for ContiguousSpaceDriver Array Used Space stream: ");
           Log.write(tiles[i].arrayUsedSpace);
           Log.writeln(" max=", arrayUsedSpaceStream.getMaxValue());
           // Assert._assert(false);
@@ -466,12 +466,12 @@ public class ContiguousSpaceDriver extends AbstractDriver
     // send the control info
     int numBlocks = subspace.getBlockNum();
     controlValues(tiles, AbstractTile.CONTROL_USED,
-		  subspace.getFirstIndex(),
+      subspace.getFirstIndex(),
         numBlocks);
     if (numBlocks < numTiles)
       controlValues(tiles, AbstractTile.CONTROL_UNUSED,
-		  subspace.getFirstIndex() + numBlocks,
-		  numTiles - numBlocks);
+      subspace.getFirstIndex() + numBlocks,
+      numTiles - numBlocks);
 
     space.controlEnd(numTiles, tiles);
 

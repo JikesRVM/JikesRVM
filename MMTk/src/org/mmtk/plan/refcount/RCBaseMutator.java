@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 public abstract class RCBaseMutator extends StopTheWorldMutator implements Uninterruptible {
-	/****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
 
@@ -62,7 +62,7 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
   public RCModifiedEnumerator modEnum;
   public RCSanityEnumerator sanityEnum;
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -80,58 +80,58 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
     los = new LargeRCObjectLocal(RCBase.loSpace);
     rc = new RefCountLocal(RCBase.rcSpace, los, decBuffer, newRootSet);
     decEnum = new RCDecEnumerator();
-		if (RefCountSpace.RC_SANITY_CHECK) sanityEnum = new RCSanityEnumerator(rc);
+    if (RefCountSpace.RC_SANITY_CHECK) sanityEnum = new RCSanityEnumerator(rc);
   }
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Mutator-time allocation
    */
 
   /**
-	 * Return the space into which an allocator is allocating.  This
-	 * particular method will match against those spaces defined at this
-	 * level of the class hierarchy.  Subclasses must deal with spaces
-	 * they define and refer to superclasses appropriately.  This exists
-	 * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.<p>
+   * Return the space into which an allocator is allocating.  This
+   * particular method will match against those spaces defined at this
+   * level of the class hierarchy.  Subclasses must deal with spaces
+   * they define and refer to superclasses appropriately.  This exists
+   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.<p>
    * 
-	 * Note that we override <code>los</code>, so we must account for it
-	 * here (rather than in our superclass).
+   * Note that we override <code>los</code>, so we must account for it
+   * here (rather than in our superclass).
    * 
    * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
-	 * @param a An allocator
+   * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-		if (a == rc)  return RCBase.rcSpace;
-		if (a == los) return RCBase.loSpace;
+    if (a == rc)  return RCBase.rcSpace;
+    if (a == los) return RCBase.loSpace;
     return super.getSpaceFromAllocator(a);
   }
 
   /**
-	 * Return the allocator instance associated with a space
-	 * <code>space</code>, for this plan instance.  This exists
-	 * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.<p>
+   * Return the allocator instance associated with a space
+   * <code>space</code>, for this plan instance.  This exists
+   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.<p>
    * 
-	 * Note that we override <code>los</code>, so we must account for it
-	 * here (rather than in our superclass).
+   * Note that we override <code>los</code>, so we must account for it
+   * here (rather than in our superclass).
    * 
    * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
-	 * @param space The space for which the allocator instance is desired.
-	 * @return The allocator instance associated with this plan instance
-	 * which is allocating into <code>space</code>, or <code>null</code>
-	 * if no appropriate allocator can be established.
+   * @param space The space for which the allocator instance is desired.
+   * @return The allocator instance associated with this plan instance
+   * which is allocating into <code>space</code>, or <code>null</code>
+   * if no appropriate allocator can be established.
    */
   public Allocator getAllocatorFromSpace(Space space) {
-		if (space == RCBase.rcSpace) return rc;
-		if (space == RCBase.loSpace) return los;
+    if (space == RCBase.rcSpace) return rc;
+    if (space == RCBase.loSpace) return los;
     return super.getAllocatorFromSpace(space);
   }
 
-	
+  
   /** ************************************************************************ */
   /** ************************************************************************ */
   /** ************************************************************************ */
@@ -142,21 +142,21 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
   /** ************************************************************************ */
   /** ************************************************************************ */
 
-	
-	
-	/****************************************************************************
+  
+  
+  /****************************************************************************
    * 
    * Pointer enumeration
    */
 
   /**
-	 * A field of an object is being enumerated by ScanObject as part of
-	 * a recursive decrement (when an object dies, its referent objects
-	 * must have their counts decremented).  If the field points to the
-	 * RC space, decrement the count for the referent.
+   * A field of an object is being enumerated by ScanObject as part of
+   * a recursive decrement (when an object dies, its referent objects
+   * must have their counts decremented).  If the field points to the
+   * RC space, decrement the count for the referent.
    * 
-	 * @param location The address of a reference field with an object
-	 * being enumerated.
+   * @param location The address of a reference field with an object
+   * being enumerated.
    */
   public final void enumerateDecrementPointerLocation(Address location)
       throws InlinePragma {
@@ -167,23 +167,23 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
   }
 
   /**
-	 * A field of an object in the modified buffer is being enumerated
-	 * by ScanObject. If the field points to the RC space, increment the
-	 * count of the referent object.
+   * A field of an object in the modified buffer is being enumerated
+   * by ScanObject. If the field points to the RC space, increment the
+   * count of the referent object.
    * 
-	 * @param objLoc The address of a reference field with an object
-	 * being enumerated.
+   * @param objLoc The address of a reference field with an object
+   * being enumerated.
    */
   public abstract void enumerateModifiedPointerLocation(Address objLoc);
 
-	/*	public void enumerateModifiedPointerLocation(Address objLoc)
-	 throws InlinePragma {
-	 if (Assert.VERIFY_ASSERTIONS) Assert._assert(RCBase.WITH_COALESCING_RC);
-	 ObjectReference object = objLoc.loadObjectReference();
-	 if (RCBase.isRCObject(object)) RefCountSpace.incRC(object);
-	 }	
+  /*  public void enumerateModifiedPointerLocation(Address objLoc)
+   throws InlinePragma {
+   if (Assert.VERIFY_ASSERTIONS) Assert._assert(RCBase.WITH_COALESCING_RC);
+   ObjectReference object = objLoc.loadObjectReference();
+   if (RCBase.isRCObject(object)) RefCountSpace.incRC(object);
+   }  
    */
-	/****************************************************************************
+  /****************************************************************************
    * 
    * RC methods
    */
@@ -191,26 +191,26 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
   /**
    * Add an object to the decrement buffer
    * 
-	 * @param object The object to be added to the decrement buffer
+   * @param object The object to be added to the decrement buffer
    */
-	public final void addToDecBuf(ObjectReference object)
-	throws InlinePragma {
+  public final void addToDecBuf(ObjectReference object)
+  throws InlinePragma {
     decBuffer.push(object);
   }
 
   /**
    * Add an object to the root set
    * 
-	 * @param root The object to be added to root set
+   * @param root The object to be added to root set
    */
-	public final void addToRootSet(ObjectReference root)
-	throws InlinePragma {
+  public final void addToRootSet(ObjectReference root)
+  throws InlinePragma {
     newRootSet.push(root);
   }
 
   /**
-	 * Process the modified object buffers, enumerating each object's
-	 * fields
+   * Process the modified object buffers, enumerating each object's
+   * fields
    */
   public final void processModBufs() {
     modBuffer.flushLocal();
@@ -222,16 +222,16 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
   }
 
   /**
-	 * Trace a reference during an increment sanity traversal.  This is
-	 * only used as part of the ref count sanity check, and it forms the
-	 * basis for a transitive closure that assigns a reference count to
-	 * each object.
-	 *
-	 * @param object The object being traced
-	 * @param location The location from which this object was
-	 * reachable, null if not applicable.
-	 * @param root <code>true</code> if the object is being traced
-	 * directly from a root.
+   * Trace a reference during an increment sanity traversal.  This is
+   * only used as part of the ref count sanity check, and it forms the
+   * basis for a transitive closure that assigns a reference count to
+   * each object.
+   *
+   * @param object The object being traced
+   * @param location The location from which this object was
+   * reachable, null if not applicable.
+   * @param root <code>true</code> if the object is being traced
+   * directly from a root.
    */
   public void incSanityTrace(ObjectReference object, Address location,
       boolean root) {
@@ -243,18 +243,18 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
   }
 
   /**
-	 * Trace a reference during an check sanity traversal.  This is only
-	 * used as part of the ref count sanity check, and it forms the
-	 * basis for a transitive closure that checks reference counts
-	 * against sanity reference counts.  If the counts are not matched,
-	 * an error is raised.
-	 *
-	 * @param object The object being traced
-	 * @param location The location from which this object was
-	 * reachable, null if not applicable.
+   * Trace a reference during an check sanity traversal.  This is only
+   * used as part of the ref count sanity check, and it forms the
+   * basis for a transitive closure that checks reference counts
+   * against sanity reference counts.  If the counts are not matched,
+   * an error is raised.
+   *
+   * @param object The object being traced
+   * @param location The location from which this object was
+   * reachable, null if not applicable.
    */
-	public void checkSanityTrace(ObjectReference object,
-			Address location) {
+  public void checkSanityTrace(ObjectReference object,
+      Address location) {
     if (RCBase.isRCObject(object)) {
       if (RefCountSpace.checkAndClearSanityRC(object)) {
         Scan.enumeratePointers(object, sanityEnum);
@@ -264,8 +264,8 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
       Scan.enumeratePointers(object, sanityEnum);
   }
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Miscellaneous
    */

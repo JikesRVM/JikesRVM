@@ -41,24 +41,24 @@ import org.vmmagic.pragma.*;
  */
 public class RCCollector extends RCBaseCollector
 implements Uninterruptible, Constants {
-	/****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
   public final RCTraceLocal trace;
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Initialization
    */
 
   /**
-	 * Class initializer.  This is executed <i>prior</i> to bootstrap
-	 * (i.e. at "build" time).  This is where key <i>global</i>
-	 * instances are allocated.  These instances will be incorporated
-	 * into the boot image by the build process.
+   * Class initializer.  This is executed <i>prior</i> to bootstrap
+   * (i.e. at "build" time).  This is where key <i>global</i>
+   * instances are allocated.  These instances will be incorporated
+   * into the boot image by the build process.
    */
-	static { }
+  static { }
 
   /**
    * Constructor
@@ -67,7 +67,7 @@ implements Uninterruptible, Constants {
     trace = new RCTraceLocal(global().trace);
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -75,8 +75,8 @@ implements Uninterruptible, Constants {
   /**
    * Perform a per-collector collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary Perform any single-threaded activities using this thread.
+   * @param phaseId The collection phase to perform
+   * @param primary Perform any single-threaded activities using this thread.
    */
   public void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == RC.PREPARE) {
@@ -104,29 +104,29 @@ implements Uninterruptible, Constants {
     super.collectionPhase(phaseId, primary);
   }
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Pointer enumeration
    */
 
   /**
-	 * A field of an object in the modified buffer is being enumerated
-	 * by ScanObject. If the field points to the RC space, increment the
-	 * count of the referent object.
-	 *
-	 * @param objLoc The address of a reference field with an object
-	 * being enumerated.
-	 */
-	/*	public final void enumerateModifiedPointerLocation(Address objLoc)
-	 throws InlinePragma {
-	 if (Assert.VERIFY_ASSERTIONS) Assert._assert(RC.WITH_COALESCING_RC);
-	 ObjectReference object = objLoc.loadObjectReference();
-	 if (RC.isRCObject(object)) RefCountSpace.incRC(object);
-	 }
+   * A field of an object in the modified buffer is being enumerated
+   * by ScanObject. If the field points to the RC space, increment the
+   * count of the referent object.
+   *
+   * @param objLoc The address of a reference field with an object
+   * being enumerated.
+   */
+  /*  public final void enumerateModifiedPointerLocation(Address objLoc)
+   throws InlinePragma {
+   if (Assert.VERIFY_ASSERTIONS) Assert._assert(RC.WITH_COALESCING_RC);
+   ObjectReference object = objLoc.loadObjectReference();
+   if (RC.isRCObject(object)) RefCountSpace.incRC(object);
+   }
    */
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Miscellaneous
    */

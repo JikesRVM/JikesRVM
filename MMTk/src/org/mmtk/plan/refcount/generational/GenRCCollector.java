@@ -56,17 +56,17 @@ import org.vmmagic.pragma.*;
 public class GenRCCollector extends RCBaseCollector
 implements Uninterruptible, Constants {
 
-  //	FIXME This hack is a consequence of zero collector/mutator separation in RC...
+  //  FIXME This hack is a consequence of zero collector/mutator separation in RC...
   private final GenRCMutator fixme() {
     return (GenRCMutator) ActivePlan.mutator();
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * Instance variables
    */
   public GenRCTraceLocal trace = new GenRCTraceLocal(global().trace);
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -78,34 +78,34 @@ implements Uninterruptible, Constants {
     global().remsetPool.newConsumer();
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection-time allocation
    */
 
   /**
-	 * Allocate space for copying an object (this method <i>does not</i>
-	 * copy the object, it only allocates space)
+   * Allocate space for copying an object (this method <i>does not</i>
+   * copy the object, it only allocates space)
    * 
-	 * @param original A reference to the original object
-	 * @param bytes The size of the space to be allocated (in bytes)
-	 * @param align The requested alignment
-	 * @param offset The alignment offset
+   * @param original A reference to the original object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment
+   * @param offset The alignment offset
    * @return The address of the first byte of the allocated region
    */
   public final Address allocCopy(ObjectReference original, int bytes,
-			int align, int offset, int allocator)
-	throws InlinePragma {
-		if (Assert.VERIFY_ASSERTIONS) Assert._assert(allocator == GenRC.ALLOC_RC);
-		return fixme().rc.alloc(bytes, align, offset, false);  // FIXME is this right???
+      int align, int offset, int allocator)
+  throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(allocator == GenRC.ALLOC_RC);
+    return fixme().rc.alloc(bytes, align, offset, false);  // FIXME is this right???
   }
 
   /**
    * Perform any post-copy actions. In this case nothing is required.
    * 
-	 * @param object The newly allocated object
-	 * @param typeRef the type reference for the instance being created
-	 * @param bytes The size of the space to be allocated (in bytes)
+   * @param object The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
    */
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
@@ -118,7 +118,7 @@ implements Uninterruptible, Constants {
     }
   }
 
-	/****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -126,8 +126,8 @@ implements Uninterruptible, Constants {
   /**
    * Perform a per-collector collection phase.
    * 
-	 * @param phaseId The collection phase to perform
-	 * @param primary Perform any single-threaded activities using this thread.
+   * @param phaseId The collection phase to perform
+   * @param primary Perform any single-threaded activities using this thread.
    */
   public void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == RC.PREPARE) {
@@ -147,27 +147,27 @@ implements Uninterruptible, Constants {
 
     if (phaseId == RC.RELEASE) {
       Memory.collectorReleaseVMSpace();
-			if (Options.verbose.getValue() > 2) fixme().rc.printStats();
+      if (Options.verbose.getValue() > 2) fixme().rc.printStats();
       return;
     }
     super.collectionPhase(phaseId, primary);
   }
 
   /**
-	 * Trace a reference during an increment sanity traversal.  This is
-	 * only used as part of the ref count sanity check, and it forms the
-	 * basis for a transitive closure that assigns a reference count to
-	 * each object.
-	 *
-	 * @param object The object being traced
-	 * @param location The location from which this object was
-	 * reachable, null if not applicable.
-	 * @param root <code>true</code> if the object is being traced
-	 * directly from a root.
+   * Trace a reference during an increment sanity traversal.  This is
+   * only used as part of the ref count sanity check, and it forms the
+   * basis for a transitive closure that assigns a reference count to
+   * each object.
+   *
+   * @param object The object being traced
+   * @param location The location from which this object was
+   * reachable, null if not applicable.
+   * @param root <code>true</code> if the object is being traced
+   * directly from a root.
    */
   public final void incSanityTrace(ObjectReference object, Address location,
       boolean root) {
-		if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     // if nursery, then get forwarded RC object
     if (Space.isInSpace(GenRC.NS, object)) {
       if (Assert.VERIFY_ASSERTIONS)
@@ -183,19 +183,19 @@ implements Uninterruptible, Constants {
   }
 
   /**
-	 * Trace a reference during a check sanity traversal.  This is only
-	 * used as part of the ref count sanity check, and it forms the
-	 * basis for a transitive closure that checks reference counts
-	 * against sanity reference counts.  If the counts are not matched,
-	 * an error is raised.
-	 *
-	 * @param object The object being traced
-	 * @param location The location from which this object was
-	 * reachable, null if not applicable.
-	 */
-	public final void checkSanityTrace(ObjectReference object,
-			Address location) {
-		if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+   * Trace a reference during a check sanity traversal.  This is only
+   * used as part of the ref count sanity check, and it forms the
+   * basis for a transitive closure that checks reference counts
+   * against sanity reference counts.  If the counts are not matched,
+   * an error is raised.
+   *
+   * @param object The object being traced
+   * @param location The location from which this object was
+   * reachable, null if not applicable.
+   */
+  public final void checkSanityTrace(ObjectReference object,
+      Address location) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     // if nursery, then get forwarded RC object
     if (Space.isInSpace(GenRC.NS, object)) {
       if (Assert.VERIFY_ASSERTIONS)
@@ -213,8 +213,8 @@ implements Uninterruptible, Constants {
     }
   }
 
-	
-	/****************************************************************************
+  
+  /****************************************************************************
    * 
    * Miscellaneous
    */

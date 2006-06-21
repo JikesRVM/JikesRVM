@@ -136,7 +136,7 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
       // FIXME This code needs to be part of the mutator, not the collector.  This hack should disappear with a refactoring. 
       ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, false); // read fromspace
       if (event == SSGCspy.SEMISPACE_COPIED)
-      	((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
+        ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
 
       // -- Handle the immortal space --
       SSGCspy.immortalDriver.zero();

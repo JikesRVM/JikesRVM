@@ -242,11 +242,11 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     }
   }
 
-	/**
+  /**
    * Prepare a mutator for a collection.
-	 *
-	 * @param m the mutator to prepare
-	 */
+   *
+   * @param m the mutator to prepare
+   */
   public static void prepareMutator(MutatorContext m) {
     /*
      * The collector threads of processors currently running threads
