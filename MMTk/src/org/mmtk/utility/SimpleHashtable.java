@@ -13,9 +13,8 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements a simple hashtable. It is intended for use in sanity
- * checking or debugging, not high-performance algorithms.
- * <p>
+ * This class implements a simple hashtable. It is intended for use
+ * in sanity checking or debugging, not high-performance algorithms.<p> 
  * 
  * This class is not thread safe.
  * 
@@ -56,12 +55,9 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Create a new data table of a specified size.
    * 
-   * @param rps
-   *          The space to acquire the data structure from.
-   * @param logSize
-   *          The log of the number of table entries.
-   * @param es
-   *          The size of each entry.
+   * @param rps The space to acquire the data structure from.
+   * @param logSize The log of the number of table entries. 
+   * @param es The size of each entry.
    */
   protected SimpleHashtable(RawPageSpace rps, int logSize, Extent es) {
     mask = Word.fromInt((1 << logSize) - 1);
@@ -97,16 +93,13 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   }
 
   /**
-   * Retrieve a pointer to the entry for the given object, or zero if one does
-   * not exist, unless create is passed.
-   * <p>
+   * Retrieve a pointer to the entry for the given object, or zero if one
+   * does not exist, unless create is passed.<p>
    * 
    * If create is true, the return is guaranteed to be non-null.
    * 
-   * @param key
-   *          The key used to lookup.
-   * @param create
-   *          Create a new entry if not found.
+   * @param key The key used to lookup.
+   * @param create Create a new entry if not found.
    * @return A pointer to the reference or null.
    */
   public final Address getEntry(Word key, boolean create) throws InlinePragma {
@@ -118,15 +111,16 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
       entry = getEntry(index);
       curAddress = entry.loadWord(KEY_OFFSET);
       index = (index + 1) & mask.toInt();
-    } while (curAddress.NE(key) && !curAddress.isZero() && index != startIndex);
+    } while(curAddress.NE(key) && 
+            !curAddress.isZero() && 
+            index != startIndex);
 
     if (index == startIndex) {
       Assert.fail("No room left in table!");
     }
 
     if (curAddress.isZero()) {
-      if (!create)
-        return Address.zero();
+      if (!create) return Address.zero();
       entry.store(key, KEY_OFFSET);
     }
 
@@ -136,8 +130,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Compute the hashtable index for a given object.
    * 
-   * @param key
-   *          The key.
+   * @param key The key.
    * @return The index.
    */
   private final int computeHash(Word key) throws InlinePragma {
@@ -147,8 +140,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Return the address of a specified entry in the table.
    * 
-   * @param index
-   *          The index of the entry.
+   * @param index The index of the entry.
    * @return An address to the entry.
    */
   private final Address getEntry(int index) throws InlinePragma {
@@ -158,8 +150,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Does the passed object have an entry in the table?
    * 
-   * @param key
-   *          The key to find an entry for
+   * @param key The key to find an entry for
    * @return True if there is an entry for that object.
    */
   public final boolean contains(Word key) {
@@ -167,26 +158,24 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   }
 
   /**
-   * @return The first non-zero element in the table, or null if the table is
-   *         empty.
+   * @return The first non-zero element in the table, or null if
+   * the table is empty.
    */
   public final Address getFirst() {
     return getNext(base.minus(entrySize));
   }
 
   /**
-   * The next element in the table after the passed entry, or null if it is the
-   * last entry.
+   * The next element in the table after the passed entry, or 
+   * null if it is the last entry.
    * 
-   * @param curr
-   *          The object to look for the next entry from.
+   * @param curr The object to look for the next entry from.
    * @return The next entry or null.
    */
   public final Address getNext(Address curr) {
     Address entry = curr.plus(entrySize);
     while (entry.LT(base.plus(size))) {
-      if (!entry.loadWord().isZero())
-        return entry;
+      if (!entry.loadWord().isZero()) return entry;
       entry = entry.plus(entrySize);
     }
     return Address.zero();
@@ -195,8 +184,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Given an address of an entry, return a pointer to the payload.
    * 
-   * @param entry
-   *          The entry
+   * @param entry The entry
    * @return The object reference.
    */
   public static Address getPayloadAddress(Address entry) {
@@ -206,23 +194,21 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /**
    * Given a key, return a pointer to the payload.
    * 
-   * @param key
-   *          The key
+   * @param key The key 
    * @return The object reference.
    */
   public final Address getPayloadAddress(Word key) {
     Address entry = getEntry(key, false);
-    if (entry.isZero())
-      return Address.zero();
+    if (entry.isZero()) return Address.zero();
 
     return entry.plus(DATA_OFFSET);
   }
 
+  
   /**
    * Return the key for a given entry.
    * 
-   * @param entry
-   *          The entry.
+   * @param entry The entry.
    * @return The key.
    */
   public static Word getKey(Address entry) {
@@ -230,13 +216,11 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   }
 
   /**
-   * Update the key for a given entry. This operation is not safe without
-   * rehashing
+   * Update the key for a given entry. This operation is not
+   * safe without rehashing 
    * 
-   * @param entry
-   *          The entry to update.
-   * @param key
-   *          The new key.
+   * @param entry The entry to update.
+   * @param key The new key.
    */
   public static void replaceKey(Address entry, Word key) {
     entry.store(key, KEY_OFFSET);

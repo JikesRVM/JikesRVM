@@ -15,73 +15,67 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements tracing for a simple immortal collection policy. Under
- * this policy all that is required is for the "collector" to propogate marks in
- * a liveness trace. It does not actually collect. This class does not hold any
- * state, all methods are static.
+ * This class implements tracing for a simple immortal collection
+ * policy.  Under this policy all that is required is for the
+ * "collector" to propogate marks in a liveness trace.  It does not
+ * actually collect.  This class does not hold any state, all methods
+ * are static.
  * 
- * $Id$
+ * $Id$ 
  * 
  * @author Perry Cheng
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
-public final class ImmortalSpace extends Space implements Constants,
-    Uninterruptible {
+public final class ImmortalSpace extends Space 
+  implements Constants, Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Class variables
    */
   static final Word GC_MARK_BIT_MASK = Word.one();
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Instance variables
    */
   private Word markState = Word.zero(); // when GC off, the initialization value
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
 
   /**
-   * The caller specifies the region of virtual memory to be used for this
-   * space. If this region conflicts with an existing space, then the
-   * constructor will fail.
-   * 
-   * @param name
-   *          The name of this space (used when printing error messages etc)
-   * @param pageBudget
-   *          The number of pages this space may consume before consulting the
-   *          plan
-   * @param start
-   *          The start address of the space in virtual memory
-   * @param bytes
-   *          The size of the space in virtual memory, in bytes
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param start The start address of the space in virtual memory
+   * @param bytes The size of the space in virtual memory, in bytes
    */
-  public ImmortalSpace(String name, int pageBudget, Address start, Extent bytes) {
+  public ImmortalSpace(String name, int pageBudget, Address start,
+                       Extent bytes) {
     super(name, false, true, start, bytes);
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
 
   /**
-   * Construct a space of a given number of megabytes in size.
-   * <p>
+   * Construct a space of a given number of megabytes in size.<p>
    * 
-   * The caller specifies the amount virtual memory to be used for this space
-   * <i>in megabytes</i>. If there is insufficient address space, then the
-   * constructor will fail.
-   * 
-   * @param name
-   *          The name of this space (used when printing error messages etc)
-   * @param pageBudget
-   *          The number of pages this space may consume before consulting the
-   *          plan
-   * @param mb
-   *          The size of the space in virtual memory, in megabytes (MB)
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>.  If there is insufficient address
+   * space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
    */
   public ImmortalSpace(String name, int pageBudget, int mb) {
     super(name, false, true, mb);
@@ -89,22 +83,18 @@ public final class ImmortalSpace extends Space implements Constants,
   }
 
   /**
-   * Construct a space that consumes a given fraction of the available virtual
-   * memory.
-   * <p>
-   * 
-   * The caller specifies the amount virtual memory to be used for this space
-   * <i>as a fraction of the total available</i>. If there is insufficient
-   * address space, then the constructor will fail.
-   * 
-   * @param name
-   *          The name of this space (used when printing error messages etc)
-   * @param pageBudget
-   *          The number of pages this space may consume before consulting the
-   *          plan
-   * @param frac
-   *          The size of the space in virtual memory, as a fraction of all
-   *          available virtual memory
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory.<p>
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>.  If there
+   * is insufficient address space, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
    */
   public ImmortalSpace(String name, int pageBudget, float frac) {
     super(name, false, true, frac);
@@ -112,24 +102,22 @@ public final class ImmortalSpace extends Space implements Constants,
   }
 
   /**
-   * Construct a space that consumes a given number of megabytes of virtual
-   * memory, at either the top or bottom of the available virtual memory.
+   * Construct a space that consumes a given number of megabytes of
+   * virtual memory, at either the top or bottom of the available
+   * virtual memory.
    * 
-   * The caller specifies the amount virtual memory to be used for this space
-   * <i>in megabytes</i>, and whether it should be at the top or bottom of the
-   * available virtual memory. If the request clashes with existing virtual
-   * memory allocations, then the constructor will fail.
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>in megabytes</i>, and whether it should be at the
+   * top or bottom of the available virtual memory.  If the request
+   * clashes with existing virtual memory allocations, then the
+   * constructor will fail.
    * 
-   * @param name
-   *          The name of this space (used when printing error messages etc)
-   * @param pageBudget
-   *          The number of pages this space may consume before consulting the
-   *          plan
-   * @param mb
-   *          The size of the space in virtual memory, in megabytes (MB)
-   * @param top
-   *          Should this space be at the top (or bottom) of the available
-   *          virtual memory.
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param mb The size of the space in virtual memory, in megabytes (MB)
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
    */
   public ImmortalSpace(String name, int pageBudget, int mb, boolean top) {
     super(name, false, true, mb, top);
@@ -137,25 +125,23 @@ public final class ImmortalSpace extends Space implements Constants,
   }
 
   /**
-   * Construct a space that consumes a given fraction of the available virtual
-   * memory, at either the top or bottom of the available virtual memory.
-   * 
-   * The caller specifies the amount virtual memory to be used for this space
-   * <i>as a fraction of the total available</i>, and whether it should be at
-   * the top or bottom of the available virtual memory. If the request clashes
-   * with existing virtual memory allocations, then the constructor will fail.
-   * 
-   * @param name
-   *          The name of this space (used when printing error messages etc)
-   * @param pageBudget
-   *          The number of pages this space may consume before consulting the
-   *          plan
-   * @param frac
-   *          The size of the space in virtual memory, as a fraction of all
-   *          available virtual memory
-   * @param top
-   *          Should this space be at the top (or bottom) of the available
+   * Construct a space that consumes a given fraction of the available
+   * virtual memory, at either the top or bottom of the available
    *          virtual memory.
+   *
+   * The caller specifies the amount virtual memory to be used for
+   * this space <i>as a fraction of the total available</i>, and
+   * whether it should be at the top or bottom of the available
+   * virtual memory.  If the request clashes with existing virtual
+   * memory allocations, then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param pageBudget The number of pages this space may consume
+   * before consulting the plan
+   * @param frac The size of the space in virtual memory, as a
+   * fraction of all available virtual memory
+   * @param top Should this space be at the top (or bottom) of the
+   * available virtual memory.
    */
   public ImmortalSpace(String name, int pageBudget, float frac, boolean top) {
     super(name, false, true, frac, top);
@@ -163,11 +149,9 @@ public final class ImmortalSpace extends Space implements Constants,
   }
 
   /** @return the current mark state */
-  public final Word getMarkState() throws InlinePragma {
-    return markState;
-  }
+  public final Word getMarkState() throws InlinePragma { return markState; }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Object header manipulations
    */
@@ -195,8 +179,7 @@ public final class ImmortalSpace extends Space implements Constants,
     while (true) {
       Word oldValue = ObjectModel.prepareAvailableBits(object);
       Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-      if (ObjectModel.attemptAvailableBits(object, oldValue, newValue))
-        break;
+      if (ObjectModel.attemptAvailableBits(object, oldValue, newValue)) break;
     }
   }
 
@@ -210,26 +193,24 @@ public final class ImmortalSpace extends Space implements Constants,
     do {
       oldValue = ObjectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
-      if (markBit.EQ(value))
-        return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue, oldValue
-        .xor(GC_MARK_BIT_MASK)));
+      if (markBit.EQ(value)) return false;
+    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+                                               oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
 
   /**
-   * Trace a reference to an object under an immortal collection policy. If the
-   * object is not already marked, enqueue the object for subsequent processing.
-   * The object is marked as (an atomic) side-effect of checking whether already
-   * marked.
-   * 
-   * @param trace
-   *          The trace being conducted.
-   * @param object
-   *          The object to be traced.
+   * Trace a reference to an object under an immortal collection
+   * policy.  If the object is not already marked, enqueue the object
+   * for subsequent processing. The object is marked as (an atomic)
+   * side-effect of checking whether already marked.
+   *
+   * @param trace The trace being conducted.
+   * @param object The object to be traced.
    */
   public final ObjectReference traceObject(TraceLocal trace,
-      ObjectReference object) throws InlinePragma {
+                                           ObjectReference object) 
+    throws InlinePragma {
     if (testAndMark(object, markState))
       trace.enqueue(object);
     return object;
@@ -240,22 +221,21 @@ public final class ImmortalSpace extends Space implements Constants,
   }
 
   /**
-   * Prepare for a new collection increment. For the immortal collector we must
-   * flip the state of the mark bit between collections.
+   * Prepare for a new collection increment.  For the immortal
+   * collector we must flip the state of the mark bit between
+   * collections.
    */
   public void prepare() {
     markState = GC_MARK_BIT_MASK.minus(markState);
   }
 
-  public void release() {
-  }
+  public void release() {}
 
   /**
-   * Release an allocated page or pages. In this case we do nothing because we
-   * only release pages enmasse.
+   * Release an allocated page or pages.  In this case we do nothing
+   * because we only release pages enmasse.
    * 
-   * @param start
-   *          The address of the start of the page or pages
+   * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
     Assert._assert(false); // this policy only releases pages enmasse
@@ -271,14 +251,12 @@ public final class ImmortalSpace extends Space implements Constants,
    * immortal collector reachable and live are different, making this method
    * necessary.
    * 
-   * @param object
-   *          The address of an object in immortal space to test
+   * @param object The address of an object in immortal space to test
    * @return True if <code>ref</code> may be a reachable object (e.g., having
-   *         the current mark state). While all immortal objects are live, some
-   *         may be unreachable.
+   *         the current mark state).  While all immortal objects are live,
+   *         some may be unreachable.
    */
   public boolean isReachable(ObjectReference object) {
-    return (ObjectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK)
-        .EQ(markState));
+    return (ObjectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
   }
 }

@@ -19,7 +19,8 @@ public class GCspyPort extends IntOption {
    */
   public GCspyPort() {
     super("GCSpy Port",
-        "Port number for GCSpy server to connect with visualiser", 0);
+          "Port number for GCSpy server to connect with visualiser",
+          0);
   }
 
   /**

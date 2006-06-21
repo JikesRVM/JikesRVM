@@ -22,30 +22,32 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenSanityCheckerLocal extends SanityCheckerLocal implements
-    Uninterruptible {
+public class GenSanityCheckerLocal extends SanityCheckerLocal 
+  implements Uninterruptible {
 
   /**
-   * Return the expected reference count. For non-reference counting collectors
-   * this becomes a true/false relationship.
+   * Return the expected reference count. For non-reference counting 
+   * collectors this becomes a true/false relationship.
    * 
-   * @param object
-   *          The object to check.
-   * @param sanityRootRC
-   *          The number of root references to the object.
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
-  protected int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+  protected int sanityExpectedRC(ObjectReference object, 
+                                           int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
     // Nursery
     if (space == Gen.nurserySpace) {
-      return global().preGCSanity() ? SanityChecker.UNSURE : SanityChecker.DEAD;
+      return global().preGCSanity() 
+        ? SanityChecker.UNSURE
+        : SanityChecker.DEAD;
     }
 
     // Immortal spaces
     if (space == Gen.immortalSpace || space == Gen.vmSpace) {
-      return space.isReachable(object) ? SanityChecker.ALIVE
+      return space.isReachable(object)
+        ? SanityChecker.ALIVE
           : SanityChecker.DEAD;
     }
 
@@ -55,7 +57,9 @@ public class GenSanityCheckerLocal extends SanityCheckerLocal implements
     }
 
     // Mature space (full heap collection)
-    return space.isLive(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+    return space.isLive(object) 
+      ? SanityChecker.ALIVE 
+      : SanityChecker.DEAD;
   }
 
 }

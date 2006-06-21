@@ -21,19 +21,13 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSConstraints extends StopTheWorldConstraints implements
-    Uninterruptible {
+public class SSConstraints extends StopTheWorldConstraints
+  implements Uninterruptible {
 
-  public boolean movesObjects() {
-    return true;
-  }
+  public boolean movesObjects() { return true; }
 
-  public int gcHeaderBits() {
-    return CopySpace.LOCAL_GC_BITS_REQUIRED;
-  }
+  public int gcHeaderBits() { return CopySpace.LOCAL_GC_BITS_REQUIRED; }
 
-  public int gcHeaderWords() {
-    return CopySpace.GC_HEADER_WORDS_REQUIRED;
-  }
+  public int gcHeaderWords() { return CopySpace.GC_HEADER_WORDS_REQUIRED; }
 
 }

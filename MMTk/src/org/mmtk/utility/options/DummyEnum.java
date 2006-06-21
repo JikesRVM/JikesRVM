@@ -17,7 +17,6 @@ public class DummyEnum extends EnumOption {
 
   // enumeration values.
   public int FOO = 0;
-
   public int BAR = 1;
 
   /**
@@ -26,6 +25,7 @@ public class DummyEnum extends EnumOption {
   public DummyEnum() {
     super("Dummy Enum",
         "This is a sample enumeration to test the options system",
-        new String[] { "foo", "bar" }, 0);
+          new String[] {"foo", "bar"},
+          0);
   }
 }

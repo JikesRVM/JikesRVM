@@ -11,21 +11,21 @@ import org.mmtk.vm.ActivePlan;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements <i>per-collector thread</i> behavior and state for the
- * <i>MS</i> plan, which implements a full-heap mark-sweep collector.
- * <p>
+ * This class implements <i>per-collector thread</i> behavior 
+ * and state for the <i>MS</i> plan, which implements a full-heap
+ * mark-sweep collector.<p>
  * 
- * Specifically, this class defines <i>MS</i> collection behavior (through
- * <code>trace</code> and the <code>collectionPhase</code> method).
- * <p>
+ * Specifically, this class defines <i>MS</i> collection behavior
+ * (through <code>trace</code> and the <code>collectionPhase</code>
+ * method).<p>
  * 
- * @see MS for an overview of the mark-sweep algorithm.
- *      <p>
+ * @see MS for an overview of the mark-sweep algorithm.<p>
  * 
  * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector behaviors,
- * so the ms field below should really not exist in this class as there is no
- * collection-time allocation in this collector.
+ * MarkSweepLocal) does not properly separate mutator and collector
+ * behaviors, so the ms field below should really not exist in
+ * this class as there is no collection-time allocation in this
+ * collector.
  * 
  * @see MS
  * @see MSMutator
@@ -41,17 +41,15 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MSCollector extends StopTheWorldCollector implements
-    Uninterruptible {
+public class MSCollector extends StopTheWorldCollector implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * Instance fields
    */
   private MSTraceLocal trace;
-
   private MarkSweepLocal ms; // see FIXME at top of this class
 
-  /*****************************************************************************
+  /****************************************************************************
    * Initialization
    */
 
@@ -63,7 +61,7 @@ public class MSCollector extends StopTheWorldCollector implements
     ms = new MarkSweepLocal(MS.msSpace);
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -71,10 +69,8 @@ public class MSCollector extends StopTheWorldCollector implements
   /**
    * Perform a per-collector collection phase.
    * 
-   * @param phaseId
-   *          The collection phase to perform
-   * @param primary
-   *          Perform any single-threaded activities using this thread.
+   * @param phaseId The collection phase to perform
+   * @param primary Perform any single-threaded activities using this thread.
    */
   public final void collectionPhase(int phaseId, boolean primary)
       throws InlinePragma {
@@ -104,7 +100,7 @@ public class MSCollector extends StopTheWorldCollector implements
     super.collectionPhase(phaseId, primary);
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Miscellaneous
    */

@@ -22,8 +22,7 @@ final public class DumpLinearScan extends LinearScan implements Uninterruptible 
   /**
    * Scan an object.
    * 
-   * @param object
-   *          The object to scan
+   * @param object The object to scan
    */
   public void scan(ObjectReference object) throws InlinePragma {
     Log.write("[");

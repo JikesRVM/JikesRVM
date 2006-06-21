@@ -13,9 +13,8 @@ import org.mmtk.vm.ActivePlan;
 import org.vmmagic.pragma.*;
 
 /**
- * This abstract class implements <i>per-collector thread</i> behavior and
- * state for <i>generational copying collectors</i>.
- * <p>
+ * This abstract class implements <i>per-collector thread</i>
+ * behavior and state for <i>generational copying collectors</i>.<p>
  * 
  * Specifically, this class defines nursery collection behavior (through
  * <code>nurseryTrace</code> and the <code>collectionPhase</code> method).
@@ -36,8 +35,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenCollector extends StopTheWorldCollector implements
-    Uninterruptible {
+public abstract class GenCollector extends StopTheWorldCollector
+implements Uninterruptible {
 
   /*****************************************************************************
    * Instance fields
@@ -47,15 +46,13 @@ public abstract class GenCollector extends StopTheWorldCollector implements
 
   // remembered set consumers
   protected final AddressDeque traceRemset;
-
   protected final WriteBuffer remset;
-
   protected final AddressPairDeque arrayRemset;
 
   // Sanity checking
   private GenSanityCheckerLocal sanityChecker;
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Initialization
    */
@@ -63,10 +60,9 @@ public abstract class GenCollector extends StopTheWorldCollector implements
   /**
    * Constructor
    * 
-   * Note that the collector is a consumer of remsets, while the mutator is a
-   * producer. The <code>GenMutator</code> class is responsible for
-   * construction of the WriteBuffer (producer).
-   * 
+	 * Note that the collector is a consumer of remsets, while the
+	 * mutator is a producer.  The <code>GenMutator</code> class is
+	 * responsible for construction of the WriteBuffer (producer).
    * @see GenMutator
    */
   public GenCollector() {
@@ -79,7 +75,7 @@ public abstract class GenCollector extends StopTheWorldCollector implements
     sanityChecker = new GenSanityCheckerLocal();
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Collection
    */
@@ -87,10 +83,8 @@ public abstract class GenCollector extends StopTheWorldCollector implements
   /**
    * Perform a per-collector collection phase.
    * 
-   * @param phaseId
-   *          The collection phase to perform
-   * @param primary
-   *          Use this thread for single-threaded local activities.
+	 * @param phaseId The collection phase to perform
+	 * @param primary Use this thread for single-threaded local activities.
    */
   public void collectionPhase(int phaseId, boolean primary)
       throws NoInlinePragma {
@@ -124,7 +118,7 @@ public abstract class GenCollector extends StopTheWorldCollector implements
     super.collectionPhase(phaseId, primary);
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Miscellaneous
    */
@@ -135,8 +129,7 @@ public abstract class GenCollector extends StopTheWorldCollector implements
   }
 
   public final TraceLocal getCurrentTrace() {
-    if (global().traceFullHeap())
-      return getFullHeapTrace();
+		if (global().traceFullHeap()) return getFullHeapTrace();
     return nurseryTrace;
   }
 

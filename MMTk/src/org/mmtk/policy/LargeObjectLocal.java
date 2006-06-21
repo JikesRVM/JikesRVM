@@ -15,15 +15,16 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Each instance of this class is intended to provide fast, unsynchronized
- * access to a treadmill. Therefore instances must not be shared across truely
- * concurrent threads (CPUs). Rather, one or more instances of this class should
- * be bound to each CPU. The shared VMResource used by each instance is the
- * point of global synchronization, and synchronization only occurs at the
- * granularity of aquiring (and releasing) chunks of memory from the VMResource.
+ * Each instance of this class is intended to provide fast,
+ * unsynchronized access to a treadmill.  Therefore instances must not
+ * be shared across truely concurrent threads (CPUs).  Rather, one or
+ * more instances of this class should be bound to each CPU.  The
+ * shared VMResource used by each instance is the point of global
+ * synchronization, and synchronization only occurs at the granularity
+ * of aquiring (and releasing) chunks of memory from the VMResource.
  * 
- * If there are C CPUs and T TreadmillSpaces, there must be C X T instances of
- * this class, one for each CPU, TreadmillSpace pair.
+ * If there are C CPUs and T TreadmillSpaces, there must be C X T
+ * instances of this class, one for each CPU, TreadmillSpace pair.
  * 
  * $Id$
  * 
@@ -31,21 +32,21 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class LargeObjectLocal extends LargeObjectAllocator implements
-    Constants, Uninterruptible {
+public final class LargeObjectLocal extends LargeObjectAllocator
+  implements Constants, Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Class variables
    */
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Instance variables
    */
   private final Treadmill treadmill; // per-processor
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -53,8 +54,8 @@ public final class LargeObjectLocal extends LargeObjectAllocator implements
   /**
    * Constructor
    * 
-   * @param space
-   *          The treadmill space to which this thread instance is bound.
+   * @param space The treadmill space to which this thread instance is
+   * bound.
    */
   public LargeObjectLocal(LargeObjectSpace space) {
     super(space);
@@ -62,35 +63,35 @@ public final class LargeObjectLocal extends LargeObjectAllocator implements
     treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Allocation
    */
 
   /**
-   * This is called each time a cell is alloced (i.e. if a cell is reused, this
-   * will be called each time it is reused in the lifetime of the cell, by
-   * contrast to initializeCell, which is called exactly once.).
+   *  This is called each time a cell is alloced (i.e. if a cell is
+   *  reused, this will be called each time it is reused in the
+   *  lifetime of the cell, by contrast to initializeCell, which is
+   *  called exactly once.).
    * 
-   * @param cell
-   *          The newly allocated cell
+   * @param cell The newly allocated cell
    */
-  protected final void postAlloc(Address cell) throws InlinePragma {
+  protected final void postAlloc (Address cell) 
+    throws InlinePragma {
     treadmill.addToFromSpace(Treadmill.payloadToNode(cell));
   };
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
 
   /**
-   * Prepare for a collection. Clear the treadmill to-space head and prepare the
-   * collector. If paranoid, perform a sanity check.
+   * Prepare for a collection.  Clear the treadmill to-space head and
+   * prepare the collector.  If paranoid, perform a sanity check.
    */
   public final void prepare() {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(treadmill.toSpaceEmpty());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
   }
 
   /**
@@ -102,54 +103,55 @@ public final class LargeObjectLocal extends LargeObjectAllocator implements
   }
 
   /**
-   * Sweep through the large pages, releasing all superpages on the "from space"
-   * treadmill.
+   * Sweep through the large pages, releasing all superpages on the
+   * "from space" treadmill.
    */
   private final void sweepLargePages() {
     while (true) {
       Address cell = treadmill.popFromSpace();
-      if (cell.isZero())
-        break;
+      if (cell.isZero()) break;
       free(cell);
     }
     treadmill.flip();
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(treadmill.toSpaceEmpty());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
   }
 
-  /*****************************************************************************
+
+  /****************************************************************************
    * 
    * Miscellaneous size-related methods
    */
 
   /**
-   * Return the size of the per-superpage header required by this system. In
-   * this case it is just the underlying superpage header size.
+   * Return the size of the per-superpage header required by this
+   * system.  In this case it is just the underlying superpage header
+   * size.
    * 
-   * @return The size of the per-superpage header required by this system.
+   * @return The size of the per-superpage header required by this
+   * system.
    */
-  protected final int superPageHeaderSize() throws InlinePragma {
+  protected final int superPageHeaderSize()
+    throws InlinePragma {
     return Treadmill.headerSize();
   }
 
   /**
-   * Return the size of the per-cell header for cells of a given class size.
+   * Return the size of the per-cell header for cells of a given class
+   * size.
    * 
-   * @return The size of the per-cell header for cells of a given class size.
+   * @return The size of the per-cell header for cells of a given class
+   * size.
    */
-  protected final int cellHeaderSize() throws InlinePragma {
+  protected final int cellHeaderSize()
+    throws InlinePragma {
     return 0;
   }
 
   /**
    * Gather data for GCSpy
-   * 
-   * @param event
-   *          the gc event
-   * @param losDriver
-   *          the GCSpy space driver
-   * @param tospace
-   *          gather from tospace?
+   * @param event the gc event
+   * @param losDriver the GCSpy space driver
+   * @param tospace gather from tospace?
    */
   public void gcspyGatherData(int event, TreadmillDriver losDriver,
       boolean tospace) {

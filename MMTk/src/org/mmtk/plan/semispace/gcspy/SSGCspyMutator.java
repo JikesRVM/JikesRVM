@@ -9,14 +9,11 @@ import org.mmtk.policy.LargeObjectLocal;
 
 /**
  * This class implements <i>per-mutator thread</i> behavior and state for the
- * <i>SSGCspy</i> plan.
- * <p>
+ * <i>SSGCspy</i> plan.<p>
  * 
- * GCSpy does not currently have per-muator extensions to SS.
- * <p>
+ * GCSpy does not currently have per-muator extensions to SS.<p>
  * 
- * @see SSGCspy for an overview of the GC-spy mechanisms.
- *      <p>
+ * @see SSGCspy for an overview of the GC-spy mechanisms.<p>
  * 
  * @see SSMutator
  * @see SSGCSpy
@@ -33,7 +30,5 @@ import org.mmtk.policy.LargeObjectLocal;
  * @date $Date$
  */
 public class SSGCspyMutator extends SSMutator {
-  public LargeObjectLocal getLOS() {
-    return los;
-  }
+	public LargeObjectLocal getLOS() { return los; }
 }

@@ -3,6 +3,7 @@
  * Australian National University. 2002
  */
 //$Id$
+
 package org.mmtk.utility.scan;
 
 import org.mmtk.plan.TraceLocal;
@@ -26,11 +27,10 @@ public final class Scan implements Uninterruptible {
   /**
    * Scan a object, processing each pointer field encountered.
    * 
-   * @param object
-   *          The object to be scanned.
+   * @param object The object to be scanned.
    */
-  public static void scanObject(TraceLocal trace, ObjectReference object)
-      throws InlinePragma {
+  public static void scanObject(TraceLocal trace,
+                                ObjectReference object) throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
@@ -45,8 +45,7 @@ public final class Scan implements Uninterruptible {
   /**
    * Scan a object, pre-copying each child object encountered.
    * 
-   * @param object
-   *          The object to be scanned.
+   * @param object The object to be scanned.
    */
   public static void precopyChildren(TraceLocal trace, ObjectReference object)
       throws InlinePragma {
@@ -62,14 +61,13 @@ public final class Scan implements Uninterruptible {
   }
 
   /**
-   * Enumerate the pointers in an object, calling back to a given plan for each
-   * pointer encountered. <i>NOTE</i> that only the "real" pointer fields are
-   * enumerated, not the TIB.
+   * Enumerate the pointers in an object, calling back to a given plan
+   * for each pointer encountered. <i>NOTE</i> that only the "real"
+   * pointer fields are enumerated, not the TIB.
    * 
-   * @param object
-   *          The object to be scanned.
-   * @param _enum
-   *          the Enumerate object through which the callback is made
+   * @param object The object to be scanned.
+   * @param _enum the Enumerate object through which the callback
+   * is made
    */
   public static void enumeratePointers(ObjectReference object, Enumerator _enum)
       throws InlinePragma {

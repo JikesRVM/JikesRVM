@@ -12,16 +12,14 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements <i>per-collector thread</i> behavior and state for the
- * <code>GenCopy</code> two-generational copying collector.
- * <p>
+ * This class implements <i>per-collector thread</i> behavior and state for
+ * the <code>GenCopy</code> two-generational copying collector.<p>
  * 
- * Specifically, this class defines semantics specific to the collection of the
- * mature generation (<code>GenCollector</code> defines nursery semantics).
+ * Specifically, this class defines semantics specific to the collection of
+ * the mature generation (<code>GenCollector</code> defines nursery semantics).
  * In particular the mature space allocator is defined (for collection-time
  * allocation into the mature space), and the mature space per-collector thread
- * collection time semantics are defined.
- * <p>
+ * collection time semantics are defined.<p>
  * 
  * @see GenCopy for a description of the <code>GenCopy</code> algorithm.
  * 
@@ -42,7 +40,7 @@ import org.vmmagic.pragma.*;
  */
 public class GenCopyCollector extends GenCollector implements Uninterruptible {
 
-  /*****************************************************************************
+	/******************************************************************
    * Instance fields
    */
 
@@ -52,7 +50,7 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
   /** The trace object for full-heap collections */
   private GenCopyMatureTraceLocal matureTrace;
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Initialization
    */
@@ -65,27 +63,24 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
     matureTrace = new GenCopyMatureTraceLocal(global().matureTrace, this);
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Collection-time allocation
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i> copy the
-   * object, it only allocates space)
+	 * Allocate space for copying an object (this method <i>does not</i>
+	 * copy the object, it only allocates space)
    * 
-   * @param original
-   *          A reference to the original object
-   * @param bytes
-   *          The size of the space to be allocated (in bytes)
-   * @param align
-   *          The requested alignment.
-   * @param offset
-   *          The alignment offset.
+	 * @param original A reference to the original object
+	 * @param bytes The size of the space to be allocated (in bytes)
+	 * @param align The requested alignment.
+	 * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public Address allocCopy(ObjectReference original, int bytes, int align,
-      int offset, int allocator) throws InlinePragma {
+	public Address allocCopy(ObjectReference original, int bytes,
+			int align, int offset, int allocator)
+	throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
       Assert._assert(allocator == GenCopy.ALLOC_MATURE);
@@ -96,26 +91,22 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
   }
 
   /**
-   * Perform any post-copy actions. In this case we clear any bits used for this
-   * object's GC metadata.
+	 * Perform any post-copy actions.  In this case we clear any bits used 
+	 * for this object's GC metadata.
    * 
-   * @param object
-   *          The newly allocated object
-   * @param typeRef
-   *          the type reference for the instance being created
-   * @param bytes
-   *          The size of the space to be allocated (in bytes)
-   * @param allocator
-   *          The allocator to allocate from
+	 * @param object The newly allocated object
+	 * @param typeRef the type reference for the instance being created
+	 * @param bytes The size of the space to be allocated (in bytes)
+	 * @param allocator The allocator to allocate from
    */
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
     CopySpace.clearGCBits(object);
     if (GenCopy.IGNORE_REMSETS)
-      CopySpace.markObject(getCurrentTrace(), object, GenCopy.immortalSpace
-          .getMarkState());
+			CopySpace.markObject(getCurrentTrace(),object, GenCopy.immortalSpace.getMarkState());
   }
 
+	
   /*****************************************************************************
    * 
    * Collection
@@ -124,17 +115,15 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
   /**
    * Execute a per-collector collection phase.
    * 
-   * @param phaseId
-   *          The phase to execute.
-   * @param primary
-   *          True if this thread should peform local single-threaded actions.
+	 * @param phaseId The phase to execute.
+	 * @param primary True if this thread should peform local single-threaded
+	 * actions.
    */
   public void collectionPhase(int phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE) {
         super.collectionPhase(phaseId, primary);
-        if (global().gcFullHeap)
-          mature.rebind(GenCopy.toSpace());
+				if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());       
       }
       if (phaseId == GenCopy.START_CLOSURE) {
         matureTrace.startTrace();
@@ -169,7 +158,5 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
     mature.show();
   }
 
-  public final TraceLocal getFullHeapTrace() {
-    return matureTrace;
-  }
+	public final TraceLocal getFullHeapTrace() { return matureTrace; }
 }

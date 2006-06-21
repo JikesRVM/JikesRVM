@@ -243,18 +243,18 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
   }
 
 	/**
-	 * Prepare a mutator for collection.
+   * Prepare a mutator for a collection.
 	 *
 	 * @param m the mutator to prepare
 	 */
   public static void prepareMutator(MutatorContext m) {
+    /*
+     * The collector threads of processors currently running threads
+     * off in JNI-land cannot run.
+     */
     VM_Processor vp = ((SelectedMutatorContext) m).getProcessor();
     int vpStatus = vp.vpStatus;
-    
     if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
-      /* Not participating: The collector threads of processors currently running 
-       * threads off in JNI-land cannot run.
-       */
       
       /* processor & its running thread are blocked in C for this GC.
        Its stack needs to be scanned, starting from the "top" java
@@ -264,7 +264,6 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
       VM_Thread t = vp.activeThread;
       t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
     } else {
-      /* Participating in collection */ 
       VM_Thread t = VM_Thread.getCurrentThread();
       Address fp = VM_Magic.getFramePointer();
       while (true) {

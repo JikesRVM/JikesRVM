@@ -16,6 +16,6 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public abstract class StopTheWorldConstraints extends PlanConstraints implements
-    Uninterruptible {
+public abstract class StopTheWorldConstraints extends PlanConstraints
+  implements Uninterruptible {
 }

@@ -20,9 +20,8 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class and its global counterpart implement the core
  * functionality for a transitive closure over the heap graph. This class
- * specifically implements the unsynchronized thread-local component (ie the
- * 'fast path') of the trace mechanism.
- * <p>
+ * specifically implements the unsynchronized thread-local component
+ * (ie the 'fast path') of the trace mechanism.<p>
  * 
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
@@ -37,20 +36,18 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 public abstract class TraceLocal implements Constants, Uninterruptible {
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Instance variables
    */
   // gray objects
   protected final ObjectReferenceDeque values;
-
   // root locs of white objs
   protected final AddressDeque rootLocations;
-
   // interior root locations
   protected final AddressPairDeque interiorRootLocations;
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -58,8 +55,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * Constructor
    * 
-   * @param trace
-   *          The global trace class to use.
+   * @param trace The global trace class to use.
    */
   public TraceLocal(Trace trace) {
     values = new ObjectReferenceDeque("value", trace.valuePool);
@@ -70,20 +66,19 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
     trace.interiorRootPool.newConsumer();
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Internally visible Object processing and tracing
    */
 
   /**
-   * Trace a reference during GC. This involves determining which collection
-   * policy applies and calling the appropriate <code>trace</code> method.
-   * 
-   * @param objLoc
-   *          The location containing the object reference to be traced. The
-   *          object reference is <i>NOT</i> an interior pointer.
-   * @param root
-   *          True if <code>objLoc</code> is within a root.
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param objLoc The location containing the object reference to be
+   * traced.  The object reference is <i>NOT</i> an interior pointer.
+   * @param root True if <code>objLoc</code> is within a root.
    */
   public final void traceObjectLocation(Address objLoc, boolean root)
       throws InlinePragma {
@@ -93,45 +88,42 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * Trace a reference during GC. This involves determining which collection
-   * policy applies and calling the appropriate <code>trace</code> method.
-   * This reference is presumed <i>not</i> to be from a root.
-   * 
-   * @param objLoc
-   *          The location containing the object reference to be traced. The
-   *          object reference is <i>NOT</i> an interior pointer.
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.  This reference is presumed <i>not</i>
+   * to be from a root.
+   *
+   * @param objLoc The location containing the object reference to be
+   * traced.  The object reference is <i>NOT</i> an interior pointer.
    */
-  public final void traceObjectLocation(Address objLoc) throws InlinePragma {
+  public final void traceObjectLocation(Address objLoc)
+    throws InlinePragma {
     traceObjectLocation(objLoc, false);
   }
 
   /**
-   * Trace a reference during GC. This involves determining which collection
-   * policy applies and calling the appropriate <code>trace</code> method.
-   * 
-   * @param object
-   *          The object reference to be traced.
-   * @param interiorRef
-   *          The interior reference inside obj that must be traced.
-   * @param root
-   *          True if the reference to <code>obj</code> was held in a root.
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.
+   *
+   * @param object The object reference to be traced.
+   * @param interiorRef The interior reference inside obj that must be traced.
+   * @param root True if the reference to <code>obj</code> was held in a root.
    * @return The possibly moved interior reference.
    */
   public final Address traceInteriorReference(ObjectReference object,
-      Address interiorRef, boolean root) {
+    Address interiorRef,
+    boolean root) {
     Offset offset = interiorRef.diff(object.toAddress());
     ObjectReference newObject = traceObject(object, root);
     if (Assert.VERIFY_ASSERTIONS) {
-      if (offset.sLT(Offset.zero())
-          || offset.sGT(Offset.fromIntSignExtend(1 << 24))) {
+      if (offset.sLT(Offset.zero()) ||
+          offset.sGT(Offset.fromIntSignExtend(1<<24))) {
         // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta to interior pointer");
-        Log.write("       object base = ");
-        Log.writeln(object);
-        Log.write("       interior reference = ");
-        Log.writeln(interiorRef);
-        Log.write("       delta = ");
-        Log.writeln(offset);
+        Log.write("       object base = "); Log.writeln(object);
+        Log.write("       interior reference = "); Log.writeln(interiorRef);
+        Log.write("       delta = "); Log.writeln(offset);
         Assert._assert(false);
       }
     }
@@ -139,21 +131,23 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * Collectors that move objects <b>must</b> override this method. It performs
-   * the deferred scanning of objects which are forwarded during bootstrap of
-   * each copying collection. Because of the complexities of the collection
-   * bootstrap (such objects are generally themselves gc-critical), the
-   * forwarding and scanning of the objects must be dislocated. It is an error
-   * for a non-moving collector to call this method.
+   * Collectors that move objects <b>must</b> override this method.
+   * It performs the deferred scanning of objects which are forwarded
+   * during bootstrap of each copying collection.  Because of the
+   * complexities of the collection bootstrap (such objects are
+   * generally themselves gc-critical), the forwarding and scanning of
+   * the objects must be dislocated.  It is an error for a non-moving
+   * collector to call this method.
    * 
-   * @param object
-   *          The forwarded object to be scanned
+   * @param object The forwarded object to be scanned
    */
-  protected void scanObject(ObjectReference object) throws InlinePragma {
+  protected void scanObject(ObjectReference object)
+    throws InlinePragma {
     Scan.scanObject(this, object);
   }
 
-  /*****************************************************************************
+
+  /****************************************************************************
    * 
    * Externally visible Object processing and tracing
    */
@@ -161,8 +155,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * Add a gray object
    * 
-   * @param object
-   *          The object to be enqueued
+   * @param object The object to be enqueued
    */
   public final void enqueue(ObjectReference object) throws InlinePragma {
     values.push(object);
@@ -171,23 +164,22 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * Report a new root location for the trace.
    * 
-   * @param location
-   *          The slot of the root.
+   * @param location The slot of the root.
    */
-  public final void addRootLocation(Address location) throws InlinePragma {
+  public final void addRootLocation(Address location)
+    throws InlinePragma {
     rootLocations.push(location);
   }
 
   /**
    * Report a new interior root location for the trace.
    * 
-   * @param object
-   *          The object the location resides in.
-   * @param location
-   *          The slot of the root.
+   * @param object The object the location resides in.
+   * @param location The slot of the root.
    */
   public final void addInteriorRootLocation(ObjectReference object,
-      Address location) throws InlinePragma {
+                                            Address location)
+    throws InlinePragma {
     interiorRootLocations.push(object.toAddress(), location);
   }
 
@@ -202,8 +194,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * Is the specified object live?
    * 
-   * @param object
-   *          The object.
+   * @param object The object.
    * @return True if the object is live.
    */
   public boolean isLive(ObjectReference object) throws InlinePragma {
@@ -212,8 +203,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
       return Plan.loSpace.isLive(object);
     else if (space == null) {
       if (Assert.VERIFY_ASSERTIONS) {
-        Log.write("space failure: ");
-        Log.writeln(object);
+        Log.write("space failure: "); Log.writeln(object);
       }
     }
     return true;
@@ -222,8 +212,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * Is the specified object reachable? Used for GC Trace
    * 
-   * @param object
-   *          The object.
+   * @param object The object.
    * @return True if the object is live.
    */
   public boolean isReachable(ObjectReference object) throws InlinePragma {
@@ -233,8 +222,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * Is the specified referent of a reference type object live?
    * 
-   * @param object
-   *          The object.
+   * @param object The object.
    * @return True if the reference object is live.
    */
   public boolean isReferentLive(ObjectReference object) throws InlinePragma {
@@ -242,19 +230,17 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * This method is the core method during the trace of the object graph. The
-   * role of this method is to:
+   * This method is the core method during the trace of the object graph.
+   * The role of this method is to:
    * 
-   * 1. Ensure the traced object is not collected. 2. If this is the first visit
-   * to the object enqueue it to be scanned. 3. Return the forwarded reference
-   * to the object.
+   * 1. Ensure the traced object is not collected.
+   * 2. If this is the first visit to the object enqueue it to be scanned.
+   * 3. Return the forwarded reference to the object.
    * 
-   * @param object
-   *          The object to be traced.
+   * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
-  public ObjectReference traceObject(ObjectReference object)
-      throws InlinePragma {
+  public ObjectReference traceObject(ObjectReference object) throws InlinePragma {
     if (Space.isInSpace(Plan.VM, object))
       return Plan.vmSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.IMMORTAL, object))
@@ -266,11 +252,11 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
     return null;
   }
 
+
   /**
    * Ensure that this object will not move for the rest of the GC.
    * 
-   * @param object
-   *          The object that must not move
+   * @param object The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
   public ObjectReference precopyObject(ObjectReference object)
@@ -279,12 +265,11 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * This method traces an object with knowledge of the fact that object is a
-   * root or not. In simple collectors the fact it is a root is not important so
-   * this is the default implementation given here.
+   * This method traces an object with knowledge of the fact that object
+   * is a root or not. In simple collectors the fact it is a root is not
+   * important so this is the default implementation given here.
    * 
-   * @param object
-   *          The object to be traced.
+   * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   public ObjectReference traceObject(ObjectReference object, boolean root)
@@ -293,15 +278,14 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * Ensure that the referenced object will not move from this point through to
-   * the end of the collection. This can involve forwarding the object if
-   * necessary.
+   * Ensure that the referenced object will not move from this point through
+   * to the end of the collection. This can involve forwarding the object
+   * if necessary.
    * 
-   * <i>Non-copying collectors do nothing, copying collectors must override this
-   * method in each of their trace classes.</i>
+   * <i>Non-copying collectors do nothing, copying collectors must
+   * override this method in each of their trace classes.</i>
    * 
-   * @param object
-   *          The object that must not move during the collection.
+   * @param object The object that must not move during the collection.
    * @return True If the object will not move during collection
    */
   public boolean willNotMove(ObjectReference object) {
@@ -321,8 +305,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * If a Finalizable object has moved, return the new location.
    * 
-   * @param object
-   *          The object which may have been forwarded.
+   * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   public ObjectReference getForwardedFinalizable(ObjectReference object) {
@@ -333,8 +316,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * If the reference object (from a Reference Type) has object has moved,
    * return the new location.
    * 
-   * @param object
-   *          The object which may have been forwarded.
+   * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   public ObjectReference getForwardedReferent(ObjectReference object)
@@ -345,8 +327,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   /**
    * If the Reference Type object has moved, return the new location.
    * 
-   * @param object
-   *          The object which may have been forwarded.
+   * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   public ObjectReference getForwardedReferenceType(ObjectReference object)
@@ -359,8 +340,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * 
    * Some copying collectors will need to override this method.
    * 
-   * @param object
-   *          The object which may have been forwarded.
+   * @param object The object which may have been forwarded.
    * @return The new location of <code>object</code>.
    */
   public ObjectReference getForwardedReference(ObjectReference object)
@@ -369,15 +349,14 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * Make alive a referent object that is known not to be live (isLive is
-   * false). This is used by the ReferenceProcessor.
+   * Make alive a referent object that is known not to be live
+   * (isLive is false). This is used by the ReferenceProcessor.
    * 
    * <i>For many collectors these semantics relfect those of
-   * <code>traceObject</code>, which is implemented here. Other collectors
-   * must override this method.</i>
+   * <code>traceObject</code>, which is implemented here.  Other
+   * collectors must override this method.</i>
    * 
-   * @param object
-   *          The object which is to be made alive.
+   * @param object The object which is to be made alive.
    * @return The possibly forwarded address of the object.
    */
   public ObjectReference retainReferent(ObjectReference object)
@@ -386,21 +365,19 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * An object is unreachable and is about to be added to the finalizable queue.
-   * The collector must ensure the object is not collected (despite being
-   * otherwise unreachable), and should return its forwarded address if keeping
-   * the object alive involves forwarding. This is only ever called once for an
-   * object.
-   * <p>
+   * An object is unreachable and is about to be added to the
+   * finalizable queue.  The collector must ensure the object is not
+   * collected (despite being otherwise unreachable), and should
+   * return its forwarded address if keeping the object alive involves
+   * forwarding. This is only ever called once for an object.<p>
    * 
    * <i>For many collectors these semantics relfect those of
-   * <code>traceObject</code>, which is implemented here. Other collectors
-   * must override this method.</i>
+   * <code>traceObject</code>, which is implemented here.  Other
+   * collectors must override this method.</i>
    * 
-   * @param object
-   *          The object which may have been forwarded.
-   * @return The forwarded value for <code>object</code>. <i>In this case
-   *         return <code>object</code>, copying collectors must override
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.  <i>In this
+   * case return <code>object</code>, copying collectors must override
    *         this method.
    */
   public ObjectReference retainForFinalize(ObjectReference object) {
@@ -408,32 +385,37 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * Return true if an object is ready to move to the finalizable queue, i.e. it
-   * has no regular references to it. This method may (and in some cases is) be
-   * overridden by subclasses. If this method returns true then it can be
-   * assumed that retainForFinalize will be called during the current
-   * collection.
-   * 
-   * <i>For many collectors these semantics relfect those of <code>isLive</code>,
-   * which is implemented here. Other collectors must override this method.</i>
-   * 
-   * @param object
-   *          The object being queried.
-   * @return <code>true</code> if the object has no regular references to it.
+   * Return true if an object is ready to move to the finalizable
+   * queue, i.e. it has no regular references to it.  This method may
+   * (and in some cases is) be overridden by subclasses. If this method
+   * returns true then it can be assumed that retainForFinalize will be
+   * called during the current collection.
+   *
+   * <i>For many collectors these semantics relfect those of
+   * <code>isLive</code>, which is implemented here.  Other
+   * collectors must override this method.</i>
+   *
+   * @param object The object being queried.
+   * @return <code>true</code> if the object has no regular references
+   * to it.
    */
   public boolean readyToFinalize(ObjectReference object) {
     return !isLive(object);
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    * 
-   * Important notes: . Global actions are executed by only one thread .
-   * Thread-local actions are executed by all threads . The following order is
-   * guaranteed by BasePlan, with each separated by a synchronization barrier.
-   * 1. globalPrepare() 2. threadLocalPrepare() 3. threadLocalRelease() 4.
-   * globalRelease()
+   * Important notes:
+   *   . Global actions are executed by only one thread
+   *   . Thread-local actions are executed by all threads
+   *   . The following order is guaranteed by BasePlan, with each
+   *     separated by a synchronization barrier.
+   *      1. globalPrepare()
+   *      2. threadLocalPrepare()
+   *      3. threadLocalRelease()
+   *      4. globalRelease()
    */
   public void prepare() {
     // Nothing to do
@@ -446,7 +428,8 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * Process all GC work. This method iterates until all work queues are empty.
+   * Process all GC work.  This method iterates until all work queues
+   * are empty.
    */
   public void startTrace() throws InlinePragma {
     logMessage(4, "Working on GC in parallel");
@@ -467,8 +450,8 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   }
 
   /**
-   * Finishing processing all GC work. This method iterates until all work
-   * queues are empty.
+   * Finishing processing all GC work.  This method iterates until all work queues
+   * are empty.
    */
   public void completeTrace() throws InlinePragma {
     logMessage(4, "Continuing GC in parallel");
@@ -486,17 +469,14 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * Flush any remembered sets pertaining to the current collection.
    * Non-generational collectors do nothing.
    */
-  protected void flushRememberedSets() {
-  }
+  protected void flushRememberedSets() {}
 
   /**
-   * This method logs a message with preprended thread id, if the verbosity
-   * level is greater or equal to the passed level.
+   * This method logs a message with preprended thread id, if the
+   * verbosity level is greater or equal to the passed level.
    * 
-   * @param minVerbose
-   *          The required verbosity level
-   * @param message
-   *          The message to display
+   * @param minVerbose The required verbosity level
+   * @param message The message to display
    */
   protected final void logMessage(int minVerbose, String message)
       throws InlinePragma {
@@ -519,11 +499,10 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
 
   /**
    * Given a slot (ie the address of an ObjectReference), ensure that the
-   * referent will not move for the rest of the GC. This is achieved by calling
-   * the precopyObject method.
+   * referent will not move for the rest of the GC. This is achieved by 
+   * calling the precopyObject method. 
    * 
-   * @param slot
-   *          The slot to check
+   * @param slot The slot to check
    */
   public final void precopyObjectLocation(Address slot) throws InlinePragma {
     ObjectReference child = slot.loadObjectReference();

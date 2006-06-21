@@ -18,8 +18,7 @@ public class CycleTriggerThreshold extends PagesOption {
    * Create the option.
    */
   public CycleTriggerThreshold() {
-    super(
-        "Cycle Trigger Threshold",
+    super("Cycle Trigger Threshold",
         "Trigger cycle detection if the space available falls below this threshold",
         512);
   }

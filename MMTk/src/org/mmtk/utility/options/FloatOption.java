@@ -20,18 +20,14 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 public class FloatOption extends Option {
   // values
   protected float defaultValue;
-
   protected float value;
 
   /**
    * Create a new float option.
    * 
-   * @param name
-   *          The space separated name for the option.
-   * @param desc
-   *          The purpose of the option
-   * @param defaultValue
-   *          The default value of the option.
+   * @param name The space separated name for the option.
+   * @param desc The purpose of the option
+   * @param defaultValue The default value of the option.
    */
   protected FloatOption(String name, String desc, float defaultValue) {
     super(FLOAT_OPTION, name, desc);
@@ -61,8 +57,7 @@ public class FloatOption extends Option {
    * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
    * 
-   * @param value
-   *          The new value for the option.
+   * @param value The new value for the option.
    */
   public void setValue(float value) {
     float oldValue = this.value;

@@ -15,8 +15,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class manages the mapping of spaces to virtual memory ranges.
- * <p>
+ * This class manages the mapping of spaces to virtual memory ranges.<p>
  * 
  * Discontigious spaces are currently unsupported.
  * 
@@ -28,15 +27,14 @@ import org.vmmagic.unboxed.*;
  */
 public class Map implements Constants, Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Class variables
    */
   private static int[] descriptorMap;
-
   private static Space[] spaceMap;
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -49,23 +47,20 @@ public class Map implements Constants, Uninterruptible {
     spaceMap = new Space[Space.MAX_CHUNKS];
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Map accesses and insertion
    */
 
   /**
-   * Insert a space and its descriptor into the map, associating it with a
-   * particular address range.
+   * Insert a space and its descriptor into the map, associating it
+   * with a particular address range.
    * 
-   * @param start
-   *          The start address of the region to be associated with this space.
-   * @param extent
-   *          The size of the region, in bytes
-   * @param descriptor
-   *          The descriptor for this space
-   * @param space
-   *          The space to be associated with this region
+   * @param start The start address of the region to be associated
+   * with this space.
+   * @param extent The size of the region, in bytes
+   * @param descriptor The descriptor for this space
+   * @param space The space to be associated with this region
    */
   public static void insert(Address start, Extent extent, int descriptor,
       Space space) throws InterruptiblePragma {
@@ -74,8 +69,7 @@ public class Map implements Constants, Uninterruptible {
       int index = hashAddress(start.plus(e));
       if (descriptorMap[index] != 0) {
         Log.write("Conflicting virtual address request for space \"");
-        Log.write(space.getName());
-        Log.write("\" at ");
+        Log.write(space.getName()); Log.write("\" at ");
         Log.writeln(start.plus(e));
         Space.printVMMap();
         Assert.fail("exiting");
@@ -89,22 +83,19 @@ public class Map implements Constants, Uninterruptible {
   /**
    * Return the space in which this object resides.
    * 
-   * @param object
-   *          The object in question
+   * @param object The object in question
    * @return The space in which the object resides
    */
   public static Space getSpaceForObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!object.isNull());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     return getSpaceForAddress(ObjectModel.refToAddress(object));
   }
 
   /**
    * Return the space in which this address resides.
    * 
-   * @param address
-   *          The address in question
+   * @param address The address in question
    * @return The space in which the address resides
    */
   public static Space getSpaceForAddress(Address address) throws InlinePragma {
@@ -113,16 +104,16 @@ public class Map implements Constants, Uninterruptible {
   }
 
   /**
-   * Return the space descriptor for the space in which this object resides.
+   * Return the space descriptor for the space in which this object
+   * resides.
    * 
-   * @param object
-   *          The object in question
-   * @return The space descriptor for the space in which the object resides
+   * @param object The object in question
+   * @return The space descriptor for the space in which the object
+   * resides
    */
   public static int getDescriptorForObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!object.isNull());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     int index = hashAddress(ObjectModel.refToAddress(object));
     return Barriers.getArrayNoBarrier(descriptorMap, index);
   }
@@ -130,8 +121,7 @@ public class Map implements Constants, Uninterruptible {
   /**
    * Hash an address to a chunk (this is simply done via bit shifting)
    * 
-   * @param address
-   *          The address to be hashed
+   * @param address The address to be hashed
    * @return The chunk number that this address hashes into
    */
   private static int hashAddress(Address address) throws InlinePragma {

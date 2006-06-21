@@ -14,16 +14,15 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior and state for the
- * <i>MC</i> plan, which implements a full-heap mark-compact collector.
- * <p>
+ * This class implements <i>per-mutator thread</i> behavior 
+ * and state for the <i>MC</i> plan, which implements a full-heap
+ * mark-compact collector.<p>
  * 
- * Specifically, this class defines <i>MC</i> mutator-time allocation and
- * per-mutator thread collection semantics (flushing and restoring per-mutator
- * allocator state).
+ * Specifically, this class defines <i>MC</i> mutator-time allocation
+ * and per-mutator thread collection semantics (flushing and restoring
+ * per-mutator allocator state).
  * 
- * @see MC for an overview of the mark-compact algorithm.
- *      <p>
+ * @see MC for an overview of the mark-compact algorithm.<p>
  * 
  * FIXME Currently MC does not properly separate mutator and collector
  * behaviors, so some of the collection logic here should really be
@@ -43,12 +42,12 @@ import org.vmmagic.unboxed.*;
  */
 public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
 
-  /*****************************************************************************
+	/****************************************************************************
    * Instance fields
    */
   private MarkCompactLocal mc;
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Initialization
    */
@@ -60,23 +59,20 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
     mc = new MarkCompactLocal(MC.mcSpace);
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Mutator-time allocation
    */
 
   /**
    * Allocate memory for an object. This class handles the default allocator
-   * from the mark sweep space, and delegates everything else to the superclass.
+	 * from the mark sweep space, and delegates everything else to the
+	 * superclass.
    * 
-   * @param bytes
-   *          The number of bytes required for the object.
-   * @param align
-   *          Required alignment for the object.
-   * @param offset
-   *          Offset associated with the alignment.
-   * @param allocator
-   *          The allocator associated with this request.
+	 * @param bytes The number of bytes required for the object.
+	 * @param align Required alignment for the object.
+	 * @param offset Offset associated with the alignment.
+	 * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
   public Address alloc(int bytes, int align, int offset, int allocator)
@@ -88,17 +84,14 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
   }
 
   /**
-   * Perform post-allocation actions. Initialize the object header for objects
-   * in the mark-sweep space, and delegate to the superclass for other objects.
-   * 
-   * @param ref
-   *          The newly allocated object
-   * @param typeRef
-   *          the type reference for the instance being created
-   * @param bytes
-   *          The size of the space to be allocated (in bytes)
-   * @param allocator
-   *          The allocator number to be used for this allocation
+	 * Perform post-allocation actions.  Initialize the object header for
+	 * objects in the mark-sweep space, and delegate to the superclass for
+	 * other objects.
+	 *
+	 * @param ref The newly allocated object
+	 * @param typeRef the type reference for the instance being created
+	 * @param bytes The size of the space to be allocated (in bytes)
+	 * @param allocator The allocator number to be used for this allocation
    */
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
@@ -109,40 +102,37 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
   }
 
   /**
-   * Return the space into which an allocator is allocating. This particular
-   * method will match against those spaces defined at this level of the class
-   * hierarchy. Subclasses must deal with spaces they define and refer to
-   * superclasses appropriately.
+	 * Return the space into which an allocator is allocating.  This
+	 * particular method will match against those spaces defined at this
+	 * level of the class hierarchy.  Subclasses must deal with spaces
+	 * they define and refer to superclasses appropriately.
    * 
-   * @param a
-   *          An allocator
+	 * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-    if (a == mc)
-      return MC.mcSpace;
+		if (a == mc) return MC.mcSpace;
     return super.getSpaceFromAllocator(a);
   }
 
   /**
-   * Return the allocator instance associated with a space <code>space</code>,
-   * for this plan instance.
+	 * Return the allocator instance associated with a space
+	 * <code>space</code>, for this plan instance.
    * 
-   * @param space
-   *          The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance which is
-   *         allocating into <code>space</code>, or <code>null</code> if no
-   *         appropriate allocator can be established.
+	 * @param space The space for which the allocator instance is desired.
+	 * @return The allocator instance associated with this plan instance
+	 * which is allocating into <code>space</code>, or <code>null</code>
+	 * if no appropriate allocator can be established.
    */
   public Allocator getAllocatorFromSpace(Space space) {
-    if (space == MC.mcSpace)
-      return mc;
+		if (space == MC.mcSpace) return mc;
     return super.getAllocatorFromSpace(space);
   }
 
-  /*****************************************************************************
+	
+	/****************************************************************************
    * 
    * Collection
    */
@@ -150,10 +140,8 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
   /**
    * Perform a per-mutator collection phase.
    * 
-   * @param phaseId
-   *          The collection phase to perform
-   * @param primary
-   *          Perform any single-threaded activities using this thread.
+	 * @param phaseId The collection phase to perform
+	 * @param primary Perform any single-threaded activities using this thread.
    */
   public final void collectionPhase(int phaseId, boolean primary)
       throws InlinePragma {

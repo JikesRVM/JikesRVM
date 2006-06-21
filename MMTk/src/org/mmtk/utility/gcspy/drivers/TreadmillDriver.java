@@ -19,6 +19,7 @@ import org.mmtk.vm.gcspy.Stream;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
+
 /**
  * This class implements a simple driver for the MMTk LargeObjectSpace.
  * 
@@ -28,10 +29,10 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
+public class TreadmillDriver extends AbstractDriver
+  implements Uninterruptible {
 
   private static final int LOS_USED_SPACE_STREAM = 0; // stream IDs
-
   private static final int LOS_OBJECTS_STREAM = 1;
 
   /**
@@ -39,9 +40,9 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
    * 
    * We count the number of objects in each tile and the space they use
    */
-  static class Tile extends AbstractTile implements Uninterruptible {
+  static class Tile extends AbstractTile
+    implements  Uninterruptible {
     short objects;
-
     int usedSpace;
 
     /**
@@ -71,40 +72,35 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
 
   // The streams
   private Stream usedSpaceStream;
-
   private Stream objectsStream;
 
-  private Tile[] tiles; // the space's tiles
 
+  private Tile[] tiles;                 // the space's tiles
   private Subspace subspace;
 
   // Overall statistics
   private int totalObjects = 0; // total number of objects allocated
-
   private int totalUsedSpace = 0; // total space used
 
   private Address maxAddr; // the largest address seen
-
   private LargeObjectSpace lospace; // the large object space
-
   private int threshold;
+
 
   /**
    * Create a new driver for this collector
    * 
-   * @param name
-   *          The name of this driver
-   * @param lospace
-   *          the large object space for this allocator
-   * @param blockSize
-   *          The tile size
-   * @param threshold
-   *          the size threshold of the LOS
-   * @param mainSpace
-   *          Is this the main space?
+   * @param name The name of this driver
+   * @param lospace the large object space for this allocator
+   * @param blockSize The tile size
+   * @param threshold the size threshold of the LOS
+   * @param mainSpace Is this the main space?
    */
-  public TreadmillDriver(String name, LargeObjectSpace lospace, int blockSize,
-      int threshold, boolean mainSpace) {
+  public TreadmillDriver(String name,
+                         LargeObjectSpace lospace,
+                         int blockSize,
+                         int threshold,
+                         boolean mainSpace) {
 
     this.lospace = lospace;
     this.threshold = threshold;
@@ -125,11 +121,14 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
     allTileNum = 0;
 
     // Set the block label
-    String tmp = (blockSize < 1024) ? "Block Size: " + blockSize + " bytes\n"
-        : "Block Size: " + (blockSize / 1024) + " bytes\n";
+    String tmp = (blockSize < 1024) ?
+                   "Block Size: " + blockSize + " bytes\n":
+                   "Block Size: " + (blockSize / 1024) + " bytes\n";
+
 
     // Create a single GCspy Space
-    space = new ServerSpace(getNextServerSpaceId(), /* space id */
+    space = new ServerSpace(
+                    getNextServerSpaceId(),     /* space id */
     name, /* server name */
     "MMTk LargeObjectSpace", /* driver (space) name */
     "Block ", /* space title */
@@ -140,8 +139,11 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
         mainSpace /* main space */);
     setTilenames(subspace, 0);
 
+
     // Initialise the Space's 2 Streams
-    usedSpaceStream = new Stream(space, /* the space */
+    usedSpaceStream
+           = new Stream(
+                     space,                                     /* the space */
     LOS_USED_SPACE_STREAM, /* space ID */
     StreamConstants.INT_TYPE, /* stream data type */
     "Used Space stream", /* stream name */
@@ -156,16 +158,28 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
     0, /* max stream index */
     Color.Red); /* tile colour */
 
-    objectsStream = new Stream(space, LOS_OBJECTS_STREAM,
-        StreamConstants.SHORT_TYPE, "Objects stream", 0,
-        (int) (blockSize / threshold), 0, 0, "No. of objects = ", " objects",
-        StreamConstants.PRESENTATION_PLUS, StreamConstants.PAINT_STYLE_ZERO, 0,
+
+   objectsStream = new Stream(
+                     space,
+                     LOS_OBJECTS_STREAM,
+                     StreamConstants.SHORT_TYPE,
+                     "Objects stream",
+                     0,
+                     (int)(blockSize/threshold),
+                     0,
+                     0,
+                     "No. of objects = ",
+                     " objects",
+                     StreamConstants.PRESENTATION_PLUS,
+                     StreamConstants.PAINT_STYLE_ZERO,
+                     0,
         Color.Green);
 
     space.resize(0);
     // Initialise the statistics
     zero();
   }
+
 
   /**
    * Zero tile stats
@@ -179,27 +193,34 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
 
   /**
    * Set the current range of LOSpace
+   * @param start the start of the space
+   * @param end the end of the space
    * 
-   * @param start
-   *          the start of the space
-   * @param end
-   *          the end of the space
-   * 
-   * public void setRange(Address start, Address end) { int current =
-   * subspace.getBlockNum(); int required = countTileNum(start, end, blockSize);
-   *  // Reset the subspace //if (required != current) { subspace.reset(start,
-   * end, 0, required); //Log.write("TreadmillDriver: reset subspace, start=",
-   * start); //Log.write(" end=", end); //Log.write(" required=", required);
-   * //Log.writeln(" was ", current); allTileNum = required;
-   * space.resize(allTileNum); setTilenames(allTileNum); //} }
+  public void setRange(Address start, Address end) {
+    int current = subspace.getBlockNum();
+    int required = countTileNum(start, end, blockSize);
+
+    // Reset the subspace
+    //if (required != current) {
+      subspace.reset(start, end, 0, required);
+      //Log.write("TreadmillDriver: reset subspace, start=", start);
+      //Log.write(" end=", end);
+      //Log.write(" required=", required);
+      //Log.writeln(" was ", current);
+      allTileNum = required;
+      space.resize(allTileNum);
+      setTilenames(allTileNum);
+    //}
+  }
    */
 
+
   /**
-   * Update the tile statistics In this case, we are accounting for super-page
-   * objects, rather than simply for the object they contain.
+   * Update the tile statistics
+   * In this case, we are accounting for super-page objects, rather than
+   * simply for the object they contain.
    * 
-   * @param addr
-   *          The address of the superpage
+   * @param addr The address of the superpage
    */
   public void traceObject(Address addr) {
 
@@ -207,10 +228,13 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
     int length = lospace.getSize(addr).toInt();
 
     /*
-     * Log.write("TreadmillDriver: super=", sp); Log.write(", index=", index);
-     * int pp = lospace.getSize(sp); Log.write(", pages=", pp); int bb =
-     * Conversions.pagesToBytes(pp).toInt(); Log.write(", bytes=", bb);
-     * Log.writeln(", max=", usedSpaceStream.getMaxValue());
+    Log.write("TreadmillDriver: super=", sp);
+    Log.write(", index=", index);
+    int pp = lospace.getSize(sp);
+    Log.write(", pages=", pp);
+    int bb = Conversions.pagesToBytes(pp).toInt();
+    Log.write(", bytes=", bb);
+    Log.writeln(", max=", usedSpaceStream.getMaxValue());
      */
 
     totalObjects++;
@@ -219,15 +243,14 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
     distributeSpace(tiles, subspace, subspace.getBlockSize(),
         LOS_USED_SPACE_STREAM, addr, length);
     Address tmp = addr.plus(length);
-    if (tmp.GT(maxAddr))
-      maxAddr = tmp;
+    if (tmp.GT(maxAddr)) maxAddr = tmp;
   }
+
 
   /**
    * Finish a transmission
    * 
-   * @param event
-   *          The event
+   * @param event The event
    */
   public void finish(int event) {
     if (ServerInterpreter.isConnected(event)) {
@@ -236,11 +259,11 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
     }
   }
 
+
   /**
    * Send the data for an event
    * 
-   * @param event
-   *          The event
+   * @param event The event
    */
   private void send(int event) {
     // at this point, we've filled the tiles with data
@@ -302,7 +325,8 @@ public class TreadmillDriver extends AbstractDriver implements Uninterruptible {
 
     // send the control info
     // all of space is USED
-    controlValues(tiles, AbstractTile.CONTROL_USED, subspace.getFirstIndex(),
+    controlValues(tiles, AbstractTile.CONTROL_USED,
+                  subspace.getFirstIndex(),
         subspace.getBlockNum());
 
     space.controlEnd(numTiles, tiles);

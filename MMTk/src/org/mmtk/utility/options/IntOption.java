@@ -20,18 +20,14 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 public class IntOption extends Option {
   // values
   protected int defaultValue;
-
   protected int value;
 
   /**
    * Create a new int option.
    * 
-   * @param name
-   *          The space separated name for the option.
-   * @param desc
-   *          The purpose of the option
-   * @param defaultValue
-   *          The default value of the option.
+   * @param name The space separated name for the option.
+   * @param desc The purpose of the option
+   * @param defaultValue The default value of the option.
    */
   protected IntOption(String name, String desc, int defaultValue) {
     super(INT_OPTION, name, desc);
@@ -61,8 +57,7 @@ public class IntOption extends Option {
    * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
    * 
-   * @param value
-   *          The new value for the option.
+   * @param value The new value for the option.
    */
   public void setValue(int value) {
     int oldValue = this.value;

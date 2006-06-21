@@ -21,10 +21,10 @@ import org.vmmagic.pragma.*;
  * This class (and its sub-classes) implement <i>per-collector thread</i>
  * behavior and state.
  * 
- * MMTk assumes that the VM instantiates instances of CollectorContext in thread
- * local storage (TLS) for each thread participating in collection. Accesses to
- * this state are therefore assumed to be low-cost during mutator time.
- * <p>
+ * MMTk assumes that the VM instantiates instances of CollectorContext
+ * in thread local storage (TLS) for each thread participating in 
+ * collection.  Accesses to this state are therefore assumed to be 
+ * low-cost during mutator time.<p>
  * 
  * @see CollectorContext
  * @see SimplePhase#delegatePhase
@@ -38,17 +38,17 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class StopTheWorldCollector extends CollectorContext implements
-    Uninterruptible {
+public abstract class StopTheWorldCollector extends CollectorContext
+implements Uninterruptible {
 
-  /*****************************************************************************
+	/****************************************************************************
    * Instance fields
    */
 
   /** Basic sanity checker */
   private SanityCheckerLocal sanityChecker = new SanityCheckerLocal();
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Collection
    */
@@ -60,13 +60,12 @@ public abstract class StopTheWorldCollector extends CollectorContext implements
   /**
    * Perform a per-collector collection phase.
    * 
-   * @param phaseId
-   *          The unique phase identifier
-   * @param primary
-   *          Should this thread be used to execute any single-threaded local
-   *          operations?
+	 * @param phaseId The unique phase identifier
+	 * @param primary Should this thread be used to execute any single-threaded
+	 * local operations?
    */
-  public void collectionPhase(int phaseId, boolean primary) throws InlinePragma {
+	public void collectionPhase(int phaseId, boolean primary)
+	throws InlinePragma {
     if (phaseId == StopTheWorld.PREPARE) {
       // Nothing to do
       return;
@@ -86,13 +85,15 @@ public abstract class StopTheWorldCollector extends CollectorContext implements
 
     if (phaseId == StopTheWorld.SOFT_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processSoftReferences(global().isCurrentGCNursery());
+				ReferenceProcessor.processSoftReferences(
+						global().isCurrentGCNursery());
       return;
     }
 
     if (phaseId == StopTheWorld.WEAK_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processWeakReferences(global().isCurrentGCNursery());
+				ReferenceProcessor.processWeakReferences(
+						global().isCurrentGCNursery());
       return;
     }
 
@@ -108,22 +109,22 @@ public abstract class StopTheWorldCollector extends CollectorContext implements
 
     if (phaseId == StopTheWorld.PHANTOM_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
-        ReferenceProcessor.processPhantomReferences(global()
-            .isCurrentGCNursery());
+				ReferenceProcessor.processPhantomReferences(
+						global().isCurrentGCNursery());
       return;
     }
 
     if (phaseId == StopTheWorld.FORWARD_REFS) {
-      if (primary && !Options.noReferenceTypes.getValue()
-          && ActivePlan.constraints().needsForwardAfterLiveness()) {
+			if (primary && !Options.noReferenceTypes.getValue() &&
+					ActivePlan.constraints().needsForwardAfterLiveness()) {
         ReferenceProcessor.forwardReferences();
       }
       return;
     }
 
     if (phaseId == StopTheWorld.FORWARD_FINALIZABLE) {
-      if (primary && !Options.noFinalizer.getValue()
-          && ActivePlan.constraints().needsForwardAfterLiveness()) {
+			if (primary && !Options.noFinalizer.getValue() &&
+					ActivePlan.constraints().needsForwardAfterLiveness()) {
         Finalizer.forward(getCurrentTrace());
       }
       return;
@@ -139,18 +140,17 @@ public abstract class StopTheWorldCollector extends CollectorContext implements
       return;
     }
 
-    if (Options.sanityCheck.getValue()
-        && getSanityChecker().collectionPhase(phaseId, primary)) {
+		if (Options.sanityCheck.getValue() &&
+				getSanityChecker().collectionPhase(phaseId, primary)) {
       return;
     }
 
-    Log.write("Per-collector phase ");
-    Log.write(Phase.getName(phaseId));
+		Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId)); 
     Log.writeln(" not handled.");
     Assert.fail("Per-collector phase not handled!");
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Miscellaneous.
    */

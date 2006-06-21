@@ -37,7 +37,7 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
     return ActivePlan.global().getSanityChecker();
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * Constants
    */
   public SanityCheckerLocal() {
@@ -47,14 +47,11 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
   /**
    * Perform any sanity checking collection phases.
    * 
-   * @param phaseId
-   *          The id to proces
-   * @param primary
-   *          Perform local single threaded actions on this thread
+   * @param phaseId The id to proces
+   * @param primary Perform local single threaded actions on this thread
    * @return True if the phase was handled.
    */
-  public final boolean collectionPhase(int phaseId, boolean primary)
-      throws NoInlinePragma {
+  public final boolean collectionPhase(int phaseId, boolean primary) throws NoInlinePragma {
     if (phaseId == StopTheWorld.SANITY_PREPARE) {
       if (primary) {
         sanityTrace.prepare();
@@ -129,19 +126,17 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
   }
 
   /**
-   * Process an object during sanity checking, validating data, incrementing
-   * counters and enqueuing if this is the first visit to the object.
+   * Process an object during sanity checking, validating data,
+   * incrementing counters and enqueuing if this is the first
+   * visit to the object.
    * 
-   * @param object
-   *          The object to mark.
-   * @param root
-   *          True If the object is a root.
+   * @param object The object to mark.
+   * @param root True If the object is a root. 
    */
   public final void processObject(TraceLocal trace, ObjectReference object,
       boolean root) {
     SanityChecker.referenceCount++;
-    if (root)
-      SanityChecker.rootReferenceCount++;
+    if (root) SanityChecker.rootReferenceCount++;
 
     if (object.isNull()) {
       SanityChecker.nullReferenceCount++;
@@ -158,18 +153,19 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
   }
 
   /**
-   * Return the expected reference count. For non-reference counting collectors
-   * this becomes a true/false relationship.
+   * Return the expected reference count. For non-reference counting 
+   * collectors this becomes a true/false relationship.
    * 
-   * @param object
-   *          The object to check.
-   * @param sanityRootRC
-   *          The number of root references to the object.
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
-  protected int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+  protected int sanityExpectedRC(ObjectReference object, 
+                                           int sanityRootRC) {
 
     Space space = Space.getSpaceForObject(object);
-    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+    return space.isReachable(object) 
+      ? SanityChecker.ALIVE 
+      : SanityChecker.DEAD;
   }
 }

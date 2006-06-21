@@ -17,18 +17,20 @@ import org.vmmagic.pragma.*;
  * 
  * FIXME Need algorithmic overview and references.
  * 
- * All plans make a clear distinction between <i>global</i> and <i>thread-local</i>
- * activities, and divides global and local state into separate class
- * hierarchies. Global activities must be synchronized, whereas no
- * synchronization is required for thread-local activities. There is a single
- * instance of Plan (or the appropriate sub-class), and a 1:1 mapping of
- * PlanLocal to "kernel threads" (aka CPUs or in Jikes RVM, VM_Processors). Thus
- * instance methods of PlanLocal allow fast, unsychronized access to functions
- * such as allocation and collection.
- * 
- * The global instance defines and manages static resources (such as memory and
- * virtual memory resources). This mapping of threads to instances is crucial to
- * understanding the correctness and performance properties of MMTk plans.
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities, and divides global and local state
+ * into separate class hierarchies.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  There is a single instance of Plan (or the
+ * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods of PlanLocal allow fast, unsychronized access to functions such as
+ * allocation and collection.
+ *
+ * The global instance defines and manages static resources
+ * (such as memory and virtual memory resources).  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance properties of MMTk plans.
  * 
  * $Id$
  * 
@@ -38,49 +40,49 @@ import org.vmmagic.pragma.*;
  */
 public class MC extends StopTheWorld implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * Class variables
    */
 
-  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc",
-      DEFAULT_POLL_FREQUENCY, (float) 0.6);
-
+  public static final MarkCompactSpace mcSpace
+    = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, (float) 0.6);
   public static final int MARK_COMPACT = mcSpace.getDescriptor();
 
   /* Phases */
-  public static final int PREPARE_FORWARD = new SimplePhase("fw-prepare",
-      Phase.GLOBAL_FIRST).getId();
-
-  public static final int FORWARD_CLOSURE = new SimplePhase("fw-closure",
-      Phase.COLLECTOR_ONLY).getId();
-
-  public static final int RELEASE_FORWARD = new SimplePhase("fw-release",
-      Phase.GLOBAL_LAST).getId();
+  public static final int PREPARE_FORWARD     = new SimplePhase("fw-prepare", Phase.GLOBAL_FIRST  ).getId();
+  public static final int FORWARD_CLOSURE     = new SimplePhase("fw-closure", Phase.COLLECTOR_ONLY).getId();
+  public static final int RELEASE_FORWARD     = new SimplePhase("fw-release", Phase.GLOBAL_LAST   ).getId();
 
   /* FIXME these two phases need to be made per-collector phases */
-  public static final int CALCULATE_FP = new SimplePhase("calc-fp",
-      Phase.MUTATOR_ONLY).getId();
-
-  public static final int COMPACT = new SimplePhase("compact",
-      Phase.MUTATOR_ONLY).getId();
+  public static final int CALCULATE_FP        = new SimplePhase("calc-fp",    Phase.MUTATOR_ONLY  ).getId();
+  public static final int COMPACT             = new SimplePhase("compact",    Phase.MUTATOR_ONLY  ).getId();
 
   /**
    * This is the phase that is executed to perform a mark-compact collection.
    * 
    * FIXME: Far too much duplication and inside knowledge of StopTheWorld
    */
-  public ComplexPhase mcCollection = new ComplexPhase("collection", null,
-      new int[] { initPhase, rootClosurePhase, refTypeClosurePhase,
-          completeClosurePhase, CALCULATE_FP, PREPARE_FORWARD, PREPARE_MUTATOR,
-          ROOTS, forwardPhase, FORWARD_CLOSURE, RELEASE_MUTATOR,
-          RELEASE_FORWARD, COMPACT, finishPhase });
+  public ComplexPhase mcCollection = new ComplexPhase("collection", null, new int[] {
+      initPhase,
+      rootClosurePhase,
+      refTypeClosurePhase,
+      completeClosurePhase,
+      CALCULATE_FP,
+      PREPARE_FORWARD,
+      PREPARE_MUTATOR,
+      ROOTS,
+      forwardPhase,
+      FORWARD_CLOSURE,
+  		RELEASE_MUTATOR,
+      RELEASE_FORWARD,
+      COMPACT,
+      finishPhase});
 
-  /*****************************************************************************
+  /****************************************************************************
    * Instance variables
    */
 
   public final Trace markTrace;
-
   public final Trace forwardTrace;
 
   /**
@@ -105,11 +107,11 @@ public class MC extends StopTheWorld implements Uninterruptible {
    * Collection
    */
 
+
   /**
    * Perform a (global) collection phase.
    * 
-   * @param phaseId
-   *          Collection phase to execute.
+   * @param phaseId Collection phase to execute.
    */
   public final void collectionPhase(int phaseId) throws InlinePragma {
     if (phaseId == PREPARE) {
@@ -144,16 +146,13 @@ public class MC extends StopTheWorld implements Uninterruptible {
   /**
    * Poll for a collection
    * 
-   * @param mustCollect
-   *          Force a collection.
-   * @param space
-   *          The space that caused the poll.
+   * @param mustCollect Force a collection.
+   * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   public final boolean poll(boolean mustCollect, Space space)
       throws LogicallyUninterruptiblePragma {
-    if (getCollectionsInitiated() > 0 || !isInitialized()
-        || space == metaDataSpace) {
+    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }
     mustCollect |= stressTestGCRequired();
@@ -173,12 +172,12 @@ public class MC extends StopTheWorld implements Uninterruptible {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending allocation.
-   * The superclass accounts for its spaces, we just augment this with the
-   * mark-sweep space's contribution.
+   * Return the number of pages reserved for use given the pending
+   * allocation.  The superclass accounts for its spaces, we just
+   * augment this with the mark-sweep space's contribution.
    * 
-   * @return The number of pages reserved given the pending allocation,
-   *         excluding space reserved for copying.
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());

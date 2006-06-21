@@ -14,18 +14,16 @@ import org.mmtk.vm.ActivePlan;
 
 import org.vmmagic.pragma.*;
 
+
 /**
  * This class implements <i>per-collector thread</i> behavior and state for the
- * <i>GCTrace</i> plan, which implements a GC tracing algorithm.
- * <p>
+ * <i>GCTrace</i> plan, which implements a GC tracing algorithm.<p>
  * 
- * Specifically, this class defines <i>SS</i> collection behavior (through
- * <code>inducedTrace</code> and the <code>collectionPhase</code> method),
- * and collection-time allocation (copying of objects).
- * <p>
+ * Specifically, this class defines <i>SS</i> collection behavior
+ * (through <code>inducedTrace</code> and the <code>collectionPhase</code>
+ * method), and collection-time allocation (copying of objects).<p>
  * 
- * @see GCTrace for an overview of the GC trace algorithm.
- *      <p>
+ * @see GCTrace for an overview of the GC trace algorithm.<p>
  * 
  * @see SSCollector
  * @see GCTrace
@@ -46,12 +44,12 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class GCTraceCollector extends SSCollector implements Uninterruptible {
-  /*****************************************************************************
+	/****************************************************************************
    * Instance fields
    */
   protected final GCTraceTraceLocal inducedTrace;
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Initialization
    */
@@ -63,7 +61,7 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
     inducedTrace = new GCTraceTraceLocal(global().ssTrace);
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Collection
    */
@@ -71,10 +69,8 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
   /**
    * Perform a per-collector collection phase.
    * 
-   * @param phaseId
-   *          The collection phase to perform
-   * @param primary
-   *          perform any single-threaded local activities.
+	 * @param phaseId The collection phase to perform
+	 * @param primary perform any single-threaded local activities.
    */
   public void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == SS.PREPARE) {
@@ -101,19 +97,20 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
     }
 
     /* fall through case */
-    if (!GCTrace.traceInducedGC
-        || ((phaseId != StopTheWorld.SOFT_REFS)
-            && (phaseId != StopTheWorld.WEAK_REFS)
-            && (phaseId != StopTheWorld.PHANTOM_REFS)
-            && (phaseId != StopTheWorld.FORWARD_REFS)
-            && (phaseId != StopTheWorld.FORWARD_FINALIZABLE) && (phaseId != StopTheWorld.FINALIZABLE))) {
+		if (!GCTrace.traceInducedGC ||
+				((phaseId != StopTheWorld.SOFT_REFS) &&
+			   (phaseId != StopTheWorld.WEAK_REFS) &&
+				 (phaseId != StopTheWorld.PHANTOM_REFS) &&
+				 (phaseId != StopTheWorld.FORWARD_REFS) &&
+				 (phaseId != StopTheWorld.FORWARD_FINALIZABLE) &&
+				 (phaseId != StopTheWorld.FINALIZABLE))) {
       // Delegate up.
       super.collectionPhase(phaseId, primary);
       return;
     }
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Miscellaneous
    */

@@ -18,7 +18,9 @@ public class GCspyTileSize extends IntOption {
    * Create the option.
    */
   public GCspyTileSize() {
-    super("GCspy Tile Size", "GCspy Tile Size", 131072);
+    super("GCspy Tile Size",
+          "GCspy Tile Size",
+          131072);
   }
 
   /**

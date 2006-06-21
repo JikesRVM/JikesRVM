@@ -20,5 +20,6 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class RCConstraints extends RCBaseConstraints implements Uninterruptible {
+public class RCConstraints extends RCBaseConstraints
+  implements Uninterruptible {
 }

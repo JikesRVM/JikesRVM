@@ -15,18 +15,20 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements the global state of a simple mark-sweep collector.
  * 
- * All plans make a clear distinction between <i>global</i> and <i>thread-local</i>
- * activities, and divides global and local state into separate class
- * hierarchies. Global activities must be synchronized, whereas no
- * synchronization is required for thread-local activities. There is a single
- * instance of Plan (or the appropriate sub-class), and a 1:1 mapping of
- * PlanLocal to "kernel threads" (aka CPUs or in Jikes RVM, VM_Processors). Thus
- * instance methods of PlanLocal allow fast, unsychronized access to functions
- * such as allocation and collection.
- * 
- * The global instance defines and manages static resources (such as memory and
- * virtual memory resources). This mapping of threads to instances is crucial to
- * understanding the correctness and performance properties of MMTk plans.
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities, and divides global and local state
+ * into separate class hierarchies.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  There is a single instance of Plan (or the
+ * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods of PlanLocal allow fast, unsychronized access to functions such as
+ * allocation and collection.
+ *
+ * The global instance defines and manages static resources
+ * (such as memory and virtual memory resources).  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance properties of MMTk plans.
  * 
  * $Id$
  * 
@@ -38,30 +40,28 @@ import org.vmmagic.pragma.*;
  */
 public class MS extends StopTheWorld implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * Constants
    */
   public static final int MS_PAGE_RESERVE = (512 << 10) >>> LOG_BYTES_IN_PAGE; // 1M
-
   public static final double MS_RESERVE_FRACTION = 0.1;
 
-  /*****************************************************************************
+
+  /****************************************************************************
    * Class variables
    */
 
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms",
-      DEFAULT_POLL_FREQUENCY, (float) 0.6);
-
+  public static final MarkSweepSpace msSpace
+    = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, (float) 0.6);
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
-  /*****************************************************************************
+  /****************************************************************************
    * Instance variables
    */
 
   public final Trace msTrace;
 
   private int msReservedPages;
-
   private int availablePreGC;
 
   /**
@@ -85,11 +85,11 @@ public class MS extends StopTheWorld implements Uninterruptible {
    * Collection
    */
 
+
   /**
    * Perform a (global) collection phase.
    * 
-   * @param phaseId
-   *          Collection phase to execute.
+   * @param phaseId Collection phase to execute.
    */
   public final void collectionPhase(int phaseId) throws InlinePragma {
     if (phaseId == PREPARE) {
@@ -104,14 +104,13 @@ public class MS extends StopTheWorld implements Uninterruptible {
 
       int available = getTotalPages() - getPagesReserved();
 
-      progress = (available > availablePreGC)
-          && (available > getExceptionReserve());
+      progress = (available > availablePreGC) && 
+                 (available > getExceptionReserve());
 
       if (progress) {
         msReservedPages = (int) (available * MS_RESERVE_FRACTION);
         int threshold = 2 * getExceptionReserve();
-        if (threshold < MS_PAGE_RESERVE)
-          threshold = MS_PAGE_RESERVE;
+        if (threshold < MS_PAGE_RESERVE) threshold = MS_PAGE_RESERVE;
         if (msReservedPages < threshold)
           msReservedPages = threshold;
       } else {
@@ -128,16 +127,13 @@ public class MS extends StopTheWorld implements Uninterruptible {
   /**
    * Poll for a collection
    * 
-   * @param mustCollect
-   *          Force a collection.
-   * @param space
-   *          The space that caused the poll.
+   * @param mustCollect Force a collection.
+   * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   public final boolean poll(boolean mustCollect, Space space)
       throws LogicallyUninterruptiblePragma {
-    if (getCollectionsInitiated() > 0 || !isInitialized()
-        || space == metaDataSpace) {
+    if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
       return false;
     }
     mustCollect |= stressTestGCRequired() || MarkSweepLocal.mustCollect();
@@ -158,15 +154,16 @@ public class MS extends StopTheWorld implements Uninterruptible {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending allocation.
-   * The superclass accounts for its spaces, we just augment this with the
-   * mark-sweep space's contribution.
+   * Return the number of pages reserved for use given the pending
+   * allocation.  The superclass accounts for its spaces, we just
+   * augment this with the mark-sweep space's contribution.
    * 
-   * @return The number of pages reserved given the pending allocation,
-   *         excluding space reserved for copying.
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
+
 
 }

@@ -13,32 +13,34 @@ import org.mmtk.vm.Assert;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements the functionality of a standard two-generation copying
- * collector. Nursery collections occur when either the heap is full or the
- * nursery is full. The nursery size is determined by an optional command line
- * argument. If undefined, the nursery size is "infinite", so nursery
- * collections only occur when the heap is full (this is known as a
- * flexible-sized nursery collector). Thus both fixed and flexible nursery sizes
- * are supported. Full heap collections occur when the nursery size has dropped
- * to a statically defined threshold, <code>NURSERY_THRESHOLD</code>
- * <p>
- * 
- * See the Jones & Lins GC book, chapter 7 for a detailed discussion of
- * generational collection and section 7.3 for an overview of the flexible
- * nursery behavior ("The Standard ML of New Jersey collector"), or go to
- * Appel's paper "Simple generational garbage collection and fast allocation."
- * SP&E 19(2):171--183, 1989.
- * <p>
- * 
- * All plans make a clear distinction between <i>global</i> and <i>thread-local</i>
- * activities. Global activities must be synchronized, whereas no
- * synchronization is required for thread-local activities. Instances of Plan
- * map 1:1 to "kernel threads" (aka CPUs or in Jikes RVM, VM_Processors). Thus
- * instance methods allow fast, unsychronized access to Plan utilities such as
- * allocation and collection. Each instance rests on static resources (such as
- * memory and virtual memory resources) which are "global" and therefore
- * "static" members of Plan. This mapping of threads to instances is crucial to
- * understanding the correctness and performance proprties of this plan.
+ * This class implements the functionality of a standard
+ * two-generation copying collector.  Nursery collections occur when
+ * either the heap is full or the nursery is full.  The nursery size
+ * is determined by an optional command line argument.  If undefined,
+ * the nursery size is "infinite", so nursery collections only occur
+ * when the heap is full (this is known as a flexible-sized nursery
+ * collector).  Thus both fixed and flexible nursery sizes are
+ * supported.  Full heap collections occur when the nursery size has
+ * dropped to a statically defined threshold,
+ * <code>NURSERY_THRESHOLD</code><p>
+ *
+ * See the Jones & Lins GC book, chapter 7 for a detailed discussion
+ * of generational collection and section 7.3 for an overview of the
+ * flexible nursery behavior ("The Standard ML of New Jersey
+ * collector"), or go to Appel's paper "Simple generational garbage
+ * collection and fast allocation." SP&E 19(2):171--183, 1989.<p>
+ *
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  Instances of Plan map 1:1 to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods allow fast, unsychronized access to Plan utilities such as
+ * allocation and collection.  Each instance rests on static resources
+ * (such as memory and virtual memory resources) which are "global"
+ * and therefore "static" members of Plan.  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance proprties of this plan.
  * 
  * $Id$
  * 
@@ -50,7 +52,7 @@ import org.vmmagic.pragma.*;
  */
 public class GenCopy extends Gen implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Class variables
    */
@@ -59,24 +61,21 @@ public class GenCopy extends Gen implements Uninterruptible {
   static boolean hi = false; // True if copying to "higher" semispace
 
   /**
-   * The low half of the copying mature space. We allocate into this space when
-   * <code>hi</code> is <code>false</code>.
+   * The low half of the copying mature space.  We allocate into this space
+   * when <code>hi</code> is <code>false</code>.
    */
-  static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY,
-      (float) 0.25, false);
-
+  static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.25, false);
   static final int MS0 = matureSpace0.getDescriptor();
 
   /**
-   * The high half of the copying mature space. We allocate into this space when
-   * <code>hi</code> is <code>true</code>.
+   * The high half of the copying mature space. We allocate into this space
+   * when <code>hi</code> is <code>true</code>.
    */
-  static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY,
-      (float) 0.25, true);
-
+  static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.25, true);
   static final int MS1 = matureSpace1.getDescriptor();
 
-  /*****************************************************************************
+
+  /****************************************************************************
    * 
    * Instance fields
    */
@@ -111,13 +110,11 @@ public class GenCopy extends Gen implements Uninterruptible {
   /**
    * @return Space descriptor for to-space.
    */
-  static final int toSpaceDesc() {
-    return hi ? MS1 : MS0;
-  }
+  static final int toSpaceDesc() { return hi ? MS1 : MS0; }
 
   /**
-   * @return The semispace we are currently copying from (or copied from at last
-   *         major GC)
+   * @return The semispace we are currently copying from 
+   * (or copied from at last major GC) 
    */
   static final CopySpace fromSpace() {
     return hi ? matureSpace0 : matureSpace1;
@@ -126,11 +123,9 @@ public class GenCopy extends Gen implements Uninterruptible {
   /**
    * @return Space descriptor for from-space
    */
-  static final int fromSpaceDesc() {
-    return hi ? MS0 : MS1;
-  }
+  static final int fromSpaceDesc() { return hi ? MS0 : MS1; }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Collection
    */
@@ -138,8 +133,7 @@ public class GenCopy extends Gen implements Uninterruptible {
   /**
    * Perform a phase of the currently active collection.
    * 
-   * @param phaseId
-   *          Collection phase to process
+   * @param phaseId Collection phase to process
    */
   public void collectionPhase(int phaseId) throws InlinePragma {
     if (traceFullHeap()) {
@@ -167,10 +161,11 @@ public class GenCopy extends Gen implements Uninterruptible {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending allocation.
+   * Return the number of pages reserved for use given the pending
+   * allocation.
    * 
-   * @return The number of pages reserved given the pending allocation,
-   *         excluding space reserved for copying.
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() throws InlinePragma {
     return toSpace().reservedPages() + super.getPagesUsed();
@@ -187,7 +182,7 @@ public class GenCopy extends Gen implements Uninterruptible {
     return toSpace().reservedPages() + super.getCopyReserve();
   }
 
-  /*****************************************************************************
+  /**************************************************************************
    * Miscellaneous methods
    */
 

@@ -20,18 +20,14 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 public class BooleanOption extends Option {
   // values
   protected boolean defaultValue;
-
   protected boolean value;
 
   /**
    * Create a new boolean option.
    * 
-   * @param name
-   *          The space separated name for the option.
-   * @param desc
-   *          The purpose of the option
-   * @param defaultValue
-   *          The default value of the option.
+   * @param name The space separated name for the option.
+   * @param desc The purpose of the option
+   * @param defaultValue The default value of the option.
    */
   protected BooleanOption(String name, String desc, boolean defaultValue) {
     super(BOOLEAN_OPTION, name, desc);
@@ -61,8 +57,7 @@ public class BooleanOption extends Option {
    * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
    * 
-   * @param value
-   *          The new value for the option.
+   * @param value The new value for the option.
    */
   public void setValue(boolean value) {
     boolean oldValue = this.value;

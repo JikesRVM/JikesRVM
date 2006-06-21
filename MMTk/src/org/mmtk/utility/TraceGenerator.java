@@ -23,19 +23,19 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Class that supports scanning Objects and Arrays for references during
- * tracing, handling those references, and computing death times
+ * Class that supports scanning Objects and Arrays for references
+ * during tracing, handling those references, and computing death times
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
  */
-public final class TraceGenerator implements Constants, Uninterruptible,
-    TracingConstants {
+public final class TraceGenerator 
+  implements Constants, Uninterruptible, TracingConstants {
 
-  public final static String Id = "$Id$";
+  public final static String Id = "$Id$"; 
 
-  /*****************************************************************************
+  /***********************************************************************
    * 
    * Class variables
    */
@@ -45,25 +45,18 @@ public final class TraceGenerator implements Constants, Uninterruptible,
 
   /* include the notion of build-time allocation to our list of allocators */
   private static final int ALLOC_BOOT = GCTrace.ALLOCATORS;
-
   private static final int ALLOCATORS = ALLOC_BOOT + 1;
 
   /* Fields for tracing */
   private static SortTODSharedDeque tracePool; // Buffers to hold raw trace
-
   private static TraceBuffer trace;
-
   private static boolean traceBusy; // If we are building the trace
-
   private static Word lastGC; // Last time GC was performed
-
   private static ObjectReferenceArray objectLinks; // Lists of active objs
 
   /* Fields needed for Merlin lifetime analysis */
   private static SortTODSharedDeque workListPool; // Holds objs to process
-
   private static SortTODObjectReferenceStack worklist; // Objs to process
-
   private static Word agePropagate; // Death time propagating
 
   static {
@@ -72,22 +65,23 @@ public final class TraceGenerator implements Constants, Uninterruptible,
     Options.traceRate = new TraceRate();
   }
 
-  /*****************************************************************************
+
+  /***********************************************************************
    * 
    * Public analysis methods
    */
 
   /**
-   * This is called at "build-time" and passes the necessary build image objects
-   * to the trace processor.
+   * This is called at "build-time" and passes the necessary build image
+   * objects to the trace processor.
    * 
-   * @param worklist_
-   *          The dequeue that serves as the worklist for death time propagation
-   * @param trace_
-   *          The dequeue used to store and then output the trace
+   * @param worklist_ The dequeue that serves as the worklist for 
+   * death time propagation
+   * @param trace_ The dequeue used to store and then output the trace
    */
   public static final void init(SortTODSharedDeque worklist_,
-      SortTODSharedDeque trace_) throws InterruptiblePragma {
+                                SortTODSharedDeque trace_)
+    throws InterruptiblePragma {
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
@@ -103,12 +97,11 @@ public final class TraceGenerator implements Constants, Uninterruptible,
   }
 
   /**
-   * This is called immediately before Jikes terminates. It will perform any
-   * death time processing that the analysis requires and then output any
-   * remaining information in the trace buffer.
+   * This is called immediately before Jikes terminates.  It will perform
+   * any death time processing that the analysis requires and then output
+   * any remaining information in the trace buffer.
    * 
-   * @param value
-   *          The integer value for the reason Jikes is terminating
+   * @param value The integer value for the reason Jikes is terminating
    */
   public static final void notifyExit(int value) {
     if (MERLIN_ANALYSIS)
@@ -120,10 +113,8 @@ public final class TraceGenerator implements Constants, Uninterruptible,
    * Add a newly allocated object into the linked list of objects in a region.
    * This is typically called after each object allocation.
    * 
-   * @param ref
-   *          The address of the object to be added to the linked list
-   * @param linkSpace
-   *          The region to which the object should be added
+   * @param ref The address of the object to be added to the linked list
+   * @param linkSpace The region to which the object should be added
    */
   public static final void addTraceObject(ObjectReference ref, int linkSpace) {
     TraceInterface.setLink(ref, objectLinks.get(linkSpace));
@@ -142,22 +133,21 @@ public final class TraceGenerator implements Constants, Uninterruptible,
     trace.process();
   }
 
-  /*****************************************************************************
+
+  /***********************************************************************
    * 
    * Trace generation code
    */
 
   /**
-   * Add the information in the bootImage to the trace. This should be called
-   * before any allocations and pointer updates have occured.
+   * Add the information in the bootImage to the trace.  This should be
+   * called before any allocations and pointer updates have occured.
    * 
-   * @param bootStart
-   *          The address at which the bootimage starts
+   * @param bootStart The address at which the bootimage starts
    */
   public static final void boot(Address bootStart) {
     Word nextOID = TraceInterface.getOID();
-    ObjectReference trav = TraceInterface.getBootImageLink().plus(
-        bootStart.toWord().toOffset()).toObjectReference();
+    ObjectReference trav = TraceInterface.getBootImageLink().plus(bootStart.toWord().toOffset()).toObjectReference();
     objectLinks.set(ALLOC_BOOT, trav);
     /* Loop through all the objects within boot image */
     while (!trav.isNull()) {
@@ -168,12 +158,10 @@ public final class TraceGenerator implements Constants, Uninterruptible,
       trace.push(thisOID);
       trace.push(nextOID.minus(thisOID).lsh(LOG_BYTES_IN_ADDRESS));
       nextOID = thisOID;
-      /*
-       * Move to the next object & adjust for starting address of the bootImage
-       */
+      /* Move to the next object & adjust for starting address of 
+         the bootImage */
       if (!next.isNull()) {
-        next = next.toAddress().plus(bootStart.toWord().toOffset())
-            .toObjectReference();
+        next = next.toAddress().plus(bootStart.toWord().toOffset()).toObjectReference();
         TraceInterface.setLink(trav, next);
       }
       trav = next;
@@ -181,22 +169,19 @@ public final class TraceGenerator implements Constants, Uninterruptible,
   }
 
   /**
-   * Do any tracing work required at each a pointer store operation. This will
-   * add the pointer store to the trace buffer and, when Merlin lifetime
+   * Do any tracing work required at each a pointer store operation.  This
+   * will add the pointer store to the trace buffer and, when Merlin lifetime
    * analysis is being used, performs the necessary timestamping.
    * 
-   * @param isScalar
-   *          If this is a pointer store to a scalar object
-   * @param src
-   *          The address of the source object
-   * @param slot
-   *          The address within <code>src</code> into which <code>tgt</code>
-   *          will be stored
-   * @param tgt
-   *          The target of the pointer store
+   * @param isScalar If this is a pointer store to a scalar object
+   * @param src The address of the source object
+   * @param slot The address within <code>src</code> into which
+   * <code>tgt</code> will be stored
+   * @param tgt The target of the pointer store
    */
   public static void processPointerUpdate(boolean isScalar,
-      ObjectReference src, Address slot, ObjectReference tgt)
+                                          ObjectReference src,
+                                          Address slot, ObjectReference tgt)
       throws NoInlinePragma {
     // The trace can be busy only if this is a pointer update as a result of
     // the garbage collection needed by tracing. For the moment, we will
@@ -231,19 +216,15 @@ public final class TraceGenerator implements Constants, Uninterruptible,
    * object allocation to the trace buffer, triggers the necessary collection
    * work at exact allocations, and output the data in the trace buffer.
    * 
-   * @param ref
-   *          The address of the object just allocated.
-   * @param typeRef
-   *          the type reference for the instance being created
-   * @param bytes
-   *          The size of the object being allocated
+   * @param ref The address of the object just allocated.
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the object being allocated
    */
   public static final void traceAlloc(boolean isImmortal, ObjectReference ref,
       ObjectReference typeRef, int bytes)
       throws LogicallyUninterruptiblePragma, NoInlinePragma {
     /* Assert that this isn't the result of tracing */
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!traceBusy);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
 
     boolean gcAllowed = TraceInterface.gcEnabled() && Plan.isInitialized()
         && !Plan.gcInProgress();
@@ -287,23 +268,23 @@ public final class TraceGenerator implements Constants, Uninterruptible,
     traceBusy = false;
   }
 
-  /*****************************************************************************
+
+  /***********************************************************************
    * 
    * Merlin lifetime analysis methods
    */
 
   /**
-   * This computes and adds to the trace buffer the unreachable time for all of
-   * the objects that are _provably_ unreachable. This method should be called
-   * after garbage collection (but before the space has been reclaimed) and at
-   * program termination.
+   * This computes and adds to the trace buffer the unreachable time for
+   * all of the objects that are _provably_ unreachable.  This method 
+   * should be called after garbage collection (but before the space has 
+   * been reclaimed) and at program termination.  
    */
   private final static void findDeaths() {
     /* Only the merlin analysis needs to compute death times */
     if (MERLIN_ANALYSIS) {
       /* Start with an empty stack. */
-      if (Assert.VERIFY_ASSERTIONS)
-        Assert._assert(worklist.isEmpty());
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(worklist.isEmpty());
       /* Scan the linked list of objects within each region */
       for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
         ObjectReference thisRef = objectLinks.get(allocator);
@@ -323,9 +304,7 @@ public final class TraceGenerator implements Constants, Uninterruptible,
     /* Output the death times for each object */
     for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
       ObjectReference thisRef = objectLinks.get(allocator);
-      ObjectReference prevRef = ObjectReference.nullReference(); // the last
-                                                                  // live object
-                                                                  // seen
+      ObjectReference prevRef = ObjectReference.nullReference(); // the last live object seen
       while (!thisRef.isNull()) {
         ObjectReference nextRef = TraceInterface.getLink(thisRef);
         /* Maintain reachable objects on the linked list of allocated objects */
@@ -334,9 +313,8 @@ public final class TraceGenerator implements Constants, Uninterruptible,
           TraceInterface.setLink(thisRef, prevRef);
           prevRef = thisRef;
         } else {
-          /*
-           * For brute force lifetime analysis, objects become unreachable "now"
-           */
+          /* For brute force lifetime analysis, objects become 
+             unreachable "now" */
           Word deadTime;
           if (MERLIN_ANALYSIS)
             deadTime = TraceInterface.getDeathTime(thisRef);
@@ -355,12 +333,11 @@ public final class TraceGenerator implements Constants, Uninterruptible,
   }
 
   /**
-   * This method is called for each root-referenced object at every Merlin root
-   * enumeration. The method will update the death time of the parameter to the
-   * current trace time.
+   * This method is called for each root-referenced object at every Merlin
+   * root enumeration.  The method will update the death time of the parameter
+   * to the current trace time.
    * 
-   * @param obj
-   *          The root-referenced object
+   * @param obj The root-referenced object
    */
   public static final void rootEnumerate(ObjectReference obj) {
     TraceInterface.updateDeathTime(obj);
@@ -371,8 +348,7 @@ public final class TraceGenerator implements Constants, Uninterruptible,
    * address. If we find the unreachable time for the parameter, it will be
    * pushed on to the processing stack.
    * 
-   * @param ref
-   *          The address of the object to examine
+   * @param ref The address of the object to examine
    */
   public static final void propagateDeathTime(ObjectReference ref) {
     /* If this death time is more accurate, set it. */
@@ -382,22 +358,20 @@ public final class TraceGenerator implements Constants, Uninterruptible,
         TraceInterface.setDeathTime(ref, agePropagate);
         worklist.push(ref);
       } else {
-        TraceInterface.setDeathTime(getTraceLocal().getForwardedReference(ref),
-            agePropagate);
+        TraceInterface.setDeathTime(getTraceLocal().getForwardedReference(ref), agePropagate);
       }
     }
   }
 
   /**
-   * This finds all object death times by computing the (limited) transitive
-   * closure of the dead objects. Death times are computed as the latest
-   * reaching death time to an object.
+   * This finds all object death times by computing the (limited)
+   * transitive closure of the dead objects.  Death times are computed
+   * as the latest reaching death time to an object.
    */
   private static final void computeTransitiveClosure() {
     /* The latest time an object can die. */
     agePropagate = Word.max();
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!worklist.isEmpty());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!worklist.isEmpty());
     /* Process through the entire buffer. */
     ObjectReference ref = worklist.pop();
     while (!ref.isNull()) {

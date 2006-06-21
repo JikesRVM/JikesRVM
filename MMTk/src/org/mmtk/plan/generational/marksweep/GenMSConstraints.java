@@ -9,10 +9,10 @@ import org.mmtk.plan.generational.GenConstraints;
 import org.vmmagic.pragma.*;
 
 /**
- * This class and its subclasses communicate to the host VM/Runtime any features
- * of the selected plan that it needs to know. This is separate from the main
- * Plan/PlanLocal class in order to bypass any issues with ordering of static
- * initialization.
+ * This class and its subclasses communicate to the host VM/Runtime
+ * any features of the selected plan that it needs to know.  This is
+ * separate from the main Plan/PlanLocal class in order to bypass any
+ * issues with ordering of static initialization.
  * 
  * $Id$
  * 
@@ -20,5 +20,6 @@ import org.vmmagic.pragma.*;
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class GenMSConstraints extends GenConstraints implements Uninterruptible {
+public class GenMSConstraints extends GenConstraints
+  implements Uninterruptible {
 }

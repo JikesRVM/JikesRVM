@@ -6,8 +6,9 @@
  */
 package org.mmtk.vm;
 
+
 /**
- * $Id$
+ * $Id$ 
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
@@ -18,9 +19,7 @@ package org.mmtk.vm;
 public class Strings {
   /**
    * Primitive parsing facilities for strings
-   * 
-   * @param value
-   *          String to parse
+   * @param value String to parse
    * @return the integer equivalent of <code>value</code>
    */
   public static int parseInt(String value) {
@@ -29,9 +28,7 @@ public class Strings {
 
   /**
    * Parse a floating-point number
-   * 
-   * @param value
-   *          The string to parse
+   * @param value The string to parse
    * @return The floating point representation of <code>value</code>
    */
   public static float parseFloat(String value) {
@@ -41,44 +38,36 @@ public class Strings {
   /**
    * Log a message.
    * 
-   * @param c
-   *          character array with message starting at index 0
-   * @param len
-   *          number of characters in message
+   * @param c character array with message starting at index 0
+   * @param len number of characters in message
    */
-  public static void write(char[] c, int len) {
-  }
+  public static void write(char [] c, int len) {}
 
   /**
    * Log a thread identifier and a message.
    * 
-   * @param c
-   *          character array with message starting at index 0
-   * @param len
-   *          number of characters in message
+   * @param c character array with message starting at index 0
+   * @param len number of characters in message
    */
-  public static void writeThreadId(char[] c, int len) {
-  }
+  public static void writeThreadId(char [] c, int len) {}
+
 
   /**
-   * Copies characters from the string into the character array. Thread
-   * switching is disabled during this method's execution.
+   * Copies characters from the string into the character array.
+   * Thread switching is disabled during this method's execution.
    * <p>
    * <b>TODO:</b> There are special memory management semantics here that
    * someone should document.
    * 
-   * @param src
-   *          the source string
-   * @param dst
-   *          the destination array
-   * @param dstBegin
-   *          the start offset in the desination array
-   * @param dstEnd
-   *          the index after the last character in the destination to copy to
+   * @param src the source string
+   * @param dst the destination array
+   * @param dstBegin the start offset in the desination array
+   * @param dstEnd the index after the last character in the
+   * destination to copy to
    * @return the number of characters copied.
    */
-  public static int copyStringToChars(String src, char[] dst, int dstBegin,
-      int dstEnd) {
+  public static int copyStringToChars(String src, char [] dst,
+                                      int dstBegin, int dstEnd) {
     return 0;
   }
 }

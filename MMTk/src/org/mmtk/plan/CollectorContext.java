@@ -18,40 +18,40 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class (and its sub-classes) implement <i>per-collector thread</i>
- * behavior. We assume <i>N</i> collector threads and <i>M</i> mutator
- * threads, where <i>N</i> is often equal to the number of available
- * processors, P (for P-way parallelism at GC-time), and <i>M</i> may simply be
- * the number of mutator (application) threads. Both <i>N</i> and <i>M</i> are
- * determined by the VM, not MMTk. In the case where a VM uses posix threads
- * (pthreads) for each mutator ("1:1" threading), <i>M</i> will typically be
- * equal to the number of mutator threads. When a uses "green threads" or a
- * hybrid threading scheme (such as Jikes RVM), <i>M</i> will typically be
- * equal to the level of <i>true</i> parallelism (ie the number of underlying
- * kernel threads).
- * <p>
+ * behavior.  We assume <i>N</i> collector threads and <i>M</i>
+ * mutator threads, where <i>N</i> is often equal to the number of
+ * available processors, P (for P-way parallelism at GC-time), and
+ * <i>M</i> may simply be the number of mutator (application) threads.
+ * Both <i>N</i> and <i>M</i> are determined by the VM, not MMTk.  In
+ * the case where a VM uses posix threads (pthreads) for each mutator
+ * ("1:1" threading), <i>M</i> will typically be equal to the number of
+ * mutator threads.  When a uses "green threads" or a hybrid threading
+ * scheme (such as Jikes RVM), <i>M</i> will typically be equal to the
+ * level of <i>true</i> parallelism (ie the number of underlying
+ * kernel threads).<p>
  * 
  * Collector operations are separated into <i>per-collector thread</i>
  * operations (the bulk of the GC), and <i>per-mutator thread</i> operations
  * (important in flushing and restoring per-mutator state such as allocator
- * state and write buffer/remset state). <code>SimplePhase</code> ensures that
- * per-collector thread GC phases are performed by each collector thread, and
- * that the <i>M</i> per-mutator thread operations are multiplexed across the
- * <i>N</i> active collector threads (@see SimplePhase#delegatePhase).
- * <p>
+ * state and write buffer/remset state).  <code>SimplePhase</code>
+ * ensures that per-collector thread GC phases are performed by each
+ * collector thread, and that the <i>M</i> per-mutator thread operations
+ * are multiplexed across the <i>N</i> active collector threads
+ * (@see SimplePhase#delegatePhase).<p>
  * 
- * MMTk assumes that the VM instantiates instances of CollectorContext in thread
- * local storage (TLS) for each thread participating in collection. Accesses to
- * this state are therefore assumed to be low-cost at GC time.
- * <p>
+ * MMTk assumes that the VM instantiates instances of CollectorContext
+ * in thread local storage (TLS) for each thread participating in 
+ * collection.  Accesses to this state are therefore assumed to be 
+ * low-cost at GC time.<p> 
  * 
- * MMTk explicitly separates thread-local (this class) and global operations
- * (@see Plan), so that syncrhonization is localized and explicit, and thus
- * hopefully minimized (@see Plan). Gloabl (Plan) and per-thread (this class)
- * state are also explicitly separated. Operations in this class (and its
- * children) are therefore strictly local to each collector thread, and
- * synchronized operations always happen via access to explicitly global classes
- * such as Plan and its children.
- * <p>
+ * MMTk explicitly separates thread-local (this class) and global
+ * operations (@see Plan), so that syncrhonization is localized
+ * and explicit, and thus hopefully minimized (@see Plan). Gloabl (Plan) 
+ * and per-thread (this class) state are also explicitly separated.
+ * Operations in this class (and its children) are therefore strictly
+ * local to each collector thread, and synchronized operations always
+ * happen via access to explicitly global classes such as Plan and its
+ * children.<p>
  * 
  * This class (and its children) therefore typically implement per-collector
  * thread structures such as collection work queues.
@@ -72,7 +72,7 @@ import org.vmmagic.unboxed.*;
  */
 public abstract class CollectorContext implements Uninterruptible, Constants {
 
-  /*****************************************************************************
+	/****************************************************************************
    * Instance fields
    */
   /** Unique collector identifier */
@@ -84,34 +84,29 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
   /** Per-collector allocator into the immortal space */
   protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
-  /*****************************************************************************
+	
+	/****************************************************************************
    * 
    * Initialization
    */
-  protected CollectorContext() {
-  }
+	protected CollectorContext() {}
 
-  /*****************************************************************************
+	/****************************************************************************
    * Collection-time allocation.
    */
 
   /**
    * Allocate memory when copying an object.
    * 
-   * @param original
-   *          The object that is being copied.
-   * @param bytes
-   *          The number of bytes required for the copy.
-   * @param align
-   *          Required alignment for the copy.
-   * @param offset
-   *          Offset associated with the alignment.
-   * @param allocator
-   *          The allocator associated with this request.
+	 * @param original The object that is being copied.
+	 * @param bytes The number of bytes required for the copy.
+	 * @param align Required alignment for the copy.
+	 * @param offset Offset associated with the alignment.
+	 * @param allocator The allocator associated with this request.
    * @return The address of the newly allocated region.
    */
-  public Address allocCopy(ObjectReference original, int bytes, int align,
-      int offset, int allocator) {
+	public Address allocCopy(ObjectReference original, int bytes,
+			int align, int offset, int allocator) {
     Assert.fail("Collector has not implemented allocCopy");
     return Address.max();
   }
@@ -119,15 +114,12 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
   /**
    * Perform any post-copy actions.
    * 
-   * @param ref
-   *          The newly allocated object
-   * @param typeRef
-   *          the type reference for the instance being created
-   * @param bytes
-   *          The size of the space to be allocated (in bytes)
+	 * @param ref The newly allocated object
+	 * @param typeRef the type reference for the instance being created
+	 * @param bytes The size of the space to be allocated (in bytes)
    */
-  public void postCopy(ObjectReference ref, ObjectReference typeRef, int bytes,
-      int allocator) {
+	public void postCopy(ObjectReference ref, ObjectReference typeRef,
+			int bytes, int allocator) {
     Assert.fail("Collector has not implemented postCopy");
   }
 
@@ -135,25 +127,22 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
    * Run-time check of the allocator to use for a given copy allocation
    * 
    * At the moment this method assumes that allocators will use the simple
-   * (worst) method of aligning to determine if the object is a large object to
-   * ensure that no objects are larger than other allocators can handle.
+	 * (worst) method of aligning to determine if the object is a large object
+	 * to ensure that no objects are larger than other allocators can handle.
    * 
-   * @param from
-   *          The object that is being copied.
-   * @param bytes
-   *          The number of bytes to be allocated.
-   * @param align
-   *          The requested alignment.
-   * @param allocator
-   *          The allocator statically assigned to this allocation.
+	 * @param from The object that is being copied.
+	 * @param bytes The number of bytes to be allocated.
+	 * @param align The requested alignment.
+	 * @param allocator The allocator statically assigned to this allocation.
    * @return The allocator dyncamically assigned to this allocation.
    */
-  public int copyCheckAllocator(ObjectReference from, int bytes, int align,
-      int allocator) throws InlinePragma {
+	public int copyCheckAllocator(ObjectReference from, int bytes,
+			int align, int allocator)
+	throws InlinePragma {
     return allocator;
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * Collection.
    */
 
@@ -163,11 +152,9 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
   /**
    * Perform a (local) collection phase.
    * 
-   * @param phaseId
-   *          The unique phase identifier
-   * @param primary
-   *          Should this thread be used to execute any single-threaded local
-   *          operations?
+	 * @param phaseId The unique phase identifier
+	 * @param primary Should this thread be used to execute any single-threaded
+	 * local operations?
    */
   public abstract void collectionPhase(int phaseId, boolean primary);
 
@@ -179,7 +166,7 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
     return null;
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * Miscellaneous.
    */
 
@@ -189,7 +176,5 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
   }
 
   /** @return the unique identifier for this collector context. */
-  public int getId() throws InlinePragma {
-    return id;
-  }
+	public int getId() throws InlinePragma { return id; }
 }

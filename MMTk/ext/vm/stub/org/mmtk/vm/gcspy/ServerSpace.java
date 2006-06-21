@@ -22,58 +22,28 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class ServerSpace implements Uninterruptible {
-  public ServerSpace(int id, String serverName, String driverName,
-      String title, String blockInfo, int tileNum, String unused,
-      boolean mainSpace) {
-  }
-
-  public void setTilename(int i, Address start, Address end) {
-  }
-
-  Address addStream(int id) {
-    return Address.zero();
-  }
-
-  Address getDriverAddress() {
-    return Address.zero();
-  }
-
-  public void resize(int size) {
-  }
-
-  public void startComm() {
-  }
-
-  public void stream(int id, int len) {
-  }
-
-  public void streamByteValue(byte value) {
-  }
-
-  public void streamShortValue(short value) {
-  }
-
-  public void streamIntValue(int value) {
-  }
-
-  public void streamEnd() {
-  }
-
-  public void summary(int id, int len) {
-  }
-
-  public void summaryValue(int val) {
-  }
-
-  public void summaryEnd() {
-  }
-
-  public void controlEnd(int tileNum, AbstractTile[] tiles) {
-  }
-
-  public void spaceInfo(Address info) {
-  }
-
-  public void endComm() {
-  }
+  public ServerSpace(int id, 
+              String serverName, 
+              String driverName,
+              String title,
+              String blockInfo,
+              int tileNum,
+              String unused, 
+              boolean mainSpace    ) {}
+  public void setTilename(int i, Address start, Address end) {}
+  Address addStream(int id) { return Address.zero(); }
+  Address getDriverAddress() { return Address.zero(); }
+  public void resize(int size) {}
+  public void startComm() {}
+  public void stream(int id, int len) {}
+  public void streamByteValue(byte value) {}
+  public void streamShortValue(short value) {}
+  public void streamIntValue(int value) {}
+  public void streamEnd () {}
+  public void summary (int id, int len) {}
+  public void summaryValue (int val) {}
+  public void summaryEnd () {}
+  public void controlEnd (int tileNum, AbstractTile[] tiles) {}
+  public void spaceInfo (Address info) {}
+  public void endComm() {}
 }

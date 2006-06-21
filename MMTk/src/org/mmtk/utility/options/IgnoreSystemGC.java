@@ -18,7 +18,8 @@ public class IgnoreSystemGC extends BooleanOption {
    * Create the option.
    */
   public IgnoreSystemGC() {
-    super("Ignore System GC", "Should we ignore calls to java.lang.System.gc?",
+    super("Ignore System GC",
+          "Should we ignore calls to java.lang.System.gc?",
         false);
   }
 }

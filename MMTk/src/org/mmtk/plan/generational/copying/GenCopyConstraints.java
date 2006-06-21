@@ -16,6 +16,6 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenCopyConstraints extends GenConstraints implements
-    Uninterruptible {
+public class GenCopyConstraints extends GenConstraints 
+  implements Uninterruptible {
 }

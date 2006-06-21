@@ -11,11 +11,11 @@ import org.vmmagic.pragma.*;
 
 /*
  * @author Steve Blackburn
- * 
- * @version $Revision$ @date $Date$
+ * @version $Revision$
+ * @date $Date$
  */
 abstract class CycleDetector implements Uninterruptible {
-  public final static String Id = "$Id$";
+  public final static String Id = "$Id$"; 
 
   static {
     Options.cycleFilterThreshold = new CycleFilterThreshold();
@@ -24,6 +24,5 @@ abstract class CycleDetector implements Uninterruptible {
   }
 
   abstract boolean collectCycles(boolean primary, boolean time);
-
   abstract void possibleCycleRoot(ObjectReference object);
 }

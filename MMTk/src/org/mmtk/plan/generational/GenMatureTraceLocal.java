@@ -14,8 +14,8 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This abstract class implments the core functionality for a transitive closure
- * over the heap graph.
+ * This abstract class implments the core functionality for a transitive
+ * closure over the heap graph.
  * 
  * $Id$
  * 
@@ -25,20 +25,18 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class GenMatureTraceLocal extends TraceLocal implements
-    Uninterruptible {
+public abstract class GenMatureTraceLocal extends TraceLocal
+  implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Instance fields.
    */
   private final WriteBuffer remset;
-
   private final AddressDeque traceRemset;
-
   private final AddressPairDeque arrayRemset;
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -53,7 +51,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal implements
     this.arrayRemset = plan.arrayRemset;
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Object processing and tracing
    */
@@ -61,13 +59,11 @@ public abstract class GenMatureTraceLocal extends TraceLocal implements
   /**
    * Is the specified object live?
    * 
-   * @param object
-   *          The object.
+   * @param object The object.
    * @return True if the object is live.
    */
   public boolean isLive(ObjectReference object) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!object.isNull());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       return Gen.nurserySpace.isLive(object);
     }
@@ -75,8 +71,9 @@ public abstract class GenMatureTraceLocal extends TraceLocal implements
   }
 
   /**
-   * Return true if this object is guaranteed not to move during this collection
-   * (i.e. this object is defintely not an unforwarded object).
+   * Return true if this object is guaranteed not to move during this
+   * collection (i.e. this object is defintely not an unforwarded
+   * object).
    * 
    * @param object
    * @return True if this object is guaranteed not to move during this
@@ -89,21 +86,19 @@ public abstract class GenMatureTraceLocal extends TraceLocal implements
   }
 
   /**
-   * This method is the core method during the trace of the object graph. The
-   * role of this method is to:
+   * This method is the core method during the trace of the object graph.
+   * The role of this method is to:
    * 
-   * 1. Ensure the traced object is not collected. 2. If this is the first visit
-   * to the object enqueue it to be scanned. 3. Return the forwarded reference
-   * to the object.
+   * 1. Ensure the traced object is not collected.
+   * 2. If this is the first visit to the object enqueue it to be scanned.
+   * 3. Return the forwarded reference to the object.
    * 
-   * @param object
-   *          The object to be traced.
+   * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   public ObjectReference traceObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!object.isNull());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       return Gen.nurserySpace.traceObject(this, object);
     }

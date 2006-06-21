@@ -21,7 +21,8 @@ public class StressFactor extends PagesOption {
    * Create the option, defaulting to the maximum possible value.
    */
   public StressFactor() {
-    super("Stress Factor", "Force a collection after this much allocation",
+    super("Stress Factor",
+          "Force a collection after this much allocation",
         Integer.MAX_VALUE >>> Constants.LOG_BYTES_IN_PAGE);
   }
 

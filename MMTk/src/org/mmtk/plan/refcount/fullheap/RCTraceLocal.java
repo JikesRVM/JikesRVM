@@ -14,8 +14,8 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the core functionality for a transitive closure
- * over the heap graph.
+ * This abstract class implments the core functionality for a transitive
+ * closure over the heap graph.
  * 
  * $Id$
  * 
@@ -35,11 +35,8 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
   }
 
   // FIXME The collector/mutator split in RC is completely broken
-  // private final RCCollector local() { return
-  // (RCCollector)ActivePlan.collector(); }
-  private final RCMutator local() {
-    return (RCMutator) ActivePlan.mutator();
-  }
+//  private final RCCollector local() { return (RCCollector)ActivePlan.collector(); }
+  private final RCMutator local() { return (RCMutator)ActivePlan.mutator(); }
 
   /**
    * Flush any remembered sets pertaining to the current collection.
@@ -48,7 +45,7 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
     local().processModBufs();
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Externally visible Object processing and tracing
    */
@@ -56,13 +53,11 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
   /**
    * Return true if <code>obj</code> is a live object.
    * 
-   * @param object
-   *          The object in question
+   * @param object The object in question
    * @return True if <code>object</code> is a live object.
    */
   public boolean isLive(ObjectReference object) {
-    if (object.isNull())
-      return false;
+    if (object.isNull()) return false;
     if (RC.isRCObject(object))
       return RefCountSpace.isLiveRC(object);
     if (Space.isInSpace(RC.META, object))
@@ -71,16 +66,15 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
   }
 
   /**
-   * Trace a reference during GC. This involves determining which collection
-   * policy applies and calling the appropriate <code>trace</code> method. We
-   * do not trace objects that are not roots.
-   * 
-   * @param object
-   *          The object reference to be traced. This is <i>NOT</i> an interior
-   *          pointer.
-   * @param root
-   *          True if this reference to <code>object</code> was held in a
-   *          root.
+   * Trace a reference during GC.  This involves determining which
+   * collection policy applies and calling the appropriate
+   * <code>trace</code> method.  We do not trace objects that are not
+   * roots.
+   *
+   * @param object The object reference to be traced.  This is <i>NOT</i>
+   * an interior pointer.
+   * @param root True if this reference to <code>object</code> was held
+   * in a root.
    * @return The possibly moved reference.
    */
   public ObjectReference traceObject(ObjectReference object, boolean root) {
@@ -101,12 +95,12 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
   }
 
   /**
-   * Return true if an object is ready to move to the finalizable queue, i.e. it
-   * has no regular references to it.
+   * Return true if an object is ready to move to the finalizable
+   * queue, i.e. it has no regular references to it.
    * 
-   * @param object
-   *          The object being queried.
-   * @return <code>true</code> if the object has no regular references to it.
+   * @param object The object being queried.
+   * @return <code>true</code> if the object has no regular references
+   * to it.
    */
   public boolean readyToFinalize(ObjectReference object) {
     if (RC.isRCObject(object))
@@ -117,13 +111,13 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
   }
 
   /**
-   * An object has just been moved to the finalizable queue. No need to forward
-   * because no copying is performed in this GC, but should clear the finalizer
-   * bit of the object so that its reachability now is soley determined by the
-   * finalizer queue from which it is now reachable.
+   * An object has just been moved to the finalizable queue.  No need
+   * to forward because no copying is performed in this GC, but should
+   * clear the finalizer bit of the object so that its reachability
+   * now is soley determined by the finalizer queue from which it is
+   * now reachable.
    * 
-   * @param object
-   *          The object being queried.
+   * @param object The object being queried.
    * @return The object (no copying is performed).
    */
   public ObjectReference retainForFinalize(ObjectReference object) {

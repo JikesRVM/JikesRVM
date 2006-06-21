@@ -20,18 +20,14 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 public class MicrosecondsOption extends Option {
   // values
   protected int defaultValue;
-
   protected int value;
 
   /**
    * Create a new microsecond option.
    * 
-   * @param name
-   *          The space separated name for the option.
-   * @param desc
-   *          The purpose of the option
-   * @param defaultUs
-   *          The default value of the option (usec).
+   * @param name The space separated name for the option.
+   * @param desc The purpose of the option
+   * @param defaultUs The default value of the option (usec).
    */
   protected MicrosecondsOption(String name, String desc, int defaultUs) {
     super(MICROSECONDS_OPTION, name, desc);
@@ -80,8 +76,7 @@ public class MicrosecondsOption extends Option {
    * validate method is called to allow subclasses to perform any additional
    * validation.
    * 
-   * @param value
-   *          The new value for the option.
+   * @param value The new value for the option.
    */
   public void setMicroseconds(int value) {
     int oldValue = this.value;

@@ -16,8 +16,8 @@ import org.vmmagic.pragma.*;
 /**
  * Phases of a garbage collection.
  * 
- * A complex phase is a sequence of phases. They are constructed from arrays of
- * either the phases or phase IDs.
+ * A complex phase is a sequence of phases.  They are constructed
+ * from arrays of either the phases or phase IDs.
  * 
  * TODO write a replacePhase method.
  * 
@@ -28,8 +28,8 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class ComplexPhase extends Phase implements Uninterruptible,
-    Constants {
+public final class ComplexPhase extends Phase
+  implements Uninterruptible, Constants {
 
   /*
    * Instance fields
@@ -43,10 +43,8 @@ public final class ComplexPhase extends Phase implements Uninterruptible,
   /**
    * Construct a complex phase from an array of phase IDs.
    * 
-   * @param name
-   *          The name of the phase.
-   * @param subPhases
-   *          The IDs of the supphases
+   * @param name The name of the phase.
+   * @param subPhases The IDs of the supphases
    */
   public ComplexPhase(String name, int[] subPhases) {
     super(name);
@@ -54,15 +52,12 @@ public final class ComplexPhase extends Phase implements Uninterruptible,
   }
 
   /**
-   * Construct a complex phase from an array of phase IDs, but using the
-   * specified timer rather than creating one.
+   * Construct a complex phase from an array of phase IDs, but using
+   * the specified timer rather than creating one.
    * 
-   * @param name
-   *          The name of the phase.
-   * @param timer
-   *          The timer for this phase to contribute to.
-   * @param subPhases
-   *          The IDs of the supphases
+   * @param name The name of the phase.
+   * @param timer The timer for this phase to contribute to.
+   * @param subPhases The IDs of the supphases
    */
   public ComplexPhase(String name, Timer timer, int[] subPhases) {
     super(name, timer);
@@ -83,15 +78,14 @@ public final class ComplexPhase extends Phase implements Uninterruptible,
   }
 
   /**
-   * Execute this phase, synchronizing initially. Simply executes the component
-   * phases in turn.
+   * Execute this phase, synchronizing initially.  Simply executes
+   * the component phases in turn.
    * 
    * TODO are we oversynchronizing here ??
    */
   protected final void delegatePhase() {
     int order = Collection.rendezvous(5000 + id);
-    if (order == 1 && timer != null)
-      timer.start();
+    if (order == 1 && timer != null) timer.start();
 
     if (Options.verbose.getValue() >= 4) {
       Log.write("Delegating complex phase ");
@@ -101,17 +95,14 @@ public final class ComplexPhase extends Phase implements Uninterruptible,
       Phase.delegatePhase(subPhases[i]);
     }
 
-    if (order == 1 && timer != null)
-      timer.stop();
+    if (order == 1 && timer != null) timer.stop();
   }
 
   /**
    * Replace a phase. For example to replace a placeholder
    * 
-   * @param oldId
-   *          The phase to replace.
-   * @param newId
-   *          The new phase.
+   * @param oldId The phase to replace.
+   * @param newId The new phase.
    */
   public final void replacePhase(int oldId, int newId) {
     for (int i = 0; i < subPhases.length; i++) {

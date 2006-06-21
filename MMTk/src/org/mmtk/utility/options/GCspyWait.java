@@ -18,7 +18,8 @@ public class GCspyWait extends BooleanOption {
    * Create the option
    */
   public GCspyWait() {
-    super("GCSpy Wait", "Should the VM wait for the visualiser to connect?",
+    super("GCSpy Wait",
+          "Should the VM wait for the visualiser to connect?",
         false);
   }
 }

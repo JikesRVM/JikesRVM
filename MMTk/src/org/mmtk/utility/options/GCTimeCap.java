@@ -19,6 +19,7 @@ public class GCTimeCap extends MicrosecondsOption {
    */
   public GCTimeCap() {
     super("GC Time Cap",
-        "Try to limit reference counting collections to this time cap", 1000000);
+          "Try to limit reference counting collections to this time cap",
+          1000000);
   }
 }

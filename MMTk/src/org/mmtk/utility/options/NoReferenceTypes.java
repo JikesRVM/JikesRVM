@@ -19,6 +19,7 @@ public class NoReferenceTypes extends BooleanOption {
    */
   public NoReferenceTypes() {
     super("No Reference Types",
-        "Should reference type processing be disabled?", false);
+          "Should reference type processing be disabled?",
+          false);
   }
 }

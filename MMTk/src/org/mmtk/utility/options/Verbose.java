@@ -18,7 +18,9 @@ public class Verbose extends IntOption {
    * Create the option.
    */
   public Verbose() {
-    super("Verbose", "GC verbosity level", 0);
+    super("Verbose",
+          "GC verbosity level",
+          0);
   }
 
   /**

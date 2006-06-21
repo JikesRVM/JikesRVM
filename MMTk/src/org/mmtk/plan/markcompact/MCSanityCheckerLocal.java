@@ -21,20 +21,19 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MCSanityCheckerLocal extends SanityCheckerLocal implements
-    Uninterruptible {
+public class MCSanityCheckerLocal extends SanityCheckerLocal 
+  implements Uninterruptible {
 
   /**
-   * Return the expected reference count. For non-reference counting collectors
-   * this becomes a true/false relationship.
+   * Return the expected reference count. For non-reference counting 
+   * collectors this becomes a true/false relationship.
    * 
-   * @param object
-   *          The object to check.
-   * @param sanityRootRC
-   *          The number of root references to the object.
+   * @param object The object to check.
+   * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
-  protected int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
+  protected int sanityExpectedRC(ObjectReference object, 
+                                 int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
     // Nursery

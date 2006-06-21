@@ -30,38 +30,26 @@ public final class SanityChecker implements Uninterruptible, Constants {
 
   /* Counters */
   public static long referenceCount;
-
   public static long rootReferenceCount;
-
   public static long danglingReferenceCount;
-
   public static long nullReferenceCount;
-
   public static long liveObjectCount;
 
   public static final int DEAD = -2;
-
   public static final int ALIVE = -1;
-
   public static final int UNSURE = 0;
 
   public static final int SANITY_DATA_MB = 32;
-
   public static final int LOG_SANITY_DATA_SIZE = 21;
-
-  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity",
-      Integer.MAX_VALUE, SANITY_DATA_MB);
-
+  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, SANITY_DATA_MB);
   public static final int SANITY = sanitySpace.getDescriptor();
 
   /* Trace */
   public Trace trace;
-
   private SanityDataTable sanityTable;
-
   private boolean preGCSanity;
 
-  /*****************************************************************************
+  /****************************************************************************
    * Constants
    */
   public SanityChecker() {
@@ -87,8 +75,7 @@ public final class SanityChecker implements Uninterruptible, Constants {
   /**
    * Perform any sanity checking collection phases.
    * 
-   * @param phaseId
-   *          The id to proces
+   * @param phaseId The id to proces
    * @return True if the phase was handled.
    */
   public boolean collectionPhase(int phaseId) throws NoInlinePragma {
@@ -122,12 +109,9 @@ public final class SanityChecker implements Uninterruptible, Constants {
       sanityTable.releaseTable();
 
       Log.writeln("roots\tobjects\trefs\tnull");
-      Log.write(rootReferenceCount);
-      Log.write("\t");
-      Log.write(liveObjectCount);
-      Log.write("\t");
-      Log.write(referenceCount);
-      Log.write("\t");
+      Log.write(rootReferenceCount);Log.write("\t");
+      Log.write(liveObjectCount);Log.write("\t");
+      Log.write(referenceCount);Log.write("\t");
       Log.writeln(nullReferenceCount);
 
       Log.write("========================================");
@@ -143,8 +127,7 @@ public final class SanityChecker implements Uninterruptible, Constants {
   /**
    * Print out object information (used for warning and error messages)
    * 
-   * @param object
-   *          The object to dump info for.
+   * @param object The object to dump info for.
    */
   public static void dumpObjectInformation(ObjectReference object) {
     Log.write(object);

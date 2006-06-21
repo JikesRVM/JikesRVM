@@ -14,9 +14,8 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements a simple hashtable to store and retrieve per object
- * information for sanity checking.
- * <p>
+ * This class implements a simple hashtable to store and retrieve per 
+ * object information for sanity checking. <p> 
  * 
  * This class is not thread safe.
  * 
@@ -26,8 +25,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class SanityDataTable extends SimpleHashtable implements
-    Uninterruptible, Constants {
+public final class SanityDataTable extends SimpleHashtable 
+  implements Uninterruptible, Constants {
 
   /** The number of bits for the normal reference count */
   private static final int NORMAL_RC_BITS = 25;
@@ -47,10 +46,8 @@ public final class SanityDataTable extends SimpleHashtable implements
   /**
    * Create a new data table of a specified size.
    * 
-   * @param rps
-   *          The space to acquire the data structure from.
-   * @param logSize
-   *          The log of the number of table entries.
+   * @param rps The space to acquire the data structure from.
+   * @param logSize The log of the number of table entries. 
    */
   public SanityDataTable(RawPageSpace rps, int logSize) {
     super(rps, logSize, Extent.fromInt(BYTES_IN_WORD));
@@ -59,13 +56,12 @@ public final class SanityDataTable extends SimpleHashtable implements
   /**
    * Increment the data word for an object.
    * 
-   * @param entry
-   *          The table entry.
-   * @param root
-   *          True if this is a root reference.
+   * @param entry The table entry.
+   * @param root True if this is a root reference.
    * @return True if this is the first ref to that object.
    */
-  public static boolean incRC(Address entry, boolean root) throws InlinePragma {
+  public static boolean incRC(Address entry, boolean root) 
+  throws InlinePragma {
     Address data = SimpleHashtable.getPayloadAddress(entry);
     int old = data.loadInt();
     data.store(old + (root ? ROOT_RC_INC : NORMAL_RC_INC));
@@ -73,15 +69,14 @@ public final class SanityDataTable extends SimpleHashtable implements
   }
 
   /**
-   * Push any entries that are only in this table, and not the passed table.
-   * This does not compare values.
+   * Push any entries that are only in this table, and not the 
+   * passed table. This does not compare values.
    * 
-   * @param other
-   *          The table to use for comparison.
-   * @param deque
-   *          The buffer to push results onto.
+   * @param other The table to use for comparison.
+   * @param deque The buffer to push results onto.
    */
-  public void pushNotInOther(SanityDataTable other, ObjectReferenceDeque deque) {
+  public void pushNotInOther(SanityDataTable other, 
+                             ObjectReferenceDeque deque) {
     Address entry = getFirst();
     while (!entry.isZero()) {
       Word key = SimpleHashtable.getKey(entry);
@@ -92,12 +87,12 @@ public final class SanityDataTable extends SimpleHashtable implements
     }
   }
 
+  
   /**
-   * Given an address of an entry, read the reference count, excluding root
-   * references.
+   * Given an address of an entry, read the reference count, 
+   * excluding root references.
    * 
-   * @param entry
-   *          The entry
+   * @param entry The entry
    * @return The reference count.
    */
   public static int getNormalRC(Address entry) {
@@ -107,8 +102,7 @@ public final class SanityDataTable extends SimpleHashtable implements
   /**
    * Given an address of an entry, read the root reference count.
    * 
-   * @param entry
-   *          The entry
+   * @param entry The entry
    * @return The root reference count.
    */
   public static int getRootRC(Address entry) {
@@ -118,8 +112,7 @@ public final class SanityDataTable extends SimpleHashtable implements
   /**
    * Given an address of an entry, read the total reference count.
    * 
-   * @param entry
-   *          The entry
+   * @param entry The entry
    * @return The total reference count.
    */
   public static int getRC(Address entry) {
@@ -130,8 +123,7 @@ public final class SanityDataTable extends SimpleHashtable implements
   /**
    * Given an address of an entry, read the reference component.
    * 
-   * @param entry
-   *          The entry
+   * @param entry The entry
    * @return The object reference.
    */
   public static ObjectReference getObjectReference(Address entry) {
@@ -139,18 +131,17 @@ public final class SanityDataTable extends SimpleHashtable implements
   }
 
   /**
-   * Forward data table using the supplied trace. Note that the data is not
-   * hashed correctly, so only enumeration can be used without rehashing.
+   * Forward data table using the supplied trace. Note that the data is 
+   * not hashed correctly, so only enumeration can be used without
+   * rehashing.  
    * 
-   * @param trace
-   *          The trace to use.
+   * @param trace The trace to use.
    */
   public void forwardTable(TraceLocal trace) {
     Address entry = getFirst();
     while (!entry.isZero()) {
       ObjectReference obj = getObjectReference(entry);
-      SimpleHashtable.replaceKey(entry, trace.getForwardedReference(obj)
-          .toAddress().toWord());
+      SimpleHashtable.replaceKey(entry, trace.getForwardedReference(obj).toAddress().toWord()); 
       entry = getNext(entry);
     }
   }
@@ -158,10 +149,8 @@ public final class SanityDataTable extends SimpleHashtable implements
   /**
    * Get an entry for an object.
    * 
-   * @param object
-   *          The object to find an entry for.
-   * @param create
-   *          Create an entry if none exists?
+   * @param object The object to find an entry for. 
+   * @param create Create an entry if none exists?
    * @return The entry address.
    */
   public Address getEntry(ObjectReference object, boolean create) {

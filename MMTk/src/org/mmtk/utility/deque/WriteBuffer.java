@@ -16,10 +16,11 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class WriteBuffer extends LocalSSB implements Constants, Uninterruptible {
-  public final static String Id = "$Id$";
+public class WriteBuffer extends LocalSSB
+  implements Constants, Uninterruptible {
+  public final static String Id = "$Id$"; 
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Public instance methods
    */
@@ -27,9 +28,8 @@ public class WriteBuffer extends LocalSSB implements Constants, Uninterruptible 
   /**
    * Constructor
    * 
-   * @param queue
-   *          The shared queue to which this local ssb will append its buffers
-   *          (when full or flushed).
+   * @param queue The shared queue to which this local ssb will append
+   * its buffers (when full or flushed).
    */
   public WriteBuffer(SharedDeque queue) {
     super(queue);
@@ -38,13 +38,12 @@ public class WriteBuffer extends LocalSSB implements Constants, Uninterruptible 
   /**
    * Insert a value to be remembered into the write buffer.
    * 
-   * @param addr
-   *          the value to be inserted into the write buffer
+   * @param addr the value to be inserted into the write buffer
    */
-  public final void insert(Address addr) throws NoInlinePragma {
+  public final void insert(Address addr)
+    throws NoInlinePragma {
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }
-
   private static boolean inWB = false;
 }

@@ -15,17 +15,15 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior and state for the
- * <code>GenMS</code> two-generational copying collector.
- * <p>
+ * This class implements <i>per-mutator thread</i> behavior and state for
+ * the <code>GenMS</code> two-generational copying collector.<p>
  * 
  * Specifically, this class defines mutator-time semantics specific to the
- * mature generation (<code>GenMutator</code> defines nursery semantics). In
- * particular the mature space allocator is defined (for mutator-time allocation
- * into the mature space via pre-tenuring), and the mature space per-mutator
- * thread collection time semantics are defined (rebinding the mature space
- * allocator).
- * <p>
+ * mature generation (<code>GenMutator</code> defines nursery semantics).
+ * In particular the mature space allocator is defined (for mutator-time
+ * allocation into the mature space via pre-tenuring), and the mature space
+ * per-mutator thread collection time semantics are defined (rebinding
+ * the mature space allocator).<p>
  * 
  * @see GenMS for a description of the <code>GenMS</code> algorithm.
  * 
@@ -45,17 +43,19 @@ import org.vmmagic.unboxed.*;
  * @date $Date$
  */
 public class GenMSMutator extends GenMutator implements Uninterruptible {
-  /*****************************************************************************
+	/******************************************************************
    * Instance fields
    */
 
   /**
-   * The allocator for the mark-sweep mature space (the mutator may "pretenure"
-   * objects into this space which is otherwise used only by the collector)
+	 * The allocator for the mark-sweep mature space (the mutator may
+	 * "pretenure" objects into this space which is otherwise used
+	 * only by the collector)
    */
   private final MarkSweepLocal mature;
 
-  /*****************************************************************************
+	
+	/****************************************************************************
    * 
    * Initialization
    */
@@ -67,7 +67,7 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
     mature = new MarkSweepLocal(GenMS.msSpace);
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Mutator-time allocation
    */
@@ -75,14 +75,10 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
   /**
    * Allocate memory for an object.
    * 
-   * @param bytes
-   *          The number of bytes required for the object.
-   * @param align
-   *          Required alignment for the object.
-   * @param offset
-   *          Offset associated with the alignment.
-   * @param allocator
-   *          The allocator associated with this request.
+	 * @param bytes The number of bytes required for the object.
+	 * @param align Required alignment for the object.
+	 * @param offset Offset associated with the alignment.
+	 * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
   public final Address alloc(int bytes, int align, int offset, int allocator)
@@ -94,16 +90,13 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
   }
 
   /**
-   * Perform post-allocation actions. For many allocators none are required.
+	 * Perform post-allocation actions.  For many allocators none are
+	 * required.
    * 
-   * @param ref
-   *          The newly allocated object
-   * @param typeRef
-   *          the type reference for the instance being created
-   * @param bytes
-   *          The size of the space to be allocated (in bytes)
-   * @param allocator
-   *          The allocator number to be used for this allocation
+	 * @param ref The newly allocated object
+	 * @param typeRef the type reference for the instance being created
+	 * @param bytes The size of the space to be allocated (in bytes)
+	 * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
@@ -115,38 +108,34 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
   }
 
   /**
-   * Return the space into which an allocator is allocating. This particular
-   * method will match against those spaces defined at this level of the class
-   * hierarchy. Subclasses must deal with spaces they define and refer to
-   * superclasses appropriately.
+	 * Return the space into which an allocator is allocating.  This
+	 * particular method will match against those spaces defined at this
+	 * level of the class hierarchy.  Subclasses must deal with spaces
+	 * they define and refer to superclasses appropriately.
    * 
-   * @param a
-   *          An allocator
+	 * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-    if (a == mature)
-      return GenMS.msSpace;
+		if (a == mature) return GenMS.msSpace;
 
     // a does not belong to this plan instance
     return super.getSpaceFromAllocator(a);
   }
 
   /**
-   * Return the allocator instance associated with a space <code>space</code>,
-   * for this plan instance.
+	 * Return the allocator instance associated with a space
+	 * <code>space</code>, for this plan instance.
    * 
-   * @param space
-   *          The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance which is
-   *         allocating into <code>space</code>, or <code>null</code> if no
-   *         appropriate allocator can be established.
+	 * @param space The space for which the allocator instance is desired.
+	 * @return The allocator instance associated with this plan instance
+	 * which is allocating into <code>space</code>, or <code>null</code>
+	 * if no appropriate allocator can be established.
    */
   public Allocator getAllocatorFromSpace(Space space) {
-    if (space == GenMS.msSpace)
-      return mature;
+		if (space == GenMS.msSpace) return mature;
     return super.getAllocatorFromSpace(space);
   }
 
@@ -158,24 +147,20 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
   /**
    * Perform a per-mutator collection phase.
    * 
-   * @param phaseId
-   *          Collection phase to perform
-   * @param primary
-   *          Is this thread to do the one-off thread-local tasks
+	 * @param phaseId Collection phase to perform
+	 * @param primary Is this thread to do the one-off thread-local tasks
    */
   public void collectionPhase(int phaseId, boolean primary)
       throws NoInlinePragma {
     if (global().traceFullHeap()) {
       if (phaseId == GenMS.PREPARE) {
         super.collectionPhase(phaseId, primary);
-        if (global().gcFullHeap)
-          mature.prepare();
+				if (global().gcFullHeap) mature.prepare();
         return;
       }
 
       if (phaseId == GenMS.RELEASE) {
-        if (global().gcFullHeap)
-          mature.releaseMutator();
+				if (global().gcFullHeap) mature.releaseMutator();
         super.collectionPhase(phaseId, primary);
         return;
       }
@@ -184,7 +169,7 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
     super.collectionPhase(phaseId, primary);
   }
 
-  /*****************************************************************************
+	/****************************************************************************
    * 
    * Miscellaneous
    */

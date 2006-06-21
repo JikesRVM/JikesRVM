@@ -20,22 +20,14 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenRCConstraints extends RCBaseConstraints implements
-    Uninterruptible {
+public class GenRCConstraints extends RCBaseConstraints
+  implements Uninterruptible {
 
-  public boolean generational() {
-    return true;
-  }
+  public boolean generational() { return true; }
 
-  public boolean movesObjects() {
-    return true;
-  }
+  public boolean movesObjects() { return true; }
 
-  public int gcHeaderBits() {
-    return CopySpace.LOCAL_GC_BITS_REQUIRED;
-  }
+  public int gcHeaderBits() { return CopySpace.LOCAL_GC_BITS_REQUIRED; }
 
-  public boolean stealNurseryGcHeader() {
-    return false;
-  }
+  public boolean stealNurseryGcHeader() { return false; }
 }

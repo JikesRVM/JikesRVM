@@ -5,8 +5,8 @@
 package org.mmtk.utility.options;
 
 /**
- * When printing statistics, should statistics for each gc-mutator phase be
- * printed?
+ * When printing statistics, should statistics for each
+ * gc-mutator phase be printed?
  * 
  * $Id$
  * 
@@ -19,8 +19,7 @@ public class PrintPhaseStats extends BooleanOption {
    * Create the option.
    */
   public PrintPhaseStats() {
-    super(
-        "Print Phase Stats",
+    super("Print Phase Stats",
         "When printing statistics, should statistics for each gc-mutator phase be printed?",
         false);
   }

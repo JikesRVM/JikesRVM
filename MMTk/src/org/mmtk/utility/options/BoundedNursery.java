@@ -7,8 +7,8 @@ package org.mmtk.utility.options;
 import org.mmtk.plan.Plan;
 
 /**
- * Provide an upper bound on nursery size. This option is not intended to be
- * created directly, but via NurserySize.
+ * Provide an upper bound on nursery size. This option is not intended to
+ * be created directly, but via NurserySize.
  * 
  * $Id$
  * 

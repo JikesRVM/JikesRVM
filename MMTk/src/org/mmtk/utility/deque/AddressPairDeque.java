@@ -11,17 +11,17 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This supports <i>unsynchronized</i> enqueuing and dequeuing of address pairs
+ * This supports <i>unsynchronized</i> enqueuing and dequeuing of
+ * address pairs
  * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
-public class AddressPairDeque extends LocalDeque implements Constants,
-    Uninterruptible {
-  public final static String Id = "$Id$";
+public class AddressPairDeque extends LocalDeque implements Constants, Uninterruptible {
+  public final static String Id = "$Id$"; 
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Public instance methods
    */
@@ -29,10 +29,9 @@ public class AddressPairDeque extends LocalDeque implements Constants,
   /**
    * Constructor
    * 
-   * @param queue
-   *          The shared queue to which this queue will append its buffers (when
-   *          full or flushed) and from which it will aquire new buffers when it
-   *          has exhausted its own.
+   * @param queue The shared queue to which this queue will append
+   * its buffers (when full or flushed) and from which it will aquire new
+   * buffers when it has exhausted its own.
    */
   public AddressPairDeque(SharedDeque queue) {
     super(queue);
@@ -41,16 +40,12 @@ public class AddressPairDeque extends LocalDeque implements Constants,
   /**
    * Insert an address pair into the address queue.
    * 
-   * @param addr1
-   *          the first address to be inserted into the address queue
-   * @param addr2
-   *          the second address to be inserted into the address queue
+   * @param addr1 the first address to be inserted into the address queue
+   * @param addr2 the second address to be inserted into the address queue
    */
   public final void insert(Address addr1, Address addr2) {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!addr1.isZero());
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!addr2.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr1.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr2.isZero());
     checkTailInsert(2);
     uncheckedTailInsert(addr1);
     uncheckedTailInsert(addr2);
@@ -59,27 +54,23 @@ public class AddressPairDeque extends LocalDeque implements Constants,
   /**
    * Push an address pair onto the address queue.
    * 
-   * @param addr1
-   *          the first value to be pushed onto the address queue
-   * @param addr2
-   *          the second value to be pushed onto the address queue
+   * @param addr1 the first value to be pushed onto the address queue
+   * @param addr2 the second value to be pushed onto the address queue
    */
   public final void push(Address addr1, Address addr2) {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!addr1.isZero());
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!addr2.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr1.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr2.isZero());
     checkHeadInsert(2);
     uncheckedHeadInsert(addr2);
     uncheckedHeadInsert(addr1);
   }
 
   /**
-   * Pop the first address in a pair from the address queue, return zero if the
-   * queue is empty.
+   * Pop the first address in a pair from the address queue, return
+   * zero if the queue is empty.
    * 
-   * @return The next address in the address queue, or zero if the queue is
-   *         empty
+   * @return The next address in the address queue, or zero if the
+   * queue is empty
    */
   public final Address pop1() {
     if (checkDequeue(2))

@@ -13,23 +13,21 @@ import org.vmmagic.pragma.*;
  * 
  * @author Steve Blackburn
  * @version $Revision$
- * @date $Date$ $Id: Counter.java,v 1.7 2006/06/19
- *       06:08:12 steveb-oss Exp $
+ * @date $Date$
+ * $Id$
  */
 public abstract class Counter implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Instance variables
    */
 
   private String name;
-
   private boolean start;
-
   private boolean mergephases;
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Initialization
    */
@@ -37,8 +35,7 @@ public abstract class Counter implements Uninterruptible {
   /**
    * Constructor
    * 
-   * @param name
-   *          The name to be associated with this counter
+   * @param name The name to be associated with this counter
    */
   Counter(String name) {
     this(name, true, false);
@@ -47,12 +44,10 @@ public abstract class Counter implements Uninterruptible {
   /**
    * Constructor
    * 
-   * @param name
-   *          The name to be associated with this counter
-   * @param start
-   *          True if this counter is to be implicitly started when
-   *          <code>startAll()</code> is called (otherwise the counter must be
-   *          explicitly started).
+   * @param name The name to be associated with this counter
+   * @param start True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
    */
   Counter(String name, boolean start) {
     this(name, start, false);
@@ -61,15 +56,12 @@ public abstract class Counter implements Uninterruptible {
   /**
    * Constructor
    * 
-   * @param name
-   *          The name to be associated with this counter
-   * @param start
-   *          True if this counter is to be implicitly started when
-   *          <code>startAll()</code> is called (otherwise the counter must be
-   *          explicitly started).
-   * @param mergephases
-   *          True if this counter does not separately report GC and Mutator
-   *          phases.
+   * @param name The name to be associated with this counter
+   * @param start  True if this counter is to be implicitly started
+   * when <code>startAll()</code> is called (otherwise the counter
+   * must be explicitly started).
+   * @param mergephases True if this counter does not separately
+   * report GC and Mutator phases.
    */
   Counter(String name, boolean start, boolean mergephases) {
     this.name = name;
@@ -78,7 +70,7 @@ public abstract class Counter implements Uninterruptible {
     Stats.newCounter(this);
   }
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Counter control methods: start, stop, print etc
    */
@@ -94,19 +86,17 @@ public abstract class Counter implements Uninterruptible {
   abstract void stop();
 
   /**
-   * The phase has changed (from GC to mutator or mutator to GC). Take action
-   * with respect to the last phase if necessary.
+   * The phase has changed (from GC to mutator or mutator to GC).
+   * Take action with respect to the last phase if necessary.
    * 
-   * @param oldPhase
-   *          The last phase
+   * @param oldPhase The last phase
    */
   abstract void phaseChange(int oldPhase);
 
   /**
    * Print the value of this counter for the given phase
    * 
-   * @param phase
-   *          The phase to be printed
+   * @param phase The phase to be printed
    */
   abstract void printCount(int phase);
 
@@ -118,27 +108,24 @@ public abstract class Counter implements Uninterruptible {
   /**
    * Print the current total for either the mutator or GC phase
    * 
-   * @param mutator
-   *          True if the total for the mutator phases is to be printed
-   *          (otherwise the total for the GC phases will be printed).
+   * @param mutator True if the total for the mutator phases is to be
+   * printed (otherwise the total for the GC phases will be printed).
    */
   abstract void printTotal(boolean mutator);
 
   /**
    * Print the current minimum value for either the mutator or GC phase
    * 
-   * @param mutator
-   *          True if the minimum for the mutator phase is to be printed
-   *          (otherwise the minimum for the GC phase will be printed).
+   * @param mutator True if the minimum for the mutator phase is to be
+   * printed (otherwise the minimum for the GC phase will be printed).
    */
   abstract void printMin(boolean mutator);
 
   /**
    * Print the current maximum value for either the mutator or GC phase
    * 
-   * @param mutator
-   *          True if the maximum for the mutator phase is to be printed
-   *          (otherwise the maximum for the GC phase will be printed).
+   * @param mutator True if the maximum for the mutator phase is to be
+   * printed (otherwise the maximum for the GC phase will be printed).
    */
   abstract void printMax(boolean mutator);
 
@@ -146,41 +133,32 @@ public abstract class Counter implements Uninterruptible {
    * Print statistics for the most recent phase
    */
   public void printLast() {
-    if (Stats.phase > 0)
-      printCount(Stats.phase - 1);
+    if (Stats.phase > 0) printCount(Stats.phase - 1);
   }
 
-  /*****************************************************************************
+
+  /****************************************************************************
    * 
    * Accessor methods
    */
 
   /**
    * Return the name of this counter
-   * 
    * @return The name of this counter
    */
-  String getName() {
-    return name;
-  }
+  String getName() { return name; }
 
   /**
    * Return true if this counter is implicitly started when
    * <code>startAll()</code> is called.
-   * 
    * @return True if this counter is implicitly started when
    *         <code>startAll()</code> is called.
    */
-  boolean getStart() {
-    return start;
-  }
+  boolean getStart() { return start; }
 
   /**
    * Return true if this counter will merge stats for GC and mutator phases.
-   * 
    * @return True if this counter will merge stats for GC and mutator phases.
    */
-  boolean mergePhases() {
-    return mergephases;
-  }
+  boolean mergePhases() { return mergephases; }
 }

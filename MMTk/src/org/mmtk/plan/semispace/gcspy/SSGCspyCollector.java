@@ -22,11 +22,9 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements <i>per-collector thread</i> behavior and state for the
- * <i>SSGCSpy</i> plan.
- * <p>
+ * <i>SSGCSpy</i> plan.<p>
  * 
- * @see SSGCspy for an overview of the GC-spy mechanisms.
- *      <p>
+ * @see SSGCspy for an overview of the GC-spy mechanisms.<p>
  * 
  * @see SSCollector
  * @see SSGCSpy
@@ -48,7 +46,7 @@ import org.vmmagic.pragma.*;
  */
 public class SSGCspyCollector extends SSCollector implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Data gathering
    */
@@ -59,8 +57,7 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
   public final void collectionPhase(int phaseId, boolean primary)
       throws InlinePragma {
     if (phaseId == SS.PREPARE) {
-      if (primary)
-        gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
+      if (primary) gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
       super.collectionPhase(phaseId, primary);
       return;
     }
@@ -76,13 +73,13 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
   }
 
   /**
-   * Gather data for GCspy This method sweeps the semispace under consideration
-   * to gather data. Used space can obviously be discovered in constant time
-   * simply by comparing the start and the end addresses of the semispace, but
-   * per-object information needs to be gathered by sweeping through the space.
+   * Gather data for GCspy
+   * This method sweeps the semispace under consideration to gather data.
+   * Used space can obviously be discovered in constant time simply by comparing
+   * the start and the end addresses of the semispace, but per-object
+   * information needs to be gathered by sweeping through the space.
    * 
-   * @param event
-   *          The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
+   * @param event The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
@@ -103,13 +100,14 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
       ContiguousSpaceDriver otherDriver = null;
 
       /*
-       * if (hi) Log.write("\nExamining Highspace (", event); else
-       * Log.write("\nExamining Lowspace (", event); Log.write(")");
-       * reportSpaces();
+      if (hi) Log.write("\nExamining Highspace (", event);
+      else    Log.write("\nExamining Lowspace (", event);
+      Log.write(")");
+      reportSpaces();
        */
 
-      if ((event == SSGCspy.BEFORE_COLLECTION && !SSGCspy.hi)
-          || (event != SSGCspy.BEFORE_COLLECTION && SSGCspy.hi)) {
+      if ((event == SSGCspy.BEFORE_COLLECTION && !SSGCspy.hi) || 
+          (event != SSGCspy.BEFORE_COLLECTION && SSGCspy.hi)) {
         scannedSpace = SSGCspy.copySpace1;
         otherSpace = SSGCspy.copySpace0;
         driver = SSGCspy.ss1Driver;
@@ -135,13 +133,10 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
 
       // -- Handle the LargeObjectSpace --
       SSGCspy.losDriver.zero();
-      // FIXME This code needs to be part of the mutator, not the collector.
-      // This hack should disappear with a refactoring.
-      ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event,
-          SSGCspy.losDriver, false); // read fromspace
+      // FIXME This code needs to be part of the mutator, not the collector.  This hack should disappear with a refactoring. 
+      ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, false); // read fromspace
       if (event == SSGCspy.SEMISPACE_COPIED)
-        ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event,
-            SSGCspy.losDriver, true); // read tospace
+      	((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
 
       // -- Handle the immortal space --
       SSGCspy.immortalDriver.zero();
@@ -150,8 +145,7 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
       // Transmit the data
       ServerInterpreter.stopCompensationTimer();
       driver.finish(event);
-      if (event == SSGCspy.AFTER_COLLECTION)
-        otherDriver.finish(event);
+      if (event == SSGCspy.AFTER_COLLECTION) otherDriver.finish(event);
       SSGCspy.immortalDriver.finish(event);
       SSGCspy.losDriver.finish(event);
 
@@ -163,16 +157,12 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
 
   /**
    * Gather data for GCspy
-   * 
-   * @param driver
-   *          the Driver.
-   * @param space
-   *          the ContiguousSpace.
-   * @param bp
-   *          the BumpPointer for this space.
+   * @param driver the Driver.
+   * @param space the ContiguousSpace.
+   * @param bp the BumpPointer for this space.
    */
-  private void gcspyGatherData(ContiguousSpaceDriver driver, Space space,
-      BumpPointer bp) {
+  private void gcspyGatherData(ContiguousSpaceDriver driver,
+                               Space space, BumpPointer bp) {
     if (Assert.VERIFY_ASSERTIONS)
       Assert._assert(bp.getSpace() == space, "Space / BumpPointer mismatch");
     Address start = space.getStart();

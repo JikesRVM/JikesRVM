@@ -36,11 +36,9 @@ public class ActivePlan {
   }
 
   /**
-   * Return the <code>CollectorContext</code> instance given its unique
-   * identifier.
+   * Return the <code>CollectorContext</code> instance given its unique identifier.
    * 
-   * @param id
-   *          The identifier of the <code>CollectorContext</code> to return
+   * @param id The identifier of the <code>CollectorContext</code> to return
    * @return The specified <code>CollectorContext</code>
    */
   public static final CollectorContext collector(int id) {
@@ -48,11 +46,9 @@ public class ActivePlan {
   }
 
   /**
-   * Return the <code>MutatorContext</code> instance given it's unique
-   * identifier.
+   * Return the <code>MutatorContext</code> instance given it's unique identifier.
    * 
-   * @param id
-   *          The identifier of the <code>MutatorContext</code> to return
+   * @param id The identifier of the <code>MutatorContext</code>  to return
    * @return The specified <code>MutatorContext</code>
    */
   public static final MutatorContext mutator(int id) {
@@ -70,16 +66,15 @@ public class ActivePlan {
   }
 
   /** Reset the mutator iterator */
-  public static void resetMutatorIterator() {
-  }
+  public static void resetMutatorIterator() {}
 
   /**
-   * Return the next <code>MutatorContext</code> in a synchronized iteration
-   * of all mutators.
+   * Return the next <code>MutatorContext</code> in a
+   * synchronized iteration of all mutators.
    * 
-   * @return The next <code>MutatorContext</code> in a synchronized iteration
-   *         of all mutators, or <code>null</code> when all mutators have been
-   *         done.
+   * @return The next <code>MutatorContext</code> in a
+   *  synchronized iteration of all mutators, or
+   *  <code>null</code> when all mutators have been done.
    */
   public static MutatorContext getNextMutator() {
     return null;
@@ -88,8 +83,7 @@ public class ActivePlan {
   /**
    * Register a new <code>CollectorContext</code> instance.
    * 
-   * @param collector
-   *          The <code>CollectorContext</code> to register.
+   * @param collector The <code>CollectorContext</code> to register.
    * @return The <code>CollectorContext</code>'s unique identifier
    */
   public static final int registerCollector(CollectorContext collector) {
@@ -99,8 +93,7 @@ public class ActivePlan {
   /**
    * Register a new <code>MutatorContext</code> instance.
    * 
-   * @param mutator
-   *          The <code>MutatorContext</code> to register.
+   * @param mutator The <code>MutatorContext</code> to register.
    * @return The <code>MutatorContext</code>'s unique identifier
    */
   public static final int registerMutator(MutatorContext mutator) {

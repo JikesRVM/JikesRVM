@@ -9,8 +9,9 @@ import org.mmtk.utility.Log;
 import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**
- * An option that is a selection of several strings. The mapping between strings
- * and integers is determined using indexes into a string array.
+ * An option that is a selection of several strings. The mapping
+ * between strings and integers is determined using indexes into
+ * a string array.
  * 
  * Enumerations are case sensitive.
  * 
@@ -23,25 +24,19 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 public class EnumOption extends Option {
   // values
   protected int defaultValue;
-
   protected int value;
-
   protected String[] values;
 
   /**
    * Create a new enumeration option.
    * 
-   * @param name
-   *          The space separated name for the option.
-   * @param description
-   *          The purpose of the option.
-   * @param values
-   *          A mapping of int to string for the enum.
-   * @param defaultValue
-   *          The default value of the option.
+   * @param name The space separated name for the option.
+   * @param description The purpose of the option.
+   * @param values A mapping of int to string for the enum.
+   * @param defaultValue The default value of the option.
    */
-  protected EnumOption(String name, String description, String[] values,
-      int defaultValue) {
+  protected EnumOption(String name, String description,
+                       String[] values, int defaultValue) {
     super(ENUM_OPTION, name, description);
     this.values = values;
     this.value = this.defaultValue = defaultValue;
@@ -103,8 +98,7 @@ public class EnumOption extends Option {
    * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
    * 
-   * @param value
-   *          The new value for the option.
+   * @param value The new value for the option.
    */
   public void setValue(int value) {
     int oldValue = this.value;
@@ -122,12 +116,11 @@ public class EnumOption extends Option {
 
   /**
    * Look up the value for a string and update the value of the option
-   * accordingly, echoing the change if the echoOptions option is set. This
-   * method also calls the validate method to allow subclasses to perform any
-   * required validation.
+   * accordingly, echoing the change if the echoOptions option is set.
+   * This method also calls the validate method to allow subclasses to
+   * perform any required validation.
    * 
-   * @param value
-   *          The new value for the option.
+   * @param value The new value for the option.
    */
   public void setValue(String value) {
     setValue(findValue(value));

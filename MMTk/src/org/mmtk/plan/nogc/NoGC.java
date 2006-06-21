@@ -12,9 +12,10 @@ import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 
+
 /**
- * This class implements the global state of a a simple allocator without a
- * collector.
+ * This class implements the global state of a a simple allocator
+ * without a collector.
  * 
  * $Id$
  * 
@@ -30,9 +31,8 @@ public class NoGC extends Plan implements Uninterruptible {
    * 
    * Class fields
    */
-  public static final ImmortalSpace defSpace = new ImmortalSpace("default",
-      DEFAULT_POLL_FREQUENCY, (float) 0.6);
-
+  public static final ImmortalSpace defSpace
+    = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, (float) 0.6);
   public static final int DEF = defSpace.getDescriptor();
 
   /*****************************************************************************
@@ -56,8 +56,7 @@ public class NoGC extends Plan implements Uninterruptible {
   /**
    * Perform a (global) collection phase.
    * 
-   * @param phaseId
-   *          Collection phase
+   * @param phaseId Collection phase
    */
   public final void collectionPhase(int phaseId) {
     Assert._assert(false);
@@ -71,10 +70,8 @@ public class NoGC extends Plan implements Uninterruptible {
   /**
    * Poll for a collection
    * 
-   * @param mustCollect
-   *          Force a collection.
-   * @param space
-   *          The space that caused the poll.
+   * @param mustCollect Force a collection.
+   * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   public final boolean poll(boolean mustCollect, Space space) {
@@ -90,10 +87,11 @@ public class NoGC extends Plan implements Uninterruptible {
    */
 
   /**
-   * Return the number of pages used given the pending allocation.
+   * Return the number of pages used given the pending
+   * allocation.
    * 
-   * @return The number of pages reserved given the pending allocation,
-   *         excluding space reserved for copying.
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
     return (defSpace.reservedPages() + super.getPagesUsed());

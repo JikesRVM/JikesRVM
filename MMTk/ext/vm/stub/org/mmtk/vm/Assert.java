@@ -21,11 +21,11 @@ public class Assert {
    */
   public static final boolean VERIFY_ASSERTIONS = false;
 
+
   /**
    * This method should be called whenever an error is encountered.
    * 
-   * @param str
-   *          A string describing the error condition.
+   * @param str A string describing the error condition.
    */
   public static void error(String str) {
   }
@@ -33,8 +33,7 @@ public class Assert {
   /**
    * Logs a message and traceback, then exits.
    * 
-   * @param message
-   *          the string to log
+   * @param message the string to log
    */
   public static void fail(String message) {
   }
@@ -42,30 +41,27 @@ public class Assert {
   /**
    * Exit the virtual machine.
    * 
-   * @param rc
-   *          Return code to exit with.
+   * @param rc Return code to exit with.
    */
   public static void exit(int rc) {
   }
 
   /**
-   * Checks that the given condition is true. If it is not, this method does a
-   * traceback and exits.
+   * Checks that the given condition is true.  If it is not, this
+   * method does a traceback and exits.
    * 
-   * @param cond
-   *          the condition to be checked
+   * @param cond the condition to be checked
    */
   public static void _assert(boolean cond) {
   }
 
+
   /**
-   * Checks that the given condition is true. If it is not, this method prints a
-   * message, does a traceback and exits.
+   * Checks that the given condition is true.  If it is not, this
+   * method prints a message, does a traceback and exits.
    * 
-   * @param cond
-   *          the condition to be checked
-   * @param message
-   *          the message to print
+   * @param cond the condition to be checked
+   * @param message the message to print
    */
   public static void _assert(boolean cond, String message) {
   }
@@ -83,14 +79,12 @@ public class Assert {
   }
 
   /**
-   * Checks if the virtual machine is running. This value changes, so the
-   * call-through to the VM must be a method. In Jikes RVM, just returns
-   * VM.runningVM.
+   * Checks if the virtual machine is running.  This value changes, so
+   * the call-through to the VM must be a method.  In Jikes RVM, just
+   * returns VM.runningVM.
    * 
    * @return <code>true</code> if the virtual machine is running
    */
-  public static boolean runningVM() {
-    return false;
-  }
+  public static boolean runningVM() { return false; }
 
 }

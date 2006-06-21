@@ -19,6 +19,7 @@ public class FullHeapSystemGC extends BooleanOption {
    */
   public FullHeapSystemGC() {
     super("Full Heap System GC",
-        "Should a major GC be performed when a system GC is triggered?", false);
+          "Should a major GC be performed when a system GC is triggered?",
+          false);
   }
 }

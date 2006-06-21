@@ -22,18 +22,14 @@ import org.vmmagic.unboxed.Extent;
 public class PagesOption extends Option {
   // values
   protected int defaultValue;
-
   protected int value;
 
   /**
    * Create a new pages option.
    * 
-   * @param name
-   *          The space separated name for the option.
-   * @param desc
-   *          The purpose of the option
-   * @param defaultPages
-   *          The default value of the option.
+   * @param name The space separated name for the option.
+   * @param desc The purpose of the option
+   * @param defaultPages The default value of the option.
    */
   protected PagesOption(String name, String desc, int defaultPages) {
     super(PAGES_OPTION, name, desc);
@@ -78,12 +74,11 @@ public class PagesOption extends Option {
 
   /**
    * Update the value of the option, echoing the change if the echoOptions
-   * option is set. A warning is raised if the value is not a whole multiple of
-   * pages, and then the validate method is called to allow subclasses to
+   * option is set. A warning is raised if the value is not a whole multiple
+   * of pages, and then the validate method is called to allow subclasses to
    * perform any additional validation.
    * 
-   * @param value
-   *          The new value for the option.
+   * @param value The new value for the option.
    */
   public void setBytes(Extent value) {
     Extent oldValue = getBytes();

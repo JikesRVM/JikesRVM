@@ -19,28 +19,25 @@ import org.vmmagic.pragma.*;
  */
 public abstract class AbstractTile implements Uninterruptible {
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Class variables
    */
 
   // Controls used for tile presentation
   public static final byte CONTROL_USED = 1; // used tile
-
   public static final byte CONTROL_BACKGROUND = 2; // background tile
-
   public static final byte CONTROL_UNUSED = 4; // unused tile
-
   public static final byte CONTROL_SEPARATOR = 8; // separator
-
   public static final byte CONTROL_LINK = 16;
 
-  /*****************************************************************************
+  /****************************************************************************
    * 
    * Instance variables
    */
 
   private byte control_; // The value of the control for this tile
+
 
   /**
    * Clear a tile
@@ -88,8 +85,7 @@ public abstract class AbstractTile implements Uninterruptible {
   /**
    * Initialise the value of a control
    * 
-   * @param value
-   *          The new value of the control
+   * @param value The new value of the control
    */
   public void initControl(byte value) {
     control_ = value;
@@ -98,18 +94,15 @@ public abstract class AbstractTile implements Uninterruptible {
   /**
    * Add to the control
    * 
-   * @param value
-   *          The value to add to the control
+   * @param value The value to add to the control
    */
   public void addControl(byte value) {
     control_ |= value;
   }
 
-  /**
-   * Set the control
+  /** Set the control
    * 
-   * @param value
-   *          The value to set
+   * @param value The value to set
    */
   public void setControl(byte value) {
     control_ &= value;
@@ -127,8 +120,7 @@ public abstract class AbstractTile implements Uninterruptible {
   /**
    * Initialise control values in tiles
    * 
-   * @param tiles
-   *          The tiles to initialise
+   * @param tiles The tiles to initialise
    */
   public static void control(AbstractTile[] tiles) {
     for (int i = 0; i < tiles.length; ++i) {
@@ -139,19 +131,16 @@ public abstract class AbstractTile implements Uninterruptible {
   /**
    * Set the control value in each tile in a region
    * 
-   * @param tiles
-   *          The tiles to set
-   * @param tag
-   *          The control tag
-   * @param start
-   *          The start index of the region
-   * @param len
-   *          The number of tiles in the region
+   * @param tiles The tiles to set
+   * @param tag The control tag
+   * @param start The start index of the region
+   * @param len The number of tiles in the region
    */
   public static void controlValues(AbstractTile[] tiles, byte tag, int start,
       int len) {
     for (int i = start; i < (start + len); ++i) {
-      if (controlIsBackground(tag) || controlIsUnused(tag)) {
+      if (controlIsBackground(tag) ||
+          controlIsUnused(tag)) {
         if (controlIsUsed(tiles[i].getControl()))
           tiles[i].setControl((byte) ~CONTROL_USED);
       }
@@ -160,14 +149,10 @@ public abstract class AbstractTile implements Uninterruptible {
   }
 
   /**
-   * Add space value to a tile This is typically used to increment a tile's
-   * usedSpace field
-   * 
-   * @param sid
-   *          a stream id
-   * @param size
-   *          the size to add
+   * Add space value to a tile
+   * This is typically used to increment a tile's usedSpace field
+   * @param sid a stream id
+   * @param size the size to add
    */
-  public void addSpace(int sid, int size) {
-  }
+  public void addSpace(int sid, int size) { }
 }

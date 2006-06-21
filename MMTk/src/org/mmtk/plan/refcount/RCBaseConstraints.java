@@ -23,19 +23,11 @@ import org.vmmagic.pragma.*;
 public abstract class RCBaseConstraints extends StopTheWorldConstraints
     implements Uninterruptible {
 
-  public boolean needsWriteBarrier() {
-    return true;
-  }
+  public boolean needsWriteBarrier() { return true; }
 
-  public boolean noParallelGC() {
-    return true;
-  }
+  public boolean noParallelGC() { return true; }
 
-  public int gcHeaderBits() {
-    return RefCountSpace.LOCAL_GC_BITS_REQUIRED;
-  }
+  public int gcHeaderBits() { return RefCountSpace.LOCAL_GC_BITS_REQUIRED; }
 
-  public int gcHeaderWords() {
-    return RefCountSpace.GC_HEADER_WORDS_REQUIRED;
-  }
+  public int gcHeaderWords() { return RefCountSpace.GC_HEADER_WORDS_REQUIRED; }
 }

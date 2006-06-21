@@ -19,6 +19,7 @@ public class GenCycleDetection extends BooleanOption {
    */
   public GenCycleDetection() {
     super("Gen Cycle Detection",
-        "Should we use a generational approach to cycle detection?", false);
+          "Should we use a generational approach to cycle detection?",
+          false);
   }
 }

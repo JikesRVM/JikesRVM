@@ -7,8 +7,7 @@ package org.mmtk.utility.options;
 /**
  * Should we print verbose fragmentation statistics for the free list allocator?
  * 
- * $Id: VerboseFragmentationStats.java,v 1.2 2005/07/20 14:32:14 dframpton-oss
- * Exp $
+ * $Id$
  * 
  * @author Daniel Frampton
  * @version $Revision$
@@ -19,8 +18,7 @@ public class VerboseFragmentationStats extends BooleanOption {
    * Create the option.
    */
   public VerboseFragmentationStats() {
-    super(
-        "Verbose Fragmentation Stats",
+    super("Verbose Fragmentation Stats", 
         "Should we print verbose fragmentation statistics for the free list allocator?",
         false);
   }

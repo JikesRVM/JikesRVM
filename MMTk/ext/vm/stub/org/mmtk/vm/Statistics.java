@@ -6,8 +6,9 @@
  */
 package org.mmtk.vm;
 
+
 /**
- * $Id$
+ * $Id$ 
  * 
  * @author Steve Blackburn
  * @author Perry Cheng

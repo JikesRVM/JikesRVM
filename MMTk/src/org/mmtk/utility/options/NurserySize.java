@@ -7,8 +7,8 @@ package org.mmtk.utility.options;
 import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**
- * A composite option that provides a min/max interface to MMTk, and a
- * fixed/bounded option interface to the VM/user.
+ * A composite option that provides a min/max interface to MMTk,
+ * and a fixed/bounded option interface to the VM/user.
  * 
  * $Id$
  * 
@@ -19,7 +19,6 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 public class NurserySize {
   // values
   private FixedNursery fixedNursery;
-
   private BoundedNursery boundedNursery;
 
   /**
