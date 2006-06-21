@@ -10,9 +10,9 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**
  * Base class for boolean options.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -20,14 +20,18 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 public class BooleanOption extends Option {
   // values
   protected boolean defaultValue;
+
   protected boolean value;
 
   /**
    * Create a new boolean option.
-   *
-   * @param name The space separated name for the option.
-   * @param desc The purpose of the option
-   * @param defaultValue The default value of the option.
+   * 
+   * @param name
+   *          The space separated name for the option.
+   * @param desc
+   *          The purpose of the option
+   * @param defaultValue
+   *          The default value of the option.
    */
   protected BooleanOption(String name, String desc, boolean defaultValue) {
     super(BOOLEAN_OPTION, name, desc);
@@ -36,7 +40,7 @@ public class BooleanOption extends Option {
 
   /**
    * Read the current value of the option.
-   *
+   * 
    * @return The option value.
    */
   public boolean getValue() throws UninterruptiblePragma {
@@ -45,7 +49,7 @@ public class BooleanOption extends Option {
 
   /**
    * Read the default value of the option.
-   *
+   * 
    * @return The default value.
    */
   public boolean getDefaultValue() throws UninterruptiblePragma {
@@ -56,8 +60,9 @@ public class BooleanOption extends Option {
    * Update the value of the option, echoing the change if the echoOptions
    * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
-   *
-   * @param value The new value for the option.
+   * 
+   * @param value
+   *          The new value for the option.
    */
   public void setValue(boolean value) {
     boolean oldValue = this.value;

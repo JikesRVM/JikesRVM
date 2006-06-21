@@ -18,30 +18,34 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements lazy mmapping of virtual memory.
- *
+ * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public final class LazyMmapper implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
+  public final static String Id = "$Id$";
 
-  /****************************************************************************
-   *
-   * Public static methods 
-   *
+  /*****************************************************************************
+   * 
+   * Public static methods
+   * 
    */
 
   public static final boolean verbose = false;
+
   public static final Lock lock = new Lock("LazyMapper");
 
-  // There is a monotonicity assumption so that only updates require lock acquisition.
+  // There is a monotonicity assumption so that only updates require lock
+  // acquisition.
   //
   public static void ensureMapped(Address start, int pages) {
     int startChunk = Conversions.addressToMmapChunksDown(start);
-    int endChunk = Conversions.addressToMmapChunksUp(start.plus(Conversions.pagesToBytes(pages)));
-    for (int chunk=startChunk; chunk < endChunk; chunk++) {
-      if (mapped[chunk] == MAPPED) continue;
+    int endChunk = Conversions.addressToMmapChunksUp(start.plus(Conversions
+        .pagesToBytes(pages)));
+    for (int chunk = startChunk; chunk < endChunk; chunk++) {
+      if (mapped[chunk] == MAPPED)
+        continue;
       Address mmapStart = Conversions.mmapChunksToAddress(chunk);
       lock.acquire();
       // might have become MAPPED here
@@ -52,14 +56,20 @@ public final class LazyMmapper implements Constants, Uninterruptible {
         lock.check(102);
         if (errno != 0) {
           lock.release();
-          Log.write("ensureMapped failed with errno "); Log.write(errno);
-          Log.write(" on address "); Log.writeln(mmapStart);
-          if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
-        }
-        else {
+          Log.write("ensureMapped failed with errno ");
+          Log.write(errno);
+          Log.write(" on address ");
+          Log.writeln(mmapStart);
+          if (Assert.VERIFY_ASSERTIONS)
+            Assert._assert(false);
+        } else {
           if (verbose) {
-            Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
+            Log.write("mmap succeeded at chunk ");
+            Log.write(chunk);
+            Log.write("  ");
+            Log.write(mmapStart);
+            Log.write(" with len = ");
+            Log.writeln(MMAP_CHUNK_SIZE);
           }
         }
         lock.check(103);
@@ -70,11 +80,14 @@ public final class LazyMmapper implements Constants, Uninterruptible {
           lock.check(202);
           lock.release();
           Assert.fail("LazyMmapper.ensureMapped (unprotect) failed");
-        }
-        else {
+        } else {
           if (verbose) {
-            Log.write("munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
+            Log.write("munprotect succeeded at chunk ");
+            Log.write(chunk);
+            Log.write("  ");
+            Log.write(mmapStart);
+            Log.write(" with len = ");
+            Log.writeln(MMAP_CHUNK_SIZE);
           }
         }
       }
@@ -87,59 +100,73 @@ public final class LazyMmapper implements Constants, Uninterruptible {
   }
 
   public static void protect(Address start, int pages) {
-    int startChunk = Conversions.addressToMmapChunksDown(start); 
+    int startChunk = Conversions.addressToMmapChunksDown(start);
     int chunks = Conversions.pagesToMmapChunksUp(pages);
     int endChunk = startChunk + chunks;
     lock.acquire();
-    for (int chunk=startChunk; chunk < endChunk; chunk++) {
+    for (int chunk = startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
         Address mmapStart = Conversions.mmapChunksToAddress(chunk);
         if (!Memory.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
           lock.release();
           Assert.fail("LazyMmapper.mprotect failed");
-        }
-        else {
+        } else {
           if (verbose) {
-            Log.write("mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
+            Log.write("mprotect succeeded at chunk ");
+            Log.write(chunk);
+            Log.write("  ");
+            Log.write(mmapStart);
+            Log.write(" with len = ");
+            Log.writeln(MMAP_CHUNK_SIZE);
           }
         }
         mapped[chunk] = PROTECTED;
-      }
-      else {
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(mapped[chunk] == PROTECTED);
+      } else {
+        if (Assert.VERIFY_ASSERTIONS)
+          Assert._assert(mapped[chunk] == PROTECTED);
       }
     }
     lock.release();
   }
 
-  public static boolean addressIsMapped(Address addr) 
-    throws UninterruptiblePragma {
+  public static boolean addressIsMapped(Address addr)
+      throws UninterruptiblePragma {
     int chunk = Conversions.addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
 
-  public static boolean objectIsMapped(ObjectReference object) 
-    throws UninterruptiblePragma {
+  public static boolean objectIsMapped(ObjectReference object)
+      throws UninterruptiblePragma {
     return addressIsMapped(ObjectModel.refToAddress(object));
   }
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Private static methods and variables
    */
   final public static byte UNMAPPED = 0;
+
   final public static byte MAPPED = 1;
-  final public static byte PROTECTED = 2;   // mapped but not accessible
+
+  final public static byte PROTECTED = 2; // mapped but not accessible
+
   private static byte mapped[];
-  final public static int LOG_MMAP_CHUNK_SIZE = 20;            
-  final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE;   // the granularity VMResource operates at
-  //TODO: 64-bit: this is not OK: value does not fit in int, but should, we do not want to create such big array
+
+  final public static int LOG_MMAP_CHUNK_SIZE = 20;
+
+  final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE; // the
+                                                                      // granularity
+                                                                      // VMResource
+                                                                      // operates
+                                                                      // at
+
+  // TODO: 64-bit: this is not OK: value does not fit in int, but should, we do
+  // not want to create such big array
   final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
 
   /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).
+   * Class initializer. This is executed <i>prior</i> to bootstrap (i.e. at
+   * "build" time).
    */
   static {
     mapped = new byte[MMAP_NUM_CHUNKS];
@@ -148,12 +175,12 @@ public final class LazyMmapper implements Constants, Uninterruptible {
     }
   }
 
-  public static void boot (Address bootStart, int bootSize) {
+  public static void boot(Address bootStart, int bootSize) {
     int startChunk = Conversions.addressToMmapChunksDown(bootStart);
-    int endChunk = Conversions.addressToMmapChunksDown(bootStart.plus(bootSize));
-    for (int i=startChunk; i<=endChunk; i++)
+    int endChunk = Conversions
+        .addressToMmapChunksDown(bootStart.plus(bootSize));
+    for (int i = startChunk; i <= endChunk; i++)
       mapped[i] = MAPPED;
   }
 
 }
-

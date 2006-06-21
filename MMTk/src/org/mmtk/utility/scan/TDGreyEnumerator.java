@@ -11,10 +11,9 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * A pointer enumeration class.  This class is used by the trial
- * deletion cycle detector to perform transitive closure of its "mark
- * grey" phase.
- *
+ * A pointer enumeration class. This class is used by the trial deletion cycle
+ * detector to perform transitive closure of its "mark grey" phase.
+ * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $date: $
@@ -24,18 +23,20 @@ public class TDGreyEnumerator extends Enumerator implements Uninterruptible {
 
   /**
    * Constructor.
-   *
-   * @param td The trial deletion instance with respect to which the
-   * enumeration will occur.
+   * 
+   * @param td
+   *          The trial deletion instance with respect to which the enumeration
+   *          will occur.
    */
   public TDGreyEnumerator(TrialDeletion td) {
     this.td = td;
   }
 
   /**
-   * Enumerate a pointer.  In this case it is a mark-grey event.
-   *
-   * @param objLoc The address of the field being enumerated.
+   * Enumerate a pointer. In this case it is a mark-grey event.
+   * 
+   * @param objLoc
+   *          The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address objLoc) throws InlinePragma {
     td.enumerateGrey(objLoc.loadObjectReference());

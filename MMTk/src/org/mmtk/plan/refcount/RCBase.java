@@ -18,11 +18,11 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements a base functionality of a simple
- * non-concurrent reference counting collector.
- *
+ * This class implements a base functionality of a simple non-concurrent
+ * reference counting collector.
+ * 
  * $Id$
- *
+ * 
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
@@ -31,40 +31,47 @@ import org.vmmagic.pragma.*;
  */
 public abstract class RCBase extends StopTheWorld implements Uninterruptible {
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Class variables
    */
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
+
   public static final boolean WITH_COALESCING_RC = true;
 
   /* Spaces */
-  public static RefCountSpace rcSpace = new RefCountSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
+  public static RefCountSpace rcSpace = new RefCountSpace("rc",
+      DEFAULT_POLL_FREQUENCY, (float) 0.5);
+
   public static final int RC = rcSpace.getDescriptor();
 
   /* Counters */
   public static EventCounter wbFast;
+
   public static EventCounter wbSlow;
 
   /* shared queues */
   protected SharedDeque decPool;
+
   protected SharedDeque modPool;
+
   protected SharedDeque rootPool;
 
   // GC state
-  public int previousMetaDataPages;  // meta-data pages after last GC
+  public int previousMetaDataPages; // meta-data pages after last GC
+
   public int lastRCPages = 0; // pages at end of last GC
 
- /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Initialization
    */
 
   /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time). This is where key <i>global</i> instances
-   * are allocated.  These instances will be incorporated into the
-   * boot image by the build process.
+   * Class initializer. This is executed <i>prior</i> to bootstrap (i.e. at
+   * "build" time). This is where key <i>global</i> instances are allocated.
+   * These instances will be incorporated into the boot image by the build
+   * process.
    */
   static {
     Options.gcTimeCap = new GCTimeCap();
@@ -79,7 +86,7 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    * Constructor
    */
   public RCBase() {
-    //  instantiate shared queues
+    // instantiate shared queues
     if (WITH_COALESCING_RC) {
       modPool = new SharedDeque(metaDataSpace, 1);
       modPool.newConsumer();
@@ -90,67 +97,69 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
     rootPool.newConsumer();
   }
 
-
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * RC methods
    */
 
   /**
    * Return true if the object resides within the RC space
-   *
-   * @param object An object reference
+   * 
+   * @param object
+   *          An object reference
    * @return True if the object resides within the RC space
    */
   public static final boolean isRCObject(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (object.isNull())
       return false;
-    else return (Space.isInSpace(RC, object) || Space.isInSpace(LOS, object));
+    else
+      return (Space.isInSpace(RC, object) || Space.isInSpace(LOS, object));
   }
 
   /**
-   * Perform any required initialization of the GC portion of the header.
-   * Called for objects created at boot time.
-   *
-   * @param ref the object ref to the storage to be initialized
-   * @param typeRef the type reference for the instance being created
-   * @param size the number of bytes allocated by the GC system for
-   * this object.
-   * @param status the initial value of the status word
+   * Perform any required initialization of the GC portion of the header. Called
+   * for objects created at boot time.
+   * 
+   * @param ref
+   *          the object ref to the storage to be initialized
+   * @param typeRef
+   *          the type reference for the instance being created
+   * @param size
+   *          the number of bytes allocated by the GC system for this object.
+   * @param status
+   *          the initial value of the status word
    * @return The new value of the status word
    */
-  public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status)
-    throws UninterruptiblePragma, InlinePragma {
-    if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);
+  public Word setBootTimeGCBits(Address ref, ObjectReference typeRef, int size,
+      Word status) throws UninterruptiblePragma, InlinePragma {
+    if (WITH_COALESCING_RC)
+      status = status.or(RefCountSpace.UNLOGGED);
     return status;
   }
 
-  /****************************************************************************
-  *
-  * Space management
-  */
+  /*****************************************************************************
+   * 
+   * Space management
+   */
 
   /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation.
+   * Return the number of pages reserved for use given the pending allocation.
+   * 
+   * @return The number of pages reserved given the pending allocation.
    */
   public int getPagesUsed() {
     return rcSpace.reservedPages() + super.getPagesUsed();
   }
-  
+
   /**
    * @return the active PlanLocal as an RCBaseLocal
    */
-// FIXME This is a consequence of zero collector/mutator separation in RC...
-//  public static final RCBaseCollector collector() {
-//    return ((RCBaseCollector)ActivePlan.collector());
-//  }
+  // FIXME This is a consequence of zero collector/mutator separation in RC...
+  // public static final RCBaseCollector collector() {
+  // return ((RCBaseCollector)ActivePlan.collector());
+  // }
   public static final RCBaseMutator collector() {
-    return ((RCBaseMutator)ActivePlan.mutator());
+    return ((RCBaseMutator) ActivePlan.mutator());
   }
 }

@@ -2,7 +2,6 @@
  * (C) Copyright IBM Corp. 2002
  */
 //$Id$
-
 package org.mmtk.utility;
 
 import org.mmtk.utility.heap.*;
@@ -13,20 +12,22 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /*
-import com.ibm.JikesRVM.VM_Offset;
+ import com.ibm.JikesRVM.VM_Offset;
  * Conversions between different units.
  *
  * @author Perry Cheng
  */
 public class Conversions implements Constants, Uninterruptible {
 
-//   public static Address roundDownVM(Address addr) {
-//     return roundDown(addr.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
-//   }
+  // public static Address roundDownVM(Address addr) {
+  // return roundDown(addr.toWord(),
+  // VMResource.LOG_BYTES_IN_VM_REGION).toAddress();
+  // }
 
-//   public static Extent roundDownVM(Extent bytes) {
-//     return roundDown(bytes.toWord(), VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
-//   }
+  // public static Extent roundDownVM(Extent bytes) {
+  // return roundDown(bytes.toWord(),
+  // VMResource.LOG_BYTES_IN_VM_REGION).toExtent();
+  // }
 
   public static Address roundDownMB(Address addr) {
     return roundDown(addr.toWord(), LOG_BYTES_IN_MBYTE).toAddress();
@@ -51,35 +52,38 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   public static int bytesToMmapChunksUp(Extent bytes) {
-    return bytes.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toInt();
+    return bytes.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(
+        LazyMmapper.LOG_MMAP_CHUNK_SIZE).toInt();
   }
 
   public static int pagesToMmapChunksUp(int pages) {
     return bytesToMmapChunksUp(pagesToBytes(pages));
   }
 
-  public static int addressToMmapChunksDown (Address addr) {
+  public static int addressToMmapChunksDown(Address addr) {
     Word chunk = addr.toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
     return chunk.toInt();
   }
 
-  public static int addressToPagesDown (Address addr) {
+  public static int addressToPagesDown(Address addr) {
     Word chunk = addr.toWord().rshl(LOG_BYTES_IN_PAGE);
     return chunk.toInt();
   }
 
-  public static int addressToPages (Address addr) {
+  public static int addressToPages(Address addr) {
     int page = addressToPagesDown(addr);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(pagesToAddress(page).EQ(addr));
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(pagesToAddress(page).EQ(addr));
     return page;
   }
 
-  public static Address pagesToAddress (int pages) {
+  public static Address pagesToAddress(int pages) {
     return Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toAddress();
   }
 
-  public static int addressToMmapChunksUp (Address addr) {
-    Word chunk = addr.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
+  public static int addressToMmapChunksUp(Address addr) {
+    Word chunk = addr.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(
+        LazyMmapper.LOG_MMAP_CHUNK_SIZE);
     return chunk.toInt();
   }
 
@@ -96,26 +100,28 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   /**
-    @deprecated : use int bytesToPagesUp(Extent bytes) if possible
-  */
+   * @deprecated : use int bytesToPagesUp(Extent bytes) if possible
+   */
   public static int bytesToPagesUp(int bytes) {
     return bytesToPagesUp(Extent.fromIntZeroExtend(bytes));
   }
-  
+
   /**
-    @deprecated : use int bytesToPagesUp(Extent bytes) if possible
-  */
+   * @deprecated : use int bytesToPagesUp(Extent bytes) if possible
+   */
   public static int bytesToPages(int bytes) {
     return bytesToPages(Extent.fromIntZeroExtend(bytes));
   }
-  
+
   public static int bytesToPagesUp(Extent bytes) {
-    return bytes.plus(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(BYTES_IN_PAGE - 1).toWord().rshl(LOG_BYTES_IN_PAGE)
+        .toInt();
   }
-  
+
   public static int bytesToPages(Extent bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
     return pages;
   }
 
@@ -129,13 +135,15 @@ public class Conversions implements Constants, Uninterruptible {
     else
       return -bytesToPagesUp(Extent.fromIntSignExtend(-bytes.toInt()));
   }
-  
+
   public static Address mmapChunksToAddress(int chunk) {
-    return Word.fromIntZeroExtend(chunk).lsh(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toAddress();
+    return Word.fromIntZeroExtend(chunk).lsh(LazyMmapper.LOG_MMAP_CHUNK_SIZE)
+        .toAddress();
   }
 
   public static Address pageAlign(Address address) {
-    return address.toWord().rshl(LOG_BYTES_IN_PAGE).lsh(LOG_BYTES_IN_PAGE).toAddress();
+    return address.toWord().rshl(LOG_BYTES_IN_PAGE).lsh(LOG_BYTES_IN_PAGE)
+        .toAddress();
   }
 
   public static boolean isPageAligned(Address address) {

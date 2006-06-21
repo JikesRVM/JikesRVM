@@ -2,11 +2,11 @@
  *(C) Copyright Australian National University, 2004.
  */
 //$Id$
-package org.vmmagic.unboxed; 
- 
+package org.vmmagic.unboxed;
+
 /**
  * To be commented.
- *
+ * 
  * @author Daniel Frampton
  * @see Address
  */
@@ -22,7 +22,7 @@ public final class Word {
   public static Word fromIntSignExtend(int val) {
     return null;
   }
-  
+
   public static Word fromIntZeroExtend(int val) {
     return null;
   }
@@ -144,4 +144,3 @@ public final class Word {
   }
 
 }
-

@@ -242,90 +242,48 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     }
   }
 
-  /**
-	 * Checks whether a <code>CollectorContext</code> is eligible to participate in a
-	 * collection. This is a bit contrived in order to avoid a checkcast occuring
-	 * during GC.
-   *
-	 * @param collector the collector to check
-	 * @return <code>true</code> if the collector is not participating,
-   * <code>false</code> otherwise
-   */
-	public static boolean isNonParticipating(CollectorContext collector) {
-		int collectorId = collector.getId();
-		VM_Processor vp = ActivePlan.selectedCollector(collectorId).getProcessor();
-		int vpStatus = vp.vpStatus;
-		return vpStatus == VM_Processor.BLOCKED_IN_NATIVE;
-	}
-	
 	/**
-	 * Checks whether a <code>MutatorContext</code> is eligible to participate in the mutator phase of a
-	 * collection. This is a bit contrived in order to avoid a checkcast occuring
-	 * during GC.
+	 * Prepare a mutator for collection.
 	 *
-	 * @param mutator the mutator to check
-	 * @return <code>true</code> if the mutator is not participating,
-	 * <code>false</code> otherwise
+	 * @param m the mutator to prepare
 	 */
-	public static boolean isNonParticipating(MutatorContext mutator) {
-		int mutatorId = mutator.getId();
-		VM_Processor vp = ActivePlan.selectedMutator(mutatorId).getProcessor();
+  public static void prepareMutator(MutatorContext m) {
+    VM_Processor vp = ((SelectedMutatorContext) m).getProcessor();
     int vpStatus = vp.vpStatus;
-    return vpStatus == VM_Processor.BLOCKED_IN_NATIVE;
-  }
-
-  /**
-   * Prepare a plan that is not participating in a collection.
-   *
-   * @param p the plan to prepare
-   */
-	public static void prepareNonParticipating(CollectorContext p) {
-    /*
-     * The collector threads of processors currently running threads
-     * off in JNI-land cannot run.
-     */
-		VM_Processor vp = ((SelectedCollectorContext) p).getProcessor();
-    int vpStatus = vp.vpStatus;
-    if (VM.VerifyAssertions)
-      VM._assert(vpStatus == VM_Processor.BLOCKED_IN_NATIVE);
-
-    /* processor & its running thread are blocked in C for this GC.
+    
+    if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
+      /* Not participating: The collector threads of processors currently running 
+       * threads off in JNI-land cannot run.
+       */
+      
+      /* processor & its running thread are blocked in C for this GC.
        Its stack needs to be scanned, starting from the "top" java
        frame, which has been saved in the running threads JNIEnv.  Put
        the saved frame pointer into the threads saved context regs,
        which is where the stack scan starts. */
-    VM_Thread t = vp.activeThread;
-    t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
-  }
-
-  /**
-   * Set a collector thread's so that a scan of its stack
-   * will start at VM_CollectorThread.run
-   *
-   * @param p the plan to prepare
-   */
-	public static void prepareParticipating(CollectorContext p) {
-		VM_Processor vp = ((SelectedCollectorContext) p).getProcessor();
-    if (VM.VerifyAssertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
-    VM_Thread t = VM_Thread.getCurrentThread();
-    Address fp = VM_Magic.getFramePointer();
-    while (true) {
-      Address caller_ip = VM_Magic.getReturnAddress(fp);
-      Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
-        VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
-      int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
-      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-      VM_Method method = compiledMethod.getMethod();
-      VM_Atom cls = method.getDeclaringClass().getDescriptor();
-      VM_Atom name = method.getName();
-      if (name == runAtom && cls == collectorThreadAtom) {
-        t.contextRegisters.setInnermost(caller_ip, caller_fp);
-        break;
+      VM_Thread t = vp.activeThread;
+      t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
+    } else {
+      /* Participating in collection */ 
+      VM_Thread t = VM_Thread.getCurrentThread();
+      Address fp = VM_Magic.getFramePointer();
+      while (true) {
+        Address caller_ip = VM_Magic.getReturnAddress(fp);
+        Address caller_fp = VM_Magic.getCallerFramePointer(fp);
+        if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
+          VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
+        int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
+        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        VM_Method method = compiledMethod.getMethod();
+        VM_Atom cls = method.getDeclaringClass().getDescriptor();
+        VM_Atom name = method.getName();
+        if (name == runAtom && cls == collectorThreadAtom) {
+          t.contextRegisters.setInnermost(caller_ip, caller_fp);
+          break;
+        }
+        fp = caller_fp; 
       }
-      fp = caller_fp; 
     }
-
   }
 
   /**

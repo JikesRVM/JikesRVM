@@ -2,7 +2,7 @@
  * (C) Copyright Australian National University. 2004
  */
 //$Id$
-package org.vmmagic.unboxed; 
+package org.vmmagic.unboxed;
 
 /**
  * Commenting required
@@ -55,7 +55,7 @@ public final class Extent {
   }
 
   public Extent plus(Extent byteSize) {
-	    return null;
+    return null;
   }
 
   public Extent minus(int byteSize) {
@@ -90,4 +90,3 @@ public final class Extent {
     return false;
   }
 }
-

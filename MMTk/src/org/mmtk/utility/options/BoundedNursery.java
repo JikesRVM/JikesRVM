@@ -7,11 +7,11 @@ package org.mmtk.utility.options;
 import org.mmtk.plan.Plan;
 
 /**
- * Provide an upper bound on nursery size. This option is not intended to
- * be created directly, but via NurserySize.
- *
+ * Provide an upper bound on nursery size. This option is not intended to be
+ * created directly, but via NurserySize.
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -22,8 +22,8 @@ public class BoundedNursery extends PagesOption {
    */
   public BoundedNursery() {
     super("Bounded Nursery",
-          "Bound the maximum size of the nursery to this value",
-          Plan.DEFAULT_MAX_NURSERY);
+        "Bound the maximum size of the nursery to this value",
+        Plan.DEFAULT_MAX_NURSERY);
   }
 
   /**

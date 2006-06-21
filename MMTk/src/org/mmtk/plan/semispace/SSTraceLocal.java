@@ -12,11 +12,11 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the core functionality for a transitive
- * closure over the heap graph.
- *
+ * This abstract class implments the core functionality for a transitive closure
+ * over the heap graph.
+ * 
  * $Id$
- *
+ * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
@@ -33,19 +33,21 @@ public class SSTraceLocal extends TraceLocal implements Uninterruptible {
     super(trace);
   }
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Externally visible Object processing and tracing
    */
 
   /**
    * Return true if <code>obj</code> is a live object.
-   *
-   * @param object The object in question
+   * 
+   * @param object
+   *          The object in question
    * @return True if <code>obj</code> is a live object.
    */
   public boolean isLive(ObjectReference object) {
-    if (object.isNull()) return false;
+    if (object.isNull())
+      return false;
     if (Space.isInSpace(SS.SS0, object))
       return SS.hi ? SS.copySpace0.isLive(object) : true;
     if (Space.isInSpace(SS.SS1, object))
@@ -53,53 +55,57 @@ public class SSTraceLocal extends TraceLocal implements Uninterruptible {
     return super.isLive(object);
   }
 
-
   /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
-   *
-   * @param object The object to be traced.
+   * This method is the core method during the trace of the object graph. The
+   * role of this method is to:
+   * 
+   * 1. Ensure the traced object is not collected. 2. If this is the first visit
+   * to the object enqueue it to be scanned. 3. Return the forwarded reference
+   * to the object.
+   * 
+   * @param object
+   *          The object to be traced.
    * @return The new reference to the same object instance.
    */
   public ObjectReference traceObject(ObjectReference object)
-    throws InlinePragma {
-    if (object.isNull()) return object;
+      throws InlinePragma {
+    if (object.isNull())
+      return object;
     if (Space.isInSpace(SS.SS0, object))
-      return SS.copySpace0.traceObject(this,object);
+      return SS.copySpace0.traceObject(this, object);
     if (Space.isInSpace(SS.SS1, object))
-      return SS.copySpace1.traceObject(this,object);
+      return SS.copySpace1.traceObject(this, object);
     return super.traceObject(object);
   }
 
   /**
    * Ensure that this object will not move for the rest of the GC.
-   *
-   * @param object The object that must not move
+   * 
+   * @param object
+   *          The object that must not move
    * @return The new object, guaranteed stable for the rest of the GC.
    */
   public ObjectReference precopyObject(ObjectReference object)
-    throws InlinePragma {
-    if (object.isNull()) return object;
+      throws InlinePragma {
+    if (object.isNull())
+      return object;
     if (Space.isInSpace(SS.SS0, object))
-      return SS.copySpace0.traceObject(this,object);
+      return SS.copySpace0.traceObject(this, object);
     if (Space.isInSpace(SS.SS1, object))
-      return SS.copySpace1.traceObject(this,object);
+      return SS.copySpace1.traceObject(this, object);
     return object;
   }
 
   /**
    * Will this object move from this point on, during the current trace ?
    * 
-   * @param object The object to query.
+   * @param object
+   *          The object to query.
    * @return True if the object will not move.
    */
-  public boolean willNotMove (ObjectReference object) {
+  public boolean willNotMove(ObjectReference object) {
     return (SS.hi && !Space.isInSpace(SS.SS0, object))
-       || (!SS.hi && !Space.isInSpace(SS.SS1, object));
+        || (!SS.hi && !Space.isInSpace(SS.SS1, object));
   }
 
   /**

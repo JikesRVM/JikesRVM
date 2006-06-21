@@ -12,28 +12,29 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the core functionality for a transitive
- * closure over the heap graph.
- *
+ * This abstract class implments the core functionality for a transitive closure
+ * over the heap graph.
+ * 
  * $Id$
- *
+ * 
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
  * @date $Date$
  */
-public final class GenNurseryTraceLocal extends TraceLocal
-  implements Uninterruptible {
+public final class GenNurseryTraceLocal extends TraceLocal implements
+    Uninterruptible {
 
-  /****************************************************************************
-  *
-  * Instance fields.
-  */
-  private final WriteBuffer remset; 
+  /*****************************************************************************
+   * 
+   * Instance fields.
+   */
+  private final WriteBuffer remset;
+
   private final AddressDeque traceRemset;
-  private final AddressPairDeque arrayRemset;
 
+  private final AddressPairDeque arrayRemset;
 
   /**
    * Constructor
@@ -45,19 +46,21 @@ public final class GenNurseryTraceLocal extends TraceLocal
     this.arrayRemset = plan.arrayRemset;
   }
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object live?
-   *
-   * @param object The object.
+   * 
+   * @param object
+   *          The object.
    * @return True if the object is live.
    */
   public boolean isLive(ObjectReference object) {
-    if (object.isNull()) return false;
+    if (object.isNull())
+      return false;
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       return Gen.nurserySpace.isLive(object);
     }
@@ -65,18 +68,19 @@ public final class GenNurseryTraceLocal extends TraceLocal
   }
 
   /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
-   *
-   * @param object The object to be traced.
+   * This method is the core method during the trace of the object graph. The
+   * role of this method is to:
+   * 
+   * 1. Ensure the traced object is not collected. 2. If this is the first visit
+   * to the object enqueue it to be scanned. 3. Return the forwarded reference
+   * to the object.
+   * 
+   * @param object
+   *          The object to be traced.
    * @return The new reference to the same object instance.
    */
   public ObjectReference traceObject(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
       return Gen.nurserySpace.traceObject(this, object);
     }
@@ -111,15 +115,17 @@ public final class GenNurseryTraceLocal extends TraceLocal
   public final int getAllocator() throws InlinePragma {
     return Gen.ALLOC_MATURE;
   }
-  
+
   /**
    * Will the object move from now on during the collection.
    * 
-   * @param object The object to query.
+   * @param object
+   *          The object to query.
    * @return True if the object is guaranteed not to move.
    */
   public boolean willNotMove(ObjectReference object) {
-    if (object.isNull()) return false;
+    if (object.isNull())
+      return false;
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       return false;
     }

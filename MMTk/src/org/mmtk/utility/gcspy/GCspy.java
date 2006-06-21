@@ -12,26 +12,27 @@ import org.mmtk.vm.ActivePlan;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements collector-independent GCspy functionality to start
- * the GCspy server.
- *
+ * This class implements collector-independent GCspy functionality to start the
+ * GCspy server.
+ * 
  * $Id$
- *
+ * 
  * @author <a href="http://www.cs.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
 public class GCspy implements Uninterruptible {
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Class variables
    */
-  private static int gcspyPort_ = 0;            // port to connect on
-  private static boolean gcspyWait_ = false;    // wait for connection?
+  private static int gcspyPort_ = 0; // port to connect on
 
-  /****************************************************************************
-   *
+  private static boolean gcspyWait_ = false; // wait for connection?
+
+  /*****************************************************************************
+   * 
    * Initialization
    */
 
@@ -42,17 +43,17 @@ public class GCspy implements Uninterruptible {
   }
 
   /**
-   * The boot method is called by the runtime immediately after
-   * command-line arguments are available.  Note that allocation must
-   * be supported prior to this point because the runtime
-   * infrastructure may require allocation in order to parse the
-   * command line arguments.
+   * The boot method is called by the runtime immediately after command-line
+   * arguments are available. Note that allocation must be supported prior to
+   * this point because the runtime infrastructure may require allocation in
+   * order to parse the command line arguments.
    */
-  public static void postBoot() { }
+  public static void postBoot() {
+  }
 
   /**
    * Get the number of the port that GCspy communicates on
-   *
+   * 
    * @return the GCspy port number
    */
   public static int getGCspyPort() {
@@ -61,7 +62,7 @@ public class GCspy implements Uninterruptible {
 
   /**
    * Should the VM wait for GCspy to connect?
-   *
+   * 
    * @return whether the VM should wait for the visualiser to connect
    */
   public static boolean getGCspyWait() {
@@ -69,12 +70,12 @@ public class GCspy implements Uninterruptible {
   }
 
   /**
-   * Start the GCspy server
-   * WARNING: allocates memory indirectly
+   * Start the GCspy server WARNING: allocates memory indirectly
    */
   public static void startGCspyServer() throws InterruptiblePragma {
     int port = getGCspyPort();
-    Log.write("GCspy.startGCspyServer, port="); Log.write(port);
+    Log.write("GCspy.startGCspyServer, port=");
+    Log.write(port);
     Log.write(", wait=");
     Log.writeln(getGCspyWait());
     if (port > 0) {
@@ -83,4 +84,3 @@ public class GCspy implements Uninterruptible {
     }
   }
 }
-

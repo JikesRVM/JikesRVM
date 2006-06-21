@@ -6,9 +6,9 @@ package org.mmtk.utility.options;
 
 /**
  * Trigger cycle detection if the meta data volume grows to this limit.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -19,7 +19,7 @@ public class CycleMetaDataLimit extends PagesOption {
    */
   public CycleMetaDataLimit() {
     super("Cycle Meta Data Limit",
-          "Trigger cycle detection if the meta data volume grows to this limit",
-          4096);
+        "Trigger cycle detection if the meta data volume grows to this limit",
+        4096);
   }
 }

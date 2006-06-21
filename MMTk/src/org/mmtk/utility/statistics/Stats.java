@@ -16,42 +16,47 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements basic statistics functionality
- *
+ * 
  * @author Steve Blackburn
  * @version $Revision$
- * @date $Date$
- * $Id$
+ * @date $Date$ $Id: Stats.java,v 1.14 2006/06/19 06:08:12
+ *       steveb-oss Exp $
  */
 public class Stats implements Uninterruptible {
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Class variables
    */
 
   public static final boolean GATHER_MARK_CONS_STATS = false;
 
   /** Maximum number of gc/mutator phases that can be counted */
-  static final int MAX_PHASES = 1<<12;
+  static final int MAX_PHASES = 1 << 12;
+
   /** Maximum number of counters that can be in operation */
   static final int MAX_COUNTERS = 100;
 
   static private int counters = 0;
+
   static private Counter counter[];
+
   static int phase = 0;
+
   static private int gcCount = 0;
+
   static boolean gatheringStats = false;
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Initialization
    */
 
   /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).  This is where key <i>global</i>
-   * instances are allocated.  These instances will be incorporated
-   * into the boot image by the build process.
+   * Class initializer. This is executed <i>prior</i> to bootstrap (i.e. at
+   * "build" time). This is where key <i>global</i> instances are allocated.
+   * These instances will be incorporated into the boot image by the build
+   * process.
    */
   static {
     counter = new Counter[MAX_COUNTERS];
@@ -61,7 +66,8 @@ public class Stats implements Uninterruptible {
   /**
    * Add a new counter to the set of managed counters.
    * 
-   * @param ctr The counter to be added.
+   * @param ctr
+   *          The counter to be added.
    */
   static void newCounter(Counter ctr) throws InterruptiblePragma {
     if (counters < (MAX_COUNTERS - 1)) {
@@ -70,14 +76,15 @@ public class Stats implements Uninterruptible {
       Log.writeln("Warning: number of stats counters exceeds maximum");
     }
   }
-  
+
   /**
-   * Start a new GC phase.  This means notifying each counter of the
-   * phase change.
+   * Start a new GC phase. This means notifying each counter of the phase
+   * change.
    */
   public static void startGC() {
     gcCount++;
-    if (!gatheringStats) return;
+    if (!gatheringStats)
+      return;
     if (phase < MAX_PHASES - 1) {
       for (int c = 0; c < counters; c++) {
         counter[c].phaseChange(phase);
@@ -89,11 +96,11 @@ public class Stats implements Uninterruptible {
   }
 
   /**
-   * End a GC phase.  This means notifying each counter of the phase
-   * change.
+   * End a GC phase. This means notifying each counter of the phase change.
    */
   public static void endGC() {
-    if (!gatheringStats) return;
+    if (!gatheringStats)
+      return;
     if (phase < MAX_PHASES - 1) {
       for (int c = 0; c < counters; c++) {
         counter[c].phaseChange(phase);
@@ -101,7 +108,7 @@ public class Stats implements Uninterruptible {
       phase++;
     } else {
       Log.writeln("Warning: number of GC phases exceeds MAX_PHASES");
-    } 
+    }
   }
 
   /**
@@ -111,12 +118,14 @@ public class Stats implements Uninterruptible {
   public static void startAll() {
     if (gatheringStats) {
       Log.writeln("Error: calling Stats.startAll() while stats running");
-      Log.writeln("       verbosity > 0 and the harness mechanism may be conflicitng");
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+      Log
+          .writeln("       verbosity > 0 and the harness mechanism may be conflicitng");
+      if (Assert.VERIFY_ASSERTIONS)
+        Assert._assert(false);
     }
     gatheringStats = true;
     for (int c = 0; c < counters; c++) {
-      if (counter[c].getStart()) 
+      if (counter[c].getStart())
         counter[c].start();
     }
   }
@@ -126,7 +135,7 @@ public class Stats implements Uninterruptible {
    */
   public static void stopAll() {
     for (int c = 0; c < counters; c++) {
-      if (counter[c].getStart()) 
+      if (counter[c].getStart())
         counter[c].stop();
     }
     gatheringStats = false;
@@ -140,42 +149,54 @@ public class Stats implements Uninterruptible {
       printPhases();
     printTotals();
   }
-  
+
   /**
    * Print out statistics totals
    */
   public static void printTotals() {
-    Log.writeln("============================ MMTk Statistics Totals ============================");
+    Log
+        .writeln("============================ MMTk Statistics Totals ============================");
     printColumnNames();
-    Log.write((phase/2)+1); Log.write("\t");
+    Log.write((phase / 2) + 1);
+    Log.write("\t");
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
-        counter[c].printTotal(); Log.write("\t");
+        counter[c].printTotal();
+        Log.write("\t");
       } else {
-        counter[c].printTotal(true); Log.write("\t");
-        counter[c].printTotal(false); Log.write("\t");
+        counter[c].printTotal(true);
+        Log.write("\t");
+        counter[c].printTotal(false);
+        Log.write("\t");
       }
     }
     Log.writeln();
-    Log.write("Total time: "); 
-    Plan.totalTime.printTotal(); Log.writeln(" ms");
-    Log.writeln("------------------------------ End MMTk Statistics -----------------------------");
+    Log.write("Total time: ");
+    Plan.totalTime.printTotal();
+    Log.writeln(" ms");
+    Log
+        .writeln("------------------------------ End MMTk Statistics -----------------------------");
   }
 
   /**
    * Print out statistics for each mutator/gc phase
    */
   public static void printPhases() {
-    Log.writeln("--------------------- MMTk Statistics Per GC/Mutator Phase ---------------------");
+    Log
+        .writeln("--------------------- MMTk Statistics Per GC/Mutator Phase ---------------------");
     printColumnNames();
     for (int p = 0; p <= phase; p += 2) {
-      Log.write((p/2)+1); Log.write("\t");
+      Log.write((p / 2) + 1);
+      Log.write("\t");
       for (int c = 0; c < counters; c++) {
         if (counter[c].mergePhases()) {
-          counter[c].printCount(p); Log.write("\t");
+          counter[c].printCount(p);
+          Log.write("\t");
         } else {
-          counter[c].printCount(p); Log.write("\t");
-          counter[c].printCount(p+1); Log.write("\t");
+          counter[c].printCount(p);
+          Log.write("\t");
+          counter[c].printCount(p + 1);
+          Log.write("\t");
         }
       }
       Log.writeln();
@@ -202,8 +223,12 @@ public class Stats implements Uninterruptible {
   }
 
   /** @return The GC count (inclusive of any in-progress GC) */
-  public static int gcCount() { return gcCount; }
+  public static int gcCount() {
+    return gcCount;
+  }
 
   /** @return True if currently gathering stats */
-  public static boolean gatheringStats() { return gatheringStats; }
+  public static boolean gatheringStats() {
+    return gatheringStats;
+  }
 }

@@ -10,5 +10,5 @@ package org.vmmagic.pragma;
  * @author Daniel Frampton
  */
 public interface Uninterruptible {
-	static final long serialVersionUID = 0; // Keep Eclipse quiet
+  static final long serialVersionUID = 0; // Keep Eclipse quiet
 }

@@ -12,13 +12,13 @@ import org.vmmagic.pragma.*;
 
 /**
  * This abstract class implements the core functionality for a transitive
- * closure over the heap.  This class holds the global state, TraceLocal
- * and its super-classes handle per-thread state.
+ * closure over the heap. This class holds the global state, TraceLocal and its
+ * super-classes handle per-thread state.
  * 
  * $Id$
- *
+ * 
  * $Id$
- *
+ * 
  * @author Perry Cheng
  * @author Steve Blackburn
  * @author Daniel Frampton
@@ -30,8 +30,11 @@ public class Trace implements Constants, Uninterruptible {
 
   // Global pools for load-balancing deques
   final SharedDeque valuePool;
+
   final SharedDeque remsetPool;
+
   final SharedDeque rootLocationPool;
+
   final SharedDeque interiorRootPool;
 
   /**

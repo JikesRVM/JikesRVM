@@ -13,18 +13,23 @@ import org.vmmagic.pragma.*;
 
 /**
  * GCTrace constants.
- *
+ * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
-public class GCTraceConstraints extends SSConstraints implements Uninterruptible {
-  public boolean needsWriteBarrier() { return true; }
+public class GCTraceConstraints extends SSConstraints implements
+    Uninterruptible {
+  public boolean needsWriteBarrier() {
+    return true;
+  }
 
-  public boolean generateGCTrace() { return true; }
+  public boolean generateGCTrace() {
+    return true;
+  }
 }

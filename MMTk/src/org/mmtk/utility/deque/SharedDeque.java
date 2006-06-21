@@ -14,29 +14,30 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
- * for shared use.  The data can be added to and removed from either end
- * of the deque.  
- *
+ * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers for
+ * shared use. The data can be added to and removed from either end of the
+ * deque.
+ * 
  * $Id$
- *
+ * 
  * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
-  private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
+  private static final Offset PREV_OFFSET = Offset
+      .fromIntSignExtend(BYTES_IN_ADDRESS);
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Public instance methods
    */
 
   /**
    * Constructor
-   *
+   * 
    */
   public SharedDeque(RawPageSpace rps, int arity) {
     this.rps = rps;
@@ -51,10 +52,13 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     return completionFlag == 1;
   }
 
-  final int getArity() throws InlinePragma { return arity; }
+  final int getArity() throws InlinePragma {
+    return arity;
+  }
 
   final void enqueue(Address buf, int arity, boolean toTail) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == this.arity);
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(arity == this.arity);
     lock();
     if (toTail) {
       // Add to the tail of the queue
@@ -74,9 +78,10 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
         setPrev(head, buf);
       setNext(buf, head);
       head = buf;
-    } 
+    }
     bufsenqueued++;
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(checkDequeLength(bufsenqueued));
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(checkDequeLength(bufsenqueued));
     unlock();
   }
 
@@ -93,7 +98,8 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   final Address dequeue(int arity, boolean fromTail) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == this.arity);
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(arity == this.arity);
     return dequeue(false, fromTail);
   }
 
@@ -102,18 +108,20 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   final Address dequeueAndWait(int arity, boolean fromTail) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == this.arity);
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(arity == this.arity);
     Address buf = dequeue(false, fromTail);
     while (buf.isZero() && (completionFlag == 0)) {
       buf = dequeue(true, fromTail);
     }
-    return buf;  
+    return buf;
   }
 
   public final void reset() {
     setNumConsumersWaiting(0);
     setCompletionFlag(0);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(head.isZero() && tail.isZero());
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(head.isZero() && tail.isZero());
   }
 
   public final void newConsumer() {
@@ -124,41 +132,52 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     Address rtn = rps.acquire(PAGES_PER_BUFFER);
     if (rtn.isZero()) {
       Space.printUsageMB();
-      Assert.fail("Failed to allocate space for queue.  Is metadata virtual memory exhausted?");
+      Assert
+          .fail("Failed to allocate space for queue.  Is metadata virtual memory exhausted?");
     }
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(rtn.EQ(bufferStart(rtn)));
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
 
   final void free(Address buf) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
+    if (Assert.VERIFY_ASSERTIONS)
+      Assert._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rps.release(buf);
   }
 
   public final int enqueuedPages() throws InlinePragma {
-    return bufsenqueued<<LOG_PAGES_PER_BUFFER;
+    return bufsenqueued << LOG_PAGES_PER_BUFFER;
   }
 
-  /****************************************************************************
-   *
+  /*****************************************************************************
+   * 
    * Private instance methods and fields
    */
   private RawPageSpace rps;
+
   private int arity;
+
   private int completionFlag; //
+
   private int numConsumers; //
+
   private int numConsumersWaiting; //
+
   protected Address head;
+
   protected Address tail;
+
   private int bufsenqueued;
+
   private Lock lock;
 
-  
   private final Address dequeue(boolean waiting, boolean fromTail) {
     lock();
     Address rtn = ((fromTail) ? tail : head);
     if (rtn.isZero()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero() && head.isZero());
+      if (Assert.VERIFY_ASSERTIONS)
+        Assert._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
         setNumConsumersWaiting(numConsumersWaiting + 1);
@@ -168,19 +187,21 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     } else {
       if (fromTail) {
         // dequeue the tail buffer
-        setTail(getPrev(tail)); 
+        setTail(getPrev(tail));
         if (head.EQ(rtn)) {
           setHead(Address.zero());
-          if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero());
+          if (Assert.VERIFY_ASSERTIONS)
+            Assert._assert(tail.isZero());
         } else {
           setNext(tail, Address.zero());
         }
       } else {
-      // dequeue the head buffer
-      setHead(getNext(head));
-      if (tail.EQ(rtn)) {
-        setTail(Address.zero());
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(head.isZero());
+        // dequeue the head buffer
+        setHead(getNext(head));
+        if (tail.EQ(rtn)) {
+          setTail(Address.zero());
+          if (Assert.VERIFY_ASSERTIONS)
+            Assert._assert(head.isZero());
         } else {
           setPrev(head, Address.zero());
         }
@@ -195,9 +216,11 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Set the "next" pointer in a buffer forming the linked buffer chain.
-   *
-   * @param buf The buffer whose next field is to be set.
-   * @param next The reference to which next should point.
+   * 
+   * @param buf
+   *          The buffer whose next field is to be set.
+   * @param next
+   *          The reference to which next should point.
    */
   private static final void setNext(Address buf, Address next) {
     buf.store(next);
@@ -205,8 +228,9 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   *
-   * @param buf The buffer whose next field is to be returned.
+   * 
+   * @param buf
+   *          The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
   protected final Address getNext(Address buf) {
@@ -215,9 +239,11 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Set the "prev" pointer in a buffer forming the linked buffer chain.
-   *
-   * @param buf The buffer whose next field is to be set.
-   * @param prev The reference to which prev should point.
+   * 
+   * @param buf
+   *          The buffer whose next field is to be set.
+   * @param prev
+   *          The reference to which prev should point.
    */
   private final void setPrev(Address buf, Address prev) {
     buf.store(prev, PREV_OFFSET);
@@ -225,8 +251,9 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   *
-   * @param buf The buffer whose next field is to be returned.
+   * 
+   * @param buf
+   *          The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
   protected final Address getPrev(Address buf) {
@@ -234,10 +261,10 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   /**
-   * Check the number of buffers in the work queue (for debugging
-   * purposes).
-   *
-   * @param length The number of buffers believed to be in the queue.
+   * Check the number of buffers in the work queue (for debugging purposes).
+   * 
+   * @param length
+   *          The number of buffers believed to be in the queue.
    * @return True if the length of the queue matches length.
    */
   private final boolean checkDequeLength(int length) {
@@ -251,29 +278,30 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   /**
-   * Lock this shared queue.  We use one simple low-level lock to
-   * synchronize access to the shared queue of buffers.
+   * Lock this shared queue. We use one simple low-level lock to synchronize
+   * access to the shared queue of buffers.
    */
   private final void lock() {
     lock.acquire();
   }
-  
+
   /**
-   * Release the lock.  We use one simple low-level lock to synchronize
-   * access to the shared queue of buffers.
+   * Release the lock. We use one simple low-level lock to synchronize access to
+   * the shared queue of buffers.
    */
   private final void unlock() {
     lock.release();
   }
 
-  // need to use this to avoid generating a putfield and so causing write barrier recursion
+  // need to use this to avoid generating a putfield and so causing write
+  // barrier recursion
   //
   private final void setCompletionFlag(int flag) throws InlinePragma {
     completionFlag = flag;
   }
 
   private final void setNumConsumers(int newNumConsumers) throws InlinePragma {
-      numConsumers = newNumConsumers;
+    numConsumers = newNumConsumers;
   }
 
   private final void setNumConsumersWaiting(int newNCW) throws InlinePragma {

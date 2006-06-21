@@ -9,21 +9,24 @@ import org.mmtk.plan.PlanConstraints;
 import org.vmmagic.pragma.*;
 
 /**
- * This class and its subclasses communicate to the host VM/Runtime
- * any features of the selected plan that it needs to know.  This is
- * separate from the main Plan/PlanLocal class in order to bypass any
- * issues with ordering of static initialization.
- *
+ * This class and its subclasses communicate to the host VM/Runtime any features
+ * of the selected plan that it needs to know. This is separate from the main
+ * Plan/PlanLocal class in order to bypass any issues with ordering of static
+ * initialization.
+ * 
  * $Id$
- *
+ * 
  * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class NoGCConstraints extends PlanConstraints
-  implements Uninterruptible {
+public class NoGCConstraints extends PlanConstraints implements Uninterruptible {
 
-  public int gcHeaderBits() { return 0; }
+  public int gcHeaderBits() {
+    return 0;
+  }
 
-  public int gcHeaderWords() { return 0; }
+  public int gcHeaderWords() {
+    return 0;
+  }
 }

@@ -6,7 +6,7 @@ package org.vmmagic.unboxed;
 
 /**
  * To be commented
- *
+ * 
  * @author Daniel Frampton
  */
 public final class Offset {
@@ -90,4 +90,3 @@ public final class Offset {
     return false;
   }
 }
-

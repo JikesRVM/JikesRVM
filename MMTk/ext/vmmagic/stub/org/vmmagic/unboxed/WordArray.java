@@ -11,15 +11,15 @@ package org.vmmagic.unboxed;
  */
 final public class WordArray {
 
-  public static WordArray create (int size) {
+  public static WordArray create(int size) {
     return null;
   }
 
-  public Word get (int index) {
+  public Word get(int index) {
     return null;
   }
 
-  public void set (int index, Word v) {
+  public void set(int index, Word v) {
   }
 
   public int length() {

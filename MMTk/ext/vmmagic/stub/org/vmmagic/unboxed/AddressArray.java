@@ -11,15 +11,15 @@ package org.vmmagic.unboxed;
  */
 final public class AddressArray {
 
-  public static AddressArray create (int size) {
+  public static AddressArray create(int size) {
     return null;
   }
 
-  public Address get (int index) {
+  public Address get(int index) {
     return null;
   }
 
-  public void set (int index, Address v) {
+  public void set(int index, Address v) {
   }
 
   public int length() {
