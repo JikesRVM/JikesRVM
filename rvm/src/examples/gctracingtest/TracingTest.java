@@ -1,11 +1,11 @@
 /*
- * (C) Copyright Jikes RVM project
+ * (C) Copyright Canisius College. 2006
  */
 
 //$Id$
 
 /**
- * @author Matther Hertz
+ * @author <a href="http://cs.canisius.edu/~hertzm">Matthew Hertz</a>
  */
 public class TracingTest {
   public static Integer[] arr;
