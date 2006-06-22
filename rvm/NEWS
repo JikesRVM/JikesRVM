@@ -22,6 +22,8 @@ on October 14, 2001,
 
 *** MMTk changes & refactors: Steve/Daniel/Robin?
 
+*** Annotation support (Ian..)
+
 
 ** Bug fixes
 1442437: to match Sun behavior, java.lang.Class.newInstance now passes 
