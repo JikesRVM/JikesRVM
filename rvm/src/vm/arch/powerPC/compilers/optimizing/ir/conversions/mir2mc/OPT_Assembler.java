@@ -990,6 +990,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         break;
 
       case PPC_DCBST_opcode:
+      case PPC_DCBT_opcode:
+      case PPC_DCBTST_opcode:
+      case PPC_DCBZ_opcode:
+      case PPC_DCBZL_opcode:
       case PPC_DCBF_opcode:
       case PPC_ICBI_opcode:
         {

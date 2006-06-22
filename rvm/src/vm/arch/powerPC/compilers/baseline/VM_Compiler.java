@@ -4086,6 +4086,18 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);
+    } else if (methodName == VM_MagicNames.dcbt) {
+      popAddr(T0);    // address
+      asm.emitDCBT(0, T0);
+    } else if (methodName == VM_MagicNames.dcbtst) {
+      popAddr(T0);    // address
+      asm.emitDCBTST(0, T0);
+    } else if (methodName == VM_MagicNames.dcbz) {
+      popAddr(T0);    // address
+      asm.emitDCBZ(0, T0);
+    } else if (methodName == VM_MagicNames.dcbzl) {
+      popAddr(T0);    // address
+      asm.emitDCBZL(0, T0);
     } else if (methodName == VM_MagicNames.icbi) {
       popAddr(T0);    // address
       asm.emitICBI(0, T0);

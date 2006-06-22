@@ -236,7 +236,7 @@ PPC_ISYNC PPC_ICBI
 
 
 dcache_sync
-PPC_SYNC PPC_DCBF PPC_DCBST
+PPC_SYNC PPC_DCBF PPC_DCBST PPC_DCBT PPC_DCBTST PPC_DCBZ PPC_DCBZL
 
 "all_units(ISSUE), 50" "all_units(FXU), 50" "all_units(FPU), 50" "all_units(BRU), 50" "all_units(LDST), 50" "all_units(FXUC), 50" "all_units(CR), 50"
 "any_insn, 50"

@@ -1468,6 +1468,15 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     if (lister != null) lister.OP(miStart, "RDTSC");
   }
 
+  // software prefetch
+  public final void emitPREFETCH_Reg(byte srcReg) {
+    int miStart = mi; 
+    setMachineCodes(mi++, (byte) 0x0F);
+    setMachineCodes(mi++,(byte) 0x18);
+    emitRegIndirectRegOperands(srcReg, (byte) 0); 
+    if (lister != null) lister.R(miStart, "PREFETCHNTA", srcReg);
+  }
+  
   // nop
   public final void emitNOP () {
     int miStart = mi;

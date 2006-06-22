@@ -3538,6 +3538,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
 
+    // software prefetch
+    if (methodName == VM_MagicNames.prefetchNTA || methodName == VM_MagicNames.prefetch) {
+      asm.emitPOP_Reg(T0);                      
+      asm.emitPREFETCH_Reg(T0);
+      return true;
+    }
+
     if (methodName == VM_MagicNames.roundToZero) {
       // Store the FPU Control Word to a JTOC slot
       asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordField.getOffset());

@@ -1605,6 +1605,38 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
+  static final int DCBTtemplate = 31<<26 | 278<<1;
+  
+  public final void emitDCBT (int RA, int RB) {
+    int mi = DCBSTtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int DCBTSTtemplate = 31<<26 | 246<<1;
+  
+  public final void emitDCBTST (int RA, int RB) {
+    int mi = DCBSTtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int DCBZtemplate = 31<<26 | 1014<<1;
+  
+  public final void emitDCBZ (int RA, int RB) {
+    int mi = DCBZtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int DCBZLtemplate = 31<<26 | 1<<21 | 1014<<1;
+  
+  public final void emitDCBZL (int RA, int RB) {
+    int mi = DCBZLtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
   static final int MFTBtemplate = 31<<26 | 392<<11 | 371<<1;
   
   public final void emitMFTB (int RT) {

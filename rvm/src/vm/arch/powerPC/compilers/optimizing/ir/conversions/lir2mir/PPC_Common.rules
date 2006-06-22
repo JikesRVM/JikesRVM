@@ -236,6 +236,38 @@ EMIT_INSTRUCTION
 EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBST, R(0), R(CacheOp.getRef(P(p)))));
 
 #####
+# DCBT
+#####
+stm:	DCBT(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBT, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
+# DCBTST
+#####
+stm:	DCBTST(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBTST, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
+# DCBZ
+#####
+stm:	DCBZ(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZ, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
+# DCBZL
+#####
+stm:	DCBZL(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZL, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
 # ICBI
 #####
 stm:	ICBI(r)

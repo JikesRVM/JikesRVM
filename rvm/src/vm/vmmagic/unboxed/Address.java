@@ -1,6 +1,6 @@
 /* -*-coding: iso-8859-1 -*-
  *
- * Copyright © IBM Corp 2001, 2004
+ * (C) Copyright IBM Corp 2001, 2004
  *
  * $Id$
  */
@@ -435,6 +435,109 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
 //   }
 
 
+  /****************************************************************************
+   *
+   * Software prefetch and other per-address cache management operators
+   */
+
+  /** 
+   * Prefetch a cache-line, architecture-independent
+   */
+  public void prefetch() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  //-#if RVM_FOR_IA32
+  /**
+   * IA32 "prefetchnta" operation: "fetches the data into the
+   * second-level cache, minimizing cache pollution." (Semantics are
+   * micro-architecture-specific: check for your processor!)
+   */
+  public void prefetchNTA() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  
+  }
+  
+//   CURRENTLY UNIMPLEMENTED
+//   /**
+//    * IA32 "prefetcht0" operation: "fetches the data into all cache
+//    * levels, that is, to the second-level cache for the Pentium 4
+//    * processor." (Semantics are micro-architecture-specific: check for
+//    * your processor!)
+//    */
+//    public void prefetchT0() {
+//      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  
+//    }
+  
+//   /**
+//    * IA32 "prefetcht1" operation, identical to prefetcht0 on the
+//    * Pentium 4 (Semantics are micro-architecture-specific: check for
+//    * your processor!)
+//    */
+//    public void prefetchT1() {
+//      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  
+//    }
+
+//   /**
+//    * IA32 "prefetcht2" operation, identical to prefetcht0 on the
+//    * Pentium 4 (Semantics are micro-architecture-specific: check for
+//    * your processor!)
+//    */
+//    public void prefetchT2() {
+//      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+//    }
+  //-#endif
+  
+  //-#if RVM_FOR_POWERPC
+  /** 
+   * Write contents of this processor's modified data cache back to
+   * main storage.
+   */
+  public void dcbst() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /** 
+   * Touch a data cache block (use to prefetch).
+   */
+  public void dcbt() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /** 
+   * Touch a data cache block for a store (use to prefetch on a
+   * store).
+   */
+  public void dcbtst() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /** 
+   * Zero all bytes of this 32 byte cache block without forcing a read
+   * (use to avoid a miss on an initilizing store).
+   */
+  public void dcbz() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /** 
+   * Zero all bytes of this cache block without forcing a read (use to
+   * avoid a miss on an initilizing store). Note: this is an extended
+   * form of dcbz for the PPC970 that deals with the larger (128 byte)
+   * cache line.
+   */
+  public void dcbzl() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /** 
+   * The icbi instruction invalidates a block containing the byte
+   * addressed in the instruction cache.
+   */
+  public void icbi() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+  //-#endif
+ 
   /****************************************************************************
    *
    * Memory access operators

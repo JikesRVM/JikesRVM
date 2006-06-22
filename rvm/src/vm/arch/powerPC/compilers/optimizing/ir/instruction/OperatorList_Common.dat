@@ -85,6 +85,38 @@ memAsLoad | memAsStore
 
 -1
 
+# PowerPC dcbt instruction
+DCBT
+CacheOp
+memAsLoad | memAsStore
+
+
+-1
+
+# PowerPC dcbtst instruction
+DCBTST
+CacheOp
+memAsLoad | memAsStore
+
+
+-1
+
+# PowerPC dcbz instruction
+DCBZ
+CacheOp
+memAsLoad | memAsStore
+
+
+-1
+
+# PowerPC dcbzl instruction
+DCBZL
+CacheOp
+memAsLoad | memAsStore
+
+
+-1
+
 # PowerPC icache block invalidate instruction
 ICBI
 CacheOp
@@ -1471,6 +1503,38 @@ memAsLoad | memAsStore
 
 
 (31<<26 | 54<<1)
+
+####################
+PPC_DCBT
+MIR_CacheOp
+memAsLoad | memAsStore
+
+
+(31<<26 | 278<<1)
+
+####################
+PPC_DCBTST
+MIR_CacheOp
+memAsLoad | memAsStore
+
+
+(31<<26 | 246<<1)
+
+####################
+PPC_DCBZ
+MIR_CacheOp
+memAsLoad | memAsStore
+
+
+(31<<26 | 1014<<1)
+
+####################
+PPC_DCBZL
+MIR_CacheOp
+memAsLoad | memAsStore
+
+
+(31<<26 | 1<<21 | 1014<<1)
 
 ####################
 PPC_ICBI

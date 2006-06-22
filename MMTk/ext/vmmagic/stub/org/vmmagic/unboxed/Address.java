@@ -336,6 +336,17 @@ public final class Address {
 
   /****************************************************************************
    * 
+   * Software prefetch operators etc
+   */
+
+  /** 
+   * Prefetch a cache-line, architecture-independent
+   */
+  public void prefetch() {
+  }
+
+  /****************************************************************************
+   * 
    * Memory access operators
    */
 
