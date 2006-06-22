@@ -29,8 +29,7 @@ on October 14, 2001,
          through exceptions instead of wrapping in InstantiationExceptions.
 	 NOTE: This requires classpath 0.90 or better.
 
-there are more...dave to fill in.
-
+1505824: Exit cleanly when the jar file given to -jar doesn't contain a valid manifest
 
 ** Other Notes
 *** IA32 BURS improvement for special case of COND_MOV contibuted by
