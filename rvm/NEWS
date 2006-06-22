@@ -8,8 +8,8 @@ on October 14, 2001,
 
 *Jikes RVM 2.4.5 Release Notes (future)
 ** Highlights
-*** Classpath 0.91 is required. Jikes RVM will not compile with older versions
-    of GNU classpath.
+*** Jikes RVM 2.4.5 requires GNU Classpath 0.91. 
+    Jikes RVM will not compile against older versions of GNU classpath.
 
 *** Classpath AWT and Swing tests now run with the Jikes RVM. We have changed
     from using the portable native sync code, and addressed issues with M-to-N
@@ -23,7 +23,6 @@ on October 14, 2001,
 *** MMTk changes & refactors: Steve/Daniel/Robin?
 
 *** Annotation support (Ian..)
-
 
 ** Bug fixes
 1442437: to match Sun behavior, java.lang.Class.newInstance now passes 
