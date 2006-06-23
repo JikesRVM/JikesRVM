@@ -47,7 +47,7 @@ public class Lock implements Uninterruptible {
   private static Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
   private static Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
   private static Offset startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
-  private static long SLOW_THRESHOLD = Long.MAX_VALUE; // set to a real value by fullyBooted
+  private static long SLOW_THRESHOLD = Long.MAX_VALUE>>1; // set to a real value by fullyBooted
   private static long TIME_OUT = Long.MAX_VALUE;       // set to a real value by fullyBooted
 
   // Debugging
