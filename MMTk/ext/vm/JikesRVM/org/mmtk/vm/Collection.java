@@ -274,7 +274,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
   public static void prepareCollector(CollectorContext c) {
     VM_Processor vp = ((SelectedCollectorContext) c).getProcessor();
     int vpStatus = vp.vpStatus;
-    VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
+    if (VM.VerifyAssertions) VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
     VM_Thread t = VM_Thread.getCurrentThread();
     Address fp = VM_Magic.getFramePointer();
     while (true) {
