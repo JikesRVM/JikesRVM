@@ -66,6 +66,11 @@ implements Uninterruptible {
    */
   public void collectionPhase(int phaseId, boolean primary)
   throws InlinePragma {
+    if (phaseId == StopTheWorld.INITIATE) {
+      Collection.prepareCollector(this);
+      return;
+    }
+
     if (phaseId == StopTheWorld.PREPARE) {
       // Nothing to do
       return;

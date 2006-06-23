@@ -114,6 +114,13 @@ public class Collection {
   public static void prepareMutator(MutatorContext m) {}
 
   /**
+   * Prepare a collector for a collection.
+   *
+   * @param c the collector to prepare
+   */
+  public static void prepareCollector(CollectorContext c) {}
+
+  /**
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
    */

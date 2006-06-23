@@ -54,7 +54,7 @@ public abstract class StopTheWorld extends Plan
   private static final Timer finalizeTime = new Timer("finalize", false, true);
 
   /* Phases */
-  public static final int INITIATE            = new SimplePhase("initiate", null,                 Phase.GLOBAL_ONLY   ).getId();
+  public static final int INITIATE            = new SimplePhase("initiate", null,                 Phase.GLOBAL_FIRST  ).getId();
   public static final int INITIATE_MUTATOR    = new SimplePhase("initiate-mutator",               Phase.MUTATOR_ONLY  ).getId();
   public static final int PREPARE             = new SimplePhase("prepare",                        Phase.GLOBAL_FIRST  ).getId();
   public static final int PREPARE_MUTATOR     = new SimplePhase("prepare-mutator",                Phase.MUTATOR_ONLY  ).getId();

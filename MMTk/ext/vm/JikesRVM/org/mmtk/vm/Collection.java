@@ -263,25 +263,35 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
        which is where the stack scan starts. */
       VM_Thread t = vp.activeThread;
       t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
-    } else {
-      VM_Thread t = VM_Thread.getCurrentThread();
-      Address fp = VM_Magic.getFramePointer();
-      while (true) {
-        Address caller_ip = VM_Magic.getReturnAddress(fp);
-        Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-        if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
-          VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
-        int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
-        VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        VM_Method method = compiledMethod.getMethod();
-        VM_Atom cls = method.getDeclaringClass().getDescriptor();
-        VM_Atom name = method.getName();
-        if (name == runAtom && cls == collectorThreadAtom) {
-          t.contextRegisters.setInnermost(caller_ip, caller_fp);
-          break;
-        }
-        fp = caller_fp; 
+    }
+  }
+  
+  /**
+   * Prepare a collector for a collection.
+   *
+   * @param c the collector to prepare
+   */
+  public static void prepareCollector(CollectorContext c) {
+    VM_Processor vp = ((SelectedCollectorContext) c).getProcessor();
+    int vpStatus = vp.vpStatus;
+    VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
+    VM_Thread t = VM_Thread.getCurrentThread();
+    Address fp = VM_Magic.getFramePointer();
+    while (true) {
+      Address caller_ip = VM_Magic.getReturnAddress(fp);
+      Address caller_fp = VM_Magic.getCallerFramePointer(fp);
+      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
+        VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
+      int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
+      VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+      VM_Method method = compiledMethod.getMethod();
+      VM_Atom cls = method.getDeclaringClass().getDescriptor();
+      VM_Atom name = method.getName();
+      if (name == runAtom && cls == collectorThreadAtom) {
+        t.contextRegisters.setInnermost(caller_ip, caller_fp);
+        break;
       }
+      fp = caller_fp; 
     }
   }
 
