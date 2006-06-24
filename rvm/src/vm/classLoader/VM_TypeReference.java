@@ -489,7 +489,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   }
 
   /**
-   * Has the field reference already been resolved into a target method?
+   * Has the type reference already been resolved into a type?
    */
   public final boolean isResolved() throws UninterruptiblePragma {
     return resolvedType != null;

@@ -11,6 +11,9 @@ import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Runtime;
 
+import gnu.java.lang.ClassHelper;
+import gnu.java.lang.reflect.MethodSignatureParser;
+
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
  *
@@ -146,58 +149,95 @@ public final class Method extends AccessibleObject implements Member {
   }
 
   public String toString() {
-    Class current;
-        
-    StringBuffer buf = new StringBuffer();
-    String mods = Modifier.toString(getModifiers());
-    if(mods.length() != 0) {
-      buf.append(mods);
-      buf.append(" ");
-    }
-        
-    current = getReturnType();
-    int arity = 0;
-    while(current.isArray()) {
-      current = current.getComponentType();
-      arity++;
-    }
-    buf.append(current.getName());
-    for(;arity > 0; arity--) buf.append("[]");
-        
-    buf.append(" ");
-    buf.append(getDeclaringClass().getName());
-    buf.append(".");
-    buf.append(getName());
-    buf.append("(");
-    Class[] types = getParameterTypes();
-    for(int i = 0; i < types.length; i++) {
-      current = types[i];
-      arity = 0;
-      while(current.isArray()) {
-        current = current.getComponentType();
-        arity++;
+    StringBuilder sb = new StringBuilder(128);
+    Modifier.toString(getModifiers(), sb).append(' ');
+    sb.append(ClassHelper.getUserName(getReturnType())).append(' ');
+    sb.append(getDeclaringClass().getName()).append('.');
+    sb.append(getName()).append('(');
+    Class[] c = getParameterTypes();
+    if (c.length > 0)
+      {
+        sb.append(ClassHelper.getUserName(c[0]));
+        for (int i = 1; i < c.length; i++)
+          sb.append(',').append(ClassHelper.getUserName(c[i]));
       }
-      buf.append(current.getName());
-      for(;arity > 0; arity--) buf.append("[]");
-      if(i != (types.length - 1))
-        buf.append(",");
-    }
-    buf.append(")");
-    types = getExceptionTypes();
-    if(types.length > 0) {
-      buf.append(" throws ");
-      for(int i = 0; i < types.length; i++) {
-        current = types[i];
-        buf.append(current.getName());
-        if(i != (types.length - 1))
-          buf.append(",");
+    sb.append(')');
+    c = getExceptionTypes();
+    if (c.length > 0)
+      {
+        sb.append(" throws ").append(c[0].getName());
+        for (int i = 1; i < c.length; i++)
+          sb.append(',').append(c[i].getName());
       }
-    }
-
-    return buf.toString();
+    return sb.toString();
   }
+
+  // AnnotatedElement interface
 
   public Annotation[] getDeclaredAnnotations() {
     return method.getDeclaredAnnotations();
+  }
+
+  public Annotation getAnnotation(Class annotationClass) {
+    return method.getAnnotation(annotationClass);
+  }
+
+  // Generics support
+
+  public TypeVariable[] getTypeParameters() {
+    VM_Atom sig = method.getSignature();
+    if (sig == null)
+      return new TypeVariable[0];
+    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
+    return p.getTypeParameters();
+  }
+
+  public Type[] getGenericExceptionTypes() {
+    VM_Atom sig = method.getSignature();
+    if (sig == null)
+      return getExceptionTypes();
+    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
+    return p.getGenericExceptionTypes();
+  }
+
+  public Type[] getGenericParameterTypes() {
+    VM_Atom sig = method.getSignature();
+    if (sig == null)
+      return getParameterTypes();
+    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
+    return p.getGenericParameterTypes();
+  }
+
+  public Type getGenericReturnType() {
+    VM_Atom sig = method.getSignature();
+    if (sig == null)
+      return getReturnType();
+    MethodSignatureParser p = new MethodSignatureParser(this, sig.toString());
+    return p.getGenericReturnType();
+  }
+
+  public String toGenericString() {
+    StringBuilder sb = new StringBuilder(128);
+    Modifier.toString(getModifiers(), sb).append(' ');
+    Constructor.addTypeParameters(sb, getTypeParameters());
+    sb.append(getGenericReturnType()).append(' ');
+    sb.append(getDeclaringClass().getName()).append('.');
+    sb.append(getName()).append('(');
+    Type[] types = getGenericParameterTypes();
+    if (types.length > 0)
+      {
+        sb.append(types[0]);
+        for (int i = 1; i < types.length; i++)
+          sb.append(',').append(types[i]);
+      }
+    sb.append(')');
+    types = getGenericExceptionTypes();
+    if (types.length > 0)
+      {
+        sb.append(" throws ").append(types[0]);
+        for (int i = 1; i < types.length; i++)
+          sb.append(',').append(types[i]);
+      }
+    return sb.toString();
   }
 }

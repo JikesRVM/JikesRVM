@@ -29,8 +29,9 @@ interface VM_ClassLoaderConstants {
   static final int ACC_INTERFACE    = 0x00000200;  //   X      -      -
   static final int ACC_ABSTRACT     = 0x00000400;  //   X      -      X
   static final int ACC_STRICT       = 0x00000800;  //   -      -      X
-  static final int SYNTHETIC        = 0x00001000;  //   X      X      X
-  static final int ENUM             = 0x00004000;  //   X      X      -
+  static final int ACC_SYNTHETIC    = 0x00001000;  //   X      X      X
+  static final int ACC_ANNOTATION   = 0x00002000;  //   X      -      -
+  static final int ACC_ENUM         = 0x00004000;  //   X      X      -
 
   static final int APPLICABLE_TO_FIELDS = (ACC_PUBLIC | 
                                            ACC_PRIVATE |
@@ -39,8 +40,8 @@ interface VM_ClassLoaderConstants {
                                            ACC_FINAL |
                                            ACC_VOLATILE |
                                            ACC_TRANSIENT |
-                                           SYNTHETIC |
-                                           ENUM);
+                                           ACC_SYNTHETIC |                                           
+                                           ACC_ENUM);
 
   static final int APPLICABLE_TO_METHODS = (ACC_PUBLIC | 
                                             ACC_PRIVATE | 
@@ -53,16 +54,18 @@ interface VM_ClassLoaderConstants {
                                             ACC_NATIVE | 
                                             ACC_ABSTRACT | 
                                             ACC_STRICT |
-														  SYNTHETIC);
+                                            ACC_SYNTHETIC);
 
   static final int APPLICABLE_TO_CLASSES = (ACC_PUBLIC | 
                                             ACC_PRIVATE | 
+                                            ACC_STATIC | 
                                             ACC_FINAL | 
                                             ACC_SUPER | 
                                             ACC_INTERFACE | 
                                             ACC_ABSTRACT |
-                                            SYNTHETIC |
-                                            ENUM);
+                                            ACC_SYNTHETIC |
+                                            ACC_ANNOTATION |
+                                            ACC_ENUM);
 
   // Possible states of a class description.
   //

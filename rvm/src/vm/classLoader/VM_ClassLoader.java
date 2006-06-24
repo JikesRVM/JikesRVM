@@ -161,7 +161,8 @@ public class VM_ClassLoader implements VM_Constants,
   static VM_Atom deprecatedAttributeName;                   // "Deprecated"
   static VM_Atom innerClassesAttributeName;                 // "InnerClasses"
   static VM_Atom syntheticAttributeName;                    // "Synthetic"
-  static VM_Atom arrayNullCheckAttributeName;               // "ArrayNullCheckAttribute"
+  static VM_Atom enclosingMethodAttributeName;              // "EnclosingMethod"
+  static VM_Atom signatureAttributeName;                    // "Signature"
   static VM_Atom runtimeVisibleAnnotationsAttributeName;    // "RuntimeVisibleAnnotations"
   static VM_Atom runtimeInvisibleAnnotationsAttributeName;  // "RuntimeInvisibleAnnotations"
   static VM_Atom runtimeVisibleParameterAnnotationsAttributeName;    // "RuntimeVisibleParameterAnnotations"
@@ -205,7 +206,7 @@ public class VM_ClassLoader implements VM_Constants,
     deprecatedAttributeName                  = VM_Atom.findOrCreateAsciiAtom("Deprecated");
     innerClassesAttributeName                = VM_Atom.findOrCreateAsciiAtom("InnerClasses");
     syntheticAttributeName                   = VM_Atom.findOrCreateAsciiAtom("Synthetic");
-    arrayNullCheckAttributeName              = VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
+    signatureAttributeName                   = VM_Atom.findOrCreateAsciiAtom("Signature");
     runtimeVisibleAnnotationsAttributeName   = VM_Atom.findOrCreateAsciiAtom("RuntimeVisibleAnnotations");
     runtimeInvisibleAnnotationsAttributeName = VM_Atom.findOrCreateAsciiAtom("RuntimeInvisibleAnnotations");
     runtimeVisibleParameterAnnotationsAttributeName   = VM_Atom.findOrCreateAsciiAtom("RuntimeVisibleParameterAnnotations");

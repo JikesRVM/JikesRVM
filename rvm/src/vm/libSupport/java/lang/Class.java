@@ -5,16 +5,27 @@
 package java.lang;
 
 import java.io.InputStream;
-import java.security.*;
+import java.io.Serializable;
+
+import java.security.AccessController;
+import java.security.AllPermission;
+import java.security.Permissions;
+import java.security.PrivilegedAction;
+import java.security.ProtectionDomain;
 
 import java.lang.annotation.Annotation;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.JikesRVMSupport;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -26,6 +37,8 @@ import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+
+import gnu.java.lang.reflect.ClassSignatureParser;
 
 /**
  * Implementation of java.lang.Class for JikesRVM.
@@ -41,7 +54,8 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  * @modified Steven Augart
  * @modified Ian Rogers
  */
-public final class Class implements java.io.Serializable {
+public final class Class implements Serializable, Type, AnnotatedElement, GenericDeclaration {
+
   static final long serialVersionUID = 3206093459760846163L;
     
   /**
@@ -89,9 +103,9 @@ public final class Class implements java.io.Serializable {
             security.checkPermission(new RuntimePermission("getClassLoader"));
           } catch (SecurityException e) {
             throw new ClassNotFoundException(
-                    "Security exception when"
-                    + " trying to get a classloader so we can load the"
-                    + " class named \"" + className +"\"", e);
+                                             "Security exception when"
+                                             + " trying to get a classloader so we can load the"
+                                             + " class named \"" + className +"\"", e);
           }
         }
       }
@@ -289,11 +303,11 @@ public final class Class implements java.io.Serializable {
     if (aName == null 
         || aName == VM_ClassLoader.StandardClassInitializerMethodName 
         || aName == VM_ClassLoader.StandardObjectInitializerMethodName)
-    {
-      // null means that we don't have such an atom; 
-      // <init> and <clinit> are not methods. 
-      throw new NoSuchMethodException(name + parameterTypes);
-    }
+      {
+        // null means that we don't have such an atom; 
+        // <init> and <clinit> are not methods. 
+        throw new NoSuchMethodException(name + parameterTypes);
+      }
 
     VM_Method[] methods = type.asClass().getDeclaredMethods(); 
     Method answer = null;
@@ -823,8 +837,193 @@ public final class Class implements java.io.Serializable {
     }
   }
 
+  public boolean isAnonymousClass() {
+    if (type.isClassType()) {
+      return type.asClass().isAnonymousClass();
+    }
+    else {
+      return false;
+    }
+  }
+
+  public boolean isLocalClass() {
+    if (type.isClassType()) {
+      return type.asClass().isLocalClass();
+    }
+    else {
+      return false;
+    }
+  }
+
+  public boolean isMemberClass() {
+    if (type.isClassType()) {
+      return type.asClass().isMemberClass();
+    }
+    else {
+      return false;
+    }
+  }
+
+  // AnnotatedElement interface
+
   public Annotation[] getDeclaredAnnotations() {
     return type.getDeclaredAnnotations();
   }
-}
 
+  public Annotation[] getAnnotations() {
+    return type.getAnnotations();
+  }
+
+  public Annotation getAnnotation(Class annotationClass) {
+    return type.getAnnotation(annotationClass);
+  }
+
+  public boolean isAnnotationPresent(Class annotationClass) {
+    return type.isAnnotationPresent(annotationClass);
+  }
+
+  // Generics support
+
+  public Type[] getGenericInterfaces()  {
+    if (type.isPrimitiveType()) {
+      return new Type[0];
+    }
+    else if (type.isArrayType()) {
+      // arrays implement JavaLangSerializable & JavaLangCloneable
+      return new Class[] { VM_Type.JavaLangCloneableType.getClassForType(),
+                           VM_Type.JavaIoSerializableType.getClassForType()};
+    }
+    else {
+      VM_Class klass = type.asClass();
+      VM_Atom sig = klass.getSignature();
+      if (sig == null) {
+        return getInterfaces();
+      }
+      else {
+        ClassSignatureParser p = new ClassSignatureParser(this, sig.toString());
+        return p.getInterfaceTypes();
+      }
+    }
+  }
+
+  public Type getGenericSuperclass() {
+    if (type.isArrayType()) {
+      return Object.class;
+    }
+    else if (type.isPrimitiveType() ||
+             (type.isClassType() && type.asClass().isInterface()) ||
+             (this == Object.class)
+             )
+      {
+        return null;
+      }
+    else
+      {
+        VM_Class klass = type.asClass();
+        VM_Atom sig = klass.getSignature();
+        if (sig == null) {
+          return getSuperclass();
+        }
+        else {
+          ClassSignatureParser p = new ClassSignatureParser(this, sig.toString());
+          return p.getSuperclassType();
+        }
+      }
+  }
+  
+  public TypeVariable[] getTypeParameters() {
+    if (!type.isClassType()) {
+      return new TypeVariable[0];
+    }
+    else {
+      VM_Class klass = type.asClass();
+      VM_Atom sig = klass.getSignature();
+      if (sig == null) {
+        return new TypeVariable[0];
+      }
+      else {
+        ClassSignatureParser p = new ClassSignatureParser(this, sig.toString());
+        return p.getTypeParameters();
+      }
+    }
+  }
+
+  public String getSimpleName() {
+    if (type.isArrayType()) {
+      return getComponentType().getSimpleName() + "[]";
+    }
+    else {
+      String fullName = getName();
+      return fullName.substring(fullName.lastIndexOf(".") + 1);
+    }
+  }
+
+  public String getCanonicalName() {
+    if (type.isArrayType()) {
+      String componentName = getComponentType().getCanonicalName();
+      if (componentName != null)
+        return componentName + "[]";
+    }
+    if (isMemberClass()) {
+      String memberName = getDeclaringClass().getCanonicalName();
+      if (memberName != null)
+        return memberName + "." + getSimpleName();
+    }
+    if (isLocalClass() || isAnonymousClass())
+      return null;
+    return getName();
+  }
+
+  public Class getEnclosingClass() {
+    if (type.isClassType()) {
+      VM_TypeReference enclosingClass = type.asClass().getEnclosingClass();
+      if(enclosingClass != null) {
+        return create(enclosingClass.resolve());
+      }
+      else {
+        return null;
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
+  public Object cast(Object obj) {
+    if (obj != null && ! isInstance(obj))
+      throw new ClassCastException();
+    return obj;
+  }
+
+  // Enumeration support
+
+  public Object[] getEnumConstants() {
+    if (isEnum()) {
+      try {
+        return (Object[])getMethod("values", new Class[0]).invoke(null, new Object[0]);
+      }
+      catch (NoSuchMethodException exception) {
+        throw new Error("Enum lacks values() method");
+      }
+      catch (IllegalAccessException exception) {
+        throw new Error("Unable to access Enum class");
+      }
+      catch (InvocationTargetException exception) {
+        throw new RuntimeException("The values method threw an exception",
+                                   exception);
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
+  public boolean isEnum() {
+    if(type.isClassType()) {
+      return type.asClass().isEnum();
+    }
+    else {
+      return false;
+    }
+  }
+}

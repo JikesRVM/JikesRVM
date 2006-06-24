@@ -31,6 +31,9 @@ public final class VM_Field extends VM_Member {
    * @param declaringClass the VM_TypeReference object of the class
    * that declared this field
    * @param memRef the canonical memberReference for this member.
+   * @param modifiers modifiers associated with this field.
+   * @param signature generic type of this field.
+   * @pararm constantValueIndex constant pool index of constant value
    * @param runtimeVisibleAnnotations array of runtime visible
    * annotations
    * @param runtimeInvisibleAnnotations optional array of runtime
@@ -39,12 +42,13 @@ public final class VM_Field extends VM_Member {
   private VM_Field(VM_TypeReference declaringClass,
                    VM_MemberReference memRef,
                    int modifiers,
+                   VM_Atom signature,
                    int constantValueIndex,
                    VM_Annotation runtimeVisibleAnnotations[],
                    VM_Annotation runtimeInvisibleAnnotations[])
   {
-    super(declaringClass, memRef, modifiers, runtimeVisibleAnnotations,
-          runtimeInvisibleAnnotations);
+    super(declaringClass, memRef, modifiers, signature,
+          runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
     this.constantValueIndex = constantValueIndex;
     memRef.asFieldReference().setResolvedMember(this);
   }
@@ -65,6 +69,7 @@ public final class VM_Field extends VM_Member {
                             int modifiers, DataInputStream input) throws IOException {
     // Read the attributes, processing the "non-boring" ones
     int cvi = 0;
+    VM_Atom tmp_signature = null;
     VM_Annotation tmp_runtimeVisibleAnnotations[] = null;
     VM_Annotation tmp_runtimeInvisibleAnnotations[] = null;
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
@@ -73,7 +78,9 @@ public final class VM_Field extends VM_Member {
       if (attName == VM_ClassLoader.constantValueAttributeName) {
         cvi = input.readUnsignedShort();
       } else if (attName == VM_ClassLoader.syntheticAttributeName) {
-        modifiers |= SYNTHETIC;
+        modifiers |= ACC_SYNTHETIC;
+      } else if (attName == VM_ClassLoader.signatureAttributeName) {
+        tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
         tmp_runtimeVisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
                                                                             declaringClass.getClassLoader());
@@ -86,7 +93,7 @@ public final class VM_Field extends VM_Member {
         input.skipBytes(attLength);
       }
     }
-    return new VM_Field(declaringClass, memRef, modifiers & APPLICABLE_TO_FIELDS, cvi,
+    return new VM_Field(declaringClass, memRef, modifiers & APPLICABLE_TO_FIELDS, tmp_signature, cvi,
                         tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations);
   }
 
@@ -95,7 +102,7 @@ public final class VM_Field extends VM_Member {
    */
   static VM_Field createAnnotationField(VM_TypeReference annotationClass,
                                         VM_MemberReference memRef) {
-    return new VM_Field(annotationClass, memRef, ACC_PRIVATE|SYNTHETIC, 0, null, null);
+    return new VM_Field(annotationClass, memRef, ACC_PRIVATE|ACC_SYNTHETIC, null, 0, null, null);
   }
 
   /**
@@ -151,7 +158,7 @@ public final class VM_Field extends VM_Member {
    * Not present in source code file?
    */
   public boolean isSynthetic() {
-    return (modifiers & SYNTHETIC) != 0;
+    return (modifiers & ACC_SYNTHETIC) != 0;
   }
 
   /**

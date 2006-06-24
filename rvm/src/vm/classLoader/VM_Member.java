@@ -36,6 +36,12 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
   protected final int modifiers;
 
   /**
+   * The signature is a string representing the generic type for this
+   * field or method declaration, may be null
+   */
+  private final VM_Atom signature;
+
+  /**
    * The member's jtoc/obj/tib offset in bytes.
    * Set by {@link VM_Class#resolve()}
    */
@@ -47,19 +53,22 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    * @param declaringClass the VM_TypeReference object of the class that declared this member
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
+   * @param signature generic type of this member
    * @param runtimeVisibleAnnotations array of runtime visible
    * annotations
    * @param runtimeInvisibleAnnotations optional array of runtime
    * invisible annotations
    */
   protected VM_Member(VM_TypeReference declaringClass, VM_MemberReference memRef,
-                      int modifiers, VM_Annotation runtimeVisibleAnnotations[],
+                      int modifiers, VM_Atom signature,
+                      VM_Annotation runtimeVisibleAnnotations[],
                       VM_Annotation runtimeInvisibleAnnotations[])
   {
     super(runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
     this.declaringClass = declaringClass;
     this.memRef = memRef;
     this.modifiers = modifiers;
+    this.signature = signature;
     this.offset = -1; // invalid value. Set to valid value during VM_Class.resolve()
   }
 
@@ -96,6 +105,13 @@ public abstract class VM_Member extends VM_AnnotatedElement implements VM_Consta
    */ 
   public final VM_Atom getDescriptor() throws UninterruptiblePragma {
     return memRef.getDescriptor();
+  }
+
+  /**
+   * Generic type for member
+   */
+  public final VM_Atom getSignature() {
+    return signature;
   }
 
   /**
