@@ -29,7 +29,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   private static final byte COPY = 3;
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
-  static VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
+  static final VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
 
   private byte[] referenceMaps;
   private int MCSites[];
