@@ -84,7 +84,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * where key is a String like "java.lang.Object" or "[Ljava.lang.Object;"
    * and value is the corresponding VM_Type.
    */
-  private static Hashtable bootImageTypes = new Hashtable(5000);
+  private static final Hashtable bootImageTypes = new Hashtable(5000);
 
   /**
    * For all the scalar types to be placed into bootimage, keep
@@ -100,7 +100,7 @@ public class BootImageWriter extends BootImageWriterMessages
     /**
      *  Field table from JDK verion of class
      */
-    Field  jdkFields[];
+    final Field  jdkFields[];
 
     /**
      *  Fields that are the one-to-one match of rvm instanceFields
@@ -121,7 +121,17 @@ public class BootImageWriter extends BootImageWriterMessages
     /**
      *  Jdk type associated with this Field info
      */
-    Class jdkType;
+    final Class jdkType;
+
+    /**
+     * Constructor.
+     * @param jdkType the type to associate with the key
+     */
+    public FieldInfo(Class jdkType, VM_Type rvmType) {
+      this.jdkFields = jdkType.getDeclaredFields();
+      this.jdkType = jdkType;
+      this.rvmType = rvmType;
+    }
   }
 
   /**
@@ -131,13 +141,13 @@ public class BootImageWriter extends BootImageWriterMessages
     /**
      * Jdk type
      */
-    Object jdkType;
+    final Class jdkType;
 
     /**
      * Constructor.
      * @param jdkType the type to associate with the key
      */
-    public Key(Object jdkType) { this.jdkType = jdkType; }
+    public Key(Class jdkType) { this.jdkType = jdkType; }
 
     /**
      * Returns a hash code value for the key.
@@ -408,7 +418,7 @@ public class BootImageWriter extends BootImageWriterMessages
         continue;
       }
       // parallelize
-      if (args[i].equals("-parallelize=")) {
+      if (args[i].startsWith("-parallelize=")) {
         PARALLELIZE = Integer.parseInt(args[i].substring(13));
         continue;
       }
@@ -475,7 +485,6 @@ public class BootImageWriter extends BootImageWriterMessages
     // VM_xxx classes executed on host jdk and substitutes a value that can be
     // fixed up later when those objects are copied from host jdk to bootimage.
     //
-    BootImageMap.init();
     enableObjectAddressRemapper();
 
     //
@@ -960,6 +969,7 @@ public class BootImageWriter extends BootImageWriterMessages
         BootImageWorker.startup(bootImageTypes.elements());
         BootImageWorker [] workers = new BootImageWorker[PARALLELIZE];
         for (int i=0; i<workers.length; i++) {
+          workers[i] = new BootImageWorker();
           workers[i].id = i;
           workers[i].start();
         }
@@ -1006,10 +1016,7 @@ public class BootImageWriter extends BootImageWriterMessages
           fieldInfo.rvmType = rvmType;
         } else {
           if (verbose >= 1) say("making fieldinfo for " + rvmType);
-          fieldInfo = new FieldInfo();
-          fieldInfo.jdkFields = jdkType.getDeclaredFields();
-          fieldInfo.jdkType = jdkType;
-          fieldInfo.rvmType = rvmType;
+          fieldInfo = new FieldInfo(jdkType, rvmType);
           bootImageTypeFields.put(key, fieldInfo);
           // Now do all the superclasses if they don't already exist
           // Can't add them in next loop as Iterator's don't allow updates to collection
@@ -1020,10 +1027,7 @@ public class BootImageWriter extends BootImageWriterMessages
               break;  
             } else {
               if (verbose >= 1) say("making fieldinfo for " + jdkType);
-              fieldInfo = new FieldInfo();
-              fieldInfo.jdkFields = cls.getDeclaredFields();
-              fieldInfo.jdkType = cls;
-              fieldInfo.rvmType = null;    
+              fieldInfo = new FieldInfo(cls, null);
               bootImageTypeFields.put(key, fieldInfo);
             }
           }
