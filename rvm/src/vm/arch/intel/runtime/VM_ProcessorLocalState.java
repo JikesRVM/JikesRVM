@@ -27,7 +27,7 @@ extends OPT_IRTools
 //-#endif 
 {
   
-  static byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
+  static final byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
   /**
    * The C bootstrap program has placed a pointer to the initial
