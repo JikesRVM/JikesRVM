@@ -172,8 +172,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, Space space)
       throws LogicallyUninterruptiblePragma {
-    if (getCollectionsInitiated() > 0 || !isInitialized() || 
-        space == metaDataSpace)
+    if (getCollectionsInitiated() > 0 || !isInitialized())
       return false;
 
     mustCollect |= stressTestGCRequired();
@@ -183,6 +182,14 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     boolean metaDataFull = metaDataSpace.reservedPages() >
                            META_DATA_FULL_THRESHOLD;
     if (mustCollect || heapFull || nurseryFull || metaDataFull) {
+      if (space == metaDataSpace) {
+        /* In general we must not trigger a GC on metadata allocation since 
+         * this is not, in general, in a GC safe point.  Instead we initiate
+         * an asynchronous GC, which will occur at the next safe point.
+         */
+        setAwaitingCollection();
+        return false;
+      }
       required = space.reservedPages() - space.committedPages();
       if (space == nurserySpace ||
           (copyMature() && (space == activeMatureSpace())))
