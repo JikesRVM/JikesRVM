@@ -67,7 +67,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * </ul>
    */
   private final int[]        constantPool;
-  /** {@see VM_ClassLoaderConstants} */
+  /** {@link VM_ClassLoaderConstants} */
   private final int          modifiers;
   /** Super class of this class */
   private final VM_Class     superClass;
@@ -849,7 +849,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    *
    * @param typeRef the type reference that was resolved to this class
    * @param constantPool array of ints encoding constant value
-   * @param modifiers {@see VM_ClassLoaderConstants}
+   * @param modifiers {@link VM_ClassLoaderConstants}
    * @param declaredInterfaces array of interfaces this class implements
    * @param declaredFields fields of the class
    * @param declaredMethods methods of the class
@@ -1904,7 +1904,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   //------------------------------------------------------------//
   /**
    * Method to create a class representing an implementation of an
-   * annotation interface ({@see VM_Annotation}). The created class
+   * annotation interface ({@link VM_Annotation}). The created class
    * must have:
    * <ul>
    * <li>a method for each in the interface</li>

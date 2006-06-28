@@ -118,7 +118,7 @@ echo -n "(sources processed) "
 PACKAGES=$(
     # Here, we skip the java.* packages; just get our own.
     for _d in $($FIND . -type d -a ! -path './java*'); do
-	if [ $($FIND $_d -type f -maxdepth 1 -name '*.java' | wc -l) != 0 ]; then
+	if [ $($FIND $_d -maxdepth 1 -type f -name '*.java' | wc -l) != 0 ]; then
 	    echo $_d
 	    # Turn a path of the form .//com/ibm/jikesrvm (for example) into
 	    # a package name, of the form: com.ibm.jikesrvm
@@ -136,7 +136,7 @@ rm -f $DEST_DIR/javadoc.out
 # xargs -t: means be verbose; print out the cmd. line before executing it.
 # NB: do NOT quote $PACKAGES in the following:
 ## We use -breakiterator to be forward-compatible.
-$FIND . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -breakiterator -tag date:a:"Last (significant) modification:" -tag author:a:"Author:" -tag modified:a:"Modified by:" -J-Xmx200M -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES >> $DEST_DIR/javadoc.out 2>&1
+$FIND . -maxdepth 1 -name '*.java' -type f | xargs -t ${HOST_JAVADOC} -breakiterator -tag date:a:"Last (significant) modification:" -tag author:a:"Author:" -tag modified:a:"Modified by:" -J-Xmx200M -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES >> $DEST_DIR/javadoc.out 2>&1
 
 echo -n "(javadoc complete) "
 

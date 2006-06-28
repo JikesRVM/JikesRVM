@@ -332,7 +332,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * FatalError: print a message and terminate the VM
    * @param env A JREF index for the JNI environment object
    * @param messageAddress an address of the string in C
-   * @return This function does not return
    */
   private static void FatalError(VM_JNIEnvironment env, Address messageAddress) {
     if (traceJNI) VM.sysWrite("JNI called: FatalError  \n");
@@ -1323,7 +1322,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @return the void value returned from the method invocation
    */
   private static void CallVoidMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");  
@@ -2093,7 +2091,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @return the void value returned from the method invocation
    */
   private static void CallNonvirtualVoidMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
                                                int methodID) throws Exception {
@@ -3790,7 +3787,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the String object
    * @param bufAddress address of buffer to release
-   * @return void
    */
   private static void ReleaseStringChars(VM_JNIEnvironment env, int objJREF, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
@@ -3895,7 +3891,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the String object
    * @param bufAddress address of buffer to release
-   * @return void
    */
   private static void ReleaseStringUTFChars(VM_JNIEnvironment env, int objJREF, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");

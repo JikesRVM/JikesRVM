@@ -50,7 +50,7 @@ public final class VM_NativeMethod extends VM_Method {
    * invisible annotations
    * @param runtimeVisibleParameterAnnotations array of runtime
    * visible parameter annotations
-   * @param runtimeInvisiblePatarameterAnnotations optional array of
+   * @param runtimeInvisibleParameterAnnotations optional array of
    * runtime invisible parameter annotations
    * @param annotationDefault value for this annotation that appears
    * in annotation classes

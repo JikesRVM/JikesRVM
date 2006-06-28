@@ -109,7 +109,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     /**
      * Push a name at the top of the stack for a particular register 
      * @param s the register in question
-     * @return  the name to push on the stack
+     * @param name the name to push on the stack
      */
     void push(OPT_Register s, OPT_Operand name) {
       Stack stack = (Stack)get(s);

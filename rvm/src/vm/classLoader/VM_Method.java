@@ -62,7 +62,7 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * invisible annotations
    * @param runtimeVisibleParameterAnnotations array of runtime
    * visible parameter annotations
-   * @param runtimeInvisiblePatarameterAnnotations optional array of
+   * @param runtimeInvisibleParameterAnnotations optional array of
    * runtime invisible parameter annotations
    * @param annotationDefault value for this annotation that appears
    * in annotation classes
@@ -587,8 +587,6 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
    * Generate machine code for this method if valid
    * machine code doesn't already exist. 
    * Return the resulting VM_CompiledMethod object.
-   * 
-   * @return VM_CompiledMethod object representing the result of the compilation.
    */
   public final synchronized void compile() {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());

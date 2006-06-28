@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 /**
  * Internal representation of an annotation. We synthetically create
- * actual annotations {@see VM_Class}.
+ * actual annotations {@link VM_Class}.
  *
  * @author Ian Rogers
  */
@@ -395,7 +395,7 @@ public final class VM_Annotation {
     }
     /**
      * Compute the hash code of an annotation using the standard
-     * algorithm {@see java.lang.annotation.Annotation#hashCode()}
+     * algorithm {@link java.lang.annotation.Annotation#hashCode()}
      */
     public int hashCode() {
       return vmAnnotation.hashCode(this);

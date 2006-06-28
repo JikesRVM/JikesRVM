@@ -46,7 +46,6 @@ public class VM_DynamicCallFileInfoReader {
    * once and returns a collection of compiler advice attributes.
    * 
    * @param file The annoation file to be read
-   * @return A list of compileration advice attributes
    */
   public static void readDynamicCallFile(String file, boolean boot) {
     List dynamicCallInfo = null;

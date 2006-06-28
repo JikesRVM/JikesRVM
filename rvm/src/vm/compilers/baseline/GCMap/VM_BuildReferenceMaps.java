@@ -1763,7 +1763,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    *                                  array indices
    * @param inJSRSub                  TODO Document ME XXX
    * @param bbMaps                    TODO Document ME XXX
-   * @return Void
    */
   private void setHandlersMapsNonRef(int localVariable, int wordCount, 
                                      int[] reachableHandlerBBNums, int reachableHandlerCount, 
@@ -1804,7 +1803,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    *                                   - 1 </code> will all be valid   
    *                                  array indices
    * @param bbMaps                    TODO Document ME XXX
-   * @return Void
    */
   private void setHandlersMapsRef(int localVariable, 
                                   int[] reachableHandlerBBNums, 
@@ -1839,7 +1837,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    *                                   - 1 </code> will all be valid   
    *                                  array indices
    * @param bbMaps                    TODO Document ME XXX
-   * @return Void
    */
   private void setHandlersMapsReturnAddress(int localVariable, 
                                             int[] reachableHandlerBBNums, 

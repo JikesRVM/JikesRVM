@@ -33,7 +33,7 @@ public final class VM_Field extends VM_Member {
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this field.
    * @param signature generic type of this field.
-   * @pararm constantValueIndex constant pool index of constant value
+   * @param constantValueIndex constant pool index of constant value
    * @param runtimeVisibleAnnotations array of runtime visible
    * annotations
    * @param runtimeInvisibleAnnotations optional array of runtime
@@ -267,7 +267,6 @@ public final class VM_Field extends VM_Member {
    * assign one object ref from heap using RVM object model, GC safe.
    * @param obj the object whose field is to be modified, or null if the field is static.
    * @param ref the object reference to be assigned.
-   * @return void
    */
   public final void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {

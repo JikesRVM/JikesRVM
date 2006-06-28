@@ -370,7 +370,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    * @param dynamicLink place to put return information
    * @param instructionOffset offset of machine instruction from start of 
    * this method, in bytes
-   * @return nothing (return information is filled in)
    *
    * Notes: 
    * <ul>

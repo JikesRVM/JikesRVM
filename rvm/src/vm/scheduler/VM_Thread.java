@@ -968,7 +968,6 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * @param newSize    new size (in bytes)
    * @param exceptionRegisters register state at which stack overflow trap 
    * was encountered (null --> normal method call, not a trap)
-   * @return nothing (caller resumes execution on new stack)
    */ 
   public static void resizeCurrentStack(int newSize, 
                                         VM_Registers exceptionRegisters) 

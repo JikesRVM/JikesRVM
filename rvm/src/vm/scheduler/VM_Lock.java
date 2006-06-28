@@ -451,8 +451,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
    * Recycles a unused heavy-weight lock.  Locks are deallocated
    * to processor specific lists, so normally no synchronization
    * is required to obtain or release a lock.
-   *
-   * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
   static void free (VM_Lock l) {
     l.active = false;
