@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).
  * 
- * @see MC for an overview of the mark-compact algorithm.<p>
+ * See {@link MC} for an overview of the mark-compact algorithm.<p>
  * 
  * FIXME Currently MC does not properly separate mutator and collector
  * behaviors, so some of the collection logic here should really be
@@ -30,9 +30,9 @@ import org.vmmagic.unboxed.*;
  * 
  * @see MC
  * @see MCCollector
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

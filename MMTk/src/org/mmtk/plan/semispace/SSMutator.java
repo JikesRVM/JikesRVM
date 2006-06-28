@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
  * 
- * @see SS for an overview of the semi-space algorithm.<p>
+ * See {@link SS} for an overview of the semi-space algorithm.<p>
  * 
  * @see SS
  * @see SSCollector
@@ -103,9 +103,9 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.  This exists
-   * to support {@link CollectorContext#getOwnAllocator(Allocator)}.
+   * to support {@link MutatorContext#getOwnAllocator(Allocator)}.
    * 
-   * @see CollectorContext#getOwnAllocator(Allocator)
+   * @see MutatorContext#getOwnAllocator(Allocator)
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -119,9 +119,9 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
-   * to support {@link CollectorContext#getOwnAllocator(Allocator)}.
+   * to support {@link MutatorContext#getOwnAllccator(Allocator)}.
    * 
-   * @see CollectorContext#getOwnAllocator(Allocator)
+   * @see MutatorContext#getOwnAllccator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>

@@ -29,9 +29,9 @@ import org.vmmagic.pragma.*;
  * @see GenCopy
  * @see GenCopyCollector
  * @see GenMutator
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 
@@ -108,9 +108,9 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
    * they define and refer to superclasses appropriately.  This exists
-   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
+   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
    * 
-   * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
+   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
@@ -124,9 +124,9 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
   /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
-   * to support {@link org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)}.
+   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
    * 
-   * @see org.mmtk.plan.CollectorContext#getOwnAllocator(Allocator)
+   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>

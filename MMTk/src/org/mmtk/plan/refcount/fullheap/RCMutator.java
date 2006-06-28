@@ -28,7 +28,7 @@ import org.vmmagic.pragma.*;
  * performed with respect to thread local storage, to maximize locality
  * and minimze synchronization.<p>
  * 
- * @see RC for a description of the full-heap reference counting
+ * See {@link RC} for a description of the full-heap reference counting
  * algorithm.<p>
  * 
  * FIXME Currently RC does not properly separate mutator and collector
@@ -38,9 +38,9 @@ import org.vmmagic.pragma.*;
  * @see RCBaseMutator
  * @see RC
  * @see RCCollector
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

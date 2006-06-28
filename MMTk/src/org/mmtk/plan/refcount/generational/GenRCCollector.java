@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
  * Specifically, this class defines collection-time allocation (promotion
  * from the nursery) and basic per-collector collection semantics.<p>
  * 
- * @see GenRC for a description of the generational reference counting
+ * See {@link GenRC} for a description of the generational reference counting
  * algorithm.<p>
  * 
  * FIXME Currently GenRC does not properly separate mutator and collector
@@ -41,9 +41,9 @@ import org.vmmagic.pragma.*;
  * @see RCBaseCollector
  * @see GenRC
  * @see GenRCMutator
- * @see StopTheWorldCollector
- * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldCollector
+ * @see org.mmtk.plan.CollectorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

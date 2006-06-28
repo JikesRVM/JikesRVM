@@ -25,14 +25,14 @@ import org.vmmagic.unboxed.*;
  * per-mutator thread collection time semantics are defined (rebinding
  * the mature space allocator).<p>
  * 
- * @see GenMS for a description of the <code>GenMS</code> algorithm.
+ * See {@link GenMS} for a description of the <code>GenMS</code> algorithm.
  * 
  * @see GenMS
  * @see GenMSCollector
  * @see GenMutator
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

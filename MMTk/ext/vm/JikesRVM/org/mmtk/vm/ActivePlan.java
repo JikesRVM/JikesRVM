@@ -144,7 +144,7 @@ public final class ActivePlan implements Uninterruptible {
    *
    * FIXME: Possible race in allocation of ids. Should be synchronized.
    *
-   * @param collector The MutatorContext to register
+   * @param mutator The MutatorContext to register
    * @return The MutatorContext's unique identifier
    */
   public static final int registerMutator(MutatorContext mutator) throws InterruptiblePragma {

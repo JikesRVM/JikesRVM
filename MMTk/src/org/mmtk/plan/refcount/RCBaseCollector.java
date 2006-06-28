@@ -13,7 +13,7 @@ import org.vmmagic.pragma.*;
  * and state for the <i>RCBase</i> plan, which is the parent class for
  * reference counting collectors.<p>
  * 
- * @see RCBase for an overview of the basic reference counting algorithm
+ * See {@link RCBase} for an overview of the basic reference counting algorithm
  * 
  * FIXME Currently RCBase does not properly separate mutator and collector
  * behaviors, so most of the collection logic in RCBaseMutator should really
@@ -21,9 +21,9 @@ import org.vmmagic.pragma.*;
  * 
  * @see RCBase
  * @see RCBaseMutator
- * @see StopTheWorldCollector
- * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldCollector
+ * @see org.mmtk.plan.CollectorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

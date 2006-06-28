@@ -25,9 +25,9 @@ import org.vmmagic.unboxed.*;
  * 
  * @see CopyMS
  * @see CopyMSCollector
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

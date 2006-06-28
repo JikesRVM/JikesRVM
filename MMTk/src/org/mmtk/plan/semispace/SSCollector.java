@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  * (through <code>trace</code> and the <code>collectionPhase</code>
  * method), and collection-time allocation (copying of objects).<p>
  * 
- * @see SS for an overview of the semi-space algorithm.<p>
+ * See {@link SS} for an overview of the semi-space algorithm.<p>
  * 
  * @see SS
  * @see SSMutator

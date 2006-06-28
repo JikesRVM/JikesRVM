@@ -23,14 +23,14 @@ import org.vmmagic.pragma.*;
  * (through <code>inducedTrace</code> and the <code>collectionPhase</code>
  * method), and collection-time allocation (copying of objects).<p>
  * 
- * @see GCTrace for an overview of the GC trace algorithm.<p>
+ * See {@link GCTrace} for an overview of the GC trace algorithm.<p>
  * 
  * @see SSCollector
  * @see GCTrace
  * @see GCTraceMutator
- * @see StopTheWorldCollector
- * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldCollector
+ * @see org.mmtk.plan.CollectorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

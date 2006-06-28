@@ -13,14 +13,14 @@ import org.mmtk.policy.LargeObjectLocal;
  * 
  * GCSpy does not currently have per-muator extensions to SS.<p>
  * 
- * @see SSGCspy for an overview of the GC-spy mechanisms.<p>
+ * See {@link SSGCspy} for an overview of the GC-spy mechanisms.<p>
  * 
  * @see SSMutator
  * @see SSGCSpy
  * @see SSGCSpyCollector
- * @see StopTheWorldMutator
- * @see MutatorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldMutator
+ * @see org.mmtk.plan.MutatorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 

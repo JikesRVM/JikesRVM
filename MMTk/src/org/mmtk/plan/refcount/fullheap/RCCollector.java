@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
  * state for the <i>RC</i> plan, a simple full-heap reference
  * counting collector.<p>
  * 
- * @see RC for a description of the full-heap reference counting
+ * See {@link RC} for a description of the full-heap reference counting
  * algorithm.<p>
  * 
  * FIXME Currently RC does not properly separate mutator and collector
@@ -27,9 +27,9 @@ import org.vmmagic.pragma.*;
  * @see RCBaseCollector
  * @see RC
  * @see RCMutator
- * @see StopTheWorldCollector
- * @see CollectorContext
- * @see SimplePhase#delegatePhase
+ * @see org.mmtk.plan.StopTheWorldCollector
+ * @see org.mmtk.plan.CollectorContext
+ * @see org.mmtk.plan.SimplePhase#delegatePhase
  * 
  * $Id$
  * 
