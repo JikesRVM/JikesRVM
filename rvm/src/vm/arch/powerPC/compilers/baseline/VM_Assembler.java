@@ -1471,7 +1471,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
 //-#if RVM_FOR_64_ADDR
     if (!fits(val,48)){
       val = val.toWord().lsh(32).rsha(32).toOffset();
-      Offset valHigh = addr.sub(val).toWord().rsha(32).toOffset();
+      Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
       _emitADDIS(RT, maskUpper16(valHigh));
       _emitADDI(RT, maskLower16(valHigh), RT);
       emitSLDI(RT,RT,32);
@@ -1479,7 +1479,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
       _emitADDI(RT, maskLower16(val), RT);
     } else if (!fits(val,32)){
       val = val.toWord().lsh(32).rsha(32).toOffset();
-      Offset valHigh = addr.sub(val).toWord().rsha(32).toOffset();
+      Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
       _emitLI(RT, maskLower16(valHigh));
       emitSLDI(RT,RT,32);
       _emitADDIS(RT, RT, maskUpper16(val));
