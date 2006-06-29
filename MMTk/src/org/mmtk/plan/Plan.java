@@ -9,6 +9,7 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -87,11 +88,11 @@ public abstract class Plan implements Uninterruptible, Constants {
   public static final int ALLOCATORS = 4;
 
   /* Miscellaneous Constants */
-  public static final int LOS_SIZE_THRESHOLD = 8 * 1024;
+  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
-  public static final int DEFAULT_MAX_NURSERY = MAX_INT;
+  public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
 
   /****************************************************************************
    * Class variables

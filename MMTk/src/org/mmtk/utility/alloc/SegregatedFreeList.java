@@ -63,6 +63,7 @@ public abstract class SegregatedFreeList extends Allocator
   private static final int INUSE_SHIFT = FREE_LIST_BITS + SIZE_CLASS_BITS;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; // (1<<(INUSE_BITS-1))-1;
+  public static final int MAX_CELL_SIZE = 8<<10;
 
   // live bits etc
   private static final int OBJECT_LIVE_SHIFT = LOG_MIN_ALIGNMENT; // 4 byte resolution
@@ -423,7 +424,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getSizeClass(int bytes)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((bytes > 0) && (bytes <= 8192));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert((bytes > 0) && (bytes <= MAX_CELL_SIZE));
 
     int sz1 = bytes - 1;
 
