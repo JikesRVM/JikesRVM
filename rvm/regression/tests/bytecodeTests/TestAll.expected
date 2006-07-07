@@ -784,6 +784,9 @@ false
 TestSpecialCall
 want: A.init B.init C.init A.init B.foo C.bar C.foo
  got: A.init B.init C.init A.init B.foo C.bar C.foo 
+TestMiranda
+want: 42 
+got:  42
 TestClassInitializer
 clinit called for TestClassInitializerA
 TestClassInitializerA.f called
