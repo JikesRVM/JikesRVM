@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
  * 
- * @see MC for an overview of the mark-compact algorithm.<p>
+ * @see org.mmtk.plan.markcompact.MC for an overview of the mark-compact algorithm.<p>
  * 
  * FIXME The SegregatedFreeList class (and its decendents such as
  * MarkSweepLocal) does not properly separate mutator and collector

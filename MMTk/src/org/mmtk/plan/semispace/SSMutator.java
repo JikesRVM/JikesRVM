@@ -121,7 +121,7 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
    * <code>space</code>, for this plan instance.  This exists
    * to support {@link MutatorContext#getOwnAllccator(Allocator)}.
    * 
-   * @see MutatorContext#getOwnAllccator(Allocator)
+   * @see MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
