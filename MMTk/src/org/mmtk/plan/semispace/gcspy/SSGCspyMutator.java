@@ -16,8 +16,8 @@ import org.mmtk.policy.LargeObjectLocal;
  * See {@link SSGCspy} for an overview of the GC-spy mechanisms.<p>
  * 
  * @see SSMutator
- * @see SSGCSpy
- * @see SSGCSpyCollector
+ * @see SSGCspy
+ * @see SSGCspyCollector
  * @see org.mmtk.plan.StopTheWorldMutator
  * @see org.mmtk.plan.MutatorContext
  * @see org.mmtk.plan.SimplePhase#delegatePhase
