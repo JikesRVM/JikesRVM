@@ -354,7 +354,7 @@ public class VM_Runtime implements VM_Constants {
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */ 
-  static Object unresolvedNewArray(int numElements, int id) 
+  public static Object unresolvedNewArray(int numElements, int id) 
     throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
