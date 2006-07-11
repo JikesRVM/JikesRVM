@@ -409,7 +409,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    *         <code>a</code>.
    */
   public static final Space getSpaceFromAllocatorAnyLocal(Allocator a) {
-    for (int i = 0; i < ActivePlan.collectorCount(); i++) {
+    for (int i = 0; i < ActivePlan.mutatorCount(); i++) {
       Space space = ActivePlan.mutator(i).getSpaceFromAllocator(a);
       if (space != null)
         return space;

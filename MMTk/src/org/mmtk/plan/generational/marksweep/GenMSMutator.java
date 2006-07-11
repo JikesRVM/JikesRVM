@@ -153,13 +153,13 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
   public void collectionPhase(int phaseId, boolean primary)
       throws NoInlinePragma {
     if (global().traceFullHeap()) {
-      if (phaseId == GenMS.PREPARE) {
+      if (phaseId == GenMS.PREPARE_MUTATOR) {
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.prepare();
         return;
       }
 
-      if (phaseId == GenMS.RELEASE) {
+      if (phaseId == GenMS.RELEASE_MUTATOR) {
         if (global().gcFullHeap) mature.releaseMutator();
         super.collectionPhase(phaseId, primary);
         return;

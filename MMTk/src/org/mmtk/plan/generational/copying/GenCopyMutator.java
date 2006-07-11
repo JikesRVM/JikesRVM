@@ -152,11 +152,13 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
    */
   public void collectionPhase(int phaseId, boolean primary) {
     if (global().traceFullHeap()) {
-      if (phaseId == GenCopy.PREPARE) {
+      if (phaseId == GenCopy.PREPARE_MUTATOR) {
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());       
+        return;
       }
     }
+    
     super.collectionPhase(phaseId, primary);
   }
 
