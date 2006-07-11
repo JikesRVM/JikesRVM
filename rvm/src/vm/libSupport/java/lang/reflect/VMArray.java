@@ -4,9 +4,7 @@
 //$Id$
 package java.lang.reflect;
 
-import com.ibm.JikesRVM.classloader.VM_TypeReference;
-import com.ibm.JikesRVM.classloader.VM_Atom;
-import com.ibm.JikesRVM.classloader.VM_BootstrapClassLoader;
+import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.VM_Runtime;
 
 /**
@@ -19,20 +17,25 @@ class VMArray {
   /**
    * Dynamically create an array of objects.
    *
-   * @param type guaranteed to be a valid object type
-   * @param dim the length of the array
+   * @param cls guaranteed to be a valid object type
+   * @param length the length of the array
    * @return the new array
    * @throws NegativeArraySizeException if dim is negative
    * @throws OutOfMemoryError if memory allocation fails
    */
-  static Object createObjectArray(Class type, int dim)
+  static Object createObjectArray(Class cls, int length)
     throws OutOfMemoryError, NegativeArraySizeException {
-    ClassLoader loader = type.getClassLoader();
-    VM_Atom name = VM_Atom.findOrCreateAsciiAtom("[L"+type.getName()+";");
-    if (loader == null) { // Use System loader
-      loader = VM_BootstrapClassLoader.getBootstrapClassLoader();
+    if(cls == null)
+      throw new NullPointerException();
+    if(length < 0)
+      throw new NegativeArraySizeException();
+
+    VM_Array arrayType = java.lang.JikesRVMSupport.getTypeForClass(cls).getArrayTypeForElementType();
+    if (!arrayType.isInitialized()) {
+      arrayType.resolve();
+      arrayType.instantiate();
+      arrayType.initialize();
     }
-    int id = VM_TypeReference.findOrCreate(loader, name).getId();
-    return VM_Runtime.unresolvedNewArray(dim, id);
+    return VM_Runtime.resolvedNewArray(length, arrayType);
   }
 }
