@@ -496,7 +496,14 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       if (inst.getmcOffset() == target) {
         return true;
       }
-      switch (inst.getOpcode()) {
+      budget -= estimateSize(inst);
+      inst = inst.nextInstructionInCodeOrder();
+    }
+  }
+
+  private static int estimateSize(OPT_Instruction inst) {
+    int size = 0;
+    switch (inst.getOpcode()) {
       case LABEL_opcode:case BBEND_opcode:case UNINT_BEGIN_opcode:case UNINT_END_opcode:
         // these generate no code
         break;
@@ -505,74 +512,73 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       case IA32_ADC_opcode:case IA32_ADD_opcode:case IA32_AND_opcode:
       case IA32_OR_opcode:case IA32_SBB_opcode:
       case IA32_XOR_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_BinaryAcc.getResult(inst), true);
-        budget -= operandCost(MIR_BinaryAcc.getValue(inst), true);
+        size += 2; // opcode + modr/m
+        size += operandCost(MIR_BinaryAcc.getResult(inst), true);
+        size += operandCost(MIR_BinaryAcc.getValue(inst), true);
         break;
       case IA32_CMP_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_Compare.getVal1(inst), true);
-        budget -= operandCost(MIR_Compare.getVal2(inst), true);
+        size += 2; // opcode + modr/m
+        size += operandCost(MIR_Compare.getVal1(inst), true);
+        size += operandCost(MIR_Compare.getVal2(inst), true);
         break;
       case IA32_TEST_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_Test.getVal1(inst), true);
-        budget -= operandCost(MIR_Test.getVal2(inst), true);
+        size += 2; // opcode + modr/m
+        size += operandCost(MIR_Test.getVal1(inst), true);
+        size += operandCost(MIR_Test.getVal2(inst), true);
         break;
         
       case IA32_PUSH_opcode:
         {
           OPT_Operand op = MIR_UnaryNoRes.getVal(inst);
           if (op instanceof OPT_RegisterOperand) {
-            budget -= 1;
+            size += 1;
           } else if (op instanceof OPT_IntConstantOperand) {
             if (fits(((OPT_IntConstantOperand)op).value,8)) {
-              budget -= 2;
+              size += 2;
             } else {
-              budget -= 5;
+              size += 5;
             }
           } else {
-            budget -= (2+operandCost(op, true));
+            size += (2+operandCost(op, true));
           }
         }
         break;
       case IA32_MOV_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_Move.getResult(inst), false);
-        budget -= operandCost(MIR_Move.getValue(inst), false);
+        size += 2; // opcode + modr/m
+        size += operandCost(MIR_Move.getResult(inst), false);
+        size += operandCost(MIR_Move.getValue(inst), false);
         break;
       case IA32_OFFSET_opcode:
-        budget -= 4;
+        size += 4;
         break;
       case IA32_JCC_opcode: case IA32_JMP_opcode:
-        budget -= 6; // assume long form
+        size += 6; // assume long form
         break;
       case IA32_LOCK_opcode:
-        budget -= 1;
+        size += 1;
         break;
       case IG_PATCH_POINT_opcode:
-        budget -= 6;
+        size += 6;
         break;
       case IA32_INT_opcode:
-        budget -= 2;
+        size += 2;
         break;
       case IA32_RET_opcode:
-        budget -= 3;
+        size += 3;
         break;
       default:
-        budget -= 3; // 2 bytes opcode + 1 byte modr/m
+        size += 3; // 2 bytes opcode + 1 byte modr/m
         for (OPT_OperandEnumeration opEnum = inst.getRootOperands();
              opEnum.hasMoreElements();) {
           OPT_Operand op = opEnum.next();
-          budget -= operandCost(op, false);
+          size += operandCost(op, false);
         }
         break;
       }
-      inst = inst.nextInstructionInCodeOrder();
-    }
+    return size;
   }
-
-  private int operandCost(OPT_Operand op, boolean shortFormImmediate) {
+  
+  private static int operandCost(OPT_Operand op, boolean shortFormImmediate) {
     if (op instanceof OPT_MemoryOperand) {
       int cost = 1; // might need SIB byte
       OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
@@ -699,9 +705,25 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
          p != null; p = p.nextInstructionInCodeOrder()) 
       {
-        asm.doInst(p);
+        int start = asm.getMachineCodeIndex();
+        int estimate = estimateSize(p);
+        try {
+          asm.doInst(p);
+        } catch (RuntimeException e) {
+          System.err.println("Failed while assembling "+p.toString());
+          ir.printInstructions();
+          int end = asm.getMachineCodeIndex();
+          if (start-end > estimate) {
+            VM.sysWriteln("Bad estimate: "+(start-end)+" "+estimate+" "+p);
+          }
+          VM._assert(false);
+        }
+        int end = asm.getMachineCodeIndex();
+        if (start-end > estimate) {
+          VM.sysWriteln("Bad estimate: "+(start-end)+" "+estimate+" "+p);
+        }
       }
-      
+    
     ir.MIRInfo.machinecode = asm.getMachineCodes();
 
     return ir.MIRInfo.machinecode.length();
