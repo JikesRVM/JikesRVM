@@ -24,8 +24,12 @@ SHELL=${BASH}			# Set shell to bash because we use 'echo -n'
 			        # below, and /bin/sh on AIX does not support
                                 # 'echo -n'.
 
-HOST_JDK_FLAGS=
-HOST_MEM_MAX=400M
+ifeq (${HOST_VM_TYPE},IBM-50)
+    HOST_JDK_FLAGS=-Xss1m
+else 
+    HOST_JDK_FLAGS=
+endif
+HOST_MEM_MAX=500M
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
@@ -54,6 +58,10 @@ endif
 
 
 ifeq (${HOST_VM_TYPE},Sun)
+   host_vm_bootclasspath_args := -Xbootclasspath/a:$(RVM_REPOSITORIES)
+endif
+
+ifeq (${HOST_VM_TYPE},IBM-50)
    host_vm_bootclasspath_args := -Xbootclasspath/a:$(RVM_REPOSITORIES)
 endif
 
