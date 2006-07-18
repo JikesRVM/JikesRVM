@@ -6,12 +6,18 @@
 package org.mmtk.utility;
 
 import org.mmtk.plan.TraceLocal;
-
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Lock;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.mmtk.vm.SynchronizedCounter;
+import org.vmmagic.pragma.InlinePragma;
+import org.vmmagic.pragma.InterruptiblePragma;
+import org.vmmagic.pragma.LogicallyUninterruptiblePragma;
+import org.vmmagic.pragma.NoInlinePragma;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.ObjectReferenceArray;
 
 /**
  * This class manages finalization.  When an object is created if its
@@ -39,6 +45,8 @@ public class Finalizer implements Uninterruptible {
   private static int INITIAL_SIZE = 32768;
   private static double growthFactor = 2.0;
   private static Lock lock = new Lock("Finalizer");
+  private static SynchronizedCounter gcLock = new SynchronizedCounter();
+  
   /* Use an AddressArray rather than ObjectReference array to *avoid* this
      being traced.  We don't want this array to keep the candiates alive */
   private static AddressArray candidate = AddressArray.create(INITIAL_SIZE);
@@ -56,18 +64,73 @@ public class Finalizer implements Uninterruptible {
   // (SJF: This method must NOT be inlined into an inlined allocation sequence, since it contains a lock!)
   //
   public static final void addCandidate(ObjectReference item)
-      throws NoInlinePragma, InterruptiblePragma {
-    lock.acquire();
-
-    int origLength = candidate.length();
-    if (candidateEnd >= origLength) {
-      AddressArray newCandidate = AddressArray.create((int) (growthFactor * origLength));
-      for (int i = 0; i < origLength; i++)
-        newCandidate.set(i, candidate.get(i));
-      candidate = newCandidate;
+    throws NoInlinePragma, InterruptiblePragma {
+ 
+    /* The following is tricky due to its littering of deadlock potential and
+     * thread (logical and physical) race conditions, hence the unusual comment
+     * verbosity.
+     * 
+     * If we know we need to expand newCandidate array, then do a preventive
+     * full collection. This prevents two-stage deadlock arising when 
+     * AddressArray.create(int) must adjust page tables, requiring acquiring
+     * the immortal mutator lock which might be held by another thread which 
+     * attempts to add a finalizer candidate also while simultaneously holding
+     * the immortal mutator lock. 
+     */
+    if (candidateEnd >= candidate.length()) {
+      /* must guard against multiple logical or physical processors executing
+       * mutator threads which enter this method concurrently. the first thread
+       * in should commence the collection; all subsequent threads must block,
+       * until the GC succeeds. Note we cannot invoke System.gc() here, since
+       * that method will return immediately if collection is already in-
+       * progress.
+       */
+      if (gcLock.increment() == 0) {		// lead concurrent mutator
+ 	    /* Note the above lock is insufficient to guarantee that only a single
+ 	     * thread is in explicit collection (since another thread could have
+ 	     * executed System.gc() directly). Thus, use System.gc() here, rather than 
+ 	     * org.mmtk.vm.Collection.triggerCollection(org.mmtk.vm.Collection.EXTERNAL_GC_TRIGGER),
+ 	     * to prevent collection from being concurrently executed. See RVM 
+ 	     * bug 1511447 and RVM patch 1512948 for more detail.
+ 	     */
+     	try {
+          System.gc();
+     	} finally {
+          // release trailing concurrent mutators (in while-loop below)
+          gcLock.reset();
+     	}
+      } else {		// trailing concurrent mutators
+        // wait until lead thread finishes above collection
+        while (gcLock.peek() != 0) {
+          /* must do a yielded-spin, since the concurrent
+           * thread may be on the same physically processor.
+           * plus, gc may take a long time and we should
+           * hog as few cycles as possible while we wait patiently.
+           */    		  
+          Thread.yield();
+        }
+      }
     }
-    candidate.set(candidateEnd++, item.toAddress());
-    lock.release();
+ 
+    try {
+      lock.acquire();
+      int origLength = candidate.length();
+      if (candidateEnd >= origLength) {
+        /* the above explicit collection will ensure this
+         * does not deadlock due to necessity for physical
+         * memory management (e.g. virtual page allocation)
+         * to satisfy this allocation request.
+         */
+        AddressArray newCandidate = AddressArray.create((int) (growthFactor * origLength));
+        for (int i=0; i<origLength; i++) {
+          newCandidate.set(i, candidate.get(i));
+        }
+        candidate = newCandidate;
+      }
+      candidate.set(candidateEnd++, item.toAddress());
+    } finally {
+      lock.release();
+    }
   }
 
   private static final void compactCandidates() {
