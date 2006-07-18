@@ -365,7 +365,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @param start the starting index of the last instruction.
    */
-  final void writeLastInstruction(int start) {
+  public final void writeLastInstruction(int start) {
     for (int j=start; j<mi; j++) {
       VM.sysWrite(VM_Lister.hex(machineCodes[j]));
     }
