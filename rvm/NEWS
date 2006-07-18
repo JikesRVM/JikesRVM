@@ -31,6 +31,9 @@ on October 14, 2001,
 
 1505824: Exit cleanly when the jar file given to -jar doesn't contain a valid manifest
 
+1494784: Intermittent build failure on IA32 due to imprecise estimation of 
+         instruction size in code used for short forward jump optimization.
+
 ** Other Notes
 *** IA32 BURS improvement for special case of COND_MOV contibuted by
     Garrett Kolpin
