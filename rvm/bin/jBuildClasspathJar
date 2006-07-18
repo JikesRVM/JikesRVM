@@ -272,4 +272,4 @@ rm -f ${cp_src_jar}
 mkdir -p $cp_src_jar_dir
 touch ${cp_src_jar}
 cd $SRC
-$FIND $TOP_LEVEL_PACKAGES -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $JAR_TOOL uf ${cp_src_jar}
+$FIND $TOP_LEVEL_PACKAGES -name '*.java' | $GREP -v -f `find .. -name standard.omit` | $XARGS $JAR_TOOL uf ${cp_src_jar}
