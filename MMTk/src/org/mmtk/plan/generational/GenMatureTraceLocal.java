@@ -32,8 +32,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    * 
    * Instance fields.
    */
-  private final WriteBuffer remset;
-  private final AddressDeque traceRemset;
+  private final AddressDeque remset;
   private final AddressPairDeque arrayRemset;
 
   /****************************************************************************
@@ -47,7 +46,6 @@ public abstract class GenMatureTraceLocal extends TraceLocal
   public GenMatureTraceLocal(Trace trace, GenCollector plan) {
     super(trace);
     this.remset = plan.remset;
-    this.traceRemset = plan.traceRemset;
     this.arrayRemset = plan.arrayRemset;
   }
 
@@ -119,9 +117,8 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    */
   protected void flushRememberedSets() {
     logMessage(5, "clearing remset");
-    remset.flushLocal();
-    while (!traceRemset.isEmpty()) {
-      traceRemset.pop();
+    while (!remset.isEmpty()) {
+      remset.pop();
     }
     logMessage(5, "clearing array remset");
     while (!arrayRemset.isEmpty()) {

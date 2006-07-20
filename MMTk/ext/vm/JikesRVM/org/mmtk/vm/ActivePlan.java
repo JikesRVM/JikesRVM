@@ -58,6 +58,11 @@ public final class ActivePlan implements Uninterruptible {
     return SelectedMutatorContext.get();
   }
 
+  /** Flush the mutator remembered sets (if any) for this active plan */
+  public static final void flushRememberedSets() {
+     SelectedMutatorContext.get().flushRememberedSets();
+  }
+    
   /**
    * Return the CollectorContext instance given its unique identifier.
    *

@@ -334,6 +334,14 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
     return Address.max();
   }
 
+  /**
+   * Flush per-mutator remembered sets into the global remset pool.
+   */
+  public void flushRememberedSets() {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is a no-op
+  }
+
   /***********************************************************************
    * 
    * Miscellaneous

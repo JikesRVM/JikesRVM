@@ -30,8 +30,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
    * 
    * Instance fields.
    */
-  private final WriteBuffer remset;
-  private final AddressDeque traceRemset;
+  private final AddressDeque remset;
   private final AddressPairDeque arrayRemset;
 
 
@@ -41,7 +40,6 @@ public final class GenNurseryTraceLocal extends TraceLocal
   public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
     super(trace);
     this.remset = plan.remset;
-    this.traceRemset = plan.traceRemset;
     this.arrayRemset = plan.arrayRemset;
   }
 
@@ -88,9 +86,8 @@ public final class GenNurseryTraceLocal extends TraceLocal
    */
   protected void flushRememberedSets() throws InlinePragma {
     logMessage(5, "processing remset");
-    remset.flushLocal();
-    while (!traceRemset.isEmpty()) {
-      Address loc = traceRemset.pop();
+    while (!remset.isEmpty()) {
+      Address loc = remset.pop();
       traceObjectLocation(loc, false);
     }
     logMessage(5, "processing array remset");

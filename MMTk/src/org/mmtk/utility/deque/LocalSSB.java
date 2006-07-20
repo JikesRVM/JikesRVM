@@ -195,4 +195,13 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
     }
     queue.enqueue(last.plus(BYTES_IN_ADDRESS), arity, true);
   }
+  
+  /**
+   * Return true if this SSB is locally empty
+   * 
+   * @return true if this SSB is locally empty
+   */
+  public final boolean isFlushed() {
+    return tail.EQ(Deque.TAIL_INITIAL_VALUE);
+  }
 }

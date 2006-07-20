@@ -13,6 +13,8 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
+import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
@@ -207,7 +209,24 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     }
     return false;
   }
-  // private static int counter = 0;
+
+  /*****************************************************************************
+   * 
+   * Correctness
+   */
+  
+  /**
+   * Remset entries should never be produced by MMTk code.  If the host JVM
+   * produces remset entries during GC, it is the responsibility of the host
+   * JVM to flush those remset entries out of the mutator contexts.
+   */
+  public static void assertMutatorRemsetsEmpty() {
+    if (Assert.VERIFY_ASSERTIONS) {
+      GenMutator mutator = null;
+      while ((mutator = (GenMutator) ActivePlan.getNextMutator()) != null)
+        mutator.assertRemsetFlushed();
+    }
+  }
 
   /*****************************************************************************
    * 

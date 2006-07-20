@@ -45,8 +45,7 @@ implements Uninterruptible {
   protected final GenNurseryTraceLocal nurseryTrace;
 
   // remembered set consumers
-  protected final AddressDeque traceRemset;
-  protected final WriteBuffer remset;
+  protected final AddressDeque remset;
   protected final AddressPairDeque arrayRemset;
 
   // Sanity checking
@@ -66,11 +65,10 @@ implements Uninterruptible {
    * @see GenMutator
    */
   public GenCollector() {
-    remset = new WriteBuffer(global().remsetPool);
     global().remsetPool.newConsumer();
     arrayRemset = new AddressPairDeque(global().arrayRemsetPool);
     global().arrayRemsetPool.newConsumer();
-    traceRemset = new AddressDeque("remset", global().remsetPool);
+    remset = new AddressDeque("remset", global().remsetPool);
     nurseryTrace = new GenNurseryTraceLocal(global().nurseryTrace, this);
     sanityChecker = new GenSanityCheckerLocal();
   }

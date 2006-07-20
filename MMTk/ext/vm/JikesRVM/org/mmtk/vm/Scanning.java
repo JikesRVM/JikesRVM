@@ -238,6 +238,8 @@ public class Scanning implements Constants, Uninterruptible {
       /* identify this thread as a root */
       trace.addRootLocation(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS));
     }
+    /* flush out any remset entries generated during the above activities */
+    ActivePlan.flushRememberedSets();
     Collection.rendezvous(4200);
   }
 }

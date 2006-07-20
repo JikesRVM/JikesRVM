@@ -12,6 +12,7 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
 
 import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
 
 import org.vmmagic.pragma.*;
@@ -201,6 +202,29 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
       arrayRemset.insert(dst.toAddress().plus(dstOffset),
           dst.toAddress().plus(dstOffset.plus(bytes)));
     return false;
+  }
+
+  /**
+   * Flush per-mutator remembered sets into the global remset pool.
+   */
+  public final void flushRememberedSets() {
+    remset.flushLocal();
+    arrayRemset.flushLocal();
+    assertRemsetFlushed();
+  }
+  
+  /**
+   * Assert that the remsets have been flushed.  This is critical to 
+   * correctness.  We need to maintain the invariant that remset entries
+   * do not accrue during GC.  If the host JVM generates barrier entires
+   * it is its own responsibility to ensure that they are flushed before
+   * returning to MMTk.
+   */
+  public final void assertRemsetFlushed() {
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(remset.isFlushed());
+      Assert._assert(arrayRemset.isFlushed());
+    }
   }
 
   /****************************************************************************
