@@ -57,7 +57,7 @@ public class GenSanityCheckerLocal extends SanityCheckerLocal
     }
 
     // Mature space (full heap collection)
-    return space.isLive(object) 
+    return space.isReachable(object) 
       ? SanityChecker.ALIVE 
       : SanityChecker.DEAD;
   }

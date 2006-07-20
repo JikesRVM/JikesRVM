@@ -82,7 +82,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    */
   /* status fields */
   public boolean gcFullHeap = false;
-  public boolean lastGCFullHeap = false;
+  public boolean nextGCFullHeap = false;
 
   /* The trace object */
   public final Trace nurseryTrace = new Trace(metaDataSpace);
@@ -122,7 +122,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    * A user-triggered GC has been initiated.
    */
   public void userTriggeredGC() {
-    gcFullHeap |= Options.fullHeapSystemGC.getValue();
+    nextGCFullHeap |= Options.fullHeapSystemGC.getValue();
   }
   /**
    * Perform a (global) collection phase.
@@ -130,9 +130,14 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    * @param phaseId Collection phase to execute.
    */
   public void collectionPhase(int phaseId) throws NoInlinePragma {
+    if (phaseId == INITIATE) {
+      gcFullHeap = nextGCFullHeap;
+      super.collectionPhase(phaseId);
+      return;
+    }
+    
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      lastGCFullHeap = gcFullHeap;
       if (traceFullHeap()) {
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
@@ -155,7 +160,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
-      gcFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
+      nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       progress = (getPagesReserved() + required) < getTotalPages();
       return;
     }
@@ -196,7 +201,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
         required = required << 1; // must account for copy reserve
       int nurseryYield = ((int)(nurserySpace.committedPages() *
                           SURVIVAL_ESTIMATE))<<1;
-      gcFullHeap |= mustCollect || (nurseryYield < required);
+      nextGCFullHeap |= mustCollect || (nurseryYield < required);
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -271,13 +276,6 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   protected abstract Space activeMatureSpace();
 
   /**
-   * @return True if the last GC was a full heap GC.
-   */
-  public boolean isLastGCFull() {
-    return lastGCFullHeap;
-  }
-
-  /**
    * @return True if we should trace the whole heap during collection. True if
    *         we're ignorning remsets or if we're doing a full heap GC.
    */
@@ -290,5 +288,12 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    */
   public final boolean isCurrentGCNursery() {
     return !gcFullHeap;
+  }
+  
+  /**
+   * @return Is last GC a full collection?
+   */
+  public final boolean isLastGCFull() {
+    return gcFullHeap;
   }
 }
