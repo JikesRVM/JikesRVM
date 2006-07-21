@@ -113,7 +113,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
     
     Object[] tib = VM_ObjectModel.getTIB(ref);
     Address tibAddr = VM_Magic.objectAsAddress(tib);
-    if (!Space.isMappedObject(ref)) {
+    if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
       VM.sysWrite("validRef: TIB outside heap, ref = "); VM.sysWrite(ref);
       VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
       VM.sysWrite("\n");
