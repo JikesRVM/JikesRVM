@@ -84,7 +84,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
   /**
    * Process any remembered set entries.
    */
-  protected void flushRememberedSets() throws InlinePragma {
+  protected void processRememberedSets() throws InlinePragma {
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();

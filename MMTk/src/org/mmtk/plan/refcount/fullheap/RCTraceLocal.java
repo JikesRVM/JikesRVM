@@ -41,7 +41,7 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
   /**
    * Flush any remembered sets pertaining to the current collection.
    */
-  protected void flushRememberedSets() {
+  protected void processRememberedSets() {
     local().processModBufs();
   }
 

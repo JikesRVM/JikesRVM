@@ -456,12 +456,13 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
   public void completeTrace() throws InlinePragma {
     logMessage(4, "Continuing GC in parallel");
     logMessage(5, "processing gray objects");
+    assertMutatorRemsetsFlushed();
     do {
       while (!values.isEmpty()) {
         ObjectReference v = values.pop();
         scanObject(v);
       }
-      flushRememberedSets();
+      processRememberedSets();
     } while (!values.isEmpty());
   }
 
@@ -469,8 +470,23 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * Flush any remembered sets pertaining to the current collection.
    * Non-generational collectors do nothing.
    */
-  protected void flushRememberedSets() {}
 
+  protected void processRememberedSets() {}
+
+  /**
+   * Assert that the remsets have been flushed.  This is critical to 
+   * correctness.  We need to maintain the invariant that remset entries
+   * do not accrue during GC.  If the host JVM generates barrier entires
+   * it is its own responsibility to ensure that they are flushed before
+   * returning to MMTk.
+   */
+  private void assertMutatorRemsetsFlushed() {
+    if (Assert.VERIFY_ASSERTIONS) {
+      for (int m = 0; m < ActivePlan.mutatorCount(); m++) {
+        ActivePlan.mutator(m).assertRemsetsFlushed();
+      }
+    }
+  }
   /**
    * This method logs a message with preprended thread id, if the
    * verbosity level is greater or equal to the passed level.

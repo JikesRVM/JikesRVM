@@ -220,7 +220,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    * produces remset entries during GC, it is the responsibility of the host
    * JVM to flush those remset entries out of the mutator contexts.
    */
-  public static void assertMutatorRemsetsEmpty() {
+  public static void assertMutatorRemsetsFlushed() {
     if (Assert.VERIFY_ASSERTIONS) {
       GenMutator mutator = null;
       while ((mutator = (GenMutator) ActivePlan.getNextMutator()) != null)

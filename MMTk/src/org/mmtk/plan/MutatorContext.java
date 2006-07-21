@@ -342,6 +342,18 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
     // write barriers are not used and this is a no-op
   }
 
+  /**
+   * Assert that the remsets have been flushed.  This is critical to 
+   * correctness.  We need to maintain the invariant that remset entries
+   * do not accrue during GC.  If the host JVM generates barrier entires
+   * it is its own responsibility to ensure that they are flushed before
+   * returning to MMTk.
+   */
+  public void assertRemsetsFlushed() {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is a no-op
+  }
+
   /***********************************************************************
    * 
    * Miscellaneous

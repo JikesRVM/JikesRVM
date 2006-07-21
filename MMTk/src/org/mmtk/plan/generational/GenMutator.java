@@ -244,8 +244,9 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
         super.collectionPhase(phaseId, primary);
         remset.resetLocal();
         arrayRemset.resetLocal();
+      } else {
+        flushRememberedSets();
       }
-      flushRememberedSets();
       return;
     }
 

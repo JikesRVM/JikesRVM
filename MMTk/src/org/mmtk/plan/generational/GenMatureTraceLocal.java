@@ -115,7 +115,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal
   /**
    * Process any remembered set entries.
    */
-  protected void flushRememberedSets() {
+  protected void processRememberedSets() {
     logMessage(5, "clearing remset");
     while (!remset.isEmpty()) {
       remset.pop();

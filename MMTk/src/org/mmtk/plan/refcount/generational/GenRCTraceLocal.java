@@ -47,7 +47,7 @@ public final class GenRCTraceLocal extends TraceLocal
   /**
    * Flush any remembered sets pertaining to the current collection.
    */
-  protected void flushRememberedSets() {
+  protected void processRememberedSets() {
     collector().processModBufs();
   }
 
