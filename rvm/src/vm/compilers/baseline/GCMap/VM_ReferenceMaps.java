@@ -1324,12 +1324,13 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       byte newRef = jsrInfo.unusualReferenceMaps[refMapIndex+i];
       byte newNonRef = jsrInfo.unusualReferenceMaps[nonRefMapIndex + i];
       byte res = (byte)((finalBase | newRef) & (~newNonRef));
-      /* if an entry is also a return address this must dominate: it CANNOT be both */
-      res &= ~jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i];
-      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap+i] = res;
       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
         = (byte)(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
                  | jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i]);
+      /* if an entry is also a return address this must dominate: it CANNOT be both */
+      res &= ~jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i];
+      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap+i] = res;
+
       /*
          VM.sysWrite("   **** base = "); VM.sysWrite(base);
          VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
