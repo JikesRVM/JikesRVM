@@ -1405,6 +1405,26 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /** 
    * Dump this thread's identifying information, for debugging, via
    * {@link VM#sysWrite}.
+   * We pad to a minimum of leftJustify characters. We do not use any spacing
+   * characters.  Callers are responsible for space-separating or
+   * newline-terminating output.
+   *
+   * @param leftJustify minium number of characters emitted, with any
+   * extra characters being spaces.
+   */
+  public void dumpWithPadding(int leftJustify) {
+    char[] buf = grabDumpBuffer();
+    int len = dump(buf);
+    VM.sysWrite(buf, len);
+    for( int i = leftJustify - len; i > 0; i-- ) {
+        VM.sysWrite(" ");
+    }
+    releaseDumpBuffer();
+  }
+
+  /**
+   * Dump this thread's identifying information, for debugging, via
+   * {@link VM#sysWrite}.
    * We do not use any spacing or newline characters.  Callers are responsible
    * for space-separating or newline-terminating output. 
    *
