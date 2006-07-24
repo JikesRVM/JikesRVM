@@ -73,7 +73,7 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
   public Address alloc(int bytes, int align, int offset, int allocator)
       throws InlinePragma {
     if (allocator == NoGC.ALLOC_DEFAULT) {
-      return def.alloc(bytes, align, offset);
+      return def.alloc(bytes, align, offset, false);
     }
     return super.alloc(bytes, align, offset, allocator);
   }

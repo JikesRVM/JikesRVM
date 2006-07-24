@@ -67,12 +67,13 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @param bytes The number of bytes allocated
    * @param align The requested alignment.
    * @param offset The alignment offset.
+   * @param inGC Is this allocation occuring during GC
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  public final Address alloc(int bytes, int align, int offset)
+  public final Address alloc(int bytes, int align, int offset, boolean inGC)
       throws NoInlinePragma {
-    Address cell = allocSlow(bytes, align, offset, false);
+    Address cell = allocSlow(bytes, align, offset, inGC);
     postAlloc(cell);
     return alignAllocation(cell, align, offset);
   }

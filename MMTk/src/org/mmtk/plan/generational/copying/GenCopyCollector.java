@@ -86,7 +86,7 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
       Assert._assert(allocator == GenCopy.ALLOC_MATURE);
     }
 
-    Address result = mature.alloc(bytes, align, offset);
+    Address result = mature.alloc(bytes, align, offset, true);
     return result;
   }
 

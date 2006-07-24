@@ -148,8 +148,8 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
   public Address alloc(int bytes, int align, int offset, int allocator)
       throws InlinePragma {
     switch (allocator) {
-    case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset);
-    case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset);
+    case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
+    case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset, false);
     default:
       if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
       return Address.zero();

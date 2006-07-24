@@ -69,7 +69,7 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
       throws InlinePragma {
     switch (allocator) {
     case  RC.ALLOC_RC: return rc.alloc(bytes, align, offset, false);
-    case RC.ALLOC_LOS: return los.alloc(bytes, align, offset);
+    case RC.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
     default:           return super.alloc(bytes,align,offset,allocator);
     }
   }

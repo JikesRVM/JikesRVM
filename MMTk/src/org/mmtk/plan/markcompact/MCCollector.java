@@ -94,7 +94,7 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
       Assert._assert(allocator == MC.ALLOC_IMMORTAL);
     }
 
-    return immortal.alloc(bytes, align, offset);
+    return immortal.alloc(bytes, align, offset, true);
   }
 
   /**

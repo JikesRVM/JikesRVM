@@ -202,24 +202,33 @@ public abstract class Allocator implements Constants, Uninterruptible {
     }
   }
 
+  /**
+   * Single slow path allocation attempt. This is called by allocSlow.
+   * 
+   * @param bytes The size of the allocation request
+   * @param alignment The required alignment
+   * @param offset The alignment offset
+   * @param inGC Is this request occuring during GC
+   * @return The start address of the region, or zero if allocation fails
+   */
   abstract protected Address allocSlowOnce(int bytes, int alignment,
       int offset, boolean inGC);
 
-  public Address allocSlow(int bytes, int alignment, int offset)
-      throws NoInlinePragma {
-    return allocSlowBody(bytes, alignment, offset, false);
-  }
-
-  public Address allocSlow(int bytes, int alignment, int offset,
-                              boolean inGC) 
-      throws NoInlinePragma {
-    return allocSlowBody(bytes, alignment, offset, inGC);
-  }
-
-  private Address allocSlowBody(int bytes, int alignment, int offset,
-                                   boolean inGC) 
-    throws InlinePragma { 
-
+  /**
+   * Slow path allocation. This method attempts allocSlowOnce several times,
+   * and allows collection to occur, and ensures that execution safely 
+   * resumes by taking care of potential thread/mutator context affinity 
+   * changes. All allocators should use this as the trampoline for slow 
+   * path allocation.
+   * 
+   * @param bytes The size of the allocation request
+   * @param alignment The required alignment
+   * @param offset The alignment offset
+   * @param inGC Is this request occuring during GC
+   * @return The start address of the region, or zero if allocation fails
+   */
+  final public Address allocSlow(int bytes, int alignment, int offset,
+                                 boolean inGC) throws NoInlinePragma {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i = 0; i < MAX_RETRY; i++) {
@@ -227,7 +236,14 @@ public abstract class Allocator implements Constants, Uninterruptible {
         current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
+      if (!inGC) {
+        /* This is in case a GC occurs, and our mutator context is stale.
+         * In some VMs the scheduler can change the affinity between the
+         * current thread and the mutator context. This is possible for
+         * VMs that dynamically multiplex Java threads onto multiple mutator 
+         * contexts, */
       current = ActivePlan.mutator().getOwnAllocator(current);
+    }
     }
     Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");
     Log.write(bytes);

@@ -87,7 +87,7 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
       throws InlinePragma {
     if (allocator == Gen.ALLOC_NURSERY) {
       if (Stats.GATHER_MARK_CONS_STATS) Gen.nurseryCons.inc(bytes);
-      return nursery.alloc(bytes, align, offset);
+      return nursery.alloc(bytes, align, offset, false);
     }
     return super.alloc(bytes, align, offset, allocator);
   }

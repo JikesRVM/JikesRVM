@@ -82,7 +82,7 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
       throws InlinePragma {
     if (allocator == GenCopy.ALLOC_MATURE) {
-      return mature.alloc(bytes, align, offset);
+      return mature.alloc(bytes, align, offset, false);
     }
     return super.alloc(bytes, align, offset, allocator);
   }

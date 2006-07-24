@@ -80,9 +80,9 @@ public class GenRCMutator extends RCBaseMutator implements Uninterruptible, Cons
       throws InlinePragma {
     // TODO: STEAL NURSERY GC HEADER
     switch (allocator) {
-    case GenRC.ALLOC_NURSERY: return nursery.alloc(bytes, align, offset);
+    case GenRC.ALLOC_NURSERY: return nursery.alloc(bytes, align, offset, false);
     case      GenRC.ALLOC_RC: return rc.alloc(bytes, align, offset, false);
-    case     GenRC.ALLOC_LOS: return los.alloc(bytes, align, offset);
+    case     GenRC.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
     default:                  return super.alloc(bytes,align,offset,allocator);
     }
   }

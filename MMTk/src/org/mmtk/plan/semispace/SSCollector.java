@@ -86,7 +86,7 @@ public class SSCollector extends StopTheWorldCollector implements Uninterruptibl
       Assert._assert(allocator == SS.ALLOC_SS);
     }
 
-    return ss.alloc(bytes, align, offset);
+    return ss.alloc(bytes, align, offset, true);
   }
 
   /**

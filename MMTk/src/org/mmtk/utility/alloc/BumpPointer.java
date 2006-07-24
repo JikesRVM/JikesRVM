@@ -130,14 +130,15 @@ public class BumpPointer extends Allocator
    * @param bytes The number of bytes allocated
    * @param align The requested alignment
    * @param offset The offset from the alignment 
+   * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
-  final public Address alloc(int bytes, int align, int offset)
+  final public Address alloc(int bytes, int align, int offset, boolean inGC)
       throws InlinePragma {
     Address oldCursor = alignAllocationNoFill(cursor, align, offset);
     Address newCursor = oldCursor.plus(bytes);
     if (newCursor.GT(limit))
-      return allocSlow(bytes, align, offset);
+      return allocSlow(bytes, align, offset, inGC);
     fillAlignmentGap(cursor, oldCursor);
     cursor = newCursor;
     return oldCursor;
@@ -172,7 +173,7 @@ public class BumpPointer extends Allocator
 
         ((MarkCompactSpace)space).reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
 
-        return alloc(bytes, align, offset);
+        return alloc(bytes, align, offset, inGC);
       }
     }
 
@@ -189,7 +190,7 @@ public class BumpPointer extends Allocator
     } else                // scannable allocator
       updateMetaData(start, chunkSize);
 
-    return alloc(bytes, align, offset);
+    return alloc(bytes, align, offset, inGC);
   }
 
   /**

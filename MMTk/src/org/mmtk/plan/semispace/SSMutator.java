@@ -77,7 +77,7 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
   public Address alloc(int bytes, int align, int offset, int allocator)
       throws InlinePragma {
     if (allocator == SS.ALLOC_SS)
-      return ss.alloc(bytes, align, offset);
+      return ss.alloc(bytes, align, offset, false);
     else
       return super.alloc(bytes, align, offset, allocator);
   }

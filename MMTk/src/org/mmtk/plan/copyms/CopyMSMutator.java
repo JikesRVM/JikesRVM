@@ -78,7 +78,7 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
   public Address alloc(int bytes, int align, int offset, int allocator)
       throws InlinePragma {
     if (allocator == CopyMS.ALLOC_DEFAULT)
-      return nursery.alloc(bytes, align, offset);
+      return nursery.alloc(bytes, align, offset, false);
     if (allocator == CopyMS.ALLOC_MS)
       return mature.alloc(bytes, align, offset, false);
 
