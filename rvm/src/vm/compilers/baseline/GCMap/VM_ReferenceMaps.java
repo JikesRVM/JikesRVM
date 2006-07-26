@@ -1297,54 +1297,65 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   }
 
   /**
-   *  Merge the changes made in the JSR subroutine with the
-   *  map found at the JSR instruction to get the next map
-   * with the invoker map
+   * This method will merge the jsr invoker's base map with changes
+   * due to *all* nested jsr subroutines.<p>
+   *
+   * The nested jsr subroutine maps were merged into a single delta
+   * map prior to the calling of this method.  We therefore know that
+   * the base map can never be due to a subroutine (since all
+   * subroutines have been merged), and therefore that there are no
+   * return address maps due to the invoker (since return addresses
+   * are only due to the subroutine maps).
+   *
+   * @param jsrBaseMapIndex The map index for the invoker 
+   * @param deltaMap The map for the invoked subroutine/s (all nested
+   * subroutine maps are guaranteed to have been combined prior to
+   * calling this)
    */
   private void finalMergeMaps(int jsrBaseMapIndex, VM_UnusualMaps deltaMap) {
     int i;
 
-    // clear out merged maps ie the destination maps)
+    /* clear out the destination (merged) maps */
     for ( i = 0; i < bytesPerMap(); i++){
       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap + i] = 0;
       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap + i] = 0;
     }
 
-    // get the indices of the maps for the unusual map
+    /* get the indices of the maps for the combined subroutine map */
     int refMapIndex           = deltaMap.getReferenceMapIndex();
     int nonRefMapIndex        = deltaMap.getNonReferenceMapIndex();
     int returnAddressMapIndex = deltaMap.getReturnAddressMapIndex();
 
-    // merge the delta map into the jsr map
+    /* merge the subroutine delta map into the invoker (base) map */
     for ( i = 0; i < bytesPerMap() ; i++) {
-      // jsrBaseMap use high bit of first byte for jsr bit; shift to compensate
-      byte base = referenceMaps[jsrBaseMapIndex+i];
-      byte nextBase = (i + 1 < bytesPerMap()) ? referenceMaps[jsrBaseMapIndex+i+1] : 0;
-      byte finalBase = (byte) ((base << 1) | ((0xff & nextBase) >>> 7));
-      byte newRef = jsrInfo.unusualReferenceMaps[refMapIndex+i];
-      byte newNonRef = jsrInfo.unusualReferenceMaps[nonRefMapIndex + i];
-      byte res = (byte)((finalBase | newRef) & (~newNonRef));
-      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
-        = (byte)(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
-                 | jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i]);
-      /* if an entry is also a return address this must dominate: it CANNOT be both */
-      res &= ~jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i];
-      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap+i] = res;
+      /* first establish the change in the maps due to the combined subroutines */
+      byte deltaRef     = jsrInfo.unusualReferenceMaps[          refMapIndex + i];
+      byte deltaNonRef  = jsrInfo.unusualReferenceMaps[       nonRefMapIndex + i];
+      byte deltaRtnAddr = jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i];
+      byte deltaAny = (byte) (deltaRef | deltaNonRef | deltaRtnAddr);
 
-//       byte isRetAddr = (byte)(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
-// 			      | jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i]);
-//       /* if an entry is also a return address this must dominate: it CANNOT be both */
-//       byte isRef = (byte)(((finalBase | newRef) & (~newNonRef)) & ~isRetAddr); 
-//       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] = isRetAddr;
-//       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap+i] = isRef;
+      /* There is no merging to be done for the return address map
+       * since the invoker cannot have any return addressses since it
+       * is guaranteed not to be a subroutine (and only subroutines
+       * can generate return address map entries) */
+      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap + i] = deltaRtnAddr;
+
+      /* Get the base reference map (the high bit is used to denote jsr) */
+      byte thisBase = referenceMaps[jsrBaseMapIndex+i];
+      byte nextBase = (i + 1 < bytesPerMap()) ? referenceMaps[jsrBaseMapIndex+i+1] : 0;
+      byte baseRef = (byte) ((thisBase << 1) | ((0xff & nextBase) >>> 7));
+
+      /* Merge the reference maps */
+      byte mergedRef  = (byte) (deltaRef | (baseRef & ~deltaAny));
+      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap + i] = mergedRef;
 
       /*
-         VM.sysWrite("   **** base = "); VM.sysWrite(base);
+         VM.sysWrite(" **** thisBase = "); VM.sysWrite(thisBase);
          VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
+         VM.sysWrite("     deltaRef = "); VM.sysWrite(deltaRef);
+         VM.sysWrite("     deltaNonRef = "); VM.sysWrite(deltaNonRef);
+         VM.sysWrite("     base = "); VM.sysWrite(base);
          VM.sysWrite("     newRef = "); VM.sysWrite(newRef);
-         VM.sysWrite("     newNonRef = "); VM.sysWrite(newNonRef);
-         VM.sysWrite("     finalBase = "); VM.sysWrite(finalBase);
-         VM.sysWrite("     res = "); VM.sysWrite(res);
          VM.sysWrite("\n");
        */
     }
