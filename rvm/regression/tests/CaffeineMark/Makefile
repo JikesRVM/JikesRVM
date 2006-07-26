@@ -15,6 +15,12 @@ BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=200
 START_NAME=RunCaffeine
 
+ifeq ($(MODE),PERFORMANCE)
+  TIME_LIMIT=600
+else
+  TIME_LIMIT=300
+endif
+
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 sanity:		sanity-check-rule

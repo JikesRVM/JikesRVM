@@ -19,9 +19,11 @@ START_NAME=spec.jbb.JBBmain
 
 INITIAL_HEAPSIZE=200
 ifeq ($(MODE),PERFORMANCE)
-HEAPSIZE=600
+  HEAPSIZE=600
+  TIME_LIMIT=2700
 else
-HEAPSIZE=400
+  HEAPSIZE=400
+  TIME_LIMIT=1000
 endif
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
@@ -31,10 +33,10 @@ include		$(JAL_ROOT)/rvm/regression/Make.rules
 #
 
 ifeq ($(MODE),PERFORMANCE)
-sanity: 	$(WORKING)/SPECjbb.perf.props $(WORKING)/SPECjbb_config.props $(WORKING)/Makefile
+sanity: 	$(WORKING)/SPECjbb.perf.props $(WORKING)/SPECjbb_config.props
 	$(MAKE) START_ARGS="-propfile SPECjbb.perf.props" sanity-check-rule
 else
-sanity: 	$(WORKING)/SPECjbb.sanity.props $(WORKING)/SPECjbb_config.props $(WORKING)/Makefile
+sanity: 	$(WORKING)/SPECjbb.sanity.props $(WORKING)/SPECjbb_config.props
 	$(MAKE) START_ARGS="-propfile SPECjbb.sanity.props" sanity-check-rule
 endif
 
@@ -62,10 +64,10 @@ do-gather-performance:
 # big runs to push performance off a cliff :)
 #
 
-bigrun:		$(WORKING)/SPECjbb.big.props $(WORKING)/SPECjbb_config.props $(WORKING)/Makefile
+bigrun:		$(WORKING)/SPECjbb.big.props $(WORKING)/SPECjbb_config.props
 	$(MAKE) START_ARGS="-propfile SPECjbb.big.props" bench-rvm
 
-bigrun-jdk:	$(WORKING)/SPECjbb.big.props $(WORKING)/SPECjbb_config.props $(WORKING)/Makefile
+bigrun-jdk:	$(WORKING)/SPECjbb.big.props $(WORKING)/SPECjbb_config.props
 	$(MAKE) START_ARGS="-propfile SPECjbb.big.props" bench-jdk
 
 
@@ -91,8 +93,3 @@ ifneq ($(WORKING),.)
 	chmod a+rw $@
 endif
 
-$(WORKING)/Makefile:		$(JAL_ROOT)/rvm/regression/tests/SPECjbb2000/Makefile $(WORKING)
-ifneq ($(WORKING),.)
-	cp $< $@
-	chmod a+rw $@
-endif

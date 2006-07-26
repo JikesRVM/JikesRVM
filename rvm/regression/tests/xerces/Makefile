@@ -24,8 +24,10 @@ TESTS=dom.Counter sax.Counter
 
 ifeq ($(MODE),PERFORMANCE)
   ITERATIONS=2
+  TIME_LIMIT=900
 else
   ITERATIONS=1
+  TIME_LIMIT=300
 endif
 
 $(TESTS): %: 

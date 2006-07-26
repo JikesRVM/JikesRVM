@@ -16,6 +16,7 @@ BENCH_SOURCE_PATH=$(BENCH_HOME)/classes
 BENCH_CLASS_PATH=$(JAVACUP_HOME)
 HEAPSIZE=200
 START_NAME=JLex.Main
+TIME_LIMIT=600
 
 include			$(JAL_ROOT)/rvm/regression/Make.rules
 

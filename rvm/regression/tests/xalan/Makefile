@@ -20,8 +20,10 @@ BENCH_CLASS_PATH=$(BENCH_HOME)/bin/xalan.jar:$(BENCH_HOME)/bin/xercesImpl.jar:$(
 
 ifeq ($(MODE),PERFORMANCE)
   ITERATIONS=11
+  TIME_LIMIT=900
 else
   ITERATIONS=1
+  TIME_LIMIT=300
 endif
 
 START_NAME=Driver

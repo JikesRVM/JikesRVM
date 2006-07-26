@@ -490,10 +490,8 @@ function doRun {
     # gather performance data, if appropriate
     if [[ $PERFORMANCE  ]]; then
 	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
-	LIMIT_RAW=$(<TimeLimit.performance)
 	echo "Performance mode: results to $PERFORMANCE"
     else
-	LIMIT_RAW=$(< TimeLimit.sanity)
 	PERFORMANCE_STR=
     fi
 
@@ -502,12 +500,6 @@ function doRun {
 	PERFORMANCE_STR="MODE=MEASURE_COMPILATION"
 	echo "Measure compilation mode"
     fi
-
-    #
-    # the following was necessary for cpu time limits
-    # we now use wall clock time
-    # LIMIT=`expr $LIMIT_RAW '*' $NUM_PROCS`
-    LIMIT=$LIMIT_RAW
 
     # pass on opt. level information, if given
     if [[ $OPT_LEVEL ]]; then
@@ -530,8 +522,9 @@ function doRun {
     . $RVM_BUILD/environment.target
     ## Note: If you quote this, it'll break.  limited.bash respects
     ## whatever quoting you put around the command.
-    $RVM_ROOT/rvm/regression/limited.bash $LIMIT $GNU_MAKE $FLAGS \
-	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
+    $GNU_MAKE $FLAGS \
+	   BOOTNAME=$NAME $OPT_STR $RESULT_STR \
+           $PERFORMANCE_STR \
 	   SUFFIX=$SUFFIX \
            PROCESSORS="$NUM_PROCS" \
            RC_ARGS="-X:vm:errorsFatal=true $RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS" \

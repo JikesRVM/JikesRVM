@@ -16,6 +16,12 @@ HEAPSIZE=150
 
 START_NAME=Harness
 
+ifeq ($(MODE),PERFORMANCE)
+  TIME_LIMIT=1800
+else
+  TIME_LIMIT=300
+endif
+
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 # 
@@ -28,18 +34,12 @@ TESTS	= antlr bloat fop hsqldb jython pmd ps xalan
 Harness.class : $(JARFILE)
 	:
 
-$(WORKING)/Makefile:	$(WORKING) $(JAL_ROOT)/rvm/regression/tests/dacapo/Makefile
-ifneq ($(WORKING),.)
-	cp -f $(JAL_ROOT)/rvm/regression/tests/dacapo/Makefile $(WORKING)/Makefile
-endif
-
-
 check:
-	@ $(JAL_ROOT)/rvm/regression/tests/dacapo/sanity-check2.sh $(OUT) $(START_ARGS)
+	@$(JAL_ROOT)/rvm/regression/tests/dacapo/sanity-check2.sh $(OUT) $(START_ARGS)
 
 
-$(TESTS): %: $(WORKING)/Makefile
-	cd $(WORKING); $(MAKE) START_ARGS="$@" OUT=$(OUT).$@ do-sanity-check-rule
+$(TESTS): %:
+	@$(MAKE) START_ARGS="$@" OUT=$(OUT).$@ do-sanity-check-rule
 
 sanity:	$(TESTS)
 	@$(MAKE) START_NAME="DaCapo" do-sanity-finish

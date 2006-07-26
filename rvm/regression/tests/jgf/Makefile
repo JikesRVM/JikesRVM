@@ -36,6 +36,7 @@ DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
 BENCH_SOURCE_PATH=$(BENCH_HOME):$(DRIVER_SOURCE_PATH):$(BENCH_HOME)/section1
 START_NAME=Driver
 START_ARGS=2 JGFAll main
+TIME_LIMIT=7200
 
 sanity: 	$(foreach NAME, $(ALL_CLASSES), $(NAME).class)
 	$(MAKE) sanity-check-rule
@@ -45,6 +46,7 @@ else
 BENCH_SOURCE_PATH=$(BENCH_HOME):$(BENCH_HOME)/section1
 START_NAME=JGFAll
 START_ARGS=
+TIME_LIMIT=3600
 
 sanity: 	$(foreach NAME, $(ALL_CLASSES), $(NAME).class)
 	$(MAKE) sanity-check-rule

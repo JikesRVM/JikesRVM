@@ -29,6 +29,7 @@ DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
 BENCH_SOURCE_PATH=$(JAL_ROOT)/rvm/regression/tests/jBYTEmark:$(BENCH_HOME):$(DRIVER_SOURCE_PATH)
 START_NAME=Driver
 START_ARGS=2 jBYTEmark main
+TIME_LIMIT=600
 
 sanity: 	$(foreach NAME, $(ALL_TESTS), $(NAME).class)
 	$(MAKE) sanity-check-rule
@@ -37,6 +38,8 @@ else
 
 BENCH_SOURCE_PATH=$(JAL_ROOT)/rvm/regression/tests/jBYTEmark:$(BENCH_HOME)
 START_NAME=jBYTEmark
+TIME_LIMIT=900
+
 sanity:		sanity-check-rule
 
 endif

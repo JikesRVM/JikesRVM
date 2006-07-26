@@ -19,15 +19,17 @@ START_NAME=soot.Main
 
 ifeq ($(MODE),PERFORMANCE)
   START_ARGS=-W --app -t -d cp --soot-classpath $(SPECjvm98_HOME):$(HOST_REPOSITORIES) SpecApplication --jimple
+  TIME_LIMIT=900
 else
   START_ARGS=-W --app -t -d cp --soot-classpath cp:$(HOST_REPOSITORIES) Hello --jimple
+  TIME_LIMIT=600
 endif
 
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 
-sanity:		Hello.class sanity-check-rule
+sanity:		$(WORKING)/Hello.class sanity-check-rule
 
 
 do-gather-performance:
@@ -35,3 +37,9 @@ do-gather-performance:
 
 check:
 	@$(FGREP) -q "Soot has run for" < $(OUT)
+
+$(WORKING)/Hello.java:		$(JAL_ROOT)/rvm/regression/tests/soot/Hello.java $(WORKING)
+ifneq ($(WORKING),.)
+	cp $< $@
+	chmod a+rw $@
+endif

@@ -46,42 +46,9 @@ pseudojbb_HOME=$(BENCHMARK_ROOT)/pseudojbb
 SPECjvm98_HOME=$(BENCHMARK_ROOT)/SPECjvm98
 
 #
-# VolanoMark
-#
-VolanoMark_HOME=$(BENCHMARK_ROOT)/VolanoMark-2.1.2
- 
-#
 # ipsixql 1.0.2
 #
 ipsixql_HOME=$(BENCHMARK_ROOT)/ipsixql-1_0_2
-
-#
-# Jakarta Tomcat
-#
-Tomcat_HOME=$(BENCHMARK_ROOT)/WebServer/jakarta-tomcat-3.2.3
-Tomcat_JARS=$(wildcard $(Tomcat_HOME)/lib/*.jar):$(HOST_TOOLS):$(HOST_REPOSITORIES)
-
-#
-# Jakarta Servlet API
-#
-Servlet_HOME=$(BENCHMARK_ROOT)/WebServer/jakarta-servletapi-3.2.3
-Servlet_JARS=$(Servlet_HOME)/lib/servlet.jar
-
-#
-# Jigsaw webserver
-#
-Jigsaw_HOME=$(BENCHMARK_ROOT)/jigsaw_2.2.1
-
-#
-# Borland InterClient JDBC Driver
-#
-InterClient_HOME=$(BENCHMARK_ROOT)/WebServer/interclient
-InterClient_JARS=$(wildcard $(InterClient_HOME)/*.jar)
-
-#
-# HTTPClient 
-#
-HTTPClient_HOME=$(BENCHMARK_ROOT)/WebServer/HTTPClient
 
 #
 # Java Grande Forum Benchmarks v2.0

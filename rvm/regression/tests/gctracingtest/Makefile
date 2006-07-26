@@ -15,6 +15,8 @@ BENCH_SOURCE_PATH =$(BENCH_HOME)
 EXPECTED =
 BENCH_RVM_ARGS = "-X:sysLogfile=/dev/null"
 
+TIME_LIMIT=600
+
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
 sanity:

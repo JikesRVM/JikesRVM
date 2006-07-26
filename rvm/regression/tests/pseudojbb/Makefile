@@ -21,6 +21,12 @@ START_NAME=spec.jbb.JBBmain
 INITIAL_HEAPSIZE=300
 HEAPSIZE=600
 
+ifeq ($(MODE),PERFORMANCE)
+  TIME_LIMIT=2700
+else
+  TIME_LIMIT=1000
+endif
+
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
 #
@@ -28,10 +34,10 @@ include		$(JAL_ROOT)/rvm/regression/Make.rules
 #
 
 ifeq ($(MODE),PERFORMANCE)
-sanity: 	$(WORKING)/pseudojbb.perf.props $(WORKING)/pseudojbb_config.props $(WORKING)/Makefile
+sanity: 	$(WORKING)/pseudojbb.perf.props $(WORKING)/pseudojbb_config.props
 	$(MAKE) START_ARGS="-propfile pseudojbb.perf.props" sanity-check-rule
 else
-sanity: 	$(WORKING)/pseudojbb.sanity.props $(WORKING)/pseudojbb_config.props $(WORKING)/Makefile
+sanity: 	$(WORKING)/pseudojbb.sanity.props $(WORKING)/pseudojbb_config.props
 	$(MAKE) START_ARGS="-propfile pseudojbb.sanity.props" sanity-check-rule
 endif
 
@@ -84,8 +90,3 @@ ifneq ($(WORKING),.)
 	chmod a+rw $@
 endif
 
-$(WORKING)/Makefile:		$(JAL_ROOT)/rvm/regression/tests/pseudojbb/Makefile $(WORKING)
-ifneq ($(WORKING),.)
-	cp $< $@
-	chmod a+rw $@
-endif

@@ -22,8 +22,10 @@ START_NAME=avrora.Main
 
 ifeq ($(MODE),PERFORMANCE)
   START_ARGS="-colors=false" fibonacci-10.asm
+  TIME_LIMIT=600
 else
   START_ARGS="-colors=false" fibonacci.asm
+  TIME_LIMIT=600
 endif
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
