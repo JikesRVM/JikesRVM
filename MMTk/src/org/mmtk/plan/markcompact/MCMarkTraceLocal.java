@@ -90,10 +90,8 @@ public final class MCMarkTraceLocal extends TraceLocal implements Uninterruptibl
         enqueue(newObject);
         return newObject;
       }
-      if (Assert.VERIFY_ASSERTIONS) {
-        // must have a non-null forwarding pointer!
-        Assert._assert(!MarkCompactSpace.getForwardingPointer(object).isNull());
-      }
+      // Somebody else got to it first
+      while (MarkCompactSpace.getForwardingPointer(object).isNull());
       return MarkCompactSpace.getForwardingPointer(object);
     }
     return super.precopyObject(object);
