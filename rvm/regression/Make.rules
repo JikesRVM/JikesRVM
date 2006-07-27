@@ -92,8 +92,7 @@ OUT=$(WORKING)/out.$(START_NAME)$(EXT)$(SUFFIX)
 
 bench-rvm-internal: 
 	@sync
-	@cd $(WORKING) 
-	@$(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2>&1 \
+	@cd $(WORKING); $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2>&1 \
 		| tee $(OUT).raw \
 		| tr '\000' ' ' \
 		| $(AWK) -f $(JAL_ROOT)/rvm/regression/RVMJunkFilter.awk \
@@ -107,8 +106,7 @@ bench-rvm:			$(START_CLASS) $(WORKING)
 
 
 bench-jdk-internal:
-	@cd $(WORKING); 
-	@$(HOST_VM_RT) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) > $(OUT) 2>&1
+	@cd $(WORKING); $(HOST_VM_RT) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) > $(OUT) 2>&1
 
 
 bench-jdk:			$(START_CLASS) $(WORKING)
