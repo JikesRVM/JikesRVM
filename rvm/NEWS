@@ -17,12 +17,14 @@ on October 14, 2001,
 
 *** We can now load and run Java 1.5.0 Java class files. Support includes
     building the Jikes RVM using a 1.5.0 javac compiler and running the
-    SPEC JBB 2005 benchmark. Support for Java annotations is in place, but
-    true support is dependent on generics support.
+    SPEC JBB 2005 benchmark. Includes reflection support for generic types.
 
 *** MMTk changes & refactors: Steve/Daniel/Robin?
 
-*** Annotation support (Ian..)
+*** We can now load runtime and non-runtime annotations. Runtime support
+    is limited as Classpath is missing the base annotation definitions.
+    A work around is to switch on non-runtime annotation loading in the RVM.
+    NOTE: This requires classpath 0.91 or better.
 
 ** Bug fixes
 1442437: to match Sun behavior, java.lang.Class.newInstance now passes 
@@ -38,7 +40,6 @@ on October 14, 2001,
 *** IA32 BURS improvement for special case of COND_MOV contibuted by
     Garrett Kolpin
 *** Improvements to OPT_Simplifier to catch a number of additional cases 
-    contributed by Ian Rogers
 
 
 *Jikes RVM 2.4.4 Release Notes (released March 15, 2006)
