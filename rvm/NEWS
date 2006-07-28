@@ -19,7 +19,12 @@ on October 14, 2001,
     building the Jikes RVM using a 1.5.0 javac compiler and running the
     SPEC JBB 2005 benchmark. Includes reflection support for generic types.
 
-*** MMTk changes & refactors: Steve/Daniel/Robin?
+*** MMTk changes & refactors.  A mark-compact collector has been added.  A
+    number of key bugs have been fixed, both in the vm (eg baseline GC
+    maps), and in MMTk proper.  Completed a major refactoring of
+    "locals" to explicitly separate per-mutator and per-collector
+    contexts.  This generalizes away from assumptions of the current
+    Jikes RVM threading model.
 
 *** We can now load runtime and non-runtime annotations. Runtime support
     is limited as Classpath is missing the base annotation definitions.
