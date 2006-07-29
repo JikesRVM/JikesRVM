@@ -203,8 +203,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    * boolean) Allocator.allocSlowBody()}).
    * 
    * @see org.mmtk.utility.alloc.Allocator
-   * @see org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int,
-   * int, boolean)
+   * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int, boolean)
    * 
    * @param a An allocator instance.
    * @return An allocator instance associated with <i>this plan
