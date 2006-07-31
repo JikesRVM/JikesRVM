@@ -481,4 +481,12 @@ public class Thread implements Runnable {
   {
     void uncaughtException(Thread thr, Throwable exc);
   }
+  /**
+	* getId is currently not supported - this
+	* interface exists to avoid build problems with classpath 0.92
+	*/
+  public long getId()
+  {
+	 throw new VM_UnimplementedError();
+  }
 }
