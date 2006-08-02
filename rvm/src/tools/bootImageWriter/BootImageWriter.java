@@ -337,7 +337,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // name of code image file
       if (args[i].equals("-oc")) {
         if (++i >= args.length)
-          fail("argument syntax error: Got a -oc flag without a following data image file name");
+          fail("argument syntax error: Got a -oc flag without a following code image file name");
         bootImageCodeName = args[i];
         continue;
       }

@@ -715,7 +715,7 @@ main(int argc, const char **argv)
     }
 
     if (!bootDataFilename) {
-        fprintf(SysTraceFile, "%s: please specify name of boot image data file using \"-X;id=<filename>\"\n", Me);
+        fprintf(SysTraceFile, "%s: please specify name of boot image data file using \"-X:id=<filename>\"\n", Me);
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
