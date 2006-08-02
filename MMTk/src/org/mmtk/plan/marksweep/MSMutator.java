@@ -101,7 +101,7 @@ public class MSMutator extends StopTheWorldMutator implements Uninterruptible {
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
     if (allocator == MS.ALLOC_DEFAULT)
-      MS.msSpace.initializeHeader(ref);
+      MS.msSpace.postAlloc(ref);
     else
       super.postAlloc(ref, typeRef, bytes, allocator);
   }

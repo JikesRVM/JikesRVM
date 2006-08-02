@@ -24,6 +24,7 @@ public final class Options {
   public static CycleMetaDataLimit cycleMetaDataLimit;
   public static CycleTriggerThreshold cycleTriggerThreshold;
   public static DummyEnum dummyEnum;
+  public static EagerCompleteSweep eagerCompleteSweep;
   public static FixedNursery fixedNursery;
   public static FragmentationStats fragmentationStats;
   public static FullHeapSystemGC fullHeapSystemGC;
@@ -33,6 +34,7 @@ public final class Options {
   public static GCTimeCap gcTimeCap;
   public static GenCycleDetection genCycleDetection;
   public static IgnoreSystemGC ignoreSystemGC;
+  public static MarkSweepMarkBits markSweepMarkBits;
   public static MetaDataLimit metaDataLimit;
   public static NoFinalizer noFinalizer;
   public static NoReferenceTypes noReferenceTypes;

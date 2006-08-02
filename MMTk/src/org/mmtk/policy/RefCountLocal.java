@@ -44,6 +44,8 @@ public final class RefCountLocal extends SegregatedFreeList
    * 
    * Class variables
    */
+  public static final int META_DATA_PAGES_PER_REGION = SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP; 
+
   private static SharedDeque oldRootPool;
 
   // sanity tracing
@@ -96,6 +98,7 @@ public final class RefCountLocal extends SegregatedFreeList
 
   protected final boolean preserveFreeList() { return true; }
   protected final boolean maintainInUse() { return true; }
+  protected final boolean maintainSideBitmap() { return true; }
 
   /****************************************************************************
    * 

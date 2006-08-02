@@ -54,9 +54,11 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   public final static boolean IGNORE_REMSETS = false;
 
   // Allocators
-  public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
-  public static final int ALLOC_MATURE = StopTheWorld.ALLOCATORS + 1;
-  public static int ALLOCATORS = ALLOC_MATURE;
+  public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;
+  public static final int ALLOC_MATURE         = StopTheWorld.ALLOCATORS + 1;
+  public static final int ALLOC_MATURE_MINORGC = StopTheWorld.ALLOCATORS + 2;
+  public static final int ALLOC_MATURE_MAJORGC = StopTheWorld.ALLOCATORS + 3;
+  public static int ALLOCATORS                 = ALLOC_MATURE_MAJORGC;
 
   /*****************************************************************************
    * 

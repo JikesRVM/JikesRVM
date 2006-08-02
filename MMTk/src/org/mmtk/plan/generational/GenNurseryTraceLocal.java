@@ -106,7 +106,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
    * @return The allocator to use when copying objects during this trace.
    */
   public final int getAllocator() throws InlinePragma {
-    return Gen.ALLOC_MATURE;
+    return Gen.ALLOC_MATURE_MINORGC;
   }
 
   /**

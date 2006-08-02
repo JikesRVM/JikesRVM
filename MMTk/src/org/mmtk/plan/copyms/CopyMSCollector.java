@@ -6,6 +6,7 @@ package org.mmtk.plan.copyms;
 
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
+import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
 
@@ -44,6 +45,9 @@ public class CopyMSCollector extends StopTheWorldCollector implements Uninterrup
   private MarkSweepLocal mature;
   private CopyMSTraceLocal trace;
 
+  // Sanity checking
+  private CopyMSSanityCheckerLocal sanityChecker;
+
   /****************************************************************************
    * 
    * Initialization
@@ -55,7 +59,8 @@ public class CopyMSCollector extends StopTheWorldCollector implements Uninterrup
   public CopyMSCollector() {
     mature = new MarkSweepLocal(CopyMS.msSpace);
     trace = new CopyMSTraceLocal(global().trace);
-  }
+    sanityChecker = new CopyMSSanityCheckerLocal();
+ }
 
   /****************************************************************************
    * 
@@ -92,8 +97,7 @@ public class CopyMSCollector extends StopTheWorldCollector implements Uninterrup
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator)
   throws InlinePragma {
-    CopyMS.msSpace.writeMarkBit(object);
-    MarkSweepLocal.liveObject(object);
+    CopyMS.msSpace.postCopy(object, true);
   }
 
   /****************************************************************************
@@ -128,6 +132,7 @@ public class CopyMSCollector extends StopTheWorldCollector implements Uninterrup
 
     if (phaseId == CopyMS.RELEASE) {
       mature.releaseCollector();
+      mature.releaseMutator();
       trace.release();
       super.collectionPhase(phaseId, primary);
       return;
@@ -146,10 +151,12 @@ public class CopyMSCollector extends StopTheWorldCollector implements Uninterrup
     return (CopyMS) ActivePlan.global();
   }
 
+  /** @return Return the current sanity checker. */
+  public SanityCheckerLocal getSanityChecker() {
+    return sanityChecker;
+  }
+
   /** @return The current trace instance. */
   public final TraceLocal getCurrentTrace() { return trace; }
   
-  
-  
-
 }

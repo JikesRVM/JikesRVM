@@ -84,7 +84,8 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      Assert._assert(allocator == GenMS.ALLOC_MATURE);
+      Assert._assert(allocator == GenMS.ALLOC_MATURE_MINORGC || 
+                     allocator == GenMS.ALLOC_MATURE_MAJORGC);
     }
     if (Stats.GATHER_MARK_CONS_STATS) {
       if (Space.isInSpace(GenMS.NURSERY, original)) GenMS.nurseryMark.inc(bytes);
@@ -102,8 +103,7 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
                              int bytes, int allocator)
   throws InlinePragma {
-    GenMS.msSpace.writeMarkBit(object);
-    MarkSweepLocal.liveObject(object);
+    GenMS.msSpace.postCopy(object, allocator == GenMS.ALLOC_MATURE_MAJORGC);
   }
 
   /*****************************************************************************

@@ -4,6 +4,7 @@
  */
 package org.mmtk.utility.alloc;
 
+import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
@@ -48,6 +49,7 @@ public abstract class SegregatedFreeList extends Allocator
    * 
    * Class variables
    */
+   
   protected static final boolean LAZY_SWEEP = true;
   private static final boolean COMPACT_SIZE_CLASSES = false;
   private static final boolean SORT_FREE_BLOCKS = false;
@@ -77,7 +79,8 @@ public abstract class SegregatedFreeList extends Allocator
   private static final Extent LIVE_WORD_STRIDE = Extent.fromIntSignExtend(1<<LOG_LIVE_WORD_STRIDE);
   private static final Word LIVE_WORD_STRIDE_MASK = LIVE_WORD_STRIDE.minus(1).toWord().not();
   private static final int NET_META_DATA_BYTES_PER_REGION = BlockAllocator.META_DATA_BYTES_PER_REGION + LIVE_BYTES_PER_REGION;
-  public static final int META_DATA_PAGES_PER_REGION = Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
+  protected static final int META_DATA_PAGES_PER_REGION_WITH_BITMAP = Conversions.bytesToPages(Extent.fromIntSignExtend(NET_META_DATA_BYTES_PER_REGION));
+  protected static final int META_DATA_PAGES_PER_REGION_NO_BITMAP = Conversions.bytesToPages(Extent.fromIntSignExtend(BlockAllocator.META_DATA_BYTES_PER_REGION));
 
   private static final Extent META_DATA_OFFSET = BlockAllocator.META_DATA_EXTENT;
 
@@ -514,9 +517,23 @@ public abstract class SegregatedFreeList extends Allocator
    * 
    */
 
+  abstract protected boolean maintainSideBitmap();
   abstract protected boolean preserveFreeList();
   abstract protected Address advanceToBlock(Address block, int sizeClass);
-
+  
+  /**
+   * Should the sweep reclaim the cell containing this object. Is this object
+   * live. This is only used when maintainSideBitmap is false.
+   * 
+   * @param object The object to query
+   * @param markState The markState interpreted and supplied by subclass.
+   * @return True if the cell should be reclaimed
+   */
+  protected boolean reclaimCellForObject(ObjectReference object, Word markState) {
+    Assert.fail("Must implement reclaimCellForObject if not maintaining side bitmap");
+    return false;
+  }
+  
   /**
    * Zero all of the current free list pointers, and refresh the
    * <code>currentBlock</code> values, so instead of the free list
@@ -586,7 +603,6 @@ public abstract class SegregatedFreeList extends Allocator
     BlockAllocator.setFreeListMeta(block, cell);
   }
 
-
   /****************************************************************************
    * 
    * Collection
@@ -606,16 +622,43 @@ public abstract class SegregatedFreeList extends Allocator
         /* first check to see if block is completely free and if possible
          * free the entire block */
         Address next = BlockAllocator.getNextBlock(block);
-        int liveness = getLiveness(block, blockSize, SORT_FREE_BLOCKS);
-        if (liveness == 0)
-          freeBlock(block, sizeClass);
-        else if (!LAZY_SWEEP)
-          setFreeList(block, makeFreeListFromLiveBits(block, sizeClass));
-        else if (SORT_FREE_BLOCKS)
-          addToBlockBucket(block, liveness);
+        if (maintainSideBitmap()) {
+          int liveness = getLiveness(block, blockSize, SORT_FREE_BLOCKS);
+          if (liveness == 0)
+            freeBlock(block, sizeClass);
+          else if (!LAZY_SWEEP)
+            setFreeList(block, makeFreeListFromLiveBits(block, sizeClass));
+          else if (SORT_FREE_BLOCKS)
+            addToBlockBucket(block, liveness);
+        } else {
+          boolean live = false;
+          Address cursor = block;
+          while(cursor.LT(block.plus(blockSize))) {
+            live |= BlockAllocator.clearBlockMeta(cursor);
+            cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
+          }
+          if (!live) {
+            freeBlock(block, sizeClass);
+          }
+        }
         block = next;
       }
       if (SORT_FREE_BLOCKS) reestablishBlockFreeList(sizeClass);
+    }
+  }
+
+  protected final void consumeBlockLists(Word markState) {
+    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
+      
+      Address current = currentBlock.get(sizeClass);
+      if (!current.isZero()) {
+        // find a free list which is not empty
+        current = BlockAllocator.getNextBlock(current);
+        while (!current.isZero()) {
+          makeFreeListFromLiveBits(current, sizeClass, markState);
+          current = BlockAllocator.getNextBlock(current);
+        }
+      }
     }
   }
 
@@ -697,13 +740,24 @@ public abstract class SegregatedFreeList extends Allocator
    */
 
   /**
-   * Set the live bit for a given object
+   * Atomically set the live bit for a given object
    * 
    * @param object The object whose live bit is to be set.
+   * @return True if the bit was changed to true.
    */
-  public static final void liveObject(ObjectReference object)
+  public static final boolean liveObject(ObjectReference object)
       throws InlinePragma {
-    liveAddress(ObjectModel.refToAddress(object), true);
+    return liveAddress(ObjectModel.refToAddress(object), true);
+  }
+  
+  /**
+   * Set the live bit for the block containing the given object
+   * 
+   * @param object The object whose blocks liveness is to be set.
+   */
+  public static final void liveBlock(ObjectReference object)
+      throws InlinePragma {
+    BlockAllocator.markBlockMeta(object);
   }
 
   /**
@@ -713,9 +767,9 @@ public abstract class SegregatedFreeList extends Allocator
    * 
    * @param object The object whose live bit is to be set.
    */
-  public static final void unsyncLiveObject(ObjectReference object)
+  public static final boolean unsyncLiveObject(ObjectReference object)
       throws InlinePragma {
-    liveAddress(ObjectModel.refToAddress(object), false);
+    return liveAddress(ObjectModel.refToAddress(object), false);
   }
 
   /**
@@ -724,7 +778,7 @@ public abstract class SegregatedFreeList extends Allocator
    * @param address The address whose live bit is to be set.
    * @param atomic True if we want to perform this operation atomically
    */
-  protected static final void liveAddress(Address address, boolean atomic)
+  protected static final boolean liveAddress(Address address, boolean atomic)
       throws InlinePragma {
     Word oldValue, newValue;
     Address liveWord = getLiveWordAddress(address);
@@ -734,8 +788,36 @@ public abstract class SegregatedFreeList extends Allocator
         oldValue = liveWord.prepareWord();
         newValue = oldValue.or(mask);
       } while (!liveWord.attempt(oldValue, newValue));
-    } else
-      liveWord.store(liveWord.loadWord().or(mask));
+    } else {
+      oldValue = liveWord.loadWord();
+      liveWord.store(oldValue.or(mask));
+    }
+    return oldValue.and(mask).NE(mask);
+  }
+ 
+  /**
+   * Test the live bit for a given object
+   *
+   * @param object The object whose live bit is to be set.
+   */
+  public static final boolean isLiveObject(ObjectReference object)
+    throws InlinePragma {
+    return isLiveAddress(ObjectModel.refToAddress(object));
+  }
+
+  /**
+   * Set the live bit for a given address
+   *
+   * @param address The address whose live bit is to be set.
+   * @param atomic True if we want to perform this operation atomically
+   * @return true if this operation changed the state of the live bit.
+   */
+  protected static final boolean isLiveAddress(Address address)
+    throws InlinePragma {
+    Address liveWord = getLiveWordAddress(address);
+    Word mask = getMask(address, true);
+    Word value = liveWord.loadWord();
+    return value.and(mask).EQ(mask);
   }
 
   /**
@@ -755,7 +837,6 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final void deadAddress(Address address)
     throws InlinePragma {
-    Word oldValue, newValue;
     Address liveWord = getLiveWordAddress(address);
     Word mask = getMask(address, false);
     liveWord.store(liveWord.loadWord().and(mask));
@@ -827,26 +908,56 @@ public abstract class SegregatedFreeList extends Allocator
    * @param sizeClass The size class for the block
    * @return The head of the new free list
    */
+  protected final Address makeFreeListFromLiveBits(Address block, int sizeClass) {
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(maintainSideBitmap());
+    }
+    return makeFreeListFromLiveBits(block, sizeClass, Word.zero());
+  }
+ 
+  /**
+   * Use the live bits for a block to infer free cells and thus
+   * construct a free list for the block.
+   * 
+   * @param block The block to be processed
+   * @param sizeClass The size class for the block
+   * @param markState The current marking state
+   * @return The head of the new free list
+   */
   protected final Address makeFreeListFromLiveBits(Address block, 
-                                                      int sizeClass)
+                                                   int sizeClass, Word markState)
       throws InlinePragma {
-    Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
-    Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
-    Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
-    Address end = block.plus(blockSize);
-    Address nextFree = Address.zero();
-    Address nextCellCursor = cellCursor.plus(cellBytes);
-    Address liveCursor = alignToLiveStride(cellCursor);
-    Address liveWordCursor = getLiveWordAddress(liveCursor);
-    boolean isLive = false;
-    while (liveCursor.LT(end)) {
-      Word live = liveWordCursor.loadWord();
-      if (!live.isZero()) {
-        for (int i = 0; i < BITS_IN_WORD; i++) {
-          if (!(live.and(Word.one().lsh(i)).isZero()))
-            isLive = true;
-          liveCursor = liveCursor.plus(BYTES_PER_LIVE_BIT);
-          if (liveCursor.GE(nextCellCursor)) {
+    if (maintainSideBitmap()) {
+      Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
+      Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
+      Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      Address end = block.plus(blockSize);
+      Address nextFree = Address.zero();
+      Address nextCellCursor = cellCursor.plus(cellBytes);
+      Address liveCursor = alignToLiveStride(cellCursor);
+      Address liveWordCursor = getLiveWordAddress(liveCursor);
+      boolean isLive = false;
+      while (liveCursor.LT(end)) {
+        Word live = liveWordCursor.loadWord();
+        if (!live.isZero()) {
+          for (int i = 0; i < BITS_IN_WORD; i++) {
+            if (!(live.and(Word.one().lsh(i)).isZero()))
+              isLive = true;
+            liveCursor = liveCursor.plus(BYTES_PER_LIVE_BIT);
+            if (liveCursor.GE(nextCellCursor)) {
+              if (!isLive) {
+                free(cellCursor, block, sizeClass, nextFree);
+                nextFree = cellCursor;
+              }
+              cellCursor = nextCellCursor;
+              nextCellCursor = nextCellCursor.plus(cellBytes);
+              isLive = false;
+            }
+          }
+        } else {
+          liveCursor = liveCursor.plus(BYTES_PER_LIVE_WORD);
+          while (liveCursor.GE(nextCellCursor)) {
+            // while (nextCellCursor.LT(liveCursor)) {
             if (!isLive) {
               free(cellCursor, block, sizeClass, nextFree);
               nextFree = cellCursor;
@@ -856,22 +967,29 @@ public abstract class SegregatedFreeList extends Allocator
             isLive = false;
           }
         }
-      } else {
-        liveCursor = liveCursor.plus(BYTES_PER_LIVE_WORD);
-        while (liveCursor.GE(nextCellCursor)) {
-          // while (nextCellCursor.LT(liveCursor)) {
-          if (!isLive) {
-            free(cellCursor, block, sizeClass, nextFree);
-            nextFree = cellCursor;
-          }
-          cellCursor = nextCellCursor;
-          nextCellCursor = nextCellCursor.plus(cellBytes);
-          isLive = false;
-        }
+        liveWordCursor = liveWordCursor.plus(BYTES_IN_WORD);
       }
-      liveWordCursor = liveWordCursor.plus(BYTES_IN_WORD);
+      return nextFree;
+    } else {
+      Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      Address cursor = block.plus(blockHeaderSize[sizeClass]);
+      Address nextFree = Address.zero();
+      Address end = block.plus(blockSize);
+      Extent cellExtent = Extent.fromIntSignExtend(cellSize[sizeClass]);
+      while (cursor.LT(end)) {
+        ObjectReference current = ObjectModel.getObjectFromStartAddress(cursor);
+        boolean free = true;
+        if (!current.isNull()) {
+          free = reclaimCellForObject(current, markState);
+        }
+        if (free) {
+          free(cursor, block, sizeClass, nextFree);
+          nextFree = cursor;
+        }
+        cursor = cursor.plus(cellExtent);
+      }
+      return nextFree;
     }
-    return nextFree;
   }
 
 

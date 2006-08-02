@@ -270,9 +270,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * nursery so we can't assert DYNAMIC_HASH_OFFSET.
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
-    if (start.loadInt() == ALIGNMENT_VALUE) {
+    if ((start.loadInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
       start = start.plus(BYTES_IN_INT);
-      if (start.loadInt() == ALIGNMENT_VALUE) {
+      if ((start.loadInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
         return ObjectReference.nullReference();
       }
     }
@@ -467,7 +467,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       if (DYNAMIC_HASH_OFFSET) {
         VM_Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - objRefOffset - HASHCODE_BYTES), hashCode);
       } else {
-        VM_Magic.setIntAtOffset(toObj, HASHCODE_OFFSET, hashCode);
+        VM_Magic.setIntAtOffset(toObj, HASHCODE_OFFSET, (hashCode << 1) | ALIGNMENT_MASK);
       } 
       VM_Magic.setWordAtOffset(toObj, STATUS_OFFSET, statusWord.or(HASH_STATE_HASHED_AND_MOVED));
       if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
@@ -491,13 +491,13 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
           // HASHED AND MOVED
           if (DYNAMIC_HASH_OFFSET) {
             // Read the size of this object.
-          VM_Type t = VM_Magic.getObjectType(o);
+            VM_Type t = VM_Magic.getObjectType(o);
             int offset = t.isArrayType()
               ? t.asArray().getInstanceSize(VM_Magic.getArrayLength(o)) - OBJECT_REF_OFFSET
               : t.asClass().getInstanceSize() - OBJECT_REF_OFFSET;
             return VM_Magic.getIntAtOffset(o, Offset.fromIntSignExtend(offset));
           } else {
-            return VM_Magic.getIntAtOffset(o, HASHCODE_OFFSET);
+            return (VM_Magic.getIntAtOffset(o, HASHCODE_OFFSET) >>> 1);
           }
         } else {
           // UNHASHED

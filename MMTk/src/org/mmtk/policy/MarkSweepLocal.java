@@ -6,9 +6,11 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.SegregatedFreeList;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.Options;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -52,6 +54,17 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private static int lastBytesAlloc = 0;
   private static int MS_MUST_COLLECT_THRESHOLD = 1 << 30;
 
+  /**
+   * Select between using mark bits in a side bitmap, or mark bits
+   * in the headers of object (or other sub-class scheme), and a single
+   * mark bit per block.
+   */
+  public static final boolean HEADER_MARK_BITS = true;
+  public static final int META_DATA_PAGES_PER_REGION = HEADER_MARK_BITS
+    ? SegregatedFreeList.META_DATA_PAGES_PER_REGION_NO_BITMAP 
+    : SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
+
+  
   /****************************************************************************
    * 
    * Instance variables
@@ -69,6 +82,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private int allPostUsedCells[];
 
   protected final boolean preserveFreeList() { return !LAZY_SWEEP; }
+  protected final boolean maintainSideBitmap() { return !HEADER_MARK_BITS; }
 
   /****************************************************************************
    * 
@@ -143,7 +157,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
    */
   protected final Address advanceToBlock(Address block, int sizeClass) {
     if (LAZY_SWEEP)
-      return makeFreeListFromLiveBits(block, sizeClass);
+      return makeFreeListFromLiveBits(block, sizeClass, msSpace.getMarkState());
     else
       return getFreeList(block);
   }
@@ -160,6 +174,9 @@ public final class MarkSweepLocal extends SegregatedFreeList
   public final void prepare() {
     if (Options.fragmentationStats.getValue())
       fragmentationStatistics(true);
+    if (HEADER_MARK_BITS && Options.eagerCompleteSweep.getValue()) {
+      consumeBlockLists(msSpace.getPreviousMarkState());
+    }
     flushFreeLists();
   }
 
@@ -180,6 +197,19 @@ public final class MarkSweepLocal extends SegregatedFreeList
       fragmentationStatistics(false);
   }
 
+  /**
+   * Should the sweep reclaim the cell containing this object. Is this object
+   * live. This is only used when maintainSideBitmap is false.
+   * 
+   * @param object The object to query
+   * @param markState The markState ot compare against
+   * @return True if the cell should be reclaimed
+   */
+  protected final boolean reclaimCellForObject(ObjectReference object, 
+                                               Word markState) 
+    throws InlinePragma {
+    return !MarkSweepSpace.testMarkBit(object, markState);
+  }
 
   /****************************************************************************
    * 

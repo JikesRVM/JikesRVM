@@ -24,6 +24,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final int TIB_BYTES         = BYTES_IN_ADDRESS;
   static final int STATUS_BYTES      = BYTES_IN_ADDRESS;
 
+  static final int ALIGNMENT_MASK    = 0x00000001;
   static final int ALIGNMENT_VALUE   = 0xdeadbeef;
   static final int LOG_MIN_ALIGNMENT = LOG_BYTES_IN_INT;
 

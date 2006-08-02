@@ -7,6 +7,7 @@ package org.mmtk.utility.alloc;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.ObjectModel;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -520,6 +521,29 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * Sanity checks
    */
 
+  
+  /**
+   * Mark the metadata for this block.
+   * 
+   * @param block The block address
+   */ 
+  public static final void markBlockMeta(ObjectReference ref)
+    throws InlinePragma {
+    getMetaAddress(ObjectModel.refToAddress(ref)).plus(FL_META_OFFSET).store(Word.one());
+  }
+ 
+  /**
+   * Clear the metadata for this block.
+   * 
+   * @param block The block address
+   * @return the previous value of the meta data.
+   */ 
+  public static final boolean clearBlockMeta(Address block)
+    throws InlinePragma {
+    boolean result = getMetaAddress(block).plus(FL_META_OFFSET).loadWord().EQ(Word.one());
+    getMetaAddress(block).plus(FL_META_OFFSET).store(Word.zero());
+    return result;
+  }
   
   /**
    * Perform a basic sanity test, checking the contents of each of the

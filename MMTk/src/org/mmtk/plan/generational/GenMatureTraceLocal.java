@@ -109,7 +109,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    * @return The allocator for copied objects
    */
   public final int getAllocator() throws InlinePragma {
-    return Gen.ALLOC_MATURE;
+    return Gen.ALLOC_MATURE_MAJORGC;
   }
 
   /**

@@ -83,7 +83,8 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
   throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      Assert._assert(allocator == GenCopy.ALLOC_MATURE);
+      Assert._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
+                     allocator == GenCopy.ALLOC_MATURE_MAJORGC);
     }
 
     Address result = mature.alloc(bytes, align, offset, true);

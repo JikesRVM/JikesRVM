@@ -274,8 +274,4 @@ public class ObjectModel {
   public static MMType getObjectType(ObjectReference object) {
     return null;
   }
-
-  public static void dumpRef(ObjectReference object) {
-
-  }
 }

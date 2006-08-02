@@ -6,6 +6,9 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.*;
+import org.mmtk.utility.options.Options;
+import org.mmtk.utility.options.MarkSweepMarkBits;
+import org.mmtk.utility.options.EagerCompleteSweep;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.ObjectModel;
@@ -35,23 +38,28 @@ public final class MarkSweepSpace extends Space
    * 
    * Class variables
    */
-  public static final int LOCAL_GC_BITS_REQUIRED = 1;
+  public static final int LOCAL_GC_BITS_REQUIRED = 4;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
-  public static final Word MARK_BIT_MASK = Word.one(); // ...01
-
+  public static final Word MARK_BIT_MASK = Word.one().lsh(4).minus(Word.one()); // ...01111
+  
   /****************************************************************************
    * 
    * Instance variables
    */
   private Word markState;
-  public boolean inMSCollection = false;
+  private boolean inMSCollection;
 
   /****************************************************************************
    * 
    * Initialization
    */
 
+  static {
+    Options.markSweepMarkBits = new MarkSweepMarkBits();
+    Options.eagerCompleteSweep = new EagerCompleteSweep();
+  }
+  
   /**
    * The caller specifies the region of virtual memory to be used for
    * this space.  If this region conflicts with an existing space,
@@ -164,9 +172,12 @@ public final class MarkSweepSpace extends Space
    * 
    */
   public void prepare() {
-    markState = MARK_BIT_MASK.minus(markState);
-
-    MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
+    if (MarkSweepLocal.HEADER_MARK_BITS) {
+      Word mask = Word.fromInt((1 << Options.markSweepMarkBits.getValue()) - 1);
+      markState = markState.plus(Word.one()).and(mask);
+    } else {
+      MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
+    }
     inMSCollection = true;
   }
 
@@ -218,9 +229,15 @@ public final class MarkSweepSpace extends Space
   public final ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object)
     throws InlinePragma {
-    if (testAndMark(object, markState)) {
-      MarkSweepLocal.liveObject(object);
-      trace.enqueue(object);
+    if (MarkSweepLocal.HEADER_MARK_BITS) {
+      if (testAndMark(object, markState)) {
+        MarkSweepLocal.liveBlock(object);
+        trace.enqueue(object);
+      }
+    } else {
+      if (MarkSweepLocal.liveObject(object)) {
+        trace.enqueue(object);
+      }
     }
     return object;
   }
@@ -232,7 +249,31 @@ public final class MarkSweepSpace extends Space
    */
   public boolean isLive(ObjectReference object)
     throws InlinePragma {
-    return testMarkBit(object, markState);
+    if (MarkSweepLocal.HEADER_MARK_BITS) {
+      return testMarkBit(object, markState);
+    } else {
+      return MarkSweepLocal.isLiveObject(object);
+    }
+  }
+  
+  /**
+   * Get the current mark state
+   * 
+   * @return The current mark state.
+   */
+  public final Word getMarkState() throws InlinePragma {
+    return markState;
+  }
+  
+  /**
+   * Get the previous mark state.
+   *  
+   * @return The previous mark state.
+   */
+  public final Word getPreviousMarkState() 
+  throws InlinePragma {
+    Word mask = Word.fromInt((1 << Options.markSweepMarkBits.getValue()) - 1);
+    return markState.minus(Word.one()).and(mask);
   }
 
   /****************************************************************************
@@ -254,12 +295,18 @@ public final class MarkSweepSpace extends Space
    * Perform any required post copy (i.e. in-GC allocation) initialization
    * 
    * @param object the object ref to the storage to be initialized
+   * @param majorGC Is this copy happening during a major gc? 
    */
-  public final void postCopy(ObjectReference object) 
+  public final void postCopy(ObjectReference object, boolean majorGC) 
     throws InlinePragma {
-    writeMarkBit(object); // TODO one of these two is redundant!
-    MarkSweepLocal.liveObject(object);
+    initializeHeader(object);
+    if (MarkSweepLocal.HEADER_MARK_BITS) {
+      if (majorGC) MarkSweepLocal.liveBlock(object);
+    } else {
+      MarkSweepLocal.liveObject(object);
+    }
   }
+
   /**
    * Perform any required initialization of the GC portion of the header.
    * 
@@ -267,9 +314,9 @@ public final class MarkSweepSpace extends Space
    */
   public final void initializeHeader(ObjectReference object)
       throws InlinePragma {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
-    ObjectModel.writeAvailableBitsWord(object, newValue);
+    if (MarkSweepLocal.HEADER_MARK_BITS) {
+      writeMarkBit(object);
+    }
   }
 
   /**
@@ -279,7 +326,7 @@ public final class MarkSweepSpace extends Space
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  private static boolean testAndMark(ObjectReference object, Word value)
+  private static boolean atomicTestAndMark(ObjectReference object, Word value)
       throws InlinePragma {
     Word oldValue, markBit;
     do {
@@ -287,7 +334,24 @@ public final class MarkSweepSpace extends Space
       markBit = oldValue.and(MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
     } while (!ObjectModel.attemptAvailableBits(object, oldValue,
-                                                oldValue.xor(MARK_BIT_MASK)));
+                                                oldValue.and(MARK_BIT_MASK.not()).or(value)));
+    return true;
+  }
+
+  /**
+   * Atomically attempt to set the mark bit of an object.  Return true
+   * if successful, false if the mark bit was already set.
+   *
+   * @param object The object whose mark bit is to be written
+   * @param value The value to which the mark bit will be set
+   */
+  private static boolean testAndMark(ObjectReference object, Word value)
+    throws InlinePragma {
+    Word oldValue, markBit;
+    oldValue = ObjectModel.readAvailableBitsWord(object);
+    markBit = oldValue.and(MARK_BIT_MASK);
+    if (markBit.EQ(value)) return false;
+    ObjectModel.writeAvailableBitsWord(object, oldValue.and(MARK_BIT_MASK.not()).or(value));
     return true;
   }
 
@@ -298,7 +362,7 @@ public final class MarkSweepSpace extends Space
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  private static boolean testMarkBit(ObjectReference object, Word value)
+  public static boolean testMarkBit(ObjectReference object, Word value)
       throws InlinePragma {
     return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
