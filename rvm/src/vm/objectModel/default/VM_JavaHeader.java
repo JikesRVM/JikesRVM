@@ -270,9 +270,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * nursery so we can't assert DYNAMIC_HASH_OFFSET.
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
-    if ((start.loadInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-      start = start.plus(BYTES_IN_INT);
-      if ((start.loadInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
+    if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
+      start = start.plus(BYTES_IN_WORD);
+      if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
         return ObjectReference.nullReference();
       }
     }

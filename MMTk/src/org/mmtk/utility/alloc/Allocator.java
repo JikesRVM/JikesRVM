@@ -95,20 +95,19 @@ public abstract class Allocator implements Constants, Uninterruptible {
     Offset delta = negOff.minus(region.toWord()).and(mask).toOffset();
 
     if (fillAlignmentGap && ALIGNMENT_VALUE != 0) {
-      if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
+      if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_WORD) {
         // At most a single hole
-        if (!delta.isZero()) {
-          region.store(ALIGNMENT_VALUE);
+        if (delta.toInt() == (BYTES_IN_WORD)) {
+          region.store(Word.fromInt(ALIGNMENT_VALUE));
           region = region.plus(delta);
-        }
         return region;
+        }
       } else {
-        while (delta.toWord().GT(Word.zero())) {
-          region.store(ALIGNMENT_VALUE);
-          region = region.plus(BYTES_IN_INT);
-          delta = delta.minus(BYTES_IN_INT);
+        while (delta.toInt() >= (BYTES_IN_WORD)) {
+          region.store(Word.fromInt(ALIGNMENT_VALUE));
+          region = region.plus(BYTES_IN_WORD);
+          delta = delta.minus(BYTES_IN_WORD);
         }
-        return region;
       }
     }
 
