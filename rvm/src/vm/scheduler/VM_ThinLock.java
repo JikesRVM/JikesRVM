@@ -304,7 +304,27 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
     return true;
   }
 
-
+  /**
+   * @param obj an object
+   * @param lockOffset the offset of the thin lock word in the object.
+   * @param thread a thread
+   * @return <code>true</code> if the lock on obj at offset lockOffset is currently owned
+   *         by thread <code>false</code> if it is not.
+   */
+  public static boolean holdsLock(Object obj, Offset lockOffset, VM_Thread thread) {
+    int tid = thread.getLockingId();
+    Word bits = VM_Magic.getWordAtOffset(obj, lockOffset);
+    if (bits.and(TL_FAT_LOCK_MASK).isZero()) {
+      // if locked, then it is locked with a thin lock
+      return (bits.and(VM_ThinLockConstants.TL_THREAD_ID_MASK).toInt() == tid);
+    } else {
+      // if locked, then it is locked with a fat lock
+      int index = bits.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
+      VM_Lock l = VM_Scheduler.locks[index];
+      return l != null && l.ownerId == tid;
+    }
+  }
+  
   ////////////////////////////////////////////////////////////////////////////
   /// Get heavy-weight lock for an object; if thin, inflate it.
   ////////////////////////////////////////////////////////////////////////////

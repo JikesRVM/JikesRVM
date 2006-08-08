@@ -7,7 +7,7 @@
 package java.lang;
 
 import com.ibm.JikesRVM.VM;     // for VM.sysWrite()
-import com.ibm.JikesRVM.VM_Lock;
+import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 import com.ibm.JikesRVM.VM_Wait;
@@ -430,7 +430,7 @@ public class Thread implements Runnable {
 
   /** Does the currently running Thread hold the lock on an obj? */
   public static boolean holdsLock(Object obj) {
-    return VM_Lock.owns(obj);
+    return VM_ObjectModel.holdsLock(obj, VM_Thread.getCurrentThread());
   }
 
   static java.util.Map getThreadLocals() {

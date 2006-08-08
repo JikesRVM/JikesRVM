@@ -1749,7 +1749,9 @@ function emitSourceToPreprocessList () {
     	fi)
     
 	${RVM_ROOT}/rvm/src/vm/objectModel
-	${RVM_ROOT}/rvm/src/vm/objectModel/lockNursery
+	$( if (( !RVM_WITH_DEFAULT_OBJECT_MODEL )); then
+	    echo ${RVM_ROOT}/rvm/src/vm/objectModel/lockNursery
+    	fi)
 	${RVM_ROOT}/rvm/src/vm/${OBJECT_MODEL_PATH_STR}
 
     # other components
@@ -3735,7 +3737,6 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Ljava/security/Principal;
 
 	[Ljava/util/zip/ZipEntry;
-	[Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;
 	[Lcom/ibm/JikesRVM/classloader/VM_Atom;
 	[Lcom/ibm/JikesRVM/VM_BasicBlock;
 	[Lcom/ibm/JikesRVM/classloader/VM_Field;
@@ -3841,6 +3842,13 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 		[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;
 EOF
 	fi
+
+	if (( !RVM_WITH_DEFAULT_OBJECT_MODEL )); then
+	cat <<- EOF
+	        [Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;
+EOF
+        fi
+
     fi
 
 # Add the configuration specific primordials

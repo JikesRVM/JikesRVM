@@ -572,6 +572,16 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
+   * @param obj an object
+   * @param thread a thread
+   * @return <code>true</code> if the lock on obj is currently owned
+   *         by thread <code>false</code> if it is not.
+   */
+  public static boolean holdsLock(Object obj, VM_Thread thread) {
+    return VM_ThinLock.holdsLock(obj, STATUS_OFFSET, thread);
+  }
+  
+  /**
    * Obtains the heavy-weight lock, if there is one, associated with the
    * indicated object.  Returns <code>null</code>, if there is no
    * heavy-weight lock associated with the object.
