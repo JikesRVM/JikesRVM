@@ -199,8 +199,8 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    *
    * This method allows the correct allocator instance to be
    * established and associated with the thread (see {@link
-   * org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, int,
-   * boolean) Allocator.allocSlowBody()}).
+   * org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int,
+   * boolean) Allocator.allocSlow()}).
    * 
    * @see org.mmtk.utility.alloc.Allocator
    * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int, boolean)

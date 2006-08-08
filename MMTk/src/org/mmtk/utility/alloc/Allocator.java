@@ -244,7 +244,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
       current = ActivePlan.mutator().getOwnAllocator(current);
     }
     }
-    Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");
+    Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlow failed on request of ");
     Log.write(bytes);
     Log.write(" on space "); Log.writeln(Plan.getSpaceNameFromAllocatorAnyLocal(this));
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
