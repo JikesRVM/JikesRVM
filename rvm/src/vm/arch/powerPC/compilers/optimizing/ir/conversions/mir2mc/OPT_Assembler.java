@@ -287,7 +287,16 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Trap.getCond(p).value;
           int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
+          //-#if RVM_FOR_64_ADDR
+          int op2;
+          if (MIR_Trap.getValue2(p).isLongConstant()) {
+            op2 = ((int)MIR_Trap.getValue2(p).asLongConstant().value) & SHORT_MASK;
+          } else {
+            op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
+          }
+          //-#else
           int op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
+          //-#endif
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }

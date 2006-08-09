@@ -1816,29 +1816,33 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Expansion of TRAP_IF, with an int constant as the second value.
    *
    * @param s the instruction to expand
+   * @param longConstant is the argument a long constant?
    */
-  protected final void TRAP_IF_IMM(OPT_Instruction s) {
+  protected final void TRAP_IF_IMM(OPT_Instruction s, boolean longConstant) {
     OPT_RegisterOperand gRes = TrapIf.getGuardResult(s);
-    OPT_RegisterOperand v1 =  (OPT_RegisterOperand)TrapIf.getVal1(s);
-    OPT_IntConstantOperand v2 = (OPT_IntConstantOperand)TrapIf.getVal2(s);
+    OPT_RegisterOperand v1 = (OPT_RegisterOperand)TrapIf.getVal1(s);
+    OPT_ConstantOperand v2 = (OPT_ConstantOperand)TrapIf.getVal2(s);
     OPT_ConditionOperand cond = TrapIf.getCond(s);
     OPT_TrapCodeOperand tc = TrapIf.getTCode(s);
 
     // A slightly ugly matter, but we need to deal with combining
     // the two pieces of a long register from a LONG_ZERO_CHECK.  
     // A little awkward, but probably the easiest workaround...
-    if (tc.getTrapCode() == VM_Runtime.TRAP_DIVIDE_BY_ZERO && v1.type.isLongType()) {
+    if (longConstant) {
+      if (VM.VerifyAssertions) {
+        VM._assert((tc.getTrapCode() == VM_Runtime.TRAP_DIVIDE_BY_ZERO) &&
+                   (((OPT_LongConstantOperand)v2).value == 0L));
+      }
       OPT_RegisterOperand rr = regpool.makeTempInt();
       EMIT(MIR_Move.create(IA32_MOV, rr, v1.copy()));
       EMIT(MIR_BinaryAcc.create(IA32_OR, rr.copy(), 
-                                       new OPT_RegisterOperand(regpool.getSecondReg
-																					(v1.register), VM_TypeReference.Int)));
+                                new OPT_RegisterOperand(regpool.getSecondReg(v1.register),
+                                                        VM_TypeReference.Int)));
       v1 = rr.copyD2U();
-    } 
-
+      v2 = IC(0);
+    }
     // emit the trap instruction
-    EMIT(MIR_TrapIf.mutate(s, IA32_TRAPIF, gRes, v1, v2, COND(cond),
-                                  tc));
+    EMIT(MIR_TrapIf.mutate(s, IA32_TRAPIF, gRes, v1, v2, COND(cond), tc));
   }
 
 

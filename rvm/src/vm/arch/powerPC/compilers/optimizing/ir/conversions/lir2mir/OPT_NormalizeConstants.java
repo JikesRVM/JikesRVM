@@ -102,10 +102,12 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_LongConstantOperand) {
-              if ((!VM.BuildFor64Addr)){
-                OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
-                s.insertBefore(Move.create(LONG_MOVE, rop, use));
-                s.putOperand(idx, rop.copyD2U());
+              if (!VM.BuildFor64Addr) {
+                if (s.getOpcode() != TRAP_IF_opcode) {
+                  OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
+                  s.insertBefore(Move.create(LONG_MOVE, rop, use));
+                  s.putOperand(idx, rop.copyD2U());
+                }
               }
             } else if (use instanceof OPT_NullConstantOperand) {
                 s.putOperand(idx, AC(Address.zero()));

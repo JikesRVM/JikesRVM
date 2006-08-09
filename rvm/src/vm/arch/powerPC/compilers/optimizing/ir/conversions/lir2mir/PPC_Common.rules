@@ -297,7 +297,12 @@ TRAP_IF(P(p));
 stm:	TRAP_IF(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-TRAP_IF_IMM(P(p));
+TRAP_IF_IMM(P(p), false);
+
+stm:	TRAP_IF(r,LONG_CONSTANT)
+10
+EMIT_INSTRUCTION
+TRAP_IF_IMM(P(p), true);
 
 ##################################
 # Basic Boolean ALU operations 
