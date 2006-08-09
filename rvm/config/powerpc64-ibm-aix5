@@ -7,6 +7,8 @@
 # run Jikes RVM.  This file is sourced by the installation scripts; you
 # do not need to source this file into your command-prompt shell.
 #
+# This file is for AIX on 32-bit PowerPC.
+#
 # IMPORTANT: You need to modify this file to reflect your AIX environment!
 #
 
