@@ -41,6 +41,9 @@ on October 14, 2001,
 1494784: Intermittent build failure on IA32 due to imprecise estimation of 
          instruction size in code used for short forward jump optimization.
 
+1147554: MarkSweep double-mark: corrects performance problem in MMTk MarkSweep
+         code which was marking both a bit in the object and a side mark map.
+
 ** Other Notes
 *** IA32 BURS improvement for special case of COND_MOV contibuted by
     Garrett Kolpin
