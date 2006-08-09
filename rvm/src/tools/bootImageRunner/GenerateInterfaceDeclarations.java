@@ -51,6 +51,7 @@ class GenerateInterfaceDeclarations {
 
   static int bootImageDataAddress = 0;
   static int bootImageCodeAddress = 0;
+  static int bootImageRMapAddress = 0;
   static String outFileName;
   public static void main (String args[]) throws Exception {
 
@@ -74,6 +75,14 @@ class GenerateInterfaceDeclarations {
         bootImageCodeAddress = Integer.decode(args[i]).intValue();
         continue;
       }
+      if (args[i].equals("-ra")) {              // image address
+        if (++i == args.length) {
+          System.err.println("Error: The -ra flag requires an argument");
+          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
+        bootImageRMapAddress = Integer.decode(args[i]).intValue();
+        continue;
+      }
       if (args[i].equals("-out")) {              // output file
         if (++i == args.length) {
           System.err.println("Error: The -out flag requires an argument");
@@ -92,6 +101,10 @@ class GenerateInterfaceDeclarations {
     }
     if (bootImageCodeAddress == 0) {
       System.err.println("Error: Must specify boot image code load address.");
+      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    if (bootImageRMapAddress == 0) {
+      System.err.println("Error: Must specify boot image ref map load address.");
       System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (outFileName == null) {
@@ -174,7 +187,7 @@ class GenerateInterfaceDeclarations {
 
 
     pln("#ifdef NEED_VIRTUAL_MACHINE_DECLARATIONS");
-    emitVirtualMachineDeclarations(bootImageDataAddress, bootImageCodeAddress);
+    emitVirtualMachineDeclarations(bootImageDataAddress, bootImageCodeAddress, bootImageRMapAddress);
     pln("#endif /* NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     pln();
 
@@ -379,7 +392,7 @@ class GenerateInterfaceDeclarations {
 
   // Emit virtual machine class interface information.
   //
-  static void emitVirtualMachineDeclarations (int bootImageDataAddress, int bootImageCodeAddress) {
+  static void emitVirtualMachineDeclarations (int bootImageDataAddress, int bootImageCodeAddress, int bootImageRMapAddress) {
 
     // load address for the boot image
     //
@@ -387,6 +400,8 @@ class GenerateInterfaceDeclarations {
         + Integer.toHexString(bootImageDataAddress) + ";\n");
     p("static const void *bootImageCodeAddress                     = (void *)0x"
         + Integer.toHexString(bootImageCodeAddress) + ";\n");
+    p("static const void *bootImageRMapAddress                     = (void *)0x"
+        + Integer.toHexString(bootImageRMapAddress) + ";\n");
 
     // values in VM_Constants, from VM_Configuration
     //

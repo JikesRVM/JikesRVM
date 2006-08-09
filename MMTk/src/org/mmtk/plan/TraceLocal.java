@@ -13,6 +13,8 @@ import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.Memory;
+import org.mmtk.vm.Scanning;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -242,7 +244,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    */
   public ObjectReference traceObject(ObjectReference object) throws InlinePragma {
     if (Space.isInSpace(Plan.VM, object))
-      return Plan.vmSpace.traceObject(this, object);
+      return (Plan.SCAN_BOOT_IMAGE) ? object : Plan.vmSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.IMMORTAL, object))
       return Plan.immortalSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.LOS, object))

@@ -41,6 +41,7 @@ import org.vmmagic.unboxed.*;
  *    -demographics            show summary of how boot space is used
  *    -ca <addr>               address where code portion of boot image starts
  *    -da <addr>               address where data portion of boot image starts
+ *    -ra <addr>               address where ref map portion of boot image starts
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
  *    -profile                 time major phases of bootimage writing
@@ -181,6 +182,12 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   public static Address bootImageCodeAddress = Address.zero();
 
+  /**
+   * The absolute address at which the reference map portion of the
+   * bootImage is going to be loaded.
+   */
+  public static Address bootImageRMapAddress = Address.zero();
+
   public static Address getBootImageDataAddress()  {
     if (bootImageDataAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
     return bootImageDataAddress;
@@ -189,6 +196,11 @@ public class BootImageWriter extends BootImageWriterMessages
   public static Address getBootImageCodeAddress()  {
     if (bootImageCodeAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
     return bootImageCodeAddress;
+  }
+
+  public static Address getBootImageRMapAddress()  {
+    if (bootImageRMapAddress.isZero()) VM.sysFail("BootImageWrite.getBootImageAddress called before boot image established");
+    return bootImageRMapAddress;
   }
 
   /**
@@ -315,6 +327,7 @@ public class BootImageWriter extends BootImageWriterMessages
   {
     String   bootImageCodeName     = null;
     String   bootImageDataName     = null;
+    String   bootImageRMapName     = null;
     String   bootImageMapName      = null;
     Vector   bootImageTypeNames    = null;
     String   bootImageTypeNamesFile = null;
@@ -348,6 +361,13 @@ public class BootImageWriter extends BootImageWriterMessages
         bootImageDataName = args[i];
         continue;
       }
+      // name of ref map image file
+      if (args[i].equals("-or")) {
+        if (++i >= args.length)
+          fail("argument syntax error: Got a -or flag without a following ref map file name");
+        bootImageRMapName = args[i];
+        continue;
+      }
       // name of map file
       if (args[i].equals("-m")) {
         if (++i >= args.length)
@@ -367,6 +387,13 @@ public class BootImageWriter extends BootImageWriterMessages
         if (++i >= args.length)
           fail("argument syntax error: Got a -da flag without a following image address");
         bootImageDataAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
+        continue;
+      }
+      // image ref map start address
+      if (args[i].equals("-ra")) {
+        if (++i >= args.length)
+          fail("argument syntax error: Got a -ra flag without a following image address");
+        bootImageRMapAddress = Address.fromIntZeroExtend(Integer.decode(args[i]).intValue());
         continue;
       }
       // file containing names of types to be placed into bootimage
@@ -452,6 +479,9 @@ public class BootImageWriter extends BootImageWriterMessages
     if (bootImageDataName == null)
       fail("please specify \"-od <boot-image-data-filename>\"");
 
+    if (bootImageRMapName == null)
+      fail("please specify \"-or <boot-image-rmap-filename>\"");
+
     if (bootImageTypeNamesFile == null)
       fail("please specify \"-n <boot-image-type-names-filename>\"");
 
@@ -468,6 +498,10 @@ public class BootImageWriter extends BootImageWriterMessages
     if (bootImageCodeAddress.isZero())
       fail("please specify boot-image address with \"-ca <addr>\"");
     if (!(bootImageCodeAddress.toWord().and(Word.fromIntZeroExtend(0x00FFFFFF)).isZero()))
+      fail("please specify a boot-image address that is a multiple of 0x01000000");
+    if (bootImageRMapAddress.isZero())
+      fail("please specify boot-image address with \"-ra <addr>\"");
+    if (!(bootImageRMapAddress.toWord().and(Word.fromIntZeroExtend(0x00FFFFFF)).isZero()))
       fail("please specify a boot-image address that is a multiple of 0x01000000");
 
     //
@@ -624,10 +658,10 @@ public class BootImageWriter extends BootImageWriterMessages
         if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
           // object not part of bootimage: install null reference
           if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-          bootImage.setNullAddressWord(jtocImageAddress.plus(jtocOff));
+          bootImage.setNullAddressWord(jtocImageAddress.plus(jtocOff), false);
         } else {
           bootImage.setAddressWord(jtocImageAddress.plus(jtocOff),
-                                   imageAddress.toWord());
+                                   imageAddress.toWord(), false);
         }
         if (verbose >= 2) traceContext.pop();
       }
@@ -660,6 +694,8 @@ public class BootImageWriter extends BootImageWriterMessages
     bootRecord.bootImageDataEnd   = bootImageDataAddress.plus(bootImage.getDataSize());
     bootRecord.bootImageCodeStart = bootImageCodeAddress;
     bootRecord.bootImageCodeEnd   = bootImageCodeAddress.plus(bootImage.getCodeSize());
+    bootRecord.bootImageRMapStart = bootImageRMapAddress;
+    bootRecord.bootImageRMapEnd   = bootImageRMapAddress.plus(bootImage.getRMapSize());
 
     // Update field of boot record now by re-copying
     //
@@ -679,10 +715,10 @@ public class BootImageWriter extends BootImageWriterMessages
     /* Set the values in fields updated during the build process */
     Offset prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
     bootImage.setAddressWord(jtocImageAddress.plus(prevAddrOffset), 
-                             VM_MiscHeader.getBootImageLink().toWord());
+                             VM_MiscHeader.getBootImageLink().toWord(), false);
     Offset oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
     bootImage.setAddressWord(jtocImageAddress.plus(oIDOffset), 
-                             VM_MiscHeader.getOID());
+                             VM_MiscHeader.getOID(), false);
     //-#endif
 
     //
@@ -690,7 +726,7 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     if (profile) startTime = System.currentTimeMillis();
     try {
-      bootImage.write(bootImageCodeName, bootImageDataName);
+      bootImage.write(bootImageCodeName, bootImageDataName, bootImageRMapName);
     } catch (IOException e) {
       fail("unable to write bootImage: "+e);
     }
@@ -1434,12 +1470,14 @@ public class BootImageWriter extends BootImageWriterMessages
                 if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
                   // object not part of bootimage: install null reference
                   if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-                  bootImage.setNullAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS));
+                  bootImage.setNullAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), true);
                 } else {
                   bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS),
-                                           imageAddress.toWord());
+                                           imageAddress.toWord(), true);
                 }
                 if (verbose >= 2) traceContext.pop();
+              } else {
+                  bootImage.setNullAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), true);
               }
             }
           }
@@ -1537,7 +1575,7 @@ public class BootImageWriter extends BootImageWriterMessages
                 default:fail("unexpected field type: " + rvmFieldType); break;
               }
             else
-              bootImage.setNullAddressWord(rvmFieldAddress);
+              bootImage.setNullAddressWord(rvmFieldAddress, true);
             continue;
           }
 
@@ -1581,14 +1619,15 @@ public class BootImageWriter extends BootImageWriterMessages
               Object o = jdkFieldAcc.get(jdkObject);
               String msg = " instance field " + rvmField.toString();
               boolean warn = rvmFieldType.equals(VM_TypeReference.Address);
-              bootImage.setAddressWord(rvmFieldAddress, getWordValue(o, msg, warn));
+              bootImage.setAddressWord(rvmFieldAddress, getWordValue(o, msg, warn), false);
             } else {
               fail("unexpected primitive field type: " + rvmFieldType);
             }
           } else {
             // field is reference type
             Object value = jdkFieldAcc.get(jdkObject);
-            if (!allocOnly && value != null) {
+            if (!allocOnly) {
+              if (value != null) {
               Class jdkClass = jdkFieldAcc.getDeclaringClass();
               if (verbose >= 2) traceContext.push(value.getClass().getName(),
                                                   jdkClass.getName(),
@@ -1597,10 +1636,13 @@ public class BootImageWriter extends BootImageWriterMessages
               if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
                 // object not part of bootimage: install null reference
                 if (verbose >= 2) traceContext.traceObjectNotInBootImage();
-                bootImage.setNullAddressWord(rvmFieldAddress);
+                  bootImage.setNullAddressWord(rvmFieldAddress, true);
               } else
-                bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord());
+                  bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), !rvmField.isFinal());
               if (verbose >= 2) traceContext.pop();
+              } else {
+                bootImage.setNullAddressWord(rvmFieldAddress, true);
+              }
             }
           }
         }
@@ -1689,7 +1731,7 @@ public class BootImageWriter extends BootImageWriterMessages
         Address addr = values[i];
         String msg = "Address array element";
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), 
-                                 getWordValue(addr, msg, true));
+                                 getWordValue(addr, msg, true), false);
       }
     } else if (rvmElementType.equals(VM_Type.ObjectReferenceType)) {
       ObjectReference values[] = (ObjectReference[]) jdkObject;
@@ -1697,7 +1739,7 @@ public class BootImageWriter extends BootImageWriterMessages
         ObjectReference or = values[i];
         String msg = "ObjectReference array element";
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS), 
-                                 getWordValue(or, msg, true));
+                                 getWordValue(or, msg, true), true);
       }
     } else if (rvmElementType.equals(VM_Type.WordType)) {
       Word values[] = (Word[]) jdkObject;
@@ -1705,7 +1747,7 @@ public class BootImageWriter extends BootImageWriterMessages
         String msg = "Word array element ";
         Word addr = values[i];
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS),
-                                 getWordValue(addr, msg, false));
+                                 getWordValue(addr, msg, false), false);
       }
     } else if (rvmElementType.equals(VM_Type.OffsetType)) {
       Offset values[] = (Offset[]) jdkObject;
@@ -1713,7 +1755,7 @@ public class BootImageWriter extends BootImageWriterMessages
         String msg = "Offset array element " + i;
         Offset addr = values[i];
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS),
-                                 getWordValue(addr, msg, false));
+                                 getWordValue(addr, msg, false), false);
       }
     } else if (rvmElementType.equals(VM_Type.ExtentType)) {
       Extent values[] = (Extent[]) jdkObject;
@@ -1721,7 +1763,7 @@ public class BootImageWriter extends BootImageWriterMessages
         String msg = "Extent array element ";
         Extent addr = values[i];
         bootImage.setAddressWord(arrayImageAddress.plus(i << LOG_BYTES_IN_ADDRESS),
-                                 getWordValue(addr, msg, false));
+                                 getWordValue(addr, msg, false), false);
       }
     } else {
       fail("unexpected magic array type: " + rvmArrayType);
@@ -2058,6 +2100,8 @@ public class BootImageWriter extends BootImageWriterMessages
                 +"..."+Integer.toHexString(BOOT_IMAGE_DATA_START.toInt()+bootImage.getDataSize()));
     out.println("# Bootimage code: "+Integer.toHexString(BOOT_IMAGE_CODE_START.toInt())
                 +"..."+Integer.toHexString(BOOT_IMAGE_CODE_START.toInt()+bootImage.getCodeSize()));
+    out.println("# Bootimage refs: "+Integer.toHexString(BOOT_IMAGE_RMAP_START.toInt())
+                +"..."+Integer.toHexString(BOOT_IMAGE_RMAP_START.toInt()+bootImage.getRMapSize()));
                                                             
     out.println();
     out.println("(/bin/grep 'code     0x' | /bin/sort -k 4.3,4) << EOF-EOF-EOF");

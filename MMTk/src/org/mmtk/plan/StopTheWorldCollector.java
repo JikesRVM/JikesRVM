@@ -88,6 +88,12 @@ implements Uninterruptible {
       return;
     }
 
+    if (phaseId == StopTheWorld.BOOTIMAGE_ROOTS) {
+      if (Plan.SCAN_BOOT_IMAGE)
+        Scanning.computeBootImageRoots(getCurrentTrace());
+      return;
+    }
+
     if (phaseId == StopTheWorld.SOFT_REFS) {
       if (primary && !Options.noReferenceTypes.getValue())
         ReferenceProcessor.processSoftReferences(

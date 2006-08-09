@@ -242,4 +242,20 @@ public class Scanning implements Constants, Uninterruptible {
     ActivePlan.flushRememberedSets();
     Collection.rendezvous(4200);
   }
+  
+  /**
+   * Compute all roots out of the VM's boot image (if any).  This method is a no-op
+   * in the case where the VM does not maintain an MMTk-visible Java space.   However,
+   * when the VM does maintain a space (such as a boot image) which is visible to MMTk,
+   * that space could either be scanned by MMTk as part of its transitive closure over
+   * the whole heap, or as a (considerable) performance optimization, MMTk could avoid
+   * scanning the space if it is aware of all pointers out of that space.  This method
+   * is used to establish the root set out of the scannable space in the case where
+   * such a space exists.
+   *  
+   * @param trace The trace object to use to report root locations.
+   */
+  public static void computeBootImageRoots(TraceLocal trace) {
+    ScanBootImage.scanBootImage(trace);
+  }
 }

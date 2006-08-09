@@ -29,7 +29,8 @@ static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
 #endif /* RVM_WITH_FLEXIBLE_STACK_SIZES */
 static const int BOOTIMAGE_CODE_FILE_INDEX     = SYSLOGFILE_INDEX+1;
 static const int BOOTIMAGE_DATA_FILE_INDEX     = BOOTIMAGE_CODE_FILE_INDEX+1;
-static const int VM_INDEX                      = BOOTIMAGE_DATA_FILE_INDEX+1;
+static const int BOOTIMAGE_RMAP_FILE_INDEX     = BOOTIMAGE_DATA_FILE_INDEX+1;
+static const int VM_INDEX                      = BOOTIMAGE_RMAP_FILE_INDEX+1;
 static const int GC_INDEX                      = VM_INDEX+1;
 static const int AOS_INDEX                     = GC_INDEX+1;
 static const int IRC_INDEX                     = AOS_INDEX+1;
@@ -58,6 +59,7 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:sysLogfile=",
    "-X:ic=",
    "-X:id=",
+   "-X:ir=",
    "-X:vm",
    "-X:gc",
    "-X:aos",
@@ -88,6 +90,7 @@ static const char* nonStandardUsage[] = {
    "    -X:sysLogfile=<filename> Write standard error message to <filename>",
    "    -X:ic=<filename>         Read boot image code from <filename>",
    "    -X:id=<filename>         Read boot image data from <filename>",
+   "    -X:ir=<filename>         Read boot image ref map from <filename>",
    "    -X:vm:<option>           Pass <option> to virtual machine",
    "          :help              Print usage choices for -X:vm",
    "    -X:gc:<option>           Pass <option> on to GC subsystem",

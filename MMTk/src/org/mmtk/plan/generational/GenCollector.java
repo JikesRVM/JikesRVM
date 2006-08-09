@@ -92,6 +92,13 @@ implements Uninterruptible {
       return;
     }
 
+    if (phaseId == Gen.BOOTIMAGE_ROOTS) {
+      if (global().traceFullHeap()) {
+        super.collectionPhase(phaseId, primary);
+      }
+      return;
+    }
+    
     if (phaseId == Gen.START_CLOSURE) {
       if (!global().gcFullHeap) {
         nurseryTrace.startTrace();

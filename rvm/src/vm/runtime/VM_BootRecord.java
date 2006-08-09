@@ -126,6 +126,8 @@ public class VM_BootRecord {
   public Address bootImageDataEnd;
   public Address bootImageCodeStart;
   public Address bootImageCodeEnd;
+  public Address bootImageRMapStart;
+  public Address bootImageRMapEnd;
   
   /**
    * initial size of heap

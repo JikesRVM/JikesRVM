@@ -42,6 +42,15 @@ public class BootImage extends BootImageWriterMessages
   private byte[] bootImageCode;
 
   /**
+   * The reference map for the boot image
+   */
+  private byte[] referenceMap;
+  private int referenceMapReferences = 0;
+  private int referenceMapLimit = 0;
+  private byte[] bootImageRMap;
+  private int rMapSize = 0;
+
+  /**
    * Offset of next free data word, in bytes
    */
   private Offset freeDataOffset = Offset.zero();
@@ -67,6 +76,8 @@ public class BootImage extends BootImageWriterMessages
    */
   private int numNulledReferences;
 
+  private int markedReferences;
+
   /**
    * @param ltlEndian write words low-byte first?
    * @param t turn tracing on?
@@ -74,6 +85,7 @@ public class BootImage extends BootImageWriterMessages
   BootImage(boolean ltlEndian, boolean t) {
     bootImageData = new byte[BOOT_IMAGE_DATA_SIZE];
     bootImageCode = new byte[BOOT_IMAGE_CODE_SIZE];
+    referenceMap = new byte[BOOT_IMAGE_DATA_SIZE>>LOG_BYTES_IN_ADDRESS];
     littleEndian = ltlEndian;
     trace = t;
   }
@@ -83,7 +95,7 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param imageFileName the name of the image file
    */
-  public void write(String imageCodeFileName, String imageDataFileName) throws IOException {
+  public void write(String imageCodeFileName, String imageDataFileName, String imageRMapFileName) throws IOException {
     if (trace) {
       say((numObjects / 1024)   + "k objects");
       say((numAddresses / 1024) + "k non-null object references");
@@ -105,6 +117,20 @@ public class BootImage extends BootImageWriterMessages
     codeOut.write(bootImageCode, 0, getCodeSize());
     codeOut.flush();
     codeOut.close();
+    if (trace) {
+      say("writing " + imageRMapFileName);
+    }
+
+    bootImageRMap = new byte[referenceMapReferences<<BYTES_IN_WORD];
+    rMapSize = org.mmtk.vm.ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
+    FileOutputStream rmapOut = new FileOutputStream(imageRMapFileName);
+    rmapOut.write(bootImageRMap, 0, rMapSize);
+    rmapOut.flush();
+    rmapOut.close();
+    if (trace) {
+      say("total refs: "+ referenceMapReferences);
+    }
+    org.mmtk.vm.ScanBootImage.encodingStats();
   }
 
   /**
@@ -121,6 +147,14 @@ public class BootImage extends BootImageWriterMessages
    */
   public int getCodeSize() {
     return freeCodeOffset.toInt();
+  }
+
+
+  /**
+   * return the size of the rmap
+   */
+  public int getRMapSize() {
+    return rMapSize;
   }
 
   /**
@@ -254,6 +288,24 @@ public class BootImage extends BootImageWriterMessages
     data[idx] = (byte) value;
   }
 
+
+  /**
+   * Set a byte in the reference bytemap to indicate that there is an
+   * address in the boot image at this offset.  This can be used for
+   * relocatability and for fast boot image scanning at GC time.
+   *
+   * @param address The offset into the boot image which contains an
+   * address.
+   */
+  private void markReferenceMap(Address address) {
+    int referenceIndex = address.diff(BOOT_IMAGE_DATA_START).toInt()>>LOG_BYTES_IN_ADDRESS;
+    if (referenceMap[referenceIndex] == 0) {
+      referenceMap[referenceIndex] = 1;
+      referenceMapReferences++;
+      if (referenceIndex > referenceMapLimit) referenceMapLimit = referenceIndex;
+    }
+  }
+
   /**
    * Fill in 2 bytes of bootimage.
    *
@@ -305,8 +357,12 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param address address of target
    * @param value value to write
+   * @param objField true if this word is an object field (as opposed
+   * to a static, or tib, or some other metadata)
    */
-  public void setAddressWord(Address address, Word value) {
+  public void setAddressWord(Address address, Word value, boolean objField) {
+    if (objField) 
+      markReferenceMap(address);
 //-#if RVM_FOR_32_ADDR
     setFullWord(address, value.toInt());
     numAddresses++;
@@ -321,9 +377,11 @@ public class BootImage extends BootImageWriterMessages
    * Fill in 4/8 bytes of bootimage, as null object reference.
    *
    * @param address address of target
+   * @param objField true if this word is an object field (as opposed
+   * to a static, or tib, or some other metadata)
    */
-  public void setNullAddressWord(Address address) {
-    setAddressWord(address, Word.zero());
+  public void setNullAddressWord(Address address, boolean objField) {
+    setAddressWord(address, Word.zero(), objField);
     numNulledReferences += 1;
   }
 

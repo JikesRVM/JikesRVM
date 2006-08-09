@@ -70,6 +70,7 @@ public class MC extends StopTheWorld implements Uninterruptible {
       CALCULATE_FP,
       PREPARE_FORWARD,
       PREPARE_MUTATOR,
+      BOOTIMAGE_ROOTS,
       ROOTS,
       forwardPhase,
       FORWARD_CLOSURE,

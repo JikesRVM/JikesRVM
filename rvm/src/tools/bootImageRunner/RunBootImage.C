@@ -480,6 +480,10 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             bootDataFilename = token + 6;
             continue;
         }
+        if (strnequal(token, nonStandardArgs[BOOTIMAGE_RMAP_FILE_INDEX], 6)) {
+            bootRMapFilename = token + 6;
+            continue;
+        }
         int mainlen = strlen(nonStandardArgs[SINGLE_VIRTUAL_PROCESSOR_INDEX]);
         if (strnequal(token, nonStandardArgs[SINGLE_VIRTUAL_PROCESSOR_INDEX], 
                       mainlen))
@@ -696,6 +700,7 @@ main(int argc, const char **argv)
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
                "rvm_singleVirtualProcessor %d\n"
                "bootCodeFileName |%s|\nbootDataFileName |%s|\n"
+	       "bootRmapFileName |%s|\n"
                "lib_verbose %d\n",
                (unsigned long) initialHeapSize, 
                (unsigned long) maximumHeapSize, 
@@ -705,7 +710,7 @@ main(int argc, const char **argv)
                (unsigned long) maximumStackSize,
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
                rvm_singleVirtualProcessor,
-               bootCodeFilename, bootDataFilename,
+               bootCodeFilename, bootDataFilename, bootRMapFilename,
                lib_verbose);
     }
 
@@ -716,6 +721,11 @@ main(int argc, const char **argv)
 
     if (!bootDataFilename) {
         fprintf(SysTraceFile, "%s: please specify name of boot image data file using \"-X:id=<filename>\"\n", Me);
+        return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+    }
+
+    if (!bootRMapFilename) {
+        fprintf(SysTraceFile, "%s: please specify name of boot image ref map file using \"-X:ir=<filename>\"\n", Me);
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 

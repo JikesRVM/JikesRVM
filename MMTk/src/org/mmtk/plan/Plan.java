@@ -60,6 +60,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   /****************************************************************************
    * Constants
    */
+  
   /* GC State */
   public static final int NOT_IN_GC = 0; // this must be zero for C code
   public static final int GC_PREPARE = 1; // before setup and obtaining root
@@ -93,6 +94,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
+  public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
 
   /****************************************************************************
    * Class variables

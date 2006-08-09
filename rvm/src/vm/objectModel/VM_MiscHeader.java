@@ -98,9 +98,9 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
     throws LogicallyUninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
-      bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid);
-      bootImage.setAddressWord(ref.plus(OBJECT_DEATH_OFFSET), time);
-      bootImage.setAddressWord(ref.plus(OBJECT_LINK_OFFSET), prevAddress);
+      bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid, false);
+      bootImage.setAddressWord(ref.plus(OBJECT_DEATH_OFFSET), time, false);
+      bootImage.setAddressWord(ref.plus(OBJECT_LINK_OFFSET), prevAddress, false);
       prevAddress = ref.toWord();
       oid = oid.plus(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) 
 														 >> LOG_BYTES_IN_ADDRESS));
