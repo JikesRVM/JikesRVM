@@ -121,6 +121,14 @@ public class BootImage extends BootImageWriterMessages
       say("writing " + imageRMapFileName);
     }
 
+    // Kludge around problems with older (pre 5.0) IBM JVMs being unable
+    // compact, thus failing to allocate large objects after the heap becomes
+    // fragmented.
+    bootImageData = null;
+    bootImageCode = null;
+    System.gc();
+    // end IBM JVM kludge
+    
     bootImageRMap = new byte[referenceMapReferences<<BYTES_IN_WORD];
     rMapSize = org.mmtk.vm.ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
     FileOutputStream rmapOut = new FileOutputStream(imageRMapFileName);
