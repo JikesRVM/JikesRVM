@@ -525,7 +525,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   /**
    * Mark the metadata for this block.
    * 
-   * @param block The block address
+   * @param ref 
    */ 
   public static final void markBlockMeta(ObjectReference ref)
     throws InlinePragma {

@@ -809,7 +809,6 @@ public abstract class SegregatedFreeList extends Allocator
    * Set the live bit for a given address
    *
    * @param address The address whose live bit is to be set.
-   * @param atomic True if we want to perform this operation atomically
    * @return true if this operation changed the state of the live bit.
    */
   protected static final boolean isLiveAddress(Address address)
