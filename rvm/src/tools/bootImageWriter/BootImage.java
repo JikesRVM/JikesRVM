@@ -129,7 +129,10 @@ public class BootImage extends BootImageWriterMessages
     System.gc();
     // end IBM JVM kludge
     
-    bootImageRMap = new byte[referenceMapReferences<<BYTES_IN_WORD];
+    /* Now we generate a compressed reference map.  Typically we get 4 bits/address, but
+       we'll create the in-memory array assuming worst case 1:1 compression.  Only the
+       used portion of the array actually gets written into the image. */
+    bootImageRMap = new byte[referenceMapReferences<<LOG_BYTES_IN_WORD];
     rMapSize = org.mmtk.vm.ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
     FileOutputStream rmapOut = new FileOutputStream(imageRMapFileName);
     rmapOut.write(bootImageRMap, 0, rMapSize);
