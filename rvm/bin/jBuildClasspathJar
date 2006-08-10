@@ -111,7 +111,8 @@ function classpath_configure_args () {
         ##
         ## The GTk peers won't do any good without select hijacking, 
         ## in any case. 
-        echo "  --disable-gtk-peer CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D__ppc__'"
+	## Also disable gcjwebplugin.
+        echo "  --disable-gtk-peer --disable-gconf-peer --disable-plugin CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D__ppc__'"
         return;
     fi
 
