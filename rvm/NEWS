@@ -6,10 +6,11 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.4.5 Release Notes (future)
+*Jikes RVM 2.4.5 Release Notes (released August 10, 2006)
 ** Highlights
-*** Jikes RVM 2.4.5 requires GNU Classpath 0.91. 
-    Jikes RVM will not compile against older versions of GNU classpath.
+*** The recommended version of GNU classpath for Jikes RVM 2.4.5 is 0.92.
+    GNU classpath version 0.91 will work, but Jikes RVM 2.4.5 will not 
+    compile against versions of GNU classpath before 0.91.
 
 *** Classpath AWT and Swing tests now run with the Jikes RVM. We have changed
     from using the portable native sync code, and addressed issues with M-to-N
