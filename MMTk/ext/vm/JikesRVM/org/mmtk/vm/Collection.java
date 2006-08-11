@@ -207,6 +207,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
    return VM_CollectorThread.noThreadsInGC(); 
  }
 
+  private static final int OOM_EXN_HEADROOM_BYTES = 1<<19; // 512K should be plenty to make an exn
   /**
    * Check for memory exhaustion, possibly throwing an out of memory
    * exception and/or triggering another GC.
@@ -228,9 +229,12 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
         }
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
-        MM_Interface.emergencyGrowHeap(512 * (1 << 10));  // 512K should be plenty to make an exn
+        
+        int currentAvail = ActivePlan.global().getPagesAvail() << LOG_BYTES_IN_PAGE; // may be negative
+        int headroom = OOM_EXN_HEADROOM_BYTES - currentAvail;
+        MM_Interface.emergencyGrowHeap(headroom);  
         OutOfMemoryError oome = new OutOfMemoryError();
-        MM_Interface.emergencyGrowHeap(- (512 * (1 << 10)));
+        MM_Interface.emergencyGrowHeap(-headroom);
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
         throw oome;
