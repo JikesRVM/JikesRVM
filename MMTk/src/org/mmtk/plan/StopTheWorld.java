@@ -60,7 +60,7 @@ public abstract class StopTheWorld extends Plan
   public static final int PREPARE_MUTATOR     = new SimplePhase("prepare-mutator",                Phase.MUTATOR_ONLY  ).getId();
   public static final int PRECOPY             = new SimplePhase("precopy",                        Phase.COLLECTOR_ONLY).getId();
   public static final int ROOTS               = new SimplePhase("root",                           Phase.GLOBAL_LAST       ).getId();
-  public static final int BOOTIMAGE_ROOTS     = new SimplePhase("bootimage-root",                 Phase.GLOBAL_LAST   ).getId();
+  public static final int BOOTIMAGE_ROOTS     = new SimplePhase("bootimage-root",                 Phase.COLLECTOR_ONLY).getId();
   public static final int START_CLOSURE       = new SimplePhase("start-closure",    scanTime,     Phase.COLLECTOR_ONLY).getId();
   public static final int SOFT_REFS           = new SimplePhase("soft-ref",         refTypeTime,  Phase.COLLECTOR_ONLY).getId();
   public static final int COMPLETE_CLOSURE    = new SimplePhase("complete-closure", scanTime,     Phase.COLLECTOR_ONLY).getId();
@@ -223,11 +223,6 @@ public abstract class StopTheWorld extends Plan
     if (phaseId == ROOTS) {
       Scanning.resetThreadCounter();
       Plan.setGCStatus(GC_PROPER);
-      return;
-    }
-
-    if (phaseId == BOOTIMAGE_ROOTS) {
-      Scanning.resetThreadCounter();
       return;
     }
 

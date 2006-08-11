@@ -86,6 +86,9 @@ public class ScanBootImage implements Constants {
       Log.write(" refs: "); Log.write(refs);
       Log.write(">");
     }
+    
+    /* sync up all collection threads */
+    Collection.rendezvous(4300);
   }
   
   /**
