@@ -6,7 +6,7 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.4.5 Release Notes (released August 10, 2006)
+*Jikes RVM 2.4.5 Release Notes (released August 14, 2006)
 ** Highlights
 *** The recommended version of GNU classpath for Jikes RVM 2.4.5 is 0.92.
     GNU classpath version 0.91 will work, but Jikes RVM 2.4.5 will not 
@@ -32,6 +32,12 @@ on October 14, 2001,
     A work around is to switch on non-runtime annotation loading in the RVM.
     NOTE: This requires classpath 0.91 or better.
 
+*** Added ability to perform boot image root scanning, and thus avoid
+    tracing through the boot image at each full heap GC. As a result,
+    we've added a third region to the bootimage; all config files must 
+    now define BOOTIMAGE_RMAP_ADDRESS in addition to BOOTIMAGE_DATA_ADDRESS
+    and BOOTIMAGE_CODE_ADDRESS.
+
 ** Bug fixes
 1442437: to match Sun behavior, java.lang.Class.newInstance now passes 
          through exceptions instead of wrapping in InstantiationExceptions.
@@ -48,7 +54,7 @@ on October 14, 2001,
 ** Other Notes
 *** IA32 BURS improvement for special case of COND_MOV contibuted by
     Garrett Kolpin
-*** Improvements to OPT_Simplifier to catch a number of additional cases 
+*** Improvements to OPT_Simplifier to catch a number of additional cases.
 
 
 *Jikes RVM 2.4.4 Release Notes (released March 15, 2006)
