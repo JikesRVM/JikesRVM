@@ -39,7 +39,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     }
 
     // reset sp to "empty params" state (ie same as it was after prologue)
-    Address sp = fp.sub(optMethod.getFrameFixedSize());
+    Address sp = fp.minus(optMethod.getFrameFixedSize());
     registers.gprs.set(STACK_POINTER, sp);
 
     // store exception object for later retrieval by catch block
@@ -92,7 +92,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too. 
     if (!myThread.hardwareExceptionRegisters.inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).add(STACK_SIZE_GUARD);
+      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).plus(STACK_SIZE_GUARD);
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     }
 
@@ -127,7 +127,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     for (int i = optMethod.getFirstNonVolatileGPR(); 
          i<NUM_NONVOLATILE_GPRS; 
          i++, frameOffset += 4) {
-      registers.gprs.set(NONVOLATILE_GPRS[i],fp.sub(frameOffset).loadWord());
+      registers.gprs.set(NONVOLATILE_GPRS[i],fp.minus(frameOffset).loadWord());
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
     

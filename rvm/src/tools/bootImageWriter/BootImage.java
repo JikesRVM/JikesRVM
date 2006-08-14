@@ -42,6 +42,15 @@ public class BootImage extends BootImageWriterMessages
   private byte[] bootImageCode;
 
   /**
+   * The reference map for the boot image
+   */
+  private byte[] referenceMap;
+  private int referenceMapReferences = 0;
+  private int referenceMapLimit = 0;
+  private byte[] bootImageRMap;
+  private int rMapSize = 0;
+
+  /**
    * Offset of next free data word, in bytes
    */
   private Offset freeDataOffset = Offset.zero();
@@ -67,6 +76,8 @@ public class BootImage extends BootImageWriterMessages
    */
   private int numNulledReferences;
 
+  private int markedReferences;
+
   /**
    * @param ltlEndian write words low-byte first?
    * @param t turn tracing on?
@@ -74,6 +85,7 @@ public class BootImage extends BootImageWriterMessages
   BootImage(boolean ltlEndian, boolean t) {
     bootImageData = new byte[BOOT_IMAGE_DATA_SIZE];
     bootImageCode = new byte[BOOT_IMAGE_CODE_SIZE];
+    referenceMap = new byte[BOOT_IMAGE_DATA_SIZE>>LOG_BYTES_IN_ADDRESS];
     littleEndian = ltlEndian;
     trace = t;
   }
@@ -83,7 +95,7 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param imageFileName the name of the image file
    */
-  public void write(String imageCodeFileName, String imageDataFileName) throws IOException {
+  public void write(String imageCodeFileName, String imageDataFileName, String imageRMapFileName) throws IOException {
     if (trace) {
       say((numObjects / 1024)   + "k objects");
       say((numAddresses / 1024) + "k non-null object references");
@@ -105,6 +117,31 @@ public class BootImage extends BootImageWriterMessages
     codeOut.write(bootImageCode, 0, getCodeSize());
     codeOut.flush();
     codeOut.close();
+    if (trace) {
+      say("writing " + imageRMapFileName);
+    }
+
+    // Kludge around problems with older (pre 5.0) IBM JVMs being unable
+    // compact, thus failing to allocate large objects after the heap becomes
+    // fragmented.
+    bootImageData = null;
+    bootImageCode = null;
+    System.gc();
+    // end IBM JVM kludge
+    
+    /* Now we generate a compressed reference map.  Typically we get 4 bits/address, but
+       we'll create the in-memory array assuming worst case 1:1 compression.  Only the
+       used portion of the array actually gets written into the image. */
+    bootImageRMap = new byte[referenceMapReferences<<LOG_BYTES_IN_WORD];
+    rMapSize = org.mmtk.vm.ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
+    FileOutputStream rmapOut = new FileOutputStream(imageRMapFileName);
+    rmapOut.write(bootImageRMap, 0, rMapSize);
+    rmapOut.flush();
+    rmapOut.close();
+    if (trace) {
+      say("total refs: "+ referenceMapReferences);
+    }
+    org.mmtk.vm.ScanBootImage.encodingStats();
   }
 
   /**
@@ -121,6 +158,14 @@ public class BootImage extends BootImageWriterMessages
    */
   public int getCodeSize() {
     return freeCodeOffset.toInt();
+  }
+
+
+  /**
+   * return the size of the rmap
+   */
+  public int getRMapSize() {
+    return rMapSize;
   }
 
   /**
@@ -173,19 +218,30 @@ public class BootImage extends BootImageWriterMessages
    * @param offset the offset at which the alignment is desired.
    */
   public Address allocateDataStorage(int size, int align, int offset) {
+    size = roundAllocationSize(size);
+    Offset unalignedOffset = freeDataOffset;
     freeDataOffset = MM_Interface.alignAllocation(freeDataOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeDataOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeDataOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
       VM._assert(freeDataOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeDataOffset;
-    freeDataOffset = freeDataOffset.add(size);
+    freeDataOffset = freeDataOffset.plus(size);
     if (freeDataOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_DATA_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
 
-    return BOOT_IMAGE_DATA_START.add(lowAddr);
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_DATA_START.plus(unalignedOffset), 
+                                    lowAddr.minus(unalignedOffset).toWord().toExtent());
+    return BOOT_IMAGE_DATA_START.plus(lowAddr);
   }
 
+  /**
+   * Round a size in bytes up to the next value of MIN_ALIGNMENT 
+   */
+  private int roundAllocationSize(int size) {
+    return size + ((-size) & ((1 << VM_JavaHeader.LOG_MIN_ALIGNMENT) - 1));
+  } 
+  
   /**
    * Allocate space in bootimage. Moral equivalent of 
    * memory managers allocating raw storage at runtime.
@@ -195,17 +251,22 @@ public class BootImage extends BootImageWriterMessages
    * @param offset the offset at which the alignment is desired.
    */
   public Address allocateCodeStorage(int size, int align, int offset) {
+    size = roundAllocationSize(size);
+    Offset unalignedOffset = freeCodeOffset;
     freeCodeOffset = MM_Interface.alignAllocation(freeCodeOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(freeCodeOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeCodeOffset.plus(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
       VM._assert(freeCodeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
     Offset lowAddr = freeCodeOffset;
-    freeCodeOffset = freeCodeOffset.add(size);
+    freeCodeOffset = freeCodeOffset.plus(size);
     if (freeCodeOffset.sGT(Offset.fromIntZeroExtend(BOOT_IMAGE_CODE_SIZE)))
       fail("bootimage full (need at least " + size + " more bytes for data)");
+
+    VM_ObjectModel.fillAlignmentGap(this, BOOT_IMAGE_CODE_START.plus(unalignedOffset), 
+                                    lowAddr.minus(unalignedOffset).toWord().toExtent());
     
-    return BOOT_IMAGE_CODE_START.add(lowAddr);
+    return BOOT_IMAGE_CODE_START.plus(lowAddr);
   }
 
   /**
@@ -236,6 +297,24 @@ public class BootImage extends BootImageWriterMessages
       data = bootImageData;
     }
     data[idx] = (byte) value;
+  }
+
+
+  /**
+   * Set a byte in the reference bytemap to indicate that there is an
+   * address in the boot image at this offset.  This can be used for
+   * relocatability and for fast boot image scanning at GC time.
+   *
+   * @param address The offset into the boot image which contains an
+   * address.
+   */
+  private void markReferenceMap(Address address) {
+    int referenceIndex = address.diff(BOOT_IMAGE_DATA_START).toInt()>>LOG_BYTES_IN_ADDRESS;
+    if (referenceMap[referenceIndex] == 0) {
+      referenceMap[referenceIndex] = 1;
+      referenceMapReferences++;
+      if (referenceIndex > referenceMapLimit) referenceMapLimit = referenceIndex;
+    }
   }
 
   /**
@@ -289,8 +368,12 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param address address of target
    * @param value value to write
+   * @param objField true if this word is an object field (as opposed
+   * to a static, or tib, or some other metadata)
    */
-  public void setAddressWord(Address address, Word value) {
+  public void setAddressWord(Address address, Word value, boolean objField) {
+    if (objField) 
+      markReferenceMap(address);
 //-#if RVM_FOR_32_ADDR
     setFullWord(address, value.toInt());
     numAddresses++;
@@ -305,9 +388,11 @@ public class BootImage extends BootImageWriterMessages
    * Fill in 4/8 bytes of bootimage, as null object reference.
    *
    * @param address address of target
+   * @param objField true if this word is an object field (as opposed
+   * to a static, or tib, or some other metadata)
    */
-  public void setNullAddressWord(Address address) {
-    setAddressWord(address, Word.zero());
+  public void setNullAddressWord(Address address, boolean objField) {
+    setAddressWord(address, Word.zero(), objField);
     numNulledReferences += 1;
   }
 

@@ -12,11 +12,11 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * $Id$
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
@@ -38,18 +38,69 @@ public class ObjectModel {
   }
 
   /**
+   * Copy an object to be pointer to by the to address. This is required 
+   * for delayed-copy collectors such as compacting collectors. During the 
+   * collection, MMTk reserves a region in the heap for an object as per
+   * requirements found from ObjectModel and then asks ObjectModel to 
+   * determine what the object's reference will be post-copy.
+   * 
+   * @param from the address of the object to be copied
+   * @param to The target location.
+   * @param region The start of the region that was reserved for this object
+   * @return Address The address past the end of the copied object
+   */
+  public static Address copyTo(ObjectReference from, ObjectReference to, Address region) {
+    return null;
+  }
+
+  /**
+   * Return the reference that an object will be refered to after it is copied
+   * to the specified region. Used in delayed-copy collectors such as compacting
+   * collectors.
+   * 
+   * @param from The object to be copied.
+   * @param to The region to be copied to.
+   * @return The resulting reference.
+   */
+  public static ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
+    return null;
+  }
+
+  
+  /**
    * Return the size required to copy an object
-   *
+   * 
    * @param object The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
    */
   public static int getSizeWhenCopied(ObjectReference object) {
     return 0;
   }
+
+  /**
+   * Return the alignment requirement for a copy of this object
+   * 
+   * @param object The object whose size is to be queried
+   * @return The alignment required for a copy of <code>obj</code>
+   */
+  public static int getAlignWhenCopied(ObjectReference object) {
+    return 0;
+  }
+
+  /**
+   * Return the alignment offset requirements for a copy of this object
+   * 
+   * @param object The object whose size is to be queried
+   * @return The alignment offset required for a copy of <code>obj</code>
+   */
+  public static int getAlignOffsetWhenCopied(ObjectReference object) {
+    return 0;
+  }
+
     
   /**
    * Return the size used by an object
-   *
+   * 
    * @param object The object whose size is to be queried
    * @return The size of <code>obj</code>
    */
@@ -70,14 +121,24 @@ public class ObjectModel {
   public static ObjectReference getObjectFromStartAddress(Address start) {
     return null;
   }
+
+  /**
+   * Gets a pointer to the address just past the end of the object.
+   * 
+   * @param object The objecty.
+   */
+  public static Address getObjectEndAddress(ObjectReference object) {
+    return null;
+  }
+
   
   /**
    * Get the type descriptor for an object.
-   *
+   * 
    * @param ref address of the object
    * @return byte array with the type descriptor
    */
-  public static byte [] getTypeDescriptor(ObjectReference ref) {
+  public static byte[] getTypeDescriptor(ObjectReference ref) {
     return null;
   }
 
@@ -92,7 +153,7 @@ public class ObjectModel {
   }
   /**
    * Tests a bit available for memory manager use in an object.
-   *
+   * 
    * @param object the address of the object
    * @param idx the index of the bit
    */
@@ -102,14 +163,14 @@ public class ObjectModel {
 
   /**
    * Sets a bit available for memory manager use in an object.
-   *
+   * 
    * @param object the address of the object
    * @param idx the index of the bit
    * @param flag <code>true</code> to set the bit to 1,
    * <code>false</code> to set it to 0
    */
   public static void setAvailableBit(ObjectReference object, int idx,
-                                     boolean flag) {
+      boolean flag) {
   }
 
   /**
@@ -126,24 +187,24 @@ public class ObjectModel {
    * <code>false</code> otherwise
    */
   public static boolean attemptAvailableBits(ObjectReference object,
-                                             Word oldVal, Word newVal) {
+      Word oldVal, Word newVal) {
     return false;
   }
 
   /**
    * Gets the value of bits available for memory manager use in an
    * object, in preparation for setting those bits.
-   *
+   * 
    * @param object the address of the object
    * @return the value of the bits
    */
   public static Word prepareAvailableBits(ObjectReference object) {
-     return null;
- }
+    return null;
+  }
 
   /**
    * Sets the bits available for memory manager use in an object.
-   *
+   * 
    * @param object the address of the object
    * @param val the new value of the bits
    */
@@ -152,7 +213,7 @@ public class ObjectModel {
 
   /**
    * Read the bits available for memory manager use in an object.
-   *
+   * 
    * @param object the address of the object
    * @return the value of the bits
    */
@@ -165,7 +226,7 @@ public class ObjectModel {
    * reference address.  XXX The object model / memory manager
    * interface should be improved so that the memory manager does not
    * need to know this.
-   *
+   * 
    * @return the offset, relative the object reference address
    */
   public static Offset GC_HEADER_OFFSET() {
@@ -174,7 +235,7 @@ public class ObjectModel {
 
   /**
    * Returns the lowest address of the storage associated with an object.
-   *
+   * 
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
@@ -185,7 +246,7 @@ public class ObjectModel {
   /**
    * Returns an address guaranteed to be inside the storage assocatied
    * with and object.
-   *
+   * 
    * @param object the reference address of the object
    * @return an address inside the object
    */
@@ -196,17 +257,17 @@ public class ObjectModel {
   /**
    * Checks if a reference of the given type in another object is
    * inherently acyclic.  The type is given as a TIB.
-   *
+   * 
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
   public static boolean isAcyclic(ObjectReference typeRef) {
-      return false;
+    return false;
   }
 
   /**
    * Return the type object for a give object
-   *
+   * 
    * @param object The object whose type is required
    * @return The type object for <code>object</code>
    */

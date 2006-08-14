@@ -13,6 +13,8 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
+import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
@@ -29,13 +31,13 @@ import org.vmmagic.unboxed.*;
  * supported.  Full heap collections occur when the nursery size has
  * dropped to a statically defined threshold,
  * <code>NURSERY_THRESHOLD</code><p>
- *
+ * 
  * See also Plan.java for general comments on local vs global plan
  * classes.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -44,7 +46,7 @@ import org.vmmagic.unboxed.*;
 public abstract class Gen extends StopTheWorld implements Uninterruptible {
 
   /*****************************************************************************
-   *
+   * 
    * Constants
    */
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
@@ -52,12 +54,14 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   public final static boolean IGNORE_REMSETS = false;
 
   // Allocators
-  public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
-  public static final int ALLOC_MATURE = StopTheWorld.ALLOCATORS + 1;
-  public static int ALLOCATORS = ALLOC_MATURE;
+  public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;
+  public static final int ALLOC_MATURE         = StopTheWorld.ALLOCATORS + 1;
+  public static final int ALLOC_MATURE_MINORGC = StopTheWorld.ALLOCATORS + 2;
+  public static final int ALLOC_MATURE_MAJORGC = StopTheWorld.ALLOCATORS + 3;
+  public static int ALLOCATORS                 = ALLOC_MATURE_MAJORGC;
 
   /*****************************************************************************
-   *
+   * 
    * Class fields
    */
 
@@ -71,18 +75,18 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
 
   /** The nursery space is where all new objects are allocated by default */
   public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
-  
+
   public static final int NURSERY = nurserySpace.getDescriptor();;
   public static final Address NURSERY_START = nurserySpace.getStart();
 
 
   /*****************************************************************************
-   *
+   * 
    * Instance fields
    */
   /* status fields */
   public boolean gcFullHeap = false;
-  public boolean lastGCFullHeap = false;
+  public boolean nextGCFullHeap = false;
 
   /* The trace object */
   public final Trace nurseryTrace = new Trace(metaDataSpace);
@@ -114,26 +118,31 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   }
 
   /*****************************************************************************
-   *
+   * 
    * Collection
    */
 
   /**
-   * A user-triggered GC has been initiated.  
+   * A user-triggered GC has been initiated.
    */
   public void userTriggeredGC() {
-    gcFullHeap |= Options.fullHeapSystemGC.getValue();
+    nextGCFullHeap |= Options.fullHeapSystemGC.getValue();
   }
   /**
    * Perform a (global) collection phase.
-   *
+   * 
    * @param phaseId Collection phase to execute.
    */
   public void collectionPhase(int phaseId) throws NoInlinePragma {
+    if (phaseId == INITIATE) {
+      gcFullHeap = nextGCFullHeap;
+      super.collectionPhase(phaseId);
+      return;
+    }
+    
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      lastGCFullHeap = gcFullHeap;
-      if (collectMatureSpace()) {
+      if (traceFullHeap()) {
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
@@ -151,11 +160,11 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       nurserySpace.release();
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
-      if (collectMatureSpace()) {
+      if (traceFullHeap()) {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
-      gcFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
+      nextGCFullHeap = (getPagesAvail() < Options.nurserySize.getMinNursery());
       progress = (getPagesReserved() + required) < getTotalPages();
       return;
     }
@@ -165,15 +174,14 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
 
   /**
    * Poll for a collection
-   *
+   * 
    * @param mustCollect Force a collection.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   public final boolean poll(boolean mustCollect, Space space)
-    throws LogicallyUninterruptiblePragma {
-    if (getCollectionsInitiated() > 0 || !isInitialized() || 
-        space == metaDataSpace)
+      throws LogicallyUninterruptiblePragma {
+    if (getCollectionsInitiated() > 0 || !isInitialized())
       return false;
 
     mustCollect |= stressTestGCRequired();
@@ -183,28 +191,53 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     boolean metaDataFull = metaDataSpace.reservedPages() >
                            META_DATA_FULL_THRESHOLD;
     if (mustCollect || heapFull || nurseryFull || metaDataFull) {
+      if (space == metaDataSpace) {
+        /* In general we must not trigger a GC on metadata allocation since 
+         * this is not, in general, in a GC safe point.  Instead we initiate
+         * an asynchronous GC, which will occur at the next safe point.
+         */
+        setAwaitingCollection();
+        return false;
+      }
       required = space.reservedPages() - space.committedPages();
       if (space == nurserySpace ||
           (copyMature() && (space == activeMatureSpace())))
-        required = required<<1;  // must account for copy reserve
+        required = required << 1; // must account for copy reserve
       int nurseryYield = ((int)(nurserySpace.committedPages() *
                           SURVIVAL_ESTIMATE))<<1;
-      gcFullHeap |= mustCollect || (nurseryYield < required);
+      nextGCFullHeap |= mustCollect || (nurseryYield < required);
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
   }
-  //private static int counter = 0;
 
   /*****************************************************************************
-   *
+   * 
+   * Correctness
+   */
+  
+  /**
+   * Remset entries should never be produced by MMTk code.  If the host JVM
+   * produces remset entries during GC, it is the responsibility of the host
+   * JVM to flush those remset entries out of the mutator contexts.
+   */
+  public static void assertMutatorRemsetsFlushed() {
+    if (Assert.VERIFY_ASSERTIONS) {
+      GenMutator mutator = null;
+      while ((mutator = (GenMutator) ActivePlan.getNextMutator()) != null)
+        mutator.assertRemsetFlushed();
+    }
+  }
+
+  /*****************************************************************************
+   * 
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for copying.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -216,7 +249,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    * Return the number of pages in use given the pending
    * allocation.  Simply add the nursery's contribution to that of
    * the superclass.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -227,17 +260,17 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
-   *
+   * 
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
- 
+
 
   /*****************************************************************************
-   *
+   * 
    * Miscellaneous
    */
 
@@ -249,7 +282,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   }
 
   /**
-   * Print pre-collection statistics.  In this class we prefix the output
+   * Print pre-collection statistics. In this class we prefix the output
    * indicating whether the collection was full heap or not.
    */
   public void printPreStats() {
@@ -264,16 +297,10 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   protected abstract Space activeMatureSpace();
 
   /**
-   * @return True if the last GC was a full heap GC.
+   * @return True if we should trace the whole heap during collection. True if
+   *         we're ignorning remsets or if we're doing a full heap GC.
    */
-  public boolean isLastGCFull () {
-    return lastGCFullHeap;
-  }
-
-  /**
-   * @return True if we should trace the mature space during collection.
-   */
-  public final boolean collectMatureSpace() {
+  public final boolean traceFullHeap() {
     return IGNORE_REMSETS || gcFullHeap;
   }
 
@@ -282,5 +309,12 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    */
   public final boolean isCurrentGCNursery() {
     return !gcFullHeap;
+  }
+  
+  /**
+   * @return Is last GC a full collection?
+   */
+  public final boolean isLastGCFull() {
+    return gcFullHeap;
   }
 }

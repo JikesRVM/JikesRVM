@@ -11,15 +11,15 @@ package org.vmmagic.unboxed;
  */
 final public class ObjectReferenceArray {
 
-  public static ObjectReferenceArray create (int size) {
+  public static ObjectReferenceArray create(int size) {
     return null;
   }
 
-  public ObjectReference get (int index) {
+  public ObjectReference get(int index) {
     return null;
   }
 
-  public void set (int index, ObjectReference v) {
+  public void set(int index, ObjectReference v) {
   }
 
   public int length() {

@@ -12,8 +12,8 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple timer.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$
@@ -22,13 +22,13 @@ public class Timer extends LongCounter
   implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    */
   public Timer(String name) {
@@ -37,7 +37,7 @@ public class Timer extends LongCounter
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -49,7 +49,7 @@ public class Timer extends LongCounter
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -62,13 +62,13 @@ public class Timer extends LongCounter
   }
 
   /****************************************************************************
-   *
+   * 
    * Counter-specific methods
    */
 
   /**
    * Get the current value for this timer
-   *
+   * 
    * @return The current value for this timer
    */
   final protected long getCurrentValue() throws InlinePragma {
@@ -98,7 +98,7 @@ public class Timer extends LongCounter
 
   /**
    * Print a value (in milliseconds)
-   *
+   * 
    * @param value The value to be printed
    */
   final void printValue(long value) {
@@ -107,16 +107,16 @@ public class Timer extends LongCounter
 
   /**
    * Print a value in microseconds
-   *
+   * 
    * @param value The value to be printed
    */
   final void printMicro(long value) {
-    Log.write(1000*Statistics.cyclesToMillis(value));
+    Log.write(1000 * Statistics.cyclesToMillis(value));
   }
 
   /**
    * Print a value in milliseconds
-   *
+   * 
    * @param value The value to be printed
    */
   final void printMillis(long value) {
@@ -125,7 +125,7 @@ public class Timer extends LongCounter
 
   /**
    * Print a value in seconds
-   *
+   * 
    * @param value The value to be printed
    */
   final void printSecs(long value) {

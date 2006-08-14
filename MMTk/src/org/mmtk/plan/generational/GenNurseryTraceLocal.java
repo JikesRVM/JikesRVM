@@ -7,7 +7,6 @@ package org.mmtk.plan.generational;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.deque.*;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -15,10 +14,10 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -28,32 +27,30 @@ public final class GenNurseryTraceLocal extends TraceLocal
   implements Uninterruptible {
 
   /****************************************************************************
-  *
-  * Instance fields.
-  */
-  private final WriteBuffer remset; 
-  private final AddressDeque traceRemset;
+   * 
+   * Instance fields.
+   */
+  private final AddressDeque remset;
   private final AddressPairDeque arrayRemset;
 
 
   /**
    * Constructor
    */
-  public GenNurseryTraceLocal(Trace trace, GenLocal plan) {
+  public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
     super(trace);
     this.remset = plan.remset;
-    this.traceRemset = plan.traceRemset;
     this.arrayRemset = plan.arrayRemset;
   }
 
   /****************************************************************************
-   *
+   * 
    * Externally visible Object processing and tracing
    */
 
   /**
    * Is the specified object live?
-   *
+   * 
    * @param object The object.
    * @return True if the object is live.
    */
@@ -68,16 +65,16 @@ public final class GenNurseryTraceLocal extends TraceLocal
   /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
-   *
+   * 
    * 1. Ensure the traced object is not collected.
    * 2. If this is the first visit to the object enqueue it to be scanned.
    * 3. Return the forwarded reference to the object.
-   *
+   * 
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
   public ObjectReference traceObject(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
       return Gen.nurserySpace.traceObject(this, object);
     }
@@ -87,11 +84,10 @@ public final class GenNurseryTraceLocal extends TraceLocal
   /**
    * Process any remembered set entries.
    */
-  protected void flushRememberedSets() throws InlinePragma {
+  protected void processRememberedSets() throws InlinePragma {
     logMessage(5, "processing remset");
-    remset.flushLocal();
-    while (!traceRemset.isEmpty()) {
-      Address loc = traceRemset.pop();
+    while (!remset.isEmpty()) {
+      Address loc = remset.pop();
       traceObjectLocation(loc, false);
     }
     logMessage(5, "processing array remset");
@@ -101,7 +97,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
       Address guard = arrayRemset.pop2();
       while (start.LT(guard)) {
         traceObjectLocation(start, false);
-        start = start.add(BYTES_IN_ADDRESS);
+        start = start.plus(BYTES_IN_ADDRESS);
       }
     }
   }
@@ -110,9 +106,9 @@ public final class GenNurseryTraceLocal extends TraceLocal
    * @return The allocator to use when copying objects during this trace.
    */
   public final int getAllocator() throws InlinePragma {
-    return Gen.ALLOC_MATURE;
+    return Gen.ALLOC_MATURE_MINORGC;
   }
-  
+
   /**
    * Will the object move from now on during the collection.
    * 

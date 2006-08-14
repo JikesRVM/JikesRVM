@@ -69,7 +69,6 @@ final class OPT_NormalBURS extends OPT_BURS {
    */
   private void buildTrees(OPT_DepGraph dg) {
     OPT_DepGraphNode bbNodes = (OPT_DepGraphNode)dg.firstNode();
-    OPT_Instruction firstInstruction = bbNodes.instruction();
     for (OPT_DepGraphNode n = bbNodes; 
          n != null; 
          n = (OPT_DepGraphNode)n.getNext()) {

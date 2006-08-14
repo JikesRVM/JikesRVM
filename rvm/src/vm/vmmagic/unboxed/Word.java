@@ -50,17 +50,17 @@ public final class Word implements Uninterruptible {
   /**
    * @deprecated
    */
-  public static Word fromInt (int val) throws UninterruptibleNoWarnPragma {
+  public static Word fromInt(int val) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(val);
   }
 
-  public static Word fromIntSignExtend (int val) throws UninterruptibleNoWarnPragma {
+  public static Word fromIntSignExtend(int val) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(val);
   }
   
-  public static Word fromIntZeroExtend (int val) throws UninterruptibleNoWarnPragma {
+  public static Word fromIntZeroExtend(int val) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     //-#if RVM_FOR_32_ADDR
     return new Word(val);
@@ -71,18 +71,18 @@ public final class Word implements Uninterruptible {
   }
      
   //-#if RVM_FOR_64_ADDR
-  public static Word fromLong (long val) throws UninterruptibleNoWarnPragma {
+  public static Word fromLong(long val) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(val);
   }
   //-#endif
 
-  public static Word zero () throws UninterruptibleNoWarnPragma {
+  public static Word zero() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(0);
   }
 
-  public static Word one () throws UninterruptibleNoWarnPragma {
+  public static Word one() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(1);
   }
@@ -92,12 +92,12 @@ public final class Word implements Uninterruptible {
     return fromIntSignExtend(-1);
   }
 
-  public int toInt () {
+  public int toInt() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (int) value;
   }
 
-  public long toLong () throws UninterruptibleNoWarnPragma {
+  public long toLong() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (VM.BuildFor64Addr) {
       return value;
@@ -111,40 +111,40 @@ public final class Word implements Uninterruptible {
     return new Address(value);
   }
 
-  public Offset toOffset () throws UninterruptibleNoWarnPragma {
+  public Offset toOffset() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value);
   }
 
-  public Extent toExtent () throws UninterruptibleNoWarnPragma {
+  public Extent toExtent() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Extent(value);
   }
 
-  public Word add (Word w2) throws UninterruptibleNoWarnPragma {
+  public Word plus(Word w2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.value);
   }
 
-  public Word add (Offset w2) throws UninterruptibleNoWarnPragma {
+  public Word plus(Offset w2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.toWord().value);
   }
 
-  public Word add (Extent w2) throws UninterruptibleNoWarnPragma {
+  public Word plus(Extent w2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value + w2.toWord().value);
   }
 
-  public Word sub (Word w2) throws UninterruptibleNoWarnPragma {
+  public Word minus(Word w2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.value);
   }
-  public Word sub (Offset w2) throws UninterruptibleNoWarnPragma {
+  public Word minus(Offset w2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.toWord().value);
   }
-  public Word sub (Extent w2) throws UninterruptibleNoWarnPragma {
+  public Word minus(Extent w2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Word(value - w2.toWord().value);
   }

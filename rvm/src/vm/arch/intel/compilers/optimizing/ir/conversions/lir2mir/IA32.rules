@@ -541,12 +541,17 @@ EMIT(MIR_Trap.mutate(P(p), IA32_INT, Trap.getGuardResult(P(p)), Trap.getTCode(P(
 #####
 # TRAP_IF
 #####
-stm:	TRAP_IF(riv, INT_CONSTANT)
+stm:	TRAP_IF(r, INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-TRAP_IF_IMM(P(p));
+TRAP_IF_IMM(P(p), false);
 
-stm:	TRAP_IF(riv, r)
+stm:	TRAP_IF(r, LONG_CONSTANT)
+10
+EMIT_INSTRUCTION
+TRAP_IF_IMM(P(p), true);
+
+stm:	TRAP_IF(r, r)
 10
 EMIT_INSTRUCTION
 EMIT(MIR_TrapIf.mutate(P(p), IA32_TRAPIF, \
@@ -3860,6 +3865,23 @@ stm:	GOTO
 11
 EMIT_INSTRUCTION
 EMIT(MIR_Branch.mutate(P(p), IA32_JMP, Goto.getTarget(P(p))));
+
+#####
+# PREFETCH
+#####
+#stm:	PREFETCH(r)
+#11
+#EMIT_INSTRUCTION
+#EMIT(MIR_CacheOp.mutate(P(p), IA32_PREFETCH, R(CacheOp.getRef(P(p)))));
+#
+#####
+# PREFETCH (by analogy with INT_SHL_ACC)
+#####
+stm:	PREFETCH(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, new OPT_RegisterOperand(getEDI(), VM_TypeReference.Int), CacheOp.getRef(P(p)))); \
+EMIT(MIR_CacheOp.mutate(P(p), IA32_PREFETCH, new OPT_RegisterOperand(getEDI(), VM_TypeReference.Int)));
 
 ##################################
 # Calling convention

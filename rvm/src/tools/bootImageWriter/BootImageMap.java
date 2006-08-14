@@ -22,17 +22,42 @@ public class BootImageMap extends BootImageWriterMessages
   /**
    * Key->Entry map
    */
-  private static Hashtable keyToEntry;
+  private static final Hashtable keyToEntry;
 
   /**
    * objectId->Entry map
    */
-  private static ArrayList objectIdToEntry;
+  private static final ArrayList objectIdToEntry;
 
   /**
    * Entry used to represent null object
    */
-  private static Entry nullEntry;
+  private static final Entry nullEntry;
+
+  /**
+	* Unique ID value
+	*/
+  private static int idGenerator;
+
+  /**
+	* Create unique ID number
+	*/
+  private static Address newId() {
+      return Address.fromIntZeroExtend(idGenerator++);
+  }
+
+  /**
+   * Prepare for use.
+   */
+  static {
+    keyToEntry      =  new Hashtable(5000);
+    objectIdToEntry =  new ArrayList(5000);
+	 idGenerator = 0;
+    // predefine "null" object
+    nullEntry = new Entry(newId(), null, Address.zero());
+    // slot 0 reserved for "null" object entry
+    objectIdToEntry.add(nullEntry);
+  }
 
   /**
    * Key for looking up map entry.
@@ -41,7 +66,7 @@ public class BootImageMap extends BootImageWriterMessages
     /**
      * JDK object.
      */
-    Object jdkObject;
+    final Object jdkObject;
 
     /**
      * Constructor.
@@ -73,12 +98,12 @@ public class BootImageMap extends BootImageWriterMessages
     /**
      * Unique id associated with a jdk/rvm object pair.
      */
-    Address objectId;
+    final Address objectId;
 
     /**
      * JDK object.
      */
-    Object jdkObject;
+    final Object jdkObject;
 
     /**
      * Address of corresponding rvm object in bootimage
@@ -99,22 +124,6 @@ public class BootImageMap extends BootImageWriterMessages
     }
   }
 
-  private static int idGenerator = 0;
-  private static Address newId() {
-      return Address.fromIntZeroExtend(idGenerator++);
-  }
-
-  /**
-   * Prepare for use.
-   */
-  public static void init() {
-    keyToEntry      = new Hashtable(5000);
-    objectIdToEntry = new ArrayList(5000);
-    // predefine "null" object
-    objectIdToEntry.add(nullEntry = new Entry(newId(), null, Address.zero()));
-    // slot 0 reserved for "null" object entry
-  }
-
   /**
    * Find or create map entry for a jdk/rvm object pair.
    * @param jdkObject JDK object
@@ -124,15 +133,16 @@ public class BootImageMap extends BootImageWriterMessages
     if (jdkObject == null)
       return nullEntry;
 
-    Key key   = new Key(jdkObject);
-    Entry entry = (Entry) keyToEntry.get(key);
-    if (entry == null) {
-      entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
-      keyToEntry.put(key, entry);
-      objectIdToEntry.add(entry);
+    synchronized (BootImageMap.class) {
+      Key key   = new Key(jdkObject);
+      Entry entry = (Entry) keyToEntry.get(key);
+      if (entry == null) {
+        entry = new Entry(newId(), jdkObject, OBJECT_NOT_ALLOCATED);
+        keyToEntry.put(key, entry);
+        objectIdToEntry.add(entry);
+      }   
+      return entry;
     }
-
-    return entry;
   }
 
   /**

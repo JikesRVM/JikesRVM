@@ -67,7 +67,6 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
    * Select a new basic block ordering via a simple heuristic
    * that moves all infrequent basic blocks to the end.
    * @param ir the OPT_IR object to reorder
-   * @return the new ordering
    */
   private void exileInfrequentBlocks(OPT_IR ir) {
     // (1) Look to see if there are infrequent blocks 

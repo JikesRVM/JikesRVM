@@ -17,9 +17,9 @@ import org.vmmagic.unboxed.*;
  * in sanity checking or debugging, not high-performance algorithms.<p> 
  * 
  * This class is not thread safe.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -27,31 +27,31 @@ import org.vmmagic.unboxed.*;
 public abstract class SimpleHashtable implements Uninterruptible, Constants {
   /** The number of low order bits to ignore */
   private static final int HASH_SHIFT = 3;
-  
+
   /** Offset to the key */
-  private static final Offset KEY_OFFSET = Offset.fromInt(0); 
-  
+  private static final Offset KEY_OFFSET = Offset.fromInt(0);
+
   /** Offset to the data */
-  private static final Offset DATA_OFFSET = Offset.fromInt(BYTES_IN_WORD); 
-  
+  private static final Offset DATA_OFFSET = Offset.fromInt(BYTES_IN_WORD);
+
   /** The size of each entry in the table */
   private Extent entrySize;
-  
+
   /** The mask to use to get the hash code */
   private Word mask;
-  
+
   /** The start address of the data table */
   private Address base;
-  
+
   /** The full size of the table */
   private Extent size;
-  
+
   /** The space to use for allocating the data structure */
   private RawPageSpace space;
-  
+
   /** Is this table valid (created) */
-  private boolean valid; 
-  
+  private boolean valid;
+
   /**
    * Create a new data table of a specified size.
    * 
@@ -61,13 +61,13 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    */
   protected SimpleHashtable(RawPageSpace rps, int logSize, Extent es) {
     mask = Word.fromInt((1 << logSize) - 1);
-    entrySize = es.add(BYTES_IN_WORD);
+    entrySize = es.plus(BYTES_IN_WORD);
     size = Extent.fromInt((1 << logSize) * entrySize.toInt());
     base = Address.zero();
     space = rps;
     valid = false;
   }
-  
+
   /**
    * Create a (zeroed) table.
    */
@@ -76,7 +76,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
     Memory.zero(base, size);
     valid = true;
   }
-  
+
   /**
    * Drop the table (after collection).
    */
@@ -84,7 +84,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
     space.release(base);
     valid = false;
   }
-  
+
   /**
    * @return True if this table has backing data and is ready for use.
    */
@@ -114,29 +114,29 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
     } while(curAddress.NE(key) && 
             !curAddress.isZero() && 
             index != startIndex);
-   
+
     if (index == startIndex) {
       Assert.fail("No room left in table!");
     }
-    
+
     if (curAddress.isZero()) {
       if (!create) return Address.zero();
       entry.store(key, KEY_OFFSET);
     }
-    
+
     return entry;
   }
-  
+
   /**
    * Compute the hashtable index for a given object.
    * 
    * @param key The key.
-   * @return The index. 
+   * @return The index.
    */
   private final int computeHash(Word key) throws InlinePragma {
     return key.rshl(HASH_SHIFT).and(mask).toInt();
   }
-  
+
   /**
    * Return the address of a specified entry in the table.
    * 
@@ -144,9 +144,9 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @return An address to the entry.
    */
   private final Address getEntry(int index) throws InlinePragma {
-    return base.add(Extent.fromInt(index * entrySize.toInt()));
+    return base.plus(Extent.fromInt(index * entrySize.toInt()));
   }
-  
+
   /**
    * Does the passed object have an entry in the table?
    * 
@@ -156,15 +156,15 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   public final boolean contains(Word key) {
     return !getEntry(key, false).isZero();
   }
- 
+
   /**
    * @return The first non-zero element in the table, or null if
    * the table is empty.
    */
   public final Address getFirst() {
-    return getNext(base.sub(entrySize));
+    return getNext(base.minus(entrySize));
   }
-  
+
   /**
    * The next element in the table after the passed entry, or 
    * null if it is the last entry.
@@ -173,14 +173,14 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @return The next entry or null.
    */
   public final Address getNext(Address curr) {
-    Address entry = curr.add(entrySize);
-    while(entry.LT(base.add(size))) {
+    Address entry = curr.plus(entrySize);
+    while (entry.LT(base.plus(size))) {
       if (!entry.loadWord().isZero()) return entry;
-      entry = entry.add(entrySize);
+      entry = entry.plus(entrySize);
     }
     return Address.zero();
   }
-  
+
   /**
    * Given an address of an entry, return a pointer to the payload.
    * 
@@ -188,9 +188,9 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    * @return The object reference.
    */
   public static Address getPayloadAddress(Address entry) {
-    return entry.add(DATA_OFFSET);
+    return entry.plus(DATA_OFFSET);
   }
-  
+
   /**
    * Given a key, return a pointer to the payload.
    * 
@@ -200,10 +200,10 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   public final Address getPayloadAddress(Word key) {
     Address entry = getEntry(key, false);
     if (entry.isZero()) return Address.zero();
-    
-    return entry.add(DATA_OFFSET);
+
+    return entry.plus(DATA_OFFSET);
   }
-  
+
   
   /**
    * Return the key for a given entry.
@@ -214,7 +214,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   public static Word getKey(Address entry) {
     return entry.loadWord(KEY_OFFSET);
   }
-  
+
   /**
    * Update the key for a given entry. This operation is not
    * safe without rehashing 
@@ -225,5 +225,5 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
   public static void replaceKey(Address entry, Word key) {
     entry.store(key, KEY_OFFSET);
   }
-  
+
 }

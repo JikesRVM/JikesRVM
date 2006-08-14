@@ -378,18 +378,18 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
     if (buffer != null) { // write record header
       n_records++;
       VM_Magic.setIntAtOffset( buffer, index, encoding);        // encoding
-      index = index.add(BYTES_IN_INT);
+      index = index.plus(BYTES_IN_INT);
       VM_Magic.setIntAtOffset( buffer, index, global_tid);      // globally unique tid  
-      index = index.add(BYTES_IN_INT);
+      index = index.plus(BYTES_IN_INT);
       VM_Magic.setLongAtOffset(buffer, index, startOfWallTime); // start of global time
-      index = index.add(BYTES_IN_LONG);
+      index = index.plus(BYTES_IN_LONG);
       VM_Magic.setLongAtOffset(buffer, index,   endOfWallTime); // end   of global time
-      index = index.add(BYTES_IN_LONG);
+      index = index.plus(BYTES_IN_LONG);
       //BEGIN HRM
       VM_Magic.setIntAtOffset( buffer, index, callee_MID);      // callee MID
-      index = index.add(BYTES_IN_INT);
+      index = index.plus(BYTES_IN_INT);
       VM_Magic.setIntAtOffset( buffer, index, caller_MID);      // caller MID
-      index = index.add(BYTES_IN_INT);
+      index = index.plus(BYTES_IN_INT);
       //END HRM
     }
     for(int i=1; i<n_values; i++) {
@@ -399,7 +399,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
       }
       if (buffer != null) { // write HPM counter values
         VM_Magic.setLongAtOffset(buffer, index, value);           
-        index = index.add(BYTES_IN_LONG);
+        index = index.plus(BYTES_IN_LONG);
       }
     }
     if (VM_HardwarePerformanceMonitors.verbose>=5 || 
@@ -424,7 +424,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
   private boolean pickBuffer(int record_size) 
   {
     if (buffer_code == ONE) {
-      if (index_1.add(record_size).sGT(Offset.fromIntZeroExtend(OUTPUT_BUFFER_SIZE))) {
+      if (index_1.plus(record_size).sGT(Offset.fromIntZeroExtend(OUTPUT_BUFFER_SIZE))) {
         if (! consumer.isActive()) {
           // swap buffers and activate consumer to write full buffer to disk
           buffer = buffer_2; index = index_2; buffer_code = TWO; 
@@ -442,7 +442,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
         return true;
       }
     } else if (buffer_code == TWO) { 
-      if (index_2.add(record_size).sGT(Offset.fromIntZeroExtend(OUTPUT_BUFFER_SIZE))) {
+      if (index_2.plus(record_size).sGT(Offset.fromIntZeroExtend(OUTPUT_BUFFER_SIZE))) {
         if (! consumer.isActive()) {
           // swap buffers and activate consumer to write full buffer to disk
           buffer = buffer_1; index = index_1; buffer_code = ONE; 
@@ -579,7 +579,7 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
   private void writeApp(int FORMAT, byte[] app, int padding)
   {
     VM_Magic.setIntAtOffset( buffer, index, FORMAT);                                    // format
-    index = index.add(BYTES_IN_INT);
+    index = index.plus(BYTES_IN_INT);
 
     index = VM_HardwarePerformanceMonitors.writeStringToBuffer(buffer, index, app);     // app name
 
@@ -596,10 +596,10 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
   private void writeAppRun(int FORMAT, int run, byte[] app, int padding)
   {
     VM_Magic.setIntAtOffset( buffer, index, FORMAT);                                    // format
-    index = index.add(BYTES_IN_INT);
+    index = index.plus(BYTES_IN_INT);
     
     VM_Magic.setIntAtOffset( buffer, index, run);                                       // run
-    index = index.add(BYTES_IN_INT);
+    index = index.plus(BYTES_IN_INT);
     
     index = VM_HardwarePerformanceMonitors.writeStringToBuffer(buffer, index, app);     // app name
 
@@ -630,14 +630,14 @@ public class VM_HardwarePerformanceMonitor implements Uninterruptible, VM_SizeCo
     }
     byte pad = 0;
     VM_Magic.setIntAtOffset( buffer, index, PADDING_FORMAT);                            // format
-    index = index.add(BYTES_IN_INT);
+    index = index.plus(BYTES_IN_INT);
 
     VM_Magic.setIntAtOffset( buffer, index, padding);                                   // length
-    index = index.add(BYTES_IN_INT);
+    index = index.plus(BYTES_IN_INT);
 
     for (int i=0; i<padding; i++) {                                                     // add padding
       VM_Magic.setByteAtOffset( buffer, index, pad);    
-      index = index.add(BYTES_IN_BYTE);
+      index = index.plus(BYTES_IN_BYTE);
     }
     if (VM_HardwarePerformanceMonitors.verbose>=3) {
       VM.sysWrite("addPadding(",padding);

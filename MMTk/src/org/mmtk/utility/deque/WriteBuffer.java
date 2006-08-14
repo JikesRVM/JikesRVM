@@ -11,23 +11,23 @@ import org.vmmagic.pragma.*;
 
 /**
  * This supports <i>unsynchronized</i> insertion of write buffer values.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class WriteBuffer extends LocalSSB
   implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
@@ -37,7 +37,7 @@ public class WriteBuffer extends LocalSSB
 
   /**
    * Insert a value to be remembered into the write buffer.
-   *
+   * 
    * @param addr the value to be inserted into the write buffer
    */
   public final void insert(Address addr)

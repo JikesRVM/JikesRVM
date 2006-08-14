@@ -9,6 +9,7 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -45,11 +46,11 @@ import org.vmmagic.unboxed.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of MMTk plans.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -59,39 +60,41 @@ public abstract class Plan implements Uninterruptible, Constants {
   /****************************************************************************
    * Constants
    */
+  
   /* GC State */
-  public static final int NOT_IN_GC  = 0;   // this must be zero for C code
-  public static final int GC_PREPARE = 1;   // before setup and obtaining root
-  public static final int GC_PROPER  = 2;
+  public static final int NOT_IN_GC = 0; // this must be zero for C code
+  public static final int GC_PREPARE = 1; // before setup and obtaining root
+  public static final int GC_PROPER = 2;
 
   /* Polling */
-  public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
+  public static final int DEFAULT_POLL_FREQUENCY = (128 << 10) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   /* Space Size Constants. */
-  public static final int   IMMORTAL_MB = 32;
-  public static final int   META_DATA_MB = 32;
-  public static final int   META_DATA_PAGES = (META_DATA_MB<<20)>>LOG_BYTES_IN_PAGE;
-  public static final int   META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
+  public static final int IMMORTAL_MB = 32;
+  public static final int META_DATA_MB = 32;
+  public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
+  public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
   public static final float LOS_FRAC = (float) 0.1;
 
   /* Allocator Constants */
-  public static final int ALLOC_DEFAULT        = 0;
-  public static final int ALLOC_IMMORTAL       = 1;
-  public static final int ALLOC_LOS            = 2;
-  public static final int ALLOC_GCSPY          = 3;
-  public static final int ALLOC_HOT_CODE       = ALLOC_DEFAULT;
-  public static final int ALLOC_COLD_CODE      = ALLOC_DEFAULT;
-  public static final int ALLOC_STACK          = ALLOC_DEFAULT;
+  public static final int ALLOC_DEFAULT = 0;
+  public static final int ALLOC_IMMORTAL = 1;
+  public static final int ALLOC_LOS = 2;
+  public static final int ALLOC_GCSPY = 3;
+  public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
+  public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
+  public static final int ALLOC_STACK = ALLOC_DEFAULT;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
-  public static final int ALLOCATORS           = 4;
+  public static final int ALLOCATORS = 4;
 
   /* Miscellaneous Constants */
-  public static final int     LOS_SIZE_THRESHOLD = 8 * 1024;
-  public static final int     NON_PARTICIPANT = 0;
+  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
+  public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
-  public static final int     DEFAULT_MIN_NURSERY = (256*1024) >> LOG_BYTES_IN_PAGE;
-  public static final int     DEFAULT_MAX_NURSERY = MAX_INT;
+  public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
+  public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
+  public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
 
   /****************************************************************************
    * Class variables
@@ -102,27 +105,27 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /** Any immortal objects allocated after booting are allocated here. */
   public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
-  
+
   /** All meta data that is used by MMTk is allocated (and accounted for) in the meta data space. */
   public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
-  
+
   /** Large objects are allocated into a special large object space. */
   public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
-  public static final int VM       = vmSpace.getDescriptor();
-  public static final int META     = metaDataSpace.getDescriptor();
-  public static final int LOS      = loSpace.getDescriptor();
+  public static final int VM = vmSpace.getDescriptor();
+  public static final int META = metaDataSpace.getDescriptor();
+  public static final int LOS = loSpace.getDescriptor();
 
   /** Timer that counts total time */
-  public static Timer totalTime = new Timer("time");
+  public static final Timer totalTime = new Timer("time");
 
   /** Support for time-limited GCs */
   protected static long timeCap;
 
   static {}
-  
+
   /****************************************************************************
    * Constructor.
    */
@@ -167,7 +170,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   }
 
   /**
-   * The fullyBooted method is called by the runtime just before normal 
+   * The fullyBooted method is called by the runtime just before normal
    * execution commences.
    */
   public void fullyBooted() throws InterruptiblePragma {
@@ -177,8 +180,8 @@ public abstract class Plan implements Uninterruptible, Constants {
   }
 
   /**
-   * The VM is about to exit.  Perform any clean up operations.
-   *
+   * The VM is about to exit. Perform any clean up operations.
+   * 
    * @param value The exit value
    */
   public void notifyExit(int value) {
@@ -205,7 +208,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   /**
    * Perform any required initialization of the GC portion of the header.
    * Called for objects created at boot time.
-   *
+   * 
    * @param ref the object ref to the storage to be initialized
    * @param typeRef the type reference for the instance being created
    * @param size the number of bytes allocated by the GC system for
@@ -271,30 +274,30 @@ public abstract class Plan implements Uninterruptible, Constants {
    * GC State
    */
 
-  protected static int     required = 0;
+  protected static int required = 0;
   protected static boolean progress = true;
-  
-  private static boolean   awaitingCollection = false;
-  private static boolean   initialized = false;
-  private static int       collectionsInitiated = 0;
-  private static int       gcStatus = NOT_IN_GC; // shared variable
-  private static int       exceptionReserve = 0;
+
+  private static boolean awaitingCollection = false;
+  private static boolean initialized = false;
+  private static int collectionsInitiated = 0;
+  private static int gcStatus = NOT_IN_GC; // shared variable
+  private static int exceptionReserve = 0;
 
   /** @return Is the memory management system initialized? */
-  public static final boolean isInitialized() { 
-    return initialized; 
+  public static final boolean isInitialized() {
+    return initialized;
   }
-  
+
   /** @return The number of collections that have been initiated. */
   protected static final int getCollectionsInitiated() {
     return collectionsInitiated;
   }
-  
+
   /** @return The amount of space reserved in case of an exception. */
   protected static final int getExceptionReserve() {
     return exceptionReserve;
   }
-  
+
   /** Request an async GC */
   protected static final void setAwaitingCollection() {
     awaitingCollection = true;
@@ -302,7 +305,7 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /**
    * Check whether an asynchronous collection is pending.<p>
-   *
+   * 
    * This is decoupled from the poll() mechanism because the
    * triggering of asynchronous collections can trigger write
    * barriers, which can trigger an asynchronous collection.  Thus, if
@@ -333,14 +336,14 @@ public abstract class Plan implements Uninterruptible, Constants {
    */
   public static void collectionComplete() {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(collectionsInitiated > 0);
-    // FIXME The following will probably break async GC.  A better fix
+    // FIXME The following will probably break async GC. A better fix
     // is needed
     collectionsInitiated = 0;
   }
 
   /**
    * Return true if a collection is in progress.
-   *
+   * 
    * @return True if a collection is in progress.
    */
   public static boolean gcInProgress() {
@@ -349,10 +352,10 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /**
    * Return true if a collection is in progress and past the preparatory stage.
-   *
+   * 
    * @return True if a collection is in progress and past the preparatory stage.
    */
-  public static boolean gcInProgressProper () {
+  public static boolean gcInProgressProper() {
     return gcStatus == GC_PROPER;
   }
 
@@ -361,7 +364,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * 
    * @param s The new GC status.
    */
-  public static void setGCStatus (int s) {
+  public static void setGCStatus(int s) {
     Memory.isync();
     gcStatus = s;
     Memory.sync();
@@ -401,15 +404,15 @@ public abstract class Plan implements Uninterruptible, Constants {
    * Return the space into which an allocator is allocating.  The
    * allocator, <code>a</code> may be assocaited with any plan
    * instance.
-   *
+   * 
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
-   * <code>null</code> if there is no space associated with
-   * <code>a</code>.
+   *         <code>null</code> if there is no space associated with
+   *         <code>a</code>.
    */
   public static final Space getSpaceFromAllocatorAnyLocal(Allocator a) {
-    for (int i = 0; i < ActivePlan.localCount(); i++) {
-      Space space = ActivePlan.local(i).getSpaceFromAllocator(a);
+    for (int i = 0; i < ActivePlan.mutatorCount(); i++) {
+      Space space = ActivePlan.mutator(i).getSpaceFromAllocator(a);
       if (space != null)
         return space;
     }
@@ -474,19 +477,19 @@ public abstract class Plan implements Uninterruptible, Constants {
    * of <i>available memory</i>, which must account for unused memory
    * that is held in reserve for copying, and therefore unavailable
    * for allocation.
-   *
+   * 
    * @return The amount of <i>free memory</i>, in bytes (where free is
    * defined as not in use).
    */
   public static final Extent freeMemory() {
-    return totalMemory().sub(usedMemory());
+    return totalMemory().minus(usedMemory());
   }
 
   /**
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
    * this excludes unused memory that is held in reserve for copying,
    * and therefore unavailable for allocation.
-   *
+   * 
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static final Extent usedMemory() {
@@ -498,7 +501,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
    * this includes unused memory that is held in reserve for copying,
    * and therefore unavailable for allocation.
-   *
+   * 
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static final Extent reservedMemory() {
@@ -508,7 +511,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   /**
    * Return the total amount of memory managed to the memory
    * management system, in bytes.
-   *
+   * 
    * @return The total amount of memory managed to the memory
    * management system, in bytes.
    */
@@ -521,17 +524,17 @@ public abstract class Plan implements Uninterruptible, Constants {
   /**
    * Return the total amount of memory managed to the memory
    * management system, in pages.
-   *
+   * 
    * @return The total amount of memory managed to the memory
    * management system, in pages.
    */
   public final int getTotalPages() {
-   return totalMemory().toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+    return totalMemory().toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }
 
   /**
    * Return the number of pages available for allocation.
-   *
+   * 
    * @return The number of pages available for allocation.
    */
   public int getPagesAvail() {
@@ -542,7 +545,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * Return the number of pages reserved for use given the pending
    * allocation.  Sub-classes must override the getCopyReserve method,
    * as the arithmetic here is fixed.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -553,7 +556,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   /**
    * Return the number of pages reserved for copying.  Subclasses that
    * manage a copying space must add the copying contribution.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -564,7 +567,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -577,7 +580,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   /**
    * Return the number of metadata pages reserved for use given the pending
    * allocation.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -587,7 +590,7 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /**
    * Return the cycle time at which this GC should complete.
-   *
+   * 
    * @return The time cap for this GC (i.e. the time by which it
    * should complete).
    */
@@ -612,7 +615,7 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /**
    * Start GC spy server.
-   *
+   * 
    * @param port The port to listen on,
    * @param wait Should we wait for a client to connect? 
    */

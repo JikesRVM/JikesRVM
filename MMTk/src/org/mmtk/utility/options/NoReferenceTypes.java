@@ -6,9 +6,9 @@ package org.mmtk.utility.options;
 
 /**
  * Should reference type processing be disabled?
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$

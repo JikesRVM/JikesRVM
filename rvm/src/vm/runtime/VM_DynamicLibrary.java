@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import java.util.HashMap;
+import com.ibm.JikesRVM.util.*;
 import java.util.Iterator;
 import org.vmmagic.unboxed.*;
 
@@ -20,7 +20,7 @@ public class VM_DynamicLibrary {
   /**
    * Currently loaded dynamic libraries.
    */
-  private static HashMap dynamicLibraries = new HashMap();
+  private static VM_HashMap dynamicLibraries = new VM_HashMap();
 
   /**
    * The name of the library
@@ -63,7 +63,7 @@ public class VM_DynamicLibrary {
       throw new UnsatisfiedLinkError();
     }
 
-    libName = new String(libraryName);
+    libName = libraryName;
 
     if (VM.verboseJNI) {
       VM.sysWriteln("[Loaded native library: "+libName+"]");
@@ -132,7 +132,7 @@ public class VM_DynamicLibrary {
    * @return the address of the symbol of Address.zero() if it cannot be resolved
    */
   public static synchronized Address resolveSymbol(String symbol) {
-    for (Iterator i = dynamicLibraries.values().iterator(); i.hasNext();) {
+    for (Iterator i = dynamicLibraries.valueIterator(); i.hasNext();) {
       VM_DynamicLibrary lib = (VM_DynamicLibrary)i.next();
       Address symbolAddress = lib.getSymbol(symbol);
       if (!symbolAddress.isZero()) {

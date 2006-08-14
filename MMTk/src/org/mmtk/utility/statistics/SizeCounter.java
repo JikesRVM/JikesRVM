@@ -11,11 +11,11 @@ import org.vmmagic.pragma.*;
  * This class implements a simple counter of events of different sizes
  * (eg object allocations, where total number of objects and total
  * volume of objects would be counted).
- *
+ * 
  * The counter is trivially composed from two event counters (one for
  * counting the number of events, the other for counting the volume).
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$
@@ -23,20 +23,20 @@ import org.vmmagic.pragma.*;
 public class SizeCounter implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private EventCounter units;
   private EventCounter volume;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    */
   public SizeCounter(String name) {
@@ -45,7 +45,7 @@ public class SizeCounter implements Uninterruptible {
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -57,7 +57,7 @@ public class SizeCounter implements Uninterruptible {
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -67,17 +67,17 @@ public class SizeCounter implements Uninterruptible {
    */
   public SizeCounter(String name, boolean start, boolean mergephases) {
     units = new EventCounter(name, start, mergephases);
-    volume = new EventCounter(name+"Volume", start, mergephases);
+    volume = new EventCounter(name + "Volume", start, mergephases);
   }
 
   /****************************************************************************
-   *
+   * 
    * Counter-specific methods
    */
 
-  /** 
+  /**
    * Increment the event counter by <code>value</code>
-   *
+   * 
    * @param value The amount by which the counter should be incremented.
    */
   public void inc(int value) {
@@ -86,10 +86,10 @@ public class SizeCounter implements Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Generic counter control methods: start, stop, print etc
    */
-  
+
   /**
    * Start this counter
    */
@@ -105,18 +105,18 @@ public class SizeCounter implements Uninterruptible {
     units.stop();
     volume.stop();
   }
- 
+
   /**
    * Print units
    */
-  public void printUnits(){
+  public void printUnits() {
     units.printTotal();
   }
-  
+
   /**
    * Print volume
    */
-  public void printVolume(){
+  public void printVolume() {
     volume.printTotal();
   }
 }

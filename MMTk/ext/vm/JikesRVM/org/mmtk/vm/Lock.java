@@ -47,13 +47,13 @@ public class Lock implements Uninterruptible {
   private static Offset servingFieldOffset = VM_Entrypoints.servingField.getOffset();
   private static Offset threadFieldOffset = VM_Entrypoints.lockThreadField.getOffset();
   private static Offset startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
-  private static long SLOW_THRESHOLD = Long.MAX_VALUE; // set to a real value by fullyBooted
+  private static long SLOW_THRESHOLD = Long.MAX_VALUE>>1; // set to a real value by fullyBooted
   private static long TIME_OUT = Long.MAX_VALUE;       // set to a real value by fullyBooted
 
   // Debugging
   private static final boolean REPORT_SLOW = true;
   private static int TIMEOUT_CHECK_FREQ = 1000; 
-  public static int verbose = 0; // show who is acquiring and releasing the locks
+  public static final int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
 
   // Core Instance fields
@@ -127,7 +127,7 @@ public class Lock implements Uninterruptible {
             Log.write("GC Warning: my start = ");
             Log.writeln(localStart, false);
             // Print the last 10 entries preceding serving
-            for (int i=(serving + 90) % 100; i != serving; i = (i+1)%100) {
+            for (int i=(serving + 90) % 100; i != (serving%100); i = (i+1)%100) {
               if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
               Log.write("GC Warning: ");
               Log.write(i); 

@@ -657,6 +657,10 @@ public class VM_CommandLineArgs {
                         ": ", e.getMessage());
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG); 
         }
+        if (mf == null) {
+          VM.sysWriteln("The jar file is missing the manifest entry for the main class: ", arg);
+          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
         String s = mf.getMainAttributes().getValue("Main-Class");
         if (s == null) {
           VM.sysWriteln("The jar file is missing the manifest entry for the main class: ", arg);

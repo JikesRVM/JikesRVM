@@ -16,17 +16,17 @@ import org.vmmagic.pragma.*;
 
 /**
  * Class that supports scanning of objects (scalar and array)
- *
+ * 
  * @author Robin Garner
  * @author Andrew Gray
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- */  
+ */
 public final class Scan implements Uninterruptible {
   /**
-   * Scan a object, processing each pointer field encountered. 
-   *
+   * Scan a object, processing each pointer field encountered.
+   * 
    * @param object The object to be scanned.
    */
   public static void scanObject(TraceLocal trace,
@@ -44,7 +44,7 @@ public final class Scan implements Uninterruptible {
 
   /**
    * Scan a object, pre-copying each child object encountered.
-   *
+   * 
    * @param object The object to be scanned.
    */
   public static void precopyChildren(TraceLocal trace, ObjectReference object)
@@ -64,13 +64,13 @@ public final class Scan implements Uninterruptible {
    * Enumerate the pointers in an object, calling back to a given plan
    * for each pointer encountered. <i>NOTE</i> that only the "real"
    * pointer fields are enumerated, not the TIB.
-   *
+   * 
    * @param object The object to be scanned.
    * @param _enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(ObjectReference object, Enumerator _enum) 
-    throws InlinePragma {
+  public static void enumeratePointers(ObjectReference object, Enumerator _enum)
+      throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);

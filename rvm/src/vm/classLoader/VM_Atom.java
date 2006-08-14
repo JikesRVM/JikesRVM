@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import java.util.HashMap;
+import com.ibm.JikesRVM.util.*;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -34,7 +34,7 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   /**
    * Used to canonicalize VM_Atoms: Key => VM_Atom
    */
-  private static HashMap dictionary = new HashMap();
+  private static VM_HashMap dictionary = new VM_HashMap();
 
   /**
    * Dictionary of all VM_Atom instances.

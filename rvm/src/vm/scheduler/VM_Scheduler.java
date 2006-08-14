@@ -208,7 +208,6 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     // (the virtual cpu in whose context we are currently running)
     // was already created in the boot image by init(), above.
     //
-    VM_Processor primordialProcessor = processors[PRIMORDIAL_PROCESSOR_ID];
     VM_Processor [] origProcs = processors;
     processors = new VM_Processor[1 + numProcessors];
 
@@ -774,7 +773,8 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     VM.sysWrite("\n-- Threads --\n");
     for (int i = 1; i < threads.length; ++i) {
       if (threads[i] != null) {
-        threads[i].dump();
+        threads[i].dumpWithPadding(30);
+        VM.sysWrite(threads[i].getCPUTimeMillis());
         VM.sysWrite("\n");
       }
     }

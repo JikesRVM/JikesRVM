@@ -142,7 +142,7 @@ public final class VM_QuickCompiledMethod extends VM_CompiledMethod
     // we scan for the line whose "instructionIndex" most-closely-preceeds
     // the desired instruction
     //
-    Offset instructionIndex = instructionOffset.rsha(LG_INSTRUCTION_WIDTH);
+    Offset instructionIndex = instructionOffset.toWord().rsha(LG_INSTRUCTION_WIDTH).toOffset();
     int candidateIndex = -1;
     for (int i = 0, n = _bytecodeMap.length; i < n; i++) {
       Offset bcMi = Offset.fromIntSignExtend(_bytecodeMap[i]); 

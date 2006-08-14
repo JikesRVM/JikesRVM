@@ -101,7 +101,7 @@ public final class VM_GCMapIteratorGroup implements VM_SizeConstants {
     throws UninterruptiblePragma {
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
       registerLocations.set(i, registerLocation);
-      registerLocation = registerLocation.add(BYTES_IN_ADDRESS);
+      registerLocation = registerLocation.plus(BYTES_IN_ADDRESS);
     }
     baselineIterator.newStackWalk(thread);
     if (optIterator != null) optIterator.newStackWalk(thread);

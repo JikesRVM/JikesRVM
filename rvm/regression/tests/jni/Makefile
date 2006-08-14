@@ -21,6 +21,7 @@ BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 CFLAGS+=-Wno-unused -Wno-conversion		#for GCC
 QUIET = -quiet
+TIME_LIMIT=180
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 

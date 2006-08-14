@@ -9,17 +9,17 @@ package org.mmtk.vm;
 
 /**
  * $Id$ 
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
 public class Statistics {
   /**
    * Returns the number of collections that have occured.
-   *
+   * 
    * @return The number of collections that have occured.
    */
   public static final int getCollectionCount() {
@@ -37,14 +37,14 @@ public class Statistics {
    * Convert cycles to milliseconds
    */
   public static double cyclesToMillis(long c) {
-    return (double)0;
+    return (double) 0;
   }
 
   /**
    * Convert cycles to seconds
    */
   public static double cyclesToSecs(long c) {
-    return (double)0;
+    return (double) 0;
   }
 
   /**

@@ -83,7 +83,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
   private int numKilledInJava;
 
   /** Guard for updating "selectInProgress" flag. */
-  public static  VM_ProcessorLock selectInProgressMutex = new VM_ProcessorLock();
+  public static final VM_ProcessorLock selectInProgressMutex = new VM_ProcessorLock();
 
   /**
    * Copy file descriptors from source array to destination array

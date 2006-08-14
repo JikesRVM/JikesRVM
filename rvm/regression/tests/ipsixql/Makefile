@@ -19,8 +19,10 @@ EXPECTED=ipsixql.expected
 
 ifeq ($(MODE),PERFORMANCE)
   START_ARGS=1 7
+  TIME_LIMIT = 600
 else
   START_ARGS=1 1
+  TIME_LIMIT = 300
 endif
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules

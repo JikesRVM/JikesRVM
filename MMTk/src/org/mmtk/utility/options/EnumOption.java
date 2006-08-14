@@ -12,11 +12,11 @@ import org.vmmagic.pragma.UninterruptiblePragma;
  * An option that is a selection of several strings. The mapping
  * between strings and integers is determined using indexes into
  * a string array.
- *
+ * 
  * Enumerations are case sensitive.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -29,7 +29,7 @@ public class EnumOption extends Option {
 
   /**
    * Create a new enumeration option.
-   *
+   * 
    * @param name The space separated name for the option.
    * @param description The purpose of the option.
    * @param values A mapping of int to string for the enum.
@@ -44,11 +44,11 @@ public class EnumOption extends Option {
 
   /**
    * Search for a string in the enumeration.
-   *
+   * 
    * @return The index of the passed string.
    */
   private int findValue(String string) {
-    for(int i=0;i<values.length;i++) {
+    for (int i = 0; i < values.length; i++) {
       if (values[i].equals(string)) {
         return i;
       }
@@ -59,7 +59,7 @@ public class EnumOption extends Option {
 
   /**
    * Read the current value of the option.
-   *
+   * 
    * @return The option value.
    */
   public int getValue() throws UninterruptiblePragma {
@@ -68,7 +68,7 @@ public class EnumOption extends Option {
 
   /**
    * Read the string for the current value of the option.
-   *
+   * 
    * @return The option value.
    */
   public String getValueString() throws UninterruptiblePragma {
@@ -77,7 +77,7 @@ public class EnumOption extends Option {
 
   /**
    * Read the default value of the option.
-   *
+   * 
    * @return The default value.
    */
   public int getDefaultValue() throws UninterruptiblePragma {
@@ -86,7 +86,7 @@ public class EnumOption extends Option {
 
   /**
    * Read the string for the default value of the option.
-   *
+   * 
    * @return The default value.
    */
   public String getDefaultValueString() throws UninterruptiblePragma {
@@ -97,7 +97,7 @@ public class EnumOption extends Option {
    * Update the value of the option, echoing the change if the echoOptions
    * option is set. This method also calls the validate method to allow
    * subclasses to perform any required validation.
-   *
+   * 
    * @param value The new value for the option.
    */
   public void setValue(int value) {
@@ -119,7 +119,7 @@ public class EnumOption extends Option {
    * accordingly, echoing the change if the echoOptions option is set.
    * This method also calls the validate method to allow subclasses to
    * perform any required validation.
-   *
+   * 
    * @param value The new value for the option.
    */
   public void setValue(String value) {
@@ -128,7 +128,7 @@ public class EnumOption extends Option {
 
   /**
    * Return the array of allowed enumeration values.
-   *
+   * 
    * @return The values array.
    */
   public String[] getValues() {

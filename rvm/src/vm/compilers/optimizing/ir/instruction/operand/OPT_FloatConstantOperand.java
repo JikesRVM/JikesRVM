@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -62,6 +63,24 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
    */
   public OPT_Operand copy() {
     return new OPT_FloatConstantOperand(value,offset);
+  }
+
+  /**
+   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * 
+   * @return VM_TypeReference.Float
+   */
+  public final VM_TypeReference getType() {
+	 return VM_TypeReference.Float;	 
+  }
+
+  /**
+   * Does the operand represent a value of the float data type?
+   * 
+   * @return <code>true</code>
+   */
+  public final boolean isFloat() {
+	 return true;
   }
 
   /**

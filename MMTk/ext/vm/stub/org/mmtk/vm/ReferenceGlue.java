@@ -36,6 +36,12 @@ public class ReferenceGlue {
   public static void scanReferences(int semantics, boolean nursery) {}
 
   /**
+   * Scan through all references and forward. Only called when references
+   * are objects.
+   */
+  public static void forwardReferences() {}
+
+  /**
    * Put this Reference object on its ReferenceQueue (if it has one)
    * when its referent is no longer sufficiently reachable. The
    * definition of "reachable" is defined by the semantics of the
@@ -68,15 +74,15 @@ public class ReferenceGlue {
    * @param ref the WeakReference to add
    */
   public static void addWeakCandidate(WeakReference ref) {}
-  
+
   /**
    * Add a reference to the list of phantom references.
    * @param ref the PhantomReference to add
    */
   public static void addPhantomCandidate(PhantomReference ref) {}
-  
+
   /***********************************************************************
-   *
+   * 
    * Reference object field accesors
    */
 
@@ -89,7 +95,7 @@ public class ReferenceGlue {
   public static ObjectReference getReferent(Address addr) {
     return null;
   }
-  
+
   /**
    * Set the referent in a reference.  For Java the reference is
    * a Reference object.
@@ -97,7 +103,7 @@ public class ReferenceGlue {
    * @param referent the referent address
    */
   public static void setReferent(Address addr, ObjectReference referent) {}
-  
+
   /**
    * Return the number of references of the given semantics.
    * 

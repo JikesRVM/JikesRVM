@@ -63,8 +63,6 @@ public class ReferenceGlue implements Uninterruptible {
    */
   public static final boolean REFERENCES_ARE_OBJECTS = true;
 
-  private static boolean clearSoftReferences = false;
-
   private static Lock lock = new Lock("ReferenceProcessor");
 
   private static final ReferenceGlue softReferenceProcessor =
@@ -116,6 +114,44 @@ public class ReferenceGlue implements Uninterruptible {
     nurseryListHead = VM_Magic.objectAsAddress(ref);
     countOnWaitingList += 1;    
     lock.release();
+  }
+  
+  /**
+   * Scan through all references and forward. Only called when references
+   * are objects.
+   */
+  public void forward() {
+    
+    if (TRACE) {
+      VM.sysWrite("Starting ReferenceProcessor.traverse(");
+      VM.sysWrite(ReferenceProcessor.semanticStrings[semantics]);
+      VM.sysWriteln(")");
+    }
+    
+    Address reference = waitingListHead;
+    Address prevReference = Address.zero();
+    if (!waitingListHead.isZero()) {
+      waitingListHead = ReferenceProcessor.forwardReference(reference);
+      prevReference = reference;
+      reference = getNextReferenceAsAddress(reference);
+    }
+    while (!reference.isZero()) {
+      Address newReference = ReferenceProcessor.forwardReference(reference);
+      if (!prevReference.isZero()) {
+        setNextReferenceAsAddress(prevReference, newReference);
+      }
+      prevReference = reference;
+      reference = getNextReferenceAsAddress(reference);
+    }
+    if (!prevReference.isZero()) {
+      setNextReferenceAsAddress(prevReference, Address.zero());
+    }
+    
+    if (TRACE) {
+      VM.sysWrite("Ending ReferenceProcessor.traverse(");
+      VM.sysWrite(ReferenceProcessor.semanticStrings[semantics]);
+      VM.sysWriteln(")");
+    }
   }
 
   /**
@@ -322,5 +358,15 @@ public class ReferenceGlue implements Uninterruptible {
     }
     
     return -1;
+  }
+  
+  /**
+   * Scan through all references and forward. Only called when references
+   * are objects.
+   */
+  public static void forwardReferences() {
+    softReferenceProcessor.forward();
+    weakReferenceProcessor.forward();
+    phantomReferenceProcessor.forward();
   }
 }

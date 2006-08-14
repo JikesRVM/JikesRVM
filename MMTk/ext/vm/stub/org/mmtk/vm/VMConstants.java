@@ -11,8 +11,8 @@ package org.mmtk.vm;
  * of itself supplied by the client VM, populated with VM-specific
  * values.  <i>The specific values in this stub file are therefore
  * meaningless.</i><p>
- *
- * Note that these methods look as though they are constants.  This is
+ * 
+ * Note that these methods look as though they are constants. This is
  * intentional.  They would be constants except that we want MMTk to
  * be Java->bytecode compiled separately, ahead of time, in a
  * VM-neutral way.  MMTk must be compiled against this stub, but if
@@ -22,30 +22,33 @@ package org.mmtk.vm;
  * concrete VM-specific file.  The constants are realized correctly at
  * class initialization time, so the performance overhead of this
  * approach is negligible (and has been measured to be insignificant).
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public class VMConstants {
   /** @return The log base two of the size of an address */
   public static final byte LOG_BYTES_IN_ADDRESS() { return 3; }
-  
+
   /** @return The log base two of the size of a word */
   public static final byte LOG_BYTES_IN_WORD() { return 3; }
-  
+
   /** @return The log base two of the size of an OS page */
   public static final byte LOG_BYTES_IN_PAGE() { return 12; }
-  
+
   /** @return The log base two of the minimum allocation alignment */
   public static final byte LOG_MIN_ALIGNMENT() { return 1; }
-  
+
   /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
   public static final byte MAX_ALIGNMENT_SHIFT() { return 1; }
-  
+
   /** @return The maximum number of bytes of padding to prepend to an object */
   public static final int MAX_BYTES_PADDING() { return 1; }
+
+  /** @return The value to store in alignment holes */
+  public static final int ALIGNMENT_VALUE() { return 0; }
 }
 

@@ -334,7 +334,7 @@ public class VM_Runtime implements VM_Constants {
       if (countDownToGC-- <= 0) {
         VM.sysWrite("FORCING GC: Countdown trigger in quickNewScalar\n");
         countDownToGC = GCInterval;
-        MM_Interface.gc();
+        System.gc();
       }
     }
 
@@ -354,7 +354,7 @@ public class VM_Runtime implements VM_Constants {
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */ 
-  static Object unresolvedNewArray(int numElements, int id) 
+  public static Object unresolvedNewArray(int numElements, int id) 
     throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
@@ -418,7 +418,7 @@ public class VM_Runtime implements VM_Constants {
       if (countDownToGC-- <= 0) {
         VM.sysWrite("FORCING GC: Countdown trigger in quickNewArray\n");
         countDownToGC = GCInterval;
-        MM_Interface.gc();
+        System.gc();
       }
     }
 
@@ -622,7 +622,7 @@ public class VM_Runtime implements VM_Constants {
     // GC stress testing
     if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
       VM.sysWrite("FORCING GC: in deliverHardwareException\n");
-      MM_Interface.gc();
+      System.gc();
     }
 
     Throwable exceptionObject;

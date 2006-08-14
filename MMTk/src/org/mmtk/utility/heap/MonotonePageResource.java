@@ -20,10 +20,10 @@ import org.vmmagic.unboxed.*;
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
  * be satisfied (for either reason) a GC may be triggered.<p>
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -31,7 +31,7 @@ public final class MonotonePageResource extends PageResource
   implements Constants, Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private Address cursor;
@@ -39,32 +39,32 @@ public final class MonotonePageResource extends PageResource
 
   /**
    * Constructor
-   *
-   * Contiguous monotone resource.  The address range is pre-defined at
+   * 
+   * Contiguous monotone resource. The address range is pre-defined at
    * initializtion time and is immutable.
-   *
+   * 
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    * @param start The start of the address range allocated to this resource
    * @param bytes The size of the address rage allocated to this resource
    */
-  public MonotonePageResource(int pageBudget, Space space, Address start, 
-                              Extent bytes) {
+  public MonotonePageResource(int pageBudget, Space space, Address start,
+      Extent bytes) {
     super(pageBudget, space, start);
     this.cursor = start;
-    this.sentinel = start.add(bytes);
+    this.sentinel = start.plus(bytes);
   }
 
   /**
    * Constructor
-   *
-   * Discontiguous monotone resource.  The address range is <i>not</i>
+   * 
+   * Discontiguous monotone resource. The address range is <i>not</i>
    * pre-defined at initializtion time and is dynamically defined to
    * be some set of pages, according to demand and availability.
-   *
-   *                  CURRENTLY UNIMPLEMENTED
-   *
+   * 
+   * CURRENTLY UNIMPLEMENTED
+   * 
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
@@ -79,7 +79,7 @@ public final class MonotonePageResource extends PageResource
     this.sentinel = Address.zero();
   }
 
-  /** 
+  /**
    * Allocate <code>pages</code> pages from this resource.  Simply
    * bump the cursor, and fail if we hit the sentinel.<p>
    *
@@ -95,7 +95,7 @@ public final class MonotonePageResource extends PageResource
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(contiguous);
     lock();
     Extent bytes = Conversions.pagesToBytes(pages);
-    Address tmp = cursor.add(bytes);
+    Address tmp = cursor.plus(bytes);
     if (tmp.GT(sentinel)) {
       unlock();
       return Address.zero();
@@ -122,6 +122,31 @@ public final class MonotonePageResource extends PageResource
   }
 
   /**
+   * Notify that several pages are no longer in use.
+   * 
+   * @param pages The number of pages
+   */
+  public final void unusePages(int pages) {
+    lock();
+    reserved -= pages;
+    committed -= pages;
+    unlock();
+  }
+
+  /**
+   * Notify that previously unused pages are in use again.
+   * 
+   * @param pages The number of pages
+   */
+  public final void reusePages(int pages) {
+    lock();
+    reserved += pages;
+    committed += pages;
+    unlock();
+  }
+
+
+  /**
    * Release all pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
    */
@@ -137,11 +162,11 @@ public final class MonotonePageResource extends PageResource
    * zeroing on release and optionally memory protecting on release.
    */
   private final void releasePages(Address first, Extent bytes)
-    throws InlinePragma {
+      throws InlinePragma {
     int pages = Conversions.bytesToPages(bytes);
-    if (Assert.VERIFY_ASSERTIONS) 
+    if (Assert.VERIFY_ASSERTIONS)
       Assert._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
-    if (ZERO_ON_RELEASE) 
+    if (ZERO_ON_RELEASE)
       Memory.zero(first, bytes);
     if (Options.protectOnRelease.getValue())
       LazyMmapper.protect(first, pages);

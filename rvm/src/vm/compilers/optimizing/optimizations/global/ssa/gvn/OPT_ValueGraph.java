@@ -5,7 +5,8 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -13,17 +14,36 @@ import com.ibm.JikesRVM.opt.ir.*;
  * a la Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.
  *
+ * From Muchnick, "the <em>value graph</em> of a procedure is a
+ * labeled directed graph whose nodes are labeled with operators,
+ * function symbols, or constants, and whose edges represent
+ * generating assignments and point from an operator or function to
+ * its operands; the edges are labeled with natural numbers that
+ * indicate the operand postion that each operand has with repsect to
+ * the given operator or function."
+ *
  * @author Stephen Fink
  */
-class OPT_ValueGraph implements OPT_Operators {
+final class OPT_ValueGraph implements OPT_Operators {
+
+  /**
+   * Internal graph structure of the value graph.
+   */
+  private final OPT_SpaceEffGraph graph;
+  /**
+   * A mapping from name to value graph vertex.
+   */
+  private final HashMap nameMap;
 
   /** 
    *  Construct a value graph from an IR. 
    *
-   * <p> <b> PRECONDITION:</b> The IR <em> must </em> be in SSA form.
+   * <p><b> PRECONDITION:</b> The IR <em> must </em> be in SSA form.
    * @param ir the IR
    */
   OPT_ValueGraph(OPT_IR ir) {
+    graph = new OPT_SpaceEffGraph();
+    nameMap = new HashMap(); 
     // TODO!!: compute register lists incrementally
     // we need register lists in order to call OPT_Register.getFirstDef()
     OPT_DefUse.computeDU(ir);
@@ -44,17 +64,17 @@ class OPT_ValueGraph implements OPT_Operators {
    * another register.  Fix up the value graph for cases where the initial
    * register label was not removed.
    */
-  void computeClosure() {
+  private void computeClosure() {
     for (Enumeration e = enumerateVertices(); e.hasMoreElements(); ) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
-      if (v.name instanceof OPT_Register){
-        if (v.label instanceof OPT_Register) {
-          if (v.name != v.label) {
-            OPT_ValueGraphVertex v2 = getVertex(v.label);
+      if (v.getName() instanceof OPT_Register){
+        if (v.getLabel() instanceof OPT_Register) {
+          if (v.getName() != v.getLabel()) {
+            OPT_ValueGraphVertex v2 = getVertex(v.getLabel());
             if (VM.VerifyAssertions) {
-              if (v2.name instanceof OPT_Register && 
-                  v2.label instanceof OPT_Register &&
-                  v2.label != v2.name) {
+              if (v2.getName() instanceof OPT_Register && 
+                  v2.getLabel() instanceof OPT_Register &&
+                  v2.getLabel() != v2.getName()) {
                 VM._assert(false);
               }
             } 
@@ -111,15 +131,6 @@ class OPT_ValueGraph implements OPT_Operators {
     }
     return s.toString();
   }
-
-  /**
-   * Internal graph structure of the value graph.
-   */
-  private OPT_SpaceEffGraph graph = new OPT_SpaceEffGraph();
-  /**
-   * A mapping from name to value graph vertex.
-   */
-  private HashMap nameMap = new HashMap(); 
 
   /** 
    * Add a node to the value graph for every symbolic register.
@@ -234,7 +245,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * 
    * <p><b>PRECONDITION:</b> <code> New.conforms(s); </code>
    *
-   * <p>For a new instruction, we always create a new vertex.
+   * For a new instruction, we always create a new vertex.
    *
    * @param s the instruction in question
    */
@@ -268,7 +279,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * 
    * <p><b>PRECONDITION:</b> <code> PutField.conforms(s); </code>
    *
-   * <p> Make sure we have value graph nodes for a constant value
+   *  Make sure we have value graph nodes for a constant value
    *
    * @param s the instruction in question
    */
@@ -300,7 +311,7 @@ class OPT_ValueGraph implements OPT_Operators {
    *
    * <p><b>PRECONDITION:</b> <code> AStore.conforms(s); </code>
    *
-   * <p>Make sure we have value graph nodes for a constant value
+   * Make sure we have value graph nodes for a constant value
    *
    * @param s the instruction in question
    */
@@ -320,7 +331,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * 
    * <p><b>PRECONDITION:</b> <code> ALoad.conforms(s); </code>
    *
-   * <p>Make sure we have value graph nodes for a constant value
+   * Make sure we have value graph nodes for a constant value
    *
    * @param s the instruction in question
    */
@@ -627,9 +638,11 @@ class OPT_ValueGraph implements OPT_Operators {
       name = op;
     } else if (op instanceof OPT_UnreachableOperand) {
       name = op;
+    } else if (op instanceof OPT_ClassConstantOperand) {
+      name = op.asClassConstant().value;
     } else {
       throw  new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand");
+          "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand: " + op);
     }
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
@@ -721,7 +734,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * Bypass MOVE instructions that def an operand: return the first def
    * in the chain that is not the result of a MOVE instruction.
    *
-   * <p>Note: treat PI instructions like MOVES
+   * Note: treat PI instructions like MOVES
    *
    * @param op the OPT_RegisterOperand
    */

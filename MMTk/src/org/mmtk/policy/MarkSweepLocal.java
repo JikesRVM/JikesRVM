@@ -6,9 +6,11 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.SegregatedFreeList;
+import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.Options;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -31,11 +33,11 @@ import org.vmmagic.pragma.*;
  * more efficient.  This approach maximizes the speed of the common
  * case when marking, while also allowing for fast sweeping, with
  * minimal space overhead (2 bits per object).
- *
+ * 
  * @see SegregatedFreeList
  * @see MarkSweepSpace
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -44,23 +46,33 @@ public final class MarkSweepLocal extends SegregatedFreeList
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
-  private static final int FRAG_PERCENTILES = 5;  // 20% iles
+  private static final int FRAG_PERCENTILES = 5; // 20% iles
 
   private static int lastBytesAlloc = 0;
-  private static int MS_MUST_COLLECT_THRESHOLD = 1<<30;
-  private static long used[];
+  private static int MS_MUST_COLLECT_THRESHOLD = 1 << 30;
 
+  /**
+   * Select between using mark bits in a side bitmap, or mark bits
+   * in the headers of object (or other sub-class scheme), and a single
+   * mark bit per block.
+   */
+  public static final boolean HEADER_MARK_BITS = true;
+  public static final int META_DATA_PAGES_PER_REGION = HEADER_MARK_BITS
+    ? SegregatedFreeList.META_DATA_PAGES_PER_REGION_NO_BITMAP 
+    : SegregatedFreeList.META_DATA_PAGES_PER_REGION_WITH_BITMAP;
+
+  
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private MarkSweepSpace msSpace;
 
   /* fragmentation measurement */
-  private int utilization[];  
+  private int utilization[];
   private int allPreUtilization[][];
   private int allPostUtilization[][];
   private int totUtilization[];
@@ -70,9 +82,10 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private int allPostUsedCells[];
 
   protected final boolean preserveFreeList() { return !LAZY_SWEEP; }
+  protected final boolean maintainSideBitmap() { return !HEADER_MARK_BITS; }
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -90,7 +103,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
       cellSize[sc] = getBaseCellSize(sc);
       for (byte blk = 0; blk < BlockAllocator.BLOCK_SIZE_CLASSES; blk++) {
         int usableBytes = BlockAllocator.blockSize(blk);
-        int cells = usableBytes/cellSize[sc];
+        int cells = usableBytes / cellSize[sc];
         blockSizeClass[sc] = blk;
         cellsInBlock[sc] = cells;
         /* cells must start at multiple of MIN_ALIGNMENT because
@@ -102,12 +115,12 @@ public final class MarkSweepLocal extends SegregatedFreeList
           break;
       }
     }
-    //    dumpSizeClassData();
+    // dumpSizeClassData();
   }
 
   /**
    * Constructor
-   *
+   * 
    * @param space The mark-sweep space to which this allocator
    * instances is bound.
    */
@@ -116,17 +129,17 @@ public final class MarkSweepLocal extends SegregatedFreeList
     msSpace = space;
     utilization = new int[FRAG_PERCENTILES];
     totUtilization = new int[FRAG_PERCENTILES];
-    allPreUtilization = new int[SIZE_CLASSES][FRAG_PERCENTILES]; 
-    allPostUtilization = new int[SIZE_CLASSES][FRAG_PERCENTILES]; 
-    allPreBlocks = new int[SIZE_CLASSES]; 
-    allPostBlocks = new int[SIZE_CLASSES]; 
-    allPreUsedCells = new int[SIZE_CLASSES]; 
-    allPostUsedCells = new int[SIZE_CLASSES]; 
+    allPreUtilization = new int[SIZE_CLASSES][FRAG_PERCENTILES];
+    allPostUtilization = new int[SIZE_CLASSES][FRAG_PERCENTILES];
+    allPreBlocks = new int[SIZE_CLASSES];
+    allPostBlocks = new int[SIZE_CLASSES];
+    allPreUsedCells = new int[SIZE_CLASSES];
+    allPostUsedCells = new int[SIZE_CLASSES];
   }
-  
+
 
   /****************************************************************************
-   *
+   * 
    * Allocation
    */
 
@@ -144,14 +157,14 @@ public final class MarkSweepLocal extends SegregatedFreeList
    */
   protected final Address advanceToBlock(Address block, int sizeClass) {
     if (LAZY_SWEEP)
-      return makeFreeListFromLiveBits(block, sizeClass);
+      return makeFreeListFromLiveBits(block, sizeClass, msSpace.getMarkState());
     else
       return getFreeList(block);
   }
 
 
   /****************************************************************************
-   *
+   * 
    * Collection
    */
 
@@ -161,23 +174,45 @@ public final class MarkSweepLocal extends SegregatedFreeList
   public final void prepare() {
     if (Options.fragmentationStats.getValue())
       fragmentationStatistics(true);
+    if (HEADER_MARK_BITS && Options.eagerCompleteSweep.getValue()) {
+      consumeBlockLists(msSpace.getPreviousMarkState());
+    }
     flushFreeLists();
   }
 
   /**
    * Finish up after a collection.
-   *
+   * 
    */
-  public void release() {
-    sweepBlocks();                    // sweep the blocks
+  public final void releaseCollector() {
+    sweepBlocks(); // sweep the blocks
+  }
+  /**
+   * Finish up after a collection.
+   * 
+   */
+  public final void releaseMutator() {
     restoreFreeLists();
     if (Options.fragmentationStats.getValue())
       fragmentationStatistics(false);
   }
 
+  /**
+   * Should the sweep reclaim the cell containing this object. Is this object
+   * live. This is only used when maintainSideBitmap is false.
+   * 
+   * @param object The object to query
+   * @param markState The markState ot compare against
+   * @return True if the cell should be reclaimed
+   */
+  protected final boolean reclaimCellForObject(ObjectReference object, 
+                                               Word markState) 
+    throws InlinePragma {
+    return !MarkSweepSpace.testMarkBit(object, markState);
+  }
 
   /****************************************************************************
-   *
+   * 
    * Fragmentation analysis
    */
 
@@ -194,21 +229,21 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private final void shortFragmentationStatistics(boolean prepare) {
     if (Options.verbose.getValue() > 2) Log.writeln();
     if (Options.verboseFragmentationStats.getValue())
-      Log.write((prepare) ? "> " : "< "); 
+      Log.write((prepare) ? "> " : "< ");
     Log.write("(Waste ");
-    //    int waste = blockAllocator.unusedBytes();
-    //    Log.write("B ");
-    //    Log.write(waste/(float)(1<<20)); Log.write(" MB + ");
+    // int waste = blockAllocator.unusedBytes();
+    // Log.write("B ");
+    // Log.write(waste/(float)(1<<20)); Log.write(" MB + ");
     Log.write("F ");
     int waste = unusedBytes(prepare);
     Log.write(waste/(float)(1<<20)); Log.write(" MB)");
     if (Options.verbose.getValue() > 2 || Options.verboseFragmentationStats.getValue())
       Log.writeln();
   }
- 
+
   /**
    * Return the number of unused bytes on the free lists
-   *
+   * 
    * @param prepare True if this is called in the prepare phase
    * (immediately prior to GC), false if called in the release phase.
    * @return The number of unused bytes on the free lists
@@ -224,38 +259,38 @@ public final class MarkSweepLocal extends SegregatedFreeList
     }
     return unused;
   }
-  
+
   /**
    * Return the number of cells marked as live.  The utility of this
    * method is a function of when it is called (i.e. mark bits are
    * zeroed, set, and become stale, and depending on where in this
    * cycle this method is called, the results will differ
    * dramatically).
-   *
+   * 
    * @param block The block whose marked cells are to be counted
    * @return the number of cells marked as live on this block.
    */
   private final int markedCells(Address block, int sizeClass)
-    throws InlinePragma {
+      throws InlinePragma {
     Extent cellBytes = Extent.fromIntSignExtend(cellSize[sizeClass]);
-    Address cellCursor = block.add(blockHeaderSize[sizeClass]);
-    Address nextCellCursor = cellCursor.add(cellBytes);
+    Address cellCursor = block.plus(blockHeaderSize[sizeClass]);
+    Address nextCellCursor = cellCursor.plus(cellBytes);
     Address markCursor = alignToLiveStride(cellCursor);
     Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
-    Address end = block.add(blockSize);
+    Address end = block.plus(blockSize);
     boolean marked = false;
     int markCount = 0;
     while (markCursor.LT(end)) {
       Word mark = getLiveBits(markCursor);
-      for (int i=0; i < BITS_IN_WORD; i++) {
+      for (int i = 0; i < BITS_IN_WORD; i++) {
         if (!mark.isZero() && !(mark.and(Word.one().lsh(i)).isZero())) {
           marked = true;
         }
-        markCursor = markCursor.add(BYTES_PER_LIVE_BIT);
+        markCursor = markCursor.plus(BYTES_PER_LIVE_BIT);
         if (markCursor.GE(nextCellCursor)) {
           if (marked) markCount++;
           cellCursor = nextCellCursor;
-          nextCellCursor = nextCellCursor.add(cellBytes);
+          nextCellCursor = nextCellCursor.plus(cellBytes);
           marked = false;
         }
       }
@@ -264,9 +299,9 @@ public final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private final void verboseFragmentationStatistics(boolean prepare) {
-    int totUsedCellBytes = 0;      // bytes for cells actually in use
-    int totCellBytes = 0;          // bytes consumed by cells
-    int totBytes = 0;              // bytes consumed (incl header etc)
+    int totUsedCellBytes = 0; // bytes for cells actually in use
+    int totCellBytes = 0; // bytes consumed by cells
+    int totBytes = 0; // bytes consumed (incl header etc)
     int totBlocks = 0;
     printFragHeader(prepare, false);
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
@@ -320,9 +355,9 @@ public final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private final void finalVerboseFragmentationStatistics(boolean prepare) {
-    int totUsedCellBytes = 0;      // bytes for cells actually in use
-    int totCellBytes = 0;          // bytes consumed by cells
-    int totBytes = 0;              // bytes consumed (incl header etc)
+    int totUsedCellBytes = 0; // bytes for cells actually in use
+    int totCellBytes = 0; // bytes consumed by cells
+    int totBytes = 0; // bytes consumed (incl header etc)
     int totBlocks = 0;
     printFragHeader(prepare, true);
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
@@ -350,12 +385,12 @@ public final class MarkSweepLocal extends SegregatedFreeList
     }
     Log.writeln();
     if (all) Log.write("=");
-    Log.write((prepare) ? "> " : "< "); 
+    Log.write((prepare) ? "> " : "< ");
     Log.write("szcls size    live free used net  util | ");
     for (int pctl = 0; pctl < FRAG_PERCENTILES; pctl++) {
-      Log.write((pctl < (FRAG_PERCENTILES-1)) ? "<" : "<=");
-      Log.write((100*(pctl+1))/FRAG_PERCENTILES);
-      Log.write((pctl < (FRAG_PERCENTILES-1)) ? "% " : "%\n");
+      Log.write((pctl < (FRAG_PERCENTILES - 1)) ? "<" : "<=");
+      Log.write((100 * (pctl + 1)) / FRAG_PERCENTILES);
+      Log.write((pctl < (FRAG_PERCENTILES - 1)) ? "% " : "%\n");
     }
     printFragDivider(prepare, all);
   }
@@ -365,7 +400,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
                                   int freeBytes, int cellBytes, int totBytes,
                                   int blocks) {
     if (all) Log.write("=");
-    Log.write((prepare) ? "> " : "< "); 
+    Log.write((prepare) ? "> " : "< ");
     if (totals)
       Log.write("totals\t");
     else {
@@ -400,24 +435,24 @@ public final class MarkSweepLocal extends SegregatedFreeList
   }
 
   private final void printMB(int bytes, String str) {
-    Log.write(bytes/(double)(1<<20));
+    Log.write(bytes / (double) (1 << 20));
     Log.write(str);
   }
   private final void printRatio(int numerator, int denominator, String str) {
-    Log.write(numerator/(double)denominator); 
+    Log.write(numerator / (double) denominator);
     Log.write(str);
   }
   private final void printFragDivider(boolean prepare, boolean all) {
     if (all) Log.write("=");
-    Log.write((prepare) ? "> " : "< "); 
+    Log.write((prepare) ? "> " : "< ");
     Log.write("----------------------------------------");
-    for (int i = 0; i < FRAG_PERCENTILES; i++) 
+    for (int i = 0; i < FRAG_PERCENTILES; i++)
       Log.write("-----");
     Log.writeln();
   }
 
   /****************************************************************************
-   *
+   * 
    * Sanity checks and debugging
    */
   private final int getUsedPages() {
@@ -425,7 +460,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
       bytes += getUsedBlockBytes(firstBlock.get(sc), sc);
     }
-    return bytes>>LOG_BYTES_IN_PAGE;
+    return bytes >> LOG_BYTES_IN_PAGE;
   }
 
   private final int getUsedBlockBytes(Address block, int sizeClass) {

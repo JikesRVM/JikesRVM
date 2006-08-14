@@ -26,10 +26,10 @@ import org.vmmagic.pragma.*;
  * instances correspond to *plan* instances and therefore to kernel
  * threads.  Thus unlike this class, synchronization is not necessary
  * in the instance methods of RefCountLocal.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Ian Warrington
  * @version $Revision$
  * @date $Date$
@@ -38,69 +38,68 @@ public final class RefCountSpace extends Space
   implements Constants, Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
   public static final boolean INC_DEC_ROOT = false;
   public static final boolean RC_SANITY_CHECK = false;
-  
+
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
-  public static final int GLOBAL_GC_BITS_REQUIRED = 0; 
+  public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   /** How many bytes are used by all GC header fields? */
   public static final int GC_HEADER_WORDS_REQUIRED = (RC_SANITY_CHECK) ? 2 : 1;
   protected static final Offset RC_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET();
-  protected static final Offset RC_SANITY_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET().add(BYTES_IN_ADDRESS);
+  protected static final Offset RC_SANITY_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET().plus(BYTES_IN_ADDRESS);
 
 
   /* Mask bits to signify the start/finish of logging an object */
-  private static final Word LOGGING_MASK = Word.one().lsh(2).sub(Word.one()); //...00011
-  private static final int      LOG_BIT = 0;
-  private static final Word       LOGGED = Word.zero();
-  public static final Word     UNLOGGED = Word.one();
-  private static final Word BEING_LOGGED = Word.one().lsh(2).sub(Word.one()); //...00011
+  private static final Word LOGGING_MASK = Word.one().lsh(2).minus(Word.one()); // ...00011
+  private static final Word LOGGED = Word.zero();
+  public static final Word UNLOGGED = Word.one();
+  private static final Word BEING_LOGGED = Word.one().lsh(2).minus(Word.one()); // ...00011
 
-  public static final int DEC_KILL = 0;    // dec to zero RC --> reclaim obj
-  public static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd
+  public static final int DEC_KILL = 0; // dec to zero RC --> reclaim obj
+  public static final int DEC_PURPLE = 1; // dec to non-zero RC, already buf'd
   public static final int DEC_BUFFER = -1; // dec to non-zero RC, need to bufr
 
   // See Bacon & Rajan ECOOP 2001 for notion of colors (purple, grey,
-  // black, green).  See also Jones & Lins for a description of "Lins'
+  // black, green). See also Jones & Lins for a description of "Lins'
   // algorithm", on which Bacon & Rajan's is based.
 
   // The following are arranged to try to make the most common tests
-  // fastest ("bufferd?", "green?" and "(green | purple)?") 
-  private static final int     BUFFERED_MASK = 0x1;  //  .. xx0001
-  private static final int        COLOR_MASK = 0x1e;  //  .. x11110 
-  private static final int     LO_COLOR_MASK = 0x6;  //  .. x00110 
-  private static final int     HI_COLOR_MASK = 0x18; //  .. x11000 
-  private static final int             BLACK = 0x0;  //  .. xxxx0x
-  private static final int              GREY = 0x2;  //  .. xxxx1x
-  private static final int             WHITE = 0x4;  //  .. xx010x
+  // fastest ("bufferd?", "green?" and "(green | purple)?")
+  private static final int BUFFERED_MASK = 0x1; // .. xx0001
+  private static final int COLOR_MASK = 0x1e; // .. x11110
+  private static final int LO_COLOR_MASK = 0x6; // .. x00110
+  private static final int HI_COLOR_MASK = 0x18; // .. x11000
+  private static final int BLACK = 0x0; // .. xxxx0x
+  private static final int GREY = 0x2; // .. xxxx1x
+  private static final int WHITE = 0x4; // .. xx010x
   // green & purple *MUST* remain the highest colors in order to
   // preserve the (green | purple) test's precondition.
-  private static final int            PURPLE = 0x8;  //  .. x01xxx
-  protected static final int           GREEN = 0x10;  // .. x10xxx
+  private static final int PURPLE = 0x8; // .. x01xxx
+  protected static final int GREEN = 0x10; // .. x10xxx
 
   // bits used to ensure retention of objects with zero RC
-  private static final int       FINALIZABLE = 0x20; //  .. 100000
-  private static final int    ROOT_REACHABLE = 0x40; //  .. x10000
-  private static final int    HARD_THRESHOLD = ROOT_REACHABLE;
-  private static final int    LIVE_THRESHOLD = FINALIZABLE;
-  private static final int         BITS_USED = 7;
+  private static final int FINALIZABLE = 0x20; // .. 100000
+  private static final int ROOT_REACHABLE = 0x40; // .. x10000
+  private static final int HARD_THRESHOLD = ROOT_REACHABLE;
+  private static final int LIVE_THRESHOLD = FINALIZABLE;
+  private static final int BITS_USED = 7;
 
   protected static final int INCREMENT_SHIFT = BITS_USED;
-  protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
+  protected static final int INCREMENT = 1 << INCREMENT_SHIFT;
   protected static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
-  protected static final int INCREMENT_LIMIT = ~(1<<(BITS_IN_ADDRESS-1));
+  protected static final int INCREMENT_LIMIT = ~(1 << (BITS_IN_ADDRESS - 1));
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   public boolean bootImageMark = false;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -123,11 +122,11 @@ public final class RefCountSpace extends Space
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
-   *
+   * 
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -137,7 +136,7 @@ public final class RefCountSpace extends Space
     super(name, false, false, mb);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
-   
+
   /**
    * Construct a space that consumes a given fraction of the available
    * virtual memory.<p>
@@ -156,18 +155,18 @@ public final class RefCountSpace extends Space
     super(name, false, false, frac);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
-   
+
   /**
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   *
+   * 
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -179,11 +178,11 @@ public final class RefCountSpace extends Space
     super(name, false, false, mb, top);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
-  
+
   /**
    * Construct a space that consumes a given fraction of the available
    * virtual memory, at either the top or bottom of the available
-   * virtual memory.
+   *          virtual memory.
    *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>as a fraction of the total available</i>, and
@@ -205,12 +204,12 @@ public final class RefCountSpace extends Space
   }
 
   /****************************************************************************
-   *
+   * 
    * Collection
    */
 
   /**
-   * Prepare for a new collection increment.  Nothing to do.
+   * Prepare for a new collection increment. Nothing to do.
    */
   public void prepare() {}
 
@@ -220,7 +219,7 @@ public final class RefCountSpace extends Space
   public void release() {}
 
   /****************************************************************************
-   *
+   * 
    * Object processing and tracing
    */
 
@@ -237,36 +236,36 @@ public final class RefCountSpace extends Space
     throws InlinePragma {
     if (INC_DEC_ROOT) {
       incRC(object);
-      RCBase.local().addToRootSet(object);
+      RCBase.collector().addToRootSet(object);
     } else if (setRoot(object)) {
-      RCBase.local().addToRootSet(object);
+      RCBase.collector().addToRootSet(object);
     }
     return object;
   }
 
   /**
    * Release an allocated page or pages
-   *
+   * 
    * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
-    ((FreeListPageResource) pr).releasePages(start); 
+    ((FreeListPageResource) pr).releasePages(start);
   }
 
   /****************************************************************************
-   *
+   * 
    * Object Logging Methods
    */
 
   /**
    * Return true if <code>object</code> is yet to be logged (for
    * coalescing RC).
-   *
+   * 
    * @param object The object in question
    * @return <code>true</code> if <code>object</code> needs to be logged.
    */
   public static boolean logRequired(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     Word value = ObjectModel.readAvailableBitsWord(object);
     return value.and(LOGGING_MASK).EQ(UNLOGGED);
   }
@@ -281,14 +280,14 @@ public final class RefCountSpace extends Space
    * in the <code>BEING_LOGGED</code> state.  It is the responsibility
    * of the caller to change the object to <code>LOGGED</code> once
    * the logging is complete.
-   *
+   * 
    * @see #makeLogged(ObjectReference)
    * @param object The object in question
    * @return <code>true</code> if the race to log
    * <code>object</code>was won.
    */
   public static boolean attemptToLog(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     Word oldValue;
     do {
       oldValue = ObjectModel.prepareAvailableBits(object);
@@ -305,35 +304,35 @@ public final class RefCountSpace extends Space
 
   /**
    * Signify completion of logging <code>object</code>.
-   *
+   * 
    * <code>object</code> is left in the <code>LOGGED</code> state.
-   *
+   * 
    * @see #attemptToLog(ObjectReference)
    * @param object The object whose state is to be changed.
    */
   public static void makeLogged(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     Word value = ObjectModel.readAvailableBitsWord(object);
-    if (Assert.VERIFY_ASSERTIONS) 
+    if (Assert.VERIFY_ASSERTIONS)
       Assert._assert(value.and(LOGGING_MASK).NE(LOGGED));
     ObjectModel.writeAvailableBitsWord(object, value.and(LOGGING_MASK.not()));
   }
 
   /**
    * Change <code>object</code>'s state to <code>UNLOGGED</code>.
-   *
+   * 
    * @param object The object whose state is to be changed.
    */
   public static void makeUnlogged(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     Word value = ObjectModel.readAvailableBitsWord(object);
-    if (Assert.VERIFY_ASSERTIONS) 
+    if (Assert.VERIFY_ASSERTIONS)
       Assert._assert(value.and(LOGGING_MASK).EQ(LOGGED));
     ObjectModel.writeAvailableBitsWord(object, value.or(UNLOGGED));
   }
 
   /****************************************************************************
-   *
+   * 
    * Header manipulation
    */
 
@@ -345,11 +344,11 @@ public final class RefCountSpace extends Space
    * @param initialInc  do we want to initialize this header with an
    * initial increment?
    */
-  public static void initializeHeader(ObjectReference object, 
+  public static void initializeHeader(ObjectReference object,
                                       ObjectReference typeRef,
                                       boolean initialInc) throws InlinePragma {
     // all objects are birthed with an RC of INCREMENT
-    int initialValue =  (initialInc) ? INCREMENT : 0;
+    int initialValue = (initialInc) ? INCREMENT : 0;
     if (RCBase.REF_COUNT_CYCLE_DETECTION && 
         ObjectModel.isAcyclic(typeRef))
       initialValue |= GREEN;
@@ -358,15 +357,15 @@ public final class RefCountSpace extends Space
 
   /**
    * Return true if given object is live
-   *
+   * 
    * @param object The object whose liveness is to be tested
    * @return True if the object is alive
    */
-  public static boolean isLiveRC(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isLiveRC(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return object.toAddress().loadInt(RC_HEADER_OFFSET) >= LIVE_THRESHOLD;
   }
-  
+
   /**
    * Is the object live?
    * 
@@ -381,18 +380,18 @@ public final class RefCountSpace extends Space
    * Return true if given object is unreachable from roots or other
    * objects (i.e. ignoring the finalizer list).  Mark the object as a
    * finalizer object.
-   *
+   * 
    * @param object The object whose finalizability is to be tested
    * @return True if the object is finalizable
    */
-  public static boolean isFinalizable(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isFinalizable(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     setFinalizer(object);
     return object.toAddress().loadInt(RC_HEADER_OFFSET) < HARD_THRESHOLD;
   }
 
-  public static void incRCOOL(ObjectReference object) 
-    throws UninterruptiblePragma, NoInlinePragma {
+  public static void incRCOOL(ObjectReference object)
+      throws UninterruptiblePragma, NoInlinePragma {
     incRC(object);
   }
 
@@ -404,36 +403,36 @@ public final class RefCountSpace extends Space
    * an object's RC is incremented, it must be live and therefore
    * should not be considered as a potential garbage cycle.  This must
    * be an atomic operation if parallel GC is supported.
-   *
+   * 
    * @param object The object whose RC is to be incremented.
    */
   public static void incRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
-      if (Assert.VERIFY_ASSERTIONS) 
+      if (Assert.VERIFY_ASSERTIONS)
         Assert._assert(newValue <= INCREMENT_LIMIT);
       if (RCBase.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!object.toAddress().attempt(oldValue, newValue, RC_HEADER_OFFSET));
   }
 
   /**
-   * Decrement the reference count of an object.  Return either
+   * Decrement the reference count of an object. Return either
    * <code>DEC_KILL</code> if the count went to zero,
    * <code>DEC_BUFFER</code> if the count did not go to zero and the
    * object was not already in the purple buffer, and
    * <code>DEC_PURPLE</code> if the count did not go to zero and the
    * object was already in the purple buffer.  This must be an atomic
    * operation if parallel GC is supported.
-   *
+   * 
    * @param object The object whose RC is to be decremented.
    * @return <code>DEC_KILL</code> if the count went to zero,
-   * <code>DEC_BUFFER</code> if the count did not go to zero and the
-   * object was not already in the purple buffer, and
-   * <code>DEC_PURPLE</code> if the count did not go to zero and the
-   * object was already in the purple buffer.
+   *         <code>DEC_BUFFER</code> if the count did not go to zero and the
+   *         object was not already in the purple buffer, and
+   *         <code>DEC_PURPLE</code> if the count did not go to zero and the
+   *         object was already in the purple buffer.
    */
   public static int decRC(ObjectReference object)
     throws UninterruptiblePragma, InlinePragma {
@@ -455,23 +454,23 @@ public final class RefCountSpace extends Space
   }
 
   public static boolean isBuffered(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     return (object.toAddress().loadInt(RC_HEADER_OFFSET) & BUFFERED_MASK) == BUFFERED_MASK;
   }
 
   /****************************************************************************
-   *
+   * 
    * Sanity check support
    */
- 
+
   /**
    * Increment the sanity reference count of an object.
-   *
+   * 
    * @param object The object whose sanity RC is to be incremented.
    * @return <code>true</code> if this is the first increment to this object
    */
   public static boolean incSanityRC(ObjectReference object, boolean root)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_SANITY_HEADER_OFFSET);
@@ -487,14 +486,14 @@ public final class RefCountSpace extends Space
   /**
    * Check the ref count and sanity ref count for an object that
    * should have just died.
-   *
+   * 
    * @param object The object to be checked.
    */
   public static void checkOldObject(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
-    int rcv = object.toAddress().loadInt(RC_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1);
-    int sanityRCV = object.toAddress().loadInt(RC_SANITY_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1);
-    if (Assert.VERIFY_ASSERTIONS) 
+      throws UninterruptiblePragma, InlinePragma {
+    int rcv = object.toAddress().loadInt(RC_HEADER_OFFSET) >>> (INCREMENT_SHIFT - 1);
+    int sanityRCV = object.toAddress().loadInt(RC_SANITY_HEADER_OFFSET) >>> (INCREMENT_SHIFT - 1);
+    if (Assert.VERIFY_ASSERTIONS)
       Assert._assert(sanityRCV == 0);
     if (sanityRCV == 0 && rcv != 0) {
       Assert.fail("");
@@ -504,12 +503,12 @@ public final class RefCountSpace extends Space
   /**
    * Check the sanity reference count and actual reference count for
    * an object.
-   *
+   * 
    * @param object The object whose RC is to be checked.
    * @return <code>true</code> if this is the first check of this object
    */
-  public static boolean checkAndClearSanityRC(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean checkAndClearSanityRC(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     int value = object.toAddress().loadInt(RC_HEADER_OFFSET);
     int sanityValue = object.toAddress().loadInt(RC_SANITY_HEADER_OFFSET);
     int sanityRC = sanityValue >>> INCREMENT_SHIFT;
@@ -543,13 +542,13 @@ public final class RefCountSpace extends Space
    * of a transitive closure of live objects in the sanity trace.
    * This is only used for non-reference counted objects (immortal
    * etc).
-   *
+   * 
    * @param object The object to be marked.
    * @return <code>true</code> if the mark bit had not already been
    * cleared.
    */
   public static boolean markSanityRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     int sanityValue = object.toAddress().loadInt(RC_SANITY_HEADER_OFFSET);
     if (sanityValue == 1)
       return false;
@@ -564,12 +563,12 @@ public final class RefCountSpace extends Space
    * part of a transitive closure of live objects in the sanity trace.
    * This is only used for non-reference counted objects (immortal
    * etc).
-   *
+   * 
    * @param object The object to be unmarked.
    * @return <code>true</code> if the mark bit had not already been cleared.
    */
   public static boolean unmarkSanityRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     int sanityValue = object.toAddress().loadInt(RC_SANITY_HEADER_OFFSET);
     if (sanityValue == 0)
       return false;
@@ -577,7 +576,7 @@ public final class RefCountSpace extends Space
       object.toAddress().store(0, RC_SANITY_HEADER_OFFSET);
       return true;
     }
-  }  
+  }
 
   /****************************************************************************
    * 
@@ -594,8 +593,8 @@ public final class RefCountSpace extends Space
    * @return <code>true</code> if it was set by this call,
    * <code>false</code> if the bit was already set.
    */
-  public static boolean setRoot(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean setRoot(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -608,12 +607,12 @@ public final class RefCountSpace extends Space
 
   /**
    * Clear the <code>ROOT_REACHABLE</code> bit for an object.
-   *
+   * 
    * @param object The object whose <code>ROOT_REACHABLE</code> bit is
    * to be cleared.
    */
-  public static void unsetRoot(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static void unsetRoot(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -623,12 +622,12 @@ public final class RefCountSpace extends Space
 
   /**
    * Set the <code>FINALIZABLE</code> bit for an object.
-   *
+   * 
    * @param object The object whose <code>FINALIZABLE</code> bit is
    * to be set.
    */
-  static void setFinalizer(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  static void setFinalizer(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -638,12 +637,12 @@ public final class RefCountSpace extends Space
 
   /**
    * Clear the <code>FINALIZABLE</code> bit for an object.
-   *
+   * 
    * @param object The object whose <code>FINALIZABLE</code> bit is
    * to be cleared.
    */
-  public static void clearFinalizer(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static void clearFinalizer(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
@@ -658,13 +657,12 @@ public final class RefCountSpace extends Space
 
   /**
    * Decrement the reference count of an object. This is unsychronized.
-   *
+   * 
    * @param object The object whose RC is to be decremented.
    */
   public static void unsyncDecRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
-    int rtn;
     oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     newValue = oldValue - INCREMENT;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
@@ -672,11 +670,11 @@ public final class RefCountSpace extends Space
 
   /**
    * Increment the reference count of an object. This is unsychronized.
-   *
+   * 
    * @param object The object whose RC is to be incremented.
    */
   public static void unsyncIncRC(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue, newValue;
     oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     newValue = oldValue + INCREMENT;
@@ -684,9 +682,9 @@ public final class RefCountSpace extends Space
   }
 
   public static void print(ObjectReference object)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     Log.write(' ');
-    Log.write(object.toAddress().loadInt(RC_HEADER_OFFSET)>>INCREMENT_SHIFT); 
+    Log.write(object.toAddress().loadInt(RC_HEADER_OFFSET) >> INCREMENT_SHIFT);
     Log.write(' ');
     switch (getHiRCColor(object)) {
     case PURPLE: Log.write('p'); break;
@@ -702,64 +700,60 @@ public final class RefCountSpace extends Space
     else
       Log.write('u');
   }
-  public static void clearBufferedBit(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static void clearBufferedBit(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     int newValue = oldValue & ~BUFFERED_MASK;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
   }
-  public static boolean isBlack(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isBlack(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return getLoRCColor(object) == BLACK;
   }
-  public static boolean isWhite(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isWhite(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return getLoRCColor(object) == WHITE;
   }
-  public static boolean isGreen(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isGreen(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return getHiRCColor(object) == GREEN;
   }
-  public static boolean isPurple(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isPurple(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return getHiRCColor(object) == PURPLE;
   }
-  public static boolean isPurpleNotGrey(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isPurpleNotGrey(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return (object.toAddress().loadInt(RC_HEADER_OFFSET) & (PURPLE | GREY)) == PURPLE;
   }
-  public static boolean isGrey(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static boolean isGrey(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return getLoRCColor(object) == GREY;
   }
-  private static int getRCColor(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
-    return COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
-  }
-  private static int getLoRCColor(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  private static int getLoRCColor(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return LO_COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
   }
-  private static int getHiRCColor(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  private static int getHiRCColor(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     return HI_COLOR_MASK & object.toAddress().loadInt(RC_HEADER_OFFSET);
   }
-  public static void makeBlack(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static void makeBlack(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     changeRCLoColor(object, BLACK);
   }
-  public static void makeWhite(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
+  public static void makeWhite(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
     changeRCLoColor(object, WHITE);
   }
-  public static void makeGrey(ObjectReference object) 
-    throws UninterruptiblePragma, InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) 
+  public static void makeGrey(ObjectReference object)
+      throws UninterruptiblePragma, InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS)
       Assert._assert(getHiRCColor(object) != GREEN);
     changeRCLoColor(object, GREY);
   }
   private static void changeRCLoColor(ObjectReference object, int color)
-    throws UninterruptiblePragma, InlinePragma {
+      throws UninterruptiblePragma, InlinePragma {
     int oldValue = object.toAddress().loadInt(RC_HEADER_OFFSET);
     int newValue = (oldValue & ~LO_COLOR_MASK) | color;
     object.toAddress().store(newValue, RC_HEADER_OFFSET);
@@ -767,7 +761,7 @@ public final class RefCountSpace extends Space
 
 
   /****************************************************************************
-   *
+   * 
    * Misc
    */
 }

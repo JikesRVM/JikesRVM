@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
 /**
  * $Id$ 
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  *
  * @version $Revision$
@@ -65,24 +65,16 @@ public class Memory
     return bootSpace;
   }
 
-  /**
-   * Global preparation for a collection.
-   */
+  /** Global preparation for a collection. */
   public static void globalPrepareVMSpace() { bootSpace.prepare(); }
 
-  /**
-   * Thread-local preparation for a collection.
-   */
-  public static void localPrepareVMSpace() {}
+  /** Per-collector preparation for a collection. */
+  public static void collectorPrepareVMSpace() {}
 
-  /**
-   * Thread-local post-collection work.
-   */
-  public static void localReleaseVMSpace() {}
+  /** Per-collector post-collection work. */
+  public static void collectorReleaseVMSpace() {}
 
-  /**
-   * Global post-collection work.
-   */
+  /** Global post-collection work. */
   public static void globalReleaseVMSpace() { bootSpace.release(); }
 
   /**

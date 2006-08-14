@@ -39,6 +39,7 @@ class TestAll
       TestVirtualCall.runTest();
       TestInterfaceCall.runTest();
       TestSpecialCall.runTest();
+      TestMiranda.runTest();
       TestClassInitializer.runTest();
       TestThrow.runTest();
       TestFinally.runTest();

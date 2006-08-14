@@ -20,10 +20,10 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a base functionality of a simple
  * non-concurrent reference counting collector.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -32,31 +32,31 @@ import org.vmmagic.pragma.*;
 public abstract class RCBase extends StopTheWorld implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean WITH_COALESCING_RC = true;
 
-  // Spaces
+  /* Spaces */
   public static RefCountSpace rcSpace = new RefCountSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
   public static final int RC = rcSpace.getDescriptor();
 
-  // Counters
+  /* Counters */
   public static EventCounter wbFast;
   public static EventCounter wbSlow;
 
-  // shared queues
+  /* shared queues */
   protected SharedDeque decPool;
   protected SharedDeque modPool;
   protected SharedDeque rootPool;
 
   // GC state
-  public int previousMetaDataPages;  // meta-data pages after last GC
+  public int previousMetaDataPages; // meta-data pages after last GC
   public int lastRCPages = 0; // pages at end of last GC
 
  /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -79,31 +79,31 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    * Constructor
    */
   public RCBase() {
-    //  instantiate shared queues
+    // instantiate shared queues
     if (WITH_COALESCING_RC) {
       modPool = new SharedDeque(metaDataSpace, 1);
-      modPool.newClient();
+      modPool.newConsumer();
     }
     decPool = new SharedDeque(metaDataSpace, 1);
-    decPool.newClient();
+    decPool.newConsumer();
     rootPool = new SharedDeque(metaDataSpace, 1);
-    rootPool.newClient();
+    rootPool.newConsumer();
   }
 
 
   /****************************************************************************
-   *
+   * 
    * RC methods
    */
 
   /**
    * Return true if the object resides within the RC space
-   *
+   * 
    * @param object An object reference
    * @return True if the object resides within the RC space
    */
   public static final boolean isRCObject(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (object.isNull())
       return false;
     else return (Space.isInSpace(RC, object) || Space.isInSpace(LOS, object));
@@ -112,7 +112,7 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
   /**
    * Perform any required initialization of the GC portion of the header.
    * Called for objects created at boot time.
-   *
+   * 
    * @param ref the object ref to the storage to be initialized
    * @param typeRef the type reference for the instance being created
    * @param size the number of bytes allocated by the GC system for
@@ -128,25 +128,29 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
   }
 
   /****************************************************************************
-  *
-  * Space management
-  */
+   * 
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation.
    */
   public int getPagesUsed() {
     return rcSpace.reservedPages() + super.getPagesUsed();
   }
-  
+
   /**
    * @return the active PlanLocal as an RCBaseLocal
    */
-  public static final RCBaseLocal local() {
-    return ((RCBaseLocal)ActivePlan.local());
+  // FIXME This is a consequence of zero collector/mutator separation in RC...
+  // public static final RCBaseCollector collector() {
+  // return ((RCBaseCollector)ActivePlan.collector());
+  // }
+  public static final RCBaseMutator collector() {
+    return ((RCBaseMutator) ActivePlan.mutator());
   }
 }

@@ -4,13 +4,19 @@
 //$Id$
 package java.lang.reflect;
 
+import java.lang.annotation.Annotation;
+
 import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_Field;
 import com.ibm.JikesRVM.classloader.VM_TypeReference;
 import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Atom;
 
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Runtime;
+
+import gnu.java.lang.ClassHelper;
+import gnu.java.lang.reflect.FieldSignatureParser;
 
 /**
  * Implementation of java.lang.reflect.Field for JikesRVM.
@@ -23,6 +29,7 @@ import com.ibm.JikesRVM.VM_Runtime;
  * @author Stephen Fink
  * @author Eugene Gluzberg
  * @author Dave Grove
+ * @modified Ian Rogers
  */
 public final class Field extends AccessibleObject implements Member {
 
@@ -135,6 +142,10 @@ public final class Field extends AccessibleObject implements Member {
     return code1 ^ code2;
   }
 
+  public boolean isSynthetic() {
+    return field.isSynthetic();
+  }
+
   public void set(Object object, Object value) 
     throws IllegalAccessException, IllegalArgumentException     {
     checkWriteAccess(object);
@@ -226,27 +237,14 @@ public final class Field extends AccessibleObject implements Member {
   }
 
   public String toString() {
-    int arity = 0;
-
-    StringBuffer buf = new StringBuffer();
-    buf.append(Modifier.toString(getModifiers()));
-    buf.append(" ");
-
-    Class current = getType();
-    while(current.isArray()) {
-      current = current.getComponentType();
-      arity++;
-    }
-    buf.append(current.getName());
-    for(;arity > 0; arity--) buf.append("[]");
-
-    buf.append(" ");
-    buf.append(getDeclaringClass().getName());
-    buf.append(".");
-    buf.append(getName());
-    return buf.toString();
+    StringBuilder sb = new StringBuilder(64);
+    Modifier.toString(getModifiers(), sb).append(' ');
+    sb.append(ClassHelper.getUserName(getType())).append(' ');
+    sb.append(getDeclaringClass().getName()).append('.');
+    sb.append(getName());
+    return sb.toString();
   }
-
+ 
   private void checkReadAccess(Object obj) throws IllegalAccessException, 
                                                   IllegalArgumentException,
                                                   ExceptionInInitializerError {
@@ -520,5 +518,35 @@ public final class Field extends AccessibleObject implements Member {
       field.setFloatValueUnchecked(object, (float)value);
     else
       throw new IllegalArgumentException("field type mismatch");
+  }
+
+  // AnnotatedElement interface
+
+  public Annotation[] getDeclaredAnnotations() {
+    return field.getDeclaredAnnotations();
+  }
+
+  public Annotation getAnnotation(Class annotationClass) {
+    return field.getAnnotation(annotationClass);
+  }
+
+  // Generics support
+
+  public Type getGenericType() {
+    VM_Atom signature = field.getSignature();
+    if (signature == null)
+      return getType();
+    FieldSignatureParser p = new FieldSignatureParser(getDeclaringClass(),
+                                                      signature.toString());
+    return p.getFieldType();
+   }
+
+  public String toGenericString() {
+    StringBuilder sb = new StringBuilder(64);
+    Modifier.toString(getModifiers(), sb).append(' ');
+    sb.append(getGenericType()).append(' ');
+    sb.append(getDeclaringClass().getName()).append('.');
+    sb.append(getName());
+    return sb.toString();
   }
 }

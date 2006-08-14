@@ -36,25 +36,25 @@ import org.vmmagic.pragma.*;
  * MarkRoots which allows it to over-zealously free a grey object with
  * a RC of zero which is also unprocessed in the root set.  I believe
  * the correct encoding is as follows:<p>
- *
+ * 
  * <pre>
- *  MarkRoots()
- *    for S in Roots
- *      if (color(S) == purple)
+ *   MarkRoots()
+ *     for S in Roots
+ *       if (color(S) == purple)
  *        if (RC(S) > 0)
- *          MarkGray(S)
- *        else
- *          Free(S)
- *      else
- *        buffered(S) = false
- *        remove S from Roots
- *</pre>
- *
+ *           MarkGray(S)
+ *         else
+ *           Free(S)
+ *       else
+ *         buffered(S) = false
+ *         remove S from Roots
+ * </pre>
+ * 
  * Aside from the use of queues to avoid deep recursion, the following
  * closely mirrors the encoding of the above algorithm that appears in
  * Fig 2 of that paper.<p>
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -63,7 +63,7 @@ public final class TrialDeletion extends CycleDetector
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
   private static SharedDeque workPool;
@@ -75,17 +75,14 @@ public final class TrialDeletion extends CycleDetector
   private static SharedDeque cyclePoolB;
   private static SharedDeque freePool;
 
-  private static boolean purpleBufferAisOpen = true;
-
   private static int lastPurplePages;
 
-  private static final int  MARK_GREY = 0;
-  private static final int       SCAN = 1;
+  private static final int MARK_GREY = 0;
+  private static final int SCAN = 1;
   private static final int SCAN_BLACK = 2;
-  private static final int    COLLECT = 3;
+  private static final int COLLECT = 3;
 
   private static final int FILTER_TIME_FRACTION = 3;
-  private static final int MATURE_FILTER_TIME_FRACTION = 4;
   private static final int CYCLE_TIME_FRACTION = 6;
   private static final int MARK_GREY_TIME_FRACTION = 2;
 
@@ -101,7 +98,7 @@ public final class TrialDeletion extends CycleDetector
   private static Timer freeTime;
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private RefCountLocal rc;
@@ -123,29 +120,29 @@ public final class TrialDeletion extends CycleDetector
   private boolean collectedCycles = false;
   private int phase = MARK_GREY;
   private int visitCount = 0;
-  private int objectsProcessed = 0;
+
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
   static {
     workPool = new SharedDeque(Plan.metaDataSpace, 1);
-    workPool.newClient();
+    workPool.newConsumer();
     blackPool = new SharedDeque(Plan.metaDataSpace, 1);
-    blackPool.newClient();
+    blackPool.newConsumer();
     unfilteredPurplePool = new SharedDeque(Plan.metaDataSpace, 1);
-    unfilteredPurplePool.newClient();
+    unfilteredPurplePool.newConsumer();
     maturePurplePool = new SharedDeque(Plan.metaDataSpace, 1);
-    maturePurplePool.newClient();
+    maturePurplePool.newConsumer();
     filteredPurplePool = new SharedDeque(Plan.metaDataSpace, 1);
-    filteredPurplePool.newClient();
+    filteredPurplePool.newConsumer();
     cyclePoolA = new SharedDeque(Plan.metaDataSpace, 1);
-    cyclePoolA.newClient();
+    cyclePoolA.newConsumer();
     cyclePoolB = new SharedDeque(Plan.metaDataSpace, 1);
-    cyclePoolB.newClient();
+    cyclePoolB.newConsumer();
     freePool = new SharedDeque(Plan.metaDataSpace, 1);
-    freePool.newClient();
+    freePool.newConsumer();
 
     greyTime = new Timer("cd-grey", false, true);
     scanTime = new Timer("cd-scan", false, true);
@@ -171,9 +168,9 @@ public final class TrialDeletion extends CycleDetector
   }
 
   public final void possibleCycleRoot(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
-    //    Log.write("p[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
+    // Log.write("p[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     unfilteredPurpleBuffer.insert(object);
   }
 
@@ -183,7 +180,7 @@ public final class TrialDeletion extends CycleDetector
       long filterStart = Statistics.cycles();
       long finishTarget = Plan.getTimeCap();
       long remaining = finishTarget - filterStart;
-      long targetTime = filterStart+(remaining/FILTER_TIME_FRACTION);
+      long targetTime = filterStart + (remaining / FILTER_TIME_FRACTION);
 
       long gcTimeCap = Statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
       if (remaining > gcTimeCap/FILTER_TIME_FRACTION ||
@@ -191,8 +188,8 @@ public final class TrialDeletion extends CycleDetector
         filterPurpleBufs(targetTime);
         processFreeBufs();
         if (shouldCollectCycles()) {
-          if (Options.verbose.getValue() > 0) { 
-            Log.write("(CD "); 
+          if (Options.verbose.getValue() > 0) {
+            Log.write("(CD ");
             Log.flush();
           }
           long cycleStart = Statistics.cycles();
@@ -224,7 +221,7 @@ public final class TrialDeletion extends CycleDetector
     if (timekeeper) greyTime.start();
     long start = Statistics.cycles();
     long remaining = finishTarget - start;
-    long targetTime = start + (remaining/MARK_GREY_TIME_FRACTION);
+    long targetTime = start + (remaining / MARK_GREY_TIME_FRACTION);
     boolean abort = doMarkGreyPhase(targetTime);
     if (timekeeper) greyTime.stop();
     if (timekeeper) scanTime.start();
@@ -239,17 +236,10 @@ public final class TrialDeletion extends CycleDetector
     return abort;
   }
 
-  private final long timePhase(long start, String phase) {
-    long end = Statistics.cycles();
-    Log.write(phase); Log.write(" ");
-    Log.write(Statistics.cyclesToMillis(end - start)); Log.write(" ms ");
-    return end;
-  }
-
   /**
    * Decide whether cycle collection should be invoked.  This uses
    * a probabalisitic heuristic based on heap fullness.
-   *
+   * 
    * @return True if cycle collection should be invoked
    */
   private final boolean shouldCollectCycles() {
@@ -260,7 +250,7 @@ public final class TrialDeletion extends CycleDetector
    * Decide whether the purple buffer should be filtered.  This will
    * happen if the heap is close to full or if the number of purple
    * objects enqued has reached a user-defined threashold.
-   *
+   * 
    * @return True if the unfiltered purple buffer should be filtered
    */
   private final boolean shouldFilterPurple() {
@@ -270,15 +260,15 @@ public final class TrialDeletion extends CycleDetector
   /**
    * Decide whether to act on cycle collection or purple filtering.
    * This uses a probabalisitic heuristic based on heap fullness.
-   *
+   * 
    * @return True if we should act
    */
   private final boolean shouldAct(int thresholdPages) {
     if (RefCountSpace.RC_SANITY_CHECK) return true;
 
     final int LOG_WRIGGLE = 2;
-    int slack = log2((int) ActivePlan.global().getPagesAvail()/thresholdPages);
-    int mask = (1<<slack)-1;
+    int slack = log2((int) ActivePlan.global().getPagesAvail() / thresholdPages);
+    int mask = (1 << slack) - 1;
     boolean rtn = (slack <= LOG_WRIGGLE) && ((Stats.gcCount() & mask) == mask);
     return rtn;
   }
@@ -290,7 +280,7 @@ public final class TrialDeletion extends CycleDetector
 
   private final void filterPurpleBufs(long timeCap) {
     int p = filterPurpleBufs(unfilteredPurpleBuffer, maturePurpleBuffer,
-                             timeCap);
+        timeCap);
     maturePurpleBuffer.flushLocal();
     rc.setPurpleCounter(p);
   }
@@ -302,8 +292,8 @@ public final class TrialDeletion extends CycleDetector
     }
   }
 
-  private final int filterPurpleBufs(ObjectReferenceDeque src, 
-                                     ObjectReferenceDeque tgt, long timeCap) {
+  private final int filterPurpleBufs(ObjectReferenceDeque src,
+      ObjectReferenceDeque tgt, long timeCap) {
     int purple = 0;
     int limit = Options.cycleMetaDataLimit.getPages() <<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
     ObjectReference object = ObjectReference.nullReference();
@@ -329,7 +319,7 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final void filter(ObjectReference object, ObjectReferenceDeque tgt) {
-    //    Log.write("f[");Log.write(obj);RefCountSpace.print(obj);Log.writeln("]");
+    // Log.write("f[");Log.write(obj);RefCountSpace.print(obj);Log.writeln("]");
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isBuffered(object));
     if (RefCountSpace.isLiveRC(object)) {
@@ -352,9 +342,9 @@ public final class TrialDeletion extends CycleDetector
   }
 
   /****************************************************************************
-   *
+   * 
    * Mark grey
-   *
+   * 
    * Trace from purple "roots", marking grey.  Try to work within a
    * time cap.  This will work <b>only</b> if the purple objects are
    * maintained as a <b>queue</b> rather than a <b>stack</b>
@@ -362,7 +352,7 @@ public final class TrialDeletion extends CycleDetector
    * may never get processed).  It is therefore important that the
    * "insert" operation is used when adding to the purple queue,
    * rather than "push".
-   *
+   * 
    */
 
   /**
@@ -370,7 +360,7 @@ public final class TrialDeletion extends CycleDetector
    * grey. This means "pretending" that the initial object is dead,
    * and thus applying temporary decrements to each of the object's
    * decendents.
-   *
+   * 
    * @param timeCap The time by which we must stop marking
    * grey.
    */
@@ -396,7 +386,7 @@ public final class TrialDeletion extends CycleDetector
                                           ObjectReferenceDeque tgt,
                                           long timeCap)
     throws InlinePragma {
-    //    Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
+    // Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
     if (RefCountSpace.isPurpleNotGrey(object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isLiveRC(object));
@@ -412,24 +402,24 @@ public final class TrialDeletion extends CycleDetector
           RefCountSpace.print(object);
         }
         if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isGrey(object)
-                             || RefCountSpace.isBlack(object));
+              || RefCountSpace.isBlack(object));
       }
       RefCountSpace.clearBufferedBit(object);
     }
     return true;
   }
   private final boolean markGrey(ObjectReference object, long timeCap)
-    throws InlinePragma {
+      throws InlinePragma {
     boolean abort = false;
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
       visitCount++;
-      if (visitCount % GREY_VISIT_GRAIN == 0 && !RefCountSpace.RC_SANITY_CHECK 
+      if (visitCount % GREY_VISIT_GRAIN == 0 && !RefCountSpace.RC_SANITY_CHECK
           && Statistics.cycles() > timeCap) {
         abort = true;
       }
-      
+
       if (!abort && !RefCountSpace.isGrey(object)) {
         RefCountSpace.makeGrey(object);
         Scan.enumeratePointers(object, greyEnum);
@@ -473,7 +463,7 @@ public final class TrialDeletion extends CycleDetector
           RefCountSpace.makeWhite(object);
           Scan.enumeratePointers(object, scanEnum);
         }
-      } 
+      }
       object = workQueue.pop();
     }
   }
@@ -495,7 +485,7 @@ public final class TrialDeletion extends CycleDetector
     }
   }
   public final void enumerateScanBlack(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (RCBase.isRCObject(object) && !RefCountSpace.isGreen(object)) {
       RefCountSpace.unsyncIncRC(object);
       if (!RefCountSpace.isBlack(object))
@@ -525,11 +515,11 @@ public final class TrialDeletion extends CycleDetector
       object = workQueue.pop();
     }
   }
-  public final void enumerateCollect(ObjectReference object) 
-    throws InlinePragma {
+  public final void enumerateCollect(ObjectReference object)
+      throws InlinePragma {
     if (RCBase.isRCObject(object)) {
       if (RefCountSpace.isGreen(object))
-        RCBase.local().addToDecBuf(object); 
+        RCBase.collector().addToDecBuf(object);
       else
         workQueue.push(object);
     }

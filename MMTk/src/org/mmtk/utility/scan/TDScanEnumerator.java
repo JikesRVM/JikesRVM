@@ -14,8 +14,8 @@ import org.vmmagic.pragma.*;
  * A pointer enumeration class.  This class is used by the trial
  * deletion cycle detector to perform transitive closure of its "scan"
  * phase.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $date: $
  */
@@ -24,7 +24,7 @@ public class TDScanEnumerator extends Enumerator implements Uninterruptible {
 
   /**
    * Constructor.
-   *
+   * 
    * @param td The trial deletion instance with respect to which the
    * enumeration will occur.
    */
@@ -33,8 +33,8 @@ public class TDScanEnumerator extends Enumerator implements Uninterruptible {
   }
 
   /**
-   * Enumerate a pointer.  In this case it is a scan event.
-   *
+   * Enumerate a pointer. In this case it is a scan event.
+   * 
    * @param objLoc The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address objLoc) throws InlinePragma {

@@ -486,7 +486,28 @@ public final class OPT_ConditionOperand extends OPT_Operand {
           return TRUE;
         }
       }
-    }
+    } else if (v1.similar(v2) && !isFLOATINGPOINT()) {
+		// comparisons of identical operands can be evaluated, except
+		// for floating point NaN cases
+		switch (value) {
+		case EQUAL:
+		case GREATER_EQUAL:
+		case LESS_EQUAL:
+		case SAME:
+		case HIGHER_EQUAL:
+		case LOWER_EQUAL:
+		  return TRUE;
+		case NOT_EQUAL:
+		case LESS:
+		case GREATER:
+		case NOT_SAME:
+		case HIGHER:
+		case LOWER:
+		  return FALSE;
+		default:
+		  throw new OPT_OptimizingCompilerException("invalid condition " + this);
+		}
+	 }
     return UNKNOWN;
   }
 

@@ -12,9 +12,9 @@ import org.vmmagic.unboxed.Extent;
 
 /**
  * A memory option that stores values as a whole number of pages.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -26,7 +26,7 @@ public class PagesOption extends Option {
 
   /**
    * Create a new pages option.
-   *
+   * 
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultPages The default value of the option.
@@ -38,7 +38,7 @@ public class PagesOption extends Option {
 
   /**
    * Read the current value of the option in pages.
-   *
+   * 
    * @return The option value.
    */
   public int getPages() throws UninterruptiblePragma {
@@ -47,7 +47,7 @@ public class PagesOption extends Option {
 
   /**
    * Read the current value of the option in bytes.
-   *
+   * 
    * @return The option value.
    */
   public Extent getBytes() throws UninterruptiblePragma {
@@ -56,7 +56,7 @@ public class PagesOption extends Option {
 
   /**
    * Read the default value of the option in bytes.
-   *
+   * 
    * @return The default value.
    */
   public Extent getDefaultBytes() throws UninterruptiblePragma {
@@ -65,7 +65,7 @@ public class PagesOption extends Option {
 
   /**
    * Read the default value of the option in pages.
-   *
+   * 
    * @return The default value.
    */
   public int getDefaultPages() throws UninterruptiblePragma {
@@ -77,7 +77,7 @@ public class PagesOption extends Option {
    * option is set. A warning is raised if the value is not a whole multiple
    * of pages, and then the validate method is called to allow subclasses to
    * perform any additional validation.
-   *
+   * 
    * @param value The new value for the option.
    */
   public void setBytes(Extent value) {
@@ -92,7 +92,7 @@ public class PagesOption extends Option {
     }
     int pages = Conversions.bytesToPagesUp(value);
     warnIf(value.NE(Conversions.pagesToBytes(pages)),
-           "Value rounded up to a whole number of pages");
+        "Value rounded up to a whole number of pages");
     this.value = Conversions.bytesToPagesUp(value);
     validate();
   }

@@ -28,80 +28,80 @@ import org.vmmagic.pragma.*;
  *   <li> The allocator can only deal with MAX_UNITS units (see below for
  *   the value).</li>
  * </ul>
- *
+ * 
  * The basic data structure used by the algorithm is a large table,
  * with one word per allocatable unit.  Each word is used in a
  * number of different ways, some combination of "undefined" (32),
  * "free/used" (1), "multi/single" (1), "prev" (15), "next" (15) &
  * "size" (15) where field sizes in bits are in parenthesis.
  * <pre>
- *                      +-+-+-----------+-----------+
- *                      |f|m|    prev   | next/size |
- *                      +-+-+-----------+-----------+
- *
+ *                       +-+-+-----------+-----------+
+ *                       |f|m|    prev   | next/size |
+ *                       +-+-+-----------+-----------+
+ * 
  *   - single free unit: "free", "single", "prev", "next"
  *   - single used unit: "used", "single"
- *   - contigious free units
+ *    - contigious free units
  *     . first unit: "free", "multi", "prev", "next"
  *     . second unit: "free", "multi", "size"
  *     . last unit: "free", "multi", "size"
- *   - contigious used units
+ *    - contigious used units
  *     . first unit: "used", "multi", "prev", "next"
  *     . second unit: "used", "multi", "size"
  *     . last unit: "used", "multi", "size"
- *   - any other unit: undefined
- *    
- *                      +-+-+-----------+-----------+
- *  top sentinel        |0|0|    tail   |   head    |  [-1]
- *                      +-+-+-----------+-----------+ 
- *                                    ....
- *           /--------  +-+-+-----------+-----------+
- *           |          |1|1|   prev    |   next    |  [j]
- *           |          +-+-+-----------+-----------+
- *           |          |1|1|           |   size    |  [j+1]
- *        free multi    +-+-+-----------+-----------+
- *        unit block    |              ...          |  ...
- *           |          +-+-+-----------+-----------+
- *           |          |1|1|           |   size    |
+ *    - any other unit: undefined
+ *     
+ *                       +-+-+-----------+-----------+
+ *   top sentinel        |0|0|    tail   |   head    |  [-1]
+ *                       +-+-+-----------+-----------+ 
+ *                                     ....
+ *            /--------  +-+-+-----------+-----------+
+ *            |          |1|1|   prev    |   next    |  [j]
+ *            |          +-+-+-----------+-----------+
+ *            |          |1|1|           |   size    |  [j+1]
+ *         free multi    +-+-+-----------+-----------+
+ *         unit block    |              ...          |  ...
+ *            |          +-+-+-----------+-----------+
+ *            |          |1|1|           |   size    |
  *           >--------  +-+-+-----------+-----------+
- *  single free unit    |1|0|   prev    |   next    |
+ *   single free unit    |1|0|   prev    |   next    |
  *           >--------  +-+-+-----------+-----------+
- *  single used unit    |0|0|                       |
+ *   single used unit    |0|0|                       |
  *           >--------  +-+-+-----------------------+
- *           |          |0|1|                       |
- *           |          +-+-+-----------+-----------+
- *           |          |0|1|           |   size    |
- *        used multi    +-+-+-----------+-----------+
- *        unit block    |              ...          |
- *           |          +-+-+-----------+-----------+
- *           |          |0|1|           |   size    |
- *           \--------  +-+-+-----------+-----------+
- *                                    ....
- *                      +-+-+-----------------------+
- *  bottom sentinel     |0|0|                       |  [N]
- *                      +-+-+-----------------------+ 
+ *            |          |0|1|                       |
+ *            |          +-+-+-----------+-----------+
+ *            |          |0|1|           |   size    |
+ *         used multi    +-+-+-----------+-----------+
+ *         unit block    |              ...          |
+ *            |          +-+-+-----------+-----------+
+ *            |          |0|1|           |   size    |
+ *            \--------  +-+-+-----------+-----------+
+ *                                     ....
+ *                       +-+-+-----------------------+
+ *   bottom sentinel     |0|0|                       |  [N]
+ *                       +-+-+-----------------------+ 
  * </pre>
  * The sentinels serve as guards against out of range coalescing
  * because they both appear as "used" blocks and so will never
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- *
+ * 
  */
 abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    public final static String Id = "$Id$";
- 
+
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
 
   /**
-   * Allocate <code>size</code> units.  Return the unit ID
-   *
+   * Allocate <code>size</code> units. Return the unit ID
+   * 
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
    * contigious units, or -1 if the request can't be satisfied
@@ -111,13 +111,13 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
     int rtn = HEAD; // HEAD = -1
     int s = 0;
     while (((rtn = getNext(rtn)) != HEAD) && ((s = getSize(rtn)) < size));
-    
-    return alloc(size, rtn, s); 
+
+    return alloc(size, rtn, s);
   }
 
   /**
-   * Allocate <code>size</code> units.  Return the unit ID
-   *
+   * Allocate <code>size</code> units. Return the unit ID
+   * 
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
    * contigious units, or -1 if the request can't be satisfied
@@ -127,13 +127,13 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
 
     if (getFree(unit) && (s = getSize(unit)) >= size)
       return alloc(size, unit, s);
-    else 
+    else
       return HEAD;
   }
 
   /**
-   * Allocate <code>size</code> units.  Return the unit ID
-   *
+   * Allocate <code>size</code> units. Return the unit ID
+   * 
    * @param size  The number of units to be allocated
    * @return The index of the first of the <code>size</code>
    * contigious units, or -1 if the request can't be satisfied
@@ -152,7 +152,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
 
   /**
    * Free a previously allocated contigious lump of units.
-   *
+   * 
    * @param unit The index of the first unit.
    * @return The number of units freed.
    */
@@ -170,7 +170,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
 
   /**
    * Return the size of the specified lump of units
-   *
+   * 
    * @param unit The index of the first unit in the lump.
    * @return The size of the lump, in units.
    */
@@ -179,24 +179,24 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Private fields and methods
    */
 
   /**
    * Initialize a new heap.  Fabricate a free list entry containing
    * everything
-   *
+   * 
    * @param units The number of units in the heap
    */
   protected final void initializeHeap(int units) {
     initializeHeap(units, units);
   }
-  
+
   /**
    * Initialize a new heap.  Fabricate a free list entry containing
    * everything
-   *
+   * 
    * @param units The number of units in the heap
    */
   protected final void initializeHeap(int units, int grain) {
@@ -207,8 +207,8 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
     // create the free list item
     int offset = units % grain;
     int cursor = units - offset;
-    if (offset > 0) { 
-      setSize(cursor, offset); 
+    if (offset > 0) {
+      setSize(cursor, offset);
       addToFree(cursor);
     }
     cursor -= grain;
@@ -222,7 +222,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
 
   /**
    * Reduce a lump of units to size, freeing any excess.
-   *
+   * 
    * @param unit The index of the first unit
    * @param size The size of the first part
    */
@@ -251,7 +251,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
 
   /**
    * Add a lump of units to the free list
-   *
+   * 
    * @param unit The first unit in the lump of units to be added
    */
   private final void addToFree(int unit) {
@@ -265,7 +265,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
 
   /**
    * Remove a lump of units from the free list
-   *
+   * 
    * @param unit The first unit in the lump of units to be removed
    */
   private final void removeFromFree(int unit) {
@@ -277,7 +277,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
 
   /**
    * Get the lump to the "right" of the current lump (i.e. "below" it)
-   *
+   * 
    * @param unit The index of the first unit in the lump in question
    * @return The index of the first unit in the lump to the
    * "right"/"below" the lump in question.

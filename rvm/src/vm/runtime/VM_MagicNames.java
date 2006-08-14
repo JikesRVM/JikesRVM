@@ -128,8 +128,19 @@ public class VM_MagicNames {
 
   public static final VM_Atom sync                          = VM_Atom.findOrCreateAsciiAtom("sync");
   public static final VM_Atom isync                         = VM_Atom.findOrCreateAsciiAtom("isync");
+  public static final VM_Atom prefetch                      = VM_Atom.findOrCreateAsciiAtom("prefetch");
+  //-#if RVM_FOR_IA32
+  public static final VM_Atom prefetchNTA                   = VM_Atom.findOrCreateAsciiAtom("prefetchNTA");
+//   public static final VM_Atom prefetchT0                    = VM_Atom.findOrCreateAsciiAtom("prefetchT0");
+//   public static final VM_Atom prefetchT1                    = VM_Atom.findOrCreateAsciiAtom("prefetchT1");
+//   public static final VM_Atom prefetchT2                    = VM_Atom.findOrCreateAsciiAtom("prefetchT2");
+  //-#endif
   //-#if RVM_FOR_POWERPC
   public static final VM_Atom dcbst                         = VM_Atom.findOrCreateAsciiAtom("dcbst");
+  public static final VM_Atom dcbt                          = VM_Atom.findOrCreateAsciiAtom("dcbt");
+  public static final VM_Atom dcbtst                        = VM_Atom.findOrCreateAsciiAtom("dcbtst");
+  public static final VM_Atom dcbz                          = VM_Atom.findOrCreateAsciiAtom("dcbz");
+  public static final VM_Atom dcbzl                         = VM_Atom.findOrCreateAsciiAtom("dcbzl");
   public static final VM_Atom icbi                          = VM_Atom.findOrCreateAsciiAtom("icbi");
   //-#endif
   //-#if RVM_FOR_IA32
@@ -151,8 +162,8 @@ public class VM_MagicNames {
   public static final VM_Atom wordToAddress                 = VM_Atom.findOrCreateAsciiAtom("toAddress");
   public static final VM_Atom wordToOffset                  = VM_Atom.findOrCreateAsciiAtom("toOffset");
   public static final VM_Atom wordToExtent                  = VM_Atom.findOrCreateAsciiAtom("toExtent");
-  public static final VM_Atom wordAdd                       = VM_Atom.findOrCreateAsciiAtom("add");
-  public static final VM_Atom wordSub                       = VM_Atom.findOrCreateAsciiAtom("sub");
+  public static final VM_Atom wordPlus                      = VM_Atom.findOrCreateAsciiAtom("plus");
+  public static final VM_Atom wordMinus                     = VM_Atom.findOrCreateAsciiAtom("minus");
   public static final VM_Atom wordDiff                      = VM_Atom.findOrCreateAsciiAtom("diff");
   public static final VM_Atom wordEQ                        = VM_Atom.findOrCreateAsciiAtom("EQ");
   public static final VM_Atom wordNE                        = VM_Atom.findOrCreateAsciiAtom("NE");

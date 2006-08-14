@@ -19,10 +19,10 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple non-concurrent reference counting
  * collector.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
 public class RC extends RCBase implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
   static final boolean INLINE_WRITE_BARRIER = WITH_COALESCING_RC;
@@ -39,7 +39,7 @@ public class RC extends RCBase implements Uninterruptible {
   public static final int ALLOC_RC = ALLOC_DEFAULT;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -87,7 +87,7 @@ public class RC extends RCBase implements Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Space management
    */
 
@@ -108,7 +108,7 @@ public class RC extends RCBase implements Uninterruptible {
    * of this method must code as though the method is interruptible.
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
-   *
+   * 
    * @see org.mmtk.policy.Space#acquire(int)
    * @param mustCollect if <code>true</code> then a collection is
    * required and must be triggered.  Otherwise a collection is only
@@ -118,7 +118,7 @@ public class RC extends RCBase implements Uninterruptible {
    * @return True if a collection has been triggered
    */
   public final boolean poll(boolean mustCollect, Space space)
-    throws LogicallyUninterruptiblePragma {
+      throws LogicallyUninterruptiblePragma {
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     if (mustCollect || getPagesReserved() > getTotalPages() ||
         (progress &&

@@ -377,8 +377,9 @@ public final class VM_BuildBB
         } else {
           // nothing more to do
         }
+		  break;
       }
-       
+		  
       case JBC_athrow:
         {
           lastInstrType = BRANCH;

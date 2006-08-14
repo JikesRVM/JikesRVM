@@ -121,7 +121,7 @@ public class VM_Reflection implements VM_Constants {
 
     if (returnType.isBooleanType()) {
       int x = VM_Magic.invokeMethodReturningInt(code, GPRs, FPRs, Spills);
-      return new Boolean(x == 1);
+      return Boolean.valueOf(x == 1);
     }
 
     if (returnType.isByteType()) {
@@ -165,7 +165,7 @@ public class VM_Reflection implements VM_Constants {
 
   // Method parameter wrappers.
   // 
-  public static Object wrapBoolean(int b) throws NoInlinePragma     { return new Boolean(b==1); }
+  public static Object wrapBoolean(int b) throws NoInlinePragma     { return Boolean.valueOf(b==1); }
   public static Object wrapByte(byte b) throws NoInlinePragma       { return new Byte(b);       }
   public static Object wrapChar(char c) throws NoInlinePragma       { return new Character(c);  }
   public static Object wrapShort(short s) throws NoInlinePragma     { return new Short(s);      }

@@ -13,13 +13,13 @@ import org.vmmagic.pragma.*;
 
 /**
  * GCTrace constants.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */

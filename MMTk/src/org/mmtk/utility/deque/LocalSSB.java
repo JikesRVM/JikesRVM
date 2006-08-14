@@ -36,23 +36,23 @@ import org.vmmagic.unboxed.*;
  * arity) are packed to the low end of the buffer.  Thus buffer
  * overflows on inserts and pops (underflow actually) will always arise
  * when then cursor is buffer-size aligned.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 class LocalSSB extends Deque implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
@@ -73,18 +73,18 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
       tailBufferEnd = Deque.TAIL_INITIAL_VALUE;
     }
   }
- 
+
   public void reset() {
     resetLocal();
   }
 
  /****************************************************************************
-   *
+   * 
    * Protected instance methods and fields
    */
-  protected Address tail;            // the location in the buffer
-  protected Address tailBufferEnd;   // the end of the buffer
-  protected SharedDeque queue;          // the shared queue
+  protected Address tail; // the location in the buffer
+  protected Address tailBufferEnd; // the end of the buffer
+  protected SharedDeque queue; // the shared queue
 
   /**
    * Reset the local buffer (throwing away any local entries).
@@ -112,14 +112,14 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * Insert a value into the buffer.  This is <i>unchecked</i>.  The
    * caller must first call <code>checkInsert()</code> to ensure the
    * buffer can accommodate the insertion.
-   *
+   * 
    * @param value the value to be inserted.
    */
   protected final void uncheckedTailInsert(Address value) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
-    tail = tail.sub(BYTES_IN_ADDRESS);
+    tail = tail.minus(BYTES_IN_ADDRESS);
     tail.store(value);
-    //    if (VM_Interface.VerifyAssertions) enqueued++;
+    // if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
   /**
@@ -137,11 +137,11 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
   protected final Address normalizeTail(int arity) {
     Address src = tail;
     Address tgt = bufferFirst(tail);
-    Address last = tgt.add(bufferLastOffset(arity).sub(bufferOffset(tail)));
-    while(tgt.LE(last)) {
+    Address last = tgt.plus(bufferLastOffset(arity).minus(bufferOffset(tail)));
+    while (tgt.LE(last)) {
       tgt.store(src.loadAddress());
-      src = src.add(BYTES_IN_ADDRESS);
-      tgt = tgt.add(BYTES_IN_ADDRESS);
+      src = src.plus(BYTES_IN_ADDRESS);
+      tgt = tgt.plus(BYTES_IN_ADDRESS);
     }
     return last;
   }
@@ -149,23 +149,23 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
   /**
    * Return the sentinel offset for a buffer of a given arity.  This is used
    * both to compute the address at the end of the buffer.
-   *
+   * 
    * @param arity The arity of this buffer
    * @return The sentinel offset value for a buffer of the given arity.
    */
   protected final Offset bufferSentinel(int arity) throws InlinePragma {
-    return bufferLastOffset(arity).add(BYTES_IN_ADDRESS);
+    return bufferLastOffset(arity).plus(BYTES_IN_ADDRESS);
   }
 
   /****************************************************************************
-   *
+   * 
    * Private instance methods
    */
 
   /**
    * Buffer space has been exhausted, allocate a new buffer and enqueue
    * the existing buffer (if any).
-   *
+   * 
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void tailOverflow(int arity) {
@@ -173,7 +173,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
     if (tail.NE(Deque.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }
-    tail = queue.alloc().add(bufferSentinel(arity));
+    tail = queue.alloc().plus(bufferSentinel(arity));
     tailBufferEnd = tail;
     Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
@@ -181,7 +181,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
   /**
    * Close the tail buffer (normalizing if necessary), and enqueue it
    * at the tail of the shared buffer queue.
-   *
+   * 
    *  @param arity The arity of this buffer.
    */
   private final void closeAndEnqueueTail(int arity) throws NoInlinePragma {
@@ -191,8 +191,17 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
       last = normalizeTail(arity);
     } else {
       // a full tail buffer
-      last = tail.add(bufferLastOffset(arity));
+      last = tail.plus(bufferLastOffset(arity));
     }
-    queue.enqueue(last.add(BYTES_IN_ADDRESS), arity, true);
+    queue.enqueue(last.plus(BYTES_IN_ADDRESS), arity, true);
+  }
+  
+  /**
+   * Return true if this SSB is locally empty
+   * 
+   * @return true if this SSB is locally empty
+   */
+  public final boolean isFlushed() {
+    return tail.EQ(Deque.TAIL_INITIAL_VALUE);
   }
 }

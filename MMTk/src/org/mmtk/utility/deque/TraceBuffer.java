@@ -15,17 +15,17 @@ import org.vmmagic.unboxed.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of tracing data
  * and bulk processing of the buffer.
- *
+ * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class TraceBuffer extends LocalQueue 
   implements Constants, TracingConstants, Uninterruptible {
   public final static String Id = "$Id$"; 
- 
+
   /***********************************************************************
-   *
+   * 
    * Class based constants
    */
   private static final Word TRACE_NEW_RECORD = Word.fromInt(3);
@@ -43,19 +43,19 @@ public class TraceBuffer extends LocalQueue
   private static final Word TRACE_BOOT_ALLOC_SIZE = Word.fromInt(18);
 
   /***********************************************************************
-   *
+   * 
    * Instance fields
    */
   private SortSharedDeque tracePool;
 
   /***********************************************************************
-   *
+   * 
    * Public methods
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param pool The shared queue to which this queue will append its
    * buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
@@ -66,7 +66,7 @@ public class TraceBuffer extends LocalQueue
 
   /**
    * Push word onto the tracing queue.
-   *
+   * 
    * @param i The data to be pushed onto the tracing queue
    */
   public final void push(Word i) throws InlinePragma {
@@ -82,13 +82,13 @@ public class TraceBuffer extends LocalQueue
     int entriesNotFlushed = 0;
     /* First we must flush any remaining data */
     Log.writeln();
-    
+
     /* Process through the entire buffer. */
     while (checkDequeue(1)) {
       /* For speed and efficiency, we will actually process the data buffer by 
          buffer and not by dequeue-ing each entry. */
       while (!bufferOffset(head).isZero()) {
-        head = head.sub(BYTES_IN_ADDRESS);
+        head = head.minus(BYTES_IN_ADDRESS);
         Word val = head.loadWord();
         if (traceState.EQ(TRACE_NEW_RECORD)) {
           if (val.EQ(TRACE_GCSTART)) {
@@ -105,13 +105,13 @@ public class TraceBuffer extends LocalQueue
         } else {
           if (traceState.EQ(TRACE_EXACT_ALLOC) ||
               traceState.EQ(TRACE_ALLOC)) {
-            Log.write( (traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
+            Log.write((traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
             Log.write(' ');
             Log.write(val);
             traceState = TRACE_ALLOC_SIZE;
           } else if (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC) ||
                      traceState.EQ(TRACE_IMMORTAL_ALLOC)) {
-            Log.write( (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
+            Log.write((traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
             Log.write(' ');
             Log.write(val);
             traceState = TRACE_ALLOC_SIZE;

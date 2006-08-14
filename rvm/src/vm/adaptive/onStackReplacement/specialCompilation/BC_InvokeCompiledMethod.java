@@ -67,7 +67,6 @@ public class BC_InvokeCompiledMethod extends OSR_PseudoBytecode {
 
   public String toString() {
     VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-    VM_Method m = cm.getMethod();
     return "InvokeCompiledMethod (0x"+Integer.toHexString(cmid)+") "+"@"+origIdx;
   }
 }

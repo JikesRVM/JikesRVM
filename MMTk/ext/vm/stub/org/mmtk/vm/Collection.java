@@ -6,53 +6,54 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.plan.PlanLocal;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.MutatorContext;
 
 /**
- * $Id$ 
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * $Id$
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
 public class Collection {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
-  /** 
-   * An unknown GC trigger reason.  Signals a logic bug. 
-   */ 
-  public static final int UNKNOWN_GC_TRIGGER = 0;  
-  
-  /** 
-   * Externally triggered garbage collection (eg call to System.gc()) 
+  /**
+   * An unknown GC trigger reason. Signals a logic bug.
+   */
+  public static final int UNKNOWN_GC_TRIGGER = 0;
+
+  /**
+   * Externally triggered garbage collection (eg call to System.gc())
    */
   public static final int EXTERNAL_GC_TRIGGER = 1;
-  
-  /** 
+
+  /**
    * Resource triggered garbage collection.  For example, an
    * allocation request would take the number of pages in use beyond
    * the number available. 
    */
   public static final int RESOURCE_GC_TRIGGER = 2;
-  
+
   /**
    * Internally triggered garbage collection.  For example, the memory
    * manager attempting another collection after the first failed to
    * free space.
    */
   public static final int INTERNAL_GC_TRIGGER = 3;
-  
-  /** 
-   * The number of garbage collection trigger reasons. 
+
+  /**
+   * The number of garbage collection trigger reasons.
    */
   public static final int TRIGGER_REASONS = 4;
-  
+
   /** Short descriptions of the garbage collection trigger reasons. */
   private static final String[] triggerReasons = {
     "unknown",
@@ -72,18 +73,18 @@ public class Collection {
 
   /**
    * Triggers a collection.
-   *
+   * 
    * @param why the reason why a collection was triggered.  0 to
-   * <code>TRIGGER_REASONS - 1</code>.
+   *          <code>TRIGGER_REASONS - 1</code>.
    */
   public static final void triggerCollection(int why) {}
 
   /**
-   * Triggers a collection without allowing for a thread switch.  This is needed
-   * for Merlin lifetime analysis used by trace generation 
-   *
+   * Triggers a collection without allowing for a thread switch. This is needed
+   * for Merlin lifetime analysis used by trace generation
+   * 
    * @param why the reason why a collection was triggered.  0 to
-   * <code>TRIGGER_REASONS - 1</code>.
+   *          <code>TRIGGER_REASONS - 1</code>.
    */
   public static final void triggerCollectionNow(int why) {}
 
@@ -98,44 +99,26 @@ public class Collection {
    * used to ensure a GC is not in the process of completing, to
    * avoid, for example, an async GC being triggered on the switch
    * from GC to mutator thread before all GC threads have switched.
-   *
+   * 
    * @return True if GC is not in progress.
    */
- public static final boolean noThreadsInGC() {
-   return false; 
- }
-
-  /**
-   * Checks whether a plan instance is eligible to participate in a
-   * collection.
-   *
-   * @param plan the plan to check
-   * @return <code>true</code> if the plan is not participating,
-   * <code>false</code> otherwise
-   */
-  public static boolean isNonParticipating(PlanLocal plan) {
-    return false;  
+  public static final boolean noThreadsInGC() {
+    return false;
   }
 
   /**
-   * Prepare a plan that is not participating in a collection.
-   *
-   * In JikesRVM, these are the collector threads of processors 
-   * currently running threads off in JNI-land.
+   * Prepare a mutator for collection.
    * 
-   * @param p the plan to prepare
+   * @param m the mutator to prepare
    */
-  public static void prepareNonParticipating(PlanLocal p) {}
+  public static void prepareMutator(MutatorContext m) {}
 
   /**
-   * Prepare a local plan instance for collection.  
-   * 
-   * Ok JikesRVM, this sets a collector thread's so that a 
-   * scan of its stack will start at VM_CollectorThread.run
+   * Prepare a collector for a collection.
    *
-   * @param p the plan to prepare
+   * @param c the collector to prepare
    */
-  public static void prepareParticipating (PlanLocal p) {}
+  public static void prepareCollector(CollectorContext c) {}
 
   /**
    * Rendezvous with all other processors, returning the rank
@@ -146,10 +129,10 @@ public class Collection {
   }
 
   /***********************************************************************
-   *
+   * 
    * Finalizers
    */
-  
+
   /**
    * Schedule the finalizerThread, if there are objects to be
    * finalized and the finalizerThread is on its queue (ie. currently

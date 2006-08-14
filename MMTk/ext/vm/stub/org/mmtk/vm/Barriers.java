@@ -9,11 +9,11 @@ package org.mmtk.vm;
 import org.vmmagic.unboxed.*;
 
 /**
- * $Id$ 
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * $Id$
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
@@ -32,7 +32,7 @@ public class Barriers {
 
   /**
    * Perform the actual write of the write barrier.
-   *
+   * 
    * @param ref The object that has the reference field
    * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
@@ -40,7 +40,7 @@ public class Barriers {
    * @param locationMetadata An index of the FieldReference (metaDataB)
    * @param mode The context in which the write is occuring
    */
-  public static void performWriteInBarrier(ObjectReference ref, Address slot, 
+  public static void performWriteInBarrier(ObjectReference ref, Address slot,
                                            ObjectReference target, Offset offset, 
                                            int locationMetadata, int mode) {}
 
@@ -59,62 +59,62 @@ public class Barriers {
   public static ObjectReference performWriteInBarrierAtomic(
                                            ObjectReference ref, Address slot,
                                            ObjectReference target, Offset offset,
-                                           int locationMetadata, int mode) {
+      int locationMetadata, int mode) {
     return null;
   }
 
   /**
    * Gets an element of a char array without invoking any read barrier
    * or performing bounds check.
-   *
+   * 
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
    */
-  public static char getArrayNoBarrier(char [] src, int index) {
-    return (char)0;
+  public static char getArrayNoBarrier(char[] src, int index) {
+    return (char) 0;
   }
 
   /**
    * Gets an element of a byte array without invoking any read barrier
    * or bounds check.
-   *
+   * 
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
    */
-  public static byte getArrayNoBarrier(byte [] src, int index) {
-    return (byte)0;
+  public static byte getArrayNoBarrier(byte[] src, int index) {
+    return (byte) 0;
   }
 
   /**
    * Gets an element of an int array without invoking any read barrier
    * or performing bounds checks.
-   *
+   * 
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
    */
-  public static int getArrayNoBarrier(int [] src, int index) {
+  public static int getArrayNoBarrier(int[] src, int index) {
     return 0;
   }
 
   /**
    * Gets an element of an Object array without invoking any read
    * barrier or performing bounds checks.
-   *
+   * 
    * @param src the source array
    * @param index the natural array index of the element to get
    * @return the new value of element
    */
-  public static Object getArrayNoBarrier(Object [] src, int index) {
+  public static Object getArrayNoBarrier(Object[] src, int index) {
     return null;
   }
 
   /**
    * Gets an element of an array of byte arrays without causing the potential
    * thread switch point that array accesses normally cause.
-   *
+   * 
    * @param src the source array
    * @param index the index of the element to get
    * @return the new value of element

@@ -175,7 +175,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
         VM.sysWrite(method);
         VM.sysWriteln();
         VM.sysWriteln("\tcode for this method starts at ", instructionStart);
-        VM.sysWriteln("\t and has last valid return address of ", instructionStart.add(max));
+        VM.sysWriteln("\t and has last valid return address of ", instructionStart.plus(max));
         VM.sysWriteln("The requested instruction address was ", ip);
         VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ip);
         if (realCM == null) {
@@ -203,7 +203,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    */
   public final Address getInstructionAddress(Offset offset) throws UninterruptiblePragma {
     Address startAddress = VM_Magic.objectAsAddress(instructions);
-    return startAddress.add(offset);
+    return startAddress.plus(offset);
   }
 
   /**
@@ -222,7 +222,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    */
   public final boolean containsReturnAddress(Address ip) throws UninterruptiblePragma {
     Address beg = VM_Magic.objectAsAddress(instructions);
-    Address end = beg.add(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
+    Address end = beg.plus(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
 
     // note that "ip" points to a return site (not a call site)
     // so the range check here must be "ip <= beg || ip >  end"
@@ -370,7 +370,6 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
    * @param dynamicLink place to put return information
    * @param instructionOffset offset of machine instruction from start of 
    * this method, in bytes
-   * @return nothing (return information is filled in)
    *
    * Notes: 
    * <ul>

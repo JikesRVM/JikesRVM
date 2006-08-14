@@ -11,15 +11,15 @@ package org.vmmagic.unboxed;
  */
 final public class ExtentArray {
 
-  public static ExtentArray create (int size) {
+  public static ExtentArray create(int size) {
     return null;
   }
 
-  public Extent get (int index) {
+  public Extent get(int index) {
     return null;
   }
 
-  public void set (int index, Extent v) {
+  public void set(int index, Extent v) {
   }
 
   public int length() {

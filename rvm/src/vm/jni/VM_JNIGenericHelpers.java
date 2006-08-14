@@ -31,7 +31,7 @@ abstract class VM_JNIGenericHelpers {
   static byte[] createByteArrayFromC(Address stringAddress) {
     // scan the memory for the null termination of the string
     int length = 0;
-    for (Address addr = stringAddress; true; addr = addr.add(4)) {
+    for (Address addr = stringAddress; true; addr = addr.plus(4)) {
       int word = addr.loadInt();
       int byte0, byte1, byte2, byte3;
       if (VM.LittleEndian) {

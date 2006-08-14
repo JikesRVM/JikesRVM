@@ -6,9 +6,9 @@ package org.mmtk.utility.options;
 
 /**
  * Should we ignore calls to java.lang.System.gc?
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -20,6 +20,6 @@ public class IgnoreSystemGC extends BooleanOption {
   public IgnoreSystemGC() {
     super("Ignore System GC",
           "Should we ignore calls to java.lang.System.gc?",
-          false);
+        false);
   }
 }

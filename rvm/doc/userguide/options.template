@@ -17,10 +17,6 @@ $$$$ END IF
 $$$$ IF OPTION_TYPE == "OPTIMIZE"
 OPTPREFIX[:help]		Print brief description of opt compiler's command-line arguments
 OPTPREFIX:printOptions		Print the current values of the active opt compiler options
-OPTPREFIX:O0			Select optimization level 0, minimal optimizations
-OPTPREFIX:O1			Select optimization level 1, modest optimizations
-OPTPREFIX:O2			Select optimization level 2
-OPTPREFIX:O3			Select optimization level 3
 $$$$ END IF
 $$$$ IF OPTION_TYPE == "ADAPTIVE"
 OPTPREFIX[:help]        Print a brief description of AOS command-line options

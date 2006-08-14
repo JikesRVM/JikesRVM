@@ -6,9 +6,9 @@ package org.mmtk.utility.options;
 
 /**
  * Provide a bound on how much metadata is allowed before a GC is triggered.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$

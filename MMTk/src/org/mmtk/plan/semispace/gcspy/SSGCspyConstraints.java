@@ -9,15 +9,15 @@ import org.vmmagic.pragma.*;
 
 /**
  * Semi space GCspy constants.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
@@ -25,6 +25,6 @@ public class SSGCspyConstraints extends SSConstraints
   implements Uninterruptible {
 
   public boolean needsLinearScan() { return true; }
-  
+
   public boolean withGCspy() { return true; }
 }

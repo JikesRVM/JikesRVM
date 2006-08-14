@@ -8,6 +8,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.generational.*;
 import org.mmtk.plan.Trace;
+import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 
@@ -40,10 +41,10 @@ import org.vmmagic.pragma.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -52,12 +53,12 @@ import org.vmmagic.pragma.*;
 public class GenCopy extends Gen implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
   // GC state
-  static boolean hi = false; // True if copying to "higher" semispace 
+  static boolean hi = false; // True if copying to "higher" semispace
 
   /**
    * The low half of the copying mature space.  We allocate into this space
@@ -65,7 +66,7 @@ public class GenCopy extends Gen implements Uninterruptible {
    */
   static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.25, false);
   static final int MS0 = matureSpace0.getDescriptor();
-  
+
   /**
    * The high half of the copying mature space. We allocate into this space
    * when <code>hi</code> is <code>true</code>.
@@ -79,15 +80,19 @@ public class GenCopy extends Gen implements Uninterruptible {
    * Instance fields
    */
   final Trace matureTrace;
-  
+
   /**
    * Constructor
    */
   public GenCopy() {
     super();
+    if (Assert.VERIFY_ASSERTIONS) {
+      // Not supported for GenCopy
+      Assert._assert(!IGNORE_REMSETS);
+    }
     matureTrace = new Trace(metaDataSpace);
   }
-  
+
   /**
    * @return Does the mature space do copying ?
    */
@@ -95,33 +100,33 @@ public class GenCopy extends Gen implements Uninterruptible {
     return true;
   }
 
-  /** 
-   * @return The semispace we are currently allocating into 
+  /**
+   * @return The semispace we are currently allocating into
    */
-  static final CopySpace toSpace() { 
-    return hi ? matureSpace1 : matureSpace0; 
+  static final CopySpace toSpace() {
+    return hi ? matureSpace1 : matureSpace0;
   }
-  
+
   /**
    * @return Space descriptor for to-space.
    */
   static final int toSpaceDesc() { return hi ? MS1 : MS0; }
-  
-  /** 
+
+  /**
    * @return The semispace we are currently copying from 
    * (or copied from at last major GC) 
    */
-  static final CopySpace fromSpace() { 
-    return hi ? matureSpace0 : matureSpace1; 
+  static final CopySpace fromSpace() {
+    return hi ? matureSpace0 : matureSpace1;
   }
-  
+
   /**
    * @return Space descriptor for from-space
    */
   static final int fromSpaceDesc() { return hi ? MS0 : MS1; }
-  
+
   /****************************************************************************
-   *
+   * 
    * Collection
    */
 
@@ -131,10 +136,10 @@ public class GenCopy extends Gen implements Uninterruptible {
    * @param phaseId Collection phase to process
    */
   public void collectionPhase(int phaseId) throws InlinePragma {
-    if (collectMatureSpace()) {
+    if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
-        hi = !hi;         // flip the semi-spaces
+        hi = !hi; // flip the semi-spaces
         matureSpace0.prepare(hi);
         matureSpace1.prepare(!hi);
         matureTrace.prepare();
@@ -149,16 +154,16 @@ public class GenCopy extends Gen implements Uninterruptible {
     }
     super.collectionPhase(phaseId);
   }
-  
+
   /*****************************************************************************
    * 
    * Accounting
    */
- 
+
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -167,9 +172,9 @@ public class GenCopy extends Gen implements Uninterruptible {
   }
 
   /**
-   * Return the number of pages reserved for copying.  
-   *
-   * @return the number of pages reserved for copying.  
+   * Return the number of pages reserved for copying.
+   * 
+   * @return the number of pages reserved for copying.
    */
   public final int getCopyReserve() {
     // we must account for the number of pages required for copying,
@@ -180,11 +185,11 @@ public class GenCopy extends Gen implements Uninterruptible {
   /**************************************************************************
    * Miscellaneous methods
    */
-  
+
   /**
    * @return The mature space we are currently allocating into
    */
-  public Space activeMatureSpace() throws InlinePragma { 
-    return toSpace(); 
+  public Space activeMatureSpace() throws InlinePragma {
+    return toSpace();
   }
 }

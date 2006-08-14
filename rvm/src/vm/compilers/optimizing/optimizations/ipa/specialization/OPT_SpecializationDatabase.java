@@ -6,7 +6,9 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
-import  java.util.*;
+import com.ibm.JikesRVM.util.*;
+
+import java.util.Iterator;
 
 /**
  * Database to store multiple specialized versions for a given method.
@@ -34,7 +36,7 @@ public final class OPT_SpecializationDatabase {
     if (specializationInProgress)
       return;
     specializationInProgress = true;
-    java.util.Iterator methods = deferredMethods.iterator();
+    Iterator methods = deferredMethods.iterator();
     while (methods.hasNext()) {
       OPT_SpecializedMethod m = (OPT_SpecializedMethod)methods.next();
       if (m.getCompiledMethod() == null) {
@@ -50,7 +52,7 @@ public final class OPT_SpecializationDatabase {
     specializationInProgress = false;
   }
   private static boolean specializationInProgress;
-  private static java.util.HashSet deferredMethods = new java.util.HashSet();
+  private static VM_HashSet deferredMethods = new VM_HashSet();
 
   // write the new compiled method in the specialized method pool
   private static void registerCompiledMethod(OPT_SpecializedMethod m) {
@@ -62,7 +64,7 @@ public final class OPT_SpecializationDatabase {
    * specialied compiled versions of the method pointed by VM_Method
    * @return null if no specialized versions
    */
-  static java.util.Iterator getSpecialVersions(VM_Method m) {
+  static Iterator getSpecialVersions(VM_Method m) {
     MethodSet s = (MethodSet)specialVersionsHash.get(m);
     if (s == null) {
       return  null;
@@ -73,7 +75,7 @@ public final class OPT_SpecializationDatabase {
   }
 
   static int getSpecialVersionCount(VM_Method m) {
-    java.util.Iterator versions = getSpecialVersions(m);
+    Iterator versions = getSpecialVersions(m);
     int count = 0;
     if (versions != null) {
       while (versions.hasNext() && (versions.next() != null)) {
@@ -94,13 +96,13 @@ public final class OPT_SpecializationDatabase {
     s.add(spMethod);
     deferredMethods.add(spMethod);
   }
-  private static java.util.HashMap specialVersionsHash = new java.util.HashMap();
+  private static VM_HashMap specialVersionsHash = new VM_HashMap();
 
   /**
    * Look up the MethodSet corresponding to a given key in the database
    * If none found, create one.
    */
-  private static MethodSet findOrCreateMethodSet(java.util.HashMap hash, Object key) {
+  private static MethodSet findOrCreateMethodSet(VM_HashMap hash, Object key) {
     MethodSet result = (MethodSet)hash.get(key);
     if (result == null) {
       result = new MethodSet(key);
@@ -118,7 +120,7 @@ public final class OPT_SpecializationDatabase {
     /**
      * a set of OPT_SpecializedMethod
      */
-    java.util.HashSet methods = new java.util.HashSet();
+    VM_HashSet methods = new VM_HashSet();
 
     MethodSet(Object key) {
       this.key = key;
@@ -128,7 +130,7 @@ public final class OPT_SpecializationDatabase {
       methods.add(spMethod);
     }
 
-    public java.util.Iterator iterator() {
+    public Iterator iterator() {
       return  methods.iterator();
     }
   }

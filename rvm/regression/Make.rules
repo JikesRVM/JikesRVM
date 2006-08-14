@@ -47,7 +47,7 @@ ALL_PATH = $(BENCH_SOURCE_PATH) \
 
 ALL_CP = $(shell echo $(strip $(ALL_PATH)) | sed s/\ /:/g)
 
-%.class:		%.java $(WORKING)/cp
+%.class:		%.java $(WORKING)/cp 
 	$(HOST_JAVAC) -d $(WORKING)/cp -classpath $(ALL_CP) $<
 
 #
@@ -90,22 +90,29 @@ endif
 endif
 OUT=$(WORKING)/out.$(START_NAME)$(EXT)$(SUFFIX)
 
-bench-rvm:			$(START_CLASS) $(WORKING)
-	@echo 
-	@echo "Running $(START_NAME) with ..."
-	@echo "   $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS)"
+bench-rvm-internal: 
+	@sync
 	@cd $(WORKING); $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2>&1 \
 		| tee $(OUT).raw \
 		| tr '\000' ' ' \
 		| $(AWK) -f $(JAL_ROOT)/rvm/regression/RVMJunkFilter.awk \
 			> $(OUT)
 
+bench-rvm:			$(START_CLASS) $(WORKING) 
+	@echo 
+	@echo "Running $(START_NAME) with limit of $(TIME_LIMIT) seconds..."
+	@echo "   $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS)"
+	@$(RVM_ROOT)/rvm/regression/limited.bash $(TIME_LIMIT) $(GNU_MAKE) bench-rvm-internal
+
+
+bench-jdk-internal:
+	@cd $(WORKING); $(HOST_VM_RT) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) > $(OUT) 2>&1
+
+
 bench-jdk:			$(START_CLASS) $(WORKING)
 	@echo
 	@echo "(Running $(START_NAME) on JDK for comparison)"
-	@cd $(WORKING); $(HOST_VM_RT) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) \
-		> $(OUT) 2>&1
-
+	@$(RVM_ROOT)/rvm/regression/limited.bash $(TIME_LIMIT) $(GNU_MAKE) bench-jdk-internal
 
 bench:
 	$(MAKE) bench-$(JVM)

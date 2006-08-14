@@ -26,7 +26,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   /**
    * Baseline exception deliverer object
    */
-  private static VM_ExceptionDeliverer exceptionDeliverer = new VM_BaselineExceptionDeliverer();
+  private static final VM_ExceptionDeliverer exceptionDeliverer = new VM_BaselineExceptionDeliverer();
 
   /**
    * Stack-slot reference maps for the compiled method.
@@ -141,7 +141,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
         deltaIns = (b3 << 8) | b4;
       }
       bcIndex += deltaBC;
-      instrIndex = instrIndex.add(deltaIns);
+      instrIndex = instrIndex.plus(deltaIns);
       if (instrIndex.sGE(instructionIndex))
         break;
       candidateIndex = bcIndex;
@@ -229,10 +229,6 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   //        bytecode-index to machine-instruction-index map for method
   //        number of instructions for method
   //
-    static int counter = 0;
-    static int goodCount = 0;
-    static int badBCCount = 0;
-        static int badInsCount = 0;
   public void encodeMappingInfo(VM_ReferenceMaps referenceMaps, 
                                 int[] bcMap, int numInstructions) {
     int count = 0;

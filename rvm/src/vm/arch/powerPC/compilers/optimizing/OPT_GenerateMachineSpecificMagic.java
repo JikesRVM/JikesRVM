@@ -107,6 +107,14 @@ class OPT_GenerateMachineSpecificMagic
         bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
     } else if (methodName == VM_MagicNames.dcbst) {
       bc2ir.appendInstruction(CacheOp.create(DCBST, bc2ir.popInt()));
+    } else if (methodName == VM_MagicNames.dcbt) {
+      bc2ir.appendInstruction(CacheOp.create(DCBT, bc2ir.popInt()));
+    } else if (methodName == VM_MagicNames.dcbtst) {
+      bc2ir.appendInstruction(CacheOp.create(DCBTST, bc2ir.popInt()));
+    } else if (methodName == VM_MagicNames.dcbz) {
+      bc2ir.appendInstruction(CacheOp.create(DCBZ, bc2ir.popInt()));
+    } else if (methodName == VM_MagicNames.dcbzl) {
+      bc2ir.appendInstruction(CacheOp.create(DCBZL, bc2ir.popInt()));
     } else if (methodName == VM_MagicNames.icbi) {
       bc2ir.appendInstruction(CacheOp.create(ICBI, bc2ir.popInt()));
     } else {

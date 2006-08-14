@@ -14,7 +14,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements the global state of a simple mark-sweep collector.
- *
+ * 
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
  * into separate class hierarchies.  Global activities must be
@@ -29,10 +29,10 @@ import org.vmmagic.pragma.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -43,7 +43,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
   /****************************************************************************
    * Constants
    */
-  public static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_BYTES_IN_PAGE; // 1M
+  public static final int MS_PAGE_RESERVE = (512 << 10) >>> LOG_BYTES_IN_PAGE; // 1M
   public static final double MS_RESERVE_FRACTION = 0.1;
 
 
@@ -66,7 +66,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
 
   /**
    * Constructor.
-   *
+   * 
    */
   public MS() {
     msTrace = new Trace(metaDataSpace);
@@ -81,14 +81,14 @@ public class MS extends StopTheWorld implements Uninterruptible {
   }
 
   /*****************************************************************************
-   *
+   * 
    * Collection
    */
 
 
   /**
    * Perform a (global) collection phase.
-   *
+   * 
    * @param phaseId Collection phase to execute.
    */
   public final void collectionPhase(int phaseId) throws InlinePragma {
@@ -106,7 +106,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
 
       progress = (available > availablePreGC) && 
                  (available > getExceptionReserve());
-      
+
       if (progress) {
         msReservedPages = (int) (available * MS_RESERVE_FRACTION);
         int threshold = 2 * getExceptionReserve();
@@ -114,7 +114,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
         if (msReservedPages < threshold)
           msReservedPages = threshold;
       } else {
-        msReservedPages = msReservedPages/2;
+        msReservedPages = msReservedPages / 2;
       }
 
       super.collectionPhase(phaseId);
@@ -126,15 +126,15 @@ public class MS extends StopTheWorld implements Uninterruptible {
 
   /**
    * Poll for a collection
-   *
+   * 
    * @param mustCollect Force a collection.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   public final boolean poll(boolean mustCollect, Space space)
-    throws LogicallyUninterruptiblePragma {
+      throws LogicallyUninterruptiblePragma {
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace) {
-          return false;
+      return false;
     }
     mustCollect |= stressTestGCRequired() || MarkSweepLocal.mustCollect();
     availablePreGC = getTotalPages() - getPagesReserved();
@@ -149,7 +149,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
   }
 
   /*****************************************************************************
-   *
+   * 
    * Accounting
    */
 
@@ -157,7 +157,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
    * Return the number of pages reserved for use given the pending
    * allocation.  The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */

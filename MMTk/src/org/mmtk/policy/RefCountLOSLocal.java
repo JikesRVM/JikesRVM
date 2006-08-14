@@ -12,8 +12,8 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -21,13 +21,13 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
   implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
-   public RefCountLOSLocal(LargeObjectSpace space) {
-     super(space);
-     Assert._assert(false);
+  public RefCountLOSLocal(LargeObjectSpace space) {
+    super(space);
+    Assert._assert(false);
   }
 
   /****************************************************************************
-   *
+   * 
    * Allocation
    */
 
@@ -36,20 +36,20 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
    *  reused, this will be called each time it is reused in the
    *  lifetime of the cell, by contrast to initializeCell, which is
    *  called exactly once.).
-   *
+   * 
    * @param cell The newly allocated cell
    */
   protected final void postAlloc(Address cell) throws InlinePragma {};
 
   /****************************************************************************
-   *
+   * 
    * Miscellaneous size-related methods
    */
   /**
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header
    * size.
-   *
+   * 
    * @return The size of the per-superpage header required by this
    * system.
    */
@@ -61,7 +61,7 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
   /**
    * Return the size of the per-cell header for cells of a given class
    * size.
-   *
+   * 
    * @return The size of the per-cell header for cells of a given class
    * size.
    */

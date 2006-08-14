@@ -22,9 +22,9 @@ import org.mmtk.vm.Options;
  * "No Finalizer" to noFinalizer. The VM may not remove any letters
  * when performing this mapping but may remove spaces and change
  * the case of any character.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -44,18 +44,18 @@ public abstract class Option {
   }
 
   // Option types
-  public static final int BOOLEAN_OPTION      = 1;
-  public static final int STRING_OPTION       = 2;
-  public static final int ENUM_OPTION         = 3;
-  public static final int INT_OPTION          = 4;
-  public static final int PAGES_OPTION        = 6;
+  public static final int BOOLEAN_OPTION = 1;
+  public static final int STRING_OPTION = 2;
+  public static final int ENUM_OPTION = 3;
+  public static final int INT_OPTION = 4;
+  public static final int PAGES_OPTION = 6;
   public static final int MICROSECONDS_OPTION = 7;
-  public static final int FLOAT_OPTION        = 8;
+  public static final int FLOAT_OPTION = 8;
 
   /**
    * Using the VM determined key, look up the corresponding option,
    * or return null if an option can not be found.
-   *
+   * 
    * @param key The (unique) option key.
    * @return The option, or null.
    */
@@ -73,7 +73,7 @@ public abstract class Option {
   /**
    * Return the first option. This can be used with the getNext method to
    * iterate through the options.
-   *
+   * 
    * @return The first option, or null if no options exist.
    */
   public static Option getFirst() {
@@ -90,7 +90,7 @@ public abstract class Option {
   /**
    * Construct a new option. This also calls the VM to map the option's
    * name into a unique option key and links it onto the option list.
-   *
+   * 
    * @param type The option type as defined in this class.
    * @param name The unique name of the option.
    * @param description A short description of the option and purpose.
@@ -110,7 +110,7 @@ public abstract class Option {
 
   /**
    * Return the VM determined key for an option
-   *
+   * 
    * @return The key.
    */
   public String getKey() {
@@ -119,7 +119,7 @@ public abstract class Option {
 
   /**
    * Return the next option in the linked list.
-   *
+   * 
    * @return The next option or null if this is the last option.
    */
   public Option getNext() {
@@ -128,7 +128,7 @@ public abstract class Option {
 
   /**
    * Return the name for the option.
-   *
+   * 
    * @return The option name.
    */
   public String getName() {
@@ -137,7 +137,7 @@ public abstract class Option {
 
   /**
    * Return the option description.
-   *
+   * 
    * @return The option description.
    */
   public String getDescription() {
@@ -146,7 +146,7 @@ public abstract class Option {
 
   /**
    * Return the type of the option.
-   *
+   * 
    * @return The option type.
    */
   public int getType() {
@@ -164,7 +164,7 @@ public abstract class Option {
   /**
    * A fatal error occurred during the setting of an option. This method
    * calls into the VM and is required to cause the system to stop.
-   *
+   * 
    * @param message The error message associated with the failure.
    */
   protected void fail(String message) {
@@ -173,7 +173,7 @@ public abstract class Option {
 
   /**
    * Fail if a specified condition is met.
-   *
+   * 
    * @param condition The condition that indicates failure.
    * @param message The error message associated with the failure.
    */
@@ -184,7 +184,7 @@ public abstract class Option {
   /**
    * A non-fatal error occurred during the setting of an option. This method
    * calls into the VM and shall not cause the system to stop.
-   *
+   * 
    * @param message The message associated with the warning.
    */
   protected void warn(String message) {
@@ -193,7 +193,7 @@ public abstract class Option {
 
   /**
    * Warn if a specified condition is met.
-   *
+   * 
    * @param condition The condition that indicates warning.
    * @param message The message associated with the warning.
    */

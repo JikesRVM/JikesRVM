@@ -31,10 +31,10 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   //
   private static final int SAVED_GPRS = 5; 
   public static final Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
-  public static final Offset EBX_SAVE_OFFSET = EDI_SAVE_OFFSET.sub(WORDSIZE);
-  public static final Offset EBP_SAVE_OFFSET = EBX_SAVE_OFFSET.sub(WORDSIZE);
-  public static final Offset JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET.sub(WORDSIZE);
-  public static final Offset JNI_ENV_OFFSET = JNI_RETURN_ADDRESS_OFFSET.sub(WORDSIZE);
+  public static final Offset EBX_SAVE_OFFSET = EDI_SAVE_OFFSET.minus(WORDSIZE);
+  public static final Offset EBP_SAVE_OFFSET = EBX_SAVE_OFFSET.minus(WORDSIZE);
+  public static final Offset JNI_RETURN_ADDRESS_OFFSET = EBP_SAVE_OFFSET.minus(WORDSIZE);
+  public static final Offset JNI_ENV_OFFSET = JNI_RETURN_ADDRESS_OFFSET.minus(WORDSIZE);
 
   // following used in prolog & epilog for JNIFunctions
   // offset of saved offset to preceeding java frame
@@ -295,34 +295,34 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // handle the "this" parameter
     if (!method.isStatic()) {
-      asm.emitMOV_RegDisp_Reg(EBP, firstParameterOffset.add(WORDSIZE), 
+      asm.emitMOV_RegDisp_Reg(EBP, firstParameterOffset.plus(WORDSIZE), 
                               VOLATILE_GPRS[gpr]);
       gpr++;
     }
     
     for (int i=0; i<numArguments && gpr<NUM_PARAMETER_GPRS; i++) {
       if (types[i].isDoubleType()) {
-        parameterOffset=parameterOffset.sub(2*WORDSIZE);
+        parameterOffset=parameterOffset.minus(2*WORDSIZE);
         continue;
       } else if (types[i].isFloatType()) {
-        parameterOffset=parameterOffset.sub(WORDSIZE);
+        parameterOffset=parameterOffset.minus(WORDSIZE);
         continue;
       } else if (types[i].isLongType()) {
         if (gpr<NUM_PARAMETER_GPRS) {   // get the hi word
           asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
           gpr++;
-          parameterOffset=parameterOffset.sub(WORDSIZE);
+          parameterOffset=parameterOffset.minus(WORDSIZE);
         }
         if (gpr<NUM_PARAMETER_GPRS) {    // get the lo word
           asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
           gpr++;
-          parameterOffset=parameterOffset.sub(WORDSIZE);
+          parameterOffset=parameterOffset.minus(WORDSIZE);
         }
       } else {
         if (gpr<NUM_PARAMETER_GPRS) {   // all other types fit in one word
           asm.emitMOV_RegDisp_Reg(EBP, parameterOffset, VOLATILE_GPRS[gpr]);
           gpr++;
-          parameterOffset=parameterOffset.sub(WORDSIZE);
+          parameterOffset=parameterOffset.minus(WORDSIZE);
         }
       }
     }
@@ -380,7 +380,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     } else {
       // For nonstatic method, "this" pointer should be the first arg in the caller frame,
       // make it the 2nd arg in the glue frame
-      asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.add(WORDSIZE));
+      asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.plus(WORDSIZE));
       firstActualParameter = 1;
     }
 
@@ -391,7 +391,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // Kill value in ebx
     // On return, ebx contains the JREF index
     pushJNIref(asm);
-    asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE), EBX);  // store as 2nd arg
+    asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE), EBX);  // store as 2nd arg
 
     // Now fill in the rest:  copy parameters from caller frame into glue frame 
     // in reverse order for C
@@ -401,12 +401,12 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
       // for reference, substitute with a jref index
       if (types[argIndex].isReferenceType()) {
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.minus(i*WORDSIZE));
         asm.emitCMP_Reg_Imm(EBX, 0);
         VM_ForwardReference beq = asm.forwardJcc(VM_Assembler.EQ);
         pushJNIref(asm);
         beq.resolve(asm);
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), EBX);
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE*(2+ i)), EBX);
         i--;
       
       // for float and double, the first NUM_PARAMETER_FPRS args have
@@ -414,38 +414,38 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       } else if (types[argIndex].isDoubleType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 2-word arg from the FPU stack
-          asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset.add(WORDSIZE*(2+ i - 1)), FP0);    
+          asm.emitFSTP_RegDisp_Reg_Quad(EBP, emptyStackOffset.plus(WORDSIZE*(2+ i - 1)), FP0);    
         } else {
           // copy this 2-word arg from the caller frame
-          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
-          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i -1)), EBX);
-          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub((i-1)*WORDSIZE));
-          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i)), EBX);      
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.minus(i*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE*(2 + i -1)), EBX);
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.minus((i-1)*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE*(2 + i)), EBX);      
         }
         i-=2;
         fpr--;
       } else if (types[argIndex].isFloatType()) {
         if (fpr < NUM_PARAMETER_FPRS) {
           // pop this 1-word arg from the FPU stack
-          asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), FP0);
+          asm.emitFSTP_RegDisp_Reg(EBP, emptyStackOffset.plus(WORDSIZE*(2+ i)), FP0);
         } else {
           // copy this 1-word arg from the caller frame
-          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
-          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), EBX);
+          asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.minus(i*WORDSIZE));
+          asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE*(2+ i)), EBX);
         }
         i--;
         fpr--;
       } else if (types[argIndex].isLongType()) {
         //  copy other 2-word parameters: observe the high/low order when moving
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i - 1)), EBX);
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub((i-1)*WORDSIZE));
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2 + i)), EBX);
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.minus(i*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE*(2 + i - 1)), EBX);
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.minus((i-1)*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE*(2 + i)), EBX);
         i-=2;
       } else {
         // copy other 1-word parameters
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.sub(i*WORDSIZE));
-        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.add(WORDSIZE*(2+ i)), EBX);
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, firstParameterOffset.minus(i*WORDSIZE));
+        asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset.plus(WORDSIZE*(2+ i)), EBX);
         i--;
       }
     }
@@ -654,16 +654,16 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     for (int i=0; i<numArguments; i++) {
       if (types[i].isLongType() || types[i].isDoubleType()) {
         // handle 2-words case:
-        asm.emitMOV_Reg_RegDisp (EBX, EBP, argOffset.add(WORDSIZE));  
+        asm.emitMOV_Reg_RegDisp (EBX, EBP, argOffset.plus(WORDSIZE));  
         asm.emitPUSH_Reg(EBX);
         asm.emitMOV_Reg_RegDisp (EBX, EBP, argOffset);  
         asm.emitPUSH_Reg(EBX);
-        argOffset=argOffset.add(2*WORDSIZE);
+        argOffset=argOffset.plus(2*WORDSIZE);
       } else {
         // Handle 1-word case:
         asm.emitMOV_Reg_RegDisp (EBX, EBP, argOffset);  
         asm.emitPUSH_Reg(EBX);
-        argOffset=argOffset.add(WORDSIZE);
+        argOffset=argOffset.plus(WORDSIZE);
       }
     }
     

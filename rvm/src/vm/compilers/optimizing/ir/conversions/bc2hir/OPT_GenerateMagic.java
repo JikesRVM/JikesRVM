@@ -684,7 +684,7 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Extent);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == VM_MagicNames.wordAdd) {
+    } else if (methodName == VM_MagicNames.wordPlus) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
@@ -696,7 +696,7 @@ class OPT_GenerateMagic implements OPT_Operators,
         bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, o2));
       }
       bc2ir.push(op0.copyD2U());
-    } else if (methodName == VM_MagicNames.wordSub) {
+    } else if (methodName == VM_MagicNames.wordMinus) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);

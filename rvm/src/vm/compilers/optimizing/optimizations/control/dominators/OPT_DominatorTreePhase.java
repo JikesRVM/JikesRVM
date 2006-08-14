@@ -5,20 +5,21 @@
 package com.ibm.JikesRVM.opt;
 
 import  java.util.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Driver routine for dominator tree computation
  *
  * @author Michael Hind
  */
-final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
+public final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
 
   /**
    * Should this phase be performed?
    * @param options controlling compiler options
    * @return true or false
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     // only perform if the dominators were successfully computed and
     // one of the following options are set.
     return  options.SSA || options.PRINT_DOMINATORS;
@@ -28,7 +29,7 @@ final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    * Returns "Dominator Tree"
    * @return "Dominator Tree"
    */
-  final String getName() {
+  public final String getName() {
     return  "Dominator Tree";
   }
 
@@ -38,7 +39,7 @@ final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    * @param before query control
    * @return true or false.
    */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
@@ -47,7 +48,7 @@ final class OPT_DominatorTreePhase extends OPT_CompilerPhase {
    *
    * @param ir the governing IR
    */
-  final void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     // make sure the dominator computation completed successfully
     if (!ir.HIRInfo.dominatorsAreComputed)
       return;

@@ -4,13 +4,15 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.opt.ir.*;
+
 /**
  * Driver routine for post-dominator computation.  This phase invokes
  * the Lengauer-Tarjan dominator calculation.
  *
  * @author Michael Hind
  */
-final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
+public final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
 
   /**
    * Should we unfactor the CFG? 
@@ -21,7 +23,7 @@ final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
    * @param unfactor Should we unfactor the CFG before computing
    * dominators?
    */
-  OPT_PostDominatorsPhase(boolean unfactor) {
+  public OPT_PostDominatorsPhase(boolean unfactor) {
     this.unfactor = unfactor;
   }
 
@@ -31,7 +33,7 @@ final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
-  final boolean shouldPerform(OPT_Options options) {
+  public final boolean shouldPerform(OPT_Options options) {
     return true;
   }
 
@@ -39,7 +41,7 @@ final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
    * Return a string representation of this phase
    * @return "Post-Dominators"
    */
-  final String getName() {
+  public final String getName() {
     return  "Post-Dominators";
   }
 
@@ -49,14 +51,14 @@ final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
    * @param before query control
    * @return true or false
    */
-  final boolean printingEnabled(OPT_Options options, boolean before) {
+  public final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
 
   /**
    * Main driver for the post-dominator calculation.
    */
-  final void perform(OPT_IR ir) {
+  public final void perform(OPT_IR ir) {
     try {
       // reset flags in case an exception is thrown inside "perform"
       // and it doesn't return normally

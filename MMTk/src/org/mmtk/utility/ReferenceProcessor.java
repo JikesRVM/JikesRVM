@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * processed in the proper order to determine if any reference objects
  * are no longer active or whether referents that have died should be
  * kept alive.
- *
+ * 
  * Loosely based on Finalizer.java
  * 
  * To ensure that processing is efficient with generational collectors
@@ -48,8 +48,8 @@ public class ReferenceProcessor implements Uninterruptible {
   private static boolean clearSoftReferences = false;
 
   /* Debug flags */
-  private static final boolean  TRACE        = false;
-  private static final boolean  TRACE_DETAIL = false;
+  private static final boolean TRACE = false;
+  private static final boolean TRACE_DETAIL = false;
 
   /* Suppress default constructor for noninstantiability */
   private ReferenceProcessor() {
@@ -62,19 +62,57 @@ public class ReferenceProcessor implements Uninterruptible {
    * @param nursery It is safe to only collect new references 
    */
   private static void traverse(int semantics, boolean nursery)
-    throws LogicallyUninterruptiblePragma, InlinePragma {
+      throws LogicallyUninterruptiblePragma, InlinePragma {
 
     if (TRACE) {
       Log.write("Starting ReferenceProcessor.traverse(");
       Log.write(semanticStrings[semantics]);
       Log.writeln(")");
     }
-    
+
     ReferenceGlue.scanReferences(semantics, nursery);
 
     if (TRACE) {
       Log.writeln("Ending ReferenceProcessor.traverse()");
     }
+  }
+
+  /**
+   * Forward a reference object.
+   * 
+   * @param reference The reference to forward
+   * @return The forwarded reference
+   */
+  public static Address forwardReference(Address reference) {
+    if (Assert.VERIFY_ASSERTIONS) {
+      Assert._assert(!reference.isZero());
+      Assert._assert(ReferenceGlue.REFERENCES_ARE_OBJECTS);
+    }
+
+    TraceLocal trace = ActivePlan.collector().getCurrentTrace();
+
+    ObjectReference referent = ReferenceGlue.getReferent(reference);
+
+    if (TRACE) {
+      Log.write("+++ old reference: "); Log.writeln(reference);
+      Log.write("    old referent:  "); Log.writeln(referent);
+    }
+
+    referent = trace.getForwardedReferent(referent);
+    ReferenceGlue.setReferent(reference, referent);
+
+
+    
+    if (ReferenceGlue.REFERENCES_ARE_OBJECTS) {
+      reference = trace.getForwardedReference(reference.toObjectReference()).toAddress();
+    }
+
+    if (TRACE) {
+      Log.write("    new reference: "); Log.writeln(reference);
+      Log.write("    new referent:  "); Log.writeln(referent);
+    }
+
+    return reference;
   }
 
   /**
@@ -86,9 +124,9 @@ public class ReferenceProcessor implements Uninterruptible {
   public static Address processReference(Address reference,
                                          int semantics) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!reference.isZero());
-    
-    TraceLocal trace = ActivePlan.local().getCurrentTrace();
-    
+
+    TraceLocal trace = ActivePlan.collector().getCurrentTrace();
+
     if (TRACE) {
       Log.write("+++ old reference: "); Log.writeln(reference);
     }
@@ -104,7 +142,7 @@ public class ReferenceProcessor implements Uninterruptible {
     } else {
       /* Otherwise... */
       if (ReferenceGlue.REFERENCES_ARE_OBJECTS)
-        newReference = trace.getForwardedReferent(reference.toObjectReference()).toAddress();
+        newReference = trace.getForwardedReference(reference.toObjectReference()).toAddress();
       else
         newReference = reference;
       ObjectReference oldReferent = ReferenceGlue.getReferent(reference);
@@ -125,15 +163,15 @@ public class ReferenceProcessor implements Uninterruptible {
         boolean enqueue = false;
 
         if (semantics == PHANTOM_SEMANTICS && !trace.isLive(oldReferent)) {
-            /*
+          /*
              * Keep phantomly reachable objects from being collected
              * until they are completely unreachable.
-             */
-            if (TRACE_DETAIL) {
+           */
+          if (TRACE_DETAIL) {
               Log.write("    resurrecting: "); Log.writeln(oldReferent);
-            }
-            trace.retainReferent(oldReferent);
-            enqueue = true;
+          }
+          trace.retainReferent(oldReferent);
+          enqueue = true;
         } else if (semantics == SOFT_SEMANTICS && !clearSoftReferences) {
           /*
            * Unless we've completely run out of memory, we keep
@@ -144,7 +182,7 @@ public class ReferenceProcessor implements Uninterruptible {
           }
           trace.retainReferent(oldReferent);
         }
-          
+
         if (trace.isLive(oldReferent)) {
           /*
            * Referent is still reachable in a way that is as strong as
@@ -155,7 +193,7 @@ public class ReferenceProcessor implements Uninterruptible {
           if (TRACE) {
             Log.write(" new referent: "); Log.writeln(newReferent);
           }
-            
+
           /*
            * The reference object stays on the waiting list, and the
            * referent is untouched. The only thing we must do is
@@ -163,13 +201,13 @@ public class ReferenceProcessor implements Uninterruptible {
            * new forwarding addresses in case the collector is a
            * copying collector.
            */
-          
+
           /* Update the referent */
           ReferenceGlue.setReferent(newReference, newReferent);
         }
         else {
           /* Referent is unreachable. */
-            
+
           if (TRACE) {
             Log.write(" UNREACHABLE:  "); Log.writeln(oldReferent);
           }
@@ -196,8 +234,8 @@ public class ReferenceProcessor implements Uninterruptible {
            * the first time they become phantomly reachable.
            */
           ReferenceGlue.enqueueReference(newReference,
-                                         semantics == PHANTOM_SEMANTICS);
-            
+              semantics == PHANTOM_SEMANTICS);
+
         }
       }
     }
@@ -223,34 +261,39 @@ public class ReferenceProcessor implements Uninterruptible {
    * @param nursery It is safe to only collect new references
    */
   public static void processSoftReferences(boolean nursery)
-    throws NoInlinePragma {
+      throws NoInlinePragma {
     traverse(SOFT_SEMANTICS, nursery);
     clearSoftReferences = false;
   }
-  
+
   /**
    * Process weak references.
    * @param nursery It is safe to only collect new references
    */
   public static void processWeakReferences(boolean nursery)
-    throws NoInlinePragma {
+      throws NoInlinePragma {
     traverse(WEAK_SEMANTICS, nursery);
   }
-  
+
   /**
    * Process phantom references.
    * @param nursery It is safe to only collect new references
    */
-  public static void processPhantomReferences(boolean nursery) 
-    throws NoInlinePragma {
+  public static void processPhantomReferences(boolean nursery)
+      throws NoInlinePragma {
     traverse(PHANTOM_SEMANTICS, nursery);
   }
-  
+
   /**
    * Forward references.
    */
   public static void forwardReferences() {
-    //  TODO: ReferenceGlue.forwardReferences(trace);
-    Assert._assert(false);
+    if (TRACE) {
+      Log.writeln("Starting ReferenceProcessor.forwardReferences()");
+    }
+    ReferenceGlue.forwardReferences();
+    if (TRACE) {
+      Log.writeln("Ending ReferenceProcessor.forwardReferences()");
+    }
   }
 }

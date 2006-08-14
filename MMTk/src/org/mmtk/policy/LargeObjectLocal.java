@@ -22,13 +22,13 @@ import org.vmmagic.unboxed.*;
  * shared VMResource used by each instance is the point of global
  * synchronization, and synchronization only occurs at the granularity
  * of aquiring (and releasing) chunks of memory from the VMResource.
- *
+ * 
  * If there are C CPUs and T TreadmillSpaces, there must be C X T
  * instances of this class, one for each CPU, TreadmillSpace pair.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -36,25 +36,24 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   implements Constants, Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
-  private LargeObjectSpace space;
-  public final Treadmill treadmill;  // per-processor
+  private final Treadmill treadmill; // per-processor
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param space The treadmill space to which this thread instance is
    * bound.
    */
@@ -65,7 +64,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   }
 
   /****************************************************************************
-   *
+   * 
    * Allocation
    */
 
@@ -74,7 +73,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    *  reused, this will be called each time it is reused in the
    *  lifetime of the cell, by contrast to initializeCell, which is
    *  called exactly once.).
-   *
+   * 
    * @param cell The newly allocated cell
    */
   protected final void postAlloc (Address cell) 
@@ -83,7 +82,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   };
 
   /****************************************************************************
-   *
+   * 
    * Collection
    */
 
@@ -107,7 +106,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * Sweep through the large pages, releasing all superpages on the
    * "from space" treadmill.
    */
-  public final void sweepLargePages() {
+  private final void sweepLargePages() {
     while (true) {
       Address cell = treadmill.popFromSpace();
       if (cell.isZero()) break;
@@ -119,7 +118,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
 
 
   /****************************************************************************
-   *
+   * 
    * Miscellaneous size-related methods
    */
 
@@ -127,7 +126,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header
    * size.
-   *
+   * 
    * @return The size of the per-superpage header required by this
    * system.
    */
@@ -139,7 +138,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   /**
    * Return the size of the per-cell header for cells of a given class
    * size.
-   *
+   * 
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
@@ -154,8 +153,8 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * @param losDriver the GCSpy space driver
    * @param tospace gather from tospace?
    */
-  public void gcspyGatherData(int event, TreadmillDriver losDriver, 
-                              boolean tospace) {
+  public void gcspyGatherData(int event, TreadmillDriver losDriver,
+      boolean tospace) {
     treadmill.gcspyGatherData(event, losDriver, tospace);
   }
 }

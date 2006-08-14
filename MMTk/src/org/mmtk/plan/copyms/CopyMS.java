@@ -34,10 +34,10 @@ import org.vmmagic.pragma.*;
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance properties of MMTk plans.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -48,7 +48,7 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
   /****************************************************************************
    * Constants
    */
-  public static final int CopyMS_PAGE_RESERVE = (512<<10)>>>LOG_BYTES_IN_PAGE;
+  public static final int CopyMS_PAGE_RESERVE = (512 << 10) >>> LOG_BYTES_IN_PAGE;
   public static final double CopyMS_RESERVE_FRACTION = 0.1;
 
 
@@ -77,10 +77,10 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
 
   /**
    * Constructor.
-   *
+   * 
    */
   public CopyMS() {
-	  trace = new Trace(metaDataSpace);
+    trace = new Trace(metaDataSpace);
   }
 
   /**
@@ -92,14 +92,14 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
   }
 
   /*****************************************************************************
-   *
+   * 
    * Collection
    */
 
 
   /**
    * Perform a (global) collection phase.
-   *
+   * 
    * @param phaseId Collection phase to execute.
    */
   public final void collectionPhase(int phaseId) throws InlinePragma {
@@ -119,7 +119,7 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
 
       progress = (available > availablePreGC) && 
                  (available > getExceptionReserve());
-      
+
       if (progress) {
         msReservedPages = (int) (available * CopyMS_RESERVE_FRACTION);
         int threshold = 2 * getExceptionReserve();
@@ -127,7 +127,7 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
         if (msReservedPages < threshold)
           msReservedPages = threshold;
       } else {
-        msReservedPages = msReservedPages/2;
+        msReservedPages = msReservedPages / 2;
       }
 
       super.collectionPhase(phaseId);
@@ -139,13 +139,13 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
 
   /**
    * Poll for a collection
-   *
+   * 
    * @param mustCollect Force a collection.
    * @param space The space that caused the poll.
    * @return True if a collection is required.
    */
   public final boolean poll(boolean mustCollect, Space space)
-  throws LogicallyUninterruptiblePragma {
+      throws LogicallyUninterruptiblePragma {
     if (getCollectionsInitiated() > 0 || !isInitialized() || 
         space == metaDataSpace)
       return false;
@@ -164,14 +164,14 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
   }
 
   /*****************************************************************************
-   *
+   * 
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -183,7 +183,7 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
 
   /**
    * Return the number of pages reserved for copying.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */

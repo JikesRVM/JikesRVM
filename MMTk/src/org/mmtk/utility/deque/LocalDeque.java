@@ -18,24 +18,24 @@ import org.vmmagic.pragma.*;
  * only uses the fields inherited from <code>LocalQueue</code>, but adds
  * the ability for entries to be added to the head of the deque and popped
  * from the rear.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class LocalDeque extends LocalQueue 
   implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param queue The shared deque to which this local deque will append
    * its buffers (when full or flushed).
    */
@@ -53,11 +53,11 @@ public class LocalDeque extends LocalQueue
     if (head.NE(Deque.HEAD_INITIAL_VALUE)) {
       closeAndInsertHead(queue.getArity());
       head = Deque.HEAD_INITIAL_VALUE;
-  }
+    }
   }
 
   /****************************************************************************
-   *
+   * 
    * Protected instance methods
    */
 
@@ -75,32 +75,32 @@ public class LocalDeque extends LocalQueue
       headOverflow(arity);
     else if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
-  
+
   /**
    * Insert a value at the front of the deque (and buffer).  This is 
    * <i>unchecked</i>.  The caller must first call 
    * <code>checkHeadInsert()</code> to ensure the buffer can accommodate 
    * the insertion.
-   *
+   * 
    * @param value the value to be inserted.
    */
   protected final void uncheckedHeadInsert(Address value) 
     throws InlinePragma {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
-    head = head.add(BYTES_IN_ADDRESS);
-    //    if (VM_Interface.VerifyAssertions) enqueued++;
+    head = head.plus(BYTES_IN_ADDRESS);
+    // if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
   /****************************************************************************
-   *
+   * 
    * Private instance methods and fields
    */
 
   /**
    * Buffer space has been exhausted, allocate a new buffer and enqueue
    * the existing buffer (if any).
-   *
+   * 
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void headOverflow(int arity) {
@@ -115,7 +115,7 @@ public class LocalDeque extends LocalQueue
   /**
    * Close the head buffer and enqueue it at the front of the 
    * shared buffer deque.
-   *
+   * 
    *  @param arity The arity of this buffer.
    */
   private final void closeAndInsertHead(int arity) throws InlinePragma {
@@ -128,7 +128,7 @@ public class LocalDeque extends LocalQueue
    * Otherwise try wait on the shared deque until either all other
    * clients of the reach exhaustion or a buffer becomes
    * available.
-   *
+   * 
    * @param arity The arity of this buffer  
    * @return True if the consumer has eaten all of the entries
    */
@@ -140,7 +140,7 @@ public class LocalDeque extends LocalQueue
       tail = bufferStart(tailBufferEnd);
       head = Deque.HEAD_INITIAL_VALUE;
       return false;
-  }
+    }
 
     // Wait for another entry to materialize...
     tailBufferEnd = queue.dequeueAndWait(arity, true);

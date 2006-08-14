@@ -94,7 +94,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
         OPT_GVCongruenceClass cc = gvns.congruenceClass(candTest);
         if (cc.size() > 1) {
           for (Iterator e = cc.iterator(); e.hasNext();) {
-            OPT_Instruction poss = (OPT_Instruction)((OPT_ValueGraphVertex)e.next()).name;
+            OPT_Instruction poss = (OPT_Instruction)((OPT_ValueGraphVertex)e.next()).getName();
             if (poss != candTest) {
               OPT_BasicBlock notTaken = getNotTakenBlock(poss);
               OPT_BasicBlock taken = poss.getBranchTarget();

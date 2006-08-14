@@ -13,6 +13,8 @@ HEAPSIZE=150
 START_NAME=TestAll
 EXPECTED=TestAll.expected
 
+TIME_LIMIT=400
+
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
 sanity:		sanity-diff

@@ -93,12 +93,12 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
   /**
    * First instruction of the basic block (LABEL).
    */
-  OPT_Instruction start;
+  final OPT_Instruction start;
 
   /**
    * Last instruction of the basic block (BBEND).
    */
-  OPT_Instruction end;
+  final OPT_Instruction end;
 
   /**
    * Used to encode various properties of the block.
@@ -163,6 +163,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
    * This constructor is only used for creating an EXIT node
    */
   private OPT_BasicBlock() {
+    start = end = null;
     setNumber(1);
   } 
 
@@ -1625,9 +1626,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
     // splice together the instruction lists of the two basic blocks into
     // a single list and update this's BBEND info
     this.end.getPrev().linkWithNext(succBB.start.getNext());
-    end = succBB.end;
-    BBend.setBlock(end, new OPT_BasicBlockOperand(this));
-
+    succBB.end.getPrev().linkWithNext(this.end);
 
     // Add succBB's CFG sucessors to this's CFG out edges 
     for (OutEdgeEnum e = succBB.getOut(); e.hasMoreElements(); ) {

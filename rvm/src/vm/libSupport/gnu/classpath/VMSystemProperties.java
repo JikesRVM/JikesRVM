@@ -151,11 +151,6 @@ public class VMSystemProperties {
         p.put(prop, s);
       }
     }
-
-    /* Tell GNU Classpath that we need the portable-native-sync
-     * implementation.   This has been in Classpath since at least Classpath
-     * 0.10. */
-    p.put("gnu.classpath.awt.gtk.portable.native.sync", "true");
   }
 
   /** Set java.library.path.

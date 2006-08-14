@@ -823,33 +823,20 @@ public class VM_Magic {
   //            Cache Management.          //
   //---------------------------------------//
    
-  //-#if RVM_FOR_POWERPC
-  /** 
-   * Write contents of this processor's modified data cache back to main storage.
-   */
-  public static void dcbst(Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-  //-#endif
 
-  //-#if RVM_FOR_POWERPC
-  /**
-   * Invalidate copy of main storage held in any processor's instruction cache.
-   */
-  public static void icbi(Address address) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-  //-#endif
+  /**** NOTE: all per-address operations now live in vmmagic.Address *****/
 
   /**
-   * Wait for preceeding cache flush/invalidate instructions to complete on all processors.
+   * Wait for preceeding cache flush/invalidate instructions to
+   * complete on all processors.
    */
   public static void sync() {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
-   * Wait for all preceeding instructions to complete and discard any prefetched instructions on this processor.
+   * Wait for all preceeding instructions to complete and discard any
+   * prefetched instructions on this processor.
    */ 
   public static void isync() {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler

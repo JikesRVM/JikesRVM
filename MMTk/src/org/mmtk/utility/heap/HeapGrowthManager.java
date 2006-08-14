@@ -28,36 +28,36 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
   /**
    * The initial heap size (-Xms) in bytes
    */
-  private static Extent initialHeapSize; 
+  private static Extent initialHeapSize;
 
   /**
    * The maximum heap size (-Xms) in bytes
    */
-  private static Extent maxHeapSize;     
+  private static Extent maxHeapSize;
 
   /**
    * The current heap size in bytes
    */
-  private static Extent currentHeapSize; 
+  private static Extent currentHeapSize;
 
 
   private final static double[][] generationalFunction =    {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
-                                                             {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-                                                             {0.01, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-                                                             {0.02, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
-                                                             {0.07, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
-                                                             {0.15, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
-                                                             {0.40, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
-                                                             {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
+      { 0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
+      { 0.01, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
+      { 0.02, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00 },
+      { 0.07, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20 },
+      { 0.15, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30 },
+      { 0.40, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50 },
+      { 1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50 } };
 
   private final static double[][] nongenerationalFunction = {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
-                                                             {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-                                                             {0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-                                                             {0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
-                                                             {0.15, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
-                                                             {0.30, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
-                                                             {0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
-                                                             {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
+      { 0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
+      { 0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00 },
+      { 0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00 },
+      { 0.15, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20 },
+      { 0.30, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30 },
+      { 0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50 },
+      { 1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50 } };
 
   /**
    * An encoding of the function used to manage heap size.  
@@ -80,7 +80,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
   private static final double[][] function = 
     ActivePlan.constraints().generational() 
     ? generationalFunction : nongenerationalFunction;
- 
+
   private static long endLastMajorGC;
   private static double accumulatedGCTime;
 
@@ -91,7 +91,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
   public static void boot(Extent initial, Extent max) {
     initialHeapSize = initial;
     maxHeapSize = max;
-    if (initialHeapSize.GT(maxHeapSize)) 
+    if (initialHeapSize.GT(maxHeapSize))
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
     if (Assert.VERIFY_ASSERTIONS) sanityCheck();
@@ -107,7 +107,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
 
   /**
    * Return the max heap size in bytes (as set by -Xmx).
-   *
+   * 
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
@@ -116,7 +116,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
 
   /**
    * Return the initial heap size in bytes (as set by -Xms).
-   *
+   * 
    * @return The initial heap size in bytes (as set by -Xms).
    */
   public static Extent getInitialHeapSize() {
@@ -130,9 +130,9 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
    * @param size number of bytes to grow the heap
    */
   public static void overrideGrowHeapSize(Extent size) {
-    currentHeapSize = currentHeapSize.add(size);
+    currentHeapSize = currentHeapSize.plus(size);
   }
-  
+
   /**
    * Record the time taken by the current GC;
    * used to compute gc load, one of the inputs
@@ -150,7 +150,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     accumulatedGCTime = 0;
   }
 
-  /** 
+  /**
    * Decide how to grow/shrink the heap to respond
    * to application's memory usage.
    * @return true if heap size was changed, false otherwise
@@ -162,16 +162,16 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     double ratio = computeHeapChangeRatio(liveRatio);
     Extent newSize = Word.fromIntSignExtend((int)(ratio * (double) (oldSize.toLong()>>LOG_BYTES_IN_MBYTE))).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // do arith in MB to avoid overflow
     if (newSize.LT(reserved)) newSize = reserved;
-    newSize = newSize.add(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
+    newSize = newSize.plus(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
     if (newSize.GT(maxHeapSize)) newSize = maxHeapSize;
     if (newSize.NE(oldSize)) {
       // Heap size is going to change
       currentHeapSize = newSize;
-      if (Options.verbose.getValue() >= 2) { 
+      if (Options.verbose.getValue() >= 2) {
         Log.write("GC Message: Heap changed from "); Log.writeDec(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
         Log.write("KB to "); Log.writeDec(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE)); 
-        Log.writeln("KB"); 
-      } 
+        Log.writeln("KB");
+      }
       return true;
     } else {
       return false;
@@ -206,17 +206,17 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
       Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
-    
+
     if (Options.verbose.getValue() > 2) {
       Log.write("Live ratio "); Log.writeln(liveRatio);
       Log.write("GCLoad     "); Log.writeln(gcLoad);
     }
-    
+
     // (2) Find the 4 points surrounding gcLoad and liveRatio
     int liveRatioUnder = 1;
-    int liveRatioAbove = function[0].length-1;
+    int liveRatioAbove = function[0].length - 1;
     int gcLoadUnder = 1;
-    int gcLoadAbove = function.length-1;
+    int gcLoadAbove = function.length - 1;
     while (true) {
       if (function[0][liveRatioUnder+1] >= liveRatio) break;
       liveRatioUnder++;
@@ -264,9 +264,9 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     double[] liveRatio = function[0];
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[1] == 0);
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[liveRatio.length-1] == 1);
-    for (int i=2; i<liveRatio.length; i++) {
+    for (int i = 2; i < liveRatio.length; i++) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[i-1] < liveRatio[i]);
-      for (int j=1; j<function.length; j++) {
+      for (int j = 1; j < function.length; j++) {
         if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[j][i] >= 1 || function[j][i] > liveRatio[i]);
       }
     }
@@ -275,12 +275,12 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[1][0] == 0);
     int len = function.length;
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[len-1][0] == 1);
-    for (int i=2; i<len; i++) {
+    for (int i = 2; i < len; i++) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[i-1][0] < function[i][0]);
     }
 
     // Check that we have a rectangular matrix
-    for (int i=1; i<function.length; i++) {
+    for (int i = 1; i < function.length; i++) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[i-1].length == function[i].length);
     }
   }

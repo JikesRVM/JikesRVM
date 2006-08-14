@@ -29,14 +29,14 @@ import org.vmmagic.pragma.*;
  * flexible nursery behavior ("The Standard ML of New Jersey
  * collector"), or go to Appel's paper "Simple generational garbage
  * collection and fast allocation." SP&E 19(2):171--183, 1989.<p>
- *
- *
+ * 
+ * 
  * For general comments about the global/local distinction among classes refer
  * to Plan.java and PlanLocal.java.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -45,17 +45,17 @@ import org.vmmagic.pragma.*;
 public class GenMS extends Gen implements Uninterruptible {
 
   /*****************************************************************************
-   *
+   * 
    * Class fields
    */
 
   /** The mature space, which for GenMS uses a mark sweep collection policy. */
   public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, MATURE_FRACTION);
-  
+
   public static final int MS = msSpace.getDescriptor();
 
   /****************************************************************************
-   *
+   * 
    * Instance fields
    */
 
@@ -68,14 +68,14 @@ public class GenMS extends Gen implements Uninterruptible {
   public GenMS() { }
 
   /*****************************************************************************
-   *
+   * 
    * Collection
    */
   /*
    * Perform a (global) collection phase.
    */
   public final void collectionPhase(int phaseId) throws InlinePragma {
-    if (collectMatureSpace()) {
+    if (traceFullHeap()) {
       if (phaseId == PREPARE) {
         super.collectionPhase(phaseId);
         matureTrace.prepare();
@@ -94,14 +94,14 @@ public class GenMS extends Gen implements Uninterruptible {
   }
 
   /*****************************************************************************
-   *
+   * 
    * Accounting
    */
 
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -110,14 +110,14 @@ public class GenMS extends Gen implements Uninterruptible {
   }
 
   /*****************************************************************************
-   *
+   * 
    * Miscellaneous
    */
 
   /**
    * Accessor method to allow the generic generational code in Gen.java
    * to access the mature space.
-   *
+   * 
    * @return The active mature space
    */
   protected final Space activeMatureSpace() throws InlinePragma {

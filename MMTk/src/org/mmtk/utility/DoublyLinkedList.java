@@ -17,20 +17,20 @@ import org.vmmagic.unboxed.*;
  * implemented are the same.  This is true in the case of Jikes RVM,
  * but it is not true for any VM implementing a language other than
  * Java.
- *
- *
+ * 
+ * 
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
  * the treadmill.  The remaining portion is the payload.
- *  
+ * 
  * The treadmill object itself must not be moved.
- *
+ * 
  * Access to the instances may be synchronized depending on the
  * constructor argument.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Perry Cheng
  * @version $Revision$
  * @date $Date$
@@ -38,30 +38,30 @@ import org.vmmagic.unboxed.*;
 final class DoublyLinkedList implements Constants, Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
-  private       Address head;
+  private Address head;
   private final Lock lock;
   private final Object owner;
   private final int log_granularity;  // Each node on the treadmill is guaranteed to be a multiple of granularity.
-  
+
   /****************************************************************************
-   *
+   * 
    * Instance Methods
    */
 
   /**
    * Constructor
    */
-  DoublyLinkedList (int log_granularity_, boolean shared, Object owner_) {
+  DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
     owner = owner_;
-    head = Address.zero();   
+    head = Address.zero();
     lock = shared ? new Lock("DoublyLinkedList") : null;
     log_granularity = log_granularity_;
 
@@ -80,8 +80,8 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   private static final Word nodeMask;
   static {
     Word mask = Word.one();
-    while (mask.LT(HEADER_SIZE.add(MAX_BYTES_PADDING).toWord())) mask = mask.lsh(1);
-    nodeMask = mask.sub(Word.one()).not();
+    while (mask.LT(HEADER_SIZE.plus(MAX_BYTES_PADDING).toWord())) mask = mask.lsh(1);
+    nodeMask = mask.minus(Word.one()).not();
   }
 
   public final Object getOwner() {
@@ -96,16 +96,16 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     return HEADER_SIZE.toInt();
   }
 
-  public final boolean isNode (Address node) {
+  public final boolean isNode(Address node) {
     return node.toWord().rshl(log_granularity).lsh(log_granularity).EQ(node.toWord());
   }
 
   static public final Address nodeToPayload(Address node) throws InlinePragma {
-    return node.add(HEADER_SIZE);
+    return node.plus(HEADER_SIZE);
   }
 
   static public final Address payloadToNode(Address payload) throws InlinePragma {
-    return payload.sub(HEADER_SIZE);
+    return payload.minus(HEADER_SIZE);
   }
 
   static public final Address midPayloadToNode(Address payload) throws InlinePragma {
@@ -113,7 +113,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     return payload.toWord().and(nodeMask).toAddress();
   }
 
-  public final void add (Address node) throws InlinePragma {
+  public final void add(Address node) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
@@ -125,18 +125,18 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     if (lock != null) lock.release();
   }
 
-  public final void remove (Address node) throws InlinePragma {
+  public final void remove(Address node) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
     Address next = node.loadAddress(NEXT_OFFSET);
     // Splice the node out of the list
-    if (!next.isZero()) 
-        next.store(prev, PREV_OFFSET);
-    if (prev.isZero()) 
-        head = next;
+    if (!next.isZero())
+      next.store(prev, PREV_OFFSET);
+    if (prev.isZero())
+      head = next;
     else
-        prev.store(next, NEXT_OFFSET);
+      prev.store(next, NEXT_OFFSET);
     // Null out node's reference to the list
     node.store(Address.zero(), PREV_OFFSET);
     node.store(Address.zero(), NEXT_OFFSET);
@@ -144,7 +144,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     if (lock != null) lock.release();
   }
 
-  public final Address pop () throws InlinePragma {
+  public final Address pop() throws InlinePragma {
     Address first = head;
     if (!first.isZero())
       remove(first);
@@ -157,7 +157,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
 
   /**
    * Return true if a cell is on a given treadmill
-   *
+   * 
    * @param node The cell being searched for
    * @return True if the cell is found on the treadmill
    */
@@ -170,8 +170,8 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
       if (cur.EQ(node)) {
         result = true;
         break;
-     }
-     cur = cur.loadAddress(NEXT_OFFSET);
+      }
+      cur = cur.loadAddress(NEXT_OFFSET);
     }
     if (lock != null) lock.release();
     return result;

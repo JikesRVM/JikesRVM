@@ -11,60 +11,111 @@ import java.io.IOException;
 import org.vmmagic.pragma.*;
 
 /**
- * A method of a java class.
+ * A method of a java class corresponding to a method_info structure
+ * in the class file. A method is read from a class file using the
+ * {@link #readMethod} method.
  *
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
+ * @author Ian Rogers
  */
-public abstract class VM_Method extends VM_Member {
+public abstract class VM_Method extends VM_Member implements VM_BytecodeConstants {
 
   /**
    * current compiled method for this method
    */
   protected VM_CompiledMethod currentCompiledMethod;
-
   /**
    * exceptions this method might throw (null --> none)
    */
-  protected final VM_TypeReference[] exceptionTypes;      
+  protected final VM_TypeReference[] exceptionTypes;
+  /**
+   * Method paramter annotations from the class file that are
+   * described as runtime visible. These annotations are available to
+   * the reflection API.
+   */
+  protected final VM_Annotation runtimeVisibleParameterAnnotations[];
+  /**
+   * Method parameter Annotations from the class file that are
+   * described as runtime visible. These annotations aren't available
+   * to the reflection API.
+   */
+  protected final VM_Annotation runtimeInvisibleParameterAnnotations[];
+  /**
+   * A value present in the method info tables of annotation types. It
+   * represents the default result from an annotation method.
+   */
+  protected final Object annotationDefault;
 
   /**
+   * Construct a read method
+   *
    * @param declaringClass the VM_Class object of the class that declared this field
-   * @param memRef the canonical memberReference for this member.
-   * @param modifiers modifiers associated with this member.
+   * @param memRef the canonical memberReference for this method.
+   * @param modifiers modifiers associated with this method.
    * @param exceptionTypes exceptions thrown by this method.
+   * @param signature generic type of this method.
+   * @param runtimeVisibleAnnotations array of runtime visible
+   * annotations
+   * @param runtimeInvisibleAnnotations optional array of runtime
+   * invisible annotations
+   * @param runtimeVisibleParameterAnnotations array of runtime
+   * visible parameter annotations
+   * @param runtimeInvisibleParameterAnnotations optional array of
+   * runtime invisible parameter annotations
+   * @param annotationDefault value for this annotation that appears
+   * in annotation classes
    */
-  protected VM_Method(VM_Class declaringClass, VM_MemberReference memRef, 
-                      int modifiers, VM_TypeReference[] exceptionTypes) {
-    super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS);
+  protected VM_Method(VM_TypeReference declaringClass, VM_MemberReference memRef, 
+                      int modifiers, VM_TypeReference[] exceptionTypes, VM_Atom signature,
+                      VM_Annotation runtimeVisibleAnnotations[],
+                      VM_Annotation runtimeInvisibleAnnotations[],
+                      VM_Annotation runtimeVisibleParameterAnnotations[],
+                      VM_Annotation runtimeInvisibleParameterAnnotations[],
+                      Object annotationDefault)
+  {
+    super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS, signature,
+          runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
+
+    if (VM.VerifyAssertions && !retainRuntimeInvisibleAnnotations) {
+      VM._assert(runtimeInvisibleParameterAnnotations == null);
+    }
+    this.runtimeVisibleParameterAnnotations = runtimeVisibleParameterAnnotations;
+    this.runtimeInvisibleParameterAnnotations = runtimeInvisibleParameterAnnotations;
+    this.annotationDefault = annotationDefault;
     memRef.asMethodReference().setResolvedMember(this);
     this.exceptionTypes = exceptionTypes;
   }
   
   /**
-   * Called from {@link VM_Class#VM_Class(VM_TypeReference, DataInputStream)} to create an
+   * Called from {@link VM_Class#readClass(VM_TypeReference, DataInputStream)} to create an
    * instance of a VM_Method by reading the relevant data from the argument bytecode stream.
    * 
-   * @param declaringClass the VM_Class object of the class that declared this method
+   * @param declaringClass the VM_TypeReference of the class being loaded
+   * @param constantPool the constantPool of the VM_Class object that's being constructed
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the method's attributes from
    */
-  static VM_Method readMethod(VM_Class declaringClass, VM_MemberReference memRef,
+  static VM_Method readMethod(VM_TypeReference declaringClass, int constantPool[], VM_MemberReference memRef,
                               int modifiers, DataInputStream input) throws IOException {
-    ClassLoader cl = declaringClass.getClassLoader();
-
     int tmp_localWords = 0;
     int tmp_operandWords = 0;      
     byte[] tmp_bytecodes = null;       
     VM_ExceptionHandlerMap tmp_exceptionHandlerMap = null;
     VM_TypeReference[] tmp_exceptionTypes = null;
     int[] tmp_lineNumberMap = null;      
+    VM_Atom tmp_signature = null;
+    VM_Annotation tmp_runtimeVisibleAnnotations[] = null;
+    VM_Annotation tmp_runtimeInvisibleAnnotations[] = null;
+    VM_Annotation tmp_runtimeVisibleParameterAnnotations[] = null;
+    VM_Annotation tmp_runtimeInvisibleParameterAnnotations[] = null;
+    Object tmp_annotationDefault = null;
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i<n; i++) {
-      VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
+      VM_Atom attName   = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       int     attLength = input.readInt();
 
       // Only bother to interpret non-boring Method attributes
@@ -73,17 +124,15 @@ public abstract class VM_Method extends VM_Member {
         tmp_localWords   = input.readUnsignedShort();
         tmp_bytecodes = new byte[input.readInt()];
         input.readFully(tmp_bytecodes);
-        int cnt = input.readUnsignedShort();
-        if (cnt != 0) {
-          tmp_exceptionHandlerMap = new VM_ExceptionHandlerMap(input, declaringClass, cnt);
-        }
+        tmp_exceptionHandlerMap = VM_ExceptionHandlerMap.readExceptionHandlerMap(input, constantPool);
+
         // Read the attributes portion of the code attribute
         for (int j = 0, n2 = input.readUnsignedShort(); j<n2; j++) {
-          attName   = declaringClass.getUtf(input.readUnsignedShort());
+          attName   = VM_Class.getUtf(constantPool, input.readUnsignedShort());
           attLength = input.readInt();
 
           if (attName == VM_ClassLoader.lineNumberTableAttributeName) {
-            cnt = input.readUnsignedShort();
+            int cnt = input.readUnsignedShort();
             if (cnt != 0) {
               tmp_lineNumberMap = new int[cnt];
               for (int k = 0; k<cnt; k++) {
@@ -102,26 +151,169 @@ public abstract class VM_Method extends VM_Member {
         if (cnt != 0) {
           tmp_exceptionTypes = new VM_TypeReference[cnt];
           for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
-            tmp_exceptionTypes[j] = declaringClass.getTypeRef(input.readUnsignedShort());
+            tmp_exceptionTypes[j] = VM_Class.getTypeRef(constantPool, input.readUnsignedShort());
           }
         }
+      } else if (attName == VM_ClassLoader.syntheticAttributeName) {
+        modifiers |= ACC_SYNTHETIC;
+      } else if (attName == VM_ClassLoader.signatureAttributeName) {
+        tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
+      } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
+        tmp_runtimeVisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
+                                                                            declaringClass.getClassLoader());
+      } else if (attName == VM_ClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
+        tmp_runtimeVisibleParameterAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 1,
+                                                                                     declaringClass.getClassLoader());
+      } else if (attName == VM_ClassLoader.annotationDefaultAttributeName) {
+        try {
+          tmp_annotationDefault = VM_Annotation.readValue(constantPool, input, declaringClass.getClassLoader());
+        }
+        catch (ClassNotFoundException e){
+          throw new Error(e);
+        }
+      } else if (VM_AnnotatedElement.retainRuntimeInvisibleAnnotations &&
+                 (attName == VM_ClassLoader.runtimeInvisibleAnnotationsAttributeName)) {
+        tmp_runtimeInvisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
+                                                                              declaringClass.getClassLoader());
+      } else if (VM_AnnotatedElement.retainRuntimeInvisibleAnnotations &&
+                 (attName == VM_ClassLoader.runtimeInvisibleParameterAnnotationsAttributeName)) {
+        tmp_runtimeInvisibleParameterAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 1,
+                                                                                       declaringClass.getClassLoader());
       } else {
         // all other method attributes are boring
         input.skipBytes(attLength);
       }
     }
-
+    VM_Method method;
     if ((modifiers & ACC_NATIVE) != 0) {
-      return new VM_NativeMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes);
+      method = new VM_NativeMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
+                                   tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations,
+                                   tmp_runtimeVisibleParameterAnnotations, tmp_runtimeInvisibleParameterAnnotations,
+                                   tmp_annotationDefault);
     } else if ((modifiers & ACC_ABSTRACT) != 0) {
-      return new VM_AbstractMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes);
+      method = new VM_AbstractMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes, tmp_signature,
+                                     tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations,
+                                     tmp_runtimeVisibleParameterAnnotations, tmp_runtimeInvisibleParameterAnnotations,
+                                     tmp_annotationDefault);
+
     } else {
-      return new VM_NormalMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes,
-                                 tmp_localWords, tmp_operandWords, tmp_bytecodes, 
-                                 tmp_exceptionHandlerMap, tmp_lineNumberMap);
+      method = new VM_NormalMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes,
+                                   tmp_localWords, tmp_operandWords, tmp_bytecodes, 
+                                   tmp_exceptionHandlerMap, tmp_lineNumberMap,
+                                   constantPool, tmp_signature,
+                                   tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations,
+                                   tmp_runtimeVisibleParameterAnnotations, tmp_runtimeInvisibleParameterAnnotations,
+                                   tmp_annotationDefault);
     }
+    return method;
   }
 
+  /**
+   * Create a copy of the method that occurs in the annotation
+   * interface. The method body will contain a read of the field at
+   * the constant pool index specified.
+   *
+   * @param annotationClass the class this method belongs to
+   * @param constantPool for the class
+   * @param memRef the member reference corresponding to this method
+   * @param interfaceMethod the interface method that will copied to
+   * produce the annotation method
+   * @param constantPoolIndex the index of the field that will be
+   * returned by this method
+   * @return the created method
+   */
+  static VM_Method createAnnotationMethod(VM_TypeReference annotationClass, int constantPool[],
+                                          VM_MemberReference memRef, VM_Method interfaceMethod,
+                                          int constantPoolIndex) {
+    byte bytecodes[] = new byte[] {
+      (byte)JBC_aload_0,
+      (byte)JBC_getfield,
+      (byte)(constantPoolIndex >>> 8),
+      (byte)constantPoolIndex,
+      // Xreturn
+      (byte)typeRefToReturnBytecode(interfaceMethod.getReturnType())
+    };
+    return new VM_NormalMethod(annotationClass, memRef, ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC, null,
+                               1, 2, bytecodes,
+                               null, null,
+                               constantPool,
+                               null, null, null, null, null, null);
+  }
+  /**
+   * Create a method to initialise the annotation class
+   *
+   * @param aClass the class this method belongs to
+   * @param constantPool for the class
+   * @param memRef the member reference corresponding to this method
+   * @param objectInitIndex an index into the constant pool for a
+   * method reference to java.lang.Object.<init>
+   * @param aFields
+   * @param aMethods
+   * @return the created method
+   */
+  static VM_Method createAnnotationInit(VM_TypeReference aClass, int constantPool[],
+                                        VM_MemberReference memRef, int objectInitIndex,
+                                        VM_Field aFields[], VM_Method aMethods[],
+                                        int defaultConstants[]) {
+    byte bytecode[] = new byte[6+(defaultConstants.length*7)];
+    bytecode[0] =   (byte)JBC_aload_0; // stack[0] = this
+    bytecode[1] =   (byte)JBC_aload_1; // stack[1] = instanceof VM_Annotation
+    bytecode[2] = (byte)JBC_invokespecial;
+    bytecode[3] = (byte)(objectInitIndex >>> 8);
+    bytecode[4] = (byte)objectInitIndex;
+    for(int i=0, j=0; i < aMethods.length; i++) {
+      if(aMethods[i].annotationDefault != null) {
+        bytecode[(j*7)+5+0] = (byte)JBC_aload_0;    // stack[0] = this
+        if(VM_Statics.getSlotSize(constantPool[defaultConstants[j]]) == 1) {
+          bytecode[(j*7)+5+1] = (byte)JBC_ldc_w; // stack[1] = value
+        }
+        else {
+          bytecode[(j*7)+5+1] = (byte)JBC_ldc2_w;// stack[1&2] = value
+        }
+        bytecode[(j*7)+5+2] = (byte)(defaultConstants[j] >>> 8);        
+        bytecode[(j*7)+5+3] = (byte)defaultConstants[j];        
+        bytecode[(j*7)+5+4] = (byte)JBC_putfield;
+        bytecode[(j*7)+5+5] = (byte)(i >>> 8);        
+        bytecode[(j*7)+5+6] = (byte)i;
+        j++;
+      }
+    }
+    bytecode[bytecode.length-1] = (byte)JBC_return;
+    return new VM_NormalMethod(aClass, memRef, ACC_PUBLIC|ACC_FINAL|ACC_SYNTHETIC, null,
+                               2, 3, bytecode,
+                               null, null,
+                               constantPool,
+                               null, null, null, null, null, null);
+  }
+
+  /**
+   * What would be the appropriate return bytecode for the given type
+   * reference?
+   */
+  private static int typeRefToReturnBytecode(VM_TypeReference tr) {
+    if(!tr.isPrimitiveType()) {
+      return JBC_areturn;
+    } else {
+      VM_Primitive pt = (VM_Primitive)tr.peekResolvedType();
+      if((pt == VM_Type.BooleanType)||(pt == VM_Type.ByteType)||(pt == VM_Type.ShortType)||
+              (pt == VM_Type.CharType)||(pt == VM_Type.IntType)) {
+        return JBC_ireturn;
+      }
+      else if(pt == VM_Type.LongType) {
+        return JBC_lreturn;
+      }
+      else if(pt == VM_Type.FloatType) {
+        return JBC_freturn;
+      }
+      else if(pt == VM_Type.DoubleType) {
+        return JBC_dreturn;
+      }
+      else {
+        VM._assert(false);
+        return -1;
+      }
+    }
+  }
   /**
    * Is this method a class initializer?
    */
@@ -215,6 +407,13 @@ public abstract class VM_Method extends VM_Member {
    */
   public final boolean isAbstract() throws UninterruptiblePragma {
     return (modifiers & ACC_ABSTRACT) != 0;
+  }
+
+  /**
+   * Not present in source code file?
+   */
+  public boolean isSynthetic() {
+    return (modifiers & ACC_SYNTHETIC) != 0;
   }
 
   /**
@@ -357,6 +556,7 @@ public abstract class VM_Method extends VM_Member {
    * Get the code array that corresponds to the entry point (prologue) for the method.
    */
   public final synchronized VM_CodeArray getCurrentEntryCodeArray() {
+    VM_Class declaringClass = getDeclaringClass();
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {
       return currentCompiledMethod.getEntryCodeArray();
@@ -387,11 +587,9 @@ public abstract class VM_Method extends VM_Member {
    * Generate machine code for this method if valid
    * machine code doesn't already exist. 
    * Return the resulting VM_CompiledMethod object.
-   * 
-   * @return VM_CompiledMethod object representing the result of the compilation.
    */
   public final synchronized void compile() {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
+    if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());
     if (isCompiled()) return;
 
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
@@ -427,7 +625,7 @@ public abstract class VM_Method extends VM_Member {
    *              for this class and its subclasses
    */ 
   public final synchronized void replaceCompiledMethod(VM_CompiledMethod compiledMethod) {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isInstantiated());
+    if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isInstantiated());
     // If we're replacing with a non-null compiledMethod, ensure that is still valid!
     if (compiledMethod != null) {
       synchronized(compiledMethod) {
@@ -453,7 +651,7 @@ public abstract class VM_Method extends VM_Member {
    * If CM is the current compiled code for this, then invaldiate it. 
    */
   public final synchronized void invalidateCompiledMethod(VM_CompiledMethod cm) {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isInstantiated());
+    if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isInstantiated());
     if (currentCompiledMethod == cm) {
       replaceCompiledMethod(null);
     }

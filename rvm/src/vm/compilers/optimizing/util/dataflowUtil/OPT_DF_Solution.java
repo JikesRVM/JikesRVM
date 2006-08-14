@@ -21,7 +21,7 @@ public class OPT_DF_Solution extends java.util.HashMap {
    * @return a string representation of the dataflow solution
    */
   public String toString () {
-    String result = new String();
+    String result = "";
     for (java.util.Iterator e = values().iterator(); e.hasNext();) {
       OPT_DF_LatticeCell cell = (OPT_DF_LatticeCell)e.next();
       result = result + cell + "\n";

@@ -7,7 +7,7 @@
 package java.lang;
 
 import com.ibm.JikesRVM.VM;     // for VM.sysWrite()
-import com.ibm.JikesRVM.VM_Lock;
+import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_UnimplementedError;
 import com.ibm.JikesRVM.VM_Wait;
@@ -430,11 +430,63 @@ public class Thread implements Runnable {
 
   /** Does the currently running Thread hold the lock on an obj? */
   public static boolean holdsLock(Object obj) {
-    return VM_Lock.owns(obj);
+    return VM_ObjectModel.holdsLock(obj, VM_Thread.getCurrentThread());
   }
 
   static java.util.Map getThreadLocals() {
     return currentThread().locals;
   }
 
+  /* Classpath 0.91 fixes */
+
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* field exists to avoid build problems with classpath 0.91
+	*/
+  UncaughtExceptionHandler exceptionHandler;
+
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public void setUncaughtExceptionHandler(UncaughtExceptionHandler h) {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public UncaughtExceptionHandler getUncaughtExceptionHandler() {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler h) {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* method exists to avoid build problems with classpath 0.91
+	*/
+  public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler() {
+	 throw new VM_UnimplementedError();
+  }
+  /**
+	* Uncaught exception handler is currently not supported - this
+	* interface exists to avoid build problems with classpath 0.91
+	*/
+  public interface UncaughtExceptionHandler
+  {
+    void uncaughtException(Thread thr, Throwable exc);
+  }
+  /**
+	* getId is currently not supported - this
+	* interface exists to avoid build problems with classpath 0.92
+	*/
+  public long getId()
+  {
+	 throw new VM_UnimplementedError();
+  }
 }

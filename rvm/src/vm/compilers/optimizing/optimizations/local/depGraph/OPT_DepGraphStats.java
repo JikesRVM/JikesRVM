@@ -114,7 +114,6 @@ class OPT_DepGraphStats implements OPT_Operators {
         bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       OPT_DepGraph dg = new OPT_DepGraph(ir, bb.firstRealInstruction(), 
                                          bb.lastRealInstruction(), bb);
-      OPT_DepGraphStats s = new OPT_DepGraphStats(dg, bb.toString());
     }
     System.out.println("**** END OF printBasicBlockStatistics() ****");
   }

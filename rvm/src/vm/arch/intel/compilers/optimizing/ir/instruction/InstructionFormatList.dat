@@ -203,3 +203,8 @@ MIR_RDTSC
 "D Dest1 OPT_RegisterOperand" "D Dest2 OPT_RegisterOperand"
 
 
+MIR_CacheOp
+0 0 1
+"U Address OPT_Operand"
+
+

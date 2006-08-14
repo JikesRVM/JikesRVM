@@ -18,8 +18,8 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements lazy mmapping of virtual memory.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -27,20 +27,20 @@ public final class LazyMmapper implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
-   *
-   * Public static methods 
-   *
+   * 
+   * Public static methods
+   * 
    */
 
-  public static boolean verbose = false;
-  public static Lock lock = new Lock("LazyMapper");
+  public static final boolean verbose = false;
+  public static final Lock lock = new Lock("LazyMapper");
 
   // There is a monotonicity assumption so that only updates require lock acquisition.
   //
   public static void ensureMapped(Address start, int pages) {
     int startChunk = Conversions.addressToMmapChunksDown(start);
-    int endChunk = Conversions.addressToMmapChunksUp(start.add(Conversions.pagesToBytes(pages)));
-    for (int chunk=startChunk; chunk < endChunk; chunk++) {
+    int endChunk = Conversions.addressToMmapChunksUp(start.plus(Conversions.pagesToBytes(pages)));
+    for (int chunk = startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) continue;
       Address mmapStart = Conversions.mmapChunksToAddress(chunk);
       lock.acquire();
@@ -87,11 +87,11 @@ public final class LazyMmapper implements Constants, Uninterruptible {
   }
 
   public static void protect(Address start, int pages) {
-    int startChunk = Conversions.addressToMmapChunksDown(start); 
+    int startChunk = Conversions.addressToMmapChunksDown(start);
     int chunks = Conversions.pagesToMmapChunksUp(pages);
     int endChunk = startChunk + chunks;
     lock.acquire();
-    for (int chunk=startChunk; chunk < endChunk; chunk++) {
+    for (int chunk = startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
         Address mmapStart = Conversions.mmapChunksToAddress(chunk);
         if (!Memory.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
@@ -113,38 +113,29 @@ public final class LazyMmapper implements Constants, Uninterruptible {
     lock.release();
   }
 
-  public static boolean addressIsMapped(Address addr) 
-    throws UninterruptiblePragma {
+  public static boolean addressIsMapped(Address addr)
+      throws UninterruptiblePragma {
     int chunk = Conversions.addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
 
-  public static boolean objectIsMapped(ObjectReference object) 
-    throws UninterruptiblePragma {
+  public static boolean objectIsMapped(ObjectReference object)
+      throws UninterruptiblePragma {
     return addressIsMapped(ObjectModel.refToAddress(object));
   }
 
   /****************************************************************************
-   *
+   * 
    * Private static methods and variables
    */
   final public static byte UNMAPPED = 0;
   final public static byte MAPPED = 1;
-  final public static byte PROTECTED = 2;   // mapped but not accessible
+  final public static byte PROTECTED = 2; // mapped but not accessible
   private static byte mapped[];
-  final public static int LOG_MMAP_CHUNK_SIZE = 20;            
+  final public static int LOG_MMAP_CHUNK_SIZE = 20;
   final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE;   // the granularity VMResource operates at
   //TODO: 64-bit: this is not OK: value does not fit in int, but should, we do not want to create such big array
   final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
-
-  private static String chunkStateToString(byte state) {
-    switch (state) {
-    case UNMAPPED: return "UNMAPPED";
-    case MAPPED: return "MAPPED";
-    case PROTECTED: return "PROTECTED";
-    }
-    return "UNKNOWN";
-  }
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -157,10 +148,10 @@ public final class LazyMmapper implements Constants, Uninterruptible {
     }
   }
 
-  public static void boot (Address bootStart, int bootSize) {
+  public static void boot(Address bootStart, int bootSize) {
     int startChunk = Conversions.addressToMmapChunksDown(bootStart);
-    int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
-    for (int i=startChunk; i<=endChunk; i++)
+    int endChunk = Conversions.addressToMmapChunksDown(bootStart.plus(bootSize));
+    for (int i = startChunk; i <= endChunk; i++)
       mapped[i] = MAPPED;
   }
 

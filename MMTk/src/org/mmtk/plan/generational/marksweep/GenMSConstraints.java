@@ -13,10 +13,10 @@ import org.vmmagic.pragma.*;
  * any features of the selected plan that it needs to know.  This is
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  */

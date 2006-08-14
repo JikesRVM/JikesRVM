@@ -60,6 +60,10 @@ final class VMSystem {
     return VM_Time.currentTimeMillis();
   }
 
+  public static long nanoTime() {
+    return VM_Time.currentTimeMicros() * 1000;
+  }
+
   static void setIn(InputStream in) {
     try {
       VM_Field inField = 

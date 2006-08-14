@@ -332,7 +332,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * FatalError: print a message and terminate the VM
    * @param env A JREF index for the JNI environment object
    * @param messageAddress an address of the string in C
-   * @return This function does not return
    */
   private static void FatalError(VM_JNIEnvironment env, Address messageAddress) {
     if (traceJNI) VM.sysWrite("JNI called: FatalError  \n");
@@ -1323,7 +1322,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a VM_MethodReference
-   * @return the void value returned from the method invocation
    */
   private static void CallVoidMethod(VM_JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");  
@@ -2093,7 +2091,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a VM_MethodReference
-   * @return the void value returned from the method invocation
    */
   private static void CallNonvirtualVoidMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 
                                                int methodID) throws Exception {
@@ -3790,7 +3787,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the String object
    * @param bufAddress address of buffer to release
-   * @return void
    */
   private static void ReleaseStringChars(VM_JNIEnvironment env, int objJREF, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringChars  \n");
@@ -3875,7 +3871,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
       }
 
       // store word of 0 at end, before the copy, to set C null terminator
-      copyBuffer.add(copyBufferLen - BYTES_IN_ADDRESS).store(Word.zero());
+      copyBuffer.plus(copyBufferLen - BYTES_IN_ADDRESS).store(Word.zero());
       VM_Memory.memcopy(copyBuffer, VM_Magic.objectAsAddress(utfcontents), len);
 
       /* Set caller's isCopy boolean to true, if we got a valid (non-null)
@@ -3895,7 +3891,6 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the String object
    * @param bufAddress address of buffer to release
-   * @return void
    */
   private static void ReleaseStringUTFChars(VM_JNIEnvironment env, int objJREF, Address bufAddress) {
     if (traceJNI) VM.sysWrite("JNI called: ReleaseStringUTFChars  \n");
@@ -4506,7 +4501,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         // mode 0 and mode 1:  copy back the buffer
         if ((releaseMode== 0 || releaseMode== 1) && size!=0) {
           for (int i=0; i<size; i+= BYTES_IN_INT) {
-            Address addr = copyBufferAddress.add(i);
+            Address addr = copyBufferAddress.plus(i);
             int data = addr.loadInt();
             if (VM.LittleEndian) {
               if (i<size) 
@@ -4821,7 +4816,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         env.recordException(new ArrayIndexOutOfBoundsException());
         return;
       }
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex), length); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4849,7 +4844,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex), length); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex), length); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4877,7 +4872,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex << LOG_BYTES_IN_CHAR), length << LOG_BYTES_IN_CHAR); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_CHAR), length << LOG_BYTES_IN_CHAR); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4905,7 +4900,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex << LOG_BYTES_IN_SHORT), length << LOG_BYTES_IN_SHORT); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_SHORT), length << LOG_BYTES_IN_SHORT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4933,7 +4928,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex << LOG_BYTES_IN_INT), length << LOG_BYTES_IN_INT); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_INT), length << LOG_BYTES_IN_INT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4961,7 +4956,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex << LOG_BYTES_IN_LONG), length << LOG_BYTES_IN_LONG); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_LONG), length << LOG_BYTES_IN_LONG); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -4989,7 +4984,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex << LOG_BYTES_IN_FLOAT), length << LOG_BYTES_IN_FLOAT); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_FLOAT), length << LOG_BYTES_IN_FLOAT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5017,7 +5012,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).add(startIndex << LOG_BYTES_IN_DOUBLE), length << LOG_BYTES_IN_DOUBLE); 
+      VM_Memory.memcopy(bufAddress, VM_Magic.objectAsAddress(sourceArray).plus(startIndex << LOG_BYTES_IN_DOUBLE), length << LOG_BYTES_IN_DOUBLE); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5045,7 +5040,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex), bufAddress, length); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5073,7 +5068,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex), bufAddress, length); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex), bufAddress, length); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5102,7 +5097,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex << LOG_BYTES_IN_CHAR), bufAddress, length << LOG_BYTES_IN_CHAR); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_CHAR), bufAddress, length << LOG_BYTES_IN_CHAR); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5130,7 +5125,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex << LOG_BYTES_IN_SHORT), 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_SHORT), 
                         bufAddress, length << LOG_BYTES_IN_SHORT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
@@ -5159,7 +5154,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex << LOG_BYTES_IN_INT), bufAddress, length << LOG_BYTES_IN_INT); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_INT), bufAddress, length << LOG_BYTES_IN_INT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5187,7 +5182,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex << LOG_BYTES_IN_LONG), bufAddress, length << LOG_BYTES_IN_LONG); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_LONG), bufAddress, length << LOG_BYTES_IN_LONG); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5215,7 +5210,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex << LOG_BYTES_IN_FLOAT), bufAddress, length << LOG_BYTES_IN_FLOAT); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_FLOAT), bufAddress, length << LOG_BYTES_IN_FLOAT); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5243,7 +5238,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
 
-      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).add(startIndex << LOG_BYTES_IN_DOUBLE), bufAddress, length << LOG_BYTES_IN_DOUBLE); 
+      VM_Memory.memcopy(VM_Magic.objectAsAddress(destinationArray).plus(startIndex << LOG_BYTES_IN_DOUBLE), bufAddress, length << LOG_BYTES_IN_DOUBLE); 
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
       env.recordException(unexpected);
@@ -5297,7 +5292,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         } 
         methods[i] = (VM_NativeMethod)meth;
         symbols.set(i, curMethod.loadAddress(Offset.fromIntSignExtend(BYTES_IN_ADDRESS * 2)));
-        curMethod = curMethod.add(3 * BYTES_IN_ADDRESS);
+        curMethod = curMethod.plus(3 * BYTES_IN_ADDRESS);
       }
 
       // Register methods
@@ -5576,7 +5571,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
         return;
       }
       Address strBase = VM_Magic.objectAsAddress(strChars);
-      Address srcBase = strBase.add(strOffset * 2).add(start * 2);
+      Address srcBase = strBase.plus(strOffset * 2).plus(start * 2);
       VM_Memory.memcopy(buf, srcBase, len * 2);
 
     } catch (Throwable unexpected) {
@@ -5712,7 +5707,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
 
     VM.disableGC(true);
     Address strBase = VM_Magic.objectAsAddress(strChars);
-    return strBase.add(strOffset * 2);
+    return strBase.plus(strOffset * 2);
   }
 
   /**

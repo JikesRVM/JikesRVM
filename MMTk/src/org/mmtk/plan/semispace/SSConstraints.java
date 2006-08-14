@@ -10,14 +10,14 @@ import org.vmmagic.pragma.*;
 
 /**
  * SemiSpace common constants.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */

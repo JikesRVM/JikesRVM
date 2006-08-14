@@ -16,8 +16,8 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements basic statistics functionality
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$
@@ -25,14 +25,14 @@ import org.vmmagic.pragma.*;
 public class Stats implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
   public static final boolean GATHER_MARK_CONS_STATS = false;
 
   /** Maximum number of gc/mutator phases that can be counted */
-  static final int MAX_PHASES = 1<<12;
+  static final int MAX_PHASES = 1 << 12;
   /** Maximum number of counters that can be in operation */
   static final int MAX_COUNTERS = 100;
 
@@ -43,7 +43,7 @@ public class Stats implements Uninterruptible {
   static boolean gatheringStats = false;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -70,7 +70,7 @@ public class Stats implements Uninterruptible {
       Log.writeln("Warning: number of stats counters exceeds maximum");
     }
   }
-  
+
   /**
    * Start a new GC phase.  This means notifying each counter of the
    * phase change.
@@ -101,7 +101,7 @@ public class Stats implements Uninterruptible {
       phase++;
     } else {
       Log.writeln("Warning: number of GC phases exceeds MAX_PHASES");
-    } 
+    }
   }
 
   /**
@@ -116,7 +116,7 @@ public class Stats implements Uninterruptible {
     }
     gatheringStats = true;
     for (int c = 0; c < counters; c++) {
-      if (counter[c].getStart()) 
+      if (counter[c].getStart())
         counter[c].start();
     }
   }
@@ -126,7 +126,7 @@ public class Stats implements Uninterruptible {
    */
   public static void stopAll() {
     for (int c = 0; c < counters; c++) {
-      if (counter[c].getStart()) 
+      if (counter[c].getStart())
         counter[c].stop();
     }
     gatheringStats = false;
@@ -140,7 +140,7 @@ public class Stats implements Uninterruptible {
       printPhases();
     printTotals();
   }
-  
+
   /**
    * Print out statistics totals
    */
@@ -157,7 +157,7 @@ public class Stats implements Uninterruptible {
       }
     }
     Log.writeln();
-    Log.write("Total time: "); 
+    Log.write("Total time: ");
     Plan.totalTime.printTotal(); Log.writeln(" ms");
     Log.writeln("------------------------------ End MMTk Statistics -----------------------------");
   }

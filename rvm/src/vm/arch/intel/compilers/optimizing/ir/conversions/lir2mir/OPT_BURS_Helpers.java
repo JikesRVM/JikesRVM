@@ -175,7 +175,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
   private OPT_MemoryOperand loadFromJTOC(Offset offset) {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
-    return OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset),
+    return OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(offset),
                                (byte)4, loc, guard);
   }
 
@@ -324,7 +324,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     EMIT(MIR_BinaryAcc.create(IA32_SUB, result.copy(), new OPT_RegisterOperand(subtractee, VM_TypeReference.Int)));
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
-    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.maxintField.getOffset()),
+    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(VM_Entrypoints.maxintField.getOffset()),
                             QW, null, null);
     EMIT(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MAX_VALUE; myFP1 = value
@@ -337,7 +337,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
                                     OPT_IA32ConditionOperand.LLT()));
     
     // Compare myFP0 with (double)Integer.MIN_VALUE
-    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(VM_Entrypoints.minintField.getOffset()),
+    M = OPT_MemoryOperand.D(VM_Magic.getTocPointer().plus(VM_Entrypoints.minintField.getOffset()),
                             QW, null, null);
     EMIT(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MIN_VALUE; myFP1 = value
@@ -1537,7 +1537,21 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
 			 // Generate values for consts trying to avoid zero extending the set__b result
 			 // result = cond ? 1 : 0
 			 EMIT(CPOS(s,MIR_Set.create(IA32_SET__B, result.copyRO(), COND(cond))));
-			 if(((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
+
+			 if ((true_const - false_const) == 1){
+			     // result = (cond ? 1 : 0) + false_const
+			     EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+			     EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+			 }
+
+			 else if ((false_const - true_const) == 1){
+			     // result = (cond ? -1 : 0) + false_const
+			     EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+			     EMIT(CPOS(s,MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+			     EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+			 }
+			 
+			 else if(((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
 				// result = cond ? 0 : -1
 				// result = (cond ? 0 : -1) & (false_const - true__const)
 				// result = ((cond ? 0 : -1) & (false_const - true_const)) + true_const
@@ -1802,29 +1816,33 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
    * Expansion of TRAP_IF, with an int constant as the second value.
    *
    * @param s the instruction to expand
+   * @param longConstant is the argument a long constant?
    */
-  protected final void TRAP_IF_IMM(OPT_Instruction s) {
+  protected final void TRAP_IF_IMM(OPT_Instruction s, boolean longConstant) {
     OPT_RegisterOperand gRes = TrapIf.getGuardResult(s);
-    OPT_RegisterOperand v1 =  (OPT_RegisterOperand)TrapIf.getVal1(s);
-    OPT_IntConstantOperand v2 = (OPT_IntConstantOperand)TrapIf.getVal2(s);
+    OPT_RegisterOperand v1 = (OPT_RegisterOperand)TrapIf.getVal1(s);
+    OPT_ConstantOperand v2 = (OPT_ConstantOperand)TrapIf.getVal2(s);
     OPT_ConditionOperand cond = TrapIf.getCond(s);
     OPT_TrapCodeOperand tc = TrapIf.getTCode(s);
 
     // A slightly ugly matter, but we need to deal with combining
     // the two pieces of a long register from a LONG_ZERO_CHECK.  
     // A little awkward, but probably the easiest workaround...
-    if (tc.getTrapCode() == VM_Runtime.TRAP_DIVIDE_BY_ZERO && v1.type.isLongType()) {
+    if (longConstant) {
+      if (VM.VerifyAssertions) {
+        VM._assert((tc.getTrapCode() == VM_Runtime.TRAP_DIVIDE_BY_ZERO) &&
+                   (((OPT_LongConstantOperand)v2).value == 0L));
+      }
       OPT_RegisterOperand rr = regpool.makeTempInt();
       EMIT(MIR_Move.create(IA32_MOV, rr, v1.copy()));
       EMIT(MIR_BinaryAcc.create(IA32_OR, rr.copy(), 
-                                       new OPT_RegisterOperand(regpool.getSecondReg
-																					(v1.register), VM_TypeReference.Int)));
+                                new OPT_RegisterOperand(regpool.getSecondReg(v1.register),
+                                                        VM_TypeReference.Int)));
       v1 = rr.copyD2U();
-    } 
-
+      v2 = IC(0);
+    }
     // emit the trap instruction
-    EMIT(MIR_TrapIf.mutate(s, IA32_TRAPIF, gRes, v1, v2, COND(cond),
-                                  tc));
+    EMIT(MIR_TrapIf.mutate(s, IA32_TRAPIF, gRes, v1, v2, COND(cond), tc));
   }
 
 

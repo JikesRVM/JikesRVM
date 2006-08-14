@@ -8,7 +8,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 import com.ibm.JikesRVM.classloader.*;
-import java.util.HashMap;
+import com.ibm.JikesRVM.util.*;
 
 /**
  * The static fields and methods comprising a running virtual machine image.
@@ -87,13 +87,14 @@ public class VM_Statics implements VM_Constants {
   public static final byte LONG_LITERAL         = 0x03 | WIDE_TAG;
   public static final byte DOUBLE_LITERAL       = 0x04 | WIDE_TAG;
   public static final byte STRING_LITERAL       = 0x05 | REFERENCE_TAG;
+  public static final byte CLASS_LITERAL        = 0x06 | REFERENCE_TAG;
 
-  public static final byte REFERENCE_FIELD      = 0x06 | REFERENCE_TAG;
-  public static final byte NUMERIC_FIELD        = 0x07;
-  public static final byte WIDE_NUMERIC_FIELD   = 0x08 | WIDE_TAG;
+  public static final byte REFERENCE_FIELD      = 0x07 | REFERENCE_TAG;
+  public static final byte NUMERIC_FIELD        = 0x08;
+  public static final byte WIDE_NUMERIC_FIELD   = 0x09 | WIDE_TAG;
 
-  public static final byte METHOD               = 0x09 | REFERENCE_TAG;
-  public static final byte TIB                  = 0x0a | REFERENCE_TAG;
+  public static final byte METHOD               = 0x0a | REFERENCE_TAG;
+  public static final byte TIB                  = 0x0b | REFERENCE_TAG;
 
   public static final byte CONTINUATION         = 0x0f;  // the upper half of a wide-field
 
@@ -122,28 +123,32 @@ public class VM_Statics implements VM_Constants {
   /**
    * Mapping from int literals to the jtoc slot that contains them.
    */
-  private static HashMap intLiterals = new HashMap();
+  private static final VM_HashMap intLiterals = new VM_HashMap();
 
   /**
    * Mapping from float literals to the jtoc slot that contains them.
    */
-  private static HashMap floatLiterals = new HashMap();
+  private static final VM_HashMap floatLiterals = new VM_HashMap();
 
   /**
    * Mapping from long literals to the jtoc slot that contains them.
    */
-  private static HashMap longLiterals = new HashMap();
+  private static final VM_HashMap longLiterals = new VM_HashMap();
 
   /**
    * Mapping from double literals to the jtoc slot that contains them.
    */
-  private static HashMap doubleLiterals = new HashMap();
+  private static final VM_HashMap doubleLiterals = new VM_HashMap();
 
   /**
    * Mapping from string literals to the jtoc slot that contains them.
    */
-  private static HashMap stringLiterals = new HashMap();
+  private static final VM_HashMap stringLiterals = new VM_HashMap();
 
+  /**
+   * Mapping from class literals to the jtoc slot that contains them.
+   */
+  private static final VM_HashMap classLiterals = new VM_HashMap();
 
   /**
    * Conversion from JTOC slot index to JTOC offset.
@@ -256,6 +261,46 @@ public class VM_Statics implements VM_Constants {
   }
 
   /**
+	* Find or allocate a slot in the jtoc for a class literal
+	* @param typeReferenceID the type reference ID for the class
+	* @return the offset of slot that was allocated
+	*/
+  public static synchronized int findOrCreateClassLiteral(int typeReferenceID) {
+	 Integer literal = new Integer(typeReferenceID);
+    Integer off = (Integer)classLiterals.get(literal);
+    if (off != null) return off.intValue();
+	 VM_Class type = (VM_Class)VM_TypeReference.getTypeRef(typeReferenceID).resolve();
+    Class classValue;
+	 if (VM.runningVM) {
+		classValue = type.getClassForType();
+	 } else {
+		classValue = null;
+		VM.deferClassObjectCreation(type);
+	 }
+    int newOff = allocateSlot(CLASS_LITERAL);
+    classLiterals.put(literal, new Integer(newOff));
+    Offset offset = Offset.fromIntSignExtend(newOff);
+    setSlotContents(offset, classValue);
+    return newOff;
+  }
+
+  /**
+	* Class objects can't be created at boot image write time so fix
+	* class literals at the start of VM.boot
+	* @param vm_class the class to fix
+	*/
+  public static void fixClassLiteral(VM_Class vm_class) {
+	 Integer literal = new Integer(vm_class.getTypeRef().getId());
+    Integer off = (Integer)classLiterals.get(literal);
+    if (off != null) {
+		// there is a JTOC slot for this class literal so fix it
+		Class classValue = vm_class.getClassForType();
+		Offset offset = Offset.fromIntSignExtend(off.intValue());
+		setSlotContents(offset, classValue);
+	 }
+  }
+
+  /**
    * Allocate a slot in the jtoc.
    * @param    description of a static field or method (see "kinds", above)
    * @return offset of slot that was allocated as int
@@ -292,7 +337,7 @@ public class VM_Statics implements VM_Constants {
     } 
          
     int offset = slot << LOG_BYTES_IN_INT;
-    if ((slot > 2000 && slot < 2100 && false) || VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
+    if (VM.TraceStatics) VM.sysWrite("VM_Statics: allocated jtoc slot " + slot + " for " + getSlotDescriptionAsString(slot) + "\n");
     return offset;
   }
 

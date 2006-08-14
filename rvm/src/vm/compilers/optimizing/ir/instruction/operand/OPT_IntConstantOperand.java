@@ -31,7 +31,15 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
     value = v;
   }
 
-  public VM_TypeReference getSpeculativeType() {
+  /**
+   * Return the {@link VM_TypeReference} of the value represented by
+   * the operand. For int constants we speculate on the type
+   * dependenent on the constant value.
+   * 
+   * @return a speculation on the type of the value represented by the
+   * operand.
+   */
+  public final VM_TypeReference getType() {
     if ((value == 0) || (value == 1))
       return VM_TypeReference.Boolean;
     else if (-128 <= value && value <= 127)
@@ -40,6 +48,24 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
       return VM_TypeReference.Short;
     else
       return VM_TypeReference.Int;
+  }
+
+  /**
+   * Does the operand represent a value of an int-like data type?
+   * 
+   * @return <code>true</code>
+   */
+  public final boolean isIntLike() {
+	 return true;
+  }
+
+  /**
+   * Does the operand represent a value of an int data type?
+   * 
+   * @return <code>true</code>
+   */
+  public final boolean isInt() {
+	 return true;
   }
 
   /**

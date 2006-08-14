@@ -181,6 +181,51 @@ public final class VM_MethodReference extends VM_MemberReference {
 
 
   final static boolean DBG = false;
+  
+  /**
+   * Return true iff this member reference refers to a method which
+   * is declared as part of an abstract class but actually is an
+   * interface method, known formally as a "miranda method".
+   * 
+   * This method is necessary to handle the special case where an
+   * invokevirtual is defined on an abstract class, where the
+   * method invocation points to a method inherited from an
+   * interface.
+   * 
+   * @return boolean		true iff this member method reference 
+   * 						is a miranda method
+   */
+  public final boolean isMiranda() {
+	  
+    // Hasn't been resolved yet. Try to do it now without triggering class loading.
+    VM_Class declaringClass = (VM_Class)type.peekResolvedType();
+    if (declaringClass == null) { return false; }
+	  
+    if (!declaringClass.isResolved()) {
+      declaringClass.resolve();
+	}
+	    
+    // See if method is in any superclasses
+    for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
+	        
+      if (c.findDeclaredMethod(name, descriptor) != null) {
+        // Method in superclass => not interface method
+	    return false;
+      }
+
+      // See if method is in any interfaces of c
+      VM_Class[] interfaces = c.getDeclaredInterfaces();
+      for (int i=0; i<interfaces.length; i++) {
+        if (searchInterfaceMethods(interfaces[i]) != null) {
+          // Found method in interface or superinterface
+  	      return true;
+        }
+  	  }
+    }
+	      
+    // neither in superclass or interface => not interface method
+    return false;
+  }
 
   /**
    * Find the VM_Method that this member reference refers to using
@@ -259,7 +304,10 @@ public final class VM_MethodReference extends VM_MemberReference {
     if (!declaringClass.isResolved()) {
       declaringClass.resolve();
     }
-    if (!declaringClass.isInterface()) {
+    
+    /* Interface method may be either in interface, or a miranda.
+     */
+    if (!declaringClass.isInterface() && !isMiranda()) {
       throw new IncompatibleClassChangeError();
     }
     VM_Method ans = resolveInterfaceMethodInternal(declaringClass);

@@ -285,6 +285,13 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case CHECKCAST_NOTNULL_opcode: case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode: 
+	//-#if RVM_FOR_IA32
+      case PREFETCH_opcode:
+	//-#endif
+        //-#if RVM_FOR_POWERPC
+      case DCBST_opcode:case DCBT_opcode:case DCBTST_opcode:
+      case DCBZ_opcode:case DCBZL_opcode:case ICBI_opcode:
+	//-#endif
         return  false;
       case RETURN_opcode:
         // a return instruction might cause an object to escape,
@@ -458,6 +465,13 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case CHECKCAST_NOTNULL_opcode: case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode: 
+        //-#if RVM_FOR_IA32
+      case PREFETCH_opcode:
+	//-#endif
+        //-#if RVM_FOR_POWERPC
+      case DCBST_opcode:case DCBT_opcode:case DCBTST_opcode:
+      case DCBZ_opcode:case DCBZL_opcode:case ICBI_opcode:
+	//-#endif
         return  false;
       case RETURN_opcode:
         // a return instruction causes an object to escape this method.
@@ -546,7 +560,6 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     if (!options.SIMPLE_ESCAPE_IPA)
       return;
     // do not perform for unloaded methods
-    VM_Class c = m.getDeclaringClass();
     OPT_MethodSummary summ = OPT_SummaryDatabase.findMethodSummary(m);
     if (summ != null) {
       // do not attempt to perform escape analysis recursively

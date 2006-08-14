@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.*;
 import org.vmmagic.pragma.*;
-import java.util.HashMap;
+import com.ibm.JikesRVM.util.VM_HashMap;
 
 /**
  * A class to represent the reference in a class file to some 
@@ -34,7 +34,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Used to canonicalize TypeReferences
    */
-  private static HashMap dictionary = new HashMap();
+  private static VM_HashMap dictionary = new VM_HashMap();
 
   /**
    * Dictionary of all VM_TypeReference instances.
@@ -44,7 +44,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Used to assign ids.  Id 0 is not used.
    */
-  private static int nextId = 1; 
+  private static int nextId = -1; 
   
   public static final VM_TypeReference Void    = findOrCreate("V");
   public static final VM_TypeReference Boolean = findOrCreate("Z");
@@ -169,17 +169,29 @@ public class VM_TypeReference implements VM_SizeConstants {
         cl = bootstrapCL;
       }
     }
+    return findOrCreateInternal(cl, tn);
+  }
+
+  /**
+   * Find or create the canonical VM_TypeReference instance for
+   * the given pair without type descriptor parsing.
+   *
+   * @param cl the classloader (defining/initiating depending on usage)
+   * @param tn the name of the type
+   */
+  public static synchronized VM_TypeReference findOrCreateInternal (ClassLoader cl, VM_Atom tn) 
+  {
     // Next actually findOrCreate the type reference using the proper classloader.
     VM_TypeReference key = new VM_TypeReference(cl, tn);
     VM_TypeReference val = (VM_TypeReference)dictionary.get(key);
     if (val != null)  return val;
-    key.id = nextId++;
-    if (key.id == types.length) {
+    key.id = nextId--;
+    if ((-key.id) == types.length) {
       VM_TypeReference[] tmp = new VM_TypeReference[types.length + 500];
       System.arraycopy(types, 0, tmp, 0, types.length);
       types = tmp;
     }
-    types[key.id] = key;
+    types[-key.id] = key;
     dictionary.put(key, key);
     return key;
   }
@@ -194,7 +206,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   }
 
   public static VM_TypeReference getTypeRef(int id) throws UninterruptiblePragma {
-    return types[id];
+    return types[-id];
   }
 
   /**
@@ -477,9 +489,9 @@ public class VM_TypeReference implements VM_SizeConstants {
   }
 
   /**
-   * Has the field reference already been resolved into a target method?
+   * Has the type reference already been resolved into a type?
    */
-  public final boolean isResolved() {
+  public final boolean isResolved() throws UninterruptiblePragma {
     return resolvedType != null;
   }
 

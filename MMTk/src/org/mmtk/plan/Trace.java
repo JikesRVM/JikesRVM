@@ -16,11 +16,11 @@ import org.vmmagic.pragma.*;
  * and its super-classes handle per-thread state.
  * 
  * $Id$
- *
+ * 
  * $Id$
- *
+ * 
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$

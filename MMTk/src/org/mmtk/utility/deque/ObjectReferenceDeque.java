@@ -13,25 +13,25 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * object references
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class ObjectReferenceDeque extends LocalDeque 
   implements Constants, Uninterruptible {
- 
+
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
   public final String name;
 
   /**
    * Constructor
-   *
+   * 
    * @param queue The shared queue to which this queue will append
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
@@ -43,7 +43,7 @@ public class ObjectReferenceDeque extends LocalDeque
 
   /**
    * Insert an object into the object queue.
-   *
+   * 
    * @param object the object to be inserted into the object queue
    */
   public final void insert(ObjectReference object) throws InlinePragma {
@@ -54,7 +54,7 @@ public class ObjectReferenceDeque extends LocalDeque
 
   /**
    * Push an object onto the object queue.
-   *
+   * 
    * @param object the object to be pushed onto the object queue
    */
   public final void push(ObjectReference object) throws InlinePragma {
@@ -67,7 +67,7 @@ public class ObjectReferenceDeque extends LocalDeque
    * Push an object onto the object queue, force this out of line
    * ("OOL"), in some circumstnaces it is too expensive to have the
    * push inlined, so this call is made.
-   *
+   * 
    * @param object the object to be pushed onto the object queue
    */
   public final void pushOOL(ObjectReference object) throws NoInlinePragma {
@@ -77,7 +77,7 @@ public class ObjectReferenceDeque extends LocalDeque
   /**
    * Pop an object from the object queue, return zero if the queue
    * is empty.
-   *
+   * 
    * @return The next object in the object queue, or zero if the
    * queue is empty
    */

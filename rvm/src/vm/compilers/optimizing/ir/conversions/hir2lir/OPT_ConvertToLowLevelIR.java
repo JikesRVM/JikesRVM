@@ -243,7 +243,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         {
           TrapIf.mutate(s, TRAP_IF, 
                         ZeroCheck.getClearGuardResult(s),
-                        ZeroCheck.getClearValue(s), IC(0), 
+                        ZeroCheck.getClearValue(s), LC(0), 
                         OPT_ConditionOperand.EQUAL(), 
                         OPT_TrapCodeOperand.DivByZero());
         }

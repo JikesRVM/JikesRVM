@@ -8,11 +8,11 @@ import org.mmtk.plan.Plan;
 
 /**
  * Provide an lower and upper bound on nursery size.
- *
+ * 
  * This option is not intended to be created directly, but via NurserySize.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -26,8 +26,8 @@ public class FixedNursery extends PagesOption {
    */
   public FixedNursery(BoundedNursery boundedNursery) {
     super("Fixed Nursery",
-          "Fix the minimum and maximum size of the nursery to this value",
-          Plan.DEFAULT_MIN_NURSERY);
+        "Fix the minimum and maximum size of the nursery to this value",
+        Plan.DEFAULT_MIN_NURSERY);
     this.boundedNursery = boundedNursery;
   }
 

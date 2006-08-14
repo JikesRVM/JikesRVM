@@ -63,7 +63,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
       // get to the non vol area
-      Address nonVolArea = framePtr.sub(frameOffset);
+      Address nonVolArea = framePtr.minus(frameOffset);
     
       // update non-volatiles
       int first = compiledMethod.getFirstNonVolatileGPR();
@@ -82,14 +82,14 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite(location);
             VM.sysWrite("\n");
           }
-          location = location.sub(BYTES_IN_ADDRESS);
+          location = location.minus(BYTES_IN_ADDRESS);
         }
       }
       
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the nonVol area
-        Address location = nonVolArea.add(4 * NUM_VOLATILE_GPRS);
+        Address location = nonVolArea.plus(4 * NUM_VOLATILE_GPRS);
         
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
@@ -102,7 +102,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite(location);
             VM.sysWrite("\n");
           }
-          location = location.sub(BYTES_IN_ADDRESS);
+          location = location.minus(BYTES_IN_ADDRESS);
         }
       }
     }
@@ -116,7 +116,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @return the resulting spill location
    */
   public Address getStackLocation(Address framePtr, int offset) {
-    return framePtr.sub(offset);
+    return framePtr.minus(offset);
   }
 
   /** 
@@ -124,7 +124,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @return the first spill location
    */
   public Address getFirstSpillLoc() {
-    return framePtr.sub(-VM.STACKFRAME_BODY_OFFSET);
+    return framePtr.minus(-VM.STACKFRAME_BODY_OFFSET);
   }
 
   /** 
@@ -133,9 +133,9 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    */
   public Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
-      return framePtr.sub(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
+      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
     } else {
-      return framePtr.sub(compiledMethod.getUnsignedNonVolatileOffset() - 4);
+      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4);
     }
   }
 

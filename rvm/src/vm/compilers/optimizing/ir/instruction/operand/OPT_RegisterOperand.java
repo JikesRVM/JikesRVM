@@ -35,6 +35,102 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   public VM_TypeReference type;
 
   /**
+   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * 
+   * @return the inferred data type of the contents of the register
+   */
+  public final VM_TypeReference getType() {
+	 return type;
+  }
+
+  /**
+   * Does the operand represent a value of an int-like data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isIntLike() {
+	 return type.isIntLikeType();
+  }
+
+  /**
+   * Does the operand represent a value of an int data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is int-like as defined by {@link VM_TypeReference#isIntLikeType}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isInt() {
+	 return type.isIntType();
+  }
+
+  /**
+   * Does the operand represent a value of the long data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is a long as defined by {@link VM_TypeReference#isLongType}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isLong() {
+    return type.isLongType();
+  }
+
+  /**
+   * Does the operand represent a value of the float data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is a float as defined by {@link VM_TypeReference#isFloatType}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isFloat() {
+    return type.isFloatType();
+  }
+
+  /**
+   * Does the operand represent a value of the double data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is a double as defined by {@link VM_TypeReference#isDoubleType}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isDouble() {
+	 return type.isDoubleType();
+  }
+
+  /**
+   * Does the operand represent a value of the reference data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is a reference as defined by {@link VM_TypeReference#isReferenceType}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isRef() {
+    return type.isReferenceType();
+  }
+
+  /**
+   * Does the operand represent a value of the address data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is an address as defined by {@link VM_TypeReference#isWordType}
+   *         or <code>false</code> if it is not.
+   */
+  public final boolean isAddress() {
+    return type.isWordType();
+  }
+
+  /**
+   * Does the operand definitely represent <code>null</code>?
+   * 
+   * @return <code>true</code> if the operand definitely represents
+   *         <code>null</code> or <code>false</code> if it does not.
+   */
+  public final boolean isDefinitelyNull() {
+	 return type == VM_TypeReference.NULL_TYPE;
+  }
+
+  /**
    * scratch word that can be used for different optimizations.
    * The first 16 bits are reserved for internal purposes. The remaining
    * 16 bits can be used for other purposes. Note: if packing is
@@ -286,7 +382,7 @@ public final class OPT_RegisterOperand extends OPT_Operand {
         s += "(GUARD)";
       }
     }
-    return s.toString();
+    return s;
   }
 
 }

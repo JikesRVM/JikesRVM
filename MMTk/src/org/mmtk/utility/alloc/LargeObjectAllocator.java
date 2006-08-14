@@ -18,37 +18,37 @@ import org.vmmagic.pragma.*;
  * occurs at the granularity of aquiring (and releasing) chunks of
  * memory from the VMResource.  Subclasses may require finer grained
  * synchronization during a marking phase, for example.<p>
- *
+ * 
  * This is a first cut implementation, with plenty of room for
  * improvement...
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public abstract class LargeObjectAllocator extends Allocator implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
-  
+
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
   protected static final Word PAGE_MASK = Word.fromIntSignExtend(~(BYTES_IN_PAGE - 1));
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   protected LargeObjectSpace space;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param space The space with which this large object allocator
    * will be associated.
    */
@@ -57,28 +57,29 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
   }
 
   /****************************************************************************
-   *
+   * 
    * Allocation
    */
 
   /**
    * Allocate space for an object
-   *
+   * 
    * @param bytes The number of bytes allocated
    * @param align The requested alignment.
    * @param offset The alignment offset.
+   * @param inGC Is this allocation occuring during GC
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  public final Address alloc(int bytes, int align, int offset) 
-    throws NoInlinePragma {
-    Address cell = allocSlow(bytes, align, offset, false);
+  public final Address alloc(int bytes, int align, int offset, boolean inGC)
+      throws NoInlinePragma {
+    Address cell = allocSlow(bytes, align, offset, inGC);
     postAlloc(cell);
     return alignAllocation(cell, align, offset);
   }
 
   abstract protected void postAlloc(Address cell);
-    
+
   /**
    * Allocate a large object.  Large objects are directly allocted and
    * freed in page-grained units via the vm resource.  This routine
@@ -92,19 +93,19 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
-  final protected Address allocSlowOnce (int bytes, int align, int offset,
-                                            boolean inGC) {
+  final protected Address allocSlowOnce(int bytes, int align, int offset,
+      boolean inGC) {
     int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of MIN_ALIGNMENT
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
-    int pages = (maxbytes + BYTES_IN_PAGE - 1) >>LOG_BYTES_IN_PAGE;
+    int pages = (maxbytes + BYTES_IN_PAGE - 1) >> LOG_BYTES_IN_PAGE;
     Address sp = space.acquire(pages);
     if (sp.isZero()) return sp;
-    Address cell = sp.add(header);
+    Address cell = sp.plus(header);
     return cell;
   }
 
   /****************************************************************************
-   *
+   * 
    * Freeing
    */
 
@@ -113,7 +114,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * the superpage, if not add to the super page's free list and if
    * all cells on the superpage are free, then release the
    * superpage.
-   *
+   * 
    * @param cell The address of the first byte of the cell to be freed
    */
   public final void free(Address cell)
@@ -122,7 +123,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
   }
 
   /****************************************************************************
-   *
+   * 
    * Superpages
    */
 
@@ -138,7 +139,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @param cell The address of the first word of the cell (exclusive
    * of any sub-class specific metadata).
    * @return The address of the first word of the superpage containing
-   * <code>cell</code>.
+   *         <code>cell</code>.
    */
   public static final Address getSuperPage(Address cell)
     throws InlinePragma {
@@ -146,7 +147,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
   }
 
   /****************************************************************************
-   *
+   * 
    * Miscellaneous
    */
   public void show() {

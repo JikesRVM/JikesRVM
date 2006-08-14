@@ -13,11 +13,11 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * $Id$ 
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * $Id$
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
@@ -27,12 +27,12 @@ public class Memory {
    * @return The lowest address in the heap.
    */
   public static Address HEAP_START() { return Address.zero(); }
-  
+
   /**
    * @return The highest address in the heap.
    */
   public static Address HEAP_END() { return Address.zero(); }
-  
+
   /**
    * Allows for the VM to reserve space between HEAP_START()
    * and AVAILABLE_START() for its own purposes.  MMTk should
@@ -63,45 +63,37 @@ public class Memory {
   /**
    * Return the space associated with/reserved for the VM.  In the
    * case of Jikes RVM this is the boot image space.<p>
-   *
-   * @return The space managed by the virtual machine.  
+   * 
+   * @return The space managed by the virtual machine.
    */
   public static ImmortalSpace getVMSpace() {
     return null;
   }
 
-  /**
-   * Global preparation for a collection.
-   */
+  /** Global preparation for a collection. */
   public static void globalPrepareVMSpace() {}
 
-  /**
-   * Thread-local preparation for a collection.
-   */
-  public static void localPrepareVMSpace() {}
+  /** Per-collector preparation for a collection. */
+  public static void collectorPrepareVMSpace() {}
 
-  /**
-   * Thread-local post-collection work.
-   */
-  public static void localReleaseVMSpace() {}
+  /** Per-collector post-collection work. */
+  public static void collectorReleaseVMSpace() {}
 
-  /**
-   * Global post-collection work.
-   */
+  /** Global post-collection work. */
   public static void globalReleaseVMSpace() {}
 
   /**
    * Sets the range of addresses associated with a heap.
-   *
+   * 
    * @param id the heap identifier
    * @param start the address of the start of the heap
    * @param end the address of the end of the heap
    */
   public static void setHeapRange(int id, Address start, Address end) {}
 
- /**
+  /**
    * Maps an area of virtual memory.
-   *
+   * 
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return 0 if successful, otherwise the system errno
@@ -109,10 +101,10 @@ public class Memory {
   public static int mmap(Address start, int size) {
     return 0;
   }
-  
+
   /**
    * Protects access to an area of virtual memory.
-   *
+   * 
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return <code>true</code> if successful, otherwise
@@ -124,7 +116,7 @@ public class Memory {
 
   /**
    * Allows access to an area of virtual memory.
-   *
+   * 
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return <code>true</code> if successful, otherwise
@@ -152,7 +144,7 @@ public class Memory {
   /**
    * Logs the contents of an address and the surrounding memory to the
    * error output.
-   *
+   * 
    * @param start the address of the memory to be dumped
    * @param beforeBytes the number of bytes before the address to be
    * included
@@ -173,6 +165,6 @@ public class Memory {
    * Wait for all preceeding instructions to complete and discard any 
    * prefetched instructions on this processor.  Also prevents the 
    * compiler from performing code motion across this point.
-   */ 
+   */
   public static void isync() throws InlinePragma {}
 }

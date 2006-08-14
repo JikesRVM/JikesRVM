@@ -1428,14 +1428,24 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
           if (emit_Magic(methodRef)) {
             break;
           }
-        } 
-
-        if (methodRef.needsDynamicLink(method)) {
-          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef);
-          emit_unresolved_invokevirtual(methodRef);
+        }
+        
+        if (methodRef.isMiranda()) {
+        	/* Special case of abstract interface method should generate
+        	 * an invokeinterface, despite the compiler claiming it should
+        	 * be invokevirtual.
+        	 */
+            if (shouldPrint) asm.noteBytecode(biStart, "invokeinterface", methodRef);
+            if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("invokeinterface ", methodRef);
+            emit_invokeinterface(methodRef); 
         } else {
-          if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
-          emit_resolved_invokevirtual(methodRef);
+	        if (methodRef.needsDynamicLink(method)) {
+	          if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual ", methodRef);
+	          emit_unresolved_invokevirtual(methodRef);
+	        } else {
+	          if (VM.VerifyUnint && !isInterruptible) checkTarget(methodRef.peekResolvedMethod());
+	          emit_resolved_invokevirtual(methodRef);
+	        }
         }
 
         //-#if RVM_WITH_OSR

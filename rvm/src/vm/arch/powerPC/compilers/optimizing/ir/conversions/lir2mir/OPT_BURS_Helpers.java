@@ -2076,19 +2076,25 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
   
 
-  // Take the generic LIR trap_if and coerce into the limited vocabulary
-  // understand by C trap handler on PPC.  See VM_TrapConstants.java.
-  // Also see OPT_ConvertToLowLevelIR.java which generates most of these TRAP_IFs.
-  protected final void TRAP_IF_IMM(OPT_Instruction s) {
+  /**
+	* Take the generic LIR trap_if and coerce into the limited
+	* vocabulary understood by the C trap handler on PPC.  See
+	* VM_TrapConstants.java.  Also see OPT_ConvertToLowLevelIR.java
+	* which generates most of these TRAP_IFs.
+   *
+   * @param s the instruction to expand
+   * @param longConstant is the argument a long constant?
+	*/
+  protected final void TRAP_IF_IMM(OPT_Instruction s, boolean longConstant) {
     OPT_RegisterOperand gRes = TrapIf.getClearGuardResult(s);
     OPT_RegisterOperand v1 =  (OPT_RegisterOperand)TrapIf.getClearVal1(s);
-    OPT_IntConstantOperand v2 = (OPT_IntConstantOperand)TrapIf.getClearVal2(s);
     OPT_ConditionOperand cond = TrapIf.getClearCond(s);
     OPT_TrapCodeOperand tc = TrapIf.getClearTCode(s);
 
     switch(tc.getTrapCode()) {
     case VM_Runtime.TRAP_ARRAY_BOUNDS:
       {
+		  OPT_IntConstantOperand v2 = (OPT_IntConstantOperand)TrapIf.getClearVal2(s);
         if (cond.isLOWER_EQUAL()) {
           EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                                new OPT_PowerPCTrapOperand(cond),
@@ -2107,40 +2113,46 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       break;
     case VM_Runtime.TRAP_DIVIDE_BY_ZERO:
       {
-        //-#if RVM_FOR_32_ADDR
-        // A slightly ugly matter, but we need to deal with combining
-        // the two pieces of a long register from a LONG_ZERO_CHECK.  
-        // A little awkward, but probably the easiest workaround...
-        if (v1.type.isLongType()) {
-          OPT_RegisterOperand rr = regpool.makeTempInt();
-          EMIT(MIR_Binary.create(PPC_OR, rr, v1, 
-                                 I(regpool.getSecondReg(v1.register))));
-          v1 = rr.copyD2U();
-        }
-        
-        if (cond.isEQUAL() && v2.value == 0) {
-          EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
-                               new OPT_PowerPCTrapOperand(cond),
-                               v1, v2, tc));
-        } else {
-          throw new OPT_OptimizingCompilerException("Unexpected case of trap_if"+s);
-        }
-        //-#endif
-        //-#if RVM_FOR_64_ADDR
-        if (cond.isEQUAL() && v2.value == 0) {
-          if (v1.type.isLongType()) {
-            EMIT(MIR_Trap.mutate(s, PPC64_TDI, gRes,
-                                 new OPT_PowerPCTrapOperand(cond),
-                                 v1, v2, tc));
+		  OPT_ConstantOperand v2 =  (OPT_ConstantOperand)TrapIf.getClearVal2(s);
+          if (VM.VerifyAssertions) {
+            if (longConstant) {
+              long val = ((OPT_LongConstantOperand)v2).value;
+              VM._assert(val == 0L && cond.isEQUAL(),
+                         "Unexpected case of trap_if"+s);
+            } else {
+              int val = ((OPT_IntConstantOperand)v2).value;
+              VM._assert(val == 0 && cond.isEQUAL(),
+                         "Unexpected case of trap_if"+s);
+            }
+          }
+
+
+		  if (longConstant) {
+            if (VM.BuildFor32Addr) {
+              // A slightly ugly matter, but we need to deal with combining
+              // the two pieces of a long register from a LONG_ZERO_CHECK.  
+              // A little awkward, but probably the easiest workaround...
+              OPT_RegisterOperand rr = regpool.makeTempInt();
+              EMIT(MIR_Binary.create(PPC_OR, rr, v1, 
+                                     I(regpool.getSecondReg(v1.register))));
+              v1 = rr.copyD2U();
+              v2 = IC(0);
+              EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
+                                   new OPT_PowerPCTrapOperand(cond),
+                                   v1, v2, tc));
+            } else {
+              //-#if RVM_FOR_64_ADDR
+              // preprocessor because PPC64_TDI is only defined when 64Addr
+              EMIT(MIR_Trap.mutate(s, PPC64_TDI, gRes,
+                                   new OPT_PowerPCTrapOperand(cond),
+                                   v1, v2, tc));
+              //-#endif
+            }
           } else {
-            EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes,
+            EMIT(MIR_Trap.mutate(s, PPC_TWI, gRes, 
                                  new OPT_PowerPCTrapOperand(cond),
                                  v1, v2, tc));
           }
-        } else {
-          throw new OPT_OptimizingCompilerException("Unexpected case of trap_if"+s);
-        }
-        //-#endif
       }
       break;
 

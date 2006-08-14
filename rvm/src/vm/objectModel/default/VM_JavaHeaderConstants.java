@@ -21,8 +21,12 @@ import org.vmmagic.unboxed.*;
  */
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
-  static final int TIB_BYTES = BYTES_IN_ADDRESS;
-  static final int STATUS_BYTES = BYTES_IN_ADDRESS;
+  static final int TIB_BYTES         = BYTES_IN_ADDRESS;
+  static final int STATUS_BYTES      = BYTES_IN_ADDRESS;
+
+  static final int ALIGNMENT_MASK    = 0x00000001;
+  static final int ALIGNMENT_VALUE   = 0xdeadbeef;
+  static final int LOG_MIN_ALIGNMENT = LOG_BYTES_IN_INT;
 
   /* we use 64 bits for the length on a 64 bit architecture as this makes 
      the other words 8-byte aligned, and the header has to be 8-byte aligned. */
@@ -36,9 +40,9 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final int OTHER_HEADER_BYTES = GC_HEADER_BYTES + MISC_HEADER_BYTES;
 
   static final Offset ARRAY_LENGTH_OFFSET = Offset.fromIntSignExtend(-ARRAY_LENGTH_BYTES);
-  static final Offset JAVA_HEADER_OFFSET  = ARRAY_LENGTH_OFFSET.sub(JAVA_HEADER_BYTES);
-  static final Offset MISC_HEADER_OFFSET  = JAVA_HEADER_OFFSET.sub(MISC_HEADER_BYTES);
-  static final Offset GC_HEADER_OFFSET    = MISC_HEADER_OFFSET.sub(GC_HEADER_BYTES);
+  static final Offset JAVA_HEADER_OFFSET  = ARRAY_LENGTH_OFFSET.minus(JAVA_HEADER_BYTES);
+  static final Offset MISC_HEADER_OFFSET  = JAVA_HEADER_OFFSET.minus(MISC_HEADER_BYTES);
+  static final Offset GC_HEADER_OFFSET    = MISC_HEADER_OFFSET.minus(GC_HEADER_BYTES);
   
 
   /**
@@ -90,6 +94,6 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final Word HASH_STATE_MASK             = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);
   
   static final int HASHCODE_BYTES              = BYTES_IN_INT;
-  static final Offset HASHCODE_OFFSET = GC_HEADER_OFFSET.sub(HASHCODE_BYTES); 
+  static final Offset HASHCODE_OFFSET = GC_HEADER_OFFSET.minus(HASHCODE_BYTES); 
   
 }

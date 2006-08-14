@@ -27,7 +27,7 @@ class VM_DynamicLinkerHelper implements VM_Constants, Uninterruptible {
     Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
-    Address location = callingFrame.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE + 
+    Address location = callingFrame.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE + 
                                            (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * BYTES_IN_ADDRESS); 
     
     return VM_Magic.addressAsObject(location.loadAddress());

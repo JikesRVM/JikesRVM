@@ -69,9 +69,11 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
 	 // reset ir.SSADictionary 
 	 ir.HIRInfo.SSADictionary = null;
 	 // reset ssa options
-	 ir.actualSSAOptions = null;
+    ir.actualSSAOptions = null;
 
     branchOpts.perform(ir, true);
+
+	 ir.HIRInfo.dominatorsAreComputed = false;
   }
 
   /**
@@ -107,7 +109,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     /**
      * Push a name at the top of the stack for a particular register 
      * @param s the register in question
-     * @return  the name to push on the stack
+     * @param name the name to push on the stack
      */
     void push(OPT_Register s, OPT_Operand name) {
       Stack stack = (Stack)get(s);
@@ -506,6 +508,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     // 1. re-compute dominator tree in case of control flow changes
     OPT_LTDominators.perform(ir, true, true);
     OPT_DominatorTree dom = new OPT_DominatorTree(ir, true);
+
     // 2. compute liveness
     OPT_LiveAnalysis live = 
       new OPT_LiveAnalysis(false,  // don't create GC maps

@@ -41,7 +41,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_NormalMethod unresolvedNewArrayMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewArray", "(II)Ljava/lang/Object;");
   public static final VM_NormalMethod resolvedNewArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewArray", "(III[Ljava/lang/Object;III)Ljava/lang/Object;");
   public static final VM_NormalMethod newArrayArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
-
+  public static final VM_Field gcLockField            = getField("Ljava/lang/VMRuntime;", "gcLock", "I");
 
   public static final VM_Field sysWriteLockField     = getField("Lcom/ibm/JikesRVM/VM;", "sysWriteLock", "I");  
   public static final VM_Field intBufferLockField    = getField("Lcom/ibm/JikesRVM/VM_Thread;", "intBufferLock", "I");  
@@ -146,8 +146,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field gcStatusField = getField("Lorg/mmtk/plan/Plan;", "gcStatus","I");
   public static final VM_Field tailField = getField("Lorg/mmtk/utility/deque/LocalSSB;", "tail","Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field SQCFField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "completionFlag","I");
-  public static final VM_Field SQNCField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "numClients","I");
-  public static final VM_Field SQNCWField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "numClientsWaiting","I");
+  public static final VM_Field SQNCField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "numConsumers","I");
+  public static final VM_Field SQNCWField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "numConsumersWaiting","I");
   public static final VM_Field SQheadField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "head","Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field SQtailField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "tail","Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field LQheadField = getField("Lorg/mmtk/utility/deque/LocalQueue;", "head","Lorg/vmmagic/unboxed/Address;");

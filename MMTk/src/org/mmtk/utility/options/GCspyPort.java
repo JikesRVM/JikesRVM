@@ -6,9 +6,9 @@ package org.mmtk.utility.options;
 
 /**
  * Port number for GCSpy server to connect with visualiser.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$

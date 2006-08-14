@@ -371,7 +371,8 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
     byte guard = state.getOptions().INLINING_GUARD;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
-        VM._assert(VM_Lock.owns(VM_Class.OptCLDepManager));
+        VM._assert(VM_ObjectModel.holdsLock(VM_Class.OptCLDepManager,
+                                            VM_Thread.getCurrentThread()));
       }
       if (guard == OPT_Options.IG_CODE_PATCH) {
         if (OPT_ClassLoadingDependencyManager.TRACE || 

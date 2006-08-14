@@ -5,7 +5,9 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
-import  java.util.*;
+import  java.util.Enumeration;
+import  java.util.HashSet;
+import  java.util.Iterator;
 import  com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -15,6 +17,10 @@ import  com.ibm.JikesRVM.opt.ir.*;
  * @modified Stephen Fink 
  */
 class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
+  /** Generate debug output? */
+  private static boolean DEBUG = false;
+  /** Generate verbose debug output? */
+  private static boolean verbose = false;
 
   /**
    * Execute loop invariant code motion on the given IR.
@@ -94,10 +100,10 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Report that we feel really sick for the given reason.
    * @param reason
    */
-  static void BARF(String reason) {
-    throw  new OPT_OptimizingCompilerException(reason);
+  private static void BARF(String reason) {
+    throw new OPT_OptimizingCompilerException(reason);
   }
-  
+
   //------------------------- Implementation -------------------------
   
   /**
@@ -261,7 +267,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     }
     return false;
   }
-
+
   /**
    * Schedule this instruction as early as possible
    * @param inst
@@ -375,8 +381,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     return lateBlock;
   }
 
-
-
   /**
    * return `a's successor on the path from `a' to `b' in the dominator
    * tree. `a' must dominate `b' and `a' and `b' must belong to
@@ -438,7 +442,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     return a;
   }
 
-  
   /**
    * Schedule me as early as possible,
    * but behind the definitions in e and behind earlyPos
@@ -549,8 +552,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     }
     return  lateBlock;
   }
-  
-
+
   /**
    * Return the instruction that defines the operand.
    * @param op
@@ -604,7 +606,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       return Phi.getResult (inst);
     return  null;
   }
-  
+
   /**
    * Visit the blocks between the late and the early position along
    * their path in the dominator tree.
@@ -708,7 +710,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     inst.remove();
     cand.insertAfter(inst);
   }
-  
+
   //------------------------------------------------------------
   // some helper methods
   //------------------------------------------------------------
@@ -796,7 +798,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   void setState(OPT_Instruction inst, int s) {
     state[inst.scratch] = s;
   }
-
+
   //------------------------------------------------------------
   // initialization
   //------------------------------------------------------------
@@ -810,7 +812,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     relocated = new HashSet();
     if (ir.IRStage == OPT_IR.HIR) {
       OPT_SimpleEscape analyzer = new OPT_SimpleEscape();
-      escapeSummary = analyzer.simpleEscapeAnalysis(ir);
+      // escapeSummary = analyzer.simpleEscapeAnalysis(ir); - unused
     }
     // Note: the following unfactors the CFG
     new OPT_DominatorsPhase(true).perform(ir);
@@ -881,10 +883,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private OPT_SSADictionary ssad;
   private OPT_DominatorTree dominator;
   private OPT_IR ir;
-  private OPT_FI_EscapeSummary escapeSummary;
-  private static java.util.HashSet moved = new java.util.HashSet();
+  //  private OPT_FI_EscapeSummary escapeSummary; - unused
+  private final HashSet moved = new HashSet();
   
-
   private boolean simplify(OPT_Instruction inst, OPT_BasicBlock block)
   {
     if (!Phi.conforms (inst)) return false;  // no phi
@@ -1134,7 +1135,4 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
     while (e.hasMoreElements()) e.next().clearLandingPad();
   }
-  
-  private static boolean DEBUG = false;
-  static boolean verbose = false;
 }

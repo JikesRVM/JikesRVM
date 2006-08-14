@@ -6,7 +6,58 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.4.4 Release Notes (future)
+*Jikes RVM 2.4.5 Release Notes (released August 14, 2006)
+** Highlights
+*** The recommended version of GNU classpath for Jikes RVM 2.4.5 is 0.92.
+    GNU classpath version 0.91 will work, but Jikes RVM 2.4.5 will not 
+    compile against versions of GNU classpath before 0.91.
+
+*** Classpath AWT and Swing tests now run with the Jikes RVM. We have changed
+    from using the portable native sync code, and addressed issues with M-to-N
+    threading.
+
+*** We can now load and run Java 1.5.0 Java class files. Support includes
+    building the Jikes RVM using a 1.5.0 javac compiler and running the
+    SPEC JBB 2005 benchmark. Includes reflection support for generic types.
+
+*** MMTk changes & refactors.  A mark-compact collector has been added.  A
+    number of key bugs have been fixed, both in the vm (eg baseline GC
+    maps), and in MMTk proper.  Completed a major refactoring of
+    "locals" to explicitly separate per-mutator and per-collector
+    contexts.  This generalizes away from assumptions of the current
+    Jikes RVM threading model.
+
+*** We can now load runtime and non-runtime annotations. Runtime support
+    is limited as Classpath is missing the base annotation definitions.
+    A work around is to switch on non-runtime annotation loading in the RVM.
+    NOTE: This requires classpath 0.91 or better.
+
+*** Added ability to perform boot image root scanning, and thus avoid
+    tracing through the boot image at each full heap GC. As a result,
+    we've added a third region to the bootimage; all config files must 
+    now define BOOTIMAGE_RMAP_ADDRESS in addition to BOOTIMAGE_DATA_ADDRESS
+    and BOOTIMAGE_CODE_ADDRESS.
+
+** Bug fixes
+1442437: to match Sun behavior, java.lang.Class.newInstance now passes 
+         through exceptions instead of wrapping in InstantiationExceptions.
+	 NOTE: This requires classpath 0.90 or better.
+
+1505824: Exit cleanly when the jar file given to -jar doesn't contain a valid manifest
+
+1494784: Intermittent build failure on IA32 due to imprecise estimation of 
+         instruction size in code used for short forward jump optimization.
+
+1147554: MarkSweep double-mark: corrects performance problem in MMTk MarkSweep
+         code which was marking both a bit in the object and a side mark map.
+
+** Other Notes
+*** IA32 BURS improvement for special case of COND_MOV contibuted by
+    Garrett Kolpin
+*** Improvements to OPT_Simplifier to catch a number of additional cases.
+
+
+*Jikes RVM 2.4.4 Release Notes (released March 15, 2006)
 ** Highlights
 *** The recommended version of GNU classpath for Jikes RVM 2.4.3 is 0.90.
    Classpath 0.18, 0.19, and 0.20 are likely to still work, but have not 

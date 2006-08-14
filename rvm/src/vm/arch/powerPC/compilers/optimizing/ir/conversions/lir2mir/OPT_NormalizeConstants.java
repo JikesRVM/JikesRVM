@@ -69,6 +69,16 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
               s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
+				} else if (use instanceof OPT_ClassConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangClass);
+              OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_ClassConstantOperand cc = (OPT_ClassConstantOperand)use;
+              Offset offset = cc.offset;
+              if (offset.isZero())
+                throw  new OPT_OptimizingCompilerException("Class constant w/o valid JTOC offset");
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+              s.insertBefore(Load.create(VM.BuildFor32Addr? INT_LOAD: LONG_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
+              s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
@@ -92,10 +102,12 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_LongConstantOperand) {
-              if ((!VM.BuildFor64Addr)){
-                OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
-                s.insertBefore(Move.create(LONG_MOVE, rop, use));
-                s.putOperand(idx, rop.copyD2U());
+              if (!VM.BuildFor64Addr) {
+                if (s.getOpcode() != TRAP_IF_opcode) {
+                  OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Long);
+                  s.insertBefore(Move.create(LONG_MOVE, rop, use));
+                  s.putOperand(idx, rop.copyD2U());
+                }
               }
             } else if (use instanceof OPT_NullConstantOperand) {
                 s.putOperand(idx, AC(Address.zero()));

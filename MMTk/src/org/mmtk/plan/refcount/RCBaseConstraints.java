@@ -11,17 +11,17 @@ import org.vmmagic.pragma.*;
 
 /**
  * Common Reference Counting constants.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
  * @date $Date$
  */
 public abstract class RCBaseConstraints extends StopTheWorldConstraints
-  implements Uninterruptible {
+    implements Uninterruptible {
 
   public boolean needsWriteBarrier() { return true; }
 

@@ -250,7 +250,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         OPT_GenericStackManager sm = ir.stackManager;
 
         // Get register restrictions
-        OPT_RegisterRestrictions restrict = sm.getRestrictions();
+        // OPT_RegisterRestrictions restrict = sm.getRestrictions(); - unused
 
         // Create the object that manages spill locations
         spillManager = new SpillLocationManager(ir);
@@ -1794,7 +1794,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     void assignDepthFirstNumbers(OPT_ControlFlowGraph cfg) {
 
       int curDfn = ir.numberInstructions() - 1;
-      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
       listOfBlocks = null;
       for (OPT_BasicBlock bb = reverseTopFirst; 
@@ -1939,7 +1938,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       SpillLocationInterval result = null;
 
       OPT_Register r = ci.getRegister();
-      OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(r);
       if (type == -1) {
         type = DOUBLE_REG;
@@ -2656,7 +2654,6 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // is is really confusing that sometimes a sym reg is a phy, 
       // and sometimes not.
       if (sym_reg.isAllocated()) {
-        OPT_Register ra = OPT_RegisterAllocatorState.getMapping(sym_reg);
         setTupleValue(tuple,
                       OSR_Constants.PHYREG,
                       sym_reg.number & REG_MASK

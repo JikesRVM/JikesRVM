@@ -14,8 +14,8 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple boolean counter (counting number of
  * phases where some boolean event is true).
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$
@@ -24,7 +24,7 @@ public class BooleanCounter extends Counter
   implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
 
@@ -34,13 +34,13 @@ public class BooleanCounter extends Counter
   private boolean running = false;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    */
   public BooleanCounter(String name) {
@@ -49,7 +49,7 @@ public class BooleanCounter extends Counter
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -61,7 +61,7 @@ public class BooleanCounter extends Counter
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -72,12 +72,12 @@ public class BooleanCounter extends Counter
   public BooleanCounter(String name, boolean start, boolean mergephases) {
     super(name, start, mergephases);
     state = new boolean[Stats.MAX_PHASES];
-    for (int i = 0; i < Stats.MAX_PHASES; i++) 
+    for (int i = 0; i < Stats.MAX_PHASES; i++)
       state[i] = false;
   }
 
   /****************************************************************************
-   *
+   * 
    * Counter-specific methods
    */
 
@@ -91,7 +91,7 @@ public class BooleanCounter extends Counter
   }
 
   /****************************************************************************
-   *
+   * 
    * Generic counter control methods: start, stop, print etc
    */
 
@@ -125,14 +125,14 @@ public class BooleanCounter extends Counter
   /**
    * Print the value of this counter for the given phase.  Print '0'
    * for false, '1' for true.
-   *
+   * 
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    if (Assert.VERIFY_ASSERTIONS && mergePhases()) 
+    if (Assert.VERIFY_ASSERTIONS && mergePhases())
       if (Assert.VERIFY_ASSERTIONS) Assert._assert((phase | 1) == (phase + 1));
-    if (mergePhases()) 
-      printValue((state[phase] || state[phase+1]) ? 1 : 0);
+    if (mergePhases())
+      printValue((state[phase] || state[phase + 1]) ? 1 : 0);
     else
       printValue((state[phase]) ? 1 : 0);
   }
@@ -151,7 +151,7 @@ public class BooleanCounter extends Counter
   /**
    * Print the current total number of 'true' phases for either the
    * mutator or GC phase
-   *
+   * 
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
@@ -166,7 +166,7 @@ public class BooleanCounter extends Counter
   /**
    * Print the current minimum value for either the mutator or GC
    * phase. <b>Do nothing in this case.</b>
-   *
+   * 
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
@@ -175,7 +175,7 @@ public class BooleanCounter extends Counter
   /**
    * Print the current maximum value for either the mutator or GC
    * phase. <b>Do nothing in this case.</b>
-   *
+   * 
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
@@ -183,7 +183,7 @@ public class BooleanCounter extends Counter
 
   /**
    * Print the given value
-   *
+   * 
    * @param value The value to be printed
    */
   void printValue(int value) {

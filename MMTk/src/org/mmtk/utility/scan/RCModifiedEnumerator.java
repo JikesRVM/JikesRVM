@@ -14,7 +14,7 @@ import org.vmmagic.pragma.*;
  * A pointer enumeration class.  This class is used by the
  * reference counting collector to do modified buffer
  * enumeration.
- *
+ * 
  * @author Steve Blackburn
  * @author Ian Warrington
  * @version $Revision$
@@ -24,11 +24,11 @@ public class RCModifiedEnumerator extends Enumerator
   implements Uninterruptible {
 
   /**
-   * Enumerate a pointer.  In this case it is an increment event.
-   *
+   * Enumerate a pointer. In this case it is an increment event.
+   * 
    * @param location The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address location) throws InlinePragma {
-    RCBase.local().enumerateModifiedPointerLocation(location);
+    RCBase.collector().enumerateModifiedPointerLocation(location);
   }
 }

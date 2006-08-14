@@ -35,7 +35,6 @@ class OPT_UniformlyGeneratedGVN implements OPT_Operators {
     // create 'standard' global value numbers.
     OPT_GlobalValueNumberState gvn = null;
     gvn = new OPT_GlobalValueNumberState(ir);
-    gvn.globalValueNumber();
 
     // Merge classes related by a constant
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {

@@ -72,13 +72,13 @@ public final class Offset implements Uninterruptible {
   }
 
   //-#if RVM_FOR_64_ADDR
-  public static Offset fromLong (long offset) throws UninterruptibleNoWarnPragma {
+  public static Offset fromLong(long offset) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(offset);
   }
   //-#endif
 
-  public static Offset zero () throws UninterruptibleNoWarnPragma {
+  public static Offset zero() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(0);
   }
@@ -88,12 +88,12 @@ public final class Offset implements Uninterruptible {
     return fromIntSignExtend(-1);
   }
 
-  public int toInt () {
+  public int toInt() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (int) value;
   }
 
-  public long toLong () {
+  public long toLong() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     if (VM.BuildFor64Addr) {
       return value;
@@ -107,52 +107,52 @@ public final class Offset implements Uninterruptible {
     return new Word(value);
   }
 
-  public Offset add (int byteSize) throws UninterruptibleNoWarnPragma {
+  public Offset plus(int byteSize) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value + byteSize);
   }
 
-  public Offset add (Offset off2) throws UninterruptibleNoWarnPragma {
+  public Offset plus(Offset off2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value + off2.value);
   }
 
-  public Offset sub (int byteSize) throws UninterruptibleNoWarnPragma {
+  public Offset minus(int byteSize) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - byteSize);
   }
 
-  public Offset sub (Offset off2) throws UninterruptibleNoWarnPragma {
+  public Offset minus(Offset off2) throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return new Offset(value - off2.value);
   }
 
-  public boolean EQ (Offset off2) {
+  public boolean EQ(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value == off2.value;
   }
 
-  public boolean NE (Offset off2) {
+  public boolean NE(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value != off2.value;
   }
 
-  public boolean sLT (Offset off2) {
+  public boolean sLT(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value < off2.value;
   }
 
-  public boolean sLE (Offset off2) {
+  public boolean sLE(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value <= off2.value;
   }
 
-  public boolean sGT (Offset off2) {
+  public boolean sGT(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value > off2.value;
   }
 
-  public boolean sGE (Offset off2) {
+  public boolean sGE(Offset off2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return value >= off2.value;
   }

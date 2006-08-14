@@ -31,7 +31,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     Offset fooFPOffset    = state.getFPOffset();
 
     int foomid = VM_Magic.getIntAtOffset(stack,
-                   fooFPOffset.add(STACKFRAME_METHOD_ID_OFFSET));
+                   fooFPOffset.plus(STACKFRAME_METHOD_ID_OFFSET));
 
     VM_CompiledMethod foo = VM_CompiledMethods.getCompiledMethod(foomid);
     int cType = foo.getCompilerType();
@@ -41,7 +41,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     // this offset is used to adjust SP to FP right after return
     // from a call. 4 bytes for return address and 
     // 4 bytes for saved FP of tsfrom.
-    Offset sp2fpOffset = fooFPOffset.sub(tsfromFPOffset).sub(2*SW_WIDTH);
+    Offset sp2fpOffset = fooFPOffset.minus(tsfromFPOffset).minus(2*SW_WIDTH);
 
     // should given an estimated length, and print the instructions 
     // for debugging
@@ -91,7 +91,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       for (int i = firstNonVolatile; 
            i < firstNonVolatile + nonVolatiles; 
            i++) {
-        asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], SP, sp2fpOffset.sub(nonVolatileOffset));
+        asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], SP, sp2fpOffset.minus(nonVolatileOffset));
         nonVolatileOffset += SW_WIDTH;
       }
       // adjust SP to frame pointer
@@ -121,7 +121,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       
       VM.sysWriteln("tsfromFPOffset ", tsfromFPOffset);
       VM.sysWriteln("fooFPOffset ", fooFPOffset);
-      VM.sysWriteln("SP + ", sp2fpOffset.add(4));
+      VM.sysWriteln("SP + ", sp2fpOffset.plus(4));
     }
         
     // 3. set thread flags

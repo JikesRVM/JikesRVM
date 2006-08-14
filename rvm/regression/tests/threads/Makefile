@@ -12,6 +12,7 @@ BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/threads
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=150
 NON_DETERMINISTIC_OUTPUT_ORDER=YES
+TIME_LIMIT=300
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 

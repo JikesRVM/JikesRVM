@@ -161,9 +161,9 @@ public class VM_FileSystem {
    *    be avoided)
    */
   private static boolean blockingReadHack(int fd) throws InlinePragma {
-    if (fd >= 3 || standardFdIsNonblocking[fd])
+	 if (fd >= 3 || standardFdIsNonblocking[fd])
       return true;
-
+	 
     VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd);
     return isFdReady(waitData.readFds[0]);
   }
@@ -181,7 +181,7 @@ public class VM_FileSystem {
    *    be avoided)
    */
   private static boolean blockingWriteHack(int fd) throws InlinePragma {
-    if (fd >= 3 || standardFdIsNonblocking[fd])
+	 if (fd >= 3 || standardFdIsNonblocking[fd])
       return true;
 
     VM_ThreadIOWaitData waitData = VM_Wait.ioWaitWrite(fd);
@@ -314,7 +314,7 @@ public class VM_FileSystem {
     int read = 0;
     for (;;) {
       int rc = VM_SysCall.sysReadBytes(fd,
-                                       VM_Magic.objectAsAddress(buf).add(off),
+                                       VM_Magic.objectAsAddress(buf).plus(off),
                                        cnt);
 
       if (rc == 0) {
@@ -410,7 +410,7 @@ public class VM_FileSystem {
     int written = 0;
     for (;;) {
       int rc = VM_SysCall.sysWriteBytes(fd, 
-                                        VM_Magic.objectAsAddress(buf).add(off),
+                                        VM_Magic.objectAsAddress(buf).plus(off),
                                         cnt);
       if (rc >= 0) {
         // Write succeeded, perhaps partially

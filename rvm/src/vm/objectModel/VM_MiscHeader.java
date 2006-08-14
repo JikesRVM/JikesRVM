@@ -29,9 +29,9 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
   /* offset from object ref to .oid field, in bytes */
   static final Offset OBJECT_OID_OFFSET   = MISC_HEADER_START;
   /* offset from object ref to OBJECT_DEATH field, in bytes */
-  static final Offset OBJECT_DEATH_OFFSET = OBJECT_OID_OFFSET.add(BYTES_IN_ADDRESS);
+  static final Offset OBJECT_DEATH_OFFSET = OBJECT_OID_OFFSET.plus(BYTES_IN_ADDRESS);
   /* offset from object ref to .link field, in bytes */
-  static final Offset OBJECT_LINK_OFFSET  = OBJECT_DEATH_OFFSET.add(BYTES_IN_ADDRESS);
+  static final Offset OBJECT_LINK_OFFSET  = OBJECT_DEATH_OFFSET.plus(BYTES_IN_ADDRESS);
 
   /////////////////////////
   // Support for YYY (an example of how to add a word to all objects)
@@ -80,7 +80,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
       Address ref = VM_Magic.objectAsAddress(obj); 
       ref.store(oid, OBJECT_OID_OFFSET);
       ref.store(time, OBJECT_DEATH_OFFSET);
-      oid = oid.add(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) 
+      oid = oid.plus(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) 
 														 >> LOG_BYTES_IN_ADDRESS));
     }
   }
@@ -98,11 +98,11 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
     throws LogicallyUninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
-      bootImage.setAddressWord(ref.add(OBJECT_OID_OFFSET), oid);
-      bootImage.setAddressWord(ref.add(OBJECT_DEATH_OFFSET), time);
-      bootImage.setAddressWord(ref.add(OBJECT_LINK_OFFSET), prevAddress);
+      bootImage.setAddressWord(ref.plus(OBJECT_OID_OFFSET), oid, false);
+      bootImage.setAddressWord(ref.plus(OBJECT_DEATH_OFFSET), time, false);
+      bootImage.setAddressWord(ref.plus(OBJECT_LINK_OFFSET), prevAddress, false);
       prevAddress = ref.toWord();
-      oid = oid.add(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) 
+      oid = oid.plus(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) 
 														 >> LOG_BYTES_IN_ADDRESS));
     }
   }
@@ -133,7 +133,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
   public static Word getOID(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return VM_Magic.objectAsAddress(object).add(OBJECT_OID_OFFSET).loadWord();
+      return VM_Magic.objectAsAddress(object).plus(OBJECT_OID_OFFSET).loadWord();
     else
       return Word.zero();
   }
@@ -141,7 +141,7 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants, VM_Mi
   public static Word getDeathTime(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return VM_Magic.objectAsAddress(object).add(OBJECT_DEATH_OFFSET).loadWord();
+      return VM_Magic.objectAsAddress(object).plus(OBJECT_DEATH_OFFSET).loadWord();
     else
       return Word.zero();
   }

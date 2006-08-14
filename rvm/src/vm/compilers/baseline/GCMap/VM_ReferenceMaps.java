@@ -29,7 +29,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   private static final byte COPY = 3;
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
-  static VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
+  static final VM_ProcessorLock jsrLock = new VM_ProcessorLock();   // for serialization of JSR processing 
 
   private byte[] referenceMaps;
   private int MCSites[];
@@ -94,7 +94,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
    */
   public int locateGCPoint(Offset machCodeOffset, VM_Method method)  {
 
-    machCodeOffset = machCodeOffset.sub(1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
+    machCodeOffset = machCodeOffset.minus(1 << VM.LG_INSTRUCTION_WIDTH);  // this assumes that machCodeOffset points
     // to "next" instruction eg bal type instruction
 
     if (VM.TraceStkMaps) {
@@ -112,7 +112,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     // get the first possible location
     for (int i = 0; i < mapCount; i++) {
       // get an initial non zero distance
-      distance = machCodeOffset.sub(MCSites[i]);
+      distance = machCodeOffset.minus(MCSites[i]);
       if (distance.sGE(Offset.zero())) {
         index = i;
         break;
@@ -120,7 +120,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     }
     // scan to find any better location ie closer to the site
     for(int i = index+1; i < mapCount; i++) {
-      Offset dist =  machCodeOffset.sub(MCSites[i]);
+      Offset dist =  machCodeOffset.minus(MCSites[i]);
       if (dist.sLT(Offset.zero())) continue;
       if (dist.sLE(distance)) {
         index = i;
@@ -136,11 +136,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       VM.sysWrite(referenceMaps[index]);
       VM.sysWrite( "\n");
       if (index - 1 >= 0) {
-        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index-1])); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index-1] = "); VM.sysWrite(machCodeOffset.minus(MCSites[index-1])); VM.sysWrite("\n");
       }
-      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index  ])); VM.sysWrite("\n");
+      VM.sysWrite(" MCSites[index  ] = "); VM.sysWrite(machCodeOffset.minus(MCSites[index  ])); VM.sysWrite("\n");
       if (index + 1 < MCSites.length) {
-        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset.sub(MCSites[index+1])); VM.sysWrite("\n");
+        VM.sysWrite(" MCSites[index+1] = "); VM.sysWrite(machCodeOffset.minus(MCSites[index+1])); VM.sysWrite("\n");
       }
     }
 
@@ -774,7 +774,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
     // from the unusual map and the frame - get the location of the jsr invoker
     //
     int jsrAddressOffset = unusualMap.getReturnAddressOffset();
-    Address callerAddress = frameAddress.add(jsrAddressOffset).loadAddress();
+    Address callerAddress = frameAddress.plus(jsrAddressOffset).loadAddress();
     // NOTE: -4 is subtracted when the map is determined ie locateGCpoint
 
     // from the invoker address and the code base address - get the machine
@@ -821,7 +821,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
       //
       VM_UnusualMaps thisMap = jsrInfo.unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
-      Address nextCallerAddress = frameAddress.add(thisJsrAddressOffset).loadAddress();
+      Address nextCallerAddress = frameAddress.plus(thisJsrAddressOffset).loadAddress();
       Offset nextMachineCodeOffset = compiledMethod.getInstructionOffset(nextCallerAddress);
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
@@ -1297,44 +1297,65 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   }
 
   /**
-   *  Merge the changes made in the JSR subroutine with the
-   *  map found at the JSR instruction to get the next map
-   * with the invoker map
+   * This method will merge the jsr invoker's base map with changes
+   * due to *all* nested jsr subroutines.<p>
+   *
+   * The nested jsr subroutine maps were merged into a single delta
+   * map prior to the calling of this method.  We therefore know that
+   * the base map can never be due to a subroutine (since all
+   * subroutines have been merged), and therefore that there are no
+   * return address maps due to the invoker (since return addresses
+   * are only due to the subroutine maps).
+   *
+   * @param jsrBaseMapIndex The map index for the invoker 
+   * @param deltaMap The map for the invoked subroutine/s (all nested
+   * subroutine maps are guaranteed to have been combined prior to
+   * calling this)
    */
   private void finalMergeMaps(int jsrBaseMapIndex, VM_UnusualMaps deltaMap) {
     int i;
 
-    // clear out merged maps ie the destination maps)
+    /* clear out the destination (merged) maps */
     for ( i = 0; i < bytesPerMap(); i++){
       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap + i] = 0;
       jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap + i] = 0;
     }
 
-    // get the indices of the maps for the unusual map
+    /* get the indices of the maps for the combined subroutine map */
     int refMapIndex           = deltaMap.getReferenceMapIndex();
     int nonRefMapIndex        = deltaMap.getNonReferenceMapIndex();
     int returnAddressMapIndex = deltaMap.getReturnAddressMapIndex();
 
-    // merge the delta map into the jsr map
+    /* merge the subroutine delta map into the invoker (base) map */
     for ( i = 0; i < bytesPerMap() ; i++) {
-      // jsrBaseMap use high bit of first byte for jsr bit; shift to compensate
-      byte base = referenceMaps[jsrBaseMapIndex+i];
+      /* first establish the change in the maps due to the combined subroutines */
+      byte deltaRef     = jsrInfo.unusualReferenceMaps[          refMapIndex + i];
+      byte deltaNonRef  = jsrInfo.unusualReferenceMaps[       nonRefMapIndex + i];
+      byte deltaRtnAddr = jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i];
+      byte deltaAny = (byte) (deltaRef | deltaNonRef | deltaRtnAddr);
+
+      /* There is no merging to be done for the return address map
+       * since the invoker cannot have any return addressses since it
+       * is guaranteed not to be a subroutine (and only subroutines
+       * can generate return address map entries) */
+      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap + i] = deltaRtnAddr;
+
+      /* Get the base reference map (the high bit is used to denote jsr) */
+      byte thisBase = referenceMaps[jsrBaseMapIndex+i];
       byte nextBase = (i + 1 < bytesPerMap()) ? referenceMaps[jsrBaseMapIndex+i+1] : 0;
-      byte finalBase = (byte) ((base << 1) | ((0xff & nextBase) >>> 7));
-      byte newRef = jsrInfo.unusualReferenceMaps[refMapIndex+i];
-      byte newNonRef = jsrInfo.unusualReferenceMaps[nonRefMapIndex + i];
-      byte res = (byte)((finalBase | newRef) & (~newNonRef));
-      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap+i] = res;
-      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
-        = (byte)(jsrInfo.unusualReferenceMaps[jsrInfo.mergedReturnAddressMap+i] 
-                 | jsrInfo.unusualReferenceMaps[returnAddressMapIndex + i]);
+      byte baseRef = (byte) ((thisBase << 1) | ((0xff & nextBase) >>> 7));
+
+      /* Merge the reference maps */
+      byte mergedRef  = (byte) (deltaRef | (baseRef & ~deltaAny));
+      jsrInfo.unusualReferenceMaps[jsrInfo.mergedReferenceMap + i] = mergedRef;
+
       /*
-         VM.sysWrite("   **** base = "); VM.sysWrite(base);
+         VM.sysWrite(" **** thisBase = "); VM.sysWrite(thisBase);
          VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
+         VM.sysWrite("     deltaRef = "); VM.sysWrite(deltaRef);
+         VM.sysWrite("     deltaNonRef = "); VM.sysWrite(deltaNonRef);
+         VM.sysWrite("     base = "); VM.sysWrite(base);
          VM.sysWrite("     newRef = "); VM.sysWrite(newRef);
-         VM.sysWrite("     newNonRef = "); VM.sysWrite(newNonRef);
-         VM.sysWrite("     finalBase = "); VM.sysWrite(finalBase);
-         VM.sysWrite("     res = "); VM.sysWrite(res);
          VM.sysWrite("\n");
        */
     }

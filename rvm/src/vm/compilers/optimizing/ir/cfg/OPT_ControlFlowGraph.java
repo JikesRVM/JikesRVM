@@ -66,7 +66,7 @@ public final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
   /**
    * The distringuished exit node of the FCFG
    */
-  private OPT_BasicBlock _exitNode;
+  private final OPT_BasicBlock _exitNode;
 
   /**
    * Return the entry node of the FCFG.  All reachable nodes

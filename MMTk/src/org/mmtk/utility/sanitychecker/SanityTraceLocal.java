@@ -11,18 +11,18 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements the simply sanity closure. 
- *
+ * This class implements the simply sanity closure.
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
  */
 public final class SanityTraceLocal extends TraceLocal implements Uninterruptible {
-  
+
   private SanityCheckerLocal sanityChecker;
-  
+
   /**
    * Constructor
    */
@@ -32,7 +32,7 @@ public final class SanityTraceLocal extends TraceLocal implements Uninterruptibl
   }
 
   /****************************************************************************
-   *
+   * 
    * Object processing and tracing
    */
 
@@ -45,11 +45,11 @@ public final class SanityTraceLocal extends TraceLocal implements Uninterruptibl
    * @return The new reference to the same object instance.
    */
   public ObjectReference traceObject(ObjectReference object, boolean root)
-    throws InlinePragma {
+      throws InlinePragma {
     sanityChecker.processObject(this, object, root);
     return object;
   }
-  
+
   /**
    * Will this object move from this point on, during the current trace ?
    * 

@@ -10,7 +10,7 @@ import org.vmmagic.pragma.*;
 /**
  * GenCopy constants.
  * 
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$

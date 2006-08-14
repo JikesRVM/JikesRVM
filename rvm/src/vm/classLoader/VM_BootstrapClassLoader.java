@@ -5,10 +5,10 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.util.*;
 
 import java.util.StringTokenizer;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Vector;
 import java.util.zip.*;
 
@@ -26,7 +26,7 @@ import java.io.*;
  */
 public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
 
-  private HashMap loaded = new HashMap(); // Map Strings to VM_Types.
+  private VM_HashMap loaded = new VM_HashMap(); // Map Strings to VM_Types.
 
   private final static boolean DBG = false;
 
@@ -64,7 +64,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   public static void boot(String bootstrapClasspath) {
     if (bootstrapClasspath != null)
       VM_BootstrapClassLoader.bootstrapClasspath = bootstrapClasspath;
-    zipFileCache = new HashMap();
+    zipFileCache = new java.util.HashMap();
     if (VM.runningVM) {
       try {
         /* Here, we have to replace the fields that aren't carried over from
@@ -73,7 +73,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
          *
          * bootstrapClassLoader.definedPackages    = new HashMap();
          */
-        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader, new HashMap());
+        VM_Entrypoints.classLoaderDefinedPackages.setObjectValueUnchecked(bootstrapClassLoader, new java.util.HashMap());
       } catch (Exception e) {
         VM.sysFail("Failed to setup bootstrap class loader");
       }
@@ -207,7 +207,7 @@ public final class VM_BootstrapClassLoader extends java.lang.ClassLoader {
   
   public String toString() { return myName; }
 
-  private static HashMap zipFileCache;
+  private static java.util.HashMap zipFileCache;
     
   private interface Handler {
     void process(ZipFile zf, ZipEntry ze) throws Exception;

@@ -15,31 +15,31 @@ import org.vmmagic.pragma.*;
 
 /**
  * An abstraction of a subspace of a Space.
- *
+ * 
  * This class is an abstraction of a subspace of a Space.  For
  * example, a semispace collector might choose to model the heap as a
  * single Space, but within that Space it can model each semispace by
  * a Subspace.
- *
+ * 
  * $Id$
- *
+ * 
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Subspace implements  Uninterruptible {
+public class Subspace implements Uninterruptible {
 
-  private Address start_;       // The Subspace spans [start_, end_)
+  private Address start_; // The Subspace spans [start_, end_)
   private Address end_;
-  private int firstIndex_;      // The index of the tile in which start_ lies
-  private int blockSize_;       // The tile size
-  private int blockNum_;        // The number of tiles in this space
+  private int firstIndex_; // The index of the tile in which start_ lies
+  private int blockSize_; // The tile size
+  private int blockNum_; // The number of tiles in this space
 
   private static final boolean DEBUG_ = false;
 
   /**
    * Create a new subspace
-   *
+   * 
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param firstIndex The index of the first tile of the subspace
@@ -50,13 +50,13 @@ public class Subspace implements  Uninterruptible {
                 Address end,
                 int firstIndex,
                 int blockSize,
-                int blockNum) {
-     reset(start, end, firstIndex, blockSize, blockNum);
+      int blockNum) {
+    reset(start, end, firstIndex, blockSize, blockNum);
   }
 
   /**
    * Reset a new subspace
-   *
+   * 
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param firstIndex The index of the first tile of the subspace
@@ -67,7 +67,7 @@ public class Subspace implements  Uninterruptible {
                       Address end,
                       int firstIndex,
                       int blockSize,
-                      int blockNum) {
+      int blockNum) {
     reset(start, end, firstIndex, blockNum);
     blockSize_ = blockSize;
     if (DEBUG_)
@@ -76,7 +76,7 @@ public class Subspace implements  Uninterruptible {
 
   /**
    * Reset a new subspace
-   *
+   * 
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param firstIndex The index of the first tile of the subspace
@@ -94,12 +94,12 @@ public class Subspace implements  Uninterruptible {
 
   /**
    * Reset a new subspace
-   *
+   * 
    * @param start The address of the start of the subspace
    * @param end The address of the end of the subspace
    * @param blockNum The number of tiles in this subspace
    */
-  public void reset (Address start, Address end, int blockNum) {
+  public void reset(Address start, Address end, int blockNum) {
     start_ = start;
     end_ = end;
     blockNum_ = blockNum;
@@ -107,11 +107,11 @@ public class Subspace implements  Uninterruptible {
 
   /**
    * Reset a new subspace
-   *
+   * 
    * @param firstIndex The index of the first tile of the subspace
    * @param blockNum The number of tiles in this subspace
    */
-  public void reset (int firstIndex, int blockNum) {
+  public void reset(int firstIndex, int blockNum) {
     firstIndex_ = firstIndex;
     blockNum_ = blockNum;
   }
@@ -119,18 +119,18 @@ public class Subspace implements  Uninterruptible {
 
   /**
    * Is index in range?
-   *
+   * 
    * @param index The index of the tile
    * @return true if this tile lies in this subspace
    */
-  public boolean indexInRange (int index) {
+  public boolean indexInRange(int index) {
     return index >= firstIndex_ &&
            index < firstIndex_ + blockNum_;
   }
 
   /**
    * Is address in range?
-   *
+   * 
    * @param addr An address
    * @return true if this address is in a tile in this subspace
    */
@@ -141,7 +141,7 @@ public class Subspace implements  Uninterruptible {
 
   /**
    * Get tile index from address
-   *
+   * 
    * @param addr The address
    * @return The index of the tile holding this address
    */
@@ -151,12 +151,12 @@ public class Subspace implements  Uninterruptible {
 
   /**
    * Get address of start of tile from its index
-   *
+   * 
    * @param index The index of the tile
    * @return The address of the start of the tile
    */
   public Address getAddress(int index) {
-    return start_.add(index - firstIndex_ * blockSize_);
+    return start_.plus(index - firstIndex_ * blockSize_);
   }
 
   /**
@@ -191,13 +191,13 @@ public class Subspace implements  Uninterruptible {
 
   /**
    * Space remaining in a block after this address
-   *
+   * 
    * @param addr the Address
    * @return the remainder
    */
   public int spaceRemaining(Address addr) {
     int nextIndex = getIndex(addr) + 1;
-    Address nextTile = start_.add(blockSize_ * (nextIndex - firstIndex_));
+    Address nextTile = start_.plus(blockSize_ * (nextIndex - firstIndex_));
     return nextTile.diff(addr).toInt();
   }
 

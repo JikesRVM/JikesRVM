@@ -65,7 +65,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   /**
    * unroll the loops in the given IR.
    */
-  private static void unrollLoops(OPT_IR ir) {
+  void unrollLoops(OPT_IR ir) {
     OPT_LSTGraph lstg = ir.HIRInfo.LoopStructureTree;
     
     for (int i = 1;  lstg != null && i <= 1;  ++i) {
@@ -79,7 +79,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    * @param t
    * @param ir
    */
-  static int unrollLoopTree(OPT_LSTNode t, OPT_IR ir, int target) {
+  int unrollLoopTree(OPT_LSTNode t, OPT_IR ir, int target) {
     int height = 1;
     Enumeration e = t.outNodes();
     if (!e.hasMoreElements()) {
@@ -103,11 +103,9 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 
 
   static final int MaxInstructions = 100;
-  static int unrollFactor = 1;
+  private int unrollFactor = 1;
 
-  static int theCnt=0;
-  
-  static boolean unrollLeaf(OPT_LSTNode t, OPT_IR ir) {
+  boolean unrollLeaf(OPT_LSTNode t, OPT_IR ir) {
     int instructionsInLoop = 0;
     OPT_BasicBlock exitBlock = null, backEdgeBlock = null, succBlock = null, predBlock = null;
     OPT_BitVector nloop = t.loop;
@@ -488,7 +486,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
                      rop1.copyU2U(), limit.copyD2U(),
                      (OPT_ConditionOperand) cond.copy(),
                      header.makeJumpTarget(),
-                     new OPT_BranchProfileOperand(1.0f - 1.0f / (unrollFactor/2))));
+                     new OPT_BranchProfileOperand(1.0f - 1.0f / ((float)(unrollFactor/2)))));
     tmp.insertBefore
       (Goto.create(GOTO,guardBlock2.makeJumpTarget()));
 
@@ -538,7 +536,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   }
 
 
-  private static void naiveUnroller (OPT_LSTNode t, OPT_IR ir) {
+  private void naiveUnroller (OPT_LSTNode t, OPT_IR ir) {
     OPT_BitVector nloop = t.loop;
     OPT_BasicBlock seqStart = null;
     OPT_BasicBlockEnumeration bs;

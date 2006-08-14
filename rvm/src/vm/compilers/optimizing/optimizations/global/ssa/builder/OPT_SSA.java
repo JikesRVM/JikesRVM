@@ -89,7 +89,6 @@ class OPT_SSA implements OPT_Operators, OPT_Constants {
       bb.appendInstructionRespectingTerminalBranchOrPEI(c); 
     else 
       bb.appendInstructionRespectingTerminalBranch(c);
-    OPT_InstructionEnumeration e = bb.enumerateBranchInstructions();
     OPT_RegisterOperand aux = null;
     if (VM.VerifyAssertions)
       VM._assert(Move.conforms(c));

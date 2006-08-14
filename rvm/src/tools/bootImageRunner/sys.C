@@ -2503,9 +2503,9 @@ sysShmctl(int shmid, int command)
 extern "C" void *
 sysMMap(char *start , size_t length ,
         int protection , int flags ,
-        int fd , off_t offset)
+        int fd , VM_Offset offset)
 {
-   return mmap(start, (size_t)(length), protection, flags, fd, offset);
+   return mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
 }
 
 // Same as mmap, but with more debugging support.
@@ -2514,13 +2514,13 @@ sysMMap(char *start , size_t length ,
 extern "C" void *
 sysMMapErrno(char *start , size_t length ,
 	     int protection , int flags ,
-	     int fd , off_t offset)
+	     int fd , VM_Offset offset)
 {
-  void* res = mmap(start, (size_t)(length), protection, flags, fd, offset);
+  void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
-    fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
-	    (VM_Address) start, (unsigned) length, protection, flags, errno);
+    fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %ld) failed with %d: ",
+	    (VM_Address) start, (unsigned) length, protection, flags, fd, offset, errno);
 #else
     fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
 	    (VM_Address) start, (unsigned) length, protection, flags, errno);

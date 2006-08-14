@@ -542,7 +542,7 @@ This looks bad; I am giving up. The likely offending configuration file is  \"${
 
 
 function on_host_set_HOST_VM_variables () {
-        ## HOST_VM_TYPE: Valid working values: Sun, Kaffe
+        ## HOST_VM_TYPE: Valid working values: Sun, Kaffe, IBM-50
     ##			In-progress values: JikesRVM, gij
     : ${HOST_VM_TYPE=Sun}	# the default
 
@@ -572,6 +572,11 @@ function on_host_set_HOST_VM_variables () {
 
 	Sun)
 	    : ${HOST_JAVA_HOME?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=Sun, so you need to set HOST_JAVA_HOME too}
+	    export JAVAH=${HOST_JAVA_HOME}/bin/javah
+	    ;;
+
+	IBM-50)
+	    : ${HOST_JAVA_HOME?$ME: In the config file ${CURRENT_CONFIG_FILE}, HOST_VM_TYPE=IBM-50, so you need to set HOST_JAVA_HOME too}
 	    export JAVAH=${HOST_JAVA_HOME}/bin/javah
 	    ;;
 
@@ -756,8 +761,7 @@ function rationalize_classpath_version () {
 
     ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
     local -i sum
-    let "sum=(  RVM_WITH_CLASSPATH_0_18 + RVM_WITH_CLASSPATH_0_19 \
-	      + RVM_WITH_CLASSPATH_0_20 + RVM_WITH_CLASSPATH_0_90 \
+    let "sum=(RVM_WITH_CLASSPATH_0_91 + RVM_WITH_CLASSPATH_0_92 \
               +  RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
 	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_<version> is defined.  Your configuration files are inconsistent."
@@ -772,10 +776,8 @@ function rationalize_classpath_version () {
     local unk="$(set | sed \
 			-e '/^RVM_WITH_CLASSPATH_/!d'			\
 			-e '/=0$/d'					\
-			-e '/^RVM_WITH_CLASSPATH_0_18=/d'		\
-			-e '/^RVM_WITH_CLASSPATH_0_19=/d'		\
-			-e '/^RVM_WITH_CLASSPATH_0_20=/d'		\
-			-e '/^RVM_WITH_CLASSPATH_0_90=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_91=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_92=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -1120,6 +1122,8 @@ BOOTIMAGE_CODE="${BUILD_DIRECTORY}/RVM.code.image"
 BOOTIMAGE_CODE_STR="${BUILD_DIRECTORY_STR}/RVM.code.image"
 BOOTIMAGE_DATA="${BUILD_DIRECTORY}/RVM.data.image"
 BOOTIMAGE_DATA_STR="${BUILD_DIRECTORY_STR}/RVM.data.image"
+BOOTIMAGE_RMAP="${BUILD_DIRECTORY}/RVM.rmap.image"
+BOOTIMAGE_RMAP_STR="${BUILD_DIRECTORY_STR}/RVM.rmap.image"
 
 # Place to put bootimage map.
 #
@@ -1202,7 +1206,7 @@ if [[ ! -f  $f ]]; then
 fi
 # Current version of RVM
 declare -r CVS_TIMESTAMP="$(< $f)"
-declare -r JIKESRVM_VERSION="Jikes RVM 2.4.3+CVS"
+declare -r JIKESRVM_VERSION="Jikes RVM 2.4.5"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -1254,10 +1258,11 @@ declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via Op
 # Include support for hardware performance monitors (HPM)
 declare -i RVM_WITH_HPM=0
 
-## Memory Allocators and Garbage Collector options (JMTk)
-declare RVM_WITH_JMTK_PLAN=""
-declare RVM_WITH_JMTK_PLANLOCAL=""
-declare RVM_WITH_JMTK_PLANCONSTRAINTS=""
+## Memory Allocators and Garbage Collector options (MMTk)
+declare RVM_WITH_MMTK_PLAN=""
+declare RVM_WITH_MMTK_COLLECTORCONTEXT=""
+declare RVM_WITH_MMTK_MUTATORCONTEXT=""
+declare RVM_WITH_MMTK_PLANCONSTRAINTS=""
 declare -i RVM_WITH_GCSPY=0
 declare -i RVM_WITH_GCTRACE=0
 
@@ -1292,10 +1297,8 @@ declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 
 ## Classpath versions that might work with Jikes RVM.
 ## See $RVM_ROOT/rvm/config/classpath-version for the gory details.
-declare -i RVM_WITH_CLASSPATH_0_18=0
-declare -i RVM_WITH_CLASSPATH_0_19=0
-declare -i RVM_WITH_CLASSPATH_0_20=0
-declare -i RVM_WITH_CLASSPATH_0_90=0
+declare -i RVM_WITH_CLASSPATH_0_91=0
+declare -i RVM_WITH_CLASSPATH_0_92=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
@@ -1552,8 +1555,9 @@ else				# Linux/x86; Linux/ppc32
 fi
 
 # create 1 to 3 class name mapping for MMTk
-RVM_WITH_JMTK_PLANLOCAL=${RVM_WITH_JMTK_PLAN}Local
-RVM_WITH_JMTK_PLANCONSTRAINTS=${RVM_WITH_JMTK_PLAN}Constraints
+RVM_WITH_MMTK_MUTATORCONTEXT=${RVM_WITH_MMTK_PLAN}Mutator
+RVM_WITH_MMTK_COLLECTORCONTEXT=${RVM_WITH_MMTK_PLAN}Collector
+RVM_WITH_MMTK_PLANCONSTRAINTS=${RVM_WITH_MMTK_PLAN}Constraints
 
 ## Setting JAVA_PREPROCESSOR_DEFINITIONS:
 ## We keep this variable with a newline-separated list of definitions.
@@ -1572,6 +1576,8 @@ RVM_WITH_JMTK_PLANCONSTRAINTS=${RVM_WITH_JMTK_PLAN}Constraints
 JAVA_PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_CODE_ADDRESS=${BOOTIMAGE_CODE_ADDRESS}"
 JAVA_PREPROCESSOR_DEFINITIONS="${JAVA_PREPROCESSOR_DEFINITIONS}
 -DBOOTIMAGE_DATA_ADDRESS=${BOOTIMAGE_DATA_ADDRESS}"
+JAVA_PREPROCESSOR_DEFINITIONS="${JAVA_PREPROCESSOR_DEFINITIONS}
+-DBOOTIMAGE_RMAP_ADDRESS=${BOOTIMAGE_RMAP_ADDRESS}"
 JAVA_PREPROCESSOR_DEFINITIONS="${JAVA_PREPROCESSOR_DEFINITIONS}
 -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
 CLEANUP='/bin/rm -f ${tmpf-}'	# used by EXIT trap.
@@ -1625,7 +1631,8 @@ CLEANUP=":"
 ## And set any more C preprocessor definitions we need to.
 C_PREPROCESSOR_DEFINITIONS="${C_PREPROCESSOR_DEFINITIONS}
 -DRVM_BOOTIMAGE_CODE=${BOOTIMAGE_CODE_STR}
--DRVM_BOOTIMAGE_DATA=${BOOTIMAGE_DATA_STR}" 
+-DRVM_BOOTIMAGE_DATA=${BOOTIMAGE_DATA_STR} 
+-DRVM_BOOTIMAGE_RMAP=${BOOTIMAGE_RMAP_STR}" 
 
 if (( HAS_DLCOMPAT )); then
     C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
@@ -1747,7 +1754,9 @@ function emitSourceToPreprocessList () {
     	fi)
     
 	${RVM_ROOT}/rvm/src/vm/objectModel
-	${RVM_ROOT}/rvm/src/vm/objectModel/lockNursery
+	$( if (( !RVM_WITH_DEFAULT_OBJECT_MODEL )); then
+	    echo ${RVM_ROOT}/rvm/src/vm/objectModel/lockNursery
+    	fi)
 	${RVM_ROOT}/rvm/src/vm/${OBJECT_MODEL_PATH_STR}
 
     # other components
@@ -2201,6 +2210,7 @@ EOF
 	FGREP = $FGREP
 	FIND = $FIND
 	GNU_TAR = $GNU_TAR
+	GNU_MAKE = $GNU_MAKE
 	GREP = $GREP
 	MD5SUM = $MD5SUM
 	PS= $PS
@@ -3148,6 +3158,7 @@ EOF
 	   \${generator_class} \
 	   -da $BOOTIMAGE_DATA_ADDRESS \
 	   -ca $BOOTIMAGE_CODE_ADDRESS \
+	   -ra $BOOTIMAGE_RMAP_ADDRESS \
 	   -out \$interface )
 	if [[ \$HOST_VM_TYPE == "JikesRVM" ]]; then
 #	    args=("-X:vmClasses=.:\$DONOR_RVM_BUILD/RVM.classes/jksvm.jar:\$DONOR_RVM_BUILD/RVM.classes/rvmrt.jar:\$DONOR_RVM_BUILD/RVM.classes/mmtk.jar" "\${args[@]}")
@@ -3155,6 +3166,11 @@ EOF
 	    args=("\${args[@]}" -alternateRealityNativeLibDir  \
 					"$BUILD_DIRECTORY_STR" )
 	fi
+
+	if [[ \$HOST_VM_TYPE == "Sun" ]]; then
+	    args=(-Xbootclasspath/a:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar "\${args[@]}")
+	fi
+
 	run $HOST_VM_RT_STR "\${args[@]}"
 	echo -n '(wrote interface) '
 	trap '' EXIT
@@ -3204,7 +3220,7 @@ function emitImageLinker () {
 
 	function clean_primordials() {
 	    rm -f $PRIMORDIAL_CLASSES_STR $EXCLUDED_CLASSES_STR \
-			$BOOTIMAGE_CODE_STR $BOOTIMAGE_DATA_STR $BOOTIMAGE_MAP_STR
+			$BOOTIMAGE_CODE_STR $BOOTIMAGE_DATA_STR $BOOTIMAGE_RMAP_STR $BOOTIMAGE_MAP_STR
 	    echo -n "(primordials cleaned) "
 	    
 	}
@@ -3341,7 +3357,10 @@ java/lang/reflect/Method
 java/lang/reflect/Member
 java/lang/reflect/Constructor
 java/lang/reflect/AccessibleObject
-
+    # annotation support
+    #
+java/lang/reflect/AnnotatedElement
+java/lang/annotation/Annotation
     # hardware runtime errors
     #
 java/lang/ArithmeticException
@@ -3518,7 +3537,6 @@ echo "java/lang/SecurityManager"
     # class loading from zip files
     #
 java/util/zip/ZipFile
-java/util/zip/ZipFile
 java/util/zip/ZipEntry
 java/util/zip/Inflater
 java/util/zip/InflaterInputStream
@@ -3553,6 +3571,28 @@ java/security/Permission
 java/security/AllPermission
 java/security/AllPermissionCollection
 java/lang/RuntimePermission
+EOF
+
+cat <<EOF
+# New for 1.5
+java/lang/StringBuilder
+java/util/WeakHashMap\\\$1
+java/util/Hashtable\\\$1
+java/util/Hashtable\\\$2
+java/util/Hashtable\\\$3
+java/util/Hashtable\\\$4
+java/util/HashMap\\\$1
+java/util/HashMap\\\$2
+java/util/HashMap\\\$3
+java/util/HashMap\\\$HashEntry
+java/util/HashMap\\\$HashIterator
+gnu/java/security/provider/Gnu
+gnu/java/nio/charset/Provider\\\$1
+java/nio/charset/CoderResult\\\$1
+java/nio/charset/CoderResult\\\$2
+java/util/zip/ZipFile\\\$1
+gnu/java/net/loader/URLStreamHandlerCache
+gnu/java/nio/VMChannel
 EOF
     
     # the application class loader uses jar classes (which can be loaded or not)
@@ -3622,8 +3662,6 @@ EOF
 	cat <<- EOF
 java/util/Enumeration
 java/util/Dictionary
-java/util/TreeMap
-java/util/TreeSet
 java/util/Stack
 
 com/ibm/JikesRVM/opt/ir/OPT_CallSiteTreeNode
@@ -3705,7 +3743,6 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Ljava/security/Principal;
 
 	[Ljava/util/zip/ZipEntry;
-	[Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;
 	[Lcom/ibm/JikesRVM/classloader/VM_Atom;
 	[Lcom/ibm/JikesRVM/VM_BasicBlock;
 	[Lcom/ibm/JikesRVM/classloader/VM_Field;
@@ -3714,7 +3751,8 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/classloader/VM_Type;
 	[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;
 	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;
-	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/SelectedPlanLocal;
+	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/SelectedCollectorContext;
+	[Lcom/ibm/JikesRVM/memoryManagers/mmInterface/SelectedMutatorContext;
 	[Lorg/mmtk/vm/SynchronizedCounter;
 	[Lorg/mmtk/plan/Phase;
 	[Lorg/mmtk/policy/Space;
@@ -3770,11 +3808,14 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/VM_CompiledMethod;
 	[Lcom/ibm/JikesRVM/VM_DynamicLibrary;
 
+	[Lcom/ibm/JikesRVM/util/VM_HashMap\$Bucket;
+
 	[Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature; # For fast interface method invoker
 
 	[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix; # For command-line argument processing
 	EOF
     if (( RVM_WITH_OPT_COMPILER )); then
+
 	cat <<- EOF
 		[[C
 		[Ljava/util/HashSet;
@@ -3807,6 +3848,13 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 		[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;
 EOF
 	fi
+
+	if (( !RVM_WITH_DEFAULT_OBJECT_MODEL )); then
+	cat <<- EOF
+	        [Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;
+EOF
+        fi
+
     fi
 
 # Add the configuration specific primordials
@@ -3826,7 +3874,7 @@ EOF
     BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$BOOTIMAGE_WRITER_TRACE_FLAG"
 
     BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS"
-    IMAGE_ADDRESS_ARG="-da $BOOTIMAGE_DATA_ADDRESS -ca $BOOTIMAGE_CODE_ADDRESS"
+    IMAGE_ADDRESS_ARG="-da $BOOTIMAGE_DATA_ADDRESS -ca $BOOTIMAGE_CODE_ADDRESS -ra $BOOTIMAGE_RMAP_ADDRESS"
 
     if (( GENERATE_MAP )); then
 	BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -m $BOOTIMAGE_MAP_STR"
@@ -3904,6 +3952,7 @@ EOF
 		RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR \
 		RVM_BOOTIMAGE_CODE=$BOOTIMAGE_CODE_STR \
 		RVM_BOOTIMAGE_DATA=$BOOTIMAGE_DATA_STR \
+		RVM_BOOTIMAGE_RMAP=$BOOTIMAGE_RMAP_STR \
 		RVM_BOOTIMAGE_COMPILER_ARGS="\$OPT_ARGS" \
 		RVM_BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS" \
 		IMAGE_ADDRESS_ARG="$IMAGE_ADDRESS_ARG" \
@@ -4800,7 +4849,7 @@ emitInstaller() {
 	dest="\$1"
 	run mkdir -p \$dest
 	shopt -s  nullglob
-	run cp *.a *.so environment.target $BOOTIMAGE_CODE_STR $BOOTIMAGE_DATA_STR $BOOTER_STR \$dest
+	run cp *.a *.so environment.target $BOOTIMAGE_CODE_STR $BOOTIMAGE_DATA_STR $BOOTIMAGE_RMAP_STR $BOOTER_STR \$dest
 	shopt -u nullglob
 	run mkdir -p \$dest/RVM.classes
 	run cp RVM.classes/*.jar \$dest/RVM.classes

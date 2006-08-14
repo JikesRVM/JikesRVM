@@ -11,8 +11,8 @@ include		$(RVM_BUILD)/Make.rules.target
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/utf8
 BENCH_SOURCE_PATH=$(WORKING) $(BENCH_HOME)
 HEAPSIZE=150
-LARGEHEAPSIZE=30
 START_NAME=utf8test
+TIME_LIMIT=300
 
 include $(JAL_ROOT)/rvm/regression/Make.rules
 

@@ -236,6 +236,38 @@ EMIT_INSTRUCTION
 EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBST, R(0), R(CacheOp.getRef(P(p)))));
 
 #####
+# DCBT
+#####
+stm:	DCBT(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBT, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
+# DCBTST
+#####
+stm:	DCBTST(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBTST, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
+# DCBZ
+#####
+stm:	DCBZ(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZ, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
+# DCBZL
+#####
+stm:	DCBZL(r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_CacheOp.mutate(P(p), PPC_DCBZL, R(0), R(CacheOp.getRef(P(p)))));
+
+#####
 # ICBI
 #####
 stm:	ICBI(r)
@@ -265,7 +297,12 @@ TRAP_IF(P(p));
 stm:	TRAP_IF(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-TRAP_IF_IMM(P(p));
+TRAP_IF_IMM(P(p), false);
+
+stm:	TRAP_IF(r,LONG_CONSTANT)
+10
+EMIT_INSTRUCTION
+TRAP_IF_IMM(P(p), true);
 
 ##################################
 # Basic Boolean ALU operations 

@@ -16,13 +16,13 @@ import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class corresponds to one raw page space.
- *
+ * 
  * This class provides access to raw memory for managing internal meta
  * data.
- *
+ * 
  *  $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -33,7 +33,7 @@ public final class RawPageSpace extends Space
    * The caller specifies the region of virtual memory to be used for
    * this space.  If this region conflicts with an existing space,
    * then the constructor will fail.
-   *
+   * 
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -45,10 +45,10 @@ public final class RawPageSpace extends Space
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
- 
+
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -62,11 +62,11 @@ public final class RawPageSpace extends Space
     super(name, false, false, mb);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
-  
+
   /**
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
-   * virtual memory.
+   *          virtual memory.
    *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
@@ -91,7 +91,7 @@ public final class RawPageSpace extends Space
 
   /**
    * Release a group of pages that were allocated together.
-   *
+   * 
    * @param first The first page in the group of pages that were
    * allocated together.
    */
@@ -101,10 +101,10 @@ public final class RawPageSpace extends Space
 
   /**
    * Trace an object.
-   *
+   * 
    * This makes no sense for a raw page space and should never be
    * called.
-   *
+   * 
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */

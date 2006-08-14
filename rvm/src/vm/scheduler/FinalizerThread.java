@@ -26,6 +26,8 @@ public class FinalizerThread extends VM_Thread {
 
    private final static int verbose = 0; // currently goes up to 2
 
+  private final Object[]  none = new Object[0];
+  
    public FinalizerThread() {
      super(null);
    }
@@ -66,7 +68,6 @@ public class FinalizerThread extends VM_Thread {
            try {
              VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
              if (VM.VerifyAssertions) VM._assert(method != null);
-             Object[]  none = new Object[0];
              Object    ret = VM_Reflection.invoke(method, o, none);
            }
            catch (Exception e) {

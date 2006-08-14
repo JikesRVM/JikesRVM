@@ -451,8 +451,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
    * Recycles a unused heavy-weight lock.  Locks are deallocated
    * to processor specific lists, so normally no synchronization
    * is required to obtain or release a lock.
-   *
-   * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
   static void free (VM_Lock l) {
     l.active = false;
@@ -605,51 +603,6 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
   }
 
 
-  /**
-   * Does the currently executing thread own the lock on <code>o</code>?
-   * @param o   The object to check
-   * @return <code>true</code> if the currently executing thread owns <code>obj</code>, false otherwise
-   */
-  public static boolean owns(Object o) {
-    return owns(o, VM_Processor.getCurrentProcessor().threadId);
-  }
-
-  /**
-   * Does the given {@link VM_Thread} own the lock on <code>o</code>?
-   * @param o      The object to check
-   * @param owner  The thread whose ownership is being checked
-   * @return true if <code>thread</tt> owns <tt>obj</tt>, false otherwise
-   */
-  public static boolean owns(Object o, VM_Thread owner) {
-    return owns(o, owner.getLockingId());
-  }
-
-  /**
-   * Does the given thread own the lock on <code>o</code>?
-   * @param o    The object to check
-   * @param tid  Thread locking id
-   * @return true if the thread with id <code>tid</code> owns <code>obj</code>, false otherwise
-   */
-  static boolean owns(Object o, int tid) {
-    com.ibm.JikesRVM.classloader.VM_Type t = VM_Magic.getObjectType(o);
-    Offset thinLockOffset = t.getThinLockOffset();
-    if (thinLockOffset.isMax()) {
-      VM_Lock l = VM_LockNursery.findOrCreate(o, false);
-      return l != null && l.ownerId == tid;
-    } else {
-      Word bits = VM_Magic.getWordAtOffset(o, thinLockOffset);
-      if (bits.and(VM_ThinLockConstants.TL_FAT_LOCK_MASK).isZero()) {
-        // if locked, then locked with a thin lock
-        return (bits.and(VM_ThinLockConstants.TL_THREAD_ID_MASK).toInt() == tid);
-      } else {
-        // if locked, then locked with a fat lock
-        int index = bits.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
-        VM_Lock l = VM_Scheduler.locks[index];
-        return l != null && l.ownerId == tid;
-      }
-    }
-  }
-
     //////////////////////////////////////////////
     //             Statistics                   //
     //////////////////////////////////////////////
@@ -671,7 +624,9 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
       deflations = 0;
 
       VM_ThinLock.notifyAppRunStart("", 0);
+      //-#if !RVM_WITH_DEFAULT_OBJECT_MODEL
       VM_LockNursery.notifyAppRunStart("", 0);
+      //-#endif
     }
   }
 
@@ -691,7 +646,9 @@ public final class VM_Lock implements VM_Constants, Uninterruptible {
       VM.sysWrite("FatLocks: "); VM.sysWrite(deflations);          VM.sysWrite(" deflations\n");
 
       VM_ThinLock.notifyExit(totalLocks);
+      //-#if !RVM_WITH_DEFAULT_OBJECT_MODEL
       VM_LockNursery.notifyExit(totalLocks);
+      //-#endif
     }
   }
 

@@ -20,11 +20,11 @@ import org.vmmagic.pragma.*;
  * GCspy. It makes use of Daniel Frampton's LinearScan patches to allow
  * CopySpaces to be scanned linearly (rather than recording allocations
  * with an ObjectMap as in prior versions.<p>
- *
+ * 
  * See the Jones & Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
  * (LOS), and an uncollected "immortal" space.<p>
- *
+ * 
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities.  Global activities must be
  * synchronized, whereas no synchronization is required for
@@ -38,20 +38,20 @@ import org.vmmagic.pragma.*;
  * performance proprties of this plan.
  *
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
  * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
 public class SSGCspy extends SS implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
@@ -69,7 +69,7 @@ public class SSGCspy extends SS implements Uninterruptible {
   static TreadmillDriver losDriver;
 
   /****************************************************************************
-   *
+   * 
    * GCSPY
    */
   static {
@@ -78,16 +78,16 @@ public class SSGCspy extends SS implements Uninterruptible {
 
   /**
    * Start the server and wait if necessary
-   *
+   * 
    * WARNING: allocates memory
    * @param wait Whether to wait
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
   public final void startGCspyServer(int port, boolean wait)
-    throws InterruptiblePragma {
+      throws InterruptiblePragma {
     String eventNames[] = {"Before collection",
                            "Semispace copied",
-                           "After collection"};
+        "After collection" };
     String generalInfo = "SemiSpace Server Interpreter\n\nGeneral Info";
 
     // The Server
@@ -124,7 +124,7 @@ public class SSGCspy extends SS implements Uninterruptible {
                          LOS_SIZE_THRESHOLD,
                          false);
 
-    //Log.write("SemiServerInterpreter initialised\n");
+    // Log.write("SemiServerInterpreter initialised\n");
 
     gcspyEvent_ = BEFORE_COLLECTION;
 
@@ -138,9 +138,9 @@ public class SSGCspy extends SS implements Uninterruptible {
    */
   private static void reportSpaces() {
     Log.write("  Low semispace:  "); Log.write(copySpace0.getStart());
-    //Log.writeln("-", copySpace0.getCursor());
+    // Log.writeln("-", copySpace0.getCursor());
     Log.write("  High semispace: "); Log.write(copySpace1.getStart());
-    //Log.writeln("-", copySpace1.getCursor());
+    // Log.writeln("-", copySpace1.getCursor());
   }
 
 }

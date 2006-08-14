@@ -8,7 +8,7 @@ package org.mmtk.vm;
 
 /**
  * A counter that supports atomic increment and reset.
- *
+ * 
  * @author Perry Cheng
  */
 public final class SynchronizedCounter {
@@ -35,7 +35,7 @@ public final class SynchronizedCounter {
    * 
    * @return The current value of the counter.
    */
-  public int peek () {
+  public int peek() {
     return 0;
   }
 

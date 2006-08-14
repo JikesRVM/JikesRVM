@@ -28,74 +28,74 @@ import org.vmmagic.pragma.Uninterruptible;
  *   <li> The allocator can only deal with MAX_UNITS units (see below for
  *   the value).</li>
  * </ul>
- *
+ * 
  * The basic data structure used by the algorithm is a large table,
  * with one word per allocatable unit.  Each word is used in a
  * number of different ways, some combination of "undefined" (32),
  * "free/used" (1), "multi/single" (1), "prev" (15), "next" (15) &
  * "size" (15) where field sizes in bits are in parenthesis.
  * <pre>
- *                      +-+-+-----------+-----------+
- *                      |f|m|    prev   | next/size |
- *                      +-+-+-----------+-----------+
- *
+ *                       +-+-+-----------+-----------+
+ *                       |f|m|    prev   | next/size |
+ *                       +-+-+-----------+-----------+
+ * 
  *   - single free unit: "free", "single", "prev", "next"
  *   - single used unit: "used", "single"
- *   - contigious free units
+ *    - contigious free units
  *     . first unit: "free", "multi", "prev", "next"
  *     . second unit: "free", "multi", "size"
  *     . last unit: "free", "multi", "size"
- *   - contigious used units
+ *    - contigious used units
  *     . first unit: "used", "multi", "prev", "next"
  *     . second unit: "used", "multi", "size"
  *     . last unit: "used", "multi", "size"
- *   - any other unit: undefined
- *    
- *                      +-+-+-----------+-----------+
- *  top sentinel        |0|0|    tail   |   head    |  [-1]
- *                      +-+-+-----------+-----------+ 
- *                                    ....
- *           /--------  +-+-+-----------+-----------+
- *           |          |1|1|   prev    |   next    |  [j]
- *           |          +-+-+-----------+-----------+
- *           |          |1|1|           |   size    |  [j+1]
- *        free multi    +-+-+-----------+-----------+
- *        unit block    |              ...          |  ...
- *           |          +-+-+-----------+-----------+
- *           |          |1|1|           |   size    |
+ *    - any other unit: undefined
+ *     
+ *                       +-+-+-----------+-----------+
+ *   top sentinel        |0|0|    tail   |   head    |  [-1]
+ *                       +-+-+-----------+-----------+ 
+ *                                     ....
+ *            /--------  +-+-+-----------+-----------+
+ *            |          |1|1|   prev    |   next    |  [j]
+ *            |          +-+-+-----------+-----------+
+ *            |          |1|1|           |   size    |  [j+1]
+ *         free multi    +-+-+-----------+-----------+
+ *         unit block    |              ...          |  ...
+ *            |          +-+-+-----------+-----------+
+ *            |          |1|1|           |   size    |
  *           >--------  +-+-+-----------+-----------+
- *  single free unit    |1|0|   prev    |   next    |
+ *   single free unit    |1|0|   prev    |   next    |
  *           >--------  +-+-+-----------+-----------+
- *  single used unit    |0|0|                       |
+ *   single used unit    |0|0|                       |
  *           >--------  +-+-+-----------------------+
- *           |          |0|1|                       |
- *           |          +-+-+-----------+-----------+
- *           |          |0|1|           |   size    |
- *        used multi    +-+-+-----------+-----------+
- *        unit block    |              ...          |
- *           |          +-+-+-----------+-----------+
- *           |          |0|1|           |   size    |
- *           \--------  +-+-+-----------+-----------+
- *                                    ....
- *                      +-+-+-----------------------+
- *  bottom sentinel     |0|0|                       |  [N]
- *                      +-+-+-----------------------+ 
+ *            |          |0|1|                       |
+ *            |          +-+-+-----------+-----------+
+ *            |          |0|1|           |   size    |
+ *         used multi    +-+-+-----------+-----------+
+ *         unit block    |              ...          |
+ *            |          +-+-+-----------+-----------+
+ *            |          |0|1|           |   size    |
+ *            \--------  +-+-+-----------+-----------+
+ *                                     ....
+ *                       +-+-+-----------------------+
+ *   bottom sentinel     |0|0|                       |  [N]
+ *                       +-+-+-----------------------+ 
  * </pre>
  * The sentinels serve as guards against out of range coalescing
  * because they both appear as "used" blocks and so will never
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- *
+ * 
  */
 final class SmallGenericFreeList extends BaseGenericFreeList implements Constants, Uninterruptible {
    public final static String Id = "$Id$";
- 
+
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
 
@@ -113,7 +113,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
 
   /**
    * Initialize a unit as a sentinel
-   *
+   * 
    * @param unit The unit to be initilized
    */
   protected void setSentinel(int unit) {
@@ -122,12 +122,12 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
 
   /**
    * Get the size of a lump of units
-   *
+   * 
    * @param unit The first unit in the lump of units
    * @return The size of the lump of units
    */
-  protected int getSize(int unit)  {
-    if ((getEntry(unit) & MULTI_MASK) == MULTI_MASK) 
+  protected int getSize(int unit) {
+    if ((getEntry(unit) & MULTI_MASK) == MULTI_MASK)
       return (getEntry(unit + 1) & SIZE_MASK);
     else
       return 1;
@@ -135,7 +135,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
 
   /**
    * Set the size of lump of units
-   *
+   * 
    * @param unit The first unit in the lump of units
    * @param size The size of the lump of units
    */
@@ -144,24 +144,24 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
       setEntry(unit, getEntry(unit) | MULTI_MASK);
       setEntry(unit + 1, MULTI_MASK | size);
       setEntry(unit + size - 1, MULTI_MASK | size);
-    } else 
+    } else
       setEntry(unit, getEntry(unit) & ~MULTI_MASK);
   }
 
   /**
    * Establish whether a lump of units is free
-   *
+   * 
    * @param unit The first or last unit in the lump
    * @return True if the lump is free
    */
   protected boolean getFree(int unit) {
     return ((getEntry(unit) & FREE_MASK) == FREE_MASK);
   }
-  
+
   /**
    * Set the "free" flag for a lump of units (both the first and last
    * units in the lump are set.
-   *
+   * 
    * @param unit The first unit in the lump
    * @param isFree True if the lump is to be marked as free
    */
@@ -177,10 +177,10 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
         setEntry(unit + size - 1, getEntry(unit + size - 1) & ~FREE_MASK);
     }
   }
-  
+
   /**
    * Get the next lump in the doubly linked free list
-   *
+   * 
    * @param unit The index of the first unit in the current lump
    * @return The index of the first unit of the next lump of units in the list
    */
@@ -191,13 +191,13 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
 
   /**
    * Set the next lump in the doubly linked free list
-   *
+   * 
    * @param unit The index of the first unit in the lump to be set
    * @param next The value to be set.
    */
   protected void setNext(int unit, int next) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert((next >= HEAD) && (next <= MAX_UNITS));
-    if (next == HEAD) 
+    if (next == HEAD)
       setEntry(unit, (getEntry(unit) | NEXT_MASK));
     else
       setEntry(unit, (getEntry(unit) & ~NEXT_MASK) | next);
@@ -205,7 +205,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
 
   /**
    * Get the previous lump in the doubly linked free list
-   *
+   * 
    * @param unit The index of the first unit in the current lump
    * @return The index of the first unit of the previous lump of units
    * in the list
@@ -217,7 +217,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
 
   /**
    * Set the previous lump in the doubly linked free list
-   *
+   * 
    * @param unit The index of the first unit in the lump to be set
    * @param prev The value to be set.
    */
@@ -231,7 +231,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
 
   /**
    * Get the lump to the "left" of the current lump (i.e. "above" it)
-   *
+   * 
    * @param unit The index of the first unit in the lump in question
    * @return The index of the first unit in the lump to the
    * "left"/"above" the lump in question.
@@ -242,7 +242,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
     else
       return unit - 1;
   }
-  
+
   /**
    * Get the contents of an entry
    * 
@@ -264,15 +264,15 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
   }
 
   private static final int TOTAL_BITS = 32;
-  private static final int UNIT_BITS = (TOTAL_BITS - 2)>>1;
-  private static final int MAX_UNITS = ((1<<UNIT_BITS) - 1) - 1;
-  private static final int NEXT_MASK = (1<<UNIT_BITS) - 1;
+  private static final int UNIT_BITS = (TOTAL_BITS - 2) >> 1;
+  private static final int MAX_UNITS = ((1 << UNIT_BITS) - 1) - 1;
+  private static final int NEXT_MASK = (1 << UNIT_BITS) - 1;
   private static final int PREV_SHIFT = UNIT_BITS;
-  private static final int PREV_MASK = ((1<<UNIT_BITS) - 1) << PREV_SHIFT;
-  private static final int FREE_MASK = 1<<(TOTAL_BITS-1);
-  private static final int MULTI_MASK = 1<<(TOTAL_BITS-2);
-  private static final int SIZE_MASK = (1<<UNIT_BITS) - 1;
-  
+  private static final int PREV_MASK = ((1 << UNIT_BITS) - 1) << PREV_SHIFT;
+  private static final int FREE_MASK = 1 << (TOTAL_BITS - 1);
+  private static final int MULTI_MASK = 1 << (TOTAL_BITS - 2);
+  private static final int SIZE_MASK = (1 << UNIT_BITS) - 1;
+
   // want the sentinels to be "used" & "single", and want first
   // sentinel to initially point to itself.
   private static final int SENTINEL_INIT = NEXT_MASK | PREV_MASK;

@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import  java.util.Arrays;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -88,23 +88,23 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * a bound on the size of a lattice cell.
      */
-    final static int CAPACITY = 10; 
+    private final static int CAPACITY = 10; 
     /**
      * a set of value numbers comparising this lattice cell.
      */
-    int[] numbers = null;
+    private int[] numbers = null;
     /**
      * The number of value numbers in this cell.
      */
-    int size = 0;
+    private int size = 0;
     /**
      * The heap variable this lattice cell tracks information for.
      */
-    OPT_HeapVariable key;
+    private final OPT_HeapVariable key;
     /**
      * Does this lattice cell represent TOP?
      */
-    boolean TOP = true;
+    private boolean TOP = true;
 
     /**
      * Create a latticle cell corresponding to a heap variable.
@@ -112,6 +112,13 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      */
     ObjectCell(OPT_HeapVariable key) {
       this.key = key;
+    }
+
+    /**
+     * Return the key
+     */
+    OPT_HeapVariable getKey() {
+      return key;
     }
 
     /**
@@ -258,48 +265,16 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @return true iff the two sets are different
      */
     public static boolean setsDiffer(int[] set1, int[] set2) {
-
-      if (set1 == null) {
-        return (set2 != null);
-      } else if (set2 == null) {
-        return true;
+      if ((set1 != null) && (set2 != null)) {
+        Arrays.sort(set1);      
+        Arrays.sort(set2);
+        return !Arrays.equals(set1, set2);
       }
-
-      if (set1.length != set2.length) return  true;
-
-      sort(set1);
-      sort(set2);
-
-      for (int i = 0; i < set1.length; i++) {
-        if (set1[i] != set2[i])
-          return  true;
-      }
-      return  false;
-    }
-
-    /** 
-     * Sort an array of value numbers with bubble sort. 
-     * Note that these sets
-     * will be small  (< CAPACITY), so bubble sort
-     * should be ok.
-     * @param set the set to sort
-     */
-    public static void sort(int[] set) {
-
-      if (set == null) return;
-
-      for (int i = set.length - 1; i >= 0; i--) {
-        for (int j = 0; j < i; j++) {
-          if (set[j] > set[j + 1]) {
-            int temp = set[j + 1];
-            set[j + 1] = set[j];
-            set[j] = temp;
-          }
-        }
+      else {
+        return set1 == set2;
       }
     }
   }
-
 
   /**
    * An ArrayCell is a lattice cell for the index propagation 
@@ -322,23 +297,23 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * a bound on the size of a lattice cell.
      */
-    final static int CAPACITY = 10;      
+    private final static int CAPACITY = 10;      
     /**
      * a set of value number pairs comparising this lattice cell.
      */
-    OPT_ValueNumberPair[] numbers = null;
+    private OPT_ValueNumberPair[] numbers = null;
     /**
      * The number of value number pairs in this cell.
      */
-    int size = 0;
+    private int size = 0;
     /**
      * The heap variable this lattice cell tracks information for.
      */
-    OPT_HeapVariable key;
+    private final OPT_HeapVariable key;
     /**
      * Does this lattice cell represent TOP?
      */
-    boolean TOP = true;
+    private boolean TOP = true;
 
     /**
      * Create a latticle cell corresponding to a heap variable.
@@ -346,6 +321,13 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      */
     ArrayCell(OPT_HeapVariable key) {
       this.key = key;
+    }
+
+    /**
+     * Return the key
+     */
+    OPT_HeapVariable getKey() {
+      return key;
     }
 
     /**
@@ -500,43 +482,13 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      */
     public static boolean setsDiffer(OPT_ValueNumberPair[] set1, 
                                       OPT_ValueNumberPair[] set2) {
-      if (set1 == null) {
-        return (set2 != null);
-      } else if (set2 == null) {
-        return true;
+      if ((set1 != null) && (set2 != null)) {
+        Arrays.sort(set1);      
+        Arrays.sort(set2);
+        return !Arrays.equals(set1, set2);
       }
-
-      if (set1.length != set2.length) return  true;
-
-      sort(set1);
-      sort(set2);
-
-      for (int i = 0; i < set1.length; i++) {
-        if (!set1[i].equals(set2[i]))
-          return  true;
-      }
-      return  false;
-    }
-
-    /**
-     * Sort an array of value number pairs with bubble sort. 
-     * Note that these sets
-     * will be small  (< CAPACITY), so bubble sort
-     * should be ok.
-     * @param set the set to sort
-     */
-    public static void sort(OPT_ValueNumberPair[] set) {
-
-      if (set == null) return;
-
-      for (int i = set.length - 1; i >= 0; i--) {
-        for (int j = 0; j < i; j++) {
-          if (set[j].greaterThan(set[j + 1])) {
-            OPT_ValueNumberPair temp = set[j + 1];
-            set[j + 1] = set[j];
-            set[j] = temp;
-          }
-        }
+      else {
+        return set1 == set2;
       }
     }
   }

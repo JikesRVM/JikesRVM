@@ -111,7 +111,7 @@ public abstract class VM_TypeDescriptorParsing
     for (int i = 0; i < s.length(); ++i) {
       char c = s.charAt(i);
       if (identStart) {
-        if (! Character.isJavaIdentifierStart(c))
+        if (! isVMIdentifierStart(c))
           return false;         // failure to match identifier start.
         identStart = false;     // on to the next one.
         continue;
@@ -120,13 +120,65 @@ public abstract class VM_TypeDescriptorParsing
         identStart = true;
         continue;
       }
-      /* We have a character that is not the first one of a Java identifier */
-      if (!Character.isJavaIdentifierPart(c))
+      /* We have a character that is not the first one of a VM identifier */
+      if (!isVMIdentifierPart(c))
         return false;
       /* And on we go around the loop */
     }
     // Must not finish by needing the start of another identifier.
     return ! identStart;
+  }
+  
+  /**
+   * Java 1.5 relaxes the historical convention that class file identifiers 
+   * (i.e. class, field, and method names) must be drawn from the characters 
+   * specified by JLS identifiers (i.e. implemented by 
+   * java.lang.Character.isJavaIdentifierStart()).<p>
+   * 
+   * Given that, parsing rules for internal and external VM identifier
+   * dictates that identifiers may not contain the following
+   * characters: { <code>'.'</code>, <code>';'</code>, <code>'['</code>,
+   * or <code>'/'</code> }. Method identifiers, excluding <code>&lt;init&gt;</code>
+   * and <code>&lt;clinit&gt;</code>, are further constrained to not include
+   * the characters <code>'&lt;'</code> or <code>'&gt;'</code>.<p>
+   * 
+   * To avoid word boundary ambiguity, identifiers are presumed to not 
+   * begin with a space character. Although not stated explicitly, this
+   * remains convention.<p> 
+   * 
+   * This method evaluates whether <code>c</code> is compatible as the starting 
+   * character for a VM identifier. 
+   * 
+   * @param c			character to evaluate for VM identifier compatibility
+   * @return boolean	true iff <code>c</code> represents a valid VM identifier starting character
+   */
+  public static boolean isVMIdentifierStart (char c) {
+	  
+    return ((!Character.isSpace(c)) && isVMIdentifierPart(c));
+  }
+  
+  /**
+   * Java 1.5 relaxes the historical convention that class file identifiers 
+   * (i.e. class, field, and method names) must be drawn from the characters 
+   * specified by JLS identifiers (i.e. implemented by 
+   * java.lang.Character.isJavaIdentifierPart()).<p>
+   * 
+   * Given that, parsing rules for internal and external VM identifier
+   * dictates that identifiers may not contain the following
+   * characters: { <code>'.'</code>, <code>';'</code>, <code>'['</code>,
+   * or <code>'/'</code> }. Method identifiers, excluding <code>&lt;init&gt;</code>
+   * and <code>&lt;clinit&gt;</code>, are further constrained to not include
+   * the characters <code>'&lt;'</code> or <code>'&gt;'</code>.<p>
+   * 
+   * This method evaluates whether <code>c</code> is compatible as a non-starting 
+   * character for a VM identifier. 
+   * 
+   * @param c			character to evaluate for VM identifier compatibility
+   * @return boolean	true iff <code>c</code> represents a valid VM identifier non-starting character
+   */
+  public static boolean isVMIdentifierPart (char c) {
+	  
+    return ((c != '.') && (c != ';') && (c != '[') && (c != '/'));
   }
 
   /** Is this the internal form of a Java class name?  (the one with the "/"
@@ -146,7 +198,7 @@ public abstract class VM_TypeDescriptorParsing
     for (int i = first; i <= last; ++i) {
       char c = val[i];
       if (identStart) {
-        if (! Character.isJavaIdentifierStart(c))
+        if (! isVMIdentifierStart(c))
           return false;         // failure to match identifier start.
         identStart = false;     // on to the next one.
         continue;
@@ -155,9 +207,10 @@ public abstract class VM_TypeDescriptorParsing
         identStart = true;
         continue;
       }
-      /* We have a character that is not the first one of a Java identifier */
-      if (!Character.isJavaIdentifierPart(c))
+      /* We have a character that is not the first one of a VM identifier */
+      if (!isVMIdentifierPart(c))
         return false;
+
       /* And on we go around the loop */
     }
     // Must not finish by needing the start of another identifier.

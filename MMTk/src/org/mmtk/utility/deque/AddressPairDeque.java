@@ -13,22 +13,22 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * address pairs
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class AddressPairDeque extends LocalDeque implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
- 
+
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param queue The shared queue to which this queue will append
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
@@ -36,10 +36,10 @@ public class AddressPairDeque extends LocalDeque implements Constants, Uninterru
   public AddressPairDeque(SharedDeque queue) {
     super(queue);
   }
- 
+
   /**
    * Insert an address pair into the address queue.
-   *
+   * 
    * @param addr1 the first address to be inserted into the address queue
    * @param addr2 the second address to be inserted into the address queue
    */
@@ -50,10 +50,10 @@ public class AddressPairDeque extends LocalDeque implements Constants, Uninterru
     uncheckedTailInsert(addr1);
     uncheckedTailInsert(addr2);
   }
- 
+
   /**
    * Push an address pair onto the address queue.
-   *
+   * 
    * @param addr1 the first value to be pushed onto the address queue
    * @param addr2 the second value to be pushed onto the address queue
    */
@@ -68,20 +68,20 @@ public class AddressPairDeque extends LocalDeque implements Constants, Uninterru
   /**
    * Pop the first address in a pair from the address queue, return
    * zero if the queue is empty.
-   *
+   * 
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */
   public final Address pop1() {
-     if (checkDequeue(2))
+    if (checkDequeue(2))
       return uncheckedDequeue();
     else
       return Address.zero();
   }
-  
+
   /**
    * Pop the second address in a pair from the address queue.
-   *
+   * 
    * @return The next address in the address queue
    */
   public final Address pop2() {

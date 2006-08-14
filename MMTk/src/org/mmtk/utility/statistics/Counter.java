@@ -8,10 +8,10 @@ package org.mmtk.utility.statistics;
 import org.vmmagic.pragma.*;
 
 /**
- *
+ * 
  * This abstract class describes the interface of a generic counter.
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  * $Id$
@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
 public abstract class Counter implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
 
@@ -28,13 +28,13 @@ public abstract class Counter implements Uninterruptible {
   private boolean mergephases;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    */
   Counter(String name) {
@@ -43,7 +43,7 @@ public abstract class Counter implements Uninterruptible {
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -55,7 +55,7 @@ public abstract class Counter implements Uninterruptible {
 
   /**
    * Constructor
-   *
+   * 
    * @param name The name to be associated with this counter
    * @param start  True if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
@@ -71,10 +71,10 @@ public abstract class Counter implements Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Counter control methods: start, stop, print etc
    */
-  
+
   /**
    * Start this counter
    */
@@ -95,7 +95,7 @@ public abstract class Counter implements Uninterruptible {
 
   /**
    * Print the value of this counter for the given phase
-   *
+   * 
    * @param phase The phase to be printed
    */
   abstract void printCount(int phase);
@@ -107,7 +107,7 @@ public abstract class Counter implements Uninterruptible {
 
   /**
    * Print the current total for either the mutator or GC phase
-   *
+   * 
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
@@ -115,7 +115,7 @@ public abstract class Counter implements Uninterruptible {
 
   /**
    * Print the current minimum value for either the mutator or GC phase
-   *
+   * 
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
@@ -123,7 +123,7 @@ public abstract class Counter implements Uninterruptible {
 
   /**
    * Print the current maximum value for either the mutator or GC phase
-   *
+   * 
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
@@ -138,10 +138,10 @@ public abstract class Counter implements Uninterruptible {
 
 
   /****************************************************************************
-   *
+   * 
    * Accessor methods
    */
-  
+
   /**
    * Return the name of this counter
    * @return The name of this counter
@@ -152,7 +152,7 @@ public abstract class Counter implements Uninterruptible {
    * Return true if this counter is implicitly started when
    * <code>startAll()</code> is called.
    * @return True if this counter is implicitly started when
-   * <code>startAll()</code> is called.
+   *         <code>startAll()</code> is called.
    */
   boolean getStart() { return start; }
 

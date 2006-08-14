@@ -284,29 +284,11 @@ public abstract class OPT_AbstractRegisterPool {
    */
   public OPT_RegisterOperand makeTemp(OPT_Operand op) {
     OPT_RegisterOperand result;
-    if (op instanceof OPT_RegisterOperand) {
+    if (op.isRegister()) {
       result = makeTemp((OPT_RegisterOperand)op);
-    } else if (op instanceof OPT_NullConstantOperand) {
-      result = makeTemp(VM_TypeReference.NULL_TYPE);
-    } else if (op instanceof OPT_StringConstantOperand) {
-      result = makeTemp(VM_TypeReference.JavaLangString);
-      result.setPreciseType();
-    } else if (op instanceof OPT_IntConstantOperand) {
-      OPT_IntConstantOperand iop = (OPT_IntConstantOperand)op;
-      result = makeTemp(iop.getSpeculativeType());
-      if (iop.value > 0) result.setPositiveInt();
-    } else if (op instanceof OPT_LongConstantOperand) {
-      result = makeTemp(VM_TypeReference.Long);
-    } else if (op instanceof OPT_FloatConstantOperand) {
-      result = makeTemp(VM_TypeReference.Float);
-    } else if (op instanceof OPT_DoubleConstantOperand) {
-      result = makeTemp(VM_TypeReference.Double);
-    } else if (op instanceof OPT_AddressConstantOperand) {
-      result = makeTemp(VM_TypeReference.Address);
     } else {
-      result = null;
-      OPT_OptimizingCompilerException.UNREACHABLE("unknown operand type: "+op);
-    }
+		result = makeTemp(op.getType());
+	 }
     return result;
   }
 

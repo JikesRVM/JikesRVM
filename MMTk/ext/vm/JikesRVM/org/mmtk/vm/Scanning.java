@@ -25,7 +25,7 @@ import org.vmmagic.pragma.*;
 /**
  * $Id$ 
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  *
  * @version $Revision$
@@ -161,7 +161,7 @@ public class Scanning implements Constants, Uninterruptible {
             VM.sysWrite(ct.getGCOrdinal()," Old address ");
             VM.sysWriteln(ObjectReference.fromObject(thread).toAddress());
           }
-          Address threadTableSlot = threadTable.toAddress().add(threadIndex<<LOG_BYTES_IN_ADDRESS);
+          Address threadTableSlot = threadTable.toAddress().plus(threadIndex<<LOG_BYTES_IN_ADDRESS);
           if (Assert.VERIFY_ASSERTIONS) 
             Assert._assert(ObjectReference.fromObject(thread).toAddress().EQ(
                 threadTableSlot.loadObjectReference().toAddress()),
@@ -236,9 +236,26 @@ public class Scanning implements Constants, Uninterruptible {
       ScanThread.scanThread(thread, trace, processCodeLocations);
 
       /* identify this thread as a root */
-      trace.addRootLocation(VM_Magic.objectAsAddress(VM_Scheduler.threads).add(threadIndex<<LOG_BYTES_IN_ADDRESS));
+      trace.addRootLocation(VM_Magic.objectAsAddress(VM_Scheduler.threads).plus(threadIndex<<LOG_BYTES_IN_ADDRESS));
     }
+    /* flush out any remset entries generated during the above activities */
+    ActivePlan.flushRememberedSets();
     Collection.rendezvous(4200);
   }
-
+  
+  /**
+   * Compute all roots out of the VM's boot image (if any).  This method is a no-op
+   * in the case where the VM does not maintain an MMTk-visible Java space.   However,
+   * when the VM does maintain a space (such as a boot image) which is visible to MMTk,
+   * that space could either be scanned by MMTk as part of its transitive closure over
+   * the whole heap, or as a (considerable) performance optimization, MMTk could avoid
+   * scanning the space if it is aware of all pointers out of that space.  This method
+   * is used to establish the root set out of the scannable space in the case where
+   * such a space exists.
+   *  
+   * @param trace The trace object to use to report root locations.
+   */
+  public static void computeBootImageRoots(TraceLocal trace) {
+    ScanBootImage.scanBootImage(trace);
+  }
 }

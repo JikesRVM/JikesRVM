@@ -1,12 +1,12 @@
 /*
- * (C) Copyright Australian National University, 2004.
+ *(C) Copyright Australian National University, 2004.
  */
 //$Id$
-package org.vmmagic.unboxed; 
- 
+package org.vmmagic.unboxed;
+
 /**
  * To be commented.
- *
+ * 
  * @author Daniel Frampton
  * @see Address
  */
@@ -15,23 +15,23 @@ public final class Word {
   /**
    * To be deprecated as soon as we find an alternative
    */
-  public static Word fromInt (int val) {
+  public static Word fromInt(int val) {
     return null;
   }
 
-  public static Word fromIntSignExtend (int val) {
-    return null;
-  }
-  
-  public static Word fromIntZeroExtend (int val) {
+  public static Word fromIntSignExtend(int val) {
     return null;
   }
 
-  public static Word zero () {
+  public static Word fromIntZeroExtend(int val) {
     return null;
   }
 
-  public static Word one () {
+  public static Word zero() {
+    return null;
+  }
+
+  public static Word one() {
     return null;
   }
 
@@ -39,11 +39,11 @@ public final class Word {
     return null;
   }
 
-  public int toInt () {
+  public int toInt() {
     return 0;
   }
 
-  public long toLong () {
+  public long toLong() {
     return 0L;
   }
 
@@ -51,35 +51,35 @@ public final class Word {
     return null;
   }
 
-  public Offset toOffset () {
+  public Offset toOffset() {
     return null;
   }
 
-  public Extent toExtent () {
+  public Extent toExtent() {
     return null;
   }
 
-  public Word add (Word w2) {
+  public Word plus(Word w2) {
     return null;
   }
 
-  public Word add (Offset w2) {
+  public Word plus(Offset w2) {
     return null;
   }
 
-  public Word add (Extent w2) {
+  public Word plus(Extent w2) {
     return null;
   }
 
-  public Word sub (Word w2) {
+  public Word minus(Word w2) {
     return null;
   }
 
-  public Word sub (Offset w2) {
+  public Word minus(Offset w2) {
     return null;
   }
 
-  public Word sub (Extent w2) {
+  public Word minus(Extent w2) {
     return null;
   }
 
@@ -91,27 +91,27 @@ public final class Word {
     return false;
   }
 
-  public boolean LT (Word addr2) {
+  public boolean LT(Word addr2) {
     return false;
   }
 
-  public boolean LE (Word w2) {
+  public boolean LE(Word w2) {
     return false;
   }
 
-  public boolean GT (Word w2) {
+  public boolean GT(Word w2) {
     return false;
   }
 
-  public boolean GE (Word w2) {
+  public boolean GE(Word w2) {
     return false;
   }
 
-  public boolean EQ (Word w2) {
+  public boolean EQ(Word w2) {
     return false;
   }
 
-  public boolean NE (Word w2) {
+  public boolean NE(Word w2) {
     return false;
   }
 
@@ -131,15 +131,15 @@ public final class Word {
     return null;
   }
 
-  public Word lsh (int amt) {
+  public Word lsh(int amt) {
     return null;
   }
 
-  public Word rshl (int amt) {
+  public Word rshl(int amt) {
     return null;
   }
 
-  public Word rsha (int amt) {
+  public Word rsha(int amt) {
     return null;
   }
 

@@ -10,9 +10,9 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 
 /**
  * A time option that stores values at a microsecond granularity.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -24,7 +24,7 @@ public class MicrosecondsOption extends Option {
 
   /**
    * Create a new microsecond option.
-   *
+   * 
    * @param name The space separated name for the option.
    * @param desc The purpose of the option
    * @param defaultUs The default value of the option (usec).
@@ -36,7 +36,7 @@ public class MicrosecondsOption extends Option {
 
   /**
    * Read the current value of the option in microseconds.
-   *
+   * 
    * @return The option value.
    */
   public int getMicroseconds() throws UninterruptiblePragma {
@@ -45,7 +45,7 @@ public class MicrosecondsOption extends Option {
 
   /**
    * Read the current value of the option in milliseconds.
-   *
+   * 
    * @return The option value.
    */
   public int getMilliseconds() throws UninterruptiblePragma {
@@ -54,7 +54,7 @@ public class MicrosecondsOption extends Option {
 
   /**
    * Read the default value of the option in microseconds.
-   *
+   * 
    * @return The default value.
    */
   public int getDefaultMicroseconds() throws UninterruptiblePragma {
@@ -63,7 +63,7 @@ public class MicrosecondsOption extends Option {
 
   /**
    * Read the default value of the option in milliseconds.
-   *
+   * 
    * @return The default value.
    */
   public int getDefaultMilliseconds() throws UninterruptiblePragma {
@@ -75,7 +75,7 @@ public class MicrosecondsOption extends Option {
    * option is set. An error occurs if the value is negative, and then the
    * validate method is called to allow subclasses to perform any additional
    * validation.
-   *
+   * 
    * @param value The new value for the option.
    */
   public void setMicroseconds(int value) {

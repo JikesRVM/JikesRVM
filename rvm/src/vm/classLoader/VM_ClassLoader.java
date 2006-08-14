@@ -13,7 +13,6 @@ import java.util.StringTokenizer;
 import java.io.*;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
-import java.util.Hashtable;
 import java.security.ProtectionDomain;
 
 /**
@@ -153,16 +152,22 @@ public class VM_ClassLoader implements VM_Constants,
 
   // Names of .class file attributes.
   //
-  static VM_Atom codeAttributeName;                   // "Code"
-  static VM_Atom constantValueAttributeName;          // "ConstantValue"
-  static VM_Atom lineNumberTableAttributeName;        // "LineNumberTable"
-  static VM_Atom exceptionsAttributeName;             // "Exceptions"
-  static VM_Atom sourceFileAttributeName;             // "SourceFile"
-  static VM_Atom localVariableTableAttributeName;     // "LocalVariableTable"
-  static VM_Atom deprecatedAttributeName;             // "Deprecated"
-  static VM_Atom innerClassesAttributeName;           // "InnerClasses"
-  static VM_Atom syntheticAttributeName;              // "Synthetic"
-  static VM_Atom arrayNullCheckAttributeName;         // "ArrayNullCheckAttribute"
+  static VM_Atom codeAttributeName;                         // "Code"
+  static VM_Atom constantValueAttributeName;                // "ConstantValue"
+  static VM_Atom lineNumberTableAttributeName;              // "LineNumberTable"
+  static VM_Atom exceptionsAttributeName;                   // "Exceptions"
+  static VM_Atom sourceFileAttributeName;                   // "SourceFile"
+  static VM_Atom localVariableTableAttributeName;           // "LocalVariableTable"
+  static VM_Atom deprecatedAttributeName;                   // "Deprecated"
+  static VM_Atom innerClassesAttributeName;                 // "InnerClasses"
+  static VM_Atom syntheticAttributeName;                    // "Synthetic"
+  static VM_Atom enclosingMethodAttributeName;              // "EnclosingMethod"
+  static VM_Atom signatureAttributeName;                    // "Signature"
+  static VM_Atom runtimeVisibleAnnotationsAttributeName;    // "RuntimeVisibleAnnotations"
+  static VM_Atom runtimeInvisibleAnnotationsAttributeName;  // "RuntimeInvisibleAnnotations"
+  static VM_Atom runtimeVisibleParameterAnnotationsAttributeName;    // "RuntimeVisibleParameterAnnotations"
+  static VM_Atom runtimeInvisibleParameterAnnotationsAttributeName;  // "RuntimeInvisibleParameterAnnotations"
+  static VM_Atom annotationDefaultAttributeName;            // "AnnotationDefault"
 
   /** Initialize at boot time.
    */
@@ -192,16 +197,21 @@ public class VM_ClassLoader implements VM_Constants,
     StandardObjectFinalizerMethodName         = VM_Atom.findOrCreateAsciiAtom("finalize");
     StandardObjectFinalizerMethodDescriptor   = VM_Atom.findOrCreateAsciiAtom("()V");
 
-    codeAttributeName                   = VM_Atom.findOrCreateAsciiAtom("Code");
-    constantValueAttributeName          = VM_Atom.findOrCreateAsciiAtom("ConstantValue");
-    lineNumberTableAttributeName        = VM_Atom.findOrCreateAsciiAtom("LineNumberTable");
-    exceptionsAttributeName             = VM_Atom.findOrCreateAsciiAtom("Exceptions");
-    sourceFileAttributeName             = VM_Atom.findOrCreateAsciiAtom("SourceFile");
-    localVariableTableAttributeName     = VM_Atom.findOrCreateAsciiAtom("LocalVariableTable");
-    deprecatedAttributeName             = VM_Atom.findOrCreateAsciiAtom("Deprecated");
-    innerClassesAttributeName           = VM_Atom.findOrCreateAsciiAtom("InnerClasses");
-    syntheticAttributeName              = VM_Atom.findOrCreateAsciiAtom("Synthetic");
-    arrayNullCheckAttributeName         = VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
+    codeAttributeName                        = VM_Atom.findOrCreateAsciiAtom("Code");
+    constantValueAttributeName               = VM_Atom.findOrCreateAsciiAtom("ConstantValue");
+    lineNumberTableAttributeName             = VM_Atom.findOrCreateAsciiAtom("LineNumberTable");
+    exceptionsAttributeName                  = VM_Atom.findOrCreateAsciiAtom("Exceptions");
+    sourceFileAttributeName                  = VM_Atom.findOrCreateAsciiAtom("SourceFile");
+    localVariableTableAttributeName          = VM_Atom.findOrCreateAsciiAtom("LocalVariableTable");
+    deprecatedAttributeName                  = VM_Atom.findOrCreateAsciiAtom("Deprecated");
+    innerClassesAttributeName                = VM_Atom.findOrCreateAsciiAtom("InnerClasses");
+    syntheticAttributeName                   = VM_Atom.findOrCreateAsciiAtom("Synthetic");
+    signatureAttributeName                   = VM_Atom.findOrCreateAsciiAtom("Signature");
+    runtimeVisibleAnnotationsAttributeName   = VM_Atom.findOrCreateAsciiAtom("RuntimeVisibleAnnotations");
+    runtimeInvisibleAnnotationsAttributeName = VM_Atom.findOrCreateAsciiAtom("RuntimeInvisibleAnnotations");
+    runtimeVisibleParameterAnnotationsAttributeName   = VM_Atom.findOrCreateAsciiAtom("RuntimeVisibleParameterAnnotations");
+    runtimeInvisibleParameterAnnotationsAttributeName = VM_Atom.findOrCreateAsciiAtom("RuntimeInvisibleParameterAnnotations");
+    annotationDefaultAttributeName           = VM_Atom.findOrCreateAsciiAtom("AnnotationDefault");
 
     VM_Type.init();
   }
@@ -241,7 +251,7 @@ public class VM_ClassLoader implements VM_Constants,
       if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
       if (VM.TraceClassLoading  && VM.runningVM)
         VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
-      VM_Class ans = new VM_Class(tRef, new DataInputStream(is));
+      VM_Class ans = VM_Class.readClass(tRef, new DataInputStream(is));
       tRef.setResolvedType(ans);
       return ans;
     } catch (IOException e) {

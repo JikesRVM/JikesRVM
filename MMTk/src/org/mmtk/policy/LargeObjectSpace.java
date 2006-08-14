@@ -16,7 +16,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class corresponds to one treadmill *space*.
- *
+ * 
  * Each of the instance methods of this class may be called by any
  * thread (i.e. synchronization must be explicit in any instance or
  * class method).
@@ -24,10 +24,10 @@ import org.vmmagic.unboxed.*;
  * This stands in contrast to TreadmillLocal, which is instantiated
  * and called on a per-thread basis, where each instance of
  * TreadmillLocal corresponds to one thread operating over one space.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -35,22 +35,22 @@ public final class LargeObjectSpace extends Space
   implements Constants, Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 1;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
-  public static final Word MARK_BIT_MASK = Word.one();  // ...01
+  public static final Word MARK_BIT_MASK = Word.one(); // ...01
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private Word markState;
   private boolean inTreadmillCollection = false;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -66,14 +66,14 @@ public final class LargeObjectSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public LargeObjectSpace(String name, int pageBudget, Address start,
-                          Extent bytes) {
+      Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
- 
+
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -87,7 +87,7 @@ public final class LargeObjectSpace extends Space
     super(name, false, false, mb);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
-  
+
   /**
    * Construct a space that consumes a given fraction of the available
    * virtual memory.<p>
@@ -106,18 +106,18 @@ public final class LargeObjectSpace extends Space
     super(name, false, false, frac);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
-  
+
   /**
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   *
+   * 
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -133,7 +133,7 @@ public final class LargeObjectSpace extends Space
   /**
    * Construct a space that consumes a given fraction of the available
    * virtual memory, at either the top or bottom of the available
-   * virtual memory.
+   *          virtual memory.
    *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>as a fraction of the total available</i>, and
@@ -159,17 +159,17 @@ public final class LargeObjectSpace extends Space
    * Return the initial value for the header of a new object instance.
    * The header for this collector includes a mark bit and a small
    * object flag.
-   *
+   * 
    * @param size The size of the newly allocated object
    */
   public final Word getInitialHeaderValue(int size) 
     throws InlinePragma {
-      return markState;
+    return markState;
   }
 
 
   /****************************************************************************
-   *
+   * 
    * Collection
    */
 
@@ -177,17 +177,17 @@ public final class LargeObjectSpace extends Space
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
-   *
+   * 
    */
-  public void prepare() { 
-    markState = MARK_BIT_MASK.sub(markState);
+  public void prepare() {
+    markState = MARK_BIT_MASK.minus(markState);
     inTreadmillCollection = true;
   }
 
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
-   *
+   * 
    */
   public void release() {
     inTreadmillCollection = false;
@@ -195,7 +195,7 @@ public final class LargeObjectSpace extends Space
 
   /**
    * Return true if this mark-sweep space is currently being collected.
-   *
+   * 
    * @return True if this mark-sweep space is currently being collected.
    */
   public boolean inTreadmillCollection() 
@@ -205,7 +205,7 @@ public final class LargeObjectSpace extends Space
 
   /**
    * Release a group of pages that were allocated together.
-   *
+   * 
    * @param first The first page in the group of pages that were
    * allocated together.
    */
@@ -215,7 +215,7 @@ public final class LargeObjectSpace extends Space
 
 
   /****************************************************************************
-   *
+   * 
    * Object processing and tracing
    */
 
@@ -246,24 +246,24 @@ public final class LargeObjectSpace extends Space
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
-   *
+   * 
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
    public boolean isLive(ObjectReference object)
     throws InlinePragma {
-     return testMarkBit(object, markState);
-   }
+    return testMarkBit(object, markState);
+  }
 
   /**
    * An object has been marked (identified as live).  Large objects
    * are added to the to-space treadmill, while all other objects will
    * have a mark bit set in the superpage header.
-   *
+   * 
    * @param object The object which has been marked.
    */
-  private final void internalMarkObject(ObjectReference object) 
-    throws InlinePragma {
+  private final void internalMarkObject(ObjectReference object)
+      throws InlinePragma {
 
     Address cell = ObjectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
@@ -272,27 +272,27 @@ public final class LargeObjectSpace extends Space
   }
 
   /****************************************************************************
-   *
+   * 
    * Header manipulation
    */
 
   /**
-  * Perform any required post-allocation initialization   * 
-  * 
+   * Perform any required post-allocation initialization *
+   * 
   * @param object the object ref to the storage to be initialized
-  */
+   */
   public final void postAlloc(ObjectReference object) 
         throws InlinePragma {
     initializeHeader(object);
   }
 
-   /**
+  /**
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param object the object ref to the storage to be initialized
    */
-  public final void initializeHeader(ObjectReference object) 
-    throws InlinePragma {
+  public final void initializeHeader(ObjectReference object)
+      throws InlinePragma {
     Word oldValue = ObjectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
     ObjectModel.writeAvailableBitsWord(object, newValue);
@@ -301,12 +301,12 @@ public final class LargeObjectSpace extends Space
   /**
    * Atomically attempt to set the mark bit of an object.  Return true
    * if successful, false if the mark bit was already set.
-   *
+   * 
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
   public static boolean testAndMark(ObjectReference object, Word value)
-    throws InlinePragma {
+      throws InlinePragma {
     Word oldValue, markBit;
     do {
       oldValue = ObjectModel.prepareAvailableBits(object);
@@ -319,19 +319,19 @@ public final class LargeObjectSpace extends Space
 
   /**
    * Return true if the mark bit for an object has the given value.
-   *
+   * 
    * @param object The object whose mark bit is to be tested
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
   static public boolean testMarkBit(ObjectReference object, Word value)
-    throws InlinePragma {
+      throws InlinePragma {
     return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
 
   /**
    * Return the size of the super page
-   *
+   * 
    * @param first the Address of the first word in the superpage
    * @return the size in bytes
    */

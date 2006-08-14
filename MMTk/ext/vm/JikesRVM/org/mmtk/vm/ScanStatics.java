@@ -60,7 +60,7 @@ public class ScanStatics implements Constants {
           // slot contains a ref of some kind.  call collector specific
           // processPointerField, passing address of reference
           //
-          trace.addRootLocation(slots.add(VM_Statics.slotAsOffset(slot)));
+          trace.addRootLocation(slots.plus(VM_Statics.slotAsOffset(slot)));
         }
       }  // end of for loop
       start = start + stride;

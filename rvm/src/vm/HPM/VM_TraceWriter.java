@@ -248,7 +248,7 @@ class VM_TraceWriter extends VM_Thread
     } else {
       VM_Magic.setIntAtOffset(buffer, index, HPM_info.swapByteOrder(version_number));
     }
-    index = index.add(BYTES_IN_INT);
+    index = index.plus(BYTES_IN_INT);
     // write name of header file
     if(VM_HardwarePerformanceMonitors.verbose>=4) {
       VM.sysWriteln("VM_TraceWriter.writeHeader() write headerFilename \"",HPM_info.headerFilename(),"\"");
@@ -396,9 +396,9 @@ class VM_TraceWriter extends VM_Thread
       index = Offset.zero();
       byte[] buffer2 = new byte[10];
       VM_Magic.setIntAtOffset( buffer2, index, VM_HardwarePerformanceMonitor.EXIT_FORMAT);// format
-      index = index.add(BYTES_IN_INT);
+      index = index.plus(BYTES_IN_INT);
       VM_Magic.setIntAtOffset( buffer2, index, value);                                  // value
-      index = index.add(BYTES_IN_INT);
+      index = index.plus(BYTES_IN_INT);
       writeFileOutputStream(buffer2, index);
 
       if (VM_HardwarePerformanceMonitors.verbose>=3) {

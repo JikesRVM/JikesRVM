@@ -7,11 +7,11 @@
 package org.mmtk.vm;
 
 /**
- * $Id$ 
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * $Id$
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
@@ -24,7 +24,7 @@ public class Assert {
 
   /**
    * This method should be called whenever an error is encountered.
-   *
+   * 
    * @param str A string describing the error condition.
    */
   public static void error(String str) {
@@ -32,10 +32,10 @@ public class Assert {
 
   /**
    * Logs a message and traceback, then exits.
-   *
+   * 
    * @param message the string to log
    */
-  public static void fail(String message) { 
+  public static void fail(String message) {
   }
 
   /**
@@ -49,7 +49,7 @@ public class Assert {
   /**
    * Checks that the given condition is true.  If it is not, this
    * method does a traceback and exits.
-   *
+   * 
    * @param cond the condition to be checked
    */
   public static void _assert(boolean cond) {
@@ -59,7 +59,7 @@ public class Assert {
   /**
    * Checks that the given condition is true.  If it is not, this
    * method prints a message, does a traceback and exits.
-   *
+   * 
    * @param cond the condition to be checked
    * @param message the message to print
    */
@@ -82,7 +82,7 @@ public class Assert {
    * Checks if the virtual machine is running.  This value changes, so
    * the call-through to the VM must be a method.  In Jikes RVM, just
    * returns VM.runningVM.
-   *
+   * 
    * @return <code>true</code> if the virtual machine is running
    */
   public static boolean runningVM() { return false; }

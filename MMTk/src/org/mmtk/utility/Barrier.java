@@ -16,21 +16,21 @@ import org.vmmagic.pragma.*;
  * The mechanism handles proper resetting by usnig 3 underlying counters
  * and supports unconditional blocking until the number of participants
  * can be determined.
- *
- * @author   Perry Cheng
+ * 
+ * @author Perry Cheng
  */
 public final class Barrier implements Uninterruptible {
 
-  public static int verbose = 0;
+  public static final int verbose = 0;
 
   // The value of target is one more than the number of threads we expect to arrive.
   // It is one greater to allow safely updating the currentCounter value.
   // If target is -1, no thread can proceed past the barrier.
   // 3 counters are needed to support proper resetting without race conditions.
   //
-  private volatile int target = -1;  
+  private volatile int target = -1;
   private static final int NUM_COUNTERS = 3;
-  SynchronizedCounter [] counters;
+  SynchronizedCounter[] counters;
   SynchronizedCounter currentCounter;
 
   // Debugging constants
@@ -40,26 +40,26 @@ public final class Barrier implements Uninterruptible {
 
   public static void fullyBooted() {
     WARN_PERIOD = Statistics.secsToCycles(3);   // Print msg every WARN_PERIOD seconds
-    TIME_OUT    = 10 * WARN_PERIOD;               // Die after TIME_OUT seconds
+    TIME_OUT = 10 * WARN_PERIOD; // Die after TIME_OUT seconds
   }
 
-  public Barrier () {
+  public Barrier() {
     counters = new SynchronizedCounter[NUM_COUNTERS];
-    for (int i=0; i<NUM_COUNTERS; i++)
+    for (int i = 0; i < NUM_COUNTERS; i++)
       counters[i] = new SynchronizedCounter();
     currentCounter = new SynchronizedCounter();
   }
 
   // Set target to appropriate value
   //
-  public void setTarget (int t) {
+  public void setTarget(int t) {
     Memory.isync();
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(t >= 0);
     target = t + 1;
     Memory.sync();
   }
 
-  public void clearTarget () {
+  public void clearTarget() {
     Memory.isync();
     target = -1;
     Memory.sync();
@@ -68,26 +68,26 @@ public final class Barrier implements Uninterruptible {
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
-  public int arrive (int where) {
+  public int arrive(int where) {
     Memory.isync();
     int cur = currentCounter.peek();
     SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
     // Do NOT use the currentCounter variables unless designated thread
-    if (verbose >= 1) { 
+    if (verbose >= 1) {
       Log.write(where); Log.write(": myValue = "); Log.writeln(myValue);
     }
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(myValue >= 0 && (target == -1 || myValue <= target));
-    if (myValue + 2 == target) { 
+    if (myValue + 2 == target) {
       // last one to show up
       int next = (cur + 1) % NUM_COUNTERS;
-      int prev = (cur - 1 + NUM_COUNTERS) % NUM_COUNTERS; 
+      int prev = (cur - 1 + NUM_COUNTERS) % NUM_COUNTERS;
       counters[prev].reset();       // everyone has seen the value so safe to reset now
       if (next == 0)
-        currentCounter.reset();    // everyone has arrived but still waiting
+        currentCounter.reset(); // everyone has arrived but still waiting
       else
-        currentCounter.increment();   
-      c.increment();                // now safe to let others past barrier
+        currentCounter.increment();
+      c.increment(); // now safe to let others past barrier
       // VM.sysWriteln("last guy done ", where);
       Memory.sync();
       return myValue;
@@ -95,7 +95,7 @@ public final class Barrier implements Uninterruptible {
       // everyone else
       long startCheck = 0;
       long lastElapsed = 0;
-      for (int i=0; ; i++) {
+      for (int i = 0;; i++) {
         if (target != -1 && c.peek() == target) {
           Memory.sync();
           return myValue;

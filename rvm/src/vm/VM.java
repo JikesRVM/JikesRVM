@@ -101,7 +101,7 @@ public class VM extends VM_Properties
     //
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
-    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
+    currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).plus(STACK_SIZE_GUARD);
     currentThread.isBootThread = true;
     
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
@@ -255,7 +255,7 @@ public class VM extends VM_Properties
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     runClassInitializer("java.net.URLClassLoader"); 
-
+    
     /* Used if we start up Jikes RVM with the -jar argument; that argument
      * means that we need a working -jar before we can return an
      * Application Class Loader. */
@@ -318,10 +318,11 @@ public class VM extends VM_Properties
 
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
-	System.loadLibrary("javaio");
+    System.loadLibrary("javaio");
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
-
+    runClassInitializer("java.util.jar.JarFile");
+     
     //-#if RVM_WITH_HPM
     runClassInitializer("com.ibm.JikesRVM.Java2HPM");
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
@@ -331,7 +332,9 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
-
+    runClassInitializer("com.ibm.JikesRVM.classloader.VM_Annotation");
+    runClassInitializer("java.lang.VMClassLoader");
+ 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
 
@@ -451,7 +454,7 @@ public class VM extends VM_Properties
   private static VM_Class[] classObjects = new VM_Class[0];
   /**
    * Called by the compilers when compiling a static synchronized method
-   * during bootimage writing.
+   * or a class literal during bootimage writing.
    */
   public static void deferClassObjectCreation(VM_Class c) throws InterruptiblePragma {
     for (int i=0; i<classObjects.length; i++) {
@@ -464,8 +467,8 @@ public class VM extends VM_Properties
   }
 
   /**
-   * Create the java.lang.Class objects needed for 
-   * static synchronized methods in the bootimage.
+   * Create the java.lang.Class objects needed for static synchronized
+   * methods in the bootimage and/or string literals in the JTOC.
    */
   private static void createClassObjects() throws InterruptiblePragma {
     for (int i=0; i<classObjects.length; i++) {
@@ -473,6 +476,7 @@ public class VM extends VM_Properties
         VM.sysWriteln(classObjects[i].toString()); 
       }
       classObjects[i].getClassForType();
+      VM_Statics.fixClassLiteral(classObjects[i]);
     }
   }
 
@@ -1382,7 +1386,7 @@ public class VM extends VM_Properties
 
     // 1.
     //
-    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED)
+    if (VM_Magic.getFramePointer().minus(STACK_SIZE_GCDISABLED)
         .LT(myThread.stackLimit) 
         && !myThread.hasNativeStackFrame()) 
       {

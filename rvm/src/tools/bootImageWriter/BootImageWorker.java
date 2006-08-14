@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.classloader.VM_Type;
  */
 public class BootImageWorker extends Thread {
 
-  public static int verbose = 1;
+  public static int verbose = 0;
   static Enumeration _enum;
   int id;
 

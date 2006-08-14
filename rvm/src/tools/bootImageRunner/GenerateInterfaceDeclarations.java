@@ -51,6 +51,7 @@ class GenerateInterfaceDeclarations {
 
   static int bootImageDataAddress = 0;
   static int bootImageCodeAddress = 0;
+  static int bootImageRMapAddress = 0;
   static String outFileName;
   public static void main (String args[]) throws Exception {
 
@@ -74,6 +75,14 @@ class GenerateInterfaceDeclarations {
         bootImageCodeAddress = Integer.decode(args[i]).intValue();
         continue;
       }
+      if (args[i].equals("-ra")) {              // image address
+        if (++i == args.length) {
+          System.err.println("Error: The -ra flag requires an argument");
+          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        }
+        bootImageRMapAddress = Integer.decode(args[i]).intValue();
+        continue;
+      }
       if (args[i].equals("-out")) {              // output file
         if (++i == args.length) {
           System.err.println("Error: The -out flag requires an argument");
@@ -92,6 +101,10 @@ class GenerateInterfaceDeclarations {
     }
     if (bootImageCodeAddress == 0) {
       System.err.println("Error: Must specify boot image code load address.");
+      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    if (bootImageRMapAddress == 0) {
+      System.err.println("Error: Must specify boot image ref map load address.");
       System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (outFileName == null) {
@@ -174,7 +187,7 @@ class GenerateInterfaceDeclarations {
 
 
     pln("#ifdef NEED_VIRTUAL_MACHINE_DECLARATIONS");
-    emitVirtualMachineDeclarations(bootImageDataAddress, bootImageCodeAddress);
+    emitVirtualMachineDeclarations(bootImageDataAddress, bootImageCodeAddress, bootImageRMapAddress);
     pln("#endif /* NEED_VIRTUAL_MACHINE_DECLARATIONS */");
     pln();
 
@@ -242,7 +255,7 @@ class GenerateInterfaceDeclarations {
     Offset current = Offset.fromIntSignExtend(startOffset);
     for(int i = 0; current.sLT(fields[0].f.getOffset()); i++) {
       pln("  uint32_t    headerPadding" + i + ";\n");
-      current=current.add(4); 
+      current=current.plus(4); 
     }
     
     for (int i = 0; i<fields.length; i++) {
@@ -251,9 +264,9 @@ class GenerateInterfaceDeclarations {
       Offset offset = field.getOffset();
       String name = field.getName().toString();
       // Align by blowing 4 bytes if needed
-      if (needsAlign && current.add(4).EQ(offset)) {
+      if (needsAlign && current.plus(4).EQ(offset)) {
           pln("  uint32_t    padding" + i + ";");
-          current=current.add(4);
+          current=current.plus(4);
       }
       if (!current.EQ(offset)) { 
         p("current = ", current);
@@ -261,23 +274,23 @@ class GenerateInterfaceDeclarations {
         pln(" are neither identical not differ by 4");
       }
       if (t.isIntType()) {
-        current=current.add(4);
+        current=current.plus(4);
         p("   uint32_t " + name + ";\n");
       } else if (t.isLongType()) {
-        current=current.add(8);
+        current=current.plus(8);
         p("   uint64_t " + name + ";\n");
       } else if (t.isWordType()) {
         p("   VM_Address " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
         p("   VM_Address * " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {
         p("   unsigned int * " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else if (t.isReferenceType()) {
         p("   JavaObject_t " + name + ";\n");
-        current=current.add(addrSize);
+        current=current.plus(addrSize);
       } else {
         System.err.print("Unexpected field " + name.toString() + " with type " + t + "\n");
         throw new RuntimeException("unexpected field type");
@@ -379,7 +392,7 @@ class GenerateInterfaceDeclarations {
 
   // Emit virtual machine class interface information.
   //
-  static void emitVirtualMachineDeclarations (int bootImageDataAddress, int bootImageCodeAddress) {
+  static void emitVirtualMachineDeclarations (int bootImageDataAddress, int bootImageCodeAddress, int bootImageRMapAddress) {
 
     // load address for the boot image
     //
@@ -387,6 +400,8 @@ class GenerateInterfaceDeclarations {
         + Integer.toHexString(bootImageDataAddress) + ";\n");
     p("static const void *bootImageCodeAddress                     = (void *)0x"
         + Integer.toHexString(bootImageCodeAddress) + ";\n");
+    p("static const void *bootImageRMapAddress                     = (void *)0x"
+        + Integer.toHexString(bootImageRMapAddress) + ";\n");
 
     // values in VM_Constants, from VM_Configuration
     //
@@ -641,6 +656,8 @@ class GenerateInterfaceDeclarations {
     pln("VM_Processor_reportedTimerTicks_offset = ", offset);
     offset = VM_Entrypoints.activeThreadField.getOffset();
     pln("VM_Processor_activeThread_offset = ", offset);
+    offset = VM_Entrypoints.vpStatusField.getOffset();
+    pln("VM_Processor_vpStatus_offset = ", offset);
     offset = VM_Entrypoints.threadIdField.getOffset();
     pln("VM_Processor_threadId_offset = ", offset);
     //-#if RVM_FOR_IA32

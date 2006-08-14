@@ -74,7 +74,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
 
     // return address into generated prolog must be relocated if the code object
     // for that prolog/epilog is moved by GC
-    jniSavedReturnAddr       = framePtr.add(VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
+    jniSavedReturnAddr       = framePtr.plus(VM_JNICompiler.JNI_RETURN_ADDRESS_OFFSET);
   }
    
   // return (address of) next ref in the current "frame" on the
@@ -87,7 +87,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // until all in the frame are reported
     //
     if (jniNextRef > jniFramePtr) {
-      Address ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
+      Address ref_address = VM_Magic.objectAsAddress(jniRefs).plus(jniNextRef);
       jniNextRef -= BYTES_IN_ADDRESS;
       return ref_address;
     }
@@ -109,9 +109,9 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     // the JNI transition frame at a fixed negative offset from the callers FP.
     // the save non-volatiles are EBX EBP and EDI.
     //
-    registerLocations.set(JTOC, framePtr.add(VM_JNICompiler.EDI_SAVE_OFFSET));
-    registerLocations.set(EBX, framePtr.add(VM_JNICompiler.EBX_SAVE_OFFSET));
-    registerLocations.set(EBP, framePtr.add(VM_JNICompiler.EBP_SAVE_OFFSET));
+    registerLocations.set(JTOC, framePtr.plus(VM_JNICompiler.EDI_SAVE_OFFSET));
+    registerLocations.set(EBX, framePtr.plus(VM_JNICompiler.EBX_SAVE_OFFSET));
+    registerLocations.set(EBP, framePtr.plus(VM_JNICompiler.EBP_SAVE_OFFSET));
 
     return Address.zero();  // no more refs to report
   }

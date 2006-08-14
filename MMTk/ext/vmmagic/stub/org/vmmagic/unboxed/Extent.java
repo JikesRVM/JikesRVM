@@ -2,7 +2,7 @@
  * (C) Copyright Australian National University. 2004
  */
 //$Id$
-package org.vmmagic.unboxed; 
+package org.vmmagic.unboxed;
 
 /**
  * Commenting required
@@ -26,11 +26,11 @@ public final class Extent {
     return null;
   }
 
-  public static Extent zero () {
+  public static Extent zero() {
     return null;
   }
 
-  public static Extent one () {
+  public static Extent one() {
     return null;
   }
 
@@ -38,11 +38,11 @@ public final class Extent {
     return null;
   }
 
-  public int toInt () {
+  public int toInt() {
     return 0;
   }
 
-  public long toLong () {
+  public long toLong() {
     return 0L;
   }
 
@@ -50,43 +50,43 @@ public final class Extent {
     return null;
   }
 
-  public Extent add (int byteSize) {
+  public Extent plus(int byteSize) {
     return null;
   }
 
-  public Extent sub (int byteSize) {
+  public Extent plus(Extent byteSize) {
     return null;
   }
 
-  public Extent add (Extent byteSize) {
+  public Extent minus(int byteSize) {
     return null;
   }
 
-  public Extent sub (Extent byteSize) {
+  public Extent minus(Extent byteSize) {
     return null;
   }
 
-  public boolean LT (Extent extent2) {
+  public boolean LT(Extent extent2) {
     return false;
   }
 
-  public boolean LE (Extent extent2) {
+  public boolean LE(Extent extent2) {
     return false;
   }
 
-  public boolean GT (Extent extent2) {
+  public boolean GT(Extent extent2) {
     return false;
   }
 
-  public boolean GE (Extent extent2) {
+  public boolean GE(Extent extent2) {
     return false;
   }
 
-  public boolean EQ (Extent extent2) {
+  public boolean EQ(Extent extent2) {
     return false;
   }
 
-  public boolean NE (Extent extent2) {
+  public boolean NE(Extent extent2) {
     return false;
   }
 }

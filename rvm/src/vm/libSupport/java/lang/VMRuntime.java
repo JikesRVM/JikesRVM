@@ -12,6 +12,7 @@ import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.*;
 import com.ibm.JikesRVM.VM_Configuration;
 
+import org.vmmagic.unboxed.Offset;
 
 import gnu.classpath.VMSystemProperties;
 
@@ -25,6 +26,14 @@ import gnu.classpath.VMSystemProperties;
 final class VMRuntime {
 
   private static boolean runFinalizersOnExit = false;
+
+  static {
+    instance = new VMRuntime();
+    gcLockOffset = VM_Entrypoints.gcLockField.getOffset();
+  }
+  private static VMRuntime instance;
+  private int gcLock;
+  private static Offset gcLockOffset;
   
   private VMRuntime() { }
 
@@ -45,7 +54,10 @@ final class VMRuntime {
   }
     
   static void gc() {
-    MM_Interface.gc();
+    if (VM_Synchronization.testAndSet(instance, gcLockOffset, 1)) {
+      MM_Interface.gc();
+      VM_Synchronization.fetchAndStore(instance, gcLockOffset, 0);
+    }
   }
     
   static void runFinalization() {

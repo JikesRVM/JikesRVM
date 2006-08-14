@@ -4,8 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
-import java.util.HashMap;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.util.*;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -21,7 +21,7 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants,
   /**
    * Used to canonicalize VM_InterfaceMethodSignatures
    */
-  private static HashMap dictionary = new HashMap();
+  private static VM_HashMap dictionary = new VM_HashMap();
 
   /**
    * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.

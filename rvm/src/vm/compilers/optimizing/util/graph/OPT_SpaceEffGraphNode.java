@@ -287,7 +287,7 @@ public class OPT_SpaceEffGraphNode implements OPT_GraphNode, OPT_VCGNode {
       if (!n.dfsVisited())
         n.markDFN(DFN);
     }
-    scratch = DFN--;
+    scratch = DFN-1;
   }
 
   /* mark nodes according to the SCC (Strongly Connected Component Number),

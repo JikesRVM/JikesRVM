@@ -18,9 +18,10 @@ import org.vmmagic.unboxed.Address;
  * @author Stephen Fink
  */
 class OPT_ExpressionFolding implements OPT_Operators {
-  static final boolean DEBUG = false;
+  /** Generate verbose debug output? */
+  private static final boolean DEBUG = false;
 
-  static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
+  private static final boolean RESTRICT_TO_DEAD_EXPRESSIONS = true;
 
   /** 
    * Perform the transformation.
@@ -160,9 +161,9 @@ class OPT_ExpressionFolding implements OPT_Operators {
 
   private static OPT_AddressConstantOperand addConstantValues(boolean neg1, OPT_Operand op1, boolean neg2, OPT_Operand op2) {
     Address a = getAddressValue(op1);
-    if (neg1) a = Address.zero().sub(a.toWord().toOffset()); //negate op1
-    if (neg2) a = a.sub(getAddressValue(op2).toWord().toOffset()); //sub op2
-    else a = a.add(getAddressValue(op2).toWord().toOffset()); //add op2
+    if (neg1) a = Address.zero().minus(a.toWord().toOffset()); //negate op1
+    if (neg2) a = a.minus(getAddressValue(op2).toWord().toOffset()); //sub op2
+    else a = a.plus(getAddressValue(op2).toWord().toOffset()); //add op2
     return new OPT_AddressConstantOperand(a);
   }
   
@@ -175,7 +176,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
                                                  OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
-    OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
+	 // OPT_RegisterOperand A = Binary.getVal1(s).asRegister(); - unused
     int c = getIntValue(Binary.getVal2(s));
     if (s.operator == INT_SUB) c = -c;
 
@@ -198,7 +199,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
                                                   OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
-    OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
+    // OPT_RegisterOperand A = Binary.getVal1(s).asRegister(); - unused
     long c = Binary.getVal2(s).asLongConstant().value;
     if (s.operator == LONG_SUB) c = -c;
 
@@ -221,7 +222,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
                                                   OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
-    OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
+    // OPT_RegisterOperand A = Binary.getVal1(s).asRegister(); - unused
 
     // A = B + d
     OPT_RegisterOperand B = Binary.getVal1(def).asRegister();

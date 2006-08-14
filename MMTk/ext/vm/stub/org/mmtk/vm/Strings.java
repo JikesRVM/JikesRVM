@@ -9,10 +9,10 @@ package org.mmtk.vm;
 
 /**
  * $Id$ 
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
@@ -32,12 +32,12 @@ public class Strings {
    * @return The floating point representation of <code>value</code>
    */
   public static float parseFloat(String value) {
-    return (float)0;
+    return (float) 0;
   }
 
   /**
    * Log a message.
-   *
+   * 
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
@@ -45,7 +45,7 @@ public class Strings {
 
   /**
    * Log a thread identifier and a message.
-   *
+   * 
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
@@ -58,7 +58,7 @@ public class Strings {
    * <p>
    * <b>TODO:</b> There are special memory management semantics here that
    * someone should document.
-   *
+   * 
    * @param src the source string
    * @param dst the destination array
    * @param dstBegin the start offset in the desination array

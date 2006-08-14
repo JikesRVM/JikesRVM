@@ -346,4 +346,14 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     }
     return new OPT_StringConstantOperand(val, offset);
   }
+
+  /**
+   * Get the Class stored at a particular index of a class's constant
+   * pool.
+   */
+  public static OPT_ClassConstantOperand getClassFromConstantPool (VM_Class klass, int index) {
+    Offset offset = klass.getLiteralOffset(index);
+	 VM_TypeReference val = klass.getTypeRef(index);
+	 return new OPT_ClassConstantOperand(val, offset);
+  }
 }

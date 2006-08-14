@@ -12,16 +12,16 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * Simple linear scan to dump object information. 
- *
- * @author Daniel Frampton 
+ * Simple linear scan to dump object information.
+ * 
+ * @author Daniel Frampton
  * @version $Revision$
- * @date    $Date$
+ * @date $Date$
  */
 final public class DumpLinearScan extends LinearScan implements Uninterruptible {
   /**
-   * Scan an object. 
-   *
+   * Scan an object.
+   * 
    * @param object The object to scan
    */
   public void scan(ObjectReference object) throws InlinePragma {

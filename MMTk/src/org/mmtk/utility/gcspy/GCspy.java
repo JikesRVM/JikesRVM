@@ -14,9 +14,9 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements collector-independent GCspy functionality to start
  * the GCspy server.
- *
+ * 
  * $Id$
- *
+ * 
  * @author <a href="http://www.cs.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$
@@ -24,14 +24,14 @@ import org.vmmagic.pragma.*;
 public class GCspy implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
-  private static int gcspyPort_ = 0;            // port to connect on
-  private static boolean gcspyWait_ = false;    // wait for connection?
+  private static int gcspyPort_ = 0; // port to connect on
+  private static boolean gcspyWait_ = false; // wait for connection?
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -52,7 +52,7 @@ public class GCspy implements Uninterruptible {
 
   /**
    * Get the number of the port that GCspy communicates on
-   *
+   * 
    * @return the GCspy port number
    */
   public static int getGCspyPort() {
@@ -61,7 +61,7 @@ public class GCspy implements Uninterruptible {
 
   /**
    * Should the VM wait for GCspy to connect?
-   *
+   * 
    * @return whether the VM should wait for the visualiser to connect
    */
   public static boolean getGCspyWait() {

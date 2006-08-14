@@ -7,7 +7,7 @@ package org.mmtk.vm;
 
 /**
  * Simple, fair locks with deadlock detection.
- *
+ * 
  * @author Perry Cheng
  * @version $Revision$
  * @date $Date$
@@ -26,7 +26,7 @@ public class Lock {
   public void acquire() {}
 
   /**
-   * Perform sanity checks on the lock.  For debugging.
+   * Perform sanity checks on the lock. For debugging.
    * 
    * @param w Identifies the code location in the debugging output.
    */

@@ -19,23 +19,23 @@ import org.vmmagic.pragma.*;
 
 /**
  * Error and trace logging.
- *
+ * 
  * @author Derek Lieber
  * @author Andrew Gray
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class Log implements Constants, Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
   /**
    * characters in the write buffer for the caller's message.  This
    * does not include characters reserved for the overflow message.
-   *
+   * 
    * This needs to be large because Jikes RVM's implementation of Lock.java
    * logs a lot of information when there is potential GC deadlock.
    */
@@ -84,14 +84,14 @@ public class Log implements Constants, Uninterruptible {
   { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
     'f' };
 
-  /** new line character.  Emitted by writeln methods. */
+  /** new line character. Emitted by writeln methods. */
   private static final char NEW_LINE_CHAR = '\n';
 
   /** log instance used at build time. */
   private static Log log = new Log();
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
 
@@ -101,10 +101,10 @@ public class Log implements Constants, Uninterruptible {
 
   /** location of next character to be written */
   private int bufferIndex = 0;
-  
+
   /** <code>true</code> if the buffer has overflown */
   private boolean overflow = false;
-  
+
   /** The last character that was written by #addToBuffer(char).  This is
       used to check whether we want to newline-terminate the text. */
   private char overflowLastChar = '\0';
@@ -113,18 +113,18 @@ public class Log implements Constants, Uninterruptible {
   private boolean threadIdFlag = false;
 
   /** buffer for building string representations of longs */
-  private char [] tempBuffer = new char[TEMP_BUFFER_SIZE];
+  private char[] tempBuffer = new char[TEMP_BUFFER_SIZE];
 
   /** constructor */
   public Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
       Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
-                                     OVERFLOW_MESSAGE.charAt(i));
+          OVERFLOW_MESSAGE.charAt(i));
   }
-  
+
   /**
-   * writes a boolean.  Either "true" or "false" is logged.
-   *
+   * writes a boolean. Either "true" or "false" is logged.
+   * 
    * @param b boolean value to be logged.
    */
   public static void write(boolean b) {
@@ -133,7 +133,7 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * writes a character
-   *
+   * 
    * @param c character to be logged
    */
   public static void write(char c) {
@@ -144,7 +144,7 @@ public class Log implements Constants, Uninterruptible {
    * writes a long, in decimal.  The value is not padded and no
    * thousands seperator is logged.  If the value is negative a
    * leading minus sign (-) is logged.
-   *
+   * 
    * @param l long value to be logged
    */
   public static void write(long l) {
@@ -152,18 +152,18 @@ public class Log implements Constants, Uninterruptible {
     int nextDigit;
     char nextChar;
     int index = TEMP_BUFFER_SIZE - 1;
-    char [] intBuffer = getIntBuffer();
-    
-    nextDigit = (int)(l % 10);
+    char[] intBuffer = getIntBuffer();
+
+    nextDigit = (int) (l % 10);
     nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                               negative
                                               ? - nextDigit
                                               : nextDigit);
     Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
-    
+
     while (l != 0) {
-      nextDigit = (int)(l % 10);
+      nextDigit = (int) (l % 10);
       nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
                                                 negative
                                                 ? - nextDigit
@@ -171,10 +171,10 @@ public class Log implements Constants, Uninterruptible {
       Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
       l = l / 10;
     }
-    
+
     if (negative)
       Barriers.setArrayNoBarrier(intBuffer, index--, '-');
-    
+
     for (index++; index < TEMP_BUFFER_SIZE; index++)
       add(Barriers.getArrayNoBarrier(intBuffer, index));
   }
@@ -220,7 +220,7 @@ public class Log implements Constants, Uninterruptible {
       write("TooSmall");
       return;
     }
-      
+
     boolean negative = (d < 0.0);
     d = (d < 0.0) ? (-d) : d;
     int ones = (int) d;
@@ -229,7 +229,7 @@ public class Log implements Constants, Uninterruptible {
       multiplier *= 10;
     int remainder = (int) (multiplier * (d - ones));
     if (negative) write('-');
-    write(ones); 
+    write(ones);
     write('.');
     while (multiplier > 1) {
       multiplier /= 10;
@@ -240,21 +240,21 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * writes an array of characters
-   *
+   * 
    * @param c the array of characters to be logged
    */
-  public static void write(char [] c) {
+  public static void write(char[] c) {
     write(c, c.length);
   }
 
   /**
    * writes the start of an array of characters
-   *
+   * 
    * @param c the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
    */
-  public static void write(char [] c, int len) {
+  public static void write(char[] c, int len) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(len <= c.length);
     for (int i = 0; i < len; i++)
       add(Barriers.getArrayNoBarrier(c, i));
@@ -263,17 +263,17 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes an array of bytes.  The bytes are interpretted
    * as characters.
-   *
+   * 
    * @param b the array of bytes to be logged
    */
-  public static void write(byte [] b) {
+  public static void write(byte[] b) {
     for (int i = 0; i < b.length; i++)
-      add((char)Barriers.getArrayNoBarrier(b, i));
+      add((char) Barriers.getArrayNoBarrier(b, i));
   }
 
   /**
    * writes a string
-   *
+   * 
    * @param s the string to be logged
    */
   public static void write(String s) {
@@ -283,7 +283,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a word, in hexadecimal.  It is zero-padded to the size of
    * an address.
-   *
+   * 
    * @param w the word to be logged
    */
   public static void write(Word w) {
@@ -292,7 +292,7 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * writes a word, in decimal.
-   *
+   * 
    * @param w the word to be logged
    */
   public static void writeDec(Word w) {
@@ -303,8 +303,8 @@ public class Log implements Constants, Uninterruptible {
   }
 
   /**
-   * writes an address, in hexademical.  It is zero-padded.
-   *
+   * writes an address, in hexademical. It is zero-padded.
+   * 
    * @param a the address to be logged
    */
   public static void write(Address a) {
@@ -312,8 +312,8 @@ public class Log implements Constants, Uninterruptible {
   }
 
   /**
-   * writes an object reference, in hexademical.  It is zero-padded.
-   *
+   * writes an object reference, in hexademical. It is zero-padded.
+   * 
    * @param o the object reference to be logged
    */
   public static void write(ObjectReference o) {
@@ -321,8 +321,8 @@ public class Log implements Constants, Uninterruptible {
   }
 
   /**
-   * writes an offset, in hexademical.  It is zero-padded.
-   *
+   * writes an offset, in hexademical. It is zero-padded.
+   * 
    * @param o the offset to be logged
    */
   public static void write(Offset o) {
@@ -330,8 +330,8 @@ public class Log implements Constants, Uninterruptible {
   }
 
   /**
-   * writes an extent, in hexademical.  It is zero-padded.
-   *
+   * writes an extent, in hexademical. It is zero-padded.
+   * 
    * @param e the extent to be logged
    */
   public static void write(Extent e) {
@@ -348,7 +348,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a boolean and a new-line, then flushes the buffer.
    * @see #write(boolean)
-   *
+   * 
    * @param b boolean value to be logged.
    */
   public static void writeln(boolean b) { writeln(b, true); }
@@ -356,7 +356,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a character and a new-line, then flushes the buffer.
    * @see #write(char)
-   *
+   * 
    * @param c character to be logged
    */
   public static void writeln(char c)    { writeln(c, true); }
@@ -364,7 +364,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a long, in decimal, and a new-line, then flushes the buffer.
    * @see #write(long)
-   *
+   * 
    * @param l long value to be logged
    */
   public static void writeln(long l)    { writeln(l, true); }
@@ -372,7 +372,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
    * @see #write(double)
-   *
+   * 
    * @param d the double to be logged
    */
   public static void writeln(double d)  { writeln(d, true); }
@@ -380,7 +380,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a <code>double</code> and a new-line, then flushes the buffer.
    * @see #write(double, int)
-   *
+   * 
    * @param d the double to be logged
    */
   public static void writeln(double d, int postDecimalDigits) {
@@ -389,7 +389,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes an array of characters and a new-line, then flushes the buffer.
    * @see #write(char [])
-   *
+   * 
    * @param ca the array of characters to be logged
    */
   public static void writeln(char [] ca) { writeln(ca, true); }
@@ -398,7 +398,7 @@ public class Log implements Constants, Uninterruptible {
    * writes the start of an array of characters and a new-line, then
    * flushes the buffer.
    * @see #write(char [], int)
-   *
+   * 
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
@@ -409,14 +409,14 @@ public class Log implements Constants, Uninterruptible {
    * writes an array of bytes and a new-line, then
    * flushes the buffer.
    * @see #write(byte [])
-   *
+   * 
    * @param b the array of bytes to be logged
    */
   public static void writeln(byte [] b) { writeln(b, true); }
 
   /**
    * writes a string and a new-line, then flushes the buffer.
-   *
+   * 
    * @param s the string to be logged
    */
   public static void writeln(String s)  { writeln(s, true); }
@@ -424,7 +424,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a word, in hexadecimal, and a new-line, then flushes the buffer.
    * @see #write(Word)
-   *
+   * 
    * @param w the word to be logged
    */
   public static void writeln(Word w) { writeln(w, true); }
@@ -433,7 +433,7 @@ public class Log implements Constants, Uninterruptible {
    * writes an address, in hexademical, and a new-line, then flushes
    * the buffer.
    * @see #write(Address)
-   *
+   * 
    * @param a the address to be logged
    */
   public static void writeln(Address a) { writeln(a, true); }
@@ -442,7 +442,7 @@ public class Log implements Constants, Uninterruptible {
    * writes an object reference, in hexademical, and a new-line, then
    * flushes the buffer.
    * @see #write(ObjectReference)
-   *
+   * 
    * @param o the object reference to be logged
    */
   public static void writeln(ObjectReference o) { writeln(o, true); }
@@ -450,7 +450,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes an offset, in hexademical, and a new-line, then flushes the buffer.
    * @see #write(Offset)
-   *
+   * 
    * @param o the offset to be logged
    */
   public static void writeln(Offset o) { writeln(o, true); }
@@ -458,7 +458,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes an extent, in hexademical, and a new-line, then flushes the buffer.
    * @see #write(Extent)
-   *
+   * 
    * @param e the extent to be logged
    */
   public static void writeln(Extent e) { writeln(e, true); }
@@ -473,7 +473,7 @@ public class Log implements Constants, Uninterruptible {
   /**
    * writes a boolean and a new-line, then optionally flushes the buffer.
    * @see #write(boolean)
-   *
+   * 
    * @param b boolean value to be logged.
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -486,7 +486,7 @@ public class Log implements Constants, Uninterruptible {
    * writes a character and a new-line, then optionally flushes the
    * buffer.
    * @see #write(char)
-   *
+   * 
    * @param c character to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -499,7 +499,7 @@ public class Log implements Constants, Uninterruptible {
    * writes a long, in decimal, and a new-line, then optionally flushes
    * the buffer.
    * @see #write(long)
-   *
+   * 
    * @param l long value to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -512,7 +512,7 @@ public class Log implements Constants, Uninterruptible {
    * writes a <code>double</code> and a new-line, then optionally flushes
    * the buffer.
    * @see #write(double)
-   *
+   * 
    * @param d the double to be logged
    * @param flush if <code>true</code> then flush the buffer
    */
@@ -525,7 +525,7 @@ public class Log implements Constants, Uninterruptible {
    * writes a <code>double</code> and a new-line, then optionally flushes
    * the buffer.
    * @see #write(double, int)
-   *
+   * 
    * @param d the double to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -539,11 +539,11 @@ public class Log implements Constants, Uninterruptible {
    * writes an array of characters and a new-line, then optionally
    * flushes the buffer.
    * @see #write(char [])
-   *
+   * 
    * @param ca the array of characters to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(char [] ca, boolean flush) {
+  public static void writeln(char[] ca, boolean flush) {
     write(ca);
     writelnWithFlush(flush);
   }
@@ -552,13 +552,13 @@ public class Log implements Constants, Uninterruptible {
    * writes the start of an array of characters and a new-line, then
    * optionally flushes the buffer.
    * @see #write(char [], int)
-   *
+   * 
    * @param ca the array of characters
    * @param len the number of characters to be logged, starting with
    * the first character
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(char [] ca, int len, boolean flush) {
+  public static void writeln(char[] ca, int len, boolean flush) {
     write(ca, len);
     writelnWithFlush(flush);
   }
@@ -567,18 +567,18 @@ public class Log implements Constants, Uninterruptible {
    * writes an array of bytes and a new-line, then optionally flushes the
    * buffer.
    * @see #write(byte [])
-   *
+   * 
    * @param b the array of bytes to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(byte [] b, boolean flush) {
+  public static void writeln(byte[] b, boolean flush) {
     write(b);
     writelnWithFlush(flush);
   }
 
   /**
    * writes a string and a new-line, then optionally flushes the buffer.
-   *
+   * 
    * @param s the string to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -597,7 +597,7 @@ public class Log implements Constants, Uninterruptible {
    * writes a word, in hexadecimal, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Word)
-   *
+   * 
    * @param w the word to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -611,7 +611,7 @@ public class Log implements Constants, Uninterruptible {
    * writes an address, in hexademical, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Address)
-   *
+   * 
    * @param a the address to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -624,7 +624,7 @@ public class Log implements Constants, Uninterruptible {
    * writes an object reference, in hexademical, and a new-line, then
    * optionally flushes the buffer.
    * @see #write(ObjectReference)
-   *
+   * 
    * @param o the object reference to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -637,7 +637,7 @@ public class Log implements Constants, Uninterruptible {
    * writes an offset, in hexademical, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Offset)
-   *
+   * 
    * @param o the offset to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -650,7 +650,7 @@ public class Log implements Constants, Uninterruptible {
    * writes an extent, in hexademical, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Extent)
-   *
+   * 
    * @param e the extent to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
@@ -663,11 +663,11 @@ public class Log implements Constants, Uninterruptible {
    * writes a string followed by a Address
    * @see #write(String)
    * @see #write(Address)
-   *
+   * 
    * @param s the string to be logged
    * @param a the Address to be logged
    */
-  public static void writeln (String s, Address a) {
+  public static void writeln(String s, Address a) {
     write(s);
     writeln(a);
   }
@@ -691,7 +691,7 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * writes a new-line and optionally flushes the buffer
-   *
+   * 
    * @param flush if <code>true</code> the buffer is flushed
    */
   private static void writelnWithFlush(boolean flush) {
@@ -702,7 +702,7 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * writes a <code>long</code> in hexadecimal
-   *
+   * 
    * @param w the Word to be logged
    * @param bytes the number of bytes from the long to be logged.  If
    * less than 8 then the least significant bytes are logged and some
@@ -711,7 +711,6 @@ public class Log implements Constants, Uninterruptible {
   private static void writeHex(Word w, int bytes) {
     int hexDigits = bytes * (1 << LOG_HEX_DIGITS_IN_BYTE);
     int nextDigit;
-    char [] intBuffer = getIntBuffer();
 
     write(HEX_PREFIX);
 
@@ -725,7 +724,7 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * adds a character to the buffer
-   *
+   * 
    * @param c the character to add
    */
   private static void add(char c) {
@@ -734,7 +733,7 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * adds a string to the buffer
-   *
+   * 
    * @param s the string to add
    */
   private static void add(String s) {
@@ -743,14 +742,14 @@ public class Log implements Constants, Uninterruptible {
 
   private static Log getLog() {
     if (Assert.runningVM())
-      return ActivePlan.local().getLog();
+      return ActivePlan.collector().getLog();
     else
       return log;
   }
 
   /**
    * adds a character to the buffer
-   *
+   * 
    * @param c the character to add
    */
   private void addToBuffer(char c) {
@@ -764,20 +763,20 @@ public class Log implements Constants, Uninterruptible {
 
   /**
    * adds a string to the buffer
-   *
+   * 
    * @param s the string to add
    */
   private void addToBuffer(String s) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE) {
       bufferIndex += Strings.copyStringToChars(s, buffer, bufferIndex,
-                                                    MESSAGE_BUFFER_SIZE + 1);
+          MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
         overflow = true;
         // We don't bother setting OVERFLOW_LAST_CHAR, since we don't have an
-        // MMTk method that lets us peek into a string.  Anyway, it's just a
+        // MMTk method that lets us peek into a string. Anyway, it's just a
         // convenience to get the newline right.
         Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
-                                       OVERFLOW_MESSAGE_FIRST_CHAR); 
+            OVERFLOW_MESSAGE_FIRST_CHAR);
         bufferIndex--;
       }
     } else
@@ -814,14 +813,14 @@ public class Log implements Constants, Uninterruptible {
    * gets the buffer for building string representations of integers.
    * There is one of these buffers for each Log instance.
    */
-  private static char [] getIntBuffer() {
+  private static char[] getIntBuffer() {
     return getLog().getTempBuffer();
   }
 
   /**
    * gets the buffer for building string representations of integers.
    */
-  private char [] getTempBuffer() {
+  private char[] getTempBuffer() {
     return tempBuffer;
   }
 }

@@ -4,8 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
-
-import  java.util.*;
+import  java.util.HashMap;
+import  java.util.Enumeration;
 import  com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -14,9 +14,37 @@ import  com.ibm.JikesRVM.opt.ir.*;
  * @author Martin Trapp
  * @modified Stephen Fink
  */
-class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
+final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
-  public boolean verbose = false;
+  /** Output debug messages */
+  public boolean verbose = true;
+  /** Cache of IR being processed by this phase */
+  private OPT_IR ir;
+  /** Cache of the value numbers from the IR  */
+  private OPT_GlobalValueNumberState valueNumbers;
+  /**
+   * Cache of dominator tree that should be computed prior to this
+   * phase
+   */
+  private OPT_DominatorTree dominator;
+  /**
+   * Available expressions. From Muchnick, "an expression
+   * <em>exp</em>is said to be </em>available</em> at the entry to a
+   * basic block if along every control-flow path from the entry block
+   * to this block there is an evaluation of exp that is not
+   * subsequently killed by having one or more of its operands
+   * assigned a new value." Our available expressions are a mapping
+   * from a value number to the first instruction to define it as we
+   * traverse the dominator tree.
+   */
+  private final HashMap avail;
+
+  /**
+   * Constructor
+   */
+  OPT_GlobalCSE() {
+    avail = new HashMap();
+  }
 
   /**
    * Redefine shouldPerform so that none of the subphases will occur
@@ -33,62 +61,89 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     return  "Global CSE";
   }
   
-
+  /**
+   * Perform the GlobalCSE compiler phase
+   */
   public void perform (OPT_IR ir) {
-    if (ir.hasReachableExceptionHandlers() || OPT_GCP.tooBig(ir)) return;
-    verbose = OPT_LICM.verbose;
+    // conditions to leave early
+    if (ir.hasReachableExceptionHandlers() || OPT_GCP.tooBig(ir))
+      return;
+    // cache useful values
+    verbose = ir.options.VERBOSE_GCP;
     this.ir = ir;
     dominator = ir.HIRInfo.dominatorTree;
+
+    // perform GVN
     (new OPT_GlobalValueNumber()).perform(ir);
     valueNumbers = ir.HIRInfo.valueNumbers;
-    if (true || ir.IRStage == OPT_IR.LIR) {
-      if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
-      OPT_DefUse.computeDU(ir);
-      OPT_Simple.copyPropagation(ir);
-      OPT_DefUse.computeDU(ir);
-      GlobalCSE(ir.firstBasicBlockInCodeOrder());
-      if (VM.VerifyAssertions) {
-        VM._assert(avail.size() == 0, avail.toString());
-      }
-      ir.actualSSAOptions.setScalarValid(false);
+
+    if (verbose) VM.sysWrite ("in GCSE for "+ir.method+"\n");
+
+    // compute DU and perform copy propagation
+    OPT_DefUse.computeDU(ir);
+    OPT_Simple.copyPropagation(ir);
+    OPT_DefUse.computeDU(ir);
+
+    // perform GCSE starting at the entry block
+    globalCSE(ir.firstBasicBlockInCodeOrder());
+
+    if (VM.VerifyAssertions) {
+      VM._assert(avail.size() == 0, avail.toString());
     }
+    ir.actualSSAOptions.setScalarValid(false);
   }
   
-  private OPT_IR ir;
-  private static java.util.HashMap avail = new java.util.HashMap();
-  private OPT_GlobalValueNumberState valueNumbers;
-
   /**
-   * Do a global CSE for all instructions of block b using the given
-   * value numbers 
-   * @param b
+   * Recursively descend over all blocks dominated by b. For each
+   * instruction in the block, if it defines a GVN then record it in
+   * the available expressions. If the GVN already exists in the
+   * available expressions then eliminate the instruction and change
+   * all uses of the result of the instruction to be uses of the first
+   * instruction to define the result of this expression.
+   * @param b the current block to process
    */
-  private void GlobalCSE (OPT_BasicBlock b) {
+  private void globalCSE (OPT_BasicBlock b) {
     OPT_Instruction next, inst;
-    //VM.sysWrite ("Entering Block "+b+"\n");
+    // Iterate over instructions in b
     inst = b.firstInstruction();
     while (!BBend.conforms(inst)) {
       next = inst.nextInstructionInCodeOrder();
+      // check instruction is safe for GCSE, {@see shouldCSE}
       if (!shouldCSE(inst)) {
         inst = next;
         continue;
       }
+      // check the instruction defines a result
       OPT_RegisterOperand result = getResult(inst);
       if (result == null) {
         inst = next;
         continue;
       }
+      // get the value number for this result. The value number for
+      // the same sub-expression is shared by all results showing they
+      // can be eliminated. If the value number is UNKNOWN the result
+      // is negative.
       int vn = valueNumbers.getValueNumber(result);
       if (vn < 0) {
         inst = next;
         continue;
       }
+      // was this the first definition of the value number?
       Integer Vn = new Integer(vn);
       OPT_Instruction former = (OPT_Instruction)avail.get(Vn);
-      if (former != null) {
-        // instead of trying to repair Heap SSA, we rebuild it after CSE 
+      if (former == null) {
+        // first occurance of value number, record it in the available
+        // expressions
+        avail.put(Vn, inst);
+      } else {
+        // this value number has been seen before so we can use the
+        // earlier version
+        // NB instead of trying to repair Heap SSA, we rebuild it
+        // after CSE
         
-        // relink scalar dependencies
+        // relink scalar dependencies - make all uses of the current
+        // instructions result use the first definition of the result
+        // by the earlier expression
         OPT_RegisterOperand formerDef = getResult(former);
         OPT_Register reg = result.register;
         formerDef.register.setSpansBasicBlock();
@@ -101,21 +156,22 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
           VM.sysWrite("using      " + former + "\n" + "instead of " + 
                       inst + "\n");
         }
+        // remove the redundant instruction
         inst.remove();
       } 
-      else {
-        //if (verbose) VM.sysWrite ("adding ("+b+") ["+vn+"]"+inst+"\n");
-        avail.put(Vn, inst);
-      }
       inst = next;
-    }
+    } // end of instruction iteration
+    // Recurse over all blocks that this block dominates
     Enumeration e = dominator.getChildren(b);
     while (e.hasMoreElements()) {
       OPT_DominatorTreeNode n = (OPT_DominatorTreeNode)e.nextElement();
       OPT_BasicBlock bl = n.getBlock();
+      // don't process infrequently executed basic blocks
       if (ir.options.FREQ_FOCUS_EFFORT && bl.getInfrequent()) continue;
-      GlobalCSE(bl);
+      globalCSE(bl);
     }
+    // Iterate over instructions in this basic block removing
+    // available expressions that had been created for this block
     inst = b.firstInstruction();
     while (!BBend.conforms(inst)) {
       next = inst.nextInstructionInCodeOrder();
@@ -137,18 +193,16 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
       OPT_Instruction former = (OPT_Instruction)avail.get(Vn);
       if (former == inst) {
         avail.remove(Vn);
-        //if (verbose) VM.sysWrite ("removing ("+b+"): "+inst+"\n");
       }
       inst = next;
     }
-    //VM.sysWrite ("Leaving Block "+b+"\n");
   }
   
   /**
    * Get the result operand of the instruction
    * @param inst
    */
-  OPT_RegisterOperand getResult (OPT_Instruction inst) {
+  private OPT_RegisterOperand getResult (OPT_Instruction inst) {
     if (ResultCarrier.conforms(inst))
       return  ResultCarrier.getResult(inst);
     if (GuardResultCarrier.conforms(inst))
@@ -161,9 +215,9 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
    * should this instruction be cse'd  ?
    * @param inst
    */
-  boolean shouldCSE (OPT_Instruction inst) {
+  private boolean shouldCSE (OPT_Instruction inst) {
     
-    if ((  inst.isAllocation())
+    if ((inst.isAllocation())
         || inst.isDynamicLinkingPoint()
         || inst.isImplicitLoad()
         || inst.isImplicitStore()
@@ -173,10 +227,6 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     switch (inst.operator.opcode) {
     case INT_MOVE_opcode:
     case LONG_MOVE_opcode:
-      //  OPT_Operand ival = Move.getVal(inst);
-      //if (ival instanceof OPT_ConstantOperand)
-      //        return  false;
-      // fall through
     case GET_CLASS_OBJECT_opcode:
     case CHECKCAST_opcode:
     case CHECKCAST_NOTNULL_opcode:
@@ -290,6 +340,4 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     }
     return false;
   }
-
-  private OPT_DominatorTree dominator;
 }

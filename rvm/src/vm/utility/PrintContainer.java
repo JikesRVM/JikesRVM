@@ -94,7 +94,7 @@ public class PrintContainer {
   }
 
   // Keep this one ready to go at all times :)
-  static public PrintLN readyPrinter = new WithSysWrite();
+  final static public PrintLN readyPrinter = new WithSysWrite();
   
   /** This (nested) class does printing via {@link VM#sysWrite} */
   private static class WithSysWrite 

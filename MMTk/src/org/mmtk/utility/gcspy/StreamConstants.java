@@ -33,9 +33,9 @@ package org.mmtk.utility.gcspy;
       <tr><td>INT_TYPE</td>   <td>stream of ints</td>
    </table>
  * StreamConstants
- *
+ * 
  * $Id$
- *
+ * 
  * @author Richard Jones
  * @version $Revision$
  * @date $Date$
@@ -43,21 +43,21 @@ package org.mmtk.utility.gcspy;
 
 public interface StreamConstants {
 
-  public static final int NAME_LEN                     = 40;
-  public static final int PRESENTATION_PLAIN           =  0;
-  public static final int PRESENTATION_PLUS            =  1;
-  public static final int PRESENTATION_MAX_VAR         =  2;
-  public static final int PRESENTATION_PERCENT         =  3;
-  public static final int PRESENTATION_PERCENT_VAR     =  4;
-  public static final int PRESENTATION_ENUM            =  5;
+  public static final int NAME_LEN = 40;
+  public static final int PRESENTATION_PLAIN = 0;
+  public static final int PRESENTATION_PLUS = 1;
+  public static final int PRESENTATION_MAX_VAR = 2;
+  public static final int PRESENTATION_PERCENT = 3;
+  public static final int PRESENTATION_PERCENT_VAR = 4;
+  public static final int PRESENTATION_ENUM = 5;
 
-  public static final int PAINT_STYLE_PLAIN            =  0;
-  public static final int PAINT_STYLE_ZERO             =  1;
+  public static final int PAINT_STYLE_PLAIN = 0;
+  public static final int PAINT_STYLE_ZERO = 1;
 
-  public static final int BYTE_TYPE                    =  0;
-  public static final int SHORT_TYPE                   =  1;
-  public static final int INT_TYPE                     =  2;
+  public static final int BYTE_TYPE = 0;
+  public static final int SHORT_TYPE = 1;
+  public static final int INT_TYPE = 2;
 
-  public static final int ENUM_MAX_LEN                 = 20;
-  public static final int ENUM_MAX_NUM                 =  5;
+  public static final int ENUM_MAX_LEN = 20;
+  public static final int ENUM_MAX_NUM = 5;
 }

@@ -12,42 +12,40 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class encapsulates type-specific memory management information. 
- *
+ * This class encapsulates type-specific memory management information.
+ * 
  * @author Andrew Gray
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public final class MMType implements Constants, Uninterruptible {
-  // AJG: Maybe should make this immutable.  See Item 13 of Effective Java.
+  // AJG: Maybe should make this immutable. See Item 13 of Effective Java.
   private boolean isReferenceArray;
   private boolean isDelegated;
   private boolean isAcyclic;
   private Offset arrayOffset;
-  private int [] offsets;
+  private int[] offsets;
   private int allocator;
-  
+
   // per-type statistics
   private int allocCount;
   private int allocBytes;
-  private int copyCount;                 
-  private int copyBytes;                 
-  private int scanCount;                 
+  private int copyCount;
+  private int copyBytes;
+  private int scanCount;
   private int scanBytes;
-  private int bootCount;
-  private int bootBytes; 
-  
+
   private static final boolean PROFILING_STATISTICS = false;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
   /**
    * Constructor
-   *
+   * 
    * @param isDelegated True if scanning of this type is delegated to the VM
    * @param isReferenceArray True if the type is array of reference
    * @param isAcyclic True if the type is inherently acyclic
@@ -56,9 +54,9 @@ public final class MMType implements Constants, Uninterruptible {
    * @param offsets An array of integer offsets for the fields of this
    * type (if any).
    */
-  public MMType(boolean isDelegated, boolean isReferenceArray, 
-                boolean isAcyclic, int allocator, int [] offsets)
-    throws InterruptiblePragma {
+  public MMType(boolean isDelegated, boolean isReferenceArray,
+      boolean isAcyclic, int allocator, int[] offsets)
+      throws InterruptiblePragma {
     this.isDelegated = isDelegated;
     this.isReferenceArray = isReferenceArray;
     this.isAcyclic = isAcyclic;
@@ -67,14 +65,14 @@ public final class MMType implements Constants, Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Scanning and tracing
    */
 
   /**
    * Return a slot (location of an address) given an object address
    * and a reference number.
-   *
+   * 
    * @param object The address of an object
    * @param reference The number of a field in a scalar or the index
    * into an array
@@ -83,16 +81,16 @@ public final class MMType implements Constants, Uninterruptible {
   Address getSlot(ObjectReference object, int reference) throws InlinePragma {
     Address addr = object.toAddress();
     if (isReferenceArray)
-      return addr.add(arrayOffset).add(reference << LOG_BYTES_IN_ADDRESS);
+      return addr.plus(arrayOffset).plus(reference << LOG_BYTES_IN_ADDRESS);
     else
-      return addr.add(offsets[reference]);
+      return addr.plus(offsets[reference]);
   }
 
   /**
    * Return the number of references in an object.  In the case of a
    * scalar this is the number of fields, in the case of an array, the
    * number of elements in the array.
-   *
+   * 
    * @param object The object in question
    * @return The number of references in the object
    */
@@ -104,13 +102,13 @@ public final class MMType implements Constants, Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Statistics
    */
 
   /**
    * Account for an alloc of this type if profiling is turned on.
-   *
+   * 
    * @param size The number of bytes allocated
    */
   void profileAlloc(int size) throws InlinePragma {
@@ -122,7 +120,7 @@ public final class MMType implements Constants, Uninterruptible {
 
   /**
    * Account for a copy of this type if profiling is turned on.
-   *
+   * 
    * @param size The number of bytes copied. 
    */
   public void profileCopy(int size) throws InlinePragma {
@@ -134,7 +132,7 @@ public final class MMType implements Constants, Uninterruptible {
 
   /**
    * Account for a scan of this type if profiling is turned on.
-   *
+   * 
    * @param size The number of bytes scanned. 
    */
   void profileScan(int size) throws InlinePragma {
@@ -145,7 +143,7 @@ public final class MMType implements Constants, Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Convenience Methods
    */
 

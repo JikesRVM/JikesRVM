@@ -24,6 +24,24 @@ import org.vmmagic.unboxed.Offset;
 abstract class OPT_AssemblerBase extends VM_Assembler 
   implements OPT_Operators, VM_Constants, OPT_PhysicalRegisterConstants {
 
+  private static final boolean DEBUG_ESTIMATE = false;
+
+  /**
+   * Hold EBP register object for use in estimating size of memory operands.
+   * Having this in a static field is extremely hacky, but it's quite an
+   * annoying plumbing problem to pass an OPT_IR all the way down to
+   * the code that needs to get EBP, so this is probably the cleanest solution.
+   */
+  private static OPT_Register EBP;
+  
+  /**
+   * Hold EBP register object for use in estimating size of memory operands.
+   * Having this in a static field is extremely hacky, but it's quite an
+   * annoying plumbing problem to pass an OPT_IR all the way down to
+   * the code that needs to get EBP, so this is probably the cleanest solution.
+   */
+  private static OPT_Register ESP;
+  
   /**
    *  This class requires no particular construction behavior; this
    * constructor simply calls super.
@@ -496,94 +514,163 @@ abstract class OPT_AssemblerBase extends VM_Assembler
       if (inst.getmcOffset() == target) {
         return true;
       }
-      switch (inst.getOpcode()) {
+      budget -= estimateSize(inst);
+      inst = inst.nextInstructionInCodeOrder();
+    }
+  }
+
+  private static int estimateSize(OPT_Instruction inst) {
+    switch (inst.getOpcode()) {
       case LABEL_opcode:case BBEND_opcode:case UNINT_BEGIN_opcode:case UNINT_END_opcode:
         // these generate no code
-        break;
+        return 0;
 
         // Generated from the same case in VM_Assembler
       case IA32_ADC_opcode:case IA32_ADD_opcode:case IA32_AND_opcode:
       case IA32_OR_opcode:case IA32_SBB_opcode:
       case IA32_XOR_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_BinaryAcc.getResult(inst), true);
-        budget -= operandCost(MIR_BinaryAcc.getValue(inst), true);
-        break;
+        {
+          int size = 2; // opcode + modr/m
+          size += operandCost(MIR_BinaryAcc.getResult(inst), true);
+          size += operandCost(MIR_BinaryAcc.getValue(inst), true);
+          return size;
+        }
       case IA32_CMP_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_Compare.getVal1(inst), true);
-        budget -= operandCost(MIR_Compare.getVal2(inst), true);
-        break;
+        {
+          int size = 2; // opcode + modr/m
+          size += operandCost(MIR_Compare.getVal1(inst), true);
+          size += operandCost(MIR_Compare.getVal2(inst), true);
+          return size;
+        }
       case IA32_TEST_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_Test.getVal1(inst), true);
-        budget -= operandCost(MIR_Test.getVal2(inst), true);
-        break;
+        {
+          int size = 2; // opcode + modr/m
+          size += operandCost(MIR_Test.getVal1(inst), true);
+          size += operandCost(MIR_Test.getVal2(inst), true);
+          return size;
+        }
         
       case IA32_PUSH_opcode:
         {
           OPT_Operand op = MIR_UnaryNoRes.getVal(inst);
+          int size = 0;
           if (op instanceof OPT_RegisterOperand) {
-            budget -= 1;
+            size += 1;
           } else if (op instanceof OPT_IntConstantOperand) {
             if (fits(((OPT_IntConstantOperand)op).value,8)) {
-              budget -= 2;
+              size += 2;
             } else {
-              budget -= 5;
+              size += 5;
             }
           } else {
-            budget -= (2+operandCost(op, true));
+            size += (2+operandCost(op, true));
           }
+          return size;
         }
-        break;
+      case IA32_LEA_opcode:
+        {
+          int size = 2; // opcode + 1 byte modr/m
+          size += operandCost(MIR_Lea.getResult(inst), false);
+          size += operandCost(MIR_Lea.getValue(inst), false);
+          return size;
+        }
       case IA32_MOV_opcode:
-        budget -= 2; // opcode + modr/m
-        budget -= operandCost(MIR_Move.getResult(inst), false);
-        budget -= operandCost(MIR_Move.getValue(inst), false);
-        break;
-      case IA32_OFFSET_opcode:
-        budget -= 4;
-        break;
-      case IA32_JCC_opcode: case IA32_JMP_opcode:
-        budget -= 6; // assume long form
-        break;
-      case IA32_LOCK_opcode:
-        budget -= 1;
-        break;
-      case IG_PATCH_POINT_opcode:
-        budget -= 6;
-        break;
-      case IA32_INT_opcode:
-        budget -= 2;
-        break;
-      case IA32_RET_opcode:
-        budget -= 3;
-        break;
-      default:
-        budget -= 3; // 2 bytes opcode + 1 byte modr/m
-        for (OPT_OperandEnumeration opEnum = inst.getRootOperands();
-             opEnum.hasMoreElements();) {
-          OPT_Operand op = opEnum.next();
-          budget -= operandCost(op, false);
+        {
+          int size = 2; // opcode + modr/m
+          OPT_Operand result = MIR_Move.getResult(inst);
+          OPT_Operand value = MIR_Move.getValue(inst);
+          size += operandCost(result, false);
+          size += operandCost(value, false);
+          return size;
         }
-        break;
-      }
-      inst = inst.nextInstructionInCodeOrder();
+      case IA32_OFFSET_opcode:
+        return 4;
+      case IA32_JCC_opcode: case IA32_JMP_opcode:
+        return 6; // assume long form
+      case IA32_LOCK_opcode:
+        return 1;
+      case IG_PATCH_POINT_opcode:
+        return 6;
+      case IA32_INT_opcode:
+        return 2;
+      case IA32_RET_opcode:
+        return 3;
+      case IA32_CALL_opcode:
+        OPT_Operand target = MIR_Call.getTarget(inst);
+        if (isImmOrLabel(target)) {
+          return 5; // opcode + 32bit immediate
+        } else {
+          return 2 + operandCost(target, false); // opcode + modr/m
+        }
+      default:
+        {
+          int size = 3; // 2 bytes opcode + 1 byte modr/m
+          for (OPT_OperandEnumeration opEnum = inst.getRootOperands();
+               opEnum.hasMoreElements();) {
+            OPT_Operand op = opEnum.next();
+            size += operandCost(op, false);
+          }
+          return size;
+        }
     }
   }
-
-  private int operandCost(OPT_Operand op, boolean shortFormImmediate) {
+  
+  private static int operandCost(OPT_Operand op, boolean shortFormImmediate) {
     if (op instanceof OPT_MemoryOperand) {
-      int cost = 1; // might need SIB byte
       OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
-      if (!mop.disp.isZero()) {
+      // If it's a 2byte mem location, we're going to need an override prefix
+      int prefix = mop.size == 2 ? 1 : 0;
+      
+      // Deal with EBP wierdness
+      if (mop.base != null && mop.base.register == EBP) {
+        if (mop.index != null) {
+          // forced into SIB + 32 bit displacement no matter what disp is
+          return prefix + 5;
+        }
         if (fits(mop.disp,8)) {
-          cost += 1;
+          return prefix + 1;
         } else {
-          cost += 4;
+          return prefix + 4;
         }
       }
-      return cost;
+      if (mop.index != null && mop.index.register == EBP) {
+        // forced into SIB + 32 bit displacement no matter what disp is
+        return prefix + 5;
+      }
+
+      // Deal with ESP wierdness -- requires SIB byte even when index is null
+      if (mop.base != null && mop.base.register == ESP) {
+        if (fits(mop.disp,8)) {
+          return prefix + 2;
+        } else {
+          return prefix + 5;
+        }
+      }      
+
+      if (mop.index == null) {
+        // just displacement to worry about
+        if (mop.disp.isZero()) {
+          return prefix + 0;
+        } else if (fits(mop.disp,8)) {
+          return  prefix + 1;
+        } else {
+          return prefix + 4;
+        }
+      } else {
+        // have a SIB
+        if (mop.base == null && mop.scale != 0) {
+          // forced to 32 bit displacement even if it would fit in 8
+          return prefix + 5;
+        } else {
+          if (mop.disp.isZero()) {
+            return prefix + 1;
+          } else if (fits(mop.disp,8)) {
+            return  prefix + 2;
+          } else {
+            return prefix + 5;
+          }
+        }          
+      }
     } else if (op instanceof OPT_IntConstantOperand) {
       if (shortFormImmediate && fits(((OPT_IntConstantOperand)op).value,8)) {
         return 1;
@@ -680,28 +767,48 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   }
 
   /**
-   * generate machine code into ir.machinecode
+   * generate machine code into ir.machinecode.
+   * Synchronized to make the EBP hack thread safe...ugh.
    * @param ir the IR to generate
    * @param shouldPrint should we print the machine code?
    * @return   the number of machinecode instructions generated
    */
-  public static final int generateCode(OPT_IR ir, boolean shouldPrint) {
+  public static synchronized int generateCode(OPT_IR ir, boolean shouldPrint) {
     int count = 0;
-
-    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
-         p != null; p = p.nextInstructionInCodeOrder()) 
-      {
-        p.setmcOffset( - ++count);
-      }
-      
     OPT_Assembler asm = new OPT_Assembler(count, shouldPrint);
-
+    
     for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
-         p != null; p = p.nextInstructionInCodeOrder()) 
-      {
-        asm.doInst(p);
+         p != null; p = p.nextInstructionInCodeOrder()) {
+      p.setmcOffset( - ++count);
+    }
+
+    
+    try {
+      EBP = ir.regpool.getPhysicalRegisterSet().getEBP();
+      ESP = ir.regpool.getPhysicalRegisterSet().getESP();
+    
+      for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
+           p != null; p = p.nextInstructionInCodeOrder()) {
+        if (DEBUG_ESTIMATE) {
+          int start = asm.getMachineCodeIndex();
+          int estimate = estimateSize(p);
+          asm.doInst(p);
+          int end = asm.getMachineCodeIndex();
+          if (end-start > estimate) {
+            VM.sysWriteln("Bad estimate: "+(end-start)+" "+estimate+" "+p);
+            VM.sysWrite("\tMachine code: ");
+            asm.writeLastInstruction(start);
+            VM.sysWriteln();
+          }
+        } else {
+          asm.doInst(p);
+        }
       }
-      
+    } finally {
+      EBP = null;
+      ESP = null;
+    }
+    
     ir.MIRInfo.machinecode = asm.getMachineCodes();
 
     return ir.MIRInfo.machinecode.length();

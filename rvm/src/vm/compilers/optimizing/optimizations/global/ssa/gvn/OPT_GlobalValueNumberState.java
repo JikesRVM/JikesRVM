@@ -7,8 +7,12 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
-import java.util.*;
-/*
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Stack;
+/**
  * This class holds the results of global value numbering.
  * ala Alpern, Wegman and Zadeck, PoPL 88.
  * See Muchnick p.348 for a discussion (which is quite buggy, should
@@ -25,11 +29,28 @@ public final class OPT_GlobalValueNumberState {
   /**
    * Print verbose debugging output?
    */
-  final static boolean DEBUG = false;
+  final private static boolean DEBUG = false;
   /**
    * Assume parameters are not aliased?
    */
-  private final static boolean NO_PARAM_ALIAS = false;
+  final private static boolean NO_PARAM_ALIAS = false;
+
+  /**
+   * Governing IR
+   */
+  private final OPT_IR ir;
+  /**
+   * ArrayList of OPT_GVCongruenceClass, indexed by value number.
+   */
+  private final ArrayList B;
+  /**
+   * The value graph.
+   */
+  final OPT_ValueGraph valueGraph;
+  /**
+   * Stack used for a work list.
+   */
+  private final Stack workList;
 
   /**
    * Construct a structure to hold global value number results for an IR.
@@ -38,6 +59,10 @@ public final class OPT_GlobalValueNumberState {
    */
   OPT_GlobalValueNumberState (OPT_IR ir) {
     this.ir = ir;
+    B = new ArrayList();
+    workList = new Stack();
+    valueGraph = new OPT_ValueGraph(ir);
+    globalValueNumber();
   }
 
   /** 
@@ -88,8 +113,7 @@ public final class OPT_GlobalValueNumberState {
    *   }
    *  </pre>
    */
-  public void globalValueNumber () {
-    valueGraph = new OPT_ValueGraph(ir);
+  private void globalValueNumber () {
     if (DEBUG)
       VM.sysWrite(valueGraph.toString());
     // initialize the congurence classes
@@ -108,7 +132,7 @@ public final class OPT_GlobalValueNumberState {
   /**
    * Merge the congruence classes containing vertices v1 and v2.;
    */
-   public void mergeClasses(OPT_ValueGraphVertex v1, OPT_ValueGraphVertex v2) {
+   void mergeClasses(OPT_ValueGraphVertex v1, OPT_ValueGraphVertex v2) {
      if (DEBUG)  {
        System.out.println("@@@@ mergeClasses called with v1 = " + v1 + 
                           " ; v2 = " + v2);
@@ -144,7 +168,7 @@ public final class OPT_GlobalValueNumberState {
     * @param name2 second variable
     * @return true iff the value numbers for two variables are equal
     */
-   public boolean DS (Object name1, Object name2) {
+   boolean DS (Object name1, Object name2) {
      OPT_ValueGraphVertex v1 = valueGraph.getVertex(name1);
      OPT_ValueGraphVertex v2 = valueGraph.getVertex(name2);
      if (v1.getValueNumber() == v2.getValueNumber())
@@ -168,7 +192,7 @@ public final class OPT_GlobalValueNumberState {
    * @return true iff the value numbers for two variables are definitely
    * different
    */
-  public boolean DD (int v1, int v2) {
+  boolean DD (int v1, int v2) {
     if ((v1 == -1) || (v2 == -1))
       return  false;
     OPT_GVCongruenceClass class1 = (OPT_GVCongruenceClass)B.get(v1);
@@ -231,13 +255,13 @@ public final class OPT_GlobalValueNumberState {
    * @return true iff the value numbers for two variables are definitely
    * different
    */
-  public boolean DD (Object name1, Object name2) {
+  boolean DD (Object name1, Object name2) {
     OPT_ValueGraphVertex v1 = valueGraph.getVertex(name1);
     OPT_ValueGraphVertex v2 = valueGraph.getVertex(name2);
     return  DD(v1.getValueNumber(), v2.getValueNumber());
   }
 
-  public OPT_GVCongruenceClass congruenceClass(Object name) {
+  OPT_GVCongruenceClass congruenceClass(Object name) {
     OPT_ValueGraphVertex v = valueGraph.getVertex(name);
     return ((OPT_GVCongruenceClass)B.get(v.getValueNumber()));
   }
@@ -248,7 +272,7 @@ public final class OPT_GlobalValueNumberState {
    * @param name name of the variable to look up
    * @return its value number
    */
-  public int getValueNumber (Object name) {
+  int getValueNumber (Object name) {
     OPT_ValueGraphVertex v = valueGraph.getVertex(name);
     if (v == null)
       return  UNKNOWN;
@@ -258,31 +282,14 @@ public final class OPT_GlobalValueNumberState {
   /** 
    * Print the value numbers for each node in the value graph.
    */
-  public void printValueNumbers () {
+  void printValueNumbers () {
     for (Enumeration e = valueGraph.enumerateVertices(); e.hasMoreElements();) {
       OPT_ValueGraphVertex v = (OPT_ValueGraphVertex)e.nextElement();
       int valueNumber = v.getValueNumber();
       OPT_GVCongruenceClass c = (OPT_GVCongruenceClass)B.get(valueNumber);
-      System.out.println(v.name + " " + valueNumber + " " + c.getLabel());
+      System.out.println(v.getName() + " " + valueNumber + " " + c.getLabel());
     }
   }
-
-  /**
-   * Governing IR
-   */
-  OPT_IR ir;
-  /**
-   * ArrayList of OPT_GVCongruenceClass, indexed by value number.
-   */
-  ArrayList B = new ArrayList();      // ArrayList of OPT_GVCongruenceClass,
-  /**
-   * The value graph.
-   */
-  OPT_ValueGraph valueGraph;
-  /**
-   * Stack used for a work list.
-   */
-  Stack workList = new Stack();
 
   /** 
    * Initialize the congruence classes, assuming that all nodes

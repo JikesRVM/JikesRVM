@@ -20,11 +20,11 @@ import org.vmmagic.pragma.*;
  * "collector" to propogate marks in a liveness trace.  It does not
  * actually collect.  This class does not hold any state, all methods
  * are static.
- *
+ * 
  * $Id$ 
- *
+ * 
  * @author Perry Cheng
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -32,19 +32,19 @@ public final class ImmortalSpace extends Space
   implements Constants, Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
   static final Word GC_MARK_BIT_MASK = Word.one();
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private Word markState = Word.zero(); // when GC off, the initialization value
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -64,10 +64,10 @@ public final class ImmortalSpace extends Space
     super(name, false, true, start, bytes);
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
-  
+
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -105,13 +105,13 @@ public final class ImmortalSpace extends Space
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   *
+   * 
    * @param name The name of this space (used when printing error messages etc)
    * @param pageBudget The number of pages this space may consume
    * before consulting the plan
@@ -127,7 +127,7 @@ public final class ImmortalSpace extends Space
   /**
    * Construct a space that consumes a given fraction of the available
    * virtual memory, at either the top or bottom of the available
-   * virtual memory.
+   *          virtual memory.
    *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>as a fraction of the total available</i>, and
@@ -152,7 +152,7 @@ public final class ImmortalSpace extends Space
   public final Word getMarkState() throws InlinePragma { return markState; }
 
   /****************************************************************************
-   *
+   * 
    * Object header manipulations
    */
 
@@ -187,8 +187,8 @@ public final class ImmortalSpace extends Space
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(ObjectReference object, Word value) 
-    throws InlinePragma {
+  private static boolean testAndMark(ObjectReference object, Word value)
+      throws InlinePragma {
     Word oldValue;
     do {
       oldValue = ObjectModel.prepareAvailableBits(object);
@@ -199,8 +199,6 @@ public final class ImmortalSpace extends Space
     return true;
   }
 
-
-
   /**
    * Trace a reference to an object under an immortal collection
    * policy.  If the object is not already marked, enqueue the object
@@ -210,10 +208,10 @@ public final class ImmortalSpace extends Space
    * @param trace The trace being conducted.
    * @param object The object to be traced.
    */
-  public final ObjectReference traceObject(TraceLocal trace, 
+  public final ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object) 
     throws InlinePragma {
-    if (testAndMark(object, markState)) 
+    if (testAndMark(object, markState))
       trace.enqueue(object);
     return object;
   }
@@ -227,8 +225,8 @@ public final class ImmortalSpace extends Space
    * collector we must flip the state of the mark bit between
    * collections.
    */
-  public void prepare() { 
-    markState = GC_MARK_BIT_MASK.sub(markState);
+  public void prepare() {
+    markState = GC_MARK_BIT_MASK.minus(markState);
   }
 
   public void release() {}
@@ -236,11 +234,11 @@ public final class ImmortalSpace extends Space
   /**
    * Release an allocated page or pages.  In this case we do nothing
    * because we only release pages enmasse.
-   *
+   * 
    * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
-    Assert._assert(false);  // this policy only releases pages enmasse
+    Assert._assert(false); // this policy only releases pages enmasse
   }
 
   public final boolean isLive(ObjectReference object) throws InlinePragma {
@@ -248,11 +246,11 @@ public final class ImmortalSpace extends Space
   }
 
   /**
-   * Returns if the object in question is currently thought to be reachable.  
-   * This is done by comparing the mark bit to the current mark state. For the 
+   * Returns if the object in question is currently thought to be reachable.
+   * This is done by comparing the mark bit to the current mark state. For the
    * immortal collector reachable and live are different, making this method
    * necessary.
-   *
+   * 
    * @param object The address of an object in immortal space to test
    * @return True if <code>ref</code> may be a reachable object (e.g., having
    *         the current mark state).  While all immortal objects are live,

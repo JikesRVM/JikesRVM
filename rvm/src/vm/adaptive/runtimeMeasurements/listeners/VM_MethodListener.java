@@ -110,7 +110,6 @@ final class VM_MethodListener extends VM_Listener
    * the insertion after Thread 2.)
    *
    * @param CMID compiled method ID to record
-   * @return the sample number that was inserted or -1, if we were unlucky
    */
   private void recordSample(int CMID) {  
     // reserve the next available slot

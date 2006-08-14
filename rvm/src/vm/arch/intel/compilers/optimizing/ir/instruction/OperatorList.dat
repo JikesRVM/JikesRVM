@@ -272,6 +272,13 @@ none
 
 
 
+# prefetch
+PREFETCH
+CacheOp
+none
+
+
+ 
 # float/double addition
 FP_ADD
 Binary
@@ -1078,6 +1085,13 @@ IA32_OR
 MIR_BinaryAcc
 none
 AF_CF_OF_PF_SF_ZF
+
+
+####################
+IA32_PREFETCH
+MIR_CacheOp
+none
+
 
 
 ####################

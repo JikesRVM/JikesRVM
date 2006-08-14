@@ -7,7 +7,8 @@
 package org.mmtk.vm;
 
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.PlanLocal;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.MutatorContext;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -27,6 +28,8 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedCollectorContext;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.SelectedMutatorContext;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -34,7 +37,7 @@ import org.vmmagic.pragma.*;
 /**
  * $Id$ 
  *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @author Perry Cheng
  *
  * @version $Revision$
@@ -204,6 +207,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
    return VM_CollectorThread.noThreadsInGC(); 
  }
 
+  private static final int OOM_EXN_HEADROOM_BYTES = 1<<19; // 512K should be plenty to make an exn
   /**
    * Check for memory exhaustion, possibly throwing an out of memory
    * exception and/or triggering another GC.
@@ -225,9 +229,12 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
         }
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
-        MM_Interface.emergencyGrowHeap(512 * (1 << 10));  // 512K should be plenty to make an exn
+        
+        int currentAvail = ActivePlan.global().getPagesAvail() << LOG_BYTES_IN_PAGE; // may be negative
+        int headroom = OOM_EXN_HEADROOM_BYTES - currentAvail;
+        MM_Interface.emergencyGrowHeap(headroom);  
         OutOfMemoryError oome = new OutOfMemoryError();
-        MM_Interface.emergencyGrowHeap(- (512 * (1 << 10)));
+        MM_Interface.emergencyGrowHeap(-headroom);
         if (VM.debugOOM || Options.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
         throw oome;
@@ -240,59 +247,45 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
   }
 
   /**
-   * Checks whether a plan instance is eligible to participate in a
-   * collection.
+   * Prepare a mutator for a collection.
    *
-   * @param plan the plan to check
-   * @return <code>true</code> if the plan is not participating,
-   * <code>false</code> otherwise
+   * @param m the mutator to prepare
    */
-  public static boolean isNonParticipating(PlanLocal plan) {
-    VM_Processor vp = (VM_Processor)plan;
-    int vpStatus = vp.vpStatus;
-    return vpStatus == VM_Processor.BLOCKED_IN_NATIVE;
-  }
-
-  /**
-   * Prepare a plan that is not participating in a collection.
-   *
-   * @param p the plan to prepare
-   */
-  public static void prepareNonParticipating(PlanLocal p) {
+  public static void prepareMutator(MutatorContext m) {
     /*
      * The collector threads of processors currently running threads
      * off in JNI-land cannot run.
      */
-    VM_Processor vp = (VM_Processor) p;
+    VM_Processor vp = ((SelectedMutatorContext) m).getProcessor();
     int vpStatus = vp.vpStatus;
-    if (VM.VerifyAssertions)
-      VM._assert(vpStatus == VM_Processor.BLOCKED_IN_NATIVE);
-
-    /* processor & its running thread are blocked in C for this GC.
+    if (vpStatus == VM_Processor.BLOCKED_IN_NATIVE) {
+      
+      /* processor & its running thread are blocked in C for this GC.
        Its stack needs to be scanned, starting from the "top" java
        frame, which has been saved in the running threads JNIEnv.  Put
        the saved frame pointer into the threads saved context regs,
        which is where the stack scan starts. */
-    VM_Thread t = vp.activeThread;
-    t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
+      VM_Thread t = vp.activeThread;
+      t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
+    }
   }
-
+  
   /**
-   * Set a collector thread's so that a scan of its stack
-   * will start at VM_CollectorThread.run
+   * Prepare a collector for a collection.
    *
-   * @param p the plan to prepare
+   * @param c the collector to prepare
    */
-  public static void prepareParticipating (PlanLocal p) {
-    VM_Processor vp = (VM_Processor) p;
-    if (VM.VerifyAssertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
+  public static void prepareCollector(CollectorContext c) {
+    VM_Processor vp = ((SelectedCollectorContext) c).getProcessor();
+    int vpStatus = vp.vpStatus;
+    if (VM.VerifyAssertions) VM._assert(vpStatus != VM_Processor.BLOCKED_IN_NATIVE);
     VM_Thread t = VM_Thread.getCurrentThread();
     Address fp = VM_Magic.getFramePointer();
     while (true) {
       Address caller_ip = VM_Magic.getReturnAddress(fp);
       Address caller_fp = VM_Magic.getCallerFramePointer(fp);
       if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
-        VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
+        VM.sysFail("prepareMutator (participating): Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
       VM_Method method = compiledMethod.getMethod();
@@ -304,7 +297,6 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
       }
       fp = caller_fp; 
     }
-
   }
 
   /**

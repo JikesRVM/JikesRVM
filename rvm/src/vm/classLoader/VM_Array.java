@@ -45,6 +45,11 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   private final VM_Type elementType;
   
   /**
+   * The log of the element size for this array type.
+   */
+  private final int logElementSize;
+  
+  /**
    * The VM_Type object for the innermost element of this array type.
    */
   private final VM_Type innermostElementType;
@@ -101,7 +106,15 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return log base 2 of array element size
    */
   public final int getLogElementSize() throws UninterruptiblePragma {
-    if (this == VM_Type.CodeArrayType) {
+    return logElementSize;
+  }
+
+  /**
+   * Calculate the size, in bytes, of an array element, log base 2.
+   * @return log base 2 of array element size
+   */
+  private final int computeLogElementSize() {
+    if (elementType.getTypeRef().equals(VM_TypeReference.Code)) {
       return LG_INSTRUCTION_WIDTH;
     }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
@@ -182,9 +195,10 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @param elementType the VM_Type object for the array's elements.
    */
   VM_Array(VM_TypeReference typeRef, VM_Type elementType) {
-    super(typeRef);
+    super(typeRef, null, null);
     depth = 1;
     this.elementType = elementType;
+    this.logElementSize = computeLogElementSize();
     if (elementType.isArrayType()) {
       innermostElementType = elementType.asArray().getInnermostElementType();
     } else {
@@ -673,8 +687,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       if (!MM_Interface.NEEDS_WRITE_BARRIER ||
           !MM_Interface.arrayCopyWriteBarrier(src, srcOffset, dst, dstOffset, 
                                               bytes)) {
-        VM_Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).add(dstOffset),
-                                  VM_Magic.objectAsAddress(src).add(srcOffset),
+        VM_Memory.alignedWordCopy(VM_Magic.objectAsAddress(dst).plus(dstOffset),
+                                  VM_Magic.objectAsAddress(src).plus(srcOffset),
                                   bytes);
       }
     } else {
@@ -683,8 +697,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
       if (loToHi)
         increment = BYTES_IN_ADDRESS;
       else {
-        srcOffset = srcOffset.add(bytes - BYTES_IN_ADDRESS);
-        dstOffset = dstOffset.add(bytes - BYTES_IN_ADDRESS);
+        srcOffset = srcOffset.plus(bytes - BYTES_IN_ADDRESS);
+        dstOffset = dstOffset.plus(bytes - BYTES_IN_ADDRESS);
         increment = -BYTES_IN_ADDRESS;
       } 
 
@@ -695,8 +709,8 @@ public final class VM_Array extends VM_Type implements VM_Constants,
           MM_Interface.arrayStoreWriteBarrier(dst, dstOffset.toInt()>>LOG_BYTES_IN_ADDRESS, value);
         else
           VM_Magic.setObjectAtOffset(dst, dstOffset, value);
-        srcOffset = srcOffset.add(increment);
-        dstOffset = dstOffset.add(increment);
+        srcOffset = srcOffset.plus(increment);
+        dstOffset = dstOffset.plus(increment);
       }
     }
   }

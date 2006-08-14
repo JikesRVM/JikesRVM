@@ -28,21 +28,21 @@ import org.vmmagic.pragma.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Perry Cheng
  * @author Robin Garner
  * @author Daniel Frampton
- *
+ * 
  * @version $Revision$
  * @date $Date$
  */
 public class SS extends StopTheWorld implements Uninterruptible {
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
@@ -50,18 +50,18 @@ public class SS extends StopTheWorld implements Uninterruptible {
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.32, false);
-  
+  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, (float) 0.32, false);
+
   /** One of the two semi spaces that alternate roles at each collection */
-  public static CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.32, true);
-  
+  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, (float) 0.32, true);
+
   public static final int SS0 = copySpace0.getDescriptor();
   public static final int SS1 = copySpace1.getDescriptor();
 
   public final Trace ssTrace;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -101,18 +101,18 @@ public class SS extends StopTheWorld implements Uninterruptible {
 
 
   /****************************************************************************
-   *
+   * 
    * Collection
    */
 
   /**
    * Perform a (global) collection phase.
-   *
+   * 
    * @param phaseId Collection phase
    */
   public void collectionPhase(int phaseId) throws InlinePragma {
     if (phaseId == SS.PREPARE) {
-      hi = !hi;        // flip the semi-spaces
+      hi = !hi; // flip the semi-spaces
       // prepare each of the collected regions
       copySpace0.prepare(hi);
       copySpace1.prepare(!hi);
@@ -147,7 +147,7 @@ public class SS extends StopTheWorld implements Uninterruptible {
    * of this method must code as though the method is interruptible.
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
-   *
+   * 
    * @see org.mmtk.policy.Space#acquire(int)
    * @param mustCollect if <code>true</code> then a collection is
    * required and must be triggered.  Otherwise a collection is only
@@ -157,17 +157,17 @@ public class SS extends StopTheWorld implements Uninterruptible {
    * @return True if a collection has been triggered
    */
   public boolean poll(boolean mustCollect, Space space)
-    throws LogicallyUninterruptiblePragma {
+      throws LogicallyUninterruptiblePragma {
     if (getCollectionsInitiated() > 0 || !isInitialized() || space == metaDataSpace)
       return false;
-    
+
     mustCollect |= stressTestGCRequired();
-  
+
     boolean heapFull = getPagesReserved() > getTotalPages();
     if (mustCollect || heapFull) {
       required = space.reservedPages() - space.committedPages();
       if (space == copySpace0 || space == copySpace1)
-        required = required<<1; // must account for copy reserve
+        required = required << 1; // must account for copy reserve
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -176,13 +176,13 @@ public class SS extends StopTheWorld implements Uninterruptible {
 
 
   /****************************************************************************
-  *
-  * Accounting
-  */
+   * 
+   * Accounting
+   */
 
   /**
    * Return the number of pages reserved for copying.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -196,7 +196,7 @@ public class SS extends StopTheWorld implements Uninterruptible {
    * Return the number of pages reserved for use given the pending
    * allocation.  This is <i>exclusive of</i> space reserved for
    * copying.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -207,7 +207,7 @@ public class SS extends StopTheWorld implements Uninterruptible {
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
-   *
+   * 
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */

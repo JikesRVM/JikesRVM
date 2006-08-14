@@ -6,9 +6,9 @@ package org.mmtk.utility.options;
 
 /**
  * Echo when options are set?
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$

@@ -17,26 +17,26 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
  * for shared use.  The data can be added to and removed from either end
  * of the deque.  
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);
 
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
 
   /**
    * Constructor
-   *
+   * 
    */
   public SharedDeque(RawPageSpace rps, int arity) {
     this.rps = rps;
@@ -74,7 +74,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
         setPrev(head, buf);
       setNext(buf, head);
       head = buf;
-    } 
+    }
     bufsenqueued++;
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(checkDequeLength(bufsenqueued));
     unlock();
@@ -107,17 +107,17 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     while (buf.isZero() && (completionFlag == 0)) {
       buf = dequeue(true, fromTail);
     }
-    return buf;  
+    return buf;
   }
 
   public final void reset() {
-    setNumClientsWaiting(0);
+    setNumConsumersWaiting(0);
     setCompletionFlag(0);
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(head.isZero() && tail.isZero());
   }
 
-  public final void newClient() {
-    setNumClients(numClients + 1);
+  public final void newConsumer() {
+    setNumConsumers(numConsumers + 1);
   }
 
   final Address alloc() throws InlinePragma {
@@ -136,18 +136,18 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   }
 
   public final int enqueuedPages() throws InlinePragma {
-    return bufsenqueued<<LOG_PAGES_PER_BUFFER;
+    return bufsenqueued << LOG_PAGES_PER_BUFFER;
   }
 
   /****************************************************************************
-   *
+   * 
    * Private instance methods and fields
    */
   private RawPageSpace rps;
   private int arity;
   private int completionFlag; //
-  private int numClients; //
-  private int numClientsWaiting; //
+  private int numConsumers; //
+  private int numConsumersWaiting; //
   protected Address head;
   protected Address tail;
   private int bufsenqueued;
@@ -161,14 +161,14 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
-        setNumClientsWaiting(numClientsWaiting + 1);
-        if (numClientsWaiting == numClients)
+        setNumConsumersWaiting(numConsumersWaiting + 1);
+        if (numConsumersWaiting == numConsumers)
           setCompletionFlag(1);
       }
     } else {
       if (fromTail) {
         // dequeue the tail buffer
-        setTail(getPrev(tail)); 
+        setTail(getPrev(tail));
         if (head.EQ(rtn)) {
           setHead(Address.zero());
           if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero());
@@ -176,10 +176,10 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
           setNext(tail, Address.zero());
         }
       } else {
-      // dequeue the head buffer
-      setHead(getNext(head));
-      if (tail.EQ(rtn)) {
-        setTail(Address.zero());
+        // dequeue the head buffer
+        setHead(getNext(head));
+        if (tail.EQ(rtn)) {
+          setTail(Address.zero());
         if (Assert.VERIFY_ASSERTIONS) Assert._assert(head.isZero());
         } else {
           setPrev(head, Address.zero());
@@ -187,7 +187,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       }
       bufsenqueued--;
       if (waiting)
-        setNumClientsWaiting(numClientsWaiting - 1);
+        setNumConsumersWaiting(numConsumersWaiting - 1);
     }
     unlock();
     return rtn;
@@ -195,7 +195,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Set the "next" pointer in a buffer forming the linked buffer chain.
-   *
+   * 
    * @param buf The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
@@ -205,7 +205,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   *
+   * 
    * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
@@ -215,7 +215,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Set the "prev" pointer in a buffer forming the linked buffer chain.
-   *
+   * 
    * @param buf The buffer whose next field is to be set.
    * @param prev The reference to which prev should point.
    */
@@ -225,7 +225,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
 
   /**
    * Get the "next" pointer in a buffer forming the linked buffer chain.
-   *
+   * 
    * @param buf The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
@@ -236,7 +236,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   /**
    * Check the number of buffers in the work queue (for debugging
    * purposes).
-   *
+   * 
    * @param length The number of buffers believed to be in the queue.
    * @return True if the length of the queue matches length.
    */
@@ -257,7 +257,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   private final void lock() {
     lock.acquire();
   }
-  
+
   /**
    * Release the lock.  We use one simple low-level lock to synchronize
    * access to the shared queue of buffers.
@@ -272,12 +272,12 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
     completionFlag = flag;
   }
 
-  private final void setNumClients(int newNumClients) throws InlinePragma {
-      numClients = newNumClients;
+  private final void setNumConsumers(int newNumConsumers) throws InlinePragma {
+    numConsumers = newNumConsumers;
   }
 
-  private final void setNumClientsWaiting(int newNCW) throws InlinePragma {
-    numClientsWaiting = newNCW;
+  private final void setNumConsumersWaiting(int newNCW) throws InlinePragma {
+    numConsumersWaiting = newNCW;
   }
 
   private final void setHead(Address newHead) throws InlinePragma {

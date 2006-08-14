@@ -11,15 +11,15 @@ package org.vmmagic.unboxed;
  */
 final public class OffsetArray {
 
-  public static OffsetArray create (int size) {
+  public static OffsetArray create(int size) {
     return null;
   }
 
-  public Offset get (int index) {
+  public Offset get(int index) {
     return null;
   }
 
-  public void set (int index, Offset v) {
+  public void set(int index, Offset v) {
   }
 
   public int length() {

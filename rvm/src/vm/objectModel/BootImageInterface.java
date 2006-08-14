@@ -61,15 +61,19 @@ public interface BootImageInterface {
    *
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
+   * @param objField true if this word is an object field (as opposed
+   * to a static, or tib, or some other metadata)
    */
-  public void setAddressWord(Address offset, Word value);
+  public void setAddressWord(Address offset, Word value, boolean objField);
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.
    *
    * @param offset offset of target from start of image, in bytes
+   * @param objField true if this word is an object field (as opposed
+   * to a static, or tib, or some other metadata)
    */
-  public void setNullAddressWord(Address offset);
+  public void setNullAddressWord(Address offset, boolean objField);
 
   /**
    * Fill in 8 bytes of bootimage.

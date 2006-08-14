@@ -89,8 +89,8 @@ extern "C" char *sys_siglist[];
 
 
 // #define PTRS_X_WITHOUT_PUNCTUATION
-// #define PTRS_VIA_PERCENT_P
-#define PTRS_X_WITH_PUNCTUATION
+#define PTRS_VIA_PERCENT_P
+//#define PTRS_X_WITH_PUNCTUATION
 #define  __STDC_FORMAT_MACROS
 /* A uintptr_t is an integral type guaranteed to be able to represent any 
    pointer to void (void *)
@@ -1045,6 +1045,7 @@ static void *bootThreadCaller(void *);
 // Declared in bootImageRunner.h
 const char *bootDataFilename     = 0;
 const char *bootCodeFilename     = 0;
+const char *bootRMapFilename     = 0;
 
 // The name of the program that will load and run the RVM.
 // Declared in bootImageRunner.h
@@ -1131,6 +1132,14 @@ createVM(int vmInSeparateThread)
     if (bootCodeRegion != bootImageCodeAddress)
         return 1;
     
+    size_t roundedRMapRegionSize;
+    void *bootRMapRegion = mapImageFile(bootRMapFilename,
+                                        bootImageRMapAddress,
+                                        true,
+                                        &roundedRMapRegionSize);
+    if (bootRMapRegion != bootImageRMapAddress)
+        return 1;
+    
 
     // fetch contents of boot record which is at beginning of data portion of boot image
     //
@@ -1172,6 +1181,12 @@ createVM(int vmInSeparateThread)
         return 1;
     }
 
+    if (bootRecord.bootImageRMapStart != (VM_Address)bootRMapRegion) {
+        fprintf(SysErrorFile, "%s: image load error: built for "  FMTrvmPTR " but loaded at "  FMTrvmPTR "\n",
+                Me, bootRecord.bootImageRMapStart, bootRMapRegion);
+        return 1;
+    }
+
     // remember jtoc location for later use by trap handler - but jtoc might change
     //
     VmToc = bootRecord.tocRegister;
@@ -1189,6 +1204,8 @@ createVM(int vmInSeparateThread)
     bootRecord.bootImageDataEnd     = (VM_Address) bootDataRegion + roundedDataRegionSize;
     bootRecord.bootImageCodeStart   = (VM_Address) bootCodeRegion;
     bootRecord.bootImageCodeEnd     = (VM_Address) bootCodeRegion + roundedCodeRegionSize;
+    bootRecord.bootImageRMapStart   = (VM_Address) bootRMapRegion;
+    bootRecord.bootImageRMapEnd     = (VM_Address) bootRMapRegion + roundedRMapRegionSize;
     bootRecord.verboseBoot      = verboseBoot;
     bootRecord.singleVirtualProcessor = rvm_singleVirtualProcessor;
   
@@ -1215,17 +1232,14 @@ createVM(int vmInSeparateThread)
         fprintf(SysTraceFile, "   bootImageDataEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageDataEnd));
         fprintf(SysTraceFile, "   bootImageCodeStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeStart));
         fprintf(SysTraceFile, "   bootImageCodeEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageCodeEnd));
-        assert(sizeof bootRecord.initialHeapSize == 4);
-        fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialHeapSize));
-        assert(sizeof bootRecord.maximumHeapSize == 4);
-        fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumHeapSize));
+        fprintf(SysTraceFile, "   bootImageRMapStart:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapStart));
+        fprintf(SysTraceFile, "   bootImageRMapEnd:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.bootImageRMapEnd));
+        fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialHeapSize));
+        fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.maximumHeapSize));
 #ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-        assert(sizeof bootRecord.initialStackSize == 4);
-        fprintf(SysTraceFile, "   initialStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialStackSize));
-        assert(sizeof bootRecord.stackGrowIncrement == 4);
-        fprintf(SysTraceFile, "   stackGrowIncrement:   " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.stackGrowIncrement));
-        assert(sizeof bootRecord.maximumStackSize == 4);
-        fprintf(SysTraceFile, "   maximumStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumStackSize));
+        fprintf(SysTraceFile, "   initialStackSize:     " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.initialStackSize));
+        fprintf(SysTraceFile, "   stackGrowIncrement:   " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.stackGrowIncrement));
+        fprintf(SysTraceFile, "   maximumStackSize:     " FMTrvmPTR "\n",   rvmPTR_ARG(bootRecord.maximumStackSize));
 #endif // RVM_WITH_FLEXIBLE_STACK_SIZES
         fprintf(SysTraceFile, "   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
         fprintf(SysTraceFile, "   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));

@@ -71,7 +71,7 @@ public class VM_Synchronization implements Uninterruptible {
     Address oldValue;
     do {
       oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
-    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, oldValue.add(increment)));
+    } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, oldValue.plus(increment)));
     return oldValue;
   }
 
@@ -80,7 +80,7 @@ public class VM_Synchronization implements Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
       oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
-      newValue = oldValue.add(increment);
+      newValue = oldValue.plus(increment);
       if (newValue.GT(bound)) return Address.max();
     } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, newValue));
     return oldValue;
@@ -91,7 +91,7 @@ public class VM_Synchronization implements Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {
       oldValue = VM_Magic.prepareAddress(VM_Magic.addressAsObject(addr), Offset.zero());
-      newValue = oldValue.sub(decrement);
+      newValue = oldValue.minus(decrement);
       if (newValue.LT(bound)) return Address.max();
     } while (!VM_Magic.attemptAddress(VM_Magic.addressAsObject(addr), Offset.zero(), oldValue, newValue));
     return oldValue;
@@ -103,7 +103,7 @@ public class VM_Synchronization implements Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(increment > 0);
     do {
       oldValue = VM_Magic.prepareAddress(base, offset);
-      newValue = oldValue.add(increment);
+      newValue = oldValue.plus(increment);
       if (newValue.GT(bound)) return Address.max();
     } while (!VM_Magic.attemptAddress(base, offset, oldValue, newValue));
     return oldValue;
@@ -115,7 +115,7 @@ public class VM_Synchronization implements Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(decrement > 0);
     do {
       oldValue = VM_Magic.prepareAddress(base, offset);
-      newValue = oldValue.sub(decrement);
+      newValue = oldValue.minus(decrement);
       if (newValue.LT(bound)) return Address.max();
     } while (!VM_Magic.attemptAddress(base, offset, oldValue, newValue));
     return oldValue;

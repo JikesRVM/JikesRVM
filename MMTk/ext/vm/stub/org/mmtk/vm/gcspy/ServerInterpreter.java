@@ -9,12 +9,12 @@ import org.vmmagic.pragma.*;
 
 /**
  * VM-neutral stub file for generic GCspy server interpreter
- *
+ * 
  * This class implements the GCspy server. 
  * Mostly it forwards calls to the C gcspy library.
- *
+ * 
  * $Id$
- *
+ * 
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
  * @version $Revision$
  * @date $Date$

@@ -167,7 +167,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     Address fp = VM_Magic.getFramePointer();
     fp = fp.loadAddress();
     fp = fp.loadAddress();
-    return (fp.add(2*4 + (skip4Args ? 4*4 : 3*4)));
+    return (fp.plus(2*4 + (skip4Args ? 4*4 : 3*4)));
   }
 
   /**
@@ -292,24 +292,24 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
       int loword = addr.loadInt();
-      addr = addr.add(4);
+      addr = addr.plus(4);
 
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isFloatType()) {
         // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
         // so we have to extract it as a double and convert it back to a float
         int hiword = addr.loadInt();
-        addr = addr.add(4);                       
+        addr = addr.plus(4);                       
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
       } else if (argTypes[i].isDoubleType()) {
         int hiword = addr.loadInt();
-        addr = addr.add(4);
+        addr = addr.plus(4);
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
       } else if (argTypes[i].isLongType()) { 
         int hiword = addr.loadInt();
-        addr = addr.add(4);
+        addr = addr.plus(4);
         long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapLong(longValue);
       } else if (argTypes[i].isBooleanType()) {
@@ -355,18 +355,18 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
 
     Address addr = argAddress;
-    for (int i=0; i<argCount; i++, addr = addr.add(8)) {
+    for (int i=0; i<argCount; i++, addr = addr.plus(8)) {
       int loword = addr.loadInt();
       int hiword;
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isFloatType()) {
         argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
       } else if (argTypes[i].isDoubleType()) {
-        hiword = addr.add(4).loadInt();
+        hiword = addr.plus(4).loadInt();
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
       } else if (argTypes[i].isLongType()) { 
-        hiword = addr.add(4).loadInt();
+        hiword = addr.plus(4).loadInt();
         long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapLong(longValue);
       } else if (argTypes[i].isBooleanType()) {

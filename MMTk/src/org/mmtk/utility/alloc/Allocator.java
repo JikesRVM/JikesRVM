@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
  * Failing to handle this properly will lead to very hard to trace bugs
  * where the allocation that caused a GC or allocations immediately following
  * GC are run incorrectly.
- *
+ * 
  * @author Perry Cheng
  * @modified Daniel Frampton
  * @version $Revision$
@@ -44,15 +44,15 @@ public abstract class Allocator implements Constants, Uninterruptible {
 
   /**
    * Maximum number of retries on consecutive allocation failure.
-   *
+   * 
    */
   private static final int MAX_RETRY = 5;
 
   /**
    * Constructor
-   *
+   * 
    */
-  Allocator () {
+  Allocator() {
   }
 
   /**
@@ -70,28 +70,69 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param knownAlignment The statically known minimum alignment.
    * @return The aligned up address.
    */
-  final public static Address alignAllocation(Address region, int alignment, 
-                                             int offset, int knownAlignment)
-    throws InlinePragma {
+  final public static Address alignAllocation(Address region, int alignment,
+                                             int offset, int knownAlignment, 
+                                             boolean fillAlignmentGap)
+      throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(knownAlignment >= MIN_ALIGNMENT);
       Assert._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
+      Assert._assert(!(fillAlignmentGap && region.isZero()));
       Assert._assert(alignment <= MAX_ALIGNMENT);
       Assert._assert(offset >= 0);
       Assert._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
-      Assert._assert((alignment & (MIN_ALIGNMENT-1)) == 0);
-      Assert._assert((offset & (MIN_ALIGNMENT-1)) == 0);
+      Assert._assert((alignment & (MIN_ALIGNMENT - 1)) == 0);
+      Assert._assert((offset & (MIN_ALIGNMENT - 1)) == 0);
     }
 
     // No alignment ever required.
     if (alignment <= knownAlignment || MAX_ALIGNMENT <= MIN_ALIGNMENT)
-      return region; 
+      return region;
 
     // May require an alignment
-    Word mask  = Word.fromIntSignExtend(alignment-1);
-    Word negOff= Word.fromIntSignExtend(-offset);
-    Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-    return region.add(delta);
+    Word mask = Word.fromIntSignExtend(alignment - 1);
+    Word negOff = Word.fromIntSignExtend(-offset);
+    Offset delta = negOff.minus(region.toWord()).and(mask).toOffset();
+
+    if (fillAlignmentGap && ALIGNMENT_VALUE != 0) {
+      if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_WORD) {
+        // At most a single hole
+        if (delta.toInt() == (BYTES_IN_WORD)) {
+          region.store(Word.fromInt(ALIGNMENT_VALUE));
+          region = region.plus(delta);
+        return region;
+        }
+      } else {
+        while (delta.toInt() >= (BYTES_IN_WORD)) {
+          region.store(Word.fromInt(ALIGNMENT_VALUE));
+          region = region.plus(BYTES_IN_WORD);
+          delta = delta.minus(BYTES_IN_WORD);
+        }
+      }
+    }
+
+    return region.plus(delta);
+  }
+
+  /**
+   * Fill the specified region with the alignment value.
+   * 
+   * @param start The start of the region.
+   * @param end A pointer past the end of the region.
+   */
+  final public static void fillAlignmentGap(Address start, Address end)
+      throws InlinePragma {
+    if ((MAX_ALIGNMENT - MIN_ALIGNMENT) == BYTES_IN_INT) {
+      // At most a single hole
+      if (!end.diff(start).isZero()) {
+        start.store(ALIGNMENT_VALUE);
+      }
+    } else {
+      while (start.LT(end)) {
+        start.store(ALIGNMENT_VALUE);
+        start = start.plus(BYTES_IN_INT);
+      }
+    }
   }
 
   /**
@@ -104,29 +145,46 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param alignment The requested alignment
    * @param offset The offset from the alignment 
    * @return The aligned up address.
-   */ 
-  final public static Address alignAllocation(Address region, int alignment, 
+   */
+  final public static Address alignAllocation(Address region, int alignment,
                                              int offset) 
     throws InlinePragma {
-    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT);
+    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, true);
+  }
+
+  /**
+   * Aligns up an allocation request. The allocation request accepts a
+   * region, that must be at least particle aligned, an alignment
+   * request (some power of two number of particles) and an offset (a
+   * number of particles).
+   *
+   * @param region The region to align up.
+   * @param alignment The requested alignment
+   * @param offset The offset from the alignment 
+   * @return The aligned up address.
+   */
+  final public static Address alignAllocationNoFill(Address region, int alignment, 
+                                             int offset) 
+    throws InlinePragma {
+    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT, false);
   }
 
   /**
    * This method calculates the minimum size that will guarantee the allocation
-   * of a specified number of bytes at the specified alignment. 
-   *
+   * of a specified number of bytes at the specified alignment.
+   * 
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    */
-  final public static int getMaximumAlignedSize(int size, int alignment) 
-    throws InlinePragma {
+  final public static int getMaximumAlignedSize(int size, int alignment)
+      throws InlinePragma {
     return getMaximumAlignedSize(size, alignment, MIN_ALIGNMENT);
   }
-  
+
   /**
    * This method calculates the minimum size that will guarantee the allocation
-   * of a specified number of bytes at the specified alignment. 
-   *
+   * of a specified number of bytes at the specified alignment.
+   * 
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
    * @param knownAlignment The known minimum alignment. Specifically for use in
@@ -143,40 +201,56 @@ public abstract class Allocator implements Constants, Uninterruptible {
     }
   }
 
-  abstract protected Address allocSlowOnce (int bytes, int alignment,
-                                               int offset, boolean inGC);
+  /**
+   * Single slow path allocation attempt. This is called by allocSlow.
+   * 
+   * @param bytes The size of the allocation request
+   * @param alignment The required alignment
+   * @param offset The alignment offset
+   * @param inGC Is this request occuring during GC
+   * @return The start address of the region, or zero if allocation fails
+   */
+  abstract protected Address allocSlowOnce(int bytes, int alignment,
+      int offset, boolean inGC);
 
-  public Address allocSlow(int bytes, int alignment, int offset) 
-    throws NoInlinePragma { 
-    return allocSlowBody(bytes, alignment, offset, false);
-  }
-
-  public Address allocSlow(int bytes, int alignment, int offset,
-                              boolean inGC) 
-    throws NoInlinePragma { 
-    return allocSlowBody( bytes, alignment, offset, inGC);
-  }
-
-  private Address allocSlowBody(int bytes, int alignment, int offset,
-                                   boolean inGC) 
-    throws InlinePragma { 
-
+  /**
+   * Slow path allocation. This method attempts allocSlowOnce several times,
+   * and allows collection to occur, and ensures that execution safely 
+   * resumes by taking care of potential thread/mutator context affinity 
+   * changes. All allocators should use this as the trampoline for slow 
+   * path allocation.
+   * 
+   * @param bytes The size of the allocation request
+   * @param alignment The required alignment
+   * @param offset The alignment offset
+   * @param inGC Is this request occuring during GC
+   * @return The start address of the region, or zero if allocation fails
+   */
+  final public Address allocSlow(int bytes, int alignment, int offset,
+                                 boolean inGC) throws NoInlinePragma {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
-    for (int i=0; i<MAX_RETRY; i++) {
+    for (int i = 0; i < MAX_RETRY; i++) {
       Address result = 
         current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
-      current = ActivePlan.local().getOwnAllocator(current);
+      if (!inGC) {
+        /* This is in case a GC occurs, and our mutator context is stale.
+         * In some VMs the scheduler can change the affinity between the
+         * current thread and the mutator context. This is possible for
+         * VMs that dynamically multiplex Java threads onto multiple mutator 
+         * contexts, */
+      current = ActivePlan.mutator().getOwnAllocator(current);
     }
-    Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");
+    }
+    Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlow failed on request of ");
     Log.write(bytes);
     Log.write(" on space "); Log.writeln(Plan.getSpaceNameFromAllocatorAnyLocal(this));
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
     Log.write("gcCount (now) = "); Log.writeln(Stats.gcCount());
     Space.printUsageMB();
-    Assert.dumpStack(); 
+    Assert.dumpStack();
     Assert.failWithOutOfMemoryError();
     /* NOTREACHED */
     return Address.zero();

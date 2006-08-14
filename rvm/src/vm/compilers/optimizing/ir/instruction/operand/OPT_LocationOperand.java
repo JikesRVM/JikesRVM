@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.opt.ir;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
+import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
+
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -151,6 +153,16 @@ public final class OPT_LocationOperand extends OPT_Operand
    */
   public OPT_LocationOperand() {
     type = ALENGTH_ACCESS;
+  }
+
+  /**
+   * Return the {@link VM_TypeReference} of the value represented by the operand.
+   * 
+   * @return this method shouldn't be called and will throw an {@link
+   * OPT_OptimizingCompilerException}
+   */
+  public final VM_TypeReference getType() {
+    throw new OPT_OptimizingCompilerException("Getting the type for this operand has no defined meaning");
   }
 
   public final OPT_LocationOperand asFieldAccess()   { return this; }

@@ -339,6 +339,15 @@ public final class OPT_GenerationContext
         child.prologue.appendInstruction(Move.create(GUARD_MOVE, 
                                                      guard.copyRO(), 
                                                      new OPT_TrueGuardOperand()));
+      } else if (receiver.isClassConstant()) {
+        local = child.makeLocal(localNum++, VM_TypeReference.JavaLangClass);
+        local.setPreciseType();
+        // Class constants trivially non-null
+        OPT_RegisterOperand guard = child.makeNullCheckGuard(local.register);
+        OPT_BC2IR.setGuard(local, guard);
+        child.prologue.appendInstruction(Move.create(GUARD_MOVE, 
+                                                     guard.copyRO(), 
+                                                     new OPT_TrueGuardOperand()));
       } else {
         OPT_OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
       }

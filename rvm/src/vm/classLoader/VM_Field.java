@@ -16,6 +16,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  * @author Bowen Alpern
  * @author Dave Grove
  * @author Derek Lieber
+ * @modified Ian Rogers
  */
 public final class VM_Field extends VM_Member {
 
@@ -23,34 +24,85 @@ public final class VM_Field extends VM_Member {
    * constant pool index of field's value (0 --> not a "static final constant")
    */
   private final int constantValueIndex; 
+  
+  /**
+   * Create a field.
+   *
+   * @param declaringClass the VM_TypeReference object of the class
+   * that declared this field
+   * @param memRef the canonical memberReference for this member.
+   * @param modifiers modifiers associated with this field.
+   * @param signature generic type of this field.
+   * @param constantValueIndex constant pool index of constant value
+   * @param runtimeVisibleAnnotations array of runtime visible
+   * annotations
+   * @param runtimeInvisibleAnnotations optional array of runtime
+   * invisible annotations
+   */
+  private VM_Field(VM_TypeReference declaringClass,
+                   VM_MemberReference memRef,
+                   int modifiers,
+                   VM_Atom signature,
+                   int constantValueIndex,
+                   VM_Annotation runtimeVisibleAnnotations[],
+                   VM_Annotation runtimeInvisibleAnnotations[])
+  {
+    super(declaringClass, memRef, modifiers, signature,
+          runtimeVisibleAnnotations, runtimeInvisibleAnnotations);
+    this.constantValueIndex = constantValueIndex;
+    memRef.asFieldReference().setResolvedMember(this);
+  }
 
   /**
-   * NOTE: Only {@link VM_Class} is allowed to create an instance of a VM_Field.
+   * Read and create a field. NB only {@link VM_Class} is allowed to
+   * create an instance of a VM_Field.
    * 
-   * @param declaringClass the VM_Class object of the class that declared this field
+   * @param declaringClass the VM_TypeReference object of the class
+   * that declared this field
+   * @param constantPool the constant pool of the class loading this field
    * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the field's attributed from
    */
-  VM_Field(VM_Class declaringClass, VM_MemberReference memRef,
-           int modifiers, DataInputStream input) throws IOException {
-    super(declaringClass, memRef, modifiers & APPLICABLE_TO_FIELDS);
-    memRef.asFieldReference().setResolvedMember(this);
-    
+  static VM_Field readField(VM_TypeReference declaringClass,
+                            int constantPool[], VM_MemberReference memRef,
+                            int modifiers, DataInputStream input) throws IOException {
     // Read the attributes, processing the "non-boring" ones
-    int cvi = 0; // kludge to allow us to make constantValueIndex final.
+    int cvi = 0;
+    VM_Atom tmp_signature = null;
+    VM_Annotation tmp_runtimeVisibleAnnotations[] = null;
+    VM_Annotation tmp_runtimeInvisibleAnnotations[] = null;
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
-      VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
+      VM_Atom attName   = VM_Class.getUtf(constantPool, input.readUnsignedShort());
       int     attLength = input.readInt();
       if (attName == VM_ClassLoader.constantValueAttributeName) {
         cvi = input.readUnsignedShort();
+      } else if (attName == VM_ClassLoader.syntheticAttributeName) {
+        modifiers |= ACC_SYNTHETIC;
+      } else if (attName == VM_ClassLoader.signatureAttributeName) {
+        tmp_signature = VM_Class.getUtf(constantPool, input.readUnsignedShort());
+      } else if (attName == VM_ClassLoader.runtimeVisibleAnnotationsAttributeName) {
+        tmp_runtimeVisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
+                                                                            declaringClass.getClassLoader());
+      } else if (VM_AnnotatedElement.retainRuntimeInvisibleAnnotations &&
+                 (attName == VM_ClassLoader.runtimeInvisibleAnnotationsAttributeName)) {
+        tmp_runtimeInvisibleAnnotations = VM_AnnotatedElement.readAnnotations(constantPool, input, 2,
+                                                                              declaringClass.getClassLoader());
       } else {
         // all other attributes are boring...
         input.skipBytes(attLength);
       }
     }
-    
-    constantValueIndex = cvi;
+    return new VM_Field(declaringClass, memRef, modifiers & APPLICABLE_TO_FIELDS, tmp_signature, cvi,
+                        tmp_runtimeVisibleAnnotations, tmp_runtimeInvisibleAnnotations);
+  }
+
+  /**
+   * Create a field for a synthetic annotation class
+   */
+  static VM_Field createAnnotationField(VM_TypeReference annotationClass,
+                                        VM_MemberReference memRef) {
+    return new VM_Field(annotationClass, memRef, ACC_PRIVATE|ACC_SYNTHETIC, null, 0, null, null);
   }
 
   /**
@@ -103,6 +155,13 @@ public final class VM_Field extends VM_Member {
   }
 
   /**
+   * Not present in source code file?
+   */
+  public boolean isSynthetic() {
+    return (modifiers & ACC_SYNTHETIC) != 0;
+  }
+
+  /**
    * Get index of constant pool entry containing this 
    * "static final constant" field's value.
    * @return constant pool index (0 --> field is not a "static final constant")
@@ -135,7 +194,7 @@ public final class VM_Field extends VM_Member {
       if (type.isIntType())      return new Integer(getIntValueUnchecked(obj));
       if (type.isShortType())    return new Short(getShortValueUnchecked(obj));
       if (type.isByteType())     return new Byte(getByteValueUnchecked(obj));
-      if (type.isBooleanType())  return new Boolean(getBooleanValueUnchecked(obj));
+      if (type.isBooleanType())  return Boolean.valueOf(getBooleanValueUnchecked(obj));
       return null;
     }
   }
@@ -208,7 +267,6 @@ public final class VM_Field extends VM_Member {
    * assign one object ref from heap using RVM object model, GC safe.
    * @param obj the object whose field is to be modified, or null if the field is static.
    * @param ref the object reference to be assigned.
-   * @return void
    */
   public final void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {

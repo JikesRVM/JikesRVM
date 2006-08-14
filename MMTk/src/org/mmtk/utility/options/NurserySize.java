@@ -9,9 +9,9 @@ import org.vmmagic.pragma.UninterruptiblePragma;
 /**
  * A composite option that provides a min/max interface to MMTk,
  * and a fixed/bounded option interface to the VM/user.
- *
+ * 
  * $Id$
- *
+ * 
  * @author Daniel Frampton
  * @version $Revision$
  * @date $Date$
@@ -31,7 +31,7 @@ public class NurserySize {
 
   /**
    * Read the upper bound of the nursery size.
-   *
+   * 
    * @return maximum number of pages in the nursery.
    */
   public int getMaxNursery() throws UninterruptiblePragma {
@@ -40,7 +40,7 @@ public class NurserySize {
 
   /**
    * Read the lower bound of the nursery size.
-   *
+   * 
    * @return minimum number of pages in the nursery.
    */
   public int getMinNursery() throws UninterruptiblePragma {

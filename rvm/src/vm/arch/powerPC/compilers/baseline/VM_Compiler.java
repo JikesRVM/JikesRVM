@@ -613,11 +613,11 @@ public class VM_Compiler extends VM_BaselineCompiler
 
   /**
    * Emit code to load a 32 bit constant
-   * (which may be a String and thus really 64 bits on 64 bit platform!)
+   * (which may be a reference and thus really 64 bits on 64 bit platform!)
    * @param offset JTOC offset of the constant 
    */
   protected final void emit_ldc(Offset offset) {
-    if (VM_Statics.getSlotDescription(VM_Statics.offsetAsSlot(offset)) == VM_Statics.STRING_LITERAL){
+    if (VM_Statics.isReference(VM_Statics.offsetAsSlot(offset))){
       asm.emitLAddrToc(T0, offset);
       pushAddr(T0);
     } else {
@@ -1554,7 +1554,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       popInt(T0);               // TO is X  (an int)
       asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
       asm.emitSTFDoffset(F0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset());
-      asm.emitSTWoffset (T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().add(4));
+      asm.emitSTWoffset (T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().plus(4));
       asm.emitCMPI  (T0,  0);                // is X < 0
       VM_ForwardReference fr = asm.emitForwardBC(GE);
       asm.emitLIntOffset (T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset());
@@ -1632,7 +1632,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       pushLowDoubleAsInt(F0);
     } else {
       asm.emitSTFDoffset(F0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset());
-      asm.emitLIntOffset(T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().add(4));
+      asm.emitLIntOffset(T0, PROCESSOR_REGISTER, VM_Entrypoints.scratchStorageField.getOffset().plus(4));
       pushInt       (T0);
     }
     VM_ForwardReference fr2 = asm.emitForwardB();
@@ -2552,24 +2552,31 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (VM.BuildForIMTInterfaceInvocation || 
         (VM.BuildForITableInterfaceInvocation && 
          VM.DirectlyIndexedITables)) {
-      if (resolvedMethod == null) {
-        // Can't successfully resolve it at compile time.
-        // Call uncommon case typechecking routine to do the right thing when this code actually executes.
-        asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
-        asm.emitMTCTR(T0);
-        asm.emitLVAL(T0, methodRef.getId());            // id of method reference we are trying to call
-        peekAddr(T1, count-1);           // the "this" object
-        VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
-        asm.emitBCCTRL();                 // throw exception, if link error
+      if (methodRef.isMiranda()) {
+        // TODO: It's not entirely clear that we can just assume that
+        //       the class actually implements the interface.
+        //       However, we don't know what interface we need to be checking
+        //       so there doesn't appear to be much else we can do here.
       } else {
-        // normal case.  Not a ghost ref.
-        asm.emitLAddrToc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
-        asm.emitMTCTR(T0);
-        asm.emitLAddrToc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
-        asm.emitLAddr(T0, TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0);                   // type of the interface method
-        peekAddr(T1, count-1);                        // the "this" object
-        VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
-        asm.emitBCCTRL();                              // throw exception, if link error
+        if (resolvedMethod == null) {
+          // Can't successfully resolve it at compile time.
+          // Call uncommon case typechecking routine to do the right thing when this code actually executes.
+          asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
+          asm.emitMTCTR(T0);
+          asm.emitLVAL(T0, methodRef.getId());            // id of method reference we are trying to call
+          peekAddr(T1, count-1);           // the "this" object
+          VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
+          asm.emitBCCTRL();                 // throw exception, if link error
+        } else {
+          // normal case.  Not a ghost ref.
+          asm.emitLAddrToc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
+          asm.emitMTCTR(T0);
+          asm.emitLAddrToc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
+          asm.emitLAddr(T0, TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0);                   // type of the interface method
+          peekAddr(T1, count-1);                        // the "this" object
+          VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
+          asm.emitBCCTRL();                              // throw exception, if link error
+        }
       }
     }
     // (2) Emit interface invocation sequence.
@@ -4079,6 +4086,18 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);
+    } else if (methodName == VM_MagicNames.dcbt) {
+      popAddr(T0);    // address
+      asm.emitDCBT(0, T0);
+    } else if (methodName == VM_MagicNames.dcbtst) {
+      popAddr(T0);    // address
+      asm.emitDCBTST(0, T0);
+    } else if (methodName == VM_MagicNames.dcbz) {
+      popAddr(T0);    // address
+      asm.emitDCBZ(0, T0);
+    } else if (methodName == VM_MagicNames.dcbzl) {
+      popAddr(T0);    // address
+      asm.emitDCBZL(0, T0);
     } else if (methodName == VM_MagicNames.icbi) {
       popAddr(T0);    // address
       asm.emitICBI(0, T0);
@@ -4107,7 +4126,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       } // else no-op
     } else if (methodName == VM_MagicNames.wordFromLong) {
       discardSlot();
-    } else if (methodName == VM_MagicNames.wordAdd) {
+    } else if (methodName == VM_MagicNames.wordPlus) {
       if (VM.BuildFor64Addr && (methodToBeCalled.getParameterTypes()[0] == VM_TypeReference.Int)){
         popInt(T0);
       } else {
@@ -4116,7 +4135,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       popAddr(T1);
       asm.emitADD (T2, T1, T0);
       pushAddr(T2);
-    } else if (methodName == VM_MagicNames.wordSub ||
+    } else if (methodName == VM_MagicNames.wordMinus ||
                methodName == VM_MagicNames.wordDiff) {
       if (VM.BuildFor64Addr && (methodToBeCalled.getParameterTypes()[0] == VM_TypeReference.Int)){
         popInt(T0);

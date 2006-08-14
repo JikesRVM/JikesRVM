@@ -12,24 +12,24 @@ import org.vmmagic.pragma.*;
 
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 public class AddressDeque extends LocalDeque 
   implements Constants, Uninterruptible {
    public final static String Id = "$Id$"; 
- 
+
   /****************************************************************************
-   *
+   * 
    * Public instance methods
    */
   public final String name;
 
   /**
    * Constructor
-   *
+   * 
    * @param queue The shared queue to which this queue will append
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
@@ -41,7 +41,7 @@ public class AddressDeque extends LocalDeque
 
   /**
    * Insert an address into the address queue.
-   *
+   * 
    * @param addr the address to be inserted into the address queue
    */
   public final void insert(Address addr) throws InlinePragma {
@@ -51,8 +51,19 @@ public class AddressDeque extends LocalDeque
   }
 
   /**
+   * Insert an address into the address queue, force this out of line
+   * ("OOL"), in some circumstnaces it is too expensive to have the
+   * insert inlined, so this call is made.
+   * 
+   * @param addr the address to be inserted into the address queue
+   */
+  public final void insertOOL(Address addr) throws NoInlinePragma {
+    insert(addr);
+  }
+
+  /**
    * Push an address onto the address queue.
-   *
+   * 
    * @param addr the address to be pushed onto the address queue
    */
   public final void push(Address addr) throws InlinePragma {
@@ -65,7 +76,7 @@ public class AddressDeque extends LocalDeque
    * Push an address onto the address queue, force this out of line
    * ("OOL"), in some circumstnaces it is too expensive to have the
    * push inlined, so this call is made.
-   *
+   * 
    * @param addr the address to be pushed onto the address queue
    */
   public final void pushOOL(Address addr) throws NoInlinePragma {
@@ -75,7 +86,7 @@ public class AddressDeque extends LocalDeque
   /**
    * Pop an address from the address queue, return zero if the queue
    * is empty.
-   *
+   * 
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */

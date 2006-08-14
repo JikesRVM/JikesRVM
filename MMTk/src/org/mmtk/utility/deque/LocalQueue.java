@@ -30,17 +30,17 @@ import org.vmmagic.unboxed.*;
  * Invariants: Buffers are filled such that tuples (of the specified
  * arity) are packed to the low end of the buffer.  Thus buffer
  * underflows will always arise when then cursor is buffer-size aligned.
- *
+ * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
- */ 
+ */
 class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /**
    * Constructor
-   *
+   * 
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
@@ -49,10 +49,10 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
   }
 
  /****************************************************************************
-   *
+   * 
    * Protected instance methods and fields
    */
-  protected Address head;   // the start of the buffer
+  protected Address head; // the start of the buffer
 
   /**
    * Reset the local buffer (throwing away any local entries).
@@ -83,13 +83,13 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * Dequeue a value from the buffer.  This is <i>unchecked</i>.  The
    * caller must first call <code>checkDequeue()</code> to ensure the
    * buffer has and entry to be removed.
-   *
+   * 
    * @return The first entry on the queue.
    */
   protected final Address uncheckedDequeue() 
     throws InlinePragma{
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
-    head = head.sub(BYTES_IN_ADDRESS);
+    head = head.minus(BYTES_IN_ADDRESS);
     return head.loadAddress();
   }
 
@@ -99,7 +99,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * Otherwise try wait on the global queue until either all other
    * clients of the queue reach exhaustion or a buffer becomes
    * available.
-   *
+   * 
    * @param arity The arity of this buffer  
    * @return True if the consumer has eaten all the entries
    */
@@ -108,7 +108,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
 
     // If the tail has entries...
     if (tail.NE(tailBufferEnd)) {
-      head = normalizeTail(arity).add(BYTES_IN_ADDRESS);
+      head = normalizeTail(arity).plus(BYTES_IN_ADDRESS);
       tail = Deque.TAIL_INITIAL_VALUE;
       tailBufferEnd = Deque.TAIL_INITIAL_VALUE;
       // Return that we acquired more entries
@@ -121,7 +121,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Private instance methods
    */
 

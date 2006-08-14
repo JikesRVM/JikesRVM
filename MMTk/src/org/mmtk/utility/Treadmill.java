@@ -20,11 +20,11 @@ import org.vmmagic.pragma.*;
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
  * the treadmill.  The remaining portion is the payload.
- *  
+ * 
  * The treadmill object itself must not be moved.
- *
+ * 
  * Access to the instances may be synchronized depending on the constructor argument.
- *
+ * 
  * @author Perry Cheng
  * @version $Revision$
  * @date $Date$
@@ -34,31 +34,31 @@ public final class Treadmill
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private DoublyLinkedList fromSpace;
   private DoublyLinkedList toSpace;
 
   /****************************************************************************
-   *
+   * 
    * Instance Methods
    */
 
   /**
    * Constructor
    */
-  public Treadmill (int granularity, boolean shared) {
-    fromSpace = new DoublyLinkedList (granularity, shared, this); 
-    toSpace = new DoublyLinkedList (granularity, shared, this); 
+  public Treadmill(int granularity, boolean shared) {
+    fromSpace = new DoublyLinkedList(granularity, shared, this);
+    toSpace = new DoublyLinkedList(granularity, shared, this);
   }
 
-  static public final Treadmill getTreadmill (Address node) {
+  static public final Treadmill getTreadmill(Address node) {
     return (Treadmill) DoublyLinkedList.getOwner(node);
   }
 
@@ -78,24 +78,24 @@ public final class Treadmill
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 
-  public final void addToFromSpace (Address node) throws InlinePragma {
+  public final void addToFromSpace(Address node) throws InlinePragma {
     fromSpace.add(node);
   }
 
-  public final Address popFromSpace () throws InlinePragma {
+  public final Address popFromSpace() throws InlinePragma {
     return fromSpace.pop();
   }
 
-  public final void copy (Address node) throws InlinePragma { 
+  public final void copy(Address node) throws InlinePragma {
     fromSpace.remove(node);
     toSpace.add(node);
   }
 
-  public final boolean toSpaceEmpty () throws InlinePragma {
+  public final boolean toSpaceEmpty() throws InlinePragma {
     return toSpace.isEmpty();
   }
 
-  public final void flip() {  
+  public final void flip() {
     DoublyLinkedList tmp = fromSpace;
     fromSpace = toSpace;
     toSpace = tmp;
@@ -108,7 +108,7 @@ public final class Treadmill
    * @param tospace gather from tospace?
    */
   public void gcspyGatherData(int event, TreadmillDriver tmDriver, boolean tospace) {
-    if (tospace) 
+    if (tospace)
       toSpace.gcspyGatherData(tmDriver);
     else
       fromSpace.gcspyGatherData(tmDriver);

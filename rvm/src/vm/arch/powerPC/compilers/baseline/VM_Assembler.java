@@ -1471,7 +1471,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
 //-#if RVM_FOR_64_ADDR
     if (!fits(val,48)){
       val = val.toWord().lsh(32).rsha(32).toOffset();
-      Offset valHigh = addr.sub(val).toWord().rsha(32).toOffset();
+      Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
       _emitADDIS(RT, maskUpper16(valHigh));
       _emitADDI(RT, maskLower16(valHigh), RT);
       emitSLDI(RT,RT,32);
@@ -1479,7 +1479,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
       _emitADDI(RT, maskLower16(val), RT);
     } else if (!fits(val,32)){
       val = val.toWord().lsh(32).rsha(32).toOffset();
-      Offset valHigh = addr.sub(val).toWord().rsha(32).toOffset();
+      Offset valHigh = addr.minus(val).toWord().rsha(32).toOffset();
       _emitLI(RT, maskLower16(valHigh));
       emitSLDI(RT,RT,32);
       _emitADDIS(RT, RT, maskUpper16(val));
@@ -1601,6 +1601,38 @@ public final class VM_Assembler implements VM_BaselineConstants,
   
   public final void emitDCBST (int RA, int RB) {
     int mi = DCBSTtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int DCBTtemplate = 31<<26 | 278<<1;
+  
+  public final void emitDCBT (int RA, int RB) {
+    int mi = DCBSTtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int DCBTSTtemplate = 31<<26 | 246<<1;
+  
+  public final void emitDCBTST (int RA, int RB) {
+    int mi = DCBSTtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int DCBZtemplate = 31<<26 | 1014<<1;
+  
+  public final void emitDCBZ (int RA, int RB) {
+    int mi = DCBZtemplate | RA<<16 | RB<<11;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+
+  static final int DCBZLtemplate = 31<<26 | 1<<21 | 1014<<1;
+  
+  public final void emitDCBZL (int RA, int RB) {
+    int mi = DCBZLtemplate | RA<<16 | RB<<11;
     mIP++;
     mc.addInstruction(mi);
   }

@@ -13,7 +13,7 @@ import org.vmmagic.pragma.*;
 /**
  * A pointer enumeration class.  This class is used by the reference
  * counting collector to do recursive decrement.
- *
+ * 
  * @author Ian Warrington
  * @version $Revision$
  * @date $date: $
@@ -24,7 +24,7 @@ public class RCSanityEnumerator extends Enumerator
 
   /**
    * Constructor.
-   *
+   * 
    * @param rc The plan instance with respect to which the
    * enumeration will occur.
    */
@@ -33,8 +33,8 @@ public class RCSanityEnumerator extends Enumerator
   }
 
   /**
-   * Enumerate a pointer.  In this case it is a decrement event.
-   *
+   * Enumerate a pointer. In this case it is a decrement event.
+   * 
    * @param location The address of the field being enumerated.
    */
   public void enumeratePointerLocation(Address location) 

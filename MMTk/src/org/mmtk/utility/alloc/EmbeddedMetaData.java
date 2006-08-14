@@ -19,10 +19,10 @@ import org.vmmagic.pragma.*;
  * will be reduced (as compared with embedding meta-data at the start
  * of each page which will cause those few cache lines corresponding
  * to the start of each page to be heavily conflicted).
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
@@ -30,22 +30,22 @@ public final class EmbeddedMetaData implements Constants, Uninterruptible {
 
   /* The (log of the) size of each region of meta data management */
   public static final int LOG_BYTES_IN_REGION = 22;
-  public static final int BYTES_IN_REGION = 1<<LOG_BYTES_IN_REGION;
+  public static final int BYTES_IN_REGION = 1 << LOG_BYTES_IN_REGION;
   private static final Word REGION_MASK = Word.fromIntSignExtend(BYTES_IN_REGION - 1);
   public static final int LOG_PAGES_IN_REGION = LOG_BYTES_IN_REGION - LOG_BYTES_IN_PAGE;
-  public static final int PAGES_IN_REGION = 1<<LOG_PAGES_IN_REGION;
+  public static final int PAGES_IN_REGION = 1 << LOG_PAGES_IN_REGION;
 
   /**
    * Given an address, return the begining of the meta data for the
    * region containing the address.  This is a fast operation because
    * it only involves masking out low order bits.
-   *
+   * 
    * @param address The address whose meta data is sought.
    * @return The address of the start of the meta data for the meta
    * region in which the address is located.
    */
-  public static final Address getMetaDataBase(Address address) 
-    throws InlinePragma {
+  public static final Address getMetaDataBase(Address address)
+      throws InlinePragma {
     return address.toWord().and(REGION_MASK.not()).toAddress();
   }
 
@@ -53,7 +53,7 @@ public final class EmbeddedMetaData implements Constants, Uninterruptible {
    * Given an address, the density (coverage) of a meta data type, and
    * the granularity (alignment) of the meta data, return the offset
    * into the meta data the address.
-   *
+   * 
    * @param address The address whose meta data offset is sought.
    * @param logCoverage The log base two of the coverage of the meta
    * data in question. For example, a value of 4 would indicate a

@@ -71,6 +71,9 @@ const char *bootCodeFilename = 0;
 /* global; startup configuration option with default values */
 const char *bootDataFilename = 0;
 
+/* global; startup configuration option with default values */
+const char *bootRMapFilename = 0;
+
 /* Emit trace information? */
 int lib_verbose = 0;
 
@@ -693,8 +696,6 @@ softwareSignalHandler(int signo,
     fprintf(SysTraceFile, "; ignoring it.\n");
 }
 
-
-
 static void*
 mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
              unsigned *roundedImageSize) {
@@ -780,6 +781,14 @@ createVM(int UNUSED vmInSeparateThread)
     if (bootCodeRegion != bootImageCodeAddress)
         return 1;
     
+    unsigned roundedRMapRegionSize;
+    void *bootRMapRegion = mapImageFile(bootRMapFilename,
+                                        bootImageRMapAddress,
+                                        true,
+                                        &roundedRMapRegionSize);
+    if (bootRMapRegion != bootImageRMapAddress)
+        return 1;
+    
 
     /* validate contents of boot record */
     bootRecord = (VM_BootRecord *) bootDataRegion;
@@ -793,6 +802,12 @@ createVM(int UNUSED vmInSeparateThread)
     if (bootRecord->bootImageCodeStart != (unsigned) bootCodeRegion) {
         fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
                 Me, bootRecord->bootImageCodeStart, (unsigned) bootCodeRegion);
+        return 1;
+    }
+
+    if (bootRecord->bootImageRMapStart != (unsigned) bootRMapRegion) {
+        fprintf(SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
+                Me, bootRecord->bootImageRMapStart, (unsigned) bootRMapRegion);
         return 1;
     }
 
@@ -837,6 +852,8 @@ createVM(int UNUSED vmInSeparateThread)
     bootRecord->bootImageDataEnd     = (int) bootDataRegion + roundedDataRegionSize;
     bootRecord->bootImageCodeStart   = (int) bootCodeRegion;
     bootRecord->bootImageCodeEnd     = (int) bootCodeRegion + roundedCodeRegionSize;
+    bootRecord->bootImageRMapStart   = (int) bootRMapRegion;
+    bootRecord->bootImageRMapEnd     = (int) bootRMapRegion + roundedRMapRegionSize;
     bootRecord->verboseBoot      = verboseBoot;
     bootRecord->singleVirtualProcessor = rvm_singleVirtualProcessor;
   
@@ -852,6 +869,10 @@ createVM(int UNUSED vmInSeparateThread)
                 bootRecord->bootImageCodeStart);
         fprintf(SysTraceFile, "   bootImageCodeEnd:     0x%08x\n", 
                 bootRecord->bootImageCodeEnd);
+        fprintf(SysTraceFile, "   bootImageRMapStart:   0x%08x\n", 
+                bootRecord->bootImageRMapStart);
+        fprintf(SysTraceFile, "   bootImageRMapEnd:     0x%08x\n", 
+                bootRecord->bootImageRMapEnd);
         fprintf(SysTraceFile, "   initialHeapSize:      0x%08x\n", 
                 bootRecord->initialHeapSize);
         fprintf(SysTraceFile, "   maximumHeapSize:      0x%08x\n", 

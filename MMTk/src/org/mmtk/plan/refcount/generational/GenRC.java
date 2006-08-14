@@ -21,10 +21,10 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple non-concurrent reference counting
  * collector.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -33,13 +33,13 @@ import org.vmmagic.pragma.*;
 public class GenRC extends RCBase implements Uninterruptible {
 
   /****************************************************************************
-  *
-  * Class variables
-  */
+   * 
+   * Class variables
+   */
 
   /** The nursery space, where all new objects are allocated by default. */
   public static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
-  
+
   public static final int NS = nurserySpace.getDescriptor();
 
   // Allocators
@@ -95,7 +95,7 @@ public class GenRC extends RCBase implements Uninterruptible {
    * of this method must code as though the method is interruptible.
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
-   *
+   * 
    * @see org.mmtk.policy.Space#acquire(int)
    * @param mustCollect if <code>true</code> then a collection is
    * required and must be triggered.  Otherwise a collection is only
@@ -105,7 +105,7 @@ public class GenRC extends RCBase implements Uninterruptible {
    * @return True if a collection has been triggered
    */
   public final boolean poll(boolean mustCollect, Space space)
-  throws LogicallyUninterruptiblePragma {
+      throws LogicallyUninterruptiblePragma {
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
@@ -133,18 +133,18 @@ public class GenRC extends RCBase implements Uninterruptible {
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
-   *
+   * 
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
- 
+
 
   /**
    * Return the number of pages reserved for copying.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -156,7 +156,7 @@ public class GenRC extends RCBase implements Uninterruptible {
    * Return the number of pages in use given the pending
    * allocation.  Simply add the nursery's contribution to that of
    * the superclass.
-   *
+   * 
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */

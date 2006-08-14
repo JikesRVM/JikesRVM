@@ -12,21 +12,21 @@ import org.vmmagic.pragma.*;
  * This class implements unsynchronized (local) elements of a
  * copying collector. Allocation is via the bump pointer 
  * (@see BumpPointer). 
- *
+ * 
  * @see BumpPointer
- * @see CopySpace 
- *
+ * @see CopySpace
+ * 
  * @author Daniel Frampton
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public final class CopyLocal extends BumpPointer implements Uninterruptible {
-  public final static String Id = "$Id$"; 
+  public final static String Id = "$Id$";
 
   /**
    * Constructor
-   *
+   * 
    * @param space The space to bump point into.
    */
   public CopyLocal(CopySpace space) {
@@ -37,7 +37,7 @@ public final class CopyLocal extends BumpPointer implements Uninterruptible {
    * Re-associate this bump pointer with a different space. Also 
    * reset the bump pointer so that it will use the new space
    * on the next call to <code>alloc</code>.
-   *
+   * 
    * @param space The space to associate the bump pointer with.
    */
   public void rebind(CopySpace space) {

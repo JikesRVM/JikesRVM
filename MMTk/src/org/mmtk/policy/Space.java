@@ -32,19 +32,19 @@ import org.vmmagic.unboxed.*;
  * In addition to tracking virtual memory use and the mapping to
  * policy, spaces also manage memory consumption (<i>used</i> virtual
  * memory).<p>
- *
+ * 
  * Discontigious spaces are currently unsupported.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public abstract class Space implements Constants, Uninterruptible {
-  
+
   /****************************************************************************
-   *
+   * 
    * Class variables
    */
 
@@ -55,13 +55,13 @@ public abstract class Space implements Constants, Uninterruptible {
   private static Address HEAP_START = chunkAlign(Memory.HEAP_START(), true);
   private static Address AVAILABLE_START = chunkAlign(Memory.AVAILABLE_START(), false);
   private static Address AVAILABLE_END = chunkAlign(Memory.AVAILABLE_END(), true);
-  private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().sub(AVAILABLE_START.toWord()).toExtent();
-  public static Address HEAP_END = chunkAlign(Memory.HEAP_END(), false);
+  private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
+  public static final Address HEAP_END = chunkAlign(Memory.HEAP_END(), false);
 
   public static final int LOG_BYTES_IN_CHUNK = 22;
-  public static final int BYTES_IN_CHUNK = 1<<LOG_BYTES_IN_CHUNK;
+  public static final int BYTES_IN_CHUNK = 1 << LOG_BYTES_IN_CHUNK;
   private static final int LOG_MAX_CHUNKS = LOG_ADDRESS_SPACE - LOG_BYTES_IN_CHUNK;
-  public static final int MAX_CHUNKS = 1<<LOG_MAX_CHUNKS;
+  public static final int MAX_CHUNKS = 1 << LOG_MAX_CHUNKS;
   public static final int MAX_SPACES = 20; // quite arbitrary
 
   private static final int PAGES = 0;
@@ -70,13 +70,12 @@ public abstract class Space implements Constants, Uninterruptible {
   private static final int MB_PAGES = 3;
 
   private static int spaceCount = 0;
-  private static int[] map;
   private static Space[] spaces = new Space[MAX_SPACES];
   private static Address heapCursor = HEAP_START;
   private static Address heapLimit = HEAP_END;
 
   /****************************************************************************
-   *
+   * 
    * Instance variables
    */
   private int descriptor;
@@ -90,7 +89,7 @@ public abstract class Space implements Constants, Uninterruptible {
   protected PageResource pr;
 
   /****************************************************************************
-   *
+   * 
    * Initialization
    */
 
@@ -109,8 +108,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param start The start address of the space in virtual memory
    * @param bytes The size of the space in virtual memory, in bytes
    */
-  Space(String name, boolean movable, boolean immortal, Address start, 
-        Extent bytes) {
+  Space(String name, boolean movable, boolean immortal, Address start,
+      Extent bytes) {
     this.name = name;
     this.movable = movable;
     this.immortal = immortal;
@@ -130,21 +129,21 @@ public abstract class Space implements Constants, Uninterruptible {
     }
     this.extent = bytes;
 
-    Memory.setHeapRange(index, start, start.add(bytes));
+    Memory.setHeapRange(index, start, start.plus(bytes));
     createDescriptor(false);
     Map.insert(start, extent, descriptor, this);
 
     if (DEBUG) {
       Log.write(name); Log.write(" ");
       Log.write(start); Log.write(" ");
-      Log.write(start.add(extent)); Log.write(" ");
+      Log.write(start.plus(extent)); Log.write(" ");
       Log.writeln(bytes.toWord());
     }
   }
 
   /**
    * Construct a space of a given number of megabytes in size.<p>
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>.  If there is insufficient address
    * space, then the constructor will fail.
@@ -157,11 +156,11 @@ public abstract class Space implements Constants, Uninterruptible {
   Space(String name, boolean movable, boolean immortal, int mb) {
     this(name, movable, immortal, heapCursor, 
          Word.fromIntSignExtend(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
-    heapCursor = heapCursor.add(extent);
+    heapCursor = heapCursor.plus(extent);
     if (heapCursor.GT(heapLimit)) {
       Log.write("Out of virtual address space allocating \"");
       Log.write(name); Log.write("\" at ");
-      Log.write(heapCursor.sub(extent)); Log.write(" (");
+      Log.write(heapCursor.minus(extent)); Log.write(" (");
       Log.write(heapCursor); Log.write(" > ");
       Log.write(heapLimit); Log.writeln(")");
       Assert.fail("exiting");
@@ -184,20 +183,20 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   Space(String name, boolean movable, boolean immortal, float frac) {
     this(name, movable, immortal, heapCursor, getFracAvailable(frac));
-    heapCursor = heapCursor.add(extent);
+    heapCursor = heapCursor.plus(extent);
   }
 
   /**
    * Construct a space that consumes a given number of megabytes of
    * virtual memory, at either the top or bottom of the available
    * virtual memory.
-   *
+   * 
    * The caller specifies the amount virtual memory to be used for
    * this space <i>in megabytes</i>, and whether it should be at the
    * top or bottom of the available virtual memory.  If the request
    * clashes with existing virtual memory allocations, then the
    * constructor will fail.
-   *
+   * 
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
@@ -213,7 +212,7 @@ public abstract class Space implements Constants, Uninterruptible {
   /**
    * Construct a space that consumes a given fraction of the available
    * virtual memory, at either the top or bottom of the available
-   * virtual memory.
+   *          virtual memory.
    *
    * The caller specifies the amount virtual memory to be used for
    * this space <i>as a fraction of the total available</i>, and
@@ -252,31 +251,31 @@ public abstract class Space implements Constants, Uninterruptible {
    * available virtual memory.
    */
   private Space(String name, boolean movable, boolean immortal, Extent bytes,
-                boolean top) {
-    this(name, movable, immortal, (top) ? HEAP_END.sub(bytes) : HEAP_START, 
-         bytes);
-    if (top) {  // request for the top of available memory
+      boolean top) {
+    this(name, movable, immortal, (top) ? HEAP_END.minus(bytes) : HEAP_START,
+        bytes);
+    if (top) { // request for the top of available memory
       if (heapLimit.NE(HEAP_END)) {
         Log.write("Unable to satisfy virtual address space request \"");
         Log.write(name); Log.write("\" at ");
         Log.writeln(heapLimit);
         Assert.fail("exiting");
       }
-      heapLimit = heapLimit.sub(extent);
-    } else {   // request for the bottom of available memory
+      heapLimit = heapLimit.minus(extent);
+    } else { // request for the bottom of available memory
       if (heapCursor.GT(HEAP_START)) {
         Log.write("Unable to satisfy virtual address space request \"");
         Log.write(name); Log.write("\" at ");
         Log.writeln(heapCursor);
         Assert.fail("exiting");
       }
-      heapCursor = heapCursor.add(extent);
+      heapCursor = heapCursor.plus(extent);
     }
   }
 
 
   /****************************************************************************
-   *
+   * 
    * Accessor methods
    */
 
@@ -291,7 +290,7 @@ public abstract class Space implements Constants, Uninterruptible {
 
   /** Descriptor method @return The integer descriptor for this space */
   public final int getDescriptor() { return descriptor; }
-  
+
   /** Index getter @return The index (ordinal number) of this space */
   public final int getIndex() { return index; }
 
@@ -308,24 +307,24 @@ public abstract class Space implements Constants, Uninterruptible {
   public final int committedPages() { return pr.committedPages(); }
 
   /** Cumulative committed pages getter @return Cumulative committed pages. */
-  public static long cumulativeCommittedPages() { 
-    return PageResource.cumulativeCommittedPages(); 
+  public static long cumulativeCommittedPages() {
+    return PageResource.cumulativeCommittedPages();
   }
 
   /****************************************************************************
-   *
+   * 
    * Object and address tests / accessors
    */
 
   /**
    * Return true if the given object is in an immortal (uncollected) space.
-   *
+   * 
    * @param object The object in question
    * @return True if the given object is in an immortal (uncollected) space.
    */
   public static final boolean isImmortal(ObjectReference object) {
     Space space = getSpaceForObject(object);
-    if (space == null) 
+    if (space == null)
       return true;
     else
       return space.isImmortal();
@@ -333,14 +332,14 @@ public abstract class Space implements Constants, Uninterruptible {
 
   /**
    * Return true if the given object is in space that moves objects.
-   *
+   * 
    * @param object The object in question
    * @return True if the given object is in space that moves objects.
    */
   public static final boolean isMovable(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     Space space = getSpaceForObject(object);
-    if (space == null) 
+    if (space == null)
       return true;
     else
       return space.isMovable();
@@ -348,37 +347,37 @@ public abstract class Space implements Constants, Uninterruptible {
 
   /**
    * Return true if the given object is in a space managed by MMTk.
-   *
+   * 
    * @param object The object in question
    * @return True if the given object is in a space managed by MMTk.
    */
   public static final boolean isMappedObject(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     return !object.isNull() && (getSpaceForObject(object) != null);
   }
 
   /**
    * Return true if the given address is in a space managed by MMTk.
-   *
+   * 
    * @param address The address in question
    * @return True if the given address is in a space managed by MMTk.
    */
   public static final boolean isMappedAddress(Address address)
-    throws InlinePragma {
+      throws InlinePragma {
     return Map.getSpaceForAddress(address) != null;
   }
 
   /**
    * Return true if the given object is the space associated with the
    * given descriptor.
-   *
+   * 
    * @param descriptor The descriptor for a space
    * @param object The object in question
    * @return True if the given object is in the space associated with
    * the descriptor.
    */
   public static boolean isInSpace(int descriptor, ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (!SpaceDescriptor.isContiguous(descriptor)) {
       return getDescriptorForObject(object) == descriptor;
     } else {
@@ -389,7 +388,7 @@ public abstract class Space implements Constants, Uninterruptible {
         return addr.GE(start);
       else {
         Extent size = Word.fromIntSignExtend(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
-        Address end = start.add(size);
+        Address end = start.plus(size);
         return addr.GE(start) && addr.LT(end);
       }
     }
@@ -397,39 +396,39 @@ public abstract class Space implements Constants, Uninterruptible {
 
   /**
    * Return the space for a given object
-   *
+   * 
    * @param object The object in question
    * @return The space containing the object
    */
-  public static Space getSpaceForObject(ObjectReference object) 
-    throws InlinePragma {
+  public static Space getSpaceForObject(ObjectReference object)
+      throws InlinePragma {
     return Map.getSpaceForObject(object);
   }
 
   /**
    * Return the descriptor for a given object
-   *
+   * 
    * @param object The object in question
    * @return The descriptor for the space containing the object
    */
   public static int getDescriptorForObject(ObjectReference object)
-    throws InlinePragma {
+      throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     return Map.getDescriptorForObject(object);
   }
-  
+
 
   /****************************************************************************
-   *
+   * 
    * Page management
    */
 
   /**
    * Acquire a number of pages from the page resource, returning
    * either the address of the first page, or zero on failure.<p>
-   *
+   * 
    * This may trigger a GC if necessary.<p>
-   *
+   * 
    * First the page budget is checked to see whether polling the GC is
    * necessary.  If so, the GC is polled.  If a GC is required then the
    * request fails and zero is returned.<p>
@@ -451,7 +450,7 @@ public abstract class Space implements Constants, Uninterruptible {
       if (ActivePlan.global().poll(false, this))
         return Address.zero(); // GC required, return failure
     }
-    
+
     /* Page budget is OK, so try to acquire specific pages in virtual memory */
     Address rtn = pr.getNewPages(pages);
     if (rtn.isZero())
@@ -462,14 +461,14 @@ public abstract class Space implements Constants, Uninterruptible {
 
   /**
    * Release a unit of allocation (a page or pages)
-   *
+   * 
    * @param start The address of the start of the region to be released
    */
   abstract public void release(Address start);
 
   /**
    * Get the total number of pages reserved by all of the spaces
-   *
+   * 
    * @return the total number of papers reserved by all of the spaces
    */
   private static final int getPagesReserved() {
@@ -481,7 +480,7 @@ public abstract class Space implements Constants, Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Debugging / printing
    */
 
@@ -503,14 +502,14 @@ public abstract class Space implements Constants, Uninterruptible {
       Space space = spaces[i];
       Log.write(space.name); Log.write(" ");
       Log.write(space.start); Log.write("->");
-      Log.writeln(space.start.add(space.extent.sub(1))); 
+      Log.writeln(space.start.plus(space.extent.minus(1)));
     }
   }
 
   /**
    * Print out the memory used by all spaces in either megabytes or
    * pages.
-   *
+   * 
    * @param mode An enumeration type that specifies the format for the
    * prining (PAGES, MB, PAGES_MB, or MB_PAGES).
    */
@@ -530,13 +529,13 @@ public abstract class Space implements Constants, Uninterruptible {
 
   /**
    * Print out the number of pages and or megabytes, depending on the mode.
-   *
+   * 
    * @param pages The number of pages
    * @param mode An enumeration type that specifies the format for the
    * prining (PAGES, MB, PAGES_MB, or MB_PAGES).
    */
   private static void printPages(int pages, int mode) {
-    double mb = (double) (pages<<LOG_BYTES_IN_PAGE) / (double) (1<<20);
+    double mb = (double) (pages << LOG_BYTES_IN_PAGE) / (double) (1 << 20);
     switch (mode) {
     case PAGES: Log.write(pages); Log.write(" pgs"); break; 
     case MB:    Log.write(mb); Log.write(" Mb"); break;
@@ -547,7 +546,7 @@ public abstract class Space implements Constants, Uninterruptible {
   }
 
   /****************************************************************************
-   *
+   * 
    * Miscellaneous
    */
 
@@ -559,8 +558,8 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object to trace
    * @return The object, forwarded, if appropriate
    */
-  abstract public ObjectReference traceObject(TraceLocal trace, 
-                                              ObjectReference object); 
+  abstract public ObjectReference traceObject(TraceLocal trace,
+      ObjectReference object);
 
   
   /**
@@ -573,56 +572,56 @@ public abstract class Space implements Constants, Uninterruptible {
   public boolean isReachable(ObjectReference object) {
     return isLive(object);
   }
-  
+
   
   /**
-   * Is the object in this space alive? 
+   * Is the object in this space alive?
    * 
    * @param object The object reference.
    * @return True if the object is live.
    */
   abstract public boolean isLive(ObjectReference object);
-  
+
   /**
    * Align an address to a space chunk
-   *
+   * 
    * @param addr The address to be aligned
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
   private static final Address chunkAlign(Address addr, boolean down) {
-    if (!down) addr = addr.add(BYTES_IN_CHUNK - 1);
+    if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
     return addr.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toAddress();
   }
 
   /**
    * Align an extent to a space chunk
-   *
+   * 
    * @param bytes The extent to be aligned
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
    */
   private static final Extent chunkAlign(Extent bytes, boolean down) {
-    if (!down) bytes = bytes.add(BYTES_IN_CHUNK - 1);
+    if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
     return bytes.toWord().rshl(LOG_BYTES_IN_CHUNK).lsh(LOG_BYTES_IN_CHUNK).toExtent();
   }
 
   /**
    * Initialize/create the descriptor for this space
-   *
+   * 
    * @param shared True if this is a shared (discontigious) space
    */
   private void createDescriptor(boolean shared) {
-    if (shared) 
+    if (shared)
       descriptor = SpaceDescriptor.createDescriptor();
     else
-      descriptor = SpaceDescriptor.createDescriptor(start, start.add(extent));
+      descriptor = SpaceDescriptor.createDescriptor(start, start.plus(extent));
   }
-  
+
   /**
    * Convert a fraction into a number of bytes according to the
    * fraction of available bytes.
-   *
+   * 
    * @param frac The fraction of avialable virtual memory desired
    * @return The corresponding number of bytes, chunk-aligned.
    */

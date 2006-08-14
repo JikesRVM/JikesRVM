@@ -16,10 +16,10 @@ import org.vmmagic.unboxed.*;
 /**
  * This abstract class implments the core functionality for a transitive
  * closure over the heap graph.
- *
+ * 
  * $Id$
- *
- * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * 
+ * @author Steve Blackburn
  * @author Daniel Frampton
  * @author Robin Garner
  * @version $Revision$
@@ -34,23 +34,25 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
     super(trace);
   }
 
-  private final RCLocal local() { return (RCLocal)ActivePlan.local(); }
+  // FIXME The collector/mutator split in RC is completely broken
+//  private final RCCollector local() { return (RCCollector)ActivePlan.collector(); }
+  private final RCMutator local() { return (RCMutator)ActivePlan.mutator(); }
 
   /**
    * Flush any remembered sets pertaining to the current collection.
    */
-  protected void flushRememberedSets() {
+  protected void processRememberedSets() {
     local().processModBufs();
   }
-  
+
   /****************************************************************************
-   *
+   * 
    * Externally visible Object processing and tracing
    */
 
   /**
    * Return true if <code>obj</code> is a live object.
-   *
+   * 
    * @param object The object in question
    * @return True if <code>object</code> is a live object.
    */
@@ -95,7 +97,7 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
   /**
    * Return true if an object is ready to move to the finalizable
    * queue, i.e. it has no regular references to it.
-   *
+   * 
    * @param object The object being queried.
    * @return <code>true</code> if the object has no regular references
    * to it.
@@ -114,7 +116,7 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
    * clear the finalizer bit of the object so that its reachability
    * now is soley determined by the finalizer queue from which it is
    * now reachable.
-   *
+   * 
    * @param object The object being queried.
    * @return The object (no copying is performed).
    */
