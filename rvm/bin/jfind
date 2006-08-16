@@ -9,16 +9,9 @@
 # Search rvm source files for specified word.
 # If no word is specified, list names of all rvm source files.
 
-WORKING_DIRS="rvm MMTk"
-
-for dir in $WORKING_DIRS; do
-    if [[ -d $RVM_ROOT/$dir ]]; then 
-	cd $RVM_ROOT/$dir
-
-	if [ $# = 0 ]; then
-		find . -name CVS -prune -o -type f -not -name '*~' -print
-	else
-	    find . -name CVS -prune -o -type f -not -name '*~' -print | xargs fgrep -n -- "$*"
-	fi
-    fi
-done
+cd $RVM_ROOT/$dir
+if [ $# = 0 ]; then
+    find . -name .svn -prune -o -type f -not -name '*~' -print
+else
+    find . -name .svn -prune -o -type f -not -name '*~' -print | xargs fgrep -n -- "$*"
+fi

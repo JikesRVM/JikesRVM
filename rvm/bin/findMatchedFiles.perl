@@ -41,7 +41,7 @@ for ($i=0; $i < @inputs; $i+=2) {
    if ($debug>=1) {print "$i: line is '$file:$value'\n";}
    if ($value eq 0) {
       if($debug>=1){print "found file $file with no matches";}
-      if (! ($file =~ /\.dat/ || $file =~ /CVS/ || $file =~ /.template/ ||
+      if (! ($file =~ /\.dat/ || $file =~ /.svn/ || $file =~ /.template/ ||
 	     $file =~ /[0-9]d[0-9]/ || $file =~ /\.cvsignore/ || $file =~ /[\.\/]expected/ ||
 	     $file =~ /\/config/) ) {
 	 if($debug>=1){print "   valid\n";}

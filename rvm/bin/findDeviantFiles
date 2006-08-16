@@ -130,9 +130,9 @@ cd $in
 
 ## Will not follow symbolic links; you'd have to say "-follow" to do it.
 # Skip Emacs backup files (this might be run from the working directory of a user.
-# Skip CVS internal files used to store older revisions.
+# Skip svn internal files used to store older revisions.
 # open a subexpression.  Must be closed in the user (look for the ")")
-# Skip CVS directories.
+# Skip .svn directories.
 # Do show normal files.
 
 # This will make the bug discussed below appear irrespective of what is going on..  That is good.  Better that this program break than not work.
@@ -160,7 +160,7 @@ set +H
 # is no point in getting warned multiply.
 
 declare -r -a find_optsA=( \
-	-name CVS -prune \
+	-name .svn -prune \
         -o \
 	'\!' -name 'javacore*.txt' \
 	'\!' -name '*~'  \
@@ -170,13 +170,13 @@ declare -r -a find_optsA=( \
 );
 
 declare -r -a find_javaA=( \
-	-name CVS -prune \
+	-name .svn -prune \
         -o -name '*.java' \
 );
 
 ## The same bug afflicts the one below:
 
-declare -r find_optsSTR="-name CVS -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
+declare -r find_optsSTR="-name .svn -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
 
 #echo "find all plain files without @Author tags"
 find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
