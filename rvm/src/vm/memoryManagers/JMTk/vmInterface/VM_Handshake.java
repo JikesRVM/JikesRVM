@@ -4,8 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.vm.Lock;
-import org.mmtk.vm.Collection;
+import com.ibm.JikesRVM.mm.mmtk.Lock;
+import com.ibm.JikesRVM.mm.mmtk.Collection;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;

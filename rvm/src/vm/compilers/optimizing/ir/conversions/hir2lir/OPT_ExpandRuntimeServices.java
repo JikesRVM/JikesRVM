@@ -75,8 +75,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
           inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
           tib = tmp.copyRO();
         }
+        OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
         VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
-        Call.mutate6(inst, CALL, New.getClearResult(inst), 
+        Call.mutate7(inst, CALL, New.getClearResult(inst), 
                      OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
                      OPT_IRTools.IC(cls.getInstanceSize()),
@@ -84,7 +85,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
                      hasFinalizer,
                      allocator,
                      align,
-                     offset);
+                     offset,
+                     site);
         if (ir.options.INLINE_NEW) {
           if (inst.getBasicBlock().getInfrequent()) container.counter1++;
           container.counter2++;
@@ -98,10 +100,12 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       case NEW_UNRESOLVED_opcode: {
         int typeRefId = New.getType(inst).getTypeRef().getId();
         VM_Method target = VM_Entrypoints.unresolvedNewScalarMethod;
-        Call.mutate1(inst, CALL, New.getClearResult(inst), 
+        OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
+        Call.mutate2(inst, CALL, New.getClearResult(inst), 
                      OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
-                     OPT_IRTools.IC(typeRefId));
+                     OPT_IRTools.IC(typeRefId),
+		     site);
       }
       break;
 
@@ -123,8 +127,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
           inst.insertBefore(Move.create(REF_MOVE, tmp, tib));
           tib = tmp.copyRO();
         }
+        OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
         VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
-        Call.mutate7(inst, CALL, NewArray.getClearResult(inst),  
+        Call.mutate8(inst, CALL, NewArray.getClearResult(inst),  
                      OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
                      numberElements, 
@@ -133,7 +138,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
                      tib,
                      allocator,
                      align,
-                     offset);
+                     offset,
+                     site);
         if (inline && ir.options.INLINE_NEW) {
           if (inst.getBasicBlock().getInfrequent()) container.counter1++;
           container.counter2++;
@@ -148,11 +154,13 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
         int typeRefId = NewArray.getType(inst).getTypeRef().getId();
         OPT_Operand numberElements = NewArray.getClearSize(inst);
         VM_Method target = VM_Entrypoints.unresolvedNewArrayMethod;
-        Call.mutate2(inst, CALL, NewArray.getClearResult(inst), 
+        OPT_IntConstantOperand site = OPT_IRTools.IC(MM_Interface.getAllocationSite(true));
+        Call.mutate3(inst, CALL, NewArray.getClearResult(inst), 
                      OPT_IRTools.AC(target.getOffset()),
                      OPT_MethodOperand.STATIC(target),
                      numberElements, 
-                     OPT_IRTools.IC(typeRefId));
+                     OPT_IRTools.IC(typeRefId),
+		     site);
       }
       break;
 

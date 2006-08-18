@@ -82,6 +82,7 @@ endif
 		$(host_mem_size_arg) \
 	   -classpath $(STUBS_DIR):$(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
+	   -Dmmtk.hostjvm=com.ibm.JikesRVM.mm.mmtk \
 	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \
 	   BootImageWriter\
 	   -classpath $(RVM_REPOSITORIES) \

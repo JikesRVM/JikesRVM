@@ -24,15 +24,13 @@ import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.options.*;
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.Lock;
-import org.mmtk.vm.Options;
-import org.mmtk.vm.ReferenceGlue;
-import org.mmtk.vm.Scanning;
-import org.mmtk.vm.SynchronizedCounter;
-import org.mmtk.vm.Collection;
+import com.ibm.JikesRVM.mm.mmtk.Assert;
+import com.ibm.JikesRVM.mm.mmtk.Lock;
+import com.ibm.JikesRVM.mm.mmtk.Options;
+import com.ibm.JikesRVM.mm.mmtk.ReferenceGlue;
+import com.ibm.JikesRVM.mm.mmtk.Scanning;
+import com.ibm.JikesRVM.mm.mmtk.SynchronizedCounter;
+import com.ibm.JikesRVM.mm.mmtk.Collection;
 
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Type;
@@ -148,8 +146,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */
   public static final void init() throws InterruptiblePragma {
     VM_CollectorThread.init();
-    Collection.init();
-    Scanning.init();
+    com.ibm.JikesRVM.mm.mmtk.Collection.init();
   }
 
   /**
@@ -166,7 +163,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     LazyMmapper.boot(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
-    ActivePlan.global().boot();
+    SelectedPlan.get().boot();
     SynchronizedCounter.boot();
     Monitor.boot();
   }
@@ -195,14 +192,14 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * which is necessarily after the basic allocator boot).
    */
   public static void postBoot() throws InterruptiblePragma {
-    ActivePlan.global().postBoot();
+    SelectedPlan.get().postBoot();
   }
 
   /**
    * Notify the MM that the host VM is now fully booted.
    */
   public static void fullyBootedVM() throws InterruptiblePragma {
-    ActivePlan.global().fullyBooted();
+    SelectedPlan.get().fullyBooted();
     Lock.fullyBooted();
     Barrier.fullyBooted();
   }
@@ -385,7 +382,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */
   public static final void gc() throws InterruptiblePragma {
     if (!org.mmtk.utility.options.Options.ignoreSystemGC.getValue())
-      Collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+      Collection.triggerCollectionStatic(Collection.EXTERNAL_GC_TRIGGER);
   }
 
   /****************************************************************************
@@ -445,6 +442,34 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * Allocation
    */
 
+  /**
+   * Return an allocation site upon request.  The request may be made
+   * in the context of compilation.
+   *
+   * @param compileTime True if this request is being made in the
+   * context of a compilation.
+   * @return an allocation site
+   */
+  public static int getAllocationSite(boolean compileTime) {
+    return Plan.getAllocationSite(compileTime);
+  }
+  
+  /**
+   * Return an allocation site for a given allocation site upon
+   * request.  The request may be made in the context of compilation.
+   *
+   * @param str String identifying the allocation site
+   * @param bcidx Bytecode index of the allocation site
+   * @param method The method containing the allocation site
+   * @param compileTime True if this request is being made in the
+   * context of a compilation.
+   * @return an allocation site
+   */
+  public static int getAllocationSite(String str, int bcidx, VM_Method method, 
+				      boolean compileTime) {
+    return Plan.getAllocationSite(compileTime);
+  }
+  
   /**
    * Returns the appropriate allocation scheme/area for the given
    * type.  This form is deprecated.  Without the VM_Method argument,
@@ -537,7 +562,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.ALLOC_IMMORTAL;
-    if (ActivePlan.constraints().needsImmortalTypeInfo() && 
+    if (SelectedPlanConstraints.get().needsImmortalTypeInfo() && 
         (isPrefix("Lcom/ibm/JikesRVM/classloader/VM_Class", typeBA) ||
          isPrefix("Lcom/ibm/JikesRVM/classloader/VM_Array", typeBA)))
       allocator = Plan.ALLOC_IMMORTAL;
@@ -560,14 +585,15 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * allocate the memory from.
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
+   * @param site allocation site.
    * @return the initialized Object
    */
   public static Object allocateScalar(int size, Object [] tib, int allocator,
-                                      int align, int offset)
+                                      int align, int offset, int site)
     throws UninterruptiblePragma, InlinePragma {
     SelectedMutatorContext mutator = SelectedMutatorContext.get();
     allocator = mutator.checkAllocator(size, align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator);
+    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), 
                    ObjectReference.fromObject(tib), size, allocator);
@@ -584,6 +610,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param allocator int that encodes which allocator should be used
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
+   * @param site allocation site.
    * @return array object with header installed and all elements set 
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
@@ -591,18 +618,18 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
   public static Object allocateArray(int numElements, int logElementSize, 
                                      int headerSize, Object [] tib,
                                      int allocator,
-                                     int align, int offset) 
+                                     int align, int offset, int site) 
     throws UninterruptiblePragma, InlinePragma {
     SelectedMutatorContext mutator = SelectedMutatorContext.get();
 
     int elemBytes = numElements << logElementSize;
     if ((elemBytes >>> logElementSize) != numElements) {
       // asked to allocate more than Integer.MAX_VALUE bytes
-      Assert.failWithOutOfMemoryError();
+      Assert.failWithOutOfMemoryErrorStatic();
     }
     int size = elemBytes + headerSize;
     allocator = mutator.checkAllocator(size, align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator);
+    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
     mutator.postAlloc(ObjectReference.fromObject(result), 
@@ -618,11 +645,12 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
    * @param allocator The MMTk allocator to be used (if allocating)
+   * @param site Allocation site.
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   private static Address allocateSpace(SelectedMutatorContext mutator,
 				       int bytes, int align, int offset,
-				       int allocator)
+				       int allocator, int site)
     throws UninterruptiblePragma, InlinePragma {
     // MMTk requests must be in multiples of MIN_ALIGNMENT
     bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
@@ -631,7 +659,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
      * Now make the request
    */
     Address region;
-    region = mutator.alloc(bytes, align, offset, allocator);
+    region = mutator.alloc(bytes, align, offset, allocator, site);
     /* TODO
        if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
     */
@@ -709,7 +737,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     int align = VM_ObjectModel.getAlignment(type);
     int offset = VM_ObjectModel.getOffsetForAlignment(type);
     return allocateArray(length, type.getLogElementSize(), headerSize,
-                         tib, allocator, align, offset);
+                         tib, allocator, align, offset, Plan.DEFAULT_SITE);
   }
 
 
@@ -732,7 +760,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
     
     return (VM_CodeArray) allocateArray(numInstrs, width, headerSize, tib,
-                                        allocator, align, offset);
+                                        allocator, align, offset,
+					Plan.DEFAULT_SITE);
   }
 
   /**
@@ -755,7 +784,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
 
       return (byte[]) allocateArray(bytes, width, headerSize, stackTib,
                                     (immortal ? Plan.ALLOC_IMMORTAL_STACK : Plan.ALLOC_STACK),
-                                    align, offset);
+                                    align, offset, Plan.DEFAULT_SITE);
     }
   }
 
@@ -779,8 +808,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     Object [] arrayTib = arrayType.getTypeInformationBlock();
 
     return (int[]) allocateArray(size, width, headerSize, arrayTib,
-                                 (ActivePlan.constraints().needsImmortalTypeInfo() ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT),
-                                 align, offset);
+                                 (SelectedPlanConstraints.get().needsImmortalTypeInfo() ? Plan.ALLOC_IMMORTAL : Plan.ALLOC_DEFAULT),
+                                 align, offset, Plan.DEFAULT_SITE);
 					      
   }
 
@@ -802,7 +831,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
     int offset = VM_ObjectModel.getOffsetForAlignment(objectArrayType);
     Object result = allocateArray(n, objectArrayType.getLogElementSize(),
                                   VM_ObjectModel.computeArrayHeaderSize(objectArrayType),
-                                  objectArrayTib, Plan.ALLOC_IMMORTAL, align, offset);
+                                  objectArrayTib, Plan.ALLOC_IMMORTAL, align, offset, Plan.DEFAULT_SITE);
     return (Object []) result;
   }
 

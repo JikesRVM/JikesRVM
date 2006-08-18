@@ -1905,7 +1905,7 @@ EOF
     # Common memory manager components.
     #
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-	$RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm
+	$RVM_ROOT/MMTk/ext/vm/JikesRVM/com/ibm/JikesRVM/mm/mmtk
 EOF
 
     cleanFileList <<- EOF
@@ -2853,6 +2853,7 @@ EOF
         fi 
     else
 	echo '    echo "Dummy.java"'
+	echo '    find com/ibm/JikesRVM/mm/mmtk -name \*.java -print'
 	if (( RVM_WITH_OPT_COMPILER )); then
 	    echo '    echo "OptDummy.java"'
 	fi
@@ -3155,6 +3156,7 @@ EOF
 	rm -f \$interface
 	declare -a args=( -Xmx200M \
 	   -classpath \$cp		\
+	   -Dmmtk.hostjvm=com.ibm.JikesRVM.mm.mmtk		\
 	   \${generator_class} \
 	   -da $BOOTIMAGE_DATA_ADDRESS \
 	   -ca $BOOTIMAGE_CODE_ADDRESS \
@@ -3314,6 +3316,7 @@ EOF
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
 	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@.@' "
 	echo "    \$FIND ./org/mmtk -name '*.class'"
+	echo "    \$FIND ./com/ibm/JikesRVM/mm/mmtk -name '*.class'"
 	echo "    \$FIND ./org/vmmagic -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi

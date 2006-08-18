@@ -2657,12 +2657,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     int align = VM_ObjectModel.getAlignment(typeRef);
     int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitLAddrToc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, instanceSize);
     asm.emitLAddrToc(T1, tibOffset);
     asm.emitLVAL(T2, typeRef.hasFinalizer()?1:0);
     asm.emitLVAL(T3, whichAllocator);
+    asm.emitLVAL(T4, site);
     asm.emitLVAL(T4, align);
     asm.emitLVAL(T5, offset);
     asm.emitBCCTRL();
@@ -2674,9 +2676,11 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_new(VM_TypeReference typeRef) {
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, typeRef.getId());
+    asm.emitLVAL(T1, site);
     asm.emitBCCTRL();
     pushAddr(T0);
   }
@@ -2690,11 +2694,13 @@ public class VM_Compiler extends VM_BaselineCompiler
     Offset tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
+    int site = MM_Interface.getAllocationSite(true);
     int align = VM_ObjectModel.getAlignment(array);
     int offset = VM_ObjectModel.getOffsetForAlignment(array);
     asm.emitLAddrToc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0,0);                    // T0 := number of elements
+    asm.emitLVAL(T5, site);           // T4 := site
     asm.emitLVAL(T1, width);         // T1 := log element size
     asm.emitLVAL(T2, headerSize);    // T2 := header bytes
     asm.emitLAddrToc(T3, tibOffset);  // T3 := tib
@@ -2710,10 +2716,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_newarray(VM_TypeReference typeRef) {
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitLAddrToc (T0, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0,0);                // T0 := number of elements
     asm.emitLVAL(T1, typeRef.getId());      // T1 := id of type ref
+    asm.emitLVAL(T2, site);
     asm.emitBCCTRL();
     pokeAddr(T0,0);
   }

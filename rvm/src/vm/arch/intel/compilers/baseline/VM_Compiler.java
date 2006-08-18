@@ -2158,13 +2158,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     int align = VM_ObjectModel.getAlignment(typeRef);
     int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitPUSH_Imm(instanceSize);            
     asm.emitPUSH_RegDisp (JTOC, tibOffset);       // put tib on stack    
     asm.emitPUSH_Imm(typeRef.hasFinalizer()?1:0); // does the class have a finalizer?
     asm.emitPUSH_Imm(whichAllocator);
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
-    genParameterRegisterLoad(6);                  // pass 6 parameter words
+    asm.emitPUSH_Imm(site);
+    genParameterRegisterLoad(7);                  // pass 7 parameter words
     asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
   }
@@ -2174,8 +2176,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param typeRef typeReference to dynamically link & instantiate
    */
   protected final void emit_unresolved_new(VM_TypeReference typeRef) {
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitPUSH_Imm(typeRef.getId());
-    genParameterRegisterLoad(1);           // pass 1 parameter word
+    asm.emitPUSH_Imm(site);                 // site
+    genParameterRegisterLoad(2);            // pass 2 parameter words
     asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
   }
@@ -2189,6 +2193,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     Offset tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
+    int site = MM_Interface.getAllocationSite(true);
     int align = VM_ObjectModel.getAlignment(array);
     int offset = VM_ObjectModel.getOffsetForAlignment(array);
     // count is already on stack- nothing required
@@ -2198,7 +2203,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Imm(whichAllocator);        // allocator
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
-    genParameterRegisterLoad(7);             // pass 7 parameter words
+    asm.emitPUSH_Imm(site);
+    genParameterRegisterLoad(8);             // pass 8 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
@@ -2208,9 +2214,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param tRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_newarray(VM_TypeReference tRef) {
+    int site = MM_Interface.getAllocationSite(true);
     // count is already on stack- nothing required
     asm.emitPUSH_Imm(tRef.getId());
-    genParameterRegisterLoad(2);          // pass 2 parameter words
+    asm.emitPUSH_Imm(site);                 // site
+    genParameterRegisterLoad(3);            // pass 3 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }

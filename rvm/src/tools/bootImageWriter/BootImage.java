@@ -8,6 +8,7 @@ import java.io.IOException;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.mm.mmtk.ScanBootImage;
 
 import org.vmmagic.unboxed.*;
 
@@ -133,7 +134,7 @@ public class BootImage extends BootImageWriterMessages
        we'll create the in-memory array assuming worst case 1:1 compression.  Only the
        used portion of the array actually gets written into the image. */
     bootImageRMap = new byte[referenceMapReferences<<LOG_BYTES_IN_WORD];
-    rMapSize = org.mmtk.vm.ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
+    rMapSize = ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
     FileOutputStream rmapOut = new FileOutputStream(imageRMapFileName);
     rmapOut.write(bootImageRMap, 0, rMapSize);
     rmapOut.flush();
@@ -141,7 +142,7 @@ public class BootImage extends BootImageWriterMessages
     if (trace) {
       say("total refs: "+ referenceMapReferences);
     }
-    org.mmtk.vm.ScanBootImage.encodingStats();
+    ScanBootImage.encodingStats();
   }
 
   /**

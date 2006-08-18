@@ -9,9 +9,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.ScanThread;
+import com.ibm.JikesRVM.mm.mmtk.Collection;
+import com.ibm.JikesRVM.mm.mmtk.ScanThread;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -339,7 +338,7 @@ public class VM_CollectorThread extends VM_Thread {
 
       /* actually perform the GC... */
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
-      if (isActive) ActivePlan.collector().collect(); // gc
+      if (isActive) SelectedCollectorContext.get().collect(); // gc
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       gcBarrier.rendezvous(5200);
@@ -348,7 +347,7 @@ public class VM_CollectorThread extends VM_Thread {
         long elapsedCycles = VM_Time.cycles() - startCycles;
         HeapGrowthManager.recordGCTime(VM_Time.cyclesToMillis(elapsedCycles));
       }
-      if (gcOrdinal == 1 && ActivePlan.global().isLastGCFull()) {
+      if (gcOrdinal == 1 && SelectedPlan.get().isLastGCFull()) {
         boolean heapSizeChanged = false;
         if (Options.variableSizeHeap.getValue() && 
             handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
