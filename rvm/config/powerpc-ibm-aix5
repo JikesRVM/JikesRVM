@@ -90,7 +90,7 @@ export LDSHARED="/usr/gnu/bin/g++ -shared"
 
 # The configuration for building the user guide.
 # You may have to edit this file.
-export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
+export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
 
 # some Unix commands used in sanity rules and automatic rvmrt retrieval
 export AWK="/usr/gnu/bin/gawk"

@@ -710,7 +710,7 @@ function rationalize_config_file_settings () {
 
     # The configuration for building the user guide.
     # You may have to edit this file.
-    [[ ${USER_GUIDE_CONFIG-} ]] || export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
+    [[ ${USER_GUIDE_CONFIG-} ]] || export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
 
     ## Special GNU commands:
     setFromPath GNU_MAKE make
@@ -2161,7 +2161,7 @@ EOF
 	
     # The configuration for building the user guide.
     # You may have to edit this file.
-    [[ ! ${USER_GUIDE_CONFIG-} ]] || echo "USER_GUIDE_CONFIG := ${RVM_ROOT}/rvm/doc/userguide/config.mk"
+    [[ ! ${USER_GUIDE_CONFIG-} ]] || echo "USER_GUIDE_CONFIG := ${RVM_ROOT}/doc/userguide/config.mk"
 
     if (( RVM_FOR_32_ADDR )); then
 	echo "RVM_FOR_32_ADDR := 1"
