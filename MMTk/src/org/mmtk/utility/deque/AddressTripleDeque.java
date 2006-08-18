@@ -6,6 +6,7 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.Uninterruptible;
@@ -47,9 +48,9 @@ public class AddressTripleDeque extends LocalDeque implements Constants, Uninter
    */
   public final void insert(Address addr1, Address addr2, 
                            Address addr3) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr1.isZero());
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr2.isZero());
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr3.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr1.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr2.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr3.isZero());
     checkTailInsert(3);
     uncheckedTailInsert(addr1);
     uncheckedTailInsert(addr2);
@@ -63,9 +64,9 @@ public class AddressTripleDeque extends LocalDeque implements Constants, Uninter
    * @param addr3 the third address to be pushed onto the address queue
    */
   public final void push(Address addr1, Address addr2, Address addr3) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr1.isZero());
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr2.isZero());
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr3.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr1.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr2.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr3.isZero());
     checkHeadInsert(3);
     uncheckedHeadInsert(addr3);
     uncheckedHeadInsert(addr2);

@@ -11,8 +11,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -100,7 +99,7 @@ public final class SanityChecker implements Uninterruptible, Constants {
     }
 
     if (phaseId == StopTheWorld.SANITY_ROOTS) {
-      Scanning.resetThreadCounter();
+      VM.scanning.resetThreadCounter();
       return true;
     }
 
@@ -134,6 +133,6 @@ public final class SanityChecker implements Uninterruptible, Constants {
     Log.write(" [");
     Log.write(Space.getSpaceForObject(object).getName());
     Log.write("] ");
-    Log.writeln(ObjectModel.getTypeDescriptor(object));
+    Log.writeln(VM.objectModel.getTypeDescriptor(object));
   }
 }

@@ -7,7 +7,7 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.*;
 
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
@@ -90,8 +90,8 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator)
   throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(allocator == MC.ALLOC_IMMORTAL);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
     }
 
     return immortal.alloc(bytes, align, offset, true);
@@ -189,6 +189,6 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
 
   /** @return The active global plan as an <code>MC</code> instance. */
   private static final MC global() throws InlinePragma {
-    return (MC) ActivePlan.global();
+    return (MC) VM.activePlan.global();
   }
 }

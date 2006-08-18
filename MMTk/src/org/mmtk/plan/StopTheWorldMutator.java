@@ -6,8 +6,8 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
+import org.mmtk.vm.VM;
+
 import org.vmmagic.pragma.*;
 
 /**
@@ -53,24 +53,24 @@ implements Uninterruptible {
   throws InlinePragma {
 
     if (phaseId == StopTheWorld.INITIATE_MUTATOR) {
-      Collection.prepareMutator(this);
+      VM.collection.prepareMutator(this);
       return;
     }
 
     if (phaseId == StopTheWorld.PREPARE_MUTATOR) {
       los.prepare();
-      Memory.collectorPrepareVMSpace();
+      VM.memory.collectorPrepareVMSpace();
       return;
     }
 
     if (phaseId == StopTheWorld.RELEASE_MUTATOR) {
       los.release();
-      Memory.collectorReleaseVMSpace();
+      VM.memory.collectorReleaseVMSpace();
       return;
     }
 
     Log.write("Per-mutator phase \""); Phase.getPhase(phaseId).logPhase(); 
     Log.writeln("\" not handled.");
-    Assert.fail("Per-mutator phase not handled!");
+    VM.assertions.fail("Per-mutator phase not handled!");
   }
 }

@@ -11,6 +11,7 @@ import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.PrintPhaseStats;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -112,7 +113,7 @@ public class Stats implements Uninterruptible {
     if (gatheringStats) {
       Log.writeln("Error: calling Stats.startAll() while stats running");
       Log.writeln("       verbosity > 0 and the harness mechanism may be conflicitng");
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     }
     gatheringStats = true;
     for (int c = 0; c < counters; c++) {

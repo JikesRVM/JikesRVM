@@ -8,8 +8,8 @@ import org.mmtk.utility.Log;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.ObjectModel;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -72,7 +72,7 @@ public class Map implements Constants, Uninterruptible {
         Log.write(space.getName()); Log.write("\" at ");
         Log.writeln(start.plus(e));
         Space.printVMMap();
-        Assert.fail("exiting");
+        VM.assertions.fail("exiting");
       }
       descriptorMap[index] = descriptor;
       spaceMap[index] = space;
@@ -88,8 +88,8 @@ public class Map implements Constants, Uninterruptible {
    */
   public static Space getSpaceForObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
-    return getSpaceForAddress(ObjectModel.refToAddress(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
+    return getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
 
   /**
@@ -100,7 +100,7 @@ public class Map implements Constants, Uninterruptible {
    */
   public static Space getSpaceForAddress(Address address) throws InlinePragma {
     int index = hashAddress(address);
-    return (Space) Barriers.getArrayNoBarrier(spaceMap, index);
+    return (Space) VM.barriers.getArrayNoBarrier(spaceMap, index);
   }
 
   /**
@@ -113,9 +113,9 @@ public class Map implements Constants, Uninterruptible {
    */
   public static int getDescriptorForObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
-    int index = hashAddress(ObjectModel.refToAddress(object));
-    return Barriers.getArrayNoBarrier(descriptorMap, index);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
+    int index = hashAddress(VM.objectModel.refToAddress(object));
+    return VM.barriers.getArrayNoBarrier(descriptorMap, index);
   }
 
   /**

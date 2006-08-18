@@ -9,16 +9,18 @@ package org.mmtk.vm;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 
+import org.vmmagic.pragma.*;
+
 /**
- * $Id$
+ * $Id: Collection.java,v 1.7 2006/06/23 03:24:49 steveb-oss Exp $
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 1.7 $
+ * @date $Date: 2006/06/23 03:24:49 $
  */
-public class Collection {
+public abstract class Collection implements Uninterruptible {
 
   /****************************************************************************
    * 
@@ -77,7 +79,7 @@ public class Collection {
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  public static final void triggerCollection(int why) {}
+  public abstract void triggerCollection(int why) throws InterruptiblePragma;
 
   /**
    * Triggers a collection without allowing for a thread switch. This is needed
@@ -86,13 +88,13 @@ public class Collection {
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  public static final void triggerCollectionNow(int why) {}
+  public abstract void triggerCollectionNow(int why);
 
   /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
-  public static final void triggerAsyncCollection() {}
+  public abstract void triggerAsyncCollection();
 
   /**
    * Determine whether a collection cycle has fully completed (this is
@@ -102,42 +104,25 @@ public class Collection {
    * 
    * @return True if GC is not in progress.
    */
-  public static final boolean noThreadsInGC() {
-    return false;
-  }
+  public abstract boolean noThreadsInGC();
 
   /**
    * Prepare a mutator for collection.
    * 
    * @param m the mutator to prepare
    */
-  public static void prepareMutator(MutatorContext m) {}
+  public abstract void prepareMutator(MutatorContext m);
 
   /**
    * Prepare a collector for a collection.
    *
    * @param c the collector to prepare
    */
-  public static void prepareCollector(CollectorContext c) {}
+  public abstract void prepareCollector(CollectorContext c);
 
   /**
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
    */
-  public static int rendezvous(int where) {
-    return 0;
-  }
-
-  /***********************************************************************
-   * 
-   * Finalizers
-   */
-
-  /**
-   * Schedule the finalizerThread, if there are objects to be
-   * finalized and the finalizerThread is on its queue (ie. currently
-   * idle).  Should be called at the end of GC after moveToFinalizable
-   * has been called, and before mutators are allowed to run.
-   */
-  public static void scheduleFinalizerThread () {}
+  public abstract int rendezvous(int where);
 }

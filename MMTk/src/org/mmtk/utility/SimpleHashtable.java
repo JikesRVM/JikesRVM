@@ -7,7 +7,8 @@ package org.mmtk.utility;
 import org.mmtk.policy.RawPageSpace;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -73,7 +74,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    */
   public final void acquireTable() {
     base = space.acquire(Conversions.bytesToPages(size));
-    Memory.zero(base, size);
+    VM.memory.zero(base, size);
     valid = true;
   }
 
@@ -116,7 +117,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
             index != startIndex);
 
     if (index == startIndex) {
-      Assert.fail("No room left in table!");
+      VM.assertions.fail("No room left in table!");
     }
 
     if (curAddress.isZero()) {

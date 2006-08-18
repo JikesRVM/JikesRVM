@@ -6,52 +6,35 @@
  */
 package org.mmtk.vm;
 
+import org.vmmagic.pragma.Uninterruptible;
+
 
 /**
- * $Id$ 
+ * $Id: Strings.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $ 
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 1.5 $
+ * @date $Date: 2006/06/21 07:38:13 $
  */
-public class Strings {
-  /**
-   * Primitive parsing facilities for strings
-   * @param value String to parse
-   * @return the integer equivalent of <code>value</code>
-   */
-  public static int parseInt(String value) {
-    return 0;
-  }
-
-  /**
-   * Parse a floating-point number
-   * @param value The string to parse
-   * @return The floating point representation of <code>value</code>
-   */
-  public static float parseFloat(String value) {
-    return (float) 0;
-  }
-
+public abstract class Strings implements Uninterruptible {
   /**
    * Log a message.
    * 
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
-  public static void write(char [] c, int len) {}
-
+  public abstract void write(char [] c, int len);
+  
   /**
    * Log a thread identifier and a message.
    * 
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
-  public static void writeThreadId(char [] c, int len) {}
-
-
+  public abstract void writeThreadId(char [] c, int len);
+  
   /**
    * Copies characters from the string into the character array.
    * Thread switching is disabled during this method's execution.
@@ -66,8 +49,6 @@ public class Strings {
    * destination to copy to
    * @return the number of characters copied.
    */
-  public static int copyStringToChars(String src, char [] dst,
-                                      int dstBegin, int dstEnd) {
-    return 0;
-  }
+  public abstract int copyStringToChars(String src, char [] dst,
+      int dstBegin, int dstEnd);
 }

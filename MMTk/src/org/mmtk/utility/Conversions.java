@@ -7,6 +7,7 @@ package org.mmtk.utility;
 
 import org.mmtk.utility.heap.*;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -70,7 +71,7 @@ public class Conversions implements Constants, Uninterruptible {
 
   public static int addressToPages(Address addr) {
     int page = addressToPagesDown(addr);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(pagesToAddress(page).EQ(addr));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(pagesToAddress(page).EQ(addr));
     return page;
   }
 
@@ -115,14 +116,14 @@ public class Conversions implements Constants, Uninterruptible {
 
   public static int bytesToPages(Extent bytes) {
     int pages = bytesToPagesUp(bytes);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
     return pages;
   }
 
   public static int bytesToPages(Offset bytes) {
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       long val = bytes.toLong();
-      Assert._assert(val >= MIN_INT && val <= MAX_INT);
+      VM.assertions._assert(val >= MIN_INT && val <= MAX_INT);
     }
     if (bytes.sGE(Offset.zero()))
       return bytesToPagesUp(Extent.fromIntSignExtend(bytes.toInt()));

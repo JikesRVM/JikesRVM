@@ -8,6 +8,7 @@ package org.mmtk.utility.statistics;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -85,7 +86,7 @@ public class BooleanCounter extends Counter
    * Set the boolean to true for this phase, increment the total.
    */
   public void set() {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!state[Stats.phase]);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!state[Stats.phase]);
     state[Stats.phase] = true;
     total++;
   }
@@ -100,7 +101,7 @@ public class BooleanCounter extends Counter
    */
   protected void start() {
     if (!Stats.gatheringStats) return;
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!running);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!running);
     running = true;
   }
 
@@ -109,7 +110,7 @@ public class BooleanCounter extends Counter
    */
   protected void stop() {
     if (!Stats.gatheringStats) return;
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(running);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(running);
     running = false;
   }
 
@@ -129,8 +130,8 @@ public class BooleanCounter extends Counter
    * @param phase The phase to be printed
    */
   final protected void printCount(int phase) {
-    if (Assert.VERIFY_ASSERTIONS && mergePhases())
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert((phase | 1) == (phase + 1));
+    if (VM.VERIFY_ASSERTIONS && mergePhases())
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((phase | 1) == (phase + 1));
     if (mergePhases())
       printValue((state[phase] || state[phase + 1]) ? 1 : 0);
     else

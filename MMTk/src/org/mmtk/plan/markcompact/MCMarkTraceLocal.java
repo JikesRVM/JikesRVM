@@ -9,7 +9,7 @@ import org.mmtk.plan.Trace;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -85,7 +85,7 @@ public final class MCMarkTraceLocal extends TraceLocal implements Uninterruptibl
       if (MarkCompactSpace.testAndMark(object)) {
         // TODO: If precopy returns many different objects, this will cause a leak.
         // Currently, Jikes RVM does not require many objects to be precopied.
-        ObjectReference newObject = ObjectModel.copy(object, MC.ALLOC_IMMORTAL);
+        ObjectReference newObject = VM.objectModel.copy(object, MC.ALLOC_IMMORTAL);
         MarkCompactSpace.setForwardingPointer(object, newObject);
         enqueue(newObject);
         return newObject;

@@ -75,14 +75,14 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
    * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return nursery.alloc(bytes, align, offset, false);
     if (allocator == CopyMS.ALLOC_MS)
       return mature.alloc(bytes, align, offset, false);
 
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**

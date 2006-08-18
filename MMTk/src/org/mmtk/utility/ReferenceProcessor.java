@@ -8,9 +8,9 @@ package org.mmtk.utility;
 
 import org.mmtk.plan.TraceLocal;
 
-import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.ReferenceGlue;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -70,7 +70,7 @@ public class ReferenceProcessor implements Uninterruptible {
       Log.writeln(")");
     }
 
-    ReferenceGlue.scanReferences(semantics, nursery);
+    VM.referenceTypes.scanReferences(semantics, nursery);
 
     if (TRACE) {
       Log.writeln("Ending ReferenceProcessor.traverse()");
@@ -84,14 +84,14 @@ public class ReferenceProcessor implements Uninterruptible {
    * @return The forwarded reference
    */
   public static Address forwardReference(Address reference) {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(!reference.isZero());
-      Assert._assert(ReferenceGlue.REFERENCES_ARE_OBJECTS);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(!reference.isZero());
+      VM.assertions._assert(VM.REFERENCES_ARE_OBJECTS);
     }
 
-    TraceLocal trace = ActivePlan.collector().getCurrentTrace();
+    TraceLocal trace = VM.activePlan.collector().getCurrentTrace();
 
-    ObjectReference referent = ReferenceGlue.getReferent(reference);
+    ObjectReference referent = VM.referenceTypes.getReferent(reference);
 
     if (TRACE) {
       Log.write("+++ old reference: "); Log.writeln(reference);
@@ -99,11 +99,11 @@ public class ReferenceProcessor implements Uninterruptible {
     }
 
     referent = trace.getForwardedReferent(referent);
-    ReferenceGlue.setReferent(reference, referent);
+    VM.referenceTypes.setReferent(reference, referent);
 
 
     
-    if (ReferenceGlue.REFERENCES_ARE_OBJECTS) {
+    if (VM.REFERENCES_ARE_OBJECTS) {
       reference = trace.getForwardedReference(reference.toObjectReference()).toAddress();
     }
 
@@ -123,9 +123,9 @@ public class ReferenceProcessor implements Uninterruptible {
    */
   public static Address processReference(Address reference,
                                          int semantics) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!reference.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!reference.isZero());
 
-    TraceLocal trace = ActivePlan.collector().getCurrentTrace();
+    TraceLocal trace = VM.activePlan.collector().getCurrentTrace();
 
     if (TRACE) {
       Log.write("+++ old reference: "); Log.writeln(reference);
@@ -136,16 +136,16 @@ public class ReferenceProcessor implements Uninterruptible {
      * If the reference is dead, we're done with it. Let it (and
      * possibly its referent) be garbage-collected.
      */
-    if (ReferenceGlue.REFERENCES_ARE_OBJECTS && 
+    if (VM.REFERENCES_ARE_OBJECTS && 
         !trace.isReferentLive(reference.toObjectReference())) {
       newReference = Address.zero();
     } else {
       /* Otherwise... */
-      if (ReferenceGlue.REFERENCES_ARE_OBJECTS)
+      if (VM.REFERENCES_ARE_OBJECTS)
         newReference = trace.getForwardedReference(reference.toObjectReference()).toAddress();
       else
         newReference = reference;
-      ObjectReference oldReferent = ReferenceGlue.getReferent(reference);
+      ObjectReference oldReferent = VM.referenceTypes.getReferent(reference);
 
       if (TRACE_DETAIL) {
         Log.write("    new reference: "); Log.writeln(newReference);
@@ -203,7 +203,7 @@ public class ReferenceProcessor implements Uninterruptible {
            */
 
           /* Update the referent */
-          ReferenceGlue.setReferent(newReference, newReferent);
+          VM.referenceTypes.setReferent(newReference, newReferent);
         }
         else {
           /* Referent is unreachable. */
@@ -223,7 +223,7 @@ public class ReferenceProcessor implements Uninterruptible {
             if (TRACE_DETAIL) {
               Log.write(" clearing: "); Log.writeln(oldReferent);
             }
-            ReferenceGlue.setReferent(newReference, ObjectReference.nullReference());
+            VM.referenceTypes.setReferent(newReference, ObjectReference.nullReference());
           }
           enqueue = true;
         }
@@ -233,7 +233,7 @@ public class ReferenceProcessor implements Uninterruptible {
            * Ensure phantomly reachable objects are enqueued only
            * the first time they become phantomly reachable.
            */
-          ReferenceGlue.enqueueReference(newReference,
+          VM.referenceTypes.enqueueReference(newReference,
               semantics == PHANTOM_SEMANTICS);
 
         }
@@ -247,7 +247,7 @@ public class ReferenceProcessor implements Uninterruptible {
    * reachable objects should be cleared during GC. Usually this is 
    * false so the referent will stay alive. But when memory becomes
    * scarce the collector should reclaim all such objects before it is
-   * forced to throw an OutOfMemory exception. Note that this flag
+   * forced to throw an OutOfVM.me.exception. Note that this flag
    * applies only to the next collection. After each collection the
    * setting is restored to false.
    * @param set <code>true</code> if soft references should be cleared
@@ -291,7 +291,7 @@ public class ReferenceProcessor implements Uninterruptible {
     if (TRACE) {
       Log.writeln("Starting ReferenceProcessor.forwardReferences()");
     }
-    ReferenceGlue.forwardReferences();
+    VM.referenceTypes.forwardReferences();
     if (TRACE) {
       Log.writeln("Ending ReferenceProcessor.forwardReferences()");
     }

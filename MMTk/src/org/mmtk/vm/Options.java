@@ -4,12 +4,13 @@
 package org.mmtk.vm;
 
 import org.mmtk.utility.options.Option;
+import org.vmmagic.pragma.Uninterruptible;
 /**
  * Skeleton for class to handle command-line arguments and options for GC.
  * 
  * @author Daniel Frampton
  **/
-public final class Options {
+public abstract class Options {
 
   /**
    * Map a name into a key in the VM's format
@@ -17,9 +18,7 @@ public final class Options {
    * @param name the space delimited name. 
    * @return the VM specific key.
    */
-  public static String getKey(String name) {
-    return null;
-  }
+  public abstract String getKey(String name);
 
   /**
    * Failure during option processing. This must never return.
@@ -27,7 +26,7 @@ public final class Options {
    * @param o The option that was being set.
    * @param message The error message.
    */
-  public static void fail(Option o, String message) {}
+  public abstract void fail(Option o, String message);
 
   /**
    * Warning during option processing.
@@ -35,5 +34,5 @@ public final class Options {
    * @param o The option that was being set.
    * @param message The warning message.
    */
-  public static void warn(Option o, String message) {}
+  public abstract void warn(Option o, String message);
 }

@@ -9,6 +9,7 @@
 package org.mmtk.utility;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -228,7 +229,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    */
   private final void split(int unit, int size) {
     int basesize = getSize(unit);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(basesize > size);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(basesize > size);
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);

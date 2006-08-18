@@ -8,7 +8,7 @@ import org.mmtk.plan.generational.GenMutator;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -77,14 +77,15 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
    * @param align The requested alignment.
    * @param offset The alignment offset.
    * @param allocator The allocator to allocate from
+   * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator)
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == GenCopy.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**
@@ -169,7 +170,7 @@ public class GenCopyMutator extends GenMutator implements Uninterruptible {
 
   /** @return The active global plan as a <code>GenCopy</code> instance. */
   private static final GenCopy global() {
-    return (GenCopy) ActivePlan.global();
+    return (GenCopy) VM.activePlan.global();
   }
 
 }

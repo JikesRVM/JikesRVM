@@ -8,6 +8,7 @@ import org.mmtk.plan.*;
 import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -161,7 +162,7 @@ public class MC extends StopTheWorld implements Uninterruptible {
 
     if (mustCollect || heapFull) {
       required = space.reservedPages() - space.committedPages();
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;

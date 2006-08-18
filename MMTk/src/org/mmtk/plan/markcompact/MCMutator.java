@@ -73,14 +73,15 @@ public class MCMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
    * @param allocator The allocator associated with this request.
+   * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == MC.ALLOC_DEFAULT) {
       return mc.alloc(bytes, align, offset, false);
     }
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**

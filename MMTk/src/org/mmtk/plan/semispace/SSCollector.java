@@ -8,7 +8,7 @@ import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
@@ -81,9 +81,9 @@ public class SSCollector extends StopTheWorldCollector implements Uninterruptibl
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator)
   throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      Assert._assert(allocator == SS.ALLOC_SS);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(allocator == SS.ALLOC_SS);
     }
 
     return ss.alloc(bytes, align, offset, true);
@@ -166,7 +166,7 @@ public class SSCollector extends StopTheWorldCollector implements Uninterruptibl
 
   /** @return The active global plan as an <code>SS</code> instance. */
   private static final SS global() throws InlinePragma {
-    return (SS) ActivePlan.global();
+    return (SS) VM.activePlan.global();
   }
 
   /** @return the current trace object. */

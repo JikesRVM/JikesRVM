@@ -10,7 +10,7 @@ package org.mmtk.plan.semispace.gctrace;
 import org.mmtk.plan.*;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.semispace.*;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -117,7 +117,7 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
 
   /** @return The active global plan as a <code>GCTrace</code> instance. */
   private static final GCTrace global() throws InlinePragma {
-    return (GCTrace) ActivePlan.global();
+    return (GCTrace) VM.activePlan.global();
   }
 
   /** @return The current trace instance */

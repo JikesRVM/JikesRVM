@@ -9,7 +9,7 @@ import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -265,7 +265,7 @@ public final class LargeObjectSpace extends Space
   private final void internalMarkObject(ObjectReference object)
       throws InlinePragma {
 
-    Address cell = ObjectModel.objectStartRef(object);
+    Address cell = VM.objectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
     tm.copy(node);
@@ -293,9 +293,9 @@ public final class LargeObjectSpace extends Space
    */
   public final void initializeHeader(ObjectReference object)
       throws InlinePragma {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
-    ObjectModel.writeAvailableBitsWord(object, newValue);
+    VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /**
@@ -309,10 +309,10 @@ public final class LargeObjectSpace extends Space
       throws InlinePragma {
     Word oldValue, markBit;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       markBit = oldValue.and(MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                oldValue.xor(MARK_BIT_MASK)));
     return true;
   }
@@ -326,7 +326,7 @@ public final class LargeObjectSpace extends Space
    */
   static public boolean testMarkBit(ObjectReference object, Word value)
       throws InlinePragma {
-    return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+    return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
 
   /**

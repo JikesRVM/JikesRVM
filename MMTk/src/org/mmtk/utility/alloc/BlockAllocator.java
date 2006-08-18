@@ -7,7 +7,7 @@ package org.mmtk.utility.alloc;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -96,7 +96,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * zero on failure.
    */
   final Address alloc(int blockSizeClass) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((blockSizeClass >= 0) && 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((blockSizeClass >= 0) && 
                            (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     Address rtn;
     if (PARANOID) sanity(false);
@@ -343,7 +343,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
       throws InlinePragma {
     address = Conversions.pageAlign(address);
     short rtn = getMetaAddress(address).loadShort(SC_OFFSET);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(rtn >= 0 && rtn <= (short) MAX_BLOCK_SIZE_CLASS);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(rtn >= 0 && rtn <= (short) MAX_BLOCK_SIZE_CLASS);
     return rtn;
   }
 
@@ -381,10 +381,10 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @param block The block to be removed from the doubly linked list
    */
   static final void unlinkBlock(Address block) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!block.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!block.isZero());
     Address next = getNextBlock(block);
     Address prev = getPrevBlock(block);
-    // if (Assert.VERIFY_ASSERTIONS) {
+    // if (VM.VERIFY_ASSERTIONS) {
     setNextBlock(block, Address.zero());
     setPrevBlock(block, Address.zero());
     // }
@@ -400,7 +400,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */
   static final void linkedListInsert(Address block, Address prev)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!block.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!block.isZero());
     Address next;
     if (!prev.isZero()) {
       next = getNextBlock(prev);
@@ -529,7 +529,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */ 
   public static final void markBlockMeta(ObjectReference ref)
     throws InlinePragma {
-    getMetaAddress(ObjectModel.refToAddress(ref)).plus(FL_META_OFFSET).store(Word.one());
+    getMetaAddress(VM.objectModel.refToAddress(ref)).plus(FL_META_OFFSET).store(Word.one());
   }
  
   /**
@@ -559,7 +559,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
         Log.write("------>"); Log.writeln(sc); Log.write(" "); Log.write(blocks); Log.write(" != "); Log.writeln(freeBlocks[sc]);
         sanityTraverse(freeList.get(sc), Address.zero(), true);
         Log.writeln();
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
       }
     }
     if (verbose) Log.writeln();
@@ -582,7 +582,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     boolean first = true;
     int blocks = 0;
     while (!block.isZero()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(getPrevBlock(block).EQ(prev));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getPrevBlock(block).EQ(prev));
       blocks++;
       if (verbose) {
         if (!first)

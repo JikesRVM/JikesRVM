@@ -7,6 +7,7 @@ package org.mmtk.plan;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -171,9 +172,9 @@ public abstract class Phase implements Uninterruptible, Constants {
    * @return The Phase instance.
    */
   public static Phase getPhase(int id) {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(id < phaseId, "Phase ID unknown");
-      Assert._assert(phases[id] != null, "Uninitialised phase");
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(id < phaseId, "Phase ID unknown");
+      VM.assertions._assert(phases[id] != null, "Uninitialised phase");
     }
     return phases[id];
   }

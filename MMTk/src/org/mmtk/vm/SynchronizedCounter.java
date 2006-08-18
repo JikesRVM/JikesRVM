@@ -1,9 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id$
+//$Id: SynchronizedCounter.java,v 1.4 2006/06/21 07:38:13 steveb-oss Exp $
 
 package org.mmtk.vm;
+
+import org.vmmagic.pragma.Uninterruptible;
 
 
 /**
@@ -11,32 +13,26 @@ package org.mmtk.vm;
  * 
  * @author Perry Cheng
  */
-public final class SynchronizedCounter {
+public abstract class SynchronizedCounter implements Uninterruptible {
 
   /**
    * Reset the counter to 0, returning its previous value.
+   * 
    * @return The value of the counter, prior to reset.
    */
-  public int reset() {
-    return 0;
-  }
+  public abstract int reset();
 
   /**
    * Adds 1 to the counter.
    * 
    * @return the value before the add
    */
-  public int increment() {
-    return 0;
-  }
+  public abstract int increment();
 
   /**
    * Peek at the counter
    * 
    * @return The current value of the counter.
    */
-  public int peek() {
-    return 0;
-  }
-
+  public abstract int peek();
 }

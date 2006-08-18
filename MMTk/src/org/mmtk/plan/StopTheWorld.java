@@ -12,11 +12,8 @@ import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.statistics.Timer;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
 
 import org.vmmagic.pragma.*;
 
@@ -181,7 +178,7 @@ public abstract class StopTheWorld extends Plan
 
     if (Options.sanityCheck.getValue()) {
       if (getSanityChecker() == null || 
-          ActivePlan.collector().getSanityChecker() == null) {
+          VM.activePlan.collector().getSanityChecker() == null) {
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
@@ -216,12 +213,12 @@ public abstract class StopTheWorld extends Plan
     if (phaseId == PREPARE) {
       loSpace.prepare();
       immortalSpace.prepare();
-      Memory.globalPrepareVMSpace();
+      VM.memory.globalPrepareVMSpace();
       return;
     }
 
     if (phaseId == ROOTS) {
-      Scanning.resetThreadCounter();
+      VM.scanning.resetThreadCounter();
       Plan.setGCStatus(GC_PROPER);
       return;
     }
@@ -229,7 +226,7 @@ public abstract class StopTheWorld extends Plan
     if (phaseId == RELEASE) {
       loSpace.release();
       immortalSpace.release();
-      Memory.globalReleaseVMSpace();
+      VM.memory.globalReleaseVMSpace();
       return;
     }
 
@@ -249,7 +246,7 @@ public abstract class StopTheWorld extends Plan
 
     Log.write("Global phase "); Log.write(Phase.getName(phaseId)); 
     Log.writeln(" not handled.");
-    Assert.fail("Global phase not handled!");
+    VM.assertions.fail("Global phase not handled!");
   }
 
   /**

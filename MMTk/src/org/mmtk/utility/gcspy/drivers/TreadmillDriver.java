@@ -11,7 +11,7 @@ import org.mmtk.utility.gcspy.Color;
 import org.mmtk.utility.gcspy.StreamConstants;
 import org.mmtk.utility.gcspy.Subspace;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
@@ -290,12 +290,12 @@ public class TreadmillDriver extends AbstractDriver
     space.stream(LOS_USED_SPACE_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
       // checkspace(i, 0, "send");
-      if (Assert.VERIFY_ASSERTIONS)
+      if (VM.VERIFY_ASSERTIONS)
         if (tiles[i].usedSpace > subspace.getBlockSize()) {
           Log.write("Bad value for TreadmillDriver Used Space stream: ");
           Log.write(tiles[i].usedSpace);
           Log.writeln(" max=", subspace.getBlockSize());
-          // Assert._assert(false);
+          // VM.as._assert(false);
         }
       space.streamIntValue(tiles[i].usedSpace);
     }
@@ -309,12 +309,12 @@ public class TreadmillDriver extends AbstractDriver
     // (2) Objects stream
     space.stream(LOS_OBJECTS_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
-      if (Assert.VERIFY_ASSERTIONS)
+      if (VM.VERIFY_ASSERTIONS)
         if (tiles[i].objects > subspace.getBlockSize() / threshold) {
           Log.write("Bad value for TreadmillDriver Objects stream: ");
           Log.write(tiles[i].usedSpace);
           Log.writeln(" max=", (int) (subspace.getBlockSize() / threshold));
-          // Assert._assert(false);
+          // VM.as._assert(false);
         }
       space.streamShortValue(tiles[i].objects);
     }

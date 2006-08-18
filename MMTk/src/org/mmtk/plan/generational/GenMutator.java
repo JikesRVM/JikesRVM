@@ -11,9 +11,8 @@ import org.mmtk.utility.deque.*;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Barriers;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -81,15 +80,16 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
    * @param allocator The allocator associated with this request.
+   * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == Gen.ALLOC_NURSERY) {
       if (Stats.GATHER_MARK_CONS_STATS) Gen.nurseryCons.inc(bytes);
       return nursery.alloc(bytes, align, offset, false);
     }
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**
@@ -170,7 +170,7 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
       if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
       remset.insert(slot);
     }
-    Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -221,9 +221,9 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
    * returning to MMTk.
    */
   public final void assertRemsetFlushed() {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(remset.isFlushed());
-      Assert._assert(arrayRemset.isFlushed());
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(remset.isFlushed());
+      VM.assertions._assert(arrayRemset.isFlushed());
     }
   }
 
@@ -268,6 +268,6 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
 
   /** @return The active global plan as a <code>Gen</code> instance. */
   private static final Gen global() throws InlinePragma {
-    return (Gen) ActivePlan.global();
+    return (Gen) VM.activePlan.global();
   }
 }

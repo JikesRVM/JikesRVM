@@ -11,6 +11,7 @@ import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.Util;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -226,7 +227,7 @@ abstract public class AbstractDriver implements Uninterruptible {
 
     int index = subspace.getIndex(start);
     int remainder = subspace.spaceRemaining(start);
-     if (Assert.VERIFY_ASSERTIONS) Assert._assert(remainder <= blockSize);
+     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(remainder <= blockSize);
     if (length <= remainder) { // fits in this tile
       tiles[index].addSpace(streamID, length);
       // checkspace(index, length, "traceObject fits in first tile");

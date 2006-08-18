@@ -16,9 +16,9 @@ import org.mmtk.utility.options.Options;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
+
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -58,7 +58,7 @@ implements Uninterruptible, Constants {
 
   //  FIXME This hack is a consequence of zero collector/mutator separation in RC...
   private final GenRCMutator fixme() {
-    return (GenRCMutator) ActivePlan.mutator();
+    return (GenRCMutator) VM.activePlan.mutator();
   }
 
   /****************************************************************************
@@ -96,7 +96,7 @@ implements Uninterruptible, Constants {
   public final Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator)
   throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(allocator == GenRC.ALLOC_RC);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == GenRC.ALLOC_RC);
     return fixme().rc.alloc(bytes, align, offset, false);  // FIXME is this right???
   }
 
@@ -131,7 +131,7 @@ implements Uninterruptible, Constants {
    */
   public void collectionPhase(int phaseId, boolean primary) {
     if (phaseId == RC.PREPARE) {
-      Memory.collectorPrepareVMSpace();
+      VM.memory.collectorPrepareVMSpace();
       return;
     }
 
@@ -146,7 +146,7 @@ implements Uninterruptible, Constants {
     }
 
     if (phaseId == RC.RELEASE) {
-      Memory.collectorReleaseVMSpace();
+      VM.memory.collectorReleaseVMSpace();
       if (Options.verbose.getValue() > 2) fixme().rc.printStats();
       return;
     }
@@ -167,11 +167,11 @@ implements Uninterruptible, Constants {
    */
   public final void incSanityTrace(ObjectReference object, Address location,
       boolean root) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     // if nursery, then get forwarded RC object
     if (Space.isInSpace(GenRC.NS, object)) {
-      if (Assert.VERIFY_ASSERTIONS)
-        Assert._assert(CopySpace.isForwarded(object));
+      if (VM.VERIFY_ASSERTIONS)
+        VM.assertions._assert(CopySpace.isForwarded(object));
       object = CopySpace.getForwardingPointer(object);
     }
 
@@ -195,11 +195,11 @@ implements Uninterruptible, Constants {
    */
   public final void checkSanityTrace(ObjectReference object,
       Address location) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     // if nursery, then get forwarded RC object
     if (Space.isInSpace(GenRC.NS, object)) {
-      if (Assert.VERIFY_ASSERTIONS)
-        Assert._assert(CopySpace.isForwarded(object));
+      if (VM.VERIFY_ASSERTIONS)
+        VM.assertions._assert(CopySpace.isForwarded(object));
       object = CopySpace.getForwardingPointer(object);
     }
 
@@ -221,7 +221,7 @@ implements Uninterruptible, Constants {
 
   /** @return The active global plan as a <code>GenRC</code> instance. */
   private static final GenRC global() throws InlinePragma {
-    return (GenRC) ActivePlan.global();
+    return (GenRC) VM.activePlan.global();
   }
 
   public final TraceLocal getCurrentTrace() {

@@ -6,7 +6,7 @@ package org.mmtk.plan.marksweep;
 
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -107,7 +107,7 @@ public class MSCollector extends StopTheWorldCollector implements Uninterruptibl
 
   /** @return The active global plan as an <code>MS</code> instance. */
   private static final MS global() throws InlinePragma {
-    return (MS) ActivePlan.global();
+    return (MS) VM.activePlan.global();
   }
 
   /** @return The current trace instance. */

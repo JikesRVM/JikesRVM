@@ -9,9 +9,7 @@ import org.mmtk.utility.*;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.Options;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Statistics;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -78,7 +76,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
    * </ul>
    */
   private static final double[][] function = 
-    ActivePlan.constraints().generational() 
+    VM.activePlan.constraints().generational() 
     ? generationalFunction : nongenerationalFunction;
 
   private static long endLastMajorGC;
@@ -94,8 +92,8 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     if (initialHeapSize.GT(maxHeapSize))
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
-    if (Assert.VERIFY_ASSERTIONS) sanityCheck();
-    endLastMajorGC = Statistics.cycles();
+    if (VM.VERIFY_ASSERTIONS) sanityCheck();
+    endLastMajorGC = VM.statistics.cycles();
   }
 
   /**
@@ -146,7 +144,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
    * Reset timers used to compute gc load
    */
   public static void reset() {
-    endLastMajorGC = Statistics.cycles();
+    endLastMajorGC = VM.statistics.cycles();
     accumulatedGCTime = 0;
   }
 
@@ -180,8 +178,8 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
 
   private static double computeHeapChangeRatio(double liveRatio) {
     // (1) compute GC load.
-    long totalCycles = Statistics.cycles() - endLastMajorGC;
-    double totalTime = Statistics.cyclesToMillis(totalCycles);
+    long totalCycles = VM.statistics.cycles() - endLastMajorGC;
+    double totalTime = VM.statistics.cyclesToMillis(totalCycles);
     double gcLoad = accumulatedGCTime / totalTime;
 
     if (liveRatio > 1) {
@@ -199,12 +197,12 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
       }
       gcLoad = 1;
     }
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio >= 0);
-    if (Assert.VERIFY_ASSERTIONS && gcLoad < 0) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio >= 0);
+    if (VM.VERIFY_ASSERTIONS && gcLoad < 0) {
       Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
       Log.write("\taccumulateGCTime was (ms) "); Log.writeln(accumulatedGCTime);
       Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     }
 
     if (Options.verbose.getValue() > 2) {
@@ -262,26 +260,26 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
   private static void sanityCheck() {
     // Check live ratio
     double[] liveRatio = function[0];
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[1] == 0);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[liveRatio.length-1] == 1);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[1] == 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[liveRatio.length-1] == 1);
     for (int i = 2; i < liveRatio.length; i++) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[i-1] < liveRatio[i]);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(liveRatio[i-1] < liveRatio[i]);
       for (int j = 1; j < function.length; j++) {
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[j][i] >= 1 || function[j][i] > liveRatio[i]);
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[j][i] >= 1 || function[j][i] > liveRatio[i]);
       }
     }
 
     // Check GC load
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[1][0] == 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[1][0] == 0);
     int len = function.length;
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[len-1][0] == 1);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[len-1][0] == 1);
     for (int i = 2; i < len; i++) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[i-1][0] < function[i][0]);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[i-1][0] < function[i][0]);
     }
 
     // Check that we have a rectangular matrix
     for (int i = 1; i < function.length; i++) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[i-1].length == function[i].length);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[i-1].length == function[i].length);
     }
   }
 

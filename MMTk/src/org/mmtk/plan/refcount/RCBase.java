@@ -12,7 +12,7 @@ import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.statistics.*;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -151,6 +151,6 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
   // return ((RCBaseCollector)ActivePlan.collector());
   // }
   public static final RCBaseMutator collector() {
-    return ((RCBaseMutator) ActivePlan.mutator());
+    return ((RCBaseMutator) VM.activePlan.mutator());
   }
 }

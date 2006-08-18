@@ -6,18 +6,11 @@
 package org.mmtk.utility;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.SynchronizedCounter;
-import org.vmmagic.pragma.InlinePragma;
-import org.vmmagic.pragma.InterruptiblePragma;
-import org.vmmagic.pragma.LogicallyUninterruptiblePragma;
-import org.vmmagic.pragma.NoInlinePragma;
-import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.AddressArray;
-import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.ObjectReferenceArray;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class manages finalization.  When an object is created if its
@@ -44,8 +37,8 @@ public class Finalizer implements Uninterruptible {
 
   private static int INITIAL_SIZE = 32768;
   private static double growthFactor = 2.0;
-  private static Lock lock = new Lock("Finalizer");
-  private static SynchronizedCounter gcLock = new SynchronizedCounter();
+  private static Lock lock = VM.newLock("Finalizer");
+  private static SynchronizedCounter gcLock = VM.newSynchronizedCounter();
   
   /* Use an AddressArray rather than ObjectReference array to *avoid* this
      being traced.  We don't want this array to keep the candiates alive */
@@ -146,7 +139,7 @@ public class Finalizer implements Uninterruptible {
         rightCursor--;
       if (leftCursor >= rightCursor) // can be greater on first iteration if totally empty
         break;
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
       candidate.set(leftCursor, candidate.get(rightCursor));
       candidate.set(rightCursor, Address.zero());
     }

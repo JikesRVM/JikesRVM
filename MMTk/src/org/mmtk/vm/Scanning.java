@@ -10,27 +10,26 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Constants;
 
-import org.vmmagic.pragma.UninterruptiblePragma;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
 /**
- * $Id$
+ * $Id: Scanning.java,v 1.6 2006/06/21 07:38:13 steveb-oss Exp $
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 1.6 $
+ * @date $Date: 2006/06/21 07:38:13 $
  */
-public class Scanning implements Constants {
-
+public abstract class Scanning implements Constants, Uninterruptible {
   /**
    * Delegated scanning of a object, processing each pointer field
    * encountered. 
    * 
    * @param object The object to be scanned.
    */
-  public static void scanObject(TraceLocal trace, ObjectReference object) {}
+  public abstract void scanObject(TraceLocal trace, ObjectReference object);
 
   /**
    * Delegated precopying of a object's children, processing each pointer field
@@ -39,7 +38,7 @@ public class Scanning implements Constants {
    * @param trace The trace object to use for precopying.
    * @param object The object to be scanned.
    */
-  public static void precopyChildren(TraceLocal trace, ObjectReference object) {}
+  public abstract void precopyChildren(TraceLocal trace, ObjectReference object);
 
   /**
    * Delegated enumeration of the pointers in an object, calling back
@@ -49,7 +48,7 @@ public class Scanning implements Constants {
    * @param e the Enumerator object through which the callback
    * is made
    */
-  public static void enumeratePointers(ObjectReference object, Enumerator e) {}
+  public abstract void enumeratePointers(ObjectReference object, Enumerator e);
 
   /**
    * Prepares for using the <code>computeAllRoots</code> method.  The
@@ -58,7 +57,7 @@ public class Scanning implements Constants {
    * parallel GC threads were not important, the thread counter could
    * simply be replaced by a for loop).
    */
-  public static void resetThreadCounter() {}
+  public abstract void resetThreadCounter();
 
   /**
    * Pre-copy all potentially movable instances used in the course of
@@ -71,7 +70,7 @@ public class Scanning implements Constants {
    * allows the actions of calculating roots and forwarding GC
    * instances to be decoupled. 
    */
-  public static void preCopyGCInstances(TraceLocal trace) {}
+  public abstract void preCopyGCInstances(TraceLocal trace);
 
   /**
    * Computes all roots.  This method establishes all roots for
@@ -89,7 +88,7 @@ public class Scanning implements Constants {
    * 
    * @param The trace to use for computing roots.
    */
-  public static void computeAllRoots(TraceLocal trace) {}
+  public abstract void computeAllRoots(TraceLocal trace);
 
   
   /**
@@ -104,5 +103,5 @@ public class Scanning implements Constants {
    *  
    * @param trace The trace object to use to report root locations.
    */
-  public static void computeBootImageRoots(TraceLocal trace) {}
+  public abstract void computeBootImageRoots(TraceLocal trace);
 }

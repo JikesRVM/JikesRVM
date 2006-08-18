@@ -13,8 +13,9 @@ import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.utility.options.*;
 
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
+
 import org.mmtk.vm.Statistics;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -55,11 +56,11 @@ public class GenRC extends RCBase implements Uninterruptible {
 
   public void collectionPhase(int phaseId) throws NoInlinePragma {
     if (phaseId == PREPARE) {
-      timeCap = Statistics.cycles() +
-                Statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
+      timeCap = VM.statistics.cycles() +
+                VM.statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
       nurserySpace.prepare(true);
       immortalSpace.prepare();
-      Memory.globalPrepareVMSpace();
+      VM.memory.globalPrepareVMSpace();
       rcSpace.prepare();
       trace.prepare();
       return;
@@ -70,7 +71,7 @@ public class GenRC extends RCBase implements Uninterruptible {
       rcSpace.release();
       immortalSpace.release();
       nurserySpace.release();
-      Memory.globalReleaseVMSpace();
+      VM.memory.globalReleaseVMSpace();
       lastRCPages = rcSpace.committedPages();
       return;
     }
@@ -124,7 +125,7 @@ public class GenRC extends RCBase implements Uninterruptible {
       required = space.reservedPages() - space.committedPages();
       // account for copy reserve
       if (space == nurserySpace) required = required<<1;
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;

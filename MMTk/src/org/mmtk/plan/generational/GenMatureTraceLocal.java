@@ -9,6 +9,7 @@ import org.mmtk.plan.Trace;
 import org.mmtk.utility.deque.*;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -61,7 +62,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    * @return True if the object is live.
    */
   public boolean isLive(ObjectReference object) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       return Gen.nurserySpace.isLive(object);
     }
@@ -96,7 +97,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    */
   public ObjectReference traceObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       return Gen.nurserySpace.traceObject(this, object);
     }

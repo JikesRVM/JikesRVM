@@ -13,7 +13,7 @@ import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.gcspy.drivers.ContiguousSpaceDriver;
 import org.mmtk.utility.gcspy.GCspy;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 
@@ -134,9 +134,9 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
       // -- Handle the LargeObjectSpace --
       SSGCspy.losDriver.zero();
       // FIXME This code needs to be part of the mutator, not the collector.  This hack should disappear with a refactoring. 
-      ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, false); // read fromspace
+      ((SSGCspyMutator) VM.activePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, false); // read fromspace
       if (event == SSGCspy.SEMISPACE_COPIED)
-        ((SSGCspyMutator) ActivePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
+        ((SSGCspyMutator) VM.activePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
 
       // -- Handle the immortal space --
       SSGCspy.immortalDriver.zero();
@@ -163,8 +163,8 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
    */
   private void gcspyGatherData(ContiguousSpaceDriver driver,
                                Space space, BumpPointer bp) {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(bp.getSpace() == space, "Space / BumpPointer mismatch");
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(bp.getSpace() == space, "Space / BumpPointer mismatch");
     Address start = space.getStart();
     driver.zero();
     driver.setRange(start, bp.getCursor());

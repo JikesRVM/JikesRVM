@@ -5,6 +5,7 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -54,7 +55,7 @@ public class SortTODObjectReferenceStack extends LocalDeque
    */
   public final void push(ObjectReference object) throws InlinePragma {
     Address addr = object.toAddress();
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
   }

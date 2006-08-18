@@ -8,6 +8,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -105,7 +106,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
   protected final void checkTailInsert(int arity) throws InlinePragma {
     if (bufferOffset(tail).isZero())
       tailOverflow(arity);
-    else if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(tail).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
+    else if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
   }
 
   /**
@@ -116,7 +117,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * @param value the value to be inserted.
    */
   protected final void uncheckedTailInsert(Address value) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.minus(BYTES_IN_ADDRESS);
     tail.store(value);
     // if (VM_Interface.VerifyAssertions) enqueued++;
@@ -169,7 +170,7 @@ class LocalSSB extends Deque implements Constants, Uninterruptible {
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void tailOverflow(int arity) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     if (tail.NE(Deque.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }

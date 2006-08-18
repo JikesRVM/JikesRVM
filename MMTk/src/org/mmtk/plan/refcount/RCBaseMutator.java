@@ -13,7 +13,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -178,7 +178,7 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
 
   /*  public void enumerateModifiedPointerLocation(Address objLoc)
    throws InlinePragma {
-   if (Assert.VERIFY_ASSERTIONS) Assert._assert(RCBase.WITH_COALESCING_RC);
+   if (VM.VERIFY_ASSERTIONS) VM.as._assert(RCBase.WITH_COALESCING_RC);
    ObjectReference object = objLoc.loadObjectReference();
    if (RCBase.isRCObject(object)) RefCountSpace.incRC(object);
    }  
@@ -274,6 +274,6 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
    * @return The active global plan as an <code>RCBase</code> instance.
    */
   private static final RCBase global() throws InlinePragma {
-    return (RCBase) ActivePlan.global();
+    return (RCBase) VM.activePlan.global();
   }
 }

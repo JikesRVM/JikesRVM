@@ -7,7 +7,7 @@ package org.mmtk.plan.copyms;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
@@ -80,9 +80,9 @@ public class CopyMSCollector extends StopTheWorldCollector implements Uninterrup
   public final Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator)
   throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      Assert._assert(allocator == CopyMS.ALLOC_MS);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(allocator == CopyMS.ALLOC_MS);
     }
     return mature.alloc(bytes, align, offset, CopyMS.msSpace.inMSCollection());
   }
@@ -148,7 +148,7 @@ public class CopyMSCollector extends StopTheWorldCollector implements Uninterrup
 
   /** @return the active global plan as an <code>MS</code> instance. */
   private static final CopyMS global() throws InlinePragma {
-    return (CopyMS) ActivePlan.global();
+    return (CopyMS) VM.activePlan.global();
   }
 
   /** @return Return the current sanity checker. */

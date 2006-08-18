@@ -11,7 +11,7 @@ import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.options.Options;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.Scanning;
@@ -118,7 +118,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
     boolean root) {
     Offset offset = interiorRef.diff(object.toAddress());
     ObjectReference newObject = traceObject(object, root);
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       if (offset.sLT(Offset.zero()) ||
           offset.sGT(Offset.fromIntSignExtend(1<<24))) {
         // There is probably no object this large
@@ -126,7 +126,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
         Log.write("       object base = "); Log.writeln(object);
         Log.write("       interior reference = "); Log.writeln(interiorRef);
         Log.write("       delta = "); Log.writeln(offset);
-        Assert._assert(false);
+        VM.assertions._assert(false);
       }
     }
     return newObject.toAddress().plus(offset);
@@ -204,7 +204,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
     if (space == Plan.loSpace)
       return Plan.loSpace.isLive(object);
     else if (space == null) {
-      if (Assert.VERIFY_ASSERTIONS) {
+      if (VM.VERIFY_ASSERTIONS) {
         Log.write("space failure: "); Log.writeln(object);
       }
     }
@@ -243,14 +243,14 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * @return The new reference to the same object instance.
    */
   public ObjectReference traceObject(ObjectReference object) throws InlinePragma {
-    if (Space.isInSpace(Plan.VM, object))
+    if (Space.isInSpace(Plan.VM_SPACE, object))
       return (Plan.SCAN_BOOT_IMAGE) ? object : Plan.vmSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.IMMORTAL, object))
       return Plan.immortalSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.LOS, object))
       return Plan.loSpace.traceObject(this, object);
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(false, "No special case for space in traceObject");
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false, "No special case for space in traceObject");
     return null;
   }
 
@@ -291,16 +291,16 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * @return True If the object will not move during collection
    */
   public boolean willNotMove(ObjectReference object) {
-    if (!ActivePlan.constraints().movesObjects())
+    if (!VM.activePlan.constraints().movesObjects())
       return true;
     if (Space.isInSpace(Plan.LOS, object))
       return true;
     if (Space.isInSpace(Plan.IMMORTAL, object))
       return true;
-    if (Space.isInSpace(Plan.VM, object))
+    if (Space.isInSpace(Plan.VM_SPACE, object))
       return true;
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(false, "willNotMove not defined properly in subclass");
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false, "willNotMove not defined properly in subclass");
     return false;
   }
 
@@ -483,9 +483,9 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * returning to MMTk.
    */
   private void assertMutatorRemsetsFlushed() {
-    if (Assert.VERIFY_ASSERTIONS) {
-      for (int m = 0; m < ActivePlan.mutatorCount(); m++) {
-        ActivePlan.mutator(m).assertRemsetsFlushed();
+    if (VM.VERIFY_ASSERTIONS) {
+      for (int m = 0; m < VM.activePlan.mutatorCount(); m++) {
+        VM.activePlan.mutator(m).assertRemsetsFlushed();
       }
     }
   }
@@ -511,7 +511,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * @return The allocator id to use when copying.
    */
   public int getAllocator() {
-    Assert._assert(false);
+    VM.assertions._assert(false);
     return -1;
   }
 

@@ -10,7 +10,7 @@ import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
@@ -68,20 +68,20 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
       /* dataEnd = zero represents the current region. */
       Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
       ObjectReference current =
-        ObjectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
+        VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
 
-      while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
-        ObjectReference next = ObjectModel.getNextObject(current);
+      while (VM.objectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
+        ObjectReference next = VM.objectModel.getNextObject(current);
 
         ObjectReference copyTo = MarkCompactSpace.getForwardingPointer(current);
 
         if (!copyTo.isNull() && Space.isInSpace(MC.MARK_COMPACT, copyTo)) {
-          if (Assert.VERIFY_ASSERTIONS) Assert._assert(!MarkCompactSpace.isMarked(current));
+          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!MarkCompactSpace.isMarked(current));
           // To be copied.
           if (copyTo.toAddress().GT(allocEnd) || copyTo.toAddress().LT(allocStart)) {
             // changed regions.
 
-            Memory.zero(allocCursor, allocEnd.diff(allocCursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
+            VM.memory.zero(allocCursor, allocEnd.diff(allocCursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
 
             allocStart.store(allocCursor, DATA_END_OFFSET);
             allocStart = allocStart.plus(NEXT_REGION_OFFSET).loadAddress();
@@ -90,11 +90,11 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
 
             newPages += Conversions.bytesToPages(allocEnd.diff(allocStart).plus(BYTES_IN_ADDRESS));
 
-            if (Assert.VERIFY_ASSERTIONS) {
-              Assert._assert(allocCursor.LT(allocEnd) && allocCursor.GE(allocStart));
+            if (VM.VERIFY_ASSERTIONS) {
+              VM.assertions._assert(allocCursor.LT(allocEnd) && allocCursor.GE(allocStart));
             }
           }
-          Address newAllocCursor = ObjectModel.copyTo(current, copyTo, allocCursor);
+          Address newAllocCursor = VM.objectModel.copyTo(current, copyTo, allocCursor);
           allocCursor = newAllocCursor;
           MarkCompactSpace.setForwardingPointer(copyTo, ObjectReference.nullReference());
         }
@@ -106,7 +106,7 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
       start = nextRegion;
     }
     Extent zeroBytes = allocEnd.diff(allocCursor).toWord().toExtent().plus(BYTES_IN_ADDRESS);
-    Memory.zero(allocCursor, zeroBytes);
+    VM.memory.zero(allocCursor, zeroBytes);
 
     allocStart.store(Address.zero(), DATA_END_OFFSET);
     region = allocStart;
@@ -120,10 +120,10 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
     allocStart = allocStart.loadAddress(NEXT_REGION_OFFSET);
     while (!allocStart.isZero()) {
       allocStart.store(Address.zero(), DATA_END_OFFSET);
-      if (Assert.VERIFY_ASSERTIONS) {
+      if (VM.VERIFY_ASSERTIONS) {
         Address low = allocStart.plus(DATA_START_OFFSET);
         Extent size = allocStart.loadAddress(REGION_LIMIT_OFFSET).diff(allocStart).toWord().toExtent().minus(2 * BYTES_IN_ADDRESS);
-        Memory.zero(low, size);
+        VM.memory.zero(low, size);
       }
       allocStart = allocStart.loadAddress(NEXT_REGION_OFFSET);
     }
@@ -151,20 +151,20 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
       /* dataEnd = zero represents the current region. */
       Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
       ObjectReference current =
-        ObjectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
+        VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
 
-      while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
-        ObjectReference next = ObjectModel.getNextObject(current);
+      while (VM.objectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
+        ObjectReference next = VM.objectModel.getNextObject(current);
 
         if (MarkCompactSpace.toBeCompacted(current)) {
-          if (Assert.VERIFY_ASSERTIONS) {
-            Assert._assert(MarkCompactSpace.getForwardingPointer(current).isNull());
+          if (VM.VERIFY_ASSERTIONS) {
+            VM.assertions._assert(MarkCompactSpace.getForwardingPointer(current).isNull());
           }
 
           // Fake - allocate it.
-          int size = ObjectModel.getSizeWhenCopied(current);
-          int align = ObjectModel.getAlignWhenCopied(current);
-          int offset = ObjectModel.getAlignOffsetWhenCopied(current);
+          int size = VM.objectModel.getSizeWhenCopied(current);
+          int align = VM.objectModel.getAlignWhenCopied(current);
+          int offset = VM.objectModel.getAlignOffsetWhenCopied(current);
           allocCursor = Allocator.alignAllocationNoFill(allocCursor, align, offset);
 
           boolean sameRegion = allocStart.EQ(start);
@@ -176,10 +176,10 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
             allocCursor = Allocator.alignAllocationNoFill(allocStart.plus(DATA_START_OFFSET), align, offset);
           }
 
-          ObjectReference target = ObjectModel.getReferenceWhenCopiedTo(current, allocCursor);
+          ObjectReference target = VM.objectModel.getReferenceWhenCopiedTo(current, allocCursor);
           if (sameRegion && target.toAddress().GE(current.toAddress())) {
             MarkCompactSpace.setForwardingPointer(current, current);
-            allocCursor = ObjectModel.getObjectEndAddress(current);
+            allocCursor = VM.objectModel.getObjectEndAddress(current);
           } else {
             MarkCompactSpace.setForwardingPointer(current, target);
             allocCursor = allocCursor.plus(size);

@@ -10,6 +10,7 @@ import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -111,7 +112,7 @@ public final class RawPageSpace extends Space
   public final ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object) 
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }
 

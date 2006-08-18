@@ -8,7 +8,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.generational.*;
 import org.mmtk.plan.Trace;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -86,9 +86,9 @@ public class GenCopy extends Gen implements Uninterruptible {
    */
   public GenCopy() {
     super();
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       // Not supported for GenCopy
-      Assert._assert(!IGNORE_REMSETS);
+      VM.assertions._assert(!IGNORE_REMSETS);
     }
     matureTrace = new Trace(metaDataSpace);
   }

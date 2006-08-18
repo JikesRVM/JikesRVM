@@ -12,8 +12,8 @@ import org.mmtk.utility.Constants;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Barriers;
-import org.mmtk.vm.Memory;
+import org.mmtk.vm.VM;
+
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -65,12 +65,12 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
    * @param allocator The allocator number to be used for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     switch (allocator) {
     case  RC.ALLOC_RC: return rc.alloc(bytes, align, offset, false);
     case RC.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
-    default:           return super.alloc(bytes,align,offset,allocator);
+    default:           return super.alloc(bytes,align,offset,allocator, site);
     }
   }
 
@@ -166,9 +166,9 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
       if (RefCountSpace.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      Barriers.performWriteInBarrier(src,slot,tgt,metaDataA,metaDataB,mode);
+      VM.barriers.performWriteInBarrier(src,slot,tgt,metaDataA,metaDataB,mode);
     } else {
-      ObjectReference old = Barriers.
+      ObjectReference old = VM.barriers.
       performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
       if (RC.isRCObject(old)) decBuffer.pushOOL(old);
       if (RC.isRCObject(tgt)) RefCountSpace.incRCOOL(tgt);
@@ -197,9 +197,9 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
       if (RefCountSpace.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      Barriers.performWriteInBarrier(src,slot,tgt, metaDataA, metaDataB, mode);
+      VM.barriers.performWriteInBarrier(src,slot,tgt, metaDataA, metaDataB, mode);
     } else {
-      ObjectReference old = Barriers.
+      ObjectReference old = VM.barriers.
       performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
       if (RC.isRCObject(old)) decBuffer.push(old);
       if (RC.isRCObject(tgt)) RefCountSpace.incRC(tgt);
@@ -269,7 +269,7 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
    */
   private final void coalescingWriteBarrierSlow(ObjectReference srcObj)
       throws NoInlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(RC.WITH_COALESCING_RC);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RC.WITH_COALESCING_RC);
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbSlow.inc();
     if (RefCountSpace.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
@@ -293,14 +293,14 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
     if (phaseId == RC.PREPARE_MUTATOR) {
       rc.prepare(primary);
       if (RC.WITH_COALESCING_RC) processModBufs();
-      Memory.collectorPrepareVMSpace();
+      VM.memory.collectorPrepareVMSpace();
       return;
     }
 
     if (phaseId == RC.RELEASE_MUTATOR) {
       rc.release(this, primary);
       if (Options.verbose.getValue() > 2) rc.printStats();
-      Memory.collectorReleaseVMSpace();
+      VM.memory.collectorReleaseVMSpace();
       return;
     }
 
@@ -344,7 +344,7 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
    */
   public final void enumerateModifiedPointerLocation(Address objLoc)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(RC.WITH_COALESCING_RC);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RC.WITH_COALESCING_RC);
     ObjectReference object = objLoc.loadObjectReference();
     if (RC.isRCObject(object)) RefCountSpace.incRC(object);
   }

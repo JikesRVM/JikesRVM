@@ -15,7 +15,7 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Barriers;
 
@@ -69,21 +69,21 @@ public class GenRCMutator extends RCBaseMutator implements Uninterruptible, Cons
 
   /**
    * Allocate space (for an object)
-   * 
-   * @param allocator The allocator number to be used for this allocation
    * @param bytes The size of the space to be allocated (in bytes)
    * @param align The requested alignment
    * @param offset The alignment offset
+   * @param allocator The allocator number to be used for this allocation
+   * 
    * @return The address of the first byte of the allocated region
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator)
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     // TODO: STEAL NURSERY GC HEADER
     switch (allocator) {
     case GenRC.ALLOC_NURSERY: return nursery.alloc(bytes, align, offset, false);
     case      GenRC.ALLOC_RC: return rc.alloc(bytes, align, offset, false);
     case     GenRC.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
-    default:                  return super.alloc(bytes,align,offset,allocator);
+    default:                  return super.alloc(bytes,align,offset,allocator, site);
     }
   }
 
@@ -181,7 +181,7 @@ public class GenRCMutator extends RCBaseMutator implements Uninterruptible, Cons
     if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbFast.inc();
     if (RefCountSpace.logRequired(src))
       writeBarrierSlow(src);
-    Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -227,8 +227,8 @@ public class GenRCMutator extends RCBaseMutator implements Uninterruptible, Cons
    */
   private final void writeBarrierSlow(ObjectReference src)
       throws NoInlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!Space.isInSpace(GenRC.NS, src));
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(!Space.isInSpace(GenRC.NS, src));
     if (RefCountSpace.attemptToLog(src)) {
       if (GenRC.GATHER_WRITE_BARRIER_STATS) GenRC.wbSlow.inc();
       modBuffer.push(src);
@@ -300,7 +300,7 @@ public class GenRCMutator extends RCBaseMutator implements Uninterruptible, Cons
     if (!object.isNull()) {
       if (Space.isInSpace(GenRC.NS, object)) {
         // FIXME. THIS ONLY EXISTS BECUASE MUTATOR & COLLECTOR ARE CONFUSED!
-       ((GenRCCollector) ActivePlan.collector()).trace.traceObjectLocation(objLoc);
+       ((GenRCCollector) VM.activePlan.collector()).trace.traceObjectLocation(objLoc);
       } else if (GenRC.isRCObject(object))
         RefCountSpace.incRC(object);
     }

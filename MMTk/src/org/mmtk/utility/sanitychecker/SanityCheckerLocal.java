@@ -10,8 +10,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -30,12 +29,6 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
   /* Trace */
   private SanityTraceLocal sanityTrace;
 
-  /**
-   * @return The global trace as a SanityChecker instance.
-   */
-  protected static SanityChecker global() {
-    return ActivePlan.global().getSanityChecker();
-  }
 
   /****************************************************************************
    * Constants
@@ -60,7 +53,7 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
     }
 
     if (phaseId == StopTheWorld.SANITY_ROOTS) {
-      Scanning.computeAllRoots(sanityTrace);
+      VM.scanning.computeAllRoots(sanityTrace);
       sanityTrace.flushRoots();
       return true;
     }
@@ -116,7 +109,7 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
 
     if (phaseId == StopTheWorld.SANITY_FORWARD) {
       if (primary) {
-        TraceLocal trace = ActivePlan.collector().getCurrentTrace();
+        TraceLocal trace = VM.activePlan.collector().getCurrentTrace();
         global().getSanityTable().forwardTable(trace);
       }
       return true;
@@ -168,4 +161,10 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
       ? SanityChecker.ALIVE 
       : SanityChecker.DEAD;
   }
+  
+  /** @return The global trace as a SanityChecker instance. */
+  protected static SanityChecker global() {
+    return VM.activePlan.global().getSanityChecker();
+  }
+
 }

@@ -8,7 +8,7 @@ import org.mmtk.policy.Space;
 
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -52,7 +52,7 @@ public class GenSanityCheckerLocal extends SanityCheckerLocal
     }
 
     // Mature space (nursery collection)
-    if (ActivePlan.global().isCurrentGCNursery()) {
+    if (VM.activePlan.global().isCurrentGCNursery()) {
       return SanityChecker.UNSURE;
     }
 

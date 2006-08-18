@@ -9,6 +9,7 @@ import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -91,7 +92,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * prepare the collector.  If paranoid, perform a sanity check.
    */
   public final void prepare() {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.toSpaceEmpty());
   }
 
   /**
@@ -113,7 +114,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
       free(cell);
     }
     treadmill.flip();
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.toSpaceEmpty());
   }
 
 

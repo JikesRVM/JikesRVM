@@ -6,58 +6,48 @@
  */
 package org.mmtk.vm;
 
+import org.vmmagic.pragma.Uninterruptible;
+
 
 /**
- * $Id$ 
+ * $Id: Statistics.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $ 
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 1.5 $
+ * @date $Date: 2006/06/21 07:38:13 $
  */
-public class Statistics {
+public abstract class Statistics implements Uninterruptible {
   /**
    * Returns the number of collections that have occured.
    * 
    * @return The number of collections that have occured.
    */
-  public static final int getCollectionCount() {
-    return 0;
-  }
+  public abstract int getCollectionCount();
 
   /**
    * Read cycle counter
    */
-  public static long cycles() {
-    return 0L;
-  }
+  public abstract long cycles();
 
   /**
    * Convert cycles to milliseconds
    */
-  public static double cyclesToMillis(long c) {
-    return (double) 0;
-  }
-
+  public abstract double cyclesToMillis(long c);
+  
   /**
    * Convert cycles to seconds
    */
-  public static double cyclesToSecs(long c) {
-    return (double) 0;
-  }
+  public abstract double cyclesToSecs(long c);
 
   /**
    * Convert milliseconds to cycles
    */
-  public static long millisToCycles(double t) {
-    return 0L;
-  }
+  public abstract long millisToCycles(double t);
 
   /**
    * Convert seconds to cycles
    */
-  public static long secsToCycles(double t) {
-    return 0L;
-  }
+  public abstract long secsToCycles(double t);
 }

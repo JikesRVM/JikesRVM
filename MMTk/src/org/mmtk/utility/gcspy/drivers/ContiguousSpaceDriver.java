@@ -16,8 +16,8 @@ import org.mmtk.utility.Log;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -75,8 +75,8 @@ public class ContiguousSpaceDriver extends AbstractDriver
      * add some used space
      */
     public void addSpace(int id, int size) {
-      if (Assert.VERIFY_ASSERTIONS)
-        Assert._assert(id == SS_SCALAR_USED_SPACE_STREAM ||
+      if (VM.VERIFY_ASSERTIONS)
+        VM.assertions._assert(id == SS_SCALAR_USED_SPACE_STREAM ||
                        id == SS_ARRAY_USED_SPACE_STREAM,
                        "Bad tag given to addSpace");
       if (id == SS_SCALAR_USED_SPACE_STREAM)
@@ -265,7 +265,7 @@ public class ContiguousSpaceDriver extends AbstractDriver
     totalArrayObjects = 0;
     totalArrayUsedSpace = 0;
 
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       lastAddress = Address.zero();
       lastSize = 0;
     }
@@ -332,16 +332,16 @@ public class ContiguousSpaceDriver extends AbstractDriver
    */
   public void traceObject(ObjectReference obj, boolean total) {
     // get length of object and determine if it's an array
-    MMType type = ObjectModel.getObjectType(obj);
+    MMType type = VM.objectModel.getObjectType(obj);
     // VM_Type would say whether array; MMType won't, so we'll just show
     // reference arrays
     boolean isArray = type.isReferenceArray();
-    int length = ObjectModel.getCurrentSize(obj);
+    int length = VM.objectModel.getCurrentSize(obj);
 
     // Update the stats
     Address addr = obj.toAddress();
 
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       if (addr.LT(lastAddress.plus(lastSize))) {
         Log.write("ContiguousSpaceDriver finds addresses going backwards: ");
         Log.write("last="); Log.write(lastAddress);
@@ -406,12 +406,12 @@ public class ContiguousSpaceDriver extends AbstractDriver
     space.stream(SS_SCALAR_USED_SPACE_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
       // Presentation style is not PRESENTATION_PLUS so we can check
-      if (Assert.VERIFY_ASSERTIONS)
+      if (VM.VERIFY_ASSERTIONS)
         if (tiles[i].scalarUsedSpace > scalarUsedSpaceStream.getMaxValue()) {
     Log.write("Bad value for ContiguousSpaceDriver Scalar Used Space stream: ");
           Log.write(tiles[i].scalarUsedSpace);
           Log.writeln(" max=", scalarUsedSpaceStream.getMaxValue());
-          // Assert._assert(false);
+          // VM.as._assert(false);
         }
       space.streamIntValue(tiles[i].scalarUsedSpace);
     }
@@ -426,12 +426,12 @@ public class ContiguousSpaceDriver extends AbstractDriver
     space.stream(SS_ARRAY_USED_SPACE_STREAM, numTiles);
     for (int i = 0; i < numTiles; ++i) {
       // Presentation style is not PRESENTATION_PLUS so we can check
-      if (Assert.VERIFY_ASSERTIONS)
+      if (VM.VERIFY_ASSERTIONS)
         if (tiles[i].arrayUsedSpace > arrayUsedSpaceStream.getMaxValue()) {
     Log.write("Bad value for ContiguousSpaceDriver Array Used Space stream: ");
           Log.write(tiles[i].arrayUsedSpace);
           Log.writeln(" max=", arrayUsedSpaceStream.getMaxValue());
-          // Assert._assert(false);
+          // VM.as._assert(false);
         }
       space.streamIntValue(tiles[i].arrayUsedSpace);
     }

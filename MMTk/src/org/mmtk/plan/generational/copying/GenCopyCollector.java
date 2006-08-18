@@ -5,7 +5,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.CopySpace;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
@@ -81,9 +81,9 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator)
   throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      Assert._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
                      allocator == GenCopy.ALLOC_MATURE_MAJORGC);
     }
 
@@ -151,7 +151,7 @@ public class GenCopyCollector extends GenCollector implements Uninterruptible {
 
   /** @return The active global plan as a <code>GenCopy</code> instance. */
   private static final GenCopy global() {
-    return (GenCopy) ActivePlan.global();
+    return (GenCopy) VM.activePlan.global();
   }
 
   /** Show the status of the mature allocator. */

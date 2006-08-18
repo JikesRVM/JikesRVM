@@ -10,7 +10,7 @@ package org.mmtk.plan.semispace.gctrace;
 import org.mmtk.plan.semispace.SSMutator;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.utility.TraceGenerator;
-import org.mmtk.vm.Barriers;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -100,7 +100,7 @@ public class GCTraceMutator extends SSMutator implements Uninterruptible {
       int metaDataB, int mode) throws InlinePragma {
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
         src, slot, tgt);
-    Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**

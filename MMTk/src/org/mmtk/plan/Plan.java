@@ -19,10 +19,10 @@ import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
+
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -87,6 +87,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   public static final int ALLOC_STACK = ALLOC_DEFAULT;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
   public static final int ALLOCATORS = 4;
+  public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
   public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
@@ -101,7 +102,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    */
 
   /** The space that holds any VM specific objects (e.g. a boot image) */
-  public static final Space vmSpace = Memory.getVMSpace();
+  public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
   public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
@@ -114,7 +115,7 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
-  public static final int VM = vmSpace.getDescriptor();
+  public static final int VM_SPACE = vmSpace.getDescriptor();
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
 
@@ -123,6 +124,9 @@ public abstract class Plan implements Uninterruptible, Constants {
 
   /** Support for time-limited GCs */
   protected static long timeCap;
+
+  /** Support for allocation-site identification */
+  protected static int allocationSiteCount = 0;
 
   static {}
 
@@ -222,7 +226,15 @@ public abstract class Plan implements Uninterruptible, Constants {
     return status; // nothing to do (no bytes of GC header)
   }
 
-
+  /****************************************************************************
+   * Allocation
+   */
+  public static int getAllocationSite(boolean compileTime) {
+    if (compileTime) // a new allocation site is being compiled
+      return allocationSiteCount++;
+    else             // an anonymous site
+      return DEFAULT_SITE;
+  }
 
   /****************************************************************************
    * Collection.
@@ -316,9 +328,9 @@ public abstract class Plan implements Uninterruptible, Constants {
    * thus it is unsynchronized.
    */
   public static void checkForAsyncCollection() {
-    if (awaitingCollection && Collection.noThreadsInGC()) {
+    if (awaitingCollection && VM.collection.noThreadsInGC()) {
       awaitingCollection = false;
-      Collection.triggerAsyncCollection();
+      VM.collection.triggerAsyncCollection();
     }
   }
 
@@ -335,7 +347,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * state variable appropriately.
    */
   public static void collectionComplete() {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(collectionsInitiated > 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(collectionsInitiated > 0);
     // FIXME The following will probably break async GC. A better fix
     // is needed
     collectionsInitiated = 0;
@@ -365,9 +377,9 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param s The new GC status.
    */
   public static void setGCStatus(int s) {
-    Memory.isync();
+    VM.memory.isync();
     gcStatus = s;
-    Memory.sync();
+    VM.memory.sync();
   }
 
   /**
@@ -411,8 +423,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    *         <code>a</code>.
    */
   public static final Space getSpaceFromAllocatorAnyLocal(Allocator a) {
-    for (int i = 0; i < ActivePlan.mutatorCount(); i++) {
-      Space space = ActivePlan.mutator(i).getSpaceFromAllocator(a);
+    for (int i = 0; i < VM.activePlan.mutatorCount(); i++) {
+      Space space = VM.activePlan.mutator(i).getSpaceFromAllocator(a);
       if (space != null)
         return space;
     }
@@ -466,7 +478,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   }
 
   /****************************************************************************
-   * Memory Accounting
+   * VM.me.Accounting
    */
 
   /* Global accounting and static access */
@@ -493,7 +505,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static final Extent usedMemory() {
-    return Conversions.pagesToBytes(ActivePlan.global().getPagesUsed());
+    return Conversions.pagesToBytes(VM.activePlan.global().getPagesUsed());
   }
 
 
@@ -505,7 +517,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static final Extent reservedMemory() {
-    return Conversions.pagesToBytes(ActivePlan.global().getPagesReserved());
+    return Conversions.pagesToBytes(VM.activePlan.global().getPagesReserved());
   }
 
   /**
@@ -620,7 +632,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param wait Should we wait for a client to connect? 
    */
   public void startGCspyServer(int port, boolean wait) throws InterruptiblePragma {
-    Assert.fail("startGCspyServer called on non GCspy plan");
+    VM.assertions.fail("startGCspyServer called on non GCspy plan");
   }
 
 }

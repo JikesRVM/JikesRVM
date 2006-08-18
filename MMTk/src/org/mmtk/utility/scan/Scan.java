@@ -8,8 +8,7 @@ package org.mmtk.utility.scan;
 
 import org.mmtk.plan.TraceLocal;
 
-import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -31,7 +30,7 @@ public final class Scan implements Uninterruptible {
    */
   public static void scanObject(TraceLocal trace,
                                 ObjectReference object) throws InlinePragma {
-    MMType type = ObjectModel.getObjectType(object);
+    MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
@@ -39,7 +38,7 @@ public final class Scan implements Uninterruptible {
         trace.traceObjectLocation(slot);
       }
     } else
-      Scanning.scanObject(trace, object);
+      VM.scanning.scanObject(trace, object);
   }
 
   /**
@@ -49,7 +48,7 @@ public final class Scan implements Uninterruptible {
    */
   public static void precopyChildren(TraceLocal trace, ObjectReference object)
       throws InlinePragma {
-    MMType type = ObjectModel.getObjectType(object);
+    MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
@@ -57,7 +56,7 @@ public final class Scan implements Uninterruptible {
         trace.precopyObjectLocation(slot);
       }
     } else
-      Scanning.precopyChildren(trace, object);
+      VM.scanning.precopyChildren(trace, object);
   }
 
   /**
@@ -71,7 +70,7 @@ public final class Scan implements Uninterruptible {
    */
   public static void enumeratePointers(ObjectReference object, Enumerator _enum)
       throws InlinePragma {
-    MMType type = ObjectModel.getObjectType(object);
+    MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
@@ -79,6 +78,6 @@ public final class Scan implements Uninterruptible {
         _enum.enumeratePointerLocation(slot);
       }
     } else
-      Scanning.enumeratePointers(object, _enum);
+      VM.scanning.enumeratePointers(object, _enum);
   }
 }

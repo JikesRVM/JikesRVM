@@ -11,7 +11,7 @@ import org.mmtk.utility.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
@@ -74,15 +74,15 @@ public abstract class Allocator implements Constants, Uninterruptible {
                                              int offset, int knownAlignment, 
                                              boolean fillAlignmentGap)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(knownAlignment >= MIN_ALIGNMENT);
-      Assert._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
-      Assert._assert(!(fillAlignmentGap && region.isZero()));
-      Assert._assert(alignment <= MAX_ALIGNMENT);
-      Assert._assert(offset >= 0);
-      Assert._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
-      Assert._assert((alignment & (MIN_ALIGNMENT - 1)) == 0);
-      Assert._assert((offset & (MIN_ALIGNMENT - 1)) == 0);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
+      VM.assertions._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
+      VM.assertions._assert(!(fillAlignmentGap && region.isZero()));
+      VM.assertions._assert(alignment <= MAX_ALIGNMENT);
+      VM.assertions._assert(offset >= 0);
+      VM.assertions._assert(region.toWord().and(Word.fromIntSignExtend(MIN_ALIGNMENT-1)).isZero());
+      VM.assertions._assert((alignment & (MIN_ALIGNMENT - 1)) == 0);
+      VM.assertions._assert((offset & (MIN_ALIGNMENT - 1)) == 0);
     }
 
     // No alignment ever required.
@@ -193,7 +193,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static int getMaximumAlignedSize(int size, int alignment,
                                                 int knownAlignment) 
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(knownAlignment >= MIN_ALIGNMENT);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(knownAlignment >= MIN_ALIGNMENT);
     if (MAX_ALIGNMENT <= MIN_ALIGNMENT || alignment <= knownAlignment) {
       return size;
     } else {
@@ -241,7 +241,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
          * current thread and the mutator context. This is possible for
          * VMs that dynamically multiplex Java threads onto multiple mutator 
          * contexts, */
-      current = ActivePlan.mutator().getOwnAllocator(current);
+	current = VM.activePlan.mutator().getOwnAllocator(current);
     }
     }
     Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlow failed on request of ");
@@ -250,8 +250,8 @@ public abstract class Allocator implements Constants, Uninterruptible {
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
     Log.write("gcCount (now) = "); Log.writeln(Stats.gcCount());
     Space.printUsageMB();
-    Assert.dumpStack();
-    Assert.failWithOutOfMemoryError();
+    VM.assertions.dumpStack();
+    VM.assertions.failWithOutOfMemoryError();
     /* NOTREACHED */
     return Address.zero();
   }

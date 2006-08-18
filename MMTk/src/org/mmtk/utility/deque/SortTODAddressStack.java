@@ -6,6 +6,7 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -52,7 +53,7 @@ public class SortTODAddressStack extends LocalDeque
    * @param addr the address to be pushed onto the address queue
    */
   public final void push(Address addr) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
   }

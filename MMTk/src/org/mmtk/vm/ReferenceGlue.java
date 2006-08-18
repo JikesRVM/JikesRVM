@@ -2,16 +2,12 @@
  * 
  * (C) Copyright IBM Corp. 2001
  *
- * $Id$
+ * $Id: ReferenceGlue.java,v 1.6 2006/06/21 07:38:13 steveb-oss Exp $
  */
 package org.mmtk.vm;
 
-
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
-import java.lang.ref.PhantomReference;
-
 
 /**
  * This class manages SoftReferences, WeakReferences, and
@@ -20,26 +16,19 @@ import java.lang.ref.PhantomReference;
  * @author Chris Hoffmann
  * @modified Andrew Gray
  */
-public class ReferenceGlue {
-  /**
-   * <code>true</code> if the references are implemented as heap
-   * objects (rather than in a table, for example).  In this context
-   * references are soft, weak or phantom references.
-   */
-  public static final boolean REFERENCES_ARE_OBJECTS = true;
-
+public abstract class ReferenceGlue implements Uninterruptible {
   /**
    * Scan through the list of references with the specified semantics.
    * @param semantics the number representing the semantics
    * @param True if it is safe to only scan new references.
    */
-  public static void scanReferences(int semantics, boolean nursery) {}
+  public abstract void scanReferences(int semantics, boolean nursery);
 
   /**
    * Scan through all references and forward. Only called when references
    * are objects.
    */
-  public static void forwardReferences() {}
+  public abstract void forwardReferences();
 
   /**
    * Put this Reference object on its ReferenceQueue (if it has one)
@@ -58,28 +47,8 @@ public class ReferenceGlue {
    * been enqueued previously it will not be enqueued
    * @return <code>true</code> if the reference was enqueued
    */
-  public static final boolean enqueueReference(Address addr,
-                                               boolean onlyOnce) {
-    return false;
-  }
-
-  /**
-   * Add a reference to the list of soft references.
-   * @param ref the SoftReference to add
-   */
-  public static void addSoftCandidate(SoftReference ref) {}
-
-  /**
-   * Add a reference to the list of weak references.
-   * @param ref the WeakReference to add
-   */
-  public static void addWeakCandidate(WeakReference ref) {}
-
-  /**
-   * Add a reference to the list of phantom references.
-   * @param ref the PhantomReference to add
-   */
-  public static void addPhantomCandidate(PhantomReference ref) {}
+  public abstract boolean enqueueReference(Address addr,
+                                               boolean onlyOnce);
 
   /***********************************************************************
    * 
@@ -92,9 +61,7 @@ public class ReferenceGlue {
    * @param addr the address of the reference
    * @return the referent address
    */
-  public static ObjectReference getReferent(Address addr) {
-    return null;
-  }
+  public abstract ObjectReference getReferent(Address addr);
 
   /**
    * Set the referent in a reference.  For Java the reference is
@@ -102,15 +69,27 @@ public class ReferenceGlue {
    * @param addr the address of the reference
    * @param referent the referent address
    */
-  public static void setReferent(Address addr, ObjectReference referent) {}
-
+  public abstract void setReferent(Address addr, ObjectReference referent);
+ 
   /**
-   * Return the number of references of the given semantics.
+   * @return <code>true</code> if the references are implemented as heap
+   * objects (rather than in a table, for example).  In this context
+   * references are soft, weak or phantom references.
    * 
-   * @param semantics The reference semantics
-   * @return The number of waiting references of that type
+   * This must be implemented by subclasses, but is never called by MMTk users.
    */
-  public static int countWaitingReferences(int semantics) {
-    return 0;
+  protected abstract boolean getReferencesAreObjects();
+  
+  /**
+   * NOTE: This method should not be called by anything other than the
+   * reflective mechanisms in org.mmtk.vm.VM, and is not implemented by
+   * subclasses.
+   * 
+   * This hack exists only to allow us to declare getVerifyAssertions() as 
+   * a protected method.
+   */
+  static boolean referencesAreObjectsTrapdoor(ReferenceGlue a) {
+    return a.getReferencesAreObjects();
   }
+
 }

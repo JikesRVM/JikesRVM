@@ -4,46 +4,30 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
+import org.vmmagic.pragma.InterruptiblePragma;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Stub to give access to plan local, constraint and global instances
  * 
- * $Id$
+ * $Id: ActivePlan.java,v 1.4 2006/06/21 07:38:13 steveb-oss Exp $
  * 
  * @author Daniel Frampton
  * @author Robin Garner
  */
-public class ActivePlan {
+public abstract class ActivePlan implements Uninterruptible {
 
   /** @return The active Plan instance. */
-  public static final Plan global() {
-    return null;
-  }
+  public abstract Plan global();
 
   /** @return The active PlanConstraints instance. */
-  public static final PlanConstraints constraints() {
-    return null;
-  }
+  public abstract PlanConstraints constraints();
 
   /** @return The active <code>CollectorContext</code> instance. */
-  public static final CollectorContext collector() {
-    return null;
-  }
+  public abstract CollectorContext collector();
 
   /** @return The active <code>MutatorContext</code> instance. */
-  public static final MutatorContext mutator() {
-    return null;
-  }
-
-  /**
-   * Return the <code>CollectorContext</code> instance given its unique identifier.
-   * 
-   * @param id The identifier of the <code>CollectorContext</code> to return
-   * @return The specified <code>CollectorContext</code>
-   */
-  public static final CollectorContext collector(int id) {
-    return null;
-  }
+  public abstract MutatorContext mutator();
 
   /**
    * Return the <code>MutatorContext</code> instance given it's unique identifier.
@@ -51,22 +35,13 @@ public class ActivePlan {
    * @param id The identifier of the <code>MutatorContext</code>  to return
    * @return The specified <code>MutatorContext</code>
    */
-  public static final MutatorContext mutator(int id) {
-    return null;
-  }
-
-  /** @return The number of registered <code>CollectorContext</code> instances. */
-  public static final int collectorCount() {
-    return 0;
-  }
+  public abstract MutatorContext mutator(int id);
 
   /** @return The number of registered <code>MutatorContext</code> instances. */
-  public static final int mutatorCount() {
-    return 0;
-  }
+  public abstract int mutatorCount();
 
   /** Reset the mutator iterator */
-  public static void resetMutatorIterator() {}
+  public abstract void resetMutatorIterator();
 
   /**
    * Return the next <code>MutatorContext</code> in a
@@ -76,9 +51,7 @@ public class ActivePlan {
    *  synchronized iteration of all mutators, or
    *  <code>null</code> when all mutators have been done.
    */
-  public static MutatorContext getNextMutator() {
-    return null;
-  }
+  public abstract MutatorContext getNextMutator();
 
   /**
    * Register a new <code>CollectorContext</code> instance.
@@ -86,9 +59,7 @@ public class ActivePlan {
    * @param collector The <code>CollectorContext</code> to register.
    * @return The <code>CollectorContext</code>'s unique identifier
    */
-  public static final int registerCollector(CollectorContext collector) {
-    return 0;
-  }
+  public abstract int registerCollector(CollectorContext collector) throws InterruptiblePragma;
 
   /**
    * Register a new <code>MutatorContext</code> instance.
@@ -96,8 +67,5 @@ public class ActivePlan {
    * @param mutator The <code>MutatorContext</code> to register.
    * @return The <code>MutatorContext</code>'s unique identifier
    */
-  public static final int registerMutator(MutatorContext mutator) {
-    return 0;
-  }
-
+  public abstract int registerMutator(MutatorContext mutator) throws InterruptiblePragma;
 }

@@ -10,9 +10,8 @@ import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.options.*;
 
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.Statistics;
 
 import org.vmmagic.pragma.*;
 
@@ -63,10 +62,10 @@ public class RC extends RCBase implements Uninterruptible {
 
   public void collectionPhase(int phaseId) throws NoInlinePragma {
     if (phaseId == PREPARE) {
-      timeCap = Statistics.cycles() +
-                Statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
+      timeCap = VM.statistics.cycles() +
+                VM.statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
       immortalSpace.prepare();
-      Memory.globalPrepareVMSpace();
+      VM.memory.globalPrepareVMSpace();
       rcSpace.prepare();
       // loSpace doesn't require prepare() as rcSpace takes care of it.
       trace.prepare();
@@ -78,7 +77,7 @@ public class RC extends RCBase implements Uninterruptible {
       rcSpace.release();
       // loSpace doesn't require release() as rcSpace takes care of it.
       immortalSpace.release();
-      Memory.globalReleaseVMSpace();
+      VM.memory.globalReleaseVMSpace();
       lastRCPages = rcSpace.committedPages();
       return;
     }
@@ -130,7 +129,7 @@ public class RC extends RCBase implements Uninterruptible {
         return false;
       }
       required = space.reservedPages() - space.committedPages();
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;

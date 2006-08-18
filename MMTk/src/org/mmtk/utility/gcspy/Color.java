@@ -6,6 +6,7 @@
 package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -55,7 +56,7 @@ public class Color implements Uninterruptible {
    * @param b blue component
    */
   public Color(short r, short g, short b) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((0 <= r) && (r <= 255) &&
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((0 <= r) && (r <= 255) &&
                            (0 <= g) && (g <= 255) &&
                            (0 <= b) && (b <= 255));
     this.r_ = r;

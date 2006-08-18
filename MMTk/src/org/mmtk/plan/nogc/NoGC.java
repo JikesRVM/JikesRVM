@@ -8,7 +8,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -59,7 +59,7 @@ public class NoGC extends Plan implements Uninterruptible {
    * @param phaseId Collection phase
    */
   public final void collectionPhase(int phaseId) {
-    Assert._assert(false);
+    VM.assertions._assert(false);
     // if (phaseId == PREPARE) {
     // }
     // if (phaseID == RELEASE) {
@@ -76,7 +76,7 @@ public class NoGC extends Plan implements Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, Space space) {
     if (getPagesReserved() > getTotalPages()) {
-      Assert.fail("GC Triggered in NoGC Plan due to memory exhaustion.");
+      VM.assertions.fail("GC Triggered in NoGC Plan due to memory exhaustion.");
     }
     return false;
   }

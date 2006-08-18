@@ -7,10 +7,9 @@ package org.mmtk.utility.heap;
 import org.mmtk.utility.options.Options;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.Memory;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -72,7 +71,7 @@ public final class MonotonePageResource extends PageResource
   public MonotonePageResource(int pageBudget, Space space) {
     super(pageBudget, space);
     /* unimplemented */
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false); 
     this.contiguous = false;
     this.start = Address.zero();
     this.cursor = Address.zero();
@@ -92,7 +91,7 @@ public final class MonotonePageResource extends PageResource
    * failure.
    */
   protected final Address allocPages(int pages) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(contiguous);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     lock();
     Extent bytes = Conversions.pagesToBytes(pages);
     Address tmp = cursor.plus(bytes);
@@ -104,7 +103,7 @@ public final class MonotonePageResource extends PageResource
       cursor = tmp;
       unlock();
       LazyMmapper.ensureMapped(old, pages);
-      Memory.zero(old, bytes);
+      VM.memory.zero(old, bytes);
       return old;
     }
   }
@@ -151,7 +150,7 @@ public final class MonotonePageResource extends PageResource
    * zeroing on release and optionally memory protecting on release.
    */
   private final void releasePages() throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(contiguous);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     Extent bytes = cursor.diff(start).toWord().toExtent();
     releasePages(start, bytes);
     cursor = start;
@@ -164,10 +163,10 @@ public final class MonotonePageResource extends PageResource
   private final void releasePages(Address first, Extent bytes)
       throws InlinePragma {
     int pages = Conversions.bytesToPages(bytes);
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
     if (ZERO_ON_RELEASE)
-      Memory.zero(first, bytes);
+      VM.memory.zero(first, bytes);
     if (Options.protectOnRelease.getValue())
       LazyMmapper.protect(first, pages);
   }

@@ -7,6 +7,7 @@ package org.mmtk.plan.semispace;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 import org.mmtk.plan.*;
 
 import org.vmmagic.pragma.*;
@@ -168,7 +169,7 @@ public class SS extends StopTheWorld implements Uninterruptible {
       required = space.reservedPages() - space.committedPages();
       if (space == copySpace0 || space == copySpace1)
         required = required << 1; // must account for copy reserve
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;

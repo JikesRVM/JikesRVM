@@ -9,7 +9,7 @@ import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -84,7 +84,7 @@ public final class ComplexPhase extends Phase
    * TODO are we oversynchronizing here ??
    */
   protected final void delegatePhase() {
-    int order = Collection.rendezvous(5000 + id);
+    int order = VM.collection.rendezvous(5000 + id);
     if (order == 1 && timer != null) timer.start();
 
     if (Options.verbose.getValue() >= 4) {

@@ -8,7 +8,7 @@ import org.mmtk.plan.*;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -130,7 +130,7 @@ implements Uninterruptible {
 
   /** @return The active global plan as a <code>Gen</code> instance. */
   private static final Gen global() throws InlinePragma {
-    return (Gen) ActivePlan.global();
+    return (Gen) VM.activePlan.global();
   }
 
   public final TraceLocal getCurrentTrace() {

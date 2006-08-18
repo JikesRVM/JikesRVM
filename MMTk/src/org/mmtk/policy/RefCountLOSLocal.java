@@ -5,8 +5,8 @@
 package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.LargeObjectAllocator;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -23,7 +23,7 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
 
   public RefCountLOSLocal(LargeObjectSpace space) {
     super(space);
-    Assert._assert(false);
+    VM.assertions._assert(false);
   }
 
   /****************************************************************************

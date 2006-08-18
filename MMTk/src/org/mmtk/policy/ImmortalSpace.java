@@ -9,7 +9,7 @@ import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -160,16 +160,16 @@ public final class ImmortalSpace extends Space
    * test to see if the mark bit has the given value
    */
   private static boolean testMarkBit(ObjectReference object, Word value) {
-    return !(ObjectModel.readAvailableBitsWord(object).and(value).isZero());
+    return !(VM.objectModel.readAvailableBitsWord(object).and(value).isZero());
   }
 
   /**
    * write the given value in the mark bit.
    */
   private static void writeMarkBit(ObjectReference object, Word value) {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-    ObjectModel.writeAvailableBitsWord(object, newValue);
+    VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /**
@@ -177,9 +177,9 @@ public final class ImmortalSpace extends Space
    */
   private static void atomicWriteMarkBit(ObjectReference object, Word value) {
     while (true) {
-      Word oldValue = ObjectModel.prepareAvailableBits(object);
+      Word oldValue = VM.objectModel.prepareAvailableBits(object);
       Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-      if (ObjectModel.attemptAvailableBits(object, oldValue, newValue)) break;
+      if (VM.objectModel.attemptAvailableBits(object, oldValue, newValue)) break;
     }
   }
 
@@ -191,10 +191,10 @@ public final class ImmortalSpace extends Space
       throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
@@ -238,7 +238,7 @@ public final class ImmortalSpace extends Space
    * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
-    Assert._assert(false); // this policy only releases pages enmasse
+    VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
   public final boolean isLive(ObjectReference object) throws InlinePragma {
@@ -257,6 +257,6 @@ public final class ImmortalSpace extends Space
    *         some may be unreachable.
    */
   public boolean isReachable(ObjectReference object) {
-    return (ObjectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
+    return (VM.objectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
   }
 }

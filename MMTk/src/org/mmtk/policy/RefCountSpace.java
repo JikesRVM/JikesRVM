@@ -11,7 +11,7 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -48,8 +48,8 @@ public final class RefCountSpace extends Space
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   /** How many bytes are used by all GC header fields? */
   public static final int GC_HEADER_WORDS_REQUIRED = (RC_SANITY_CHECK) ? 2 : 1;
-  protected static final Offset RC_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET();
-  protected static final Offset RC_SANITY_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET().plus(BYTES_IN_ADDRESS);
+  protected static final Offset RC_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
+  protected static final Offset RC_SANITY_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET().plus(BYTES_IN_ADDRESS);
 
 
   /* Mask bits to signify the start/finish of logging an object */
@@ -266,7 +266,7 @@ public final class RefCountSpace extends Space
    */
   public static boolean logRequired(ObjectReference object)
       throws UninterruptiblePragma, InlinePragma {
-    Word value = ObjectModel.readAvailableBitsWord(object);
+    Word value = VM.objectModel.readAvailableBitsWord(object);
     return value.and(LOGGING_MASK).EQ(UNLOGGED);
   }
 
@@ -290,14 +290,14 @@ public final class RefCountSpace extends Space
       throws UninterruptiblePragma, InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       if (oldValue.and(LOGGING_MASK).EQ(LOGGED)) return false;
     } while ((oldValue.and(LOGGING_MASK).EQ(BEING_LOGGED)) ||
-             !ObjectModel.attemptAvailableBits(object, oldValue, 
+             !VM.objectModel.attemptAvailableBits(object, oldValue, 
                                                 oldValue.or(BEING_LOGGED)));
-    if (Assert.VERIFY_ASSERTIONS) {
-      Word value = ObjectModel.readAvailableBitsWord(object);
-      Assert._assert(value.and(LOGGING_MASK).EQ(BEING_LOGGED));
+    if (VM.VERIFY_ASSERTIONS) {
+      Word value = VM.objectModel.readAvailableBitsWord(object);
+      VM.assertions._assert(value.and(LOGGING_MASK).EQ(BEING_LOGGED));
     }
     return true;
   }
@@ -312,10 +312,10 @@ public final class RefCountSpace extends Space
    */
   public static void makeLogged(ObjectReference object)
       throws UninterruptiblePragma, InlinePragma {
-    Word value = ObjectModel.readAvailableBitsWord(object);
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(value.and(LOGGING_MASK).NE(LOGGED));
-    ObjectModel.writeAvailableBitsWord(object, value.and(LOGGING_MASK.not()));
+    Word value = VM.objectModel.readAvailableBitsWord(object);
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(value.and(LOGGING_MASK).NE(LOGGED));
+    VM.objectModel.writeAvailableBitsWord(object, value.and(LOGGING_MASK.not()));
   }
 
   /**
@@ -325,10 +325,10 @@ public final class RefCountSpace extends Space
    */
   public static void makeUnlogged(ObjectReference object)
       throws UninterruptiblePragma, InlinePragma {
-    Word value = ObjectModel.readAvailableBitsWord(object);
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(value.and(LOGGING_MASK).EQ(LOGGED));
-    ObjectModel.writeAvailableBitsWord(object, value.or(UNLOGGED));
+    Word value = VM.objectModel.readAvailableBitsWord(object);
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(value.and(LOGGING_MASK).EQ(LOGGED));
+    VM.objectModel.writeAvailableBitsWord(object, value.or(UNLOGGED));
   }
 
   /****************************************************************************
@@ -350,7 +350,7 @@ public final class RefCountSpace extends Space
     // all objects are birthed with an RC of INCREMENT
     int initialValue = (initialInc) ? INCREMENT : 0;
     if (RCBase.REF_COUNT_CYCLE_DETECTION && 
-        ObjectModel.isAcyclic(typeRef))
+        VM.objectModel.isAcyclic(typeRef))
       initialValue |= GREEN;
     object.toAddress().store(initialValue, RC_HEADER_OFFSET);
   }
@@ -412,8 +412,8 @@ public final class RefCountSpace extends Space
     do {
       oldValue = object.toAddress().prepareInt(RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
-      if (Assert.VERIFY_ASSERTIONS)
-        Assert._assert(newValue <= INCREMENT_LIMIT);
+      if (VM.VERIFY_ASSERTIONS)
+        VM.assertions._assert(newValue <= INCREMENT_LIMIT);
       if (RCBase.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!object.toAddress().attempt(oldValue, newValue, RC_HEADER_OFFSET));
   }
@@ -493,10 +493,10 @@ public final class RefCountSpace extends Space
       throws UninterruptiblePragma, InlinePragma {
     int rcv = object.toAddress().loadInt(RC_HEADER_OFFSET) >>> (INCREMENT_SHIFT - 1);
     int sanityRCV = object.toAddress().loadInt(RC_SANITY_HEADER_OFFSET) >>> (INCREMENT_SHIFT - 1);
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(sanityRCV == 0);
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(sanityRCV == 0);
     if (sanityRCV == 0 && rcv != 0) {
-      Assert.fail("");
+      VM.assertions.fail("");
     }
   }
 
@@ -529,7 +529,7 @@ public final class RefCountSpace extends Space
         if (sanityRoot) Log.write(" sr");
         Log.writeln("");
         if (((sanityRC == 0) && !sanityRoot) || ((rc == 0) && !root)) {
-          Assert.fail("");
+          VM.assertions.fail("");
         }
       }
       object.toAddress().store(0, RC_SANITY_HEADER_OFFSET);
@@ -748,8 +748,8 @@ public final class RefCountSpace extends Space
   }
   public static void makeGrey(ObjectReference object)
       throws UninterruptiblePragma, InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(getHiRCColor(object) != GREEN);
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(getHiRCColor(object) != GREEN);
     changeRCLoColor(object, GREY);
   }
   private static void changeRCLoColor(ObjectReference object, int color)

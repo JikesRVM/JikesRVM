@@ -16,6 +16,7 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -206,12 +207,13 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       int nurseryYield = ((int)(nurserySpace.committedPages() *
                           SURVIVAL_ESTIMATE))<<1;
       nextGCFullHeap |= mustCollect || (nurseryYield < required);
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
   }
 
+ 
   /*****************************************************************************
    * 
    * Correctness
@@ -223,9 +225,9 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
    * JVM to flush those remset entries out of the mutator contexts.
    */
   public static void assertMutatorRemsetsFlushed() {
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       GenMutator mutator = null;
-      while ((mutator = (GenMutator) ActivePlan.getNextMutator()) != null)
+      while ((mutator = (GenMutator) VM.activePlan.getNextMutator()) != null)
         mutator.assertRemsetFlushed();
     }
   }

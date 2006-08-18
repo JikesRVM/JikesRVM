@@ -9,7 +9,7 @@ import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -79,14 +79,15 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
    * @param allocator The allocator associated with this request.
+   * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator)
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == GenMS.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**
@@ -176,6 +177,6 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
 
   /** @return The active global plan as a <code>GenMS</code> instance. */
   private static final GenMS global() throws InlinePragma {
-    return (GenMS) ActivePlan.global();
+    return (GenMS) VM.activePlan.global();
   }
 }

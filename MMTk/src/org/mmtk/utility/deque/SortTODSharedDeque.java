@@ -5,7 +5,7 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.policy.RawPageSpace;
-import org.mmtk.vm.TraceInterface;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -43,6 +43,6 @@ final public class SortTODSharedDeque extends SortSharedDeque
    * @return The value of the sorting key for this object
    */
   protected final Word getKey(Address obj) {
-    return TraceInterface.getDeathTime(obj.toObjectReference());
+    return VM.traceInterface.getDeathTime(obj.toObjectReference());
   }
 }

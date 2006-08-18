@@ -5,6 +5,7 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -45,7 +46,7 @@ public class AddressDeque extends LocalDeque
    * @param addr the address to be inserted into the address queue
    */
   public final void insert(Address addr) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }
@@ -67,7 +68,7 @@ public class AddressDeque extends LocalDeque
    * @param addr the address to be pushed onto the address queue
    */
   public final void push(Address addr) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
   }

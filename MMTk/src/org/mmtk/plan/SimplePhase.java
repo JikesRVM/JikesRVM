@@ -8,8 +8,7 @@ import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -101,47 +100,47 @@ public final class SimplePhase extends Phase
 
     if (placeholder) return;
 
-    Plan plan = ActivePlan.global();
-    CollectorContext collector = ActivePlan.collector();
+    Plan plan = VM.activePlan.global();
+    CollectorContext collector = VM.activePlan.collector();
 
     /*
      * Synchronize at the start, and choose one CPU as the primary,
      * to perform global tasks.
      */
-    int order = Collection.rendezvous(1000 + id);
+    int order = VM.collection.rendezvous(1000 + id);
     final boolean primary = order == 1;
 
     if (primary && timer != null) timer.start();
     if (globalFirst) { // Phase has a global component, executed first
       if (logDetails) Log.writeln("  global...");
       if (primary) plan.collectionPhase(id);
-      Collection.rendezvous(2000 + id);
+      VM.collection.rendezvous(2000 + id);
     }
 
     if (perCollector) { // Phase has a per-collector component
       if (logDetails) Log.writeln("  per-collector...");
       collector.collectionPhase(id, primary);
-      Collection.rendezvous(3000 + id);
+      VM.collection.rendezvous(3000 + id);
     }
 
     if (perMutator) { // Phase has a per-mutator component
       if (logDetails) Log.writeln("  per-mutator...");
       /* iterate through all mutator contexts, worker-farmer */
       MutatorContext mutator = null;
-      while ((mutator = ActivePlan.getNextMutator()) != null) {
+      while ((mutator = VM.activePlan.getNextMutator()) != null) {
         mutator.collectionPhase(id, primary);
       }
-      Collection.rendezvous(4000 + id);
+      VM.collection.rendezvous(4000 + id);
       if (primary) {
-        ActivePlan.resetMutatorIterator();
+        VM.activePlan.resetMutatorIterator();
       }
-      Collection.rendezvous(4500 + id);
+      VM.collection.rendezvous(4500 + id);
     }
 
     if (globalLast) { // Phase has a global component, executed last
       if (logDetails) Log.writeln("  global...");
       if (primary) plan.collectionPhase(id);
-      Collection.rendezvous(5000 + id);
+      VM.collection.rendezvous(5000 + id);
     }
 
     if (primary && timer != null) timer.stop();

@@ -11,7 +11,7 @@ import org.mmtk.utility.options.MarkSweepMarkBits;
 import org.mmtk.utility.options.EagerCompleteSweep;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -314,10 +314,9 @@ public final class MarkSweepSpace extends Space
    */
   public final void initializeHeader(ObjectReference object)
       throws InlinePragma {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
+    if (MarkSweepLocal.HEADER_MARK_BITS)
       writeMarkBit(object);
     }
-  }
 
   /**
    * Atomically attempt to set the mark bit of an object.  Return true
@@ -330,10 +329,10 @@ public final class MarkSweepSpace extends Space
       throws InlinePragma {
     Word oldValue, markBit;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       markBit = oldValue.and(MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                 oldValue.and(MARK_BIT_MASK.not()).or(value)));
     return true;
   }
@@ -348,10 +347,10 @@ public final class MarkSweepSpace extends Space
   private static boolean testAndMark(ObjectReference object, Word value)
     throws InlinePragma {
     Word oldValue, markBit;
-    oldValue = ObjectModel.readAvailableBitsWord(object);
+    oldValue = VM.objectModel.readAvailableBitsWord(object);
     markBit = oldValue.and(MARK_BIT_MASK);
     if (markBit.EQ(value)) return false;
-    ObjectModel.writeAvailableBitsWord(object, oldValue.and(MARK_BIT_MASK.not()).or(value));
+    VM.objectModel.writeAvailableBitsWord(object, oldValue.and(MARK_BIT_MASK.not()).or(value));
     return true;
   }
 
@@ -364,7 +363,7 @@ public final class MarkSweepSpace extends Space
    */
   public static boolean testMarkBit(ObjectReference object, Word value)
       throws InlinePragma {
-    return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+    return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
 
   /**
@@ -373,9 +372,9 @@ public final class MarkSweepSpace extends Space
    * @param object The object whose mark bit is to be written
    */
   public void writeMarkBit(ObjectReference object) throws InlinePragma {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
-    ObjectModel.writeAvailableBitsWord(object, newValue);
+    VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 
 }

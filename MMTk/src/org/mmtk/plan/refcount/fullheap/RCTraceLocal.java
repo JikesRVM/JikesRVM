@@ -8,7 +8,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -36,7 +36,7 @@ public class RCTraceLocal extends TraceLocal implements Uninterruptible {
 
   // FIXME The collector/mutator split in RC is completely broken
 //  private final RCCollector local() { return (RCCollector)ActivePlan.collector(); }
-  private final RCMutator local() { return (RCMutator)ActivePlan.mutator(); }
+  private final RCMutator local() { return (RCMutator)VM.activePlan.mutator(); }
 
   /**
    * Flush any remembered sets pertaining to the current collection.

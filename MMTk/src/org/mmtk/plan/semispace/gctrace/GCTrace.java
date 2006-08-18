@@ -14,7 +14,7 @@ import org.mmtk.utility.deque.SortTODSharedDeque;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.utility.options.Options;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
@@ -173,7 +173,7 @@ public class GCTrace extends SS implements Uninterruptible {
       if (space == copySpace0 || space == copySpace1)
         required = required << 1; // must account for copy reserve
       traceInducedGC = false;
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
@@ -225,13 +225,13 @@ public class GCTrace extends SS implements Uninterruptible {
    * @return the active PlanLocal as a GCTraceLocal
    */
   public static final GCTraceCollector local() {
-    return ((GCTraceCollector) ActivePlan.collector());
+    return ((GCTraceCollector) VM.activePlan.collector());
   }
 
   /**
    * @return the active Plan as a GCTrace
    */
   public static final GCTrace global() {
-    return ((GCTrace) ActivePlan.global());
+    return ((GCTrace) VM.activePlan.global());
   }
 }

@@ -11,10 +11,9 @@ import org.mmtk.utility.heap.SpaceDescriptor;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.ObjectModel;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -52,11 +51,11 @@ public abstract class Space implements Constants, Uninterruptible {
 
   // the following is somewhat arbitrary for the 64 bit system at this stage
   private static final int LOG_ADDRESS_SPACE = (BYTES_IN_ADDRESS == 4) ? 32 : 40;
-  private static Address HEAP_START = chunkAlign(Memory.HEAP_START(), true);
-  private static Address AVAILABLE_START = chunkAlign(Memory.AVAILABLE_START(), false);
-  private static Address AVAILABLE_END = chunkAlign(Memory.AVAILABLE_END(), true);
+  private static Address HEAP_START = chunkAlign(VM.HEAP_START, true);
+  private static Address AVAILABLE_START = chunkAlign(VM.AVAILABLE_START, false);
+  private static Address AVAILABLE_END = chunkAlign(VM.AVAILABLE_END, true);
   private static Extent AVAILABLE_BYTES = AVAILABLE_END.toWord().minus(AVAILABLE_START.toWord()).toExtent();
-  public static final Address HEAP_END = chunkAlign(Memory.HEAP_END(), false);
+  public static final Address HEAP_END = chunkAlign(VM.HEAP_END, false);
 
   public static final int LOG_BYTES_IN_CHUNK = 22;
   public static final int BYTES_IN_CHUNK = 1 << LOG_BYTES_IN_CHUNK;
@@ -129,7 +128,7 @@ public abstract class Space implements Constants, Uninterruptible {
     }
     this.extent = bytes;
 
-    Memory.setHeapRange(index, start, start.plus(bytes));
+    VM.memory.setHeapRange(index, start, start.plus(bytes));
     createDescriptor(false);
     Map.insert(start, extent, descriptor, this);
 
@@ -163,7 +162,7 @@ public abstract class Space implements Constants, Uninterruptible {
       Log.write(heapCursor.minus(extent)); Log.write(" (");
       Log.write(heapCursor); Log.write(" > ");
       Log.write(heapLimit); Log.writeln(")");
-      Assert.fail("exiting");
+      VM.assertions.fail("exiting");
     }
   }
 
@@ -259,7 +258,7 @@ public abstract class Space implements Constants, Uninterruptible {
         Log.write("Unable to satisfy virtual address space request \"");
         Log.write(name); Log.write("\" at ");
         Log.writeln(heapLimit);
-        Assert.fail("exiting");
+        VM.assertions.fail("exiting");
       }
       heapLimit = heapLimit.minus(extent);
     } else { // request for the bottom of available memory
@@ -267,7 +266,7 @@ public abstract class Space implements Constants, Uninterruptible {
         Log.write("Unable to satisfy virtual address space request \"");
         Log.write(name); Log.write("\" at ");
         Log.writeln(heapCursor);
-        Assert.fail("exiting");
+        VM.assertions.fail("exiting");
       }
       heapCursor = heapCursor.plus(extent);
     }
@@ -381,9 +380,9 @@ public abstract class Space implements Constants, Uninterruptible {
     if (!SpaceDescriptor.isContiguous(descriptor)) {
       return getDescriptorForObject(object) == descriptor;
     } else {
-      Address addr = ObjectModel.refToAddress(object);
+      Address addr = VM.objectModel.refToAddress(object);
       Address start = SpaceDescriptor.getStart(descriptor);
-      if (!Assert.VERIFY_ASSERTIONS &&
+      if (!VM.VERIFY_ASSERTIONS &&
           SpaceDescriptor.isContiguousHi(descriptor))
         return addr.GE(start);
       else {
@@ -413,7 +412,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   public static int getDescriptorForObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return Map.getDescriptorForObject(object);
   }
 
@@ -447,14 +446,14 @@ public abstract class Space implements Constants, Uninterruptible {
     /* First check page budget and poll if necessary */
     if (!pr.reservePages(pages)) {
       /* Need to poll, either fixing budget or requiring GC */
-      if (ActivePlan.global().poll(false, this))
+      if (VM.activePlan.global().poll(false, this))
         return Address.zero(); // GC required, return failure
     }
 
     /* Page budget is OK, so try to acquire specific pages in virtual memory */
     Address rtn = pr.getNewPages(pages);
     if (rtn.isZero())
-      ActivePlan.global().poll(true, this); // Failed, so force a GC
+      VM.activePlan.global().poll(true, this); // Failed, so force a GC
 
     return rtn;
   }
@@ -541,7 +540,7 @@ public abstract class Space implements Constants, Uninterruptible {
     case MB:    Log.write(mb); Log.write(" Mb"); break;
     case PAGES_MB: Log.write(pages); Log.write(" pgs ("); Log.write(mb); Log.write(" Mb)"); break;
     case MB_PAGES: Log.write(mb); Log.write(" Mb ("); Log.write(pages); Log.write(" pgs)"); break;
-      default: Assert.fail("writePages passed illegal printing mode");
+      default: VM.assertions.fail("writePages passed illegal printing mode");
     }
   }
 

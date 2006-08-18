@@ -8,19 +8,19 @@ package org.mmtk.vm;
 
 import org.mmtk.utility.scan.MMType;
 
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
 
 /**
- * $Id$
+ * $Id: ObjectModel.java,v 1.7 2006/06/21 07:38:13 steveb-oss Exp $
  * 
  * @author Steve Blackburn
  * @author Perry Cheng
  * 
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 1.7 $
+ * @date $Date: 2006/06/21 07:38:13 $
  */
-public class ObjectModel {
+public abstract class ObjectModel implements Uninterruptible {
   /**
    * Copy an object using a plan's allocCopy to get space and install
    * the forwarding pointer.  On entry, <code>from</code> must have
@@ -33,9 +33,7 @@ public class ObjectModel {
    * @param from The allocator to use.
    * @return the address of the new object
    */
-  public static ObjectReference copy(ObjectReference from, int allocator) {
-    return null;
-  }
+  public abstract ObjectReference copy(ObjectReference from, int allocator);
 
   /**
    * Copy an object to be pointer to by the to address. This is required 
@@ -49,9 +47,7 @@ public class ObjectModel {
    * @param region The start of the region that was reserved for this object
    * @return Address The address past the end of the copied object
    */
-  public static Address copyTo(ObjectReference from, ObjectReference to, Address region) {
-    return null;
-  }
+  public abstract Address copyTo(ObjectReference from, ObjectReference to, Address region);
 
   /**
    * Return the reference that an object will be refered to after it is copied
@@ -62,9 +58,7 @@ public class ObjectModel {
    * @param to The region to be copied to.
    * @return The resulting reference.
    */
-  public static ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
-    return null;
-  }
+  public abstract ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to);
 
   
   /**
@@ -73,9 +67,7 @@ public class ObjectModel {
    * @param object The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
    */
-  public static int getSizeWhenCopied(ObjectReference object) {
-    return 0;
-  }
+  public abstract int getSizeWhenCopied(ObjectReference object);
 
   /**
    * Return the alignment requirement for a copy of this object
@@ -83,9 +75,7 @@ public class ObjectModel {
    * @param object The object whose size is to be queried
    * @return The alignment required for a copy of <code>obj</code>
    */
-  public static int getAlignWhenCopied(ObjectReference object) {
-    return 0;
-  }
+  public abstract int getAlignWhenCopied(ObjectReference object);
 
   /**
    * Return the alignment offset requirements for a copy of this object
@@ -93,9 +83,7 @@ public class ObjectModel {
    * @param object The object whose size is to be queried
    * @return The alignment offset required for a copy of <code>obj</code>
    */
-  public static int getAlignOffsetWhenCopied(ObjectReference object) {
-    return 0;
-  }
+  public abstract int getAlignOffsetWhenCopied(ObjectReference object);
 
     
   /**
@@ -104,32 +92,23 @@ public class ObjectModel {
    * @param object The object whose size is to be queried
    * @return The size of <code>obj</code>
    */
-  public static int getCurrentSize(ObjectReference object) {
-    return 0;
-  }
+  public abstract int getCurrentSize(ObjectReference object);
 
   /**
    * Return the next object in the heap under contiguous allocation
    */
-  public static ObjectReference getNextObject(ObjectReference object) {
-    return null;
-  }
+  public abstract ObjectReference getNextObject(ObjectReference object);
 
   /**
    * Return an object reference from knowledge of the low order word
    */
-  public static ObjectReference getObjectFromStartAddress(Address start) {
-    return null;
-  }
-
+  public abstract ObjectReference getObjectFromStartAddress(Address start);
   /**
    * Gets a pointer to the address just past the end of the object.
    * 
    * @param object The objecty.
    */
-  public static Address getObjectEndAddress(ObjectReference object) {
-    return null;
-  }
+  public abstract Address getObjectEndAddress(ObjectReference object);
 
   
   /**
@@ -138,9 +117,7 @@ public class ObjectModel {
    * @param ref address of the object
    * @return byte array with the type descriptor
    */
-  public static byte[] getTypeDescriptor(ObjectReference ref) {
-    return null;
-  }
+  public abstract byte[] getTypeDescriptor(ObjectReference ref);
 
   /**
    * Get the length of an array object.
@@ -148,31 +125,8 @@ public class ObjectModel {
    * @param object address of the object
    * @return The array length, in elements
    */
-  public static int getArrayLength(ObjectReference object) {
-    return 0;
-  }
-  /**
-   * Tests a bit available for memory manager use in an object.
-   * 
-   * @param object the address of the object
-   * @param idx the index of the bit
-   */
-  public static boolean testAvailableBit(ObjectReference object, int idx) {
-    return false;
-  }
-
-  /**
-   * Sets a bit available for memory manager use in an object.
-   * 
-   * @param object the address of the object
-   * @param idx the index of the bit
-   * @param flag <code>true</code> to set the bit to 1,
-   * <code>false</code> to set it to 0
-   */
-  public static void setAvailableBit(ObjectReference object, int idx,
-      boolean flag) {
-  }
-
+  public abstract int getArrayLength(ObjectReference object);
+  
   /**
    * Attempts to set the bits available for memory manager use in an
    * object.  The attempt will only be successful if the current value
@@ -186,10 +140,8 @@ public class ObjectModel {
    * @return <code>true</code> if the bits were set,
    * <code>false</code> otherwise
    */
-  public static boolean attemptAvailableBits(ObjectReference object,
-      Word oldVal, Word newVal) {
-    return false;
-  }
+  public abstract boolean attemptAvailableBits(ObjectReference object,
+      Word oldVal, Word newVal);
 
   /**
    * Gets the value of bits available for memory manager use in an
@@ -198,9 +150,7 @@ public class ObjectModel {
    * @param object the address of the object
    * @return the value of the bits
    */
-  public static Word prepareAvailableBits(ObjectReference object) {
-    return null;
-  }
+  public abstract Word prepareAvailableBits(ObjectReference object);
 
   /**
    * Sets the bits available for memory manager use in an object.
@@ -208,18 +158,14 @@ public class ObjectModel {
    * @param object the address of the object
    * @param val the new value of the bits
    */
-  public static void writeAvailableBitsWord(ObjectReference object, Word val) {
-  }
-
+  public abstract void writeAvailableBitsWord(ObjectReference object, Word val);
   /**
    * Read the bits available for memory manager use in an object.
    * 
    * @param object the address of the object
    * @return the value of the bits
    */
-  public static Word readAvailableBitsWord(ObjectReference object) {
-    return null;
-  }
+  public abstract Word readAvailableBitsWord(ObjectReference object);
 
   /**
    * Gets the offset of the memory management header from the object
@@ -229,9 +175,7 @@ public class ObjectModel {
    * 
    * @return the offset, relative the object reference address
    */
-  public static Offset GC_HEADER_OFFSET() {
-    return Offset.zero();
-  }
+  public abstract Offset GC_HEADER_OFFSET();
 
   /**
    * Returns the lowest address of the storage associated with an object.
@@ -239,9 +183,7 @@ public class ObjectModel {
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
-  public static Address objectStartRef(ObjectReference object) {
-    return null;
-  }
+  public abstract Address objectStartRef(ObjectReference object);
 
   /**
    * Returns an address guaranteed to be inside the storage assocatied
@@ -250,9 +192,7 @@ public class ObjectModel {
    * @param object the reference address of the object
    * @return an address inside the object
    */
-  public static Address refToAddress(ObjectReference object) {
-    return null;
-  }
+  public abstract Address refToAddress(ObjectReference object);
 
   /**
    * Checks if a reference of the given type in another object is
@@ -261,9 +201,7 @@ public class ObjectModel {
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
-  public static boolean isAcyclic(ObjectReference typeRef) {
-    return false;
-  }
+  public abstract boolean isAcyclic(ObjectReference typeRef);
 
   /**
    * Return the type object for a give object
@@ -271,7 +209,5 @@ public class ObjectModel {
    * @param object The object whose type is required
    * @return The type object for <code>object</code>
    */
-  public static MMType getObjectType(ObjectReference object) {
-    return null;
-  }
+  public abstract MMType getObjectType(ObjectReference object);
 }

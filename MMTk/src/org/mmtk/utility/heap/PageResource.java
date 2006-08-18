@@ -11,6 +11,7 @@ import org.mmtk.utility.options.ProtectOnRelease;
 import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -67,7 +68,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * Initialization
    */
   static {
-    classLock = new Lock("PageResource");
+    classLock = VM.newLock("PageResource");
     Options.protectOnRelease = new ProtectOnRelease();
   }
 
@@ -80,8 +81,8 @@ abstract public class PageResource implements Constants, Uninterruptible {
    */
   PageResource(int pageBudget, Space space) {
     this.pageBudget = pageBudget;
-    gcLock = new Lock(space.getName() + ".gcLock");
-    mutatorLock = new Lock(space.getName() + ".mutatorLock");
+    gcLock = VM.newLock(space.getName() + ".gcLock");
+    mutatorLock = VM.newLock(space.getName() + ".mutatorLock");
   }
 
   /**

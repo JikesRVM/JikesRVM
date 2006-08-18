@@ -9,6 +9,7 @@ import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -142,7 +143,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
 
     if (mustCollect || availablePreGC <= reserve) {
       required = space.reservedPages() - space.committedPages();
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;

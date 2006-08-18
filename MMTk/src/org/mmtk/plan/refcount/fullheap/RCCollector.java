@@ -8,7 +8,7 @@ package org.mmtk.plan.refcount.fullheap;
 import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -120,7 +120,7 @@ implements Uninterruptible, Constants {
    */
   /*  public final void enumerateModifiedPointerLocation(Address objLoc)
    throws InlinePragma {
-   if (Assert.VERIFY_ASSERTIONS) Assert._assert(RC.WITH_COALESCING_RC);
+   if (VM.VERIFY_ASSERTIONS) VM.as._assert(RC.WITH_COALESCING_RC);
    ObjectReference object = objLoc.loadObjectReference();
    if (RC.isRCObject(object)) RefCountSpace.incRC(object);
    }
@@ -137,7 +137,7 @@ implements Uninterruptible, Constants {
 
   /** @return The active global plan as an <code>RC</code> instance. */
   private static final RC global() throws InlinePragma {
-    return (RC) ActivePlan.global();
+    return (RC) VM.activePlan.global();
   }
 
 }

@@ -14,9 +14,7 @@ import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Statistics;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -169,7 +167,7 @@ public final class TrialDeletion extends CycleDetector
 
   public final void possibleCycleRoot(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
     // Log.write("p[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     unfilteredPurpleBuffer.insert(object);
   }
@@ -177,12 +175,12 @@ public final class TrialDeletion extends CycleDetector
   public final boolean collectCycles(boolean primary, boolean timekeeper) {
     collectedCycles = false;
     if (primary && shouldFilterPurple()) {
-      long filterStart = Statistics.cycles();
+      long filterStart = VM.statistics.cycles();
       long finishTarget = Plan.getTimeCap();
       long remaining = finishTarget - filterStart;
       long targetTime = filterStart + (remaining / FILTER_TIME_FRACTION);
 
-      long gcTimeCap = Statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
+      long gcTimeCap = VM.statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
       if (remaining > gcTimeCap/FILTER_TIME_FRACTION ||
           RefCountSpace.RC_SANITY_CHECK) {
         filterPurpleBufs(targetTime);
@@ -192,23 +190,23 @@ public final class TrialDeletion extends CycleDetector
             Log.write("(CD ");
             Log.flush();
           }
-          long cycleStart = Statistics.cycles();
+          long cycleStart = VM.statistics.cycles();
           remaining = finishTarget - cycleStart;
           boolean abort = false;
           while (maturePurplePool.enqueuedPages()> 0 && !abort &&
                  (remaining > gcTimeCap/CYCLE_TIME_FRACTION ||
                   RefCountSpace.RC_SANITY_CHECK)) {
             abort = collectSomeCycles(timekeeper, finishTarget);
-            remaining = finishTarget - Statistics.cycles();
+            remaining = finishTarget - VM.statistics.cycles();
           }
           flushFilteredPurpleBufs();
           if (Options.verbose.getValue() > 0) {
-            Log.write(Statistics.cyclesToMillis(Statistics.cycles() - cycleStart));
+            Log.write(VM.statistics.cyclesToMillis(VM.statistics.cycles() - cycleStart));
             Log.write(" ms)");
           }
         }
       }
-      lastPurplePages = ActivePlan.global().getMetaDataPagesUsed();
+      lastPurplePages = VM.activePlan.global().getMetaDataPagesUsed();
     }
     return collectedCycles;
   }
@@ -219,7 +217,7 @@ public final class TrialDeletion extends CycleDetector
     collectedCycles = true;
     filterMaturePurpleBufs();
     if (timekeeper) greyTime.start();
-    long start = Statistics.cycles();
+    long start = VM.statistics.cycles();
     long remaining = finishTarget - start;
     long targetTime = start + (remaining / MARK_GREY_TIME_FRACTION);
     boolean abort = doMarkGreyPhase(targetTime);
@@ -267,7 +265,7 @@ public final class TrialDeletion extends CycleDetector
     if (RefCountSpace.RC_SANITY_CHECK) return true;
 
     final int LOG_WRIGGLE = 2;
-    int slack = log2((int) ActivePlan.global().getPagesAvail() / thresholdPages);
+    int slack = log2((int) VM.activePlan.global().getPagesAvail() / thresholdPages);
     int mask = (1 << slack) - 1;
     boolean rtn = (slack <= LOG_WRIGGLE) && ((Stats.gcCount() & mask) == mask);
     return rtn;
@@ -287,7 +285,7 @@ public final class TrialDeletion extends CycleDetector
   private final void filterMaturePurpleBufs() {
     if (filteredPurplePool.enqueuedPages() == 0) {
       filterPurpleBufs(maturePurpleBuffer, filteredPurpleBuffer,
-                       Statistics.cycles());
+                       VM.statistics.cycles());
       filteredPurpleBuffer.flushLocal();
     }
   }
@@ -306,7 +304,7 @@ public final class TrialDeletion extends CycleDetector
       }
       purple += p;
     } while (!object.isNull() && 
-             ((Statistics.cycles() < timeCap && purple < limit) ||
+             ((VM.statistics.cycles() < timeCap && purple < limit) ||
               RefCountSpace.RC_SANITY_CHECK));
     return purple;
   }
@@ -320,8 +318,8 @@ public final class TrialDeletion extends CycleDetector
 
   private final void filter(ObjectReference object, ObjectReferenceDeque tgt) {
     // Log.write("f[");Log.write(obj);RefCountSpace.print(obj);Log.writeln("]");
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isBuffered(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RefCountSpace.isBuffered(object));
     if (RefCountSpace.isLiveRC(object)) {
       if (RefCountSpace.isPurple(object)) {
         tgt.insert(object);
@@ -378,7 +376,7 @@ public final class TrialDeletion extends CycleDetector
         }
       }
     } while (!object.isNull() && !abort && 
-             ((Statistics.cycles() < timeCap) || 
+             ((VM.statistics.cycles() < timeCap) || 
               RefCountSpace.RC_SANITY_CHECK));
     return abort;
   }
@@ -387,21 +385,21 @@ public final class TrialDeletion extends CycleDetector
                                           long timeCap)
     throws InlinePragma {
     // Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
     if (RefCountSpace.isPurpleNotGrey(object)) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isLiveRC(object));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RefCountSpace.isLiveRC(object));
       if (!markGrey(object, timeCap)) {
         scanBlack(object);
         return false;
       } else
         tgt.push(object);
     } else {
-      if (Assert.VERIFY_ASSERTIONS) {
+      if (VM.VERIFY_ASSERTIONS) {
         if (!(RefCountSpace.isGrey(object)
               || RefCountSpace.isBlack(object))) {
           RefCountSpace.print(object);
         }
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isGrey(object)
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RefCountSpace.isGrey(object)
               || RefCountSpace.isBlack(object));
       }
       RefCountSpace.clearBufferedBit(object);
@@ -411,12 +409,12 @@ public final class TrialDeletion extends CycleDetector
   private final boolean markGrey(ObjectReference object, long timeCap)
       throws InlinePragma {
     boolean abort = false;
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
       visitCount++;
       if (visitCount % GREY_VISIT_GRAIN == 0 && !RefCountSpace.RC_SANITY_CHECK
-          && Statistics.cycles() > timeCap) {
+          && VM.statistics.cycles() > timeCap) {
         abort = true;
       }
 
@@ -431,7 +429,7 @@ public final class TrialDeletion extends CycleDetector
   public final void enumerateGrey(ObjectReference object)
     throws InlinePragma {
     if (RCBase.isRCObject(object) && !RefCountSpace.isGreen(object)) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isLiveRC(object));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RefCountSpace.isLiveRC(object));
       RefCountSpace.unsyncDecRC(object);
       workQueue.push(object);
     }
@@ -443,7 +441,7 @@ public final class TrialDeletion extends CycleDetector
     ObjectReferenceDeque tgt = cycleBufferB;
     phase = SCAN;
     while (!(object = src.pop()).isNull()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
       scan(object);
       tgt.push(object);
     }
@@ -451,9 +449,9 @@ public final class TrialDeletion extends CycleDetector
 
   private final void scan(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
       if (RefCountSpace.isGrey(object)) {
         if (RefCountSpace.isLiveRC(object)) {
           phase = SCAN_BLACK;
@@ -474,9 +472,9 @@ public final class TrialDeletion extends CycleDetector
   }
   private final void scanBlack(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(blackQueue.pop().isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(blackQueue.pop().isNull());
     while (!object.isNull()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
       if (!RefCountSpace.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
         RefCountSpace.makeBlack(object);
         Scan.enumeratePointers(object, scanBlackEnum);
@@ -498,14 +496,14 @@ public final class TrialDeletion extends CycleDetector
     ObjectReferenceDeque src = cycleBufferB;
     phase = COLLECT;
     while (!(object = src.pop()).isNull()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!RefCountSpace.isGreen(object));
       RefCountSpace.clearBufferedBit(object);
       collectWhite(object);
     }
   }
   private final void collectWhite(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(workQueue.pop().isNull());
     while (!object.isNull()) {
       if (RefCountSpace.isWhite(object) && !RefCountSpace.isBuffered(object)) {
         RefCountSpace.makeBlack(object);

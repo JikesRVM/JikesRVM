@@ -9,7 +9,7 @@ import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -169,7 +169,7 @@ public class BumpPointer extends Allocator
         cursor = nextRegion.plus(DATA_START_OFFSET);
         limit = nextRegion.loadAddress(REGION_LIMIT_OFFSET);
         nextRegion.store(Address.zero(), DATA_END_OFFSET);
-        Memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
+        VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
 
         ((MarkCompactSpace)space).reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
 
@@ -225,7 +225,7 @@ public class BumpPointer extends Allocator
    * @param scanner The scan object to delegate scanning to.
    */
   public void linearScan(LinearScan scanner) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(allowScanning);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allowScanning);
     /* Has this allocator ever allocated anything? */
     if (initialRegion.isZero()) return;
 
@@ -252,10 +252,10 @@ public class BumpPointer extends Allocator
     Address oldCursor = cursor;
     Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
     ObjectReference current =
-      ObjectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
+      VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
 
-    while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
-      ObjectReference next = ObjectModel.getNextObject(current);
+    while (VM.objectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
+      ObjectReference next = VM.objectModel.getNextObject(current);
       scanner.scan(current); // Scan this object.
       current = next;
     }

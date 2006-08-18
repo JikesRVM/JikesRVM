@@ -72,14 +72,15 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param align The requested alignment.
    * @param offset The alignment offset.
    * @param allocator The allocator number to be used for this allocation
+   * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == SS.ALLOC_SS)
       return ss.alloc(bytes, align, offset, false);
     else
-      return super.alloc(bytes, align, offset, allocator);
+      return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**

@@ -12,7 +12,7 @@ import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
@@ -85,7 +85,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    */
 
   /** Unique mutator identifier */
-  protected int id = ActivePlan.registerMutator(this);
+  protected int id = VM.activePlan.registerMutator(this);
 
   /** Used for printing log information in a thread safe manner */
   protected Log log = new Log();
@@ -143,15 +143,16 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
    * @param allocator The allocator associated with this request.
+   * @param site Allocation site
    * @return The low address of the allocated chunk.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     switch (allocator) {
     case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
     case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset, false);
     default:
-      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
+      if (VM.VERIFY_ASSERTIONS) VM.assertions.fail("No such allocator");
       return Address.zero();
     }
   }
@@ -171,7 +172,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
     case      Plan.ALLOC_LOS: Plan.loSpace.initializeHeader(ref); return;
     case Plan.ALLOC_IMMORTAL: Plan.immortalSpace.postAlloc(ref);  return;
     default:
-      if (Assert.VERIFY_ASSERTIONS) Assert.fail("No such allocator");
+      if (VM.VERIFY_ASSERTIONS) VM.assertions.fail("No such allocator");
     }
   }
 
@@ -213,7 +214,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
   public final Allocator getOwnAllocator(Allocator a) {
     Space space = Plan.getSpaceFromAllocatorAnyLocal(a);
     if (space == null)
-      Assert.fail("PlanLocal.getOwnAllocator could not obtain space");
+      VM.assertions.fail("PlanLocal.getOwnAllocator could not obtain space");
     return getAllocatorFromSpace(space);
   }
 
@@ -251,11 +252,11 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
 
     // Invalid request has been made
     if (space == Plan.metaDataSpace) {
-      Assert.fail("MutatorContext.getAllocatorFromSpace given meta space");
+      VM.assertions.fail("MutatorContext.getAllocatorFromSpace given meta space");
     } else if (space != null) {
-      Assert.fail("MutatorContext.getAllocatorFromSpace given invalid space");
+      VM.assertions.fail("MutatorContext.getAllocatorFromSpace given invalid space");
     } else {
-      Assert.fail("MutatorContext.getAllocatorFromSpace given null space");
+      VM.assertions.fail("MutatorContext.getAllocatorFromSpace given null space");
     }
 
     return null;
@@ -286,7 +287,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
       int metaDataB, int mode) {
     // Either: write barriers are used and this is overridden, or
     // write barriers are not used and this is never called
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
   }
 
   /**
@@ -312,7 +313,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
       int bytes) {
     // Either: write barriers are used and this is overridden, or
     // write barriers are not used and this is never called
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
   }
 
@@ -329,7 +330,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
       int context)
       throws InlinePragma {
     // read barrier currently unimplemented
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return Address.max();
   }
 

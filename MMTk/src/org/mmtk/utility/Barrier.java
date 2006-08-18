@@ -4,10 +4,9 @@
 //$Id$
 package org.mmtk.utility;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Statistics;
 import org.mmtk.vm.SynchronizedCounter;
-import org.mmtk.vm.Memory;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -39,37 +38,37 @@ public final class Barrier implements Uninterruptible {
   private static long TIME_OUT =  Long.MAX_VALUE; // set to a real value by fullyBooted
 
   public static void fullyBooted() {
-    WARN_PERIOD = Statistics.secsToCycles(3);   // Print msg every WARN_PERIOD seconds
+    WARN_PERIOD = VM.statistics.secsToCycles(3);   // Print msg every WARN_PERIOD seconds
     TIME_OUT = 10 * WARN_PERIOD; // Die after TIME_OUT seconds
   }
 
   public Barrier() {
     counters = new SynchronizedCounter[NUM_COUNTERS];
     for (int i = 0; i < NUM_COUNTERS; i++)
-      counters[i] = new SynchronizedCounter();
-    currentCounter = new SynchronizedCounter();
+      counters[i] = VM.newSynchronizedCounter();
+    currentCounter = VM.newSynchronizedCounter();
   }
 
   // Set target to appropriate value
   //
   public void setTarget(int t) {
-    Memory.isync();
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(t >= 0);
+    VM.memory.isync();
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(t >= 0);
     target = t + 1;
-    Memory.sync();
+    VM.memory.sync();
   }
 
   public void clearTarget() {
-    Memory.isync();
+    VM.memory.isync();
     target = -1;
-    Memory.sync();
+    VM.memory.sync();
   }
 
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
   public int arrive(int where) {
-    Memory.isync();
+    VM.memory.isync();
     int cur = currentCounter.peek();
     SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
@@ -77,7 +76,7 @@ public final class Barrier implements Uninterruptible {
     if (verbose >= 1) {
       Log.write(where); Log.write(": myValue = "); Log.writeln(myValue);
     }
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(myValue >= 0 && (target == -1 || myValue <= target));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(myValue >= 0 && (target == -1 || myValue <= target));
     if (myValue + 2 == target) {
       // last one to show up
       int next = (cur + 1) % NUM_COUNTERS;
@@ -89,7 +88,7 @@ public final class Barrier implements Uninterruptible {
         currentCounter.increment();
       c.increment(); // now safe to let others past barrier
       // VM.sysWriteln("last guy done ", where);
-      Memory.sync();
+      VM.memory.sync();
       return myValue;
     } else {
       // everyone else
@@ -97,23 +96,23 @@ public final class Barrier implements Uninterruptible {
       long lastElapsed = 0;
       for (int i = 0;; i++) {
         if (target != -1 && c.peek() == target) {
-          Memory.sync();
+          VM.memory.sync();
           return myValue;
         }
         if (((i - 1) % TIME_CHECK) == 0) {
           if (startCheck == 0) {
-            startCheck = Statistics.cycles();
+            startCheck = VM.statistics.cycles();
           } else {
-            long elapsed = Statistics.cycles() - startCheck;
+            long elapsed = VM.statistics.cycles() - startCheck;
             if (elapsed - lastElapsed > WARN_PERIOD) {
-              Log.write("GC Warning: Barrier wait has reached "); Log.write(Statistics.cyclesToSecs(elapsed));
+              Log.write("GC Warning: Barrier wait has reached "); Log.write(VM.statistics.cyclesToSecs(elapsed));
               Log.write(" seconds.  Called from "); Log.write(where); Log.write(".  myOrder = "); Log.write(myValue);
               Log.write("  count is "); Log.write(c.peek()); Log.write(" waiting for "); Log.write(target - 1);
               Log.writeln();
               lastElapsed = elapsed;
             }
             if (elapsed > TIME_OUT)
-              Assert.fail("GC Error: Barrier Timeout");
+              VM.assertions.fail("GC Error: Barrier Timeout");
           }
         }
       }

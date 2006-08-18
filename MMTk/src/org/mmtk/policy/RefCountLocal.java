@@ -17,10 +17,7 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TrialDeletion;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Statistics;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -112,7 +109,7 @@ public final class RefCountLocal extends SegregatedFreeList
    * into the boot image by the build process.
    */
   static {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(LAZY_SWEEP);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(LAZY_SWEEP);
     oldRootPool = new SharedDeque(Plan.metaDataSpace, 1);
     oldRootPool.newConsumer();
 
@@ -218,7 +215,7 @@ public final class RefCountLocal extends SegregatedFreeList
    */
   public final void prepare(boolean time) {
     if (RefCountSpace.RC_SANITY_CHECK && !Options.noFinalizer.getValue())
-      Assert.fail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
+      VM.assertions.fail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
 
     flushFreeLists();
     if (RefCountSpace.INC_DEC_ROOT) {
@@ -230,7 +227,7 @@ public final class RefCountLocal extends SegregatedFreeList
   }
 
   public final void release() {
-    Assert._assert(false);
+    VM.assertions._assert(false);
   }
 
   /**
@@ -243,7 +240,7 @@ public final class RefCountLocal extends SegregatedFreeList
     boolean timekeeper = (Options.verboseTiming.getValue() && primary);
     // RC_PREPARE_MUTATOR
     flushFreeLists();
-    Collection.rendezvous(4400);
+    VM.collection.rendezvous(4400);
     // RC_PROCESS_OLD_ROOTS
     if (!RefCountSpace.INC_DEC_ROOT) {
       processOldRootBufs(plan);
@@ -254,7 +251,7 @@ public final class RefCountLocal extends SegregatedFreeList
     // RC_PROCESS_DEC_BUFS
     processDecBufs(plan);
     if (timekeeper) decTime.stop();
-    Collection.rendezvous(4410);
+    VM.collection.rendezvous(4410);
     // RC_SWEEP
     sweepBlocks();
     // RC_CYCLE_DETECTION
@@ -264,7 +261,7 @@ public final class RefCountLocal extends SegregatedFreeList
         processDecBufs(plan);
       if (timekeeper) cdTime.stop();
     }
-    Collection.rendezvous(4420);
+    VM.collection.rendezvous(4420);
     // RC_SANITY_TRACE
     if (RefCountSpace.RC_SANITY_CHECK) checkSanityTrace();
     // RC_PROCESS_ROOT_BUFS
@@ -284,7 +281,7 @@ public final class RefCountLocal extends SegregatedFreeList
   private final void processDecBufs(RCBaseMutator plan) {
     ObjectReference tgt = ObjectReference.nullReference();
     long tc = Plan.getTimeCap();
-    long remaining = tc - Statistics.cycles();
+    long remaining = tc - VM.statistics.cycles();
     long limit = tc - (long) (remaining * (1 - DEC_TIME_FRACTION));
     decrementPhase = true;
     decCounter = 0;
@@ -295,7 +292,7 @@ public final class RefCountLocal extends SegregatedFreeList
         count++;
       }
       decCounter += count;
-    } while (!tgt.isNull() && (RefCountSpace.RC_SANITY_CHECK || Statistics.cycles() < limit));
+    } while (!tgt.isNull() && (RefCountSpace.RC_SANITY_CHECK || VM.statistics.cycles() < limit));
     decrementPhase = false;
   }
 
@@ -405,7 +402,7 @@ public final class RefCountLocal extends SegregatedFreeList
   public final void free(ObjectReference object) 
     throws InlinePragma {
     if (Space.isInSpace(Plan.LOS, object))
-      los.free(ObjectModel.refToAddress(object));
+      los.free(VM.objectModel.refToAddress(object));
     else
       deadObject(object);
   }
@@ -494,18 +491,18 @@ public final class RefCountLocal extends SegregatedFreeList
       sanityImmortalSetA.push(object);
     }
     while (!(object = checkSanityRoots.pop()).isNull()) {
-      if (Statistics.getCollectionCount() == 1) checkForImmortal(object);
+      if (VM.statistics.getCollectionCount() == 1) checkForImmortal(object);
       RCBase.collector().checkSanityTrace(object, Address.zero());
     }
     while (!(object = sanityWorkQueue.pop1().toObjectReference()).isNull()) {
-      if (Statistics.getCollectionCount() == 1) checkForImmortal(object);
+      if (VM.statistics.getCollectionCount() == 1) checkForImmortal(object);
       RCBase.collector().checkSanityTrace(object, sanityWorkQueue.pop2());
     }
     if (rcLiveObjects != sanityLiveObjects) {
       Log.write("live mismatch: "); Log.write(rcLiveObjects); 
       Log.write(" (rc) != "); Log.write(sanityLiveObjects);
       Log.writeln(" (sanityRC)");
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     }
   }
 

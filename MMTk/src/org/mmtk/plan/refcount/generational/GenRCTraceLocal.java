@@ -8,7 +8,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
@@ -41,7 +41,7 @@ public final class GenRCTraceLocal extends TraceLocal
   // return (GenRCCollector)ActivePlan.collector();
   // }
   private final GenRCMutator collector() {
-    return (GenRCMutator) ActivePlan.mutator();
+    return (GenRCMutator) VM.activePlan.mutator();
   }
 
   /**
@@ -63,7 +63,7 @@ public final class GenRCTraceLocal extends TraceLocal
    * @return True if <code>object</code> is a live object.
    */
   public boolean isLive(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (Space.isInSpace(GenRC.NS, object))
       return GenRC.nurserySpace.isLive(object);
     else if (GenRC.isRCObject(object))
@@ -83,7 +83,7 @@ public final class GenRCTraceLocal extends TraceLocal
   * to it.
    */
   public boolean readyToFinalize(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (Space.isInSpace(GenRC.NS, object))
       return !GenRC.nurserySpace.isLive(object);
     else if (GenRC.isRCObject(object))
@@ -105,7 +105,7 @@ public final class GenRCTraceLocal extends TraceLocal
    * @return The object (no copying is performed).
    */
   public ObjectReference retainForFinalize(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (Space.isInSpace(GenRC.NS, object))
       return GenRC.nurserySpace.traceObject(this, object);
     else if (GenRC.isRCObject(object))
@@ -114,7 +114,7 @@ public final class GenRCTraceLocal extends TraceLocal
   }
 
   public boolean willNotMove(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return !(Space.isInSpace(GenRC.NS, object));
   }
 

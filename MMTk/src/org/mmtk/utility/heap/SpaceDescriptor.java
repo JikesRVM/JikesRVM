@@ -6,6 +6,7 @@ package org.mmtk.utility.heap;
 
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -69,8 +70,8 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    */
   public static int createDescriptor(Address start, Address end) {
     int chunks = end.diff(start).toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(!start.isZero() && chunks > 0
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(!start.isZero() && chunks > 0
           && chunks < (1 << VM_SIZE_BITS));
     boolean top = end.EQ(Space.HEAP_END);
     Word tmp = start.toWord();
@@ -81,8 +82,8 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
       exponent++;
     }
     int mantissa = tmp.toInt();
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(tmp.lsh(VM_BASE_EXPONENT + exponent).EQ(start.toWord()));
     return (mantissa<<VM_MANTISSA_SHIFT)
       | (exponent<<VM_EXPONENT_SHIFT) 
         | (chunks << VM_SIZE_SHIFT)
@@ -134,7 +135,7 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    * @return The start of this region of memory encoded in this descriptor
    */
   public static Address getStart(int descriptor) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isContiguous(descriptor));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     Word mantissa = Word.fromIntSignExtend(descriptor >>> VM_MANTISSA_SHIFT);
     int exponent = (descriptor & VM_EXPONENT_MASK) >>> VM_EXPONENT_SHIFT;
     return mantissa.lsh(VM_BASE_EXPONENT + exponent).toAddress();
@@ -149,7 +150,7 @@ public class SpaceDescriptor implements Uninterruptible, Constants {
    * descriptor, in chunks
    */
   public static int getChunks(int descriptor) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isContiguous(descriptor));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isContiguous(descriptor));
     return (descriptor & VM_SIZE_MASK) >>> VM_SIZE_SHIFT;
   }
 }

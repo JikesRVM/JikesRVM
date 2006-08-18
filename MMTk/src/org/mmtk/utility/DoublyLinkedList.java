@@ -6,6 +6,7 @@ package org.mmtk.utility;
 import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import org.vmmagic.pragma.*;
@@ -62,12 +63,12 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
     owner = owner_;
     head = Address.zero();
-    lock = shared ? new Lock("DoublyLinkedList") : null;
+    lock = shared ? VM.newLock("DoublyLinkedList") : null;
     log_granularity = log_granularity_;
 
     // ensure that granularity is big enough for midPayloadToNode to work
     Word tmp = Word.one().lsh(log_granularity);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(tmp.and(nodeMask).EQ(tmp));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
   // Offsets are relative to the node (not the payload)
@@ -114,7 +115,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   }
 
   public final void add(Address node) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
     node.store(head, NEXT_OFFSET);
@@ -126,7 +127,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   }
 
   public final void remove(Address node) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
     Address next = node.loadAddress(NEXT_OFFSET);
@@ -162,7 +163,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
    * @return True if the cell is found on the treadmill
    */
   public final boolean isMember(Address node) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();
     Address cur = head;

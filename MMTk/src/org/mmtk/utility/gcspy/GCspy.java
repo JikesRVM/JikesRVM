@@ -7,7 +7,7 @@ package org.mmtk.utility.gcspy;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.*;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -78,7 +78,7 @@ public class GCspy implements Uninterruptible {
     Log.write(", wait=");
     Log.writeln(getGCspyWait());
     if (port > 0) {
-      ActivePlan.global().startGCspyServer(port, getGCspyWait());
+      VM.activePlan.global().startGCspyServer(port, getGCspyWait());
       Log.writeln("gcspy thread booted");
     }
   }

@@ -5,7 +5,7 @@
 //$Id$
 package org.mmtk.utility.alloc;
 
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Log;
 
 import org.vmmagic.unboxed.*;
@@ -28,6 +28,6 @@ final public class DumpLinearScan extends LinearScan implements Uninterruptible 
     Log.write("[");
     Log.write(object.toAddress());
     Log.write("], SIZE = ");
-    Log.writeln(ObjectModel.getCurrentSize(object));
+    Log.writeln(VM.objectModel.getCurrentSize(object));
   }
 }

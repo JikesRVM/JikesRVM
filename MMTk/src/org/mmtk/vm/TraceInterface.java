@@ -12,10 +12,10 @@ import org.vmmagic.pragma.*;
  * during tracing, handling those references, and computing death times
  * 
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 1.4 $
+ * @date $Date: 2006/06/21 07:38:13 $
  */
-public final class TraceInterface {
+public abstract class TraceInterface {
 
 
   /***********************************************************************
@@ -28,10 +28,7 @@ public final class TraceInterface {
    * 
    * @return True if the VM is ready for GC, false otherwise.
    */
-  public static final boolean gcEnabled() {
-    return false;
-  }
-
+  public abstract boolean gcEnabled();
 
   /**
    * This adjusts the offset into an object to reflect what it would look like
@@ -44,11 +41,9 @@ public final class TraceInterface {
    * the update will be stored
    * @return The easy to understand offset of the slot
    */
-  public static final Offset adjustSlotOffset(boolean isScalar,
+  public abstract Offset adjustSlotOffset(boolean isScalar,
                                               ObjectReference src,
-                                              Address slot) {
-    return null;
-  }
+                                              Address slot);
 
   /**
    * This skips over the frames added by the tracing algorithm, outputs
@@ -59,50 +54,22 @@ public final class TraceInterface {
    *@param typeRef The type reference (tib) of the object just allocated
    * @return The frame pointer address for the method that allocated the object
    */
-  public static final Address skipOwnFramesAndDump(ObjectReference typeRef) {
-    return null;
-  }
+  public abstract Address skipOwnFramesAndDump(ObjectReference typeRef);
 
   /***********************************************************************
    * 
    * Wrapper methods
    */
-
-  public static void updateDeathTime(Object obj) throws InlinePragma {}
-
-  public static void setDeathTime(ObjectReference ref, Word time_) {}
-
-  public static void setLink(ObjectReference ref, ObjectReference link) {}
-
-  public static void updateTime(Word time_) throws InlinePragma {}
-
-  public static Word getOID(ObjectReference ref) throws InlinePragma {
-    return null;
-  }
-
-  public static Word getDeathTime(ObjectReference ref) throws InlinePragma {
-    return null;
-  }
-
-  public static ObjectReference getLink(ObjectReference ref) {
-    return null;
-  }
-
-  public static Address getBootImageLink() throws InlinePragma {
-    return null;
-  }
-
-  public static Word getOID() throws InlinePragma {
-    return null;
-  }
-
-  public static void setOID(Word oid) throws InlinePragma {}
-
-  public static final int getHeaderSize() throws InlinePragma {
-    return 0;
-  }
-
-  public static final int getHeaderEndOffset() throws InlinePragma {
-    return 0;
-  }
+  public abstract void updateDeathTime(Object obj);
+  public abstract void setDeathTime(ObjectReference ref, Word time_);
+  public abstract void setLink(ObjectReference ref, ObjectReference link);
+  public abstract void updateTime(Word time_);
+  public abstract Word getOID(ObjectReference ref);
+  public abstract Word getDeathTime(ObjectReference ref);
+  public abstract ObjectReference getLink(ObjectReference ref);
+  public abstract Address getBootImageLink();
+  public abstract Word getOID();
+  public abstract void setOID(Word oid);
+  public abstract int getHeaderSize();
+  public abstract int getHeaderEndOffset();
 }
