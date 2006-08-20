@@ -533,6 +533,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
         }
       }
       if (isPrefix("Lorg/mmtk/", clsBA) ||
+	  isPrefix("Lcom/ibm/JikesRVM/mm/", clsBA) ||
           isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.ALLOC_IMMORTAL;
       }
@@ -558,6 +559,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
         allocator = Plan.ALLOC_GCSPY;
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
+	isPrefix("Lcom/ibm/JikesRVM/mm/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
