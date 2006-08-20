@@ -75,18 +75,21 @@ public abstract class Plan implements Uninterruptible, Constants {
   public static final int META_DATA_MB = 32;
   public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
-  public static final float LOS_FRAC = (float) 0.1;
+  public static final float LOS_FRAC = (float) 0.03;                          
+  public static final float PLOS_FRAC = (float) 0.07;                         
 
   /* Allocator Constants */
   public static final int ALLOC_DEFAULT = 0;
-  public static final int ALLOC_IMMORTAL = 1;
-  public static final int ALLOC_LOS = 2;
-  public static final int ALLOC_GCSPY = 3;
+  public static final int ALLOC_NON_REFERENCE = 1;
+  public static final int ALLOC_IMMORTAL = 2;
+  public static final int ALLOC_LOS = 3;
+  public static final int ALLOC_PRIMITIVE_LOS = 4;
+  public static final int ALLOC_GCSPY = 5;
   public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
   public static final int ALLOC_STACK = ALLOC_DEFAULT;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
-  public static final int ALLOCATORS = 4;
+  public static final int ALLOCATORS = 6;
   public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
@@ -113,11 +116,16 @@ public abstract class Plan implements Uninterruptible, Constants {
   /** Large objects are allocated into a special large object space. */
   public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
 
+  /** Primitive (non-ref) large objects are allocated into a special primitiv\
+      e large object space. */
+  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);    
+
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
   public static final int VM_SPACE = vmSpace.getDescriptor();
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
+  public static final int PLOS = ploSpace.getDescriptor();
 
   /** Timer that counts total time */
   public static final Timer totalTime = new Timer("time");
@@ -584,7 +592,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
-    return loSpace.reservedPages() +
+    return loSpace.reservedPages() + ploSpace.reservedPages() +
            immortalSpace.reservedPages() +
            metaDataSpace.reservedPages();
   }

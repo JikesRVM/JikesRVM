@@ -38,16 +38,18 @@ public final class LargeObjectSpace extends Space
    * 
    * Class variables
    */
-  public static final int LOCAL_GC_BITS_REQUIRED = 1;
+  public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
-  public static final Word MARK_BIT_MASK = Word.one(); // ...01
+  private static final Word MARK_BIT = Word.one(); // ...01
+  private static final Word NURSERY_BIT = Word.fromInt(2); // ...10
+  private static final Word LOS_BIT_MASK = Word.fromInt(3); // ...11
 
   /****************************************************************************
    * 
    * Instance variables
    */
   private Word markState;
-  private boolean inTreadmillCollection = false;
+  private boolean inNurseryGC;
 
   /****************************************************************************
    * 
@@ -155,19 +157,6 @@ public final class LargeObjectSpace extends Space
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
 
-  /**
-   * Return the initial value for the header of a new object instance.
-   * The header for this collector includes a mark bit and a small
-   * object flag.
-   * 
-   * @param size The size of the newly allocated object
-   */
-  public final Word getInitialHeaderValue(int size) 
-    throws InlinePragma {
-    return markState;
-  }
-
-
   /****************************************************************************
    * 
    * Collection
@@ -179,9 +168,10 @@ public final class LargeObjectSpace extends Space
    * collections.
    * 
    */
-  public void prepare() {
-    markState = MARK_BIT_MASK.minus(markState);
-    inTreadmillCollection = true;
+  public void prepare(boolean fullHeap) {
+   if (fullHeap) 
+      markState = MARK_BIT.minus(markState);
+    inNurseryGC = !fullHeap;
   }
 
   /**
@@ -190,17 +180,6 @@ public final class LargeObjectSpace extends Space
    * 
    */
   public void release() {
-    inTreadmillCollection = false;
-  }
-
-  /**
-   * Return true if this mark-sweep space is currently being collected.
-   * 
-   * @return True if this mark-sweep space is currently being collected.
-   */
-  public boolean inTreadmillCollection() 
-    throws InlinePragma {
-    return inTreadmillCollection;
   }
 
   /**
@@ -236,9 +215,12 @@ public final class LargeObjectSpace extends Space
   public final ObjectReference traceObject(TraceLocal trace,
                                            ObjectReference object)
     throws InlinePragma {
+    boolean nurseryObject = isInNursery(object);
+    if (!inNurseryGC || nurseryObject) {
     if (testAndMark(object, markState)) {
-      internalMarkObject(object);
+        internalMarkObject(object, nurseryObject);
       trace.enqueue(object);
+    }
     }
     return object;
   }
@@ -262,13 +244,13 @@ public final class LargeObjectSpace extends Space
    * 
    * @param object The object which has been marked.
    */
-  private final void internalMarkObject(ObjectReference object)
+  private final void internalMarkObject(ObjectReference object, boolean nurseryObject)
       throws InlinePragma {
 
     Address cell = VM.objectModel.objectStartRef(object);
     Address node = Treadmill.midPayloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
-    tm.copy(node);
+    tm.copy(node, nurseryObject);
   }
 
   /****************************************************************************
@@ -294,7 +276,7 @@ public final class LargeObjectSpace extends Space
   public final void initializeHeader(ObjectReference object)
       throws InlinePragma {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+    Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState).or(NURSERY_BIT); 
     VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 
@@ -305,15 +287,15 @@ public final class LargeObjectSpace extends Space
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  public static boolean testAndMark(ObjectReference object, Word value)
+  private final boolean testAndMark(ObjectReference object, Word value)
       throws InlinePragma {
     Word oldValue, markBit;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
-      markBit = oldValue.and(MARK_BIT_MASK);
+      markBit = oldValue.and(LOS_BIT_MASK);
       if (markBit.EQ(value)) return false;
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
-                                               oldValue.xor(MARK_BIT_MASK)));
+						  oldValue.and(LOS_BIT_MASK.not()).or(value)));
     return true;
   }
 
@@ -324,9 +306,20 @@ public final class LargeObjectSpace extends Space
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  static public boolean testMarkBit(ObjectReference object, Word value)
+  private final boolean testMarkBit(ObjectReference object, Word value)
+    throws InlinePragma {
+    return VM.objectModel.readAvailableBitsWord(object).and(LOS_BIT_MASK).EQ(value);
+  }
+
+  /**
+   * Return true if the object is in the logical nursery                      
+   *                                                                          
+   * @param object The object whose status is to be tested                    
+   * @return True if the object is in the logical nursery                     
+   */                                                                         
+  private final boolean isInNursery(ObjectReference object)                   
       throws InlinePragma {
-    return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+     return VM.objectModel.readAvailableBitsWord(object).and(NURSERY_BIT).EQ(NURSERY_BIT);
   }
 
   /**

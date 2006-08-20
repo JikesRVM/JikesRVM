@@ -57,7 +57,10 @@ public final class GenNurseryTraceLocal extends TraceLocal
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (object.toAddress().GE(Gen.NURSERY_START)) {
+      if (object.toAddress().LT(Gen.NURSERY_END))
       return Gen.nurserySpace.isLive(object);
+      else
+        return Gen.ploSpace.isLive(object);
     }
     return super.isLive(object);
   }
@@ -76,7 +79,10 @@ public final class GenNurseryTraceLocal extends TraceLocal
   public ObjectReference traceObject(ObjectReference object)
       throws InlinePragma {
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
+      if (object.toAddress().LT(Gen.NURSERY_END))
       return Gen.nurserySpace.traceObject(this, object);
+      else
+        return Gen.ploSpace.traceObject(this, object);
     }
     return object;
   }

@@ -552,6 +552,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
   private static int pickAllocatorForType(VM_Type type)
     throws InterruptiblePragma {
     int allocator = Plan.ALLOC_DEFAULT;
+    if (type.isArrayType() && type.asArray().getElementType().isPrimitiveType())
+      allocator = Plan.ALLOC_NON_REFERENCE;
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (SelectedPlanConstraints.get().withGCspy()) {
       if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||

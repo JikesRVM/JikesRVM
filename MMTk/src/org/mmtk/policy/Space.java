@@ -251,15 +251,15 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   private Space(String name, boolean movable, boolean immortal, Extent bytes,
       boolean top) {
-    this(name, movable, immortal, (top) ? HEAP_END.minus(bytes) : HEAP_START,
+    this(name, movable, immortal, (top) ? heapLimit.minus(bytes) : HEAP_START,
         bytes);
     if (top) { // request for the top of available memory
-      if (heapLimit.NE(HEAP_END)) {
+      /*      if (heapLimit.NE(HEAP_END)) {
         Log.write("Unable to satisfy virtual address space request \"");
         Log.write(name); Log.write("\" at ");
         Log.writeln(heapLimit);
         VM.assertions.fail("exiting");
-      }
+	} */
       heapLimit = heapLimit.minus(extent);
     } else { // request for the bottom of available memory
       if (heapCursor.GT(HEAP_START)) {

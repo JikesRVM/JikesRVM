@@ -245,6 +245,7 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
         remset.resetLocal();
         arrayRemset.resetLocal();
       } else {
+        plos.prepare(false);
         flushRememberedSets();
       }
       return;
@@ -253,6 +254,8 @@ public class GenMutator extends StopTheWorldMutator implements Uninterruptible {
     if (phaseId == Gen.RELEASE_MUTATOR) {
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
+      } else {
+        plos.release(false);
       }
       assertRemsetFlushed();
       return;

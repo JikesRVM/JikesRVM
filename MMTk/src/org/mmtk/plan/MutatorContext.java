@@ -96,6 +96,9 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
   /** Per-mutator allocator into the large object space */
   protected LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
 
+  /** Per-mutator allocator into the primitive large object space */
+  protected LargeObjectLocal plos = new LargeObjectLocal(Plan.ploSpace);
+  
   /****************************************************************************
    * 
    * Collection.
@@ -132,7 +135,12 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
     if (allocator == Plan.ALLOC_DEFAULT &&
         Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD) 
       return Plan.ALLOC_LOS;
+    else if (allocator == Plan.ALLOC_NON_REFERENCE) {
+        if (Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD)
+          return Plan.ALLOC_PRIMITIVE_LOS;
     else
+          return Plan.ALLOC_DEFAULT;
+    } else
       return allocator;
   }
 
@@ -150,6 +158,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
       throws InlinePragma {
     switch (allocator) {
     case      Plan.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
+    case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset, false);
     case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset, false);
     default:
       if (VM.VERIFY_ASSERTIONS) VM.assertions.fail("No such allocator");
@@ -170,6 +179,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
       int bytes, int allocator) throws InlinePragma {
     switch (allocator) {
     case      Plan.ALLOC_LOS: Plan.loSpace.initializeHeader(ref); return;
+    case Plan.ALLOC_PRIMITIVE_LOS: Plan.ploSpace.initializeHeader(ref); return;
     case Plan.ALLOC_IMMORTAL: Plan.immortalSpace.postAlloc(ref);  return;
     default:
       if (VM.VERIFY_ASSERTIONS) VM.assertions.fail("No such allocator");
@@ -232,6 +242,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
   public Space getSpaceFromAllocator(Allocator a) {
     if (a == immortal) return Plan.immortalSpace;
     if (a == los)      return Plan.loSpace;
+    if (a == plos)     return Plan.ploSpace;
 
     // a does not belong to this plan instance
     return null;
@@ -249,6 +260,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == Plan.immortalSpace) return immortal;
     if (space == Plan.loSpace)       return los;
+    if (space == Plan.ploSpace)      return plos;
 
     // Invalid request has been made
     if (space == Plan.metaDataSpace) {

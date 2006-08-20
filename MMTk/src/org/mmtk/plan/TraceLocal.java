@@ -203,6 +203,8 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
     Space space = Space.getSpaceForObject(object);
     if (space == Plan.loSpace)
       return Plan.loSpace.isLive(object);
+    else if (space == Plan.ploSpace)
+      return Plan.ploSpace.isLive(object);
     else if (space == null) {
       if (VM.VERIFY_ASSERTIONS) {
         Log.write("space failure: "); Log.writeln(object);
@@ -249,6 +251,8 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
       return Plan.immortalSpace.traceObject(this, object);
     if (Space.isInSpace(Plan.LOS, object))
       return Plan.loSpace.traceObject(this, object);
+    if (Space.isInSpace(Plan.PLOS, object)) 
+      return Plan.ploSpace.traceObject(this, object);
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false, "No special case for space in traceObject");
     return null;

@@ -58,13 +58,15 @@ implements Uninterruptible {
     }
 
     if (phaseId == StopTheWorld.PREPARE_MUTATOR) {
-      los.prepare();
+      los.prepare(true);
+      plos.prepare(true);
       VM.memory.collectorPrepareVMSpace();
       return;
     }
 
     if (phaseId == StopTheWorld.RELEASE_MUTATOR) {
-      los.release();
+      los.release(true);
+      plos.release(true);
       VM.memory.collectorReleaseVMSpace();
       return;
     }

@@ -211,7 +211,8 @@ public abstract class StopTheWorld extends Plan
     }
 
     if (phaseId == PREPARE) {
-      loSpace.prepare();
+      loSpace.prepare(true);
+      ploSpace.prepare(true);
       immortalSpace.prepare();
       VM.memory.globalPrepareVMSpace();
       return;
@@ -225,6 +226,7 @@ public abstract class StopTheWorld extends Plan
 
     if (phaseId == RELEASE) {
       loSpace.release();
+      ploSpace.release();
       immortalSpace.release();
       VM.memory.globalReleaseVMSpace();
       return;

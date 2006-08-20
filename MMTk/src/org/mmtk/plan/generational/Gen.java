@@ -79,7 +79,9 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
 
   public static final int NURSERY = nurserySpace.getDescriptor();;
   public static final Address NURSERY_START = nurserySpace.getStart();
+  public static final Address NURSERY_END = NURSERY_START.plus(nurserySpace.getExtent());
 
+  private static int lastCommittedPLOSpages = 0;
 
   /*****************************************************************************
    * 
@@ -129,6 +131,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
   public void userTriggeredGC() {
     nextGCFullHeap |= Options.fullHeapSystemGC.getValue();
   }
+  
   /**
    * Perform a (global) collection phase.
    * 
@@ -143,7 +146,9 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      if (traceFullHeap()) {
+      if (!traceFullHeap())
+        ploSpace.prepare(false);
+      else {
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
@@ -161,7 +166,10 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       nurserySpace.release();
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
-      if (traceFullHeap()) {
+      if (!traceFullHeap()) {
+        ploSpace.release();
+        lastCommittedPLOSpages = ploSpace.committedPages();
+      } else {
         super.collectionPhase(phaseId);
         if (gcFullHeap) fullHeapTime.stop();
       }
@@ -185,7 +193,10 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     if (getCollectionsInitiated() > 0 || !isInitialized())
       return false;
 
-    mustCollect |= stressTestGCRequired();
+    if (stressTestGCRequired()) {
+      mustCollect = true;
+      nextGCFullHeap = true;
+    }
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurserySpace.reservedPages() >
                           Options.nurserySize.getMaxNursery();
@@ -204,9 +215,9 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       if (space == nurserySpace ||
           (copyMature() && (space == activeMatureSpace())))
         required = required << 1; // must account for copy reserve
-      int nurseryYield = ((int)(nurserySpace.committedPages() *
-                          SURVIVAL_ESTIMATE))<<1;
-      nextGCFullHeap |= mustCollect || (nurseryYield < required);
+      int plosNurseryPages = ploSpace.committedPages() - lastCommittedPLOSpages;
+      int nurseryYield = (int)(((nurserySpace.committedPages() * 2) + plosNurseryPages) * SURVIVAL_ESTIMATE);
+      nextGCFullHeap |= nurseryYield < required;
       VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
