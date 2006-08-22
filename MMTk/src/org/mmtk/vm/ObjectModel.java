@@ -30,7 +30,7 @@ public abstract class ObjectModel implements Uninterruptible {
    * allow the plan to perform any post copy actions.
    *
    * @param from the address of the object to be copied
-   * @param from The allocator to use.
+   * @param allocator The allocator to use.
    * @return the address of the new object
    */
   public abstract ObjectReference copy(ObjectReference from, int allocator);

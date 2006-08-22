@@ -86,7 +86,7 @@ public abstract class Scanning implements Constants, Uninterruptible {
    * balancing parallel GC can share the work of scanning threads.
    * </ul>
    * 
-   * @param The trace to use for computing roots.
+   * @param trace The trace to use for computing roots.
    */
   public abstract void computeAllRoots(TraceLocal trace);
 

@@ -20,7 +20,7 @@ public abstract class ReferenceGlue implements Uninterruptible {
   /**
    * Scan through the list of references with the specified semantics.
    * @param semantics the number representing the semantics
-   * @param True if it is safe to only scan new references.
+   * @param nursery true if it is safe to only scan new references.
    */
   public abstract void scanReferences(int semantics, boolean nursery);
 
