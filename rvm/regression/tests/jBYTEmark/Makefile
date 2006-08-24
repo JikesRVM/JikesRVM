@@ -25,7 +25,7 @@ ALL_TESTS	= AssignmentTest   FourierTest      RandNum \
                   EmFloatPnt       NumericSortTest
 
 
-DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
+DRIVER_SOURCE_PATH=$(JAL_ROOT)/testing/tests/iterationDriver
 BENCH_SOURCE_PATH=$(JAL_ROOT)/rvm/regression/tests/jBYTEmark:$(BENCH_HOME):$(DRIVER_SOURCE_PATH)
 START_NAME=Driver
 START_ARGS=2 jBYTEmark main

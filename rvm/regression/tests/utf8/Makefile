@@ -8,7 +8,7 @@
 #
 include		$(RVM_BUILD)/Make.rules.target
 
-BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/utf8
+BENCH_HOME=$(JAL_ROOT)/testing/tests/utf8
 BENCH_SOURCE_PATH=$(WORKING) $(BENCH_HOME)
 HEAPSIZE=150
 START_NAME=utf8test

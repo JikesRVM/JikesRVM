@@ -13,7 +13,8 @@
 
 # Perform string replacement on java files
 # 
-my $filePattern = "\\A.*\\.java\\Z";
+#my $filePattern = "\\A.*\\.java\\Z";
+my $filePattern = "\\A.*\\Makefile\\Z";
 
 # We expect exactly two arguments.
 #

@@ -14,7 +14,7 @@ include		$(JAL_ROOT)/rvm/regression/Local.rules
 
 HEAPSIZE=150
 
-DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
+DRIVER_SOURCE_PATH=$(JAL_ROOT)/testing/tests/iterationDriver
 BENCH_SOURCE_PATH=$(DRIVER_SOURCE_PATH)
 BENCH_CLASS_PATH=$(BENCH_HOME)/build/xercesImpl.jar:$(BENCH_HOME)/build/xercesSamples.jar:$(BENCH_HOME)/build/xmlParserAPIs.jar:$(XML_DATA)/shakespeare.1.10.xml.zip
 

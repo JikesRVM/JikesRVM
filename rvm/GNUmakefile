@@ -21,7 +21,6 @@ ETAGS_EMACS:=etags
 # "make TAGS": * Make a tags table, "TAGS", for the generated
 #	  sources (in $RVM_BUILD) and for the C, C++, and Java sources
 #	   in the 'src' directory.  
-#	* Skip 'src/examples'
 #	* The table should include the Java templates in *.template
 #
 # "make TAGS.ALL": Make a tags table covering all of the source files
@@ -47,7 +46,7 @@ all:
 	@echo >&2 ' "make TAGS" to use it.'
 	@echo >&2 ' (Well, it can also run "find" in ways useful for the Emacs Meta-x grep-find '
 	@echo >&2 ' command.  It also makes an alternative tags file, TAGS.ALL, which contains'
-	@echo >&2 ' all files in the source tree, skipping only Emacs backups and CVS files.)'
+	@echo >&2 ' all files in the source tree, skipping only Emacs backups and svn files.)'
 	@echo >&2 ' Documentation is at the head of the Makefile.'
 
 
@@ -61,13 +60,13 @@ endif
 XFLAGS:=--no-run-if-empty
 
 find_ignore_docs:=-name \*.gif -o -name \*.jpg -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
-find_match_junk_names:=-name Old -prune -o -name CVS -prune -o -name '*.[ao]' -o -name \*.so -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -name core -o -name core.\* -o -name \*.log
-append_java_templates=find src ../MMTk -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --language=java --append --output=$@ 
+find_match_junk_names:=-name Old -prune -o -name .svn -prune -o -name '*.[ao]' -o -name \*.so -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -name core -o -name core.\* -o -name \*.log
+append_java_templates=find src ../MMTk -follow ${find_match_junk_names}  -o -name \*.template -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --language=java --append --output=$@ 
 
 # Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
 # in a clean checkout, but might possibly do so if there were old 
 # files left over whose names start with "#" or with ".#". 
-FIND:=find  $(GENSRC) src ../MMTk/src -follow  ${find_match_junk_names} -o -name examples -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
+FIND:=find  $(GENSRC) src ../MMTk/src -follow  ${find_match_junk_names} -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
 FINDALL:=find $(GENSRC) . ../MMTk -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
 
 # etags in emacs 21.3.CVS-2003-09-23 does not support "--defines, nor  --globals".
@@ -100,7 +99,7 @@ endif
 
 TAGS.Makefiles: FORCE
 	$(RM) $@
-	find . ../MMTk -follow ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
+	find . ../MMTk -follow ${find_match_junk_names} -o -name regression -prune -o -name '*akefil*' -print0 | xargs ${XFLAGS} -0 $(ETAGS_EMACS) $(EFLAGS) --append --output=$@
 
 ## We don't have any conditional compilation directives in the 
 ## MMTk source tree; no need to search it.

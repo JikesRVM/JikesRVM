@@ -12,7 +12,7 @@
 #
 include		$(RVM_BUILD)/Make.rules.target
 
-BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/jni
+BENCH_HOME=$(JAL_ROOT)/testing/tests/jni
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=64
 START_NAME=

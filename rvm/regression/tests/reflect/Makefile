@@ -8,7 +8,7 @@
 #
 include $(RVM_BUILD)/Make.rules.target
 
-BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/reflect
+BENCH_HOME=$(JAL_ROOT)/testing/tests/reflect
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=150
 TIME_LIMIT=300

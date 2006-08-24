@@ -32,7 +32,7 @@ ALL_CLASSES	= jgfutil/JGFInstrumentor \
 
 ifeq ($(MODE),PERFORMANCE)
 
-DRIVER_SOURCE_PATH=$(JAL_ROOT)/rvm/src/examples/iterationDriver
+DRIVER_SOURCE_PATH=$(JAL_ROOT)/testing/tests/iterationDriver
 BENCH_SOURCE_PATH=$(BENCH_HOME):$(DRIVER_SOURCE_PATH):$(BENCH_HOME)/section1
 START_NAME=Driver
 START_ARGS=2 JGFAll main
