@@ -1,0 +1,634 @@
+#! /bin/bash
+#
+# (C) Copyright © IBM Corp. 2001, 2003, 2004, 2005
+#
+# $Id$
+#
+# Build and test various configurations of RVM virtual machine.
+#
+# Invocation: RunSanityTests [-help|...]
+#
+# @author Derek Lieber
+# @date 09 Mar 2000 
+#
+# @modified by Steve Fink
+# @modified by Mike Hind, June 2, 2000
+# @modified by Peter F. Sweeney
+#     Passes the correct runtime arguments to adaptive and nonadaptive systems.
+# @modified by Julian Dolby (9/27/01)
+#     heavily rewritten
+
+# sigh
+#
+ulimit -c 0
+
+# intitialization
+#
+declare -i total_tests=0
+declare -i passed_tests=0
+
+# How often to look to see if the builds are done
+declare -i SLEEP_DURATION=120
+# timeout on waiting for a build to finish; assume a glitch after two hours.
+declare -i MAX_SLEEP=7200
+
+# Who am I?
+#
+ME=`basename $0`
+
+# Place where configuration generator resides.
+#
+export GENERATOR=$RVM_ROOT/rvm/bin
+
+# Default place where generated boot images and runtime files will reside.
+#
+if [[ ! -z "$RVM_SANITY" ]]; then
+   export GENERATED_IMAGES=$RVM_SANITY
+else
+   export GENERATED_IMAGES=$HOME/RVMSanityTests
+fi
+
+# Build images by default
+#
+export BUILD="Yes"
+
+# Clean before running tests by default
+#
+export CLEAN="Yes"
+
+# Run tests by default
+#
+export RUN="Yes"
+
+# Run on 2 nodes by default
+#
+export NUM_PROCS_LIST=2
+
+## Quiet by default
+#
+export VERBOSE=NO
+
+## Do all tests by default
+#
+export TEST_LIST=`cat $RVM_ROOT/testing/harness/config/nightly-tests`
+
+## Default configurations
+#
+export CONFIG_LIST="NIGHT_SANITY"
+
+# help message of usage options
+#
+function showHelp {
+  echo 'valid options:'
+  echo '-images <dir>               where to put generated images'
+  echo '-result <root dir>          where to put results of tests'
+  echo '-test[s] "<tests>"          list of tests to run'
+  echo '-test-list <file>           file listing tests to run'
+  echo '-nobuild                    do not build boot images'
+  echo '-noclean                    do not clean when running tests'
+  echo '-norun                      do not run any tests'
+  echo '-numprocs "<n1> <n2> ..."   use listed numbers of virtual processors'
+  echo '-use-opt-levels <levels>    run tests with all opt levels in list'
+  echo '-configuration[s] "<configs>" test all boot images in list'
+  echo '-configuration-list <file>  file listing boot images to test'
+  echo '-wait <file>                sync build and run using file'
+  echo '				(file says if build failed)'
+  echo '-performance <file>         record performance results to file'
+  echo '-measureCompilation         run benchmarks in measure-compilation mode'
+  echo '-rc-args "args"             supply args to all runs'
+  echo '-config-args "args"         supply args to jconfigure'
+  echo '-verbose                    produce lots of output'
+  echo '-help                       display this message'
+}
+
+#
+# Users can override defaults 
+# 
+while [ $# != 0 ]; do
+
+  case $1 in
+
+    # Place where generated boot images and runtime files will reside.
+    #
+    -images)
+	export GENERATED_IMAGES=$2
+	shift
+    ;;
+
+    ## Should we put test results somewhere besides the default location?
+    #
+    -result)
+	export RESULT=$2
+	shift
+    ;;
+
+    ## Should we run only the specific tests?
+    # 
+    -test)
+	export TEST_LIST=`echo $2`
+	shift
+    ;;
+    -tests)
+	export TEST_LIST=`echo $2`
+	shift
+    ;;
+
+    ## Should we run only the specific tests?
+    # 
+    -test-list)
+        case $2 in
+	/*)
+	  export TEST_LIST=`cat $2`
+        ;;
+
+	*)
+	  export TEST_LIST=`cat $RVM_ROOT/testing/harness/config/$2`
+	;;
+	esac
+	shift
+    ;;
+
+    ## Should we avoid building the boot image again?
+    # 
+    -nobuild)
+	export BUILD="No"
+    ;;
+
+    ## Should we avoid cleaning the build directory?
+    # 
+    -noclean)
+	export CLEAN="No"
+    ;;
+
+    ## Should we not run any tests?
+    # 
+    -norun)
+	export RUN="No"
+   ;;
+
+   ## Set the number of processors to use
+   # 
+   -numprocs)
+	export NUM_PROCS_LIST=`echo $2`
+	shift
+   ;;
+
+   ## be verbose
+   # 
+   -verbose)
+       export VERBOSE=YES
+   ;;
+
+   ## measure compilation
+   # 
+   -measureCompilation)
+       export MEASURE_COMPILATION=YES
+   ;;
+
+   ## use multiple opt. levels for running tests?
+   #
+   -use-opt-levels)
+	export OPT_LEVELS=`echo $2`
+	shift
+   ;;
+
+   ## test given configurations
+   #
+   -configurations)
+	export CONFIG_LIST=`echo $2`
+	shift
+   ;;
+
+   -configuration)
+	export CONFIG_LIST=`echo $2`
+	shift
+   ;;
+
+   ## test given configurations
+   #
+   -configuration-list)
+        case $2 in
+	/*)
+	  export CONFIG_LIST=`cat $2`
+        ;;
+	*)
+	  export CONFIG_LIST=`cat $RVM_ROOT/testing/harness/config/$2`
+        ;;
+        esac
+	shift
+   ;;
+
+   ## build marker file name
+   #
+   -wait)
+	export WAIT=$2
+	shift
+   ;;
+
+   ## performance log file
+   #
+   -performance)
+	export PERFORMANCE=$2
+	shift
+   ;;
+
+   ## RC_ARGS to supply
+   #
+   -rc-args)
+	export EXTRA_RC_ARGS=`echo $2`
+	shift
+   ;;
+
+   ## args to jconfigure
+   #
+   -config-args)
+	export EXTRA_CONFIG_ARGS="$EXTRA_CONFIG_ARGS $2"
+	shift
+   ;;
+
+   ## print usage help
+   #
+   -help)
+	showHelp
+	exit 0
+   ;;
+
+   ## Anything else is an error
+   #
+   *)
+	echo Unknown argument: $1
+	showHelp
+	exit 3
+   ;;
+
+   esac
+   shift
+done
+
+# Name of current configuration being tested.
+#
+NAME="NoName"
+
+# Emit a message.
+#
+function say {
+   echo "$ME: $*"
+}
+
+# Select a configuration to be built and tested.
+#
+function setConfiguration {
+    NAME=$1$2
+
+    # environment variable for use by "jconfigure" and "rvm" commands
+    export RVM_BUILD=$GENERATED_IMAGES/$1
+
+}
+
+
+# Wait for a semaphore file to appear; used in doBuild()
+# waitFor <semaphore-file> <sleep-interval> <max-duration>
+function waitFor () {
+    local -r sem="$1";
+    local -i -r SLEEP_DURATION=$2;
+    local -i -r MAX_SLEEP=$3;
+    
+    local -i dots=0	# Number of dots printed.
+    local -i printedWaiting=0	# did we print the "Waiting for... message?"
+    if [[ ! -a $sem ]]; then
+	printedWaiting=1
+	echo "$ME: Waiting for the file \"$sem\""
+	echo -n "$ME: to appear"
+    fi
+    ## Print a dot every two minutes while we are waiting.
+    while [[ ! -a $sem ]]; do
+	if (( dots * SLEEP_DURATION >= MAX_SLEEP )); then
+	    say "We've waited for too long, $MAX_SLEEP seconds."
+	    say "We'll assume this build was stillborn and try the next one."
+	    echo "FAILED to build $NAME; marked as stillborn by $0 on $(date)" >> $sem
+	    return 1;
+	fi
+	let ++dots;
+	echo -n "."
+	sleep $SLEEP_DURATION;
+    done
+    if (( dots < 1 && printedWaiting )); then
+	echo ";  it's already here."
+    elif (( printedWaiting )); then
+	local -i waited_minutes
+	let waited_minutes=(dots * SLEEP_DURATION / 60)
+	echo "Done.  (Had to wait $waited_minutes minutes.)"
+    fi
+    echo -n "$ME: Build status: "
+    if fgrep FAILED $sem; then
+	# fgrep has printed the FAILED message for us.
+	return 2
+    elif fgrep SUCCESS $sem; then
+	# fgrep has printed the status message for us.
+	if fgrep NEED-LINKING $sem > /dev/null ; then
+	    need_linking=1
+	else
+	    need_linking=0
+	fi
+    elif [[ ! -s $sem ]]; then
+	say "Build succeeded; someone must have manually created the file \"$sem\".  I'll go on."
+    else
+	echo "ERROR"
+	say "$sem is not in a recognized format!"
+	say "Internal error.  Maybe someone manually created it?"
+	say "Or maybe we ran out of disk space?"
+	say "We'll assume the build failed."
+	return -1
+    fi
+}
+
+
+# Build a virtual machine.
+#
+function doBuild {
+    local -i failed=0;
+    local -i need_linking=0;	# Was this a cross-platform build?  
+				# Does it need linking? 
+
+    # This is the same as Exit_Status_Run_Linker in rvm/bin/jconfigure.
+    local -r -i Exit_Status_Run_Linker=111
+
+    if [[ $BUILD = "Yes" ]]; then
+	say "creating $NAME with $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME"
+	$GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME </dev/null \
+		|| failed=$?
+	if (( failed )); then
+	    say "Failed while running $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME"
+	fi
+	if (( ! failed )); then
+	    say "Going into directory $RVM_BUILD"
+	    cd $RVM_BUILD || failed=$?
+	    if (( failed )); then
+		say "cd $RVM_BUILD failed!"
+	    fi
+	fi
+	if (( ! failed )) && [[ $CLEAN = "Yes" ]]; then
+	    say "cleaning build directory"
+	    ./jbuild -clean || failed=$?
+	    if (( failed )); then
+		say "./jbuild -clean FAILED with status $failed"
+	    fi
+	fi
+
+	if (( ! failed )); then
+ 	    say "Building $NAME."
+	    say "Output from the build will go into ${RVM_BUILD}/RVM.trace"
+	    ./jbuild -trace -demographics &> RVM.trace || failed=$?
+	    ## Special case for jbuild's exit statuses: Means that it
+	    ## just needs linking.
+	    if (( failed == Exit_Status_Run_Linker )); then
+		say "Successfully built image for $NAME in what must be a cross-platform build."
+		let failed=0
+		let need_linking=1
+	    elif (( failed )); then
+		say "FAILED while building $NAME."
+		say "  See $RVM_BUILD/RVM.trace for details"
+	    else
+		say "Successfully built $NAME"
+	    fi
+	fi
+	# "failed" is passed down to here:
+	## The magic strings here in $WAIT are:
+	## FAILED, SUCCESS, and NEED-LINKING
+	if [[ $WAIT ]]; then
+	    say "Leaving a wait marker in RVM_BUILD/\"$WAIT\""
+	    # Leave a marker to signify the building is done.
+	    if (( failed )); then
+		echo "FAILED to build $NAME at $(date) on $(hostname)"
+		say "  See $RVM_BUILD/RVM.trace for details"
+		say "You may remove this file" 
+	    elif (( need_linking == 1 )); then
+		echo "SUCCESS NEED-LINKING Built boot image for $NAME in what must be a cross-platform build.   Must still run jbuild -booter to create the executable."
+		say "You may remove this file" 
+	    else
+		echo "SUCCESS Built $NAME."
+		say "You may remove this file" 
+	    fi > $RVM_BUILD/$WAIT
+	fi
+        #   "failed" is passed down to code after the "if".
+    else 
+	if [[ $WAIT ]]; then
+	    waitFor "$RVM_BUILD/$WAIT" $SLEEP_DURATION $MAX_SLEEP
+	    failed=$?
+	fi
+	
+	## The only thing left to do is to link.  And we only do that if 
+	## we need to link AND if we had a successful build so far.
+
+	(( failed )) && return $failed
+	
+	if ! cd $RVM_BUILD; then
+	    say "Serious trouble; can not go to RVM_BUILD ($RVM_BUILD)"
+	    return 2
+	fi
+
+	# UMass regression tests do cross-builds
+	# If RVM.image not present, relink.
+        #
+        if [[ ! -e JikesRVM && -e RVM.image ]]; then
+	    let ++need_linking
+	fi
+	if (( need_linking )); then
+	    say "Linking.  Output from the linking will go into ${RVM_BUILD}/RVM.trace"
+	    ./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
+	    if (( failed )); then
+		say "FAILED to link $NAME at $(date) on $(hostname)"
+		say "We don't have a useful boot image."
+		say "  See $RVM_BUILD/RVM.trace for details"
+	    else
+		say "Linked $NAME successfully"
+	    fi
+	fi
+    fi
+    return $failed;
+}
+
+# Run a test.
+# We impose a time limit to ensure that additional tests can proceed if this one hangs.
+#
+function doRun {
+    if [[ $RUN != "Yes" ]]; then
+	return;
+    fi
+
+    # Determine which set of runtime arguments to pass
+    case $NAME in
+
+	*Adaptive*|prototype-opt|production|development )
+            export RC_ARGS="-X:aos:logging_level=1 -X:aos:lf=AOSLog.$NAME.txt"
+	    ;;
+
+	* ) # baseline must be the runtime compiler - no default options yet
+            export RC_ARGS=""
+            ;;
+    esac
+
+    # start test running
+    say "start $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
+
+    # ignore -numprocs if image does not support it
+    if fgrep -q "VIRTUAL_PROCESSOR=1" $RVM_BUILD/RVM.configuration; then
+	if [ $NUM_PROCS != 1 ]; then
+	    echo "Ignoring -numprocs for single cpu boot image"
+	fi
+	NUM_PROCS=1
+    fi
+
+    # Supply a result dir
+    if [ x$RESULT = x ]; then
+	RESULT="$RVM_BUILD/sanity" 
+    fi
+    TEST_RESULT_DIR=`pwd | sed -e "s@$RVM_ROOT@@"`
+    RESULT_STR="WORKING=$RESULT/$TEST_RESULT_DIR"
+    echo Results to $RESULT/$TEST_RESULT_DIR
+
+    # gather performance data, if appropriate
+    if [[ $PERFORMANCE  ]]; then
+	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
+	echo "Performance mode: results to $PERFORMANCE"
+    else
+	PERFORMANCE_STR=
+    fi
+
+    # run in measure compilation mode
+    if [[ $MEASURE_COMPILATION ]]; then
+	PERFORMANCE_STR="MODE=MEASURE_COMPILATION"
+	echo "Measure compilation mode"
+    fi
+
+    # pass on opt. level information, if given
+    if [[ $OPT_LEVEL ]]; then
+	OPT_STR=".OPT_LEVEL=$OPT_LEVEL"
+    else
+	OPT_STR=
+    fi
+
+    # suffix output files to distinguish multiple options
+    SUFFIX=""
+    [ "$OPT_LEVEL" ] && SUFFIX=".${OPT_LEVEL}"
+    [ "$NUM_PROCS" ] && SUFFIX="${SUFFIX}.${NUM_PROCS}proc"
+
+    if [[ $VERBOSE = YES ]]; then
+	FLAGS="-k"
+    else
+	FLAGS="-ks"
+    fi
+
+    . $RVM_BUILD/environment.target
+    ## Note: If you quote this, it'll break.  limited.bash respects
+    ## whatever quoting you put around the command.
+    $GNU_MAKE $FLAGS \
+	   BOOTNAME=$NAME $OPT_STR $RESULT_STR \
+           $PERFORMANCE_STR \
+	   SUFFIX=$SUFFIX \
+           PROCESSORS="$NUM_PROCS" \
+           RC_ARGS="-X:vm:errorsFatal=true $RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS" \
+           JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
+           RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
+           clean sanity
+
+    # record status
+    test_status=$?
+    let ++total_tests
+    if (( test_status == 0 )); then 
+	let ++passed_tests
+    else
+	say "$NAME: You are NOT sane in `pwd`"
+    fi
+
+    # done
+    say "end $NAME in `pwd` at `date \"+%m/%d/%Y %T\"`"
+
+    # allow process termination messages to finish printing before proceeding to next test
+    sleep 1
+}
+
+
+# Build and test: more detailed.
+#
+function doTests {
+    if (fgrep -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 $RVM_BUILD/RVM.configuration)
+	then
+	echo "Ignoring -numprocs for single processor image"
+	NUM_PROCS=1
+	for test in $TEST_LIST; do
+	    cd $RVM_ROOT/testing/harness/tests/$test && doRun
+	done
+    else
+	for NUM_PROCS in $NUM_PROCS_LIST; do
+	    for test in $TEST_LIST; do
+         cd $RVM_ROOT/testing/harness/tests/$test && doRun
+       done
+     done
+   fi
+}
+   
+function doOptLevelTests {
+    for OPT_LEVEL in $OPT_LEVELS; do
+	export OPT_LEVEL_ARGS="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:$OPT_LEVEL"
+	doTests
+    done
+}
+
+function runTests {
+    doBuild
+
+    local failed=$?
+
+    if (( failed )) ; then
+	say "Building $NAME failed with status $failed; won't run any tests."
+	say "You are NOT sane. All tests for $NAME are failures."
+	return $failed
+    fi
+
+    if [[ $OPT_LEVELS ]]; then
+	doOptLevelTests
+    else
+	doTests
+    fi
+}
+
+# Build and test a series of configurations.
+#
+function main () {
+  if [[ $CONFIG_LIST = "NIGHT_SANITY" ]]; then
+      # We used to EXEC this for efficiency.  Has the defect that it
+      # wipes out our traps against SIGINT, SIGHUP, and SIGTERM
+      $RVM_ROOT/testing/harness/NightSanityDriver -config night-sanity
+      exit
+  fi
+
+  for config in $CONFIG_LIST; do
+      echo "";
+      echo ""
+      say "Trying configuration $config"
+      setConfiguration $config; time runTests
+  done
+
+  if (( total_tests >  0 )); then
+      say "$total_tests tests run"
+      say "$passed_tests tests passed"
+  fi
+
+  if (( passed_tests > 0 )) && [[ $PERFORMANCE ]]; then
+      say "Performance Summary"
+      $AWK -f $RVM_ROOT/testing/harness/PerformanceBottomLine.awk < $PERFORMANCE
+  fi
+
+  say "done"
+}
+
+# Kill entire process group if we get SIGINT, SIGHUP, or SIGTERM
+# This ensures that subshells spawned by make die quickly.
+#
+## The "exit" should not ever need to be here, but is just a precaution.
+trap "say exiting due to SIGINT'!'; trap - INT ; /bin/kill -INT 0; exit 130" INT
+trap "say exiting due to a SIGTERM'!'; trap - TERM; /bin/kill -TERM 0; exit 143" TERM
+trap "say exiting due to a SIGHUP'!'; trap - HUP; /bin/kill -HUP 0; exit 129" HUP
+
+time main $*

@@ -1,7 +1,7 @@
  The Jikes\TMweb{} RVM distribution includes a harness for running
 regression and performance tests, and several example applications
 that use this harness.  It is located in the {\tt
-\$RVM\_\-ROOT/rvm/regression} subtree in the distribution, and consists
+\$RVM\_\-ROOT/testing/harness} subtree in the distribution, and consists
 of three parts:
 \begin{itemize}
 \item support for running sanity and performance tests, 
@@ -12,7 +12,7 @@ The support for running
 sanity and performance tests comprises a set of scripts and makefiles
 that define a common interface for running a variety of programs, and
 for determining their performance and correctness.  The individual
-tests are all located in {\tt{\$RVM\_\-ROOT/rvm/regression/tests}}, and
+tests are all located in {\tt{\$RVM\_\-ROOT/testing/harness/tests}}, and
 consist of makefiles, scripts, sample inputs and outputs; each
 directory contains support for running an individual application in
 the testing harness.  The support for night sanity runs is a layer on
@@ -24,7 +24,7 @@ described in more detail.
 
 The top-level driver for running sanity tests is called
 {\tt{RunSanityTests}}; it is located in the {\tt
-\$RVM\_\-ROOT/rvm/regression} directory 
+\$RVM\_\-ROOT/testing/harness} directory 
 and requires {\tt{bash}} and {{\tt make}} to run.  When it
 is invoked, it will, by default, build a variety of boot images and
 run several test programs with each boot image.  The behavior of
@@ -33,9 +33,9 @@ controlled via command-line options, including what tests and boot
 images to run, whether to do sanity or performance tests, and what to
 do with test results. These options are described in more detail
 below, and a summary can be obtained by invoking {\tt
-\$RVM\_\-ROOT/rvm/regression/RunSanityTests -help}. 
+\$RVM\_\-ROOT/testing/harness/RunSanityTests -help}. 
 We only distribute the full sources to a subset of the regression
-tests. The file {\tt \$RVM\_\-ROOT/rvm/regression/Local.rules} is used
+tests. The file {\tt \$RVM\_\-ROOT/testing/harness/Local.rules} is used
 to find resources not distributed as part of the Jikes RVM
 distribution.  You will need to set an environment variable 
 \$BENCHMARK\_\-ROOT that is used by {\tt Local.rules} to point it to
@@ -66,9 +66,9 @@ in most Unix shells); the {\tt{-test-list}} option takes a single
 filename as the next argument, and that file must contain a list of
 tests to run.  If the filename is an absolute path, that file is read,
 if it is a relative path, it is assumed to be relative to
-{\tt \$RVM\_\-ROOT/rvm/regression/config}.  In either case, the items in the
+{\tt \$RVM\_\-ROOT/testing/harness/config}.  In either case, the items in the
 list of tests to run must be subdirectories of
-{\tt \$RVM\_\-ROOT/rvm/regression/tests} (the directory that contains the
+{\tt \$RVM\_\-ROOT/testing/harness/tests} (the directory that contains the
 individual tests).
 
 \item{\tt{-configuration}} ``{\em{configuration names}}''
@@ -84,7 +84,7 @@ expects that the next command line word be a filename, and that the
 named file contain a list of boot image configuration names understood
 by \texttt{jconfigure}.  If the filename is an absolute path, that file is
 read, if it is a relative path, it is assumed to be relative to
-{\tt \$RVM\_\-ROOT/rvm/regression/config}.
+{\tt \$RVM\_\-ROOT/testing/harness/config}.
 
 \item{\tt{-result}} {\em root directory}
 
@@ -218,7 +218,7 @@ must be one that is understood by \texttt{jconfigure}.  With the {\tt
 -test-list} options, you can provide a filename that the set of tests
 to run.  Similar to the configuration list file, this file is plain
 text, and has one test name per line.  Both types of file should be
-placed in the {\tt \$RVM\_\-ROOT/rvm/regression/config} directory; when placed
+placed in the {\tt \$RVM\_\-ROOT/testing/harness/config} directory; when placed
 there, you can refer to them with an unqualified file name on the
 \texttt{RunSanityTests} command line.  You can use files from other places as
 control files, but those require an absolute path ({\it i.e.}\ one beginning
@@ -227,7 +227,7 @@ with a ``{\tt /}'') on the command line.
 
 \subsubsection{Individual Test Programs}
 
- The {\tt tests} subdirectory of the {\tt{\$RVM\_\-ROOT/rvm/regression}}
+ The {\tt tests} subdirectory of the {\tt{\$RVM\_\-ROOT/testing/harness}}
 directory contains a set of test programs, one in each directory.
 These directories do not contain the actual program, but rather the
 scripts and makefiles required to run it in the test harness.  The one
@@ -282,7 +282,7 @@ because the information stored in the local configuration file is kept
 in terms of benchmark names.  This section must always be the
 following single line.
 \begin{verbatim}
-include         $(JAL_ROOT)/rvm/regression/Local.rules
+include         $(JAL_ROOT)/testing/harness/Local.rules
 \end{verbatim}
 \end{Label}
 
@@ -382,7 +382,7 @@ required to actually compile any Java files that need it, run the
 program, check the output for correctness and assess performance.
 This section must always have the following single line:
 \begin{verbatim}
-include         $(JAL_ROOT)/rvm/regression/Make.rules
+include         $(JAL_ROOT)/testing/harness/Make.rules
 \end{verbatim}
 \end{Label}
 
@@ -449,7 +449,7 @@ command line arguments:
 invocations of {\tt{RunSanityTests}}.  This is optional.
 \item[-config {\em filename}] is a configuration file that specifies a
 series of invocations of {\tt{RunSanityTests}}.  If this filename is
-relative, it is assumed to be in {\tt \$RVM\_\-ROOT/rvm/regression/config}; if
+relative, it is assumed to be in {\tt \$RVM\_\-ROOT/testing/harness/config}; if
 it is absolute, it is used as it is given.  The format of this file is
 discussed below.
 \end{description}
@@ -472,7 +472,7 @@ invoked to run just that boot image with the options specified.
 and {\tt{NightSanityDriver}} can be used, we include a simplified
 version of the night sanity configuration used at Watson.  All
 configuration files discussed go in the
-{\tt \$RVM\_\-ROOT/rvm/regression/config} directory. Since it is
+{\tt \$RVM\_\-ROOT/testing/harness/config} directory. Since it is
 too time consuming to test every possible variation of Jikes RVM on
 every program, we have selected a representative sample to run every
 night.  The first level is to define two sets of benchmark programs, a

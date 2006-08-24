@@ -7,4 +7,4 @@
 # @author Steve Fink
 # @modified Steven Augart
 #
-exec "$RVM_ROOT/rvm/regression/RunSanityTests" "$@"
+exec "$RVM_ROOT/testing/harness/RunSanityTests" "$@"
