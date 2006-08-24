@@ -130,15 +130,6 @@ function get_bin_dir() {
 	RVM_ROOT/$suffix (that's 
 	\"$f\").  
 	RVM_ROOT is probably set incorrectly.  Reset RVM_ROOT and try again."
-	if [[ $bin_dir != $RVM_ROOT ]]; then
-	    maybe_root=$bin_dir
-	    if [[ $maybe_root != /* ]]; then
-		$maybe_root=${PWD}/$maybe_root
-	    fi
-	    if [[ -d $maybe_root/rvm/_timestamp ]]; then
-		echo >&2 "$ME: ERROR: Try setting RVM_ROOT to \"$maybe_root\""
-	    fi
-	fi
 	trap '' EXIT
 	exit 2
     fi
@@ -1196,16 +1187,7 @@ SED_STR="\$$SED_STR1"
 #
 declare -x -i GENERATE_MAP=1
 
-f=$RVM_ROOT/rvm/_timestamp/timestamp
-if [[ ! -f  $f ]]; then
-    echo >&2 "$ME: RVM_ROOT is not set properly or the directory is
-   corrupt; I can't find a file named
-    \"$f\" (RVM_ROOT/rvm/_timestamp/timestamp)."
-    trap ''
-    exit 3
-fi
 # Current version of RVM
-declare -r CVS_TIMESTAMP="$(< $f)"
 declare -r JIKESRVM_VERSION="Jikes RVM 2.4.5+CVS"
 
 # Default values for RunBootImage constants.
@@ -4211,7 +4193,6 @@ EOF
 	const unsigned heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;
 	const unsigned heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;
 	const char *rvm_version              = "$JIKESRVM_VERSION";
-        const char *rvm_cvstimestamp         = "$CVS_TIMESTAMP";
 	const char *rvm_configuration        = "$CONFIGURATION_NAME";
 	const char *rvm_host_configuration   = "$RVM_HOST_CONFIG";
 	const char *rvm_target_configuration = "$RVM_TARGET_CONFIG";
@@ -4873,7 +4854,6 @@ function emitConfigSummary () {
     echo "JIKESRVM_VERSION=$JIKESRVM_VERSION"
     echo "DEFAULT_INITIAL_HEAP_SIZE=${DEFAULT_INITIAL_HEAP_SIZE}"
     echo "DEFAULT_MAXIMUM_HEAP_SIZE=${DEFAULT_MAXIMUM_HEAP_SIZE}"
-    echo "CVS_TIMESTAMP=${CVS_TIMESTAMP}"
     echo "RVM_HOST_CONFIG=${RVM_HOST_CONFIG}"
     echo "RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG}"
     echo ""

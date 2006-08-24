@@ -16,8 +16,6 @@
 #
 /\/bin\/classpath\.stamp/ { next }
 
-/\/_timestamp\/timestamp/ { next }
-
 /\/doc\/userguide\// { next }
 /\/etc\/testing\// { next }
 

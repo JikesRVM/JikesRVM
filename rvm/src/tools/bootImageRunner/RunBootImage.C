@@ -170,7 +170,6 @@ static void
 fullVersion()
 {
     shortVersion();
-    fprintf(SysTraceFile, "\tcvs timestamp: %s\n", rvm_cvstimestamp);
     fprintf(SysTraceFile, "\thost config: %s\n\ttarget config: %s\n",
             rvm_host_configuration, rvm_target_configuration);
     fprintf(SysTraceFile, "\theap default initial size: %u MiBytes\n",
