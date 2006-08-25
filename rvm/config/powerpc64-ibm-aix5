@@ -70,8 +70,8 @@ export GNU_MAKE="/usr/gnu/bin/make"
 export JIKES=/usr/local/bin/jikes
 
 # what C/C++ compilers should be used?
-export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"
-export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"
+export CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc64 -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"
+export CPLUS="/usr/gnu/bin/g++ -w -O -Wa,-mppc64 -Wa,-a64 -maix64  -DSIZEOF_VOID_P=8"
 
 # how to link a shared C++ library
 export LDSHARED="/usr/gnu/bin/g++ -shared -maix64"
