@@ -5,10 +5,8 @@
 
 package org.mmtk.utility.alloc;
 
-import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -171,7 +169,7 @@ public class BumpPointer extends Allocator
         nextRegion.store(Address.zero(), DATA_END_OFFSET);
         VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
 
-        ((MarkCompactSpace)space).reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
+        reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
 
         return alloc(bytes, align, offset, inGC);
       }
@@ -260,6 +258,14 @@ public class BumpPointer extends Allocator
       current = next;
     }
 
+  }
+
+  /**
+   * Some pages are about to be re-used to satisfy a slow path request.
+   * @param pages The number of pages.
+   */
+  protected void reusePages(int pages) {
+    VM.assertions.fail("Subclasses that reuse regions must override this method.");
   }
 
   /**

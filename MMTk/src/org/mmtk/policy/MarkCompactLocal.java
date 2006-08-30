@@ -193,6 +193,14 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
       start = start.plus(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
     }
   }
+  
+  /**
+   * Some pages are about to be re-used to satisfy a slow path request.
+   * @param pages The number of pages.
+   */
+  protected void reusePages(int pages) {
+    ((MarkCompactSpace)space).reusePages(pages); 
+  }
 
   /**
    * Maximum size of a single region. Important for children that implement
