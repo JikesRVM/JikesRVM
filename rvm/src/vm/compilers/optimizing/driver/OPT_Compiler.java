@@ -122,11 +122,6 @@ public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
     // we can get a chance to either implement them on IA32 or fix the 
     // analysis to not be so brittle.
     // options.SIMPLE_ESCAPE_IPA = true;
-
-    // Static inlining controls. 
-    // Be slightly more aggressive when building the boot image then we are normally.
-    options.IC_MAX_TARGET_SIZE = 5*VM_NormalMethod.CALL_COST;
-    options.IC_MAX_INLINE_DEPTH = 6;
   }
 
   /**
