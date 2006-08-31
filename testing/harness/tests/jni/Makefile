@@ -36,7 +36,10 @@ TESTS_11 := Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
 # Tests for JNI 1.2
 TESTS_12 := JNI12 StringRegion
 
-TESTS := $(TESTS_11) $(TESTS_12)
+# Tests for JNI 1.4
+TESTS_14 := TestJNIDirectBuffers
+
+TESTS := $(TESTS_11) $(TESTS_12) $(TESTS_14)
 
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) $(TESTS:%=lib%.jnilib) 
 

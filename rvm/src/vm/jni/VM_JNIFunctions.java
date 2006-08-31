@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.classloader.*;
 
 import java.io.UTFDataFormatException;
 import java.lang.reflect.*;
+import java.nio.Buffer;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -5764,29 +5765,44 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * These functions are in JNI 1.4
    */
 
-  /** The VM is not required to support this. */
-  private static Address NewDirectByteBuffer(VM_JNIEnvironment env, 
+  private static int NewDirectByteBuffer(VM_JNIEnvironment env, 
                                                 Address address, 
                                                 long capacity) {
     if (traceJNI) VM.sysWrite("JNI called: NewDirectByteBuffer \n");   
-    if (traceJNI) VM.sysWrite("NewDirectByteBuffer not supported yet \n");
-    return Address.zero();
+    try {
+      Buffer buffer = java.nio.JikesRVMSupport.newDirectByteBuffer(address, capacity);
+      return env.pushJNIRef(buffer);
+    } catch (Throwable unexpected) {
+      if (traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return 0;
+    }
   }
 
-  /** The VM is not required to support this. */
   private static Address GetDirectBufferAddress(VM_JNIEnvironment env, 
                                                    int bufJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferAddress \n");   
-    if (traceJNI) VM.sysWrite("GetDirectBufferAddress not supported yet\n");
-    return Address.zero();
+    try {
+      Buffer buffer = (Buffer)env.getJNIRef(bufJREF);
+      return java.nio.JikesRVMSupport.getDirectBufferAddress(buffer);
+    } catch (Throwable unexpected) {
+      if (traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return Address.zero();
+    }
   }
 
-  /** The VM is not required to support this. */
   private static long GetDirectBufferCapacity(VM_JNIEnvironment env, 
                                               int bufJREF) {
     if (traceJNI) VM.sysWrite("JNI called: GetDirectBufferCapacity \n");   
-    if (traceJNI) VM.sysWrite("GetDirectBufferCapacity not supported yet\n");
-    return -1; 
+    try {
+      Buffer buffer = (Buffer)env.getJNIRef(bufJREF);
+      return buffer.capacity();
+    } catch (Throwable unexpected) {
+      if (traceJNI) unexpected.printStackTrace(System.err);
+      env.recordException(unexpected);
+      return -1;
+    }
   }
 
   /*******************************************************************

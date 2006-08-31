@@ -1916,6 +1916,7 @@ EOF
 	$RVM_ROOT/rvm/src/vm/libSupport/java/lang/reflect
 	$RVM_ROOT/rvm/src/vm/libSupport/java/net
 	$RVM_ROOT/rvm/src/vm/libSupport/java/io
+	$RVM_ROOT/rvm/src/vm/libSupport/java/nio
 EOF
     # We actually aren't using java.security right now, except in a branch,
     # but this does no harm.	
