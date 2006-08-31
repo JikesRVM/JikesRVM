@@ -210,4 +210,23 @@ public abstract class ObjectModel implements Uninterruptible {
    * @return The type object for <code>object</code>
    */
   public abstract MMType getObjectType(ObjectReference object);
+
+  /*
+   * NOTE: The following methods must be implemented by subclasses of this
+   * class, but are internal to the VM<->MM interface glue, so are never
+   * called by MMTk users.
+   */
+  /** @return The offset from array reference to element zero */
+  protected abstract Offset getArrayBaseOffset();
+ 
+  /*
+   * NOTE: These methods should not be called by anything other than the
+   * reflective mechanisms in org.mmtk.vm.VM, and are not implemented by
+   * subclasses. This hack exists only to allow us to declare the respective
+   * methods as protected.
+   */
+  static Offset arrayBaseOffsetTrapdoor(ObjectModel o) {
+    return o.getArrayBaseOffset();
+  }
+
 }

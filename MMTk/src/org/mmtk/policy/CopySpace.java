@@ -260,7 +260,7 @@ public final class CopySpace extends Space
       setForwardingPointer(object, newObject);
       trace.enqueue(newObject); // Scan it later
 
-    return newObject;
+      return newObject;
     }
   }
 

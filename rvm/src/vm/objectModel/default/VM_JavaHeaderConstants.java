@@ -43,7 +43,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final Offset JAVA_HEADER_OFFSET  = ARRAY_LENGTH_OFFSET.minus(JAVA_HEADER_BYTES);
   static final Offset MISC_HEADER_OFFSET  = JAVA_HEADER_OFFSET.minus(MISC_HEADER_BYTES);
   static final Offset GC_HEADER_OFFSET    = MISC_HEADER_OFFSET.minus(GC_HEADER_BYTES);
-  
+  static final Offset ARRAY_BASE_OFFSET   = Offset.zero();  
 
   /**
    * This object model supports two schemes for hashcodes:

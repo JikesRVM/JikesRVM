@@ -2,6 +2,7 @@ package org.mmtk.vm;
 
 import org.mmtk.vm.SynchronizedCounter;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 public class VM {
   
@@ -34,6 +35,8 @@ public class VM {
   public static final int MAX_BYTES_PADDING;
   /** The value to store in alignment holes */
   public static final int ALIGNMENT_VALUE;
+  /** The offset from an array reference to element zero */
+  public static final Offset ARRAY_BASE_OFFSET;
 
   /*
    * VM-specific functionality captured in a series of singleton classs
@@ -115,6 +118,7 @@ public class VM {
     MAX_ALIGNMENT_SHIFT = Memory.maxAlignmentShiftTrapdoor(memory);
     MAX_BYTES_PADDING = Memory.maxBytesPaddingTrapdoor(memory);
     ALIGNMENT_VALUE = Memory.alignmentValueTrapdoor(memory);
+    ARRAY_BASE_OFFSET = ObjectModel.arrayBaseOffsetTrapdoor(objectModel);
  }
   
   public static Lock newLock(String name) {

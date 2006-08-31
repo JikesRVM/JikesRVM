@@ -15,6 +15,7 @@ import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_JavaHeaderConstants;
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Class;
@@ -36,6 +37,9 @@ import org.vmmagic.pragma.*;
  * @date $Date: 2006/06/19 06:08:15 $
  */
 public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Constants, VM_Constants, Uninterruptible {
+
+  protected final Offset getArrayBaseOffset() { return VM_JavaHeaderConstants.ARRAY_BASE_OFFSET; }
+
   /**
    * Copy an object using a plan's allocCopy to get space and install
    * the forwarding pointer.  On entry, <code>from</code> must have
