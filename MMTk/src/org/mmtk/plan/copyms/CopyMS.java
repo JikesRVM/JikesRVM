@@ -10,6 +10,7 @@ import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.options.Options;
 
+import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -157,7 +158,7 @@ public class CopyMS extends StopTheWorld implements Uninterruptible {
       required = space.reservedPages() - space.committedPages();
       // account for copy reserve
       if (space == nurserySpace) required = required<<1;  
-      VM.collection.triggerCollection(VM.collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
