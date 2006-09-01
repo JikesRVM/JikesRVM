@@ -42,7 +42,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
+public abstract class SSMutator extends StopTheWorldMutator implements Uninterruptible {
   /****************************************************************************
    * Instance fields
    */

@@ -38,7 +38,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenCopyCollector extends GenCollector implements Uninterruptible {
+public abstract class GenCopyCollector extends GenCollector implements Uninterruptible {
 
   /******************************************************************
    * Instance fields

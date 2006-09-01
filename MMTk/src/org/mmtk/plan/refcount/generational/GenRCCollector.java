@@ -53,7 +53,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenRCCollector extends RCBaseCollector
+public abstract class GenRCCollector extends RCBaseCollector
 implements Uninterruptible, Constants {
 
   //  FIXME This hack is a consequence of zero collector/mutator separation in RC...

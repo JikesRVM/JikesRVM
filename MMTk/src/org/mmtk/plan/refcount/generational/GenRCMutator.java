@@ -54,7 +54,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenRCMutator extends RCBaseMutator implements Uninterruptible, Constants {
+public abstract class GenRCMutator extends RCBaseMutator implements Uninterruptible, Constants {
 
   /****************************************************************************
    * Instance fields

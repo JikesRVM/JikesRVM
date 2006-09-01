@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class CopyMSCollector extends StopTheWorldCollector implements Uninterruptible {
+public abstract class CopyMSCollector extends StopTheWorldCollector implements Uninterruptible {
 
   /****************************************************************************
    * Instance fields
