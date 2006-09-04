@@ -321,25 +321,6 @@ public final class MarkSweepSpace extends Space
   /**
    * Atomically attempt to set the mark bit of an object.  Return true
    * if successful, false if the mark bit was already set.
-   * 
-   * @param object The object whose mark bit is to be written
-   * @param value The value to which the mark bit will be set
-   */
-  private static boolean atomicTestAndMark(ObjectReference object, Word value)
-      throws InlinePragma {
-    Word oldValue, markBit;
-    do {
-      oldValue = VM.objectModel.prepareAvailableBits(object);
-      markBit = oldValue.and(MARK_BIT_MASK);
-      if (markBit.EQ(value)) return false;
-    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
-                                                oldValue.and(MARK_BIT_MASK.not()).or(value)));
-    return true;
-  }
-
-  /**
-   * Atomically attempt to set the mark bit of an object.  Return true
-   * if successful, false if the mark bit was already set.
    *
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
