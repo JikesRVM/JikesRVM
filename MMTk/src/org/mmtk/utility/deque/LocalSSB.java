@@ -7,7 +7,6 @@ package org.mmtk.utility.deque;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;

@@ -13,7 +13,6 @@ import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -161,7 +160,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
     case      Plan.ALLOC_PRIMITIVE_LOS: return plos.alloc(bytes, align, offset, false);
     case Plan.ALLOC_IMMORTAL: return immortal.alloc(bytes, align, offset, false);
     default:
-      if (VM.VERIFY_ASSERTIONS) VM.assertions.fail("No such allocator");
+      VM.assertions.fail("No such allocator");
       return Address.zero();
     }
   }
@@ -182,7 +181,7 @@ public abstract class MutatorContext implements Uninterruptible, Constants {
     case Plan.ALLOC_PRIMITIVE_LOS: Plan.ploSpace.initializeHeader(ref); return;
     case Plan.ALLOC_IMMORTAL: Plan.immortalSpace.postAlloc(ref);  return;
     default:
-      if (VM.VERIFY_ASSERTIONS) VM.assertions.fail("No such allocator");
+      VM.assertions.fail("No such allocator");
     }
   }
 

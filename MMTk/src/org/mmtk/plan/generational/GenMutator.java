@@ -12,7 +12,6 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

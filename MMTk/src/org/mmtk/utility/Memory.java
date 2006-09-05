@@ -134,7 +134,7 @@ public class Memory implements Uninterruptible, Constants {
    */
   public static void assertIsZeroed(Address start, int bytes)
       throws NoInlinePragma {
-    VM.assertions._assert(isSet(start, bytes, true, 0));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isSet(start, bytes, true, 0));
   }
 
   /**
@@ -159,11 +159,11 @@ public class Memory implements Uninterruptible, Constants {
    * @param value The value to be tested
    */
   private static final void assertAligned(int value) {
-    VM.assertions._assert((value & (BYTES_IN_INT - 1)) == 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((value & (BYTES_IN_INT - 1)) == 0);
   }
 
   private static final void assertAligned(Word value) {
-    VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
   }
 
   private static final void assertAligned(Extent value) {

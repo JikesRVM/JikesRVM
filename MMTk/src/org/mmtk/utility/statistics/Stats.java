@@ -10,7 +10,6 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.PrintPhaseStats;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;

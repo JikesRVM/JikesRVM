@@ -119,9 +119,9 @@ public final class LargeObjectLocal extends LargeObjectAllocator
     }
     if (VM.VERIFY_ASSERTIONS) {
       if (sweepNursery)                                                      
-	VM.assertions._assert(treadmill.nurseryEmpty());
+        VM.assertions._assert(treadmill.nurseryEmpty());
       else                                                                   
-	VM.assertions._assert(treadmill.fromSpaceEmpty());
+        VM.assertions._assert(treadmill.fromSpaceEmpty());
     }                                                                       
   }
 

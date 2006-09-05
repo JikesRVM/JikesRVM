@@ -58,22 +58,29 @@ public class Assert extends org.mmtk.vm.Assert implements Uninterruptible {
 
   /**
    * Checks that the given condition is true.  If it is not, this
-   * method does a traceback and exits.
+   * method does a traceback and exits. All calls to this method
+   * must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
    *
    * @param cond the condition to be checked
    */
   public final void _assert(boolean cond) throws InlinePragma {
+    if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
+      VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
     VM._assert(cond);
   }
 
-
   /**
-   * <code>true</code> if assertions should be verified
+   * Checks that the given condition is true.  If it is not, this
+   * method prints a message, does a traceback and exits. All calls
+   * to this method must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
+   * 
+   * @param cond the condition to be checked
+   * @param message the message to print
    */
- /* public static final boolean VerifyAssertions = VM.VerifyAssertions; */
-
-  public final void _assert(boolean cond, String s) throws InlinePragma {
-    if (!cond) VM.sysWriteln(s);
+  public final void _assert(boolean cond, String message) throws InlinePragma {
+    if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
+      VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
+    if (!cond) VM.sysWriteln(message);
     VM._assert(cond);
   }
 

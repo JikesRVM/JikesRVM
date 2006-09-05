@@ -11,7 +11,6 @@ import org.mmtk.policy.RefCountLocal;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.options.Options;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 

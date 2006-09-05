@@ -23,7 +23,7 @@ public final class RefCountLOSLocal extends LargeObjectAllocator
 
   public RefCountLOSLocal(LargeObjectSpace space) {
     super(space);
-    VM.assertions._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
   }
 
   /****************************************************************************

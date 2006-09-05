@@ -8,7 +8,6 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.deque.*;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;

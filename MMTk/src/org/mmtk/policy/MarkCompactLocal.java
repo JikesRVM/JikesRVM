@@ -6,10 +6,8 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.markcompact.MC;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -157,9 +155,8 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
         ObjectReference next = VM.objectModel.getNextObject(current);
 
         if (MarkCompactSpace.toBeCompacted(current)) {
-          if (VM.VERIFY_ASSERTIONS) {
+          if (VM.VERIFY_ASSERTIONS)
             VM.assertions._assert(MarkCompactSpace.getForwardingPointer(current).isNull());
-          }
 
           // Fake - allocate it.
           int size = VM.objectModel.getSizeWhenCopied(current);

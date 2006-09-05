@@ -86,10 +86,7 @@ public class GenCopy extends Gen implements Uninterruptible {
    */
   public GenCopy() {
     super();
-    if (VM.VERIFY_ASSERTIONS) {
-      // Not supported for GenCopy
-      VM.assertions._assert(!IGNORE_REMSETS);
-    }
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!IGNORE_REMSETS); // Not supported for GenCopy
     matureTrace = new Trace(metaDataSpace);
   }
 

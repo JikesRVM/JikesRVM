@@ -9,7 +9,6 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

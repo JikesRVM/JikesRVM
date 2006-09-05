@@ -10,7 +10,6 @@ import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;

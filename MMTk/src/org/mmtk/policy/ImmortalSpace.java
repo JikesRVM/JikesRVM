@@ -8,7 +8,6 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -238,7 +237,8 @@ public final class ImmortalSpace extends Space
    * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
-    VM.assertions._assert(false); // this policy only releases pages enmasse
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
   public final boolean isLive(ObjectReference object) throws InlinePragma {

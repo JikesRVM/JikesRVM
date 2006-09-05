@@ -9,7 +9,6 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;

@@ -9,7 +9,6 @@ import org.mmtk.plan.Trace;
 import org.mmtk.policy.RefCountSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

@@ -8,7 +8,6 @@ import org.mmtk.plan.*;
 
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -90,9 +89,7 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator)
   throws InlinePragma {
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
-    }
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
 
     return immortal.alloc(bytes, align, offset, true);
   }

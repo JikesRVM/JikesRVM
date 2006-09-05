@@ -8,7 +8,6 @@ import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

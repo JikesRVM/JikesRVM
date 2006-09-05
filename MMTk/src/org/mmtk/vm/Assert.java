@@ -27,7 +27,8 @@ public abstract class Assert implements Uninterruptible {
 
   /**
    * Checks that the given condition is true.  If it is not, this
-   * method does a traceback and exits.
+   * method does a traceback and exits.  All calls to this method
+   * must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
    * 
    * @param cond the condition to be checked
    */
@@ -35,7 +36,8 @@ public abstract class Assert implements Uninterruptible {
 
   /**
    * Checks that the given condition is true.  If it is not, this
-   * method prints a message, does a traceback and exits.
+   * method prints a message, does a traceback and exits. All calls
+   * to this method must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
    * 
    * @param cond the condition to be checked
    * @param message the message to print

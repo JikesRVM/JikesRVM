@@ -5,7 +5,6 @@
  */
 package org.mmtk.utility.gcspy;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;

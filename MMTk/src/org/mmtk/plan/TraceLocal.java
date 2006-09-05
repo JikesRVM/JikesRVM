@@ -12,9 +12,6 @@ import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.Scanning;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -515,7 +512,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
    * @return The allocator id to use when copying.
    */
   public int getAllocator() {
-    VM.assertions._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return -1;
   }
 

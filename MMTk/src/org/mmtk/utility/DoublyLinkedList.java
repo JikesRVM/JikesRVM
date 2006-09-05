@@ -3,11 +3,11 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
-import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

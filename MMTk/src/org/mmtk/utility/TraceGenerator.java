@@ -15,7 +15,6 @@ import org.mmtk.utility.options.TraceRate;
 import org.mmtk.utility.scan.*;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;

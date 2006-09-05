@@ -8,8 +8,6 @@ package org.mmtk.utility;
 
 import org.mmtk.plan.TraceLocal;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.ReferenceGlue;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;

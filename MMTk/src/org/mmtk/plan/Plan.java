@@ -20,7 +20,6 @@ import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
 
 

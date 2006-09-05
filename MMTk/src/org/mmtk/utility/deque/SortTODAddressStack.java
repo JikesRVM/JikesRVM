@@ -4,8 +4,8 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;

@@ -4,15 +4,15 @@
  */
 package org.mmtk.utility.alloc;
 
-import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.FragmentationStats;
 import org.mmtk.utility.options.VerboseFragmentationStats;
+
+import org.mmtk.vm.VM;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -908,9 +908,8 @@ public abstract class SegregatedFreeList extends Allocator
    * @return The head of the new free list
    */
   protected final Address makeFreeListFromLiveBits(Address block, int sizeClass) {
-    if (VM.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(maintainSideBitmap());
-    }
     return makeFreeListFromLiveBits(block, sizeClass, Word.zero());
   }
  

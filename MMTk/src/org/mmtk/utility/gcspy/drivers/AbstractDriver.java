@@ -10,7 +10,6 @@ import org.mmtk.utility.gcspy.Subspace;
 import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 import org.mmtk.vm.gcspy.Util;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;

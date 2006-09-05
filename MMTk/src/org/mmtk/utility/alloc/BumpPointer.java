@@ -247,7 +247,6 @@ public class BumpPointer extends Allocator
     Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
 
     /* dataEnd = zero represents the current region. */
-    Address oldCursor = cursor;
     Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
     ObjectReference current =
       VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
@@ -257,7 +256,6 @@ public class BumpPointer extends Allocator
       scanner.scan(current); // Scan this object.
       current = next;
     }
-
   }
 
   /**

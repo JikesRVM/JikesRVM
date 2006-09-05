@@ -5,7 +5,6 @@ import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;

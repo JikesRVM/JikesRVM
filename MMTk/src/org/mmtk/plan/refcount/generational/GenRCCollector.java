@@ -17,8 +17,6 @@ import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
-
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;

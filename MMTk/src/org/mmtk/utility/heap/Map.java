@@ -4,12 +4,11 @@
  */
 package org.mmtk.utility.heap;
 
+import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Barriers;
+
 import org.mmtk.vm.VM;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;

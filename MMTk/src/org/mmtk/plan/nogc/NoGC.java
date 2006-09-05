@@ -59,7 +59,7 @@ public class NoGC extends Plan implements Uninterruptible {
    * @param phaseId Collection phase
    */
   public final void collectionPhase(int phaseId) {
-    VM.assertions._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     // if (phaseId == PREPARE) {
     // }
     // if (phaseID == RELEASE) {
