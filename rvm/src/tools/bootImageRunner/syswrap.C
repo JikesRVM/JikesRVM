@@ -488,7 +488,7 @@ createJavaVM(void)
  * Signature: ()I
  */
 extern "C" JNIEXPORT jint JNICALL 
-Java_com_ibm_JikesRVM_jni_VM_1JNIFunctions_createJavaVM(JNIEnv *, jclass)
+Java_com_ibm_JikesRVM_jni_VM_1JNIJavaVM_createJavaVM(JNIEnv *, jclass)
 {
     return createJavaVM();
 }

@@ -140,7 +140,7 @@ usage(void)
     fprintf(SysTraceFile,"    -? -help  print this message\n");
     fprintf(SysTraceFile,"    -X        print help on non-standard options\n");
 
-    fprintf(SysTraceFile,"\n For more information look at URL: www.ibm.com/developerworks/oss/jikesrvm\n");
+    fprintf(SysTraceFile,"\n For more information see http://jikesrvm.sourceforge.net\n");
 
     fprintf(SysTraceFile,"\n");
 }
