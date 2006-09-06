@@ -37,13 +37,14 @@ import org.vmmagic.unboxed.*;
  * size class becomes the current block and its free list is used.  If
  * there are no more blocks the a new block is allocated.<p>
  * 
+ * $Id$
+ * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public abstract class SegregatedFreeList extends Allocator 
   implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
 
   /****************************************************************************
    * 
@@ -747,7 +748,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   public static final boolean liveObject(ObjectReference object)
       throws InlinePragma {
-    return liveAddress(VM.objectModel.refToAddress(object), true);
+    return liveAddress(VM.objectModel.objectStartRef(object), true);
   }
   
   /**
