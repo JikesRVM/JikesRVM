@@ -133,13 +133,13 @@ public class BumpPointer extends Allocator
    */
   final public Address alloc(int bytes, int align, int offset, boolean inGC)
       throws InlinePragma {
-    Address oldCursor = alignAllocationNoFill(cursor, align, offset);
-    Address newCursor = oldCursor.plus(bytes);
-    if (newCursor.GT(limit))
+    Address start = alignAllocationNoFill(cursor, align, offset);
+    Address end = start.plus(bytes);
+    if (end.GT(limit))
       return allocSlow(bytes, align, offset, inGC);
-    fillAlignmentGap(cursor, oldCursor);
-    cursor = newCursor;
-    return oldCursor;
+    fillAlignmentGap(cursor, start);
+    cursor = end;
+    return start;
   }
 
   /**
