@@ -1,10 +1,44 @@
+/*
+ * (C) Copyright Department of Computer Science,
+ * Australian National University. 2006
+ */
 package org.mmtk.vm;
 
 import org.mmtk.vm.SynchronizedCounter;
+
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
-public class VM {
+/**
+ * This class is responsible for all VM-specific functionality required
+ * by MMTk.<p>
+ * 
+ * The class has two major elements.  First it defines VM-specific
+ * constants which are used throughout MMTk.  Secondly in declares
+ * singleton instances of each of the abstract classes in this
+ * package.<p>
+ * 
+ * Both the constants and the singleton instances are initialized to
+ * VM-specific values at build time using reflection.  The system
+ * property <code>mmtk.hostjvm</code> is interrogated at build time
+ * to establish concrete instantations of the abstract classes in 
+ * this package.  By convention, <code>mmtk.hostjvm</code> will 
+ * identify a VM-provided package which includes concrete instances
+ * of each of the abstract classes, with each concrete class having
+ * the same base class name (but different package name) as the abstract
+ * classes defined here.  The class initializer for this class then
+ * uses the system property <code>mmtk.hostjvm</code> to load the
+ * VM-specific concrete classes and initialize the constants and
+ * singletons defined here.
+ * 
+ * $Id: MutatorContext.java 10750 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) steveb-oss $
+ * 
+ * @author Steve Blackburn
+ * @version $Revision: 10750 $
+ * @date $Date: 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) $
+ */
+
+public final class VM {
   
   /*
    * VM-specific constant values
@@ -120,7 +154,13 @@ public class VM {
     ALIGNMENT_VALUE = Memory.alignmentValueTrapdoor(memory);
     ARRAY_BASE_OFFSET = ObjectModel.arrayBaseOffsetTrapdoor(objectModel);
  }
-  
+  /**
+   * Create a new Lock instance using the appropriate VM-specific
+   * concrete Lock sub-class.
+   * 
+   * @param name The string to be associated with this lock instance
+   * @return A concrete VM-specific Lock instance.
+   */
   public static Lock newLock(String name) {
     Lock lock = null;
     try {
@@ -133,6 +173,12 @@ public class VM {
     return lock;
   }
   
+  /**
+   * Create a new SynchronizedCounter instance using the appropriate
+   * VM-specific concrete SynchronizedCounter sub-class.
+   * 
+   * @return A concrete VM-specific SynchronizedCounter instance.
+   */
   public static SynchronizedCounter newSynchronizedCounter() {
     SynchronizedCounter counter = null;
     try {
