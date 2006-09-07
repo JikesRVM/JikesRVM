@@ -99,7 +99,7 @@ public final class VM {
  
   static {
     vmPackage = System.getProperty("mmtk.hostjvm");
-    vmGCSpyPackage = System.getProperty("mmtk.hostjvm") + "/gcspy";
+    vmGCSpyPackage = System.getProperty("mmtk.hostjvm") + ".gcspy";
     ObjectModel xom = null;
     ActivePlan xap = null;
     Assert xas = null;
