@@ -63,14 +63,15 @@ public abstract class Assert implements Uninterruptible {
    */
   public abstract boolean runningVM();
   
-  /**
-   * <code>true</code> if assertions should be verified
-   * 
-   * This must be implemented by subclasses, but is never called by MMTk users.
+  /*
+   * NOTE: The following methods must be implemented by subclasses of this
+   * class, but are internal to the VM<->MM interface glue, so are never
+   * called by MMTk users.
    */
+   /** @return true if assertions should be verified */
   protected abstract boolean getVerifyAssertionsConstant();
 
-  /**
+  /*
    * NOTE: This method should not be called by anything other than the
    * reflective mechanisms in org.mmtk.vm.VM, and is not implemented by
    * subclasses.

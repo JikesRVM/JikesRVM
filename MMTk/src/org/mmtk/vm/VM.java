@@ -95,9 +95,11 @@ public final class VM {
    * classes.
    */
   private static String vmPackage;
+  private static String vmGCSpyPackage;
  
   static {
     vmPackage = System.getProperty("mmtk.hostjvm");
+    vmGCSpyPackage = System.getProperty("mmtk.hostjvm") + "/gcspy";
     ObjectModel xom = null;
     ActivePlan xap = null;
     Assert xas = null;

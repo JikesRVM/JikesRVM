@@ -222,7 +222,9 @@ public abstract class ObjectModel implements Uninterruptible {
   /*
    * NOTE: These methods should not be called by anything other than the
    * reflective mechanisms in org.mmtk.vm.VM, and are not implemented by
-   * subclasses. This hack exists only to allow us to declare the respective
+   * subclasses.
+   * 
+   * This hack exists only to allow us to declare the respective
    * methods as protected.
    */
   static Offset arrayBaseOffsetTrapdoor(ObjectModel o) {
