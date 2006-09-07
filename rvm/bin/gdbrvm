@@ -101,6 +101,7 @@ user_args=("$@")
 declare -a sys_args
 sys_args=("-X:ic=$rvm_build/RVM.code.image" \
 		"-X:id=$rvm_build/RVM.data.image" \
+                "-X:ir=$rvm_build/RVM.rmap.image" \
 		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
 		"-Drvm.root=$rvm_root"					\
 		"-Drvm.build=$rvm_build"				\
