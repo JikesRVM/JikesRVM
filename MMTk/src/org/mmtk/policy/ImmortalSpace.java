@@ -4,6 +4,7 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.Constants;
@@ -257,6 +258,9 @@ public final class ImmortalSpace extends Space
    *         some may be unreachable.
    */
   public boolean isReachable(ObjectReference object) {
-    return (VM.objectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
+    if (Plan.SCAN_BOOT_IMAGE && this == Plan.vmSpace)
+      return true;  // ignore boot image "reachabilty" if we're not tracing it
+    else
+      return (VM.objectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
   }
 }

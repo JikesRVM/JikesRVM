@@ -213,23 +213,19 @@ public final class LargeObjectSpace extends Space
    * void method but for compliance to a more general interface).
    */
   public final ObjectReference traceObject(TraceLocal trace,
-                                           ObjectReference object)
-    throws InlinePragma {
+      ObjectReference object) throws InlinePragma {
     boolean nurseryObject = isInNursery(object);
     if (!inNurseryGC || nurseryObject) {
-    if (testAndMark(object, markState)) {
+      if (testAndMark(object, markState)) {
         internalMarkObject(object, nurseryObject);
-      trace.enqueue(object);
-    }
+        trace.enqueue(object);
+      }
     }
     return object;
   }
 
   /**
-   * A new collection increment has completed.  For the mark-sweep
-   * collector this means we can perform the sweep phase.
-   * 
-   * @param object The object in question
+   * @param objects The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
    public boolean isLive(ObjectReference object)
@@ -308,7 +304,7 @@ public final class LargeObjectSpace extends Space
    */
   private final boolean testMarkBit(ObjectReference object, Word value)
     throws InlinePragma {
-    return VM.objectModel.readAvailableBitsWord(object).and(LOS_BIT_MASK).EQ(value);
+    return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT).EQ(value);
   }
 
   /**
