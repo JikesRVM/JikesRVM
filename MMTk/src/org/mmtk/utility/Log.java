@@ -219,12 +219,13 @@ public class Log implements Constants, Uninterruptible {
     }
 
     boolean negative = (d < 0.0);
-    d = (d < 0.0) ? (-d) : d;
+    d = negative ? (-d) : d;       // Take absolute value
     int ones = (int) d;
     int multiplier = 1;
     while (postDecimalDigits-- > 0)
       multiplier *= 10;
     int remainder = (int) (multiplier * (d - ones));
+    if (remainder < 0) remainder = 0;
     if (negative) write('-');
     write(ones);
     write('.');
