@@ -3,9 +3,10 @@
  */
 package com.ibm.JikesRVM.mm.mmtk;
  
-import org.vmmagic.unboxed.Extent;
-
 import org.mmtk.utility.options.*;
+
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CommandLineArgs;
@@ -123,6 +124,10 @@ public final class Options extends org.mmtk.vm.Options {
         int ival = VM_CommandLineArgs.primitiveParseInt(value);
         ((IntOption)o).setValue(ival);
         return true;
+      case Option.ADDRESS_OPTION:
+        ival = VM_CommandLineArgs.primitiveParseInt(value);
+        ((AddressOption)o).setValue(ival);
+        return true;
       case Option.FLOAT_OPTION:
         float fval = VM_CommandLineArgs.primitiveParseFloat(value);
         ((FloatOption)o).setValue(fval);
@@ -195,6 +200,7 @@ public final class Options extends org.mmtk.vm.Options {
         }
         switch (o.getType()) {
           case Option.INT_OPTION:          VM.sysWrite("int     "); break;
+          case Option.ADDRESS_OPTION:      VM.sysWrite("address "); break;
           case Option.FLOAT_OPTION:        VM.sysWrite("float   "); break;
           case Option.MICROSECONDS_OPTION: VM.sysWrite("usec    "); break;
           case Option.PAGES_OPTION:        VM.sysWrite("bytes   "); break;
@@ -263,23 +269,26 @@ public final class Options extends org.mmtk.vm.Options {
         }
         VM.sysWrite(" = ");
         switch (o.getType()) {
-          case Option.INT_OPTION:
-            VM.sysWriteln(((IntOption)o).getValue()); 
-            break;
-          case Option.FLOAT_OPTION:
-            VM.sysWriteln(((FloatOption)o).getValue()); 
-            break;
-          case Option.MICROSECONDS_OPTION:
-            VM.sysWrite(((MicrosecondsOption)o).getMicroseconds()); 
-            VM.sysWriteln(" usec");
-            break;
-          case Option.PAGES_OPTION:
-            VM.sysWrite(((PagesOption)o).getBytes());
-            VM.sysWriteln(" bytes");
-            break;
-          case Option.STRING_OPTION:
-            VM.sysWriteln(((StringOption)o).getValue()); 
-            break;
+        case Option.INT_OPTION:
+          VM.sysWriteln(((IntOption) o).getValue());
+          break;
+        case Option.ADDRESS_OPTION:
+          VM.sysWriteln(((AddressOption) o).getValue());
+          break;
+        case Option.FLOAT_OPTION:
+          VM.sysWriteln(((FloatOption) o).getValue());
+          break;
+        case Option.MICROSECONDS_OPTION:
+          VM.sysWrite(((MicrosecondsOption) o).getMicroseconds());
+          VM.sysWriteln(" usec");
+          break;
+        case Option.PAGES_OPTION:
+          VM.sysWrite(((PagesOption) o).getBytes());
+          VM.sysWriteln(" bytes");
+          break;
+        case Option.STRING_OPTION:
+          VM.sysWriteln(((StringOption) o).getValue());
+          break;
         }
       }
       o = o.getNext();

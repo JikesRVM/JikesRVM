@@ -23,6 +23,7 @@ public final class Options {
   public static CycleFilterThreshold cycleFilterThreshold;
   public static CycleMetaDataLimit cycleMetaDataLimit;
   public static CycleTriggerThreshold cycleTriggerThreshold;
+  public static DebugAddress debugAddress;
   public static DummyEnum dummyEnum;
   public static EagerCompleteSweep eagerCompleteSweep;
   public static FixedNursery fixedNursery;

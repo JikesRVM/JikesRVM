@@ -153,6 +153,7 @@ public abstract class Plan implements Uninterruptible, Constants {
     Options.nurserySize = new NurserySize();
     Options.variableSizeHeap = new VariableSizeHeap();
     Options.sanityCheck = new SanityCheck();
+    Options.debugAddress = new DebugAddress();
   }
 
   /****************************************************************************
