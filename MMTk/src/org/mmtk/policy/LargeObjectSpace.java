@@ -225,7 +225,7 @@ public final class LargeObjectSpace extends Space
   }
 
   /**
-   * @param objects The object in question
+   * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
    public boolean isLive(ObjectReference object)
