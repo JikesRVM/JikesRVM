@@ -214,17 +214,6 @@ public class VM_BootRecord {
   // Host operating system entrypoints - see "sys.C"
   //
 
-  //-#if RVM_FOR_POWERPC
-  /**
-   * value to place in TOC register when issuing "sys" calls
-   */
-  public Address sysTOC;           
-  /**
-   * dummy function to pair with sysTOC
-   */
-  Address sysIP;            
-  //-#endif
-
   // lowlevel write to console
   public Address sysWriteCharIP;    
   public Address sysWriteIP;            

@@ -26,6 +26,7 @@
 #define _GNU_SOURCE             /* so that the Linux (GNU Libc) string.h will
                                 // include strsignal(), */
 #endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -1245,7 +1246,6 @@ createVM(int vmInSeparateThread)
         fprintf(SysTraceFile, "   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
         fprintf(SysTraceFile, "   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));
         fprintf(SysTraceFile, "   tocRegister:          " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tocRegister));
-        fprintf(SysTraceFile, "   sysTOC:               " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.sysTOC));
         fprintf(SysTraceFile, "   sysWriteCharIP:       " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.sysWriteCharIP));
     }
 
@@ -1485,5 +1485,3 @@ createJavaVM()
     fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");
     return 1;
 }
-
-

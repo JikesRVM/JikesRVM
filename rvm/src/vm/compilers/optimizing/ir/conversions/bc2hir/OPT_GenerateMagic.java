@@ -348,15 +348,15 @@ class OPT_GenerateMagic implements OPT_Operators,
                                            loc));
     } else if (meth.getType() == VM_TypeReference.SysCall) {
       // All methods of VM_SysCall have the following signature:
-      // callNAME(Address code, <var args to pass via native calling convention>)
+      // callNAME(Address functionAddress, <var args to pass via native calling convention>)
+      // With POWEROPEN_ABI, functionAddress points to the function descriptor
       VM_TypeReference[] args = meth.getParameterTypes();
-      int numArgs = args.length;
-      VM_Field ip = VM_Entrypoints.getSysCallField(meth.getName().toString());
-      OPT_MethodOperand mo = OPT_MethodOperand.STATIC(ip);
-      OPT_Instruction call = Call.create(SYSCALL, null, null, mo, null,  args.length);
-      for (int i = args.length-1; i >= 0; i--) {
-        Call.setParam(call, i, bc2ir.pop(args[i]));
+      OPT_Instruction call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
+      for (int i = args.length-1; i >= 1; i--) {
+        Call.setParam(call, i - 1, bc2ir.pop(args[i]));
       }
+      OPT_Operand functionAddress = bc2ir.pop(args[0]);
+      Call.setAddress(call, functionAddress);
       if (!returnType.isVoidType()) {
         OPT_RegisterOperand op0 = gc.temps.makeTemp(returnType);
         Call.setResult(call, op0);

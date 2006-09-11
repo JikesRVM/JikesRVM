@@ -361,28 +361,9 @@ class GenerateInterfaceDeclarations {
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
-        if (VM.BuildForAix || (VM.BuildForLinux && VM.BuildFor64Addr)) {
-          // e. g.,
-          // sysFOOIP = ((AixLinkageLayout *)&sysFOO)->ip;
-          p("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->ip;\n"); 
-        } else {
-          // e. g.,
-          //sysFOOIP = (int) sysFOO; 
-          p("  br->" + fieldName + " = (int) " + functionName + ";\n");
-        }
-      }
-
-      suffixIndex = fieldName.indexOf("TOC");
-      if (suffixIndex > 0) {
-        // java field "xxxTOC" corresponds to C function "xxx"
-        String functionName = fieldName.substring(0, suffixIndex);
-        if (VM.BuildForAix || (VM.BuildForLinux && VM.BuildFor64Addr)) {
-          // e. g.,
-          // sysTOC = ((AixLinkageLayout *)&sys)->toc;
-          p("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->toc;\n"); 
-        } else {
-          p("  br->" + fieldName + " = 0;\n");
-        }
+		// e. g.,
+		//sysFOOIP = (int) sysFOO; 
+		p("  br->" + fieldName + " = (intptr_t)" + functionName + ";\n");
       }
     }
 

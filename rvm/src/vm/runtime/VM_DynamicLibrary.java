@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.jni.VM_JNIJavaVM;
 import com.ibm.JikesRVM.util.*;
 import java.util.Iterator;
 import org.vmmagic.unboxed.*;
@@ -25,12 +26,12 @@ public class VM_DynamicLibrary {
   /**
    * The name of the library
    */
-  private String libName;
+  private final String libName;
 
   /**
    * Value returned from dlopen
    */
-  private Address libHandler;
+  private final Address libHandler;
 
   /**
    * Load a dynamic library and maintain it in this object.
@@ -64,10 +65,31 @@ public class VM_DynamicLibrary {
     }
 
     libName = libraryName;
+	try {
+	    callOnLoad();
+	} catch (UnsatisfiedLinkError e) {
+		unload();
+		throw e;
+	}
 
     if (VM.verboseJNI) {
       VM.sysWriteln("[Loaded native library: "+libName+"]");
     }
+  }
+
+  private void callOnLoad() {
+    Address JNI_OnLoadAddress = getSymbol("JNI_OnLoad");
+    if (!JNI_OnLoadAddress.isZero()) {
+      int version = VM_SysCallMagic.JNI_OnLoad(JNI_OnLoadAddress, VM_JNIJavaVM.getJavaVM(), Address.zero());
+	  checkJNIVersion(version);
+	}
+  }
+
+  private static void checkJNIVersion(int version) {
+      int major = version >>> 16;
+      int minor = version & 0xFFFF;
+	  if (major > 1 || minor > 4)
+		  throw new UnsatisfiedLinkError("Unsupported JNI version: " + major + "." + minor); 
   }
 
   /**

@@ -34,6 +34,10 @@ TESTS_11 := Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
 	NullIdentity StringFunctions TestGC t3GT3
 
 # Tests for JNI 1.2
+# TODO: fix JNI_OnLoad for AIX and then enable this test
+#       Problem is that we haven't implemented createJavaVM for AIX yet.
+#       Should be easy to do, but will do it as a separate commit action.
+# TESTS_12 := JNI12 StringRegion JNI_OnLoad
 TESTS_12 := JNI12 StringRegion
 
 # Tests for JNI 1.4

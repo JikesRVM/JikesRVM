@@ -3139,8 +3139,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPUSH_Reg(ESI);    
       asm.emitPUSH_Reg(EDI);
 
-      // (2) Push args to target function (reversed)
-      for (int i=args.length-1; i>=0; i--) {
+      // (2) Push args to target function (reversed), except for the first argument
+      for (int i=args.length-1; i>=1; i--) {
         VM_TypeReference arg = args[i];
         if (arg.isLongType() || arg.isDoubleType()) {
           asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(4));
@@ -3152,12 +3152,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           offsetToJavaArg = offsetToJavaArg.plus(8);
           paramBytes += 4;
         }
-      }   
+      }
 
-      // (3) invoke target function
-      VM_Field ip = VM_Entrypoints.getSysCallField(m.getName().toString());
-      asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-      asm.emitCALL_RegDisp(S0, ip.getOffset());
+      // (3) invoke target function with address given by the first argument
+      asm.emitMOV_Reg_RegDisp(S0, SP, offsetToJavaArg);
+      asm.emitCALL_Reg(S0);
       
       // (4) pop space for arguments
       asm.emitADD_Reg_Imm(SP, paramBytes);
@@ -3167,8 +3166,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
 
-      // (6) pop expression stack
-      asm.emitADD_Reg_Imm(SP, paramBytes);
+      // (6) pop expression stack (including the first parameter)
+      asm.emitADD_Reg_Imm(SP, paramBytes + 4);
 
       // (7) push return value
       if (rtype.isLongType()) {
@@ -3186,6 +3185,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       
       return true;
     }   
+    
     
     if (methodName == VM_MagicNames.getFramePointer) {
       asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(NO_SLOT));

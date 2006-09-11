@@ -5381,22 +5381,18 @@ class VM_JNIFunctions implements VM_NativeBridge,
     }
   }
 
-  // this is the address of the malloc'ed JavaVM struct (one per VM)
-  private static Address JavaVM; 
-
-  private static native Address createJavaVM();
-
   private static int GetJavaVM(VM_JNIEnvironment env, Address StarStarJavaVM) {
     if (traceJNI) VM.sysWrite("JNI called: GetJavaVM \n");
+    try {
+      if (traceJNI) VM.sysWriteln(StarStarJavaVM);
+      Address JavaVM = VM_JNIJavaVM.getJavaVM();
+      StarStarJavaVM.store(JavaVM);
 
-    if (JavaVM == null) {
-      JavaVM = createJavaVM();
-    }
-    
-    if (traceJNI) VM.sysWriteln(StarStarJavaVM);
-    StarStarJavaVM.store(JavaVM);
-
-    return 0;
+      return 0;
+	} catch (Throwable unexpected) {
+      if (traceJNI) unexpected.printStackTrace(System.err);
+      return -1;
+	}
   }
 
   /*******************************************************************

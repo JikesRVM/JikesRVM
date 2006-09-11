@@ -210,7 +210,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field sysDoubleToLongIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToLongIP",  "Lorg/vmmagic/unboxed/Address;");
   //-#if RVM_FOR_POWERPC
   public static final VM_Field sysDoubleRemainderIPField       = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC",  "Lorg/vmmagic/unboxed/Address;");
   //-#endif
 
   public static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounts;", "data", "[[I");

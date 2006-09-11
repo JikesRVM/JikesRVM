@@ -412,8 +412,12 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants,
     // if blocked in native, call C routine to do pthread_yield
     //
     asm.emitLAddrOffset (T2, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());  // T2 gets boot record address
-    asm.emitLAddrOffset (JTOC, T2, VM_Entrypoints.sysTOCField.getOffset());           // load TOC for syscalls from bootrecord
     asm.emitLAddrOffset (T1, T2,  VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
+	//-#if RVM_WITH_POWEROPEN_ABI
+	/* T1 points to the function descriptor, so we'll load TOC and IP from that */
+    asm.emitLAddrOffset(JTOC, T1, Offset.fromInt(BYTES_IN_ADDRESS));          // load TOC
+	asm.emitLAddrOffset(T1, T1, Offset.zero());
+	//-#endif
     asm.emitMTLR  (T1);
     asm.emitBCLRL ();                                          // call sysVirtualProcessorYield in sys.C
     asm.emitB     (label1);                                    // retest the attempt to change status to IN_JAVAE

@@ -78,7 +78,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
   public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
-  public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/JikesRVM/VM_SysCall;");
+  public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/JikesRVM/VM_SysCallMagic;");
 
   public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");
   public static final VM_TypeReference JavaLangClass = findOrCreate("Ljava/lang/Class;");
@@ -365,7 +365,7 @@ public class VM_TypeReference implements VM_SizeConstants {
    * Does 'this' refer to VM_Magic?
    */
   public final boolean isMagicType() {
-    return this == Magic || this == SysCall 
+    return this == Magic || this == SysCall
       || this == ObjectReference || this == ObjectReferenceArray 
       || isWordType() || isWordArrayType() 
       || isCodeType() || isCodeArrayType();

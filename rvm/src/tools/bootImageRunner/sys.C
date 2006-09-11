@@ -133,22 +133,6 @@ static int loadResultBuf(char * buf, int limit, const char *result);
 #define MANGLE16(x) x
 #endif
 
-
-//---------------------------//
-// Environmental operations. //
-//---------------------------//
-
-//!!TEMP - dummy function
-//!!TODO: remove this when boot record has single "sysTOC" instead of multiple "sysXXXTOC" values
-extern "C" void sys(void) __attribute__((noreturn));
-
-extern "C" void
-sys()
-{
-    fprintf(SysErrorFile, "%s: unexpected call to \"sys\"\n", Me);
-    sysExit(EXIT_STATUS_UNEXPECTED_CALL_TO_SYS);
-}
-
 // Console write (java character).
 //
 extern "C" void

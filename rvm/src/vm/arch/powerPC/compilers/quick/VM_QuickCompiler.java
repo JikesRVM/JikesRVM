@@ -3192,6 +3192,13 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     
 
     if (methodToBeCalled.getType() == VM_TypeReference.SysCall) {
+      // We'll have to rewrite the quick compiler to compile
+      // for the new SysCall interface once it can compile on ppc again.
+      // The ppc baseline and the optimizing compiler are already converted.
+      // The generateSysCall itself is converted (since it is the same as the baseline)
+	  // but the following code needs to skip the first parameter and use it as
+	  // a function address like in the baseline and opt compiler.
+      VM._assert(false);
       VM_TypeReference[] args = methodToBeCalled.getParameterTypes();
 
       // (1) Set up arguments according to OS calling convention
@@ -4190,7 +4197,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    * 
    * @param rawParameterSize: number of bytes in parameters (not including IP)
    */
-  private void generateSysCall1(int rawParametersSize) {
+/*  private void generateSysCall1(int rawParametersSize) {
     int ipIndex = rawParametersSize >> LOG_BYTES_IN_STACKSLOT; // where to access IP parameter
     int linkageAreaSize   = rawParametersSize +         // values
       BYTES_IN_STACKSLOT +                              // saveJTOC
@@ -4214,7 +4221,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     asm.emitLAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);    // restore JTOC
     asm.emitADDI (FP, linkageAreaSize, FP);        // remove linkage area
   }
-
+*/
   /** 
    * Generate call and return sequence to invoke a C function through the
    * boot record field specificed by target. 
@@ -4290,9 +4297,12 @@ public class VM_QuickCompiler extends VM_CompilerFramework
 
     // acquire toc and ip from bootrecord
     asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitLAddrOffset(JTOC, S0, VM_Entrypoints.sysTOCField.getOffset());
     asm.emitLAddrOffset(0, S0, target.getOffset());
-
+    //-#if RVM_WITH_POWEROPEN_ABI
+	/* GPR0 points to the function descriptor, so we'll load TOC and IP from that */
+    asm.emitLAddrOffset(JTOC, 0, BYTES_IN_STACKSLOT);
+    asm.emitLAddrOffset(0, 0, 0);
+    //-#endif
     // call it
     asm.emitMTCTR(0);
     asm.emitBCCTRL(); 

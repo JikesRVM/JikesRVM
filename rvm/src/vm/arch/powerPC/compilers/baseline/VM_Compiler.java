@@ -3367,21 +3367,22 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param methodToBeCalled method whose name indicates semantics of code to be generated
    * @return true if there was magic defined for the method
    */
-  private boolean  generateInlineCode(VM_MethodReference methodToBeCalled) {
+  private boolean generateInlineCode(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
       
     if (methodToBeCalled.getType() == VM_TypeReference.SysCall) {
       VM_TypeReference[] args = methodToBeCalled.getParameterTypes();
 
-      // (1) Set up arguments according to OS calling convention
+      // (1) Set up arguments according to OS calling convention, excluding the first
+      // which is not an argument to the native function but the address of the function to call
       int paramWords = methodToBeCalled.getParameterWords();
       int gp = FIRST_OS_PARAMETER_GPR;
       int fp = FIRST_OS_PARAMETER_FPR;
-      int stackIndex = paramWords;
-      int paramBytes = (VM.BuildFor64Addr? args.length : paramWords) * BYTES_IN_STACKSLOT;
+      int stackIndex = paramWords - 1;
+      int paramBytes = ((VM.BuildFor64Addr? args.length : paramWords) - 1)* BYTES_IN_STACKSLOT;
       int callee_param_index = - BYTES_IN_STACKSLOT - paramBytes;
       
-      for (int i=0; i<args.length; i++) {
+      for (int i=1; i<args.length; i++) {
         VM_TypeReference t = args[i];
         if (t.isLongType()) {
           stackIndex -= 2;
@@ -3455,8 +3456,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       }
 
       // (2) Call it
-      VM_Field ip = VM_Entrypoints.getSysCallField(methodName.toString());
-      generateSysCall(paramBytes, ip);
+      peekAddr(S0, paramWords - 1); // Load addres of function into S0
+      generateSysCall(paramBytes); // make the call
 
       // (3) Pop Java expression stack
       discardSlots(paramWords);
@@ -4373,6 +4374,17 @@ public class VM_Compiler extends VM_BaselineCompiler
    *    appear in the parameter save area right to left (C conventions)
    */
   private void generateSysCall(int parametersSize, VM_Field target) {
+    // acquire toc and ip from bootrecord
+    asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitLAddrOffset(S0, S0, target.getOffset());
+    generateSysCall(parametersSize);
+  }
+
+  /**
+   * Generate a sys call where the address of the function or (when POWEROPEN_ABI is defined)
+   * function descriptor have been loaded into S0 already
+   */
+  private void generateSysCall(int parametersSize) {
     int linkageAreaSize   = parametersSize + BYTES_IN_STACKSLOT + (6 * BYTES_IN_STACKSLOT);
 
     if (VM.BuildFor32Addr) {
@@ -4381,14 +4393,15 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
     }
     asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
-
-    // acquire toc and ip from bootrecord
-    asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitLAddrOffset(JTOC, S0, VM_Entrypoints.sysTOCField.getOffset());
-    asm.emitLAddrOffset(0, S0, target.getOffset());
-
+    //-#if RVM_WITH_POWEROPEN_ABI
+	/* GPR0 is pointing to the function descriptor, so we need to load the TOC and IP from that */
+	// Load TOC (Offset one word)
+	asm.emitLAddrOffset(JTOC, S0, Offset.fromInt(BYTES_IN_STACKSLOT));
+	// Load IP (offset 0)
+	asm.emitLAddrOffset(S0, S0, Offset.zero());
+    //-#endif
     // call it
-    asm.emitMTCTR(0);
+    asm.emitMTCTR(S0);
     asm.emitBCCTRL(); 
 
     // cleanup
