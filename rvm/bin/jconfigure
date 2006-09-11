@@ -4206,7 +4206,7 @@ EOF_RUNBOOTIMAGE_H
 	chdir ${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/
 EOF
     DEST="${BUILD_DIRECTORY_STR}/libjpnexec\${shlib_suffix}"
-    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
+    echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.jni DEST=\"$DEST\" \"$DEST\""
 
     ## De-quote the spaces.
     CPP_ARGS="$(echo ${C_PREPROCESSOR_DEFINITIONS})"

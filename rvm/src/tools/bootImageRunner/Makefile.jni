@@ -37,6 +37,6 @@ endif
 
 # For testing:
 DEST ?= $(JAL_BUILD)/libjpnexec.so
-$(DEST): VM_0005fProcess.C $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h
+$(DEST): com_ibm_JikesRVM_VM_0005fProcess.C $(SCRATCH)/com_ibm_JikesRVM_VM_0005fProcess.h
 	$(RM) $@
 	$(LDSHARED) -o $@ -I$(SCRATCH) -I$(THIS_DIR) -I$(SRC_DIR)/include $<
