@@ -22,4 +22,6 @@ import org.vmmagic.pragma.*;
  */
 public class GenMSConstraints extends GenConstraints
   implements Uninterruptible {
+
+  public boolean needsLinearScan() { return true; }
 }
