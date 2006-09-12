@@ -3,12 +3,12 @@
  */
 // $Id$
 /* Handles "extern" declarations shared among files in
- * rvm/src/tools/bootImageRunner/.
+ * tools/bootImageRunner/.
  * @author: Steven Augart, based on contributions from everyone who ever
  * touched files in that directory.
  *
  */
-// #include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
+// #include "bootImageRunner.h"	// In tools/bootImageRunner
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -20,7 +20,7 @@ extern "C" {
 } /* un-confuse the auto-indenter */
 #endif
 
-#include "../../include/cAttributePortability.h"
+#include "../../rvm/src/include/cAttributePortability.h"
 
 #if defined(RVM_FOR_32_ADDR)
 #define VM_Offset int32_t

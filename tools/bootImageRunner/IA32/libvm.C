@@ -39,7 +39,7 @@
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
 
-#include "../pthread-wrappers.h" // In rvm/src/tools/bootImageRunner
+#include "../pthread-wrappers.h" // In tools/bootImageRunner
 
 /* Interface to virtual machine data structures. */
 #define NEED_EXIT_STATUS_CODES
@@ -50,7 +50,7 @@
 
 extern "C" void setLinkage(VM_BootRecord*);
 
-#include "../bootImageRunner.h" // In rvm/src/tools/bootImageRunner
+#include "../bootImageRunner.h" // In tools/bootImageRunner
 
 // These are definitions of items declared in bootImageRunner.h
 /* Sink for messages relating to serious errors detected by C runtime. */

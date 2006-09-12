@@ -53,7 +53,7 @@
 #endif
 #include "RunBootImage.h"       // Automatically generated for us by
                                 // jbuild.linkBooter 
-#include "bootImageRunner.h"    // In rvm/src/tools/bootImageRunner
+#include "bootImageRunner.h"    // In tools/bootImageRunner
 #include "cmdLine.h"            // Command line args.
 
 // Interface to VM data structures.

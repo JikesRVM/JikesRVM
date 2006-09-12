@@ -314,7 +314,7 @@ getRegAddress(ppc_thread_state_t *state, int r)
 VM_BootRecord *theBootRecord;
 #define VM_NULL 0
 
-#include "../bootImageRunner.h" // In rvm/src/tools/bootImageRunner
+#include "../bootImageRunner.h" // In tools/bootImageRunner
 
 /**** These are definitions of items declared in bootImageRunner.h ****/
 

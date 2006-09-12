@@ -36,7 +36,7 @@ endif
 
 .DELETE_ON_ERROR:  # Clean up.
 
-GENERATOR_DIR := $(RVM_ROOT)/rvm/src/tools/templateExpander
+GENERATOR_DIR := $(RVM_ROOT)/tools/templateExpander
 GENERATOR := GenerateFromTemplate
 
 VM_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/utility

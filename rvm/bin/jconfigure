@@ -1653,14 +1653,14 @@ fi
 
 # Place where bootimage runner lives.
 #
-BOOTIMAGE_RUNNER_DIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner"
-BOOTIMAGE_RUNNER_DIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner"
+BOOTIMAGE_RUNNER_DIR="${RVM_ROOT}/tools/bootImageRunner"
+BOOTIMAGE_RUNNER_DIR_STR="${ROOT_DIRECTORY_STR}/tools/bootImageRunner"
 if (( RVM_FOR_POWERPC )); then
-    BOOTIMAGE_RUNNER_SUBDIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner/powerPC"
-    BOOTIMAGE_RUNNER_SUBDIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/powerPC"
+    BOOTIMAGE_RUNNER_SUBDIR="${RVM_ROOT}/tools/bootImageRunner/powerPC"
+    BOOTIMAGE_RUNNER_SUBDIR_STR="${ROOT_DIRECTORY_STR}/tools/bootImageRunner/powerPC"
 elif (( RVM_FOR_IA32 )); then
-    BOOTIMAGE_RUNNER_SUBDIR="${RVM_ROOT}/rvm/src/tools/bootImageRunner/IA32"
-    BOOTIMAGE_RUNNER_SUBDIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/IA32"
+    BOOTIMAGE_RUNNER_SUBDIR="${RVM_ROOT}/tools/bootImageRunner/IA32"
+    BOOTIMAGE_RUNNER_SUBDIR_STR="${ROOT_DIRECTORY_STR}/tools/bootImageRunner/IA32"
 else
     show_mesg_raw >&2 "$ME:$LINENO: Trouble is looming; neither RVM_FOR_POWERPC nor RVM_FOR_IA32 is defined."
     BOOTIMAGE_RUNNER_DIR="UNKNOWN_BOOTIMAGE_RUNNER_DIRECTORY"
@@ -1669,8 +1669,8 @@ fi
 
 # Place where bootimage writer lives.
 #
-BOOTIMAGE_WRITER_DIR="${RVM_ROOT}/rvm/src/tools/bootImageWriter"
-BOOTIMAGE_WRITER_DIR_STR="${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageWriter"
+BOOTIMAGE_WRITER_DIR="${RVM_ROOT}/tools/bootImageWriter"
+BOOTIMAGE_WRITER_DIR_STR="${ROOT_DIRECTORY_STR}/tools/bootImageWriter"
 
 #--------------------------------------#
 # SECTION 5 - DEFINITIONS OF FUNCTIONS #
@@ -2536,13 +2536,13 @@ function emitExpander () {
 	fi
 
 	# Make the tools that we need to do template expansion
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C "${ROOT_DIRECTORY_STR}/rvm/src/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C "${ROOT_DIRECTORY_STR}/tools/templateExpander" tool SCRATCH_DIR="${SCRATCH_DIRECTORY_STR}"
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	cat <<- EOF
 
 	# Opt compiler only:
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -f ${ROOT_DIRECTORY_STR}/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/tools/jburg tool
 	EOF
     fi
     cat <<- EOF
@@ -2665,7 +2665,7 @@ function emitCopier () {
 	fi
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	# Make the preprocessor
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.host tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.host tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 	copyIfNewer "${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles" "${BUILD_DIRECTORY_STR}/jbuild.prep.host" -n "(set up jbuild.prep.host) "
 
 	# This may be reset in the loop below.
@@ -3077,7 +3077,7 @@ EOF
 	# The new_generator_dir is scaffolding for a work-in-progress
 	# feature --Steve Augart, 26 May 2004
 
-	new_generator_dir=${ROOT_DIRECTORY_STR}/rvm/src/tools/generateInterfaceDeclarations
+	new_generator_dir=${ROOT_DIRECTORY_STR}/tools/generateInterfaceDeclarations
 	if [[ \${INTERFACE_GENERATOR_DIR-} ]]; then
 	    generator_dir=\${INTERFACE_GENERATOR_DIR}
 	elif [[ -f \$new_generator_dir/\${generator_class}.java ]]; then
@@ -4178,10 +4178,10 @@ neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
 	echo >&2  -n '(classpath native libraries copied) '
 	CONFIG_H_DIR=${SCRATCH_DIRECTORY_STR}/Config.target
 
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/configuring CONFIG_H_DIR=\${CONFIG_H_DIR} 
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/tools/configuring CONFIG_H_DIR=\${CONFIG_H_DIR} 
 
 	# Make a target platform preprocessor for use in gctest
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR} 
+	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR} 
 	copyIfNewer "${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles" "${BUILD_DIRECTORY_STR}/jbuild.prep.target"  -n '(set up jbuild.prep.target) '
 
 	## Create RunBootImage.h file.
@@ -4203,7 +4203,7 @@ EOF_RUNBOOTIMAGE_H
 
 	# Build the JNI library for creating processes
 	# and a couple of wrapper libraries we may need.
-	chdir ${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/
+	chdir ${ROOT_DIRECTORY_STR}/tools/bootImageRunner/
 EOF
     DEST="${BUILD_DIRECTORY_STR}/libjpnexec\${shlib_suffix}"
     echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.jni DEST=\"$DEST\" \"$DEST\""
@@ -4333,7 +4333,7 @@ EOF
 		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
 		    -I$ROOT_DIRECTORY_STR/rvm/src/include \
 		    -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
-		    -I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
+		    -I$ROOT_DIRECTORY_STR/tools/bootImageRunner \
     		    -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
 
 		ALL_HPM_LIBS="\${SYS_HPM_LIBS} -L$BUILD_DIRECTORY_STR -lhpm"
@@ -4789,7 +4789,7 @@ function emitPluginBuilder () {
 
 	emit_ant_properties > \${propfile}
 
-	srcdir=${ROOT_DIRECTORY_STR}/rvm/src/tools/eclipse/plugin2
+	srcdir=${ROOT_DIRECTORY_STR}/tools/eclipse/plugin2
 	chdir \${srcdir}
 
 	if tracing ant; then
