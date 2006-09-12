@@ -24,7 +24,6 @@ public final class MMType implements Constants, Uninterruptible {
   private boolean isReferenceArray;
   private boolean isDelegated;
   private boolean isAcyclic;
-  private Offset arrayOffset;
   private int[] offsets;
   private int allocator;
 
@@ -81,7 +80,7 @@ public final class MMType implements Constants, Uninterruptible {
   Address getSlot(ObjectReference object, int reference) throws InlinePragma {
     Address addr = object.toAddress();
     if (isReferenceArray)
-      return addr.plus(arrayOffset).plus(reference << LOG_BYTES_IN_ADDRESS);
+      return addr.plus(VM.ARRAY_BASE_OFFSET).plus(reference << LOG_BYTES_IN_ADDRESS);
     else
       return addr.plus(offsets[reference]);
   }
