@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * VM-specific concrete classes and initialize the constants and
  * singletons defined here.
  * 
- * $Id: MutatorContext.java 10750 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) steveb-oss $
+ * $Id: VM.java 10750 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) steveb-oss $
  * 
  * @author Steve Blackburn
  * @version $Revision: 10750 $
