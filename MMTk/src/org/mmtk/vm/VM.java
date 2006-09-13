@@ -88,6 +88,9 @@ public final class VM {
   public static final Strings strings;
   public static final TraceInterface traceInterface;
   
+  /* Class instances to be used by factory methods */
+  private static final Class lockClass;
+  private static final Class counterClass;
   
   /*
    * The remainder is does the static initialization of the
@@ -112,6 +115,8 @@ public final class VM {
     Statistics xst = null;
     Strings xsr = null;
     TraceInterface xtr = null;
+    Class xlc = null;
+    Class xcc = null;
     try {
       xom = (ObjectModel) Class.forName(vmPackage+".ObjectModel").newInstance();
       xap = (ActivePlan) Class.forName(vmPackage+".ActivePlan").newInstance();
@@ -125,6 +130,8 @@ public final class VM {
       xst = (Statistics) Class.forName(vmPackage+".Statistics").newInstance();
       xsr = (Strings) Class.forName(vmPackage+".Strings").newInstance();
       xtr = (TraceInterface) Class.forName(vmPackage+".TraceInterface").newInstance();
+      xlc = Class.forName(vmPackage+".Lock");
+      xcc = Class.forName(vmPackage+".SynchronizedCounter");
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(-1);     // we must *not* go on if the above has failed
@@ -141,6 +148,8 @@ public final class VM {
     statistics = xst;
     strings = xsr;
     traceInterface = xtr;
+    lockClass = xlc;
+    counterClass = xcc;
     REFERENCES_ARE_OBJECTS = ReferenceGlue.referencesAreObjectsTrapdoor(referenceTypes);
     VERIFY_ASSERTIONS = Assert.verifyAssertionsTrapdoor(assertions);
     HEAP_START = Memory.heapStartTrapdoor(memory);
@@ -164,15 +173,12 @@ public final class VM {
    * @return A concrete VM-specific Lock instance.
    */
   public static Lock newLock(String name) {
-    Lock lock = null;
     try {
-      lock = (Lock) Class.forName(vmPackage+".Lock").newInstance();
+      return (Lock) lockClass.newInstance();
     } catch (Exception e) {
-      e.printStackTrace();
-      System.exit(-1);     // we must *not* go on if the above has failed
+      assertions.fail("Failed to allocate lock!");
+      return null; // never get here
     }
-    lock.setName(name);
-    return lock;
   }
   
   /**
@@ -182,14 +188,12 @@ public final class VM {
    * @return A concrete VM-specific SynchronizedCounter instance.
    */
   public static SynchronizedCounter newSynchronizedCounter() {
-    SynchronizedCounter counter = null;
     try {
-      counter = (SynchronizedCounter) Class.forName(vmPackage+".SynchronizedCounter").newInstance();
+      return (SynchronizedCounter) counterClass.newInstance();
     } catch (Exception e) {
-      e.printStackTrace();
-      System.exit(-1);     // we must *not* go on if the above has failed
+      assertions.fail("Failed to clone counter!");
+      return null; // never get here
     }
-    return counter;
   }
 
 }
