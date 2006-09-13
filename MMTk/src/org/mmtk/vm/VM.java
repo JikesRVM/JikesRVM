@@ -4,8 +4,6 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.vm.SynchronizedCounter;
-
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
