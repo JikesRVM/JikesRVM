@@ -177,14 +177,13 @@ public final class VM {
    * @return A concrete VM-specific Lock instance.
    */
   public static Lock newLock(String name) {
-    Lock lock = null;
     try {
-      lock = (Lock) lockClass.newInstance();
+      Lock lock = (Lock) lockClass.newInstance();
       lock.setName(name);
       return lock;
     } catch (Exception e) {
       assertions.fail("Failed to allocate lock!");
-      return null;
+      return null; // never get here
     }
   }
   
@@ -198,7 +197,7 @@ public final class VM {
     try {
       return (SynchronizedCounter) counterClass.newInstance();
     } catch (Exception e) {
-      assertions.fail("Failed to clone counter!");
+      assertions.fail("Failed to allocate counter!");
       return null; // never get here
     }
   }
