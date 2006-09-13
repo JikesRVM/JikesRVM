@@ -21,11 +21,11 @@ import org.vmmagic.pragma.*;
  */
 public final class MMType implements Constants, Uninterruptible {
   // AJG: Maybe should make this immutable. See Item 13 of Effective Java.
-  private boolean isReferenceArray;
-  private boolean isDelegated;
-  private boolean isAcyclic;
-  private int[] offsets;
-  private int allocator;
+  private final boolean isReferenceArray;
+  private final boolean isDelegated;
+  private final boolean isAcyclic;
+  private final int[] offsets;
+  private final int allocator;
 
   // per-type statistics
   private int allocCount;
