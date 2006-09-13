@@ -334,6 +334,7 @@ public class VM extends VM_Properties
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
     runClassInitializer("com.ibm.JikesRVM.classloader.VM_Annotation");
     runClassInitializer("java.lang.VMClassLoader");
+    runClassInitializer("gnu.java.nio.VMChannel");
  
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
