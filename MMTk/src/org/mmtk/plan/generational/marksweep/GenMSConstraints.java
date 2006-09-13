@@ -23,5 +23,5 @@ import org.vmmagic.pragma.*;
 public class GenMSConstraints extends GenConstraints
   implements Uninterruptible {
 
-  public boolean needsLinearScan() { return true; }
+  public boolean needsLinearScan() { return true; } // FIXME: This is a hack to work around bug 1549822
 }
