@@ -20,15 +20,113 @@ package org.mmtk.vm;
 public abstract class Factory {
 
   /**
+   * Create a new ActivePlan instance using the appropriate VM-specific
+   * concrete ActivePlan sub-class.
+   * 
+   * @see ActivePlan
+   * @return A concrete VM-specific ActivePlan instance.
+   */
+  public abstract ActivePlan newActivePlan();
+
+  /**
+   * Create a new Assert instance using the appropriate VM-specific
+   * concrete Assert sub-class.
+   * 
+   * @see Assert
+   * @return A concrete VM-specific Assert instance.
+   */
+  public abstract Assert newAssert();
+
+  /**
+   * Create a new Barriers instance using the appropriate VM-specific
+   * concrete Barriers sub-class.
+   * 
+   * @see Barriers
+   * @return A concrete VM-specific Barriers instance.
+   */
+  public abstract Barriers newBarriers();
+
+  /**
+   * Create a new Collection instance using the appropriate VM-specific
+   * concrete Collection sub-class.
+   * 
+   * @see Collection
+   * @return A concrete VM-specific Collection instance.
+   */
+  public abstract Collection newCollection();
+
+  /**
    * Create a new Lock instance using the appropriate VM-specific
    * concrete Lock sub-class.
    * 
    * @see Lock
-   * 
    * @param name The string to be associated with this lock instance
    * @return A concrete VM-specific Lock instance.
    */
   public abstract Lock newLock(String name);
+  
+  /**
+   * Create a new Memory instance using the appropriate VM-specific
+   * concrete Memory sub-class.
+   * 
+   * @see Memory
+   * @return A concrete VM-specific Memory instance.
+   */
+  public abstract Memory newMemory();
+
+  /**
+   * Create a new ObjectModel instance using the appropriate VM-specific
+   * concrete ObjectModel sub-class.
+   * 
+   * @see ObjectModel
+   * @return A concrete VM-specific ObjectModel instance.
+   */
+  public abstract ObjectModel newObjectModel();
+
+  /**
+   * Create a new Options instance using the appropriate VM-specific
+   * concrete Options sub-class.
+   * 
+   * @see Options
+   * @return A concrete VM-specific Options instance.
+   */
+  public abstract Options newOptions();
+
+  /**
+   * Create a new ReferenceGlue instance using the appropriate VM-specific
+   * concrete ReferenceGlue sub-class.
+   * 
+   * @see ReferenceGlue
+   * @return A concrete VM-specific ReferenceGlue instance.
+   */
+  public abstract ReferenceGlue newReferenceGlue();
+
+  /**
+   * Create a new Scanning instance using the appropriate VM-specific
+   * concrete Scanning sub-class.
+   * 
+   * @see Scanning
+   * @return A concrete VM-specific Scanning instance.
+   */
+  public abstract Scanning newScanning();
+
+  /**
+   * Create a new Statistics instance using the appropriate VM-specific
+   * concrete Statistics sub-class.
+   * 
+   * @see Statistics
+   * @return A concrete VM-specific Statistics instance.
+   */
+  public abstract Statistics newStatistics();
+
+  /**
+   * Create a new Strings instance using the appropriate VM-specific
+   * concrete Strings sub-class.
+   * 
+   * @see Strings
+   * @return A concrete VM-specific Strings instance.
+   */
+  public abstract Strings newStrings();
   
   /**
    * Create a new SynchronizedCounter instance using the appropriate
@@ -39,4 +137,14 @@ public abstract class Factory {
    * @return A concrete VM-specific SynchronizedCounter instance.
    */
   public abstract SynchronizedCounter newSynchronizedCounter();
+  
+  /**
+   * Create a new TraceInterface instance using the appropriate VM-specific
+   * concrete TraceInterface sub-class.
+   * 
+   * @see TraceInterface
+   * @return A concrete VM-specific TraceInterface instance.
+   */
+  public abstract TraceInterface newTraceInterface();
+    
 }

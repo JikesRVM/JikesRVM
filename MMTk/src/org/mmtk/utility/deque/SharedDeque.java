@@ -42,7 +42,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   public SharedDeque(RawPageSpace rps, int arity) {
     this.rps = rps;
     this.arity = arity;
-    lock = VM.factory.newLock("SharedDeque");
+    lock = VM.newLock("SharedDeque");
     completionFlag = 0;
     head = HEAD_INITIAL_VALUE;
     tail = TAIL_INITIAL_VALUE;

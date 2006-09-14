@@ -45,8 +45,8 @@ public final class Barrier implements Uninterruptible {
   public Barrier() {
     counters = new SynchronizedCounter[NUM_COUNTERS];
     for (int i = 0; i < NUM_COUNTERS; i++)
-      counters[i] = VM.factory.newSynchronizedCounter();
-    currentCounter = VM.factory.newSynchronizedCounter();
+      counters[i] = VM.newSynchronizedCounter();
+    currentCounter = VM.newSynchronizedCounter();
   }
 
   // Set target to appropriate value

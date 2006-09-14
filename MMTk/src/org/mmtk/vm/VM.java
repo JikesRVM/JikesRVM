@@ -11,22 +11,24 @@ import org.vmmagic.unboxed.Offset;
  * This class is responsible for all VM-specific functionality required
  * by MMTk.<p>
  * 
- * The class has two major elements.  First it defines VM-specific
- * constants which are used throughout MMTk, and second, it declares
+ * The class has three major elements.  First it defines VM-specific
+ * constants which are used throughout MMTk, second, it declares
  * singleton instances of each of the abstract classes in this
- * package.<p>
+ * package, and third, it provides factory methods for VM-specific
+ * instances which are needed by MMTk (such as <code>Lock</code>).<p>
  * 
  * Both the constants and the singleton instances are initialized to
- * VM-specific values at build time using reflection. The system property
- * <code>mmtk.hostjvm</code> is interrogated at build time to establish
- * concrete instantations of the abstract classes in this package. By
- * <b>convention</b>, <code>mmtk.hostjvm</code> will identify a VM-provided
- * package which includes concrete instances of each of the abstract classes,
- * with each concrete class having the same base class name (but different
- * package name) as the abstract classes defined here.  The class initializer
- * for this class then uses the system property <code>mmtk.hostjvm</code> to
- * load the VM-specific concrete classes and initialize the constants and
- * singletons defined here.
+ * VM-specific values at build time using reflection and a VM-specific
+ * factory class. The system property <code>mmtk.hostjvm</code> is
+ * interrogated at build time to establish concrete instantations of
+ * the abstract classes in this package. By <b>convention</b>,
+ * <code>mmtk.hostjvm</code> will identify a VM-provided package which
+ * includes concrete instances of each of the abstract classes, with
+ * each concrete class having the same base class name (but different
+ * package name) as the abstract classes defined here.  The class
+ * initializer for this class then uses the system property
+ * <code>mmtk.hostjvm</code> to load the VM-specific concrete classes
+ * and initialize the constants and singletons defined here.
  * 
  * $Id: VM.java 10750 2006-09-05 05:10:30 +0000 (Tue, 05 Sep 2006) steveb-oss $
  * 
@@ -71,11 +73,12 @@ public final class VM {
   /*
    * VM-specific functionality captured in a series of singleton classs
    */
+  private static final Factory factory;
+
   public static final ActivePlan activePlan;
   public static final Assert assertions;
   public static final Barriers barriers;
   public static final Collection collection;
-  public static final Factory factory;
   public static final Memory memory;
   public static final ObjectModel objectModel;
   public static final Options options;
@@ -91,55 +94,30 @@ public final class VM {
    * classes.
    */
   private static String vmPackage;
-  private static String vmGCSpyPackage;
  
   static {
     vmPackage = System.getProperty("mmtk.hostjvm");
-    vmGCSpyPackage = System.getProperty("mmtk.hostjvm") + ".gcspy";
-    ActivePlan xap = null;
-    Assert xas = null;
-    Barriers xba = null;
-    Collection xco = null;
     Factory xfa = null;
-    Memory xme = null;
-    ObjectModel xom = null;
-    Options xop = null;
-    ReferenceGlue xrg = null;
-    Scanning xsc = null;
-    Statistics xst = null;
-    Strings xsr = null;
-    TraceInterface xtr = null;
     try {
-      xap = (ActivePlan) Class.forName(vmPackage+".ActivePlan").newInstance();
-      xas = (Assert) Class.forName(vmPackage+".Assert").newInstance();
-      xba = (Barriers) Class.forName(vmPackage+".Barriers").newInstance();
-      xco = (Collection) Class.forName(vmPackage+".Collection").newInstance();
       xfa = (Factory) Class.forName(vmPackage+".Factory").newInstance();
-      xme = (Memory) Class.forName(vmPackage+".Memory").newInstance();
-      xom = (ObjectModel) Class.forName(vmPackage+".ObjectModel").newInstance();
-      xop = (Options) Class.forName(vmPackage+".Options").newInstance();
-      xrg = (ReferenceGlue) Class.forName(vmPackage+".ReferenceGlue").newInstance();
-      xsc = (Scanning) Class.forName(vmPackage+".Scanning").newInstance();
-      xst = (Statistics) Class.forName(vmPackage+".Statistics").newInstance();
-      xsr = (Strings) Class.forName(vmPackage+".Strings").newInstance();
-      xtr = (TraceInterface) Class.forName(vmPackage+".TraceInterface").newInstance();
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(-1);     // we must *not* go on if the above has failed
     }
-    objectModel = xom;
-    activePlan = xap;
-    assertions = xas;
-    barriers = xba;
-    collection = xco;
     factory = xfa;
-    memory = xme;
-    options = xop;
-    referenceTypes = xrg;
-    scanning = xsc;
-    statistics = xst;
-    strings = xsr;
-    traceInterface = xtr;
+
+    activePlan = factory.newActivePlan();
+    assertions = factory.newAssert();
+    barriers = factory.newBarriers();
+    collection = factory.newCollection();
+    memory = factory.newMemory();
+    objectModel = factory.newObjectModel();
+    options = factory.newOptions();
+    referenceTypes = factory.newReferenceGlue();
+    scanning = factory.newScanning();
+    statistics = factory.newStatistics();
+    strings = factory.newStrings();
+    traceInterface = factory.newTraceInterface();
     REFERENCES_ARE_OBJECTS = ReferenceGlue.referencesAreObjectsTrapdoor(referenceTypes);
     VERIFY_ASSERTIONS = Assert.verifyAssertionsTrapdoor(assertions);
     HEAP_START = Memory.heapStartTrapdoor(memory);
@@ -154,5 +132,30 @@ public final class VM {
     MAX_BYTES_PADDING = Memory.maxBytesPaddingTrapdoor(memory);
     ALIGNMENT_VALUE = Memory.alignmentValueTrapdoor(memory);
     ARRAY_BASE_OFFSET = ObjectModel.arrayBaseOffsetTrapdoor(objectModel);
+  }
+  
+  /**
+   * Create a new Lock instance using the appropriate VM-specific
+   * concrete Lock sub-class.
+   * 
+   * @see Lock
+   * 
+   * @param name The string to be associated with this lock instance
+   * @return A concrete VM-specific Lock instance.
+   */
+  public static Lock newLock(String name) {
+    return factory.newLock(name);
+  }
+  
+  /**
+   * Create a new SynchronizedCounter instance using the appropriate
+   * VM-specific concrete SynchronizedCounter sub-class.
+   * 
+   * @see SynchronizedCounter
+   * 
+   * @return A concrete VM-specific SynchronizedCounter instance.
+   */
+  public static SynchronizedCounter newSynchronizedCounter() {
+    return factory.newSynchronizedCounter();
   }
 }
