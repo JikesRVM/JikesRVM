@@ -37,8 +37,8 @@ public class Finalizer implements Uninterruptible {
 
   private static int INITIAL_SIZE = 32768;
   private static double growthFactor = 2.0;
-  private static Lock lock = VM.newLock("Finalizer");
-  private static SynchronizedCounter gcLock = VM.newSynchronizedCounter();
+  private static Lock lock = VM.factory.newLock("Finalizer");
+  private static SynchronizedCounter gcLock = VM.factory.newSynchronizedCounter();
   
   /* Use an AddressArray rather than ObjectReference array to *avoid* this
      being traced.  We don't want this array to keep the candiates alive */

@@ -63,7 +63,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
     owner = owner_;
     head = Address.zero();
-    lock = shared ? VM.newLock("DoublyLinkedList") : null;
+    lock = shared ? VM.factory.newLock("DoublyLinkedList") : null;
     log_granularity = log_granularity_;
 
     // ensure that granularity is big enough for midPayloadToNode to work

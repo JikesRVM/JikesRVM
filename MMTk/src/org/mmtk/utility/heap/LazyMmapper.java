@@ -32,7 +32,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
    */
 
   public static final boolean verbose = false;
-  public static final Lock lock = VM.newLock("LazyMapper");
+  public static final Lock lock = VM.factory.newLock("LazyMapper");
 
   // There is a monotonicity assumption so that only updates require lock acquisition.
   //

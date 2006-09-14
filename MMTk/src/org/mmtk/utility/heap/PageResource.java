@@ -68,7 +68,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * Initialization
    */
   static {
-    classLock = VM.newLock("PageResource");
+    classLock = VM.factory.newLock("PageResource");
     Options.protectOnRelease = new ProtectOnRelease();
   }
 
@@ -81,8 +81,8 @@ abstract public class PageResource implements Constants, Uninterruptible {
    */
   PageResource(int pageBudget, Space space) {
     this.pageBudget = pageBudget;
-    gcLock = VM.newLock(space.getName() + ".gcLock");
-    mutatorLock = VM.newLock(space.getName() + ".mutatorLock");
+    gcLock = VM.factory.newLock(space.getName() + ".gcLock");
+    mutatorLock = VM.factory.newLock(space.getName() + ".mutatorLock");
   }
 
   /**
