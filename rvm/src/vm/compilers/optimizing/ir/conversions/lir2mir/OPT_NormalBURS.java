@@ -31,7 +31,7 @@ final class OPT_NormalBURS extends OPT_BURS {
    * @param IR the IR to translate from LIR to MIR.
    */
   OPT_NormalBURS (OPT_IR IR) {
-    ir = IR;
+    super(IR);
   }
 
   /**

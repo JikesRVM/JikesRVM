@@ -31,7 +31,7 @@ final class OPT_MinimalBURS extends OPT_BURS {
    * @param IR the IR to translate from LIR to MIR.
    */
   OPT_MinimalBURS (OPT_IR IR) {
-    ir = IR;
+    super(IR);
   }
 
   /**

@@ -188,19 +188,6 @@ extends OPT_IRTools
 
   //-#if RVM_WITH_OPT_COMPILER
   /**
-   * Insert code during BURS to load a pointer to the current processor
-   * into a symbolic register, and return the resultant operand
-   */
-  public static OPT_RegisterOperand insertGetCurrentProcessor(OPT_BURS burs) {
-    OPT_RegisterOperand result =
-      burs.ir.regpool.makeTemp(VM_TypeReference.VM_Processor);
-    OPT_Register ESI = burs.ir.regpool.getPhysicalRegisterSet().getESI();
-
-    burs.append(MIR_Move.create(IA32_MOV,result,new OPT_RegisterOperand(ESI, VM_TypeReference.Int)));
-    return result;
-  }
-
-  /**
    * Insert code before instruction s to load a pointer to the current 
    * processor into a symbolic register, and return the resultant operand
    */
