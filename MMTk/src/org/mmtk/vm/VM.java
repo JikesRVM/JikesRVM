@@ -73,8 +73,6 @@ public final class VM {
   /*
    * VM-specific functionality captured in a series of singleton classs
    */
-  private static final Factory factory;
-
   public static final ActivePlan activePlan;
   public static final Assert assertions;
   public static final Barriers barriers;
@@ -93,9 +91,18 @@ public final class VM {
    * above, reflectively binding to the appropriate host jvm
    * classes.
    */
-  private static String vmPackage;
- 
+  private static final Factory factory;
+  private static final String vmPackage;
+
+  /**
+   * This class initializer establishes a VM-specific factory class
+   * using reflection, and then uses that to create VM-specific concrete
+   * instances of all of the vm classes, initializing the singltons in
+   * this class.  Finally the constants declared in this class are
+   * initialized using the VM-specific singletons.
+   */
   static {
+    /* Identify the VM-specific factory using reflection */
     vmPackage = System.getProperty("mmtk.hostjvm");
     Factory xfa = null;
     try {
@@ -106,6 +113,7 @@ public final class VM {
     }
     factory = xfa;
 
+    /* Now instantiate the singletons using the factory */
     activePlan = factory.newActivePlan();
     assertions = factory.newAssert();
     barriers = factory.newBarriers();
@@ -118,7 +126,8 @@ public final class VM {
     statistics = factory.newStatistics();
     strings = factory.newStrings();
     traceInterface = factory.newTraceInterface();
-    REFERENCES_ARE_OBJECTS = ReferenceGlue.referencesAreObjectsTrapdoor(referenceTypes);
+    
+    /* Now initialize the constants using the vm-specific singletons */
     VERIFY_ASSERTIONS = Assert.verifyAssertionsTrapdoor(assertions);
     HEAP_START = Memory.heapStartTrapdoor(memory);
     HEAP_END = Memory.heapEndTrapdoor(memory);
@@ -132,6 +141,7 @@ public final class VM {
     MAX_BYTES_PADDING = Memory.maxBytesPaddingTrapdoor(memory);
     ALIGNMENT_VALUE = Memory.alignmentValueTrapdoor(memory);
     ARRAY_BASE_OFFSET = ObjectModel.arrayBaseOffsetTrapdoor(objectModel);
+    REFERENCES_ARE_OBJECTS = ReferenceGlue.referencesAreObjectsTrapdoor(referenceTypes);
   }
   
   /**
