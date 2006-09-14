@@ -87,7 +87,7 @@ function get_bin_dir() {
 	    exit 2
 	fi
     else
-	bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/rvm/bin"
+	bin_dir="${RVM_ROOT:?$ME: This program won't work unless you've set the RVM_ROOT variable.}/bin"
 	suffix=libjconfigure.bash
 	f=$bin_dir/$suffix
 	if [[ ! -f $f ]]; then
@@ -122,7 +122,7 @@ function get_bin_dir() {
 	exit 2
     fi
 
-    suffix="rvm/bin/libjconfigure.bash"
+    suffix="/bin/libjconfigure.bash"
     f="$RVM_ROOT/$suffix"
     if [[ ! -f $f  ]]; then
 	echo >&2 "\
@@ -168,7 +168,7 @@ load "${bin_dir}/libjconfigure.bash" ;
 ## used before being set.  Specifically:
 ##
 ##   $ jconfigure NoSuch
-##   /homes/bilbo/augart/JikesRVM/Clean/rvm/bin/jconfigure: line 320: midline: unbound variable
+##   /homes/bilbo/augart/JikesRVM/Clean/bin/jconfigure: line 320: midline: unbound variable
 ##
 ## The complaint actually refers to line 320 of libjconfigure.bash.
 ## And the workaround below solves it.  The bug is not present in Bash
@@ -605,7 +605,7 @@ function on_host_set_HOST_VM_variables () {
 	elif [[ $HOST_VM_TYPE = JikesRVM ]]; then
 	    ## This blows up if either of the variables 
 	    ## DONOR_RVM_ROOT or DONOR_RVM_BUILD contain spaces in their values.
-	    HOST_VM_RT="${DONOR_RVM_ROOT}/rvm/bin/runrvm $HOME ${DONOR_RVM_ROOT} ${DONOR_RVM_BUILD}"
+	    HOST_VM_RT="${DONOR_RVM_ROOT}/bin/runrvm $HOME ${DONOR_RVM_ROOT} ${DONOR_RVM_BUILD}"
 	fi
     fi
     
@@ -799,7 +799,7 @@ function rationalize_single_virtual_processor () {
         then
 	    (( quiet_warnings )) || show_mesg >&2 "WARNING: You are configuring for AIX, which has a working libc that never needs single virtual processor support; however, at least one of the RVM*SINGLE_VIRTUAL_PROCESSOR* variables is turned on.  This makes no sense."
 	    if (( ! jconfigure_do_not_override )); then
-		show_mesg >&2 "  I'm turning them off and continuing.  If you are absoutely certain you want to do this (you don't want to), then look at the source code for rvm/bin/jconfigure to see how to disable this behavior."
+		show_mesg >&2 "  I'm turning them off and continuing.  If you are absoutely certain you want to do this (you don't want to), then look at the source code for /bin/jconfigure to see how to disable this behavior."
 		RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 		RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=0
 		return;			# done
@@ -903,7 +903,7 @@ function load_config_file () {
     ## (it used to be that execution would just continue, despite the
     ## ERR Trap!), but if RVM_HOST_CONFIG is bogus, we just get a
     ## message like: 
-    ##   /homes/bilbo/augart/JikesRVM/src.sysWriteFix/rvm/bin/jconfigure: line 599: $RVM_ROOT/rvm/config/i686-pc-linux.watson: No such file or directory
+    ##   /homes/bilbo/augart/JikesRVM/src.sysWriteFix/bin/jconfigure: line 599: $RVM_ROOT/rvm/config/i686-pc-linux.watson: No such file or directory
     ## and then Bash exits on its own with status 1.   Certainly, the
     ## right behavior would be for it to be consistent one way or the
     ## other.  
@@ -1955,7 +1955,7 @@ function emitBoilerplate () {
 	## BEGIN inline Bash boilerplate.
 	ME="${0##*/}"			# What is our name?
 	set -e
-	. ${JAL_ROOT?}/rvm/bin/libjconfigure.bash
+	. ${JAL_ROOT?}/bin/libjconfigure.bash
 	## END inline Bash boilerplate.
 EOF
 }
@@ -2386,7 +2386,7 @@ function emitController () {
 	    SRC=\${CLASSPATH_INSTALLATION}/share/classpath/glibj.zip
 	else
 	    # Ensure that we have the right version of the class libraries
-	    $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check
+	    $ROOT_DIRECTORY_STR/bin/jBuildClasspathJar --check
 
 	    CPS="\${CLASSPATH_ROOT-$ROOT_DIRECTORY_STR/classpath}"
 	    SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
@@ -2458,7 +2458,7 @@ function emitController () {
 	    show_mesg "To execute the $CONFIGURATION_NAME RVM (from any directory) type:"
 	    echo "\${ME}:    rvm <vm-args> classname <application-args>"
 	    if ! type -p rvm > /dev/null; then
-	        show_mesg "You will also need to add ${ROOT_DIRECTORY_STR}/rvm/bin to your path"
+	        show_mesg "You will also need to add ${ROOT_DIRECTORY_STR}/bin to your path"
 	    fi
 	fi
 	trap '' EXIT
@@ -4082,7 +4082,7 @@ function emitBooterLinker () {
 	&& [[ ! ${TARGET_CLASSPATH_INSTALLATION-} ]] \
 	&& [[ ! ${TARGET_CLASSPATH_BUILD_DIR-} ]]
     then
-	echo "  $ROOT_DIRECTORY_STR/rvm/bin/jBuildClasspathJar --check"
+	echo "  $ROOT_DIRECTORY_STR/bin/jBuildClasspathJar --check"
     fi
 
     if [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
@@ -4508,7 +4508,7 @@ function emitToolCompiler () {
 	fi
 	set -e
 	. \${RVM_BUILD}/environment.target
-	. \${JAL_ROOT?}/rvm/bin/libjconfigure.bash
+	. \${JAL_ROOT?}/bin/libjconfigure.bash
 
 	declare -r usage_msg="Usage: \${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ]\n     [ -- ] java-file [ java-file... ]"
 	function usage () {

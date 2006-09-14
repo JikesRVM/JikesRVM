@@ -5,7 +5,7 @@
 # $Id$
 #
 # Invoke the Jikes RVM virtual machine that "jbuild" created.
-# See also: $RVM_ROOT/rvm/bin/jconfigure -help
+# See also: $RVM_ROOT/bin/jconfigure -help
 
 # This file, 'runrvm', is the old (as of Sept. 2002) 'rvm' script,
 # except the variables are specified using parameters instead of
@@ -281,8 +281,8 @@ fi
 ## in case of a file format incompatibility (trying to exec an AIX
 ## binary on Linux, for example) we get the potentially misleading message:
 ##
-## /home/augart/JikesRVM/Clean//rvm/bin/runrvm: /home/augart/JikesRVM/Clean//Build.AIX.EABBCM/JikesRVM: cannot execute binary file
-## /home/augart/JikesRVM/Clean//rvm/bin/runrvm: /home/augart/JikesRVM/Clean//Build.AIX.EABBCM/JikesRVM: Success
+## /home/augart/JikesRVM/Clean//bin/runrvm: /home/augart/JikesRVM/Clean//Build.AIX.EABBCM/JikesRVM: cannot execute binary file
+## /home/augart/JikesRVM/Clean//bin/runrvm: /home/augart/JikesRVM/Clean//Build.AIX.EABBCM/JikesRVM: Success
 ## Now we can at least append a message saying "FAIL" after the
 ## misleading message.
 shopt -s execfail

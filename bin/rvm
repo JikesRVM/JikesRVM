@@ -42,7 +42,7 @@ if [[ $mydir && $mydir != $ME ]]; then
     # Where to find auxiliary programs:
     bin_dir="${mydir}"
 else
-    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
+    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/bin"
 fi
 
 sanity_env="${bin_dir}/sanity-envars.bash"
@@ -57,7 +57,7 @@ checkenv HOME
 checkenv RVM_ROOT
 
 # We reset bin_dir so that we're sure to have an absolute pathname.
-bin_dir="${RVM_ROOT}/rvm/bin";
+bin_dir="${RVM_ROOT}/bin";
 checkenv RVM_BUILD
 
 [[ -f ${bin_dir}/runrvm ]] || croak_nonusage "Can't find the program $bin_dir/runrvm.  Are you sure your RVM_ROOT variable is set correctly?"

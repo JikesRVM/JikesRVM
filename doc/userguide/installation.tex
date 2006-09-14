@@ -98,7 +98,7 @@ file {\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu{\it .mine}}
 \index{environment variables}%
 \item Setup your environment with definitions required by Jikes RVM.\@
 There are four of these that you must use; in addition,
-{\tt \$RVM\_\-ROOT/rvm/bin} should be in your path:
+{\tt \$RVM\_\-ROOT/bin} should be in your path:
 
 \begin{description}
 
@@ -380,7 +380,7 @@ following into your \texttt{.cshrc} file:
 \begin{verbatim}
 setenv RVM_ROOT $HOME/rvmRoot       # <--define your working directory 
 setenv RVM_BUILD $HOME/rvmBuild     # <--define your current build directory 
-setenv PATH $RVM_ROOT/rvm/bin:$PATH
+setenv PATH $RVM_ROOT/bin:$PATH
 setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 \end{verbatim}
@@ -509,7 +509,7 @@ great project to choose.
 \index{configurations}%
 \cindex[jconfigure script]{\texttt{jconfigure} script}%
 \item {\bf Choose a configuration and populate your build directory.}
-You will use the \texttt{j\-con\-fi\-gure} script (in \texttt{\$RVM\_\-ROOT/rvm/bin}) to
+You will use the \texttt{j\-con\-fi\-gure} script (in \texttt{\$RVM\_\-ROOT/bin}) to
 populate your build (\texttt{\$RVM\_BUILD}) directory with files.  You must
 first choose a Jikes RVM configuration.
 
@@ -891,7 +891,7 @@ For example, to build the \texttt{prototype} configuration for AIX\TMweb{}
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
 % setenv RVM_BUILD $HOME/rvmBuild
-% setenv PATH $RVM_ROOT/rvm/bin:$PATH
+% setenv PATH $RVM_ROOT/bin:$PATH
 % setenv RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 % setenv RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux-gnu
 % jconfigure prototype
@@ -909,7 +909,7 @@ The build process is then completed by building just the boot loader {\em
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
 % setenv RVM_BUILD $HOME/rvmBuild
-% setenv PATH $RVM_ROOT/rvm/bin:$PATH
+% setenv PATH $RVM_ROOT/bin:$PATH
 % cd $RVM_BUILD
 % ./jbuild -booter
 \end{verbatim}
@@ -956,7 +956,7 @@ HTML for the user's guide using\index{Hyperlatex}
 \xlink{\texttt{hyperlatex}}[\footnote{You can get \texttt{hyperlatex}
     at \texttt{\HyperlatexURL}}]{\HyperlatexURL}.  To build the
 Javadoc pages, use 
-the \texttt{jdoc.sh} script in \texttt{\$RVM\_\-ROOT/rvm/bin}; this
+the \texttt{jdoc.sh} script in \texttt{\$RVM\_\-ROOT/bin}; this
 script takes as its only command-line argument the directory into
 which to output the Javadoc HTML.\@ 
 

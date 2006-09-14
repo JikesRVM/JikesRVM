@@ -62,7 +62,7 @@ START_CLASS=$(shell echo $(START_NAME) | sed 's@\.@/@g').class
 
 # how to invoke RVM
 ifeq (x$(JBOOT),x)
-  JBOOT = $(JAL_ROOT)/rvm/bin/rvm
+  JBOOT = $(JAL_ROOT)/bin/rvm
 endif
 
 # arguments to pass to the vm

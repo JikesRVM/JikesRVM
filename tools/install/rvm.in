@@ -18,7 +18,7 @@ fi
 
 [[ $RVM_ROOT ]] || export RVM_ROOT=@RVM_ROOT@
 [[ $RVM_BUILD ]] || export RVM_BUILD=@RVM_BUILD@
-cmd="$RVM_ROOT/rvm/bin/rvm"
+cmd="$RVM_ROOT/bin/rvm"
 if [ "$0" = "$cmd" ]; then
     echo >&2 "$0: I seem to be stuck in an infinite loop of invoking
 	myself.   Something is very wrong.  Aborting"

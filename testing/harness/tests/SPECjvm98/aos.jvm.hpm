@@ -492,6 +492,6 @@ hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$
 cp="-classpath $RVM_SPECJVM98_HOME"
 spec_options="-d3000 -g -m$runs -M$runs -s$inputSize"
 
-echo "$RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log"
-      $RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
+echo "$RVM_ROOT/bin/rvm $rvm_options $hpm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log"
+      $RVM_ROOT/bin/rvm $rvm_options $hpm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
 

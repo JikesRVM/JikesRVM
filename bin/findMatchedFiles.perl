@@ -11,7 +11,7 @@
 #	Added check for internal error.
 
 ## This is a helper program for
-## "rvm/bin/findDeviantFiles".
+## "/bin/findDeviantFiles".
 
 
 

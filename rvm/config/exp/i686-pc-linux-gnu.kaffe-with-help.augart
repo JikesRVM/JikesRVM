@@ -21,4 +21,4 @@ export JIKES=jikes		# Implicit
 export DONOR_RVM_ROOT=$RVM_ROOT
 export DONOR_RVM_BUILD=/home/augart/JikesRVM/Images/prototype
 
-export TemplateExpander_HOST_VM_RT="${DONOR_RVM_ROOT}/rvm/bin/runrvm $HOME ${DONOR_RVM_ROOT} ${DONOR_RVM_BUILD}"
+export TemplateExpander_HOST_VM_RT="${DONOR_RVM_ROOT}/bin/runrvm $HOME ${DONOR_RVM_ROOT} ${DONOR_RVM_BUILD}"

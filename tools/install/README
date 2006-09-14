@@ -14,6 +14,6 @@ Edit macro-expand.sh to change the installation locations.
 You can uninstall by running the command "make uninstall".
 
 Note: /usr/bin/rvm is backwards-compatible with the command in
-rvm/bin/rvm; if you have set RVM_ROOT and RVM_BUILD, the installed
+/bin/rvm; if you have set RVM_ROOT and RVM_BUILD, the installed
 "rvm" will try to invoke the one in your Jikes RVM source tree.
 

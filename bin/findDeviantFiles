@@ -91,7 +91,7 @@ if [[ $mydir && $mydir != $ME ]]; then
     # Where to find auxiliary programs:
     bin_dir="${mydir}"
 else
-    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
+    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/bin"
 fi
 
 function croak_nonusage () {
@@ -113,7 +113,7 @@ sanity_env="${bin_dir}/sanity-envars.bash"
 . "${sanity_env}";		# sets ME, defines checkenv()
 
 checkenv RVM_ROOT
-bin_dir=${RVM_ROOT}/rvm/bin
+bin_dir=${RVM_ROOT}/bin
 
 if [[ "$mydir" == /* ]] && [ "$mydir" != "$bin_dir" ]; then
     echo >&2 "Something is really strange here: This program was invoked out of  the directory $mydir, but your RVM_ROOT is set to $RVM_ROOT. You may have an inconsistent PATH and RVM_ROOT.  Going on anyway."

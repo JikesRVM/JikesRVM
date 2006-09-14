@@ -4,7 +4,7 @@
 ## Caller sets VPATH if needed.
 
 ## Copyright © IBM Corporation, 2003
-## Or, for compatibility with rvm/bin/findDeviantFiles: 
+## Or, for compatibility with /bin/findDeviantFiles: 
 # (C) Copyright IBM Corp. 2003
 #
 # @author Steven Augart

@@ -81,7 +81,7 @@ if [[ -f $RVM_BUILD/RVM.classes/Dummy.class ]]; then
     echo "$ME: $RVM_BUILD seems to be already built;
 	 we will just use it."
 else
-    $RVM_ROOT/rvm/bin/jconfigure development < /dev/null || croak "jconfigure failed."
+    $RVM_ROOT/bin/jconfigure development < /dev/null || croak "jconfigure failed."
     cd $RVM_BUILD || croak "Can't get to $RVM_BUILD"
     ./jbuild -nolink -nobooter || croak "\"./jbuild -nolink -nobooter\" in $RVM_BUILD failed."
 fi

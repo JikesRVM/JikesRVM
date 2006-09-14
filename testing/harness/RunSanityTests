@@ -38,7 +38,7 @@ ME=`basename $0`
 
 # Place where configuration generator resides.
 #
-export GENERATOR=$RVM_ROOT/rvm/bin
+export GENERATOR=$RVM_ROOT/bin
 
 # Default place where generated boot images and runtime files will reside.
 #
@@ -350,7 +350,7 @@ function doBuild {
     local -i need_linking=0;	# Was this a cross-platform build?  
 				# Does it need linking? 
 
-    # This is the same as Exit_Status_Run_Linker in rvm/bin/jconfigure.
+    # This is the same as Exit_Status_Run_Linker in /bin/jconfigure.
     local -r -i Exit_Status_Run_Linker=111
 
     if [[ $BUILD = "Yes" ]]; then

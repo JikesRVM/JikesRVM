@@ -510,7 +510,7 @@ MY_SPEC_HOME=/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modifi
 classpath="   -classpath $MY_SPEC_HOME/src"
 
 
-echo "$RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config"
+echo "$RVM_ROOT/bin/rvm $rvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config"
 
-      $RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config
+      $RVM_ROOT/bin/rvm $rvm_options $hpm_options $classpath spec.jbb.JBBmain -propfile $config
 

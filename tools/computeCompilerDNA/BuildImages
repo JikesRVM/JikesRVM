@@ -28,7 +28,7 @@ do
    rm -rf $BUILDDIR/$image
    export RVM_BUILD=$BUILDDIR/$image
    echo "Configuring $image"
-   $RVM_ROOT/rvm/bin/jconfigure $image
+   $RVM_ROOT/bin/jconfigure $image
    cd $BUILDDIR/$image
    echo "Building $image"
    ./jbuild >RVM.trace 2>&1

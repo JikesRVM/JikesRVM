@@ -88,11 +88,11 @@ function checkenv_example () {
 	    ## Place where source files reside.
 	    RVM_ROOT ) 
 		# A heuristic for guessing RVM_ROOT: Assume the program was
-		# run from $RVM_ROOT/rvm/bin.  
+		# run from $RVM_ROOT/bin.  
 		# The variable "mydir" should be set by the program 
 		# loading this library.
 		: ${mydir=${0%/*}}
-		example="${mydir%/rvm/bin}"
+		example="${mydir%/bin}"
 		if [[ $example = $mydir ]]; then
 		    example="$home/rvmRoot";
 		fi

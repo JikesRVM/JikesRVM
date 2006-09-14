@@ -7,7 +7,7 @@
 # @modified Steven Augart
 # @date June, 2003
 
-## Auxiliary AWK program to help out rvm/bin/findDeviantFiles.  You should
+## Auxiliary AWK program to help out /bin/findDeviantFiles.  You should
 ## never run this directly; to discourage people from doing so, this is not an
 ## executable file.
 

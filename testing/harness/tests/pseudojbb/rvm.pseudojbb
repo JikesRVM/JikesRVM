@@ -102,8 +102,8 @@ echo " options      : $rvm_options"
 echo " config       : $config"
 echo ""
 
-echo "$RVM_ROOT/rvm/bin/rvm $rvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1"
+echo "$RVM_ROOT/bin/rvm $rvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1"
 
-      $RVM_ROOT/rvm/bin/rvm $rvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1
+      $RVM_ROOT/bin/rvm $rvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1
 
 

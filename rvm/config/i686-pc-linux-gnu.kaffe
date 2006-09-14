@@ -54,7 +54,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 # PART II: Where to find tools and resources on this target
 #
 # This configuration makes use of auto-guessing features in the 
-# RVM_ROOT/rvm/bin/jconfigure program.  You can see the results of its 
+# RVM_ROOT/bin/jconfigure program.  You can see the results of its 
 # guesses in "RVM_BUILD/environment.host".    
 ########## 
 

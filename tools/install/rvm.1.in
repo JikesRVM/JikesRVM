@@ -73,7 +73,7 @@ Indeed, this version of the
 command is just a wrapper around the one in Jikes RVM's
 .B RVM_ROOT
 directory
-(as \fBRVM_ROOT\fR\fI/rvm/bin/rvm\fR).
+(as \fBRVM_ROOT\fR\fI/bin/rvm\fR).
 If 
 .B RVM_BUILD
 is unset, it defaults to
@@ -101,7 +101,7 @@ and
 .IR @RVM_ROOT@ .)
 
 Then we execute 
-.I $RVM_ROOT/rvm/bin/rvm
+.I $RVM_ROOT/bin/rvm
 with the same arguments that this program was invoked with, and
 matters proceed as described in the 
 User's Guide.

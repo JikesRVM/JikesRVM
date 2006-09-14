@@ -43,7 +43,7 @@ if [[ $mydir && $mydir != $ME ]]; then
     # Where to find auxiliary programs:
     bin_dir="${mydir}"
 else
-    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
+    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/bin"
 fi
 
 sanity_env="${bin_dir}/sanity-envars.bash"
@@ -58,7 +58,7 @@ checkenv HOME
 checkenv RVM_ROOT
 
 # We reset bin_dir so that we're sure to have an absolute pathname.
-bin_dir="${RVM_ROOT}/rvm/bin";
+bin_dir="${RVM_ROOT}/bin";
 checkenv RVM_BUILD
 
 home="$HOME"
@@ -135,4 +135,4 @@ for arg in "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"; do
     echo -n " \"$arg\"" 
 done >> "$argf"
 echo "" >> "$argf"
-gdb "${gdb_args[@]}" "$prog" -x "$RVM_BUILD/gdb.commandlineArgs" -x "$RVM_ROOT/rvm/bin/gdbInit"
+gdb "${gdb_args[@]}" "$prog" -x "$RVM_BUILD/gdb.commandlineArgs" -x "$RVM_ROOT/bin/gdbInit"

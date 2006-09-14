@@ -129,6 +129,6 @@ rvm_options="-Xms205M -Xmx250M -X:processors=$numProcessors -X:aos:lf=$aos_log -
 cp="-classpath $RVM_SPECJVM98"
 spec_options="-d3000 -g -m1 -M1 -s$inputSize"
 
-echo "$RVM_ROOT/rvm/bin/rvm $rvm_options $cp SpecApplication  $spec_options -a $benchmark > $output_log"
-$RVM_ROOT/rvm/bin/rvm $rvm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
+echo "$RVM_ROOT/bin/rvm $rvm_options $cp SpecApplication  $spec_options -a $benchmark > $output_log"
+$RVM_ROOT/bin/rvm $rvm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
 

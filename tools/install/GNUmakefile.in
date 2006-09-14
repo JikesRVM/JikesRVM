@@ -17,8 +17,8 @@ userguide_build_dir := ${RVM_ROOT}/doc/userguide
 
 install: ${RVM_BUILD}/jbuild.install $(userguide_build_dir)/HTML $(userguide_build_dir)/userguide.ps
 # RVM_ROOT
-	install -d @RVM_ROOT@/rvm/bin
-	cp ${RVM_ROOT}/rvm/bin/{sanity-envars.bash,rvm,runrvm} @RVM_ROOT@/rvm/bin
+	install -d @RVM_ROOT@/bin
+	cp ${RVM_ROOT}/bin/{sanity-envars.bash,rvm,runrvm} @RVM_ROOT@/bin
 # RVM_BUILD
 	install -d @RVM_BUILD@
   # redirect jbuild.install's stdout to /dev/null; it's a bit too chatty

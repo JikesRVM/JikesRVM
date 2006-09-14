@@ -71,7 +71,7 @@ if [[ $RVM_SPECJVM98 = "" ]]; then
    RVM_SPECJVM98="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98"
 fi
 
-rvm="$RVM_ROOT/rvm/bin/rvm"
+rvm="$RVM_ROOT/bin/rvm"
 # parent of build diectories is command line argument to the script
 BUILDDIR=$1
 

@@ -96,7 +96,7 @@ if (( do_javadoc == 1 )); then
     else
 	je="$fass_dir/environment.host"
 	. $je || croak "Unable to load $je"
-	"$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
+	"$RVM_ROOT/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
 	# NOTE: this sequence won't work on sourceforge;  need to rework
 	#       most likely by using an scp/ssh combination and a utility id.
 	if [[ -d $RVM_ROOT/pushAPI ]]; then

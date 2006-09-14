@@ -470,7 +470,7 @@ hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$
 
 cp="/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/jbb.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/jbb_no_precompile.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/check.jar:/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000/reporter.jar:/homes/turangalila/jalapeno/nightShadow/results/sanity//testing/harness/tests/SPECjbb2000/cp:jbb.jar:jbb_no_precompile.jar:check.jar:reporter.jar"
 
-echo "$RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config"
+echo "$RVM_ROOT/bin/rvm $rvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config"
 
-      $RVM_ROOT/rvm/bin/rvm $rvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config
+      $RVM_ROOT/bin/rvm $rvm_options $hpm_options -classpath $cp spec.jbb.JBBmain -propfile $config
 

@@ -51,7 +51,7 @@ if (!(-e "$ENV{RVM_BUILD}/JikesRVM")) {
 }
 
 $RVM_ROOT = $ENV{RVM_ROOT};
-$rvm = "$RVM_ROOT/rvm/bin/rvm";
+$rvm = "$RVM_ROOT/bin/rvm";
 
 exec $rvm, @ARGV;
 
