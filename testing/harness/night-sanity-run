@@ -351,7 +351,7 @@ if [[ ${NS_OS}.${NS_ARCH}.${NS_BITS} = 'Linux.x86_64.32' ]]; then
 
     # Check files
     [[ $dry_run ]] \
-	|| $RVM_ROOT/bin/findDeviantFiles $RVM_ROOT/rvm $CHECK_DIR rvm
+	|| $RVM_ROOT/bin/findDeviantFiles $RVM_ROOT $CHECK_DIR rvm
  
     # Email results to $RESULT_MAILING_LIST
     # Only email to the list if there were any volations.
