@@ -32,6 +32,8 @@ import org.vmmagic.pragma.*;
  * where the allocation that caused a GC or allocations immediately following
  * GC are run incorrectly.
  * 
+ * $Id$
+ * 
  * @author Perry Cheng
  * @modified Daniel Frampton
  * @version $Revision$
@@ -39,8 +41,6 @@ import org.vmmagic.pragma.*;
  */
 
 public abstract class Allocator implements Constants, Uninterruptible {
-  public final static String Id = "$Id$";
-
   /**
    * Maximum number of retries on consecutive allocation failure.
    * 
@@ -213,9 +213,24 @@ public abstract class Allocator implements Constants, Uninterruptible {
       int offset, boolean inGC);
 
   /**
-   * Slow path allocation. This method attempts allocSlowOnce several times,
-   * and allows collection to occur, and ensures that execution safely 
-   * resumes by taking care of potential thread/mutator context affinity 
+   * <b>Out-of-line</b> slow path allocation. This method forces slow path
+   * allocation to be out of line (typically desirable, but not when the
+   * calling context is already explicitly out-of-line).
+   * 
+   * @param bytes The size of the allocation request
+   * @param alignment The required alignment
+   * @param offset The alignment offset
+   * @param inGC Is this request occuring during GC
+   * @return The start address of the region, or zero if allocation fails
+   */
+  final public Address allocSlow(int bytes, int alignment, int offset, boolean inGC) throws NoInlinePragma {
+    return allocSlowInline(bytes, alignment, offset, inGC);
+  }
+  
+  /**
+   * <b>Inline</b> slow path allocation. This method attempts allocSlowOnce
+   * several times, and allows collection to occur, and ensures that execution
+   * safely resumes by taking care of potential thread/mutator context affinity 
    * changes. All allocators should use this as the trampoline for slow 
    * path allocation.
    * 
@@ -225,13 +240,12 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * @param inGC Is this request occuring during GC
    * @return The start address of the region, or zero if allocation fails
    */
-  final public Address allocSlow(int bytes, int alignment, int offset,
-                                 boolean inGC) throws NoInlinePragma {
+  final public Address allocSlowInline(int bytes, int alignment, int offset,
+      boolean inGC) throws InlinePragma {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i = 0; i < MAX_RETRY; i++) {
-      Address result = 
-        current.allocSlowOnce(bytes, alignment, offset, inGC);
+      Address result = current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
       if (!inGC) {
@@ -245,14 +259,16 @@ public abstract class Allocator implements Constants, Uninterruptible {
     }
     Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlow failed on request of ");
     Log.write(bytes);
-    Log.write(" on space "); Log.writeln(Plan.getSpaceNameFromAllocatorAnyLocal(this));
-    Log.write("gcCountStart = "); Log.writeln(gcCountStart);
-    Log.write("gcCount (now) = "); Log.writeln(Stats.gcCount());
+    Log.write(" on space ");
+    Log.writeln(Plan.getSpaceNameFromAllocatorAnyLocal(this));
+    Log.write("gcCountStart = ");
+    Log.writeln(gcCountStart);
+    Log.write("gcCount (now) = ");
+    Log.writeln(Stats.gcCount());
     Space.printUsageMB();
     VM.assertions.dumpStack();
     VM.assertions.failWithOutOfMemoryError();
     /* NOTREACHED */
     return Address.zero();
   }
-
 }

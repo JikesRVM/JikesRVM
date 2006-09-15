@@ -109,7 +109,7 @@ public final class MarkCompactLocal extends BumpPointer implements Uninterruptib
     allocStart.store(Address.zero(), DATA_END_OFFSET);
     region = allocStart;
     cursor = allocCursor;
-    limit = allocEnd;
+    updateLimit(allocEnd, region, 0);
     if (oldPages > newPages) {
       ((MarkCompactSpace) space).unusePages((oldPages - newPages));
     }
