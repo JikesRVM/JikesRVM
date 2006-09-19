@@ -2373,11 +2373,10 @@ function emitController () {
 	
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 
-	# Copy the GNU Classpath JAR file:
-	#
-	# Copy over rvmrt.jar; we need that to get a working compiler
-	# (at least when we're operating in open-source mode, under the 
-	# Jikes compiler, which doesn't have a default bootclasspath)
+	open_paren "Building rvmrt.jar"
+	# Take the GNU Classpath jar and repackage as rvmrt.jar
+	# We need it very early in the build process if we are using Jikes compiler,
+	# since it needs rvmrt.jar to use as the base libraries to compile against.
         if [[ \${CLASSPATH_BUILD_DIR-} ]]; then
 	    # Use a pre-built GNU Classpath in a 
 	    # user-specified directory.
@@ -2392,8 +2391,18 @@ function emitController () {
 	    SYSTEM_TYPE=\$(\${CPS}/classpath/config.guess)
 	    SRC=\$CPS/\$SYSTEM_TYPE/lib/glibj.zip
 	fi
+
 	DEST=${CLASSES_DIRECTORY_STR}/rvmrt.jar
-	copyIfNewer "\$SRC" "\$DEST" -n "(classpath.jar copied) "
+
+	mkdir -p ${SCRATCH_DIRECTORY_STR}/classpath
+	chdir ${SCRATCH_DIRECTORY_STR}/classpath
+	\$UNZIP_CMD -qq \$SRC 
+	\${JAR} c0f \$DEST \`ls\`
+	chdir ../..
+	rm -rf ${SCRATCH_DIRECTORY_STR}/classpath
+	
+	close_paren "built"
+
 	if [[ \$CLEAN_FLAG = -clean ]]; then
 	    rm -rf $TOOL_DIRECTORY_STR
 	    timeit ./jbuild.expand      -clean
@@ -2985,8 +2994,8 @@ EOF
 
 		## Create a blank .jar file
 		run touch jksvm.jar
-		## Then populate it.
-	        \$FIND . -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+	        \$FIND com -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+	        \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
 	    fi
 	    close_paren 'jksvm.jar built'
 
@@ -2999,6 +3008,11 @@ EOF
 	        \$FIND . -name '*.java' | run \$XARGS $JAR_STR -u0f jksvmsrc.jar
 	    fi
 	    close_paren 'jksvmsrc.jar built'
+
+	    open_paren 'Adding Jikes RVM lib support to rvmrt.jar'
+	        \$FIND java -name '*.class' | \$XARGS $JAR_STR -u0f rvmrt.jar
+	        \$FIND gnu -name '*.class' | \$XARGS $JAR_STR -u0f rvmrt.jar
+	    close_paren 'rvmrt.jar augmented'
 
 	else
 	    if tracing jbuild; then
