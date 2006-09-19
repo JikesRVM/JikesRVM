@@ -14,7 +14,6 @@
 #   RVM_BOOTIMAGE_COMPILER_ARGS = command line arguments to pass to boot image compiler
 #   RVM_BOOTIMAGE_WRITER_ARGS = command line arguments to pass to boot image writer
 #   VERBOSE_ARG = command-line argument for verbose host jdk options
-#   STUBS_DIR = directory where we'll built the utility_kludge.jar.
 #
 # @author Derek Lieber
 # @modified Steven Augart   March, 2004, to handle using alternative VMs for booting.
@@ -80,7 +79,7 @@ endif
 	$(HOST_VM_RT) \
 	   $(host_vm_bootclasspath_args) \
 		$(host_mem_size_arg) \
-	   -classpath $(STUBS_DIR):$(SCRATCH_DIR):$(RVM_REPOSITORIES) \
+	   -classpath $(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
 	   -Dmmtk.hostjvm=com.ibm.JikesRVM.mm.mmtk \
 	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \

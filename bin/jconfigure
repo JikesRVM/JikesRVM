@@ -1075,12 +1075,6 @@ CLASSES_INVALID_STR="${BUILD_DIRECTORY_STR}/RVM.classesInvalid"
 CLASSES_DIRECTORY="${BUILD_DIRECTORY}/RVM.classes"
 CLASSES_DIRECTORY_STR="${BUILD_DIRECTORY_STR}/RVM.classes"
 
-## Place to put the compiled special class or classes that we use
-## in order to build the utility kludge jar file.
-UTIL_KLUDGE_STUBS_DIRECTORY="${BUILD_DIRECTORY}/RVM.utility_kludge_stubs"
-UTIL_KLUDGE_STUBS_DIRECTORY_STR="${BUILD_DIRECTORY_STR}/RVM.utility_kludge_stubs"
-
-
 # Place to put source files that are machine generated.
 #
 GENERATED_FILES_DIRECTORY="${BUILD_DIRECTORY}/RVM.generatedSources"
@@ -2992,7 +2986,7 @@ EOF
 	        ## is the flag for no-compression.  It is actually
 	        ## '0' (the number zero), not the letter 'O'.
 
-		## Create a blank .jar file
+		## Create a blank .jar file and put in Jikes RVM classes
 		run touch jksvm.jar
 	        \$FIND com -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
 	        \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
@@ -3945,7 +3939,6 @@ EOF
 
 	## The utility kludge directory is only needed by classpath 0.13 and 
 	## later, but it does no harm to include it for earlier versions.
-	run mkdir -p ${UTIL_KLUDGE_STUBS_DIRECTORY_STR}
 	run $GNU_MAKE_STR \$MFLAGS CFLAGS='' CXXFLAGS='' \
 		-f \$BOOTIMAGE_WRITER_MAKEFILE \${VERBOSE_STR} \
 		RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar:$CLASSES_DIRECTORY_STR/mmtk.jar \
@@ -3957,7 +3950,6 @@ EOF
 		RVM_BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS" \
 		IMAGE_ADDRESS_ARG="$IMAGE_ADDRESS_ARG" \
 		SCRATCH_DIR=$SCRATCH_DIRECTORY_STR \
-		STUBS_DIR=$UTIL_KLUDGE_STUBS_DIRECTORY_STR \
 		bootimage
 
 	trap '' EXIT
