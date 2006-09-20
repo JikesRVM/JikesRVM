@@ -1544,7 +1544,7 @@ RVM_WITH_MMTK_PLANCONSTRAINTS=${RVM_WITH_MMTK_PLAN}Constraints
 #
 ## To find out which programmable conditions are still alive (i.e., which ones
 ## are currently in use in the program source code), look at 
-## rvm/GNUmakefile, the 'conditionals' target.  
+## GNUmakefile, the 'conditionals' target.  
 ## The BUILD_WITH_PARANOID_PREPROCESSOR directive affects this.
 
 ## Remember, these numbers (BOOTIMAGE_LOAD_ADDRESS, MAXIMUM_MAPPABLE_ADDRESS) 
@@ -2124,7 +2124,7 @@ function emitMakefile () {
 	    ${ROOT_DIRECTORY_STR1}:=${RVM_ROOT}
 	endif
 
-        include $ROOT_DIRECTORY_STR/rvm/Make.rules.generic
+        include $ROOT_DIRECTORY_STR/Make.rules.generic
 
 	ifdef RVM_BUILD
 	    ${BUILD_DIRECTORY_STR1}:=\${RVM_BUILD}
