@@ -63,7 +63,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xb0000000
 
 # Selection of GNU Classpath version is platform independent and fairly
 # involved; therefore it has been factored out into a separate file.
-. $RVM_ROOT/rvm/config/classpath-version
+. $RVM_ROOT/config/classpath-version
 
 # Set HOST_VM_TYPE to reflect the JVM the Jikes RVM will be built upon.
 # Choose Sun for Sun, IBM and jrockit JVMs.

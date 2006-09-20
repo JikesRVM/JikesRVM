@@ -40,7 +40,7 @@ export RVM_WITH_HPM=1
 
 # Selection of GNU Classpath version is platform independent and fairly
 # involved; therefore it has been factored out into a separate file.
-. $RVM_ROOT/rvm/config/classpath-version
+. $RVM_ROOT/config/classpath-version
 
 [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME="/usr/java14"
 

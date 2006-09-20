@@ -199,7 +199,7 @@ fi
 if [[ ! -e $SRC/TODO ]]; then
     if [[ $USE_LOCAL_CLASSPATH != "no" ]]; then
 	echo >&2 "Please download GNU Classpath and unpack it in $DEST_DIR"
-	echo >&2 "(See $RVM_ROOT/rvm/config/classpath-version for version information)"
+	echo >&2 "(See $RVM_ROOT/config/classpath-version for version information)"
 	exit 1
     fi
     echo "Downloading GNU Classpath"

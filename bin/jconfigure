@@ -744,7 +744,7 @@ function rationalize_config_file_settings () {
 function rationalize_classpath_version () {
     ## Re-loading classpath-version will not hurt.  Not ever loading it
     ## would mean trouble with RVM_CLASSPATH_URL
-    . ${RVM_ROOT}/rvm/config/classpath-version
+    . ${RVM_ROOT}/config/classpath-version
 
     ## Perform sanity checks.  We could consolidate these, but
     ## breaking them into two checks lets us print better error
@@ -903,7 +903,7 @@ function load_config_file () {
     ## (it used to be that execution would just continue, despite the
     ## ERR Trap!), but if RVM_HOST_CONFIG is bogus, we just get a
     ## message like: 
-    ##   /homes/bilbo/augart/JikesRVM/src.sysWriteFix/bin/jconfigure: line 599: $RVM_ROOT/rvm/config/i686-pc-linux.watson: No such file or directory
+    ##   /homes/bilbo/augart/JikesRVM/src.sysWriteFix/bin/jconfigure: line 599: $RVM_ROOT/config/i686-pc-linux.watson: No such file or directory
     ## and then Bash exits on its own with status 1.   Certainly, the
     ## right behavior would be for it to be consistent one way or the
     ## other.  
@@ -1049,7 +1049,7 @@ ROOT_DIRECTORY_STR="\${$ROOT_DIRECTORY_STR1}"
 # source path for configuration files 
 # eg, BaseBaseSemispace
 #
-CONFIGURATION_FILE_SOURCE="$ROOT_DIRECTORY/rvm/config/build"
+CONFIGURATION_FILE_SOURCE="$ROOT_DIRECTORY/config/build"
 
 # Place to remember what configuration we have built.
 #
@@ -1272,7 +1272,7 @@ declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 
 ## Classpath versions that might work with Jikes RVM.
-## See $RVM_ROOT/rvm/config/classpath-version for the gory details.
+## See $RVM_ROOT/config/classpath-version for the gory details.
 declare -i RVM_WITH_CLASSPATH_0_91=0
 declare -i RVM_WITH_CLASSPATH_0_92=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0

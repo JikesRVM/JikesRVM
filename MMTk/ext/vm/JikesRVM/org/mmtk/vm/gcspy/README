@@ -11,7 +11,7 @@ I have not tried with other architectures.
 
 We have assumed that you will place all the GCspy code and required libraries
 in $RVM_ROOT. If you wish to change this, you'll need to modify these 
-instructions and the $RVM_ROOT/rvm/config/build/gcspy/GCspy config file
+instructions and the $RVM_ROOT/config/build/gcspy/GCspy config file
 appropriately.
 
 1. Download

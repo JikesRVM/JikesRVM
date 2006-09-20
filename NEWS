@@ -81,7 +81,7 @@ on October 14, 2001,
     address ranges.  As a result of this change, instead of defining 
     BOOTIMAGE_LOAD_ADDRESS in your config file, you must define 
     BOOTIMAGE_DATA_ADDRESS and BOOTIMAGE_CODE_ADDRESS. 
-    All the default configu files (rvm/config/*) have been updated, 
+    All the default configu files (config/*) have been updated, 
     but if you have local copies of these files, you will need to update them.
 
 *** Loop Versioning optimization in the opt compiler 
@@ -189,7 +189,7 @@ releases will support OSX again.
 
 **The recommended version of GNU classpath for this release of Jikes RVM is 0.14.  
 Furthermore, all of the configuration logic that controls classpath
-version has been moved to $RVM_ROOT/rvm/config/classpath-version.  We
+version has been moved to $RVM_ROOT/config/classpath-version.  We
 suggest you may want to modify your local configuration files to source
 this file, to make it easier to track changes in classpath version
 across releases of Jikes RVM. 
@@ -1031,7 +1031,7 @@ Important:
   your RVM_TARGET_CONFIG file defines preprocessor directives 
   that specify the target architecture, operating system, and 
   whether or not your pthread library can support JikesRVM.  
-  See the sample files in $RVM_ROOT/rvm/config. 
+  See the sample files in $RVM_ROOT/config. 
   Set RVM_FOR_SINGLE_VIRTUAL_PROCESSOR as follows:
     -- AIX/PowerPC:    0 (SMP is supported)
     -- Linux/PowerPC:  1 (SMP is not supported)

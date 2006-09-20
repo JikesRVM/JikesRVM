@@ -90,10 +90,10 @@ person installing Jikes RVM. If you have any difficulty, look
 \AtManualClasspathRootDiscussion{} 
 
 \item Edit a configuration file so that it fits your machine.  One of
-the {\tt i686-pc-linux} files in {\tt \$RVM\_\-ROOT/rvm/config} will probably be
+the {\tt i686-pc-linux} files in {\tt \$RVM\_\-ROOT/config} will probably be
 more-or-less right to begin with.  On Linux, most standard commands
 (and Jikes) are in {\tt /usr/bin}.  Hereinafter, we will call your edited
-file {\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu{\it .mine}}
+file {\tt \$RVM\_\-ROOT/config/i686-pc-linux-gnu{\it .mine}}
 
 \index{environment variables}%
 \item Setup your environment with definitions required by Jikes RVM.\@
@@ -107,11 +107,11 @@ must be \varName{{\bf RVM\_\-ROOT}} as given above.
 
 \item[\varName{RVM\_HOST\_CONFIG}] is the configuration file of the machine
 building Jikes RVM.\@  It must be
-{\tt \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu{\it .mine}}.
+{\tt \$RVM\_\-ROOT/config/i686-pc-linux-gnu{\it .mine}}.
 
 \item[\varName{RVM\_TARGET\_CONFIG}] is the configuration of the
   machine running Jikes RVM.\@  It will normally be {\tt
-  \$RVM\_\-ROOT/rvm/config/i686-pc-linux-gnu{\it .mine}}.  If you
+  \$RVM\_\-ROOT/config/i686-pc-linux-gnu{\it .mine}}.  If you
   leave it unset, the build configuration program {\tt jconfigure}
   will assume it is the same as \varName{RVM\_HOST\_CONFIG}.
 
@@ -381,8 +381,8 @@ following into your \texttt{.cshrc} file:
 setenv RVM_ROOT $HOME/rvmRoot       # <--define your working directory 
 setenv RVM_BUILD $HOME/rvmBuild     # <--define your current build directory 
 setenv PATH $RVM_ROOT/bin:$PATH
-setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
-setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
+setenv RVM_HOST_CONFIG $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
+setenv RVM_TARGET_CONFIG $RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
 \end{verbatim}
 
 {\em Note:} You should define each of these environment variables as an
@@ -393,8 +393,8 @@ For a Linux\Rweb{}-Intel\Rweb{} environment, the exports
 would be replaced with the following:
 
 \begin{verbatim}
-setenv RVM_HOST_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
-setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-linux-gnu
+setenv RVM_HOST_CONFIG $RVM_ROOT/config/i686-pc-linux-gnu
+setenv RVM_TARGET_CONFIG $RVM_ROOT/config/i686-pc-linux-gnu
 \end{verbatim}
 
 These two variables point to the same file when the type of system  
@@ -406,14 +406,14 @@ platform), see \link{\SectionName{Cross Platform Building}}[
 
 \item {\bf Edit configuration scripts.}
 
-You must edit a script in the \texttt{\$RVM\_\-ROOT/rvm/config}
+You must edit a script in the \texttt{\$RVM\_\-ROOT/config}
 directory to set  
 up variables used by the installation process.  
 If someone else at your site has already installed Jikes RVM, they have
 probably already done this step for you.  Consult your local Jikes RVM guru.
 
 You must edit the file(s) that define the host and target configuration
-environments in the \texttt{\$RVM\_\-ROOT/rvm/config} directory.  
+environments in the \texttt{\$RVM\_\-ROOT/config} directory.  
 You do not need to {\em source} these variables in your working shell; 
 variables in this file will be picked up by the installation scripts.  
 
@@ -892,8 +892,8 @@ For example, to build the \texttt{prototype} configuration for AIX\TMweb{}
 % setenv RVM_ROOT $HOME/rvmRoot
 % setenv RVM_BUILD $HOME/rvmBuild
 % setenv PATH $RVM_ROOT/bin:$PATH
-% setenv RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
-% setenv RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux-gnu
+% setenv RVM_TARGET_CONFIG=$RVM_ROOT/config/powerpc-ibm-aix4.3.3.0
+% setenv RVM_HOST_CONFIG=$RVM_ROOT/config/i686-pc-linux-gnu
 % jconfigure prototype
 % cd $RVM_BUILD
 % ./jbuild

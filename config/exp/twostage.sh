@@ -20,7 +20,7 @@
 
 export RVM_ROOT=~/JikesRVM/OSS/Trunk
 images=~/JikesRVM/OSS/Images
-c=$r/rvm/config/i686-pc-linux-gnu.kaffe.augart
+c=$r/config/i686-pc-linux-gnu.kaffe.augart
 
 echo "The first stage: Build a working Jikes RVM"
 export RVM_HOST_CONFIG=$c
@@ -37,7 +37,7 @@ export DONOR_RVM_ROOT=$RVM_ROOT
 export DONOR_RVM_BUILD=$RVM_BUILD
 
 export RVM_BUILD=${images}.Kaffe/prototype-opt
-c=$r/rvm/config/exp/i686-pc-linux-gnu.kaffe-with-help.augart
+c=$r/config/exp/i686-pc-linux-gnu.kaffe-with-help.augart
 export RVM_HOST_CONFIG=$c
 export RVM_TARGET_CONFIG=$c
 jconfigure prototype-opt

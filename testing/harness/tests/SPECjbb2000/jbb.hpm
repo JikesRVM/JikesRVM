@@ -21,8 +21,8 @@
 # @author: Brendon Cahoon
 # @author: Peter F. Sweeney
 
-export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U
-export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U
+export RVM_HOST_CONFIG=$RVM_ROOT/config/powerpc-ibm-aix5.1.MC4U
+export RVM_TARGET_CONFIG=$RVM_ROOT/config/powerpc-ibm-aix5.1.MC4U
 
 echo "RVM_HOST_CONFIG: $RVM_HOST_CONFIG"
 
