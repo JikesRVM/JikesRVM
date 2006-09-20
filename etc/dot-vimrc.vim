@@ -13,7 +13,7 @@
 if 1                           " in case +eval is off
   let r = $RVM_ROOT
   if r != ""
-    execute 'set runtimepath+=' . escape(r, ' \') . '/rvm/etc'
+    execute 'set runtimepath+=' . escape(r, ' \') . '/etc'
     runtime jikes-rvm.vim
   endif
   unlet r

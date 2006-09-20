@@ -20,7 +20,7 @@ fi
 
 ## Put the "eclipse" binary and the fake "java" program it needs at the head
 ## of our path.
-export PATH="${ECLIPSE_INSTALL_DIR-}${ECLIPSE_INSTALL_DIR+:}${RVM_ROOT}/rvm/etc/eclipse-bin:${PATH}"
+export PATH="${ECLIPSE_INSTALL_DIR-}${ECLIPSE_INSTALL_DIR+:}${RVM_ROOT}/etc/eclipse-bin:${PATH}"
 # If ECLIPSE_INSTALL_DIR is not set to something sane, then we hope
 ## that there is an executable named "eclipse" in the user's path
 

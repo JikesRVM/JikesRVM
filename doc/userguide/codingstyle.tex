@@ -117,7 +117,7 @@ doesn't want to claim co-authorship.  ({\tt @modified} is our own
 extended tag.)  There is usually also a Javadoc {\tt @date} field for
 the date of authorship.  There are skeleton files for Java, C/C++,
 Bash (Bourne Shell), \texttt{make}, and \texttt{m4} in the source directory
-``\texttt{rvm/etc/skel/}''; just cut-and-paste the header text from them.  
+``\texttt{etc/skel/}''; just cut-and-paste the header text from them.  
 
 A Java example of the notices follows.
 
@@ -238,12 +238,12 @@ editors, Emacs and \texttt{vi}.
 \paragraph{jikes-rvm.el}
 
 Load the contents of the
-file \texttt{RVM\_ROOT/rvm/etc/jikes-rvm.el}.  This will set up your
+file \texttt{RVM\_ROOT/etc/jikes-rvm.el}.  This will set up your
 Emacs to use Jikes RVM's coding conventions for Java, C, and C++ code.
 
 The easiest way to enable Emacs to do this automatically is to copy
 (cut-and-paste) the contents
-of \texttt{RVM\_ROOT/rvm/etc/dot-emacs.el} into the \texttt{.emacs}
+of \texttt{RVM\_ROOT/etc/dot-emacs.el} into the \texttt{.emacs}
 file in your home directory.
 
 \texttt{dot-emacs.el} also contains sample customizations for telling
@@ -281,14 +281,14 @@ of this subsection}{options:vi}.
 \paragraph{vim}\label{options:vim}
 
 
-The file \texttt{RVM\_ROOT/rvm/etc/jikes-rvm.vim} contains
+The file \texttt{RVM\_ROOT/etc/jikes-rvm.vim} contains
 customizations for editing Jikes RVM source code.  It customizes Java
 mode, C++ mode, and C mode.  Since this file will probably improve
 with time, I recommend you load it in indirectly from the source tree
 rather than cutting and pasting its contents into your \texttt{.vimrc} file.
 
 To set yourself up to load it indirectly, add the contents
-of ``\texttt{RVM\_ROOT/rvm/etc/dot-vimrc.vim}'' to a file in your home
+of ``\texttt{RVM\_ROOT/etc/dot-vimrc.vim}'' to a file in your home
 directory named ``\texttt{.vimrc}''.
 
 \paragraph{vi}\label{options:vi}

@@ -108,7 +108,7 @@ endfunction
 
 "" Read a skeleton file of a given type
 function! Jikes_rvm_read_skeleton_file(file)
-  execute '0r '. $RVM_ROOT . '/rvm/etc/skel/' . a:file
+  execute '0r '. $RVM_ROOT . '/etc/skel/' . a:file
   redraw            " clear the 'File read' message
 endfunction
 

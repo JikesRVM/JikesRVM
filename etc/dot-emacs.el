@@ -12,7 +12,7 @@
 
 (let ((r (getenv "RVM_ROOT")))
   (when r
-    (add-to-list 'load-path (concat r "/rvm/etc"))
+    (add-to-list 'load-path (concat r "/etc"))
     (require 'jikes-rvm)))
 
 ;;; The rest of this file is optional.
