@@ -6,6 +6,20 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+*Jikes RVM 2.4.6 Release Notes (future)
+** Highlights
+*** A large scale restructuring of the source tree was performed 
+    to prepare for making it easier to develop Jikes RVM using Eclipse.
+    All files except for the Java source to Jikes RVM itself was moved
+    out of the RVM_ROOT/rvm directory.  RVM_ROOT/rvm itself has not yet
+    been reorganized so that package/directory structures match, but we 
+    anticipate this happening in the near future.  
+
+** Bug fixes
+
+** Other Notes
+
+
 *Jikes RVM 2.4.5 Release Notes (released August 14, 2006)
 ** Highlights
 *** The recommended version of GNU classpath for Jikes RVM 2.4.5 is 0.92.
