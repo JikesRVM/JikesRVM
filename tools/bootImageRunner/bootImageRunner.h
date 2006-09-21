@@ -20,7 +20,7 @@ extern "C" {
 } /* un-confuse the auto-indenter */
 #endif
 
-#include "../../rvm/src/include/cAttributePortability.h"
+#include "../../include/cAttributePortability.h"
 
 #if defined(RVM_FOR_32_ADDR)
 #define VM_Offset int32_t

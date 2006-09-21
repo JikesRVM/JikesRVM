@@ -19,8 +19,8 @@ clean:
 	$(HOST_JAVA_HOME)/bin/javah -jni -o $@ $(basename $(notdir $<))
 
 lib%.a:	%.c %.h
-	$(CC) $(CFLAGS) -c -o $(basename $(notdir $<)).o -I. -I$(JAL_ROOT)/rvm/src/include $<
-	$(LDSHARED) $(CXXFLAGS) -o $@ -I$(JAL_ROOT)/rvm/src/include $(basename $(notdir $<)).o
+	$(CC) $(CFLAGS) -c -o $(basename $(notdir $<)).o -I. -I$(JAL_ROOT)/include $<
+	$(LDSHARED) $(CXXFLAGS) -o $@ -I$(JAL_ROOT)/include $(basename $(notdir $<)).o
 
 %.so:	%.a
 	cp -f $< $@

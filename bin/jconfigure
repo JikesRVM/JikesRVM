@@ -4337,7 +4337,7 @@ EOF
 		echo >&2 -n "(building libJava2HPM\${shlib_suffix} JNI library) "
 		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
 		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
-		    -I$ROOT_DIRECTORY_STR/rvm/src/include \
+		    -I$ROOT_DIRECTORY_STR/include \
 		    -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
 		    -I$ROOT_DIRECTORY_STR/tools/bootImageRunner \
     		    -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C

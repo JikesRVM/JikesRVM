@@ -99,7 +99,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #define NEED_EXIT_STATUS_CODES
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
-#include "../../rvm/src/include/jni.h"                // For the jlong type.
+#include "../../include/jni.h"                // For the jlong type.
 
 #include "pthread-wrappers.h"
 
