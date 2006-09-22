@@ -5,7 +5,7 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *     Australian National University. 2005
  */
 package org.mmtk.plan.generational;
 

@@ -9,6 +9,8 @@
  *
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003
+ *
+ * $Id$
  */
 package org.mmtk.plan.semispace.gctrace;
 

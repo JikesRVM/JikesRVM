@@ -6,6 +6,8 @@
  *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
+ *
+ * $Id$
  */
 package org.mmtk.plan.generational.copying;
 
