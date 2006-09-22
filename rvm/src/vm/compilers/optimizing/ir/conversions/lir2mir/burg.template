@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.*;
  *
  * Note: some of the functions have been taken and modified
  * from the file gen.c, from the LCC compiler.  
- * See $RVM_ROOT/tools/jburg/COPYRIGHT file for copyright restrictions.
+ * See $RVM_ROOT/tools-external/jburg/COPYRIGHT file for copyright restrictions.
  *
  * @see OPT_BURS
  * @author Mauricio Serrano

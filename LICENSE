@@ -3,6 +3,11 @@ redistributable under the Common Public License (CPL).  The CPL has
 been certified by the Open Source Initiative as an open source
 license.  The CPL meets the Debian Free Software Guidelines.
 
+Note:  The tools-external directory contains open source software
+that is distributed/redistributable under other licenses.  
+Please see the license information found in each sub-directory
+of tools-external for specific details.
+
 -------- The following is the legal text of the Common Public License ---------
 
                        Common Public License - v 1.0
