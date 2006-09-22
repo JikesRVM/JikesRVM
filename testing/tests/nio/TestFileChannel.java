@@ -1,7 +1,20 @@
+/*
+ * This file is part of the Jikes RVM project (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright Elias Naur 2006
+ * 
+ * $Id$
+ */
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
+/**
+ * @author Elias Naur
+ */
 public class TestFileChannel {
 	public static void main(String[] args) {
 		final int MAGIC_INT = 0xdeadbeef;
