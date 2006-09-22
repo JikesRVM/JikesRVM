@@ -40,6 +40,7 @@
 /\/tools\/preprocessor\/testFancy.preprocessor/ { next }
 /\/tools\/preprocessor\/testSimple.preprocessor/ { next }
 /\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
+/\/tools\/install\/macros.txt/ { next }
 
 /\/LICENSE/ { next }
 /\/NEWS/ { next }
