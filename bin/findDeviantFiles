@@ -6,7 +6,7 @@
 # A copy of the license is included in the distribution, and is also
 # available at http://www.opensource.org/licenses/cpl1.0.php
 #
-# (C) Copyright IBM Corp. 2001, 2003
+# (C) Copyright IBM Corp. 2001, 2003, 2006
 #
 # $Id$
 #
@@ -171,6 +171,9 @@ declare -r -a find_optsA=( \
 	'\!' -name '*~'  \
 	'\!' -name '.*~'  \
 	'\!' -name '.#*' \
+	'\!' -name '.classpath'  \
+	'\!' -name '.project'  \
+	'\!' -name 'build.xml'  \
 	-type f -print \
 );
 
@@ -184,14 +187,16 @@ declare -r -a find_javaA=( \
 declare -r find_optsSTR="-name .svn -prune -o \! -name *~ \! -name .*~ \! -name .#* -type f -print"
 
 #echo "find all plain files without @Author tags"
-find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
-#find . ${find_opts} -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
+find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/headerExceptionsFilter.awk" > "$out/noAuthor$suffix"
 
 #echo "find all plain files without copyright notices"
-find . "${find_optsA[@]}" -exec egrep -c "\([cC]\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$out/noCopyright${suffix}"
+find . "${find_optsA[@]}" -exec egrep -c "\([cC]\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/headerExceptionsFilter.awk" > "$out/noCopyright${suffix}"
 
 #echo "find all plain files without \$Id: tags"
-find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noIdFilter.awk" > "$out/noId${suffix}"
+find . "${find_optsA[@]}" -exec fgrep -c '$Id' {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/headerExceptionsFilter.awk" > "$out/noId${suffix}"
+
+#echo "find all plain files without license statement"
+find . "${find_optsA[@]}" -exec egrep -c "The Jikes RVM project is distributed under the Common Public License|MMTk is distributed under the Common Public License" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/headerExceptionsFilter.awk" > "$out/noLicense${suffix}"
 
 # echo "Find all .java files with embedded TAB characters"
 ## Not currently executed because we may no longer need this.

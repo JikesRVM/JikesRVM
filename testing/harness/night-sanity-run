@@ -373,6 +373,10 @@ if [[ ${NS_OS}.${NS_ARCH}.${NS_BITS} = 'Linux.x86_64.32' ]]; then
 	cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" $RESULT_MAILING_LIST
     fi
 
+    if [[ -s $CHECK_DIR/noLicense.rvm ]]; then
+	cat $CHECK_DIR/noLicense.rvm| mail -s "files without a License statement" $RESULT_MAILING_LIST
+    fi
+
     if [[ -s $CHECK_DIR/tabChars.rvm ]]; then
 	cat $CHECK_DIR/tabChars.rvm| mail -s "files with embedded TAB characters" $RESULT_MAILING_LIST
     fi
