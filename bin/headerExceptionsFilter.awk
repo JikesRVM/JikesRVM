@@ -35,6 +35,9 @@
 /\/testing\/harness\/tests\/pseudojbb\/props/ {next}
 /\/testing\/harness\/tests\/mauve\/mauve-jikesrvm/ {next}
 
+# actually has the right headers, but utf8 characters break the checkers
+/\/testing\/harness\/tests\/utf8\/utf8test.java/ {next}
+
 /\/tools\/bootImageRunner\/com_ibm_JikesRVM_VM_0005fProcess.h/ { next }
 /\/tools\/bootImageWriter\/rvm.security/ { next }
 /\/tools\/preprocessor\/testFancy.preprocessor/ { next }
