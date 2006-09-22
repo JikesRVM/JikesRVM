@@ -14,7 +14,10 @@ import gnu.classpath.Pointer;
  */
 public class JikesRVMSupport {
   public static Address getDirectBufferAddress(Buffer buffer) {
-    return gnu.classpath.JikesRVMSupport.getAddressFromPointer(buffer.address);
+    if (buffer.address == null)
+      return Address.zero();
+    else
+      return gnu.classpath.JikesRVMSupport.getAddressFromPointer(buffer.address);
   }
 
   public static Buffer newDirectByteBuffer(Address address, long capacity) {
