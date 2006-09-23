@@ -40,15 +40,17 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
    * Perform the transformation
    */
   public void transform () {
-    // first change the defs
-    for (OPT_RegisterOperand def = reg.defList; def != null; 
-        def = (OPT_RegisterOperand)def.getNext()) {
-      transform(def);
-    }
-    // now fix the uses
-    for (OPT_RegisterOperand use = reg.useList; use != null; 
-        use = (OPT_RegisterOperand)use.getNext()) {
-      transform(use);
+    synchronized(context){
+      // first change the defs
+      for (OPT_RegisterOperand def = reg.defList; def != null; 
+           def = (OPT_RegisterOperand)def.getNext()) {
+        transform(def);
+      }
+      // now fix the uses
+      for (OPT_RegisterOperand use = reg.useList; use != null; 
+           use = (OPT_RegisterOperand)use.getNext()) {
+        transform(use);
+      }
     }
   }
 
@@ -118,9 +120,6 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
    * Singleton: a single context representing "specialize this method when
    * the invokee of this method is thread-local"
    */
-  private static OPT_InvokeeThreadLocalContext context = 
-      new OPT_InvokeeThreadLocalContext();
+  private static final OPT_InvokeeThreadLocalContext context = 
+    new OPT_InvokeeThreadLocalContext();
 }
-
-
-

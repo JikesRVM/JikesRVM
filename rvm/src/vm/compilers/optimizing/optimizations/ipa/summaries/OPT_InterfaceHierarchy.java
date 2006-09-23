@@ -54,7 +54,7 @@ public class OPT_InterfaceHierarchy {
    * Return the set of classes that implement a given interface. Create a
    * set if none found.
    */
-  private static VM_HashSet findOrCreateSet(VM_Class I) {
+  private static synchronized VM_HashSet findOrCreateSet(VM_Class I) {
     VM_HashSet set = (VM_HashSet)interfaceMapping.get(I);
     if (set == null) {
       set = new VM_HashSet(3);

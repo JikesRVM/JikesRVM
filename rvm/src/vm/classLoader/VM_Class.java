@@ -1603,8 +1603,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     if (!isInterface()) {
       // Initialize slots in the TIB for virtual methods
-      for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
-             n = virtualMethods.length; i < n; ++i, ++slot) {
+      for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX+virtualMethods.length-1,
+             i = virtualMethods.length-1; i >= 0; i--, slot--) {
         VM_Method method = virtualMethods[i];
         if (method.isPrivate() && method.getDeclaringClass() != this) {
           typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB

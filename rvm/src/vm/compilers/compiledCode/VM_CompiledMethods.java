@@ -181,7 +181,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   // marking it NOT obsolete. Keep such reference until a future GC.
   // NOTE: It's expected that this is processed during GC, after scanning
   //    stacks to determine which methods are currently executing.
-  public static void snipObsoleteCompiledMethods() {
+  public synchronized static void snipObsoleteCompiledMethods() {
     if (obsoleteMethods == null) return;
     
     int oldCount = obsoleteMethodCount;
@@ -213,7 +213,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     //-#endif
 
     VM_Array codeArray = VM_Type.CodeArrayType.asArray();
-    for (int i=0; i<compiledMethods.length; i++) {
+    for (int i=0; i<numCompiledMethods(); i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm == null || !cm.isCompiled()) continue;
       int ct = cm.getCompilerType();

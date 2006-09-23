@@ -11,7 +11,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
-
+import java.util.Vector;
 /**
  * Use optimizing compiler to build virtual machine boot image.
  * 
@@ -43,18 +43,18 @@ public class VM_BootImageCompiler {
   public static void init(String[] args) {
     try {
       VM_BaselineCompiler.initOptions();
-      options = new OPT_Options();
+      masterOptions = new OPT_Options();
       VM.sysWrite("VM_BootImageCompiler: init (opt compiler)\n");
          
       // Writing a boot image is a little bit special.  We're not really 
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
-      OPT_Compiler.setBootOptions(options);
+      OPT_Compiler.setBootOptions(masterOptions);
 
       // Allow further customization by the user.
       for (int i = 0, n = args.length; i < n; i++) {
         String arg = args[i];
-        if (!options.processAsOption("-X:bc:", arg)) {
+        if (!masterOptions.processAsOption("-X:bc:", arg)) {
           if (arg.startsWith("exclude=")) 
             excludePattern = arg.substring(8);
           else
@@ -62,9 +62,7 @@ public class VM_BootImageCompiler {
         }
       }
 
-      OPT_Compiler.init(options);
-      optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
-
+      OPT_Compiler.init(masterOptions);
     } catch (OPT_OptimizingCompilerException e) {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal) {
@@ -95,8 +93,11 @@ public class VM_BootImageCompiler {
         if (!include)
           throw escape;
         long start = System.currentTimeMillis();
-        OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null, options);
+        int freeOptimizationPlan = getFreeOptimizationPlan();
+        OPT_OptimizationPlanElement[] optimizationPlan = (OPT_OptimizationPlanElement[])optimizationPlans.get(freeOptimizationPlan);
+        OPT_CompilationPlan cp = new OPT_CompilationPlan(method, optimizationPlan, null,(OPT_Options)options.get(freeOptimizationPlan));
         cm = OPT_Compiler.compile(cp);
+        releaseOptimizationPlan(freeOptimizationPlan);
         if (VM.BuildForAdaptiveSystem) {
           long stop = System.currentTimeMillis();
           long compileTime = stop - start;
@@ -152,8 +153,43 @@ public class VM_BootImageCompiler {
     //-#endif
     return cm;
   }
+  
+  /**
+   * Return an optimization plan that isn't in use
+   * @return optimization plan
+   */
+  private static int getFreeOptimizationPlan() {
+    // Find plan
+    synchronized(optimizationPlanLocks) {
+      for (int i=0; i < optimizationPlanLocks.size(); i++) {
+        if(((Boolean)optimizationPlanLocks.get(i)).booleanValue() == false) {
+          optimizationPlanLocks.set(i,Boolean.TRUE);
+          return i;
+        }
+      }
+      // Find failed, so create new plan
+      OPT_OptimizationPlanElement[] optimizationPlan;
+      OPT_Options cloneOptions=(OPT_Options)masterOptions.clone();
+      optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(cloneOptions);
+      optimizationPlans.addElement(optimizationPlan);
+      optimizationPlanLocks.addElement(Boolean.TRUE);
+      options.addElement(cloneOptions);
+      return optimizationPlanLocks.size() - 1;
+    }
+  }
+  /**
+   * Release an optimization plan
+   * @param optimization plan
+   */
+  private static void releaseOptimizationPlan(int plan) {
+    synchronized(optimizationPlanLocks) {
+      optimizationPlanLocks.set(plan,Boolean.FALSE);
+    }
+  }
 
   // Cache objects needed to cons up compilation plans
-  private static OPT_OptimizationPlanElement[] optimizationPlan;
-  private static OPT_Options options;
+  private static Vector optimizationPlans = new Vector();
+  private static Vector optimizationPlanLocks = new Vector();
+  private static Vector options = new Vector();
+  private static OPT_Options masterOptions;
 }

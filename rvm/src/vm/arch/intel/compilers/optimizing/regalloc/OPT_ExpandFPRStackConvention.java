@@ -51,10 +51,22 @@ import com.ibm.JikesRVM.opt.ir.*;
 
 final class OPT_ExpandFPRStackConvention extends OPT_CompilerPhase
   implements OPT_Operators{
+  
+  /**
+   * The number of FPRs available for allocation.
+   * Normally 7: we reserve one for final MIR expansion.
+   */
+  private static final int NUM_ALLOCATABLE_FPR = 7;
 
-  // The number of FPRs available for allocation.
-  // Normally 7: we reserve one for final MIR expansion.
-  int NUM_ALLOCATABLE_FPR = 7;
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this
+   */
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+    return this;
+  }
 
   public boolean printingEnabled (OPT_Options options, boolean before) {
     return  options.PRINT_CALLING_CONVENTIONS && !before;

@@ -26,6 +26,16 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
   implements OPT_Operators {
 
   private static boolean DEBUG = false;
+   
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
 
   /**
    * This is the method that actually does the work of the phase.

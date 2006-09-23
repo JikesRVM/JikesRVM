@@ -49,7 +49,6 @@ public final class OPT_OptimizationPlanAtomicElement extends
    */
   public OPT_OptimizationPlanAtomicElement(OPT_CompilerPhase p) {
     myPhase = p;
-    myPhase.container = this;
   }
 
   /**
@@ -82,7 +81,9 @@ public final class OPT_OptimizationPlanAtomicElement extends
     if (VM.MeasureCompilation && VM.runningVM) {
       start = VM_Thread.getCurrentThread().accumulateCycles();
     }
-    myPhase.newExecution(ir).performPhase(ir);
+    OPT_CompilerPhase cmpPhase=(OPT_CompilerPhase)myPhase.newExecution(ir);
+    cmpPhase.setContainer(this);
+    cmpPhase.performPhase(ir);
     if (VM.MeasureCompilation && VM.runningVM) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       cycles += end - start;

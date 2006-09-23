@@ -20,6 +20,16 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 class OPT_MIRSplitRanges extends OPT_CompilerPhase 
   implements OPT_Operators {
+   	 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
 
   /**
    * Return the name of this phase

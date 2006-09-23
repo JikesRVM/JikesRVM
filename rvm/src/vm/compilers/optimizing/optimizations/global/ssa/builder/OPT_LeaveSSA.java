@@ -13,7 +13,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
-
+import java.lang.reflect.Constructor;
 
 /**
  * This compiler phase translates out of SSA form.  
@@ -53,6 +53,27 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    */
   public final boolean shouldPerform(OPT_Options options) {
     return  options.SSA;
+  }
+  
+  /**
+   * Constructor
+   */
+  public OPT_LeaveSSA() {}
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LeaveSSA");
+    }
+    return constructor;
   }
 
   /**

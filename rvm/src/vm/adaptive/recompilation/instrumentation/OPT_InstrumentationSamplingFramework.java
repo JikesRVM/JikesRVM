@@ -16,6 +16,7 @@ import com.ibm.JikesRVM.adaptive.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.opt.*;
 
+import java.lang.reflect.Constructor;
 import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -58,6 +59,30 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    */
   private static  boolean DEBUG = false;
   private static  boolean DEBUG2 = false;
+
+  /**
+   * Temporary variables
+   */
+  private OPT_RegisterOperand cbsReg = null;
+  private OPT_LocationOperand cbsLoc = null;
+  private OPT_LocationOperand resetLoc = null;
+  private OPT_BasicBlock origLastBlock = null;
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_InstrumentationSamplingFramework");
+    }
+    return constructor;
+  }
 
   /**
    *  
@@ -119,7 +144,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   /**
    * Initialization to perform after the transformation is applied
    */
-  private static void cleanUp(OPT_IR ir) {
+  private void cleanUp(OPT_IR ir) {
 
     // Clean up the ir with simple optimizations
     OPT_Simple simple = new OPT_Simple(-1, false, false);
@@ -147,7 +172,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * 
    * @param ir the governing IR
    */
-  final private static void performVariationFullDuplication(OPT_IR ir, OPT_CompilerPhase phaseObject) {
+  final private void performVariationFullDuplication(OPT_IR ir, OPT_CompilerPhase phaseObject) {
 
     // Initialize
     HashMap origToDupMap = new HashMap();           // Used to store mapping from original to duplicated blocks
@@ -183,7 +208,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * adjustPointersInDuplicatedCode
    *
    * @param ir the governing IR */
-  private final static void duplicateCode (OPT_IR ir, HashMap origToDupMap, HashSet exceptionHandlerBlocks){
+  private final void duplicateCode (OPT_IR ir, HashMap origToDupMap, HashSet exceptionHandlerBlocks){
 
     if (DEBUG) VM.sysWrite("In duplicate code\n");
 
@@ -280,7 +305,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * @param ir the governing IR 
    */
-  private final static void insertCBSChecks(OPT_IR ir, HashMap origToDupMap, HashSet exceptionHandlerBlocks){
+  private final void insertCBSChecks(OPT_IR ir, HashMap origToDupMap, HashSet exceptionHandlerBlocks){
     
     // Iterate through the basic blocks in the original code
     Iterator origBlocks = origToDupMap.keySet().iterator();
@@ -347,7 +372,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param fallthroughToInstBB Should checkBB fallthrough to instBB 
    *                            (otherwise it must fallthrough to noInstBB)
    */
-  private final static void createCheck(OPT_BasicBlock checkBB, 
+  private final void createCheck(OPT_BasicBlock checkBB, 
                                 OPT_BasicBlock noInstBB,
                                 OPT_BasicBlock instBB,
                                 boolean fallthroughToInstBB,
@@ -401,7 +426,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * @param bb The block to append the load to
    * @param ir The IR */
-  private static void appendLoad(OPT_BasicBlock bb, 
+  private void appendLoad(OPT_BasicBlock bb, 
                                 OPT_IR ir) {
 
     if (DEBUG)VM.sysWrite("Adding load to "+ bb + "\n");
@@ -455,7 +480,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * @param bb The block to append the load to
    * @param ir The IR */
-  private static void prependStore(OPT_BasicBlock bb, OPT_IR ir) {
+  private void prependStore(OPT_BasicBlock bb, OPT_IR ir) {
 
     if (DEBUG)VM.sysWrite("Adding store to "+ bb + "\n");
     OPT_Instruction store = null;
@@ -499,7 +524,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * @param bb The block to append the load to
    * @param ir The IR
    */
-  private final static void prependDecrement(OPT_BasicBlock bb,
+  private final void prependDecrement(OPT_BasicBlock bb,
                                                 OPT_IR ir) {
     if (DEBUG)VM.sysWrite("Adding Increment to "+ bb + "\n");
 
@@ -519,7 +544,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *
    * @param bb The block to append the load to
    * @param ir The IR */
-  private final static void prependCounterReset(OPT_BasicBlock bb,
+  private final void prependCounterReset(OPT_BasicBlock bb,
                                        OPT_IR ir) {
     OPT_Instruction load = null;
     OPT_Instruction store = null;
@@ -844,7 +869,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    * Arnold-Ryder PLDI 2001).  Instrumentation operations are wrapped
    * in a conditional, but no code duplication is performed.
    */
-  private static void performVariationNoDuplication(OPT_IR ir) {
+  private void performVariationNoDuplication(OPT_IR ir) {
     // The register containing the counter value to check
     cbsReg = ir.regpool.makeTempInt();
 
@@ -882,7 +907,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
    *    to get A -> B -> C
    * 2) Add check to A, making it go to B if it succeeds, otherwise C   
    */
-  private static final void 
+  private final void 
     conditionalizeInstrumentationOperation(OPT_IR ir,
                                            OPT_Instruction i,
                                            OPT_BasicBlock bb) {
@@ -940,17 +965,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       OPT_BasicBlock curBB = allBB.next();
       curBB.printExtended();
     }
-  }        
-
-  
-  /**
-   * Temporary static variables
-   */
-  private static OPT_RegisterOperand cbsReg = null;
-  private static OPT_LocationOperand cbsLoc = null;
-  private static OPT_LocationOperand resetLoc = null;
-  private static OPT_BasicBlock origLastBlock = null;
-
+  }
 }
 
 

@@ -49,6 +49,16 @@ class OPT_DominanceFrontier extends OPT_CompilerPhase {
   }
 
   /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  } 
+
+  /**
    * Return a String representation for this phase
    * @return a String representation for this phase
    */

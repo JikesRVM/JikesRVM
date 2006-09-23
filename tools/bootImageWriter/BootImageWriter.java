@@ -62,7 +62,7 @@ import org.vmmagic.unboxed.*;
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
 
-  public static int PARALLELIZE = 0;
+  public static int parallelize = 0;
 
   /**
    * How much talking while we work?
@@ -451,7 +451,7 @@ public class BootImageWriter extends BootImageWriterMessages
       }
       // parallelize
       if (args[i].startsWith("-parallelize=")) {
-        PARALLELIZE = Integer.parseInt(args[i].substring(13));
+        parallelize = Integer.parseInt(args[i].substring(13));
         continue;
       }
       // profile
@@ -993,7 +993,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("instantiating");
-      if (PARALLELIZE < 1) {
+      if (parallelize < 1) {
         int count = 0;
         for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
             VM_Type type = (VM_Type) e.nextElement();
@@ -1006,17 +1006,19 @@ public class BootImageWriter extends BootImageWriterMessages
               System.out.println("PROF:\t\t"+type+" took "+((stop2 - start2+500)/1000)+" seconds to instantiate");
         }
       } else {
-        if (verbose >= 1) say("parallelizing with " + PARALLELIZE + " threads");
+        if (verbose >= 1) say("parallelizing with " + parallelize + " threads");
         BootImageWorker.startup(bootImageTypes.elements());
-        BootImageWorker [] workers = new BootImageWorker[PARALLELIZE];
+        BootImageWorker [] workers = new BootImageWorker[parallelize];
         for (int i=0; i<workers.length; i++) {
           workers[i] = new BootImageWorker();
           workers[i].id = i;
+          workers[i].setName("BootImageWorker-" + i);
           workers[i].start();
         }
         try {
-          for (int i=0; i<workers.length; i++)
+          for (int i=0; i<workers.length; i++) {
             workers[i].join();
+          }
         } catch (InterruptedException ie) {
           say("InterruptedException while instantiating");
         }
@@ -1994,6 +1996,10 @@ public class BootImageWriter extends BootImageWriterMessages
    *         comprising bootimage)
    */
   private static VM_Type getRvmType(Class jdkType) {
+    // don't allow java.lang.reflect.Constructor objects to be written
+    if (jdkType.toString().equals("class java.lang.reflect.Constructor")) {
+      return null;
+    }
     return (VM_Type) bootImageTypes.get(jdkType.getName());
   }
 
@@ -2004,15 +2010,20 @@ public class BootImageWriter extends BootImageWriterMessages
    * @return jdk type (null --> type does not exist in host namespace)
    */
   private static Class getJdkType(VM_Type rvmType) {
+    Throwable x;
     try {
       return Class.forName(rvmType.toString());
-    } catch (Throwable x) {
-      if (verbose >= 1) {
-        say(x.toString());
-      }
-      return null;
     }
-  }
+    catch (ExceptionInInitializerError e) {x=e;}
+    catch (UnsatisfiedLinkError e)        {x=e;}
+    catch (NoClassDefFoundError e)        {x=e;}
+    catch (SecurityException e)           {x=e;}
+    catch (ClassNotFoundException e)      {x=e;}
+    if (verbose >= 1) {
+      say(x.toString());
+    }
+    return null;
+}
 
   /**
    * Obtain accessor via which a field value may be fetched from host jdk

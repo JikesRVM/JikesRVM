@@ -14,6 +14,7 @@ import  java.util.Enumeration;
 import  java.util.HashSet;
 import  java.util.Iterator;
 import  com.ibm.JikesRVM.opt.ir.*;
+import java.lang.reflect.Constructor;
 
 /**
  * This class does the job. It is a subphase of OPT_GCP.
@@ -23,9 +24,30 @@ import  com.ibm.JikesRVM.opt.ir.*;
  */
 class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /** Generate debug output? */
-  private static boolean DEBUG = false;
+  private final static boolean DEBUG = false;
   /** Generate verbose debug output? */
   private static boolean verbose = false;
+
+  /**
+   * Constructor
+   */
+  public OPT_LICM() {}
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LICM");
+    }
+    return constructor;
+  }
 
   /**
    * Execute loop invariant code motion on the given IR.

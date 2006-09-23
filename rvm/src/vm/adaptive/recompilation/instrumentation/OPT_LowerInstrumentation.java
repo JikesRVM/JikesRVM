@@ -28,6 +28,16 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
    static final boolean DEBUG = false;
+	 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
 
   public final boolean shouldPerform(OPT_Options options) {
     VM_AOSOptions opts = VM_Controller.options;

@@ -20,6 +20,16 @@ final class OPT_PrologueEpilogueCreator extends OPT_CompilerPhase {
 
   OPT_PrologueEpilogueCreator() { }
 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this
+   */
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+    return this;
+  }
+
   public final String getName() { return "Insert Prologue/Epilogue"; }
 
   /**

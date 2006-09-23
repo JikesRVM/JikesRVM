@@ -34,10 +34,20 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
     return "Local CopyProp";
   }
 
-  public void reportAdditionalStats() {
+ public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1/container.counter2*100, 2);
     VM.sysWrite("% Infrequent BBs");
+ }
+
+ /**
+  * Return this instance of this phase. This phase contains no
+  * per-compilation instance fields.
+  * @param ir not used
+  * @return this
+  */
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+	 return this;
   }
 
   /**

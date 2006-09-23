@@ -83,8 +83,18 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
   private static final boolean OPTIMIZE = true;
 
   public final String getName() { return "ConvertALUOps"; }
-  public final OPT_CompilerPhase newExecution(OPT_IR ir) { return this; }
 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
+
+ 
   public final void perform(OPT_IR ir) { 
     // Calling OPT_Simplifier.simplify ensures that the instruction is 
     // in normalized form. This reduces the number of cases we have to 

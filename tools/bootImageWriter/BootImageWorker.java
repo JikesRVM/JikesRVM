@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.classloader.VM_Type;
  */
 public class BootImageWorker extends Thread {
 
-  public static int verbose = 0;
+  public static final int verbose = 0;
   static Enumeration _enum;
   int id;
 
@@ -39,9 +39,15 @@ public class BootImageWorker extends Thread {
       }
       if (type == null) 
         return;
-      if (verbose >= 1) 
+		long startTime = 0;
+      if (verbose >= 1) {
           BootImageWriterMessages.say("Thread " + id + " instantiating type " + count + " " + type);
+			 startTime = System.currentTimeMillis();
+		}
       type.instantiate();
+      if (verbose >= 1) {
+		  BootImageWriterMessages.say("Thread " + id + " instantiating type " + count + " " + type + " Time: " + (System.currentTimeMillis() - startTime) + "ms");
+		}
     }
   }
 

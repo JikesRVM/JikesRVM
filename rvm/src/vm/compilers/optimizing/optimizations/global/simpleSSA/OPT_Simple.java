@@ -8,9 +8,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.Enumeration;
+import com.ibm.JikesRVM.*;
+import java.lang.reflect.Constructor;
+import java.util.Enumeration;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /*
@@ -63,7 +64,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
   /**
    * By default, perform all optimizations at O1 and higher.
    */
-  OPT_Simple () {
+  public OPT_Simple () {
     this(1, true, true, true);
   }
 
@@ -107,7 +108,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
    * @param foldBranches should we attempt to constant fold conditional
    * branches?
    */
-  OPT_Simple (boolean typeProp, boolean foldChecks, boolean foldBranches) {
+  public OPT_Simple (boolean typeProp, boolean foldChecks, boolean foldBranches) {
     this(1, typeProp, foldChecks, foldBranches);
   }
 
@@ -123,11 +124,29 @@ public final class OPT_Simple extends OPT_CompilerPhase
    * @param foldBranches should we attempt to constant fold conditional
    * branches?
    */
-  OPT_Simple (int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
+  public OPT_Simple (int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
+    super(new Object[]{new Integer(level), new Boolean(typeProp),
+                       new Boolean(foldChecks), new Boolean(foldBranches)});
     this.level = level;
     this.typeProp = typeProp;
     this.foldChecks = foldChecks;
     this.foldBranches = foldBranches;
+  }
+  
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_Simple", new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
+    }
+    return constructor;
   }
 
   /**

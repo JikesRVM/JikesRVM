@@ -24,7 +24,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
   /**
    * the basic block this node represents
    */
-  private OPT_BasicBlock block;
+  private final OPT_BasicBlock block;
 
   /**
    * distance from the root of the dominator tree

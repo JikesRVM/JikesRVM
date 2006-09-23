@@ -24,6 +24,16 @@ class OPT_GlobalValueNumber extends OPT_CompilerPhase {
   private static final boolean DEBUG = false;
 
   /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this
+   */
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+    return this;
+  }
+
+  /**
    * Return the name of this phase.
    * @return "Global Value Number"
    */

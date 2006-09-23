@@ -18,9 +18,18 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 final class OPT_ConvertALUOperators extends OPT_CompilerPhase 
   implements OPT_Operators {
+ 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
 
   public final String getName() { return "ConvertALUOps"; }
-  public final OPT_CompilerPhase newExecution(OPT_IR ir) { return this; }
   public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
   }

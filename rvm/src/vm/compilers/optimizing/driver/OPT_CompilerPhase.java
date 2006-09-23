@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import java.lang.reflect.*;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.OPT_IR;
 
@@ -42,7 +43,7 @@ import com.ibm.JikesRVM.opt.ir.OPT_IR;
  * @author Dave Grove
  * @author Michael Hind
  */
-public abstract class OPT_CompilerPhase implements Cloneable {
+public abstract class OPT_CompilerPhase {
 
   /**
    * The plan element that contains this phase.
@@ -50,8 +51,28 @@ public abstract class OPT_CompilerPhase implements Cloneable {
    * for a measure compilation report.
    */
   OPT_OptimizationPlanAtomicElement container;
+ 
+  /**
+   * Arguments to constructor that copies this phase
+   */
+  private final Object initargs[];
 
+  /**
+   * Constructor
+   */
+  public OPT_CompilerPhase(){
+    initargs = null;
+  }
 
+  /**
+   * Constructor
+   *
+   * @param initargs arguments used when constructing copies of this phase
+   */
+  public OPT_CompilerPhase(Object initargs[]){
+    this.initargs = initargs;
+  }
+     
   /**
    * @return a String which is the name of the phase.
    */
@@ -98,21 +119,73 @@ public abstract class OPT_CompilerPhase implements Cloneable {
   public void reportAdditionalStats() {}
 
   /**
-   * This method is called immediately before performPhase.
-   * Phases that do not need to create a new instance for each execution
-   * may override this method to return this, but this must be done carefully!
+   * This method is called immediately before performPhase. Phases
+   * that do not need to create a new instance for each execution may
+   * override this method to return this, but this must be done
+   * carefully! Classes that don't override this method need to
+   * override getClassConstructor.
    *
    * @param ir the OPT_IR that is about to be passed to performPhase
    * @return an opt compiler phase on which performPhase may be invoked.
    */
-  public OPT_CompilerPhase newExecution (OPT_IR ir) {
-    try {
-      return (OPT_CompilerPhase)this.clone();
-    } catch (CloneNotSupportedException e) {
-      // we implement Cloneable, so of course we can't reach here.
-      return null;
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+    Constructor cons = getClassConstructor();
+    if(cons != null) {
+      try {
+        return (OPT_CompilerPhase)cons.newInstance(initargs);
+      } catch(Exception e){
+        throw new Error("Failed to create phase " + this.getClass() +
+                        " with constructor " + cons,
+                        e);
+      }
+    } else {
+      throw new Error("Error, no constructor found in phase " + this.getClass() +
+                      " make sure a public constructor is declared");
     }
   }
+
+  /**
+   * Get a constructor object for this compiler phase
+   *
+   * @return exception/null as this phase can't be created
+   */
+   public Constructor getClassConstructor(){
+     OPT_OptimizingCompilerException.UNREACHABLE();
+     return null;
+   }
+
+  /**
+   * Given the name of a compiler phase return the default (no
+   * argument) constructor for it.
+   */
+  protected static Constructor getCompilerPhaseConstructor(String compilerPhaseName) {
+    return getCompilerPhaseConstructor(compilerPhaseName, null);
+  }
+
+  /**
+   * Given the name of a compiler phase return the default (no
+   * argument) constructor for it.
+   */
+  protected static Constructor getCompilerPhaseConstructor(String compilerPhaseName, Class initTypes[]) {
+    Constructor constructor;
+    try{
+      constructor = Class.forName(compilerPhaseName).getConstructor(initTypes);
+    }
+    catch (ClassNotFoundException e) {
+      throw new Error("Compiler phase " + compilerPhaseName  + " not found", e);
+    }
+    catch (NoSuchMethodException e) {
+      throw new Error("Constructor not found in " + compilerPhaseName  + " compiler phase", e);
+    }
+    return constructor;
+  }
+
+  /**
+   * Set the containing optimization plan element for this phase
+   */
+   public final void setContainer(OPT_OptimizationPlanAtomicElement atomEl){
+     container = atomEl;
+   }
 
   /**
    * Runs a phase by calling perform on the supplied IR surrounded by 

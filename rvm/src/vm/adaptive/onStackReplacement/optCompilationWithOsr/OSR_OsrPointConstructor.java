@@ -27,6 +27,16 @@ public class OSR_OsrPointConstructor extends OPT_CompilerPhase
   public final boolean shouldPerform(OPT_Options options) {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
   }
+  
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+      return this;
+  }
 
   public final String getName() {
     return "OSR_OsrPointConstructor";

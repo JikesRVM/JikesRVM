@@ -8,7 +8,7 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-
+import com.ibm.JikesRVM.opt.ir.*;
 /**
  * Driver routine for register allocation
  *
@@ -34,6 +34,16 @@ final class OPT_RegisterAllocator extends OPT_OptimizationPlanCompositeElement {
   private static class RegisterAllocPreparation extends OPT_CompilerPhase {
     public final boolean shouldPerform (OPT_Options options) {
       return true;
+    }
+
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
     }
 
     public final String getName () {

@@ -9,9 +9,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
-
-
+import java.lang.reflect.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import java.lang.reflect.Constructor;
 
 /**
  * Transform tail recursive calls into loops.
@@ -33,6 +33,27 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
 
   private static final boolean DEBUG = false;
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, false);
+  
+  /**
+   * Constructor
+   */
+  public OPT_TailRecursionElimination() {}
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_TailRecursionElimination");
+    }
+    return constructor;
+  }
 
   public final boolean shouldPerform (OPT_Options options) {
     return  options.getOptLevel() >= 1;

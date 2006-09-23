@@ -54,30 +54,50 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
    */
   OPT_RedundantBranchElimination () {
     super("RedundantBranchElimination", new OPT_OptimizationPlanElement[] {
-      // Stage 1: Require SSA form
-      new OPT_OptimizationPlanAtomicElement(new OPT_CompilerPhase() {
-          public String getName() { return "Ensure SSA"; }
-          public boolean shouldPerform() { return true; }
-          public void perform(OPT_IR ir) {
-            ir.desiredSSAOptions = new OPT_SSAOptions();
-            new OPT_EnterSSA().perform(ir);
-          }
-        }),
+            // Stage 1: Require SSA form
+            new OPT_OptimizationPlanAtomicElement(new EnsureSSA()),
       
-      // Stage2: Require GVNs
-      new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
+            // Stage2: Require GVNs
+            new OPT_OptimizationPlanAtomicElement(new OPT_GlobalValueNumber()),
 
-      // Stage3: Do the optimization
-      new OPT_OptimizationPlanAtomicElement(new RBE()),
-    });
+            // Stage3: Do the optimization
+            new OPT_OptimizationPlanAtomicElement(new RBE()),
+          });
   }
 
+  private static final class EnsureSSA extends OPT_CompilerPhase implements OPT_Operators{
+           
+              
+    public String getName() {
+      return "Ensure SSA";
+    }
+    public boolean shouldPerform() {
+      return true;
+    }
+    public void perform(OPT_IR ir) {
+      ir.desiredSSAOptions = new OPT_SSAOptions();
+      new OPT_EnterSSA().perform(ir);
+    }
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
+  }
 
   private static final class RBE extends OPT_CompilerPhase implements OPT_Operators {
     private static final boolean DEBUG = false;
     public final String getName() { return "RBE Transform"; }
     public final boolean printingEnabled (OPT_Options options, boolean before) {
       return false && DEBUG;
+    }
+
+    /**
+     * Return this instance of this phase. This phase contains
+     * no per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
     }
 
     /**
@@ -132,7 +152,7 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
      * @param ir the IR to optimize
      */
     private final void removeUnreachableCode(OPT_IR ir) {
-		boolean removedCode = false;
+      boolean removedCode = false;
       OPT_BasicBlock entry = ir.cfg.entry();
       ir.cfg.clearDFS();
       entry.sortDFS();
@@ -148,15 +168,15 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
             }
           }
           ir.cfg.removeFromCFGAndCodeOrder(node);
-			 removedCode = true;
+          removedCode = true;
         }
         node = nextNode;
       }
-		if(removedCode) {
-		  ir.cfg.compactNodeNumbering();
-		  ir.HIRInfo.dominatorTree = null;
-		  ir.HIRInfo.dominatorsAreComputed = false;
-		}
+      if(removedCode) {
+        ir.cfg.compactNodeNumbering();
+        ir.HIRInfo.dominatorTree = null;
+        ir.HIRInfo.dominatorsAreComputed = false;
+      }
     }
 
 
@@ -172,20 +192,20 @@ final class OPT_RedundantBranchElimination extends OPT_OptimizationPlanComposite
 
     /**
      * Remove cb from source, updating PHI nodes to maintain SSA form.
-	  *
-	  * @param source basic block containing cb
-	  * @param cb conditional branch to remove
-	  * @param ir containing IR
-	  * @param di branch that dominates cb
+     *
+     * @param source basic block containing cb
+     * @param cb conditional branch to remove
+     * @param ir containing IR
+     * @param di branch that dominates cb
      */
     private void removeCondBranch(OPT_BasicBlock source,
                                   OPT_Instruction cb,
                                   OPT_IR ir,
-											 OPT_Instruction di) {
+                                  OPT_Instruction di) {
       if (DEBUG) VM.sysWrite("Eliminating definitely not-taken branch "+cb+"\n");
-		if(IfCmp.conforms(cb) && IfCmp.hasGuardResult(cb)) {
-		  cb.insertBefore(Move.create(GUARD_MOVE, IfCmp.getGuardResult(cb), IfCmp.getGuardResult(di).copy()));
-		}
+      if(IfCmp.conforms(cb) && IfCmp.hasGuardResult(cb)) {
+        cb.insertBefore(Move.create(GUARD_MOVE, IfCmp.getGuardResult(cb), IfCmp.getGuardResult(di).copy()));
+      }
       OPT_BasicBlock deadBB = cb.getBranchTarget();
       cb.remove();
       source.recomputeNormalOut(ir);

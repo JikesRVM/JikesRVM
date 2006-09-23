@@ -21,7 +21,7 @@ final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
   private static final int MAX_NUM_INSTRUCTIONS = 300;
 
   public final String getName() { return "SplitBasicBlock"; }
-  public final OPT_CompilerPhase newExecution() { return this; }
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) { return this; }
   
   public final void perform(OPT_IR ir) {
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {

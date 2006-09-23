@@ -12,6 +12,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
+import java.lang.reflect.Constructor;
 
 /**
  * Derive relative basic block execution frequencies from branch probabilities.<p>
@@ -49,6 +50,27 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
    * The loop structure tree of said IR
    */
   private OPT_LSTGraph lst;
+
+  /**
+   * Constructor
+   */
+  public OPT_EstimateBlockFrequencies() {}
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_EstimateBlockFrequencies");
+    }
+    return constructor;
+  }
 
   /**
    * Topological ordering (ignoring backedges) of CFG

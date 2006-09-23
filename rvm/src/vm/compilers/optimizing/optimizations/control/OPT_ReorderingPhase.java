@@ -31,6 +31,16 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
 
   private static final boolean DEBUG = false;
 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  } 
+
   public final boolean shouldPerform (OPT_Options options) {
     return options.REORDER_CODE;
   }
@@ -330,10 +340,10 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   }
       
   private static class ChainInfo {
-    OPT_BasicBlock head;
+    final OPT_BasicBlock head;
     float placedWeight;
     float inWeight;
-    HashMap outWeights = new HashMap();
+    final HashMap outWeights = new HashMap();
 
     ChainInfo(OPT_BasicBlock h) {
       head = h;
@@ -345,9 +355,9 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   }
 
   private static final class Edge implements Comparable {
-    OPT_BasicBlock source;
-    OPT_BasicBlock target;
-    float weight;
+    final OPT_BasicBlock source;
+    final OPT_BasicBlock target;
+    final float weight;
 
     Edge(OPT_BasicBlock s, OPT_BasicBlock t, float w) {
       source = s;

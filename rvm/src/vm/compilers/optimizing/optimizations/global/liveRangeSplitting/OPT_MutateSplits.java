@@ -19,6 +19,16 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 final class OPT_MutateSplits extends OPT_CompilerPhase implements OPT_Operators{
 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
+
   public final boolean shouldPerform (OPT_Options options) {
     return options.LIVE_RANGE_SPLITTING;
   }

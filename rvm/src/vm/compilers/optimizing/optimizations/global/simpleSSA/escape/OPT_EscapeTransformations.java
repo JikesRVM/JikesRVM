@@ -28,6 +28,16 @@ import com.ibm.JikesRVM.opt.ir.*;
 class OPT_EscapeTransformations extends OPT_CompilerPhase
     implements OPT_Operators {
 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
+
   public final boolean shouldPerform (OPT_Options options) {
     return  options.MONITOR_REMOVAL || options.SCALAR_REPLACE_AGGREGATES;
   }

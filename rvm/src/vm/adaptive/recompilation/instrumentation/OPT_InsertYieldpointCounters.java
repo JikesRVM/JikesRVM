@@ -26,6 +26,16 @@ class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
 
    static final boolean DEBUG = false;
 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this   
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+     return this;
+  }
+
    public final boolean shouldPerform(OPT_Options options) {
      return VM_Controller.options.INSERT_YIELDPOINT_COUNTERS;
    }

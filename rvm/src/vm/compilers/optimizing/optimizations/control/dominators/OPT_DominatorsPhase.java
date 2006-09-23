@@ -9,6 +9,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import java.lang.reflect.Constructor;
 import com.ibm.JikesRVM.opt.ir.OPT_IR;
 /**
  * Driver routine for dominator computation.  This phase invokes
@@ -27,8 +28,25 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
    * @param unfactor Should we unfactor the CFG before computing
    * dominators?
    */
-  OPT_DominatorsPhase(boolean unfactor) {
-    this.unfactor = unfactor;
+  public OPT_DominatorsPhase(boolean unfactor) {
+	 super(new Object[]{new Boolean(unfactor)});
+	 this.unfactor = unfactor;
+  }
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_DominatorsPhase", new Class[]{Boolean.TYPE});
+    }
+    return constructor;
   }
 
   /**

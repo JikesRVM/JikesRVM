@@ -13,6 +13,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import java.lang.reflect.Constructor;
 
 /**
  * As part of the expansion of HIR into LIR, this compile phase
@@ -31,6 +32,22 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  */
 public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_ExpandRuntimeServices");
+    }
+    return constructor;
+  }
 
   public boolean shouldPerform (OPT_Options options) { 
     return true; 

@@ -9,8 +9,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.*;
+import java.util.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import java.lang.reflect.Constructor;
 
 /**
  * Global code placement comes in two flavours. The first is loop
@@ -77,6 +78,15 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
    * This class sets up the IR state prior to entering SSA for GCP
    */
   private static class GCPPreparation extends OPT_CompilerPhase {
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this 
+     */
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
+      return this;
+    }
 
     /**
      * Should this phase perform?
@@ -137,6 +147,15 @@ final class OPT_GCP extends OPT_OptimizationPlanCompositeElement {
    * This class sets up the IR state prior to entering SSA for GCP
    */
   private static class GCPFinalization extends OPT_CompilerPhase {
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this 
+     */
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
+      return this;
+    }
 
     /**
      * Should this phase perform?

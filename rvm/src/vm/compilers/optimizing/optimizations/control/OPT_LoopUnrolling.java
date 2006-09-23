@@ -11,7 +11,8 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import  java.util.*;
+import java.util.*;
+import java.lang.reflect.Constructor;
 
 /*
  * Loop unrolling
@@ -30,6 +31,27 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    */
   public String getName () {
     return  "Loop Unrolling";
+  }
+
+  /**
+   * Constructor
+   */
+  public OPT_LoopUnrolling() {}
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LoopUnrolling");
+    }
+    return constructor;
   }
 
   public boolean shouldPerform (OPT_Options options) {

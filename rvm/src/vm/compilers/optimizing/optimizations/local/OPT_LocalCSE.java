@@ -12,6 +12,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
+import java.lang.reflect.Constructor;
 
 /**
  * Perform local common-subexpression elimination for a factored basic
@@ -30,10 +31,35 @@ import java.util.*;
 public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
   private final boolean isHIR;
 
-  OPT_LocalCSE(boolean isHIR) {
+  /**
+   * Constructor
+   */
+  public OPT_LocalCSE(boolean isHIR) {
+    super(new Object[]{new Boolean(isHIR)});
     this.isHIR = isHIR;
   }
 
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LocalCSE", new Class[]{Boolean.TYPE});
+    }
+    return constructor;
+  }
+
+ public final void reportAdditionalStats() {
+    VM.sysWrite("  ");
+    VM.sysWrite(container.counter1/container.counter2*100, 2);
+    VM.sysWrite("% Infrequent BBs");
+  }
   public final boolean shouldPerform (OPT_Options options) {
     return options.LOCAL_CSE;
   }
@@ -42,17 +68,11 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
     return "Local CSE";
   }
 
-  public final void reportAdditionalStats() {
-    VM.sysWrite("  ");
-    VM.sysWrite(container.counter1/container.counter2*100, 2);
-    VM.sysWrite("% Infrequent BBs");
-  }
-
-  /**
-   * Perform Local CSE for a method.
-   * 
-   * @param ir the IR to optimize
-   */
+   /**
+    * Perform Local CSE for a method.
+    * 
+    * @param ir the IR to optimize
+    */
   public final void perform (OPT_IR ir) {
     // iterate over each basic block
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; 

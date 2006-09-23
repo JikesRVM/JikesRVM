@@ -26,6 +26,16 @@ public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
     return true;
   }
 
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
+
   public final String getName() { return "AdjustBytecodeIndexes"; }
 
   public final void perform(OPT_IR ir) {

@@ -11,6 +11,7 @@ package com.ibm.JikesRVM.opt;
 
 import java.util.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import java.lang.reflect.Constructor;
 
 /**
  * This phase puts the IR in SSA form and performs a set of simple
@@ -45,6 +46,16 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
    */
   private static class FoldingDriver extends OPT_CompilerPhase {
 
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this 
+     */
+    public OPT_CompilerPhase newExecution (OPT_IR ir) {
+      return this;
+    }
+
     public final boolean shouldPerform(OPT_Options options) {
       return  options.SSA && options.EXPRESSION_FOLDING;
     }
@@ -70,12 +81,28 @@ final class OPT_SSATuneUp extends OPT_OptimizationPlanCompositeElement {
 	  * Compiler phases necessary to re-build dominators and dominance
 	  * frontier
 	  */
-	 OPT_CompilerPhase dominators, frontier;
+	 private final OPT_CompilerPhase dominators, frontier;
 
-	 TuneUpPreparation () {
+	 public TuneUpPreparation () {
 		dominators = new OPT_DominatorsPhase(true);
 		frontier = new OPT_DominanceFrontier();
 	 }
+
+    /**
+     * Constructor for this compiler phase
+     */
+    private static Constructor constructor;
+
+    /**
+     * Get a constructor object for this compiler phase
+     * @return compiler phase constructor
+     */
+    public Constructor getClassConstructor() {
+      if (constructor == null) {
+        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_SSATuneUp$TuneUpPreparation");
+      }
+      return constructor;
+    }
 
     public final boolean shouldPerform(OPT_Options options) {
       return  options.SSA;

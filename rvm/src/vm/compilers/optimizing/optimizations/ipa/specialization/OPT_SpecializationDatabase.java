@@ -36,7 +36,7 @@ public final class OPT_SpecializationDatabase {
    * Drain the queue of methods waiting for specialized code
    * generation.
    */
-  static void doDeferredSpecializations() {
+  static synchronized void doDeferredSpecializations() {
     // prevent recursive entry to this method
     if (specializationInProgress)
       return;
@@ -69,7 +69,7 @@ public final class OPT_SpecializationDatabase {
    * specialied compiled versions of the method pointed by VM_Method
    * @return null if no specialized versions
    */
-  static Iterator getSpecialVersions(VM_Method m) {
+  static synchronized Iterator getSpecialVersions(VM_Method m) {
     MethodSet s = (MethodSet)specialVersionsHash.get(m);
     if (s == null) {
       return  null;
@@ -95,7 +95,7 @@ public final class OPT_SpecializationDatabase {
    * Also remember that this method will need to be compiled later,
    * at the next call to <code> doDeferredSpecializations() </code>
    */
-  static void registerSpecialVersion(OPT_SpecializedMethod spMethod) {
+  static synchronized  void registerSpecialVersion(OPT_SpecializedMethod spMethod) {
     VM_Method source = spMethod.getMethod();
     MethodSet s = findOrCreateMethodSet(specialVersionsHash, source);
     s.add(spMethod);
