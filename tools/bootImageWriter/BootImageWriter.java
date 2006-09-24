@@ -51,6 +51,8 @@ import org.vmmagic.unboxed.*;
  *    -m <filename>            place to put bootimage map
  *    -profile                 time major phases of bootimage writing
  *    -xclasspath <path>       OBSOLETE compatibility aid
+ *    -parallelize=N           number of parallel compilation threads we should create, 0=>sequential
+ *
  * </pre>
  * @author Derek Lieber
  * @version 03 Jan 2000
@@ -62,6 +64,10 @@ import org.vmmagic.unboxed.*;
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
 
+  /**
+   * Should we try to parallelize the compilation (0 = no, >0 = yes)
+   * Values >0 give the number compilation threads we should create
+   */
   public static int parallelize = 0;
 
   /**

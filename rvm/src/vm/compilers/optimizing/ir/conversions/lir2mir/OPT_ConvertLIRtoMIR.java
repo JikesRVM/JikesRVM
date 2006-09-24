@@ -348,15 +348,9 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
     // It isn't verifiable again until after ComplexOperators completes.
     public void verify(OPT_IR ir) { }
 
-    /**
-     * BURS isn't (yet!) thread safe so each thread must synchronize on a lock
-     */
-    private static final Object BURS_lock = new Object();
-
     public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
       OPT_DefUse.recomputeSpansBasicBlock(ir);
-      synchronized(BURS_lock){
         OPT_MinimalBURS mburs = new OPT_MinimalBURS(ir);
         OPT_NormalBURS burs = new OPT_NormalBURS(ir);
         for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
@@ -403,7 +397,6 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           }
           burs.finalizeBlock(bb);
         }
-      }
     }
   }
 
