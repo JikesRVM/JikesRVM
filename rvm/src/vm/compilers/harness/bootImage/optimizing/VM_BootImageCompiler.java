@@ -179,7 +179,7 @@ public class VM_BootImageCompiler {
   }
   /**
    * Release an optimization plan
-   * @param optimization plan
+   * @param plan an optimization plan
    */
   private static void releaseOptimizationPlan(int plan) {
     synchronized(optimizationPlanLocks) {
