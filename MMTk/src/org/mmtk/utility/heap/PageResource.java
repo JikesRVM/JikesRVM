@@ -116,7 +116,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    */
   public final boolean reservePages(int pages) throws InlinePragma {
     lock();
-    reserved = committed + pages;
+    reserved = committed + adjustForMetaData(pages);
     boolean satisfied = reserved <= pageBudget;
     unlock();
     return satisfied;
@@ -124,6 +124,24 @@ abstract public class PageResource implements Constants, Uninterruptible {
 
   abstract Address allocPages(int pages);
 
+  /**
+   * Adjust a page request to include metadata requirements, if any.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @return The number of required pages, inclusive of any metadata
+   */
+  abstract public int adjustForMetaData(int pages);
+
+  /**
+   * Adjust a page request to include metadata requirements, if any.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @param begin The address of the virtual memory region assigned to this
+   * pending request
+   * @return The number of required pages, inclusive of any metadata
+   */
+  abstract public int adjustForMetaData(int pages, Address begin);
+  
   /**
    * Allocate pages in virtual memory, returning zero on failure.<p>
    * 
@@ -140,7 +158,7 @@ abstract public class PageResource implements Constants, Uninterruptible {
    */
   public final Address getNewPages(int pages) throws InlinePragma {
     Address rtn = allocPages(pages);
-    if (!rtn.isZero()) commitPages(pages);
+    if (!rtn.isZero()) commitPages(pages, rtn);
     return rtn;
   }
 
@@ -152,10 +170,11 @@ abstract public class PageResource implements Constants, Uninterruptible {
    * <code>reserved</code> while the request was pending.
    * 
    * @param pages The number of pages to be committed
+   * @param begin The start address of the allocated region
    */
-  private final void commitPages(int pages) {
+  private final void commitPages(int pages, Address begin) {
     lock();
-    committed += pages;
+    committed += adjustForMetaData(pages, begin);
     if (!Plan.gcInProgress())
       addToCommitted(pages); // only count mutator pages
     unlock();

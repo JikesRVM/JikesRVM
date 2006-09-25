@@ -372,6 +372,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   private final void installNewBlock(Address block, int sizeClass)
       throws InlinePragma {
+    BlockAllocator.setAllClientSizeClass(block, blockSizeClass[sizeClass], (byte) sizeClass);
     BlockAllocator.linkedListInsert(block, lastBlock.get(sizeClass));
     currentBlock.set(sizeClass, block);
     lastBlock.set(sizeClass, block);

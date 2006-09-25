@@ -45,6 +45,8 @@ public final class CopySpace extends Space
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
+  private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
+
   /*
    *  The forwarding process uses three states to deal with a GC race:
    *  1.      !GC_FORWARDED: Unforwarded
@@ -89,7 +91,7 @@ public final class CopySpace extends Space
       boolean fromSpace) {
     super(name, true, false, start, bytes);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -109,7 +111,7 @@ public final class CopySpace extends Space
   public CopySpace(String name, int pageBudget, int mb, boolean fromSpace) {
     super(name, true, false, mb);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -132,7 +134,7 @@ public final class CopySpace extends Space
                    boolean fromSpace) {
     super(name, true, false, frac);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -159,7 +161,7 @@ public final class CopySpace extends Space
       boolean fromSpace) {
     super(name, true, false, mb, top);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -187,7 +189,7 @@ public final class CopySpace extends Space
       boolean fromSpace) {
     super(name, true, false, frac, top);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
   
 

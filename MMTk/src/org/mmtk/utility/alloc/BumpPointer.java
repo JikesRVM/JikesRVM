@@ -65,8 +65,8 @@ public class BumpPointer extends Allocator
    */
 
   // Chunk size defines slow path periodicity.
-  private static final int LOG_DEFAULT_STEP_SIZE = 20;
-  private static final int DEFAULT_STEP_SIZE = 1<<LOG_DEFAULT_STEP_SIZE;
+  private static final int LOG_DEFAULT_STEP_SIZE = 20; // 1M: let the external slow path dominate
+  private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
   protected static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
   protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());  
 
@@ -79,6 +79,9 @@ public class BumpPointer extends Allocator
   protected static final Offset DATA_START_OFFSET = alignAllocationNoFill(
       Address.zero().plus(DATA_END_OFFSET.plus(BYTES_IN_ADDRESS)),
       MIN_ALIGNMENT, 0).toWord().toOffset();
+  protected static final Offset MAX_DATA_START_OFFSET = alignAllocationNoFill(
+      Address.zero().plus(DATA_END_OFFSET.plus(BYTES_IN_ADDRESS)),
+      MAX_ALIGNMENT, 0).toWord().toOffset();
 
   /****************************************************************************
    * 
@@ -167,18 +170,71 @@ public class BumpPointer extends Allocator
   */
   private final Address allocSlow(Address start, Address end, int align,
       int offset, boolean inGC) throws NoInlinePragma {
-    if (end.GT(limit)) {
-      return allocSlowInline(end.diff(start).toInt(), align, offset,
+    Address rtn = null;
+    Address card = null;
+    if (SUPPORT_CARD_SCANNING)
+      getCard(start.plus(CARD_MASK)); // round up
+    if (end.GT(limit)) { /* external slow path */
+      rtn = allocSlowInline(end.diff(start).toInt(), align, offset,
           inGC);
-    } else {
+      if (SUPPORT_CARD_SCANNING && card.NE(getCard(rtn.plus(CARD_MASK))))
+        card = getCard(rtn); // round down  
+    } else {             /* internal slow path */
       while (internalLimit.LE(end))
-        internalLimit = internalLimit.plus(DEFAULT_STEP_SIZE);
+        internalLimit = internalLimit.plus(STEP_SIZE);
       if (internalLimit.GT(limit))
         internalLimit = limit;
       fillAlignmentGap(cursor, start);
       cursor = end;
-      return start;
+      rtn = start;
     }
+    if (SUPPORT_CARD_SCANNING && !rtn.isZero())
+      createCardAnchor(card, rtn, end.diff(start).toInt());
+    return rtn;
+  }
+  
+  /**
+   * Given an allocation which starts a new card, create a record of
+   * where the start of the object is relative to the start of the 
+   * card. 
+   * 
+   * @param card An address that lies within the card to be marked
+   * @param start The address of an object which creates a new card.
+   * @param bytes The size of the pending allocation in bytes (used for debugging)
+   */
+  private final void createCardAnchor(Address card, Address start, int bytes) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(allowScanning);
+      VM.assertions._assert(card.EQ(getCard(card)));
+      VM.assertions._assert(start.diff(card).sLE(MAX_DATA_START_OFFSET));
+      VM.assertions._assert(start.diff(card).toInt() >= -CARD_MASK);
+    }
+    while (bytes > 0) {
+      int offset = start.diff(card).toInt();
+      getCardMetaData(card).store(offset);
+      card = card.plus(1 << LOG_CARD_BYTES);
+      bytes -= (1 << LOG_CARD_BYTES);
+    }
+  }
+
+  /**
+   * Return the start of the card corresponding to a given address.
+   * 
+   * @param address The address for which the card start is required
+   * @return The start of the card containing the address
+   */
+  private static final Address getCard(Address address) {
+    return address.toWord().and(Word.fromInt(CARD_MASK).not()).toAddress();
+  }
+  
+  /**
+   * Return the address of the metadata for a card, given the address of the card.
+   * @param card The address of some card
+   * @return The address of the metadata associated with that card
+   */
+  private static final Address getCardMetaData(Address card) {
+    Address metadata = EmbeddedMetaData.getMetaDataBase(card);
+    return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES-LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
   }
 
   /**
@@ -217,7 +273,6 @@ public class BumpPointer extends Allocator
       updateLimit(start.plus(chunkSize), start, bytes);
     } else                // scannable allocator
       updateMetaData(start, chunkSize, bytes);
-
     return alloc(bytes, align, offset, inGC);
   }
 
@@ -232,12 +287,12 @@ public class BumpPointer extends Allocator
   protected final void updateLimit(Address newLimit, Address start, int bytes)
       throws InlinePragma {
     limit = newLimit;
-    internalLimit = start.plus(DEFAULT_STEP_SIZE);
+    internalLimit = start.plus(STEP_SIZE);
     if (internalLimit.GT(limit))
       internalLimit = limit;
     else {
       while (internalLimit.LT(cursor.plus(bytes)))
-        internalLimit = internalLimit.plus(DEFAULT_STEP_SIZE);
+        internalLimit = internalLimit.plus(STEP_SIZE);
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(internalLimit.LE(limit));
     }

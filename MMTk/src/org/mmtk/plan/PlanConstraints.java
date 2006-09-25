@@ -38,7 +38,7 @@ public abstract class PlanConstraints implements Uninterruptible {
   public boolean needsStaticReadBarrier() { return false; }
 
   /** @return True if this Plan requires linear scanning. */
-  public boolean needsLinearScan() { return false;}
+  public boolean needsLinearScan() { return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;}
 
   /** @return True if this Plan does not support parallel collection. */
   public boolean noParallelGC() { return false;}

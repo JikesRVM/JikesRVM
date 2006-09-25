@@ -41,6 +41,7 @@ public final class ImmortalSpace extends Space
    * Class variables
    */
   static final Word GC_MARK_BIT_MASK = Word.one();
+  private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
 
   /****************************************************************************
    * 
@@ -67,7 +68,7 @@ public final class ImmortalSpace extends Space
   public ImmortalSpace(String name, int pageBudget, Address start,
                        Extent bytes) {
     super(name, false, true, start, bytes);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -84,7 +85,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, int mb) {
     super(name, false, true, mb);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -103,7 +104,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, float frac) {
     super(name, false, true, frac);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -126,7 +127,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, int mb, boolean top) {
     super(name, false, true, mb, top);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -150,7 +151,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, float frac, boolean top) {
     super(name, false, true, frac, top);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /** @return the current mark state */

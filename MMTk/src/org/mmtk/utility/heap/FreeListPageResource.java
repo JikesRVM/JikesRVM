@@ -164,7 +164,6 @@ public final class FreeListPageResource extends PageResource
     unlock();
   }
 
-
   /**
    * Reserve virtual address space for meta-data.
    * 
@@ -185,6 +184,28 @@ public final class FreeListPageResource extends PageResource
     }
   }
 
+  /**
+   * Adjust a page request to include metadata requirements, if any.  In the
+   * case of a free-list allocator, meta-data is pre-allocated, so simply
+   * return the un-adjusted request size.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @return The (unadjusted) request size, since metadata is pre-allocated
+   */
+  public final int adjustForMetaData(int pages) { return pages; }
+  
+  /**
+   * Adjust a page request to include metadata requirements, if any.  In the
+   * case of a free-list allocator, meta-data is pre-allocated, so simply
+   * return the un-adjusted request size.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @param begin The start of the region of memory assigned to this pending
+   * allocation
+   * @return The (unadjusted) request size, since metadata is pre-allocated
+   */
+  public final int adjustForMetaData(int pages, Address begin) { return pages; }
+  
   final int pages(Address first) throws InlinePragma {
     return freeList.size(Conversions.bytesToPages(first.diff(start)));
   }

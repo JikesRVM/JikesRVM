@@ -68,7 +68,7 @@ public final class MarkCompactSpace extends Space
    */
   public MarkCompactSpace(String name, int pageBudget, float frac) {
     super(name, true, false, frac);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, 0);
   }
 
   /**
