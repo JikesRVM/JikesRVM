@@ -19,11 +19,11 @@ import com.ibm.JikesRVM.classloader.VM_Type;
 public class BootImageWorker extends Thread {
 
   public static final int verbose = 0;
-  static Enumeration enum;
+  static Enumeration enumeration;
   int id;
 
   public static void startup (Enumeration e) {
-    enum = e;
+    enumeration = e;
   }
 
   public void run () {
@@ -31,9 +31,9 @@ public class BootImageWorker extends Thread {
     int count = 0;
     while (true) {
       VM_Type type = null;
-      synchronized (enum) {
-        if (enum.hasMoreElements()) {
-          type = (VM_Type) enum.nextElement();
+      synchronized (enumeration) {
+        if (enumeration.hasMoreElements()) {
+          type = (VM_Type) enumeration.nextElement();
           count++;
         }
       }
