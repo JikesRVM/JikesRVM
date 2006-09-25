@@ -3293,8 +3293,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadChar ||
-          methodName == VM_MagicNames.loadShort) {
+      if (methodName == VM_MagicNames.loadChar) {
 
         if (types.length == 0) {
           popToRegister(OBJECT_TYPE, T0);                  // pop base
@@ -3304,6 +3303,21 @@ public class VM_QuickCompiler extends VM_CompilerFramework
           popToRegister(WORD_TYPE, T1);                   // pop offset
           popToRegister(OBJECT_TYPE, T0);                  // pop base
           asm.emitLHZX(T0, T1, T0);     // load with zero extension.
+          pushFromRegister(WORD_TYPE, T0);                  // push *(base+offset) 
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadShort) {
+
+        if (types.length == 0) {
+          popToRegister(OBJECT_TYPE, T0);                  // pop base
+          asm.emitLHA(T0, 0, T0);       // load with sign extension.
+          pushFromRegister(WORD_TYPE, T0);                  // push *(base) 
+        } else {
+          popToRegister(WORD_TYPE, T1);                   // pop offset
+          popToRegister(OBJECT_TYPE, T0);                  // pop base
+          asm.emitLHAX(T0, T1, T0);     // load with sign extension.
           pushFromRegister(WORD_TYPE, T0);                  // push *(base+offset) 
         }
         return true;

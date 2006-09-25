@@ -3508,8 +3508,7 @@ public class VM_Compiler extends VM_BaselineCompiler
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadChar ||
-          methodName == VM_MagicNames.loadShort) {
+      if (methodName == VM_MagicNames.loadChar) {
 
         if (types.length == 0) {
           popAddr(T0);                  // pop base
@@ -3519,6 +3518,21 @@ public class VM_Compiler extends VM_BaselineCompiler
           popInt(T1);                   // pop offset
           popAddr(T0);                  // pop base
           asm.emitLHZX(T0, T1, T0);     // load with zero extension.
+          pushInt(T0);                  // push *(base+offset) 
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadShort) {
+
+        if (types.length == 0) {
+          popAddr(T0);                  // pop base
+          asm.emitLHA(T0, 0, T0);       // load with sign extension.
+          pushInt(T0);                  // push *(base) 
+        } else {
+          popInt(T1);                   // pop offset
+          popAddr(T0);                  // pop base
+          asm.emitLHAX(T0, T1, T0);     // load with sign extension.
           pushInt(T0);                  // push *(base+offset) 
         }
         return true;

@@ -2930,8 +2930,23 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadShort ||
-          methodName == VM_MagicNames.loadChar) {
+      if (methodName == VM_MagicNames.loadShort) {
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVSX_Reg_RegInd_Word(T0, T0);
+          asm.emitPUSH_Reg (T0);
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend word [T0+S0]
+          asm.emitPUSH_Reg (T0);
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadChar) {
 
         if (types.length == 0) {
           // No offset
