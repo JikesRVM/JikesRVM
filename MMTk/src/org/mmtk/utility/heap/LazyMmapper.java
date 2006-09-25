@@ -52,7 +52,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
       lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
         lock.check(101);
-        int errno = VM.memory.mmap(mmapStart, MMAP_CHUNK_SIZE);
+        int errno = VM.memory.dzmmap(mmapStart, MMAP_CHUNK_SIZE);
         lock.check(102);
         if (errno != 0) {
           lock.release();

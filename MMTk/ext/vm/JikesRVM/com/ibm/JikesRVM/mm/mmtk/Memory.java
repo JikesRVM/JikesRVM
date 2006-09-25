@@ -103,19 +103,17 @@ public class Memory extends org.mmtk.vm.Memory
   }
 
  /**
-   * Maps an area of virtual memory.
+   * Demand zero mmaps an area of virtual memory.
    *
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return 0 if successful, otherwise the system errno
    */
-  public final int mmap(Address start, int size) {
-    Address result = VM_Memory.mmap(start, Extent.fromIntZeroExtend(size),
-                                       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
-                                       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
+  public final int dzmmap(Address start, int size) {
+    Address result = VM_Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
     if (result.EQ(start)) return 0;
     if (result.GT(Address.fromIntZeroExtend(127))) {
-      VM.sysWrite("mmap with MAP_FIXED on ", start);
+      VM.sysWrite("demand zero mmap with MAP_FIXED on ", start);
       VM.sysWriteln(" returned some other address", result);
       VM.sysFail("mmap with MAP_FIXED has unexpected behavior");
     }

@@ -77,13 +77,13 @@ public abstract class Memory implements Uninterruptible
   public abstract void setHeapRange(int id, Address start, Address end);
   
   /**
-   * Maps an area of virtual memory.
+   * Demand zero mmaps an area of virtual memory.
    * 
    * @param start the address of the start of the area to be mapped
    * @param size the size, in bytes, of the area to be mapped
    * @return 0 if successful, otherwise the system errno
    */
-  public abstract int mmap(Address start, int size);
+  public abstract int dzmmap(Address start, int size);
   
   /**
    * Protects access to an area of virtual memory.
