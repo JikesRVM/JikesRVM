@@ -31,6 +31,7 @@ public final class Options {
   public static DebugAddress debugAddress;
   public static DummyEnum dummyEnum;
   public static EagerCompleteSweep eagerCompleteSweep;
+  public static EagerMmapSpaces eagerMmapSpaces;
   public static FixedNursery fixedNursery;
   public static FragmentationStats fragmentationStats;
   public static FullHeapSystemGC fullHeapSystemGC;

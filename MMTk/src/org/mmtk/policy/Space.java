@@ -11,8 +11,10 @@ package org.mmtk.policy;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.Map;
+import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.heap.PageResource;
 import org.mmtk.utility.heap.SpaceDescriptor;
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 
@@ -505,6 +507,28 @@ public abstract class Space implements Constants, Uninterruptible {
       Log.write(space.name); Log.write(" ");
       Log.write(space.start); Log.write("->");
       Log.writeln(space.start.plus(space.extent.minus(1)));
+    }
+  }
+   
+  /**
+   * Ensure that all MMTk spaces (all spaces aside from the VM space)
+   * are mapped. Demand zero map all of them if they are not already
+   * mapped.
+   */
+  public static void eagerlyMmapMMTkSpaces() throws InterruptiblePragma {
+    for (int i = 0; i < spaceCount; i++) {
+      Space space = spaces[i];
+      if (space != VM.memory.getVMSpace()) {
+        if (Options.verbose.getValue() > 2) {
+          Log.write("Mapping ");
+          Log.write(space.name);
+          Log.write(" ");
+          Log.write(space.start);
+          Log.write("->");
+          Log.writeln(space.start.plus(space.extent.minus(1)));
+        }
+        Mmapper.ensureMapped(space.start, space.extent.toInt()>>LOG_BYTES_IN_PAGE);
+      }
     }
   }
 

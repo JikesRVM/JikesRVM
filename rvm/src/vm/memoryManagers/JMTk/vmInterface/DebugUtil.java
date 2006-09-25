@@ -12,7 +12,7 @@
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.heap.LazyMmapper;
+import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.Memory;
 
@@ -149,7 +149,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
 
   public static boolean mappedVMRef(ObjectReference ref)
     throws UninterruptiblePragma {
-    return Space.isMappedObject(ref) && LazyMmapper.objectIsMapped(ref);
+    return Space.isMappedObject(ref) && Mmapper.objectIsMapped(ref);
   }
 
   public static void dumpRef(ObjectReference ref) throws UninterruptiblePragma {

@@ -131,7 +131,7 @@ public final class MonotonePageResource extends PageResource
       Address old = cursor;
       cursor = tmp;
       unlock();
-      LazyMmapper.ensureMapped(old, pages);
+      Mmapper.ensureMapped(old, pages);
       VM.memory.zero(old, bytes);
       return rtn;
     }
@@ -244,6 +244,6 @@ public final class MonotonePageResource extends PageResource
     if (ZERO_ON_RELEASE)
       VM.memory.zero(first, bytes);
     if (Options.protectOnRelease.getValue())
-      LazyMmapper.protect(first, pages);
+      Mmapper.protect(first, pages);
   }
 }

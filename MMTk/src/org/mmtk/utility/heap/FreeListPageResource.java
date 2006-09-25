@@ -126,7 +126,7 @@ public final class FreeListPageResource extends PageResource
         }
       }
       Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
-      LazyMmapper.ensureMapped(rtn, pages);
+      Mmapper.ensureMapped(rtn, pages);
       VM.memory.zero(rtn, Conversions.pagesToBytes(pages));
       unlock();
       return rtn;

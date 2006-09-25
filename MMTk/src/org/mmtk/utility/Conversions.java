@@ -57,7 +57,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   public static int bytesToMmapChunksUp(Extent bytes) {
-    return bytes.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toInt();
+    return bytes.plus(Mmapper.MMAP_CHUNK_BYTES - 1).toWord().rshl(Mmapper.LOG_MMAP_CHUNK_BYTES).toInt();
   }
 
   public static int pagesToMmapChunksUp(int pages) {
@@ -65,7 +65,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   public static int addressToMmapChunksDown(Address addr) {
-    Word chunk = addr.toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
+    Word chunk = addr.toWord().rshl(Mmapper.LOG_MMAP_CHUNK_BYTES);
     return chunk.toInt();
   }
 
@@ -85,7 +85,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   public static int addressToMmapChunksUp(Address addr) {
-    Word chunk = addr.plus(LazyMmapper.MMAP_CHUNK_SIZE - 1).toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
+    Word chunk = addr.plus(Mmapper.MMAP_CHUNK_BYTES - 1).toWord().rshl(Mmapper.LOG_MMAP_CHUNK_BYTES);
     return chunk.toInt();
   }
 
@@ -137,7 +137,7 @@ public class Conversions implements Constants, Uninterruptible {
   }
 
   public static Address mmapChunksToAddress(int chunk) {
-    return Word.fromIntZeroExtend(chunk).lsh(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toAddress();
+    return Word.fromIntZeroExtend(chunk).lsh(Mmapper.LOG_MMAP_CHUNK_BYTES).toAddress();
   }
 
   public static Address pageAlign(Address address) {

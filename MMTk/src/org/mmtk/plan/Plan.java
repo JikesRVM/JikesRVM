@@ -157,6 +157,7 @@ public abstract class Plan implements Uninterruptible, Constants {
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
     Options.variableSizeHeap = new VariableSizeHeap();
+    Options.eagerMmapSpaces = new EagerMmapSpaces();
     Options.sanityCheck = new SanityCheck();
     Options.debugAddress = new DebugAddress();
   }
@@ -184,6 +185,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   public void postBoot() throws InterruptiblePragma {
     if (Options.verbose.getValue() > 2) Space.printVMMap();
     if (Options.verbose.getValue() > 0) Stats.startAll();
+    if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
   }
 
   /**
