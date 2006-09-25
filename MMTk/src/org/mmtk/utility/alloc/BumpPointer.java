@@ -173,7 +173,7 @@ public class BumpPointer extends Allocator
     Address rtn = null;
     Address card = null;
     if (SUPPORT_CARD_SCANNING)
-      getCard(start.plus(CARD_MASK)); // round up
+      card = getCard(start.plus(CARD_MASK)); // round up
     if (end.GT(limit)) { /* external slow path */
       rtn = allocSlowInline(end.diff(start).toInt(), align, offset,
           inGC);
