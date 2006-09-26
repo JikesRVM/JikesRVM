@@ -622,6 +622,13 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
   }
 
 
+  /** 
+   * Enumerate the nonvolatile GPRs backwards.
+   */
+  public Enumeration enumerateNonvolatileGPRsBackwards() {
+    return new OPT_ReverseEnumerator(enumerateNonvolatileGPRs());
+  }
+
   /**
    * Enumerate all the volatile FPRs in this set.
    * NOTE: This assumes the scratch FPRs are numbered immediately 

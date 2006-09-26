@@ -809,8 +809,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         return p;
       }
     }
-    // next try the non-volatiles
-    for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+    // next try the non-volatiles. We allocate the nonvolatiles backwards
+    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
          e.hasMoreElements(); ) {
       OPT_Register p = (OPT_Register)e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p) && 
@@ -843,8 +843,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
     }
-    // next try the non-volatiles
-    for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+    // next try the non-volatiles. We allocate the nonvolatiles backwards
+    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
          e.hasMoreElements(); ) {
       OPT_Register p = (OPT_Register)e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {

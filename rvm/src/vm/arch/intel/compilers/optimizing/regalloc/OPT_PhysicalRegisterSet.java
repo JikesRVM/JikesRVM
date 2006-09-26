@@ -507,6 +507,14 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
       r[i] = getGPR(NONVOLATILE_GPRS[i]);
     return new PhysicalRegisterEnumeration(r);
   }
+
+  /** 
+   * Enumerate the nonvolatile GPRS backwards
+   */
+  public Enumeration enumerateNonvolatileGPRsBackwards() {
+    return new OPT_ReverseEnumerator(enumerateNonvolatileGPRs());
+  }
+
   /**
    * Enumerate all the volatile FPRs in this set.
    */
