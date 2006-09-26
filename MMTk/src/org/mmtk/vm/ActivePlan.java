@@ -41,12 +41,23 @@ public abstract class ActivePlan implements Uninterruptible {
   public abstract MutatorContext mutator();
 
   /**
-   * Return the <code>MutatorContext</code> instance given it's unique identifier.
+   * Return the <code>CollectorContext</code> instance given its unique identifier.
+   * 
+   * @param id The identifier of the <code>CollectorContext</code>  to return
+   * @return The specified <code>CollectorContext</code>
+   */
+  public abstract CollectorContext collector(int id);
+
+  /**
+   * Return the <code>MutatorContext</code> instance given its unique identifier.
    * 
    * @param id The identifier of the <code>MutatorContext</code>  to return
    * @return The specified <code>MutatorContext</code>
    */
   public abstract MutatorContext mutator(int id);
+
+  /** @return The number of registered <code>CollectorContext</code> instances. */
+  public abstract int collectorCount();
 
   /** @return The number of registered <code>MutatorContext</code> instances. */
   public abstract int mutatorCount();
