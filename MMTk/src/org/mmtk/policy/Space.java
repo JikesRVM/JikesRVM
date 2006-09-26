@@ -357,7 +357,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   public static final boolean isMappedObject(ObjectReference object)
       throws InlinePragma {
-    return !object.isNull() && (getSpaceForObject(object) != null);
+    return !object.isNull() && (getSpaceForObject(object) != null) && Mmapper.objectIsMapped(object);
   }
 
   /**
@@ -368,7 +368,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   public static final boolean isMappedAddress(Address address)
       throws InlinePragma {
-    return Map.getSpaceForAddress(address) != null;
+    return Map.getSpaceForAddress(address) != null && Mmapper.addressIsMapped(address);
   }
 
   /**
