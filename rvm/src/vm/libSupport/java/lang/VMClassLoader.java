@@ -12,17 +12,13 @@ package java.lang;
 
 import gnu.classpath.Configuration;
 import gnu.classpath.SystemProperties;
-//-#if !RVM_WITH_CLASSPATH_0_90
 import gnu.java.lang.InstrumentationImpl;
-//-#endif
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-//-#if !RVM_WITH_CLASSPATH_0_90
 import java.lang.instrument.Instrumentation;
-//-#endif
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.ProtectionDomain;
@@ -62,7 +58,6 @@ final class VMClassLoader
 
   private static final VM_HashMap bootjars = new VM_HashMap();
     
-  //-#if !RVM_WITH_CLASSPATH_0_90
   static
   {
     String[] packages = getBootPackages();
@@ -94,7 +89,6 @@ final class VMClassLoader
           }
       }
   }
-  //-#endif
   
   static final Class defineClass(ClassLoader cl, String name,
                                  byte[] data, int offset, int len,
@@ -227,8 +221,6 @@ final class VMClassLoader
   static Package getPackage(String name) {
     return (Package)definedPackages.get(name);
   }
-
-
   
   static Package[] getPackages() {
     Package[] packages = new Package[definedPackages.size()];
@@ -298,7 +290,6 @@ final class VMClassLoader
     return (Class)mapForCL.get(name);
   }
 
-  //-#if !RVM_WITH_CLASSPATH_0_90
   static final Instrumentation instrumenter = null;
   static final Class defineClassWithTransformers(ClassLoader loader, String name, byte[] data,
                                                  int offset, int len, ProtectionDomain pd) {
@@ -314,5 +305,4 @@ final class VMClassLoader
       return defineClass(loader, name, data, offset, len, pd);
     }
   }
-  //-#endif
 }
