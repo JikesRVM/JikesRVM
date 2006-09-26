@@ -8,7 +8,7 @@ on October 14, 2001,
 
 *Jikes RVM 2.4.6 Release Notes (future)
 ** Highlights
-*** The recommended version of GNU classpath for Jikes RVM 2.4.5 is 0.92.
+*** The recommended version of GNU classpath for Jikes RVM 2.4.6 is 0.92.
     Earlier versions of GNU classpath are not supported.
 
 *** A large scale restructuring of the source tree was performed 
