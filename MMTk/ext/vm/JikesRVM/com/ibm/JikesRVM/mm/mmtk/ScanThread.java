@@ -267,10 +267,14 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     if (processCodeLocations && thread.hardwareExceptionRegisters.inuse) {
       Address ip = thread.hardwareExceptionRegisters.ip;
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
-      if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
+      if (VM.VerifyAssertions) {
+        VM._assert(compiledMethod != null);
+        VM._assert(compiledMethod.containsReturnAddress(ip));
+      }
       compiledMethod.setObsolete(false);
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
       Address ipLoc = thread.hardwareExceptionRegisters.getIPLocation();
+      if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
       codeLocationsPush(code, ipLoc);
     }
   }

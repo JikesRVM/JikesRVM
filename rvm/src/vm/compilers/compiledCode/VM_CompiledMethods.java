@@ -132,8 +132,8 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       if (compiledMethod == null || !compiledMethod.isCompiled())
         continue; // empty slot
 
-      if (compiledMethod.containsReturnAddress(ip)) return compiledMethod;
-      return compiledMethod;
+      if (compiledMethod.containsReturnAddress(ip))
+	return compiledMethod;
     }
 
     return null;
