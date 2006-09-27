@@ -1027,7 +1027,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    */
   public static boolean mightBeTIB(ObjectReference obj)
     throws InlinePragma, UninterruptiblePragma {
-    return !obj.isNull() && Space.isImmortal(obj);
+    return !obj.isNull() && Space.isMappedObject(obj) && Space.isImmortal(obj)
+      && Space.isMappedObject(ObjectReference.fromObject(VM_ObjectModel.getTIB(obj)));
   }
 
   /**

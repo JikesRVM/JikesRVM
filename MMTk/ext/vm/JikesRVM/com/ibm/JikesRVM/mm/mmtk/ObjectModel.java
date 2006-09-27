@@ -109,6 +109,22 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel implements Consta
     mmType.profileCopy(bytes);
     return to;
   }
+  
+  /**
+   * Return the size of a given object, in bytes
+   * 
+   * @param object The object whose size is being queried
+   * @return The size (in bytes) of the given object.
+   */
+  static int getObjectSize(ObjectReference object) {
+    Object[] tib = VM_ObjectModel.getTIB(object);
+    VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    
+    if (type.isClassType())
+      return VM_ObjectModel.bytesRequiredWhenCopied(object, type.asClass());
+    else
+      return VM_ObjectModel.bytesRequiredWhenCopied(object, type.asArray(), VM_Magic.getArrayLength(object));
+  }
 
   /**
    * Copy an object to be pointer to by the to address. This is required 

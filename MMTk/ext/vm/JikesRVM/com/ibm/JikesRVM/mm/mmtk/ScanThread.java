@@ -287,8 +287,9 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     if (VALIDATE_REFS) {
       Address ip = ipLoc.loadAddress();
       Offset offset = ip.diff(code.toAddress());
+
       if (offset.sLT(Offset.zero()) ||
-          offset.sGT(Offset.fromIntZeroExtend(1<<24))) {
+          offset.sGT(Offset.fromIntZeroExtend(ObjectModel.getObjectSize(code)))) {
         Log.writeln("ERROR: Suspiciously large offset of interior pointer from object base");
         Log.write("       object base = "); Log.writeln(code);
         Log.write("       interior reference = "); Log.writeln(ip);
@@ -467,9 +468,9 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
         Log.writeln(thread.contextRegisters.getIPLocation().loadAddress());
       }
       /* skip native code, as it is not (cannot be) moved */
-      if (compiledMethodType != VM_CompiledMethod.JNI) {
+      if (compiledMethodType != VM_CompiledMethod.JNI)
         codeLocationsPush(code, initialIPLoc);
-      } else if (verbosity >=3) {
+      else if (verbosity >=3) {
         Log.writeln("GC Warning: SKIPPING return address for JNI code");
       }
     } else {  /* below top of stack: IP is return address, in prev frame */
@@ -687,10 +688,11 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     for (Address loc = start; loc.LT(end); loc = loc.plus(BYTES_IN_ADDRESS)) {
       Log.write(loc); Log.write(" (");
       Log.write(loc.diff(start));
-      ObjectReference value = loc.loadObjectReference();
       Log.write("):   ");
+      ObjectReference value = loc.loadObjectReference();
       Log.write(value);
       Log.write(" ");
+      Log.flush();
       if (verbosity >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end) )
         MM_Interface.dumpRef(value);
       else
