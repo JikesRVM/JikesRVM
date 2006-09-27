@@ -332,7 +332,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * address (all blocks on a given page are homogeneous with respect
    * to block size class).
    * 
-   * @param address The address of interest
+   * @param block The address of interest
    * @param sc The value to which this field is to be set
    */
   private static final void setBlkSizeMetaData(Address block, byte sc)
@@ -387,7 +387,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * address (all blocks on a given page are homogeneous with respect
    * to block size class).
    * 
-   * @param address The address of interest
+   * @param block The address of interest
    * @param sc The value to which this field is to be set
    */
   public static final void setAllClientSizeClass(Address block, int blocksc, byte sc)

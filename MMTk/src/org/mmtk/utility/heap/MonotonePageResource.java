@@ -99,7 +99,7 @@ public final class MonotonePageResource extends PageResource
    * mmpapped and zeroed before returning the address of the start of
    * the region.  If the request cannot be satisified, return zero.
    *
-   * @param pages The number of pages to be allocated.
+   * @param requestPages The number of pages to be allocated.
    * @return The start of the first page if successful, zero on
    * failure.
    */

@@ -221,10 +221,10 @@ public final class Mmapper implements Constants, Uninterruptible {
   }
 
   /**
-   * Return true if the given address has been mmapped
+   * Return true if the given object has been mmapped
    * 
-   * @param addr The address in question.
-   * @return true if the given address has been mmapped
+   * @param object The object in question.
+   * @return true if the given object has been mmapped
    */
   public static boolean objectIsMapped(ObjectReference object)
       throws UninterruptiblePragma {
