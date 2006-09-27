@@ -2993,6 +2993,9 @@ EOF
 		run touch jksvm.jar
 	        \$FIND com -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
 	        \$FIND org -name '*.class' | \$XARGS $JAR_STR -u0f jksvm.jar
+		if [[ -f OptTestHarness.java ]]; then
+		    run $JAR_STR -u0f jksvm.jar OptTestHarness*.class
+		fi
 	    fi
 	    close_paren 'jksvm.jar built'
 
