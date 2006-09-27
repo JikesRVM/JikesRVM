@@ -5390,7 +5390,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
     if (traceJNI) VM.sysWrite("JNI called: GetJavaVM \n");
     try {
       if (traceJNI) VM.sysWriteln(StarStarJavaVM);
-      Address JavaVM = VM_JNIJavaVM.getJavaVM();
+      Address JavaVM = VM_BootRecord.the_boot_record.sysJavaVM;
       StarStarJavaVM.store(JavaVM);
 
       return 0;

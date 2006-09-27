@@ -8,8 +8,9 @@
  */
 //$Id$
 
-import java.util.Hashtable;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import com.ibm.JikesRVM.*;
 
 import org.vmmagic.unboxed.*;
@@ -40,13 +41,13 @@ public class BootImageMap extends BootImageWriterMessages
   private static final Entry nullEntry;
 
   /**
-	* Unique ID value
-	*/
+   * Unique ID value
+   */
   private static int idGenerator;
 
   /**
-	* Create unique ID number
-	*/
+   * Create unique ID number
+   */
   private static Address newId() {
       return Address.fromIntZeroExtend(idGenerator++);
   }
@@ -57,7 +58,7 @@ public class BootImageMap extends BootImageWriterMessages
   static {
     keyToEntry      =  new Hashtable(5000);
     objectIdToEntry =  new ArrayList(5000);
-	 idGenerator = 0;
+    idGenerator = 0;
     // predefine "null" object
     nullEntry = new Entry(newId(), null, Address.zero());
     // slot 0 reserved for "null" object entry
@@ -174,6 +175,13 @@ public class BootImageMap extends BootImageWriterMessages
       }
     }
     return mapEntry.imageAddress;
+  }
+
+  /**
+   * @return enumeration of all the entries
+   */
+  public static Enumeration elements() {
+    return keyToEntry.elements();
   }
 }
 

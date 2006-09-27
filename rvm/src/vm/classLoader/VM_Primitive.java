@@ -153,9 +153,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
         stackWords = 1;
         name = tr.getName();
       } else {
-        if (VM.VerifyAssertions) VM._assert(false);
-        stackWords = -1;
-        name = null;
+        throw new Error("Unknown primitive type " + tr.getName());
       }
     }
 

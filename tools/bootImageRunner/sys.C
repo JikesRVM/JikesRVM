@@ -33,7 +33,7 @@ extern "C" int sched_yield(void);
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>		// getenv() and others
+#include <stdlib.h>      // getenv() and others
 #include <unistd.h>
 #include <string.h>
 #include <dirent.h>
@@ -104,8 +104,6 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #define NEED_EXIT_STATUS_CODES
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
-#include "../../include/jni.h"                // For the jlong type.
-
 #include "pthread-wrappers.h"
 
 #if !defined(RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS)
@@ -257,16 +255,16 @@ sysArg(int argno, char *buf, int buflen)
     per-process environment.)   Used, indirectly, by VMSystem.getenv()
 
     Taken:    VARNAME, name of the envar we want.
-	      BUF, a buffer in which to place the value of that envar
+         BUF, a buffer in which to place the value of that envar
               LIMIT, the size of BUF
 
     Returned: See the convention documented in loadResultBuf().
-	      
-	      0: A return value of 0 indicates that the envar was set with a
-	      zero-length value.   (Distinguised from unset, see below)
+         
+         0: A return value of 0 indicates that the envar was set with a
+         zero-length value.   (Distinguised from unset, see below)
 
-	      -2: Indicates that the envar was unset.  This is distinguished
-		  from a zero-length value (see above).
+         -2: Indicates that the envar was unset.  This is distinguished
+        from a zero-length value (see above).
 */
 extern "C" int
 sysGetenv(const char *varName, char *buf, int limit)
@@ -274,8 +272,8 @@ sysGetenv(const char *varName, char *buf, int limit)
     return loadResultBuf(buf, limit, getenv(varName));
 }
 
-	      
-	      
+         
+         
 /* Copy SRC, a null-terminated string or a NULL pointer, into DEST, a buffer
  * with LIMIT characters capacity.   This is a helper function used by
  * sysGetEnv() and, later on, to be used by other functions returning strings
@@ -304,14 +302,14 @@ sysGetenv(const char *varName, char *buf, int limit)
 static int
 loadResultBuf(char * dest, int limit, const char *src)
 {
-    if ( ! src )			// Is it set?
-	return -2;		// Tell caller it was unset.
+    if ( ! src )         // Is it set?
+   return -2;      // Tell caller it was unset.
 
     for (int i = 0;; ++i) {
-	if ( i < limit ) // If there's room for the next char of the value ... 
-	    dest[i] = src[i];	// ... write it into the destination buffer.
-	if (src[i] == '\0')
-	    return i;		// done, return # of chars needed for SRC
+   if ( i < limit ) // If there's room for the next char of the value ... 
+       dest[i] = src[i];   // ... write it into the destination buffer.
+   if (src[i] == '\0')
+       return i;      // done, return # of chars needed for SRC
     }
 }
 
@@ -2202,25 +2200,25 @@ extern "C" float
 sysPrimitiveParseFloat(const char * buf)
 {
     if (! buf[0] ) {
-	fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
-		" argument that is supposed to be a"
-		" floating-point number\n", Me);
+   fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+      " argument that is supposed to be a"
+      " floating-point number\n", Me);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
-    char *end;			// This prototype is kinda broken.  It really
-				// should be char *.  But isn't.
+    char *end;         // This prototype is kinda broken.  It really
+            // should be char *.  But isn't.
     errno = 0;
     float f = (float)strtod(buf, &end);
     if (errno) {
-	fprintf(SysErrorFile, "%s: Trouble while converting the"
-		" command-line argument \"%s\" to a"
-		" floating-point number: %s\n", Me, buf, strerror(errno));
-	exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+   fprintf(SysErrorFile, "%s: Trouble while converting the"
+      " command-line argument \"%s\" to a"
+      " floating-point number: %s\n", Me, buf, strerror(errno));
+   exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (*end != '\0') {
         fprintf(SysErrorFile, "%s: Got a command-line argument that"
-		" is supposed to be a floating-point value,"
-		" but isn't: %s\n", Me, buf);
+      " is supposed to be a floating-point value,"
+      " but isn't: %s\n", Me, buf);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     return f;
@@ -2236,18 +2234,18 @@ extern "C" int
 sysPrimitiveParseInt(const char * buf)
 {
     if (! buf[0] ) {
-	fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
-		" argument that is supposed to be an integer\n", Me);
+   fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+      " argument that is supposed to be an integer\n", Me);
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     char *end;
     errno = 0;
     long l = strtol(buf, &end, 0);
     if (errno) {
-	fprintf(SysErrorFile, "%s: Trouble while converting the"
-		" command-line argument \"%s\" to an integer: %s\n",
-		Me, buf, strerror(errno));
-	exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+   fprintf(SysErrorFile, "%s: Trouble while converting the"
+      " command-line argument \"%s\" to an integer: %s\n",
+      Me, buf, strerror(errno));
+   exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (*end != '\0') {
         fprintf(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but isn't: %s\n", Me, buf);
@@ -2502,17 +2500,17 @@ sysMMap(char *start , size_t length ,
 
 extern "C" void *
 sysMMapErrno(char *start , size_t length ,
-	     int protection , int flags ,
-	     int fd , VM_Offset offset)
+        int protection , int flags ,
+        int fd , VM_Offset offset)
 {
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
     fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %ld) failed with %d: ",
-	    (VM_Address) start, (unsigned) length, protection, flags, fd, offset, errno);
+       (VM_Address) start, (unsigned) length, protection, flags, fd, offset, errno);
 #else
     fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
-	    (VM_Address) start, (unsigned) length, protection, flags, errno);
+       (VM_Address) start, (unsigned) length, protection, flags, errno);
 #endif          
     return (void *) errno;
   }else{
@@ -3472,7 +3470,7 @@ gcspyDriverEndOutput (gcspy_gc_driver_t *driver) {
   int len;
   if (GCSPY_TRACE) {
     fprintf(SysTraceFile, "gcspyDriverEndOutput: driver=%x, len=%d, written=%d\n", 
-	                  driver, stream_len, stream_count);
+                     driver, stream_len, stream_count);
     stream_count = 0;
     /*??*/
     gcspy_buffered_output_t *output =
@@ -3492,10 +3490,10 @@ gcspyDriverInit (gcspy_gc_driver_t *driver, int id, char *serverName, char *driv
     fprintf(SysTraceFile, "gcspyDriverInit: driver=%x, id=%d, server=%s, driver=%s, title=%s, blockInfo=%s, %d tiles, used=%s, mainSpace=%d\n", 
                    driver, id, serverName, driverName, 
                    title, blockInfo, tileNum,
-		   unused, mainSpace);
+         unused, mainSpace);
   gcspy_driverInit(driver, id, serverName, driverName, 
                    title, blockInfo, tileNum,
-		   unused, mainSpace);
+         unused, mainSpace);
 }
 
 extern "C" void
@@ -3690,7 +3688,7 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
     fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
   pthread_t tid;
   int res = pthread_create(&tid, NULL, 
-		       (pthread_start_routine_t) loop,  server);
+             (pthread_start_routine_t) loop,  server);
   if (res != 0) {
       fprintf(SysErrorFile,"Couldn't create thread.\n");
       exit(EXIT_STATUS_MISC_TROUBLE);
@@ -3716,12 +3714,12 @@ gcspyStreamInit (gcspy_gc_stream_t *stream, int id, int dataType, char *streamNa
     fprintf(SysTraceFile, "gcspyStreamInit: stream=%x, id=%d, dataType=%d, name=\"%s\", min=%d, max=%d, zero=%d, default=%d, pre=\"%s\", post=\"%s\", presentation=%d, style=%d, maxIndex=%d, colour=%x<%d,%d,%d>\n", 
                    stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue, defaultValue,
-		   stringPre, stringPost, presentation, paintStyle,
-		   maxStreamIndex, &colour, colour.red, colour.green, colour.blue);
+         stringPre, stringPost, presentation, paintStyle,
+         maxStreamIndex, &colour, colour.red, colour.green, colour.blue);
   gcspy_streamInit(stream, id, dataType, streamName,
                    minValue, maxValue, zeroValue,defaultValue,
-		   stringPre, stringPost, presentation, paintStyle,
-		   maxStreamIndex, &colour);
+         stringPre, stringPost, presentation, paintStyle,
+         maxStreamIndex, &colour);
 }
 
 extern "C" void
@@ -3745,3 +3743,172 @@ gcspySprintf(char *str, const char *format, char *arg) {
 
   
 #endif
+
+// Fish out an address stored in an instance field of an object.
+static void *
+getFieldAsAddress(void *objPtr, int fieldOffset)
+{
+    char *fieldAddress = ((char*) objPtr) + fieldOffset;
+    return *((void**) fieldAddress);
+}
+
+// Get the JNI environment object from the VM_Processor.
+static JNIEnv *
+getJniEnvFromVmProcessor(void *vmProcessorPtr)
+{
+    if (vmProcessorPtr == 0)
+        return 0; // oops
+
+    // Follow chain of pointers:
+    // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
+    void *vmThreadPtr =
+        getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
+    void *jniEnvironment =
+        getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
+    // Convert VM_JNIEnvironment to JNIEnv* expected by native code
+    // by creating the appropriate interior pointer.
+    void *jniEnv = ((char*)jniEnvironment + VM_JNIEnvironment_JNIExternalFunctions_offset);
+
+    return (JNIEnv*) jniEnv;
+}
+
+//////////////////////////////////////////////////////////////
+// JNI Invocation API functions
+//////////////////////////////////////////////////////////////
+
+/** Destroying the Java VM only makes sense if programs can create a VM
+ * on-the-fly.   Further, as of Sun's Java 1.2, it sitll didn't support
+ * unloading virtual machine instances.  It is supposed to block until all
+ * other user threads are gone, and then return an error code.
+ *
+ * TODO: Implement.
+ */
+static
+jint 
+DestroyJavaVM(JavaVM UNUSED * vm) 
+{
+    fprintf(stderr, "JikesRVM: Unimplemented JNI call DestroyJavaVM\n");
+    return JNI_ERR;
+}
+
+/* "Trying to attach a thread that is already attached is a no-op".  We
+ * implement that common case.  (In other words, it works like GetEnv()).
+ * However, we do not implement the more difficult case of actually attempting
+ * to attach a native thread that is not currently attached to the VM.
+ *
+ * TODO: Implement for actually attaching unattached threads.
+ */
+static
+jint 
+AttachCurrentThread(JavaVM UNUSED * vm, /* JNIEnv */ void ** penv, /* JavaVMAttachArgs */ void *args) 
+{
+    JavaVMAttachArgs *aargs = (JavaVMAttachArgs *) args;
+    jint version;
+    if (args == NULL) {
+        version = JNI_VERSION_1_1;
+    } else {
+        version = aargs->version ;
+        /* We'd like to handle aargs->name and aargs->group */
+    }
+
+    // Handled for us by GetEnv().  We do it here anyway so that we avoid
+    // printing an error message further along in this function.
+    if (version > JNI_VERSION_1_4)
+        return JNI_EVERSION;
+    
+    /* If we're already attached, we're gold. */
+    register jint retval = GetEnv(vm, penv, version);
+    if (retval == JNI_OK)
+        return retval;
+    else if (retval == JNI_EDETACHED) {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread Unimplemented for threads not already attached to the VM\n");
+    } else {
+        fprintf(stderr, "JikesRVM: JNI call AttachCurrentThread failed; returning UNEXPECTED error code %d\n", (int) retval);
+    }
+
+    // Upon failure:
+    *penv = NULL;               // Make sure we don't yield a bogus one to use.
+    return retval;
+}
+
+/* TODO: Implement */
+static
+jint 
+DetachCurrentThread(JavaVM UNUSED *vm) 
+{
+    fprintf(stderr, "UNIMPLEMENTED JNI call DetachCurrentThread\n");
+    return JNI_ERR;
+}
+ 
+jint 
+GetEnv(JavaVM UNUSED *vm, void **penv, jint version) 
+{ 
+    if (version > JNI_VERSION_1_4)
+        return JNI_EVERSION;
+
+#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    // Return NULL if we are not on a VM pthread
+    if (pthread_getspecific(IsVmProcessorKey) == NULL) {
+        *penv = NULL;
+        return JNI_EDETACHED;
+    }
+#endif
+
+    // Get VM_Processor id.
+    void* vmProcessor =
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+      VmProcessor;
+#else
+      pthread_getspecific(VmProcessorKey);
+#endif
+
+    // Get the JNIEnv from the VM_Processor object
+    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
+ 
+    *penv = env;
+
+    return JNI_OK;
+}
+
+/** JNI 1.4 */
+/* TODO: Implement */
+static
+jint 
+AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, /* JNIEnv */ void UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
+{
+    fprintf(stderr, "Unimplemented JNI call AttachCurrentThreadAsDaemon\n");
+    return JNI_ERR;
+}
+
+const struct JNIInvokeInterface_ externalJNIFunctions = {
+  NULL, // reserved0
+  NULL, // reserved1
+  NULL, // reserved2
+  DestroyJavaVM,
+  AttachCurrentThread,
+  DetachCurrentThread,
+  GetEnv,         // JNI 1.2
+  AttachCurrentThreadAsDaemon   // JNI 1.4
+};
+
+struct JavaVM_ sysJavaVM = {
+  &externalJNIFunctions, // functions
+  NULL, // reserved0
+  NULL, // reserved1
+  NULL, // reserved2
+  NULL, // pthreadIDTable
+  NULL, // jniEnvTable
+};
+
+typedef jint (*JNI_OnLoad)(JavaVM_ *vm, void *reserved __attribute__((unused)));
+
+/*
+ * Class:     com_ibm_JikesRVM_VM_DynamicLibrary
+ * Method:    runJNI_OnLoad
+ * Signature: (Lorg/vmmagic/unboxed/Address;)I
+ */
+extern "C" JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1DynamicLibrary_runJNI_1OnLoad (JNIEnv UNUSED *env,
+                                                                                           jobject UNUSED clazz,
+                                                                                           jobject JNI_OnLoadAddress) {
+  return ((JNI_OnLoad)JNI_OnLoadAddress)(&sysJavaVM, NULL);
+}

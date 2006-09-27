@@ -9,7 +9,6 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.jni.VM_JNIJavaVM;
 import com.ibm.JikesRVM.util.*;
 import java.util.Iterator;
 import org.vmmagic.unboxed.*;
@@ -26,7 +25,14 @@ public class VM_DynamicLibrary {
   /**
    * Currently loaded dynamic libraries.
    */
-  private static VM_HashMap dynamicLibraries = new VM_HashMap();
+  private static final VM_HashMap dynamicLibraries = new VM_HashMap();
+
+  /**
+   * Add symbol for the boot image runner to find symbols within it.
+   */
+  static void boot() {
+    dynamicLibraries.put("JikesRVM", new VM_DynamicLibrary());
+  }
 
   /**
    * The name of the library
@@ -37,6 +43,19 @@ public class VM_DynamicLibrary {
    * Value returned from dlopen
    */
   private final Address libHandler;
+
+  /**
+   * Create a dynamic library for the boot image runner
+   */ 
+  private VM_DynamicLibrary() {
+    libName = "JikesRVM";
+    libHandler = VM_SysCall.sysDlopen(null);
+
+    if (libHandler.isZero()) {
+      VM.sysWriteln("error loading library: JikesRVM");
+      throw new UnsatisfiedLinkError();
+    }
+  }
 
   /**
    * Load a dynamic library and maintain it in this object.
@@ -70,31 +89,51 @@ public class VM_DynamicLibrary {
     }
 
     libName = libraryName;
-	try {
-	    callOnLoad();
-	} catch (UnsatisfiedLinkError e) {
-		unload();
-		throw e;
-	}
+   try {
+       callOnLoad();
+   } catch (UnsatisfiedLinkError e) {
+      unload();
+      throw e;
+   }
 
     if (VM.verboseJNI) {
       VM.sysWriteln("[Loaded native library: "+libName+"]");
     }
   }
 
+  /**
+   * Called after we've succesfully loaded the shared library
+   */
   private void callOnLoad() {
+    // Run any JNI_OnLoad functions defined within the library
     Address JNI_OnLoadAddress = getSymbol("JNI_OnLoad");
     if (!JNI_OnLoadAddress.isZero()) {
-      int version = VM_SysCallMagic.JNI_OnLoad(JNI_OnLoadAddress, VM_JNIJavaVM.getJavaVM(), Address.zero());
-	  checkJNIVersion(version);
-	}
+      int version = runJNI_OnLoad(JNI_OnLoadAddress);
+      checkJNIVersion(version);
+    }
   }
 
+  /**
+   * Method call to run the onload method. Performed as a native
+   * method as the JNI_OnLoad method may contain JNI calls and we need
+   * the VM_Processor of the JNIEnv to be correctly populated (this
+   * wouldn't happen with a VM_SysCall)
+   *
+   * @param JNI_OnLoadAddress address of JNI_OnLoad function
+   * @return the JNI version returned by the JNI_OnLoad function
+   */
+  private static native int runJNI_OnLoad(Address JNI_OnLoadAddress);
+
+  /**
+   * Check JNI version is &le; 1.4 and if not throw an
+   * UnsatisfiedLinkError
+   * @param version to check
+   */
   private static void checkJNIVersion(int version) {
       int major = version >>> 16;
       int minor = version & 0xFFFF;
-	  if (major > 1 || minor > 4)
-		  throw new UnsatisfiedLinkError("Unsupported JNI version: " + major + "." + minor); 
+     if (major > 1 || minor > 4)
+        throw new UnsatisfiedLinkError("Unsupported JNI version: " + major + "." + minor); 
   }
 
   /**

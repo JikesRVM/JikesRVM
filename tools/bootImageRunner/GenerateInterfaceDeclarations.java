@@ -351,6 +351,9 @@ class GenerateInterfaceDeclarations {
         // extern "C" void sysFOOf();
         p("extern \"C\" int " + functionName + "();\n");
       }
+      else if (fieldName.equals("sysJavaVM")) {
+        p("extern struct JavaVM_ " + fieldName + ";\n");
+      }
     }
 
     // emit field initializers
@@ -366,9 +369,12 @@ class GenerateInterfaceDeclarations {
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
-		// e. g.,
-		//sysFOOIP = (int) sysFOO; 
-		p("  br->" + fieldName + " = (intptr_t)" + functionName + ";\n");
+        // e. g.,
+        //sysFOOIP = (int) sysFOO; 
+        p("  br->" + fieldName + " = (intptr_t)" + functionName + ";\n");
+      }
+      else if (fieldName.equals("sysJavaVM")) {
+        p("  br->" + fieldName + " = (intptr_t)&" + fieldName + ";\n");
       }
     }
 

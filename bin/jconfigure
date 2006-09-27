@@ -3477,7 +3477,9 @@ java/io/InputStream
 java/io/FileInputStream
 java/io/FileDescriptor
 java/io/VMFile
-gnu/java/nio/channels/FileChannelImpl
+gnu/java/nio/FileChannelImpl # if Classpath > 0.92
+gnu/java/nio/channels/FileChannelImpl # if Classpath <= 0.92
+gnu/java/nio/VMChannel
 
     # Character conversion
     # 
@@ -3589,7 +3591,8 @@ java/nio/charset/CoderResult\\\$1
 java/nio/charset/CoderResult\\\$2
 java/util/zip/ZipFile\\\$1
 gnu/java/net/loader/URLStreamHandlerCache
-gnu/java/nio/VMChannel
+gnu/classpath/Pointer32
+gnu/classpath/Pointer64
 EOF
     
     # the application class loader uses jar classes (which can be loaded or not)
@@ -3762,6 +3765,10 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Ljava/lang/Object;
 	[[Ljava/lang/Object;
 	[Ljava/lang/String;
+	[Ljava/lang/Byte;
+	[Ljava/lang/Character;
+	[Ljava/lang/Integer;
+	[Ljava/lang/Short;
 	[Ljava/lang/Class;
 	[Ljava/lang/reflect/Field;
 	[Ljava/lang/reflect/Method;

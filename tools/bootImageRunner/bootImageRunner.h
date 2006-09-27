@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
 #include "../../include/cAttributePortability.h"
+#include "../../include/jni.h"
 
 #if defined(RVM_FOR_32_ADDR)
 #define VM_Offset int32_t
@@ -110,6 +111,7 @@ extern VM_Offset getProcessorsOffset(void);
 /* These are defined in sys.C; used in syswrap.C */
 extern pthread_key_t VmProcessorKey;
 extern pthread_key_t IsVmProcessorKey;
+extern jint GetEnv(JavaVM *, void **, jint);
 
 // Defined in sys.C.; used in libvm.C
 extern void sysSyncCache(void *, size_t size);

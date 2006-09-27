@@ -340,8 +340,4 @@ public class VM_SysCallMagic {
 
   public static int gcspySprintf (Address functionAddress, Address str, Address format, Address value) { return 0; }
   //-#endif
-
-  public static int JNI_OnLoad(Address functionAddress, Address JavaVM, Address reserved) {
-    return -1;
-  }
 }

@@ -396,10 +396,24 @@ public class BootImage extends BootImageWriterMessages
    * @param address address of target
    * @param objField true if this word is an object field (as opposed
    * to a static, or tib, or some other metadata)
+   * @param genuineNull true if the value is a genuine null and
+   * shouldn't be counted as a blanked field
+   */
+  public void setNullAddressWord(Address address, boolean objField, boolean genuineNull) {
+    setAddressWord(address, Word.zero(), objField);
+    if (!genuineNull)
+      numNulledReferences += 1;
+  }
+
+  /**
+   * Fill in 4/8 bytes of bootimage, as null object reference.
+   *
+   * @param address address of target
+   * @param objField true if this word is an object field (as opposed
+   * to a static, or tib, or some other metadata)
    */
   public void setNullAddressWord(Address address, boolean objField) {
-    setAddressWord(address, Word.zero(), objField);
-    numNulledReferences += 1;
+    setNullAddressWord(address, objField, true);
   }
 
   /**

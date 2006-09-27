@@ -183,11 +183,18 @@ public class VM_BootRecord {
   public Address ipRegister;   // value to place into IP register
   public Address tocRegister;  // value to place into JTOC register
 
+
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
    * added by Ton Ngo for JNI support
    */
   int bootCompleted;       // use for start up by JNI_CreateJavaVM
+
+  /**
+   * address of JavaVM, used by JNI_OnLoad and JNIEnv.GetJavaVM,
+   * defined in Sys.C
+   */
+  public Address sysJavaVM;
 
   // Additional RVM entrypoints
   //
