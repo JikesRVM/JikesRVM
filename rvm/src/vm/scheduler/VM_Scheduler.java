@@ -368,11 +368,8 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     tt.makeDaemon(true);
     tt.start();
 
-    //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-    if (!VM.withoutInterceptBlockingSystemCalls)
-      // Store VM_Processor in pthread
-      VM_Processor.getCurrentProcessor().stashProcessorInPthread();
-    //-#endif
+    // Store VM_Processor in pthread
+    VM_SysCall.sysStashVmProcessorInPthread(VM_Processor.getCurrentProcessor());
   }
 
 
