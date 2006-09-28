@@ -52,6 +52,27 @@ public class tField {
     t.testDouble(fields);
 
     t.printFields(fields);
+
+	t.testType("sboolean", boolean.class);
+	t.testType("sbyte", byte.class);
+	t.testType("sshort", short.class);
+	t.testType("sint", int.class);
+	t.testType("slong", long.class);
+	t.testType("sfloat", float.class);
+	t.testType("sdouble", double.class);
+	t.testType("mboolean", boolean.class);
+	t.testType("mbyte", byte.class);
+	t.testType("mshort", short.class);
+	t.testType("mint", int.class);
+	t.testType("mlong", long.class);
+	t.testType("mfloat", float.class);
+	t.testType("mdouble", double.class);
+  }
+
+  private void testType(String fieldName, Class expectedType) throws Exception {
+    Field f = tField.class.getField(fieldName);
+    if (!expectedType.equals(f.getType()))
+      throw new Exception(expectedType + " is not equal to " + f.getType());
   }
 
   private void printFields(Field[] fields) throws Exception {

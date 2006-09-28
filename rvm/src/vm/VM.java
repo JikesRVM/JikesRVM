@@ -213,6 +213,16 @@ public class VM extends VM_Properties
     
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System"); 
+	runClassInitializer("java.lang.Void");
+	runClassInitializer("java.lang.Boolean");
+	runClassInitializer("java.lang.Byte");
+	runClassInitializer("java.lang.Short");
+	runClassInitializer("java.lang.Number");
+	runClassInitializer("java.lang.Integer");
+	runClassInitializer("java.lang.Long");
+	runClassInitializer("java.lang.Float");
+	runClassInitializer("java.lang.Double");
+
     runClassInitializer("java.lang.Character");
     runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
     // Turn off security checks; about to hit EncodingManager.
