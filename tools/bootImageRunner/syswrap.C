@@ -214,7 +214,7 @@ select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 
     // Figure out how many seconds to wait
     double totalWaitTime;
-    if (timeout == 0)
+    if (timeout == NULL)
         totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
     else {
         totalWaitTime = ((double) timeout->tv_sec);
@@ -299,7 +299,7 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
             FD_SET( ufds[i].fd, &exceptfds );
     }
 
-    ready = select(max_fd, &readfds, &writefds, &exceptfds, &tv);
+    ready = select(max_fd, &readfds, &writefds, &exceptfds, tv_ptr);
     
     for (unsigned i = 0; i < nfds; i++) {
 
