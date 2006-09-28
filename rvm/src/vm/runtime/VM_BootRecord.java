@@ -297,9 +297,7 @@ public class VM_BootRecord {
   public Address sysPthreadSignalIP;
   public Address sysPthreadExitIP;
   public Address sysPthreadJoinIP;
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public Address sysStashVmProcessorInPthreadIP;
-  //-#endif
 
   // arithmetic 
   public Address sysLongDivideIP;
@@ -353,9 +351,7 @@ public class VM_BootRecord {
   public Address sysWaitPidsIP;
 
   // system startup pthread sync. primitives
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public Address sysCreateThreadSpecificDataKeysIP;
-  //-#endif
   public Address sysInitializeStartupLocksIP;
   public Address sysWaitForVirtualProcessorInitializationIP;
   public Address sysWaitForMultithreadingStartIP;

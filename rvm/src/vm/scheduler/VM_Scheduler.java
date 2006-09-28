@@ -271,15 +271,9 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     //
     
     if (!VM.singleVirtualProcessor) {
+      VM_SysCall.sysCreateThreadSpecificDataKeys();
       if (!VM.withoutInterceptBlockingSystemCalls) {
-
-        //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-        // Create thread-specific data key which will allow us to find
-        // the correct VM_Processor from an arbitrary pthread.
-        VM_SysCall.sysCreateThreadSpecificDataKeys();
-        //-#endif
-        
-        /// WE now insist on this happening, by using LD_PRELOAD on platforms
+        /// We now insist on this happening, by using LD_PRELOAD on platforms
         /// that support it.  Do it here for backup.
         // Enable spoofing of blocking native select calls
         System.loadLibrary("syswrap");

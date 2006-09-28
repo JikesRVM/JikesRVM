@@ -243,11 +243,9 @@ public class VM_SysCall implements Uninterruptible {
   public static int sysPthreadJoin(int pthread) {
      return VM_SysCallMagic.sysPthreadJoin(VM_BootRecord.the_boot_record.sysPthreadJoinIP, pthread);
   }
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public static int sysStashVmProcessorInPthread(VM_Processor vmProcessor) {
      return VM_SysCallMagic.sysStashVmProcessorInPthread(VM_BootRecord.the_boot_record.sysStashVmProcessorInPthreadIP, vmProcessor);
   }
-  //-#endif
 
   // arithmetic 
   public static long sysLongDivide(long x, long y) {
@@ -422,11 +420,9 @@ public class VM_SysCall implements Uninterruptible {
   }
 
   // system startup pthread sync. primitives
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public static void sysCreateThreadSpecificDataKeys() {
      VM_SysCallMagic.sysCreateThreadSpecificDataKeys(VM_BootRecord.the_boot_record.sysCreateThreadSpecificDataKeysIP);
   }
-  //-#endif
   public static void sysInitializeStartupLocks(int howMany) {
      VM_SysCallMagic.sysInitializeStartupLocks(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
   }

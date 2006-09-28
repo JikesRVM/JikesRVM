@@ -147,9 +147,7 @@ public class VM_SysCallMagic {
   public static int sysPthreadSignal(Address functionAddress, int pthread) { return 0; }
   public static void sysPthreadExit(Address functionAddress) {}
   public static int sysPthreadJoin(Address functionAddress, int pthread) { return 0; }
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public static int sysStashVmProcessorInPthread(Address functionAddress, VM_Processor vmProcessor) { return 0; }
-  //-#endif
 
   // arithmetic 
   public static long sysLongDivide(Address functionAddress, long x, long y) { return 0; }
@@ -268,9 +266,7 @@ public class VM_SysCallMagic {
                                  int numPids) {}
 
   // system startup pthread sync. primitives
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public static void sysCreateThreadSpecificDataKeys(Address functionAddress) {}
-  //-#endif
   public static void sysInitializeStartupLocks(Address functionAddress, int howMany) {}
   public static void sysWaitForVirtualProcessorInitialization(Address functionAddress) {} 
   public static void sysWaitForMultithreadingStart(Address functionAddress) {} 

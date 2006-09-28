@@ -84,11 +84,6 @@ isLongWait(struct timeval *timeout)
     return timeout == 0 || timeout->tv_sec > 0 || timeout->tv_usec > 1000;
 }
 
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-// Address of the single VM_Processor object.
-static VM_Address VmProcessor;
-#endif
-
 // Return the number of file descriptors which are set in given
 // fd_set.
 static int 
