@@ -49,6 +49,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    */
   public OPT_OptimizationPlanAtomicElement(OPT_CompilerPhase p) {
     myPhase = p;
+    p.setContainer(this);
   }
 
   /**
