@@ -329,12 +329,14 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     scanFrameForObjects(verbosity);
     
     /* scan the frame for pointers to code */
-    if (processCodeLocations) processFrameForCode(verbosity);
+    if (processCodeLocations && compiledMethodType != VM_CompiledMethod.TRAP)
+      processFrameForCode(verbosity);
     
     iterator.cleanupPointers();
     
     /* skip preceeding native frames if this frame is a native bridge */
-    if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+    if (compiledMethodType != VM_CompiledMethod.TRAP &&
+        compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
       fp = VM_Runtime.unwindNativeStackFrameForGC(fp);
       if (verbosity >= 1) Log.write("scanFrame skipping native C frames\n");
     }
@@ -369,9 +371,6 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
     compiledMethodType = compiledMethod.getCompilerType();
     
     if (verbosity >= 1) printMethodHeader();
-
-    /* skip over traps */
-    if (compiledMethodType == VM_CompiledMethod.TRAP) return false;
 
     /* get the code associated with this frame */
     Offset offset = compiledMethod.getInstructionOffset(ip);
@@ -612,11 +611,13 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
   private void checkReference(Address refaddr, int verbosity) { 
     ObjectReference ref = refaddr.loadObjectReference();
     if (!MM_Interface.validRef(ref)) {
-      Log.write("\nInvalid ref reported while scanning stack\n");
+      Log.writeln();
+      Log.writeln("Invalid ref reported while scanning stack");
       printMethodHeader();
-      Log.write(refaddr); Log.write(":"); MM_Interface.dumpRef(ref);  
+      Log.write(refaddr); Log.write(":"); Log.flush(); MM_Interface.dumpRef(ref);  
       dumpStackFrame(verbosity);
-      Log.write("\nDumping stack starting at frame with bad ref:\n");
+      Log.writeln();
+      Log.writeln("Dumping stack starting at frame with bad ref:");
       VM_Scheduler.dumpStack(ip, fp);
       /* dump stack starting at top */
       Address top_ip = thread.contextRegisters.getInnermostInstructionAddress();
@@ -688,7 +689,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
       start = fp;                         // start at fp
       end = fp.loadAddress();   // stop at callers fp
     }
-      
+    
     for (Address loc = start; loc.LT(end); loc = loc.plus(BYTES_IN_ADDRESS)) {
       Log.write(loc); Log.write(" (");
       Log.write(loc.diff(start));
@@ -700,8 +701,8 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
       if (verbosity >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end) )
         MM_Interface.dumpRef(value);
       else
-        Log.write("\n");
+        Log.writeln();
     }
-    Log.write("\n");
+    Log.writeln();
   }
 }
