@@ -710,40 +710,23 @@ function rationalize_config_file_settings () {
 
     ## Special GNU commands:
     setFromPath GNU_MAKE make
-    # [[ ${GNU_MAKE-} ]] || export GNU_MAKE="/usr/bin/make"
 
     #  some Unix commands
     setFromPath awk
-    # [[ ${AWK-} ]] || export AWK="/usr/bin/awk"
 
     setFromPath bash
-    # [[ ${BASH} ]] || export BASH="/bin/bash"
 
     # You need one of Yacc or Bison (one will usually be installed)
     setFromPath bison
-#     if ! [[ ${BISON-} ]]; then
-# 	BISON=$(type -p bison 2> /dev/null) || unset BISON
-#     fi
 
     setFromPath diff
-    # [[ ${DIFF-} ]] || DIFF=$(type -p diff 2> /dev/null) || unset DIFF
 
     setFromPath GNU_TAR tar
-    ## [[ ${GNU_TAR-} ]] || export GNU_TAR="/bin/tar"
 
     setSomeFromPath find grep md5sum ps sed wget xargs
     
-#    [[ ${FGREP-} ]] || FGREP=$(type -p fgrep 2> /dev/null) || unset FGREP
-    ## [[ ${FIND-} ]] || export FIND="/usr/bin/find"
-    # [[ ${GREP-} ]] || export GREP="/bin/grep"
-#     export MD5SUM="/usr/bin/md5sum"
-#     export PS="/bin/ps"
-#     export SED="/bin/sed"
-#     export WGET="/usr/bin/wget"
-#     export XARGS="/usr/bin/xargs"
-
     setFromPath UNZIP_CMD unzip
-#     export UNZIP_CMD="/usr/bin/unzip"
+    setFromPath ZIP_CMD zip
 }
 
 function rationalize_classpath_version () {
@@ -2054,6 +2037,7 @@ cat <<- EOF
 	export WGET='$WGET'
 	export XARGS='$XARGS'
 	export UNZIP_CMD='$UNZIP_CMD'
+	export ZIP_CMD='$ZIP_CMD'
 	export RVM_CLASSPATH_URL='$RVM_CLASSPATH_URL'
 	export HOST_VM_TYPE='${HOST_VM_TYPE}'
 	# JIKES_WARNING_FLAGS is read by the inferior program fake-javac.
@@ -2198,7 +2182,7 @@ EOF
 	WGET = $WGET
 	XARGS = $XARGS
 	UNZIP_CMD = $UNZIP_CMD
-
+	ZIP_CMD = $ZIP_CMD
 
 	JIKES_WARNING_FLAGS = ${JIKES_WARNING_FLAGS}
 	EOF
@@ -2370,7 +2354,6 @@ function emitController () {
 	
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 
-	open_paren "Building rvmrt.jar"
 	# Take the GNU Classpath jar and repackage as rvmrt.jar
 	# We need it very early in the build process if we are using Jikes compiler,
 	# since it needs rvmrt.jar to use as the base libraries to compile against.
@@ -2391,14 +2374,7 @@ function emitController () {
 
 	DEST=${CLASSES_DIRECTORY_STR}/rvmrt.jar
 
-	mkdir -p ${SCRATCH_DIRECTORY_STR}/classpath
-	chdir ${SCRATCH_DIRECTORY_STR}/classpath
-	\$UNZIP_CMD -qq \$SRC 
-	\${JAR} c0f \$DEST \`ls\`
-	chdir ../..
-	rm -rf ${SCRATCH_DIRECTORY_STR}/classpath
-	
-	close_paren "built"
+	run cp \$SRC \$DEST
 
 	if [[ \$CLEAN_FLAG = -clean ]]; then
 	    rm -rf $TOOL_DIRECTORY_STR
@@ -3009,9 +2985,9 @@ EOF
 	    fi
 	    close_paren 'jksvmsrc.jar built'
 
-	    open_paren 'Adding Jikes RVM lib support to rvmrt.jar'
-	        \$FIND java -name '*.class' | \$XARGS $JAR_STR -u0f rvmrt.jar
-	        \$FIND gnu -name '*.class' | \$XARGS $JAR_STR -u0f rvmrt.jar
+	    open_paren 'Augmenting rvmrt.jar'
+	        \$FIND java -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
+	        \$FIND gnu -name '*.class' | \$XARGS \$ZIP_CMD -u rvmrt.jar -n .class -qq
 	    close_paren 'rvmrt.jar augmented'
 
 	else
