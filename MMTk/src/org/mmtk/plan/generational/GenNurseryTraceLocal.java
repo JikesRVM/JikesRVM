@@ -9,8 +9,10 @@
  */
 package org.mmtk.plan.generational;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 
 import org.vmmagic.pragma.*;
@@ -128,10 +130,8 @@ public final class GenNurseryTraceLocal extends TraceLocal
    */
   public boolean willNotMove(ObjectReference object) {
     if (object.isNull()) return false;
-    if (object.toAddress().GE(Gen.NURSERY_START)) {
-      return false;
-    }
-    return true;
+    return object.toAddress().LT(Gen.NURSERY_START) ||
+    	Space.isInSpace(Plan.PLOS, object);
   }
 
 }
