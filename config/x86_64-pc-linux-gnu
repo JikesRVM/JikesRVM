@@ -175,6 +175,7 @@ export PS="/bin/ps"
 export SED="/bin/sed"
 export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
+export ZIP_CMD="/usr/bin/zip"
 
 ##########
 # PART III: Additional variables for running Eclipse on Jikes RVM

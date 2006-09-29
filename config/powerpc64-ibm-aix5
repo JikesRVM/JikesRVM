@@ -100,8 +100,8 @@ export MD5SUM="/usr/gnu/bin/md5sum"
 export PS="/usr/bin/ps"
 export SED="/usr/gnu/bin/sed"
 export XARGS="/usr/gnu/bin/xargs"
-export ZIP_CMD="/usr/bin/zip"
 export UNZIP_CMD="/usr/bin/unzip"
+export ZIP_CMD="/usr/bin/zip"
 
 # Horrible kludge to convince AIX's nm, ar, etc to all play together nicely in 64 bit mode.
 export OBJECT_MODE=32_64
