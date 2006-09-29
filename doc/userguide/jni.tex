@@ -120,14 +120,8 @@ minor issues to be worked out.  Hopefully this will happen eventually.
 \item[Native Libraries]
 JNI 1.2 requires that the VM specially treat native libraries that
 contain exported functions named
-\IndexTexttt{JNI\_OnLoad} and \IndexTexttt{JNI\_OnUnload}.  This is not
-implemented. 
-
-\item[\texttt{JNIEnv} functions and direct buffers] 
-  The three new JNI 1.4 functions
-\texttt{NewDirectByteBuffer}, \texttt{GetDirectBufferAddress}, and
-\texttt{GetDirectBufferCapacity}, which the specification says may not
-be available at any particular time, have only stub implementations. 
+\IndexTexttt{JNI\_OnLoad} and \IndexTexttt{JNI\_OnUnload}.  Only
+\IndexTexttt{JNI\_OnLoad} is currently implemented. 
 
 \item[\texttt{VM\_JNICompiler}] The only known deficiency in \texttt{VM\_JNICompiler} is that the
 prologue and epilogues only handle passing local references to
