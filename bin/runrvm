@@ -293,7 +293,13 @@ fi
 shopt -s execfail
 
 (( ! dbg )) || echo LD_PRELOAD="${preload}" exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
+# Prepend build dir to LD_LIBRARY_PATH so JNI libraries can find the correct JAWT library
+expanded_ld_path=$rvm_build:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$expanded_ld_path
+
+# run it!
 LD_PRELOAD="${preload}" exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
+
 declare -r -i status=$?
 echo >&2  "$ME: Failed to execute $prog (command status $status); can't run Jikes RVM"
 exit $status

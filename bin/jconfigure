@@ -4101,11 +4101,13 @@ function emitBooterLinker () {
 	## so that dlopen() will find them.  Also, the classpath builder, 
 	## on AIX, generates the files with the suffix ".so.0".  
 	## We transform one to the other.
-	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*.so.0
+	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/"{jni/*,jawt}/.libs/*.so.0
 	do
+	  if [[ -f "\$_library" ]]; then 
 	    oldbase="\$(basename \${_library} .so.0)"
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
+          fi
 	done
 EOF
     elif (( RVM_FOR_AIX )); then
@@ -4115,11 +4117,13 @@ EOF
 	## so that dlopen() will find them.  Also, the classpath builder, 
 	## on AIX, generates the files with the suffix ".so.0".  
 	## We transform one to the other.
-	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so.0
+	for _library in "$CPS/\$SYSTEM_TYPE/native/"{jni/*,jawt}/.libs/*.so.0
 	do
+	  if [[ -f "\$_library" ]]; then 
 	    oldbase="\$(basename \${_library} .so.0)"
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
+	  fi
 	done
 EOF
     elif (( RVM_FOR_OSX )); then
@@ -4128,11 +4132,13 @@ cat <<- EOF
 	## Also, the classpath builder, 
 	## on OSX, generates the files with the suffix ".dylib".  
 	## We transform one to the other.
-	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.dylib
+	for _library in "$CPS/\$SYSTEM_TYPE/native/"{jni/*,jawt}/.libs/*.dylib
 	do
+	  if [[ -f "\$_library" ]]; then 
 	    oldbase="\$(basename \${_library} .dylib)"
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
+	  fi
 	done
 EOF
     elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
@@ -4148,18 +4154,22 @@ EOF
 cat <<- EOF
 	## On Linux, dynamically loaded libraries end in .so.
 	## The classpath builder conveniently generates them with that suffix.
-	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*\${shlib_suffix}
+	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native"/{jni/*,jawt}/.libs/*\${shlib_suffix}
 	do
+	  if [[ -f "\$_library" ]]; then 
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
+	  fi
 	done
 EOF
     elif (( RVM_FOR_LINUX )); then
 cat <<- EOF
 	## On Linux, dynamically loaded libraries end in .so.
 	## The classpath builder conveniently generates them with that suffix.
-	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*\${shlib_suffix}
+	for _library in "$CPS/\$SYSTEM_TYPE/native/"{jni/*,jawt}/.libs/*\${shlib_suffix}
 	do
+	  if [[ -f "\$_library" ]]; then 
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
+	  fi
 	done
 EOF
     else

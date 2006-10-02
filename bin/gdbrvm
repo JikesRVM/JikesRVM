@@ -140,4 +140,7 @@ for arg in "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"; do
     echo -n " \"$arg\"" 
 done >> "$argf"
 echo "" >> "$argf"
+# Prepend build dir to LD_LIBRARY_PATH so JNI libraries can find the correct JAWT library
+expanded_ld_path=$rvm_build:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$expanded_ld_path
 gdb "${gdb_args[@]}" "$prog" -x "$RVM_BUILD/gdb.commandlineArgs" -x "$RVM_ROOT/bin/gdbInit"
