@@ -4314,8 +4314,8 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     asm.emitLAddrOffset(0, S0, target.getOffset());
     //-#if RVM_WITH_POWEROPEN_ABI
 	/* GPR0 points to the function descriptor, so we'll load TOC and IP from that */
-    asm.emitLAddrOffset(JTOC, 0, BYTES_IN_STACKSLOT);
-    asm.emitLAddrOffset(0, 0, 0);
+    asm.emitLAddrOffset(JTOC, 0, Offset.fromInt(BYTES_IN_STACKSLOT));
+    asm.emitLAddrOffset(0, 0, Offset.fromInt(0));
     //-#endif
     // call it
     asm.emitMTCTR(0);
