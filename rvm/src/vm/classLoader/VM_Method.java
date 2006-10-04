@@ -373,9 +373,12 @@ public abstract class VM_Method extends VM_Member implements VM_BytecodeConstant
   /**
    * Get the current compiled method for this method.
    * Will return null if there is no current compiled method!
+   *
+   * We make this method Unpreemptible to avoid a race-condition
+   * in VM_Reflection.invoke.
    * @return compiled method
    */ 
-  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() {
+  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() throws UnpreemptiblePragma {
     return currentCompiledMethod;
   }
 

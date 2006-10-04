@@ -92,12 +92,14 @@ public class VM_Reflection implements VM_Constants {
       targetMethod = VM_Magic.getObjectType(thisArg).asClass().getVirtualMethods()[tibIndex - TIB_FIRST_VIRTUAL_METHOD_INDEX];
     }
 
-    // There's a nasty race condition here that we just hope doesn't happen.
-    // The issue is that we can't get the CompiledMethod from targetMethod while
-    // GC is disabled because all accesses to it must be synchronized.  But,
-    // it's theoretically possible that we take the epilogue yieldpoint in getCurrentCompiledMethod
-    // and lose control before we can disable threadswitching and thus invoke an obsolete 
-    // and already GC'ed instruction array.
+    // getCurrentCompiledMethod is synchronized but Unpreemptible.
+    // Therefore there are no possible yieldpoints from the time
+    // the compiledMethod is loaded in getCurrentCompiledMethod
+    // to when we disable GC below.
+    // We can't allow any yieldpoints between these points because of the way in which
+    // we GC compiled code.  Once a method is marked as obsolete, if it is not
+    // executing on the stack of some thread, then the process of collecting the
+    // code and meta-data might be initiated.
     targetMethod.compile();
     VM_CompiledMethod cm = targetMethod.getCurrentCompiledMethod();
     while (cm == null) {
