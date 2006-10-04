@@ -57,14 +57,22 @@ class MainThread extends Thread {
    
   /**
    * Run "main" thread.
+   * 
+   * This code could be made a little shorter by relying on VM_Reflection
+   * to do the classloading and compilation.  We intentionally do it here
+   * to give us a chance to provide error messages that are specific to
+   * not being able to find the main class the user wants to run.
+   * This may be a little silly, since it results in code duplication
+   * just to provide debug messages in a place where very little is actually
+   * likely to go wrong, but there you have it....
    */
   public void run () {
 
     if (dbg) VM.sysWriteln("MainThread.run() starting ");
-      //-#if RVM_WITH_GCSPY
-      // start the GCSpy interpreter server
-      MM_Interface.startGCspyServer();
-      //-#endif
+    //-#if RVM_WITH_GCSPY
+    // start the GCSpy interpreter server
+    MM_Interface.startGCspyServer();
+    //-#endif
 
     // Set up application class loader
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
@@ -117,7 +125,7 @@ class MainThread extends Thread {
     launched = true;
     if (dbg) VM.sysWriteln("[MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
-    VM_Magic.invokeMain(mainArgs, mainMethod.getCurrentEntryCodeArray());
+    VM_Reflection.invoke(mainMethod, null, new Object[] {mainArgs}, false);
     if (dbg) VM.sysWriteln("  MainThread.run(): \"main\" method completed.]");
   }
 }

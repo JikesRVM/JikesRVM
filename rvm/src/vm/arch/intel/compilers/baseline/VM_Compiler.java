@@ -2869,7 +2869,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   //
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
-    return methodName == VM_MagicNames.invokeMain             ||
+    return
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||
       methodName == VM_MagicNames.invokeMethodReturningInt    ||
@@ -3105,16 +3105,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       VM_ForwardReference fr = asm.forwardJcc(VM_Assembler.NE); // skip if compare fails
       asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
       fr.resolve(asm);
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.invokeMain) {
-      // invokeMain gets "called" with two arguments:
-      //   String[] mainArgs       // the arguments to the main method
-      //   INSTRUCTION[] mainCode  // the code for the main method
-      asm.emitPOP_Reg (S0);            // 
-      genParameterRegisterLoad(1); // pass 1 parameter word     
-      asm.emitCALL_Reg(S0);            // branches to mainCode with mainArgs on the stack
       return true;
     }
     

@@ -3622,11 +3622,6 @@ public class VM_QuickCompiler extends VM_CompilerFramework
         asm.emitBC   (NE, label);               // lower rolled over, try again
       }
       pushFromRegister(LONG_TYPE, T0);              
-    }  else if (methodName == VM_MagicNames.invokeMain) {
-      popToRegister(OBJECT_TYPE, T0); // t0 := ip
-      asm.emitMTCTR(T0);
-      popToRegister(OBJECT_TYPE, T0); // t0 := parameter
-      asm.emitBCCTRL();          // call
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
       popToRegister(OBJECT_TYPE, T0); // t0 := address to be called
       asm.emitMTCTR(T0);
@@ -4199,7 +4194,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    */
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
-    return methodName == VM_MagicNames.invokeMain                  ||
+    return
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||
       methodName == VM_MagicNames.invokeMethodReturningInt    ||

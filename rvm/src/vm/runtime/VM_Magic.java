@@ -740,11 +740,6 @@ public class VM_Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
-  /** Call "main" method with argument list. */
-  public static void invokeMain(Object argv, VM_CodeArray main) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
   /** Call "<clinit>" method with no argument list. */
   public static void invokeClassInitializer(VM_CodeArray clinit) 
     throws Exception            // Since the real method passes exceptions

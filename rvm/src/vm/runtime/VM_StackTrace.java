@@ -393,10 +393,13 @@ public class VM_StackTrace implements VM_Constants {
   private int lastFrameToPrint() {
     int lastFrame = compiledMethods.length - 1;
 
-    // The Main Thread's last three stack frames are always:
-    //   Lcom/ibm/JikesRVM/MainThread; run()V at line 119
-    //   Lcom/ibm/JikesRVM/VM_Thread; run()V at line 158
-    //   Lcom/ibm/JikesRVM/VM_Thread; startoff()V at line 815
+    // The Main Thread's last six stack frames are always:
+    //   
+    //   <invisible method>  (the reflection frame)
+    //   Lcom/ibm/JikesRVM/VM_Reflection; invoke()
+    //   Lcom/ibm/JikesRVM/MainThread; run()V
+    //   Lcom/ibm/JikesRVM/VM_Thread; run()V 
+    //   Lcom/ibm/JikesRVM/VM_Thread; startoff()V 
     // so we can skip them.
     //
     // Other Threads, except for the boot thread, have VM_Thread.startoff as
@@ -410,9 +413,16 @@ public class VM_StackTrace implements VM_Constants {
       if (m == VM_Entrypoints.threadRunMethod)
         continue;             /* com.ibm.JikesRVM.VM_Thread.run() is OK
                                  to elide. */
-      if (m == VM_Entrypoints.mainThreadRunMethod)
-        continue;             /* com.ibm.JikesRVM.MainThread.run() is OK to
-                               * elide */
+      if (m == VM_Entrypoints.mainThreadRunMethod) {
+        lastFrame -= 3;
+        if (lastFrame <= 0) {
+          // error actually happened before reflective invoke;
+          // so put back the elided frames that aren't all there yet...
+          lastFrame += 3;
+        }
+        break;             /* com.ibm.JikesRVM.MainThread.run() is OK to
+                              elide */
+      }
       /* No match.  Abort. */
       break;
     }    

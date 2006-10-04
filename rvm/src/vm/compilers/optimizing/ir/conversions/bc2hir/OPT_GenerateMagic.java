@@ -504,10 +504,6 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
       OPT_Instruction s = Call.create0(CALL, null, bc2ir.popRef(), null);
       bc2ir.appendInstruction(s);
-    } else if (methodName == VM_MagicNames.invokeMain) {
-      OPT_Operand code = bc2ir.popRef();
-      OPT_Operand args = bc2ir.popRef();
-      bc2ir.appendInstruction(Call.create1(CALL, null, code, null, args));
     } else if ((methodName == VM_MagicNames.invokeMethodReturningObject)
                || (methodName == VM_MagicNames.invokeMethodReturningVoid) 
                || (methodName == VM_MagicNames.invokeMethodReturningLong) 

@@ -3837,12 +3837,6 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitBC   (NE, label);               // lower rolled over, try again
       }
       pushLong(T0,T1);              
-    } else if (methodName == VM_MagicNames.invokeMain) {
-      popAddr(T0); // t0 := ip
-      asm.emitMTCTR(T0);
-      peekAddr(T0,0); // t0 := parameter
-      asm.emitBCCTRL();          // call
-      discardSlot(); // pop parameter
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
       popAddr(T0); // t0 := address to be called
       asm.emitMTCTR(T0);
@@ -4280,7 +4274,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
-    return methodName == VM_MagicNames.invokeMain                  ||
+    return
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||
       methodName == VM_MagicNames.invokeMethodReturningInt    ||

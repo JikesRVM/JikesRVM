@@ -20,7 +20,6 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
  */
 public class VM_MagicNames {
 
-  public static final VM_Atom invokeMain                    = VM_Atom.findOrCreateAsciiAtom("invokeMain");
   public static final VM_Atom invokeClassInitializer        = VM_Atom.findOrCreateAsciiAtom("invokeClassInitializer");
   public static final VM_Atom invokeMethodReturningVoid     = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningVoid");
   public static final VM_Atom invokeMethodReturningInt      = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningInt");
