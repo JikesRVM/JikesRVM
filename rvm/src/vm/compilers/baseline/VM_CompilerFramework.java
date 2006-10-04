@@ -104,12 +104,12 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   protected final boolean isInterruptible;
 
   /**
-   * Is the method currently being compiled unpreemtible?
+   * Is the method currently being compiled uninterruptible?
    */
   protected final boolean isUninterruptible;
 
   /**
-   * Is the method currently being compiled uninterruptible?
+   * Is the method currently being compiled unpreemtible?
    */
   protected final boolean isUnpreemptible;
 
