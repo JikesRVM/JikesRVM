@@ -18,12 +18,13 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_BootImageCompiler {
+public final class VM_BaselineBootImageCompiler extends VM_BootImageCompiler {
+
   /** 
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
-  static void init(String[] args) { 
+  protected void initCompiler(String[] args) { 
     VM_BaselineCompiler.initOptions();
     // Process arguments specified by the user.
     for (int i = 0, n = args.length; i < n; i++) {
@@ -39,7 +40,7 @@ public class VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  public static VM_CompiledMethod compile(VM_NormalMethod method) {
+  protected VM_CompiledMethod compileMethod(VM_NormalMethod method) {
     VM_CompiledMethod cm;
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     cm = VM_BaselineCompiler.compile(method);
@@ -53,15 +54,5 @@ public class VM_BootImageCompiler {
     cm.setCompilationTime(compileTime);
     //-#endif
     return cm;
-  }
-  
-  /** 
-   * Compile a native method.
-   * @param method the method to compile
-   * @return the compiled method
-   */
-  public static VM_CompiledMethod compile(VM_NativeMethod method) {
-    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    return com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
   }
 }

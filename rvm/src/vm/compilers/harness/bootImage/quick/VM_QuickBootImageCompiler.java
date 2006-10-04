@@ -17,13 +17,16 @@ import com.ibm.JikesRVM.quick.*;
  * 
  * @author Chris Hoffmann
  */
-public class VM_BootImageCompiler {
+public final class VM_QuickBootImageCompiler extends VM_BootImageCompiler {
+
+  // Cache objects needed to cons up compilation plans
+  private VM_QuickOptions options;
 
   // If excludePattern is null, all methods are quick-compiled (or attempted).
   // Otherwise, methods that match the pattern are not quick-compiled.
   //
-  private static String excludePattern; 
-  private static boolean match(VM_Method method) {
+  private String excludePattern; 
+  private boolean match(VM_Method method) {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
     String clsName = cls.toString();
@@ -36,7 +39,7 @@ public class VM_BootImageCompiler {
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
-  public static void init(String[] args) {
+  protected void initCompiler(String[] args) {
     try {
       VM_BaselineCompiler.initOptions();
       options = new VM_QuickOptions();
@@ -60,7 +63,6 @@ public class VM_BootImageCompiler {
 
       VM_QuickCompiler.init(options);
 
-
     } catch (VM_QuickCompilerException e) {
       String msg = "VM_BootImageCompiler: VM_QuickCompiler failed during initialization: "+e+"\n";
       if (e.isFatal) {
@@ -79,7 +81,7 @@ public class VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  public static VM_CompiledMethod compile(VM_NormalMethod method) {
+  protected VM_CompiledMethod compileMethod(VM_NormalMethod method) {
     VM_CompiledMethod cm = null;
     VM_QuickCompilerException escape =  new VM_QuickCompilerException(false);
     try {
@@ -118,17 +120,7 @@ public class VM_BootImageCompiler {
     }
   }
 
-  /** 
-   * Compile a native method.
-   * @param method the method to compile
-   * @return the compiled method
-   */
-  public static VM_CompiledMethod compile(VM_NativeMethod method) {
-    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    return com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
-  }
-
-  private static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
+  protected VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -141,7 +133,4 @@ public class VM_BootImageCompiler {
     //-#endif
     return cm;
   }
-
-  // Cache objects needed to cons up compilation plans
-  private static VM_QuickOptions options;
 }

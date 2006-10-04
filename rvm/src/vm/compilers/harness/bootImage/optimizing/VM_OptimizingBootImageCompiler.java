@@ -12,6 +12,7 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Vector;
+
 /**
  * Use optimizing compiler to build virtual machine boot image.
  * 
@@ -19,14 +20,20 @@ import java.util.Vector;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_BootImageCompiler {
+public final class VM_OptimizingBootImageCompiler extends VM_BootImageCompiler {
+
+  // Cache objects needed to cons up compilation plans
+  private final Vector optimizationPlans = new Vector();
+  private final Vector optimizationPlanLocks = new Vector();
+  private final Vector options = new Vector();
+  private final OPT_Options masterOptions = new OPT_Options();
 
   // If excludePattern is null, all methods are opt-compiled (or attempted).
   // Otherwise, methods that match the pattern are not opt-compiled.
   // In any case, the class VM_OptSaveVolatile is always opt-compiled.
   //
-  private static String excludePattern; 
-  private static boolean match(VM_Method method) {
+  private String excludePattern; 
+  private boolean match(VM_Method method) {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
     String clsName = cls.toString();
@@ -40,10 +47,9 @@ public class VM_BootImageCompiler {
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
-  public static void init(String[] args) {
+  protected void initCompiler(String[] args) {
     try {
       VM_BaselineCompiler.initOptions();
-      masterOptions = new OPT_Options();
       VM.sysWrite("VM_BootImageCompiler: init (opt compiler)\n");
          
       // Writing a boot image is a little bit special.  We're not really 
@@ -81,7 +87,7 @@ public class VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  public static VM_CompiledMethod compile(VM_NormalMethod method) {
+  protected VM_CompiledMethod compileMethod(VM_NormalMethod method) {
     if (method.hasNoOptCompilePragma()) {
       return baselineCompile(method);
     } else {
@@ -130,17 +136,7 @@ public class VM_BootImageCompiler {
     }
   }
 
-  /** 
-   * Compile a native method.
-   * @param method the method to compile
-   * @return the compiled method
-   */
-  public static VM_CompiledMethod compile(VM_NativeMethod method) {
-    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    return com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
-  }
-
-  private static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
+  private VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -158,7 +154,7 @@ public class VM_BootImageCompiler {
    * Return an optimization plan that isn't in use
    * @return optimization plan
    */
-  private static int getFreeOptimizationPlan() {
+  private int getFreeOptimizationPlan() {
     // Find plan
     synchronized(optimizationPlanLocks) {
       for (int i=0; i < optimizationPlanLocks.size(); i++) {
@@ -181,15 +177,9 @@ public class VM_BootImageCompiler {
    * Release an optimization plan
    * @param plan an optimization plan
    */
-  private static void releaseOptimizationPlan(int plan) {
+  private void releaseOptimizationPlan(int plan) {
     synchronized(optimizationPlanLocks) {
       optimizationPlanLocks.set(plan,Boolean.FALSE);
     }
   }
-
-  // Cache objects needed to cons up compilation plans
-  private static Vector optimizationPlans = new Vector();
-  private static Vector optimizationPlanLocks = new Vector();
-  private static Vector options = new Vector();
-  private static OPT_Options masterOptions;
 }

@@ -1852,6 +1852,7 @@ EOF
 
     # Bootimage compiler components.
     #
+    echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage
     if (( ${RVM_WITH_BASE_BOOTIMAGE_COMPILER} )); then
 	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/baseline
     elif (( ${RVM_WITH_OPT_BOOTIMAGE_COMPILER} )); then
