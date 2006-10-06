@@ -3891,7 +3891,7 @@ struct JavaVM_ sysJavaVM = {
   NULL, // jniEnvTable
 };
 
-typedef jint (*JNI_OnLoad)(JavaVM_ *vm, void *reserved __attribute__((unused)));
+typedef jint (*JNI_OnLoad)(JavaVM_ *vm, void UNUSED *reserved);
 
 /*
  * Class:     com_ibm_JikesRVM_VM_DynamicLibrary
