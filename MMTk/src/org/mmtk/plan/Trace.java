@@ -35,7 +35,6 @@ public class Trace implements Constants, Uninterruptible {
 
   // Global pools for load-balancing deques
   final SharedDeque valuePool;
-  final SharedDeque remsetPool;
   final SharedDeque rootLocationPool;
   final SharedDeque interiorRootPool;
 
@@ -44,7 +43,6 @@ public class Trace implements Constants, Uninterruptible {
    */
   public Trace(RawPageSpace metaDataSpace) {
     valuePool = new SharedDeque(metaDataSpace, 1);
-    remsetPool = new SharedDeque(metaDataSpace, 1);
     rootLocationPool = new SharedDeque(metaDataSpace, 1);
     interiorRootPool = new SharedDeque(metaDataSpace, 2);
   }
@@ -61,7 +59,6 @@ public class Trace implements Constants, Uninterruptible {
    */
   public void release() {
     valuePool.reset();
-    remsetPool.reset();
     rootLocationPool.reset();
     interiorRootPool.reset();
   }
