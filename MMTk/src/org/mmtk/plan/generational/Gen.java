@@ -151,9 +151,10 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
     
     if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
-      if (!traceFullHeap())
+      if (!traceFullHeap()) {
+    	nurseryTrace.prepare();
         ploSpace.prepare(false);
-      else {
+      } else {
         if (gcFullHeap) {
           if (Stats.gatheringStats()) fullHeap.set();
           fullHeapTime.start();
@@ -172,6 +173,7 @@ public abstract class Gen extends StopTheWorld implements Uninterruptible {
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
       if (!traceFullHeap()) {
+      	nurseryTrace.release();
         ploSpace.release();
         lastCommittedPLOSpages = ploSpace.committedPages();
       } else {
