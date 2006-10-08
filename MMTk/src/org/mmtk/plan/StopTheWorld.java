@@ -85,13 +85,6 @@ public abstract class StopTheWorld extends Plan
   public static final int SANITY_ROOTS        = new SimplePhase("sanity-roots",       null,       Phase.GLOBAL_LAST       ).getId();
   public static final int SANITY_CHECK        = new SimplePhase("sanity",             null,       Phase.COLLECTOR_ONLY        ).getId();
   public static final int SANITY_RELEASE      = new SimplePhase("sanity-release",     null,       Phase.GLOBAL_LAST       ).getId();
-  public static final int SANITY_FORWARD      = new SimplePhase("sanity-forward",     null,       Phase.COLLECTOR_ONLY        ).getId();
-
-  /* Sanity forwarding piggy-back */
-  private static final int sanityForwardPhase = new ComplexPhase("sanity-forward-cf", null, new int[] {
-      FORWARD,
-      SANITY_FORWARD,
-  }).getId();
 
   /* Sanity check phase sequence */
   private static final int sanityPhase = new ComplexPhase("sanity-check", null, new int[] {
@@ -188,7 +181,6 @@ public abstract class StopTheWorld extends Plan
       } else {
         Log.writeln("Collection sanity checking enabled.");
         collection.replacePhase(SANITY_PLACEHOLDER, sanityPhase);
-        collection.replacePhase(FORWARD, sanityForwardPhase);
       }
     }
   }
