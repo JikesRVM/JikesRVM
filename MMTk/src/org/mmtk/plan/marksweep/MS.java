@@ -65,7 +65,7 @@ public class MS extends StopTheWorld implements Uninterruptible {
    * Instance variables
    */
 
-  public final Trace msTrace;
+  public final Trace msTrace = new Trace(metaDataSpace);
 
   private int msReservedPages;
   private int availablePreGC;
@@ -75,7 +75,6 @@ public class MS extends StopTheWorld implements Uninterruptible {
    * 
    */
   public MS() {
-    msTrace = new Trace(metaDataSpace);
   }
 
   /**
@@ -91,23 +90,35 @@ public class MS extends StopTheWorld implements Uninterruptible {
    * Collection
    */
 
-
   /**
    * Perform a (global) collection phase.
    * 
    * @param phaseId Collection phase to execute.
    */
   public final void collectionPhase(int phaseId) throws InlinePragma {
+
     if (phaseId == PREPARE) {
       super.collectionPhase(phaseId);
       msTrace.prepare();
       msSpace.prepare();
       return;
     }
+    
     if (phaseId == RELEASE) {
       msTrace.release();
       msSpace.release();
+      updateProgress();
+      super.collectionPhase(phaseId);
+      return;
+    }
 
+    super.collectionPhase(phaseId);
+  }
+  
+  /**
+   * Update bookkeeping of GC progress.
+   */
+  private void updateProgress() {
       int available = getTotalPages() - getPagesReserved();
 
       progress = (available > availablePreGC) && 
@@ -122,12 +133,6 @@ public class MS extends StopTheWorld implements Uninterruptible {
       } else {
         msReservedPages = msReservedPages / 2;
       }
-
-      super.collectionPhase(phaseId);
-      return;
-    }
-
-    super.collectionPhase(phaseId);
   }
 
   /**
@@ -170,6 +175,4 @@ public class MS extends StopTheWorld implements Uninterruptible {
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
-
-
 }
