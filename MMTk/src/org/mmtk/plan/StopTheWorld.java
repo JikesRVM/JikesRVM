@@ -319,7 +319,7 @@ public abstract class StopTheWorld extends Plan
       printUsedPages();
       Log.write("    Collection time: ");
       totalTime.printLast();
-      Log.writeln(" seconds");
+      Log.writeln(" ms");
     }
   }
 
