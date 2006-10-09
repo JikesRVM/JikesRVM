@@ -163,30 +163,15 @@ public final class ImmortalSpace extends Space
    */
 
   /**
-   * test to see if the mark bit has the given value
+   * Initialize the object header post-allocation.  We need to set the mark state
+   * correctly and set the logged bit if necessary.
+   * 
+   * @param object The newly allocated object instance whose header we are initializing
    */
-  private static boolean testMarkBit(ObjectReference object, Word value) {
-    return !(VM.objectModel.readAvailableBitsWord(object).and(value).isZero());
-  }
-
-  /**
-   * write the given value in the mark bit.
-   */
-  private static void writeMarkBit(ObjectReference object, Word value) {
+  public final void initializeHeader(ObjectReference object) {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
+    Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(markState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
-  }
-
-  /**
-   * atomically write the given value in the mark bit.
-   */
-  private static void atomicWriteMarkBit(ObjectReference object, Word value) {
-    while (true) {
-      Word oldValue = VM.objectModel.prepareAvailableBits(object);
-      Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-      if (VM.objectModel.attemptAvailableBits(object, oldValue, newValue)) break;
-    }
   }
 
   /**
@@ -220,10 +205,6 @@ public final class ImmortalSpace extends Space
     if (testAndMark(object, markState))
       trace.enqueue(object);
     return object;
-  }
-
-  public void postAlloc(ObjectReference object) throws InlinePragma {
-    writeMarkBit(object, markState);
   }
 
   /**

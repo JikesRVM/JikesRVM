@@ -109,7 +109,7 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator)
   throws InlinePragma {
-    MC.immortalSpace.postAlloc(object);
+    MC.immortalSpace.initializeHeader(object);
   }
 
   /****************************************************************************

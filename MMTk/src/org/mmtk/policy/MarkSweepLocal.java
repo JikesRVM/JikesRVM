@@ -189,7 +189,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * 
    */
   public final void releaseCollector() {
-    sweepBlocks(); // sweep the blocks
+    sweepBlocks(true); // sweep the blocks
   }
   /**
    * Finish up after a collection.
@@ -212,7 +212,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
   protected final boolean reclaimCellForObject(ObjectReference object, 
                                                Word markState) 
     throws InlinePragma {
-    return !MarkSweepSpace.testMarkBit(object, markState);
+    return !MarkSweepSpace.testMarkState(object, markState);
   }
 
   /****************************************************************************

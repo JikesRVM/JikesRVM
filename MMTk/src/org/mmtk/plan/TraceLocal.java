@@ -472,6 +472,7 @@ public abstract class TraceLocal implements Constants, Uninterruptible {
       }
       processRememberedSets();
     } while (!values.isEmpty());
+    assertMutatorRemsetsFlushed();
   }
 
   /**

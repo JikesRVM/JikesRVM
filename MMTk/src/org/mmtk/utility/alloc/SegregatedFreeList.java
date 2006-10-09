@@ -619,8 +619,9 @@ public abstract class SegregatedFreeList extends Allocator
    * Sweep all blocks for free objects.
    * 
    * FIXME This is currently implemented by searching each *mutator* free list.  It needs to be per-collector, not per-mutator.
+   * @param clearBlockMarks should we clear block mark bits after reading?  Otherwise they must be done on masse when appropriate.
    */
-  protected final void sweepBlocks() {
+  protected final void sweepBlocks(boolean clearBlockMarks) {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
       Address block = firstBlock.get(sizeClass);
       clearBucketList();
@@ -641,7 +642,8 @@ public abstract class SegregatedFreeList extends Allocator
           boolean live = false;
           Address cursor = block;
           while(cursor.LT(block.plus(blockSize))) {
-            live |= BlockAllocator.clearBlockMeta(cursor);
+            live |= BlockAllocator.checkBlockMeta(cursor);
+            if (clearBlockMarks) BlockAllocator.clearBlockMeta(cursor); 
             cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
           }
           if (!live) {
@@ -651,6 +653,25 @@ public abstract class SegregatedFreeList extends Allocator
         block = next;
       }
       if (SORT_FREE_BLOCKS) reestablishBlockFreeList(sizeClass);
+    }
+  }
+
+  /**
+   * Clear the per-block mark state en masse
+   */
+  public final void clearBlockMarks() {
+    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
+      Address block = firstBlock.get(sizeClass);
+      Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      while (!block.isZero()) {
+        Address next = BlockAllocator.getNextBlock(block);
+        Address cursor = block;
+        while(cursor.LT(block.plus(blockSize))) {
+          BlockAllocator.clearBlockMeta(cursor);
+          cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
+        }
+        block = next;
+      }
     }
   }
 

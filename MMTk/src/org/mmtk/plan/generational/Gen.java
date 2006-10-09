@@ -18,8 +18,6 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.*;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 

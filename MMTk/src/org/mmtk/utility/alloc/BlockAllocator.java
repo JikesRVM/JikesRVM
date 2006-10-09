@@ -601,16 +601,24 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   }
  
   /**
-   * Clear the metadata for this block.
+   * Return true if the metadata for this block was set.
    * 
    * @param block The block address
-   * @return the previous value of the meta data.
+   * @return value of the meta data.
    */ 
-  public static final boolean clearBlockMeta(Address block)
+  public static final boolean checkBlockMeta(Address block)
     throws InlinePragma {
-    boolean result = getMetaAddress(block).plus(FL_META_OFFSET).loadWord().EQ(Word.one());
+    return getMetaAddress(block).plus(FL_META_OFFSET).loadWord().EQ(Word.one());
+  }
+  
+  /**
+   * Clear the metadata for this block
+   * 
+   * @param block The block address
+   */ 
+  public static final void clearBlockMeta(Address block)
+    throws InlinePragma {
     getMetaAddress(block).plus(FL_META_OFFSET).store(Word.zero());
-    return result;
   }
   
   /**

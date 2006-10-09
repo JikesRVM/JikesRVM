@@ -258,7 +258,7 @@ public final class RefCountLocal extends SegregatedFreeList
     if (timekeeper) decTime.stop();
     VM.collection.rendezvous(4410);
     // RC_SWEEP
-    sweepBlocks();
+    sweepBlocks(true);
     // RC_CYCLE_DETECTION
     if (RCBase.REF_COUNT_CYCLE_DETECTION) {
       if (timekeeper) cdTime.start();

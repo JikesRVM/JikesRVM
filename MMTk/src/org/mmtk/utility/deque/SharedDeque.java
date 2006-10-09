@@ -119,6 +119,10 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
   public final void reset() {
     setNumConsumersWaiting(0);
     setCompletionFlag(0);
+    assertExhausted();
+  }
+
+  public final void assertExhausted() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(head.isZero() && tail.isZero());
   }
 
