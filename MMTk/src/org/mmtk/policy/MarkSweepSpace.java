@@ -64,7 +64,8 @@ public final class MarkSweepSpace extends Space
    * 
    * Instance variables
    */
-  private Word markState;
+  private Word markState = Word.one();
+  private Word allocState = Word.zero();
   private boolean inMSCollection;
 
   /****************************************************************************
@@ -189,6 +190,7 @@ public final class MarkSweepSpace extends Space
    */
   public void prepare() {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
+      allocState = markState;
       markState = deltaMarkState(true);
     } else {
       MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
@@ -346,7 +348,7 @@ public final class MarkSweepSpace extends Space
   public final void initializeHeader(ObjectReference object)
       throws InlinePragma {
     if (MarkSweepLocal.HEADER_MARK_BITS)
-      writeMarkState(object);
+      writeAllocState(object);
     }
 
   /**
@@ -380,13 +382,13 @@ public final class MarkSweepSpace extends Space
   }
 
   /**
-   * Write a given value in the mark bit of an object non-atomically
+   * Write the allocState into the mark state fields of an object non-atomically
    * 
-   * @param object The object whose mark bit is to be written
+   * @param object The object whose mark state is to be written
    */
-  private final void writeMarkState(ObjectReference object) throws InlinePragma {
+  private final void writeAllocState(ObjectReference object) throws InlinePragma {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(markState);
+    Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(allocState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 }
