@@ -1,11 +1,9 @@
-#
 # This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
 # The Jikes RVM project is distributed under the Common Public License (CPL).
 # A copy of the license is included in the distribution, and is also
 # available at http://www.opensource.org/licenses/cpl1.0.php
 #
 # (C) Copyright IBM Corp. 2001
-#
 #
 # $Id$
 #
@@ -29,12 +27,7 @@ endif
 
 include		$(JAL_ROOT)/testing/harness/Make.rules
 
-# 
-# We know that batik and chart both fail - add them into the list
-# when classpath problems are fixed.
-#
-#TESTS	= antlr batik bloat chart fop hsqldb jython pmd ps xalan
-TESTS	= antlr bloat fop hsqldb jython pmd ps xalan
+TESTS = antlr bloat chart eclipse fop hsqldb jython luindex lusearch pmd xalan
 
 Harness.class : $(JARFILE)
 	:

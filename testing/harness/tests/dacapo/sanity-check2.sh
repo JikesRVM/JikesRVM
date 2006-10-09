@@ -19,7 +19,7 @@ RESULTFILE=$1
 shift
 NTESTS=$#
 
-if [ $( grep -E "===== DaCapo .* Finished in " < $RESULTFILE | wc -l ) == $NTESTS ]
+if [ $( grep -E "===== DaCapo .* PASSED in " < $RESULTFILE | wc -l ) == $NTESTS ]
 then
   exit 0
 else
