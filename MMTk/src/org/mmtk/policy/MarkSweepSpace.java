@@ -267,7 +267,7 @@ public final class MarkSweepSpace extends Space
   public boolean isLive(ObjectReference object)
     throws InlinePragma {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
-      return testMarkState(object, markState) || testMarkState(object, allocState);
+	return testMarkState(object, markState);
     } else {
       return MarkSweepLocal.isLiveObject(object);
     }
