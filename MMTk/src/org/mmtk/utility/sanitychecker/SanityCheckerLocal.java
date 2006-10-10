@@ -151,8 +151,10 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
    * @return The expected (root excluded) reference count.
    */
   protected int sanityExpectedRC(ObjectReference object, 
-                                           int sanityRootRC) {
-
+                                 int sanityRootRC) {
+    if (global().preGCSanity())
+      return SanityChecker.UNSURE;
+    
     Space space = Space.getSpaceForObject(object);
     return space.isReachable(object) 
       ? SanityChecker.ALIVE 
