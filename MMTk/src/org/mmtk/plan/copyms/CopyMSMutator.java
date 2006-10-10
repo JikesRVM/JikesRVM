@@ -105,7 +105,7 @@ public abstract class CopyMSMutator extends StopTheWorldMutator implements Unint
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return;
     else if (allocator == CopyMS.ALLOC_MS)
-      CopyMS.msSpace.initializeHeader(ref);
+      CopyMS.msSpace.initializeHeader(ref, true);
     else
       super.postAlloc(ref, typeRef, bytes, allocator);
   }

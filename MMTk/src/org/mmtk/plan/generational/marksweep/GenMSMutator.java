@@ -107,7 +107,7 @@ public abstract class GenMSMutator extends GenMutator implements Uninterruptible
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
     if (allocator == GenMS.ALLOC_MATURE) {
-      GenMS.msSpace.initializeHeader(ref);
+      GenMS.msSpace.initializeHeader(ref, true);
     } else {
       super.postAlloc(ref, typeRef, bytes, allocator);
     }

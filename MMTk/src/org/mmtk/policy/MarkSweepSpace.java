@@ -319,7 +319,7 @@ public final class MarkSweepSpace extends Space
    */
   public final void postAlloc(ObjectReference object) 
     throws InlinePragma {
-    initializeHeader(object);
+    initializeHeader(object, true);
   }
 
   /**
@@ -332,7 +332,7 @@ public final class MarkSweepSpace extends Space
    */
   public final void postCopy(ObjectReference object, boolean majorGC) 
     throws InlinePragma {
-    initializeHeader(object);
+    initializeHeader(object, false);
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (majorGC) MarkSweepLocal.liveBlock(object);
     } else {
@@ -344,12 +344,17 @@ public final class MarkSweepSpace extends Space
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param object the object ref to the storage to be initialized
+   * @param alloc is this initialization occuring due to (initial) allocation
+   * (true) or due to copying (false)?
    */
-  public final void initializeHeader(ObjectReference object)
+  public final void initializeHeader(ObjectReference object, boolean alloc)
       throws InlinePragma {
     if (MarkSweepLocal.HEADER_MARK_BITS)
-      writeAllocState(object);
-    }
+      if (alloc) 
+        writeAllocState(object);	
+      else
+        writeMarkState(object);
+   }
 
   /**
    * Atomically attempt to set the mark bit of an object.  Return true
@@ -382,13 +387,26 @@ public final class MarkSweepSpace extends Space
   }
 
   /**
-   * Write the allocState into the mark state fields of an object non-atomically
+   * Write the allocState into the mark state fields of an object non-atomically.
+   * This is appropriate for allocation time initialization.
    * 
    * @param object The object whose mark state is to be written
    */
   private final void writeAllocState(ObjectReference object) throws InlinePragma {
     Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(allocState);
+    VM.objectModel.writeAvailableBitsWord(object, newValue);
+  }
+  
+  /**
+   * Write the markState into the mark state fields of an object non-atomically.
+   * This is appropriate for collection time initialization.
+   * 
+   * @param object The object whose mark state is to be written
+   */
+  private final void writeMarkState(ObjectReference object) throws InlinePragma {
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(markState);
     VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 }
