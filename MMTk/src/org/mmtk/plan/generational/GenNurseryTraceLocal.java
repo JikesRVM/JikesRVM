@@ -14,6 +14,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -65,11 +66,12 @@ public final class GenNurseryTraceLocal extends TraceLocal
     if (object.isNull()) return false;
     if (object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
-      return Gen.nurserySpace.isLive(object);
+        return Gen.nurserySpace.isLive(object);
       else
         return Gen.ploSpace.isLive(object);
     }
-    return super.isLive(object);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
+    return true;
   }
 
   /**
@@ -87,7 +89,7 @@ public final class GenNurseryTraceLocal extends TraceLocal
       throws InlinePragma {
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
       if (object.toAddress().LT(Gen.NURSERY_END))
-      return Gen.nurserySpace.traceObject(this, object);
+        return Gen.nurserySpace.traceObject(this, object);
       else
         return Gen.ploSpace.traceObject(this, object);
     }
