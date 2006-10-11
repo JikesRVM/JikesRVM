@@ -29,7 +29,7 @@ SHELL=${BASH}			# Set shell to bash because we use 'echo -n'
                                 # 'echo -n'.
 
 ifeq (${HOST_VM_TYPE},IBM-50)
-    HOST_JDK_FLAGS=-Xss1m
+    HOST_JDK_FLAGS=-Xss1m -Xjit:optlevel=warm
 else 
     HOST_JDK_FLAGS=
 endif
