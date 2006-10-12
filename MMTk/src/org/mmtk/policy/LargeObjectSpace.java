@@ -174,7 +174,7 @@ public final class LargeObjectSpace extends Space
    * 
    */
   public void prepare(boolean fullHeap) {
-   if (fullHeap) 
+    if (fullHeap) 
       markState = MARK_BIT.minus(markState);
     inNurseryGC = !fullHeap;
   }

@@ -63,8 +63,17 @@ public abstract class SSCollector extends StopTheWorldCollector implements Unint
    * Constructor
    */
   public SSCollector() {
+    this(new SSTraceLocal(global().ssTrace));
+  }
+  
+  /**
+   * Constructor
+   * @param tr The trace to use
+   */
+  protected SSCollector(SSTraceLocal tr) {
     ss = new CopyLocal(SS.copySpace0);
-    trace = new SSTraceLocal(global().ssTrace);
+    trace = tr;
+    
   }
 
   /****************************************************************************

@@ -162,13 +162,21 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   }
 
   /**
-   * Gather data for GCSpy
+   * Gather data for GCSpy from the nursery
+   * @param event the gc event
+   * @param losDriver the GCSpy space driver
+   */
+  public void gcspyGatherData(int event, TreadmillDriver losDriver) {
+    treadmill.gcspyGatherData(event, losDriver);
+  }
+  
+  /**
+   * Gather data for GCSpy for an older space
    * @param event the gc event
    * @param losDriver the GCSpy space driver
    * @param tospace gather from tospace?
    */
-  public void gcspyGatherData(int event, TreadmillDriver losDriver,
-      boolean tospace) {
+  public void gcspyGatherData(int event, TreadmillDriver losDriver, boolean tospace) {
     treadmill.gcspyGatherData(event, losDriver, tospace);
   }
 }

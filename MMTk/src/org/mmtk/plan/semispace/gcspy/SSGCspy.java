@@ -4,27 +4,29 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ *(C) Copyright Richard Jones, 2005-6
+ * Computing Laboratory, University of Kent at Canterbury
  */
 package org.mmtk.plan.semispace.gcspy;
 
+import org.mmtk.plan.GCspyPlan;
+import org.mmtk.plan.Phase;
 import org.mmtk.plan.semispace.SS;
-import org.mmtk.utility.gcspy.drivers.ContiguousSpaceDriver;
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.LargeObjectSpace;
+import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
+import org.mmtk.utility.gcspy.drivers.ImmortalSpaceDriver;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 
-import org.mmtk.vm.gcspy.ServerInterpreter;
-
 import org.vmmagic.pragma.*;
 
 /**
  * This class extends a simple semi-space collector to instrument it for
- * GCspy. It makes use of Daniel Frampton's LinearScan patches to allow
- * CopySpaces to be scanned linearly (rather than recording allocations
- * with an ObjectMap as in prior versions.<p>
+ * GCspy. <p>
  * 
  * See the Jones & Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
@@ -44,108 +46,244 @@ import org.vmmagic.pragma.*;
  *
  * $Id$
  * 
+ * @author <a href="http://www.cs.ukc.ac.uk/~rej/">Richard Jones</a>
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
- * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
- * 
  * @version $Revision$
  * @date $Date$
  */
-public class SSGCspy extends SS implements Uninterruptible {
+public class SSGCspy extends SS implements GCspyPlan, Uninterruptible {
 
   /****************************************************************************
    * 
    * Class variables
    */
 
-
-  // The event, BEFORE_COLLECTION or AFTER_COLLECTION
+  // The events, BEFORE_COLLECTION, SEMISPACE_COPIED or AFTER_COLLECTION
+  
+  /** 
+   * Before a collection has started, 
+   * i.e. before SS.collectionPhase(SS.PREPARE,..).
+   */
   static final int BEFORE_COLLECTION = 0;
-  static final int SEMISPACE_COPIED = BEFORE_COLLECTION + 1;
-  static final int AFTER_COLLECTION = SEMISPACE_COPIED + 1;
+  
+  /** 
+   * After the semispace has been copied and the large object space has been traced
+   * At this time the Large Object Space has not been swept.
+   */
+  static final int SEMISPACE_COPIED  = BEFORE_COLLECTION + 1;
+  
+  /**
+   * The collection is complete,
+   * i.e. immediately after SS.collectionPhase(SS.RELEASE,..).
+   * The Large Object Space has been swept.
+   */
+  static final int AFTER_COLLECTION  = SEMISPACE_COPIED + 1;
+  
   static int gcspyEvent_ = BEFORE_COLLECTION;
 
   // The specific drivers for this collector
-  static ContiguousSpaceDriver ss0Driver;
-  static ContiguousSpaceDriver ss1Driver;
-  static ContiguousSpaceDriver immortalDriver;
-  static TreadmillDriver losDriver;
+  static LinearSpaceDriver ss0Driver;
+  static LinearSpaceDriver ss1Driver;
+  static ImmortalSpaceDriver immortalDriver; 
+  static TreadmillDriver losNurseryDriver;
+  static TreadmillDriver losDriver;  
+  static TreadmillDriver plosNurseryDriver;
+  static TreadmillDriver plosDriver;
+  
+  private static final boolean DEBUG = false;
 
-  /****************************************************************************
-   * 
-   * GCSPY
-   */
+  
   static {
     GCspy.createOptions();
   }
-
+ 
   /**
-   * Start the server and wait if necessary
-   * 
-   * WARNING: allocates memory
+   * Start the server and wait if necessary.
+   * This method has the following responsibilities.
+   * <ol>
+   * <li> Create and initialise the GCspy server by calling.
+   *      <pre>server = ServerInterpreter.init(name, portNumber, verbose);</pre>
+   * <li> Add each event to the ServerInterpreter
+   *      <pre>server.addEvent(eventID, eventName);</pre>
+   * <li> Set some general information about the server (e.g. name of the collector, build, etc).
+   *      <pre>server.setGeneralInfo(info); </pre>
+   * <li> Create new drivers for each component to be visualised.
+   *      <pre>myDriver = new MyDriver(server, args...);</pre>
+   *      Drivers extend AbstractDriver and register their spce with the 
+   *      ServerInterpreter. In addition to the server, drivers will take as 
+   *      arguments the name of the space, the MMTk space, the tilesize, and
+   *      whether this space is to be the main space in the visualiser.
+   * </ol>
+   *
+   * WARNING: allocates memory.
    * @param wait Whether to wait
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
   public final void startGCspyServer(int port, boolean wait)
       throws InterruptiblePragma {
-    String eventNames[] = {"Before collection",
-                           "Semispace copied",
-        "After collection" };
-    String generalInfo = "SemiSpace Server Interpreter\n\nGeneral Info";
-
-    // The Server
-    ServerInterpreter.init("SemiSpaceServerInterpreter",
-                            port,
-                            eventNames,
-                            true /* verbose*/,
-                            generalInfo);
+    GCspy.server.init("SemiSpaceServerInterpreter", port, true/*verbose*/); 
+    if (DEBUG) Log.writeln("SSGCspy: ServerInterpreter initialised");
+    
+    GCspy.server.addEvent(BEFORE_COLLECTION, "Before collection");
+    GCspy.server.addEvent(SEMISPACE_COPIED, "Semispace copied; LOS traced");
+    GCspy.server.addEvent(AFTER_COLLECTION, "After collection; LOS swept");
+    GCspy.server.setGeneralInfo(
+        "SSGCspy\n\nRichard Jones, October 2006\\http://www.cs.kent.ac.uk/~rej/");
+    if (DEBUG) Log.writeln("SSGCspy: events added to ServerInterpreter");
 
     // Initialise each driver
-    int tilesize = Options.gcspyTileSize.getValue();
-    // TODO What if this is too small (i.e. too many tiles for GCspy buffer)
-    // TODO stop the GCspy spaces in the visualiser from fluctuating in size
-    // so much as we resize them.
-    ss0Driver = new ContiguousSpaceDriver
-                        ("Semispace 0 Space",
-                         copySpace0,
-                         tilesize,
-                         true);
-    ss1Driver = new ContiguousSpaceDriver
-                        ("Semispace 1 Space",
-                         copySpace1,
-                         tilesize,
-                         false);
-    immortalDriver = new ContiguousSpaceDriver
-                        ("Immortal Space",
-                         immortalSpace,
-                         tilesize,
-                         false);
-    losDriver = new TreadmillDriver
-                        ("Large Object Space",
-                         loSpace,
-                         tilesize,
-                         LOS_SIZE_THRESHOLD,
-                         false);
-
-    // Log.write("SemiServerInterpreter initialised\n");
+    ss0Driver      = newLinearSpaceDriver("Semispace 0 Space", copySpace0, true);
+    ss1Driver      = newLinearSpaceDriver("Semispace 1 Space", copySpace1, false);
+    immortalDriver = new ImmortalSpaceDriver
+                        (GCspy.server,  "Immortal Space", immortalSpace,
+                         Options.gcspyTileSize.getValue(), false);
+    losNurseryDriver  = newTreadmillDriver("LOS Nursery", loSpace);
+    losDriver         = newTreadmillDriver("LOS", loSpace);
+    plosNurseryDriver = newTreadmillDriver("Primitive LOS Nursery", ploSpace);
+    plosDriver        = newTreadmillDriver("PLOS", ploSpace);
+    
+    if (DEBUG) Log.write("SemiServerInterpreter initialised\n");
+    
+    // Register drivers to allow immortal space to notify direct references
+    immortalDriver.registerDriversForReferenceNotification(
+      new AbstractDriver[] {ss0Driver, ss1Driver, immortalDriver, 
+                            losNurseryDriver, losDriver, 
+                            plosNurseryDriver, plosDriver});
+    if (DEBUG) Log.writeln("SSGCspy: registered drivers");
 
     gcspyEvent_ = BEFORE_COLLECTION;
 
     // Start the server
-    ServerInterpreter.startServer(wait);
+    GCspy.server.startServer(wait);
   }
 
+  /**
+   * Create a new LinearSpaceDriver
+   * TODO is this the best name or should we call it LargeObjectSpaceDriver?
+   * @param name Name of the space
+   * @param space The space
+   * @return A new GCspy driver for this space
+   */
+  private LinearSpaceDriver newLinearSpaceDriver(String name, CopySpace space, boolean mainSpace) 
+      throws InterruptiblePragma {
+    // TODO What if tileSize is too small (i.e. too many tiles for GCspy buffer)
+    // TODO stop the GCspy spaces in the visualiser from fluctuating in size
+    // so much as we resize them.
+    return new LinearSpaceDriver(GCspy.server, name, space, 
+            Options.gcspyTileSize.getValue(), mainSpace);
+  }
+  
+  /**
+   * Create a new TreadmillDriver
+   * TODO is this the best name or should we call it LargeObjectSpaceDriver?
+   * @param name Name of the space
+   * @param space The space
+   * @return A new GCspy driver for this space
+   */
+  private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) 
+      throws InterruptiblePragma {
+    return new TreadmillDriver(GCspy.server, name, space, 
+            Options.gcspyTileSize.getValue(), LOS_SIZE_THRESHOLD, false);
+  }
+  
+  /****************************************************************************
+   * 
+   * Collection
+   */
 
+  /**
+   * Perform a (global) collection phase.
+   * 
+   * @param phaseId Collection phase
+   */
+  public void collectionPhase(int phaseId)
+  throws InlinePragma {
+    if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
+    
+    if (phaseId == SSGCspy.PREPARE) {
+      super.collectionPhase(phaseId);
+      gcspySpace.prepare();
+      return;
+    }
+
+    if (phaseId == SSGCspy.RELEASE) {
+      super.collectionPhase(phaseId);
+      gcspySpace.release();
+      //if (primary)
+       gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+      return;
+    }
+
+    super.collectionPhase(phaseId);
+  }
+  
+  /**
+   * Gather data for GCspy for the semispaces, the immortal space and the large
+   * object space.
+   * <p>
+   * This method sweeps the semispace under consideration to gather data.
+   * Alternatively and more efficiently, 'used space' can obviously be
+   * discovered in constant time simply by comparing the start and the end
+   * addresses of the semispace. However, per-object information can only be
+   * gathered by sweeping through the space and we do this here for tutorial
+   * purposes.
+   * 
+   * @param event
+   *          The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
+   *          AFTER_COLLECTION
+   */
+  private void gcspyGatherData(int event) {
+    if(DEBUG) {
+      Log.writeln("SSGCspy.gcspyGatherData, event=", event);
+      Log.writeln("SSGCspy.gcspyGatherData, port=", GCspy.getGCspyPort());
+    }
+    
+    // If port = 0 there can be no GCspy client connected
+    if (GCspy.getGCspyPort() == 0)
+      return;
+    
+    // This is a safepoint for the server, i.e. it is a point at which
+    // the server can pause.
+    // The Mutator is called after the Collector so the Mutator must set the safepoint
+    if(DEBUG) Log.writeln("SSGCspy safepoint");
+    GCspy.server.serverSafepoint(event);
+  }
+
+  /****************************************************************************
+   * 
+   * Accounting
+   */
+
+  /**
+   * Return the number of pages reserved for use given the pending
+   * allocation.  This is <i>exclusive of</i> space reserved for
+   * copying.
+   * 
+   * @return The number of pages reserved given the pending
+   * allocation, excluding space reserved for copying.
+   */
+  public final int getPagesUsed() {
+    return super.getPagesUsed() + gcspySpace.reservedPages();
+  }
+ 
+  
   /**
    * Report information on the semispaces
    */
-  private static void reportSpaces() {
-    Log.write("  Low semispace:  "); Log.write(copySpace0.getStart());
-    // Log.writeln("-", copySpace0.getCursor());
-    Log.write("  High semispace: "); Log.write(copySpace1.getStart());
-    // Log.writeln("-", copySpace1.getCursor());
+  static void reportSpaces() {
+    Log.write("\n  Low semispace:  ");
+    Log.write(SSGCspy.copySpace0.getStart());
+    Log.write(" - ");
+    Log.write(SSGCspy.copySpace0.getStart()
+        .plus(SSGCspy.copySpace0.getExtent()));
+    Log.write("\n  High semispace: ");
+    Log.write(SSGCspy.copySpace1.getStart());
+    Log.write(" - ");
+    Log.write(SSGCspy.copySpace1.getStart()
+        .plus(SSGCspy.copySpace1.getExtent()));
+    Log.flush();
   }
-
 }

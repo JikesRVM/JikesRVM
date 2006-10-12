@@ -18,7 +18,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class is only necessary because we cannot implement
  * org.mmtk.utility.alloc.LinearScan as an interface since the invokeinterface
- * bytecode is forbidden in uninterruptibel code. Yuck!
+ * bytecode is forbidden in uninterruptible code.
  * 
  * $Id$
  * 
@@ -31,8 +31,17 @@ public class LinearScan extends org.mmtk.utility.alloc.LinearScan
 
   private final AbstractDriver driver;
 
+  /**
+   * Create a new scanner.
+   * @param d The GCspy driver that provides the callback.
+   */
   public LinearScan (AbstractDriver d) { driver = d; }
 
+  /**
+   * Scan an object. The object reference is passed to the scan method of the 
+   * GCspy driver registered with this scanner.
+   * @param obj The object to scan.
+   */
   public void scan(ObjectReference obj) { driver.scan(obj);  }
 }
 

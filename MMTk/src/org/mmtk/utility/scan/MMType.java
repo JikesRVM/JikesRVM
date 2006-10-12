@@ -82,7 +82,7 @@ public final class MMType implements Constants, Uninterruptible {
    * into an array
    * @return The address of the relevant slot within the object
    */
-  Address getSlot(ObjectReference object, int reference) throws InlinePragma {
+  public Address getSlot(ObjectReference object, int reference) throws InlinePragma {
     Address addr = object.toAddress();
     if (isReferenceArray)
       return addr.plus(VM.ARRAY_BASE_OFFSET).plus(reference << LOG_BYTES_IN_ADDRESS);
@@ -98,7 +98,7 @@ public final class MMType implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The number of references in the object
    */
-  int getReferences(ObjectReference object) throws InlinePragma {
+  public int getReferences(ObjectReference object) throws InlinePragma {
     if (isReferenceArray)
       return VM.objectModel.getArrayLength(object);
     else
@@ -155,9 +155,6 @@ public final class MMType implements Constants, Uninterruptible {
   boolean isDelegated() { return isDelegated; }
 
   /** @return True if this type is an array of references */
-  // FIXME made public so that GCspy drivers can determine whether
-  // object is a reference array or not. Actually, we'like to do better
-  // and distinguish arrays of primitives as well.
   public boolean isReferenceArray() { return isReferenceArray; }
 
   /** @return True if this type is known to be inherently acyclic */

@@ -6,21 +6,21 @@
  *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
+ * 
+ * (C) Copyright Richard Jones, 2005-6
+ * Computing Laboratory, University of Kent at Canterbury
  */
 package org.mmtk.plan.semispace.gcspy;
 
+import org.mmtk.plan.Phase;
 import org.mmtk.plan.semispace.SS;
 import org.mmtk.plan.semispace.SSCollector;
-import org.mmtk.policy.Space;
 import org.mmtk.policy.CopySpace;
-import org.mmtk.utility.alloc.BumpPointer;
-import org.mmtk.utility.alloc.LinearScan;
-import org.mmtk.utility.gcspy.drivers.ContiguousSpaceDriver;
+import org.mmtk.policy.Space;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.GCspy;
-
+import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.gcspy.ServerInterpreter;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -40,11 +40,11 @@ import org.vmmagic.pragma.*;
  * 
  * $Id$
  * 
+ * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  * @author Steve Blackburn
  * @author Perry Cheng
  * @author Daniel Frampton
  * @author Robin Garner
- * @author <a href="http://www.cs.ukc.ac.uk/~rej">Richard Jones</a>
  * 
  * @version $Revision$
  * @date $Date$
@@ -53,24 +53,69 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
 
   /****************************************************************************
    * 
-   * Data gathering
+   * Initialization
    */
 
+  /*****************************************************************************
+   * Instance fields
+   */
+
+  private static final boolean DEBUG = false;
+
+  /**
+   * Constructor
+   */
+  public SSGCspyCollector() {
+    super(new SSGCspyTraceLocal(global().ssTrace));
+  }
+  
+  
+  /****************************************************************************
+   * 
+   * Data gathering
+   */
+  
   /**
    * Perform a (local) collection phase.
+   * Before a collection, we need to discover 
+   * <ul>
+   * <li>the tospace objects copied by the collector in the last GC cycle
+   * <li>the semispace objects allocated since by the mutator.
+   * <li>all immortal objects allocated by the mutator
+   * <li>all large objects allocated by the mutator
+   * </ul>
+   * After the semispace has been copied, we need to discover
+   * <ul>
+   * <li>the tospace objects copied by the collector
+   * <li>all immortal objects allocated by the mutator
+   * <li>all large objects allocated by the mutator
+   * </ul>
    */
   public final void collectionPhase(int phaseId, boolean primary)
       throws InlinePragma {
+    if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }
+    
+    //TODO do we need to worry any longer about primary??
     if (phaseId == SS.PREPARE) {
-      if (primary) gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
+      //if (primary) 
+        gcspyGatherData(SSGCspy.BEFORE_COLLECTION);
       super.collectionPhase(phaseId, primary);
       return;
     }
 
-    if (phaseId == SS.RELEASE) {
-      gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
+    if (phaseId == SS.FORWARD_FINALIZABLE) {
       super.collectionPhase(phaseId, primary);
-      gcspyGatherData(SSGCspy.AFTER_COLLECTION);
+      //if (primary) 
+        gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
+      return;
+    }
+    
+    if (phaseId == SS.RELEASE) {
+      //if (primary) 
+        //gcspyGatherData(SSGCspy.SEMISPACE_COPIED);
+      super.collectionPhase(phaseId, primary);
+      //if (primary) 
+        gcspyGatherData(SSGCspy.AFTER_COLLECTION);
       return;
     }
 
@@ -78,103 +123,167 @@ public class SSGCspyCollector extends SSCollector implements Uninterruptible {
   }
 
   /**
-   * Gather data for GCspy
+   * Gather data for GCspy for the semispaces only.
+   * <p>
    * This method sweeps the semispace under consideration to gather data.
-   * Used space can obviously be discovered in constant time simply by comparing
-   * the start and the end addresses of the semispace, but per-object
-   * information needs to be gathered by sweeping through the space.
+   * Alternatively and more efficiently, 'used space' can obviously be
+   * discovered in constant time simply by comparing the start and the end
+   * addresses of the semispace. However, per-object information can only be
+   * gathered by sweeping through the space and we do this here for tutorial
+   * purposes.
    * 
-   * @param event The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
+   * @param event
+   *          The event, either BEFORE_COLLECTION, SEMISPACE_COPIED or
    *          AFTER_COLLECTION
    */
   private void gcspyGatherData(int event) {
-    // Port = 0 means no gcspy
+    if(DEBUG) {
+      Log.writeln("SSGCspyCollector.gcspyGatherData, event=", event);
+      Log.writeln("SSGCspyCollector.gcspyGatherData, port=", GCspy.getGCspyPort());
+    }
+    
+    // If port = 0 there can be no GCspy client connected
     if (GCspy.getGCspyPort() == 0)
       return;
 
-    if (ServerInterpreter.shouldTransmit(event)) {
-      ServerInterpreter.startCompensationTimer();
-
-      // -- Handle the semispace collector --
-      // BEFORE_COLLECTION: hi has not yet been flipped by globalPrepare()
-      // SEMISPACE_COPIED: hi has been flipped
-      // AFTER_COLLECTION: hi has been flipped
-      CopySpace scannedSpace = null;
-      CopySpace otherSpace = null;
-      ContiguousSpaceDriver driver = null;
-      ContiguousSpaceDriver otherDriver = null;
-
-      /*
-      if (hi) Log.write("\nExamining Highspace (", event);
-      else    Log.write("\nExamining Lowspace (", event);
-      Log.write(")");
-      reportSpaces();
-       */
-
-      if ((event == SSGCspy.BEFORE_COLLECTION && !SSGCspy.hi) || 
-          (event != SSGCspy.BEFORE_COLLECTION && SSGCspy.hi)) {
-        scannedSpace = SSGCspy.copySpace1;
-        otherSpace = SSGCspy.copySpace0;
-        driver = SSGCspy.ss1Driver;
-        otherDriver = SSGCspy.ss0Driver;
-      } else {
-        scannedSpace = SSGCspy.copySpace0;
-        otherSpace = SSGCspy.copySpace1;
-        driver = SSGCspy.ss0Driver;
-        otherDriver = SSGCspy.ss1Driver;
+    // If the server is connected to a client that is interested in this
+    // event, then we gather data. But first we start a timer to
+    // compensate for the time spent gathering data here.
+    if (GCspy.server.isConnected(event)) {
+      
+      if (DEBUG) {
+        if (SSGCspy.hi) 
+          Log.write("\nCollector Examining Lowspace (event ", event);
+        else    
+          Log.write("\nCollector Examining Highspace (event ", event);
+        Log.write(")");
+        SSGCspy.reportSpaces(); Log.writeln();
       }
-      gcspyGatherData(driver, scannedSpace, ss);
-
-      if (event == SSGCspy.AFTER_COLLECTION) {
-        otherDriver.zero();
-        // FIXME As far as I can see, release() only resets a CopySpace's
-        // cursor (and optionally zeroes or mprotects the pages); it doesn't
-        // make them available to other spaces.
-        // If it does release pages then need to change
-        // ContiguousSpaceDriver.setRange
-        Address start = otherSpace.getStart();
-        otherDriver.setRange(start, start);
+          
+      if (event == SSGCspy.BEFORE_COLLECTION) {
+        if (DEBUG) debugSpaces(SSGCspy.fromSpace());
+        
+        // Just send the old values again
+        if (DEBUG) {
+          Log.write("SSGCspyCollector.gcspyGatherData transmit driver, ");
+          Log.writeln(SSGCspy.fromSpace().getName());
+        }
+        
+        fromSpaceDriver().transmit(event);
+        // Mutator.gcspyGatherData follows so leave safepoint to there.
       }
-
-      // -- Handle the LargeObjectSpace --
-      SSGCspy.losDriver.zero();
-      // FIXME This code needs to be part of the mutator, not the collector.  This hack should disappear with a refactoring. 
-      ((SSGCspyMutator) VM.activePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, false); // read fromspace
-      if (event == SSGCspy.SEMISPACE_COPIED)
-        ((SSGCspyMutator) VM.activePlan.mutator()).getLOS().gcspyGatherData(event, SSGCspy.losDriver, true);  // read tospace
-
-      // -- Handle the immortal space --
-      SSGCspy.immortalDriver.zero();
-      gcspyGatherData(SSGCspy.immortalDriver, SSGCspy.immortalSpace, immortal);
-
-      // Transmit the data
-      ServerInterpreter.stopCompensationTimer();
-      driver.finish(event);
-      if (event == SSGCspy.AFTER_COLLECTION) otherDriver.finish(event);
-      SSGCspy.immortalDriver.finish(event);
-      SSGCspy.losDriver.finish(event);
-
-    } else {
-      // Log.write("not transmitting...");
+      
+      
+      else if (event == SSGCspy.SEMISPACE_COPIED) {
+        if (DEBUG) debugSpaces(SSGCspy.toSpace());
+        
+        // We need to reset, scan and send values for tospace
+        // We'll leave resetting fromspace to AFTER_COLLECTION
+        if (DEBUG) {
+          Log.write("SSGCspyCollector.gcspyGatherData reset, gather and transmit driver ");
+          Log.writeln(SSGCspy.toSpace().getName());
+        }
+        
+        GCspy.server.startCompensationTimer();
+        toSpaceDriver().resetData(); 
+        ss.gcspyGatherData(toSpaceDriver(), SSGCspy.toSpace());
+        GCspy.server.stopCompensationTimer();
+        toSpaceDriver().transmit(event);
+        
+        // We'll leave the safepoint to RELEASE_MUTATOR
+      }
+      
+      else if (event == SSGCspy.AFTER_COLLECTION) {
+        if (DEBUG) {
+          Log.write("SSGCspyCollector.gcspyGatherData transmit toSpaceDriver, ");
+          Log.writeln(SSGCspy.toSpace().getName());
+          Log.write("SSGCspyCollector.gcspyGatherData reset fromSpaceDriver, ");
+          Log.writeln(SSGCspy.fromSpace().getName());
+        }
+        
+        toSpaceDriver().transmit(event);
+        
+        // Here we reset fromspace data
+        fromSpaceDriver().resetData();
+        Address start = SSGCspy.fromSpace().getStart();
+        fromSpaceDriver().setRange(start, start);
+        fromSpaceDriver().transmit(event);
+      }
+      
     }
-    ServerInterpreter.serverSafepoint(event);
+    // else Log.write("not transmitting...");
   }
 
   /**
-   * Gather data for GCspy
-   * @param driver the Driver.
-   * @param space the ContiguousSpace.
-   * @param bp the BumpPointer for this space.
+   * Print some debugging info
+   * @param scannedSpace
    */
-  private void gcspyGatherData(ContiguousSpaceDriver driver,
-                               Space space, BumpPointer bp) {
-    if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(bp.getSpace() == space, "Space / BumpPointer mismatch");
-    Address start = space.getStart();
-    driver.zero();
-    driver.setRange(start, bp.getCursor());
-    LinearScan scanner = driver.getScanner();
-    bp.linearScan(scanner);
+  private void debugSpaces(CopySpace scannedSpace) {  
+    Log.write("SSGCspyCollector.gcspyGatherData: gather data for active semispace ");
+    Log.write(scannedSpace.getStart()); Log.write("-",ss.getCursor()); Log.flush();
+    Log.write(". The space is: "); Log.writeln(ss.getSpace().getName());
+    Log.write("scannedSpace is "); Log.writeln(scannedSpace.getName());
+    Log.write("The range is "); Log.write(ss.getSpace().getStart());
+    Log.write(" to "); Log.writeln(ss.getCursor());
+    SSGCspy.reportSpaces();
+  }
+  
+  /**
+   * Reset all root streams.<p>
+   */
+  void resetRootStreams() { 
+    SSGCspy.ss0Driver.resetRootsStream();
+    SSGCspy.ss1Driver.resetRootsStream();
+    SSGCspy.immortalDriver.resetRootsStream();
+    SSGCspy.losNurseryDriver.resetRootsStream();
+    SSGCspy.losDriver.resetRootsStream();
+    SSGCspy.plosNurseryDriver.resetRootsStream();
+    SSGCspy.plosDriver.resetRootsStream();
+    ss.getCursor();
   }
 
+  /**
+   * Pass a root to all drivers.<p>
+   * @param addr The Address of the object to be checked
+   */
+  protected void checkAllDriversForRootAddress(Address addr) {
+    // Is root in the boot image?
+	if (Space.isInSpace(SSGCspy.VM_SPACE, addr.toObjectReference()))
+	  return;
+    /*
+     if (addr.GE(Plan.vmSpace.getStart()) 
+        && addr.LE(Plan.vmSpace.getStart().plus(Plan.vmSpace.getExtent()))) 
+      return;
+    */
+    
+    if(addr.isZero()) 
+      return;
+    SSGCspy.ss0Driver.handleRoot(addr);
+    SSGCspy.ss1Driver.handleRoot(addr);
+    SSGCspy.immortalDriver.handleRoot(addr);
+    SSGCspy.losNurseryDriver.handleRoot(addr);
+    SSGCspy.losDriver.handleRoot(addr);
+    SSGCspy.plosNurseryDriver.handleRoot(addr);
+    SSGCspy.plosDriver.handleRoot(addr);
+  }
+
+  /****************************************************************************
+   * 
+   * Miscellaneous
+   */
+
+  /** @return The active global plan as an <code>SSGCspy</code> instance. */
+  private static final SSGCspy global() throws InlinePragma {
+    return (SSGCspy) VM.activePlan.global();
+  }
+
+  /** @return the driver for toSpace */
+  private LinearSpaceDriver toSpaceDriver() { 
+    return SSGCspy.hi ? SSGCspy.ss1Driver : SSGCspy.ss0Driver;
+  }
+  
+  /** @return the driver for fromSpace */
+  private LinearSpaceDriver fromSpaceDriver() { 
+    return SSGCspy.hi ? SSGCspy.ss0Driver : SSGCspy.ss1Driver;
+  }
 }

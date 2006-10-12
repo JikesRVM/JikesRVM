@@ -386,6 +386,7 @@ public class VM_BootRecord {
    public Address gcspyDriverInitIP;
    public Address gcspyDriverInitOutputIP;
    public Address gcspyDriverResizeIP;
+   public Address gcspyDriverSetTileNameRangeIP;
    public Address gcspyDriverSetTileNameIP;
    public Address gcspyDriverSpaceInfoIP;
    public Address gcspyDriverStartCommIP;

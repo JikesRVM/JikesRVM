@@ -211,6 +211,10 @@ export ZIP_CMD="/usr/bin/zip"
 # tests.  It doesn't need to be set unless you are running those tests.
 export BENCHMARK_ROOT=""
 
+# GCSPY_ROOT is the root directory for the GCspy heap visualisation system.
+# It doesn't need to be set unless you are visualising the heap with GCspy.
+#export GCSPY_ROOT="$HOME/gcspy1.0"
+
 # Used for the Emacs spell-checker
 #  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
 #  LocalWords:  bnoentry SRE lc bE

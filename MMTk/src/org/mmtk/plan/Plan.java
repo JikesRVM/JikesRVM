@@ -641,7 +641,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   public abstract boolean poll(boolean mustCollect, Space space);
 
   /**
-   * Start GC spy server.
+   * Start GCspy server.
    * 
    * @param port The port to listen on,
    * @param wait Should we wait for a client to connect? 

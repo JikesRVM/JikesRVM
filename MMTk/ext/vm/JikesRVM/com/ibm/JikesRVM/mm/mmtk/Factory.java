@@ -6,8 +6,16 @@
  *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
+ *
+ * GCspy components
+ * (C) Copyright Richard Jones, 2005-6
+ * Computing Laboratory, University of Kent at Canterbury
  */
 package com.ibm.JikesRVM.mm.mmtk;
+
+import org.mmtk.utility.gcspy.Color;
+import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+import com.ibm.JikesRVM.mm.mmtk.gcspy.*;
 
 import com.ibm.JikesRVM.VM;
 
@@ -248,6 +256,220 @@ public final class Factory extends org.mmtk.vm.Factory {
       return new TraceInterface();
     } catch (Exception e) {
       VM.sysFail("Failed to allocate new TraceInterface!");
+      return null; // never get here
+    }
+  }
+  
+  /**********************************************************************
+   * GCspy methods
+   */
+
+  /**
+   * Create a new Util instance using the appropriate VM-specific
+   * concrete Util sub-class.
+   * 
+   * @see Util
+   * @return A concrete VM-specific Util instance.
+   */
+  public org.mmtk.vm.gcspy.Util newGCspyUtil() {
+    try {
+      return new com.ibm.JikesRVM.mm.mmtk.gcspy.Util();
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new Util!");
+      return null; // never get here
+    }
+  }
+  
+  /**
+   * Create a new ServerInterpreter instance using the appropriate VM-specific
+   * concrete ServerInterpreter sub-class.
+   * 
+   * @see ServerInterpreter
+   * @return A concrete VM-specific ServerInterpreter instance.
+   */
+  public org.mmtk.vm.gcspy.ServerInterpreter newGCspyServerInterpreter() {
+    try {
+      return new com.ibm.JikesRVM.mm.mmtk.gcspy.ServerInterpreter();
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new ServerInterpreter!");
+      return null; // never get here
+    }
+  }
+  
+  /**
+   * Create a new ServerSpace instance using the appropriate VM-specific
+   * concrete ServerSpace sub-class.
+   * 
+   * @param serverInterpreter The server that owns this space
+   * @param serverName The server's name
+   * @param driverName The space driver's name
+   * @param title Title for the space
+   * @param blockInfo A label for each block
+   * @param tileNum Max number of tiles in this space
+   * @param unused A label for unused blocks
+   * @param mainSpace Whether this space is the main space
+   * 
+   * @see ServerSpace
+   * @return A concrete VM-specific ServerSpace instance.
+   */
+  public org.mmtk.vm.gcspy.ServerSpace newGCspyServerSpace(
+      org.mmtk.vm.gcspy.ServerInterpreter serverInterpreter,
+      String serverName, 
+      String driverName,
+      String title,
+      String blockInfo,
+      int tileNum,
+      String unused, 
+      boolean mainSpace){
+    try {
+      return new com.ibm.JikesRVM.mm.mmtk.gcspy.ServerSpace(
+          serverInterpreter, serverName, driverName, title, 
+          blockInfo, tileNum, unused, mainSpace);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new ServerSpace!");
+      return null; // never get here
+    }
+  }
+  
+  /**
+   * Create a new ByteStream instance using the appropriate
+   * VM-specific concrete ByteStream sub-class.
+   * 
+   * @param driver        The driver that owns this Stream
+   * @param name           The name of the stream (e.g. "Used space")
+   * @param minValue       The minimum value for any item in this stream. 
+   *                       Values less than this will be represented as "minValue-"
+   * @param maxValue       The maximum value for any item in this stream. 
+   *                       Values greater than this will be represented as "maxValue+"
+   * @param zeroValue      The zero value for this stream
+   * @param defaultValue   The default value for this stream
+   * @param stringPre      A string to prefix values (e.g. "Used: ")
+   * @param stringPost     A string to suffix values (e.g. " bytes.")
+   * @param presentation   How a stream value is to be presented.    
+   * @param paintStyle     How the value is to be painted.   
+   * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
+   * @param colour         The default colour for tiles of this stream
+   * @see IntStream
+   * 
+   * @return A concrete VM-specific ByteStream instance. 
+   */
+  public org.mmtk.vm.gcspy.ByteStream newGCspyByteStream(
+      AbstractDriver driver,
+      String name,
+      byte minValue,         
+      byte maxValue,
+      byte zeroValue,
+      byte defaultValue,
+      String stringPre,
+      String stringPost,
+      int presentation,
+      int paintStyle,
+      int indexMaxStream,
+      Color colour,
+      boolean summary) {
+    try {
+      return new com.ibm.JikesRVM.mm.mmtk.gcspy.ByteStream(
+          driver, name, minValue,  maxValue,
+          zeroValue, defaultValue, stringPre, stringPost,
+          presentation, paintStyle, indexMaxStream,
+          colour, summary);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new ByteStream!");
+      return null; // never get here
+    }
+  } 
+  /**
+   * Create a new IntStream instance using the appropriate
+   * VM-specific concrete IntStream sub-class.
+   * 
+   * @param driver        The driver that owns this Stream
+   * @param name           The name of the stream (e.g. "Used space")
+   * @param minValue       The minimum value for any item in this stream. 
+   *                       Values less than this will be represented as "minValue-"
+   * @param maxValue       The maximum value for any item in this stream. 
+   *                       Values greater than this will be represented as "maxValue+"
+   * @param zeroValue      The zero value for this stream
+   * @param defaultValue   The default value for this stream
+   * @param stringPre      A string to prefix values (e.g. "Used: ")
+   * @param stringPost     A string to suffix values (e.g. " bytes.")
+   * @param presentation   How a stream value is to be presented.    
+   * @param paintStyle     How the value is to be painted.   
+   * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
+   * @param colour         The default colour for tiles of this stream
+   * @see IntStream
+   * 
+   * @return A concrete VM-specific IntStream instance. 
+   */
+  public org.mmtk.vm.gcspy.IntStream newGCspyIntStream(
+      AbstractDriver driver,
+      String name,
+      int minValue,         
+      int maxValue,
+      int zeroValue,
+      int defaultValue,
+      String stringPre,
+      String stringPost,
+      int presentation,
+      int paintStyle,
+      int indexMaxStream,
+      Color colour,
+      boolean summary) {
+    try {
+      return new com.ibm.JikesRVM.mm.mmtk.gcspy.IntStream(
+          driver, name, minValue,  maxValue,
+          zeroValue, defaultValue, stringPre, stringPost,
+          presentation, paintStyle, indexMaxStream,
+          colour, summary);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new IntStream!");
+      return null; // never get here
+    }
+  }
+
+  /**
+   * Create a new ShortStream instance using the appropriate
+   * VM-specific concrete ShortStream sub-class.
+   * 
+   * @param driver        The driver that owns this Stream
+   * @param name           The name of the stream (e.g. "Used space")
+   * @param minValue       The minimum value for any item in this stream. 
+   *                       Values less than this will be represented as "minValue-"
+   * @param maxValue       The maximum value for any item in this stream. 
+   *                       Values greater than this will be represented as "maxValue+"
+   * @param zeroValue      The zero value for this stream
+   * @param defaultValue   The default value for this stream
+   * @param stringPre      A string to prefix values (e.g. "Used: ")
+   * @param stringPost     A string to suffix values (e.g. " bytes.")
+   * @param presentation   How a stream value is to be presented.    
+   * @param paintStyle     How the value is to be painted.   
+   * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
+   * @param colour         The default colour for tiles of this stream
+   * @see IntStream
+   * 
+   * @return A concrete VM-specific ShortStream instance. 
+   */
+  public org.mmtk.vm.gcspy.ShortStream newGCspyShortStream(
+      AbstractDriver driver,
+      String name,
+      short minValue,         
+      short maxValue,
+      short zeroValue,
+      short defaultValue,
+      String stringPre,
+      String stringPost,
+      int presentation,
+      int paintStyle,
+      int indexMaxStream,
+      Color colour,
+      boolean summary) {
+    try {
+      return new com.ibm.JikesRVM.mm.mmtk.gcspy.ShortStream(
+          driver, name, minValue,  maxValue,
+          zeroValue, defaultValue, stringPre, stringPost,
+          presentation, paintStyle, indexMaxStream,
+          colour, summary);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new ShortStream!");
       return null; // never get here
     }
   }

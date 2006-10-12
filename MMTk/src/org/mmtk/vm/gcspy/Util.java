@@ -10,30 +10,21 @@
  */
 package org.mmtk.vm.gcspy;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
-
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_SysCall;
-import com.ibm.JikesRVM.VM_Synchronization;
-
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class provides generally useful methods.
- *
- * $Id$
- *
+ * Abstract class that provides generally useful
+ * methods.
+ * 
+ * $Id: Util.java 10806 2006-09-22 12:17:46Z dgrove-oss $
+ * 
  * @author <a href="http://www.ukc.ac.uk/people/staff/rej">Richard Jones</a>
- * @version $Revision$
- * @date $Date$
+ * @version $Revision: 10806 $
+ * @date $Date: 2006-09-22 13:17:46 +0100 (Fri, 22 Sep 2006) $
  */
-public class Util implements Uninterruptible, Constants {
-  private static final boolean DEBUG_ = false;
-  private static final int LOG_BYTES_IN_WORD = LOG_BYTES_IN_INT;
-  private static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
+public abstract class Util implements Uninterruptible {
   
   /**
    * Allocate an array of bytes with malloc
@@ -41,12 +32,8 @@ public class Util implements Uninterruptible, Constants {
    * @param size The size to allocate
    * @return The start address of the memory allocated in C space
    * @see free
-   */
-  public static final Address malloc(int size) {
-    Address rtn  = VM_SysCall.sysMalloc(size);
-    if (rtn.isZero()) Assert.fail("GCspy malloc failure");
-    return rtn;
-  }
+  */
+  public abstract Address malloc(int size);
 
   /**
    * Free an array of bytes previously allocated with malloc
@@ -54,10 +41,7 @@ public class Util implements Uninterruptible, Constants {
    * @param addr The address of some memory previously allocated with malloc
    * @see malloc
    */
-  public static final void free(Address addr) {
-    if (!addr.isZero())
-      VM_SysCall.sysFree(addr);
-  }
+  public abstract void free(Address addr);
   
   /**
    * Dump a range in format [start,end)
@@ -71,84 +55,13 @@ public class Util implements Uninterruptible, Constants {
     Log.write(')');
   }
 
-  
-  // From VM.java
-  private static int sysWriteLock = 0;
-  private static Offset sysWriteLockOffset = Offset.max();
-
-  private static final void swLock() {
-    if (sysWriteLockOffset.isMax()) return;
-    while (!VM_Synchronization.testAndSet(VM_Magic.getJTOC(), sysWriteLockOffset, 1)) 
-      ;
-  }
-
-  private static final void swUnlock() {
-    if (sysWriteLockOffset.isMax()) return;
-    VM_Synchronization.fetchAndStore(VM_Magic.getJTOC(), sysWriteLockOffset, 0);
-  }
-
   /**
    * Convert a String to a 0-terminated array of bytes
    *
    * @param str The string to convert
    * @return The address of a null-terminated array in C-space
-   *
-   * WARNING: we call out to String.length and String.charAt, both of
-   * which are interruptible. We protect these calls with a
-   * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
-  public static final Address getBytes (String str) 
-    throws LogicallyUninterruptiblePragma {
-    if (str == null) 
-      return Address.zero();
-
-    if (DEBUG_) {
-      Log.write("getBytes: ");
-      Log.write(str);
-      Log.write("->");
-    }
-
-    // Grab some memory sufficient to hold the null terminated string,
-    // rounded up to an integral number of ints.
-    int len;
-    swLock(); 
-      len = str.length(); 
-    swUnlock();
-    int size = ((len >>> LOG_BYTES_IN_WORD) + 1) << LOG_BYTES_IN_WORD;
-    Address rtn = malloc(size);
-   
-    // Write the string into it, one word at a time, being carefull about endianism
-    for (int w = 0; w <= (len >>> LOG_BYTES_IN_WORD); w++)  {
-      int value = 0;
-      int offset = w << LOG_BYTES_IN_WORD;
-      int shift = 0;
-      for (int b = 0; b < BYTES_IN_WORD; b++) {
-        byte byteVal = 0;
-        if (offset + b < len) {
-          swLock(); 
-            byteVal = (byte) str.charAt(offset + b);    // dodgy conversion!
-          swUnlock();
-        }
-        //-#if RVM_FOR_IA32
-        // Endianism matters
-        value = (byteVal << shift) | value;
-        //-#else
-        value = (value << shift) | byteVal; // not tested
-        //-#endif
-        shift += BITS_IN_BYTE;
-      }
-      rtn.store(value, Offset.fromInt(offset));
-    }
-    if (DEBUG_) {
-      VM_SysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size);
-      Log.write("\n");
-    }
-    return rtn;
-  }
-
-  public static final int KILOBYTE = 1024;
-  public static final int MEGABYTE = 1024 * 1024;
-
+  public abstract Address getBytes(String str);
 
   /**
    * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
@@ -156,11 +69,8 @@ public class Util implements Uninterruptible, Constants {
    * @param buffer The buffer (in C space) in which to place the formatted size
    * @param size The size in bytes
    */
-  public static final void formatSize(Address buffer, int size) {
-    VM_SysCall.gcspyFormatSize(buffer, size);
-  }
-
-  
+  public abstract void formatSize(Address buffer, int size);
+ 
   /**
    * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
    * 
@@ -168,17 +78,9 @@ public class Util implements Uninterruptible, Constants {
    * @param bufsize The size of a buffer large enough to hold the formatted result
    * @param size The size in bytes
    */
-  public static final Address formatSize(String format, int bufsize, int size) {
-    //    - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
-    Address tmp = Util.malloc(bufsize);
-    Address formattedSize = Util.malloc(bufsize);
-    Address currentSize = Util.getBytes(format); 
-    formatSize(formattedSize, size);
-    sprintf(tmp, currentSize, formattedSize);
-    return tmp;
-  }
+  public abstract Address formatSize(String format, int bufsize, int size);
 
-  
+//  public abstract Address formatSize(String format, int bufsize, int size);
 
   /**
    * Place a string representation of a long in an array of bytes
@@ -243,9 +145,6 @@ public class Util implements Uninterruptible, Constants {
     return count;
 
   }
-  
-
-  //----------- Various methods modelled on string.c ---------------------//
 
   /**
    * sprintf(char *str, char *format, char* value)
@@ -255,8 +154,17 @@ public class Util implements Uninterruptible, Constants {
    * @param value The value 'string' (memory in C space)
    * @return The number of characters printed (as returned by C's sprintf
    */
-  public static final int sprintf(Address str, Address format, Address value) {
-    return VM_SysCall.gcspySprintf(str, format, value);
-  }
+  public abstract int sprintf(Address str, Address format, Address value);
+  
+  /**
+   * Create an array of a particular type. 
+   * The easiest way to use this is:
+   *     Foo[] x = (Foo [])Stream.createDataArray(new Foo[0], numElements);
+   * @param templ a data array to use as a template
+   * @param numElements number of elements in new array
+   * @return the new array
+   */
+  public abstract Object createDataArray(Object templ, int numElements)
+      throws InterruptiblePragma;
 }
 

@@ -206,7 +206,7 @@ public class SS extends StopTheWorld implements Uninterruptible {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
-  public final int getPagesUsed() {
+  public int getPagesUsed() {
     return super.getPagesUsed() + toSpace().reservedPages();
   }
 

@@ -740,7 +740,7 @@ function rationalize_classpath_version () {
 
     ## Now check for setting more than one RVM_WITH_CLASSPATH variable.
     local -i sum
-    let "sum=(RVM_WITH_CLASSPATH_0_92 \
+    let "sum=(RVM_WITH_CLASSPATH_0_91 + RVM_WITH_CLASSPATH_0_92 \
               +  RVM_WITH_CLASSPATH_CVS_HEAD)"
     if (( sum > 1 )); then
 	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_<version> is defined.  Your configuration files are inconsistent."
@@ -755,6 +755,7 @@ function rationalize_classpath_version () {
     local unk="$(set | sed \
 			-e '/^RVM_WITH_CLASSPATH_/!d'			\
 			-e '/=0$/d'					\
+			-e '/^RVM_WITH_CLASSPATH_0_91=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_92=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_CVS_HEAD=/d' \
 		)"
@@ -1169,7 +1170,7 @@ SED_STR="\$$SED_STR1"
 declare -x -i GENERATE_MAP=1
 
 # Current version of RVM
-declare -r JIKESRVM_VERSION="Jikes RVM 2.4.5+SVN"
+declare -r JIKESRVM_VERSION="Jikes RVM 2.4.5+CVS"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -1260,6 +1261,7 @@ declare -i RVM_WITH_QUICK_COMPILER_INLINING=0    # No qc inlining
 
 ## Classpath versions that might work with Jikes RVM.
 ## See $RVM_ROOT/config/classpath-version for the gory details.
+declare -i RVM_WITH_CLASSPATH_0_91=0
 declare -i RVM_WITH_CLASSPATH_0_92=0
 declare -i RVM_WITH_CLASSPATH_CVS_HEAD=0
 
@@ -1877,16 +1879,13 @@ EOF
     #    $RVM_ROOT/projects/myproject
 EOF
 
-    # GCSpy specific classes
-    if (( ${RVM_WITH_GCSPY} )); then
-	echo $RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm/gcspy/util/drivers
-	echo $RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm/gcspy/util
-	echo $RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm/gcspy
-    else
-	echo $RVM_ROOT/MMTk/ext/vm/stub/org/mmtk/vm/gcspy/util
-	echo $RVM_ROOT/MMTk/ext/vm/stub/org/mmtk/vm/gcspy/util/drivers
-	echo $RVM_ROOT/MMTk/ext/vm/stub/org/mmtk/vm/gcspy
-    fi
+     cleanFileList <<- EOF
+     # GCspy components
+     #
+	$RVM_ROOT/MMTk/ext/vm/JikesRVM/com/ibm/JikesRVM/mm/mmtk/gcspy
+	$RVM_ROOT/MMTk/ext/vm/JikesRVM/com/ibm/JikesRVM/mm/mmtk/gcspy/util
+EOF
+#     fi
 
     # standard library support
     #
@@ -2814,9 +2813,6 @@ EOF
     if (( all_sources_are_top_level )); then
 	echo '    find . -name \*.java -print'
 	echo '    find ../MMTk.classes/mmtk -name \*.java -print'
-        if (( ! ${RVM_WITH_GCSPY} )); then
-            echo '    find ../MMTk.classes/vm/org/mmtk/vm/gcspy -name \*.java -print'
-        fi 
     else
 	echo '    echo "Dummy.java"'
 	echo '    find com/ibm/JikesRVM/mm/mmtk -name \*.java -print'
@@ -2880,7 +2876,6 @@ build_mmtk() {
     # Copy MMTk's various sources to the MMTk build tree
     #
     copy_source \$MMTK_SOURCE/ext/vmmagic/stub vmmagic
-    copy_source \$MMTK_SOURCE/ext/vm/stub vm
     copy_source \$MMTK_SOURCE/src mmtk
 
     \${HOST_JAVAC} -sourcepath vmmagic:vm:mmtk \$(\${FIND} . -name "*.java")
@@ -3271,9 +3266,6 @@ EOF
     if (( RVM_WITH_ALL_CLASSES )); then
         echo "    \${FIND} . -name '*.class'"
 	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@@' |sed 's@.class\$@@'"
-        if (( ! ${RVM_WITH_GCSPY} )); then
-            echo "    find ../MMTk.classes/vm/org/mmtk/vm/gcspy -name \*.class -print |sed 's@^../MMTk.classes/vm/@.@'"
-        fi 
     else
 	echo "    \$FIND . -name 'VM*.class'"
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
@@ -3282,11 +3274,6 @@ EOF
 	if (( RVM_WITH_OSR )); then
 	    echo "    \$FIND ./com/ibm/JikesRVM/OSR -name '*.class'"
         fi
-        if (( ${RVM_WITH_GCSPY} )); then
-	    :
-	else
-            echo "    find ../MMTk.classes/vm/org/mmtk/vm/gcspy -name \*.class -print |sed 's@^../MMTk.classes/vm/@.@'"
-        fi 
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
 	echo "    \$FIND ../MMTk.classes/mmtk/org -name '*.class'|sed 's@^../MMTk.classes/mmtk/@.@' "
 	echo "    \$FIND ./org/mmtk -name '*.class'"
@@ -3457,9 +3444,7 @@ java/io/InputStream
 java/io/FileInputStream
 java/io/FileDescriptor
 java/io/VMFile
-gnu/java/nio/FileChannelImpl # if Classpath > 0.92
-gnu/java/nio/channels/FileChannelImpl # if Classpath <= 0.92
-gnu/java/nio/VMChannel
+gnu/java/nio/channels/FileChannelImpl
 
     # Character conversion
     # 
@@ -3571,8 +3556,7 @@ java/nio/charset/CoderResult\\\$1
 java/nio/charset/CoderResult\\\$2
 java/util/zip/ZipFile\\\$1
 gnu/java/net/loader/URLStreamHandlerCache
-gnu/classpath/Pointer32
-gnu/classpath/Pointer64
+gnu/java/nio/VMChannel
 EOF
     
     # the application class loader uses jar classes (which can be loaded or not)
@@ -3745,10 +3729,6 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Ljava/lang/Object;
 	[[Ljava/lang/Object;
 	[Ljava/lang/String;
-	[Ljava/lang/Byte;
-	[Ljava/lang/Character;
-	[Ljava/lang/Integer;
-	[Ljava/lang/Short;
 	[Ljava/lang/Class;
 	[Ljava/lang/reflect/Field;
 	[Ljava/lang/reflect/Method;
@@ -4241,8 +4221,9 @@ EOF
 	echo ". \$f || (( quiet_cautions )) || echo >&2 \"CAUTION: unable to load \$f\" " 
 	CPP_ARGS="${CPP_ARGS} \${CPLUS_NO_ENDIF_LABELS_WARNING-} "
     else
-        echo "GCSPY_LIBS="
+	echo "GCSPY_LIBS="
         echo "GCSPY_INCLUDES="
+
     fi
 
     cat <<- EOF
@@ -4609,13 +4590,13 @@ function emitPluginBuilder () {
 	    # Eclipse's assertions require a numeric first and third component,
 	    # at least.  Sigh.
 	    local vnum="${JIKESRVM_VERSION//*[jJ][iI][kK][eE][sS]*[rR][vV][mM]}";
-	    # SVN or +svn or .svn turns into .99
-	    vnum="\${vnum//[sS][vV][nN]/cvs}";
-	    vnum="\${vnum//[^0-9]svn/svn}";
-	    vnum="\${vnum//svn[^0-9]/svn}";
-	    vnum="\${vnum/svn?[hH][eE][aA][dD]/svn}";
-	    vnum="\${vnum/svn[hH][eE][aA][dD]/svn}";
-	    vnum="\${vnum/(svn)/svn}";
+	    # CVS or +cvs or .cvs turns into .99
+	    vnum="\${vnum//[cC][vV][sS]/cvs}";
+	    vnum="\${vnum//[^0-9]cvs/cvs}";
+	    vnum="\${vnum//cvs[^0-9]/cvs}";
+	    vnum="\${vnum/cvs?[hH][eE][aA][dD]/cvs}";
+	    vnum="\${vnum/cvs[hH][eE][aA][dD]/cvs}";
+	    vnum="\${vnum/(cvs)/cvs}";
 	    while [[ \$vnum == *' '* ]]; do
 		vnum="\${vnum// }"      # trim spaces if present (there usually 
 				       # is at least one after the words "Jikes RVM")
@@ -4632,7 +4613,7 @@ function emitPluginBuilder () {
 			 Version information, \\"$JIKESRVM_VERSION\\",
 	   	         into a numeric form for use with the Eclipse plugin, 
 			 I found a non-numeric component, even after 
-			 the \\"SVN\\" transformation; the result looks like
+			 the \\"CVS\\" transformation; the result looks like
 			 this: \\"\$vnum\\".   This message is intended
 			 primarily for Jikes RVM maintainers, and suggests 
 			 that you try a numeric format for JIKESRVM_VERSION"

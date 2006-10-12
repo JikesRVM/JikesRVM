@@ -303,7 +303,8 @@ public class VM_SysCallMagic {
                                Address unused, int mainSpace) {}
   public static void gcspyDriverInitOutput (Address functionAddress, Address driver) {}
   public static void gcspyDriverResize (Address functionAddress, Address driver, int size) {}
-  public static void gcspyDriverSetTileName (Address functionAddress, Address driver, int i, Address start, Address end) {}
+  public static void gcspyDriverSetTileNameRange (Address functionAddress, Address driver, int i, Address start, Address end) {}
+  public static void gcspyDriverSetTileName (Address functionAddress, Address driver, int i, Address start, long value) {}
   public static void gcspyDriverSpaceInfo (Address functionAddress, Address driver, Address info) {}
   public static void gcspyDriverStartComm (Address functionAddress, Address driver) {}
   public static void gcspyDriverStream (Address functionAddress, Address driver, int id, int len) {}

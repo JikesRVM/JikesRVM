@@ -126,6 +126,15 @@ public final class Treadmill
    */
 
   /**
+   * Gather data for GCSpy from the nursery
+   * @param event the gc event
+   * @param tmDriver the GCSpy space driver
+   */
+  public void gcspyGatherData(int event, TreadmillDriver tmDriver) {
+    this.nursery.gcspyGatherData(tmDriver);
+  }
+  
+  /**
    * Gather data for GCSpy
    * @param event the gc event
    * @param tmDriver the GCSpy space driver
@@ -137,5 +146,4 @@ public final class Treadmill
     else
       fromSpace.gcspyGatherData(tmDriver);
   }
-
 }

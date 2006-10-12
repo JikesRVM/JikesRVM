@@ -313,6 +313,32 @@ public class Log implements Constants, Uninterruptible {
   public static void write(Address a) {
     writeHex(a.toWord(), BYTES_IN_ADDRESS);
   }
+  
+  /**
+   * writes a string followed by an address, in hexademical.
+   * @see #write(String)
+   * @see #write(Address)
+   *
+   * @param s the string to be logged
+   * @param a the address to be logged
+   */
+  public static void write(String s, Address a) {
+    write(s);
+    write(a);
+  }
+
+  /**
+   * Write a string followed by a long
+   * @see #write(String)
+   * @see #write(long)
+   *
+   * @param s the string to be logged
+   * @param l the long to be logged
+   */
+  public static void write(String s, long l) {
+    write(s);
+    write(l);
+  }
 
   /**
    * writes an object reference, in hexademical. It is zero-padded.

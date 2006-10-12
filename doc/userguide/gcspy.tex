@@ -7,32 +7,33 @@
 GCspy is a visualisation framework that allows developers to observe
 the behaviour of the heap and related data structures.  For details of
 the GCspy model, see \xlink{\textit{GCspy: An adaptable heap visualisation framework}
-by Tony Printezis and Richard Jones,
-OOPSLA'02}{\GCspyOOPSLATwoPaperURL}\texonly{, also available at \texttt{\GCspyOOPSLATwoPaperURL}}.   The framework
+by Tony Printezis and Richard Jones, OOPSLA'02}{\GCspyOOPSLATwoPaperURL}\texonly{, also available at \texttt{\GCspyOOPSLATwoPaperURL}}.   The framework
 comprises two components that communicate across a socket: a
-client-side visualiser (written in Java) and a server incorporated
+\emph{client} and a \emph{server} incorporated
 into the virtual machine of the system being visualised.
+The client is usually a visualiser (written in Java) but the framework
+also provides other tools (for example, to store traces in a compressed file).
 The GCspy server implementation for JikesRVM was contributed by Richard
 Jones of the University of Kent. 
 
 GCspy is designed to be independent of the target system.  Instead, it
 requires the GC developer to describe their system in terms of four
-GCspy abstractions, spaces, streams, tiles, and events.
+GCspy abstractions, \emph{spaces, streams, tiles} and \emph{events}.
 This description is
 transmitted to the visualiser when it connects to the server. 
 
 A \textit{space} is an abstraction of a component of the system; it may
 represent a memory region, a free-list, a remembered-set or whatever.
 Each space is divided into a number of blocks which are represented by
-the visualiser as tiles.  Each space will have a number of attributes
---- streams --- such as the amount of space used, the number of
+the visualiser as \emph{tiles}.  Each space will have a number of attributes
+--- \emph{streams} --- such as the amount of space used, the number of
 objects it contains, the length of a free-list and so on. 
 
 In order to instrument a \jrvm{} collector with GCspy:
 \begin{enumerate}
    \item Provide a \texttt{startGCspyServer} method in that
-   collector's \texttt{Plan.java}.  That method initialises the GCspy server with the port on which to communicate and a list of event names, instantiates drivers for each space, and then starts the server.
-   \item  Gather data from each space for the tiles of each stream (e.g.\ before and after each collection).
+   collector's plan.  That method initialises the GCspy server with the port on which to communicate and a list of event names, instantiates drivers for each space, and then starts the server.
+   \item  Gather data from each space for the tiles of each stream (e.g.\ before, during and after each collection).
    \item  Provide a driver for each space. 
 \end{enumerate} 
 
@@ -41,13 +42,13 @@ infrastructure by mapping information collected by the memory manager
 to the space's streams.  A typical space driver will:
 
 \begin{itemize}
-   \item Create a number of streams.
-   \item Label the tiles of its space (e.g.\ with their address range).
-   \item Update the tile statistics as the memory manager passes it information.
-   \item Send the tile data along with any summary or control information to the visualiser. 
+   \item Create a GCspy \textit{space}.
+   \item Create a \textit{stream} for each attribute of the space.
+   \item Update the tile statistics as the memory manager passes it information. 
+   \item Send the tile data along with any summary or control information to the visualiser.
 \end{itemize}
 
-The \jrvm{} SemiSpace GC plan gives an example of how to instrument a
+The \jrvm{} SSGCspy plan gives an example of how to instrument a
 collector.  It provides GCspy spaces, streams and drivers for the
 semi-spaces, the immortal space and the large object space, and also
 illustrates how performance may be traded for the gathering of more
@@ -63,91 +64,68 @@ The GCspy C server code needs a pthread (created in
 \texttt{gcspyStartserver()} in \texttt{sys.C}) in order to run.
 So, GCspy will only work on a system where you've build Jikes RVM with
 \texttt{RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR} set to \texttt{0}.
-\texttt{jconfigure} will warn you if you try to configure such a build.
-(The RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR parameter is discussed
+\texttt{jconfigure} will warn you if you try to configure such a build
+(this parameter is discussed
   \link{elsewhere in this guide}[
   (SubSubSection~\ref{single-virtual-processor-subsubsection},
   item~\Ref, on page~\Pageref)]{single-virtual-processor-item}.)
 
-The discussion below assumes that you will place all the
-GCspy code and required libraries in \rvmRoot.  If you wish to change
-this, you'll need to modify these instructions and the {\tt
-  \rvmRoot/config/build/gcspy/GCspy} config file appropriately. 
+In your \texttt{\$RVM\_ROOT/rvm/i686-pc-linux-gnu\textit{.mine}} file,
+set \texttt{GCSPY\_ROOT} to where you will place the GCspy libraries,
+e.g.\ \texttt{export GCSPY\_ROOT="\$HOME/gcspy1.0"}. 
 
 \paragraph{Downloads}
 
 \begin{enumerate}
 
-
-\newcommand{\GCspyURL}{http://www.experimentalstuff.com/Technologies/GCspy/}
+\newcommand{\GCspyURL}{http://www.cs.kent.ac.uk/projects/gc/gcspy/}
    \item Download the GCspy files from \xlink{\texttt{\GCspyURL}}{\GCspyURL}
-      You want the C infrastructure (not the C++ one) and the Java visualiser. 
-The C infrastructure provides a GCspy server to \jrvm{}.
+   You want the C infrastructure (not the C++ one) and the Java visualiser. 
+   The C infrastructure provides a GCspy server to \jrvm{}.
 
 \newcommand{\JAIURL}{http://java.sun.com/products/java-media/jai}
   \item Download the Java Advanced Imaging (JAI) API from
-    \xlink{\texttt{\JAIURL}}{\JAIURL}.  You want the download named
-    ``Linux CLASSPATH Install''.   You will pull down a file named
-    \texttt{jai-1\_1\_2-lib-linux-i586.tar.gz} 
+  \xlink{\texttt{\JAIURL}}{\JAIURL}.  You want the download named
+  ``Linux CLASSPATH Install''.   You will pull down a file named
+  \texttt{jai-1\_1\_2-lib-linux-i586.tar.gz} 
 
-   \item  Unpack the GCspy and JAI sources into \rvmRoot. 
-
+  \item  Unpack the GCspy and JAI sources. 
 \begin{verbatim}
-    $ cd $RVM_ROOT
-    $ tar xzf gcspy0.9.tar.gz
+    $ tar xzf gcspy1_0.tar.gz
     $ tar xzf jai-1_1_2-lib-linux-i586.tar.gz
 \end{verbatim}
-
-You should then have directories named  
-{\tt \rvmRoot/gcspy0.9} and
-{\tt \rvmRoot/jai-1\_1\_2}.  
+  You should then have directories named  
+  {\tt gcspy1.0} and
+  {\tt jai-1\_1\_2}.  
 
 
 \end{enumerate}
 
 \paragraph{Building GCspy itself}
 
-   Edit the file \rvmRoot/gcspy0.9/src/java/GNUmakefile and set the
-   value of \texttt{JDK} appropriately for your system.  The authors
-   of GCspy seem to have assumed that you will be using a Sun-style
-   JDK, such as the IBM, Sun, or Blackdown JDK.  If you have
-   \texttt{JAVA\_HOME} set in your environment, then you can probably
-   set \texttt{JDK} to \texttt{\$\{JAVA\_HOME\}}.
-
+\newcommand{\gcspyroot}{\$GCSPY\_ROOT}
+   Edit the file \gcspyroot/src/java/GNUmakefile and set the
+   value of \texttt{JAI\_ROOT} to where you have placed {\tt jai-1\_1\_2}.
+   
    Copy the JAI \texttt{.jar} files into your JDK's \texttt{ext}
    directory:
 \begin{verbatim}
-    $ cp $RVM_ROOT/jai-1_1_2/lib/*.jar $JAVA_HOME/jre/lib/ext/
+    $ cp jai-1_1_2/lib/*.jar $JAVA_HOME/jre/lib/ext/
 \end{verbatim}
 
-   You must apply a patch to the GCspy sources:
-
+   Make the GCspy visualiser and server.
+   \textbf{Note:} you will need Java 5 (or later) to compile and run the
+   GCspy 1.0 visualiser.
 \begin{verbatim}
-    $ cd $RVM_ROOT
-    $ patch -p0 < $RVM_ROOT/MMTk/ext/vm/JikesRVM/org/mmtk/vm/gcspy/gcspy.patch
-\end{verbatim}
-
-
-   Make the GCspy visualiser and server:
-
-\begin{verbatim}
-    $ cd $RVM_ROOT/gcspy0.9/src/
+    $ cd $GCSPY_ROOT/src/
     $ make install c java
 \end{verbatim}
 
 \paragraph{Building \jrvm{} to use GCspy}
 
 \begin{itemize}
-  \item  Set up your environment appropriately.  In addition to the
-    usual \texttt{RVM\_}\textit{*} environment variables, we assume:
-   
-\begin{verbatim}
-    $ export GCSPY_ROOT=$RVM_ROOT/gcspy0.9
-    $ export GCSPY_CLASSES=$GCSPY_ROOT/src/java/classes
-\end{verbatim}
-
-  \item First, build an image, using the
-    \texttt{BaseBaseSemiSpaceGCspy} configuration: 
+  \item Build an image, using the a GCspy configuration, such as
+    \texttt{BaseBaseSemiSpaceGCspy}: 
 \begin{verbatim}
     $ jconfigure BaseBaseSemiSpaceGCspy
     $ cd $RVM_BUILD
@@ -171,7 +149,7 @@ You should then have directories named
     $ java gcspy.Main -server localhost 3000
 \end{verbatim}
 
-      and click the "Connect" button in the bottom right-hand corner
+      and click the ``Connect'' button in the bottom right-hand corner
       of the visualiser.  (Alternatively, you can give the server and
       port arguments in the Connect dialogue box.)  
 
@@ -196,4 +174,218 @@ Additional GCspy-related arguments to the \texttt{rvm} command:
     How many KB are represented by one tile.  The default value is 128.
 
 \end{itemize}
+
+\subsection{Writing GCspy drivers}
+
+To instrument a new collector with GCspy, you will probably want to subclass your 
+collector and to write new drivers for it. 
+The following sections explain the modifications you need to make
+and how to write a driver. You may use \texttt{org.mmtk.plan.semispace.gcspy} and its
+drivers as an example.
+
+
+The recommended way to instrument a \jrvm{} collector with GCspy is to
+create a \texttt{gcspy} subdirectory in the directory of the collector being instrumented,
+e.g.\ \texttt{MMTk/src/org/mmtk/plan/semispace/gcspy}. 
+In that directory, we need 5 classes:
+\begin{itemize}
+\item \texttt{SSGCspy},
+\item \texttt{SSGCspyCollector},
+\item \texttt{SSGCspyConstraints} 
+\item \texttt{SSGCspyMutator} and
+\item \texttt{SSGCspyTraceLocal}.
+\end{itemize}
+
+\texttt{SSGCspy} is the plan for the instrumented collector. It is a 
+subclass of \texttt{SS}.
+
+\texttt{SSGCspyConstraints} extends \texttt{SSConstraints} to provide methods
+\texttt{boolean needsLinearScan()} and \texttt{boolean withGCspy()}, both
+of which return true.
+
+\texttt{SSGCspyTraceLocal} extends \texttt{SSTraceLocal} to override methods
+\texttt{traceObject} and 
+\texttt{willNotMove}
+to ensure that tracing 
+deals properly with GCspy objects: the GCspyTraceLocal file will be similar for 
+any instrumented collector.
+
+The instrumented collector, \texttt{SSGCspyCollector}, extends \texttt{SSCollector}.
+It needs to override \texttt{collectionPhase}.
+
+Similarly, \texttt{SSGCspyMutator} extends \texttt{SSMutator} and must also override its 
+parent's methods
+\texttt{collectionPhase}, to
+allow the allocators to collect data;
+and its \texttt{alloc} and \texttt{postAlloc} methods to allocate GCspy objects in GCspy's
+heap space.
+
+
+   
+\subsubsection{The Plan}
+
+\texttt{SSGCspy.startGCspyServer} is called immediately before the ``main'' method is loaded and run. 
+It initialises the GCspy server with the port on which to communicate,
+adds event names, 
+instantiates a driver for each space, and then starts the server,
+forcing the VM to wait for a GCspy to connect if necessary.
+This method has the following responsibilities.
+
+\begin{enumerate}
+\item Initialise the GCspy server: 
+\begin{verbatim}
+      server.init(name, portNumber, verbose);
+\end{verbatim}
+
+\item Add each event to the \texttt{ServerInterpreter} (`server' for short) 
+\begin{verbatim}
+      server.addEvent(eventID, eventName);
+\end{verbatim}
+
+\item Set some general information about the server 
+      (e.g. name of the collector, build, etc) 
+\begin{verbatim}
+      server.setGeneralInfo(info);
+\end{verbatim}
+
+\item Create new drivers for each component to be visualised 
+\begin{verbatim}
+      myDriver = new MyDriver(server, args...);
+\end{verbatim}
+      Drivers extend \texttt{AbstractDriver} and register their space with the 
+      \texttt{ServerInterpreter}. In addition to the server, drivers will take 
+      as arguments the name of the space, the MMTk space, the tilesize, and
+      whether this space is to be the main space in the visualiser.
+\end{enumerate}
+
+\subsubsection{The Collector and Mutator}
+
+Instrumenters  will typically want to add data collection points 
+before, during and after a collection by overriding \texttt{collectionPhase} 
+in \texttt{SSGCspyCollector} and \texttt{SSGCspyMutator}.
+
+\texttt{SSGCspyCollector} deals with the data in the semi-spaces
+that has been allocated there (copied) by the collector. It only
+does any real work at the end of the collector's last tracing
+phase, \texttt{FORWARD\_FINALIZABLE}.
+
+\texttt{SSGCspyMutator} is more complex: as well as gathering data
+for objects that it allocated in From-space at the start of
+the \texttt{PREPARE\_MUTATOR} phase, it also deals with the 
+immortal and large object spaces.
+
+At a collection point, the collector or mutator will typically
+\begin{enumerate}
+\item Return if the GCspy port number is 0 (as no client can be connected).
+
+\item Check whether the server is connected at this event. If so, the 
+   compensation timer (which discounts the time taken by GCspy to
+   gather the data) should be started before gathering data and
+   stopped after it.
+
+\item After gathering the data, have each driver  call its
+   \texttt{transmit} method.
+
+\item \texttt{SSGCspyCollector} does \emph{not} call the GCspy
+   server's \texttt{safepoint} method, 
+   as the collector phase is usually followed by a mutator
+   phase.
+   Instead, \texttt{safepoint} can be called by 
+   \texttt{SSGCspyMutator} to indicate that this
+   is a point at which the server can pause, play one
+   event, etc. 
+\end{enumerate}
+
+Gathering data will vary from MMTk space to space. It will typically be
+necessary to resize a space before gathering data.
+For a space, 
+
+\begin{enumerate}
+\item We may need to reset the GCspy driver's data 
+   depending on the collection phase.
+
+\item We will pass the driver as a call-back to the allocator.
+The allocator will typically ask the driver to set the range of addresses
+from which we want to gather data, using the driver's \texttt{setRange} method.
+The allocator should then iterates through its MMTk space, passing a reference to each object
+found to the driver's scan method.
+\end{enumerate}
+
+
+\subsubsection{The Driver}
+
+GCspy space drivers extend \texttt{AbstractDriver}. This class creates a new GCspy 
+\texttt{ServerSpace}
+and initialises the control values for each tile in the space. 
+\emph{Control} values
+indicate whether a tile is \emph{used}, \emph{unused}, a \emph{background}, a 
+\emph{separator} or a \emph{link}.
+The constructor for a typical space driver will:
+
+\begin{enumerate}
+\item Create a GCspy \texttt{Stream} for each attribute of a space.
+
+\item Initialise the tile statistics in each stream.
+\end{enumerate}
+
+\noindent
+Some drivers may also create a \texttt{LinearScan} object to handle call-backs 
+from the VM as it sweeps the heap (see above).
+
+The chief roles of a driver are to accumulate tile statistics, and to transmit
+the summary and control data and the data for all of their streams. Their
+data gathering interface is the \texttt{scan} method (to which an object 
+reference or address is passed). 
+
+When the collector or mutator has finished gathering data,
+it calls the \texttt{transmit} of the driver for each space that needs to send 
+its data.
+Streams may send values of types byte, short or int, implemented through classes
+\texttt{ByteStream}, \texttt{ShortStream} or \texttt{IntStream}. 
+A driver's \texttt{transmit} method will typically:
+
+\begin{enumerate}
+\item Determine whether a GCspy client is connected and interested in
+      this event, e.g. 
+\begin{verbatim}
+      server.isConnected(event)
+\end{verbatim}
+\item Setup the summaries for each stream, e.g. 
+\begin{verbatim}
+      stream.setSummary(values...);
+\end{verbatim}
+
+\item Setup the control information for each tile. e.g. 
+\begin{verbatim}
+      controlValues(CONTROL_USED, start, numBlocks);
+      controlValues(CONTROL_UNUSED, end, remainingBlocks);
+\end{verbatim}
+
+\item Set up the space information, e.g. 
+\begin{verbatim}
+      setSpace(info);
+\end{verbatim}
+
+\item Send the data for all streams, e.g. 
+\begin{verbatim}
+      send(event, numTiles);
+\end{verbatim}
+      Note that \texttt{AbstractDriver.send} takes care of sending the 
+      information for all streams (including control data).
+\end{enumerate}
+
+
+\subsubsection{Subspaces}
+
+\texttt{Subspace} provides a useful abstraction of a contiguous region of a heap,
+recording its start and end address, the index of its first block, the size of 
+blocks in this space and the number of blocks in the region. In particular,
+\texttt{Subspace} provides methods to:
+\begin{itemize}
+\item Determine whether an address falls within a subspace;
+\item Determine the block index of the address;
+\item Calculate how much space remains in a block after a given address;
+\end{itemize}
+
+
 

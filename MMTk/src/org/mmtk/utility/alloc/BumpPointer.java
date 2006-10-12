@@ -12,6 +12,7 @@ package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
+import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -91,7 +92,7 @@ public class BumpPointer extends Allocator
   private Address internalLimit; // current internal slow-path sentinal for bump pointer
   private Address limit; // current external slow-path sentinal for bump pointer
   protected Space space; // space this bump pointer is associated with
-  protected Address initialRegion; // first contigious region
+  protected Address initialRegion; // first contiguous region
   protected final boolean allowScanning; // linear scanning is permitted if true
   protected Address region; // current contigious region
 
@@ -350,6 +351,46 @@ public class BumpPointer extends Allocator
     updateLimit(start.plus(size.minus(BYTES_IN_ADDRESS)), start, bytes); // skip over region limit
     region.plus(REGION_LIMIT_OFFSET).store(limit);
   }
+
+  /**
+   * Gather data for GCspy. <p>
+   * This method calls the drivers linear scanner to scan through
+   * the objects allocated by this bump pointer.
+   *
+   * @param driver The GCspy driver for this space.
+   */
+  public void gcspyGatherData(LinearSpaceDriver driver) {
+	//driver.setRange(space.getStart(), cursor);
+    driver.setRange(space.getStart(), limit);
+    this.linearScan(driver.getScanner());
+  }
+  
+  /**
+   * Gather data for GCspy. <p>
+   * This method calls the drivers linear scanner to scan through
+   * the objects allocated by this bump pointer.
+   *
+   * @param driver The GCspy driver for this space.
+   * @param scanSpace The space to scan
+   */
+  public void gcspyGatherData(LinearSpaceDriver driver, Space scanSpace) {
+	//TODO can scanSpace ever be different to this.space?
+    if (VM.VERIFY_ASSERTIONS) 
+	  VM.assertions._assert(scanSpace == space, "scanSpace != space"); 
+    
+	//driver.setRange(scanSpace.getStart(), cursor);
+    Address start = scanSpace.getStart();
+    driver.setRange(start, limit);
+    
+    if (false) {
+      Log.write("\nBumpPointer.gcspyGatherData set Range "); Log.write(scanSpace.getStart());
+      Log.write(" to "); Log.writeln(limit);
+      Log.write("BumpPointergcspyGatherData scan from "); Log.writeln(initialRegion);
+    }
+    
+    linearScan(driver.getScanner());
+  }
+
 
   /**
    * Perform a linear scan through the objects allocated by this bump pointer.

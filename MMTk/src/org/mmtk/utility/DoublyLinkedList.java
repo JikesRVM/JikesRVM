@@ -204,7 +204,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     // GCSpy doesn't need a lock (in its stop the world config)
     Address cur = head;
     while (!cur.isZero()) {
-      driver.traceObject(cur);
+      driver.scan(cur);
       cur = cur.loadAddress(NEXT_OFFSET);
     }
   }

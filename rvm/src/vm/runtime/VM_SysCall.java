@@ -496,106 +496,225 @@ public class VM_SysCall implements Uninterruptible {
 
   //-#if RVM_WITH_GCSPY
   // sysCall entry points to GCSpy
-  public static Address gcspyDriverAddStream (Address driver, int it) {
-     return VM_SysCallMagic.gcspyDriverAddStream (VM_BootRecord.the_boot_record.gcspyDriverAddStreamIP, driver, it);
+  public static final boolean WITH_GCSPY = true;
+
+  public static Address gcspyDriverAddStream(Address driver, int id) {
+    return VM_SysCallMagic.gcspyDriverAddStream(VM_BootRecord.the_boot_record.gcspyDriverAddStreamIP,
+        driver, id);
   }
+
   public static void gcspyDriverEndOutput (Address driver) {
-     VM_SysCallMagic.gcspyDriverEndOutput (VM_BootRecord.the_boot_record.gcspyDriverEndOutputIP, driver);
+    VM_SysCallMagic.gcspyDriverEndOutput(VM_BootRecord.the_boot_record.gcspyDriverEndOutputIP,
+        driver);
   }
-  public static void gcspyDriverInit (Address driver, int id, Address serverName, Address driverName,
-                               Address title, Address blockInfo, int tileNum,
-                               Address unused, int mainSpace) {
-     VM_SysCallMagic.gcspyDriverInit (VM_BootRecord.the_boot_record.gcspyDriverInitIP, driver, id, serverName, driverName,
-                               title, blockInfo, tileNum,
-                               unused, mainSpace);
+
+  public static void gcspyDriverInit (
+      Address driver, int id, Address serverName, Address driverName, 
+      Address title, Address blockInfo, int tileNum, Address unused, int mainSpace) {
+    VM_SysCallMagic.gcspyDriverInit(VM_BootRecord.the_boot_record.gcspyDriverInitIP,
+        driver, id, serverName, driverName, title, blockInfo, tileNum, unused, mainSpace);
   }
+
   public static void gcspyDriverInitOutput (Address driver) {
-     VM_SysCallMagic.gcspyDriverInitOutput (VM_BootRecord.the_boot_record.gcspyDriverInitOutputIP, driver);
+    VM_SysCallMagic.gcspyDriverInitOutput(VM_BootRecord.the_boot_record.gcspyDriverInitOutputIP,
+        driver);
   }
+
   public static void gcspyDriverResize (Address driver, int size) {
-     VM_SysCallMagic.gcspyDriverResize (VM_BootRecord.the_boot_record.gcspyDriverResizeIP, driver, size);
+    VM_SysCallMagic.gcspyDriverResize(VM_BootRecord.the_boot_record.gcspyDriverResizeIP,
+        driver, size);
   }
-  public static void gcspyDriverSetTileName (Address driver, int i, Address start, Address end) {
-     VM_SysCallMagic.gcspyDriverSetTileName (VM_BootRecord.the_boot_record.gcspyDriverSetTileNameIP, driver, i, start, end);
+
+  public static void gcspyDriverSetTileNameRange (Address driver, int i, Address start, Address end) {
+    VM_SysCallMagic.gcspyDriverSetTileNameRange(VM_BootRecord.the_boot_record.gcspyDriverSetTileNameRangeIP,
+        driver, i, start, end);
   }
+
+  public static void gcspyDriverSetTileName(Address driver, int i, Address start, long value) {
+    VM_SysCallMagic.gcspyDriverSetTileName(VM_BootRecord.the_boot_record.gcspyDriverSetTileNameIP,
+        driver, i, start, value);
+  }
+
   public static void gcspyDriverSpaceInfo (Address driver, Address info) {
-     VM_SysCallMagic.gcspyDriverSpaceInfo (VM_BootRecord.the_boot_record.gcspyDriverSpaceInfoIP, driver, info);
+    VM_SysCallMagic.gcspyDriverSpaceInfo(VM_BootRecord.the_boot_record.gcspyDriverSpaceInfoIP,
+        driver, info);
   }
   public static void gcspyDriverStartComm (Address driver) {
-     VM_SysCallMagic.gcspyDriverStartComm (VM_BootRecord.the_boot_record.gcspyDriverStartCommIP, driver);
+    VM_SysCallMagic.gcspyDriverStartComm(VM_BootRecord.the_boot_record.gcspyDriverStartCommIP,
+        driver);
   }
+
   public static void gcspyDriverStream (Address driver, int id, int len) {
-     VM_SysCallMagic.gcspyDriverStream (VM_BootRecord.the_boot_record.gcspyDriverStreamIP, driver, id, len);
+    VM_SysCallMagic.gcspyDriverStream(VM_BootRecord.the_boot_record.gcspyDriverStreamIP,
+        driver, id, len);
   }
+
   public static void gcspyDriverStreamByteValue (Address driver, byte value) {
-     VM_SysCallMagic.gcspyDriverStreamByteValue (VM_BootRecord.the_boot_record.gcspyDriverStreamByteValueIP, driver, value);
+    VM_SysCallMagic.gcspyDriverStreamByteValue(VM_BootRecord.the_boot_record.gcspyDriverStreamByteValueIP,
+        driver, value);
   }
+
   public static void gcspyDriverStreamShortValue (Address driver, short value) {
-     VM_SysCallMagic.gcspyDriverStreamShortValue (VM_BootRecord.the_boot_record.gcspyDriverStreamShortValueIP, driver, value);
+    VM_SysCallMagic.gcspyDriverStreamShortValue(VM_BootRecord.the_boot_record.gcspyDriverStreamShortValueIP,
+        driver, value);
   }
+
   public static void gcspyDriverStreamIntValue (Address driver, int value) {
-     VM_SysCallMagic.gcspyDriverStreamIntValue (VM_BootRecord.the_boot_record.gcspyDriverStreamIntValueIP, driver, value);
+    VM_SysCallMagic.gcspyDriverStreamIntValue(VM_BootRecord.the_boot_record.gcspyDriverStreamIntValueIP,
+        driver, value);
   }
+
   public static void gcspyDriverSummary (Address driver, int id, int len) {
-     VM_SysCallMagic.gcspyDriverSummary (VM_BootRecord.the_boot_record.gcspyDriverSummaryIP, driver, id, len);
+    VM_SysCallMagic.gcspyDriverSummary(VM_BootRecord.the_boot_record.gcspyDriverSummaryIP,
+        driver, id, len);
   }
+
   public static void gcspyDriverSummaryValue (Address driver, int value) {
-     VM_SysCallMagic.gcspyDriverSummaryValue (VM_BootRecord.the_boot_record.gcspyDriverSummaryValueIP, driver, value);
+    VM_SysCallMagic.gcspyDriverSummaryValue(VM_BootRecord.the_boot_record.gcspyDriverSummaryValueIP,
+        driver, value);
   }
 
   public static void gcspyIntWriteControl (Address driver, int id, int tileNum) {
-     VM_SysCallMagic.gcspyIntWriteControl (VM_BootRecord.the_boot_record.gcspyIntWriteControlIP, driver, id, tileNum);
+    VM_SysCallMagic.gcspyIntWriteControl(VM_BootRecord.the_boot_record.gcspyIntWriteControlIP,
+        driver, id, tileNum);
   }
 
   public static Address gcspyMainServerAddDriver(Address addr) {
-     return VM_SysCallMagic.gcspyMainServerAddDriver(VM_BootRecord.the_boot_record.gcspyMainServerAddDriverIP, addr);
+    return VM_SysCallMagic.gcspyMainServerAddDriver(VM_BootRecord.the_boot_record.gcspyMainServerAddDriverIP,
+        addr);
   }
+
   public static void gcspyMainServerAddEvent (Address server, int event, Address name) {
-     VM_SysCallMagic.gcspyMainServerAddEvent (VM_BootRecord.the_boot_record.gcspyMainServerAddEventIP, server, event, name);
+    VM_SysCallMagic.gcspyMainServerAddEvent(VM_BootRecord.the_boot_record.gcspyMainServerAddEventIP,
+        server, event, name);
   }
+
   public static Address gcspyMainServerInit (int port, int len, Address name, int verbose) {
-     return VM_SysCallMagic.gcspyMainServerInit (VM_BootRecord.the_boot_record.gcspyMainServerInitIP, port, len, name, verbose);
+    return VM_SysCallMagic.gcspyMainServerInit(VM_BootRecord.the_boot_record.gcspyMainServerInitIP,
+        port, len, name, verbose);
   }
+
   public static int gcspyMainServerIsConnected (Address server, int event) {
-     return VM_SysCallMagic.gcspyMainServerIsConnected (VM_BootRecord.the_boot_record.gcspyMainServerIsConnectedIP, server, event);
+    return VM_SysCallMagic.gcspyMainServerIsConnected(VM_BootRecord.the_boot_record.gcspyMainServerIsConnectedIP, 
+        server, event);
   }
+
   public static Address gcspyMainServerOuterLoop () {
-     return VM_SysCallMagic.gcspyMainServerOuterLoop (VM_BootRecord.the_boot_record.gcspyMainServerOuterLoopIP);
-  }; 
+    return VM_SysCallMagic.gcspyMainServerOuterLoop(VM_BootRecord.the_boot_record.gcspyMainServerOuterLoopIP);
+  }
+
   public static void gcspyMainServerSafepoint (Address server, int event) {
-     VM_SysCallMagic.gcspyMainServerSafepoint (VM_BootRecord.the_boot_record.gcspyMainServerSafepointIP, server, event);
-  };
+    VM_SysCallMagic.gcspyMainServerSafepoint(VM_BootRecord.the_boot_record.gcspyMainServerSafepointIP,
+        server, event);
+  }
+
   public static void gcspyMainServerSetGeneralInfo (Address server, Address info) {
-     VM_SysCallMagic.gcspyMainServerSetGeneralInfo (VM_BootRecord.the_boot_record.gcspyMainServerSetGeneralInfoIP, server, info);
-  };
+    VM_SysCallMagic.gcspyMainServerSetGeneralInfo(VM_BootRecord.the_boot_record.gcspyMainServerSetGeneralInfoIP, 
+        server, info);
+  }
+
   public static void gcspyMainServerStartCompensationTimer (Address server) {
-     VM_SysCallMagic.gcspyMainServerStartCompensationTimer (VM_BootRecord.the_boot_record.gcspyMainServerStartCompensationTimerIP, server);
-  };
+    VM_SysCallMagic.gcspyMainServerStartCompensationTimer( VM_BootRecord.the_boot_record.gcspyMainServerStartCompensationTimerIP, 
+        server);
+  }
+
   public static void gcspyMainServerStopCompensationTimer (Address server) {
-     VM_SysCallMagic.gcspyMainServerStopCompensationTimer (VM_BootRecord.the_boot_record.gcspyMainServerStopCompensationTimerIP, server);
-  };
+    VM_SysCallMagic.gcspyMainServerStopCompensationTimer( VM_BootRecord.the_boot_record.gcspyMainServerStopCompensationTimerIP, 
+	server);
+  }
 
   public static void gcspyStartserver (Address server, int wait, Address serverOuterLoop) {
-     VM_SysCallMagic.gcspyStartserver (VM_BootRecord.the_boot_record.gcspyStartserverIP, server, wait, serverOuterLoop);
-  };
+    VM_SysCallMagic.gcspyStartserver (VM_BootRecord.the_boot_record.gcspyStartserverIP, 
+        server, wait, serverOuterLoop);
+  }
    
-  public static void gcspyStreamInit (Address stream, id, dataType, Address name,
-                               minValue, maxValue, zeroValue, defaultValue,
-                               Address pre, Address post, presentation, paintStyle,
-                               maxStreamIndex, red, green, blue) {
-     VM_SysCallMagic.gcspyStreamInit (VM_BootRecord.the_boot_record.gcspyStreamInitIP, stream, id, dataType, name,
-                               minValue, maxValue, zeroValue, defaultValue,
-                               Address pre, Address post, presentation, paintStyle,
-                               maxStreamIndex, red, green, blue);
+  public static void gcspyStreamInit (Address stream, int id, int dataType, Address name,
+                               int minValue, int maxValue, int zeroValue, int defaultValue,
+                               Address pre, Address post, int presentation, int paintStyle,
+                               int maxStreamIndex, int red, int green, int blue) {
+     VM_SysCallMagic.gcspyStreamInit (VM_BootRecord.the_boot_record.gcspyStreamInitIP,
+         stream, id, dataType, name, minValue, maxValue, zeroValue, defaultValue,
+         pre, post, presentation, paintStyle, maxStreamIndex, red, green, blue);
   }
 
   public static void gcspyFormatSize (Address buffer, int size) {
-     VM_SysCallMagic.gcspyFormatSize (VM_BootRecord.the_boot_record.gcspyFormatSizeIP, buffer, size);
+    VM_SysCallMagic.gcspyFormatSize(VM_BootRecord.the_boot_record.gcspyFormatSizeIP, 
+        buffer, size);
   }
 
   public static int gcspySprintf (Address str, Address format, Address value) {
-     return VM_SysCallMagic.gcspySprintf (VM_BootRecord.the_boot_record.gcspySprintfIP, str, format, value);
+    return VM_SysCallMagic.gcspySprintf(VM_BootRecord.the_boot_record.gcspySprintfIP, 
+        str, format, value);
   }
+  //-#else
+  public static final boolean WITH_GCSPY = false;
+
+  public static Address gcspyDriverAddStream(Address driver, int id) {
+    return Address.zero();
+  }
+
+  public static void gcspyDriverEndOutput (Address driver) { }
+
+  public static void gcspyDriverInit (
+      Address driver, int id, Address serverName, Address driverName, 
+      Address title, Address blockInfo, int tileNum, Address unused, int mainSpace) {
+  }
+
+  public static void gcspyDriverInitOutput (Address driver) { }
+
+  public static void gcspyDriverResize (Address driver, int size) { }
+
+  public static void gcspyDriverSetTileNameRange (Address driver, int i, Address start, Address end) { }
+
+  public static void gcspyDriverSetTileName(Address driver, int i, Address start, long value) { }
+
+  public static void gcspyDriverSpaceInfo (Address driver, Address info) { }
+
+  public static void gcspyDriverStartComm (Address driver) { }
+
+  public static void gcspyDriverStream (Address driver, int id, int len) { }
+
+  public static void gcspyDriverStreamByteValue (Address driver, byte value) { }
+
+  public static void gcspyDriverStreamShortValue (Address driver, short value) { }
+
+  public static void gcspyDriverStreamIntValue (Address driver, int value) { }
+
+  public static void gcspyDriverSummary (Address driver, int id, int len) { }
+
+  public static void gcspyDriverSummaryValue (Address driver, int value) { }
+
+  public static void gcspyIntWriteControl (Address driver, int id, int tileNum) { }
+
+  public static Address gcspyMainServerAddDriver(Address addr) { return Address.zero(); }
+
+  public static void gcspyMainServerAddEvent (Address server, int event, Address name) { }
+
+  public static Address gcspyMainServerInit (int port, int len, Address name, int verbose) { return Address.zero(); }
+
+  public static int gcspyMainServerIsConnected (Address server, int event) { return 0; }
+
+  public static Address gcspyMainServerOuterLoop () { return Address.zero(); }
+
+  public static void gcspyMainServerSafepoint (Address server, int event) { }
+
+  public static void gcspyMainServerSetGeneralInfo (Address server, Address info) { }
+
+  public static void gcspyMainServerStartCompensationTimer (Address server) { }
+
+  public static void gcspyMainServerStopCompensationTimer (Address server) { }
+
+  public static void gcspyStartserver (Address server, int wait, Address serverOuterLoop) { }
+   
+  public static void gcspyStreamInit (Address stream, int id, int dataType, Address name,
+                               int minValue, int maxValue, int zeroValue, int defaultValue,
+                               Address pre, Address post, int presentation, int paintStyle,
+                               int maxStreamIndex, int red, int green, int blue) {
+  }
+
+  public static void gcspyFormatSize (Address buffer, int size) { }
+
+  public static int gcspySprintf (Address str, Address format, Address value) { return 0; }
   //-#endif
 
 }
