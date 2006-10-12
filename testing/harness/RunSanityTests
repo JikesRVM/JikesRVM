@@ -535,6 +535,7 @@ function doRun {
            RC_ARGS="-X:vm:errorsFatal=true $RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS" \
            JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
+	   CONFIG_NAME=$NAME \
            clean sanity
 
     # record status
@@ -542,8 +543,6 @@ function doRun {
     let ++total_tests
     if (( test_status == 0 )); then 
 	let ++passed_tests
-    else
-	say "$NAME: You are NOT sane in `pwd`"
     fi
 
     # done

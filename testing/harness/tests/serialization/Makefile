@@ -26,5 +26,5 @@ sanity: $(TESTS)
 	$(MAKE) do-sanity-finish
 
 $(TESTS): %:
-	$(MAKE) START_NAME=$@ START_ARGS=out.TestWrite.$(BOOTNAME).jdk do-sanity-compare
+	$(MAKE) TEST_NAME="serialization $@" START_NAME=$@ START_ARGS=out.TestWrite.$(BOOTNAME).jdk do-sanity-compare
 

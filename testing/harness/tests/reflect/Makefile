@@ -23,7 +23,7 @@ include $(JAL_ROOT)/testing/harness/Make.rules
 TESTS=tArray tClass tField tInstance
 
 sanity: $(TESTS)
-	$(MAKE) do-sanity-finish
+	@$(MAKE) do-sanity-finish 
 
 $(TESTS): %:
-	$(MAKE) START_NAME=$@ EXPECTED=$@.expected sanity-diff
+	@$(MAKE) START_NAME=$@ TEST_NAME="reflect $@" EXPECTED=$@.expected sanity-diff

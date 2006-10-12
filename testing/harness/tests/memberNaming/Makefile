@@ -26,5 +26,5 @@ sanity: $(TESTS)
 	$(MAKE) do-sanity-finish
 
 $(TESTS): %:
-	$(MAKE) START_NAME=$@ do-sanity-compare
+	$(MAKE) TEST_NAME="memberNaming $@" START_NAME=$@ do-sanity-compare
 

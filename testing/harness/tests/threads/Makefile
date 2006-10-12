@@ -24,7 +24,7 @@ include		$(JAL_ROOT)/testing/harness/Make.rules
 TESTS=TestNotification TestDispatch TestTimedWait TestInterruptAndSpin TestInterruptedSleep TestInterruptedWait
 
 $(TESTS): %:
-	$(MAKE) START_NAME=$@ do-sanity-compare
+	$(MAKE) TEST_NAME="threads $@" START_NAME=$@ do-sanity-compare
 
 sanity:		$(TESTS)
 	$(MAKE) do-sanity-finish

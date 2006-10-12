@@ -36,6 +36,6 @@ START_ARGS=$(ALL_TESTS)
 include		$(JAL_ROOT)/testing/harness/Make.rules
 
 sanity: 	$(foreach NAME, $(ALL_TESTS), $(NAME).class)
-	$(MAKE) sanity-diff
+	$(MAKE) TEST_NAME=opttests sanity-diff
 
 

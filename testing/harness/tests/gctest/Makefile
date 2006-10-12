@@ -42,7 +42,7 @@ sanity:
 	echo DONE
 
 $(TESTS): %:
-	$(MAKE) START_NAME=$@ sanity-check-rule MY_RULE='$(FGREP) -q "Overall:"'
+	$(MAKE) TEST_NAME="gctest $@" START_NAME=$@ sanity-check-rule MY_RULE='$(FGREP) -q "Overall:"'
 
 $(WORKING)/cp/InlineAllocation.class: $(BENCH_HOME)/InlineAllocation.java
 	$(RVM_BUILD)/jbuild.toolPrep --disable-modification-exit-status /tmp $(BENCH_HOME)/InlineAllocation.java 
@@ -50,7 +50,7 @@ $(WORKING)/cp/InlineAllocation.class: $(BENCH_HOME)/InlineAllocation.java
 	$(RVM_BUILD)/jbuild.tool $(WORKING)/cp/InlineAllocation.java
 
 InlineAllocation: $(WORKING)/cp $(WORKING)/cp/InlineAllocation.class 
-	$(MAKE) START_NAME=$@ sanity-check-rule MY_RULE='$(FGREP) -q "SUCCESS"'
+	$(MAKE) TEST_NAME="gctest InlineAllocation" START_NAME=$@ sanity-check-rule MY_RULE='$(FGREP) -q "SUCCESS"'
 
 check:
 	@$(MY_RULE) < $(OUT)

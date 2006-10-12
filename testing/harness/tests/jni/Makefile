@@ -53,17 +53,17 @@ TESTS := $(TESTS_11) $(TESTS_12) $(TESTS_14)
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) $(TESTS:%=lib%.jnilib) 
 
 sanity: $(LIBS) $(TESTS)
-	@$(MAKE) START_NAME="jni" do-sanity-finish
+	@$(MAKE) do-sanity-finish
 
 check:
 	@$(FGREP) -q "PASS:" < $(OUT) > /dev/null
-	@$(FGREP) -v "FAIL:" < $(OUT)
+	@$(FGREP) -v "FAIL:" < $(OUT) > /dev/null
 
 
 ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so) $(ONE_TEST:%=lib%.jnilib)
 
 single:	$(ONE_TEST_LIB)
-	$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=$(QUIET) do-sanity-compare
+	$(MAKE) TEST_NAME=$(ONE_TEST) START_NAME=$(ONE_TEST) START_ARGS=$(QUIET) do-sanity-check-rule
 	$(MAKE) do-sanity-finish
 
 vpath %.c	$(BENCH_HOME)
@@ -82,6 +82,6 @@ lib%.a:	%.c %.h
 	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
 
 $(TESTS): % :
-	$(MAKE) START_NAME=$@ START_ARGS=$(QUIET) do-sanity-check-rule
+	$(MAKE) TEST_NAME="jni $@" START_NAME=$@ START_ARGS=$(QUIET) do-sanity-check-rule
 
 

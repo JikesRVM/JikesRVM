@@ -95,6 +95,8 @@ endif
 endif
 OUT=$(WORKING)/out.$(START_NAME)$(EXT)$(SUFFIX)
 
+TEST_NAME=$(BENCH_NAME)
+
 bench-rvm-internal: 
 	@sync
 	@cd $(WORKING); $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2>&1 \
@@ -107,7 +109,7 @@ bench-rvm:			$(START_CLASS) $(WORKING)
 	@echo 
 	@echo "Running $(START_NAME) with limit of $(TIME_LIMIT) seconds..."
 	@echo "   $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS)"
-	@$(RVM_ROOT)/testing/harness/limited.bash $(TIME_LIMIT) $(GNU_MAKE) bench-rvm-internal
+	@$(RVM_ROOT)/testing/harness/limited.bash $(TIME_LIMIT) $(GNU_MAKE) bench-rvm-internal || (echo "You are NOT sane $(CONFIG_NAME) $(TEST_NAME)"; exit 1)
 
 
 bench-jdk-internal:
@@ -115,8 +117,7 @@ bench-jdk-internal:
 
 
 bench-jdk:			$(START_CLASS) $(WORKING)
-	@echo
-	@echo "(Running $(START_NAME) on JDK for comparison)"
+	@echo "   running on JDK for comparison"
 	@$(RVM_ROOT)/testing/harness/limited.bash $(TIME_LIMIT) $(GNU_MAKE) bench-jdk-internal
 
 bench:
@@ -184,40 +185,26 @@ server-sanity-check-rules:
 
 do-sanity-check-rule:
 	@$(MAKE) bench JVM=rvm
-	@$(MAKE) check
-
-do-sanity-diff:
-	@$(MAKE) JVM=rvm bench
-ifneq (x$(SED_FILTER),x)
-	@$(SED) -f $(SED_FILTER) $(OUT) | $(DIFF) -bB $(EXPECTED) -
-else
-ifneq (x$(AWK_FILTER),x)
-	@$(AWK) -f $(AWK_FILTER) $(OUT) | $(DIFF) -bB $(EXPECTED) -
-else
-	@$(DIFF) -bB $(EXPECTED) $(OUT)
-endif
-endif
+	@($(MAKE) check && echo "You are sane $(CONFIG_NAME) $(TEST_NAME)") || (echo "You are NOT sane $(CONFIG_NAME) $(TEST_NAME)"; exit 1)
 
 do-sanity-compare:
 	@$(MAKE) JVM=rvm bench
 	@$(MAKE) OUT=$(OUT).jdk JVM=jdk bench
-	@$(DIFF) -bB $(OUT) $(OUT).jdk
+	@($(DIFF) -bqB $(OUT).jdk $(OUT) && echo "You are sane $(CONFIG_NAME) $(TEST_NAME)") || (echo "You are NOT sane $(CONFIG_NAME) $(TEST_NAME)"; exit 1)
 
 do-sanity-finish:
 ifeq ($(MODE),PERFORMANCE)
 	echo "RESULT: $(BOOTNAME) $(BENCH_NAME) $(OPT_LEVEL)" >> $(PERF_LOG)
 	@$(MAKE) do-gather-performance
 endif
-	@echo
-	@echo "You are sane $(START_NAME)"
-	@echo
 
 sanity-check-rule:
 	@$(MAKE) do-sanity-check-rule
 	@$(MAKE) do-sanity-finish
 
 sanity-diff:
-	@$(MAKE) do-sanity-diff
+	@$(MAKE) JVM=rvm bench
+	@($(DIFF) -bqB $(EXPECTED) $(OUT) && echo "You are sane $(CONFIG_NAME) $(TEST_NAME)") || (echo "You are NOT sane $(CONFIG_NAME) $(TEST_NAME)"; exit 1)
 	@$(MAKE) do-sanity-finish
 
 sanity-compare:

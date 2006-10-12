@@ -63,10 +63,10 @@ sanity:	$(WORKING)/spec $(WORKING)/props
 else
 
 $(TESTS): %: $(WORKING)/spec $(WORKING)/props 
-	@$(MAKE) START_ARGS="-a -d3000 -g -m2 -M4 -s10 $@" OUT=$(OUT).$@ do-sanity-check-rule
+	@$(MAKE) TEST_NAME="SPECjvm98 $@" START_ARGS="-a -d3000 -g -m2 -M4 -s10 $@" OUT=$(OUT).$@ do-sanity-check-rule
 
 sanity:	$(TESTS)
-	@$(MAKE) START_NAME="SPECjvm98" do-sanity-finish
+	@$(MAKE) do-sanity-finish
 
 endif
 endif

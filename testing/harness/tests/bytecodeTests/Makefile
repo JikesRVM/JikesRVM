@@ -17,6 +17,7 @@ BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=150
 START_NAME=TestAll
 EXPECTED=TestAll.expected
+BENCH_NAME=bytecodeTests
 
 TIME_LIMIT=400
 
@@ -24,32 +25,3 @@ include 	$(JAL_ROOT)/testing/harness/Make.rules
 
 sanity:		sanity-diff
 
-# Status
-#
-#  tried                               problems
-#  ------                              --------
-#    +          testConstants
-#    +          testStackAccess
-#    +          testFieldAccess
-#    +          testArrayAccess
-#    +          testReturn
-#    +          testCompare
-#    +          testConversions
-#    +          testArithmetic
-#    +          testMath
-#    +          testSwitch
-#    +          testStaticCall
-#    +          testVirtualCall
-#    +          testInterfaceCall
-#    +          testSpecialCall
-#    +          testClassInitializer
-#    +          testThrow
-#    +          testFinally
-#    +          testInstanceOf
-#    +          testClone
-#    +          testMonitorUnwind
-#    +          testGC
-#    !          testReflection          - missing native methods for array access
-#    !          testClassLoading        - differs from jdk in exception treatment
-#    !          testStackTrace          - output format differs from jdk (extra frames)
-#    !          testMetaclass           - fails badly
