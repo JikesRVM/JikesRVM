@@ -878,5 +878,102 @@ equals says: false
 TestMonitorUnwind
 bye
 
+TestReflection
+===
+foo: Foo
+   z: true
+   b: 1
+   c: 2
+   s: 3
+   i: 4
+   j: 5
+   f: 6.0
+   d: 7.0
+   az: boolean[]
+      0: true
+      1: false
+   ab: byte[]
+      0: 1
+      1: 2
+   ac: char[]
+      0: 3
+      1: 4
+   as: short[]
+      0: 5
+      1: 6
+   ai: int[]
+      0: 7
+      1: 8
+   aj: long[]
+      0: 9
+      1: 10
+   af: float[]
+      0: 11.0
+      1: 12.0
+   ad: double[]
+      0: 13.0
+      1: 14.0
+   o: declared as java.lang.Object actually is Foo$Bar
+   ao: java.lang.Object[]
+      0: declared as java.lang.Object actually is Foo$Bar
+      1: declared as java.lang.Object actually is Foo$Bar
+   aao: [Ljava.lang.Object;[]
+      0: java.lang.Object[]
+         0: declared as java.lang.Object actually is Foo$Bar
+         1: declared as java.lang.Object actually is Foo$Bar
+      1: java.lang.Object[]
+         0: declared as java.lang.Object actually is Foo$Bar
+         1: declared as java.lang.Object actually is Foo$Bar
+   aaz: [Z[]
+      0: boolean[]
+         0: true
+         1: false
+      1: boolean[]
+         0: false
+         1: true
+   str: "abc"
+TestClassLoading
+class=class java.lang.String
+instance=
+java.lang.ClassNotFoundException: I not found in SystemAppCL
+class=class [Ljava.lang.String;
+java.lang.InstantiationException
+class=class [[Ljava.lang.String;
+java.lang.InstantiationException
+class=class [I
+java.lang.InstantiationException
+class=class [[I
+java.lang.InstantiationException
+bye
+TestMetaclass
+Trying "foobar"
+java.lang.ClassNotFoundException: foobar not found in SystemAppCL
+
+Trying "I"
+java.lang.ClassNotFoundException: I not found in SystemAppCL
+
+Trying "java.lang.Number"
+classForName: java.lang.Number
+java.lang.InstantiationException
+
+Trying "[Ljava.lang.String;"
+classForName: [Ljava.lang.String;
+java.lang.InstantiationException
+
+Trying "[I"
+classForName: [I
+java.lang.InstantiationException
+
+Trying "java.lang.Integer"
+classForName: java.lang.Integer
+java.lang.InstantiationException
+
+Trying "java.lang.String"
+classForName: java.lang.String
+newInstance: 
+
+TestMiranda
+want: 42 
+got:  42
 TestGC
 bye

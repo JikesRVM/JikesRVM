@@ -33,9 +33,7 @@ class TestAll
       TestArrayAccess.runTest();
       TestReturn.runTest();
       TestCompare.runTest();
-//      TestConversions.runTest();
       TestConversions_toHex.runTest();
-//      TestArithmetic.runTest();
       TestArithmetic_toHex.runTest();
       TestMath.runTest();
       TestMath_toHex.runTest();
@@ -51,11 +49,11 @@ class TestAll
       TestInstanceOf.runTest();
       TestClone.runTest();
       TestMonitorUnwind.runTest();
+      TestReflection.runTest();
+      TestClassLoading.runTest();
+      // TestStackTrace.runTest();      //!!TODO
+      TestMetaclass.runTest();
+      TestMiranda.runTest();
       TestGC.runTest();
-//    TestReflection.runTest();      //!!TODO
-//    TestClassLoading.runTest();    //!!TODO
-//    TestStackTrace.runTest();      //!!TODO
-//    TestMetaclass.runTest();       //!!TODO
-//    TestNotification.runTest();    //!!TODO
       }
    }
