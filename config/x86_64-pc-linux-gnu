@@ -105,9 +105,6 @@ export HOST_JAVAC="${HOST_JAVA_HOME}/bin/javac -source 1.4 -target 1.4"
 # the JDK jar executable
 export JAR="$HOST_JAVA_HOME/bin/jar"
 
-# the JDK standard library jar files
-export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
-
 # the JDK tools jar
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 

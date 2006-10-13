@@ -62,10 +62,6 @@ export HOST_JAVADOC="${HOST_JAVA_HOME}/bin/javadoc"
 export HOST_JAR="${HOST_JAVA_HOME}/bin/jar"
 
 # the JDK standard library jar files
-#export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/rt.jar"
-export HOST_REPOSITORIES="${HOST_JAVA_HOME}/jre/lib/core.jar:${HOST_JAVA_HOME}/jre/lib/graphics.jar:${HOST_JAVA_HOME}/jre/lib/security.jar:${HOST_JAVA_HOME}/jre/lib/charsets.jar"
-
-# the JDK standard library jar files
 export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 
 # path for GNU make

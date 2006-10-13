@@ -29,7 +29,6 @@ ifneq (${RVM_HOST_CONFIG},)
 
    ifeq (${HOST_JAVAC},)
        HOST_JAVAC := $(shell . $(RVM_HOST_CONFIG) && echo $${HOST_JAVAC-})
-#    HOST_REPOSITORIES := $(shell . $(RVM_HOST_CONFIG) && echo $$HOST_REPOSITORIES)
    endif
 endif
 

@@ -656,20 +656,6 @@ function rationalize_config_file_settings () {
 	fi
     fi
 
-    # HOST_REPOSITORIES:
-    # the JDK standard library jar files
-    # This should be renamed to DONOR_VM_REPOSITORIES
-    if [[ ! ${HOST_REPOSITORIES-} ]]; then
-	if [[ $HOST_VM_TYPE = Sun ]] && [[ ${HOST_JAVA_HOME-} ]]; then
-	    # For some reason, Kaffe's jre/lib/rt.jar makes the 
-	    # Jikes 1.19 compiler dump core when it compiles 
-	    # GenerateFromTemplate.java.  So we limit this to the Sun compiler.
-	    export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
-	else
-	    export HOST_REPOSITORIES=${RVM_BUILD}/RVM.classes/rvmrt.jar
-	fi
-    fi
-
     # HOST_TOOLS: 
     # The Sun-derived JDKs have this, which we only use for doing 
     # regression tests: 
@@ -1148,8 +1134,6 @@ HOST_JAVADOC_STR1="HOST_JAVADOC"
 HOST_JAVADOC_STR="\$$HOST_JAVADOC_STR1"
 JAR_STR1="JAR"
 JAR_STR="\$$JAR_STR1"
-HOST_REPOSITORIES_STR1="HOST_REPOSITORIES"
-HOST_REPOSITORIES_STR="\$$HOST_REPOSITORIES_STR1"
 HOST_TOOLS_STR1="HOST_JAVA_TOOLS"
 HOST_TOOLS_STR="\$$HOST_TOOLS_STR1"
 GNU_MAKE_STR1="GNU_MAKE"
@@ -1352,7 +1336,6 @@ function unsetEnvironment() {
     unset HOST_JAVADOC $HOST_JAVADOC_STR1 
     unset JAR $JAR_STR1 
     unset FASTJAR
-    unset HOST_REPOSITORIES $HOST_REPOSITORIES_STR1 
     unset HOST_TOOLS $HOST_TOOLS_STR1 
     unset GNU_MAKE $GNU_MAKE_STR1 
     unset CC $HOST_CC_STR1 
@@ -2007,10 +1990,6 @@ EOF
     if [[ ${HOST_TOOLS-} ]]; then
 	echo "export $HOST_TOOLS_STR1='$HOST_TOOLS'"
     fi
-    if [[ ${HOST_REPOSITORIES-} ]]; then
-	echo "export HOST_JAVA_REPOSITORIES='$HOST_REPOSITORIES' #Deprecated"
-	echo "export $HOST_REPOSITORIES_STR1='$HOST_REPOSITORIES'"
-    fi
     cat <<-EOF
 	export HOST_JAR='$JAR'	# Deprecated
 	export $JAR_STR1='$JAR'
@@ -2155,8 +2134,6 @@ EOF
 	HOST_JAVAC = $HOST_JAVAC $javac_encoding_flag
 	HOST_JAR := ${JAR}	# Deprecated
 	JAR = $JAR
-	HOST_JAVA_REPOSITORIES = $HOST_REPOSITORIES # Deprecated
-	HOST_REPOSITORIES = $HOST_REPOSITORIES
 	
 	RVM_WITH_GCSPY:=${RVM_WITH_GCSPY}
 	CC = $CC
