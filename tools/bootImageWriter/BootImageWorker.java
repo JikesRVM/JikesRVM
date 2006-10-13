@@ -41,12 +41,13 @@ public class BootImageWorker extends Thread {
         return;
       long startTime = 0;
       if (verbose >= 1) {
-          BootImageWriterMessages.say("Thread " + id + " instantiating type " + count + " " + type);
           startTime = System.currentTimeMillis();
+          BootImageWriterMessages.say(startTime + ": "+ count +" starting " + type +"(Thread " + id + ")");
       }
       type.instantiate();
       if (verbose >= 1) {
-        BootImageWriterMessages.say("Thread " + id + " instantiating type " + count + " " + type + " Time: " + (System.currentTimeMillis() - startTime) + "ms");
+        long stopTime = System.currentTimeMillis();
+        BootImageWriterMessages.say(stopTime + ": "+ count +" finish " + type +" duration: " + (stopTime - startTime) + "ms (Thread "+ id +")");
       }
     }
   }

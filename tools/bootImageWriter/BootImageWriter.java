@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.*;
  *    -m <filename>            place to put bootimage map
  *    -profile                 time major phases of bootimage writing
  *    -xclasspath <path>       OBSOLETE compatibility aid
- *    -parallelize=N           number of parallel compilation threads we should create, 0=>sequential
+ *    -numThreads=N            number of parallel compilation threads we should create
  *
  * </pre>
  * @author Derek Lieber
@@ -65,10 +65,12 @@ public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
 
   /**
-   * Should we try to parallelize the compilation (0 = no, >0 = yes)
-   * Values >0 give the number compilation threads we should create
+   * Number of threads we should use for compilation 
+   *  1:  work done in this thread
+   *  >1: create these many threads
+   *  <1: error
    */
-  public static int parallelize = 0;
+  public static int numThreads = 1;
 
   /**
    * How much talking while we work?
@@ -455,9 +457,12 @@ public class BootImageWriter extends BootImageWriterMessages
         demographics = true;
         continue;
       }
-      // parallelize
-      if (args[i].startsWith("-parallelize=")) {
-        parallelize = Integer.parseInt(args[i].substring(13));
+      // numThreads
+      if (args[i].startsWith("-numThreads=")) {
+        numThreads = Integer.parseInt(args[i].substring(12));
+        if (numThreads < 1) {
+          fail("numThreads must be a positive number, value supplied:  "+ numThreads);
+        }
         continue;
       }
       // profile
@@ -999,22 +1004,23 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       if (profile) startTime = System.currentTimeMillis();
       if (verbose >= 1) say("instantiating");
-      if (parallelize < 1) {
+      if (numThreads == 1) {
         int count = 0;
         for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
             VM_Type type = (VM_Type) e.nextElement();
             count++;
-            if (verbose >= 1) say(count + " instantiating " + type);
             long start2 = System.currentTimeMillis();
+            if (verbose >= 1) say(startTime +": "+ count + " instantiating " + type);
             type.instantiate();
             long stop2 = System.currentTimeMillis();
+            if (verbose >=1) say(stop2 + ":  " + count + " finish " + type + " duration: " + (stop2 - start2) + "ms");
             if (profile && stop2 - start2 > classCompileThreshold)
               System.out.println("PROF:\t\t"+type+" took "+((stop2 - start2+500)/1000)+" seconds to instantiate");
         }
       } else {
-        if (verbose >= 1) say("parallelizing with " + parallelize + " threads");
+        say(" compiling with " + numThreads + " threads");
         BootImageWorker.startup(bootImageTypes.elements());
-        BootImageWorker [] workers = new BootImageWorker[parallelize];
+        BootImageWorker [] workers = new BootImageWorker[numThreads];
         for (int i=0; i<workers.length; i++) {
           workers[i] = new BootImageWorker();
           workers[i].id = i;

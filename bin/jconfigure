@@ -2266,7 +2266,7 @@ function emitController () {
 	    return \$status;	# will always return 0
 	}
 
-	DEMOGRAPHICS_FLAG="" RECOMPILE_FLAG="" NOLINK_FLAG="" BOOTER_FLAG="" NOBOOTER_FLAG=""
+	DEMOGRAPHICS_FLAG="" RECOMPILE_FLAG="" NOLINK_FLAG="" BOOTER_FLAG="" NOBOOTER_FLAG="" NUM_THREADS_FLAG=""
 	while (( \$# > 0 )); do
 	    arg="\$1"
 	    [[ \$arg != --?* ]] || arg="\${arg#-}"
@@ -2289,6 +2289,8 @@ function emitController () {
 	    elif [[ \$arg = -booter ]]; then
 	        NOLINK_FLAG=-nolink
 	        BOOTER_FLAG=-booter
+	    elif [[ \$arg = -numThreads* ]]; then
+		NUM_THREADS_FLAG="\$arg"
 	    else
 	        echo >&2 \
 	"Usage: \$ME [-trace[=<trace-opts>]] [-v] [-x] [-demographics] 
@@ -2425,7 +2427,7 @@ function emitController () {
 	    timeit ./jbuild.compile
 	    if [[ \$NOLINK_FLAG != -nolink ]]; then
 		timeit ./jbuild.interfaceDeclarations
-	        timeit ./jbuild.linkImage  \$DEMOGRAPHICS_FLAG
+	        timeit ./jbuild.linkImage \$NUM_THREADS_FLAG \$DEMOGRAPHICS_FLAG
 	        if [[ \$NOBOOTER_FLAG != -nobooter ]]; then
 		    if [[ \${RUN_BUILD_COPY-} ]]; then
 			timeit --via-RUN-BUILD-COPY \$RUN_BUILD_COPY
@@ -3162,6 +3164,7 @@ function emitImageLinker () {
 
 	# Process command-line args
 	DEMOGRAPHICS_FLAG=""
+	NUM_THREADS_FLAG=""
 	while (( \$# > 0 )); do
 	    arg="\$1"
 	    [[ \$arg != --?* ]] || arg="\${arg#-}"
@@ -3175,6 +3178,8 @@ function emitImageLinker () {
 	        DEMOGRAPHICS_FLAG=-demographics
 	    elif [[ \$arg = -clean ]]; then
 	        CLEAN_FLAG=-clean
+	    elif [[ \$arg == -numThreads* ]]; then
+	        NUM_THREADS_FLAG="\$arg"
 	    else
 	        show_mesg >&2 "Unknown argument: \$arg"
 	        trap '' EXIT
@@ -3835,7 +3840,7 @@ cat <<-EOF
 	# Create bootimage.
 	#
 EOF
-    BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$BOOTIMAGE_WRITER_TRACE_FLAG"
+    BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$NUM_THREADS_FLAG \$BOOTIMAGE_WRITER_TRACE_FLAG"
 
     BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS"
     IMAGE_ADDRESS_ARG="-da $BOOTIMAGE_DATA_ADDRESS -ca $BOOTIMAGE_CODE_ADDRESS -ra $BOOTIMAGE_RMAP_ADDRESS"
