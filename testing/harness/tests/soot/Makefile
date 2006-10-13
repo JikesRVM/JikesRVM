@@ -25,10 +25,10 @@ START_NAME=soot.Main
 JCOMPILE=$(RVM_BUILD)/jbuild.tool
 
 ifeq ($(MODE),PERFORMANCE)
-  START_ARGS=-W --app -time -d cp --soot-classpath cp:$(SPECjvm98_HOME):$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar SpecApplication -f J
+  START_ARGS=-O --app -time -d cp --soot-classpath cp:$(SPECjvm98_HOME):$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar SpecApplication -f J
   TIME_LIMIT=900
 else
-  START_ARGS=-W --app -time -d cp --soot-classpath cp:$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar Hello -f J
+  START_ARGS=-O -app -time -d cp --soot-classpath cp:$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar Hello -f J
   TIME_LIMIT=600
 endif
 
