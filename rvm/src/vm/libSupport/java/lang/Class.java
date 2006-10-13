@@ -994,6 +994,14 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
     }
   }
 
+  public Constructor getEnclosingConstructor() {
+    throw new VM_UnimplementedError();
+  }
+
+  public Method getEnclosingMethod() {
+    throw new VM_UnimplementedError();
+  }
+
   public Object cast(Object obj) {
     if (obj != null && ! isInstance(obj))
       throw new ClassCastException();
