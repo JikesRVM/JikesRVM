@@ -63,7 +63,7 @@ JGF_HOME=$(BENCHMARK_ROOT)/JavaGrandeForum/v2.0
 #
 # Soot v1.2.5
 #
-Soot_HOME=$(BENCHMARK_ROOT)/soot-1.2.5
+Soot_HOME=$(BENCHMARK_ROOT)/soot-2.2.3
 
 #
 # Xerces 2.0.2

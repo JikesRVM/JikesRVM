@@ -22,11 +22,13 @@ BENCH_CLASS_PATH=$(BENCH_HOME)/soot/classes:$(BENCH_HOME)/jasmin/classes
 BENCH_SOURCE_PATH=$(JAL_ROOT)/testing/harness/tests/soot
 START_NAME=soot.Main
 
+JCOMPILE=$(RVM_BUILD)/jbuild.tool
+
 ifeq ($(MODE),PERFORMANCE)
-  START_ARGS=-W --app -t -d cp --soot-classpath $(SPECjvm98_HOME):$(HOST_REPOSITORIES) SpecApplication --jimple
+  START_ARGS=-W --app -time -d cp --soot-classpath cp:$(SPECjvm98_HOME):$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar SpecApplication -f J
   TIME_LIMIT=900
 else
-  START_ARGS=-W --app -t -d cp --soot-classpath cp:$(HOST_REPOSITORIES) Hello --jimple
+  START_ARGS=-W --app -time -d cp --soot-classpath cp:$(RVM_BUILD)/RVM.classes/rvmrt.jar:$(RVM_BUILD)/RVM.classes/jksvm.jar Hello -f J
   TIME_LIMIT=600
 endif
 
