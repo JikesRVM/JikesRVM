@@ -212,21 +212,6 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     return size;
   }
 
-  /**
-   * Get the offset for the end of the prologue
-   */
-  public final int getEndPrologueOffset() {
-    return bitField1 & AVAIL_BITS;
-  }
-
-  /**
-   * Get the offset for the end of the prologue
-   * @param endPrologue
-   */
-  final void setEndPrologueOffset(int endPrologue) {
-    bitField1 |= endPrologue & AVAIL_BITS;
-  }
-
   //----------------//
   // implementation //
   //----------------//
@@ -421,7 +406,6 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    */
   public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) throws InterruptiblePragma {
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
-    setEndPrologueOffset(ir.MIRInfo.instAfterPrologue.getmcOffset());
   }
 
   /**

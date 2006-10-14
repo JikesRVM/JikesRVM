@@ -444,7 +444,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       saveFloatingPointState(inst);
     }
     saveNonVolatiles(inst);
-    inst.insertBefore(Empty.create(IR_ENDPROLOGUE));
   }
 
   /**

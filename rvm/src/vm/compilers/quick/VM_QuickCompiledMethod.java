@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
 public final class VM_QuickCompiledMethod extends VM_CompiledMethod 
   implements VM_QuickConstants {
 
-  private static final int HAS_COUNTERS = 0x08000000;
+  private static final int HAS_COUNTERS = 0x00800000;
   private static final int LOCK_OFFSET  = 0x00000fff;
 
   /**

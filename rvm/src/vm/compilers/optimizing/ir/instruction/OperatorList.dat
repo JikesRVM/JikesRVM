@@ -1494,13 +1494,6 @@ immedPEI
 
 
 
-# a pseudo instruction to represent the end of the prologue
-IR_ENDPROLOGUE
-Empty
-none
-
-
-
 # LIR operator for resolution. Expanded very late in MIR
 # to a call to VM_OptSaveVolatile.resolve.
 RESOLVE

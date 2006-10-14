@@ -927,18 +927,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   }
 
   /**
-   *  Insert end prologue to show debugger where the end of the
-   *  prologue is
-   */
-  private void insertEndPrologue() {
-    OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
-    if (VM.VerifyAssertions) VM._assert(inst.getOpcode() == IR_PROLOGUE_opcode);
-    inst.insertBefore(Empty.create(IR_ENDPROLOGUE));
-    inst.remove();
-    ir.MIRInfo.gcIRMap.delete(inst);
-  }
-
-  /**
    * Insert the prologue.
    */
   private void insertPrologue() {
@@ -949,7 +937,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     if (frameIsRequired()) {
       insertNormalPrologue();
     } else {
-      insertEndPrologue();
+      OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
+      if (VM.VerifyAssertions) VM._assert(inst.getOpcode() == IR_PROLOGUE_opcode);
+      inst.remove();
+      ir.MIRInfo.gcIRMap.delete(inst);
     }
   }
 

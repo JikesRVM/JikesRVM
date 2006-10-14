@@ -227,15 +227,6 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
           instructionCount++;
           break;
         //-#endif
-        case IR_ENDPROLOGUE_opcode:
-          {
-            // Remember where the end of prologue is for debugger
-            OPT_Instruction next = p.nextInstructionInCodeOrder();
-            ir.MIRInfo.instAfterPrologue = next;
-            p.remove();
-            p = next.prevInstructionInCodeOrder();
-          }
-          break;
 
       default:
         if (p.operator().isConditionalBranch())

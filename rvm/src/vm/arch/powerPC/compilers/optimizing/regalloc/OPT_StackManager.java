@@ -500,8 +500,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP), 
                                       IC(STACKFRAME_METHOD_ID_OFFSET))); // 9
 
-    ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));
-
     if (stackOverflow) {
       // Mutate the Prologue instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TAddr, OPT_PowerPCTrapOperand.GREATER(), A(S0), A(FP),
@@ -602,7 +600,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
                                        IC(OPT_Bits.PPCMaskLower16(offset)))); 
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
-    ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));
   }
 
   /**

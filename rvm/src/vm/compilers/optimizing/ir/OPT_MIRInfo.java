@@ -80,8 +80,6 @@ public final class OPT_MIRInfo {
    */
   public OPT_LinearScan.LinearScanState linearScanState = null;
 
-  public OPT_Instruction instAfterPrologue;
-  
   public OPT_MIRInfo(OPT_IR ir) {
     ir.compiledMethod.setSaveVolatile(ir.method.getDeclaringClass().isSaveVolatile());
     ir.compiledMethod.setOptLevel(ir.options.getOptLevel());

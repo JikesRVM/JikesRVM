@@ -271,7 +271,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
         VM._assert(compiledMethod != null);
         VM._assert(compiledMethod.containsReturnAddress(ip));
       }
-      compiledMethod.setObsolete(false);
+      compiledMethod.setActiveOnStack();
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
       Address ipLoc = thread.hardwareExceptionRegisters.getIPLocation();
       if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
@@ -366,7 +366,7 @@ public final class ScanThread implements VM_Constants, Uninterruptible {
 
     /* establish the compiled method */
     compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-    compiledMethod.setObsolete(false);  // keeps code object alive
+    compiledMethod.setActiveOnStack();  // prevents code from being collected
 
     compiledMethodType = compiledMethod.getCompilerType();
     
