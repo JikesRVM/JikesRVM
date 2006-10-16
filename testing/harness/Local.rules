@@ -61,7 +61,7 @@ ipsixql_HOME=$(BENCHMARK_ROOT)/ipsixql-1_0_2
 JGF_HOME=$(BENCHMARK_ROOT)/JavaGrandeForum/v2.0
 
 #
-# Soot v1.2.5
+# Soot v2.2.3
 #
 Soot_HOME=$(BENCHMARK_ROOT)/soot-2.2.3
 
