@@ -75,7 +75,7 @@ public class LinearSpaceDriver extends AbstractDriver
    * @param server The GCspy ServerInterpreter
    * @param spaceName The name of this GCspy space
    * @param mmtkSpace The MMTk space
-   * @param blocksize The tile size
+   * @param blockSize The tile size
    * @param mainSpace Is this the main space?
    */
   public LinearSpaceDriver( 

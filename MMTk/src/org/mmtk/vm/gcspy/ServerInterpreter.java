@@ -127,7 +127,7 @@ public abstract class ServerInterpreter implements Uninterruptible {
   
   /**
    * Discover the smallest header size for objects.
-   * @ return the size in bytes
+   * @return the size in bytes
    */
   public abstract int computeHeaderSize();
 }

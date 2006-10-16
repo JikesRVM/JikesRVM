@@ -44,7 +44,7 @@ public class Util extends org.mmtk.vm.gcspy.Util implements Uninterruptible, Con
    * 
    * @param size The size to allocate
    * @return The start address of the memory allocated in C space
-   * @see free
+   * @see #free
    */
   public final Address malloc(int size) {
     if (VM_SysCall.WITH_GCSPY) {
@@ -59,7 +59,7 @@ public class Util extends org.mmtk.vm.gcspy.Util implements Uninterruptible, Con
    * Free an array of bytes previously allocated with malloc
    * 
    * @param addr The address of some memory previously allocated with malloc
-   * @see malloc
+   * @see #malloc
    */
   public final void free(Address addr) {
     if (VM_SysCall.WITH_GCSPY) 

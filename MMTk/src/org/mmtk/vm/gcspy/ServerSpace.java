@@ -89,14 +89,14 @@ public abstract class ServerSpace implements Uninterruptible {
 
   /**
    * Add a stream to the native driver
-   * @param streamId the stream's ID
+   * @param id the stream's ID
    * @return the address of the C gcspy_gc_stream_t
    */
   public abstract Address addStream(int id);
 
   /**
    * Start transmitting a stream.
-   * @param streamId The stream's ID
+   * @param id The stream's ID
    * @param len The number of items in the stream
    */
   public abstract void stream(int id, int len);
@@ -126,7 +126,7 @@ public abstract class ServerSpace implements Uninterruptible {
 
   /**
    * Start to send a summary
-   * @param streamId The stream's ID
+   * @param id The stream's ID
    * @param len The number of items to be sent
    */
   public abstract void summary (int id, int len);

@@ -89,8 +89,8 @@ abstract public class AbstractDriver implements Uninterruptible {
    * 
    * @param server The ServerInterpreter that owns this GCspy space.
    * @param name The name of this driver.
-   * @param space The MMTk space represented by this driver.
-   * @param blocksize The tile size.
+   * @param mmtkSpace The MMTk space represented by this driver.
+   * @param blockSize The tile size.
    * @param mainSpace Is this the main space?
    */
   public AbstractDriver(ServerInterpreter server,
@@ -114,7 +114,7 @@ abstract public class AbstractDriver implements Uninterruptible {
    * Create a subspace for this space.
    * Subspace provide useful facilities for contiguous spaces, even if
    * a space contains only one.
-   * @param space The MMTk space
+   * @param mmtkSpace The MMTk space
    */
   protected Subspace createSubspace (Space mmtkSpace)
   	throws InterruptiblePragma {
@@ -125,7 +125,7 @@ abstract public class AbstractDriver implements Uninterruptible {
   /**
    * Create a new GCspy ServerSpace and add it to the ServerInterpreter.
    * @param server the GCspy ServerInterpreter.
-   * @param name The name of this driver.
+   * @param spaceName The name of this driver.
    * @param maxTileNum the maximum number of tiles in this space.
    * @param mainSpace Is this the main space?
    */

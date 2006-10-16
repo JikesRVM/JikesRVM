@@ -31,7 +31,7 @@ public abstract class Util implements Uninterruptible {
    * 
    * @param size The size to allocate
    * @return The start address of the memory allocated in C space
-   * @see free
+   * @see #free
   */
   public abstract Address malloc(int size);
 
@@ -39,7 +39,7 @@ public abstract class Util implements Uninterruptible {
    * Free an array of bytes previously allocated with malloc
    * 
    * @param addr The address of some memory previously allocated with malloc
-   * @see malloc
+   * @see #malloc
    */
   public abstract void free(Address addr);
   
