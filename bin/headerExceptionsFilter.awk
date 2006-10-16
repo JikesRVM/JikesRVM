@@ -31,6 +31,7 @@
 /\/testing\/harness\/tests\/javalex\/qb1.lex.ref/ {next}
 /\/testing\/harness\/tests\/jBYTEmark\/jBYTEmark.java/ {next}
 /\/testing\/harness\/tests\/SPECjbb2000\/SPECjbb./ {next}
+/\/testing\/harness\/tests\/SPECjbb2005\/SPECjbb./ {next}
 /\/testing\/harness\/tests\/pseudojbb\/pseudojbb/ {next}
 /\/testing\/harness\/tests\/pseudojbb\/props/ {next}
 /\/testing\/harness\/tests\/mauve\/mauve-jikesrvm/ {next}
