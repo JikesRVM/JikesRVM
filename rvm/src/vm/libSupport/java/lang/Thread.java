@@ -5,7 +5,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * Copyright © IBM Corp 2002, 2004
+ * (C) Copyright IBM Corp 2002, 2004
  *
  * $Id$
  */
@@ -331,9 +331,10 @@ public class Thread implements Runnable {
     }
   }
     
-  /** The JDK 1.4.2 API says:
-   * « Automatically generated names are of the form "Thread-"+n, where n is an
-   *   integer. »
+  /**
+   * The JDK 1.4.2 API says:
+   * << Automatically generated names are of the form "Thread-"+n,
+   *    where n is an integer. >>
    */
   private synchronized static String newName() {
     return "Thread-" + createCount++;

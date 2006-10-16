@@ -5,7 +5,7 @@
  * A copy of the license is included in the distribution, and is also
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
- * Copyright © IBM Corp 2005
+ * (C) Copyright IBM Corp 2005
  *
  * $Id$
  */
