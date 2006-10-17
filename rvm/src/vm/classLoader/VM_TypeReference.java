@@ -532,7 +532,21 @@ public class VM_TypeReference implements VM_SizeConstants {
    *        validate them as soon as we insert them into a VM_TypeReference.
    *        This stinks. XXX)
    */
-  public final synchronized VM_Type resolve() throws NoClassDefFoundError, 
+  public final VM_Type resolve() throws NoClassDefFoundError, 
+                                        IllegalArgumentException {
+	/*
+	 * Lock the classloader instead of this to avoid conflicting locking order.
+	 * Suppose we locked this, then one thread could call resolve(), locking this,
+	 * call classloader.loadClass(), trying to lock the classloader. Meanwhile,
+	 * another thread could call loadClass(), locking the classloader, then
+	 * try to resolve() the VM_TypeReference, resulting in a deadlock
+	 */
+    synchronized (classloader) {
+      return resolveInternal();
+    }
+  }
+
+  private final VM_Type resolveInternal() throws NoClassDefFoundError, 
                                                      IllegalArgumentException {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {
