@@ -3349,6 +3349,9 @@ java/lang/Long
 java/lang/Number
 java/lang/Short
 java/lang/Void
+gnu/classpath/Pointer
+gnu/classpath/Pointer32
+gnu/classpath/Pointer64
 
     # class loading errors
     #
