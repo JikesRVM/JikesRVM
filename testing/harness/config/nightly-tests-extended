@@ -17,3 +17,4 @@ SPECjbb2000
 SPECjbb2005 
 utf8
 memberNaming
+javaagent

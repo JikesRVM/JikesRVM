@@ -284,21 +284,51 @@ final class VMClassLoader
     return VM_ClassLoader.getApplicationClassLoader();
   }
 
+  static Class[] getAllLoadedClasses() {
+    Vector classList = new Vector();
+    Iterator classLoaderMaps = loadedClasses.valueIterator();
+    while (classLoaderMaps.hasNext()) {
+      VM_HashMap classes = (VM_HashMap)classLoaderMaps.next();
+      Iterator classIterator = classes.valueIterator();
+      while (classIterator.hasNext())
+        classList.add(classIterator.next());
+    }
+    Class[] result = new Class[classList.size()];
+    return (Class[])classList.toArray(result);
+  }
+
+  static Class[] getInitiatedClasses(ClassLoader classLoader) {
+    VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(classLoader);
+    if (mapForCL == null) return new Class[]{};
+    Vector classList = new Vector();
+    Iterator classIterator = mapForCL.valueIterator();
+    while (classIterator.hasNext())
+      classList.add(classIterator.next());
+    Class[] result = new Class[classList.size()];
+    return (Class[])classList.toArray(result);
+  }
+
   static Class findLoadedClass(ClassLoader cl, String name) {
     VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(cl);
     if (mapForCL == null) return null;
     return (Class)mapForCL.get(name);
   }
 
-  static final Instrumentation instrumenter = null;
+  private static Instrumentation instrumenter = null;
+
+  static void setInstrumenter(Instrumentation theInstrumenter) {
+    instrumenter = theInstrumenter;
+  }
+
   static final Class defineClassWithTransformers(ClassLoader loader, String name, byte[] data,
                                                  int offset, int len, ProtectionDomain pd) {
     
     if (instrumenter != null) {
       byte[] modifiedData = new byte[len];
       System.arraycopy(data, offset, modifiedData, 0, len);
+      String jvmName = name.replace('.', '/');
       modifiedData =
-        ((InstrumentationImpl)instrumenter).callTransformers(loader, name, null, pd, modifiedData);
+        ((InstrumentationImpl)instrumenter).callTransformers(loader, jvmName, null, pd, modifiedData);
         
       return defineClass(loader, name, modifiedData, 0, modifiedData.length, pd);
     } else {

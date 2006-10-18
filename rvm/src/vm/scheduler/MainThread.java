@@ -11,6 +11,12 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+import java.util.jar.Manifest;
+import java.util.jar.JarFile;
+
 //-#if RVM_WITH_GCSPY
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 //-#endif
@@ -24,6 +30,7 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  */
 class MainThread extends Thread {
   private String[] args;
+  private final String[] agents;
   private VM_Method mainMethod;
   protected boolean launched = false;
    
@@ -37,6 +44,7 @@ class MainThread extends Thread {
    */
   MainThread(String args[]) {
     super(args); // special constructor to create thread that has no parent
+    this.agents = VM_CommandLineArgs.getArgs(VM_CommandLineArgs.JAVAAGENT_ARG);
     this.args = args;
     this.vmdata.isMainThread = true;
     //-#if RVM_WITH_OSR
@@ -47,6 +55,68 @@ class MainThread extends Thread {
     
   }
       
+  private void runAgents(ClassLoader cl) {
+    if (agents.length > 0) {
+      Instrumentation instrumenter = gnu.java.lang.JikesRVMSupport.createInstrumentation();
+      java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
+      for (int i = 0; i < agents.length; i++) {
+        String agent = agents[i];
+        /*
+         * Parse agent string according to the form
+         * given in the java.lang.instrumentation package
+         * documentation:
+         * jarpath[=options]
+         *
+         * (The -javaagent: part of the agent options has
+         *  already been stripped)
+         */
+        int equalsIndex = agent.indexOf('=');
+        String agentJar;
+        String agentOptions;
+        if (equalsIndex != -1) {
+          agentJar = agent.substring(0, equalsIndex);
+          agentOptions = agent.substring(equalsIndex + 1);
+        } else {
+          agentJar = agent;
+          agentOptions = "";
+        }
+        runAgent(instrumenter, cl, agentJar, agentOptions);
+      }
+    }
+  }
+
+  private static void runAgent(Instrumentation instrumenter, ClassLoader cl, String agentJar, String agentOptions) {
+    Manifest mf = null;
+    try {
+      JarFile jf = new JarFile(agentJar);
+      mf = jf.getManifest();
+    } catch(Exception e) {
+      VM.sysWriteln("vm: IO Exception opening JAR file ", agentJar,
+          ": ", e.getMessage());
+      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    if (mf == null) {
+      VM.sysWriteln("The jar file is missing the manifest: ", agentJar);
+      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    String agentClassName = mf.getMainAttributes().getValue("Premain-Class");
+    if (agentClassName  == null) {
+      VM.sysWriteln("The jar file is missing the Premain-Class manifest entry for the agent class: ", agentJar);
+      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    try {
+      Class agentClass = cl.loadClass(agentClassName);
+      Method agentPremainMethod = agentClass.getMethod("premain", new Class[]{String.class, Instrumentation.class});
+      agentPremainMethod.invoke(null, new Object[]{agentOptions, instrumenter});
+    } catch (InvocationTargetException e) {
+      // According to the spec, exceptions from premain() can be ignored
+    } catch (Throwable e) { 
+      VM.sysWriteln("Failed to run the agent's premain: " + e.getMessage());
+      System.exit(0);
+      return;
+    }
+  }
+
   public String toString() {
     return "MainThread";
   }
@@ -77,6 +147,8 @@ class MainThread extends Thread {
     // Set up application class loader
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl); 
+
+	runAgents(cl);
 
     if (dbg) VM.sysWrite("[MainThread.run() loading class to run... ");
     // find method to run

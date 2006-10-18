@@ -10,6 +10,7 @@
 package java.lang;
 
 import java.security.ProtectionDomain;
+import java.lang.instrument.Instrumentation;
 
 import com.ibm.JikesRVM.classloader.VM_Type;
 
@@ -25,6 +26,18 @@ import com.ibm.JikesRVM.VM_Thread;
  * @author Julian Dolby
  */
 public class JikesRVMSupport {
+
+  public static void initializeInstrumentation(Instrumentation instrumenter) {
+    VMClassLoader.setInstrumenter(instrumenter);
+  }
+
+  public static Class[] getAllLoadedClasses() {
+    return VMClassLoader.getAllLoadedClasses();
+  }
+
+  public static Class[] getInitiatedClasses(ClassLoader classLoader) {
+    return VMClassLoader.getInitiatedClasses(classLoader);
+  }
 
   public static Class createClass(VM_Type type) {
     return Class.create(type);

@@ -1887,6 +1887,7 @@ EOF
     echo "$RVM_ROOT/rvm/src/vm/libSupport/java/util"
 
     echo "$RVM_ROOT/rvm/src/vm/libSupport/gnu/classpath"
+    echo "$RVM_ROOT/rvm/src/vm/libSupport/gnu/java/lang"
 
     # Add support for hardware performance monitors on PowerPC
     #
