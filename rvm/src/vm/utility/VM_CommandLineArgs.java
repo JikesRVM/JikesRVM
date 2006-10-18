@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
@@ -15,6 +20,8 @@ import com.ibm.JikesRVM.quick.*;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
+
+import java.io.File;
 
 /**
  * Command line option processing.
@@ -54,6 +61,7 @@ public class VM_CommandLineArgs {
   public static final int VERBOSE_JNI_ARG      =  5;
   public static final int VERBOSE_CLS_ARG      =  6;
   public static final int JAR_ARG              =  7;
+  public static final int JAVAAGENT_ARG        =  8;
 
   // -----------------------------------------------//
   // The following arguments are RVM-specific.      //
@@ -106,6 +114,7 @@ public class VM_CommandLineArgs {
     new Prefix("-classpath ",           CLASSPATH_ARG),  // Note: space is significant
     new Prefix("-cp ",                  CLASSPATH_ARG),  // Note: space is significant
     new Prefix("-jar ",                 JAR_ARG),  // Note: space is significant
+    new Prefix("-javaagent:",           JAVAAGENT_ARG),
     new Prefix("-D",                    ENVIRONMENT_ARG),
     new Prefix("-verbose:class$",       VERBOSE_CLS_ARG),
     new Prefix("-verbose:jni$",         VERBOSE_JNI_ARG),
@@ -672,8 +681,20 @@ public class VM_CommandLineArgs {
         args[i] = s;
         arg_types[i] = APPLICATION_ARG;
         app_prefix.count++;
-      break;
-
+        break;
+      case JAVAAGENT_ARG:
+        /* Extract jar file from the -javaagent:<jar>[=options] form */
+        int equalsPos = arg.indexOf("=");
+        String jarPath;
+        if (equalsPos != -1) {
+          jarPath = arg.substring(0, equalsPos);
+        } else {
+          jarPath = arg;
+        }
+        String newClassPath = VM_ClassLoader.getApplicationRepositories() + 
+          File.pathSeparator + jarPath;
+        VM_ClassLoader.setApplicationRepositories(newClassPath);
+        break;
       }
     }
 

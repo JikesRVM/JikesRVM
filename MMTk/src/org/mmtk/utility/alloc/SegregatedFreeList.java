@@ -1,18 +1,23 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
 package org.mmtk.utility.alloc;
 
-import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.FragmentationStats;
 import org.mmtk.utility.options.VerboseFragmentationStats;
+
+import org.mmtk.vm.VM;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -37,13 +42,14 @@ import org.vmmagic.unboxed.*;
  * size class becomes the current block and its free list is used.  If
  * there are no more blocks the a new block is allocated.<p>
  * 
+ * $Id$
+ * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public abstract class SegregatedFreeList extends Allocator 
   implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
 
   /****************************************************************************
    * 
@@ -293,7 +299,7 @@ public abstract class SegregatedFreeList extends Allocator
     int cellCount = 0;
 
     // pre-zero the block
-    Memory.zero(cursor, Extent.fromIntZeroExtend(useableBlockSize));
+    VM.memory.zero(cursor, Extent.fromIntZeroExtend(useableBlockSize));
 
     // construct the free list
     while (cursor.plus(cellExtent).LE(sentinel)) {
@@ -303,7 +309,7 @@ public abstract class SegregatedFreeList extends Allocator
       cellCount++;
     }
 
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!lastCell.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!lastCell.isZero());
     return lastCell;
   }
 
@@ -366,6 +372,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   private final void installNewBlock(Address block, int sizeClass)
       throws InlinePragma {
+    BlockAllocator.setAllClientSizeClass(block, blockSizeClass[sizeClass], (byte) sizeClass);
     BlockAllocator.linkedListInsert(block, lastBlock.get(sizeClass));
     currentBlock.set(sizeClass, block);
     lastBlock.set(sizeClass, block);
@@ -427,7 +434,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getSizeClass(int bytes)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((bytes > 0) && (bytes <= MAX_CELL_SIZE));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((bytes > 0) && (bytes <= MAX_CELL_SIZE));
 
     int sz1 = bytes - 1;
 
@@ -475,7 +482,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final int getBaseCellSize(int sc) 
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((sc >= 0) && (sc < SIZE_CLASSES));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
     if (BYTES_IN_ADDRESS == 32) { // 32-bit
       if (COMPACT_SIZE_CLASSES)
@@ -530,7 +537,7 @@ public abstract class SegregatedFreeList extends Allocator
    * @return True if the cell should be reclaimed
    */
   protected boolean reclaimCellForObject(ObjectReference object, Word markState) {
-    Assert.fail("Must implement reclaimCellForObject if not maintaining side bitmap");
+    VM.assertions.fail("Must implement reclaimCellForObject if not maintaining side bitmap");
     return false;
   }
   
@@ -585,7 +592,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected final Address getFreeList(Address block) 
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(preserveFreeList());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(preserveFreeList());
     return BlockAllocator.getFreeListMeta(block);
   }
 
@@ -599,7 +606,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected final void setFreeList(Address block, Address cell)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(preserveFreeList());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(preserveFreeList());
     BlockAllocator.setFreeListMeta(block, cell);
   }
 
@@ -612,8 +619,9 @@ public abstract class SegregatedFreeList extends Allocator
    * Sweep all blocks for free objects.
    * 
    * FIXME This is currently implemented by searching each *mutator* free list.  It needs to be per-collector, not per-mutator.
+   * @param clearBlockMarks should we clear block mark bits after reading?  Otherwise they must be done on masse when appropriate.
    */
-  protected final void sweepBlocks() {
+  protected final void sweepBlocks(boolean clearBlockMarks) {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
       Address block = firstBlock.get(sizeClass);
       clearBucketList();
@@ -634,7 +642,8 @@ public abstract class SegregatedFreeList extends Allocator
           boolean live = false;
           Address cursor = block;
           while(cursor.LT(block.plus(blockSize))) {
-            live |= BlockAllocator.clearBlockMeta(cursor);
+            live |= BlockAllocator.checkBlockMeta(cursor);
+            if (clearBlockMarks) BlockAllocator.clearBlockMeta(cursor); 
             cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
           }
           if (!live) {
@@ -644,6 +653,25 @@ public abstract class SegregatedFreeList extends Allocator
         block = next;
       }
       if (SORT_FREE_BLOCKS) reestablishBlockFreeList(sizeClass);
+    }
+  }
+
+  /**
+   * Clear the per-block mark state en masse
+   */
+  public final void clearBlockMarks() {
+    for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
+      Address block = firstBlock.get(sizeClass);
+      Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      while (!block.isZero()) {
+        Address next = BlockAllocator.getNextBlock(block);
+        Address cursor = block;
+        while(cursor.LT(block.plus(blockSize))) {
+          BlockAllocator.clearBlockMeta(cursor);
+          cursor = cursor.plus(1 << BlockAllocator.LOG_MIN_BLOCK);
+        }
+        block = next;
+      }
     }
   }
 
@@ -747,7 +775,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   public static final boolean liveObject(ObjectReference object)
       throws InlinePragma {
-    return liveAddress(ObjectModel.refToAddress(object), true);
+    return liveAddress(VM.objectModel.objectStartRef(object), true);
   }
   
   /**
@@ -769,7 +797,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   public static final boolean unsyncLiveObject(ObjectReference object)
       throws InlinePragma {
-    return liveAddress(ObjectModel.refToAddress(object), false);
+    return liveAddress(VM.objectModel.refToAddress(object), false);
   }
 
   /**
@@ -802,7 +830,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   public static final boolean isLiveObject(ObjectReference object)
     throws InlinePragma {
-    return isLiveAddress(ObjectModel.refToAddress(object));
+    return isLiveAddress(VM.objectModel.refToAddress(object));
   }
 
   /**
@@ -826,7 +854,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
   protected static final void deadObject(ObjectReference object)
       throws InlinePragma {
-    deadAddress(ObjectModel.refToAddress(object));
+    deadAddress(VM.objectModel.refToAddress(object));
   }
 
   /**
@@ -848,7 +876,7 @@ public abstract class SegregatedFreeList extends Allocator
     Extent bytes = Extent.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
     while (start.LT(end)) {
       Address metadata = EmbeddedMetaData.getMetaDataBase(start).plus(SegregatedFreeList.META_DATA_OFFSET);
-      Memory.zero(metadata, bytes);
+      VM.memory.zero(metadata, bytes);
       start = start.plus(EmbeddedMetaData.BYTES_IN_REGION);
     }
   }
@@ -883,7 +911,7 @@ public abstract class SegregatedFreeList extends Allocator
   private static final int getLiveness(Address block, Extent blockSize,
       boolean count) throws InlinePragma {
     int liveWords = 0;
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(alignToLiveStride(block).EQ(block));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(alignToLiveStride(block).EQ(block));
     Address cursor = getLiveWordAddress(block);
     Address sentinel = getLiveWordAddress(block.plus(blockSize.minus(1)));
     while (cursor.LE(sentinel)) {
@@ -908,9 +936,8 @@ public abstract class SegregatedFreeList extends Allocator
    * @return The head of the new free list
    */
   protected final Address makeFreeListFromLiveBits(Address block, int sizeClass) {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(maintainSideBitmap());
-    }
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(maintainSideBitmap());
     return makeFreeListFromLiveBits(block, sizeClass, Word.zero());
   }
  
@@ -976,7 +1003,7 @@ public abstract class SegregatedFreeList extends Allocator
       Address end = block.plus(blockSize);
       Extent cellExtent = Extent.fromIntSignExtend(cellSize[sizeClass]);
       while (cursor.LT(end)) {
-        ObjectReference current = ObjectModel.getObjectFromStartAddress(cursor);
+        ObjectReference current = VM.objectModel.getObjectFromStartAddress(cursor);
         boolean free = true;
         if (!current.isNull()) {
           free = reclaimCellForObject(current, markState);

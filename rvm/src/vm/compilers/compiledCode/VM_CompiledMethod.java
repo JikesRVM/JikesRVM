@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -37,15 +42,17 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   /*
    * constants for bitField1
    */
-  private final static int COMPILED     = 0x80000000;
-  private final static int INVALID      = 0x40000000;
-  private final static int OBSOLETE     = 0x20000000;
+  private final static int COMPILED        = 0x80000000;
+  private final static int INVALID         = 0x40000000;
+  private final static int OBSOLETE        = 0x20000000;
+  private final static int ACTIVE_ON_STACK = 0x10000000;
 
   //-#if RVM_WITH_OSR
-  // flags the baseline compiled method is outdated, needs OSR
-  private final static int OUTDATED         = 0x10000000;
+  // flags the compiled method as outdated, needs OSR
+  private final static int OUTDATED        = 0x08000000;
   //-#endif
-  protected final static int AVAIL_BITS = 0x0fffffff;
+  /** Bits in bitfield1 available for use by subclasses */
+  protected final static int AVAIL_BITS    = 0x00ffffff;
 
   /**
    * The compiled method id of this compiled method (index into VM_CompiledMethods)
@@ -101,8 +108,8 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   protected float compilationTime;
 
   /**
-   * A bit field.  The upper 4 bits are reserved for use by 
-   * VM_CompiledMethod.  Subclasses may use the lower 28 bits for their own
+   * A bit field.  The upper 8 bits are reserved for use by 
+   * VM_CompiledMethod.  Subclasses may use the lower 24 bits for their own
    * purposes.
    */
   protected int bitField1;
@@ -249,14 +256,18 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
   /**
    * Mark the compiled method as obsolete (ie a candidate for eventual GC)
    */
-  public final void setObsolete(boolean sense) throws UninterruptiblePragma {
-    if (sense) {
-      bitField1 |= OBSOLETE;
-    } else {
-      bitField1 &= ~OBSOLETE;
-    }
+  public final void setObsolete() throws UninterruptiblePragma {
+    bitField1 |= OBSOLETE;
   }
 
+  public final void setActiveOnStack() throws UninterruptiblePragma {
+    bitField1 |= ACTIVE_ON_STACK;
+  }
+
+  public final void clearActiveOnStack() throws UninterruptiblePragma {
+    bitField1 &= ~ACTIVE_ON_STACK;
+  }
+  
   //-#if RVM_WITH_OSR
   /**
    * Mark the compiled method as outdated (ie requires OSR),
@@ -297,6 +308,10 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject,
     return (bitField1 & OBSOLETE) != 0;
   }
 
+  public final boolean isActiveOnStack() throws UninterruptiblePragma { 
+    return (bitField1 & ACTIVE_ON_STACK) != 0;
+  }
+  
   public final double getCompilationTime() { return (double)compilationTime; }
   public final void setCompilationTime(double ct) { compilationTime = (float)ct; }
 

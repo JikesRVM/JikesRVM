@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
@@ -8,7 +13,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.plan.generational.*;
 import org.mmtk.plan.Trace;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -86,10 +91,7 @@ public class GenCopy extends Gen implements Uninterruptible {
    */
   public GenCopy() {
     super();
-    if (Assert.VERIFY_ASSERTIONS) {
-      // Not supported for GenCopy
-      Assert._assert(!IGNORE_REMSETS);
-    }
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!IGNORE_REMSETS); // Not supported for GenCopy
     matureTrace = new Trace(metaDataSpace);
   }
 

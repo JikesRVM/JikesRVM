@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -34,7 +39,7 @@ public class OPT_SummaryDatabase {
    * @return OPT_ClassSummary instance representing class. 
    *  null if not found
    */
-  public static OPT_ClassSummary findClassSummary (VM_Class c) {
+  public static synchronized OPT_ClassSummary findClassSummary (VM_Class c) {
     return  (OPT_ClassSummary)hash.get(c);
   }
 
@@ -43,11 +48,11 @@ public class OPT_SummaryDatabase {
    * 
    * @return OPT_MethodSummary instance representing method
    */
-  public static OPT_MethodSummary findMethodSummary (VM_Method m) {
+  public static synchronized OPT_MethodSummary findMethodSummary (VM_Method m) {
     return  (OPT_MethodSummary)hash.get(m);
   }
 
-  public static OPT_MethodSummary findOrCreateMethodSummary (VM_Method m) {
+  public static synchronized OPT_MethodSummary findOrCreateMethodSummary (VM_Method m) {
     OPT_MethodSummary result = findMethodSummary(m);
     if (result == null) {
       result = new OPT_MethodSummary(m);

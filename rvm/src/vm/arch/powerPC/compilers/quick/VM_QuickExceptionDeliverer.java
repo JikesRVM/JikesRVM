@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -33,7 +38,7 @@ class VM_QuickExceptionDeliverer extends VM_ExceptionDeliverer
     // Find offset of store exception object in frame
     //
     Address exceptionSlot =
-      fp.add(VM_QuickCompiler.getExceptionObjectOffset(method));
+      fp.plus(VM_QuickCompiler.getExceptionObjectOffset(method));
 
     // Put exception object in expected place in the frame
     //
@@ -70,7 +75,7 @@ class VM_QuickExceptionDeliverer extends VM_ExceptionDeliverer
         } else {
           Address fp = registers.getInnermostFramePointer();
           int offset = VM_QuickCompiler.getThisPtrSaveAreaOffset(method);
-          lock = VM_Magic.addressAsObject(fp.add(offset).loadAddress());
+          lock = VM_Magic.addressAsObject(fp.plus(offset).loadAddress());
         }
         VM_ObjectModel.genericUnlock(lock);
       }
@@ -80,24 +85,24 @@ class VM_QuickExceptionDeliverer extends VM_ExceptionDeliverer
     Offset frameOffset = Offset.fromIntSignExtend(VM_QuickCompiler.getCallerSaveOffset(method));
     int limit;
 
-    for (int i = qcm.firstGPR; i <= qcm.lastGPR; i++, frameOffset = frameOffset.sub(BYTES_IN_ADDRESS)) {
+    for (int i = qcm.firstGPR; i <= qcm.lastGPR; i++, frameOffset = frameOffset.minus(BYTES_IN_ADDRESS)) {
       registers.gprs.set(i, fp.loadWord(frameOffset));
     }
   
     registers.gprs.set(VM_QuickCompiler.S1,
                        fp.loadWord(frameOffset));
-    frameOffset = frameOffset.sub(BYTES_IN_ADDRESS);
+    frameOffset = frameOffset.minus(BYTES_IN_ADDRESS);
     registers.gprs.set(VM_QuickCompiler.S0,
                        fp.loadWord(frameOffset));
-    frameOffset = frameOffset.sub(BYTES_IN_ADDRESS);
+    frameOffset = frameOffset.minus(BYTES_IN_ADDRESS);
 
-    for (int i = qcm.firstFPR; i <= qcm.lastFPR ; i++,frameOffset = frameOffset.sub(BYTES_IN_DOUBLE)) {
+    for (int i = qcm.firstFPR; i <= qcm.lastFPR ; i++,frameOffset = frameOffset.minus(BYTES_IN_DOUBLE)) {
       long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
         registers.fprs[i] = VM_Magic.longBitsAsDouble(temp);
     }
 
     long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
-    frameOffset = frameOffset.sub(BYTES_IN_DOUBLE);
+    frameOffset = frameOffset.minus(BYTES_IN_DOUBLE);
     registers.fprs[VM_QuickCompiler.SF0] = VM_Magic.longBitsAsDouble(temp);
 
     registers.unwindStackFrame();

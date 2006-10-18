@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -49,7 +54,7 @@ public class OPT_InterfaceHierarchy {
    * Return the set of classes that implement a given interface. Create a
    * set if none found.
    */
-  private static VM_HashSet findOrCreateSet(VM_Class I) {
+  private static synchronized VM_HashSet findOrCreateSet(VM_Class I) {
     VM_HashSet set = (VM_HashSet)interfaceMapping.get(I);
     if (set == null) {
       set = new VM_HashSet(3);

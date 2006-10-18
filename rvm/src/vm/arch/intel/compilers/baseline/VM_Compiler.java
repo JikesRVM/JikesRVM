@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -2158,13 +2163,15 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     int align = VM_ObjectModel.getAlignment(typeRef);
     int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitPUSH_Imm(instanceSize);            
     asm.emitPUSH_RegDisp (JTOC, tibOffset);       // put tib on stack    
     asm.emitPUSH_Imm(typeRef.hasFinalizer()?1:0); // does the class have a finalizer?
     asm.emitPUSH_Imm(whichAllocator);
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
-    genParameterRegisterLoad(6);                  // pass 6 parameter words
+    asm.emitPUSH_Imm(site);
+    genParameterRegisterLoad(7);                  // pass 7 parameter words
     asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
   }
@@ -2174,8 +2181,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param typeRef typeReference to dynamically link & instantiate
    */
   protected final void emit_unresolved_new(VM_TypeReference typeRef) {
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitPUSH_Imm(typeRef.getId());
-    genParameterRegisterLoad(1);           // pass 1 parameter word
+    asm.emitPUSH_Imm(site);                 // site
+    genParameterRegisterLoad(2);            // pass 2 parameter words
     asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitPUSH_Reg (T0);
   }
@@ -2189,6 +2198,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     Offset tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
+    int site = MM_Interface.getAllocationSite(true);
     int align = VM_ObjectModel.getAlignment(array);
     int offset = VM_ObjectModel.getOffsetForAlignment(array);
     // count is already on stack- nothing required
@@ -2198,7 +2208,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_Imm(whichAllocator);        // allocator
     asm.emitPUSH_Imm(align);
     asm.emitPUSH_Imm(offset);
-    genParameterRegisterLoad(7);             // pass 7 parameter words
+    asm.emitPUSH_Imm(site);
+    genParameterRegisterLoad(8);             // pass 8 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
@@ -2208,9 +2219,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param tRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_newarray(VM_TypeReference tRef) {
+    int site = MM_Interface.getAllocationSite(true);
     // count is already on stack- nothing required
     asm.emitPUSH_Imm(tRef.getId());
-    genParameterRegisterLoad(2);          // pass 2 parameter words
+    asm.emitPUSH_Imm(site);                 // site
+    genParameterRegisterLoad(3);            // pass 3 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
@@ -2856,7 +2869,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   //
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
-    return methodName == VM_MagicNames.invokeMain             ||
+    return
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||
       methodName == VM_MagicNames.invokeMethodReturningInt    ||
@@ -2917,8 +2930,23 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadShort ||
-          methodName == VM_MagicNames.loadChar) {
+      if (methodName == VM_MagicNames.loadShort) {
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVSX_Reg_RegInd_Word(T0, T0);
+          asm.emitPUSH_Reg (T0);
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, VM_Assembler.BYTE, NO_SLOT); // load and zero extend word [T0+S0]
+          asm.emitPUSH_Reg (T0);
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadChar) {
 
         if (types.length == 0) {
           // No offset
@@ -3080,16 +3108,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if (methodName == VM_MagicNames.invokeMain) {
-      // invokeMain gets "called" with two arguments:
-      //   String[] mainArgs       // the arguments to the main method
-      //   INSTRUCTION[] mainCode  // the code for the main method
-      asm.emitPOP_Reg (S0);            // 
-      genParameterRegisterLoad(1); // pass 1 parameter word     
-      asm.emitCALL_Reg(S0);            // branches to mainCode with mainArgs on the stack
-      return true;
-    }
-    
     if (methodName == VM_MagicNames.saveThreadState) {
       Offset offset = VM_Entrypoints.saveThreadStateInstructionsField.getOffset();
       genParameterRegisterLoad(1); // pass 1 parameter word
@@ -3131,8 +3149,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPUSH_Reg(ESI);    
       asm.emitPUSH_Reg(EDI);
 
-      // (2) Push args to target function (reversed)
-      for (int i=args.length-1; i>=0; i--) {
+      // (2) Push args to target function (reversed), except for the first argument
+      for (int i=args.length-1; i>=1; i--) {
         VM_TypeReference arg = args[i];
         if (arg.isLongType() || arg.isDoubleType()) {
           asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(4));
@@ -3144,12 +3162,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           offsetToJavaArg = offsetToJavaArg.plus(8);
           paramBytes += 4;
         }
-      }   
+      }
 
-      // (3) invoke target function
-      VM_Field ip = VM_Entrypoints.getSysCallField(m.getName().toString());
-      asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
-      asm.emitCALL_RegDisp(S0, ip.getOffset());
+      // (3) invoke target function with address given by the first argument
+      asm.emitMOV_Reg_RegDisp(S0, SP, offsetToJavaArg);
+      asm.emitCALL_Reg(S0);
       
       // (4) pop space for arguments
       asm.emitADD_Reg_Imm(SP, paramBytes);
@@ -3159,8 +3176,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
 
-      // (6) pop expression stack
-      asm.emitADD_Reg_Imm(SP, paramBytes);
+      // (6) pop expression stack (including the first parameter)
+      asm.emitADD_Reg_Imm(SP, paramBytes + 4);
 
       // (7) push return value
       if (rtype.isLongType()) {
@@ -3178,6 +3195,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       
       return true;
     }   
+    
     
     if (methodName == VM_MagicNames.getFramePointer) {
       asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(NO_SLOT));

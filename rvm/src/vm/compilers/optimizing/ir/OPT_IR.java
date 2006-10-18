@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -85,7 +90,7 @@ public final class OPT_IR implements OPT_Operators {
    * the IR during compilation, so method really only represents the 
    * primary or outermost method being compiled.
    */
-  public VM_NormalMethod method;
+  public final VM_NormalMethod method;
 
   /**
    * @return The {@link VM_NormalMethod} object corresponding to the 
@@ -106,7 +111,7 @@ public final class OPT_IR implements OPT_Operators {
    * The compiler {@link OPT_Options options} that apply
    * to the current compilation.
    */
-  public OPT_Options options;
+  public final OPT_Options options;
 
   /** 
    * {@link OPT_SSAOptions Options} that define the SSA properties
@@ -151,13 +156,13 @@ public final class OPT_IR implements OPT_Operators {
    * created in the OPT_IR constructor and then eliminate this field,
    * replacing all uses with gc.inlinePlan instead.
    */
-  public OPT_InlineOracle inlinePlan;
+  public final OPT_InlineOracle inlinePlan;
 
   /**
    * Information specifying what instrumentation should be performed
    * during compilation of this method.  
    */
-  public OPT_InstrumentationPlan instrumentationPlan;
+  public final OPT_InstrumentationPlan instrumentationPlan;
 
   /**
    * The {@link OPT_ControlFlowGraph FCFG} (Factored Control Flow Graph)
@@ -172,7 +177,7 @@ public final class OPT_IR implements OPT_Operators {
   /**
    * The {@link OPT_GenericStackManager stack manager}.
    */
-  public OPT_GenericStackManager stackManager = new OPT_StackManager();
+  public final OPT_GenericStackManager stackManager = new OPT_StackManager();
 
   /**
    * The IR is tagged to identify its level (stage).
@@ -227,6 +232,7 @@ public final class OPT_IR implements OPT_Operators {
     method = m;
     options = opts;
     inlinePlan = ip;
+    instrumentationPlan = null;
   }
 
   /**

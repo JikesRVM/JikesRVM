@@ -1,4 +1,9 @@
 #
+# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+# The Jikes RVM project is distributed under the Common Public License (CPL).
+# A copy of the license is included in the distribution, and is also
+# available at http://www.opensource.org/licenses/cpl1.0.php
+#
 # (C) Copyright IBM Corp. 2001
 #
 #//OperatorTypeList.dat
@@ -262,7 +267,7 @@ Attempt
 
 
 Call
-1 0 3 1 U 7
+1 0 3 1 U 8
 "D Result OPT_RegisterOperand" \
 "U Address OPT_Operand" "U Method OPT_MethodOperand" "U Guard OPT_Operand opt"
 "Param OPT_Operand"

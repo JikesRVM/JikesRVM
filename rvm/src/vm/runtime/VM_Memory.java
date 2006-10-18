@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -556,7 +561,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
   }
 
   /**
-   * Do mmap non-file memory mapping call
+   * Do generic mmap non-file memory mapping call
    * @param address  Start of address range (Address)
    * @param size    Size of address range 
    * @param prot    Protection (int)
@@ -575,12 +580,12 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
    * @param size     Size of address range 
    * @return Address (of region) if successful; errno (1 to 127) otherwise
    */
-  public static Address mmap(Address address, Extent size) {
+  public static Address dzmmap(Address address, Extent size) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
     int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-    int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
-    return VM_SysCall.sysMMapErrno(address, size, prot, flag, -1, Offset.zero());
+    int flags = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
+    return mmap(address, size, prot, flags);
   }
 
   /**
@@ -787,7 +792,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
     Extent size = Extent.fromIntZeroExtend(1024 * 1024);
     int ro = VM_Memory.PROT_READ;
     Address base = Address.fromIntZeroExtend(0x38000000);
-    Address addr = VM_Memory.mmap(base, size);
+    Address addr = VM_Memory.dzmmap(base, size);
     VM.sysWrite("page size = ");
     VM.sysWrite(psize);
     VM.sysWrite("\n");

@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 
@@ -207,21 +212,6 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     return size;
   }
 
-  /**
-   * Get the offset for the end of the prologue
-   */
-  public final int getEndPrologueOffset() {
-    return bitField1 & AVAIL_BITS;
-  }
-
-  /**
-   * Get the offset for the end of the prologue
-   * @param endPrologue
-   */
-  final void setEndPrologueOffset(int endPrologue) {
-    bitField1 |= endPrologue & AVAIL_BITS;
-  }
-
   //----------------//
   // implementation //
   //----------------//
@@ -416,7 +406,6 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    */
   public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) throws InterruptiblePragma {
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
-    setEndPrologueOffset(ir.MIRInfo.instAfterPrologue.getmcOffset());
   }
 
   /**

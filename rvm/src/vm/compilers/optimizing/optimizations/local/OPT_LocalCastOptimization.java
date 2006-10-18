@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -26,7 +31,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Julian Dolby
  */
 public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
-    implements OPT_Operators {
+  implements OPT_Operators {
 
   public String getName() {
     return "Local Cast Optimizations";
@@ -39,13 +44,23 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
   }
 
   /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+    return this;
+  }
+
+  /**
    * Main routine: perform the transformation.
    * @param ir the IR to transform
    */
   public void perform(OPT_IR ir) {
     // loop over all basic blocks ...
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); 
-        e.hasMoreElements();) {
+         e.hasMoreElements();) {
       OPT_BasicBlock bb = e.next();
       if (bb.isEmpty()) continue;
       container.counter2++;
@@ -55,10 +70,10 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
       }
       // visit each instruction in the basic block
       for (OPT_InstructionEnumeration ie = bb.forwardInstrEnumerator(); 
-          ie.hasMoreElements();) {
+           ie.hasMoreElements();) {
         OPT_Instruction s = ie.next();
         if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) || 
-            pushTypeCheckBelowIf(s, ir)))
+                                      pushTypeCheckBelowIf(s, ir)))
           // hack: we may have modified the instructions; start over
           ie = bb.forwardInstrEnumerator();
       }
@@ -77,8 +92,8 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();
       while (n.operator() == REF_MOVE && Move.getVal(n) 
-          instanceof OPT_RegisterOperand
-          && Move.getVal(n).asRegister().register == r) {
+             instanceof OPT_RegisterOperand
+             && Move.getVal(n).asRegister().register == r) {
         r = Move.getResult(n).asRegister().register;
         n = n.nextInstructionInCodeOrder();
       }
@@ -104,12 +119,12 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
       OPT_Register r = TypeCheck.getRef(s).asRegister().register;
       OPT_Instruction n = s.nextInstructionInCodeOrder();
       /* find moves of the checked value, so that we can also
-       optimize cases where the checked value is moved before
-       it is used
-       */
+         optimize cases where the checked value is moved before
+         it is used
+      */
       while (n.operator() == REF_MOVE && Move.getVal(n) 
-          instanceof OPT_RegisterOperand
-          && Move.getVal(n).asRegister().register == r) {
+             instanceof OPT_RegisterOperand
+             && Move.getVal(n).asRegister().register == r) {
         r = Move.getResult(n).asRegister().register;
         n = n.nextInstructionInCodeOrder();
       }
@@ -122,39 +137,39 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
         OPT_Instruction after = n.nextInstructionInCodeOrder();
         if (IfCmp.getCond(n).isEQUAL())
           /*  We fall through on non-NULL values, so the
-           checkcast must be on the not-taken path
-           from the branch.  There are 3 cases:
-           1. n is the last instruction in its basic block, 
-           in which case control falls through to the next
-           block in code order.  This case is if the
-           instruction after n is a BBEND
-           */
+              checkcast must be on the not-taken path
+              from the branch.  There are 3 cases:
+              1. n is the last instruction in its basic block, 
+              in which case control falls through to the next
+              block in code order.  This case is if the
+              instruction after n is a BBEND
+          */
           if (after.operator() == BBEND)
             patchBlock = myBlock.nextBasicBlockInCodeOrder();          
-           /* 2. n is followed by an unconditional goto.  In
+        /* 2. n is followed by an unconditional goto.  In
            this case control jumps to the target of the
            goto.                                     
-           */
+        */
           else if (after.operator() == GOTO)
             patchBlock = after.getBranchTarget();          
-           /* 3. n is followed by another conditional branch. In
+        /* 3. n is followed by another conditional branch. In
            this case, we will split the basic block to make
            n the last instruction in the block, and then
            we have the fall through case again.
-           */
+        */
           else if (after.operator() == REF_IFCMP) {
             patchBlock = myBlock.splitNodeAt(n, ir);
             myBlock.insertOut(patchBlock);
             ir.cfg.linkInCodeOrder(myBlock, patchBlock);
           } 
 
-          /* this is a bad thing */
+        /* this is a bad thing */
           else 
             return  false; 
         else 
           /* We branch on not-NULL values, so the checkcast 
-           must be spliced in before the branch target
-           */
+             must be spliced in before the branch target
+          */
           patchBlock = n.getBranchTarget();
         /* add block between branch and appropriate successor */
 
@@ -163,7 +178,7 @@ public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
         /* put check in new block */
         s.remove();
         TypeCheck.mutate(s, CHECKCAST_NOTNULL, TypeCheck.getClearRef(s), 
-								 TypeCheck.getClearType(s), IfCmp.getGuardResult(n).copyRO());
+                         TypeCheck.getClearType(s), IfCmp.getGuardResult(n).copyRO());
         newBlock.prependInstruction(s);
         return  true;
       }

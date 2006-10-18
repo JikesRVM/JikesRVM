@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -7,7 +12,8 @@ package org.mmtk.utility;
 import org.mmtk.policy.RawPageSpace;
 
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -73,7 +79,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
    */
   public final void acquireTable() {
     base = space.acquire(Conversions.bytesToPages(size));
-    Memory.zero(base, size);
+    VM.memory.zero(base, size);
     valid = true;
   }
 
@@ -116,7 +122,7 @@ public abstract class SimpleHashtable implements Uninterruptible, Constants {
             index != startIndex);
 
     if (index == startIndex) {
-      Assert.fail("No room left in table!");
+      VM.assertions.fail("No room left in table!");
     }
 
     if (curAddress.isZero()) {

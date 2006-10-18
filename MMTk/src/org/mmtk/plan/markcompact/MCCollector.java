@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -7,8 +12,7 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.*;
 
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -90,9 +94,7 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator)
   throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(allocator == MC.ALLOC_IMMORTAL);
-    }
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
 
     return immortal.alloc(bytes, align, offset, true);
   }
@@ -107,7 +109,7 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator)
   throws InlinePragma {
-    MC.immortalSpace.postAlloc(object);
+    MC.immortalSpace.initializeHeader(object);
   }
 
   /****************************************************************************
@@ -189,6 +191,6 @@ public class MCCollector extends StopTheWorldCollector implements Uninterruptibl
 
   /** @return The active global plan as an <code>MC</code> instance. */
   private static final MC global() throws InlinePragma {
-    return (MC) ActivePlan.global();
+    return (MC) VM.activePlan.global();
   }
 }

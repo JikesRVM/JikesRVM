@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -127,8 +132,8 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       if (compiledMethod == null || !compiledMethod.isCompiled())
         continue; // empty slot
 
-      if (compiledMethod.containsReturnAddress(ip)) return compiledMethod;
-      return compiledMethod;
+      if (compiledMethod.containsReturnAddress(ip))
+	return compiledMethod;
     }
 
     return null;
@@ -139,10 +144,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   // can only be collected once we are certain that they are no longer being
   // executed. Here, we keep track of them until we know they are no longer
   // in use.
-  public static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
-    if (compiledMethod.isObsolete()) return; // someone else already marked it as obsolete.
-    int cmid = compiledMethod.getId();
-
+  public static void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
     // Currently, we avoid setting methods of java.lang.Object obsolete.
     // This is because the TIBs for arrays point to the original version
     // and are not updated on recompilation.
@@ -151,25 +153,10 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType())
       return;
 
-    if (VM.VerifyAssertions) VM._assert(compiledMethods[cmid] != null);
-
-    if (obsoleteMethods == null) {
-      // This should tend not to get too big as it gets compressed as we
-      // snip obsolete code at GC time.
-      obsoleteMethods = new int[100];
-    } else if (obsoleteMethodCount >= obsoleteMethods.length) {
-      int newArray[] = new int[obsoleteMethods.length*2];
-      // Disable GC during array copy because GC can alter the source array
-      VM.disableGC();
-      for (int i = 0, n = obsoleteMethods.length; i < n; ++i) {
-        newArray[i] = obsoleteMethods[i];
-      }
-      VM.enableGC();
-      obsoleteMethods = newArray;
-    }
-    compiledMethod.setObsolete(true);
-    obsoleteMethods[obsoleteMethodCount++] = cmid;
-  }
+    compiledMethod.setObsolete();
+    VM_Magic.sync();
+    scanForObsoleteMethods = true;
+  }      
 
   // Snip reference to CompiledMethod so that we can reclaim code space. If
   // the code is currently being executed, stack scanning is responsible for
@@ -177,18 +164,28 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   // NOTE: It's expected that this is processed during GC, after scanning
   //    stacks to determine which methods are currently executing.
   public static void snipObsoleteCompiledMethods() {
-    if (obsoleteMethods == null) return;
+    VM_Magic.isync();
+    if (!scanForObsoleteMethods) return;
+    scanForObsoleteMethods = false;
+    VM_Magic.sync();
     
-    int oldCount = obsoleteMethodCount;
-    obsoleteMethodCount = 0;
-
-    for (int i = 0; i < oldCount; i++) {
-      int currCM = obsoleteMethods[i];
-      if (compiledMethods[currCM].isObsolete()) {
-        compiledMethods[currCM] = null;         // break the link
-      } else {
-        obsoleteMethods[obsoleteMethodCount++] = currCM; // keep it
-        compiledMethods[currCM].setObsolete(true);       // maybe next time
+    int max = numCompiledMethods(); 
+    for (int i=0; i<numCompiledMethods(); i++) {
+      VM_CompiledMethod cm = compiledMethods[i];
+      if (cm != null) {
+        if (cm.isActiveOnStack()) {
+          if (cm.isObsolete()) {
+            // can't get it this time; force us to look again next GC
+            scanForObsoleteMethods = true;
+            VM_Magic.sync();
+          }
+          cm.clearActiveOnStack();
+        } else {
+          if (cm.isObsolete()) {
+            // obsolete and not active on a thread stack: it's garbage!
+            compiledMethods[i] = null;
+          }
+        }
       }
     }
   }
@@ -208,7 +205,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     //-#endif
 
     VM_Array codeArray = VM_Type.CodeArrayType.asArray();
-    for (int i=0; i<compiledMethods.length; i++) {
+    for (int i=0; i<numCompiledMethods(); i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm == null || !cm.isCompiled()) continue;
       int ct = cm.getCompilerType();
@@ -264,8 +261,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   private static int currentCompiledMethodId;
 
   // See usage above
-  private static int[]  obsoleteMethods;
-  private static int    obsoleteMethodCount;
+  private static boolean scanForObsoleteMethods = false;
 
   // Expand an array.
   //

@@ -1,24 +1,40 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-
 package org.mmtk.plan.refcount.fullheap;
 
 import org.mmtk.plan.refcount.RCBase;
-import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.options.*;
-
+import org.mmtk.utility.options.Options;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
-import org.mmtk.vm.Statistics;
 
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements a simple non-concurrent reference counting
+ * This class implements the global state of a simple reference counting
  * collector.
+ * 
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities, and divides global and local state
+ * into separate class hierarchies.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  There is a single instance of Plan (or the
+ * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods of PlanLocal allow fast, unsychronized access to functions such as
+ * allocation and collection.
+ *
+ * The global instance defines and manages static resources
+ * (such as memory and virtual memory resources).  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance properties of MMTk plans.
  * 
  * $Id$
  * 
@@ -28,112 +44,38 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class RC extends RCBase implements Uninterruptible {
-
-  /****************************************************************************
+public class RC extends RCBase implements Uninterruptible { 
+  /*****************************************************************************
    * 
-   * Class variables
-   */
-  static final boolean INLINE_WRITE_BARRIER = WITH_COALESCING_RC;
-
-  public static final int ALLOC_RC = ALLOC_DEFAULT;
-
-  /****************************************************************************
-   * 
-   * Initialization
+   * Collection
    */
 
   /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time).  This is where key <i>global</i>
-   * instances are allocated.  These instances will be incorporated
-   * into the boot image by the build process.
-   */
-  static { }
-
-  public final Trace trace;
-
-  /**
-   * Constructor
-   */
-  public RC() {
-    trace = new Trace(metaDataSpace);
-  }
-
-
-  public void collectionPhase(int phaseId) throws NoInlinePragma {
-    if (phaseId == PREPARE) {
-      timeCap = Statistics.cycles() +
-                Statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
-      immortalSpace.prepare();
-      Memory.globalPrepareVMSpace();
-      rcSpace.prepare();
-      // loSpace doesn't require prepare() as rcSpace takes care of it.
-      trace.prepare();
-      return;
-    }
-
-    if (phaseId == RELEASE) {
-      trace.release();
-      rcSpace.release();
-      // loSpace doesn't require release() as rcSpace takes care of it.
-      immortalSpace.release();
-      Memory.globalReleaseVMSpace();
-      lastRCPages = rcSpace.committedPages();
-      return;
-    }
-
-    super.collectionPhase(phaseId);
-  }
-
-  /****************************************************************************
+   * Poll for a collection
    * 
-   * Space management
+   * @param mustCollect Force a collection.
+   * @param space The space that caused the poll.
+   * @return True if a collection is required.
    */
-
-  /**
-   * This method is called periodically by the allocation subsystem
-   * (by default, each time a page is consumed), and provides the
-   * collector with an opportunity to collect.<p>
-   *
-   * We trigger a collection whenever an allocation request is made
-   * that would take the number of pages in use (committed for use)
-   * beyond the number of pages available.  Collections are triggered
-   * through the runtime, and ultimately call the
-   * <code>collect()</code> method of this class or its superclass.<p>
-   *
-   * This method is clearly interruptible since it can lead to a GC.
-   * However, the caller is typically uninterruptible and this fiat allows
-   * the interruptibility check to work.  The caveat is that the caller
-   * of this method must code as though the method is interruptible.
-   * In practice, this means that, after this call, processor-specific
-   * values must be reloaded.
-   * 
-   * @see org.mmtk.policy.Space#acquire(int)
-   * @param mustCollect if <code>true</code> then a collection is
-   * required and must be triggered.  Otherwise a collection is only
-   * triggered if we deem it necessary.
-   * @param space the space that triggered the polling (i.e. the space
-   * into which an allocation is about to occur).
-   * @return True if a collection has been triggered
-   */
-  public final boolean poll(boolean mustCollect, Space space)
+  public boolean poll(boolean mustCollect, Space space)
       throws LogicallyUninterruptiblePragma {
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
-    if (mustCollect || getPagesReserved() > getTotalPages() ||
-        (progress &&
-         ((rcSpace.committedPages() - lastRCPages) >
-          Options.nurserySize.getMaxNursery() ||
-         metaDataSpace.committedPages() > Options.metaDataLimit.getPages()))) {
+    mustCollect |= stressTestGCRequired();
+    boolean heapFull = getPagesReserved() > getTotalPages();
+    boolean metaDataFull = metaDataSpace.reservedPages() >
+                           META_DATA_FULL_THRESHOLD;
+    int newMetaDataPages = metaDataSpace.committedPages() - 
+                           previousMetaDataPages;
+    if (mustCollect || heapFull || metaDataFull ||
+        (progress && (newMetaDataPages > Options.metaDataLimit.getPages()))) {
       if (space == metaDataSpace) {
         setAwaitingCollection();
         return false;
       }
       required = space.reservedPages() - space.committedPages();
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
   }
 }
-

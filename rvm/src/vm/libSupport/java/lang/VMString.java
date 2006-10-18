@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2002
  */
 //$Id$
@@ -16,10 +21,7 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
 /**
  * Implementation of string interning for JikesRVM.
  * 
- * This code will only be active when combined with 
- * classpath changes we have submitted as patch 1686.
- * 
- * @author Dave Grove <groved@us.ibm.com>
+ * @author Dave Grove
  */
 final class VMString {
   private static final WeakHashMap internedStrings = new WeakHashMap();

@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
@@ -6,9 +11,9 @@ package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -41,6 +46,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   public static final int LOG_BLOCKS_IN_REGION = EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_MIN_BLOCK;
   private static final int SUB_PAGE_SIZE_CLASS = LOG_BYTES_IN_PAGE - LOG_MIN_BLOCK - 1;
   public static final int LOG_MAX_BLOCK = 15; // 32K bytes
+  private static final int BLOCK_SIZES = 1 + LOG_MAX_BLOCK - LOG_MIN_BLOCK;
   public static final int MAX_BLOCK_SIZE = 1 << LOG_MAX_BLOCK;
   private static final int MAX_BLOCK_PAGES = 1 << (LOG_MAX_BLOCK - LOG_BYTES_IN_PAGE);
   private static final byte MAX_BLOCK_SIZE_CLASS = LOG_MAX_BLOCK - LOG_MIN_BLOCK;
@@ -52,9 +58,13 @@ public final class BlockAllocator implements Constants, Uninterruptible {
   // metadata
   private static final Offset PREV_OFFSET = Offset.zero();
   private static final Offset NEXT_OFFSET = PREV_OFFSET.plus(BYTES_IN_ADDRESS);
-  private static final Offset SC_OFFSET = NEXT_OFFSET.plus(BYTES_IN_ADDRESS);
-  private static final Offset IU_OFFSET = SC_OFFSET.plus(BYTES_IN_SHORT);
+  private static final Offset BMD_OFFSET = NEXT_OFFSET.plus(BYTES_IN_ADDRESS);
+  private static final Offset CSC_OFFSET = BMD_OFFSET.plus(1);
+  private static final Offset IU_OFFSET = CSC_OFFSET.plus(1);
   private static final Offset FL_META_OFFSET = IU_OFFSET.plus(BYTES_IN_SHORT);
+  private static final byte BLOCK_SC_MASK = 0xf;             // lower 4 bits
+  private static final int BLOCK_PAGE_OFFSET_SHIFT = 4;      // higher 4 bits
+  private static final int MAX_BLOCK_PAGE_OFFSET = (1<<4)-1; // 4 bits
   private static final int LOG_BYTES_IN_BLOCK_META = LOG_BYTES_IN_ADDRESS + 2;
   private static final int BLOCK_META_SIZE = 1 << LOG_BYTES_IN_BLOCK_META;
   private static final int LOG_BYTE_COVERAGE = LOG_MIN_BLOCK - LOG_BYTES_IN_BLOCK_META;
@@ -96,7 +106,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * zero on failure.
    */
   final Address alloc(int blockSizeClass) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((blockSizeClass >= 0) && 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((blockSizeClass >= 0) && 
                            (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     Address rtn;
     if (PARANOID) sanity(false);
@@ -184,7 +194,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     Address rtn;
     int pages = pagesForSizeClass(blockSizeClass);
     if (!(rtn = space.acquire(pages)).isZero()) {
-      setBlkSizeClass(rtn, (short) blockSizeClass);
+      setBlkSizeMetaData(rtn, (byte) blockSizeClass);
       if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
         populatePage(rtn, blockSizeClass);
       if (PARANOID) {
@@ -322,13 +332,25 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * address (all blocks on a given page are homogeneous with respect
    * to block size class).
    * 
-   * @param address The address of interest
+   * @param block The address of interest
    * @param sc The value to which this field is to be set
    */
-  private static final void setBlkSizeClass(Address address, short sc)
+  private static final void setBlkSizeMetaData(Address block, byte sc)
       throws InlinePragma {
-    address = Conversions.pageAlign(address);
-    getMetaAddress(address).store(sc, SC_OFFSET);
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(block == Conversions.pageAlign(block));
+      VM.assertions._assert(pagesForSizeClass(sc) - 1  <= MAX_BLOCK_PAGE_OFFSET);
+    }
+    Address address = block;
+    for (int i = 0; i < pagesForSizeClass(sc); i++) {
+      byte value = (byte) ((i << BLOCK_PAGE_OFFSET_SHIFT) | sc);
+      getMetaAddress(address).store(value, BMD_OFFSET);
+      if (VM.VERIFY_ASSERTIONS) {
+        VM.assertions._assert(getBlkStart(address).EQ(block));
+        VM.assertions._assert(getBlkSizeClass(address) == sc);
+      }
+      address = address.plus(1<<VM.LOG_BYTES_IN_PAGE);
+    }
   }
 
   /**
@@ -339,11 +361,57 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @param address The address of interest
    * @return The size class field for the block containing the given address
    */
-  private static final short getBlkSizeClass(Address address)
+  private static final byte getBlkSizeClass(Address address)
       throws InlinePragma {
     address = Conversions.pageAlign(address);
-    short rtn = getMetaAddress(address).loadShort(SC_OFFSET);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(rtn >= 0 && rtn <= (short) MAX_BLOCK_SIZE_CLASS);
+    byte rtn = (byte) (getMetaAddress(address).loadByte(BMD_OFFSET) & BLOCK_SC_MASK);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(rtn >= 0 && rtn <= (byte) MAX_BLOCK_SIZE_CLASS);
+    return rtn;
+  }
+
+  /**
+   * Get the <i>address of the start of a block size class</i> a given page
+   * within the block.
+   * 
+   * @param address The address of interest
+   * @return The address of the block containing the address
+   */
+  public static final Address getBlkStart(Address address) throws InlinePragma {
+    address = Conversions.pageAlign(address);
+    byte offset = (byte) (getMetaAddress(address).loadByte(BMD_OFFSET) >>> BLOCK_PAGE_OFFSET_SHIFT);
+    return address.minus(offset<<LOG_BYTES_IN_PAGE);
+  }
+  
+  /**
+   * Set the <i>client size class</i> meta data field for a given
+   * address (all blocks on a given page are homogeneous with respect
+   * to block size class).
+   * 
+   * @param block The address of interest
+   * @param sc The value to which this field is to be set
+   */
+  public static final void setAllClientSizeClass(Address block, int blocksc, byte sc)
+      throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block == Conversions.pageAlign(block));
+    Address address = block;
+    for (int i = 0; i < pagesForSizeClass(blocksc); i++) {
+      getMetaAddress(address).store(sc, CSC_OFFSET);
+      address = address.plus(1<<VM.LOG_BYTES_IN_PAGE);
+    }
+  }
+
+  /**
+   * Get the <i>client size class</i> meta data field for a given page
+   * (all blocks on a given page are homogeneous with respect to block
+   * size class).
+   * 
+   * @param address The address of interest
+   * @return The size class field for the block containing the given address
+   */
+  public static final byte getClientSizeClass(Address address)
+      throws InlinePragma {
+    address = Conversions.pageAlign(address);
+    byte rtn = getMetaAddress(address).loadByte(CSC_OFFSET);
     return rtn;
   }
 
@@ -381,10 +449,10 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @param block The block to be removed from the doubly linked list
    */
   static final void unlinkBlock(Address block) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!block.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!block.isZero());
     Address next = getNextBlock(block);
     Address prev = getPrevBlock(block);
-    // if (Assert.VERIFY_ASSERTIONS) {
+    // if (VM.VERIFY_ASSERTIONS) {
     setNextBlock(block, Address.zero());
     setPrevBlock(block, Address.zero());
     // }
@@ -400,7 +468,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */
   static final void linkedListInsert(Address block, Address prev)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!block.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!block.isZero());
     Address next;
     if (!prev.isZero()) {
       next = getNextBlock(prev);
@@ -529,20 +597,28 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */ 
   public static final void markBlockMeta(ObjectReference ref)
     throws InlinePragma {
-    getMetaAddress(ObjectModel.refToAddress(ref)).plus(FL_META_OFFSET).store(Word.one());
+    getMetaAddress(VM.objectModel.refToAddress(ref)).plus(FL_META_OFFSET).store(Word.one());
   }
  
   /**
-   * Clear the metadata for this block.
+   * Return true if the metadata for this block was set.
    * 
    * @param block The block address
-   * @return the previous value of the meta data.
+   * @return value of the meta data.
    */ 
-  public static final boolean clearBlockMeta(Address block)
+  public static final boolean checkBlockMeta(Address block)
     throws InlinePragma {
-    boolean result = getMetaAddress(block).plus(FL_META_OFFSET).loadWord().EQ(Word.one());
+    return getMetaAddress(block).plus(FL_META_OFFSET).loadWord().EQ(Word.one());
+  }
+  
+  /**
+   * Clear the metadata for this block
+   * 
+   * @param block The block address
+   */ 
+  public static final void clearBlockMeta(Address block)
+    throws InlinePragma {
     getMetaAddress(block).plus(FL_META_OFFSET).store(Word.zero());
-    return result;
   }
   
   /**
@@ -559,7 +635,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
         Log.write("------>"); Log.writeln(sc); Log.write(" "); Log.write(blocks); Log.write(" != "); Log.writeln(freeBlocks[sc]);
         sanityTraverse(freeList.get(sc), Address.zero(), true);
         Log.writeln();
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
       }
     }
     if (verbose) Log.writeln();
@@ -582,7 +658,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     boolean first = true;
     int blocks = 0;
     while (!block.isZero()) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(getPrevBlock(block).EQ(prev));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getPrevBlock(block).EQ(prev));
       blocks++;
       if (verbose) {
         if (!first)

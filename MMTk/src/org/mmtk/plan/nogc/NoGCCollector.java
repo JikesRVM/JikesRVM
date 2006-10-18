@@ -1,12 +1,17 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
 package org.mmtk.plan.nogc;
 
 import org.mmtk.plan.*;
-import org.mmtk.vm.ActivePlan;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -33,7 +38,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class NoGCCollector extends CollectorContext implements Uninterruptible {
+public abstract class NoGCCollector extends CollectorContext implements Uninterruptible {
 
   /************************************************************************
    * Instance fields
@@ -60,7 +65,7 @@ public class NoGCCollector extends CollectorContext implements Uninterruptible {
    * Perform a garbage collection
    */
   public final void collect() {
-    Assert.fail("GC Triggered in NoGC Plan. Is -X:gc:ignoreSystemGC=true ?");
+    VM.assertions.fail("GC Triggered in NoGC Plan. Is -X:gc:ignoreSystemGC=true ?");
   }
 
   /**
@@ -70,7 +75,7 @@ public class NoGCCollector extends CollectorContext implements Uninterruptible {
    * @param primary perform any single-threaded local activities.
    */
   public final void collectionPhase(int phaseId, boolean primary) {
-    Assert.fail("GC Triggered in NoGC Plan.");
+    VM.assertions.fail("GC Triggered in NoGC Plan.");
     /*
      if (phaseId == NoGC.PREPARE) {
      }
@@ -98,7 +103,7 @@ public class NoGCCollector extends CollectorContext implements Uninterruptible {
 
   /** @return The active global plan as a <code>NoGC</code> instance. */
   private static final NoGC global() throws InlinePragma {
-    return (NoGC) ActivePlan.global();
+    return (NoGC) VM.activePlan.global();
   }
 
   /** @return The current trace instance. */

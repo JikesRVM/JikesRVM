@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -44,7 +49,7 @@ public final class OPT_OptimizationPlanAtomicElement extends
    */
   public OPT_OptimizationPlanAtomicElement(OPT_CompilerPhase p) {
     myPhase = p;
-    myPhase.container = this;
+    p.setContainer(this);
   }
 
   /**
@@ -77,7 +82,9 @@ public final class OPT_OptimizationPlanAtomicElement extends
     if (VM.MeasureCompilation && VM.runningVM) {
       start = VM_Thread.getCurrentThread().accumulateCycles();
     }
-    myPhase.newExecution(ir).performPhase(ir);
+    OPT_CompilerPhase cmpPhase=(OPT_CompilerPhase)myPhase.newExecution(ir);
+    cmpPhase.setContainer(this);
+    cmpPhase.performPhase(ir);
     if (VM.MeasureCompilation && VM.runningVM) {
       long end = VM_Thread.getCurrentThread().accumulateCycles();
       cycles += end - start;

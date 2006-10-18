@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
@@ -11,7 +16,7 @@ import org.mmtk.utility.options.MarkSweepMarkBits;
 import org.mmtk.utility.options.EagerCompleteSweep;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -38,16 +43,29 @@ public final class MarkSweepSpace extends Space
    * 
    * Class variables
    */
-  public static final int LOCAL_GC_BITS_REQUIRED = 4;
+  /** highest bit bits we may use */
+  private static final int MAX_BITS = 4;
+ 
+  /* mark bits */
+  private static final int COUNT_BASE = 0;
+  public static final int DEFAULT_MARKCOUNT_BITS = 2;
+  public static final int MAX_MARKCOUNT_BITS = MAX_BITS;
+  private static final Word MARK_COUNT_INCREMENT = Word.one().lsh(COUNT_BASE);
+  private static final Word MARK_COUNT_MASK = Word.one().lsh(MAX_MARKCOUNT_BITS).minus(Word.one()).lsh(COUNT_BASE);
+  private static final Word MARK_BITS_MASK = Word.one().lsh(MAX_BITS).minus(Word.one());
+  
+  /* header requirements */
+  public static final int LOCAL_GC_BITS_REQUIRED = MAX_BITS;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
-  public static final Word MARK_BIT_MASK = Word.one().lsh(4).minus(Word.one()); // ...01111
+
   
   /****************************************************************************
    * 
    * Instance variables
    */
-  private Word markState;
+  private Word markState = Word.one();
+  private Word allocState = Word.zero();
   private boolean inMSCollection;
 
   /****************************************************************************
@@ -169,12 +187,11 @@ public final class MarkSweepSpace extends Space
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
-   * 
    */
   public void prepare() {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
-      Word mask = Word.fromInt((1 << Options.markSweepMarkBits.getValue()) - 1);
-      markState = markState.plus(Word.one()).and(mask);
+      allocState = markState;
+      markState = deltaMarkState(true);
     } else {
       MarkSweepLocal.zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
     }
@@ -250,7 +267,7 @@ public final class MarkSweepSpace extends Space
   public boolean isLive(ObjectReference object)
     throws InlinePragma {
     if (MarkSweepLocal.HEADER_MARK_BITS) {
-      return testMarkBit(object, markState);
+	return testMarkState(object, markState);
     } else {
       return MarkSweepLocal.isLiveObject(object);
     }
@@ -262,6 +279,7 @@ public final class MarkSweepSpace extends Space
    * @return The current mark state.
    */
   public final Word getMarkState() throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
     return markState;
   }
   
@@ -272,8 +290,21 @@ public final class MarkSweepSpace extends Space
    */
   public final Word getPreviousMarkState() 
   throws InlinePragma {
-    Word mask = Word.fromInt((1 << Options.markSweepMarkBits.getValue()) - 1);
-    return markState.minus(Word.one()).and(mask);
+    return deltaMarkState(false);
+  }
+
+  /**
+   * Return the mark state incremented or decremented by one.
+   * 
+   * @param increment If true, then return the incremented value else return the decremented value
+   * @return the mark state incremented or decremented by one.
+   */
+  private final Word deltaMarkState(boolean increment) {
+    Word mask = Word.fromInt((1 << Options.markSweepMarkBits.getValue()) - 1).lsh(COUNT_BASE);
+    Word rtn = increment ? markState.plus(MARK_COUNT_INCREMENT) : markState.minus(MARK_COUNT_INCREMENT);
+    rtn = rtn.and(mask);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
+    return rtn;
   }
 
   /****************************************************************************
@@ -288,18 +319,20 @@ public final class MarkSweepSpace extends Space
    */
   public final void postAlloc(ObjectReference object) 
     throws InlinePragma {
-    initializeHeader(object);
+    initializeHeader(object, true);
   }
 
   /**
-   * Perform any required post copy (i.e. in-GC allocation) initialization
+   * Perform any required post copy (i.e. in-GC allocation) initialization.
+   * This is relevant (for example) when MS is used as the mature space in
+   * a copying GC.
    * 
    * @param object the object ref to the storage to be initialized
    * @param majorGC Is this copy happening during a major gc? 
    */
   public final void postCopy(ObjectReference object, boolean majorGC) 
     throws InlinePragma {
-    initializeHeader(object);
+    initializeHeader(object, false);
     if (MarkSweepLocal.HEADER_MARK_BITS) {
       if (majorGC) MarkSweepLocal.liveBlock(object);
     } else {
@@ -311,71 +344,69 @@ public final class MarkSweepSpace extends Space
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param object the object ref to the storage to be initialized
+   * @param alloc is this initialization occuring due to (initial) allocation
+   * (true) or due to copying (false)?
    */
-  public final void initializeHeader(ObjectReference object)
+  public final void initializeHeader(ObjectReference object, boolean alloc)
       throws InlinePragma {
-    if (MarkSweepLocal.HEADER_MARK_BITS) {
-      writeMarkBit(object);
-    }
-  }
-
-  /**
-   * Atomically attempt to set the mark bit of an object.  Return true
-   * if successful, false if the mark bit was already set.
-   * 
-   * @param object The object whose mark bit is to be written
-   * @param value The value to which the mark bit will be set
-   */
-  private static boolean atomicTestAndMark(ObjectReference object, Word value)
-      throws InlinePragma {
-    Word oldValue, markBit;
-    do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
-      markBit = oldValue.and(MARK_BIT_MASK);
-      if (markBit.EQ(value)) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
-                                                oldValue.and(MARK_BIT_MASK.not()).or(value)));
-    return true;
-  }
+    if (MarkSweepLocal.HEADER_MARK_BITS)
+      if (alloc) 
+        writeAllocState(object);	
+      else
+        writeMarkState(object);
+   }
 
   /**
    * Atomically attempt to set the mark bit of an object.  Return true
    * if successful, false if the mark bit was already set.
    *
    * @param object The object whose mark bit is to be written
-   * @param value The value to which the mark bit will be set
+   * @param value The value to which the mark bits will be set
    */
   private static boolean testAndMark(ObjectReference object, Word value)
     throws InlinePragma {
-    Word oldValue, markBit;
-    oldValue = ObjectModel.readAvailableBitsWord(object);
-    markBit = oldValue.and(MARK_BIT_MASK);
-    if (markBit.EQ(value)) return false;
-    ObjectModel.writeAvailableBitsWord(object, oldValue.and(MARK_BIT_MASK.not()).or(value));
+    Word oldValue, markBits;
+    oldValue = VM.objectModel.readAvailableBitsWord(object);
+    markBits = oldValue.and(MARK_BITS_MASK);
+    if (markBits.EQ(value)) return false;
+    VM.objectModel.writeAvailableBitsWord(object, oldValue.and(MARK_BITS_MASK.not()).or(value));
     return true;
   }
 
   /**
-   * Return true if the mark bit for an object has the given value.
+   * Return true if the mark count for an object has the given value.
    * 
    * @param object The object whose mark bit is to be tested
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  public static boolean testMarkBit(ObjectReference object, Word value)
+  public static boolean testMarkState(ObjectReference object, Word value)
       throws InlinePragma {
-    return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(MARK_COUNT_MASK.not()).isZero());
+    return VM.objectModel.readAvailableBitsWord(object).and(MARK_COUNT_MASK).EQ(value);
   }
 
   /**
-   * Write a given value in the mark bit of an object non-atomically
+   * Write the allocState into the mark state fields of an object non-atomically.
+   * This is appropriate for allocation time initialization.
    * 
-   * @param object The object whose mark bit is to be written
+   * @param object The object whose mark state is to be written
    */
-  public void writeMarkBit(ObjectReference object) throws InlinePragma {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
-    ObjectModel.writeAvailableBitsWord(object, newValue);
+  private final void writeAllocState(ObjectReference object) throws InlinePragma {
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(allocState);
+    VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
-
+  
+  /**
+   * Write the markState into the mark state fields of an object non-atomically.
+   * This is appropriate for collection time initialization.
+   * 
+   * @param object The object whose mark state is to be written
+   */
+  private final void writeMarkState(ObjectReference object) throws InlinePragma {
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(markState);
+    VM.objectModel.writeAvailableBitsWord(object, newValue);
+  }
 }

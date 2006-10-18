@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
@@ -8,7 +13,7 @@ import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.Treadmill;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -78,7 +83,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    */
   protected final void postAlloc (Address cell) 
     throws InlinePragma {
-    treadmill.addToFromSpace(Treadmill.payloadToNode(cell));
+    treadmill.addToTreadmill(Treadmill.payloadToNode(cell));
   };
 
   /****************************************************************************
@@ -90,30 +95,39 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * Prepare for a collection.  Clear the treadmill to-space head and
    * prepare the collector.  If paranoid, perform a sanity check.
    */
-  public final void prepare() {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
+   public final void prepare(boolean fullHeap) {                               
+     if (fullHeap) {                                                           
+       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.fromSpaceEmpty());
+       treadmill.flip();                                                       
+     }
   }
 
   /**
    * Finish up after a collection.
    */
-  public void release() {
+  public void release(boolean fullHeap) {
     // sweep the large objects
-    sweepLargePages();
+    sweepLargePages(true);                // sweep the nursery
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(treadmill.nurseryEmpty());   
+    if (fullHeap) sweepLargePages(false); // sweep the mature space
   }
 
   /**
    * Sweep through the large pages, releasing all superpages on the
    * "from space" treadmill.
    */
-  private final void sweepLargePages() {
+  private final void sweepLargePages(boolean sweepNursery) {
     while (true) {
-      Address cell = treadmill.popFromSpace();
+      Address cell = treadmill.pop(sweepNursery);
       if (cell.isZero()) break;
       free(cell);
     }
-    treadmill.flip();
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
+    if (VM.VERIFY_ASSERTIONS) {
+      if (sweepNursery)                                                      
+        VM.assertions._assert(treadmill.nurseryEmpty());
+      else                                                                   
+        VM.assertions._assert(treadmill.fromSpaceEmpty());
+    }                                                                       
   }
 
 
@@ -148,13 +162,21 @@ public final class LargeObjectLocal extends LargeObjectAllocator
   }
 
   /**
-   * Gather data for GCSpy
+   * Gather data for GCSpy from the nursery
+   * @param event the gc event
+   * @param losDriver the GCSpy space driver
+   */
+  public void gcspyGatherData(int event, TreadmillDriver losDriver) {
+    treadmill.gcspyGatherData(event, losDriver);
+  }
+  
+  /**
+   * Gather data for GCSpy for an older space
    * @param event the gc event
    * @param losDriver the GCSpy space driver
    * @param tospace gather from tospace?
    */
-  public void gcspyGatherData(int event, TreadmillDriver losDriver,
-      boolean tospace) {
+  public void gcspyGatherData(int event, TreadmillDriver losDriver, boolean tospace) {
     treadmill.gcspyGatherData(event, losDriver, tospace);
   }
 }

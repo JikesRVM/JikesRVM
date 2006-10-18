@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$ 
@@ -43,7 +48,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final Offset JAVA_HEADER_OFFSET  = ARRAY_LENGTH_OFFSET.minus(JAVA_HEADER_BYTES);
   static final Offset MISC_HEADER_OFFSET  = JAVA_HEADER_OFFSET.minus(MISC_HEADER_BYTES);
   static final Offset GC_HEADER_OFFSET    = MISC_HEADER_OFFSET.minus(GC_HEADER_BYTES);
-  
+  static final Offset ARRAY_BASE_OFFSET   = Offset.zero();  
 
   /**
    * This object model supports two schemes for hashcodes:

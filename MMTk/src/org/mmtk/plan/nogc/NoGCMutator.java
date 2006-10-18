@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -8,7 +13,7 @@ import org.mmtk.plan.MutatorContext;
 import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -37,7 +42,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class NoGCMutator extends MutatorContext implements Uninterruptible {
+public abstract class NoGCMutator extends MutatorContext implements Uninterruptible {
 
   /************************************************************************
    * Instance fields
@@ -68,14 +73,15 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
    * @param allocator The allocator associated with this request.
+   * @param site Allocation site
    * @return The address of the newly allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == NoGC.ALLOC_DEFAULT) {
       return def.alloc(bytes, align, offset, false);
     }
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**
@@ -138,7 +144,7 @@ public class NoGCMutator extends MutatorContext implements Uninterruptible {
    * @param primary perform any single-threaded local activities.
    */
   public final void collectionPhase(int phaseId, boolean primary) {
-    Assert.fail("GC Triggered in NoGC Plan.");
+    VM.assertions.fail("GC Triggered in NoGC Plan.");
     /*
      if (phaseId == NoGC.PREPARE_MUTATOR) {
      }

@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -12,11 +17,8 @@ import org.mmtk.utility.options.*;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.statistics.Timer;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Memory;
 
 import org.vmmagic.pragma.*;
 
@@ -83,13 +85,6 @@ public abstract class StopTheWorld extends Plan
   public static final int SANITY_ROOTS        = new SimplePhase("sanity-roots",       null,       Phase.GLOBAL_LAST       ).getId();
   public static final int SANITY_CHECK        = new SimplePhase("sanity",             null,       Phase.COLLECTOR_ONLY        ).getId();
   public static final int SANITY_RELEASE      = new SimplePhase("sanity-release",     null,       Phase.GLOBAL_LAST       ).getId();
-  public static final int SANITY_FORWARD      = new SimplePhase("sanity-forward",     null,       Phase.COLLECTOR_ONLY        ).getId();
-
-  /* Sanity forwarding piggy-back */
-  private static final int sanityForwardPhase = new ComplexPhase("sanity-forward-cf", null, new int[] {
-      FORWARD,
-      SANITY_FORWARD,
-  }).getId();
 
   /* Sanity check phase sequence */
   private static final int sanityPhase = new ComplexPhase("sanity-check", null, new int[] {
@@ -181,12 +176,11 @@ public abstract class StopTheWorld extends Plan
 
     if (Options.sanityCheck.getValue()) {
       if (getSanityChecker() == null || 
-          ActivePlan.collector().getSanityChecker() == null) {
+          VM.activePlan.collector().getSanityChecker() == null) {
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
-        collection.replacePhase(SANITY_PLACEHOLDER, sanityPhase);
-        collection.replacePhase(FORWARD, sanityForwardPhase);
+        replacePhase(SANITY_PLACEHOLDER, sanityPhase);
       }
     }
   }
@@ -214,22 +208,24 @@ public abstract class StopTheWorld extends Plan
     }
 
     if (phaseId == PREPARE) {
-      loSpace.prepare();
+      loSpace.prepare(true);
+      ploSpace.prepare(true);
       immortalSpace.prepare();
-      Memory.globalPrepareVMSpace();
+      VM.memory.globalPrepareVMSpace();
       return;
     }
 
     if (phaseId == ROOTS) {
-      Scanning.resetThreadCounter();
+      VM.scanning.resetThreadCounter();
       Plan.setGCStatus(GC_PROPER);
       return;
     }
 
     if (phaseId == RELEASE) {
       loSpace.release();
+      ploSpace.release();
       immortalSpace.release();
-      Memory.globalReleaseVMSpace();
+      VM.memory.globalReleaseVMSpace();
       return;
     }
 
@@ -249,7 +245,18 @@ public abstract class StopTheWorld extends Plan
 
     Log.write("Global phase "); Log.write(Phase.getName(phaseId)); 
     Log.writeln(" not handled.");
-    Assert.fail("Global phase not handled!");
+    VM.assertions.fail("Global phase not handled!");
+  }
+  
+  /**
+   * Replace a phase.
+   * 
+   * @param oldPhase The phase to be replaced
+   * @param newPhase The phase to replace with
+   */
+  public void replacePhase(int oldPhase, int newPhase)
+    throws InterruptiblePragma {
+    collection.replacePhase(oldPhase, newPhase);
   }
 
   /**
@@ -315,7 +322,7 @@ public abstract class StopTheWorld extends Plan
       printUsedPages();
       Log.write("    Collection time: ");
       totalTime.printLast();
-      Log.writeln(" seconds");
+      Log.writeln(" ms");
     }
   }
 

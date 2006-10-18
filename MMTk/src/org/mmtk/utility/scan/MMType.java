@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2003
  */
@@ -6,7 +11,7 @@
 package org.mmtk.utility.scan;
 
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -21,12 +26,11 @@ import org.vmmagic.pragma.*;
  */
 public final class MMType implements Constants, Uninterruptible {
   // AJG: Maybe should make this immutable. See Item 13 of Effective Java.
-  private boolean isReferenceArray;
-  private boolean isDelegated;
-  private boolean isAcyclic;
-  private Offset arrayOffset;
-  private int[] offsets;
-  private int allocator;
+  private final boolean isReferenceArray;
+  private final boolean isDelegated;
+  private final boolean isAcyclic;
+  private final int[] offsets;
+  private final int allocator;
 
   // per-type statistics
   private int allocCount;
@@ -78,10 +82,10 @@ public final class MMType implements Constants, Uninterruptible {
    * into an array
    * @return The address of the relevant slot within the object
    */
-  Address getSlot(ObjectReference object, int reference) throws InlinePragma {
+  public Address getSlot(ObjectReference object, int reference) throws InlinePragma {
     Address addr = object.toAddress();
     if (isReferenceArray)
-      return addr.plus(arrayOffset).plus(reference << LOG_BYTES_IN_ADDRESS);
+      return addr.plus(VM.ARRAY_BASE_OFFSET).plus(reference << LOG_BYTES_IN_ADDRESS);
     else
       return addr.plus(offsets[reference]);
   }
@@ -94,9 +98,9 @@ public final class MMType implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The number of references in the object
    */
-  int getReferences(ObjectReference object) throws InlinePragma {
+  public int getReferences(ObjectReference object) throws InlinePragma {
     if (isReferenceArray)
-      return ObjectModel.getArrayLength(object);
+      return VM.objectModel.getArrayLength(object);
     else
       return offsets.length;
   }
@@ -151,9 +155,6 @@ public final class MMType implements Constants, Uninterruptible {
   boolean isDelegated() { return isDelegated; }
 
   /** @return True if this type is an array of references */
-  // FIXME made public so that GCspy drivers can determine whether
-  // object is a reference array or not. Actually, we'like to do better
-  // and distinguish arrays of primitives as well.
   public boolean isReferenceArray() { return isReferenceArray; }
 
   /** @return True if this type is known to be inherently acyclic */

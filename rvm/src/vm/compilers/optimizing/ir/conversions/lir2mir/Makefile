@@ -1,4 +1,9 @@
 #
+# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+# The Jikes RVM project is distributed under the Common Public License (CPL).
+# A copy of the license is included in the distribution, and is also
+# available at http://www.opensource.org/licenses/cpl1.0.php
+#
 # (C) Copyright IBM Corp. 2001
 #
 #$Id$
@@ -10,6 +15,8 @@ include		$(RVM_BUILD)/Make.rules.host
 MIR_LIR2MIR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/conversions/lir2mir
 MIR_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction
 JBURG_DIR  = $(SCRATCH_DIR)
+
+BURG_TEMPLATE=$(RVM_ROOT)/tools-external/jburg/burg.template
 
 # define RULE_FILES
 include $(MIR_LIR2MIR_DIR)/Makefile
@@ -27,8 +34,8 @@ $(GEN_FILES_DIR)/ir.brg: $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/ir/instruct
         ARCH_OP_LIST=$(GEN_FILES_DIR)/Arch_OperatorList.dat \
 	THE_RULE_FILE=$(GEN_FILES_DIR)/LIR2MIR.rules
 
-$(GEN_FILES_DIR)/OPT_BURS_STATE.java:	$(GEN_FILES_DIR)/ir.brg burg.template
+$(GEN_FILES_DIR)/OPT_BURS_STATE.java:	$(GEN_FILES_DIR)/ir.brg $(BURG_TEMPLATE)
 	(cd $(GEN_FILES_DIR) && $(JBURG_DIR)/jburg -p BURS ir.brg > $(ARCH_DIR).tmp)
 	cat OPT_BURS_TreeNode.template $(GEN_FILES_DIR)/BURS_State.template > $(GEN_FILES_DIR)/OPT_BURS_TreeNode.java
-	cat burg.template $(GEN_FILES_DIR)/$(ARCH_DIR).tmp > $(GEN_FILES_DIR)/OPT_BURS_STATE.java
+	cat $(BURG_TEMPLATE) $(GEN_FILES_DIR)/$(ARCH_DIR).tmp > $(GEN_FILES_DIR)/OPT_BURS_STATE.java
 

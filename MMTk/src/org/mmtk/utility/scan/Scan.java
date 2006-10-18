@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
@@ -7,9 +12,9 @@
 package org.mmtk.utility.scan;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TraceStep;
 
-import org.mmtk.vm.ObjectModel;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -27,11 +32,12 @@ public final class Scan implements Uninterruptible {
   /**
    * Scan a object, processing each pointer field encountered.
    * 
+   * @param trace The trace to use when scanning.
    * @param object The object to be scanned.
    */
-  public static void scanObject(TraceLocal trace,
+  public static void scanObject(TraceStep trace,
                                 ObjectReference object) throws InlinePragma {
-    MMType type = ObjectModel.getObjectType(object);
+    MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
@@ -39,17 +45,18 @@ public final class Scan implements Uninterruptible {
         trace.traceObjectLocation(slot);
       }
     } else
-      Scanning.scanObject(trace, object);
+      VM.scanning.scanObject(trace, object);
   }
 
   /**
    * Scan a object, pre-copying each child object encountered.
    * 
+   * @param trace The trace to use when precopying.
    * @param object The object to be scanned.
    */
   public static void precopyChildren(TraceLocal trace, ObjectReference object)
       throws InlinePragma {
-    MMType type = ObjectModel.getObjectType(object);
+    MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
@@ -57,28 +64,6 @@ public final class Scan implements Uninterruptible {
         trace.precopyObjectLocation(slot);
       }
     } else
-      Scanning.precopyChildren(trace, object);
-  }
-
-  /**
-   * Enumerate the pointers in an object, calling back to a given plan
-   * for each pointer encountered. <i>NOTE</i> that only the "real"
-   * pointer fields are enumerated, not the TIB.
-   * 
-   * @param object The object to be scanned.
-   * @param _enum the Enumerate object through which the callback
-   * is made
-   */
-  public static void enumeratePointers(ObjectReference object, Enumerator _enum)
-      throws InlinePragma {
-    MMType type = ObjectModel.getObjectType(object);
-    if (!type.isDelegated()) {
-      int references = type.getReferences(object);
-      for (int i = 0; i < references; i++) {
-        Address slot = type.getSlot(object, i);
-        _enum.enumeratePointerLocation(slot);
-      }
-    } else
-      Scanning.enumeratePointers(object, _enum);
+      VM.scanning.precopyChildren(trace, object);
   }
 }

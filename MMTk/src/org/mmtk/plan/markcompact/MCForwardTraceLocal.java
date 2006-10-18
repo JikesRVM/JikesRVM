@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -7,7 +12,7 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -89,9 +94,9 @@ public final class MCForwardTraceLocal extends TraceLocal implements Uninterrupt
    */
   public ObjectReference precopyObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       // All precopying must occur during the initial trace.
-      Assert._assert(!Space.isInSpace(MC.MARK_COMPACT, object));
+      VM.assertions._assert(!Space.isInSpace(MC.MARK_COMPACT, object));
     }
     return super.precopyObject(object);
   }

@@ -1,12 +1,18 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002
  */
 package org.mmtk.utility;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
-import org.mmtk.vm.Lock;
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
+
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -35,7 +41,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-final class DoublyLinkedList implements Constants, Uninterruptible {
+public final class DoublyLinkedList implements Constants, Uninterruptible {
 
   /****************************************************************************
    * 
@@ -59,15 +65,15 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   /**
    * Constructor
    */
-  DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
+  public DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
     owner = owner_;
     head = Address.zero();
-    lock = shared ? new Lock("DoublyLinkedList") : null;
+    lock = shared ? VM.newLock("DoublyLinkedList") : null;
     log_granularity = log_granularity_;
 
     // ensure that granularity is big enough for midPayloadToNode to work
     Word tmp = Word.one().lsh(log_granularity);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(tmp.and(nodeMask).EQ(tmp));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
   // Offsets are relative to the node (not the payload)
@@ -114,7 +120,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   }
 
   public final void add(Address node) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
     node.store(head, NEXT_OFFSET);
@@ -126,7 +132,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   }
 
   public final void remove(Address node) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
     Address next = node.loadAddress(NEXT_OFFSET);
@@ -142,6 +148,14 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     node.store(Address.zero(), NEXT_OFFSET);
     node.store(Address.zero(), LIST_OFFSET);
     if (lock != null) lock.release();
+  }
+
+  public final Address getHead() throws InlinePragma {
+    return head;
+  }
+
+  public final Address getNext(Address node) throws InlinePragma {
+    return node.loadAddress(NEXT_OFFSET);
   }
 
   public final Address pop() throws InlinePragma {
@@ -162,7 +176,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
    * @return True if the cell is found on the treadmill
    */
   public final boolean isMember(Address node) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();
     Address cur = head;
@@ -198,7 +212,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     // GCSpy doesn't need a lock (in its stop the world config)
     Address cur = head;
     while (!cur.isZero()) {
-      driver.traceObject(cur);
+      driver.scan(cur);
       cur = cur.loadAddress(NEXT_OFFSET);
     }
   }

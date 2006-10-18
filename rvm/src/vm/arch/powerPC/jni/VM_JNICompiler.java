@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -1218,8 +1223,12 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
     asm.emitLAddrToc(S1, VM_Entrypoints.the_boot_recordField.getOffset()); // get boot record address
     asm.emitMR   (PROCESSOR_REGISTER, JTOC);                                  // save JTOC so we can restore below
-    asm.emitLAddrOffset(JTOC, S1, VM_Entrypoints.sysTOCField.getOffset());          // load TOC for syscalls from bootrecord
     asm.emitLAddrOffset(KLUDGE_TI_REG, S1, VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset());  // load addr of function
+	//-#if RVM_WITH_POWEROPEN_ABI
+	/* the sysVPYIP field points to the function descriptor, so we'll load the IP and TOC from that */
+    asm.emitLAddrOffset(JTOC, KLUDGE_TI_REG, Offset.fromInt(BYTES_IN_ADDRESS));          // load TOC
+	asm.emitLAddrOffset(KLUDGE_TI_REG, KLUDGE_TI_REG, Offset.zero());
+	//-#endif
     asm.emitMTLR (KLUDGE_TI_REG);
     asm.emitBCLRL();                                                          // call sysVirtualProcessorYield in sys.C
     asm.emitMR   (JTOC, PROCESSOR_REGISTER);                                  // restore JTOC

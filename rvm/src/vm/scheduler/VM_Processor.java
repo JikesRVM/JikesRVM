@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
@@ -101,10 +106,8 @@ implements Uninterruptible, VM_Constants {
     if (!VM_Properties.singleVirtualProcessor)
       VM_SysCall.sysWaitForMultithreadingStart();
 
-    //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
     // Store VM_Processor in pthread
-    stashProcessorInPthread();
-    //-#endif
+    VM_SysCall.sysStashVmProcessorInPthread(this);
   }
 
   
@@ -365,25 +368,6 @@ implements Uninterruptible, VM_Constants {
     t.chosenProcessorId = (t.chosenProcessorId % VM_Scheduler.numProcessors) + 1; 
     return VM_Scheduler.processors[t.chosenProcessorId];
   }
-
-  //----------------------------------//
-  // System call interception support //
-  //----------------------------------//
-
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  /**
-   * Called during thread startup to stash the 
-   * {@link VM_Processor} in its pthread's thread-specific storage,
-   * which will allow us to access the VM_Processor from
-   * arbitrary native code.  This is enabled IFF we are intercepting
-   * blocking system calls.
-   */
-  void stashProcessorInPthread() {
-    // Store address of the VM_Processor in thread-specific storage,
-    // so we can access it later on from aribitrary native code.
-    VM_SysCall.sysStashVmProcessorInPthread(this);
-  }
-  //-#endif
 
   //---------------------//
   // Garbage Collection  //

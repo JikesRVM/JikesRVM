@@ -1,5 +1,12 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002
+ *
+ * $Id$
  */
 package org.mmtk.utility;
 
@@ -31,12 +38,6 @@ import org.vmmagic.pragma.*;
  */
 public final class Treadmill
   implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
-
-  /****************************************************************************
-   * 
-   * Class variables
-   */
 
   /****************************************************************************
    * 
@@ -44,10 +45,11 @@ public final class Treadmill
    */
   private DoublyLinkedList fromSpace;
   private DoublyLinkedList toSpace;
+  private DoublyLinkedList nursery;
 
   /****************************************************************************
    * 
-   * Instance Methods
+   * Initialization
    */
 
   /**
@@ -56,8 +58,48 @@ public final class Treadmill
   public Treadmill(int granularity, boolean shared) {
     fromSpace = new DoublyLinkedList(granularity, shared, this);
     toSpace = new DoublyLinkedList(granularity, shared, this);
+    nursery = new DoublyLinkedList(granularity, shared, this);
   }
 
+  public final void addToTreadmill(Address node) throws InlinePragma {
+    nursery.add(node);
+  }
+
+  public final Address pop(boolean fromNursery) throws InlinePragma {
+    return (fromNursery) ? nursery.pop() : fromSpace.pop();
+  }
+
+  public final void copy(Address node, boolean isInNursery) throws InlinePragma {
+    if (isInNursery) 
+      nursery.remove(node);
+    else
+      fromSpace.remove(node);
+    toSpace.add(node);
+  }
+
+  public final boolean toSpaceEmpty() throws InlinePragma {
+    return toSpace.isEmpty();
+  }
+  
+  public final boolean fromSpaceEmpty() throws InlinePragma {
+    return fromSpace.isEmpty();
+  }
+  
+  public final boolean nurseryEmpty() throws InlinePragma {
+    return nursery.isEmpty();
+  }
+  
+  public final void flip() {
+    DoublyLinkedList tmp = fromSpace;
+    fromSpace = toSpace;
+    toSpace = tmp;
+  }
+
+  /****************************************************************************
+   * 
+   * Misc header manipulation
+   */
+  
   static public final Treadmill getTreadmill(Address node) {
     return (Treadmill) DoublyLinkedList.getOwner(node);
   }
@@ -78,29 +120,20 @@ public final class Treadmill
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 
-  public final void addToFromSpace(Address node) throws InlinePragma {
-    fromSpace.add(node);
-  }
+  /****************************************************************************
+   * 
+   * GCSpy
+   */
 
-  public final Address popFromSpace() throws InlinePragma {
-    return fromSpace.pop();
+  /**
+   * Gather data for GCSpy from the nursery
+   * @param event the gc event
+   * @param tmDriver the GCSpy space driver
+   */
+  public void gcspyGatherData(int event, TreadmillDriver tmDriver) {
+    this.nursery.gcspyGatherData(tmDriver);
   }
-
-  public final void copy(Address node) throws InlinePragma {
-    fromSpace.remove(node);
-    toSpace.add(node);
-  }
-
-  public final boolean toSpaceEmpty() throws InlinePragma {
-    return toSpace.isEmpty();
-  }
-
-  public final void flip() {
-    DoublyLinkedList tmp = fromSpace;
-    fromSpace = toSpace;
-    toSpace = tmp;
-  }
-
+  
   /**
    * Gather data for GCSpy
    * @param event the gc event
@@ -113,5 +146,4 @@ public final class Treadmill
     else
       fromSpace.gcspyGatherData(tmDriver);
   }
-
 }

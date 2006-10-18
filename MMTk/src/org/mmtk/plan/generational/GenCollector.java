@@ -1,6 +1,11 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2005
+ *     Australian National University. 2005
  */
 package org.mmtk.plan.generational;
 
@@ -8,7 +13,7 @@ import org.mmtk.plan.*;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -130,7 +135,7 @@ implements Uninterruptible {
 
   /** @return The active global plan as a <code>Gen</code> instance. */
   private static final Gen global() throws InlinePragma {
-    return (Gen) ActivePlan.global();
+    return (Gen) VM.activePlan.global();
   }
 
   public final TraceLocal getCurrentTrace() {

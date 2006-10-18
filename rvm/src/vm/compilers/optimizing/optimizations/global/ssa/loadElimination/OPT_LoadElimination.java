@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -9,6 +14,7 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
+import java.lang.reflect.Constructor;
 
 /**
  * This class implements the redundant load elimination by
@@ -54,9 +60,19 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     public final String getName() {
       return  "Load Eliminator";
     }
+   
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
 
-    /** 
-     * main driver for redundant load elimination 
+    /**
+     * main driver for redundant load elimination
      * Preconditions: Array SSA form and Global Value Numbers computed
      * @param ir the governing IR
      */
@@ -76,7 +92,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     }
   }
 
-  /** 
+  /**
    * Eliminate redundant loads with respect to prior defs and prior
    * uses.
    *
@@ -584,6 +600,29 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * elimination
    */
   private static class LoadEliminationPreparation extends OPT_CompilerPhase {
+    /**
+     * Cosntructor
+     */
+    public LoadEliminationPreparation(int round) {
+      super(new Object[]{new Integer(round)});
+      this.round = round;
+    }
+
+    /**
+     * Constructor for this compiler phase
+     */
+    private static Constructor constructor;
+
+    /**
+     * Get a constructor object for this compiler phase
+     * @return compiler phase constructor
+     */
+    public Constructor getClassConstructor() {
+      if (constructor == null) {
+        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LoadElimination$LoadEliminationPreparation", new Class[]{Integer.TYPE});
+      }
+      return constructor;
+    }
 
     public final boolean shouldPerform(OPT_Options options) {
       return  options.LOAD_ELIMINATION;
@@ -594,10 +633,6 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     }
 
     private final int round;
-
-    LoadEliminationPreparation(int round) {
-      this.round = round;
-    }
 
     final public void perform(OPT_IR ir) {
       // register in the IR the SSA properties we need for load
@@ -626,8 +661,28 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
     private final int round;
 
-    GVNPreparation(int round) {
+    /**
+     * Constructor
+     */
+    public GVNPreparation(int round) {
+      super(new Object[]{new Integer(round)});
       this.round = round;
+    }
+
+    /**
+     * Constructor for this compiler phase
+     */
+    private static Constructor constructor;
+
+    /**
+     * Get a constructor object for this compiler phase
+     * @return compiler phase constructor
+     */
+    public Constructor getClassConstructor() {
+      if (constructor == null) {
+        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LoadElimination$GVNPreparation", new Class[]{Integer.TYPE});
+      }
+      return constructor;
     }
 
     final public void perform(OPT_IR ir) {

@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
  */
@@ -44,7 +49,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MSMutator extends StopTheWorldMutator implements Uninterruptible {
+public abstract class MSMutator extends StopTheWorldMutator implements Uninterruptible {
 
   /****************************************************************************
    * Instance fields
@@ -80,12 +85,12 @@ public class MSMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == MS.ALLOC_DEFAULT) {
       return ms.alloc(bytes, align, offset, false);
     }
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**

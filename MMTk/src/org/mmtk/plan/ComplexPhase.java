@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -9,7 +14,7 @@ import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -84,7 +89,7 @@ public final class ComplexPhase extends Phase
    * TODO are we oversynchronizing here ??
    */
   protected final void delegatePhase() {
-    int order = Collection.rendezvous(5000 + id);
+    int order = VM.collection.rendezvous(5000 + id);
     if (order == 1 && timer != null) timer.start();
 
     if (Options.verbose.getValue() >= 4) {

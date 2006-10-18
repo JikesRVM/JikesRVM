@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -75,8 +80,6 @@ public final class OPT_MIRInfo {
    */
   public OPT_LinearScan.LinearScanState linearScanState = null;
 
-  public OPT_Instruction instAfterPrologue;
-  
   public OPT_MIRInfo(OPT_IR ir) {
     ir.compiledMethod.setSaveVolatile(ir.method.getDeclaringClass().isSaveVolatile());
     ir.compiledMethod.setOptLevel(ir.options.getOptLevel());

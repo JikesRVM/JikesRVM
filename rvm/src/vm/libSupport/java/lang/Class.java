@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2002, 2003, 2005
  */
 //$Id$
@@ -987,6 +992,14 @@ public final class Class implements Serializable, Type, AnnotatedElement, Generi
     else {
       return null;
     }
+  }
+
+  public Constructor getEnclosingConstructor() {
+    throw new VM_UnimplementedError();
+  }
+
+  public Method getEnclosingMethod() {
+    throw new VM_UnimplementedError();
   }
 
   public Object cast(Object obj) {

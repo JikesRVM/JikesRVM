@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -495,8 +500,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP), 
                                       IC(STACKFRAME_METHOD_ID_OFFSET))); // 9
 
-    ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));
-
     if (stackOverflow) {
       // Mutate the Prologue instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TAddr, OPT_PowerPCTrapOperand.GREATER(), A(S0), A(FP),
@@ -597,7 +600,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
                                        IC(OPT_Bits.PPCMaskLower16(offset)))); 
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
-    ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));
   }
 
   /**

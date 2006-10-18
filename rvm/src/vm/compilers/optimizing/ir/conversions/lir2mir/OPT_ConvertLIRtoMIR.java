@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -346,52 +351,52 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
     public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
       OPT_DefUse.recomputeSpansBasicBlock(ir);
-      OPT_MinimalBURS mburs = new OPT_MinimalBURS(ir);
-      OPT_NormalBURS burs = new OPT_NormalBURS(ir);
-      for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
-           bb != null; 
-           bb = bb.nextBasicBlockInCodeOrder()) {
-        if (bb.isEmpty()) continue;
-        container.counter2++;
-        if (bb.getInfrequent()) {
-          container.counter1++;
-          if (options.FREQ_FOCUS_EFFORT) {
-            // Basic block is infrequent -- use quick and dirty instruction selection
-            mburs.prepareForBlock(bb);
-            mburs.invoke(bb);
-            mburs.finalizeBlock(bb);
-            continue;
+        OPT_MinimalBURS mburs = new OPT_MinimalBURS(ir);
+        OPT_NormalBURS burs = new OPT_NormalBURS(ir);
+        for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
+             bb != null; 
+             bb = bb.nextBasicBlockInCodeOrder()) {
+          if (bb.isEmpty()) continue;
+          container.counter2++;
+          if (bb.getInfrequent()) {
+            container.counter1++;
+            if (options.FREQ_FOCUS_EFFORT) {
+              // Basic block is infrequent -- use quick and dirty instruction selection
+              mburs.prepareForBlock(bb);
+              mburs.invoke(bb);
+              mburs.finalizeBlock(bb);
+              continue;
+            }
           }
+          // Use Normal instruction selection.
+          burs.prepareForBlock(bb);
+          // I. Build Dependence graph for the basic block
+          OPT_DepGraph dgraph = new OPT_DepGraph(ir, 
+                                                 bb.firstRealInstruction(), 
+                                                 bb.lastRealInstruction(),
+                                                 bb);
+          if (options.PRINT_DG_BURS) {
+            // print dependence graph.
+            OPT_Compiler.header("DepGraph", ir.method);
+            dgraph.printDepGraph();
+            OPT_Compiler.bottom("DepGraph", ir.method);
+          }
+          if (options.VCG_DG_BURS) {
+            // output dependence graph in VCG format.
+            // CAUTION: creates A LOT of files (one per BB)
+            OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + 
+                             ".vcg", dgraph);
+          }
+          // II. Invoke BURS and rewrite block from LIR to MIR
+          try { 
+            burs.invoke(dgraph);
+          }
+          catch (OPT_OptimizingCompilerException e) {
+            ir.printInstructions();
+            throw e;
+          }
+          burs.finalizeBlock(bb);
         }
-        // Use Normal instruction selection.
-        burs.prepareForBlock(bb);
-        // I. Build Dependence graph for the basic block
-        OPT_DepGraph dgraph = new OPT_DepGraph(ir, 
-                                               bb.firstRealInstruction(), 
-                                               bb.lastRealInstruction(),
-                                               bb);
-        if (options.PRINT_DG_BURS) {
-          // print dependence graph.
-          OPT_Compiler.header("DepGraph", ir.method);
-          dgraph.printDepGraph();
-          OPT_Compiler.bottom("DepGraph", ir.method);
-        }
-        if (options.VCG_DG_BURS) {
-          // output dependence graph in VCG format.
-          // CAUTION: creates A LOT of files (one per BB)
-          OPT_VCG.printVCG("depgraph_BURS_" + ir.method + "_" + bb + 
-                           ".vcg", dgraph);
-        }
-        // II. Invoke BURS and rewrite block from LIR to MIR
-        try { 
-          burs.invoke(dgraph);
-        }
-        catch (OPT_OptimizingCompilerException e) {
-          ir.printInstructions();
-          throw e;
-        }
-        burs.finalizeBlock(bb);
-      }
     }
   }
 

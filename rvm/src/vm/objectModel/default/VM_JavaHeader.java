@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -273,7 +278,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
       start = start.plus(BYTES_IN_WORD);
       if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
-        return ObjectReference.nullReference();
+        start = start.plus(BYTES_IN_WORD);
+        if ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
+          return ObjectReference.nullReference();
+        }
       }
     }
 

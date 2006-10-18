@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
@@ -8,8 +13,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -36,7 +40,7 @@ public final class MarkCompactSpace extends Space
   public static final int GC_HEADER_WORDS_REQUIRED = 1;
 
   private static final Word GC_MARK_BIT_MASK = Word.one();
-  private static final Offset FORWARDING_POINTER_OFFSET = ObjectModel.GC_HEADER_OFFSET();
+  private static final Offset FORWARDING_POINTER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
 
   /****************************************************************************
    * 
@@ -64,7 +68,7 @@ public final class MarkCompactSpace extends Space
    */
   public MarkCompactSpace(String name, int pageBudget, float frac) {
     super(name, true, false, frac);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, 0);
   }
 
   /**
@@ -107,7 +111,8 @@ public final class MarkCompactSpace extends Space
    * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
-    Assert._assert(false); // this policy only releases pages enmasse
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
   /**
@@ -122,9 +127,8 @@ public final class MarkCompactSpace extends Space
    */
   public ObjectReference traceObject(TraceLocal trace, ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(false);
-    }
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
     return null;
   }
 
@@ -164,7 +168,7 @@ public final class MarkCompactSpace extends Space
       trace.enqueue(object);
     }
     ObjectReference newObject = getForwardingPointer(object);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!newObject.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!newObject.isNull());
     return getForwardingPointer(object);
   }
 
@@ -237,10 +241,10 @@ public final class MarkCompactSpace extends Space
     throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (!markBit.isZero()) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue, 
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, 
                                                 oldValue.or(GC_MARK_BIT_MASK)));
     return true;
   }
@@ -253,7 +257,7 @@ public final class MarkCompactSpace extends Space
    */
   public static boolean isMarked(ObjectReference object) 
     throws InlinePragma {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word markBit = oldValue.and(GC_MARK_BIT_MASK);
     return (!markBit.isZero());
   }
@@ -268,10 +272,10 @@ public final class MarkCompactSpace extends Space
       throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.isZero()) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue, 
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, 
                                                 oldValue.and(GC_MARK_BIT_MASK.not())));
     return true;
   }
@@ -285,7 +289,7 @@ public final class MarkCompactSpace extends Space
    */
   public static boolean toBeCompacted(ObjectReference object)
       throws InlinePragma {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
     Word markBit = oldValue.and(GC_MARK_BIT_MASK);
     return !markBit.isZero() && getForwardingPointer(object).isNull();
   }
@@ -298,8 +302,8 @@ public final class MarkCompactSpace extends Space
    */
   public static void clearMark(ObjectReference object) 
     throws InlinePragma {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
-    ObjectModel.writeAvailableBitsWord(object, oldValue.and(GC_MARK_BIT_MASK.not()));
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
+    VM.objectModel.writeAvailableBitsWord(object, oldValue.and(GC_MARK_BIT_MASK.not()));
   }
 
   /**

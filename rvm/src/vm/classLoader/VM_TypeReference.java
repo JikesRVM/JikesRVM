@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -78,7 +83,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
   public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
-  public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/JikesRVM/VM_SysCall;");
+  public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/JikesRVM/VM_SysCallMagic;");
 
   public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");
   public static final VM_TypeReference JavaLangClass = findOrCreate("Ljava/lang/Class;");
@@ -365,7 +370,7 @@ public class VM_TypeReference implements VM_SizeConstants {
    * Does 'this' refer to VM_Magic?
    */
   public final boolean isMagicType() {
-    return this == Magic || this == SysCall 
+    return this == Magic || this == SysCall
       || this == ObjectReference || this == ObjectReferenceArray 
       || isWordType() || isWordArrayType() 
       || isCodeType() || isCodeArrayType();
@@ -527,7 +532,21 @@ public class VM_TypeReference implements VM_SizeConstants {
    *        validate them as soon as we insert them into a VM_TypeReference.
    *        This stinks. XXX)
    */
-  public final synchronized VM_Type resolve() throws NoClassDefFoundError, 
+  public final VM_Type resolve() throws NoClassDefFoundError, 
+                                        IllegalArgumentException {
+	/*
+	 * Lock the classloader instead of this to avoid conflicting locking order.
+	 * Suppose we locked this, then one thread could call resolve(), locking this,
+	 * call classloader.loadClass(), trying to lock the classloader. Meanwhile,
+	 * another thread could call loadClass(), locking the classloader, then
+	 * try to resolve() the VM_TypeReference, resulting in a deadlock
+	 */
+    synchronized (classloader) {
+      return resolveInternal();
+    }
+  }
+
+  private final VM_Type resolveInternal() throws NoClassDefFoundError, 
                                                      IllegalArgumentException {
     if (resolvedType != null) return resolvedType;
     if (isClassType()) {

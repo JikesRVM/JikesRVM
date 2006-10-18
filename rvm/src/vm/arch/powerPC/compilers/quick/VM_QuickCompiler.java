@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001,2005
  */
 //$Id$
@@ -3192,6 +3197,13 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     
 
     if (methodToBeCalled.getType() == VM_TypeReference.SysCall) {
+      // We'll have to rewrite the quick compiler to compile
+      // for the new SysCall interface once it can compile on ppc again.
+      // The ppc baseline and the optimizing compiler are already converted.
+      // The generateSysCall itself is converted (since it is the same as the baseline)
+	  // but the following code needs to skip the first parameter and use it as
+	  // a function address like in the baseline and opt compiler.
+      VM._assert(false);
       VM_TypeReference[] args = methodToBeCalled.getParameterTypes();
 
       // (1) Set up arguments according to OS calling convention
@@ -3281,8 +3293,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadChar ||
-          methodName == VM_MagicNames.loadShort) {
+      if (methodName == VM_MagicNames.loadChar) {
 
         if (types.length == 0) {
           popToRegister(OBJECT_TYPE, T0);                  // pop base
@@ -3292,6 +3303,21 @@ public class VM_QuickCompiler extends VM_CompilerFramework
           popToRegister(WORD_TYPE, T1);                   // pop offset
           popToRegister(OBJECT_TYPE, T0);                  // pop base
           asm.emitLHZX(T0, T1, T0);     // load with zero extension.
+          pushFromRegister(WORD_TYPE, T0);                  // push *(base+offset) 
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadShort) {
+
+        if (types.length == 0) {
+          popToRegister(OBJECT_TYPE, T0);                  // pop base
+          asm.emitLHA(T0, 0, T0);       // load with sign extension.
+          pushFromRegister(WORD_TYPE, T0);                  // push *(base) 
+        } else {
+          popToRegister(WORD_TYPE, T1);                   // pop offset
+          popToRegister(OBJECT_TYPE, T0);                  // pop base
+          asm.emitLHAX(T0, T1, T0);     // load with sign extension.
           pushFromRegister(WORD_TYPE, T0);                  // push *(base+offset) 
         }
         return true;
@@ -3596,11 +3622,6 @@ public class VM_QuickCompiler extends VM_CompilerFramework
         asm.emitBC   (NE, label);               // lower rolled over, try again
       }
       pushFromRegister(LONG_TYPE, T0);              
-    }  else if (methodName == VM_MagicNames.invokeMain) {
-      popToRegister(OBJECT_TYPE, T0); // t0 := ip
-      asm.emitMTCTR(T0);
-      popToRegister(OBJECT_TYPE, T0); // t0 := parameter
-      asm.emitBCCTRL();          // call
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
       popToRegister(OBJECT_TYPE, T0); // t0 := address to be called
       asm.emitMTCTR(T0);
@@ -4173,7 +4194,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    */
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
-    return methodName == VM_MagicNames.invokeMain                  ||
+    return
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||
       methodName == VM_MagicNames.invokeMethodReturningInt    ||
@@ -4190,7 +4211,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    * 
    * @param rawParameterSize: number of bytes in parameters (not including IP)
    */
-  private void generateSysCall1(int rawParametersSize) {
+/*  private void generateSysCall1(int rawParametersSize) {
     int ipIndex = rawParametersSize >> LOG_BYTES_IN_STACKSLOT; // where to access IP parameter
     int linkageAreaSize   = rawParametersSize +         // values
       BYTES_IN_STACKSLOT +                              // saveJTOC
@@ -4214,7 +4235,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     asm.emitLAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);    // restore JTOC
     asm.emitADDI (FP, linkageAreaSize, FP);        // remove linkage area
   }
-
+*/
   /** 
    * Generate call and return sequence to invoke a C function through the
    * boot record field specificed by target. 
@@ -4290,9 +4311,12 @@ public class VM_QuickCompiler extends VM_CompilerFramework
 
     // acquire toc and ip from bootrecord
     asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitLAddrOffset(JTOC, S0, VM_Entrypoints.sysTOCField.getOffset());
     asm.emitLAddrOffset(0, S0, target.getOffset());
-
+    //-#if RVM_WITH_POWEROPEN_ABI
+	/* GPR0 points to the function descriptor, so we'll load TOC and IP from that */
+    asm.emitLAddrOffset(JTOC, 0, Offset.fromInt(BYTES_IN_STACKSLOT));
+    asm.emitLAddrOffset(0, 0, Offset.fromInt(0));
+    //-#endif
     // call it
     asm.emitMTCTR(0);
     asm.emitBCCTRL(); 

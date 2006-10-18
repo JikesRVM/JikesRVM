@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002, 2005
  */
 //$Id$
@@ -266,15 +271,9 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     //
     
     if (!VM.singleVirtualProcessor) {
+      VM_SysCall.sysCreateThreadSpecificDataKeys();
       if (!VM.withoutInterceptBlockingSystemCalls) {
-
-        //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-        // Create thread-specific data key which will allow us to find
-        // the correct VM_Processor from an arbitrary pthread.
-        VM_SysCall.sysCreateThreadSpecificDataKeys();
-        //-#endif
-        
-        /// WE now insist on this happening, by using LD_PRELOAD on platforms
+        /// We now insist on this happening, by using LD_PRELOAD on platforms
         /// that support it.  Do it here for backup.
         // Enable spoofing of blocking native select calls
         System.loadLibrary("syswrap");
@@ -369,11 +368,8 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     tt.makeDaemon(true);
     tt.start();
 
-    //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-    if (!VM.withoutInterceptBlockingSystemCalls)
-      // Store VM_Processor in pthread
-      VM_Processor.getCurrentProcessor().stashProcessorInPthread();
-    //-#endif
+    // Store VM_Processor in pthread
+    VM_SysCall.sysStashVmProcessorInPthread(VM_Processor.getCurrentProcessor());
   }
 
 

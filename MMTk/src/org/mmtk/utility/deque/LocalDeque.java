@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
@@ -7,7 +12,7 @@ package org.mmtk.utility.deque;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -73,7 +78,7 @@ public class LocalDeque extends LocalQueue
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
         head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
-    else if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
+    else if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
 
   /**
@@ -86,7 +91,7 @@ public class LocalDeque extends LocalQueue
    */
   protected final void uncheckedHeadInsert(Address value) 
     throws InlinePragma {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
     head = head.plus(BYTES_IN_ADDRESS);
     // if (VM_Interface.VerifyAssertions) enqueued++;
@@ -104,7 +109,7 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void headOverflow(int arity) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     if (head.NE(Deque.HEAD_INITIAL_VALUE))
       closeAndInsertHead(arity);
 
@@ -133,7 +138,7 @@ public class LocalDeque extends LocalQueue
    * @return True if the consumer has eaten all of the entries
    */
   private final boolean tailStarved(int arity) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(arity == queue.getArity());
     // entries in tail, so consume tail
     if (!bufferOffset(head).isZero()) {
       tailBufferEnd = head;

@@ -1,12 +1,19 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
-import  java.util.HashMap;
-import  java.util.Enumeration;
-import  com.ibm.JikesRVM.opt.ir.*;
+import java.util.HashMap;
+import java.util.Enumeration;
+import com.ibm.JikesRVM.opt.ir.*;
+import java.lang.reflect.Constructor;
 
 /**
  * This class provides global common sub expression elimination.
@@ -42,7 +49,7 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Constructor
    */
-  OPT_GlobalCSE() {
+  public OPT_GlobalCSE() {
     avail = new HashMap();
   }
 
@@ -52,6 +59,22 @@ final class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
    */
   public boolean shouldPerform (OPT_Options options) {
     return  options.GCSE;
+  }
+
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_GlobalCSE");
+    }
+    return constructor;
   }
 
   /**

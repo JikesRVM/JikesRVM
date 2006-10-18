@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -140,7 +145,7 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
       bridgeParameterIndex   = bridgeParameterInitialIndex;
       bridgeRegisterIndex    = FIRST_VOLATILE_GPR;
       bridgeRegisterLocation = framePtr.loadAddress();
-      bridgeRegisterLocation = bridgeRegisterLocation.sub(8 * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
+      bridgeRegisterLocation = bridgeRegisterLocation.minus(8 * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
                                                           4 * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
     }
   }
@@ -210,7 +215,7 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
           VM.sysWriteHex(offset);
           VM.sysWrite(".\n");
         }
-        return (framePtr.add(offset));
+        return (framePtr.plus(offset));
       }
     } else if (state == CHECK_THIS_PTR_STATE) {
       state += 1;
@@ -219,7 +224,7 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
           VM.sysWrite("VM_QuickGCMapIterator getNextReferenceAddress: savedThisOffset="); VM.sysWrite( maps.getSavedThisPtrOffset()); VM.sysWrite("\n");
         }
         checkSavedThisPtr = false;
-        return framePtr.add(maps.getSavedThisPtrOffset());
+        return framePtr.plus(maps.getSavedThisPtrOffset());
       }
     }
     else if (state == CHECK_BRIDGE_REFERENCE_STATE &&
@@ -231,11 +236,11 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        Address addr = framePtr.add(VM_Compiler.getFrameSize(currentMethod));
-        addr = addr.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
+        Address addr = framePtr.plus(VM_Compiler.getFrameSize(currentMethod));
+        addr = addr.minus((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
         // skip non-volatile and volatile fprs
         for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
-          addr = addr.sub(BYTES_IN_ADDRESS);
+          addr = addr.minus(BYTES_IN_ADDRESS);
           registerLocations.set(i, addr);
         }
 
@@ -247,8 +252,8 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
       if (bridgeParameterIndex == -1) {
         bridgeParameterIndex   += 1;
         bridgeRegisterIndex    += 1;
-        bridgeRegisterLocation = bridgeRegisterLocation.add(4);
-        return bridgeRegisterLocation.sub(4);
+        bridgeRegisterLocation = bridgeRegisterLocation.plus(4);
+        return bridgeRegisterLocation.minus(4);
       }
          
       // now the remaining parameters
@@ -262,17 +267,17 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
         VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
         if (bridgeParameterType.isReferenceType()) {
           bridgeRegisterIndex    += 1;
-          bridgeRegisterLocation = bridgeRegisterLocation.add(4);
-          return bridgeRegisterLocation.sub(4);
+          bridgeRegisterLocation = bridgeRegisterLocation.plus(4);
+          return bridgeRegisterLocation.minus(4);
         } else if (bridgeParameterType.isLongType()) {
           bridgeRegisterIndex    += 2;
-          bridgeRegisterLocation = bridgeRegisterLocation.add(8);
+          bridgeRegisterLocation = bridgeRegisterLocation.plus(8);
         } else if (bridgeParameterType.isDoubleType() || bridgeParameterType.isFloatType()) {
           // no gpr's used
         } else {
           // boolean, byte, char, short, int
           bridgeRegisterIndex    += 1;
-          bridgeRegisterLocation = bridgeRegisterLocation.add(4);
+          bridgeRegisterLocation = bridgeRegisterLocation.plus(4);
         }
       }
     }
@@ -316,7 +321,7 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
       if (VM_QuickCompiler.isRegister(location))
         return registerLocations.get(VM_QuickCompiler.locationToRegister(location)).toAddress();
       else
-        return framePtr.add(VM_QuickCompiler.locationToOffset(location));
+        return framePtr.plus(VM_QuickCompiler.locationToOffset(location));
     }
   }
 
@@ -345,17 +350,17 @@ public final class VM_QuickGCMapIterator extends VM_GCMapIterator
 
 
   private void updateCallerRegisterLocations() {
-    Address addr = framePtr.add(VM_QuickCompiler.getCallerSaveOffset(currentMethod));
+    Address addr = framePtr.plus(VM_QuickCompiler.getCallerSaveOffset(currentMethod));
 
     for (int i = VM_QuickCompiler.min(maps.firstFixedLocalRegister, maps.firstFixedStackRegister);
          i <= VM_QuickCompiler.max(maps.lastFixedLocalRegister, maps.lastFixedStackRegister);
          i++) {
       registerLocations.set(i,addr);
-      addr = addr.sub(4);
+      addr = addr.minus(4);
     }
     // and restore information for our scratch registers
     registerLocations.set(S1, addr);
-    addr = addr.sub(4);
+    addr = addr.minus(4);
 
     registerLocations.set(S0, addr);
   }

@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -28,28 +33,22 @@ abstract class OPT_AssemblerBase extends VM_Assembler
 
   /**
    * Hold EBP register object for use in estimating size of memory operands.
-   * Having this in a static field is extremely hacky, but it's quite an
-   * annoying plumbing problem to pass an OPT_IR all the way down to
-   * the code that needs to get EBP, so this is probably the cleanest solution.
    */
-  private static OPT_Register EBP;
+  private final OPT_Register EBP;
   
   /**
    * Hold EBP register object for use in estimating size of memory operands.
-   * Having this in a static field is extremely hacky, but it's quite an
-   * annoying plumbing problem to pass an OPT_IR all the way down to
-   * the code that needs to get EBP, so this is probably the cleanest solution.
    */
-  private static OPT_Register ESP;
+  private final OPT_Register ESP;
   
   /**
-   *  This class requires no particular construction behavior; this
-   * constructor simply calls super.
-   *
+   * Construct Assembler object
    * @see VM_Assembler
    */
-  OPT_AssemblerBase(int bytecodeSize, boolean shouldPrint) {
+  OPT_AssemblerBase(int bytecodeSize, boolean shouldPrint, OPT_IR ir) {
     super(bytecodeSize, shouldPrint);
+    EBP = ir.regpool.getPhysicalRegisterSet().getEBP();
+    ESP = ir.regpool.getPhysicalRegisterSet().getESP();
   }
 
   /**
@@ -71,7 +70,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op represents an immediate
    */
-  static boolean isImm(OPT_Operand op) {
+  boolean isImm(OPT_Operand op) {
     return
       (op instanceof OPT_IntConstantOperand) ||
       (op instanceof OPT_TrapCodeOperand) ||
@@ -93,7 +92,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return the immediate value represented by the operand
    */
-  static int getImm(OPT_Operand op) {
+  int getImm(OPT_Operand op) {
     if (op instanceof OPT_BranchOperand) {
       // used by ImmOrLabel stuff
       return op.asBranch().target.getmcOffset();
@@ -112,7 +111,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op is an OPT_RegisterOperand
    */
-  static boolean isReg(OPT_Operand op) {
+  boolean isReg(OPT_Operand op) {
     return (op instanceof OPT_RegisterOperand);
   }
 
@@ -132,7 +131,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param reg the register being queried
    * @return the 3 bit machine-level encoding of reg
    */
-  static private byte getMachineRegister(OPT_Register reg) {
+  private byte getMachineRegister(OPT_Register reg) {
     int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg);
     if (type == INT_REG) 
       return (byte) (reg.number - FIRST_INT);
@@ -155,7 +154,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the 3 bit IA32 ISA encoding of op
    */
-  static byte getReg(OPT_Operand op) {
+  byte getReg(OPT_Operand op) {
     return getMachineRegister( op.asRegister().register );
   }
 
@@ -176,7 +175,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the 3 bit IA32 ISA encoding of the base register of op
    */
-  static byte getBase(OPT_Operand op) {
+  byte getBase(OPT_Operand op) {
     return getMachineRegister(((OPT_MemoryOperand)op).base.register);
   }
 
@@ -196,7 +195,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the 3 bit IA32 ISA encoding of the index register of op
    */
-  static byte getIndex(OPT_Operand op) {
+  byte getIndex(OPT_Operand op) {
     return getMachineRegister(((OPT_MemoryOperand)op).index.register);
   }
 
@@ -213,7 +212,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the IA32 ISA encoding of the scale of op
    */
-  static short getScale(OPT_Operand op) {
+  short getScale(OPT_Operand op) {
     return ((OPT_MemoryOperand)op).scale;
   }
 
@@ -230,7 +229,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the register operand being queried
    * @return the IA32 ISA encoding of the scale of op
    */
-  static Offset getDisp(OPT_Operand op) {
+  Offset getDisp(OPT_Operand op) {
     return ((OPT_MemoryOperand)op).disp;
   }
 
@@ -246,7 +245,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op should be assembled as register-displacement mode
    */
-  static boolean isRegDisp(OPT_Operand op) {
+  boolean isRegDisp(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
@@ -268,7 +267,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op should be assembled as absolute mode
    */
-  static boolean isAbs(OPT_Operand op) {
+  boolean isAbs(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base == null) &&
@@ -291,7 +290,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op should be assembled as register-indirect mode
    */
-  static boolean isRegInd(OPT_Operand op) {
+  boolean isRegInd(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base != null) &&
@@ -314,7 +313,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op should be assembled as register-offset mode
    */
-  static boolean isRegOff(OPT_Operand op) {
+  boolean isRegOff(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
       return (mop.base == null) &&
@@ -335,7 +334,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op should be assembled as SIB mode
    */
-  static boolean isRegIdx(OPT_Operand op) {
+  boolean isRegIdx(OPT_Operand op) {
     if (op instanceof OPT_MemoryOperand) 
       return !(isAbs(op) || isRegInd(op) || isRegDisp(op) || isRegOff(op));
     else
@@ -356,7 +355,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return the bits that (usually) represent the given condition
    * in the IA32 ISA */
-  static byte getCond(OPT_Operand op) {
+  byte getCond(OPT_Operand op) {
     return ((OPT_IA32ConditionOperand)op).value;
   }
 
@@ -366,7 +365,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if op is an IA32 condition operand
    */
-  static boolean isCond(OPT_Operand op) {
+  boolean isCond(OPT_Operand op) {
     return (op instanceof OPT_IA32ConditionOperand);
   }
 
@@ -385,7 +384,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the branch operand being queried
    * @return the label representing the branch target
    */
-  static int getLabel(OPT_Operand op) {
+  int getLabel(OPT_Operand op) {
     if (op instanceof OPT_IntConstantOperand) {
       // used by ImmOrLabel stuff
       return 0;
@@ -405,7 +404,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if it represents a branch requiring a label target
    */
-  static boolean isLabel(OPT_Operand op) {
+  boolean isLabel(OPT_Operand op) {
     return (op instanceof OPT_BranchOperand &&
             op.asBranch().target.getmcOffset() < 0);
   }
@@ -419,7 +418,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param op the operand being queried
    * @return true if it represents a branch target
    */
-  static boolean isImmOrLabel(OPT_Operand op) {
+  boolean isImmOrLabel(OPT_Operand op) {
     return (isImm(op) || isLabel(op));
   }
 
@@ -435,7 +434,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param inst the instruction being queried
    * @return true if inst operates upon byte data
    */
-  static boolean isByte(OPT_Instruction inst) {
+  boolean isByte(OPT_Instruction inst) {
     if (inst.operator.toString().indexOf("__b") != -1)
       return true;
 
@@ -460,7 +459,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param inst the instruction being queried
    * @return true if inst operates upon word data
    */
-  static boolean isWord(OPT_Instruction inst) {
+  boolean isWord(OPT_Instruction inst) {
     if (inst.operator.toString().indexOf("__w") != -1)
       return true;
 
@@ -485,7 +484,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param inst the instruction being queried
    * @return true if inst operates upon quad data
    */
-  static boolean isQuad(OPT_Instruction inst) {
+  boolean isQuad(OPT_Instruction inst) {
     if (inst.operator.toString().indexOf("__q") != -1)
       return true;
 
@@ -519,7 +518,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     }
   }
 
-  private static int estimateSize(OPT_Instruction inst) {
+  protected int estimateSize(OPT_Instruction inst) {
     switch (inst.getOpcode()) {
       case LABEL_opcode:case BBEND_opcode:case UNINT_BEGIN_opcode:case UNINT_END_opcode:
         // these generate no code
@@ -615,7 +614,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     }
   }
   
-  private static int operandCost(OPT_Operand op, boolean shortFormImmediate) {
+  private int operandCost(OPT_Operand op, boolean shortFormImmediate) {
     if (op instanceof OPT_MemoryOperand) {
       OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
       // If it's a 2byte mem location, we're going to need an override prefix
@@ -761,21 +760,20 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param offset the mcoffset (in bytes) of the instruction
    *
    */
-  public static String disasm(int instr, int offset) {
+  public String disasm(int instr, int offset) {
     OPT_OptimizingCompilerException.TODO("OPT_Assembler: disassembler");
     return null;
   }
 
   /**
    * generate machine code into ir.machinecode.
-   * Synchronized to make the EBP hack thread safe...ugh.
    * @param ir the IR to generate
    * @param shouldPrint should we print the machine code?
    * @return   the number of machinecode instructions generated
    */
-  public static synchronized int generateCode(OPT_IR ir, boolean shouldPrint) {
+  public static int generateCode(OPT_IR ir, boolean shouldPrint) {
     int count = 0;
-    OPT_Assembler asm = new OPT_Assembler(count, shouldPrint);
+    OPT_Assembler asm = new OPT_Assembler(count, shouldPrint, ir);
     
     for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
          p != null; p = p.nextInstructionInCodeOrder()) {
@@ -783,30 +781,22 @@ abstract class OPT_AssemblerBase extends VM_Assembler
     }
 
     
-    try {
-      EBP = ir.regpool.getPhysicalRegisterSet().getEBP();
-      ESP = ir.regpool.getPhysicalRegisterSet().getESP();
-    
-      for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
-           p != null; p = p.nextInstructionInCodeOrder()) {
-        if (DEBUG_ESTIMATE) {
-          int start = asm.getMachineCodeIndex();
-          int estimate = estimateSize(p);
-          asm.doInst(p);
-          int end = asm.getMachineCodeIndex();
-          if (end-start > estimate) {
-            VM.sysWriteln("Bad estimate: "+(end-start)+" "+estimate+" "+p);
-            VM.sysWrite("\tMachine code: ");
-            asm.writeLastInstruction(start);
-            VM.sysWriteln();
-          }
-        } else {
-          asm.doInst(p);
+    for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
+         p != null; p = p.nextInstructionInCodeOrder()) {
+      if (DEBUG_ESTIMATE) {
+        int start = asm.getMachineCodeIndex();
+        int estimate = asm.estimateSize(p);
+        asm.doInst(p);
+        int end = asm.getMachineCodeIndex();
+        if (end-start > estimate) {
+          VM.sysWriteln("Bad estimate: "+(end-start)+" "+estimate+" "+p);
+          VM.sysWrite("\tMachine code: ");
+          asm.writeLastInstruction(start);
+          VM.sysWriteln();
         }
+      } else {
+        asm.doInst(p);
       }
-    } finally {
-      EBP = null;
-      ESP = null;
     }
     
     ir.MIRInfo.machinecode = asm.getMachineCodes();

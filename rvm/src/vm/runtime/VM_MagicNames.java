@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
@@ -15,7 +20,6 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
  */
 public class VM_MagicNames {
 
-  public static final VM_Atom invokeMain                    = VM_Atom.findOrCreateAsciiAtom("invokeMain");
   public static final VM_Atom invokeClassInitializer        = VM_Atom.findOrCreateAsciiAtom("invokeClassInitializer");
   public static final VM_Atom invokeMethodReturningVoid     = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningVoid");
   public static final VM_Atom invokeMethodReturningInt      = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningInt");

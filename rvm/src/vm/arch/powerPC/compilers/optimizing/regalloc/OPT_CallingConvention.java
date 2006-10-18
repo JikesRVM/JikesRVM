@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -70,10 +75,9 @@ implements OPT_PhysicalRegisterConstants {
    */
    public static void expandSysCall(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand ip = null;
-    OPT_RegisterOperand t1 = 
-      OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
-    OPT_RegisterOperand toc = OPT_ConvertToLowLevelIR.getField(s, ir, t1, VM_Entrypoints.sysTOCField);
     if (Call.getMethod(s) != null) {
+      OPT_RegisterOperand t1 = 
+        OPT_ConvertToLowLevelIR.getStatic(s, ir, VM_Entrypoints.the_boot_recordField);
       OPT_MethodOperand nat = Call.getClearMethod(s);
       VM_Field target = null;
       target = nat.getMemberRef().asFieldReference().resolve();
@@ -81,7 +85,6 @@ implements OPT_PhysicalRegisterConstants {
     } else {
       ip = (OPT_RegisterOperand)Call.getClearAddress(s);
     }
-
     /* compute the parameter space */
     int numberParams = Call.getNumberOfParams(s);
     //-#if RVM_FOR_32_ADDR
@@ -110,7 +113,15 @@ implements OPT_PhysicalRegisterConstants {
                                       ir.regpool.makeFPOp(), 
                                       AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?
     s.insertBack(s2);
-    s.insertBack(Move.create(REF_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
+    //-#if RVM_WITH_POWEROPEN_ABI
+    s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ip,
+                     AC(Offset.fromInt(BYTES_IN_ADDRESS)), null);
+    s.insertBack(s2);
+	OPT_RegisterOperand iptmp = ir.regpool.makeTempAddress();
+	s2 = Load.create(REF_LOAD, iptmp, ip, AC(Offset.zero()), null);
+	s.insertBack(s2);
+	ip = iptmp;
+    //-#endif
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
     s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
                      AC(Offset.fromIntSignExtend(5*BYTES_IN_ADDRESS)), null);         // TODO: valid location?

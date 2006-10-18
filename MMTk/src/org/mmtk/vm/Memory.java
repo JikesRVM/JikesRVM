@@ -1,0 +1,217 @@
+/*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright Department of Computer Science,
+ * Australian National University. 2004
+ *
+ * (C) Copyright IBM Corp. 2001, 2003
+ */
+package org.mmtk.vm;
+
+import org.mmtk.policy.ImmortalSpace;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
+/**
+ * $Id: Memory.java,v 1.5 2006/06/21 07:38:13 steveb-oss Exp $
+ * 
+ * @author Steve Blackburn
+ * @author Perry Cheng
+ * 
+ * @version $Revision: 1.5 $
+ * @date $Date: 2006/06/21 07:38:13 $
+ */
+public abstract class Memory implements Uninterruptible
+{
+  
+  /**
+   * Allows for the VM to reserve space between HEAP_START()
+   * and AVAILABLE_START() for its own purposes.  MMTk should
+   * expect to encounter objects in this range, but may not 
+   * allocate in this range.
+   * 
+   * MMTk expects the virtual address space between AVAILABLE_START()
+   * and AVAILABLE_END() to be contiguous and unmapped.
+   * Allows for the VM to reserve space between HEAP_END()
+   * and AVAILABLE_END() for its own purposes.  MMTk should
+   * expect to encounter objects in this range, but may not 
+   * allocate in this range.
+   * 
+   * MMTk expects the virtual address space between AVAILABLE_START()
+   * and AVAILABLE_END() to be contiguous and unmapped.
+   * 
+   * @return The high bound of the memory that MMTk can allocate.
+   */
+  
+  /**
+   * Return the space associated with/reserved for the VM.  In the
+   * case of Jikes RVM this is the boot image space.<p>
+   * 
+   * @return The space managed by the virtual machine.
+   */
+  public abstract ImmortalSpace getVMSpace() throws InterruptiblePragma;
+  
+  /** Global preparation for a collection. */
+  public abstract void globalPrepareVMSpace();
+  
+  /** Per-collector preparation for a collection. */
+  public abstract void collectorPrepareVMSpace();
+  
+  /** Per-collector post-collection work. */
+  public abstract void collectorReleaseVMSpace();
+  
+  /** Global post-collection work. */
+  public abstract void globalReleaseVMSpace();
+  
+  /**
+   * Sets the range of addresses associated with a heap.
+   * 
+   * @param id the heap identifier
+   * @param start the address of the start of the heap
+   * @param end the address of the end of the heap
+   */
+  public abstract void setHeapRange(int id, Address start, Address end);
+  
+  /**
+   * Demand zero mmaps an area of virtual memory.
+   * 
+   * @param start the address of the start of the area to be mapped
+   * @param size the size, in bytes, of the area to be mapped
+   * @return 0 if successful, otherwise the system errno
+   */
+  public abstract int dzmmap(Address start, int size);
+  
+  /**
+   * Protects access to an area of virtual memory.
+   * 
+   * @param start the address of the start of the area to be mapped
+   * @param size the size, in bytes, of the area to be mapped
+   * @return <code>true</code> if successful, otherwise
+   * <code>false</code>
+   */
+  public abstract boolean mprotect(Address start, int size);
+  
+  /**
+   * Allows access to an area of virtual memory.
+   * 
+   * @param start the address of the start of the area to be mapped
+   * @param size the size, in bytes, of the area to be mapped
+   * @return <code>true</code> if successful, otherwise
+   * <code>false</code>
+   */
+  public abstract boolean munprotect(Address start, int size);
+  
+  /**
+   * Zero a region of memory.
+   * @param start Start of address range (inclusive)
+   * @param len Length in bytes of range to zero
+   * Returned: nothing
+   */
+  public abstract void zero(Address start, Extent len);
+  
+  /**
+   * Zero a range of pages of memory.
+   * @param start Start of address range (must be a page address)
+   * @param len Length in bytes of range (must be multiple of page size)
+   */
+  public abstract void zeroPages(Address start, int len);
+  
+  /**
+   * Logs the contents of an address and the surrounding memory to the
+   * error output.
+   * 
+   * @param start the address of the memory to be dumped
+   * @param beforeBytes the number of bytes before the address to be
+   * included
+   * @param afterBytes the number of bytes after the address to be
+   * included
+   */
+  public abstract void dumpMemory(Address start, int beforeBytes,
+      int afterBytes);
+  
+  /**
+   * Wait for preceeding cache flush/invalidate instructions to complete 
+   * on all processors.  Ensures that all memory writes before this
+   * point are visible to all processors.
+   */
+  public abstract void sync() throws InlinePragma;
+  
+  /**
+   * Wait for all preceeding instructions to complete and discard any 
+   * prefetched instructions on this processor.  Also prevents the 
+   * compiler from performing code motion across this point.
+   */
+  public abstract void isync() throws InlinePragma;
+ 
+  /*
+   * NOTE: The following methods must be implemented by subclasses of this
+   * class, but are internal to the VM<->MM interface glue, so are never
+   * called by MMTk users.
+   */
+  /** @return The lowest address in the virtual address space known to MMTk */
+  protected abstract Address getHeapStartConstant();
+  /** @return The highest address in the virtual address space known to MMTk */
+  protected abstract Address getHeapEndConstant();
+  /** @return The lowest address in the contigious address space available to MMTk  */
+  protected abstract Address getAvailableStartConstant();
+  /** @return The highest address in the contigious address space available to MMTk */
+  protected abstract Address getAvailableEndConstant();
+  /** @return The log base two of the size of an address */
+  protected abstract byte getLogBytesInAddressConstant();
+  /** @return The log base two of the size of a word */
+  protected abstract byte getLogBytesInWordConstant();
+  /** @return The log base two of the size of an OS page */
+  protected abstract byte getLogBytesInPageConstant();
+  /** @return The log base two of the minimum allocation alignment */
+  protected abstract byte getLogMinAlignmentConstant();
+  /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
+  protected abstract byte getMaxAlignmentShiftConstant();
+  /** @return The maximum number of bytes of padding to prepend to an object */
+  protected abstract int getMaxBytesPaddingConstant();
+  /** @return The value to store in alignment holes */
+  protected abstract int getAlignmentValueConstant();
+  
+  /*
+   * NOTE: These methods should not be called by anything other than the
+   * reflective mechanisms in org.mmtk.vm.VM, and are not implemented by
+   * subclasses. This hack exists only to allow us to declare the respective
+   * methods as protected.
+   */
+  static Address heapStartTrapdoor(Memory m) {
+    return m.getHeapStartConstant();
+  }
+  static Address heapEndTrapdoor(Memory m) {
+    return m.getHeapEndConstant();
+  }
+  static Address availableStartTrapdoor(Memory m) {
+    return m.getAvailableStartConstant();
+  }
+  static Address availableEndTrapdoor(Memory m) {
+    return m.getAvailableEndConstant();
+  }
+  static byte logBytesInAddressTrapdoor(Memory m) {
+    return m.getLogBytesInAddressConstant();
+  }
+  static byte logBytesInWordTrapdoor(Memory m) {
+    return m.getLogBytesInWordConstant();
+  }
+  static byte logBytesInPageTrapdoor(Memory m) {
+    return m.getLogBytesInPageConstant();
+  }
+  static byte logMinAlignmentTrapdoor(Memory m) {
+    return m.getLogMinAlignmentConstant();
+  }
+  static byte maxAlignmentShiftTrapdoor(Memory m) {
+    return m.getMaxAlignmentShiftConstant();
+  }
+  static int maxBytesPaddingTrapdoor(Memory m) {
+    return m.getMaxBytesPaddingConstant();
+  }
+  static int alignmentValueTrapdoor(Memory m) {
+    return m.getAlignmentValueConstant();
+  }
+}

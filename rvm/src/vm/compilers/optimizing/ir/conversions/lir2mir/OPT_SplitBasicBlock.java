@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -16,7 +21,7 @@ final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
   private static final int MAX_NUM_INSTRUCTIONS = 300;
 
   public final String getName() { return "SplitBasicBlock"; }
-  public final OPT_CompilerPhase newExecution() { return this; }
+  public final OPT_CompilerPhase newExecution(OPT_IR ir) { return this; }
   
   public final void perform(OPT_IR ir) {
     for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {

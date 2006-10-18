@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002, 2005, 2006
  */
@@ -10,10 +15,7 @@ import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -67,7 +69,7 @@ implements Uninterruptible {
   public void collectionPhase(int phaseId, boolean primary)
   throws InlinePragma {
     if (phaseId == StopTheWorld.INITIATE) {
-      Collection.prepareCollector(this);
+      VM.collection.prepareCollector(this);
       return;
     }
 
@@ -77,20 +79,20 @@ implements Uninterruptible {
     }
 
     if (phaseId == StopTheWorld.PRECOPY) {
-      if (ActivePlan.constraints().movesObjects()) {
-        Scanning.preCopyGCInstances(getCurrentTrace());
+      if (VM.activePlan.constraints().movesObjects()) {
+        VM.scanning.preCopyGCInstances(getCurrentTrace());
       }
       return;
     }
 
     if (phaseId == StopTheWorld.ROOTS) {
-      Scanning.computeAllRoots(getCurrentTrace());
+      VM.scanning.computeAllRoots(getCurrentTrace());
       return;
     }
 
     if (phaseId == StopTheWorld.BOOTIMAGE_ROOTS) {
       if (Plan.SCAN_BOOT_IMAGE)
-        Scanning.computeBootImageRoots(getCurrentTrace());
+        VM.scanning.computeBootImageRoots(getCurrentTrace());
       return;
     }
 
@@ -127,7 +129,7 @@ implements Uninterruptible {
 
     if (phaseId == StopTheWorld.FORWARD_REFS) {
       if (primary && !Options.noReferenceTypes.getValue() &&
-          ActivePlan.constraints().needsForwardAfterLiveness()) {
+          VM.activePlan.constraints().needsForwardAfterLiveness()) {
         ReferenceProcessor.forwardReferences();
       }
       return;
@@ -135,7 +137,7 @@ implements Uninterruptible {
 
     if (phaseId == StopTheWorld.FORWARD_FINALIZABLE) {
       if (primary && !Options.noFinalizer.getValue() &&
-          ActivePlan.constraints().needsForwardAfterLiveness()) {
+          VM.activePlan.constraints().needsForwardAfterLiveness()) {
         Finalizer.forward(getCurrentTrace());
       }
       return;
@@ -158,7 +160,7 @@ implements Uninterruptible {
 
     Log.write("Per-collector phase "); Log.write(Phase.getName(phaseId)); 
     Log.writeln(" not handled.");
-    Assert.fail("Per-collector phase not handled!");
+    VM.assertions.fail("Per-collector phase not handled!");
   }
 
   /****************************************************************************
@@ -168,7 +170,7 @@ implements Uninterruptible {
 
   /** @return The active global plan as a <code>StopTheWorld</code> instance. */
   private static final StopTheWorld global() throws InlinePragma {
-    return (StopTheWorld) ActivePlan.global();
+    return (StopTheWorld) VM.activePlan.global();
   }
 
   /** @return The current sanity checker. */

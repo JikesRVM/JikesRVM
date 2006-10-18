@@ -1,11 +1,17 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -47,7 +53,7 @@ public class ObjectReferenceDeque extends LocalDeque
    * @param object the object to be inserted into the object queue
    */
   public final void insert(ObjectReference object) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     checkTailInsert(1);
     uncheckedTailInsert(object.toAddress());
   }
@@ -58,7 +64,7 @@ public class ObjectReferenceDeque extends LocalDeque
    * @param object the object to be pushed onto the object queue
    */
   public final void push(ObjectReference object) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     checkHeadInsert(1);
     uncheckedHeadInsert(object.toAddress());
   }

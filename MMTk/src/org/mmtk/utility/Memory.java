@@ -1,9 +1,14 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 package org.mmtk.utility;
 
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -48,12 +53,12 @@ public class Memory implements Uninterruptible, Constants {
    * @param bytes The number of bytes to be zeroed (must be 4-byte aligned)
    */
   public static void zero(Address start, Extent bytes) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
     }
     if (bytes.GT(Extent.fromIntZeroExtend(SMALL_REGION_THRESHOLD)))
-      org.mmtk.vm.Memory.zero(start, bytes);
+      VM.memory.zero(start, bytes);
     else
       zeroSmall(start, bytes);
   }
@@ -65,7 +70,7 @@ public class Memory implements Uninterruptible, Constants {
    * @param bytes The number of bytes to be zeroed (must be page aligned)
    */
   public static void zeroPages(Address start, int bytes) throws InlinePragma {
-    org.mmtk.vm.Memory.zeroPages(start, bytes);
+    VM.memory.zeroPages(start, bytes);
   }
 
   /**
@@ -76,7 +81,7 @@ public class Memory implements Uninterruptible, Constants {
    */
   public static void zeroSmall(Address start, Extent bytes) 
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
     }
@@ -94,7 +99,7 @@ public class Memory implements Uninterruptible, Constants {
    */
   public static void set(Address start, int bytes, int value)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       assertAligned(start);
       assertAligned(bytes);
     }
@@ -126,7 +131,7 @@ public class Memory implements Uninterruptible, Constants {
    * occur if the region is not zeroed.
    * 
    * this is in the inline allocation sequence when
-   * Assert.VERIFY_ASSERTIONS is true, it is carefully written to
+   * VM.VERIFY_ASSERTIONS is true, it is carefully written to
    * reduce the impact on code space.
    * 
    * @param start The start address of the range to be checked
@@ -134,7 +139,7 @@ public class Memory implements Uninterruptible, Constants {
    */
   public static void assertIsZeroed(Address start, int bytes)
       throws NoInlinePragma {
-    Assert._assert(isSet(start, bytes, true, 0));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isSet(start, bytes, true, 0));
   }
 
   /**
@@ -159,11 +164,11 @@ public class Memory implements Uninterruptible, Constants {
    * @param value The value to be tested
    */
   private static final void assertAligned(int value) {
-    Assert._assert((value & (BYTES_IN_INT - 1)) == 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((value & (BYTES_IN_INT - 1)) == 0);
   }
 
   private static final void assertAligned(Word value) {
-    Assert._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(Word.fromIntSignExtend(BYTES_IN_INT-1)).isZero());
   }
 
   private static final void assertAligned(Extent value) {
@@ -190,12 +195,12 @@ public class Memory implements Uninterruptible, Constants {
      * int_store
    */
   throws NoInlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) assertAligned(bytes);
+    if (VM.VERIFY_ASSERTIONS) assertAligned(bytes);
     for (int i = 0; i < bytes; i += BYTES_IN_INT)
       if (start.loadInt(Offset.fromIntSignExtend(i)) != value) {
         if (verbose) {
           Log.prependThreadId();
-          Log.write("Memory range does not contain only value ");
+          Log.write("VM.me.range does not contain only value ");
           Log.writeln(value);
           Log.write("Non-zero range: "); Log.write(start);
           Log.write(" .. "); Log.writeln(start.plus(bytes));
@@ -218,6 +223,6 @@ public class Memory implements Uninterruptible, Constants {
    */
   public static void dumpMemory(Address addr, int beforeBytes, int afterBytes)
   {
-    org.mmtk.vm.Memory.dumpMemory(addr, beforeBytes, afterBytes);
+    VM.memory.dumpMemory(addr, beforeBytes, afterBytes);
   }
 }

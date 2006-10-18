@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  *
@@ -7,7 +12,8 @@
 
 package org.mmtk.utility;
 
-import org.mmtk.vm.VMConstants;
+import org.mmtk.utility.alloc.EmbeddedMetaData;
+import org.mmtk.vm.VM;
 
 /**
  * MMTk follows the pattern set by Jikes RVM for defining sizes of
@@ -56,6 +62,21 @@ public interface Constants {
 
   /****************************************************************************
    * 
+   * Card scanning
+   */
+  public static final boolean SUPPORT_CARD_SCANNING = false;
+  public static final int LOG_CARD_META_SIZE = 2;// each card consumes four bytes of metadata 
+  static final int LOG_CARD_UNITS = 10;  // number of units tracked per card
+  static final int LOG_CARD_GRAIN = 0;   // track at byte grain, save shifting
+  public static final int LOG_CARD_BYTES = LOG_CARD_UNITS + LOG_CARD_GRAIN;
+  static final int LOG_CARD_META_BYTES = EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_CARD_BYTES + LOG_CARD_META_SIZE;
+  static final int LOG_CARD_META_PAGES = LOG_CARD_META_BYTES - VM.LOG_BYTES_IN_PAGE;
+  public static final int CARD_META_PAGES_PER_REGION = SUPPORT_CARD_SCANNING ? (1<<LOG_CARD_META_PAGES) : 0;
+  public static final int CARD_MASK = (1<<LOG_CARD_BYTES) - 1;
+
+  
+  /****************************************************************************
+   * 
    * Java-specific sizes currently required by MMTk
    * 
    * TODO MMTk should really become independant of these Java types
@@ -77,7 +98,7 @@ public interface Constants {
    * 
    * VM-Specific sizes
    */
-  static final byte LOG_BYTES_IN_ADDRESS = VMConstants.LOG_BYTES_IN_ADDRESS();
+  static final byte LOG_BYTES_IN_ADDRESS = VM.LOG_BYTES_IN_ADDRESS;
   static final int BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;
   static final int LOG_BITS_IN_ADDRESS = LOG_BITS_IN_BYTE + LOG_BYTES_IN_ADDRESS;
   static final int BITS_IN_ADDRESS = 1 << LOG_BITS_IN_ADDRESS;
@@ -88,7 +109,7 @@ public interface Constants {
   static final int LOG_BITS_IN_WORD = LOG_BITS_IN_BYTE + LOG_BYTES_IN_WORD;
   static final int BITS_IN_WORD = 1 << LOG_BITS_IN_WORD;
 
-  static final byte LOG_BYTES_IN_PAGE = VMConstants.LOG_BYTES_IN_PAGE();
+  static final byte LOG_BYTES_IN_PAGE = VM.LOG_BYTES_IN_PAGE;
   static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
   static final int LOG_BITS_IN_PAGE = LOG_BITS_IN_BYTE + LOG_BYTES_IN_PAGE;
   static final int BITS_IN_PAGE = 1 << LOG_BITS_IN_PAGE;
@@ -104,26 +125,26 @@ public interface Constants {
    * 
    * This value is required to be a power of 2.
    */
-  static final byte LOG_MIN_ALIGNMENT = VMConstants.LOG_MIN_ALIGNMENT();
+  static final byte LOG_MIN_ALIGNMENT = VM.LOG_MIN_ALIGNMENT;
   static final int MIN_ALIGNMENT = 1 << LOG_MIN_ALIGNMENT;
 
   /**
    * The maximum alignment request the vm will make. This must be a 
    * power of two multiple of the minimum alignment.
    */
-  static final int MAX_ALIGNMENT = MIN_ALIGNMENT<<VMConstants.MAX_ALIGNMENT_SHIFT(); 
+  static final int MAX_ALIGNMENT = MIN_ALIGNMENT<<VM.MAX_ALIGNMENT_SHIFT; 
 
   /**
    * The VM will add at most this value minus BYTES_IN_INT bytes of
    * padding to the front of an object that it places in a region of
    * memory. This value must be a power of 2.
    */
-  static final int MAX_BYTES_PADDING = VMConstants.MAX_BYTES_PADDING();
+  static final int MAX_BYTES_PADDING = VM.MAX_BYTES_PADDING;
 
   /**
    * The VM will add at most this value minus BYTES_IN_INT bytes of
    * padding to the front of an object that it places in a region of
    * memory. This value must be a power of 2.
    */
-  static final int ALIGNMENT_VALUE = VMConstants.ALIGNMENT_VALUE();
+  static final int ALIGNMENT_VALUE = VM.ALIGNMENT_VALUE;
 }

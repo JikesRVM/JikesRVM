@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2002
  */
 //$Id$
@@ -26,11 +31,17 @@ public class JikesRVMSupport implements VM_SizeConstants {
   }
     
   public static InetAddress createInetAddress(int address, String hostname) {
-    return new InetAddress(toArrayForm(address), hostname);
+    return new Inet4Address(toArrayForm(address), hostname);
   }
     
   public static int getFamily(InetAddress inetaddress) {
-    return inetaddress.family;
+    if (inetaddress instanceof Inet4Address) {
+      return 2;
+    } else if (inetaddress instanceof Inet6Address) {
+      return 10;
+    } else {
+      throw new com.ibm.JikesRVM.VM_UnimplementedError("Unknown InetAddress family");
+    }
   }
     
   public static void setHostName(InetAddress inetaddress, String hostname) {

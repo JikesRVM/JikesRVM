@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Architecture and Language Implementation Laboratory,
  *     Department of Computer Science,
  *     University of Massachusetts at Amherst. 2001
@@ -8,8 +13,9 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -228,7 +234,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    */
   private final void split(int unit, int size) {
     int basesize = getSize(unit);
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(basesize > size);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(basesize > size);
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);

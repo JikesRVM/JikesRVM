@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
  */
@@ -42,7 +47,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
+public abstract class SSMutator extends StopTheWorldMutator implements Uninterruptible {
   /****************************************************************************
    * Instance fields
    */
@@ -72,14 +77,15 @@ public class SSMutator extends StopTheWorldMutator implements Uninterruptible {
    * @param align The requested alignment.
    * @param offset The alignment offset.
    * @param allocator The allocator number to be used for this allocation
+   * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == SS.ALLOC_SS)
       return ss.alloc(bytes, align, offset, false);
     else
-      return super.alloc(bytes, align, offset, allocator);
+      return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**

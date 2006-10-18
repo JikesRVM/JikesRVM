@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004, 2005
  */
 //$Id$
@@ -348,15 +353,15 @@ class OPT_GenerateMagic implements OPT_Operators,
                                            loc));
     } else if (meth.getType() == VM_TypeReference.SysCall) {
       // All methods of VM_SysCall have the following signature:
-      // callNAME(Address code, <var args to pass via native calling convention>)
+      // callNAME(Address functionAddress, <var args to pass via native calling convention>)
+      // With POWEROPEN_ABI, functionAddress points to the function descriptor
       VM_TypeReference[] args = meth.getParameterTypes();
-      int numArgs = args.length;
-      VM_Field ip = VM_Entrypoints.getSysCallField(meth.getName().toString());
-      OPT_MethodOperand mo = OPT_MethodOperand.STATIC(ip);
-      OPT_Instruction call = Call.create(SYSCALL, null, null, mo, null,  args.length);
-      for (int i = args.length-1; i >= 0; i--) {
-        Call.setParam(call, i, bc2ir.pop(args[i]));
+      OPT_Instruction call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
+      for (int i = args.length-1; i >= 1; i--) {
+        Call.setParam(call, i - 1, bc2ir.pop(args[i]));
       }
+      OPT_Operand functionAddress = bc2ir.pop(args[0]);
+      Call.setAddress(call, functionAddress);
       if (!returnType.isVoidType()) {
         OPT_RegisterOperand op0 = gc.temps.makeTemp(returnType);
         Call.setResult(call, op0);
@@ -499,10 +504,6 @@ class OPT_GenerateMagic implements OPT_Operators,
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
       OPT_Instruction s = Call.create0(CALL, null, bc2ir.popRef(), null);
       bc2ir.appendInstruction(s);
-    } else if (methodName == VM_MagicNames.invokeMain) {
-      OPT_Operand code = bc2ir.popRef();
-      OPT_Operand args = bc2ir.popRef();
-      bc2ir.appendInstruction(Call.create1(CALL, null, code, null, args));
     } else if ((methodName == VM_MagicNames.invokeMethodReturningObject)
                || (methodName == VM_MagicNames.invokeMethodReturningVoid) 
                || (methodName == VM_MagicNames.invokeMethodReturningLong) 

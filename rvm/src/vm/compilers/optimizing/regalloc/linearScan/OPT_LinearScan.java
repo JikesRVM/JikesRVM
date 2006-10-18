@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -12,6 +17,7 @@ import org.vmmagic.unboxed.*;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
+import java.lang.reflect.Constructor;
 
 /**
  * Main driver for linear scan register allocation.
@@ -183,6 +189,16 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class RegisterRestrictions extends OPT_CompilerPhase {
 
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
+
     public final boolean shouldPerform(OPT_Options options) { 
       return true; 
     }
@@ -221,6 +237,27 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
        * Also used by ClassWriter
        */
       public OPT_IR ir;
+
+      /**
+       * Constructor
+       */
+      public LinearScan() {}
+
+      /**
+       * Constructor for this compiler phase
+       */
+      private static Constructor constructor;
+
+      /**
+       * Get a constructor object for this compiler phase
+       * @return compiler phase constructor
+       */
+      public Constructor getClassConstructor() {
+        if (constructor == null) {
+          constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LinearScan$LinearScan");
+        }
+        return constructor;
+      }
 
       /**
        * Register allocation is required
@@ -1675,6 +1712,27 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
 
     /**
+     * Constructor
+     */
+    public IntervalAnalysis() {}
+            
+    /**
+     * Constructor for this compiler phase
+     */
+    private static Constructor constructor;
+
+    /**
+     * Get a constructor object for this compiler phase
+     * @return compiler phase constructor
+     */
+    public Constructor getClassConstructor() {
+      if (constructor == null) {
+        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LinearScan$IntervalAnalysis");
+      }
+      return constructor;
+    }
+
+    /**
      * should we perform this phase? yes.
      */
     public final boolean shouldPerform(OPT_Options options) { return true; }
@@ -2247,6 +2305,16 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       return true; 
     }
 
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
+
     public final String getName() { 
       return "Update GCMaps 1"; 
     }
@@ -2302,6 +2370,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    * Update GC Maps again, to account for changes induced by spill code.
    */
   final static class UpdateGCMaps2 extends OPT_CompilerPhase {
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
 
     public final boolean shouldPerform(OPT_Options options) { 
       return true; 
@@ -2411,6 +2488,15 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
    */
   final static class SpillCode extends OPT_CompilerPhase implements
     OPT_Operators{
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
 
     public final boolean shouldPerform(OPT_Options options) { 
       return true; 
@@ -2532,6 +2618,27 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
     public final boolean shouldPerform(OPT_Options options) { 
       return true; 
+    }
+
+    /**
+     * Constructor
+     */
+    public UpdateOSRMaps() {}
+
+    /**
+     * Constructor for this compiler phase
+     */
+    private static Constructor constructor;
+
+    /**
+     * Get a constructor object for this compiler phase
+     * @return compiler phase constructor
+     */
+    public Constructor getClassConstructor() {
+      if (constructor == null) {
+        constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LinearScan$UpdateOSRMaps");
+      }
+      return constructor;
     }
 
     public final String getName() { 

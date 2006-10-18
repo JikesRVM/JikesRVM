@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2002,2005,2006
  */
 // $Id$
@@ -7,17 +12,13 @@ package java.lang;
 
 import gnu.classpath.Configuration;
 import gnu.classpath.SystemProperties;
-//-#if !RVM_WITH_CLASSPATH_0_90
 import gnu.java.lang.InstrumentationImpl;
-//-#endif
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-//-#if !RVM_WITH_CLASSPATH_0_90
 import java.lang.instrument.Instrumentation;
-//-#endif
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.ProtectionDomain;
@@ -57,7 +58,6 @@ final class VMClassLoader
 
   private static final VM_HashMap bootjars = new VM_HashMap();
     
-  //-#if !RVM_WITH_CLASSPATH_0_90
   static
   {
     String[] packages = getBootPackages();
@@ -89,7 +89,6 @@ final class VMClassLoader
           }
       }
   }
-  //-#endif
   
   static final Class defineClass(ClassLoader cl, String name,
                                  byte[] data, int offset, int len,
@@ -222,8 +221,6 @@ final class VMClassLoader
   static Package getPackage(String name) {
     return (Package)definedPackages.get(name);
   }
-
-
   
   static Package[] getPackages() {
     Package[] packages = new Package[definedPackages.size()];
@@ -287,27 +284,55 @@ final class VMClassLoader
     return VM_ClassLoader.getApplicationClassLoader();
   }
 
+  static Class[] getAllLoadedClasses() {
+    Vector classList = new Vector();
+    Iterator classLoaderMaps = loadedClasses.valueIterator();
+    while (classLoaderMaps.hasNext()) {
+      VM_HashMap classes = (VM_HashMap)classLoaderMaps.next();
+      Iterator classIterator = classes.valueIterator();
+      while (classIterator.hasNext())
+        classList.add(classIterator.next());
+    }
+    Class[] result = new Class[classList.size()];
+    return (Class[])classList.toArray(result);
+  }
+
+  static Class[] getInitiatedClasses(ClassLoader classLoader) {
+    VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(classLoader);
+    if (mapForCL == null) return new Class[]{};
+    Vector classList = new Vector();
+    Iterator classIterator = mapForCL.valueIterator();
+    while (classIterator.hasNext())
+      classList.add(classIterator.next());
+    Class[] result = new Class[classList.size()];
+    return (Class[])classList.toArray(result);
+  }
+
   static Class findLoadedClass(ClassLoader cl, String name) {
     VM_HashMap mapForCL = (VM_HashMap)loadedClasses.get(cl);
     if (mapForCL == null) return null;
     return (Class)mapForCL.get(name);
   }
 
-  //-#if !RVM_WITH_CLASSPATH_0_90
-  static final Instrumentation instrumenter = null;
+  private static Instrumentation instrumenter = null;
+
+  static void setInstrumenter(Instrumentation theInstrumenter) {
+    instrumenter = theInstrumenter;
+  }
+
   static final Class defineClassWithTransformers(ClassLoader loader, String name, byte[] data,
                                                  int offset, int len, ProtectionDomain pd) {
     
     if (instrumenter != null) {
       byte[] modifiedData = new byte[len];
       System.arraycopy(data, offset, modifiedData, 0, len);
+      String jvmName = name.replace('.', '/');
       modifiedData =
-        ((InstrumentationImpl)instrumenter).callTransformers(loader, name, null, pd, modifiedData);
+        ((InstrumentationImpl)instrumenter).callTransformers(loader, jvmName, null, pd, modifiedData);
         
       return defineClass(loader, name, modifiedData, 0, modifiedData.length, pd);
     } else {
       return defineClass(loader, name, data, offset, len, pd);
     }
   }
-  //-#endif
 }

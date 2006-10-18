@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -10,8 +15,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Scanning;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -30,12 +34,6 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
   /* Trace */
   private SanityTraceLocal sanityTrace;
 
-  /**
-   * @return The global trace as a SanityChecker instance.
-   */
-  protected static SanityChecker global() {
-    return ActivePlan.global().getSanityChecker();
-  }
 
   /****************************************************************************
    * Constants
@@ -60,7 +58,7 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
     }
 
     if (phaseId == StopTheWorld.SANITY_ROOTS) {
-      Scanning.computeAllRoots(sanityTrace);
+      VM.scanning.computeAllRoots(sanityTrace);
       sanityTrace.flushRoots();
       return true;
     }
@@ -114,14 +112,6 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
       return true;
     }
 
-    if (phaseId == StopTheWorld.SANITY_FORWARD) {
-      if (primary) {
-        TraceLocal trace = ActivePlan.collector().getCurrentTrace();
-        global().getSanityTable().forwardTable(trace);
-      }
-      return true;
-    }
-
     return false;
   }
 
@@ -161,11 +151,19 @@ public class SanityCheckerLocal implements Uninterruptible, Constants {
    * @return The expected (root excluded) reference count.
    */
   protected int sanityExpectedRC(ObjectReference object, 
-                                           int sanityRootRC) {
-
+                                 int sanityRootRC) {
+    if (global().preGCSanity())
+      return SanityChecker.UNSURE;
+    
     Space space = Space.getSpaceForObject(object);
     return space.isReachable(object) 
       ? SanityChecker.ALIVE 
       : SanityChecker.DEAD;
   }
+  
+  /** @return The global trace as a SanityChecker instance. */
+  protected static SanityChecker global() {
+    return VM.activePlan.global().getSanityChecker();
+  }
+
 }

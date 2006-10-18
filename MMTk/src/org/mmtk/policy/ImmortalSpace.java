@@ -1,15 +1,20 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002, 2003, 2004
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -36,6 +41,7 @@ public final class ImmortalSpace extends Space
    * Class variables
    */
   static final Word GC_MARK_BIT_MASK = Word.one();
+  private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
 
   /****************************************************************************
    * 
@@ -62,7 +68,7 @@ public final class ImmortalSpace extends Space
   public ImmortalSpace(String name, int pageBudget, Address start,
                        Extent bytes) {
     super(name, false, true, start, bytes);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -79,7 +85,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, int mb) {
     super(name, false, true, mb);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -98,7 +104,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, float frac) {
     super(name, false, true, frac);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -121,7 +127,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, int mb, boolean top) {
     super(name, false, true, mb, top);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -145,7 +151,7 @@ public final class ImmortalSpace extends Space
    */
   public ImmortalSpace(String name, int pageBudget, float frac, boolean top) {
     super(name, false, true, frac, top);
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /** @return the current mark state */
@@ -157,30 +163,15 @@ public final class ImmortalSpace extends Space
    */
 
   /**
-   * test to see if the mark bit has the given value
+   * Initialize the object header post-allocation.  We need to set the mark state
+   * correctly and set the logged bit if necessary.
+   * 
+   * @param object The newly allocated object instance whose header we are initializing
    */
-  private static boolean testMarkBit(ObjectReference object, Word value) {
-    return !(ObjectModel.readAvailableBitsWord(object).and(value).isZero());
-  }
-
-  /**
-   * write the given value in the mark bit.
-   */
-  private static void writeMarkBit(ObjectReference object, Word value) {
-    Word oldValue = ObjectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-    ObjectModel.writeAvailableBitsWord(object, newValue);
-  }
-
-  /**
-   * atomically write the given value in the mark bit.
-   */
-  private static void atomicWriteMarkBit(ObjectReference object, Word value) {
-    while (true) {
-      Word oldValue = ObjectModel.prepareAvailableBits(object);
-      Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-      if (ObjectModel.attemptAvailableBits(object, oldValue, newValue)) break;
-    }
+  public final void initializeHeader(ObjectReference object) {
+    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(markState);
+    VM.objectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /**
@@ -191,10 +182,10 @@ public final class ImmortalSpace extends Space
       throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
@@ -216,10 +207,6 @@ public final class ImmortalSpace extends Space
     return object;
   }
 
-  public void postAlloc(ObjectReference object) throws InlinePragma {
-    writeMarkBit(object, markState);
-  }
-
   /**
    * Prepare for a new collection increment.  For the immortal
    * collector we must flip the state of the mark bit between
@@ -238,7 +225,8 @@ public final class ImmortalSpace extends Space
    * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
-    Assert._assert(false); // this policy only releases pages enmasse
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
   public final boolean isLive(ObjectReference object) throws InlinePragma {
@@ -257,6 +245,9 @@ public final class ImmortalSpace extends Space
    *         some may be unreachable.
    */
   public boolean isReachable(ObjectReference object) {
-    return (ObjectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
+    if (Plan.SCAN_BOOT_IMAGE && this == Plan.vmSpace)
+      return true;  // ignore boot image "reachabilty" if we're not tracing it
+    else
+      return (VM.objectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
   }
 }

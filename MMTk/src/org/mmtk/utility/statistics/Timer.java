@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
@@ -6,7 +11,7 @@
 package org.mmtk.utility.statistics;
 
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Statistics;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -72,7 +77,7 @@ public class Timer extends LongCounter
    * @return The current value for this timer
    */
   final protected long getCurrentValue() throws InlinePragma {
-    return Statistics.cycles();
+    return VM.statistics.cycles();
   }
 
   /**
@@ -111,7 +116,7 @@ public class Timer extends LongCounter
    * @param value The value to be printed
    */
   final void printMicro(long value) {
-    Log.write(1000 * Statistics.cyclesToMillis(value));
+    Log.write(1000 * VM.statistics.cyclesToMillis(value));
   }
 
   /**
@@ -120,7 +125,7 @@ public class Timer extends LongCounter
    * @param value The value to be printed
    */
   final void printMillis(long value) {
-    Log.write(Statistics.cyclesToMillis(value));
+    Log.write(VM.statistics.cyclesToMillis(value));
   }
 
   /**
@@ -129,7 +134,7 @@ public class Timer extends LongCounter
    * @param value The value to be printed
    */
   final void printSecs(long value) {
-    Log.write(Statistics.cyclesToSecs(value));
+    Log.write(VM.statistics.cyclesToSecs(value));
   }
 }
 

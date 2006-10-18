@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -8,7 +13,7 @@ import org.mmtk.policy.Space;
 
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -52,7 +57,7 @@ public class GenSanityCheckerLocal extends SanityCheckerLocal
     }
 
     // Mature space (nursery collection)
-    if (ActivePlan.global().isCurrentGCNursery()) {
+    if (VM.activePlan.global().isCurrentGCNursery()) {
       return SanityChecker.UNSURE;
     }
 

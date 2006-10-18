@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -222,15 +227,6 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
           instructionCount++;
           break;
         //-#endif
-        case IR_ENDPROLOGUE_opcode:
-          {
-            // Remember where the end of prologue is for debugger
-            OPT_Instruction next = p.nextInstructionInCodeOrder();
-            ir.MIRInfo.instAfterPrologue = next;
-            p.remove();
-            p = next.prevInstructionInCodeOrder();
-          }
-          break;
 
       default:
         if (p.operator().isConditionalBranch())

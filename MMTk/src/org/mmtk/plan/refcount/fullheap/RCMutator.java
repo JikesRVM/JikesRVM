@@ -1,46 +1,47 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
  */
-
 package org.mmtk.plan.refcount.fullheap;
 
+import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCBaseMutator;
-import org.mmtk.policy.RefCountSpace;
-import org.mmtk.policy.RefCountLocal;
-import org.mmtk.utility.Constants;
-import org.mmtk.utility.scan.*;
-import org.mmtk.utility.options.Options;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Barriers;
-import org.mmtk.vm.Memory;
+import org.mmtk.plan.refcount.RCHeader;
+import org.mmtk.policy.Space;
 
-import org.vmmagic.unboxed.*;
+import org.mmtk.utility.Constants;
+import org.mmtk.vm.VM;
+
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-mutator thread</i> behavior and
- * state for the <i>RC</i> plan, a simple full-heap reference
- * counting collector.<p>
+ * This class implements <i>per-mutator thread</i> behavior 
+ * and state for the <i>MS</i> plan, which implements a full-heap
+ * mark-sweep collector.<p>
  * 
- * Specifically, this class implements mutator-time allocation and
- * write barrier semantics.  Allocation and write barriers are all
- * performed with respect to thread local storage, to maximize locality
- * and minimze synchronization.<p>
+ * Specifically, this class defines <i>MS</i> mutator-time allocation
+ * and per-mutator thread collection semantics (flushing and restoring
+ * per-mutator allocator state).<p>
  * 
- * See {@link RC} for a description of the full-heap reference counting
- * algorithm.<p>
+ * @see MC for an overview of the mark-compact algorithm.<p>
  * 
- * FIXME Currently RC does not properly separate mutator and collector
- * behaviors, so most of the collection logic in RCMutator should really
- * be per-collector thread, not per-mutator thread.
+ * FIXME The SegregatedFreeList class (and its decendents such as
+ * MarkSweepLocal) does not properly separate mutator and collector
+ * behaviors, so the ms field below should really not exist in
+ * this class as there is no collection-time allocation in this
+ * collector.
  * 
- * @see RCBaseMutator
  * @see RC
  * @see RCCollector
- * @see org.mmtk.plan.StopTheWorldMutator
- * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
+ * @see StopTheWorldMutator
+ * @see MutatorContext
+ * @see SimplePhase#delegatePhase
  * 
  * $Id$
  * 
@@ -50,67 +51,56 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class RCMutator extends RCBaseMutator implements Uninterruptible, Constants {
+public abstract class RCMutator extends RCBaseMutator implements Uninterruptible, Constants {
   /****************************************************************************
    * 
    * Mutator-time allocation
    */
 
   /**
-   * Allocate space (for an object)
+   * Allocate memory for an object. This class handles the default allocator
+   * from the mark sweep space, and delegates everything else to the
+   * superclass.
    * 
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @param allocator The allocator number to be used for this allocation
-   * @return The address of the first byte of the allocated region
+   * @param bytes The number of bytes required for the object.
+   * @param align Required alignment for the object.
+   * @param offset Offset associated with the alignment.
+   * @param allocator The allocator associated with this request.
+   * @param site Allocation site.
+   * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
-    switch (allocator) {
-    case  RC.ALLOC_RC: return rc.alloc(bytes, align, offset, false);
-    case RC.ALLOC_LOS: return los.alloc(bytes, align, offset, false);
-    default:           return super.alloc(bytes,align,offset,allocator);
+    if (allocator == RC.ALLOC_DEFAULT) {
+      // The default allocator for full heap RC is ALLOC_RC
+      allocator = RC.ALLOC_RC;
     }
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**
-   * Perform post-allocation actions.  For many allocators none are
-   * required.
-   * 
-   * @param object The newly allocated object
+   * Perform post-allocation actions.  Initialize the object header for
+   * objects in the mark-sweep space, and delegate to the superclass for
+   * other objects.
+   *
+   * @param ref The newly allocated object
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public void postAlloc(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator)
-  throws NoInlinePragma {
-    switch (allocator) {
-    case RC.ALLOC_RC:
-      RefCountLocal.unsyncLiveObject(object);
-    case RC.ALLOC_LOS:
-      if (RC.WITH_COALESCING_RC) modBuffer.push(object);
-      decBuffer.push(object);
-      if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(object);
-      RefCountSpace.initializeHeader(object, typeRef, true);
-      return;
-    case RC.ALLOC_IMMORTAL:
-      if (RC.WITH_COALESCING_RC)
-        modBuffer.push(object);
-      else
-        super.postAlloc(object, typeRef, bytes, allocator);
-      return;
-    default:
-      super.postAlloc(object, typeRef, bytes, allocator);
-      return;
+  public void postAlloc(ObjectReference ref, ObjectReference typeRef,
+      int bytes, int allocator) throws InlinePragma {
+    if (allocator == RC.ALLOC_DEFAULT) {
+      // The default allocator for full heap RC is ALLOC_RC
+      allocator = RC.ALLOC_RC;
     }
+    super.postAlloc(ref, typeRef, bytes, allocator);
   }
-
+  
   /****************************************************************************
-   * 
-   * Write barriers.
-   */
+  *
+  * Write barriers.
+  */
 
   /**
    * A new reference is about to be created.  Perform appropriate
@@ -131,9 +121,12 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   public final void writeBarrier(ObjectReference src, Address slot,
-      ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode)
-      throws InlinePragma {
+                                 ObjectReference tgt, Offset metaDataA,
+                                 int metaDataB, int mode)
+  throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS) {
+      // TODO VM.assertions._assert(!Plan.gcInProgress());
+    }
     if (RC.INLINE_WRITE_BARRIER)
       writeBarrierInternal(src, slot, tgt, metaDataA, metaDataB, mode);
     else
@@ -158,20 +151,22 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   private final void writeBarrierInternal(ObjectReference src, Address slot,
-      ObjectReference tgt, Offset metaDataA,
-      int metaDataB, int mode)
-      throws InlinePragma {
+                                          ObjectReference tgt, Offset metaDataA,
+                                          int metaDataB, int mode)
+  throws InlinePragma {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
-      if (RefCountSpace.logRequired(src)) {
+      if (RCHeader.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      Barriers.performWriteInBarrier(src,slot,tgt,metaDataA,metaDataB,mode);
+      VM.barriers.performWriteInBarrier(src,slot,tgt,metaDataA,metaDataB,mode);
     } else {
-      ObjectReference old = Barriers.
+      ObjectReference old = VM.barriers.
       performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
+      
+      if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.pushOOL(old);
-      if (RC.isRCObject(tgt)) RefCountSpace.incRCOOL(tgt);
+      if (RC.isRCObject(tgt)) RCHeader.incRCOOL(tgt);
     }
   }
 
@@ -188,21 +183,23 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   private final void writeBarrierInternalOOL(ObjectReference src, Address slot,
-      ObjectReference tgt,
-      Offset metaDataA, int metaDataB,
-      int mode)
-      throws NoInlinePragma {
+                                             ObjectReference tgt,
+                                             Offset metaDataA, int metaDataB,
+                                             int mode)
+  throws NoInlinePragma {
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
-      if (RefCountSpace.logRequired(src)) {
+      if (RCHeader.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      Barriers.performWriteInBarrier(src,slot,tgt, metaDataA, metaDataB, mode);
+      VM.barriers.performWriteInBarrier(src,slot,tgt, metaDataA, metaDataB, mode);
     } else {
-      ObjectReference old = Barriers.
+      ObjectReference old = VM.barriers.
       performWriteInBarrierAtomic(src,slot,tgt,metaDataA,metaDataB,mode);
+      
+      if (Space.isInSpace(RCBase.VM_SPACE, src)) return;
       if (RC.isRCObject(old)) decBuffer.push(old);
-      if (RC.isRCObject(tgt)) RefCountSpace.incRC(tgt);
+      if (RC.isRCObject(tgt)) RCHeader.incRC(tgt);
     }
   }
 
@@ -229,15 +226,19 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
    * left to the caller (this depends on which style of barrier is
    * being used).
    */
-  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
-      ObjectReference dst, Offset dstOffset, int bytes)
+  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
+                                    ObjectReference dst, Offset dstOffset, int bytes)
   throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS) {
+      // TODO VM.assertions._assert(!Plan.gcInProgress());
+    }
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbFast.inc();
     if (RC.WITH_COALESCING_RC) {
-      if (RefCountSpace.logRequired(dst))
+      if (RCHeader.logRequired(dst))
         coalescingWriteBarrierSlow(dst);
       return false;
     } else {
+      if (Space.isInSpace(RCBase.VM_SPACE, dst)) return false;
       Address s = src.toAddress().plus(srcOffset);
       Address d = dst.toAddress().plus(dstOffset);
       while (bytes > 0) {
@@ -246,8 +247,9 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
         do {
           old = d.prepareObjectReference();
         } while (!d.attempt(old, tgt));
+        
         if (RC.isRCObject(old)) decBuffer.push(old);
-        if (RC.isRCObject(tgt)) RefCountSpace.incRC(tgt);
+        if (RC.isRCObject(tgt)) RCHeader.incRC(tgt);
         s = s.plus(BYTES_IN_ADDRESS);
         d = d.plus(BYTES_IN_ADDRESS);
         bytes -= BYTES_IN_ADDRESS;
@@ -256,97 +258,29 @@ public class RCMutator extends RCBaseMutator implements Uninterruptible, Constan
     }
   }
 
+
   /**
    * Slow path of the coalescing write barrier.
-   * 
+   *
    * <p> Attempt to log the source object. If successful in racing for
    * the log bit, push an entry into the modified buffer and add a
    * decrement buffer entry for each referent object (in the RC space)
    * before setting the header bit to indicate that it has finished
    * logging (allowing others in the race to continue).
-   * 
+   *
    * @param srcObj The object being mutated
    */
   private final void coalescingWriteBarrierSlow(ObjectReference srcObj)
-      throws NoInlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(RC.WITH_COALESCING_RC);
+  throws NoInlinePragma {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(RC.WITH_COALESCING_RC);
+      VM.assertions._assert(RCBase.isRCObject(srcObj));
+    }
     if (RC.GATHER_WRITE_BARRIER_STATS) RC.wbSlow.inc();
-    if (RefCountSpace.attemptToLog(srcObj)) {
+    if (RCHeader.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
-      Scan.enumeratePointers(srcObj, decEnum);
-      RefCountSpace.makeLogged(srcObj);
+      decBuffer.processChildren(srcObj);
+      RCHeader.makeLogged(srcObj);
     }
   }
-
-  /****************************************************************************
-   * 
-   * Collection
-   */
-
-  /**
-   * Perform a per-mutator collection phase.
-   * 
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
-   */
-  public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == RC.PREPARE_MUTATOR) {
-      rc.prepare(primary);
-      if (RC.WITH_COALESCING_RC) processModBufs();
-      Memory.collectorPrepareVMSpace();
-      return;
-    }
-
-    if (phaseId == RC.RELEASE_MUTATOR) {
-      rc.release(this, primary);
-      if (Options.verbose.getValue() > 2) rc.printStats();
-      Memory.collectorReleaseVMSpace();
-      return;
-    }
-
-    super.collectionPhase(phaseId, primary);
-  }
-
-  /****************************************************************************
-   * 
-   * Miscellaneous
-   */
-
-  /** Show the status of each of the allocators. */
-  public final void show() {
-    rc.show();
-    los.show();
-    immortal.show();
-  }
-
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  // FIXME The remainder should be part of the collector!
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-
-  /****************************************************************************
-   * 
-   * Pointer enumeration
-   */
-
-  /**
-   * A field of an object in the modified buffer is being enumerated
-   * by ScanObject. If the field points to the RC space, increment the
-   * count of the referent object.
-   * 
-   * @param objLoc The address of a reference field with an object
-   * being enumerated.
-   */
-  public final void enumerateModifiedPointerLocation(Address objLoc)
-      throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(RC.WITH_COALESCING_RC);
-    ObjectReference object = objLoc.loadObjectReference();
-    if (RC.isRCObject(object)) RefCountSpace.incRC(object);
-  }
-
 }

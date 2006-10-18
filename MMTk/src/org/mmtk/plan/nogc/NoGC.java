@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -8,7 +13,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -59,7 +64,7 @@ public class NoGC extends Plan implements Uninterruptible {
    * @param phaseId Collection phase
    */
   public final void collectionPhase(int phaseId) {
-    Assert._assert(false);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     // if (phaseId == PREPARE) {
     // }
     // if (phaseID == RELEASE) {
@@ -76,7 +81,7 @@ public class NoGC extends Plan implements Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, Space space) {
     if (getPagesReserved() > getTotalPages()) {
-      Assert.fail("GC Triggered in NoGC Plan due to memory exhaustion.");
+      VM.assertions.fail("GC Triggered in NoGC Plan due to memory exhaustion.");
     }
     return false;
   }

@@ -1,4 +1,9 @@
 /* -*-coding: iso-8859-1-*-
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2003
  */
 //$Id$
@@ -18,7 +23,7 @@ import org.vmmagic.pragma.*;
     <p> In this documentation, I will refer to <i>The Java Native Interface
      Programmer's Guide and Specification</i> as the <i>JNI Guide</i>.
 
-    <p> Some of the types I discuss below are described in §12.3 of the JNI
+    <p> Some of the types I discuss below are described in 12.3 of the JNI
      Guide.
 
    <dl>
@@ -43,7 +48,7 @@ import org.vmmagic.pragma.*;
     </dd>
     
     <dt>Field Descriptors</dt>
-    <dd>Described in §12.3.3 of the JNI Guide.
+    <dd>Described in 12.3.3 of the JNI Guide.
      Examples: 
        <ul> 
         <li>"Z" for boolean<br>
@@ -55,7 +60,7 @@ import org.vmmagic.pragma.*;
     </dd>
     
     <dt>Method Descriptors</dt>
-    <dd>Described in §12.3.4 of the JNI guide.  To quote:
+    <dd>Described in 12.3.4 of the JNI guide.  To quote:
 
      <blockquote>
 

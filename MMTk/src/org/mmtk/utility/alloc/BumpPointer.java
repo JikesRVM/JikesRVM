@@ -1,15 +1,19 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
 
 package org.mmtk.utility.alloc;
 
-import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -62,6 +66,8 @@ public class BumpPointer extends Allocator
    */
 
   // Chunk size defines slow path periodicity.
+  private static final int LOG_DEFAULT_STEP_SIZE = 20; // 1M: let the external slow path dominate
+  private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
   protected static final int LOG_CHUNK_SIZE = LOG_BYTES_IN_PAGE + 3;
   protected static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).minus(Word.one());  
 
@@ -74,15 +80,19 @@ public class BumpPointer extends Allocator
   protected static final Offset DATA_START_OFFSET = alignAllocationNoFill(
       Address.zero().plus(DATA_END_OFFSET.plus(BYTES_IN_ADDRESS)),
       MIN_ALIGNMENT, 0).toWord().toOffset();
+  protected static final Offset MAX_DATA_START_OFFSET = alignAllocationNoFill(
+      Address.zero().plus(DATA_END_OFFSET.plus(BYTES_IN_ADDRESS)),
+      MAX_ALIGNMENT, 0).toWord().toOffset();
 
   /****************************************************************************
    * 
    * Instance variables
    */
   protected Address cursor; // insertion point
-  protected Address limit; // current sentinal for bump pointer
+  private Address internalLimit; // current internal slow-path sentinal for bump pointer
+  private Address limit; // current external slow-path sentinal for bump pointer
   protected Space space; // space this bump pointer is associated with
-  protected Address initialRegion; // first contigious region
+  protected Address initialRegion; // first contiguous region
   protected final boolean allowScanning; // linear scanning is permitted if true
   protected Address region; // current contigious region
 
@@ -103,9 +113,10 @@ public class BumpPointer extends Allocator
    * Reset the allocator. Note that this does not reset the space.
    * This is must be done by the caller.
    */
-  public void reset() {
+  public final void reset() {
     cursor = Address.zero();
     limit = Address.zero();
+    internalLimit = Address.zero();
     initialRegion = Address.zero();
     region = Address.zero();
   }
@@ -117,7 +128,7 @@ public class BumpPointer extends Allocator
    * 
    * @param space The space to associate the bump pointer with.
    */
-  public void rebind(Space space) {
+  public final void rebind(Space space) {
     reset();
     this.space = space;
   }
@@ -133,19 +144,102 @@ public class BumpPointer extends Allocator
    * @param inGC Is the allocation request occuring during GC.
    * @return The address of the first byte of the allocated region
    */
-  final public Address alloc(int bytes, int align, int offset, boolean inGC)
+  public final Address alloc(int bytes, int align, int offset, boolean inGC)
       throws InlinePragma {
-    Address oldCursor = alignAllocationNoFill(cursor, align, offset);
-    Address newCursor = oldCursor.plus(bytes);
-    if (newCursor.GT(limit))
-      return allocSlow(bytes, align, offset, inGC);
-    fillAlignmentGap(cursor, oldCursor);
-    cursor = newCursor;
-    return oldCursor;
+    Address start = alignAllocationNoFill(cursor, align, offset);
+    Address end = start.plus(bytes);
+    if (end.GT(internalLimit))
+      return allocSlow(start, end, align, offset, inGC);
+    fillAlignmentGap(cursor, start);
+    cursor = end;
+    return start;
+  }
+
+ /**
+  * Internal allocation slow path.  This is called whenever the bump
+  * pointer reaches the internal limit.  The code is forced out of
+  * line.  If required we perform an external slow path take, which
+  * we inline into this method since this is already out of line.
+  * 
+  * @param start The start address for the pending allocation
+  * @param end The end address for the pending allocation
+  * @param align The requested alignment
+  * @param offset The offset from the alignment 
+  * @param inGC Is the allocation request occuring during GC.
+  * @return The address of the first byte of the allocated region
+  * @throws NoInlinePragma
+  */
+  private final Address allocSlow(Address start, Address end, int align,
+      int offset, boolean inGC) throws NoInlinePragma {
+    Address rtn = null;
+    Address card = null;
+    if (SUPPORT_CARD_SCANNING)
+      card = getCard(start.plus(CARD_MASK)); // round up
+    if (end.GT(limit)) { /* external slow path */
+      rtn = allocSlowInline(end.diff(start).toInt(), align, offset,
+          inGC);
+      if (SUPPORT_CARD_SCANNING && card.NE(getCard(rtn.plus(CARD_MASK))))
+        card = getCard(rtn); // round down  
+    } else {             /* internal slow path */
+      while (internalLimit.LE(end))
+        internalLimit = internalLimit.plus(STEP_SIZE);
+      if (internalLimit.GT(limit))
+        internalLimit = limit;
+      fillAlignmentGap(cursor, start);
+      cursor = end;
+      rtn = start;
+    }
+    if (SUPPORT_CARD_SCANNING && !rtn.isZero())
+      createCardAnchor(card, rtn, end.diff(start).toInt());
+    return rtn;
+  }
+  
+  /**
+   * Given an allocation which starts a new card, create a record of
+   * where the start of the object is relative to the start of the 
+   * card. 
+   * 
+   * @param card An address that lies within the card to be marked
+   * @param start The address of an object which creates a new card.
+   * @param bytes The size of the pending allocation in bytes (used for debugging)
+   */
+  private final void createCardAnchor(Address card, Address start, int bytes) {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(allowScanning);
+      VM.assertions._assert(card.EQ(getCard(card)));
+      VM.assertions._assert(start.diff(card).sLE(MAX_DATA_START_OFFSET));
+      VM.assertions._assert(start.diff(card).toInt() >= -CARD_MASK);
+    }
+    while (bytes > 0) {
+      int offset = start.diff(card).toInt();
+      getCardMetaData(card).store(offset);
+      card = card.plus(1 << LOG_CARD_BYTES);
+      bytes -= (1 << LOG_CARD_BYTES);
+    }
   }
 
   /**
-   * Allocation slow path (called by superclass when slow path is
+   * Return the start of the card corresponding to a given address.
+   * 
+   * @param address The address for which the card start is required
+   * @return The start of the card containing the address
+   */
+  private static final Address getCard(Address address) {
+    return address.toWord().and(Word.fromInt(CARD_MASK).not()).toAddress();
+  }
+  
+  /**
+   * Return the address of the metadata for a card, given the address of the card.
+   * @param card The address of some card
+   * @return The address of the metadata associated with that card
+   */
+  private static final Address getCardMetaData(Address card) {
+    Address metadata = EmbeddedMetaData.getMetaDataBase(card);
+    return metadata.plus(EmbeddedMetaData.getMetaDataOffset(card, LOG_CARD_BYTES-LOG_CARD_META_SIZE, LOG_CARD_META_SIZE));
+  }
+
+  /**
+   * External allocation slow path (called by superclass when slow path is
    * actually taken.  This is necessary (rather than a direct call
    * from the fast path) because of the possibility of a thread switch
    * and corresponding re-association of bump pointers to kernel
@@ -158,22 +252,13 @@ public class BumpPointer extends Allocator
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
-  final protected Address allocSlowOnce(int bytes, int align, int offset,
+  protected final Address allocSlowOnce(int bytes, int align, int offset,
       boolean inGC) {
     /* Check if we already have a chunk to use */
     if (allowScanning && !region.isZero()) {
       Address nextRegion = region.loadAddress(NEXT_REGION_OFFSET);
       if (!nextRegion.isZero()) {
-        region.plus(DATA_END_OFFSET).store(cursor);
-        region = nextRegion;
-        cursor = nextRegion.plus(DATA_START_OFFSET);
-        limit = nextRegion.loadAddress(REGION_LIMIT_OFFSET);
-        nextRegion.store(Address.zero(), DATA_END_OFFSET);
-        Memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
-
-        ((MarkCompactSpace)space).reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
-
-        return alloc(bytes, align, offset, inGC);
+        return consumeNextRegion(nextRegion, bytes, align, offset, inGC);
       }
     }
 
@@ -185,10 +270,58 @@ public class BumpPointer extends Allocator
     if (start.isZero()) return start; // failed allocation
 
     if (!allowScanning) { // simple allocator
-      if (start.NE(limit)) cursor = start;
-      limit = start.plus(chunkSize);
+      if (start.NE(limit)) cursor = start;  // discontigious
+      updateLimit(start.plus(chunkSize), start, bytes);
     } else                // scannable allocator
-      updateMetaData(start, chunkSize);
+      updateMetaData(start, chunkSize, bytes);
+    return alloc(bytes, align, offset, inGC);
+  }
+
+  /**
+   * Update the limit pointer.  As a side effect update the internal limit
+   * pointer appropriately.
+   * 
+   * @param newLimit The new value for the limit pointer
+   * @param start The start of the region to be allocated into
+   * @param bytes The size of the pending allocation (if any).
+   */  
+  protected final void updateLimit(Address newLimit, Address start, int bytes)
+      throws InlinePragma {
+    limit = newLimit;
+    internalLimit = start.plus(STEP_SIZE);
+    if (internalLimit.GT(limit))
+      internalLimit = limit;
+    else {
+      while (internalLimit.LT(cursor.plus(bytes)))
+        internalLimit = internalLimit.plus(STEP_SIZE);
+      if (VM.VERIFY_ASSERTIONS)
+        VM.assertions._assert(internalLimit.LE(limit));
+    }
+  }
+  
+  /**
+   * A bump pointer chuck/region has been consumed but the contigious region
+   * is available, so consume it and then return the address of the start
+   * of a memory region satisfying the outstanding allocation request.  This
+   * is relevant when re-using memory, as in a mark-compact collector.
+   * 
+   * @param nextRegion The region to be consumed
+   * @param bytes The number of bytes allocated
+   * @param align The requested alignment
+   * @param offset The offset from the alignment 
+   * @param inGC Was the request made from within GC?
+   * @return The address of the first byte of the allocated region or
+   * zero on failure
+   */
+  private final Address consumeNextRegion(Address nextRegion, int bytes, int align,
+        int offset, boolean inGC) {
+    region.plus(DATA_END_OFFSET).store(cursor);
+    region = nextRegion;
+    cursor = nextRegion.plus(DATA_START_OFFSET);
+    updateLimit(nextRegion.loadAddress(REGION_LIMIT_OFFSET), nextRegion, bytes); 
+    nextRegion.store(Address.zero(), DATA_END_OFFSET);
+    VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
+    reusePages(Conversions.bytesToPages(limit.diff(region).plus(BYTES_IN_ADDRESS)));
 
     return alloc(bytes, align, offset, inGC);
   }
@@ -199,7 +332,7 @@ public class BumpPointer extends Allocator
    * @param start The start of the new region
    * @param size The size of the new region (rounded up to chunk-alignment)
    */
-  private void updateMetaData(Address start, Extent size)
+  private final void updateMetaData(Address start, Extent size, int bytes)
     throws InlinePragma {
     if (initialRegion.isZero()) {
       /* this is the first allocation */
@@ -215,17 +348,57 @@ public class BumpPointer extends Allocator
       region = start;
       cursor = start.plus(DATA_START_OFFSET);
     }
-    limit = start.plus(size.minus(BYTES_IN_ADDRESS)); // skip over region limit
+    updateLimit(start.plus(size.minus(BYTES_IN_ADDRESS)), start, bytes); // skip over region limit
     region.plus(REGION_LIMIT_OFFSET).store(limit);
   }
+
+  /**
+   * Gather data for GCspy. <p>
+   * This method calls the drivers linear scanner to scan through
+   * the objects allocated by this bump pointer.
+   *
+   * @param driver The GCspy driver for this space.
+   */
+  public void gcspyGatherData(LinearSpaceDriver driver) {
+	//driver.setRange(space.getStart(), cursor);
+    driver.setRange(space.getStart(), limit);
+    this.linearScan(driver.getScanner());
+  }
+  
+  /**
+   * Gather data for GCspy. <p>
+   * This method calls the drivers linear scanner to scan through
+   * the objects allocated by this bump pointer.
+   *
+   * @param driver The GCspy driver for this space.
+   * @param scanSpace The space to scan
+   */
+  public void gcspyGatherData(LinearSpaceDriver driver, Space scanSpace) {
+	//TODO can scanSpace ever be different to this.space?
+    if (VM.VERIFY_ASSERTIONS) 
+	  VM.assertions._assert(scanSpace == space, "scanSpace != space"); 
+    
+	//driver.setRange(scanSpace.getStart(), cursor);
+    Address start = scanSpace.getStart();
+    driver.setRange(start, limit);
+    
+    if (false) {
+      Log.write("\nBumpPointer.gcspyGatherData set Range "); Log.write(scanSpace.getStart());
+      Log.write(" to "); Log.writeln(limit);
+      Log.write("BumpPointergcspyGatherData scan from "); Log.writeln(initialRegion);
+    }
+    
+    linearScan(driver.getScanner());
+  }
+
 
   /**
    * Perform a linear scan through the objects allocated by this bump pointer.
    * 
    * @param scanner The scan object to delegate scanning to.
    */
-  public void linearScan(LinearScan scanner) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(allowScanning);
+  public final void linearScan(LinearScan scanner) throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allowScanning);
     /* Has this allocator ever allocated anything? */
     if (initialRegion.isZero()) return;
 
@@ -243,23 +416,29 @@ public class BumpPointer extends Allocator
    * @param scanner The scan object to delegate to.
    * @param start The start of this region
    */
-  private void scanRegion(LinearScan scanner, Address start)
+  private final void scanRegion(LinearScan scanner, Address start)
       throws InlinePragma {
     /* Get the end of this region */
     Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
 
     /* dataEnd = zero represents the current region. */
-    Address oldCursor = cursor;
     Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
     ObjectReference current =
-      ObjectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
+      VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
 
-    while (ObjectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
-      ObjectReference next = ObjectModel.getNextObject(current);
+    while (VM.objectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
+      ObjectReference next = VM.objectModel.getNextObject(current);
       scanner.scan(current); // Scan this object.
       current = next;
     }
+  }
 
+  /**
+   * Some pages are about to be re-used to satisfy a slow path request.
+   * @param pages The number of pages.
+   */
+  protected void reusePages(int pages) {
+    VM.assertions.fail("Subclasses that reuse regions must override this method.");
   }
 
   /**
@@ -270,14 +449,14 @@ public class BumpPointer extends Allocator
   protected Extent maximumRegionSize() { return Extent.max(); }
 
   /** @return the current cursor value */
-  public Address getCursor() { return cursor; }
+  public final Address getCursor() { return cursor; }
   /** @return the space associated with this bump pointer */
-  public Space getSpace() { return space; }
+  public final Space getSpace() { return space; }
 
   /**
    * Print out the status of the allocator (for debugging)
    */
-  public void show() {
+  public final void show() {
     Log.write("cursor = "); Log.write(cursor);
     if (allowScanning) {
       Log.write(" region = "); Log.write(region);

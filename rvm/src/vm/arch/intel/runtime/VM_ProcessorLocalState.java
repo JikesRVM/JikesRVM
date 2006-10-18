@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -187,19 +192,6 @@ extends OPT_IRTools
   }
 
   //-#if RVM_WITH_OPT_COMPILER
-  /**
-   * Insert code during BURS to load a pointer to the current processor
-   * into a symbolic register, and return the resultant operand
-   */
-  public static OPT_RegisterOperand insertGetCurrentProcessor(OPT_BURS burs) {
-    OPT_RegisterOperand result =
-      burs.ir.regpool.makeTemp(VM_TypeReference.VM_Processor);
-    OPT_Register ESI = burs.ir.regpool.getPhysicalRegisterSet().getESI();
-
-    burs.append(MIR_Move.create(IA32_MOV,result,new OPT_RegisterOperand(ESI, VM_TypeReference.Int)));
-    return result;
-  }
-
   /**
    * Insert code before instruction s to load a pointer to the current 
    * processor into a symbolic register, and return the resultant operand

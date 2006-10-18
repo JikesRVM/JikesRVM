@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
@@ -266,7 +271,7 @@ public class VM_Runtime implements VM_Constants {
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */ 
-  static Object unresolvedNewScalar(int id) 
+  static Object unresolvedNewScalar(int id, int site) 
     throws NoClassDefFoundError, 
            OutOfMemoryError { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
@@ -286,7 +291,8 @@ public class VM_Runtime implements VM_Constants {
                              cls.hasFinalizer(),
                              allocator,
                              align,
-                             offset);
+                             offset,
+                             site);
   }
    
   /**
@@ -299,6 +305,7 @@ public class VM_Runtime implements VM_Constants {
   public static Object resolvedNewScalar(VM_Class cls) {
     
     int allocator = MM_Interface.pickAllocator(cls);
+    int site = MM_Interface.getAllocationSite(false);
     int align = VM_ObjectModel.getAlignment(cls);
     int offset = VM_ObjectModel.getOffsetForAlignment(cls);
     return resolvedNewScalar(cls.getInstanceSize(), 
@@ -306,7 +313,8 @@ public class VM_Runtime implements VM_Constants {
                              cls.hasFinalizer(),
                              allocator,
                              align,
-                             offset);
+                             offset,
+                             site);
   }
 
   /**
@@ -317,6 +325,7 @@ public class VM_Runtime implements VM_Constants {
    * @param allocator int that encodes which allocator should be used
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
+   * @param site the site id of the calling allocation site 
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
@@ -326,7 +335,8 @@ public class VM_Runtime implements VM_Constants {
                                          boolean hasFinalizer, 
                                          int allocator,
                                          int align,
-                                         int offset) 
+                                         int offset,
+                                         int site) 
     throws OutOfMemoryError {
 
     // GC stress testing
@@ -339,7 +349,7 @@ public class VM_Runtime implements VM_Constants {
     }
 
     // Allocate the object and initialize its header
-    Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset);
+    Object newObj = MM_Interface.allocateScalar(size, tib, allocator, align, offset, site);
 
     // Deal with finalization
     if (hasFinalizer) MM_Interface.addFinalizer(newObj);
@@ -351,10 +361,11 @@ public class VM_Runtime implements VM_Constants {
    * Allocate something like "new Foo[]".
    * @param numElements number of array elements
    * @param id id of type reference of array to create.
+   * @param site the site id of the calling allocation site 
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */ 
-  public static Object unresolvedNewArray(int numElements, int id) 
+  public static Object unresolvedNewArray(int numElements, int id, int site) 
     throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
     VM_Type t = tRef.peekResolvedType();
@@ -367,7 +378,7 @@ public class VM_Runtime implements VM_Constants {
       array.instantiate();
     }
 
-    return resolvedNewArray(numElements, array);
+    return resolvedNewArray(numElements, array, site);
   }
 
   /**
@@ -379,6 +390,11 @@ public class VM_Runtime implements VM_Constants {
    */ 
   public static Object resolvedNewArray(int numElements, VM_Array array) 
     throws OutOfMemoryError, NegativeArraySizeException { 
+    return resolvedNewArray(numElements, array, MM_Interface.getAllocationSite(false));
+  }
+  
+  public static Object resolvedNewArray(int numElements, VM_Array array, int site) 
+    throws OutOfMemoryError, NegativeArraySizeException { 
 
     return resolvedNewArray(numElements, 
                             array.getLogElementSize(),
@@ -386,7 +402,8 @@ public class VM_Runtime implements VM_Constants {
                             array.getTypeInformationBlock(),
                             MM_Interface.pickAllocator(array),
                             VM_ObjectModel.getAlignment(array),
-                            VM_ObjectModel.getOffsetForAlignment(array));
+                            VM_ObjectModel.getOffsetForAlignment(array),
+                            site);
   }
    
   /**
@@ -408,7 +425,8 @@ public class VM_Runtime implements VM_Constants {
                                         Object[] tib,
                                         int allocator,
                                         int align,
-                                        int offset)
+                                        int offset,
+                                        int site)
     throws OutOfMemoryError, NegativeArraySizeException {
 
     if (numElements < 0) raiseNegativeArraySizeException();
@@ -424,9 +442,8 @@ public class VM_Runtime implements VM_Constants {
 
     // Allocate the array and initialize its header
     return MM_Interface.allocateArray(numElements, logElementSize, 
-                                      headerSize, tib, allocator, align, offset);
+                                      headerSize, tib, allocator, align, offset, site);
   }
-
 
   /**
    * clone a Scalar or Array Object

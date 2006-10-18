@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002,2004
  */
 // $Id$
@@ -178,11 +183,18 @@ public class VM_BootRecord {
   public Address ipRegister;   // value to place into IP register
   public Address tocRegister;  // value to place into JTOC register
 
+
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
    * added by Ton Ngo for JNI support
    */
   int bootCompleted;       // use for start up by JNI_CreateJavaVM
+
+  /**
+   * address of JavaVM, used by JNI_OnLoad and JNIEnv.GetJavaVM,
+   * defined in Sys.C
+   */
+  public Address sysJavaVM;
 
   // Additional RVM entrypoints
   //
@@ -213,17 +225,6 @@ public class VM_BootRecord {
 
   // Host operating system entrypoints - see "sys.C"
   //
-
-  //-#if RVM_FOR_POWERPC
-  /**
-   * value to place in TOC register when issuing "sys" calls
-   */
-  public Address sysTOC;           
-  /**
-   * dummy function to pair with sysTOC
-   */
-  Address sysIP;            
-  //-#endif
 
   // lowlevel write to console
   public Address sysWriteCharIP;    
@@ -296,9 +297,7 @@ public class VM_BootRecord {
   public Address sysPthreadSignalIP;
   public Address sysPthreadExitIP;
   public Address sysPthreadJoinIP;
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public Address sysStashVmProcessorInPthreadIP;
-  //-#endif
 
   // arithmetic 
   public Address sysLongDivideIP;
@@ -352,9 +351,7 @@ public class VM_BootRecord {
   public Address sysWaitPidsIP;
 
   // system startup pthread sync. primitives
-  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public Address sysCreateThreadSpecificDataKeysIP;
-  //-#endif
   public Address sysInitializeStartupLocksIP;
   public Address sysWaitForVirtualProcessorInitializationIP;
   public Address sysWaitForMultithreadingStartIP;
@@ -389,6 +386,7 @@ public class VM_BootRecord {
    public Address gcspyDriverInitIP;
    public Address gcspyDriverInitOutputIP;
    public Address gcspyDriverResizeIP;
+   public Address gcspyDriverSetTileNameRangeIP;
    public Address gcspyDriverSetTileNameIP;
    public Address gcspyDriverSpaceInfoIP;
    public Address gcspyDriverStartCommIP;

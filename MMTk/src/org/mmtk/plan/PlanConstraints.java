@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -33,7 +38,7 @@ public abstract class PlanConstraints implements Uninterruptible {
   public boolean needsStaticReadBarrier() { return false; }
 
   /** @return True if this Plan requires linear scanning. */
-  public boolean needsLinearScan() { return false;}
+  public boolean needsLinearScan() { return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;}
 
   /** @return True if this Plan does not support parallel collection. */
   public boolean noParallelGC() { return false;}

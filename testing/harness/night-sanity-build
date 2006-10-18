@@ -1,0 +1,118 @@
+#! /bin/bash
+#
+# This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+# The Jikes RVM project is distributed under the Common Public License (CPL).
+# A copy of the license is included in the distribution, and is also
+# available at http://www.opensource.org/licenses/cpl1.0.php
+#
+# (C) Copyright IBM Corp. 2001, 2003
+#
+# $Id$
+#
+# @author Julian Dolby
+#
+# @modified Steven Augart
+
+# This script will build the boot images
+## 
+## By giving the "-wait sem" flags to NightSanityDriver, it tells
+## NightSanityDriver to create a semaphore file in each build in the
+## images directory, upon completion of each build.  night-sanity-run
+## then uses that information to know when it's OK to start the tests
+## that use that particular image.
+
+ME="${0##*/}"
+function usage() {
+    echo >&2 "Usage: $ME [-no-javadoc] <build-configuration>"
+    [ "$*" ] && echo >&2 "$ME: $*"
+    exit 1
+}
+function croak() {
+    exec >&2			# stderr
+    if [ "$*" ]; then
+	echo "$ME: $*"
+    fi
+    echo "$ME: Aborting Execution; goodbye!"
+    exit 2
+}
+
+do_javadoc=1
+while (( $# > 0 )); do
+    case "$1" in
+	-no-javadoc )
+	    do_javadoc=0;
+	    shift;
+	    ;;
+	-* )
+	    echo "$ME: Got unknown flag \"$1\"; can't go on." \
+		tee -a $RUN_LOG $MSG >&2
+	    trouble=1
+	    shift
+	    ;;
+	* )
+	    break 
+	    ;;
+    esac
+done
+
+(( $# == 1 )) || usage "You gave $# arguments; I expected exactly 1 argument."
+configuration="$1"
+export PATH=$PATH:.
+
+config_fullpath=$RVM_ROOT/testing/harness/config/$configuration
+[ "$RVM_ROOT" ] || croak "RVM_ROOT must be set, but isn't."
+[[ -f "${config_fullpath}" ]] || croak "Cannot find $configuration in the directory $RVM_ROOT/testing/harness/config/"
+
+[[ -d $RVM_ROOT/results ]] || croak "The directory $RVM_ROOT/results does not exist; I have no place to write my log files."
+# Where the fullshadow and other verbose output are placed, not mailed
+export VERBOSE_LOG="$RVM_ROOT"/results/verbose.log
+
+# Where the build output is placed, this is mailed when the tests failed
+export BUILD_LOG="$RVM_ROOT"/results/build.log
+
+trap "echo >&2 $ME: Aborting execution early due to an error while running some program" ERR
+set -e
+
+umask 022
+
+## If stdin is a terminal, then go ahead and display this message.  This means
+## that we will not display it when running under cron, which is
+## a good thing.
+if [[ -t 0 ]]; then
+    echo "Any further output will go to $BUILD_LOG"
+fi
+exec >> $BUILD_LOG 2>&1
+
+# build the boot images, but don't run any tests
+images="$RVM_ROOT/images"
+echo "Building the boot images, in $images"
+results="$RVM_ROOT/results"
+echo "Results go into $results";
+echo "Using the configuration $configuration, in $config_fullpath"
+
+
+$RVM_ROOT/testing/harness/NightSanityDriver -common "-images $images -result $results -norun -wait sem" -config "${configuration}" || croak "Running NightSanityDriver to build (-norun) failed miserably."
+
+if (( do_javadoc == 1 )); then
+    echo "OK, now we will try to build the Javadoc for the development image"
+    fass_dir="$RVM_ROOT/images/development"
+    if [[ ! -d $fass_dir ]]; then
+	echo "$ME: It looks as if you didn't make a development build.  We'll skip jdoc.sh."
+    else
+	je="$fass_dir/environment.host"
+	. $je || croak "Unable to load $je"
+	"$RVM_ROOT/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
+	# NOTE: this sequence won't work on sourceforge;  need to rework
+	#       most likely by using an scp/ssh combination and a utility id.
+	if [[ -d $RVM_ROOT/pushAPI ]]; then
+	    echo "Publishing Javadoc to dW webspace via cvs commit"
+	    cd $RVM_ROOT/doc/api || croak "$RVM_ROOT/doc/api directory missing!?  jdoc.sh should have reported this problem already, but it didn't."
+	    tar czf $RVM_ROOT/pushAPI/api.tar.gz * || croak "Tarring up the API failed."
+	    cd $RVM_ROOT/pushAPI || croak "The filesystem is changing under our feet!?"
+	    cvs add -kb api.tar.gz || croak "cvs add -kb api.tar.gz failed"
+	    cvs commit -m "push it" || croak "Unable to commit the Javadoc to dW space"
+	fi
+    fi
+fi
+
+echo -e "\n\nBuild complete, builder script exiting.\n"

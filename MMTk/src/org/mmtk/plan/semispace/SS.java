@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
@@ -7,6 +12,7 @@ package org.mmtk.plan.semispace;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.Collection;
+import org.mmtk.vm.VM;
 import org.mmtk.plan.*;
 
 import org.vmmagic.pragma.*;
@@ -168,7 +174,7 @@ public class SS extends StopTheWorld implements Uninterruptible {
       required = space.reservedPages() - space.committedPages();
       if (space == copySpace0 || space == copySpace1)
         required = required << 1; // must account for copy reserve
-      Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
@@ -200,7 +206,7 @@ public class SS extends StopTheWorld implements Uninterruptible {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
-  public final int getPagesUsed() {
+  public int getPagesUsed() {
     return super.getPagesUsed() + toSpace().reservedPages();
   }
 

@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -99,12 +104,12 @@ public abstract class VM_CompilerFramework implements VM_BytecodeConstants, VM_S
   protected final boolean isInterruptible;
 
   /**
-   * Is the method currently being compiled unpreemtible?
+   * Is the method currently being compiled uninterruptible?
    */
   protected final boolean isUninterruptible;
 
   /**
-   * Is the method currently being compiled uninterruptible?
+   * Is the method currently being compiled unpreemtible?
    */
   protected final boolean isUnpreemptible;
 

@@ -1,9 +1,0 @@
-#
-# (C) Copyright IBM Corp. 2001
-# $Id$
-#
-# @author Julian Dolby
-
-This directory is a place for people to create/run their own private
-test cases.  The only files that should be in CVS in this directory
-are Makefile and README.  

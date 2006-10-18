@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -2657,12 +2662,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     int align = VM_ObjectModel.getAlignment(typeRef);
     int offset = VM_ObjectModel.getOffsetForAlignment(typeRef);
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitLAddrToc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, instanceSize);
     asm.emitLAddrToc(T1, tibOffset);
     asm.emitLVAL(T2, typeRef.hasFinalizer()?1:0);
     asm.emitLVAL(T3, whichAllocator);
+    asm.emitLVAL(T4, site);
     asm.emitLVAL(T4, align);
     asm.emitLVAL(T5, offset);
     asm.emitBCCTRL();
@@ -2674,9 +2681,11 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_new(VM_TypeReference typeRef) {
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitLAddrToc(T0, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, typeRef.getId());
+    asm.emitLVAL(T1, site);
     asm.emitBCCTRL();
     pushAddr(T0);
   }
@@ -2690,11 +2699,13 @@ public class VM_Compiler extends VM_BaselineCompiler
     Offset tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
+    int site = MM_Interface.getAllocationSite(true);
     int align = VM_ObjectModel.getAlignment(array);
     int offset = VM_ObjectModel.getOffsetForAlignment(array);
     asm.emitLAddrToc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0,0);                    // T0 := number of elements
+    asm.emitLVAL(T5, site);           // T4 := site
     asm.emitLVAL(T1, width);         // T1 := log element size
     asm.emitLVAL(T2, headerSize);    // T2 := header bytes
     asm.emitLAddrToc(T3, tibOffset);  // T3 := tib
@@ -2710,10 +2721,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param typeRef the type reference to dynamically link & instantiate
    */
   protected final void emit_unresolved_newarray(VM_TypeReference typeRef) {
+    int site = MM_Interface.getAllocationSite(true);
     asm.emitLAddrToc (T0, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     peekInt(T0,0);                // T0 := number of elements
     asm.emitLVAL(T1, typeRef.getId());      // T1 := id of type ref
+    asm.emitLVAL(T2, site);
     asm.emitBCCTRL();
     pokeAddr(T0,0);
   }
@@ -3359,21 +3372,22 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param methodToBeCalled method whose name indicates semantics of code to be generated
    * @return true if there was magic defined for the method
    */
-  private boolean  generateInlineCode(VM_MethodReference methodToBeCalled) {
+  private boolean generateInlineCode(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
       
     if (methodToBeCalled.getType() == VM_TypeReference.SysCall) {
       VM_TypeReference[] args = methodToBeCalled.getParameterTypes();
 
-      // (1) Set up arguments according to OS calling convention
+      // (1) Set up arguments according to OS calling convention, excluding the first
+      // which is not an argument to the native function but the address of the function to call
       int paramWords = methodToBeCalled.getParameterWords();
       int gp = FIRST_OS_PARAMETER_GPR;
       int fp = FIRST_OS_PARAMETER_FPR;
-      int stackIndex = paramWords;
-      int paramBytes = (VM.BuildFor64Addr? args.length : paramWords) * BYTES_IN_STACKSLOT;
+      int stackIndex = paramWords - 1;
+      int paramBytes = ((VM.BuildFor64Addr? args.length : paramWords) - 1)* BYTES_IN_STACKSLOT;
       int callee_param_index = - BYTES_IN_STACKSLOT - paramBytes;
       
-      for (int i=0; i<args.length; i++) {
+      for (int i=1; i<args.length; i++) {
         VM_TypeReference t = args[i];
         if (t.isLongType()) {
           stackIndex -= 2;
@@ -3447,8 +3461,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       }
 
       // (2) Call it
-      VM_Field ip = VM_Entrypoints.getSysCallField(methodName.toString());
-      generateSysCall(paramBytes, ip);
+      peekAddr(S0, paramWords - 1); // Load addres of function into S0
+      generateSysCall(paramBytes); // make the call
 
       // (3) Pop Java expression stack
       discardSlots(paramWords);
@@ -3494,8 +3508,7 @@ public class VM_Compiler extends VM_BaselineCompiler
         return true;
       }
 
-      if (methodName == VM_MagicNames.loadChar ||
-          methodName == VM_MagicNames.loadShort) {
+      if (methodName == VM_MagicNames.loadChar) {
 
         if (types.length == 0) {
           popAddr(T0);                  // pop base
@@ -3505,6 +3518,21 @@ public class VM_Compiler extends VM_BaselineCompiler
           popInt(T1);                   // pop offset
           popAddr(T0);                  // pop base
           asm.emitLHZX(T0, T1, T0);     // load with zero extension.
+          pushInt(T0);                  // push *(base+offset) 
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadShort) {
+
+        if (types.length == 0) {
+          popAddr(T0);                  // pop base
+          asm.emitLHA(T0, 0, T0);       // load with sign extension.
+          pushInt(T0);                  // push *(base) 
+        } else {
+          popInt(T1);                   // pop offset
+          popAddr(T0);                  // pop base
+          asm.emitLHAX(T0, T1, T0);     // load with sign extension.
           pushInt(T0);                  // push *(base+offset) 
         }
         return true;
@@ -3809,12 +3837,6 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitBC   (NE, label);               // lower rolled over, try again
       }
       pushLong(T0,T1);              
-    } else if (methodName == VM_MagicNames.invokeMain) {
-      popAddr(T0); // t0 := ip
-      asm.emitMTCTR(T0);
-      peekAddr(T0,0); // t0 := parameter
-      asm.emitBCCTRL();          // call
-      discardSlot(); // pop parameter
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
       popAddr(T0); // t0 := address to be called
       asm.emitMTCTR(T0);
@@ -4252,7 +4274,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
-    return methodName == VM_MagicNames.invokeMain                  ||
+    return
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||
       methodName == VM_MagicNames.invokeMethodReturningInt    ||
@@ -4365,6 +4387,17 @@ public class VM_Compiler extends VM_BaselineCompiler
    *    appear in the parameter save area right to left (C conventions)
    */
   private void generateSysCall(int parametersSize, VM_Field target) {
+    // acquire toc and ip from bootrecord
+    asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
+    asm.emitLAddrOffset(S0, S0, target.getOffset());
+    generateSysCall(parametersSize);
+  }
+
+  /**
+   * Generate a sys call where the address of the function or (when POWEROPEN_ABI is defined)
+   * function descriptor have been loaded into S0 already
+   */
+  private void generateSysCall(int parametersSize) {
     int linkageAreaSize   = parametersSize + BYTES_IN_STACKSLOT + (6 * BYTES_IN_STACKSLOT);
 
     if (VM.BuildFor32Addr) {
@@ -4373,14 +4406,15 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitSTDU (FP,  -linkageAreaSize, FP);        // create linkage area
     }
     asm.emitSTAddr(JTOC, linkageAreaSize-BYTES_IN_STACKSLOT, FP);      // save JTOC
-
-    // acquire toc and ip from bootrecord
-    asm.emitLAddrToc(S0, VM_Entrypoints.the_boot_recordField.getOffset());
-    asm.emitLAddrOffset(JTOC, S0, VM_Entrypoints.sysTOCField.getOffset());
-    asm.emitLAddrOffset(0, S0, target.getOffset());
-
+    //-#if RVM_WITH_POWEROPEN_ABI
+	/* GPR0 is pointing to the function descriptor, so we need to load the TOC and IP from that */
+	// Load TOC (Offset one word)
+	asm.emitLAddrOffset(JTOC, S0, Offset.fromInt(BYTES_IN_STACKSLOT));
+	// Load IP (offset 0)
+	asm.emitLAddrOffset(S0, S0, Offset.zero());
+    //-#endif
     // call it
-    asm.emitMTCTR(0);
+    asm.emitMTCTR(S0);
     asm.emitBCCTRL(); 
 
     // cleanup

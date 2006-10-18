@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
  */
@@ -9,7 +14,7 @@ import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -42,7 +47,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class GenMSMutator extends GenMutator implements Uninterruptible {
+public abstract class GenMSMutator extends GenMutator implements Uninterruptible {
   /******************************************************************
    * Instance fields
    */
@@ -79,14 +84,15 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
    * @param align Required alignment for the object.
    * @param offset Offset associated with the alignment.
    * @param allocator The allocator associated with this request.
+   * @param site Allocation site
    * @return The low address of the allocated memory.
    */
-  public final Address alloc(int bytes, int align, int offset, int allocator)
+  public final Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == GenMS.ALLOC_MATURE) {
       return mature.alloc(bytes, align, offset, false);
     }
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**
@@ -101,7 +107,7 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) throws InlinePragma {
     if (allocator == GenMS.ALLOC_MATURE) {
-      GenMS.msSpace.initializeHeader(ref);
+      GenMS.msSpace.initializeHeader(ref, true);
     } else {
       super.postAlloc(ref, typeRef, bytes, allocator);
     }
@@ -176,6 +182,6 @@ public class GenMSMutator extends GenMutator implements Uninterruptible {
 
   /** @return The active global plan as a <code>GenMS</code> instance. */
   private static final GenMS global() throws InlinePragma {
-    return (GenMS) ActivePlan.global();
+    return (GenMS) VM.activePlan.global();
   }
 }

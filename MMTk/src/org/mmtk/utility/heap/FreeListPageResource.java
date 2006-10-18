@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
@@ -8,8 +13,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
-import org.mmtk.utility.Memory;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
@@ -90,7 +94,7 @@ public final class FreeListPageResource extends PageResource
   public FreeListPageResource(int pageBudget, Space space) {
     super(pageBudget, space);
     /* unimplemented */
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false); 
   }
 
   /**
@@ -105,7 +109,7 @@ public final class FreeListPageResource extends PageResource
    * failure.
    */
   protected final Address allocPages(int pages) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(contiguous);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     lock();
     int pageOffset = freeList.alloc(pages);
     if (pageOffset == -1) {
@@ -122,8 +126,8 @@ public final class FreeListPageResource extends PageResource
         }
       }
       Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
-      LazyMmapper.ensureMapped(rtn, pages);
-      Memory.zero(rtn, Conversions.pagesToBytes(pages));
+      Mmapper.ensureMapped(rtn, pages);
+      VM.memory.zero(rtn, Conversions.pagesToBytes(pages));
       unlock();
       return rtn;
     }
@@ -139,19 +143,19 @@ public final class FreeListPageResource extends PageResource
    */
   public final void releasePages(Address first)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(Conversions.isPageAligned(first));
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(Conversions.isPageAligned(first));
 
     int pageOffset = Conversions.bytesToPages(first.diff(start));
 
     int pages = freeList.size(pageOffset);
     if (ZERO_ON_RELEASE)
-      Memory.zero(first, Conversions.pagesToBytes(pages));
+      VM.memory.zero(first, Conversions.pagesToBytes(pages));
     /* Can't use protect here because of the chunk sizes involved!
     if (protectOnRelease.getValue())
       LazyMmapper.protect(first, pages);
      */
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(pages <= committed);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(pages <= committed);
 
     lock();
     reserved -= pages;
@@ -159,7 +163,6 @@ public final class FreeListPageResource extends PageResource
     freeList.free(pageOffset);
     unlock();
   }
-
 
   /**
    * Reserve virtual address space for meta-data.
@@ -169,18 +172,40 @@ public final class FreeListPageResource extends PageResource
   private final void reserveMetaData(Extent extent) {
     highWaterMark = 0;
     if (metaDataPagesPerRegion > 0) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
       Extent size = extent.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toExtent();
       Address cursor = start.plus(size);
       while (cursor.GT(start)) {
         cursor = cursor.minus(EmbeddedMetaData.BYTES_IN_REGION);
         int unit = cursor.diff(start).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
         int tmp = freeList.alloc(metaDataPagesPerRegion, unit);
-        if (Assert.VERIFY_ASSERTIONS) Assert._assert(tmp == unit);
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == unit);
       }
     }
   }
 
+  /**
+   * Adjust a page request to include metadata requirements, if any.  In the
+   * case of a free-list allocator, meta-data is pre-allocated, so simply
+   * return the un-adjusted request size.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @return The (unadjusted) request size, since metadata is pre-allocated
+   */
+  public final int adjustForMetaData(int pages) { return pages; }
+  
+  /**
+   * Adjust a page request to include metadata requirements, if any.  In the
+   * case of a free-list allocator, meta-data is pre-allocated, so simply
+   * return the un-adjusted request size.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @param begin The start of the region of memory assigned to this pending
+   * allocation
+   * @return The (unadjusted) request size, since metadata is pre-allocated
+   */
+  public final int adjustForMetaData(int pages, Address begin) { return pages; }
+  
   final int pages(Address first) throws InlinePragma {
     return freeList.size(Conversions.bytesToPages(first.diff(start)));
   }
@@ -198,8 +223,8 @@ public final class FreeListPageResource extends PageResource
    */
   public final Extent getSize(Address first)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(Conversions.isPageAligned(first));
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(Conversions.isPageAligned(first));
 
     int pageOffset = Conversions.bytesToPages(first.diff(start));
     int pages = freeList.size(pageOffset);

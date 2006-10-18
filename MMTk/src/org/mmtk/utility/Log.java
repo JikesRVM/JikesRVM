@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001, 2002, 2003
  *
  * (C) Copyright Department of Computer Science,
@@ -9,10 +14,7 @@ package org.mmtk.utility;
 
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.Barriers;
-import org.mmtk.vm.Strings;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -118,7 +120,7 @@ public class Log implements Constants, Uninterruptible {
   /** constructor */
   public Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
-      Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
+      VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
           OVERFLOW_MESSAGE.charAt(i));
   }
 
@@ -155,28 +157,28 @@ public class Log implements Constants, Uninterruptible {
     char[] intBuffer = getIntBuffer();
 
     nextDigit = (int) (l % 10);
-    nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
+    nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
                                               negative
                                               ? - nextDigit
                                               : nextDigit);
-    Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+    VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
     l = l / 10;
 
     while (l != 0) {
       nextDigit = (int) (l % 10);
-      nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
+      nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
                                                 negative
                                                 ? - nextDigit
                                                 : nextDigit);
-      Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+      VM.barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
       l = l / 10;
     }
 
     if (negative)
-      Barriers.setArrayNoBarrier(intBuffer, index--, '-');
+      VM.barriers.setArrayNoBarrier(intBuffer, index--, '-');
 
     for (index++; index < TEMP_BUFFER_SIZE; index++)
-      add(Barriers.getArrayNoBarrier(intBuffer, index));
+      add(VM.barriers.getArrayNoBarrier(intBuffer, index));
   }
 
   /**
@@ -222,12 +224,13 @@ public class Log implements Constants, Uninterruptible {
     }
 
     boolean negative = (d < 0.0);
-    d = (d < 0.0) ? (-d) : d;
+    d = negative ? (-d) : d;       // Take absolute value
     int ones = (int) d;
     int multiplier = 1;
     while (postDecimalDigits-- > 0)
       multiplier *= 10;
     int remainder = (int) (multiplier * (d - ones));
+    if (remainder < 0) remainder = 0;
     if (negative) write('-');
     write(ones);
     write('.');
@@ -255,9 +258,9 @@ public class Log implements Constants, Uninterruptible {
    * the first character
    */
   public static void write(char[] c, int len) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(len <= c.length);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(len <= c.length);
     for (int i = 0; i < len; i++)
-      add(Barriers.getArrayNoBarrier(c, i));
+      add(VM.barriers.getArrayNoBarrier(c, i));
   }
 
   /**
@@ -268,7 +271,7 @@ public class Log implements Constants, Uninterruptible {
    */
   public static void write(byte[] b) {
     for (int i = 0; i < b.length; i++)
-      add((char) Barriers.getArrayNoBarrier(b, i));
+      add((char) VM.barriers.getArrayNoBarrier(b, i));
   }
 
   /**
@@ -309,6 +312,32 @@ public class Log implements Constants, Uninterruptible {
    */
   public static void write(Address a) {
     writeHex(a.toWord(), BYTES_IN_ADDRESS);
+  }
+  
+  /**
+   * writes a string followed by an address, in hexademical.
+   * @see #write(String)
+   * @see #write(Address)
+   *
+   * @param s the string to be logged
+   * @param a the address to be logged
+   */
+  public static void write(String s, Address a) {
+    write(s);
+    write(a);
+  }
+
+  /**
+   * Write a string followed by a long
+   * @see #write(String)
+   * @see #write(long)
+   *
+   * @param s the string to be logged
+   * @param l the long to be logged
+   */
+  public static void write(String s, long l) {
+    write(s);
+    write(l);
   }
 
   /**
@@ -716,7 +745,7 @@ public class Log implements Constants, Uninterruptible {
 
     for (int digitNumber = hexDigits - 1; digitNumber >= 0; digitNumber--) {
       nextDigit = w.rshl(digitNumber << LOG_BITS_IN_HEX_DIGIT).toInt() & 0xf;
-      char nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
+      char nextChar = VM.barriers.getArrayNoBarrier(hexDigitCharacter,
                                                      nextDigit);
       add(nextChar);
     }
@@ -741,8 +770,8 @@ public class Log implements Constants, Uninterruptible {
   }
 
   private static Log getLog() {
-    if (Assert.runningVM())
-      return ActivePlan.collector().getLog();
+    if (VM.assertions.runningVM())
+      return VM.activePlan.collector().getLog();
     else
       return log;
   }
@@ -754,7 +783,7 @@ public class Log implements Constants, Uninterruptible {
    */
   private void addToBuffer(char c) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE)
-      Barriers.setArrayNoBarrier(buffer, bufferIndex++, c);
+      VM.barriers.setArrayNoBarrier(buffer, bufferIndex++, c);
     else {
       overflow = true;
       overflowLastChar = c;
@@ -768,14 +797,14 @@ public class Log implements Constants, Uninterruptible {
    */
   private void addToBuffer(String s) {
     if (bufferIndex < MESSAGE_BUFFER_SIZE) {
-      bufferIndex += Strings.copyStringToChars(s, buffer, bufferIndex,
+      bufferIndex += VM.strings.copyStringToChars(s, buffer, bufferIndex,
           MESSAGE_BUFFER_SIZE + 1);
       if (bufferIndex == MESSAGE_BUFFER_SIZE + 1) {
         overflow = true;
         // We don't bother setting OVERFLOW_LAST_CHAR, since we don't have an
         // MMTk method that lets us peek into a string. Anyway, it's just a
         // convenience to get the newline right.
-        Barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
+        VM.barriers.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE,
             OVERFLOW_MESSAGE_FIRST_CHAR);
         bufferIndex--;
       }
@@ -792,9 +821,9 @@ public class Log implements Constants, Uninterruptible {
       overflow ? MESSAGE_BUFFER_SIZE + OVERFLOW_SIZE + newlineAdjust
       : bufferIndex;
     if (threadIdFlag)
-      Strings.writeThreadId(buffer, totalMessageSize);
+      VM.strings.writeThreadId(buffer, totalMessageSize);
     else
-      Strings.write(buffer, totalMessageSize);
+      VM.strings.write(buffer, totalMessageSize);
     threadIdFlag = false;
     overflow = false;
     overflowLastChar = '\0';

@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -616,6 +621,13 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
                                   FIRST_INT+LAST_NONVOLATILE_GPR);
   }
 
+
+  /** 
+   * Enumerate the nonvolatile GPRs backwards.
+   */
+  public Enumeration enumerateNonvolatileGPRsBackwards() {
+    return new OPT_ReverseEnumerator(enumerateNonvolatileGPRs());
+  }
 
   /**
    * Enumerate all the volatile FPRs in this set.

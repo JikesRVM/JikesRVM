@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2002
  */
 //$Id$
@@ -19,6 +24,16 @@ public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
 
   public final boolean shouldPerform(OPT_Options options){
     return true;
+  }
+
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
   }
 
   public final String getName() { return "AdjustBytecodeIndexes"; }

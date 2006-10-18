@@ -1,16 +1,21 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
 package org.mmtk.utility.heap;
 
+import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.options.Options;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.Memory;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -36,6 +41,7 @@ public final class MonotonePageResource extends PageResource
    */
   private Address cursor;
   private Address sentinel;
+  private int metaDataPagesPerRegion;
 
   /**
    * Constructor
@@ -48,12 +54,15 @@ public final class MonotonePageResource extends PageResource
    * @param space The space to which this resource is attached
    * @param start The start of the address range allocated to this resource
    * @param bytes The size of the address rage allocated to this resource
+   * @param metaDataPagesPerRegion The number of pages of meta data
+   * that are embedded in each region.
    */
   public MonotonePageResource(int pageBudget, Space space, Address start,
-      Extent bytes) {
+      Extent bytes, int metaDataPagesPerRegion) {
     super(pageBudget, space, start);
     this.cursor = start;
     this.sentinel = start.plus(bytes);
+    this.metaDataPagesPerRegion = metaDataPagesPerRegion;
   }
 
   /**
@@ -68,15 +77,18 @@ public final class MonotonePageResource extends PageResource
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    * @param space The space to which this resource is attached
+   * @param metaDataPagesPerRegion The number of pages of meta data
+   * that are embedded in each region.
    */
-  public MonotonePageResource(int pageBudget, Space space) {
+  public MonotonePageResource(int pageBudget, Space space, int metaDataPagesPerRegion) {
     super(pageBudget, space);
     /* unimplemented */
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false); 
     this.contiguous = false;
     this.start = Address.zero();
     this.cursor = Address.zero();
     this.sentinel = Address.zero();
+    this.metaDataPagesPerRegion = metaDataPagesPerRegion;
   }
 
   /**
@@ -87,15 +99,31 @@ public final class MonotonePageResource extends PageResource
    * mmpapped and zeroed before returning the address of the start of
    * the region.  If the request cannot be satisified, return zero.
    *
-   * @param pages The number of pages to be allocated.
+   * @param requestPages The number of pages to be allocated.
    * @return The start of the first page if successful, zero on
    * failure.
    */
-  protected final Address allocPages(int pages) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(contiguous);
+  protected final Address allocPages(int requestPages) throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(contiguous);
+    int pages = requestPages;
     lock();
+    Address rtn = cursor;
+    if (metaDataPagesPerRegion != 0) {
+      /* adjust allocation for metadata */
+      Address regionStart = getRegionStart(cursor.plus(Conversions
+          .pagesToBytes(pages)));
+      Offset regionDelta = regionStart.diff(cursor);
+      if (regionDelta.sGE(Offset.zero())) {
+        /* start new region, so adjust pages and return address accordingly */
+        pages += Conversions.bytesToPages(regionDelta) + metaDataPagesPerRegion;
+        rtn = regionStart.plus(Conversions.pagesToBytes(metaDataPagesPerRegion));
+      }
+    }
     Extent bytes = Conversions.pagesToBytes(pages);
     Address tmp = cursor.plus(bytes);
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(rtn.GE(cursor) && rtn.LT(cursor.plus(bytes)));
     if (tmp.GT(sentinel)) {
       unlock();
       return Address.zero();
@@ -103,10 +131,57 @@ public final class MonotonePageResource extends PageResource
       Address old = cursor;
       cursor = tmp;
       unlock();
-      LazyMmapper.ensureMapped(old, pages);
-      Memory.zero(old, bytes);
-      return old;
+      Mmapper.ensureMapped(old, pages);
+      VM.memory.zero(old, bytes);
+      return rtn;
     }
+    }
+
+  /**
+   * Adjust a page request to include metadata requirements, if any.<p>
+   * 
+   * Note that there could be a race here, with multiple threads each
+   * adjusting their request on account of the same single metadata
+   * region.  This should not be harmful, as the failing requests will
+   * just retry, and if multiple requests succeed, only one of them
+   * will actually have the metadata accounted against it, the others
+   * will simply have more space than they originally requested.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @return The number of required pages, inclusive of any metadata
+   */
+  public final int adjustForMetaData(int pages) { 
+    Extent bytes = Conversions.pagesToBytes(pages);
+    if (metaDataPagesPerRegion != 0) {
+      if (cursor.LE(getRegionStart(cursor.plus(bytes))))
+        pages += metaDataPagesPerRegion;
+    }
+    return pages;
+   }
+
+  /**
+   * Adjust a page request to include metadata requirements, if any.<p>
+   * 
+   * Note that there could be a race here, with multiple threads each
+   * adjusting their request on account of the same single metadata
+   * region.  This should not be harmful, as the failing requests will
+   * just retry, and if multiple requests succeed, only one of them
+   * will actually have the metadata accounted against it, the others
+   * will simply have more space than they originally requested.
+   * 
+   * @param pages The size of the pending allocation in pages
+   * @param begin The start address of the region assigned to this pending
+   * request
+   * @return The number of required pages, inclusive of any metadata
+   */
+  public final int adjustForMetaData(int pages, Address begin) { 
+    if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin))
+      pages += metaDataPagesPerRegion;
+    return pages;
+   }
+  
+  private static final Address getRegionStart(Address addr) {
+    return addr.toWord().and(Word.fromInt(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();
   }
 
   /**
@@ -151,7 +226,7 @@ public final class MonotonePageResource extends PageResource
    * zeroing on release and optionally memory protecting on release.
    */
   private final void releasePages() throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(contiguous);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(contiguous);
     Extent bytes = cursor.diff(start).toWord().toExtent();
     releasePages(start, bytes);
     cursor = start;
@@ -164,11 +239,11 @@ public final class MonotonePageResource extends PageResource
   private final void releasePages(Address first, Extent bytes)
       throws InlinePragma {
     int pages = Conversions.bytesToPages(bytes);
-    if (Assert.VERIFY_ASSERTIONS)
-      Assert._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
     if (ZERO_ON_RELEASE)
-      Memory.zero(first, bytes);
+      VM.memory.zero(first, bytes);
     if (Options.protectOnRelease.getValue())
-      LazyMmapper.protect(first, pages);
+      Mmapper.protect(first, pages);
   }
 }

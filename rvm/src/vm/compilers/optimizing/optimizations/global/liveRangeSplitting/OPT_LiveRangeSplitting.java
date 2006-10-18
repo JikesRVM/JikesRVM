@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -41,23 +46,34 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
    */
   OPT_LiveRangeSplitting() {
     super("LIR SSA Live Range Splitting", new OPT_OptimizationPlanElement[] {
-          // 0. Clean up the IR
-          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
-          new OPT_OptimizationPlanAtomicElement(new OPT_CoalesceMoves()),
-          // 1. Insert the split operations.
-          new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
-          new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
-          // 2. Use SSA to rename
-          new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
-          new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
-          new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
-          new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
-          new OPT_OptimizationPlanAtomicElement(new OPT_LeaveSSA())
+            // 0. Clean up the IR
+            new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
+            new OPT_OptimizationPlanAtomicElement(new OPT_CoalesceMoves()),
+            // 1. Insert the split operations.
+            new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
+            new OPT_OptimizationPlanAtomicElement(new OPT_BranchOptimizations(2, true, true)),
+            // 2. Use SSA to rename
+            new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
+            new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
+            new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
+            new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+            new OPT_OptimizationPlanAtomicElement(new OPT_LeaveSSA())
           });
   }
 
   private static class LiveRangeSplitting extends OPT_CompilerPhase 
     implements OPT_Operators{
+    
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
+
 
     public final boolean shouldPerform (OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;
@@ -236,69 +252,69 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
           if (r.defList == null) continue;
           OPT_Instruction s = null;
           switch (r.getType()) {
-            case OPT_Register.ADDRESS_TYPE:
-              OPT_RegisterOperand lhs2 = OPT_IRTools.A(r);
-              OPT_RegisterOperand rhs2 = OPT_IRTools.A(r);
-              s = Unary.create(SPLIT,lhs2,rhs2);
-              // fix up types: only split live ranges when the type is
-              // consistent at all defs
-              VM_TypeReference t2 = null;
-              OPT_RegisterOperandEnumeration e2 = OPT_DefUse.defs(r);
-              if (!e2.hasMoreElements()) {
-                s = null;
-              } else {
-                OPT_RegisterOperand rop2 = e2.next();
-                t2 = rop2.type;
-                while (e2.hasMoreElements()) {
-                  OPT_RegisterOperand nextOp2 = e2.next();
-                  if (nextOp2.type != t2) {
-                    s = null;
-                  }
-                }
-              }
-              if (s != null) {
-                lhs2.type = t2;
-                rhs2.type = t2;
-              }
-              break;
-            case OPT_Register.INTEGER_TYPE:
-              OPT_RegisterOperand lhs = OPT_IRTools.I(r);
-              OPT_RegisterOperand rhs = OPT_IRTools.I(r);
-              s = Unary.create(SPLIT,lhs,rhs);
-              // fix up types: only split live ranges when the type is
-              // consistent at all defs
-              VM_TypeReference t = null;
-              OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r);
-              if (!e.hasMoreElements()) {
-                s = null;
-              } else {
-                OPT_RegisterOperand rop = e.next();
-                t = rop.type;
-                while (e.hasMoreElements()) {
-                  OPT_RegisterOperand nextOp = e.next();
-                  if (nextOp.type != t) {
-                    s = null;
-                  }
-                }
-              }
-              if (s != null) {
-                lhs.type = t;
-                rhs.type = t;
-              }
-              break;
-            case OPT_Register.FLOAT_TYPE:
-              s = Unary.create(SPLIT,OPT_IRTools.F(r), OPT_IRTools.F(r));
-              break;
-            case OPT_Register.DOUBLE_TYPE:
-              s = Unary.create(SPLIT,OPT_IRTools.D(r), OPT_IRTools.D(r));
-              break;
-            case OPT_Register.LONG_TYPE:
-              s = Unary.create(SPLIT,OPT_IRTools.L(r), OPT_IRTools.L(r));
-              break;
-            default:
-              // we won't split live ranges for other types.
+          case OPT_Register.ADDRESS_TYPE:
+            OPT_RegisterOperand lhs2 = OPT_IRTools.A(r);
+            OPT_RegisterOperand rhs2 = OPT_IRTools.A(r);
+            s = Unary.create(SPLIT,lhs2,rhs2);
+            // fix up types: only split live ranges when the type is
+            // consistent at all defs
+            VM_TypeReference t2 = null;
+            OPT_RegisterOperandEnumeration e2 = OPT_DefUse.defs(r);
+            if (!e2.hasMoreElements()) {
               s = null;
-              break;
+            } else {
+              OPT_RegisterOperand rop2 = e2.next();
+              t2 = rop2.type;
+              while (e2.hasMoreElements()) {
+                OPT_RegisterOperand nextOp2 = e2.next();
+                if (nextOp2.type != t2) {
+                  s = null;
+                }
+              }
+            }
+            if (s != null) {
+              lhs2.type = t2;
+              rhs2.type = t2;
+            }
+            break;
+          case OPT_Register.INTEGER_TYPE:
+            OPT_RegisterOperand lhs = OPT_IRTools.I(r);
+            OPT_RegisterOperand rhs = OPT_IRTools.I(r);
+            s = Unary.create(SPLIT,lhs,rhs);
+            // fix up types: only split live ranges when the type is
+            // consistent at all defs
+            VM_TypeReference t = null;
+            OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r);
+            if (!e.hasMoreElements()) {
+              s = null;
+            } else {
+              OPT_RegisterOperand rop = e.next();
+              t = rop.type;
+              while (e.hasMoreElements()) {
+                OPT_RegisterOperand nextOp = e.next();
+                if (nextOp.type != t) {
+                  s = null;
+                }
+              }
+            }
+            if (s != null) {
+              lhs.type = t;
+              rhs.type = t;
+            }
+            break;
+          case OPT_Register.FLOAT_TYPE:
+            s = Unary.create(SPLIT,OPT_IRTools.F(r), OPT_IRTools.F(r));
+            break;
+          case OPT_Register.DOUBLE_TYPE:
+            s = Unary.create(SPLIT,OPT_IRTools.D(r), OPT_IRTools.D(r));
+            break;
+          case OPT_Register.LONG_TYPE:
+            s = Unary.create(SPLIT,OPT_IRTools.L(r), OPT_IRTools.L(r));
+            break;
+          default:
+            // we won't split live ranges for other types.
+            s = null;
+            break;
           }
           if (s != null) {
             target.prependInstruction(s);
@@ -347,6 +363,17 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
    * This class sets up the IR state prior to entering SSA.
    */
   private static class RenamePreparation extends OPT_CompilerPhase {
+  
+    /**
+     * Return this instance of this phase. This phase contains no
+     * per-compilation instance fields.
+     * @param ir not used
+     * @return this
+     */
+    public OPT_CompilerPhase newExecution(OPT_IR ir) {
+      return this;
+    }
+
 
     public final boolean shouldPerform (OPT_Options options) {
       return options.LIVE_RANGE_SPLITTING;

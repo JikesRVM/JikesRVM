@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -6,7 +11,7 @@ package org.mmtk.plan.marksweep;
 
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -41,7 +46,7 @@ import org.vmmagic.pragma.*;
  * @version $Revision$
  * @date $Date$
  */
-public class MSCollector extends StopTheWorldCollector implements Uninterruptible {
+public abstract class MSCollector extends StopTheWorldCollector implements Uninterruptible {
 
   /****************************************************************************
    * Instance fields
@@ -107,7 +112,7 @@ public class MSCollector extends StopTheWorldCollector implements Uninterruptibl
 
   /** @return The active global plan as an <code>MS</code> instance. */
   private static final MS global() throws InlinePragma {
-    return (MS) ActivePlan.global();
+    return (MS) VM.activePlan.global();
   }
 
   /** @return The current trace instance. */

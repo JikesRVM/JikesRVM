@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  *
@@ -10,7 +15,7 @@ package org.mmtk.plan.semispace.gctrace;
 import org.mmtk.plan.semispace.SSMutator;
 import org.mmtk.plan.semispace.*;
 import org.mmtk.utility.TraceGenerator;
-import org.mmtk.vm.Barriers;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -100,7 +105,7 @@ public class GCTraceMutator extends SSMutator implements Uninterruptible {
       int metaDataB, int mode) throws InlinePragma {
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
         src, slot, tgt);
-    Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**

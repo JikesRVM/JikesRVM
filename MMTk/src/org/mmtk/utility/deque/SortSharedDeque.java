@@ -1,11 +1,17 @@
 /**
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     University of Massachusetts, Amherst. 2003.
  */
 package org.mmtk.utility.deque;
 
 import org.mmtk.policy.RawPageSpace;
-import org.mmtk.vm.Assert;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -134,7 +140,7 @@ public abstract class SortSharedDeque extends SharedDeque
     Address startPtr, startLink, endPtr, endLink;
     Word bitMask;
     if (!head.EQ(HEAD_INITIAL_VALUE)) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.NE(TAIL_INITIAL_VALUE));
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tail.NE(TAIL_INITIAL_VALUE));
       /* Obtain the bitmask for the first iteration and save the start &
          end pointers and the bitmask on the stack */
       initStack();
@@ -349,7 +355,7 @@ public abstract class SortSharedDeque extends SharedDeque
    * 
    */
   private final void checkIfSorted() {
-    if (Assert.VERIFY_ASSERTIONS) {
+    if (VM.VERIFY_ASSERTIONS) {
       Address next, buf, end;
       Word prevKey = Word.max();
       end = tail;
@@ -359,7 +365,7 @@ public abstract class SortSharedDeque extends SharedDeque
         while (buf.LT(end)) {
           Address slot = buf.loadAddress();
           Word key = getKey(slot);
-          if (Assert.VERIFY_ASSERTIONS) Assert._assert(key.LE(prevKey));
+          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(key.LE(prevKey));
           prevKey = key;
           buf = buf.plus(BYTES_IN_ADDRESS);
         }

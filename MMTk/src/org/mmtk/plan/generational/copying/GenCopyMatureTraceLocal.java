@@ -1,3 +1,12 @@
+/*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright Department of Computer Science,
+ *     Australian National University. 2005
+ */
 package org.mmtk.plan.generational.copying;
 
 import org.mmtk.plan.generational.GenCollector;
@@ -5,8 +14,7 @@ import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.ActivePlan;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -34,7 +42,7 @@ public class GenCopyMatureTraceLocal extends GenMatureTraceLocal implements Unin
   }
 
   private static final GenCopy global() {
-    return (GenCopy) ActivePlan.global();
+    return (GenCopy) VM.activePlan.global();
   }
 
   /**
@@ -48,7 +56,7 @@ public class GenCopyMatureTraceLocal extends GenMatureTraceLocal implements Unin
    * @return The possibly moved reference.
    */
   public final ObjectReference traceObject(ObjectReference object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(global().traceFullHeap());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(global().traceFullHeap());
     if (object.isNull()) return object;
 
     if (Space.isInSpace(GenCopy.MS0, object))

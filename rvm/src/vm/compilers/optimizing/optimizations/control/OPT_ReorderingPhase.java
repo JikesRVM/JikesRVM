@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -25,6 +30,16 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   implements OPT_Operators {
 
   private static final boolean DEBUG = false;
+
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  } 
 
   public final boolean shouldPerform (OPT_Options options) {
     return options.REORDER_CODE;
@@ -325,10 +340,10 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   }
       
   private static class ChainInfo {
-    OPT_BasicBlock head;
+    final OPT_BasicBlock head;
     float placedWeight;
     float inWeight;
-    HashMap outWeights = new HashMap();
+    final HashMap outWeights = new HashMap();
 
     ChainInfo(OPT_BasicBlock h) {
       head = h;
@@ -340,9 +355,9 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   }
 
   private static final class Edge implements Comparable {
-    OPT_BasicBlock source;
-    OPT_BasicBlock target;
-    float weight;
+    final OPT_BasicBlock source;
+    final OPT_BasicBlock target;
+    final float weight;
 
     Edge(OPT_BasicBlock s, OPT_BasicBlock t, float w) {
       source = s;

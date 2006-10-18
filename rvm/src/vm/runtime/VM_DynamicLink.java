@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -8,16 +13,22 @@ import com.ibm.JikesRVM.classloader.*;
 import org.vmmagic.pragma.*;
 
 /**
- * Place for VM_CompiledMethod.getDynamicLink() to deposit return information.
+ * Place for VM_CompiledMethod.getDynamicLink() to deposit return
+ * information.  NB this method is called from within VM_GCMapIterator
+ * and has to be uninterruptible (ie contain no new bytecodes),
+ * therefore the fields of this class are non-final).
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
 public final class VM_DynamicLink implements VM_BytecodeConstants, 
                                       Uninterruptible {
-  private VM_MethodReference methodRef; // method referenced at a call site
-  private int       bytecode;  // how method was called at that site
+  /** method referenced at a call site */
+  private VM_MethodReference methodRef;
+  /** how method was called at that site */
+  private int       bytecode;
 
+  /** set the dynamic link information. */
   public void set(VM_MethodReference methodRef, int bytecode) {
     this.methodRef = methodRef;
     this.bytecode  = bytecode;

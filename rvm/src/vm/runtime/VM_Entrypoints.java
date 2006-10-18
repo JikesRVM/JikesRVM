@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
@@ -36,10 +41,10 @@ public class VM_Entrypoints implements VM_Constants {
 
   // Allocation-related entry points
   //
-  public static final VM_NormalMethod resolvedNewScalarMethod  = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZIII)Ljava/lang/Object;");
-  public static final VM_NormalMethod unresolvedNewScalarMethod= getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewScalar", "(I)Ljava/lang/Object;");
-  public static final VM_NormalMethod unresolvedNewArrayMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewArray", "(II)Ljava/lang/Object;");
-  public static final VM_NormalMethod resolvedNewArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewArray", "(III[Ljava/lang/Object;III)Ljava/lang/Object;");
+  public static final VM_NormalMethod resolvedNewScalarMethod  = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewScalar", "(I[Ljava/lang/Object;ZIIII)Ljava/lang/Object;");
+  public static final VM_NormalMethod unresolvedNewScalarMethod= getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewScalar", "(II)Ljava/lang/Object;");
+  public static final VM_NormalMethod unresolvedNewArrayMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewArray", "(III)Ljava/lang/Object;");
+  public static final VM_NormalMethod resolvedNewArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "resolvedNewArray", "(III[Ljava/lang/Object;IIII)Ljava/lang/Object;");
   public static final VM_NormalMethod newArrayArrayMethod   = getMethod("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;", "newArrayArray", "(IIII)Ljava/lang/Object;");
   public static final VM_Field gcLockField            = getField("Ljava/lang/VMRuntime;", "gcLock", "I");
 
@@ -139,10 +144,10 @@ public class VM_Entrypoints implements VM_Constants {
 
   public static final VM_Field tracePrevAddressField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "prevAddress", "Lorg/vmmagic/unboxed/Word;");
   public static final VM_Field traceOIDField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "oid", "Lorg/vmmagic/unboxed/Word;");
-  public static final VM_Field dispenserField = getField("Lorg/mmtk/vm/Lock;", "dispenser","I");
-  public static final VM_Field servingField = getField("Lorg/mmtk/vm/Lock;", "serving","I");
-  public static final VM_Field lockThreadField = getField("Lorg/mmtk/vm/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
-  public static final VM_Field lockStartField = getField("Lorg/mmtk/vm/Lock;", "start","J");
+  public static final VM_Field dispenserField = getField("Lcom/ibm/JikesRVM/mm/mmtk/Lock;", "dispenser","I");
+  public static final VM_Field servingField = getField("Lcom/ibm/JikesRVM/mm/mmtk/Lock;", "serving","I");
+  public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/mm/mmtk/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
+  public static final VM_Field lockStartField = getField("Lcom/ibm/JikesRVM/mm/mmtk/Lock;", "start","J");
   public static final VM_Field gcStatusField = getField("Lorg/mmtk/plan/Plan;", "gcStatus","I");
   public static final VM_Field tailField = getField("Lorg/mmtk/utility/deque/LocalSSB;", "tail","Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field SQCFField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "completionFlag","I");
@@ -152,7 +157,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field SQtailField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "tail","Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field LQheadField = getField("Lorg/mmtk/utility/deque/LocalQueue;", "head","Lorg/vmmagic/unboxed/Address;");
   public static final VM_Field SQBEField = getField("Lorg/mmtk/utility/deque/SharedDeque;", "bufsenqueued","I");
-  public static final VM_Field synchronizedCounterField = getField("Lorg/mmtk/vm/SynchronizedCounter;", "count", "I");
+  public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/JikesRVM/mm/mmtk/SynchronizedCounter;", "count", "I");
   public static final VM_NormalMethod arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;I)V");
   public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putstaticWriteBarrier", "(Lorg/vmmagic/unboxed/Offset;Ljava/lang/Object;)V");
@@ -210,7 +215,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field sysDoubleToLongIPField          = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleToLongIP",  "Lorg/vmmagic/unboxed/Address;");
   //-#if RVM_FOR_POWERPC
   public static final VM_Field sysDoubleRemainderIPField       = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysDoubleRemainderIP",  "Lorg/vmmagic/unboxed/Address;");
-  public static final VM_Field sysTOCField                     = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "sysTOC",  "Lorg/vmmagic/unboxed/Address;");
   //-#endif
 
   public static final VM_Field edgeCountersField               = getField("Lcom/ibm/JikesRVM/VM_EdgeCounts;", "data", "[[I");

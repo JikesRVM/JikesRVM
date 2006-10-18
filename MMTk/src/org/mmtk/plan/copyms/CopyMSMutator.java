@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
  */
@@ -37,7 +42,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptible {
+public abstract class CopyMSMutator extends StopTheWorldMutator implements Uninterruptible {
 
   /****************************************************************************
    * Instance fields
@@ -75,14 +80,14 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
    * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
-  public Address alloc(int bytes, int align, int offset, int allocator)
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
       throws InlinePragma {
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return nursery.alloc(bytes, align, offset, false);
     if (allocator == CopyMS.ALLOC_MS)
       return mature.alloc(bytes, align, offset, false);
 
-    return super.alloc(bytes, align, offset, allocator);
+    return super.alloc(bytes, align, offset, allocator, site);
   }
 
   /**
@@ -100,7 +105,7 @@ public class CopyMSMutator extends StopTheWorldMutator implements Uninterruptibl
     if (allocator == CopyMS.ALLOC_DEFAULT)
       return;
     else if (allocator == CopyMS.ALLOC_MS)
-      CopyMS.msSpace.initializeHeader(ref);
+      CopyMS.msSpace.initializeHeader(ref, true);
     else
       super.postAlloc(ref, typeRef, bytes, allocator);
   }

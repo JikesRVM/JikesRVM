@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2003, 2005
  */
 //$Id$
@@ -20,7 +25,7 @@ import org.vmmagic.unboxed.Offset;
 public final class VM_QuickCompiledMethod extends VM_CompiledMethod 
   implements VM_QuickConstants {
 
-  private static final int HAS_COUNTERS = 0x08000000;
+  private static final int HAS_COUNTERS = 0x00800000;
   private static final int LOCK_OFFSET  = 0x00000fff;
 
   /**

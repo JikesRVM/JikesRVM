@@ -1,12 +1,20 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
 package org.mmtk.plan.generational;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -57,9 +65,13 @@ public final class GenNurseryTraceLocal extends TraceLocal
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (object.toAddress().GE(Gen.NURSERY_START)) {
-      return Gen.nurserySpace.isLive(object);
+      if (object.toAddress().LT(Gen.NURSERY_END))
+        return Gen.nurserySpace.isLive(object);
+      else
+        return Gen.ploSpace.isLive(object);
     }
-    return super.isLive(object);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
+    return true;
   }
 
   /**
@@ -76,7 +88,10 @@ public final class GenNurseryTraceLocal extends TraceLocal
   public ObjectReference traceObject(ObjectReference object)
       throws InlinePragma {
     if (!object.isNull() && object.toAddress().GE(Gen.NURSERY_START)) {
-      return Gen.nurserySpace.traceObject(this, object);
+      if (object.toAddress().LT(Gen.NURSERY_END))
+        return Gen.nurserySpace.traceObject(this, object);
+      else
+        return Gen.ploSpace.traceObject(this, object);
     }
     return object;
   }
@@ -117,10 +132,8 @@ public final class GenNurseryTraceLocal extends TraceLocal
    */
   public boolean willNotMove(ObjectReference object) {
     if (object.isNull()) return false;
-    if (object.toAddress().GE(Gen.NURSERY_START)) {
-      return false;
-    }
-    return true;
+    return object.toAddress().LT(Gen.NURSERY_START) ||
+    	Space.isInSpace(Plan.PLOS, object);
   }
 
 }

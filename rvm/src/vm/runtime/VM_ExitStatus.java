@@ -1,6 +1,11 @@
 /* -*-coding: iso-8859-1 -*-
  *
- * Copyright © IBM Corp 2003, 2004, 2005
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright IBM Corp 2003, 2004, 2005
  *
  * $Id$
  */
@@ -38,7 +43,7 @@ interface VM_ExitStatus {
   /** Traditionally the shell and xargs use status 127 to mean that
    * they were unable to find something to execute.
    * To quote the bash manpage, "If a command is found
-   *  but is not executable, the return status is 126.¨
+   *  but is not executable, the return status is 126."
    * We shall adopt those customs here. --Steve Augart*/
   final public static int EXIT_STATUS_EXECUTABLE_NOT_FOUND = 127;
   final public static int EXIT_STATUS_COULD_NOT_EXECUTE = 126;

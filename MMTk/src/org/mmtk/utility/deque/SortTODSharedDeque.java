@@ -1,11 +1,16 @@
 /**
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004.
  */
 package org.mmtk.utility.deque;
 
 import org.mmtk.policy.RawPageSpace;
-import org.mmtk.vm.TraceInterface;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -43,6 +48,6 @@ final public class SortTODSharedDeque extends SortSharedDeque
    * @return The value of the sorting key for this object
    */
   protected final Word getKey(Address obj) {
-    return TraceInterface.getDeathTime(obj.toObjectReference());
+    return VM.traceInterface.getDeathTime(obj.toObjectReference());
   }
 }

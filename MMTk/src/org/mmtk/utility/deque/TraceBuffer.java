@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     University of Massachusetts, Amherst. 2003.
  */
@@ -7,6 +12,7 @@ package org.mmtk.utility.deque;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.TracingConstants;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
@@ -167,7 +173,7 @@ public class TraceBuffer extends LocalQueue
             Log.write(val);
             traceState = TRACE_FIELD_TARGET;
           } else
-            Assert.fail("Cannot understand directive!\n");
+            VM.assertions.fail("Cannot understand directive!\n");
           if (traceState.EQ(TRACE_NEW_RECORD)) {
             entriesNotFlushed++;
             Log.writeln();

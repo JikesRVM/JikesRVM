@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -7,7 +12,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-
+import java.lang.reflect.Constructor;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
@@ -108,11 +113,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * @param createGCMaps should we create GC maps?
    * @param skipLocal should we skip the (final) local propagation phase?
    */
-  OPT_LiveAnalysis(boolean createGCMaps, boolean skipLocal) {
-    this.createGCMaps = createGCMaps;
-    this.skipLocal = skipLocal;
-    this.storeLiveAtHandlers = false;
-    this.skipGuards = true;
+ public OPT_LiveAnalysis(boolean createGCMaps, boolean skipLocal) {
+    this(createGCMaps,skipLocal,false,true);
   }
 
   /**
@@ -124,13 +126,10 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * @param storeLiveAtHandlers should we store liveness info at the 
    * top of each handler block?
    */
-  OPT_LiveAnalysis(boolean createGCMaps, 
-                   boolean skipLocal, 
-                   boolean storeLiveAtHandlers) {
-    this.createGCMaps = createGCMaps;
-    this.skipLocal = skipLocal;
-    this.storeLiveAtHandlers = storeLiveAtHandlers;
-    this.skipGuards = true;
+  public OPT_LiveAnalysis(boolean createGCMaps, 
+                          boolean skipLocal, 
+                          boolean storeLiveAtHandlers) {
+    this(createGCMaps,skipLocal,storeLiveAtHandlers,true);
   }
 
   /**
@@ -143,10 +142,12 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
    * top of each handler block?
    * @param skipGuards should we ignore validation registers?
    */
-  OPT_LiveAnalysis(boolean createGCMaps, 
-                 boolean skipLocal, 
-                 boolean storeLiveAtHandlers,
-                 boolean skipGuards) {
+  public OPT_LiveAnalysis(boolean createGCMaps, 
+                          boolean skipLocal, 
+                          boolean storeLiveAtHandlers,
+                          boolean skipGuards) {
+    super(new Object[]{new Boolean(createGCMaps),new Boolean(skipLocal),
+                       new Boolean(storeLiveAtHandlers),new Boolean(skipGuards)});
     this.createGCMaps = createGCMaps;
     this.skipLocal = skipLocal;
     this.storeLiveAtHandlers = storeLiveAtHandlers;
@@ -156,12 +157,26 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase
   /**
    *  By default we don't create GC maps and do perform the local prop phase
    */
-  OPT_LiveAnalysis() {
-    this.createGCMaps = false;
-    this.skipLocal = false;
-    this.skipGuards = true;
+  public OPT_LiveAnalysis() {
+    this(false,false,false,true);
   }
 
+  /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_LiveAnalysis", new Class[]{Boolean.TYPE,Boolean.TYPE,Boolean.TYPE,Boolean.TYPE});
+    }
+    return constructor;
+  }
+     
   /** 
    * The entry point into this class
    * Perform live variable analysis on this IR, constructing live

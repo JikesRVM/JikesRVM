@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001, 2002, 2003, 2004, 2005
  */
 //$Id$
@@ -208,14 +213,16 @@ public class VM extends VM_Properties
     
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System"); 
-    runClassInitializer("java.lang.Void");
-    runClassInitializer("java.lang.Boolean");
-    runClassInitializer("java.lang.Byte");
-    runClassInitializer("java.lang.Short");
-    runClassInitializer("java.lang.Number");
-    runClassInitializer("java.lang.Integer");
-    runClassInitializer("java.lang.Long");
-    runClassInitializer("java.lang.Float");
+	runClassInitializer("java.lang.Void");
+	runClassInitializer("java.lang.Boolean");
+	runClassInitializer("java.lang.Byte");
+	runClassInitializer("java.lang.Short");
+	runClassInitializer("java.lang.Number");
+	runClassInitializer("java.lang.Integer");
+	runClassInitializer("java.lang.Long");
+	runClassInitializer("java.lang.Float");
+	runClassInitializer("java.lang.Double");
+
     runClassInitializer("java.lang.Character");
     runClassInitializer("java.util.WeakHashMap"); // Need for ThreadLocal
     // Turn off security checks; about to hit EncodingManager.
@@ -269,10 +276,6 @@ public class VM extends VM_Properties
 
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
     runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
-    runClassInitializer("java.lang.Math"); /* Load in the javalang library, so
-                                              that Math's native trig functions
-                                              work.  Still can't use them
-                                              until JNI is set up. */ 
     runClassInitializer("java.util.SimpleTimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");
@@ -308,6 +311,7 @@ public class VM extends VM_Properties
     // 
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
+    VM_DynamicLibrary.boot();
 
     VM.dynamicClassLoadingEnabled = true;
     // Create JNI Environment for boot thread.  
@@ -319,7 +323,13 @@ public class VM extends VM_Properties
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
     System.loadLibrary("javaio");
+    runClassInitializer("java.lang.Math");
+    runClassInitializer("gnu.java.nio.VMChannel");
+    //-#if RVM_WITH_CLASSPATH_0_92
     runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
+    //-#else
+    runClassInitializer("gnu.java.nio.FileChannelImpl");
+    //-#endif
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.util.jar.JarFile");
      
@@ -328,13 +338,12 @@ public class VM extends VM_Properties
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
     //-#endif
 
-    runClassInitializer("java.lang.Double");
     runClassInitializer("java.lang.VMDouble");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
     runClassInitializer("com.ibm.JikesRVM.classloader.VM_Annotation");
     runClassInitializer("java.lang.VMClassLoader");
- 
+
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
 

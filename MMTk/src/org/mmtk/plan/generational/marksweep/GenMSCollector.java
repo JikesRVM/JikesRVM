@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -11,8 +16,7 @@ import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.statistics.Stats;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -82,9 +86,9 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
   public final Address allocCopy(ObjectReference original, int bytes,
                                  int align, int offset, int allocator)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-      Assert._assert(allocator == GenMS.ALLOC_MATURE_MINORGC || 
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(allocator == GenMS.ALLOC_MATURE_MINORGC || 
                      allocator == GenMS.ALLOC_MATURE_MAJORGC);
     }
     if (Stats.GATHER_MARK_CONS_STATS) {
@@ -162,6 +166,6 @@ public abstract class GenMSCollector extends GenCollector implements Uninterrupt
 
   /** @return The active global plan as a <code>GenMS</code> instance. */
   private static final GenMS global() throws InlinePragma {
-    return (GenMS) ActivePlan.global();
+    return (GenMS) VM.activePlan.global();
   }
 }

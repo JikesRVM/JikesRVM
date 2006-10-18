@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
  */
@@ -6,8 +11,8 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
+import org.mmtk.vm.VM;
+
 import org.vmmagic.pragma.*;
 
 /**
@@ -53,24 +58,26 @@ implements Uninterruptible {
   throws InlinePragma {
 
     if (phaseId == StopTheWorld.INITIATE_MUTATOR) {
-      Collection.prepareMutator(this);
+      VM.collection.prepareMutator(this);
       return;
     }
 
     if (phaseId == StopTheWorld.PREPARE_MUTATOR) {
-      los.prepare();
-      Memory.collectorPrepareVMSpace();
+      los.prepare(true);
+      plos.prepare(true);
+      VM.memory.collectorPrepareVMSpace();
       return;
     }
 
     if (phaseId == StopTheWorld.RELEASE_MUTATOR) {
-      los.release();
-      Memory.collectorReleaseVMSpace();
+      los.release(true);
+      plos.release(true);
+      VM.memory.collectorReleaseVMSpace();
       return;
     }
 
     Log.write("Per-mutator phase \""); Phase.getPhase(phaseId).logPhase(); 
     Log.writeln("\" not handled.");
-    Assert.fail("Per-mutator phase not handled!");
+    VM.assertions.fail("Per-mutator phase not handled!");
   }
 }

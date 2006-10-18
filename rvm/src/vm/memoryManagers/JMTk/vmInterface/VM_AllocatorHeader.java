@@ -1,11 +1,14 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
-
-import org.mmtk.vm.ActivePlan;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -26,10 +29,10 @@ public final class VM_AllocatorHeader implements VM_Constants {
   public static final boolean STEAL_NURSERY_GC_HEADER = false;
   // not supported during expected transition to new object model.
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
-  public static final boolean NEEDS_LINEAR_SCAN = ActivePlan.constraints().needsLinearScan();
+  public static final boolean NEEDS_LINEAR_SCAN = SelectedPlanConstraints.get().needsLinearScan();
 
-  public static final int REQUESTED_BITS = ActivePlan.constraints().gcHeaderBits();
-  public static final int NUM_BYTES_HEADER = ActivePlan.constraints().gcHeaderWords() << LOG_BYTES_IN_WORD;
+  public static final int REQUESTED_BITS = SelectedPlanConstraints.get().gcHeaderBits();
+  public static final int NUM_BYTES_HEADER = SelectedPlanConstraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;
 
   /**
    * Override the boot-time initialization method here, so that
@@ -40,7 +43,7 @@ public final class VM_AllocatorHeader implements VM_Constants {
                                       Object[] tib, int size, boolean isScalar)
     throws InterruptiblePragma {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    Word status = ActivePlan.global().setBootTimeGCBits(ref, 
+    Word status = SelectedPlan.get().setBootTimeGCBits(ref, 
       ObjectReference.fromObject(tib), size, Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }

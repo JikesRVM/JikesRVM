@@ -1,10 +1,15 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2004
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.vm.Options;
+import org.mmtk.vm.VM;
 
 /**
  * The abstract base class for all options. This class also has
@@ -51,6 +56,7 @@ public abstract class Option {
   public static final int PAGES_OPTION = 6;
   public static final int MICROSECONDS_OPTION = 7;
   public static final int FLOAT_OPTION = 8;
+  public static final int ADDRESS_OPTION = 9;
 
   /**
    * Using the VM determined key, look up the corresponding option,
@@ -99,7 +105,7 @@ public abstract class Option {
     this.type = type;
     this.name = name;
     this.description = description;
-    this.key = org.mmtk.vm.Options.getKey(name);
+    this.key = VM.options.getKey(name);
     if (tail == null) {
       tail = head = this;
     } else {
@@ -168,7 +174,7 @@ public abstract class Option {
    * @param message The error message associated with the failure.
    */
   protected void fail(String message) {
-    Options.fail(this, message);
+    VM.options.fail(this, message);
   }
 
   /**
@@ -178,7 +184,7 @@ public abstract class Option {
    * @param message The error message associated with the failure.
    */
   protected void failIf(boolean condition, String message) {
-    if (condition) Options.fail(this, message);
+    if (condition) VM.options.fail(this, message);
   }
 
   /**
@@ -188,7 +194,7 @@ public abstract class Option {
    * @param message The message associated with the warning.
    */
   protected void warn(String message) {
-    Options.warn(this, message);
+    VM.options.warn(this, message);
   }
 
   /**
@@ -198,7 +204,7 @@ public abstract class Option {
    * @param message The message associated with the warning.
    */
   protected void warnIf(boolean condition, String message) {
-    if (condition) Options.warn(this, message);
+    if (condition) VM.options.warn(this, message);
   }
 }
 

@@ -1,0 +1,16 @@
+   This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+   The Jikes RVM project is distributed under the Common Public License (CPL).
+   A copy of the license is included in the distribution, and is also
+   available at http://www.opensource.org/licenses/cpl1.0.php
+  
+Copyright © IBM Corp 2004
+
+$Id$
+
+This directory, config/exp, contains experimental configurations
+for building Jikes RVM.  Once they work, I'll move them up to the
+config directory.
+
+Unless you want to build Jikes RVM using one of the VMs mentioned
+here, you probably want to ignore this directory.
+

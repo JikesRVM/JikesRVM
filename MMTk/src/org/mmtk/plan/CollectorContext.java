@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2006
  */
@@ -10,8 +15,7 @@ import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -76,7 +80,7 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
    * Instance fields
    */
   /** Unique collector identifier */
-  protected int id = ActivePlan.registerCollector(this);
+  protected int id = VM.activePlan.registerCollector(this);
 
   /** Used for printing log information in a thread safe manner */
   protected Log log = new Log();
@@ -107,7 +111,7 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
    */
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
-    Assert.fail("Collector has not implemented allocCopy");
+    VM.assertions.fail("Collector has not implemented allocCopy");
     return Address.max();
   }
 
@@ -120,7 +124,7 @@ public abstract class CollectorContext implements Uninterruptible, Constants {
    */
   public void postCopy(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
-    Assert.fail("Collector has not implemented postCopy");
+    VM.assertions.fail("Collector has not implemented postCopy");
   }
 
   /**

@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -6,7 +11,7 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
@@ -171,9 +176,9 @@ public abstract class Phase implements Uninterruptible, Constants {
    * @return The Phase instance.
    */
   public static Phase getPhase(int id) {
-    if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(id < phaseId, "Phase ID unknown");
-      Assert._assert(phases[id] != null, "Uninitialised phase");
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(id < phaseId, "Phase ID unknown");
+      VM.assertions._assert(phases[id] != null, "Uninitialised phase");
     }
     return phases[id];
   }

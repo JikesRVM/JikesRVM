@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -18,22 +23,22 @@ final class OPT_Diamond {
   /**
    * The top of the diamond
    */
-  private OPT_BasicBlock top;
+  private final OPT_BasicBlock top;
 
   /**
    * The bottom of the diamond
    */
-  private OPT_BasicBlock bottom;
+  private final OPT_BasicBlock bottom;
 
   /**
    * The "taken" branch of the diamond (might be null)
    */
-  private OPT_BasicBlock taken;
+  private final OPT_BasicBlock taken;
 
   /**
    * The "not-taken" branch of the diamond (might be null)
    */
-  private OPT_BasicBlock notTaken;
+  private final OPT_BasicBlock notTaken;
 
   /**
    * The top of the diamond

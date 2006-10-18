@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
@@ -148,9 +153,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
         stackWords = 1;
         name = tr.getName();
       } else {
-        if (VM.VerifyAssertions) VM._assert(false);
-        stackWords = -1;
-        name = null;
+        throw new Error("Unknown primitive type " + tr.getName());
       }
     }
 

@@ -1,10 +1,16 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.Arrays;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -28,12 +34,28 @@ import com.ibm.JikesRVM.opt.ir.*;
 public final class OPT_IndexPropagation extends OPT_CompilerPhase {
 
   /**
+   * Constructor for this compiler phase
+   */
+  private static Constructor constructor;
+
+  /**
+   * Get a constructor object for this compiler phase
+   * @return compiler phase constructor
+   */
+  public Constructor getClassConstructor() {
+    if (constructor == null) {
+      constructor = getCompilerPhaseConstructor("com.ibm.JikesRVM.opt.OPT_IndexPropagation");
+    }
+    return constructor;
+  }
+
+  /**
    * Should this phase be performed?
    * @param options controlling compiler options
    * @return true or false
    */
   public final boolean shouldPerform(OPT_Options options) {
-    return  true;
+    return options.SSA;
   }
 
   /**

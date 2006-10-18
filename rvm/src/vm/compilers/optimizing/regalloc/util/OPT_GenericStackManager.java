@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -804,8 +809,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         return p;
       }
     }
-    // next try the non-volatiles
-    for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+    // next try the non-volatiles. We allocate the nonvolatiles backwards
+    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
          e.hasMoreElements(); ) {
       OPT_Register p = (OPT_Register)e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p) && 
@@ -838,8 +843,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
         if (isDeadBefore(p,s) && isLegal(r,p,s)) return p;
       }
     }
-    // next try the non-volatiles
-    for (Enumeration e = phys.enumerateNonvolatileGPRs(); 
+    // next try the non-volatiles. We allocate the nonvolatiles backwards
+    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
          e.hasMoreElements(); ) {
       OPT_Register p = (OPT_Register)e.nextElement();
       if (!appearsIn(p,s) && !p.isPinned() && !reserved.contains(p)) {
@@ -922,18 +927,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   }
 
   /**
-   *  Insert end prologue to show debugger where the end of the
-   *  prologue is
-   */
-  private void insertEndPrologue() {
-    OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
-    if (VM.VerifyAssertions) VM._assert(inst.getOpcode() == IR_PROLOGUE_opcode);
-    inst.insertBefore(Empty.create(IR_ENDPROLOGUE));
-    inst.remove();
-    ir.MIRInfo.gcIRMap.delete(inst);
-  }
-
-  /**
    * Insert the prologue.
    */
   private void insertPrologue() {
@@ -944,7 +937,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     if (frameIsRequired()) {
       insertNormalPrologue();
     } else {
-      insertEndPrologue();
+      OPT_Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
+      if (VM.VerifyAssertions) VM._assert(inst.getOpcode() == IR_PROLOGUE_opcode);
+      inst.remove();
+      ir.MIRInfo.gcIRMap.delete(inst);
     }
   }
 

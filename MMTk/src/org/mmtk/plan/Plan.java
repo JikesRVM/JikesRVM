@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -19,10 +24,9 @@ import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
-import org.mmtk.vm.ActivePlan;
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Memory;
+
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -75,18 +79,22 @@ public abstract class Plan implements Uninterruptible, Constants {
   public static final int META_DATA_MB = 32;
   public static final int META_DATA_PAGES = (META_DATA_MB << 20) >> LOG_BYTES_IN_PAGE;
   public static final int META_DATA_FULL_THRESHOLD = META_DATA_PAGES >> 1;
-  public static final float LOS_FRAC = (float) 0.1;
+  public static final float LOS_FRAC = (float) 0.03;                          
+  public static final float PLOS_FRAC = (float) 0.07;                         
 
   /* Allocator Constants */
   public static final int ALLOC_DEFAULT = 0;
-  public static final int ALLOC_IMMORTAL = 1;
-  public static final int ALLOC_LOS = 2;
-  public static final int ALLOC_GCSPY = 3;
+  public static final int ALLOC_NON_REFERENCE = 1;
+  public static final int ALLOC_IMMORTAL = 2;
+  public static final int ALLOC_LOS = 3;
+  public static final int ALLOC_PRIMITIVE_LOS = 4;
+  public static final int ALLOC_GCSPY = 5;
   public static final int ALLOC_HOT_CODE = ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = ALLOC_DEFAULT;
   public static final int ALLOC_STACK = ALLOC_DEFAULT;
   public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
-  public static final int ALLOCATORS = 4;
+  public static final int ALLOCATORS = 6;
+  public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
   public static final int LOS_SIZE_THRESHOLD = SegregatedFreeList.MAX_CELL_SIZE;
@@ -101,7 +109,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    */
 
   /** The space that holds any VM specific objects (e.g. a boot image) */
-  public static final Space vmSpace = Memory.getVMSpace();
+  public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
   public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
@@ -112,17 +120,25 @@ public abstract class Plan implements Uninterruptible, Constants {
   /** Large objects are allocated into a special large object space. */
   public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, LOS_FRAC);
 
+  /** Primitive (non-ref) large objects are allocated into a special primitiv\
+      e large object space. */
+  public static final LargeObjectSpace ploSpace = new LargeObjectSpace("plos", DEFAULT_POLL_FREQUENCY, PLOS_FRAC, true);    
+
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
-  public static final int VM = vmSpace.getDescriptor();
+  public static final int VM_SPACE = vmSpace.getDescriptor();
   public static final int META = metaDataSpace.getDescriptor();
   public static final int LOS = loSpace.getDescriptor();
+  public static final int PLOS = ploSpace.getDescriptor();
 
   /** Timer that counts total time */
   public static final Timer totalTime = new Timer("time");
 
   /** Support for time-limited GCs */
   protected static long timeCap;
+
+  /** Support for allocation-site identification */
+  protected static int allocationSiteCount = 0;
 
   static {}
 
@@ -141,7 +157,9 @@ public abstract class Plan implements Uninterruptible, Constants {
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
     Options.variableSizeHeap = new VariableSizeHeap();
+    Options.eagerMmapSpaces = new EagerMmapSpaces();
     Options.sanityCheck = new SanityCheck();
+    Options.debugAddress = new DebugAddress();
   }
 
   /****************************************************************************
@@ -167,6 +185,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   public void postBoot() throws InterruptiblePragma {
     if (Options.verbose.getValue() > 2) Space.printVMMap();
     if (Options.verbose.getValue() > 0) Stats.startAll();
+    if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
   }
 
   /**
@@ -222,7 +241,15 @@ public abstract class Plan implements Uninterruptible, Constants {
     return status; // nothing to do (no bytes of GC header)
   }
 
-
+  /****************************************************************************
+   * Allocation
+   */
+  public static int getAllocationSite(boolean compileTime) {
+    if (compileTime) // a new allocation site is being compiled
+      return allocationSiteCount++;
+    else             // an anonymous site
+      return DEFAULT_SITE;
+  }
 
   /****************************************************************************
    * Collection.
@@ -233,6 +260,33 @@ public abstract class Plan implements Uninterruptible, Constants {
    */
   public abstract void collectionPhase(int phase);
 
+  /**
+   * Replace a phase.
+   * 
+   * @param oldPhase The phase to be replaced
+   * @param newPhase The phase to replace with
+   */
+  public void replacePhase(int oldPhase, int newPhase)
+    throws InterruptiblePragma {
+    VM.assertions.fail("replacePhase not implemented for this plan");
+  }
+
+  
+  /**
+   * Insert a phase.
+   * 
+   * @param marker The phase to insert after
+   * @param newPhase The phase to replace with
+   */
+  public void insertPhaseAfter(int marker, int newPhase) 
+    throws InterruptiblePragma {
+    int newComplexPhase = (new ComplexPhase("auto-gen",
+                                            null, 
+                                            new int[] {marker,newPhase})
+                          ).getId();
+    replacePhase(marker, newComplexPhase);
+  }
+  
   /**
    * @return Whether last GC is a full GC.
    */
@@ -316,9 +370,9 @@ public abstract class Plan implements Uninterruptible, Constants {
    * thus it is unsynchronized.
    */
   public static void checkForAsyncCollection() {
-    if (awaitingCollection && Collection.noThreadsInGC()) {
+    if (awaitingCollection && VM.collection.noThreadsInGC()) {
       awaitingCollection = false;
-      Collection.triggerAsyncCollection();
+      VM.collection.triggerAsyncCollection();
     }
   }
 
@@ -335,7 +389,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * state variable appropriately.
    */
   public static void collectionComplete() {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(collectionsInitiated > 0);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(collectionsInitiated > 0);
     // FIXME The following will probably break async GC. A better fix
     // is needed
     collectionsInitiated = 0;
@@ -365,9 +419,9 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @param s The new GC status.
    */
   public static void setGCStatus(int s) {
-    Memory.isync();
+    VM.memory.isync();
     gcStatus = s;
-    Memory.sync();
+    VM.memory.sync();
   }
 
   /**
@@ -411,8 +465,8 @@ public abstract class Plan implements Uninterruptible, Constants {
    *         <code>a</code>.
    */
   public static final Space getSpaceFromAllocatorAnyLocal(Allocator a) {
-    for (int i = 0; i < ActivePlan.mutatorCount(); i++) {
-      Space space = ActivePlan.mutator(i).getSpaceFromAllocator(a);
+    for (int i = 0; i < VM.activePlan.mutatorCount(); i++) {
+      Space space = VM.activePlan.mutator(i).getSpaceFromAllocator(a);
       if (space != null)
         return space;
     }
@@ -466,7 +520,7 @@ public abstract class Plan implements Uninterruptible, Constants {
   }
 
   /****************************************************************************
-   * Memory Accounting
+   * VM.me.Accounting
    */
 
   /* Global accounting and static access */
@@ -493,7 +547,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static final Extent usedMemory() {
-    return Conversions.pagesToBytes(ActivePlan.global().getPagesUsed());
+    return Conversions.pagesToBytes(VM.activePlan.global().getPagesUsed());
   }
 
 
@@ -505,7 +559,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static final Extent reservedMemory() {
-    return Conversions.pagesToBytes(ActivePlan.global().getPagesReserved());
+    return Conversions.pagesToBytes(VM.activePlan.global().getPagesReserved());
   }
 
   /**
@@ -572,7 +626,7 @@ public abstract class Plan implements Uninterruptible, Constants {
    * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
-    return loSpace.reservedPages() +
+    return loSpace.reservedPages() + ploSpace.reservedPages() +
            immortalSpace.reservedPages() +
            metaDataSpace.reservedPages();
   }
@@ -614,13 +668,13 @@ public abstract class Plan implements Uninterruptible, Constants {
   public abstract boolean poll(boolean mustCollect, Space space);
 
   /**
-   * Start GC spy server.
+   * Start GCspy server.
    * 
    * @param port The port to listen on,
    * @param wait Should we wait for a client to connect? 
    */
   public void startGCspyServer(int port, boolean wait) throws InterruptiblePragma {
-    Assert.fail("startGCspyServer called on non GCspy plan");
+    VM.assertions.fail("startGCspyServer called on non GCspy plan");
   }
 
 }

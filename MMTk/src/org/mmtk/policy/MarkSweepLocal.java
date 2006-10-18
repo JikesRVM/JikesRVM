@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
@@ -6,11 +11,9 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.SegregatedFreeList;
-import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.Options;
-import org.mmtk.vm.Assert;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -37,13 +40,14 @@ import org.vmmagic.pragma.*;
  * @see SegregatedFreeList
  * @see MarkSweepSpace
  * 
+ * $Id$
+ * 
  * @author Steve Blackburn
  * @version $Revision$
  * @date $Date$
  */
 public final class MarkSweepLocal extends SegregatedFreeList
   implements Constants, Uninterruptible {
-  public final static String Id = "$Id$"; 
 
   /****************************************************************************
    * 
@@ -185,7 +189,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * 
    */
   public final void releaseCollector() {
-    sweepBlocks(); // sweep the blocks
+    sweepBlocks(true); // sweep the blocks
   }
   /**
    * Finish up after a collection.
@@ -208,7 +212,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
   protected final boolean reclaimCellForObject(ObjectReference object, 
                                                Word markState) 
     throws InlinePragma {
-    return !MarkSweepSpace.testMarkBit(object, markState);
+    return !MarkSweepSpace.testMarkState(object, markState);
   }
 
   /****************************************************************************

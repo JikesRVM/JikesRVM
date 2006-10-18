@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
@@ -35,11 +40,22 @@ class OPT_StaticSplitting extends OPT_CompilerPhase
 
   private static final boolean DEBUG = false;
   private static final int MAX_COST = 10; // upper bound on instructions duplicated
-  private OPT_BranchOptimizations branchOpts;
+  private final OPT_BranchOptimizations branchOpts;
 
   protected OPT_StaticSplitting() {
 	 branchOpts = new OPT_BranchOptimizations(-1,false,false);
   }
+
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this 
+   */
+  public OPT_CompilerPhase newExecution (OPT_IR ir) {
+    return this;
+  }
+
   public String getName () { return  "Static Splitting"; }
   public boolean shouldPerform (OPT_Options options) {
     return options.STATIC_SPLITTING;

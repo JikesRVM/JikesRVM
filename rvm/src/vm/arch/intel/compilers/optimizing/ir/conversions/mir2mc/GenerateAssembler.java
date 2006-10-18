@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -1151,14 +1156,10 @@ public class GenerateAssembler {
         emit("class OPT_Assembler extends OPT_AssemblerBase {\n\n");
 
         emitTab(1);emit("/**\n");
-        emitTab(1);emit(" *  This class requires no special construction;\n");
-        emitTab(1);emit(" * this constructor simply invokes the\n");
-        emitTab(1);emit(" * constructor for VM_Assembler\n");
-        emitTab(1);emit(" *\n");
         emitTab(1);emit(" * @see VM_Assembler\n");
         emitTab(1);emit(" */\n");
-        emitTab(1); emit("OPT_Assembler(int bcSize, boolean print) {\n");
-        emitTab(2);   emit("super(bcSize, print);\n");
+        emitTab(1); emit("OPT_Assembler(int bcSize, boolean print, OPT_IR ir) {\n");
+        emitTab(2);   emit("super(bcSize, print, ir);\n");
         emitTab(1); emit("}");
         emit("\n\n");
 

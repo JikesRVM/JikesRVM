@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
@@ -24,10 +29,19 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
     return "Local ConstantProp";
   }
 
-  public void reportAdditionalStats() {
-    VM.sysWrite("  ");
-    VM.sysWrite(container.counter1/container.counter2*100, 2);
-    VM.sysWrite("% Infrequent BBs");
+ public void reportAdditionalStats() {
+     VM.sysWrite("  ");
+     VM.sysWrite(container.counter1/container.counter2*100, 2);
+     VM.sysWrite("% Infrequent BBs");
+ }
+  /**
+   * Return this instance of this phase. This phase contains no
+   * per-compilation instance fields.
+   * @param ir not used
+   * @return this
+   */
+  public OPT_CompilerPhase newExecution(OPT_IR ir) {
+    return this;
   }
 
   /**

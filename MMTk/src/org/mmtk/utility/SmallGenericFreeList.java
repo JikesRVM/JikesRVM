@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Architecture and Language Implementation Laboratory,
  *     Department of Computer Science,
  *     University of Massachusetts at Amherst. 2001
@@ -8,8 +13,9 @@
  */
 package org.mmtk.utility;
 
-import org.mmtk.vm.Assert;
 import org.mmtk.utility.Constants;
+
+import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -103,7 +109,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * Constructor
    */
   SmallGenericFreeList(int units) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(units <= MAX_UNITS);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(units <= MAX_UNITS);
 
     // allocate the data structure, including space for top & bottom sentinels
     table = new int[units + 2];
@@ -196,7 +202,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * @param next The value to be set.
    */
   protected void setNext(int unit, int next) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((next >= HEAD) && (next <= MAX_UNITS));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= HEAD) && (next <= MAX_UNITS));
     if (next == HEAD)
       setEntry(unit, (getEntry(unit) | NEXT_MASK));
     else
@@ -222,7 +228,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * @param prev The value to be set.
    */
   protected void setPrev(int unit, int prev) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert((prev >= HEAD) && (prev <= MAX_UNITS));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= HEAD) && (prev <= MAX_UNITS));
     if (prev == HEAD)
       setEntry(unit, (getEntry(unit) | PREV_MASK));
     else

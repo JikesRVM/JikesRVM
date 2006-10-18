@@ -1,5 +1,10 @@
 
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp. 2001,2002,2004
  */
 //$Id$
@@ -13,7 +18,7 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.jni.VM_JNIEnvironment;
 
 import org.mmtk.utility.Log;
-import org.mmtk.vm.Barriers;
+import com.ibm.JikesRVM.mm.mmtk.Barriers;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -1594,7 +1599,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
                             int srcStart, int srcEnd) 
   {
     for (int i = srcStart; i < srcEnd; ++i) {
-      char nextChar = Barriers.getArrayNoBarrier(src, i);
+      char nextChar = Barriers.getArrayNoBarrierStatic(src, i);
       destOffset = sprintf(dest, destOffset, nextChar);
     }
     return destOffset;
@@ -1605,7 +1610,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       return -1;
       
     if (destOffset < dest.length)
-      Barriers.setArrayNoBarrier(dest, destOffset, c);
+      Barriers.setArrayNoBarrierStatic(dest, destOffset, c);
     return destOffset + 1;
   }
 
@@ -1648,25 +1653,25 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     char [] intBuffer = grabIntBuffer();
     
     nextDigit = (int)(l % 10);
-    nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
+    nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter,
                                               negative
                                               ? - nextDigit
                                               : nextDigit);
-    Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+    Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
     l = l / 10;
     
     while (l != 0) {
       nextDigit = (int)(l % 10);
-      nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
+      nextChar = Barriers.getArrayNoBarrierStatic(hexDigitCharacter,
                                                 negative
                                                 ? - nextDigit
                                                 : nextDigit);
-      Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+      Barriers.setArrayNoBarrierStatic(intBuffer, index--, nextChar);
       l = l / 10;
     }
     
     if (negative)
-      Barriers.setArrayNoBarrier(intBuffer, index--, '-');
+      Barriers.setArrayNoBarrierStatic(intBuffer, index--, '-');
     
     int newOffset = 
       sprintf(dest, offset, intBuffer, index+1, INT_BUFFER_SIZE);

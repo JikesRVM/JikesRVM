@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
@@ -8,8 +13,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Constants;
 
-import org.mmtk.vm.Assert;
-import org.mmtk.vm.ObjectModel;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -41,10 +45,23 @@ public final class CopySpace extends Space
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
-  private static final Word GC_MARK_BIT_MASK = Word.one();
+  private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
+
+  /*
+   *  The forwarding process uses three states to deal with a GC race:
+   *  1.      !GC_FORWARDED: Unforwarded
+   *  2. GC_BEING_FORWARDED: Being forwarded (forwarding is underway)
+   *  3.       GC_FORWARDED: Forwarded
+   */
+  /** If this bit is set, then forwarding of this object has commenced */
   private static final Word GC_FORWARDED = Word.one().lsh(1); // ...10
+  /** If this bit is set, then forwarding of this object is incomplete */
   private static final Word GC_BEING_FORWARDED  = Word.one().lsh(2).minus(Word.one());  // ...11
+  /** This mask is used to reveal which state this object is in with respect to forwarding */
   private static final Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
+
+  /** A single bit is used to indicate a mark when tracing (but not copying) the space */
+  private static final Word GC_MARK_BIT_MASK = Word.one();
 
   /****************************************************************************
    * 
@@ -74,7 +91,7 @@ public final class CopySpace extends Space
       boolean fromSpace) {
     super(name, true, false, start, bytes);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -94,7 +111,7 @@ public final class CopySpace extends Space
   public CopySpace(String name, int pageBudget, int mb, boolean fromSpace) {
     super(name, true, false, mb);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -117,7 +134,7 @@ public final class CopySpace extends Space
                    boolean fromSpace) {
     super(name, true, false, frac);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -144,7 +161,7 @@ public final class CopySpace extends Space
       boolean fromSpace) {
     super(name, true, false, mb, top);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
 
   /**
@@ -172,10 +189,28 @@ public final class CopySpace extends Space
       boolean fromSpace) {
     super(name, true, false, frac, top);
     this.fromSpace = fromSpace;
-    pr = new MonotonePageResource(pageBudget, this, start, extent);
+    pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
   }
+  
 
+  /****************************************************************************
+   * 
+   * Prepare and release
+   */
+
+  /**
+   * Prepare this space instance for a collection.  Set the
+   * "fromSpace" field according to whether this space is the
+   * source or target of the collection.
+   * 
+   * @param fromSpace Set the fromSpace field to this value
+   */
   public void prepare(boolean fromSpace) { this.fromSpace = fromSpace; }
+  
+  /**
+   * Release this copy space after a collection.  This means releasing
+   * all pages associated with this (now empty) space.
+   */
   public void release() { ((MonotonePageResource) pr).reset(); }
 
   /**
@@ -185,26 +220,24 @@ public final class CopySpace extends Space
    * @param start The address of the start of the page or pages
    */
   public final void release(Address start) throws InlinePragma {
-    Assert._assert(false); // this policy only releases pages enmasse
+    if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
-  /**
-   * Mark an object as having been traversed.
+  /****************************************************************************
    * 
-   * @param object The object to be marked
-   * @param markState The sense of the mark bit (flips from 0 to 1)
+   * Tracing and forwarding
    */
-  public static void markObject(TraceLocal trace, ObjectReference object,
-      Word markState) throws InlinePragma {
-    if (testAndMark(object, markState))
-      trace.enqueue(object);
-  }
-
+  
   /**
    * Trace an object under a copying collection policy.
-   * If the object is already copied, the copy is returned.
-   * Otherwise, a copy is created and returned.
-   * In either case, the object will be marked on return.
+   * 
+   * We use a tri-state algorithm to deal with races to forward
+   * the object.  The tracer must wait if the object is concurrently
+   * being forwarded by another thread.
+   * 
+   * If the object is already forwarded, the copy is returned.
+   * Otherwise, the object is forwarded and the copy is returned.
    *
    * @param trace The trace being conducted.
    * @param object The object to be forwarded.
@@ -212,29 +245,38 @@ public final class CopySpace extends Space
    */
   public ObjectReference traceObject(TraceLocal trace, ObjectReference object)
       throws InlinePragma {
+    /* If the object in question is already in to-space, then do nothing */
     if (!fromSpace) return object;
 
+    /* Try to forward the object */
     Word forwardingPtr = attemptToForward(object);
 
-    // Somebody else got to it first.
-    //
     if (stateIsForwardedOrBeingForwarded(forwardingPtr)) {
+      /* Somebody else got to it first. */
+      
+      /* We must wait (spin) if the object is not yet fully forwarded */
       while (stateIsBeingForwarded(forwardingPtr))
         forwardingPtr = getForwardingWord(object);
-      ObjectReference newObject = forwardingPtr.and(GC_FORWARDING_MASK.not()).toAddress().toObjectReference();
+
+      /* Now extract the object reference from the forwarding word and return it */
+      return forwardingPtr.and(GC_FORWARDING_MASK.not()).toAddress().toObjectReference();
+    } else {
+      /* We are the designated copier, so forward it and enqueue it */
+   
+      ObjectReference newObject = VM.objectModel.copy(object, trace.getAllocator());
+      setForwardingPointer(object, newObject);
+      trace.enqueue(newObject); // Scan it later
+
       return newObject;
     }
-
-    // We are the designated copier
-    //
-    ObjectReference newObject = ObjectModel.copy(object, trace.getAllocator());
-    setForwardingPointer(object, newObject);
-    trace.enqueue(newObject); // Scan it later
-
-    return newObject;
   }
 
-
+  /**
+   * Return true if this object is live in this GC
+   * 
+   * @param object The object in question
+   * @return True if this object is live in this GC (has it been forwarded?)
+   */
   public final boolean isLive(ObjectReference object) {
     return isForwarded(object);
   }
@@ -250,6 +292,23 @@ public final class CopySpace extends Space
     return !fromSpace || isForwarded(object);
   }
 
+  /****************************************************************************
+   * 
+   * Non-copying tracing (just mark, don't forward)
+   */
+
+  /**
+   * Mark an object as having been traversed, *WITHOUT* forwarding the object.
+   * This is only used when 
+   * 
+   * @param object The object to be marked
+   * @param markState The sense of the mark bit (flips from 0 to 1)
+   */
+  public static void markObject(TraceLocal trace, ObjectReference object,
+      Word markState) throws InlinePragma {
+    if (testAndMark(object, markState))
+      trace.enqueue(object);
+  }
 
   /****************************************************************************
    * 
@@ -272,8 +331,8 @@ public final class CopySpace extends Space
    * @param object the object ref to the storage to be initialized
    */
   public static void clearGCBits(ObjectReference object) throws InlinePragma {
-    Word header = ObjectModel.readAvailableBitsWord(object);
-    ObjectModel.writeAvailableBitsWord(object, header.and(GC_FORWARDING_MASK.not()));
+    Word header = VM.objectModel.readAvailableBitsWord(object);
+    VM.objectModel.writeAvailableBitsWord(object, header.and(GC_FORWARDING_MASK.not()));
   }
 
   /**
@@ -307,7 +366,7 @@ public final class CopySpace extends Space
    */
   private static Word getForwardingWord(ObjectReference object)
       throws InlinePragma {
-    return ObjectModel.readAvailableBitsWord(object);
+    return VM.objectModel.readAvailableBitsWord(object);
   }
 
   /**
@@ -333,10 +392,10 @@ public final class CopySpace extends Space
       throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue, 
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, 
                                                 oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
@@ -354,9 +413,9 @@ public final class CopySpace extends Space
       throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(object);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       if (oldValue.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED)) return oldValue;
-    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
                                                 oldValue.or(GC_BEING_FORWARDED)));
     return oldValue;
   }
@@ -407,6 +466,6 @@ public final class CopySpace extends Space
   private static void setForwardingPointer(ObjectReference object,
                                            ObjectReference ptr)
     throws InlinePragma {
-    ObjectModel.writeAvailableBitsWord(object, ptr.toAddress().toWord().or(GC_FORWARDED));
+    VM.objectModel.writeAvailableBitsWord(object, ptr.toAddress().toWord().or(GC_FORWARDED));
   }
 }

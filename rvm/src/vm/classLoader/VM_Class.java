@@ -1,4 +1,9 @@
 /*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
@@ -1300,7 +1305,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         VM_Method method = methods[i];
 
         if (VM.VerifyUnint) {
-          if (!method.isInterruptible() && method.isSynchronized()) {
+          if (method.isUninterruptible() && method.isSynchronized()) {
             if (VM.ParanoidVerifyUnint || !LogicallyUninterruptiblePragma.declaredBy(method)) {
               VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
             }
@@ -1598,8 +1603,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
     if (!isInterface()) {
       // Initialize slots in the TIB for virtual methods
-      for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX, i = 0, 
-             n = virtualMethods.length; i < n; ++i, ++slot) {
+      for (int slot = TIB_FIRST_VIRTUAL_METHOD_INDEX+virtualMethods.length-1,
+             i = virtualMethods.length-1; i >= 0; i--, slot--) {
         VM_Method method = virtualMethods[i];
         if (method.isPrivate() && method.getDeclaringClass() != this) {
           typeInformationBlock[slot] = null; // an inherited private method....will never be invoked via this TIB

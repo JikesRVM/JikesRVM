@@ -1,4 +1,9 @@
 /*
+ * This file is part of MMTk (http://jikesrvm.sourceforge.net).
+ * MMTk is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2005
  */
@@ -8,7 +13,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.deque.*;
 
-import org.mmtk.vm.Assert;
+import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -61,9 +66,12 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    * @return True if the object is live.
    */
   public boolean isLive(ObjectReference object) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
+      if (object.toAddress().LT(Gen.NURSERY_END))
       return Gen.nurserySpace.isLive(object);
+      else
+        return Gen.ploSpace.isLive(object);
     }
     return super.isLive(object);
   }
@@ -79,7 +87,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    */
   public boolean willNotMove(ObjectReference object) {
     if (object.toAddress().GE(Gen.NURSERY_START))
-      return false;
+      return object.toAddress().GE(Gen.NURSERY_END);
     return super.willNotMove(object);
   }
 
@@ -96,9 +104,12 @@ public abstract class GenMatureTraceLocal extends TraceLocal
    */
   public ObjectReference traceObject(ObjectReference object)
       throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     if (object.toAddress().GE(Gen.NURSERY_START)) {
+      if (object.toAddress().LT(Gen.NURSERY_END))
       return Gen.nurserySpace.traceObject(this, object);
+      else
+        return Gen.ploSpace.traceObject(this, object);
     }
     return super.traceObject(object);
   }
