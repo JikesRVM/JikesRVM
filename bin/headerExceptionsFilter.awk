@@ -25,6 +25,10 @@
 #
 /\/tools-external\// { next }
 
+# Avoid reporting a gazillion violations in $RVM_ROOT/results
+# when this script is run from night-sanity-run
+/\/results\// { next }
+
 /\/doc\/userguide\// { next }
 /\/MMTk\/doc\// { next }
 
