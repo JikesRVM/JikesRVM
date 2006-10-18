@@ -27,6 +27,8 @@ on October 14, 2001,
     to enable parallel bootimage compilation has been added to jbuild 
     (-numThreads=<n>).
 
+*** Updates and improvements to GCspy support (patch 1576064).
+
 ** Bug fixes
    Too many to list individually in the release notes. Yeah!
    Overall a significant increase in system stability since 2.4.5.  
