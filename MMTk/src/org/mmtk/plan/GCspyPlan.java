@@ -6,6 +6,8 @@
  *
  * (C) Copyright Richard Jones, 2006
  * Computing Laboratory, University of Kent at Canterbury
+ *
+ * $Id$
  */
 
 package org.mmtk.plan;
@@ -14,6 +16,7 @@ import org.mmtk.policy.ImmortalSpace;
 
 /**
  * This interface provides an immortal allocation space for GCspy objects.
+ * @author Richard Jones
  */
 public interface GCspyPlan {
   
