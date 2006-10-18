@@ -6,7 +6,7 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-*Jikes RVM 2.4.6 Release Notes (future)
+*Jikes RVM 2.4.6 Release Notes (released October 19, 2006)
 ** Highlights
 *** The recommended version of GNU classpath for Jikes RVM 2.4.6 is 0.92.
     Earlier versions of GNU classpath are not supported.
@@ -18,15 +18,54 @@ on October 14, 2001,
     been reorganized so that package/directory structures match, but we 
     anticipate this happening in the near future.  
 
+*** Major refactoring of VM<->MM interface
+
+*** MMTk: Added nurseries to each LOS and created a distinct "primitive large
+    object space" (PLOS).  
+
+*** The optimizing compiler is now reentrant and a command line options
+    to enable parallel bootimage compilation has been added to jbuild 
+    (-numThreads=<n>).
+
 ** Bug fixes
+   Too many to list individually in the release notes. Yeah!
+   Overall a significant increase in system stability since 2.4.5.  
+   See svnlog -r10694:10905 for the gory details.
 
 ** Other Notes
+
+*** Change bootimage options for the opt compiler to use default static 
+    inlining heurisitcs (instead of being more aggressive).  This reduces 
+    bootimage size by 20%, bootimage build time by 2-3x, and appears to have 
+    minimal performance impact.
+
+*** We now implement JNI_OnLoad functionality.
+
+*** Modifications to the boot image writer and VM.boot so that certain
+    known fields are populated during boot image write time, thereby
+    avoiding the need to run class initializers in VM.boot. Typically
+    we fail to populate a field value when it's part of the bootstrap
+    JVM and in some way protected. Further improvements to this mechanism
+    are in progress.
+
+*** If GNU classpath is built with JAWT support, the Jikes RVM build process
+    now copies the additional native libraries it requires.
+
+*** Added regression testing support for latest version (2006-10-RC2) of
+    DaCapo benchmarks and for SPECjbb2005. Also updated soot test to 2.2.3.
+
+*** We can now build using the IBM 5.0 JVMs as hosts.  However, you
+    must set HOST_VM_TYPE=IBM-50 to activate code in the bootimage
+    writer makefile that works around what appears to be a JIT bug. 
+
+*** GNU classpath support for java.lang.instrumentation and the 
+    -javaagent command line argument was added.
 
 
 *Jikes RVM 2.4.5 Release Notes (released August 14, 2006)
 ** Highlights
 *** The recommended version of GNU classpath for Jikes RVM 2.4.5 is 0.92.
-    GNU classpath version 0.91 will work, but Jikes RVM 2.4.5 will not 
+    GNU classpath version 0.91 will work, but Jikes RVM 2.4.5 will not
     compile against versions of GNU classpath before 0.91.
 
 *** Classpath AWT and Swing tests now run with the Jikes RVM. We have changed
