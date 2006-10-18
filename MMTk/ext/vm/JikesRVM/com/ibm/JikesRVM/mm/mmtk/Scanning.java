@@ -12,8 +12,9 @@
 package com.ibm.JikesRVM.mm.mmtk;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TraceStep;
+import org.mmtk.utility.scan.Scan;
 import org.mmtk.utility.deque.*;
-import org.mmtk.utility.scan.*;
 import org.mmtk.utility.Constants;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
@@ -52,7 +53,7 @@ public class Scanning extends org.mmtk.vm.Scanning implements Constants, Uninter
    *
    * @param object The object to be scanned.
    */
-  public final void scanObject(TraceLocal trace, ObjectReference object) 
+  public final void scanObject(TraceStep trace, ObjectReference object) 
     throws UninterruptiblePragma, InlinePragma {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
@@ -71,21 +72,6 @@ public class Scanning extends org.mmtk.vm.Scanning implements Constants, Uninter
     if (VM.VerifyAssertions) VM._assert(false);
   }
   
-  /**
-   * Delegated enumeration of the pointers in an object, calling back
-   * to a given plan for each pointer encountered. <b>Jikes RVM never
-   * delegates, so this is never executed</b>.
-   *
-   * @param object The object to be scanned.
-   * @param _enum the Enumerator object through which the trace
-   * is made
-   */
-  public final void enumeratePointers(ObjectReference object, Enumerator _enum) 
-    throws UninterruptiblePragma, InlinePragma {
-    // Never reached
-    if (VM.VerifyAssertions) VM._assert(false);
-  }
-
   /**
    * Prepares for using the <code>computeAllRoots</code> method.  The
    * thread counter allows multiple GC threads to co-operatively

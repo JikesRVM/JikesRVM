@@ -261,6 +261,33 @@ public abstract class Plan implements Uninterruptible, Constants {
   public abstract void collectionPhase(int phase);
 
   /**
+   * Replace a phase.
+   * 
+   * @param oldPhase The phase to be replaced
+   * @param newPhase The phase to replace with
+   */
+  public void replacePhase(int oldPhase, int newPhase)
+    throws InterruptiblePragma {
+    VM.assertions.fail("replacePhase not implemented for this plan");
+  }
+
+  
+  /**
+   * Insert a phase.
+   * 
+   * @param marker The phase to insert after
+   * @param newPhase The phase to replace with
+   */
+  public void insertPhaseAfter(int marker, int newPhase) 
+    throws InterruptiblePragma {
+    int newComplexPhase = (new ComplexPhase("auto-gen",
+                                            null, 
+                                            new int[] {marker,newPhase})
+                          ).getId();
+    replacePhase(marker, newComplexPhase);
+  }
+  
+  /**
    * @return Whether last GC is a full GC.
    */
   public boolean isLastGCFull() {

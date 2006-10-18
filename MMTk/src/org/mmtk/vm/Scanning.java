@@ -12,7 +12,7 @@
 package org.mmtk.vm;
 
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.scan.*;
+import org.mmtk.plan.TraceStep;
 import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.Uninterruptible;
@@ -34,7 +34,7 @@ public abstract class Scanning implements Constants, Uninterruptible {
    * 
    * @param object The object to be scanned.
    */
-  public abstract void scanObject(TraceLocal trace, ObjectReference object);
+  public abstract void scanObject(TraceStep trace, ObjectReference object);
 
   /**
    * Delegated precopying of a object's children, processing each pointer field
@@ -44,16 +44,6 @@ public abstract class Scanning implements Constants, Uninterruptible {
    * @param object The object to be scanned.
    */
   public abstract void precopyChildren(TraceLocal trace, ObjectReference object);
-
-  /**
-   * Delegated enumeration of the pointers in an object, calling back
-   * to a given plan for each pointer encountered. 
-   * 
-   * @param object The object to be scanned.
-   * @param e the Enumerator object through which the callback
-   * is made
-   */
-  public abstract void enumeratePointers(ObjectReference object, Enumerator e);
 
   /**
    * Prepares for using the <code>computeAllRoots</code> method.  The

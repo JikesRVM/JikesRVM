@@ -180,7 +180,7 @@ public abstract class StopTheWorld extends Plan
         Log.writeln("Collector does not support sanity checking!");
       } else {
         Log.writeln("Collection sanity checking enabled.");
-        collection.replacePhase(SANITY_PLACEHOLDER, sanityPhase);
+        replacePhase(SANITY_PLACEHOLDER, sanityPhase);
       }
     }
   }
@@ -246,6 +246,17 @@ public abstract class StopTheWorld extends Plan
     Log.write("Global phase "); Log.write(Phase.getName(phaseId)); 
     Log.writeln(" not handled.");
     VM.assertions.fail("Global phase not handled!");
+  }
+  
+  /**
+   * Replace a phase.
+   * 
+   * @param oldPhase The phase to be replaced
+   * @param newPhase The phase to replace with
+   */
+  public void replacePhase(int oldPhase, int newPhase)
+    throws InterruptiblePragma {
+    collection.replacePhase(oldPhase, newPhase);
   }
 
   /**

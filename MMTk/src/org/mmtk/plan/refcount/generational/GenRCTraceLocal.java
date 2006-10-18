@@ -11,7 +11,7 @@ package org.mmtk.plan.refcount.generational;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
-import org.mmtk.policy.RefCountSpace;
+import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.Space;
 import org.mmtk.vm.VM;
 
@@ -19,8 +19,8 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implments the core functionality for a transitive
- * closure over the heap graph.
+ * This abstract class implments the thread-local functionality for a transitive
+ * closure over a mark-sweep space.
  * 
  * $Id$
  * 
@@ -30,29 +30,12 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public final class GenRCTraceLocal extends TraceLocal
-  implements Uninterruptible {
-
+public final class GenRCTraceLocal extends TraceLocal implements Uninterruptible {
   /**
    * Constructor
    */
   public GenRCTraceLocal(Trace trace) {
     super(trace);
-  }
-
-  // FIXME This is a consequence of zero collector/mutator separation in RC...
-  // private final GenRCCollector collector() {
-  // return (GenRCCollector)ActivePlan.collector();
-  // }
-  private final GenRCMutator collector() {
-    return (GenRCMutator) VM.activePlan.mutator();
-  }
-
-  /**
-   * Flush any remembered sets pertaining to the current collection.
-   */
-  protected void processRememberedSets() {
-    collector().processModBufs();
   }
 
   /****************************************************************************
@@ -61,84 +44,20 @@ public final class GenRCTraceLocal extends TraceLocal
    */
 
   /**
-   * Return true if <code>object</code> is a live object.
+   * Is the specified object live?
    * 
-   * @param object The object in question
-   * @return True if <code>object</code> is a live object.
+   * @param object The object.
+   * @return True if the object is live.
    */
   public boolean isLive(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    if (Space.isInSpace(GenRC.NS, object))
+    if (object.isNull()) return false;
+    if (Space.isInSpace(GenRC.NS, object)) {
       return GenRC.nurserySpace.isLive(object);
-    else if (GenRC.isRCObject(object))
-      return RefCountSpace.isLiveRC(object);
-    else if (Space.isInSpace(GenRC.META, object))
-      return false;
-    else
-      return true;
-  }
-
-  /**
-  * Return true if an object is ready to move to the finalizable
-  * queue, i.e. it has no regular references to it.
-   * 
-  * @param object The object being queried.
-  * @return <code>true</code> if the object has no regular references
-  * to it.
-   */
-  public boolean readyToFinalize(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    if (Space.isInSpace(GenRC.NS, object))
-      return !GenRC.nurserySpace.isLive(object);
-    else if (GenRC.isRCObject(object))
-      return RefCountSpace.isFinalizable(object);
-    else if (!Space.isInSpace(GenRC.META, object))
-      return true;
-    else
-      return false;
-  }
-
-  /**
-  * An object has just been moved to the finalizable queue.  No need
-  * to forward because no copying is performed in this GC, but should
-  * clear the finalizer bit of the object so that its reachability
-  * now is soley determined by the finalizer queue from which it is
-  * now reachable.
-   * 
-  * @param object The object being queried.
-   * @return The object (no copying is performed).
-   */
-  public ObjectReference retainForFinalize(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    if (Space.isInSpace(GenRC.NS, object))
-      return GenRC.nurserySpace.traceObject(this, object);
-    else if (GenRC.isRCObject(object))
-      RefCountSpace.clearFinalizer(object);
-    return object;
-  }
-
-  public boolean willNotMove(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    return !(Space.isInSpace(GenRC.NS, object));
-  }
-
-  public final ObjectReference precopyObject(ObjectReference object) {
-    if (Space.isInSpace(GenRC.NS, object))
-      return GenRC.nurserySpace.traceObject(this, object);
-    return object;
-  }
-
-  /**
-   * Trace a reference during GC.  This involves determining which
-   * collection policy applies and calling the appropriate
-   * <code>trace</code> method.
-   * 
-   * @param object The object reference to be traced.  This is <i>NOT</i>
-   * an interior pointer.
-   * @return The possibly moved reference.
-   */
-  public final ObjectReference traceObject(ObjectReference object) {
-    return traceObject(object, false);
+    }
+    if (GenRC.isRCObject(object)) {
+      return RCHeader.isLiveRC(object);
+    }
+    return super.isLive(object);
   }
 
   /**
@@ -153,36 +72,66 @@ public final class GenRCTraceLocal extends TraceLocal
    * @return The possibly moved reference.
    */
   public final ObjectReference traceObject(ObjectReference object,
-                                                  boolean root) {
+                                           boolean root) {
     if (object.isNull()) return object;
-    if (RefCountSpace.RC_SANITY_CHECK && root)
-      collector().rc.incSanityTraceRoot(object);
     if (Space.isInSpace(GenRC.NS, object)) {
-      ObjectReference rtn = GenRC.nurserySpace.traceObject(this, object);
-      // every incoming reference to the from-space object must inc the
-      // ref count of forwarded (to-space) object...
-      if (root) {
-        if (RefCountSpace.INC_DEC_ROOT) {
-          RefCountSpace.incRC(rtn);
-          collector().addToRootSet(rtn);
-        } else if (RefCountSpace.setRoot(rtn)) {
-          collector().addToRootSet(rtn);
-        }
-      } else
-        RefCountSpace.incRC(rtn);
-      return rtn;
-    } else if (GenRC.isRCObject(object)) {
-      if (root)
-        return GenRC.rcSpace.traceObject(this, object);
-      else
-        RefCountSpace.incRC(object);
+      object = GenRC.nurserySpace.traceObject(this, object);
+    } else if (!GenRC.isRCObject(object)) {
+      return object;
     }
-    // else this is not a rc heap pointer
+    if (root) {
+      collector().reportRoot(object);
+    } else {
+      RCHeader.incRC(object);
+    }
     return object;
+  }
+  
+  /**
+   * This method traces an object with knowledge of the fact that object
+   * is a root or not. In simple collectors the fact it is a root is not
+   * important so this is the default implementation given here.
+   * 
+   * @param object The object to be traced.
+   * @return The new reference to the same object instance.
+   */
+  public final ObjectReference traceObject(ObjectReference object)
+      throws InlinePragma {
+    return traceObject(object, false);
   }
 
   public final int getAllocator() throws InlinePragma {
     return GenRC.ALLOC_RC;
   }
 
+  public boolean willNotMove(ObjectReference object) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
+    return !(Space.isInSpace(GenRC.NS, object));
+  }
+
+  public final ObjectReference precopyObject(ObjectReference object) {
+    if (Space.isInSpace(GenRC.NS, object))
+      return GenRC.nurserySpace.traceObject(this, object);
+    return object;
+  }
+  
+  /**
+   * Miscellaneous
+   */
+
+  /**
+   * Called during the trace to process any remsets. As there is a bug
+   * in JikesRVM where write barriers occur during GC, this is 
+   * necessary.
+   */
+  public void flushRememberedSets() {
+    collector().processModBuffer();
+  }
+
+  /**
+   * @return The current RC collector instace.
+   */
+  private static final GenRCCollector collector() throws InlinePragma {
+    return (GenRCCollector)VM.activePlan.collector();
+  }
 }

@@ -7,70 +7,62 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-
 package org.mmtk.plan.refcount.generational;
 
-import org.mmtk.plan.refcount.RCBaseCollector;
-import org.mmtk.plan.refcount.fullheap.RC;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.policy.Space;
+import org.mmtk.plan.TraceStep;
+import org.mmtk.plan.refcount.RCBaseCollector;
+import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.CopySpace;
-import org.mmtk.policy.RefCountLocal;
-import org.mmtk.policy.RefCountSpace;
-import org.mmtk.utility.options.Options;
-import org.mmtk.utility.scan.*;
+import org.mmtk.policy.ExplicitFreeListLocal;
 import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
-import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
- * This class implements <i>per-collector thread</i> behavior and
- * state for the <i>GenRC</i> plan, a generational reference
- * counting collector.<p>
+ * This class implements <i>per-collector thread</i> behavior 
+ * and state for the <i>GenRC</i> plan, which implements a generational
+ * reference counting collector.<p>
  * 
- * Specifically, this class defines collection-time allocation (promotion
- * from the nursery) and basic per-collector collection semantics.<p>
+ * Specifically, this class defines <i>RC</i> collection behavior
+ * (through <code>trace</code> and the <code>collectionPhase</code>
+ * method).<p>
  * 
- * See {@link GenRC} for a description of the generational reference counting
- * algorithm.<p>
+ * @see GenRC for an overview of the reference counting algorithm.<p>
  * 
- * FIXME Currently GenRC does not properly separate mutator and collector
- * behaviors, so most of the collection logic in GenRCMutator should really
- * be per-collector thread, not per-mutator thread.
+ * FIXME The SegregatedFreeList class (and its decendents such as
+ * MarkSweepLocal) does not properly separate mutator and collector
+ * behaviors, so the ms field below should really not exist in
+ * this class as there is no collection-time allocation in this
+ * collector.
  * 
- * @see RCBaseCollector
  * @see GenRC
  * @see GenRCMutator
- * @see org.mmtk.plan.StopTheWorldCollector
- * @see org.mmtk.plan.CollectorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
+ * @see StopTheWorldCollector
+ * @see CollectorContext
+ * @see SimplePhase#delegatePhase
  * 
  * $Id$
  * 
  * @author Steve Blackburn
- * @author Robin Garner
  * @author Daniel Frampton
+ * @author Robin Garner
  * @version $Revision$
  * @date $Date$
  */
 public abstract class GenRCCollector extends RCBaseCollector
 implements Uninterruptible, Constants {
 
-  //  FIXME This hack is a consequence of zero collector/mutator separation in RC...
-  private final GenRCMutator fixme() {
-    return (GenRCMutator) VM.activePlan.mutator();
-  }
-
   /****************************************************************************
-   * Instance variables
+   * Instance fields
    */
-  public GenRCTraceLocal trace = new GenRCTraceLocal(global().trace);
+  public final ExplicitFreeListLocal rc;  
+  public final GenRCTraceLocal trace;
+  public final GenRCModifiedProcessor modProcessor;
 
   /****************************************************************************
-   * 
    * Initialization
    */
 
@@ -78,49 +70,11 @@ implements Uninterruptible, Constants {
    * Constructor
    */
   public GenRCCollector() {
-    global().remsetPool.newConsumer();
+    trace = new GenRCTraceLocal(global().rcTrace);
+    rc = new ExplicitFreeListLocal(GenRC.rcSpace);
+    modProcessor = new GenRCModifiedProcessor(trace);
   }
-
-  /****************************************************************************
-   * 
-   * Collection-time allocation
-   */
-
-  /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   * 
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment
-   * @param offset The alignment offset
-   * @return The address of the first byte of the allocated region
-   */
-  public final Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator)
-  throws InlinePragma {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == GenRC.ALLOC_RC);
-    return fixme().rc.alloc(bytes, align, offset, false);  // FIXME is this right???
-  }
-
-  /**
-   * Perform any post-copy actions. In this case nothing is required.
-   * 
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
-  public final void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) throws InlinePragma {
-    CopySpace.clearGCBits(object);
-    RefCountSpace.initializeHeader(object, typeRef, false);
-    RefCountSpace.makeUnlogged(object);
-    RefCountLocal.unsyncLiveObject(object);
-    if (RefCountSpace.RC_SANITY_CHECK) {
-      RefCountLocal.sanityAllocCount(object);
-    }
-  }
-
+  
   /****************************************************************************
    * 
    * Collection
@@ -132,103 +86,81 @@ implements Uninterruptible, Constants {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
-  public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == RC.PREPARE) {
-      VM.memory.collectorPrepareVMSpace();
+  public void collectionPhase(int phaseId, boolean primary)
+      throws InlinePragma {
+    if (phaseId == GenRC.PREPARE) {
+      super.collectionPhase(phaseId, primary);
+      rc.prepare();
       return;
     }
 
-    if (phaseId == RC.START_CLOSURE) {
-      trace.startTrace();
+    if (phaseId == GenRC.RELEASE) {
+      super.collectionPhase(phaseId, primary);
+      rc.releaseCollector();
+      rc.releaseMutator();
       return;
     }
 
-    if (phaseId == RC.COMPLETE_CLOSURE) {
-      trace.completeTrace();
-      return;
-    }
-
-    if (phaseId == RC.RELEASE) {
-      VM.memory.collectorReleaseVMSpace();
-      if (Options.verbose.getValue() > 2) fixme().rc.printStats();
-      return;
-    }
     super.collectionPhase(phaseId, primary);
   }
-
+  
+  /****************************************************************************
+  *
+  * Collection-time allocation
+  */
+  
   /**
-   * Trace a reference during an increment sanity traversal.  This is
-   * only used as part of the ref count sanity check, and it forms the
-   * basis for a transitive closure that assigns a reference count to
-   * each object.
+   * Allocate space for copying an object (this method <i>does not</i>
+   * copy the object, it only allocates space)
    *
-   * @param object The object being traced
-   * @param location The location from which this object was
-   * reachable, null if not applicable.
-   * @param root <code>true</code> if the object is being traced
-   * directly from a root.
+   * @param original A reference to the original object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment
+   * @param offset The alignment offset
+   * @return The address of the first byte of the allocated region
    */
-  public final void incSanityTrace(ObjectReference object, Address location,
-      boolean root) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    // if nursery, then get forwarded RC object
-    if (Space.isInSpace(GenRC.NS, object)) {
-      if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(CopySpace.isForwarded(object));
-      object = CopySpace.getForwardingPointer(object);
+  public final Address allocCopy(ObjectReference original, int bytes,
+                                 int align, int offset, int allocator)
+    throws InlinePragma {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(allocator == GenRC.ALLOC_RC);
     }
-
-    if (GenRC.isRCObject(object)) {
-      if (RefCountSpace.incSanityRC(object, root))
-        Scan.enumeratePointers(object, fixme().sanityEnum);
-    } else if (RefCountSpace.markSanityRC(object))
-      Scan.enumeratePointers(object, fixme().sanityEnum);
+    return rc.alloc(bytes, align, offset, true);
   }
-
+  
   /**
-   * Trace a reference during a check sanity traversal.  This is only
-   * used as part of the ref count sanity check, and it forms the
-   * basis for a transitive closure that checks reference counts
-   * against sanity reference counts.  If the counts are not matched,
-   * an error is raised.
+   * Perform any post-copy actions.  In this case nothing is required.
    *
-   * @param object The object being traced
-   * @param location The location from which this object was
-   * reachable, null if not applicable.
+   * @param object The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void checkSanityTrace(ObjectReference object,
-      Address location) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
-    // if nursery, then get forwarded RC object
-    if (Space.isInSpace(GenRC.NS, object)) {
-      if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(CopySpace.isForwarded(object));
-      object = CopySpace.getForwardingPointer(object);
-    }
-
-    if (GenRC.isRCObject(object)) {
-      if (RefCountSpace.checkAndClearSanityRC(object)) {
-        Scan.enumeratePointers(object, fixme().sanityEnum);
-        fixme().rc.addLiveSanityObject(object);
-      }
-    } else if (RefCountSpace.unmarkSanityRC(object)) {
-      Scan.enumeratePointers(object, fixme().sanityEnum);
-    }
+  public final void postCopy(ObjectReference object, ObjectReference typeRef,
+                             int bytes, int allocator)
+    throws InlinePragma {
+    CopySpace.clearGCBits(object);
+    RCHeader.initializeHeader(object, typeRef, false);
+    RCHeader.makeUnlogged(object);
+    ExplicitFreeListLocal.unsyncLiveObject(object);
   }
-
   
   /****************************************************************************
    * 
    * Miscellaneous
    */
 
-  /** @return The active global plan as a <code>GenRC</code> instance. */
+  /** @return The active global plan as an <code>MS</code> instance. */
   private static final GenRC global() throws InlinePragma {
     return (GenRC) VM.activePlan.global();
   }
-
+  
+  /** @return The current trace instance. */
   public final TraceLocal getCurrentTrace() {
     return trace;
   }
+  
+  /** @return The current modified object processor. */
+  public final TraceStep getModifiedProcessor() {
+    return modProcessor;
+  }
 }
-

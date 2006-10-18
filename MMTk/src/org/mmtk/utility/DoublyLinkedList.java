@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-final class DoublyLinkedList implements Constants, Uninterruptible {
+public final class DoublyLinkedList implements Constants, Uninterruptible {
 
   /****************************************************************************
    * 
@@ -65,7 +65,7 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
   /**
    * Constructor
    */
-  DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
+  public DoublyLinkedList(int log_granularity_, boolean shared, Object owner_) {
     owner = owner_;
     head = Address.zero();
     lock = shared ? VM.newLock("DoublyLinkedList") : null;
@@ -148,6 +148,14 @@ final class DoublyLinkedList implements Constants, Uninterruptible {
     node.store(Address.zero(), NEXT_OFFSET);
     node.store(Address.zero(), LIST_OFFSET);
     if (lock != null) lock.release();
+  }
+
+  public final Address getHead() throws InlinePragma {
+    return head;
+  }
+
+  public final Address getNext(Address node) throws InlinePragma {
+    return node.loadAddress(NEXT_OFFSET);
   }
 
   public final Address pop() throws InlinePragma {

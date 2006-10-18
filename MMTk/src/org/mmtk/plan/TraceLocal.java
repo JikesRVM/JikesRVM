@@ -39,7 +39,8 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class TraceLocal implements Constants, Uninterruptible {
+public abstract class TraceLocal extends TraceStep 
+  implements Constants, Uninterruptible {
   /****************************************************************************
    * 
    * Instance variables

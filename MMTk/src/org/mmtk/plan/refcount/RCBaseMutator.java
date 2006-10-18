@@ -5,40 +5,43 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ * Australian National University. 2005, 2006
  */
-
 package org.mmtk.plan.refcount;
 
 import org.mmtk.plan.StopTheWorldMutator;
-import org.mmtk.policy.LargeRCObjectLocal;
-import org.mmtk.policy.RefCountLocal;
-import org.mmtk.policy.RefCountSpace;
+import org.mmtk.plan.refcount.cd.CDMutator;
+import org.mmtk.plan.refcount.cd.NullCDMutator;
+import org.mmtk.plan.refcount.cd.TrialDeletionMutator;
+import org.mmtk.policy.ExplicitFreeListLocal;
+import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
+
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.deque.*;
-import org.mmtk.utility.scan.*;
+import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This abstract class implements <i>per-mutator thread</i> behavior
- * and state for the <i>RCBase</i> plan, which is the parent class for
- * reference counting collectors.<p>
+ * This class implements <i>per-mutator thread</i> behavior 
+ * and state for the <i>RCBase</i> plan, which implements the 
+ * base functionality for reference counted collectors.
  * 
- * See {@link RCBase} for an overview of the basic reference counting algorithm
+ * @see RCBase for an overview of the reference counting algorithm.<p>
  * 
- * FIXME Currently RCBase does not properly separate mutator and collector
- * behaviors, so most of the collection logic here should really be
- * per-collector thread, not per-mutator thread.
+ * FIXME The SegregatedFreeList class (and its decendents such as
+ * MarkSweepLocal) does not properly separate mutator and collector
+ * behaviors, so the ms field below should really not exist in
+ * this class as there is no collection-time allocation in this
+ * collector.
  * 
  * @see RCBase
  * @see RCBaseCollector
- * @see org.mmtk.plan.StopTheWorldMutator
- * @see org.mmtk.plan.MutatorContext
- * @see org.mmtk.plan.SimplePhase#delegatePhase
+ * @see StopTheWorldMutator
+ * @see MutatorContext
+ * @see SimplePhase#delegatePhase
  * 
  * $Id$
  * 
@@ -48,24 +51,20 @@ import org.vmmagic.unboxed.*;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class RCBaseMutator extends StopTheWorldMutator implements Uninterruptible {
+public class RCBaseMutator extends StopTheWorldMutator implements Uninterruptible {
+
   /****************************************************************************
    * Instance fields
    */
 
-  // queues (buffers)
-  protected ObjectReferenceDeque decBuffer;
-  protected ObjectReferenceDeque modBuffer;
-  protected ObjectReferenceDeque newRootSet;
-
-  // allocators
-  public RefCountLocal rc;
-  public LargeRCObjectLocal los;
-
-  // Enumerators
-  public RCDecEnumerator decEnum;
-  public RCModifiedEnumerator modEnum;
-  public RCSanityEnumerator sanityEnum;
+  public ExplicitFreeListLocal rc;
+  public ExplicitLargeObjectLocal los;
+  
+  public ObjectReferenceDeque modBuffer;
+  public DecBuffer decBuffer;
+  
+  private NullCDMutator nullCD;
+  private TrialDeletionMutator trialDeletionCD;
 
   /****************************************************************************
    * 
@@ -76,55 +75,97 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
    * Constructor
    */
   public RCBaseMutator() {
-    if (RCBase.WITH_COALESCING_RC) {
-      modBuffer = new ObjectReferenceDeque("mod buf", global().modPool);
-      modEnum = new RCModifiedEnumerator();
+    rc = new ExplicitFreeListLocal(RCBase.rcSpace);
+    los = new ExplicitLargeObjectLocal(RCBase.loSpace);
+    decBuffer = new DecBuffer(global().decPool);
+    modBuffer = new ObjectReferenceDeque("mod buf", global().modPool);
+    switch (RCBase.CYCLE_DETECTOR) {
+    case RCBase.NO_CYCLE_DETECTOR:
+      nullCD = new NullCDMutator();
+      break;
+    case RCBase.TRIAL_DELETION:
+      trialDeletionCD = new TrialDeletionMutator();
+      break;
     }
-    decBuffer = new ObjectReferenceDeque("dec buf", global().decPool);
-    newRootSet = new ObjectReferenceDeque("root set", global().rootPool);
-    los = new LargeRCObjectLocal(RCBase.loSpace);
-    rc = new RefCountLocal(RCBase.rcSpace, los, decBuffer, newRootSet);
-    decEnum = new RCDecEnumerator();
-    if (RefCountSpace.RC_SANITY_CHECK) sanityEnum = new RCSanityEnumerator(rc);
   }
 
-  
   /****************************************************************************
    * 
    * Mutator-time allocation
    */
 
   /**
+   * Allocate memory for an object. This class handles the default allocator
+   * from the mark sweep space, and delegates everything else to the
+   * superclass.
+   * 
+   * @param bytes The number of bytes required for the object.
+   * @param align Required alignment for the object.
+   * @param offset Offset associated with the alignment.
+   * @param allocator The allocator associated with this request.
+   * @param site Allocation site
+   * @return The low address of the allocated memory.
+   */
+  public Address alloc(int bytes, int align, int offset, int allocator, int site)
+      throws InlinePragma {
+    switch(allocator) {
+      case RCBase.ALLOC_RC:
+        return rc.alloc(bytes, align, offset, false);
+      case RCBase.ALLOC_LOS:
+        return los.alloc(bytes, align, offset, false);
+      default:
+        return super.alloc(bytes, align, offset, allocator, site);
+    }
+  }
+
+  /**
+   * Perform post-allocation actions.  Initialize the object header for
+   * objects in the mark-sweep space, and delegate to the superclass for
+   * other objects.
+   *
+   * @param ref The newly allocated object
+   * @param typeRef the type reference for the instance being created
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param allocator The allocator number to be used for this allocation
+   */
+  public void postAlloc(ObjectReference ref, ObjectReference typeRef,
+      int bytes, int allocator) throws InlinePragma {
+    switch(allocator) {
+    case RCBase.ALLOC_RC:
+      ExplicitFreeListLocal.unsyncLiveObject(ref);
+    case RCBase.ALLOC_LOS:
+    case RCBase.ALLOC_IMMORTAL:
+      if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
+      RCHeader.initializeHeader(ref, typeRef, true);
+      decBuffer.push(ref);
+      break;
+  default:
+      if (RCBase.WITH_COALESCING_RC) modBuffer.push(ref);
+      break;
+    }
+  }
+
+  /**
    * Return the space into which an allocator is allocating.  This
    * particular method will match against those spaces defined at this
    * level of the class hierarchy.  Subclasses must deal with spaces
-   * they define and refer to superclasses appropriately.  This exists
-   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.<p>
+   * they define and refer to superclasses appropriately.
    * 
-   * Note that we override <code>los</code>, so we must account for it
-   * here (rather than in our superclass).
-   * 
-   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param a An allocator
    * @return The space into which <code>a</code> is allocating, or
    *         <code>null</code> if there is no space associated with
    *         <code>a</code>.
    */
   public Space getSpaceFromAllocator(Allocator a) {
-    if (a == rc)  return RCBase.rcSpace;
+    if (a == rc ) return RCBase.rcSpace;
     if (a == los) return RCBase.loSpace;
     return super.getSpaceFromAllocator(a);
   }
 
   /**
    * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.  This exists
-   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.<p>
+   * <code>space</code>, for this plan instance.
    * 
-   * Note that we override <code>los</code>, so we must account for it
-   * here (rather than in our superclass).
-   * 
-   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>
@@ -136,149 +177,74 @@ public abstract class RCBaseMutator extends StopTheWorldMutator implements Unint
     return super.getAllocatorFromSpace(space);
   }
 
-  
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  // FIXME The remainder should be part of the collector!
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-  /** ************************************************************************ */
-
-  
-  
   /****************************************************************************
    * 
-   * Pointer enumeration
+   * Collection
    */
 
   /**
-   * A field of an object is being enumerated by ScanObject as part of
-   * a recursive decrement (when an object dies, its referent objects
-   * must have their counts decremented).  If the field points to the
-   * RC space, decrement the count for the referent.
+   * Perform a per-mutator collection phase.
    * 
-   * @param location The address of a reference field with an object
-   * being enumerated.
+   * @param phaseId The collection phase to perform
+   * @param primary Perform any single-threaded activities using this thread.
    */
-  public final void enumerateDecrementPointerLocation(Address location)
+  public void collectionPhase(int phaseId, boolean primary)
       throws InlinePragma {
-    ObjectReference object = location.loadObjectReference();
-    if (RCBase.isRCObject(object)) {
-      decBuffer.push(object);
+
+    if (phaseId == RCBase.PREPARE_MUTATOR) {
+      rc.prepare();
+      los.prepare();
+      decBuffer.flushLocal();
+      modBuffer.flushLocal();
+      return;
+    }
+
+    if (phaseId == RCBase.RELEASE_MUTATOR) {
+      los.release();
+      rc.releaseCollector();
+      rc.releaseMutator(); // FIXME see block comment at top of this class
+      return;
+    }
+
+    if (!cycleDetector().collectionPhase(phaseId)) {
+      super.collectionPhase(phaseId, primary);
     }
   }
 
-  /**
-   * A field of an object in the modified buffer is being enumerated
-   * by ScanObject. If the field points to the RC space, increment the
-   * count of the referent object.
-   * 
-   * @param objLoc The address of a reference field with an object
-   * being enumerated.
-   */
-  public abstract void enumerateModifiedPointerLocation(Address objLoc);
-
-  /*  public void enumerateModifiedPointerLocation(Address objLoc)
-   throws InlinePragma {
-   if (VM.VERIFY_ASSERTIONS) VM.as._assert(RCBase.WITH_COALESCING_RC);
-   ObjectReference object = objLoc.loadObjectReference();
-   if (RCBase.isRCObject(object)) RefCountSpace.incRC(object);
-   }  
-   */
   /****************************************************************************
    * 
    * RC methods
    */
 
   /**
-   * Add an object to the decrement buffer
+   * Add an object to the dec buffer for this mutator.
    * 
-   * @param object The object to be added to the decrement buffer
+   * @param object The object to add
    */
-  public final void addToDecBuf(ObjectReference object)
-  throws InlinePragma {
+  public final void addToDecBuffer(ObjectReference object) {
     decBuffer.push(object);
   }
-
-  /**
-   * Add an object to the root set
-   * 
-   * @param root The object to be added to root set
-   */
-  public final void addToRootSet(ObjectReference root)
-  throws InlinePragma {
-    newRootSet.push(root);
-  }
-
-  /**
-   * Process the modified object buffers, enumerating each object's
-   * fields
-   */
-  public final void processModBufs() {
-    modBuffer.flushLocal();
-    ObjectReference object;
-    while (!(object = modBuffer.pop()).isNull()) {
-      RefCountSpace.makeUnlogged(object);
-      Scan.enumeratePointers(object, modEnum);
-    }
-  }
-
-  /**
-   * Trace a reference during an increment sanity traversal.  This is
-   * only used as part of the ref count sanity check, and it forms the
-   * basis for a transitive closure that assigns a reference count to
-   * each object.
-   *
-   * @param object The object being traced
-   * @param location The location from which this object was
-   * reachable, null if not applicable.
-   * @param root <code>true</code> if the object is being traced
-   * directly from a root.
-   */
-  public void incSanityTrace(ObjectReference object, Address location,
-      boolean root) {
-    if (RCBase.isRCObject(object)) {
-      if (RefCountSpace.incSanityRC(object, root))
-        Scan.enumeratePointers(object, sanityEnum);
-    } else if (RefCountSpace.markSanityRC(object))
-      Scan.enumeratePointers(object, sanityEnum);
-  }
-
-  /**
-   * Trace a reference during an check sanity traversal.  This is only
-   * used as part of the ref count sanity check, and it forms the
-   * basis for a transitive closure that checks reference counts
-   * against sanity reference counts.  If the counts are not matched,
-   * an error is raised.
-   *
-   * @param object The object being traced
-   * @param location The location from which this object was
-   * reachable, null if not applicable.
-   */
-  public void checkSanityTrace(ObjectReference object,
-      Address location) {
-    if (RCBase.isRCObject(object)) {
-      if (RefCountSpace.checkAndClearSanityRC(object)) {
-        Scan.enumeratePointers(object, sanityEnum);
-        rc.addLiveSanityObject(object);
-      }
-    } else if (RefCountSpace.unmarkSanityRC(object))
-      Scan.enumeratePointers(object, sanityEnum);
-  }
-
   
   /****************************************************************************
    * 
    * Miscellaneous
    */
 
-  /**
-   * @return The active global plan as an <code>RCBase</code> instance.
-   */
+  /** @return The active global plan as an <code>RC</code> instance. */
   private static final RCBase global() throws InlinePragma {
     return (RCBase) VM.activePlan.global();
+  }
+  
+  /** @return The active cycle detector instance */
+  public final CDMutator cycleDetector() throws InlinePragma {
+    switch (RCBase.CYCLE_DETECTOR) {
+    case RCBase.NO_CYCLE_DETECTOR:
+      return nullCD;
+    case RCBase.TRIAL_DELETION:
+      return trialDeletionCD;
+    }
+    
+    VM.assertions.fail("No cycle detector instance found.");
+    return null;
   }
 }

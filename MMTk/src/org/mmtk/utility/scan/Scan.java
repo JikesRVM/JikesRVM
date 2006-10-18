@@ -12,6 +12,7 @@
 package org.mmtk.utility.scan;
 
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.TraceStep;
 
 import org.mmtk.vm.VM;
 
@@ -31,9 +32,10 @@ public final class Scan implements Uninterruptible {
   /**
    * Scan a object, processing each pointer field encountered.
    * 
+   * @param trace The trace to use when scanning.
    * @param object The object to be scanned.
    */
-  public static void scanObject(TraceLocal trace,
+  public static void scanObject(TraceStep trace,
                                 ObjectReference object) throws InlinePragma {
     MMType type = VM.objectModel.getObjectType(object);
     if (!type.isDelegated()) {
@@ -49,6 +51,7 @@ public final class Scan implements Uninterruptible {
   /**
    * Scan a object, pre-copying each child object encountered.
    * 
+   * @param trace The trace to use when precopying.
    * @param object The object to be scanned.
    */
   public static void precopyChildren(TraceLocal trace, ObjectReference object)
@@ -62,27 +65,5 @@ public final class Scan implements Uninterruptible {
       }
     } else
       VM.scanning.precopyChildren(trace, object);
-  }
-
-  /**
-   * Enumerate the pointers in an object, calling back to a given plan
-   * for each pointer encountered. <i>NOTE</i> that only the "real"
-   * pointer fields are enumerated, not the TIB.
-   * 
-   * @param object The object to be scanned.
-   * @param _enum the Enumerate object through which the callback
-   * is made
-   */
-  public static void enumeratePointers(ObjectReference object, Enumerator _enum)
-      throws InlinePragma {
-    MMType type = VM.objectModel.getObjectType(object);
-    if (!type.isDelegated()) {
-      int references = type.getReferences(object);
-      for (int i = 0; i < references; i++) {
-        Address slot = type.getSlot(object, i);
-        _enum.enumeratePointerLocation(slot);
-      }
-    } else
-      VM.scanning.enumeratePointers(object, _enum);
   }
 }

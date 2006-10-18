@@ -7,26 +7,35 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-
 package org.mmtk.plan.refcount.generational;
 
 import org.mmtk.plan.refcount.RCBase;
-import org.mmtk.plan.Trace;
-import org.mmtk.policy.Space;
 import org.mmtk.policy.CopySpace;
-import org.mmtk.utility.deque.SharedDeque;
-import org.mmtk.utility.options.*;
-
+import org.mmtk.policy.Space;
+import org.mmtk.utility.options.Options;
 import org.mmtk.vm.Collection;
-
-import org.mmtk.vm.Statistics;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements a simple non-concurrent reference counting
+ * This class implements the global state of a simple reference counting
  * collector.
+ * 
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities, and divides global and local state
+ * into separate class hierarchies.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  There is a single instance of Plan (or the
+ * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods of PlanLocal allow fast, unsychronized access to functions such as
+ * allocation and collection.
+ *
+ * The global instance defines and manages static resources
+ * (such as memory and virtual memory resources).  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance properties of MMTk plans.
  * 
  * $Id$
  * 
@@ -37,53 +46,57 @@ import org.vmmagic.pragma.*;
  * @date $Date$
  */
 public class GenRC extends RCBase implements Uninterruptible {
-
+  
   /****************************************************************************
-   * 
+   *
    * Class variables
    */
-
+  
   /** The nursery space, where all new objects are allocated by default. */
   public static CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, (float) 0.15, true, false);
-
+  
   public static final int NS = nurserySpace.getDescriptor();
-
+  
   // Allocators
-  public static final int ALLOC_NURSERY = ALLOC_DEFAULT;
-  public static final int ALLOC_RC = RCBase.ALLOCATORS;
-  public static final int ALLOCATORS = ALLOC_RC + 1;
+  public static final int ALLOC_NURSERY = ALLOC_DEFAULT;  
 
-  // Trace
-  public Trace trace = new Trace(metaDataSpace);
-
-  // Remset
-  public final SharedDeque remsetPool = new SharedDeque(metaDataSpace, 1);
-
+  /****************************************************************************
+   * Instance variables
+   */
+  
+  /**
+   * Constructor.
+   * 
+   */
+  public GenRC() {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(WITH_COALESCING_RC);
+    }
+  }
+  
+  /*****************************************************************************
+   * 
+   * Collection
+   */
+  
+  
+  /**
+   * Perform a (global) collection phase.
+   * 
+   * @param phaseId Collection phase to execute.
+   */
   public void collectionPhase(int phaseId) throws NoInlinePragma {
     if (phaseId == PREPARE) {
-      timeCap = VM.statistics.cycles() +
-                VM.statistics.millisToCycles(Options.gcTimeCap.getMilliseconds());
       nurserySpace.prepare(true);
-      immortalSpace.prepare();
-      VM.memory.globalPrepareVMSpace();
-      rcSpace.prepare();
-      trace.prepare();
-      return;
     }
-
+    
     if (phaseId == RELEASE) {
-      trace.release();
-      rcSpace.release();
-      immortalSpace.release();
       nurserySpace.release();
-      VM.memory.globalReleaseVMSpace();
-      lastRCPages = rcSpace.committedPages();
-      return;
     }
-
+    
     super.collectionPhase(phaseId);
   }
-
+  
   /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
@@ -101,7 +114,7 @@ public class GenRC extends RCBase implements Uninterruptible {
    * of this method must code as though the method is interruptible.
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
-   * 
+   *
    * @see org.mmtk.policy.Space#acquire(int)
    * @param mustCollect if <code>true</code> then a collection is
    * required and must be triggered.  Otherwise a collection is only
@@ -110,8 +123,8 @@ public class GenRC extends RCBase implements Uninterruptible {
    * into which an allocation is about to occur).
    * @return True if a collection has been triggered
    */
-  public final boolean poll(boolean mustCollect, Space space)
-      throws LogicallyUninterruptiblePragma {
+  public boolean poll(boolean mustCollect, Space space)
+  throws LogicallyUninterruptiblePragma {
     if (getCollectionsInitiated() > 0 || !isInitialized()) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
@@ -119,7 +132,7 @@ public class GenRC extends RCBase implements Uninterruptible {
                           Options.nurserySize.getMaxNursery();
     boolean metaDataFull = metaDataSpace.reservedPages() >
                            META_DATA_FULL_THRESHOLD;
-    int newMetaDataPages = metaDataSpace.committedPages() -
+    int newMetaDataPages = metaDataSpace.committedPages() - 
                            previousMetaDataPages;
     if (mustCollect || heapFull || nurseryFull || metaDataFull ||
         (progress && (newMetaDataPages > Options.metaDataLimit.getPages()))) {
@@ -135,11 +148,11 @@ public class GenRC extends RCBase implements Uninterruptible {
     }
     return false;
   }
-
+  
   /**
    * Return the number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
-   * 
+   *
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
@@ -150,7 +163,7 @@ public class GenRC extends RCBase implements Uninterruptible {
 
   /**
    * Return the number of pages reserved for copying.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
@@ -162,7 +175,7 @@ public class GenRC extends RCBase implements Uninterruptible {
    * Return the number of pages in use given the pending
    * allocation.  Simply add the nursery's contribution to that of
    * the superclass.
-   * 
+   *
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
@@ -170,6 +183,4 @@ public class GenRC extends RCBase implements Uninterruptible {
   public final int getPagesUsed() {
     return super.getPagesUsed() + nurserySpace.reservedPages();
   }
-
 }
-

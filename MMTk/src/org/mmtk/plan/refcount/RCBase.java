@@ -5,26 +5,44 @@
  * available at http://www.opensource.org/licenses/cpl1.0.php
  *
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ * Australian National University. 2005, 2006
  */
-
 package org.mmtk.plan.refcount;
 
-import org.mmtk.plan.StopTheWorld;
-import org.mmtk.policy.RefCountSpace;
+import org.mmtk.plan.*;
+import org.mmtk.plan.refcount.cd.CD;
+import org.mmtk.plan.refcount.cd.NullCD;
+import org.mmtk.plan.refcount.cd.TrialDeletion;
+import org.mmtk.policy.ExplicitFreeListLocal;
+import org.mmtk.policy.ExplicitFreeListSpace;
+import org.mmtk.policy.ExplicitLargeObjectLocal;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.deque.*;
-import org.mmtk.utility.options.*;
-import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.deque.SharedDeque;
+import org.mmtk.utility.statistics.EventCounter;
 
 import org.mmtk.vm.VM;
 
-import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
- * This class implements a base functionality of a simple
- * non-concurrent reference counting collector.
+ * This class implements the global state of a simple reference counting
+ * collector.
+ * 
+ * All plans make a clear distinction between <i>global</i> and
+ * <i>thread-local</i> activities, and divides global and local state
+ * into separate class hierarchies.  Global activities must be
+ * synchronized, whereas no synchronization is required for
+ * thread-local activities.  There is a single instance of Plan (or the
+ * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
+ * threads" (aka CPUs or in Jikes RVM, VM_Processors).  Thus instance
+ * methods of PlanLocal allow fast, unsychronized access to functions such as
+ * allocation and collection.
+ *
+ * The global instance defines and manages static resources
+ * (such as memory and virtual memory resources).  This mapping of threads to
+ * instances is crucial to understanding the correctness and
+ * performance properties of MMTk plans.
  * 
  * $Id$
  * 
@@ -37,83 +55,77 @@ import org.vmmagic.pragma.*;
 public abstract class RCBase extends StopTheWorld implements Uninterruptible {
 
   /****************************************************************************
-   * 
+   * Constants
+   */
+  public static final boolean WITH_COALESCING_RC         = true;
+  public static final boolean INC_DEC_ROOT               = true;
+  public static final boolean INLINE_WRITE_BARRIER       = WITH_COALESCING_RC;
+  public static final boolean GATHER_WRITE_BARRIER_STATS = false;
+  public static final boolean FORCE_FULL_CD              = false;
+  
+  // Cycle detection selection
+  public static final int     NO_CYCLE_DETECTOR = 0;
+  public static final int     TRIAL_DELETION    = 1;
+  public static final int     CYCLE_DETECTOR    = TRIAL_DELETION;
+
+  /****************************************************************************
    * Class variables
    */
-  public static final boolean REF_COUNT_CYCLE_DETECTION = true;
-  public static final boolean WITH_COALESCING_RC = true;
+  public static final ExplicitFreeListSpace rcSpace
+    = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
+  public static final int REF_COUNT = rcSpace.getDescriptor();
 
-  /* Spaces */
-  public static RefCountSpace rcSpace = new RefCountSpace("rc", DEFAULT_POLL_FREQUENCY, (float) 0.5);
-  public static final int RC = rcSpace.getDescriptor();
-
-  /* Counters */
+  // Counters
   public static EventCounter wbFast;
   public static EventCounter wbSlow;
+    
+  // Allocators
+  public static final int ALLOC_RC = StopTheWorld.ALLOCATORS;
+  public static final int ALLOCATORS = ALLOC_RC + 1;
+  
+  // Cycle Detectors
+  private NullCD nullCD; 
+  private TrialDeletion trialDeletionCD;
 
-  /* shared queues */
-  protected SharedDeque decPool;
-  protected SharedDeque modPool;
-  protected SharedDeque rootPool;
-
-  // GC state
-  public int previousMetaDataPages; // meta-data pages after last GC
-  public int lastRCPages = 0; // pages at end of last GC
-
- /****************************************************************************
-   * 
-   * Initialization
+  /****************************************************************************
+   * Instance variables
    */
 
+  public final Trace rcTrace;
+  public final SharedDeque decPool;
+  public final SharedDeque modPool;
+  public final SharedDeque newRootPool;
+  public final SharedDeque oldRootPool;
+  protected int previousMetaDataPages;
+  
   /**
-   * Class initializer.  This is executed <i>prior</i> to bootstrap
-   * (i.e. at "build" time). This is where key <i>global</i> instances
-   * are allocated.  These instances will be incorporated into the
-   * boot image by the build process.
+   * Constructor.
+   * 
    */
-  static {
-    Options.gcTimeCap = new GCTimeCap();
-
+  public RCBase() {
+    if (!SCAN_BOOT_IMAGE) {
+      VM.assertions.fail("RC currently requires scan boot image");
+    }
     if (GATHER_WRITE_BARRIER_STATS) {
       wbFast = new EventCounter("wbFast");
       wbSlow = new EventCounter("wbSlow");
     }
-  }
-
-  /**
-   * Constructor
-   */
-  public RCBase() {
-    // instantiate shared queues
-    if (WITH_COALESCING_RC) {
-      modPool = new SharedDeque(metaDataSpace, 1);
-      modPool.newConsumer();
-    }
+    previousMetaDataPages = 0;
+    rcTrace = new Trace(metaDataSpace);
     decPool = new SharedDeque(metaDataSpace, 1);
-    decPool.newConsumer();
-    rootPool = new SharedDeque(metaDataSpace, 1);
-    rootPool.newConsumer();
+    modPool = new SharedDeque(metaDataSpace, 1);
+    newRootPool = new SharedDeque(metaDataSpace, 1);
+    oldRootPool = new SharedDeque(metaDataSpace, 1);
+    switch (RCBase.CYCLE_DETECTOR) {
+    case RCBase.NO_CYCLE_DETECTOR:
+      nullCD = new NullCD();
+      break;
+    case RCBase.TRIAL_DELETION:
+      trialDeletionCD = new TrialDeletion(this);
+      break;
+    }
   }
-
-
-  /****************************************************************************
-   * 
-   * RC methods
-   */
-
-  /**
-   * Return true if the object resides within the RC space
-   * 
-   * @param object An object reference
-   * @return True if the object resides within the RC space
-   */
-  public static final boolean isRCObject(ObjectReference object)
-      throws InlinePragma {
-    if (object.isNull())
-      return false;
-    else return (Space.isInSpace(RC, object) || Space.isInSpace(LOS, object));
-  }
-
+  
   /**
    * Perform any required initialization of the GC portion of the header.
    * Called for objects created at boot time.
@@ -127,35 +139,100 @@ public abstract class RCBase extends StopTheWorld implements Uninterruptible {
    */
   public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
                                 int size, Word status)
-    throws UninterruptiblePragma, InlinePragma {
-    if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);
+    throws InlinePragma {
+    if (WITH_COALESCING_RC) {
+      status = status.or(SCAN_BOOT_IMAGE ? RCHeader.LOGGED : RCHeader.UNLOGGED); 
+    }
     return status;
   }
-
-  /****************************************************************************
+  
+  /*****************************************************************************
    * 
-   * Space management
+   * Collection
+   */
+
+
+  /**
+   * Perform a (global) collection phase.
+   * 
+   * @param phaseId Collection phase to execute.
+   */
+  public void collectionPhase(int phaseId) throws InlinePragma {
+   
+    if (phaseId == PREPARE) {
+      rcTrace.prepare();
+      return;
+    }
+    if (phaseId == RELEASE) {
+      rcTrace.release();
+      previousMetaDataPages = metaDataSpace.reservedPages();
+      return;
+    }
+
+    if (!cycleDetector().collectionPhase(phaseId)) {
+      super.collectionPhase(phaseId);
+    }
+  }
+
+  /*****************************************************************************
+   * 
+   * Accounting
    */
 
   /**
    * Return the number of pages reserved for use given the pending
-   * allocation.
+   * allocation.  The superclass accounts for its spaces, we just
+   * augment this with the mark-sweep space's contribution.
    * 
    * @return The number of pages reserved given the pending
-   * allocation.
+   * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
-    return rcSpace.reservedPages() + super.getPagesUsed();
+    return (rcSpace.reservedPages() + super.getPagesUsed());
+  }
+
+  /****************************************************************************
+   * 
+   * Miscellaneous
+   */
+
+  /**
+   * Determine if an object is in a reference counted space.
+   * 
+   * @param object The object to check
+   * @return True if the object is in a reference counted space.
+   */
+  public static final boolean isRCObject(ObjectReference object) {
+    return !object.isNull() && !Space.isInSpace(VM_SPACE, object);  
   }
 
   /**
-   * @return the active PlanLocal as an RCBaseLocal
+   * Free a reference counted object.
+   * 
+   * @param object The object to free.
    */
-  // FIXME This is a consequence of zero collector/mutator separation in RC...
-  // public static final RCBaseCollector collector() {
-  // return ((RCBaseCollector)ActivePlan.collector());
-  // }
-  public static final RCBaseMutator collector() {
-    return ((RCBaseMutator) VM.activePlan.mutator());
+  public static final void free(ObjectReference object) {
+    if (VM.VERIFY_ASSERTIONS) {
+    	VM.assertions._assert(isRCObject(object));
+    }
+    
+    if (Space.isInSpace(REF_COUNT, object)) {
+      ExplicitFreeListLocal.free(object);
+    } else if (Space.isInSpace(LOS, object)){
+      ExplicitLargeObjectLocal.free(loSpace, object);
+    }
+  }
+  
+  /** @return The active cycle detector instance */
+  public final CD cycleDetector() throws InlinePragma {
+    switch (RCBase.CYCLE_DETECTOR) {
+    case RCBase.NO_CYCLE_DETECTOR:
+      return nullCD;
+    case RCBase.TRIAL_DELETION:
+      return trialDeletionCD;
+    }
+    
+    VM.assertions.fail("No cycle detector instance found.");
+    return null;
   }
 }
