@@ -6,6 +6,8 @@
  *
  * (C) Copyright Richard Jones, 2005-6
  * Computing Laboratory, University of Kent at Canterbury
+ *
+ * $Id$
  */
 package com.ibm.JikesRVM.mm.mmtk.gcspy;
 
