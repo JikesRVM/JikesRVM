@@ -17,7 +17,7 @@ BENCH_HOME=$(JAL_ROOT)/testing/tests/javaagent
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=150
 TIME_LIMIT=300
-AGENT=Agent1.jar
+AGENT=$(WORKING)/cp/Agent1.jar
 BENCH_JDK_ARGS=-javaagent:$(AGENT)="Option1"
 BENCH_RVM_ARGS=$(BENCH_JDK_ARGS)
 
@@ -28,7 +28,7 @@ TESTS=TestAgent
 sanity:		$(TESTS)
 	$(MAKE) do-sanity-finish
 
-Agent1.jar: Agent1.class
+$(WORKING)/cp/Agent1.jar: Agent1.class
 	$(JAR) cfm $@ $(BENCH_SOURCE_PATH)/MANIFEST.MF -C $(WORKING)/cp Agent1.class
 
 $(TESTS): $(AGENT)

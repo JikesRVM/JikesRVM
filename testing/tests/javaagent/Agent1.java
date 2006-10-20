@@ -1,6 +1,19 @@
+/*
+ * This file is part of Jikes RVM (http://jikesrvm.sourceforge.net).
+ * The Jikes RVM project is distributed under the Common Public License (CPL).
+ * A copy of the license is included in the distribution, and is also
+ * available at http://www.opensource.org/licenses/cpl1.0.php
+ *
+ * (C) Copyright Elias Naur 2006
+ * 
+ * $Id$
+ */
 import java.lang.instrument.*;
 import java.security.ProtectionDomain;
 
+/**
+ * @author Elias Naur
+ */
 public class Agent1 implements ClassFileTransformer {
 	public static void premain(String args, Instrumentation instrumentation) {
 		System.out.println("Running premain with args: " + args);

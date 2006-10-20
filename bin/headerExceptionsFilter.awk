@@ -42,6 +42,7 @@
 /\/testing\/harness\/tests\/pseudojbb\/pseudojbb/ {next}
 /\/testing\/harness\/tests\/pseudojbb\/props/ {next}
 /\/testing\/harness\/tests\/mauve\/mauve-jikesrvm/ {next}
+/\/testing\/harness\/tests\/javaagent\/MANIFSET.MF/ {next}
 
 # actually has the right headers, but utf8 characters break the checkers
 /\/testing\/harness\/tests\/utf8\/utf8test.java/ {next}
