@@ -78,11 +78,6 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
    * @param primary perform any single-threaded local activities.
    */
   public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == SS.PREPARE) {
-      super.collectionPhase(phaseId, primary);
-      return;
-    }
-
     if (phaseId == GCTrace.START_CLOSURE) {
       inducedTrace.startTrace();
       return;
@@ -106,12 +101,10 @@ public class GCTraceCollector extends SSCollector implements Uninterruptible {
         ((phaseId != StopTheWorld.SOFT_REFS) &&
          (phaseId != StopTheWorld.WEAK_REFS) &&
          (phaseId != StopTheWorld.PHANTOM_REFS) &&
-         (phaseId != StopTheWorld.FORWARD_REFS) &&
-         (phaseId != StopTheWorld.FORWARD_FINALIZABLE) &&
-         (phaseId != StopTheWorld.FINALIZABLE))) {
+         (phaseId != StopTheWorld.FINALIZABLE) &&
+         (phaseId != SS.PREPARE))) {
       // Delegate up.
       super.collectionPhase(phaseId, primary);
-      return;
     }
   }
 

@@ -14,6 +14,7 @@ package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.semispace.SSMutator;
 import org.mmtk.plan.semispace.*;
+import org.mmtk.plan.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.VM;
 
@@ -153,15 +154,11 @@ public class GCTraceMutator extends SSMutator implements Uninterruptible {
    * @param primary perform any single-threaded local activities.
    */
   public void collectionPhase(int phaseId, boolean primary) {
-    if (phaseId == SS.PREPARE_MUTATOR) {
-      if (!GCTrace.traceInducedGC) {
-        // rebind the semispace bump pointer to the appropriate semispace.
-        ss.rebind(SS.toSpace());
-      }
+    if (!GCTrace.traceInducedGC ||
+        (phaseId != StopTheWorld.PREPARE_MUTATOR) &&
+        (phaseId != StopTheWorld.RELEASE_MUTATOR)) {
+      // Delegate up.
       super.collectionPhase(phaseId, primary);
-      return;
     }
-
-    super.collectionPhase(phaseId, primary);
   }
 }

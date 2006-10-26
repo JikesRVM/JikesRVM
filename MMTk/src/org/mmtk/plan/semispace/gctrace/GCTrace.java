@@ -96,11 +96,11 @@ public class GCTrace extends SS implements Uninterruptible {
    */
 
   /* Spaces */
-  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
-
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, META_DATA_MB<<2);
   public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */
+  public static boolean lastGCWasTracing = false; // True when previous GC was for tracing
   public static boolean traceInducedGC = false; // True if trace triggered GC
   public static boolean deathScan = false;
   public static boolean finalDead = false;
@@ -190,6 +190,9 @@ public class GCTrace extends SS implements Uninterruptible {
    */
 
   public void collectionPhase(int phaseId) {
+    if (phaseId == PREPARE) {
+      lastGCWasTracing = traceInducedGC;
+    }
     if (phaseId == RELEASE) {
       if (traceInducedGC) {
         /* Clean up following a trace-induced scan */
@@ -223,7 +226,7 @@ public class GCTrace extends SS implements Uninterruptible {
    *         their failure to return memory isn't cause for concern.
    */
   public boolean isLastGCFull() {
-    return !traceInducedGC;
+    return !lastGCWasTracing;
   }
 
   /**

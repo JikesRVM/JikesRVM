@@ -226,9 +226,6 @@ public final class TraceGenerator
   public static final void traceAlloc(boolean isImmortal, ObjectReference ref,
       ObjectReference typeRef, int bytes)
       throws LogicallyUninterruptiblePragma, NoInlinePragma {
-    /* Assert that this isn't the result of tracing */
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!traceBusy);
-
     boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized()
         && !Plan.gcInProgress();
     /* Test if it is time/possible for an exact allocation. */
@@ -242,6 +239,24 @@ public final class TraceGenerator
     }
     /* Add the allocation into the trace. */
     traceBusy = true;
+    /* When legally permissible, add the record to the trace buffer */
+    if (MERLIN_ANALYSIS) {
+       Address fp = (TraceBuffer.OMIT_ALLOCS) ? Address.zero() : VM.traceInterface.skipOwnFramesAndDump(typeRef);
+
+       if (isImmortal && allocType.EQ(TRACE_EXACT_ALLOC))
+         trace.push(TRACE_EXACT_IMMORTAL_ALLOC);
+       else if (isImmortal)
+         trace.push(TRACE_IMMORTAL_ALLOC);
+       else
+         trace.push(allocType);
+       trace.push(VM.traceInterface.getOID(ref));
+       trace.push(Word.fromInt(bytes - VM.traceInterface.getHeaderSize()));
+       trace.push(fp.toWord());
+       trace.push(Word.fromInt(0 /* VM_Magic.getThreadId() */));
+       trace.push(TRACE_TIB_SET);
+       trace.push(VM.traceInterface.getOID(ref));
+       trace.push(VM.traceInterface.getOID(typeRef));
+    }
     /* Perform the necessary work for death times. */
     if (allocType.EQ(TRACE_EXACT_ALLOC)) {
       if (MERLIN_ANALYSIS) {
@@ -253,24 +268,26 @@ public final class TraceGenerator
         lastGC = VM.traceInterface.getOID(ref);
       }
     }
-    Address fp = VM.traceInterface.skipOwnFramesAndDump(typeRef);
-    if (isImmortal && allocType.EQ(TRACE_EXACT_ALLOC))
-      trace.push(TRACE_EXACT_IMMORTAL_ALLOC);
-    else if (isImmortal)
-      trace.push(TRACE_IMMORTAL_ALLOC);
-    else
-      trace.push(allocType);
-    trace.push(VM.traceInterface.getOID(ref));
-    trace.push(Word.fromInt(bytes - VM.traceInterface.getHeaderSize()));
-    trace.push(fp.toWord());
-    trace.push(Word.fromInt(0 /* VM_Magic.getThreadId() */));
-    trace.push(TRACE_TIB_SET);
-    trace.push(VM.traceInterface.getOID(ref));
-    trace.push(VM.traceInterface.getOID(typeRef));
+    /* Add the allocation record to the buffer if we have not yet done so. */
+    if (!MERLIN_ANALYSIS) {
+       Address fp = (TraceBuffer.OMIT_ALLOCS) ? Address.zero() : VM.traceInterface.skipOwnFramesAndDump(typeRef);
+       if (isImmortal && allocType.EQ(TRACE_EXACT_ALLOC))
+         trace.push(TRACE_EXACT_IMMORTAL_ALLOC);
+       else if (isImmortal)
+         trace.push(TRACE_IMMORTAL_ALLOC);
+       else
+         trace.push(allocType);
+       trace.push(VM.traceInterface.getOID(ref));
+       trace.push(Word.fromInt(bytes - VM.traceInterface.getHeaderSize()));
+       trace.push(fp.toWord());
+       trace.push(Word.fromInt(0 /* VM_Magic.getThreadId() */));
+       trace.push(TRACE_TIB_SET);
+       trace.push(VM.traceInterface.getOID(ref));
+       trace.push(VM.traceInterface.getOID(typeRef));
+    }
     trace.process();
     traceBusy = false;
   }
-
 
   /***********************************************************************
    * 
@@ -300,7 +317,8 @@ public final class TraceGenerator
         }
       }
       /* Sort the objects on the worklist by their timestamp */
-      worklist.sort();
+      if (!worklist.isEmpty())
+        worklist.sort();
       /* Now compute the death times. */
       computeTransitiveClosure();
     }
@@ -372,23 +390,24 @@ public final class TraceGenerator
    * as the latest reaching death time to an object.
    */
   private static final void computeTransitiveClosure() {
-    /* The latest time an object can die. */
-    agePropagate = Word.max();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!worklist.isEmpty());
-    /* Process through the entire buffer. */
-    ObjectReference ref = worklist.pop();
-    while (!ref.isNull()) {
-      Word currentAge = VM.traceInterface.getDeathTime(ref);
-      /* This is a cheap and simple test to process objects only once. */
-      if (currentAge.LE(agePropagate)) {
-        /* Set the "new" dead age. */
-        agePropagate = currentAge;
-        /* Scan the object, pushing the survivors */
-        Scan.scanObject(getTraceLocal(), ref);
-      }
-      /* Get the next object to process */
-      ref = worklist.pop();
-    }
+     if (!worklist.isEmpty()) {
+       /* The latest time an object can die. */
+       agePropagate = Word.max();
+       /* Process through the entire buffer. */
+       ObjectReference ref = worklist.pop();
+       while (!ref.isNull()) {
+         Word currentAge = VM.traceInterface.getDeathTime(ref);
+         /* This is a cheap and simple test to process objects only once. */
+         if (currentAge.LE(agePropagate)) {
+           /* Set the "new" dead age. */
+           agePropagate = currentAge;
+           /* Scan the object, pushing the survivors */
+           Scan.scanObject(getTraceLocal(), ref);
+         }
+         /* Get the next object to process */
+         ref = worklist.pop();
+       }
+     }
   }
 
   private static final TraceLocal getTraceLocal() {
